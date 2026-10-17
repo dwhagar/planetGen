@@ -33,6 +33,10 @@ def star_label(star_type, yerkes_class):
         return MEMBER_KIND_LABELS[yerkes_class]
     if yerkes_class in ("D", "VII"):
         return "white dwarf", "white dwarfs"
+    if yerkes_class == "protostar":
+        return "protostar", "protostars"
+    if yerkes_class == "PMS":
+        return "pre-main-sequence star", "pre-main-sequence stars"
     if yerkes_class == "BH":
         return "black hole", "black holes"
     if yerkes_class == "NS":

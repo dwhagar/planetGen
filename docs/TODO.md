@@ -1263,7 +1263,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Scope after the review (2026-10-16 review): the gravity layer's data
   and drawing (zones, three modes, Lagrange points); its Menu entry, URL
   key and legend come from the layer registry.
-  Prerequisites: API.24, MAP.125, MAP.217. Related: MAP.167, MAP.131.
+  Prerequisites: API.24, MAP.125. Related: MAP.167, MAP.131.
 
 - [ ] **MAP.169 The System Map gravity layer: the orbital plane as a heat map with Lagrange points and Hill spheres**
   Done: the System Map has the same Gravity layer on the system's
@@ -1273,14 +1273,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Scope after the review (2026-10-16 review): the System Map's gravity
   data and Hill spheres only; it is the same registered layer on a
   second map.
-  Prerequisites: MAP.168, MAP.217, GEN.289. Related: MAP.167, GEN.109.
+  Prerequisites: MAP.168, GEN.289. Related: MAP.167, GEN.109.
 
 - [ ] **MAP.170 The Galaxy Map gravity layer: the galaxy potential and region aggregates, coarse and optional**
   Later (phase 3+): a coarse gravity layer on the Galaxy Map drawn from
   the galaxy's smooth potential (GEN.115) and the per-region mass
   aggregates (MAP.151), so the spiral arms, bulge and halo show as
   wells; only if the cost study (PERF.72) says it is cheap enough.
-  Prerequisites: MAP.168, MAP.217. Related: MAP.167.
+  Prerequisites: MAP.168. Related: MAP.167.
 
 - [ ] **MAP.171 The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit")**
   Boss (2026-10-10 21:38Z): "inject into the phenomena part of that, use
@@ -1626,7 +1626,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the disk finds the Magellanic Clouds where the data puts them, and
   nothing is drawn for the empty halo cells. Owner: Interface. Nebulae hosted by pre-placed stars show through the nebula
   items (MAP.172 to MAP.181) from their scatter rows (GEN.241).
-  Prerequisites: GEN.238, MAP.217.
+  Prerequisites: GEN.238.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **MAP.209 Opening a sector from the Galaxy Map flashes one view, reloads into another, and leaves the details panel empty (bug)**
@@ -1701,7 +1701,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Unchanged in scope; it passes a GEN.302 region and shows the count,
   and the outline of the sectors in view comes from Span (2026-10-16
   review).
-  Prerequisites: GEN.302, MAP.217. Related: ADM.57, NAV.45.
+  Prerequisites: GEN.302. Related: ADM.57, NAV.45.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
 - [ ] **MAP.213 Scene, maps and the JavaScript twin for trees: per-node zoom, log-radial overview and positions_at in JavaScript**
@@ -1756,30 +1756,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Scope after the review (2026-10-16 review): the admin page of moved
   objects and the ghost data; the "show ghosts" toggle is a registered
   layer.
-  Prerequisites: DB.57, MAP.217. Related: MAP.192.
-
-- [ ] **MAP.217 Map layer interface: one registry the Galaxy stage view, the Sector Map and the System Map share for a toggled layer (menu entry, modes, URL key, legend, picker layer, fade rule)**
-  Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
-  item for smaller chunks and shared work, 1:33 PM EDT: shared
-  foundations). Today every map wires its own layer controls (MAP.123's
-  kind toggles are written per map in galaxysector.js, sectorscene.js
-  and systemmap.js; mappick.js gives only the picker). Add
-  `static/maplayers.js`: a layer declares `{id, label, modes, urlKey,
-  legend, pickerLayer, fadedWithSectors, draw(scene)}`; the Menu, the
-  URL state, the legend block and the picker registration are produced
-  from the registry on all three maps, and a layer says whether it is
-  hidden by the blocker fade (MAP.149 `nearfield.js`; a course layer is
-  not, per MAP.121's note). Existing toggles move onto it only when
-  their map is touched, no sweep. Done: the module, one real layer
-  ported on each of the three maps (the existing per-kind toggle), the
-  URL round trip, and a browser test that a registered layer appears in
-  each Menu, keeps its URL key and draws its legend.
-  Prerequisites: none. Related: MAP.168, MAP.169, MAP.192, MAP.193,
-  MAP.212.
-  The label engine (map labels) registers as a layer kind when this
-  registry lands (2026-10-16).
-  Owner: Core 2 (Boss, 2026-10-16, 3:00 PM EDT: a global top blocker, 40
-  items wait on it), after the 8.1 phase 1 top 5.
+  Prerequisites: DB.57. Related: MAP.192.
 
 - [ ] **MAP.218 Galaxy Map density control: a readout for everyone, an editor for admins over any region, with preview, confirm and undo**
   Split from MAP.119 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -1896,6 +1873,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   toward the point under the cursor" double click is not built and
   belongs here. A second click within 350 ms and 8 px is now a double
   click, so clicking a selected object again to clear it needs a pause.
+  Core 2 note (2026-10-17, 7:17 AM EDT as the lane reported; the stack
+  of MAP.225, MAP.227 and MAP.228 is built and committed, one full gate
+  then three PRs in order): MAP.225's PR resolves only the wheel part
+  (zoom toward the point under the cursor). Not built there: the
+  column-density ray fallback, the clearance from the nearest pickable
+  thing and the half-way double click on empty space. When it merges,
+  the TODO thread splits those three into a new item and retires the
+  wheel part; until then this item stays open whole.
   Prerequisites: MAP.152. Related: MAP.146, MAP.199, MAP.125.
 
 - [ ] **MAP.227 The camera names its container: the header and the breadcrumb come from its position**
@@ -1912,6 +1897,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 2 (Boss, 2026-10-16, 2:43 PM EDT: after the 8.1 phase 1
   top 5, Core 2 takes the infinite zoom tree: MAP.146 and its subitems,
   then the label items).
+  Core 2 note (2026-10-17, 7:17 AM EDT as the lane reported): the
+  breadcrumb and the "In Sector ..." line follow the camera at the
+  stage's own size; they do not pick finer or coarser levels from the
+  distance.
   Prerequisites: MAP.226. Related: MAP.146, MAP.139.
 
 - [ ] **MAP.228 The camera in the address: the URL and bookmarks hold the camera's target, distance and orientation**
@@ -2348,7 +2337,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   draws one line through the route's stops with the ends named. Missing:
   the direct line drawn apart from the route, a fitted zoom, and any
   course inside a sector.
-  Prerequisites: NAV.21, NAV.22, NAV.23, MAP.217.
+  Prerequisites: NAV.21, NAV.22, NAV.23.
   Plan (2026-10-07): Boss (2026-10-07): "Plotted courses should appear
   on the galactic map and stay until cleared." See NAV.49.
 
@@ -2522,7 +2511,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Galaxy Map course (with NAV.20), with a legend entry; with
   `prefers-reduced-motion` it stays red without the pulse; it reads in
   both themes, and the route list also labels it in text so it isn't
-  shown by color alone. Prerequisites: UX.35, MAP.217.
+  shown by color alone. Prerequisites: UX.35.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
@@ -4484,64 +4473,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   line on this item.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **GEN.242 A pre-main-sequence state for young stars, so protostars can exist as real stars**
-  Step 11 of the whole-sphere train (design note section 5.10). The star
-  model has no pre-main-sequence state: `evolve_star` goes from the main
-  sequence on. Add one (age under 1 Myr for stars below 8 solar masses,
-  drawn from the IMF's low end for protostars), shown as such on the
-  star page and in the description layer (wording through the Interface
-  lane's document model, UX.105 and UX.108). Done: a star younger than
-  the limit comes out of `evolve_star` as a pre-main-sequence star with
-  its own radius, luminosity and type text, the older states are
-  unchanged, and the page says so. Owner: Core (2026-10-15). Decided
-  (Boss, 2026-10-15): the research note's recommendation stands: reach
-  262 kpc (65,535 shells), 96-bit object IDs, one rule set everywhere
-  with per-sector parameters, nothing generated unless asked, and an
-  asked sector always generated and saved.
-  Systems around protostars (design note section 5.12, answering Boss's
-  2026-10-15 question). A protostar is a state of an ordinary star, so
-  it gets an ordinary star system with no special path. No planets yet:
-  the planet draw already drops every non-belt body around a star
-  younger than `PLANET_MIN_STAR_AGE_GY` = 0.01 Gy (`system.py:1024`), so
-  belts are the most it keeps and nothing new is needed for that. Add a
-  `disk` descriptor on the star instead (class 0, I or II by age under
-  0.15, 0.5 and 3 Myr; mass 0.01 to 0.3 of the star, outer radius 10 to
-  300 AU), with no bodies in it. Companions come from the normal binary
-  machinery at the Perseus multiplicity: 0.57 for Class 0 and 0.23 for
-  Class I, higher than the field's 0.26 to 0.45. Done also means: a
-  protostar's system shows its disk and its companions, and holds no
-  planets.
-  Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and backscatters get
-  no systems, planets or moons, so bright stars, massive stars, neutron
-  stars, black holes and the other scattered objects are bare rows;
-  planets and moons are made only when a sector is being filled with
-  everything; a sector fill must represent every kind of object, and
-  when a fill meets a phenomenon that can have a system (or makes one
-  that can) it generates that system if the real-world probabilities
-  give it one; nebulae need stars and phenomena, not planets. For this
-  item: a protostar's disk, companions and belts come when its sector
-  fills; the scattered row carries none.
-  Catalogue (Boss 2026-10-15 6:08 PM EDT;
-  docs/design/multi-star-systems.md sections 13 to 16): the
-  circumstellar and circumbinary disk descriptor and the young
-  non-hierarchical groups of sections 13.1 and 13.5 build on this state
-  (GEN.273, GEN.275).
-  Finding (Core 2, 2026-10-15, #1705): the design note's
-  pre-main-sequence time 31 Myr x m^-2.5 gives 10 Gyr at 0.1 solar
-  masses and 1.2 Gyr at 0.2 (models: about 1 Gyr and a few hundred Myr).
-  GEN.261 capped it at 1 Gyr (KELVIN_HELMHOLTZ_MAX_YR in
-  generation/multistar.py); this item confirms or replaces the law.
-  Scope after the review (2026-10-16 review): The pre-main-sequence
-  state and the disk laws (class by age, mass and radius); it fills the
-  disk descriptor columns that the first child of GEN.129 adds, and does
-  not add them.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Prerequisites: GEN.235, DB.53. Related: GEN.241, UX.108.
-  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
-
 - [ ] **GEN.243 Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X**
   Step 13 of the whole-sphere train (design note section 5.11; GEN.113's
   Tier 2 item 3, never built because the star model has no W state). The
@@ -4655,7 +4586,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Scatter note (Core 3, 2026-10-16,
   docs/design/later-phenomena-scatter-rules.md (section 8)): fill-only
   attribute; it shares the `stars` disk columns with GEN.242.
-  Prerequisite: GEN.242.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.246 Luminous blue variables and hypergiants (later)**
@@ -4825,7 +4755,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
   replaces any earlier owner named above). Core 1 still owns every
   migration revision: ask it before adding a table or column.
-  Prerequisites: GEN.233, MAP.217. Related: GEN.113.
+  Prerequisites: GEN.233. Related: GEN.113.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.258 Protostars embedded in giant molecular clouds**
@@ -4843,7 +4773,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
   PM EDT, 2026-10-16; queue in the lane report); held until its blocker
   merges: GEN.242, GEN.320 (Core 3). Core 4 takes it when it unblocks.
-  Prerequisites: GEN.242, GEN.320. Related: GEN.242.
+  Prerequisites: GEN.320. Related: GEN.242.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.259 Intermediate-mass black hole share gives about 100,000 in the Galaxy against a handful of candidates (bug)**
@@ -5789,10 +5719,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.238, GEN.241, GEN.242, GEN.243, GEN.244, GEN.259,
+  Prerequisites: GEN.238, GEN.241, GEN.243, GEN.244, GEN.259,
   GEN.280, GEN.282, GEN.283, GEN.284, GEN.298, UX.116, TEST.159,
   TEST.160, GEN.447, GEN.448, GEN.449, GEN.450, TEST.196, GEN.463,
-  GEN.467, GEN.469, GEN.502, GEN.526, GEN.528.
+  GEN.467, GEN.469, GEN.502, GEN.526, GEN.528, GEN.529.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -6095,7 +6025,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.242. Related: GEN.241.
+  Prerequisites: none. Related: GEN.241.
 
 - [ ] **GEN.321 Emission regions D and E: the ionizing members of a young cluster in a Plummer sphere, cut by sector cube**
   Split from GEN.241 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -12468,11 +12398,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lanes verify citations before relying on them), the design note's
   yield table and open question 5 are updated with the measured values,
   and `planetgen plan --redo-scatters luminosity mass phenomena`
-  applies. Decision for Boss (relay as a card): derive the shares from
-  age and gas as above, or keep the stated 1% and 9% as a labelled
-  stand-in until the research is done. Owner: Core 3 (proposed, the
-  GEN.324 and GEN.240 work).
-  Prerequisites: GEN.369. Related: GEN.324, GEN.240, GEN.369, GEN.366,
+  applies. Decided (Boss, 2026-10-17, 7:54 AM EDT, card "How should
+  gas-rich satellites get young and intermediate stars?", tapped "Derive
+  from the law", the recommended option; relayed by the coordinator):
+  the shares are derived from each satellite's age history and gas, not
+  the stated 1% and 9% stand-in, which is dropped. Owner: Core 3
+  (proposed, the GEN.324 and GEN.240 work). The shares are a function of
+  each satellite's age range and gas, so the existing table gives a
+  first answer now and GEN.369's calculated satellites re-derive it;
+  GEN.369 is related, not a blocker.
+  Prerequisites: none. Related: GEN.324, GEN.240, GEN.369, GEN.366,
   GEN.319.
 
 - [ ] **GEN.527 The second star of a wide pair in a saved runaway system loads back 0.4 m/s off the system's velocity: find the cause instead of loosening the test (bug)**
@@ -12506,8 +12441,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Ia share and the old-star share profile fields and had the profile's
   kind factors read them; two parts of its Done list are not met. (1) A
   Magellanic cell can show every class: it cannot until the satellites
-  have young and intermediate populations (GEN.526, waiting on Boss's
-  card), so the Clouds still lack the young-star classes. (2) The
+  have young and intermediate populations (GEN.526, decided by Boss at
+  7:54 AM EDT: derived from age and gas), so the Clouds still lack the
+  young-star classes until it merges. (2) The
   scatter's planetary nebulae are not yet weighted by the old share (the
   profile's factor is), so the stored scatter rows still use the old
   rate; that changes stored values, so it is a generator epoch change
@@ -12521,6 +12457,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rule and `planetgen plan --redo-scatters phenomena` apply. Owner: Core
   3 (proposed, GEN.319's author).
   Prerequisites: GEN.526. Related: GEN.319, GEN.526, GEN.324, GEN.322.
+
+- [ ] **GEN.529 The pre-main-sequence track takes its Hayashi temperature, birthline radius and energy factor from a sourced table, and the state reaches stars still contracting after 10 Myr**
+  Residual of GEN.242 (merged #2009, 7:58 AM EDT as Core 3 reported,
+  generator epoch 9), filed by the TODO thread from Core 3's finding.
+  Three constants in `tuning.py` are marked [I] (inferred from
+  remembered tracks, not looked up): the Hayashi temperature (4,300 K at
+  1 solar mass, slope 0.17), the birthline radius (2.5 solar radii at 1
+  solar mass, mass to the 1/3) and
+  `PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR` = 3.5, which is set to one
+  remembered anchor (1 solar mass reaches the main sequence at about 40
+  Myr; the derived time alone gives 12 Myr). Baraffe et al. 2015
+  (arXiv:1503.04107) opens, but the paper has no tables; a table is
+  needed from the Baraffe 2015 CDS tracks or Siess 2000, giving the
+  zero-age main sequence age and the early luminosity and temperature by
+  mass. The Perseus multiplicity fractions (0.57 Class 0, 0.23 Class I)
+  are verified against the abstract of arXiv:1601.00692. Known
+  simplification: the state is drawn only under 10 Myr, so a 0.2 solar
+  mass star still shrinking at 100 Myr is drawn on the main sequence.
+  Not modelled: protostar accretion luminosity. Do: a lane fetches and
+  checks the table (citations verified before use; research on Boss's
+  list, Boss researches on request if the table is not reachable), the
+  three constants are replaced by values read from it with the source
+  named, the 40 Myr anchor is dropped, and the state extends past 10 Myr
+  for the low-mass stars the table says are still contracting; the
+  stored star rows change, so it is a generator epoch change joined to
+  the one rescatter. Done: the three constants and the energy factor are
+  gone or sourced (no [I]), a test compares the model's zero-age main
+  sequence age and early luminosity and temperature with the table for
+  at least five masses, the low-mass state follows the table past 10
+  Myr, and the epoch rule applies. Owner: Core 3 (proposed, GEN.242's
+  author).
+  Prerequisites: none. Related: GEN.242, GEN.407, GEN.502, GEN.258.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -14575,7 +14543,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   registered predicate, the marks, and a test that the plan engine
   refuses a change to a locked aspect (the regeneration, rearrangement
   and density items each test their own).
-  Prerequisites: DB.37, ADM.62, ADM.58, MAP.217. Related: ADM.57.
+  Prerequisites: DB.37, ADM.62, ADM.58. Related: ADM.57.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
 - [ ] **ADM.66 Plan approval screen: every operation with its before and after, approve, reject one, or cancel**
@@ -14604,7 +14572,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   changed, added and removed bodies marked, and the sector view with
   moved systems drawn from old to new position. Done: both views on the
   approval screen with a browser test.
-  Prerequisites: ADM.52, ADM.66, MAP.217. Related: ADM.57, ADM.52.
+  Prerequisites: ADM.52, ADM.66. Related: ADM.57, ADM.52.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
 - [ ] **ADM.68 Plan history: every plan with who asked, approved, applied and undid it, and an undo button**
@@ -15719,6 +15687,11 @@ clears each one.
   fetch is in flight, and the test counts an aborted request as a
   failure. TEST.219 (requests still running 8 s after the server stops)
   is the same kind of leftover.
+  Sighting (Core 3, 2026-10-17, 7:58 AM EDT as the lane reported,
+  GEN.242 gate, 6:36 to 7:56 AM EDT): the sector a11y flake failed again
+  in the full gate and passed alone. Fails on main: not checked.
+  Frequency: now 2 of 2 of Core 3's full gates (the GEN.319 gate was the
+  first).
   Prerequisites: none. Related: TEST.170, TEST.172.
 
 - [ ] **TEST.175 Edit everything end to end: the headline scenarios with approval and undo**

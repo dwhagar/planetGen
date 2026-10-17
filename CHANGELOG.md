@@ -2,6 +2,70 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1704] - 2026-10-17
+
+**Headline:** The pre-main-sequence state is merged and retired, and its inferred constants are filed for a sourced table.
+
+### Changed
+
+- GEN.242 (#2009, generator epoch 9) is retired: stars under 8 solar masses and under 10 Myr are protostars or pre-main-sequence stars with a disk descriptor, and the protostar's companion chance uses the Perseus fractions; GEN.320 no longer waits.
+- GEN.529 is filed for what it left: the Hayashi temperature, the birthline radius and the energy factor are inferred, not sourced, and the state stops at 10 Myr; it needs a Baraffe 2015 or Siess 2000 table and gates GEN.301.
+- TEST.174 gets another sighting (the sector accessibility flake in a second gate).
+
+TODO items resolved: GEN.242 / Added: GEN.529
+
+## [8.0.1703] - 2026-10-17
+
+**Headline:** Stars under 10 Myr are protostars and pre-main-sequence stars with a disk, instead of main-sequence stars that happen to be young.
+
+### Added
+- **The pre-main-sequence state (GEN.242).** A star under 8 solar masses and under 10 Myr is a Class 0 or I protostar (under 0.5 Myr) or a pre-main-sequence star, with luminosity, temperature and radius from a contraction track worked out from the energy it releases (a solar mass reaches the main sequence in about 40 Myr, 0.1 solar masses in about 0.9 Gyr). The star page names the stage ("Class I Protostar", "Pre-Main-Sequence Star") and says the star is still contracting.
+- **The disk descriptor.** A young star holds a Class 0, I or II disk (age under 0.15, 0.5 and 3 Myr; none after) of 0.01 to 0.3 of its mass, from the dust sublimation radius out to 10 to 300 AU, with no bodies in it. It is stored in `stars.disk_kind`, `disk_mass_solar`, `disk_inner_au` and `disk_outer_au` and shown on the star page.
+- **Companions of protostars.** A Class 0 protostar has a companion in 57% of systems and a Class I protostar in 23% (the Perseus survey), in place of the field's share by spectral class.
+
+### Changed
+- The companions of a young system (`multistar`) take their stage and radius from the same track; the old `31 Myr x m^-2.5` law is gone (it gave 10 Gyr at 0.1 solar masses).
+- A star of 8 solar masses or more is never a protostar: it is on the main sequence by the time it shows.
+- A young star counts as saturated in X-rays, and has no planets inside the engulfment radius of a giant.
+
+generation-output: changed
+
+TODO items resolved: GEN.242. Added: none.
+
+## [8.0.1702] - 2026-10-17
+
+**Headline:** The satellites' young and intermediate shares are decided: derived from each satellite's age history and gas, not a typed 1% and 9%.
+
+### Changed
+
+- GEN.526 records Boss's decision (7:54 AM EDT, "Derive from the law"); it no longer waits on GEN.369, which re-derives the shares when it calculates the satellites.
+- The design note's open question 5 and the Magellanic caveat say the stand-in is dropped; GEN.528 notes that its Magellanic-cell part waits only on GEN.526 merging.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1701] - 2026-10-17
+
+**Headline:** The map layer registry is merged and retired, which frees the layer items that waited on it.
+
+### Changed
+
+- MAP.217 (#2006) is retired: one registry that the Galaxy stage view, the Sector Map and the System Map share for a toggled layer; the items that listed it as a prerequisite no longer wait.
+- MAP.225 and MAP.227 carry Core 2's notes on what their coming PRs do not cover (the column-density ray fallback, clearance and the half-way double click; the trail at the stage's own size).
+
+TODO items resolved: MAP.217 / Added: none
+
+## [8.0.1700] - 2026-10-17
+
+**Headline:** The three maps share one layer registry, so a map's layers have one menu, one set of URL keys and one legend.
+
+### Changed
+- New `maplayers.js`: a layer (id, label, modes, group, default on or off, URL key for hiding and for showing, legend line, picker layer, availability, title) is registered once, and the registry gives the menu buttons, the `hide=`/`show=` URL keys, the legend block and the blocker fade for it. The Galaxy and Sector stage view registers its sector kinds as layers; the System Map uses it for its own (course, facilities and the rest); the 3D galaxy map has the legend block (`galaxymap3d-layer-legend`). A kind absent from a sector is left out of the menu but keeps its URL entry.
+
+### Added
+- Tests: the registry in `maplayers.test.mjs` (16), the System Map layer menu, and a browser test that a registered Sector Map layer has a menu button, a URL key and a legend line.
+
+TODO items resolved: MAP.217 / Added: none
+
 ## [8.0.1699] - 2026-10-17
 
 **Headline:** A page cache that never trims its no-database entries is filed, with the reproducer checked on main.

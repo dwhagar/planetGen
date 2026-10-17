@@ -35,6 +35,8 @@ def _category(state, rng_letter):
         return "giant"
     if yerkes == "VII":
         return "white dwarf"
+    if yerkes in ("PMS", "protostar"):
+        return "pre-main-sequence"
     return "supergiant"
 
 
@@ -63,6 +65,7 @@ EXPECTED_SHARES = [
     ("white dwarf", 4.0, 7.0),
     ("subgiant", 0.15, 0.6),
     ("giant", 0.12, 0.5),
+    ("pre-main-sequence", 0.02, 0.2),
 ]
 
 
@@ -90,7 +93,7 @@ def test_every_state_is_in_its_own_phase(population):
     _, states = population
     for mass, age, state in states:
         t_ms = se.main_sequence_lifetime_gy(mass)
-        if state["yerkes_class"] == "V":
+        if state["yerkes_class"] in ("V", "PMS", "protostar"):
             assert age < t_ms
         else:
             assert age >= t_ms
@@ -132,7 +135,8 @@ def test_spectral_letter_from_temperature(letter_temperature):
 def test_random_stars_are_self_consistent():
     for _ in range(300):
         star = Star(SystemConfig())
-        assert STAR_TYPE_PATTERN.fullmatch(star.type.split()[0])
+        assert (STAR_TYPE_PATTERN.fullmatch(star.type.split()[0])
+                or star.yerkes_class in ("PMS", "protostar"))  # GEN.242: a contracting star has no numeral
         assert star.initial_mass_sol is not None
         assert 0 <= star.age < star.phase_end_age_gy
         if star.yerkes_class == "V":

@@ -155,7 +155,7 @@ NEVER_READ = {
     ("facilities", "mass_kg"): "read by the gravity sum (GEN.294 chain)",
     **{("sectors", column): "read by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
     **{("stars", column): "read by the DB.53 chain" for column in (
-        "decay_age_yr", "disk_inner_au", "disk_kind", "disk_mass_solar", "disk_outer_au", "epoch_unix", "flags",
+        "decay_age_yr", "epoch_unix", "flags",
         "offset_x_au", "offset_y_au", "offset_z_au", "parent_node_id", "state")},
 }
 """`(table, column)` the loaders and detail endpoints don't read, with why."""
