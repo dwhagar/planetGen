@@ -112,6 +112,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | API.26 | Bump API_VERSION for the shell, band and wedge sector address |  |  |
 | API.4 | API compatibility data in the docs | API.26 | Docs and version number. |
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code |  | Needs no user accounts (Boss 01:31Z). |
+| API.31 | Every outgoing web request sends a standard User-Agent with the software, its version and the API version |  | Needs nothing. Boss, 2026-10-17, 11:33 AM EDT. |
 | OPS.35 | A vendored-version lock file for the static libraries |  | Research: supply-chain record. |
 | UX.124 | One form-field look and error slot, piloted on the search, nearby and list-filter fields |  | Split from UX.49. |
 | UX.125 | The Generate page and the one-off system page on the field macro | UX.124 | Split from UX.49. |

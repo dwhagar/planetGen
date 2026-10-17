@@ -19,7 +19,7 @@ release is stamped.
 | GEN | GEN.532 |
 | PERF | PERF.112 |
 | DB | DB.72 |
-| API | API.31 |
+| API | API.32 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
 | TEST | TEST.220 |
@@ -515,6 +515,7 @@ Parents marked "new parent" had no old number of their own.
 | API.28 | Recipe schema and runner: a recipe fixes, ranges or randomises any aspect, and a library turns it into objects | none | open |
 | API.29 | Upload spool and unit states: received batches on disk, units assembled at seal, finalize as a queue job | none | open |
 | API.30 | generate.py --remote: the client driver for sector and galaxy runs | none | open |
+| API.31 | Every outgoing web request sends a standard User-Agent with the software, its version and the API version | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |

@@ -7081,6 +7081,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   environment is drawn from the halo mass and no environment concept is
   added now; the dwarf scatter stays the uniform 0.19 to 0.5 dex
   bracket.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): Graus 2019 (arXiv:1808.03654, an
+  inference of which paper is meant) and the FIRE age-gradient paper
+  (arXiv:1901.05487) are readable by a thread for the occupation width
+  (GR15), class B to class A.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
@@ -7442,6 +7449,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/gap-filling-plan.md section 8): GR6 thick-disc start in
   other galaxies: the halo formation epoch plus a 0 to 1 Gyr delay, a
   labelled placeholder (kind P), replaced when S0 histories are found.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): Haywood 2013 (arXiv:1305.4663), Bensby
+  2014 (arXiv:1309.2631) and Pinna 2019a and b (arXiv:1901.04310,
+  1904.01260) are readable by a thread, so the thick-disc start (GR6)
+  moves from class B to class A; the labelled placeholder stays until
+  they are read.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.387 Globular clusters, the nuclear cluster and the central black hole follow the family's spheroid and halo**
@@ -7831,6 +7846,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2 (Comeron 2011, 2012, 2014 tables): ship the plan's fills; a short
   read-only VizieR search runs first, and a result replaces the fill
   after this item merges.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): Aumer and Binney 2009 (arXiv:0905.2512,
+  GR4) is readable by a thread; the Courteau and Comeron VizieR search
+  runs first (decision 6).
   Prerequisites: none. Related: GEN.378, GEN.382, GEN.366, GEN.134.
 
 - [ ] **GEN.402 The central black hole mass and the nuclear cluster follow the bulge: the M-bulge and M-sigma relations replace the fixed ranges**
@@ -8447,6 +8468,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   run offline (fixtures built by the test or a cache of earlier
   downloads kept outside the repository, plan 6.5), and the data work of
   group X9 waits on that design, not on the licence read.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AD3: Myhre et al. 1998 (greenhouse
+  forcing law, GRL 25, 2715) is on list B.
+  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
+  downloads this item makes at build time send the standard User-Agent
+  of API.31 (one function builds it).
   Related: GEN.87, GEN.189, DB.68.
 
 - [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
@@ -8539,6 +8568,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   run offline (fixtures built by the test or a cache of earlier
   downloads kept outside the repository, plan 6.5), and the data work of
   group X9 waits on that design, not on the licence read.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AD3: Myhre et al. 1998 (greenhouse
+  forcing law, GRL 25, 2715) is on list B.
+  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
+  downloads this item makes at build time send the standard User-Agent
+  of API.31 (one function builds it).
 
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8789,6 +8826,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2005, Bates 1984, Bucholtz 1995) are on Boss's own list. Any table
   this item downloads is fetched at build time and not stored, and tests
   run offline (plan 6.5).
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): For AD4 the numbers are in Bogaard et
+  al. 1978 with King 1923 the origin of the factor (Boss fetches both,
+  with Sneep and Ubachs 2005, Bates 1984 and Bucholtz 1995 on the list);
+  AD1 is Karkoschka 1994 and Karkoschka and Tomasko 2010 (list B).
 
 - [ ] **GEN.423 Atmosphere density, scale height and the greenhouse multiplier follow from the mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -8851,6 +8895,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/gap-filling-plan.md section 8): AD2 Mars dust and Titan
   haze spectra. Any table this item downloads is fetched at build time
   and not stored, and tests run offline (plan 6.5).
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AD2 originals: Tomasko et al. 2008
+  (Titan haze) and Wolff et al. 2009 (Mars dust), list B.
 
 - [ ] **GEN.424 The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -9198,6 +9247,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   volatiles" default (the plan's rank 1 text is rewritten). BC4
   originals (Palme and O'Neill 2014, Rudnick and Gao 2014) are on Boss's
   own list; the labelled scaling stays until his files are read.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): Boss fetches Palme and O'Neill 2014 and
+  Rudnick and Gao 2014 (the 2014 second editions, Treatise on
+  Geochemistry); Lodders 2003 (BC1) has a free IOP PDF a thread can
+  retry.
 
 - [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -9430,6 +9486,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   BC13 ICRP 103 (on Boss's own list; the secondary-source tissue factors
   stay meanwhile). Any table this item downloads is fetched at build
   time and not stored, and tests run offline (plan 6.5).
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): BC13: the ICRP 103 free extract stops
+  before the wR and wT tables (section 4, pages 61 to 78); Hassler et
+  al. 2014 (Mars dose) is on list B.
 
 - [ ] **GEN.437 The composition model: how the element, compound, material and body tables link, and what is stored against derived**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9581,6 +9643,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests run offline (fixtures built by the test or a cache of earlier
   downloads kept outside the repository, plan 6.5), and the data work of
   group X9 waits on that design, not on the licence read.
+  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
+  downloads this item makes at build time send the standard User-Agent
+  of API.31 (one function builds it).
 
 - [ ] **GEN.440 Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9649,6 +9714,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests run offline (fixtures built by the test or a cache of earlier
   downloads kept outside the repository, plan 6.5), and the data work of
   group X9 waits on that design, not on the licence read.
+  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
+  downloads this item makes at build time send the standard User-Agent
+  of API.31 (one function builds it).
 
 - [ ] **GEN.441 Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9809,6 +9877,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/gap-filling-plan.md section 8): BC7 ice densities: Fray
   and Schmitt 2009 and Bierson and Nimmo 2019 are on Boss's own list;
   the bracket from NIST and PubChem stays meanwhile.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): Fray and Schmitt 2009 is on Boss's list;
+  Bierson and Nimmo 2019 has a free PubMed Central copy (PMC7058130) a
+  thread can fetch.
 
 - [ ] **GEN.443 Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9917,6 +9991,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   BC13 ICRP 103 (on Boss's own list; the secondary-source tissue factors
   stay meanwhile). Any table this item downloads is fetched at build
   time and not stored, and tests run offline (plan 6.5).
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): BC13: the ICRP 103 free extract stops
+  before the wR and wT tables (section 4, pages 61 to 78); Hassler et
+  al. 2014 (Mars dose) is on list B.
 
 - [ ] **GEN.445 Habitability, toxicity and the UV index read the derived radiation instead of the proxies**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -10037,6 +10117,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   group X2) is the gap GEN.301's own prerequisite line reaches through
   this item; it has one closure target (the Milky Way, Sharma and Hayden
   2020 Table 2) and is not yet tested on a second galaxy.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): Aumer and Binney 2009 (arXiv:0905.2512)
+  is a research-thread read for the age-velocity normalisation (GR4), no
+  need for Boss.
   Prerequisites: none. Related: GEN.103, GEN.373, GEN.406, GEN.269.
 
 - [ ] **GEN.448 Massive stars get binaries between 0.25 and 50 AU, so the metallicity trend reaches the separations where it was measured**
@@ -10627,6 +10713,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/gap-filling-plan.md section 8): BC7 ice densities: Fray
   and Schmitt 2009 and Bierson and Nimmo 2019 are on Boss's own list;
   the bracket from NIST and PubChem stays meanwhile.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): Fray and Schmitt 2009 is on Boss's list;
+  Bierson and Nimmo 2019 has a free PubMed Central copy (PMC7058130) a
+  thread can fetch.
   Prerequisites: none. Related: GEN.426, GEN.442, GEN.466, GEN.437.
 
 - [ ] **GEN.458 Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes**
@@ -10943,6 +11035,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a cache of earlier downloads kept outside the repository, plan 6.5),
   and the data work of group X9 waits on that design, not on the licence
   read.
+  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
+  downloads this item makes at build time send the standard User-Agent
+  of API.31 (one function builds it).
 
 - [ ] **GEN.464 The disk solids law reads the star's metal mass fraction Z over Z0, not 10 to the power of [Fe/H], which is off by 1.7 to 3 times in metal-poor alpha-enhanced stars**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -11118,6 +11213,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 29 of 54). This replaces any earlier owner line on this item.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): Lodders 2003 (Astrophys. J. 591, 1220,
+  doi 10.1086/375492) has a free IOP PDF; a thread retries it for the
+  condensation temperatures (BC1).
   Prerequisites: none. Related: GEN.426, GEN.428, GEN.458, GEN.465.
 
 - [ ] **GEN.469 The disk's star-formation history from the gas law: the local B-star share is 0.2 percent against the observed 0.04 percent**
@@ -11288,6 +11389,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/gap-filling-plan.md section 8): AD7 vapour pressure:
   Tabazadeh 1997 and Zeleznik 1991 are on Boss's own list; the nearest
   reachable fits stay meanwhile.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AD7: Tabazadeh, Toon, Clegg and Hamill
+  1997 is bronze open access at Wiley, Zeleznik 1991 and Ayers et al.
+  1980 are closed (Boss fetches).
 
 - [ ] **GEN.472 One gated possibility-table format and loader: every composition category is a table of possibilities with a class gate and a weight, drawn by the normalised weights of the rows that pass**
   Boss (2026-10-17, 1:40 AM EDT, typed in the project chat): "We have to
@@ -11856,6 +11963,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and Guimond 0.3 to 0.4 dex); source needs Deng 2020 Fig. 3 data,
   Hirschmann 2021 full text, a primary Na and K condensation-temperature
   source.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AT.a1 and a2: Hirschmann 2012 and
+  Gaillard and Scaillet 2014 and Gaillard et al. 2022 are on list B;
+  Sossi 2020 is already read.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.483 Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4)**
@@ -11958,6 +12071,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests run offline (fixtures built by the test or a cache of earlier
   downloads kept outside the repository, plan 6.5), and the data work of
   group X9 waits on that design, not on the licence read.
+  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
+  downloads this item makes at build time send the standard User-Agent
+  of API.31 (one function builds it).
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.486 Source the lava-world vapour regimes and the fraction of lava worlds that keep volatiles (AR7)**
@@ -12039,6 +12155,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (10.9 percent, 0.51 dex) and N=16 (2.5 percent, 0.65 dex) in the
   Robinson 2024 database (CC BY 4.0); row k7 (N2, O2 and the noble gases
   from 67P alone) needs a named source. Builder GEN.520, decision D6.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AT.k7: Mumma and Charnley 2011 (Annu.
+  Rev. Astron. Astrophys. 49, 471) is on list B.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.489 Source the white-dwarf and pulsar planet options (AR10)**
@@ -12127,6 +12248,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a labelled placeholder, log-uniform. AD7 originals (Tabazadeh and
   Zeleznik) are on Boss's own list; the nearest reachable fits stay
   meanwhile.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AD7: Tabazadeh 1997 is bronze open
+  access at Wiley, Zeleznik 1991 is closed (Boss fetches).
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.492 Source the ground radioisotope abundances by host and the potassium depletion by body class (AR13)**
@@ -12238,6 +12364,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed, with the composition chain).
   Prerequisites: GEN.472, GEN.457. Related: GEN.442, GEN.455, GEN.457,
   GEN.472, GEN.474.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AT.k7: Mumma and Charnley 2011 (Annu.
+  Rev. Astron. Astrophys. 49, 471) is on list B.
 
 - [ ] **GEN.496 The photolysis lifetime table: species lifetimes at 1 AU for the quiet Sun, the active-Sun factors and the species-specific stellar-spectrum ratios**
   Body composition research lane check of Boss's second research note
@@ -12268,6 +12399,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/gap-filling-plan.md section 8): AD8 photochemistry rates:
   JPL Publication 19-5 is on Boss's own list; the NIST kinetics values
   stay meanwhile.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AD8: JPL Publication 19-5 (Burkholder et
+  al. 2020) is on Boss's list.
 
 - [ ] **GEN.497 The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve**
   Body composition research lane check of Boss's second research note
@@ -12326,6 +12462,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the core-formation scale and rows a1 and a2 are the surface
   magma-ocean scale; add the conversion test between them to this item's
   tests.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AT.a1 and a2: Hirschmann 2012 and
+  Gaillard and Scaillet 2014 and Gaillard et al. 2022 are on list B;
+  Sossi 2020 is already read.
   Prerequisites: GEN.437. Related: GEN.451, DB.69, GEN.422, GEN.456.
 
 - [ ] **GEN.499 The lava-world vapour species and mean molar mass from temperature and composition, replacing the heavy-oxide range of 40 to 60 g/mol**
@@ -12356,6 +12498,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests run offline (fixtures built by the test or a cache of earlier
   downloads kept outside the repository, plan 6.5), and the data work of
   group X9 waits on that design, not on the licence read.
+  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
+  downloads this item makes at build time send the standard User-Agent
+  of API.31 (one function builds it).
 
 - [ ] **GEN.500 The licence audit: the licence column filled for every data source, and the permission list for NIST, JPL, Leiden, Bremen and Karkoschka**
   Body composition research lane check of Boss's second research note
@@ -12407,6 +12552,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/gap-filling-plan.md section 8): AD8 photochemistry rates:
   JPL Publication 19-5 is on Boss's own list; the NIST kinetics values
   stay meanwhile.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AD8: JPL Publication 19-5 (Burkholder et
+  al. 2020) is on Boss's list.
   Prerequisites: none. Related: GEN.496, GEN.455, GEN.500, GEN.410.
 
 - [ ] **GEN.502 The giant branch finishes the stellar tables check: the red giant time law as a function of core mass, the tip by metallicity and the branch duration against the observed horizontal-branch ratio**
@@ -13278,6 +13428,32 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   AD8 JPL Publication 19-5, "Chemical Kinetics and Photochemical Data
   for Use in Atmospheric Studies, Evaluation No. 19" (title from memory,
   not found in Crossref).
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): Boss fetches the nine papers of section
+  A (Stixrude and Lithgow-Bertelloni, Palme and O'Neill, Rudnick and
+  Gao, Fray and Schmitt, Tabazadeh, Zeleznik, JPL 19-5, ICRP 103, King)
+  and the rest of section B if he wants; the full list with Crossref
+  DOIs and free-copy links replaces the paper list of the earlier note.
+  Corrections to that note: Stixrude and Lithgow-Bertelloni has Part I
+  (GJI 162, 610, 2005, bronze open access) and Part II (GJI 184, 1180,
+  2011); Palme and O'Neill and Rudnick and Gao have 2014 second editions
+  (prefer them); the AD4 numbers are in Bogaard et al. 1978 (J. Chem.
+  Soc., Faraday Trans. 1, not Trans. 2) with King 1923 the origin of the
+  factor, so the item names both; Tabazadeh has four authors (Tabazadeh,
+  Toon, Clegg and Hamill, GRL 24, 1931); JPL 19-5 is Burkholder et al.
+  2020; the ICRP 103 free extract stops before the wR and wT tables
+  (section 4, pages 61 to 78). Not for Boss: these are on arXiv, so a
+  research thread reads them and R4, R6 and R15 move from class B to
+  class A: Aumer and Binney 2009 (0905.2512), Haywood 2013 (1305.4663),
+  Bensby 2014 (1309.2631), Pinna 2019a and b (1901.04310, 1904.01260),
+  Graus 2019 (1808.03654, an inference) and Graus's FIRE age-gradient
+  paper (1901.05487). Free copies exist for Lodders 2003 (IOP, BC1),
+  Bierson and Nimmo 2019 (PMC7058130) and Sossi 2020 (already read). The
+  VizieR table search for GR5 and GR3 started at 11:29 AM EDT as the
+  coordinator reported (reports file
+  vizier-courteau-comeron-2026-10-17.md).
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -15143,6 +15319,40 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   server fills the same sectors a local run does, survives a killed
   client and a restarted server, and a refused unit is reported.
   Prerequisites: API.5, API.12, API.13, API.14, API.8. Related: API.3.
+
+- [ ] **API.31 Every outgoing web request sends a standard User-Agent with the software, its version and the API version**
+  Boss (2026-10-17, 11:33 AM EDT, typed in the project chat): "all web
+  requests should have a browser UA string saying the software, its
+  version number, and the API version being used that fits industry
+  standards." Read as (default taken, the coordinator's reading): every
+  outgoing HTTP request the software makes sends a `User-Agent` in the
+  RFC 9110 form of product tokens with a comment, for example
+  `PlanetGen/8.0.1721 (+https://github.com/dwhagar/planetGen)
+  PlanetGen-API/1.4`, the first token the release from
+  `planetgen/_version.py`, the comment the project URL, the last token
+  the API version from `planetgen/api/version.py`. One function builds
+  the string (the only place that spells it), so a test checks the
+  format and that it follows both versions when they change; the
+  outgoing callers are `web/lib/apiclient.py`, `wiki/mediawiki.py`,
+  `wiki/wikijs.py`, the CLI tools that fetch, any later API client (the
+  remote generate client of API.30) and the data downloads at build time
+  of the gap-filling plan (GEN.439, GEN.440, GEN.463, GEN.413, GEN.414,
+  GEN.485, GEN.499 and the atmosphere data of group X9), which must use
+  it. Requests the browser's own front end makes cannot set
+  `User-Agent`, so the page JavaScript that calls the API sends the
+  existing API version header (`API_VERSION_HEADER`,
+  `X-PlanetGen-API-Version`) with the same API version instead, and the
+  server keeps logging both (API.15). Done: one function builds the user
+  agent from the two versions; every outgoing request path above uses
+  it; the front end's API calls carry the API version header; a test
+  pins the format (valid product tokens, release, URL comment, API
+  version), that no outgoing path builds its own string, and that a
+  version bump changes it; the API docs and the data-download design
+  (docs/design/gap-filling-plan.md 6.5) name it.
+  Owner: Core 2, proposed (the interface housekeeping line beside API.15
+  and API.26; not asked yet, the coordinator tells Core 2 when it
+  reaches the item).
+  Prerequisites: none. Related: API.5, API.15, API.30.
 
 ## ADM: Admin tools
 

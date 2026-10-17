@@ -437,21 +437,17 @@ Seven items needed a person or a data set; nothing else in the 57 lines waits on
 
 ### 8.1 The papers Boss fetches (item 5)
 
-Titles below come from the Crossref record unless marked. For each the stand-in stays until the file is in the shared folder and a thread reads it.
+The full list is [papers-to-fetch.md](papers-to-fetch.md): the nine papers Boss asked for first (section A there), the other papers the files could not read (B) and what is not needed (D), each with a Crossref citation and the places to try a free copy. Corrections to the first version of this table, from that list:
 
-| Gap | Paper | Where |
-|---|---|---|
-| BC3 | Stixrude and Lithgow-Bertelloni 2024, "Thermodynamics of mantle minerals III: the role of iron" (the parameter set the second-hand copy carries); the 2005 paper "Thermodynamics of mantle minerals I. Physical properties" is the base | Geophysical Journal International 237, 1699, doi 10.1093/gji/ggae126; 2005: doi 10.1111/j.1365-246X.2005.02642.x |
-| BC4 | Palme and O'Neill 2014, "Cosmochemical Estimates of Mantle Composition" | Treatise on Geochemistry, 2nd ed., doi 10.1016/b978-0-08-095975-7.00201-1 |
-| BC4 | Rudnick and Gao 2014, "Composition of the Continental Crust" | Treatise on Geochemistry, 2nd ed., doi 10.1016/b978-0-08-095975-7.00301-6 |
-| BC7, BC12 | Fray and Schmitt 2009, "Sublimation of ices of astrophysical interest: A bibliographic review" | Planetary and Space Science 57, 2053 to 2080, doi 10.1016/j.pss.2009.09.011 |
-| BC7 | Bierson and Nimmo 2019, "Using the density of Kuiper Belt Objects to constrain their composition and formation history" (full text; only the abstract was reached) | Icarus 326, 10, doi 10.1016/j.icarus.2019.01.027 (corrigendum doi 10.1016/j.icarus.2020.113955) |
-| BC13 | ICRP Publication 103, "The 2007 Recommendations of the International Commission on Radiological Protection" | Annals of the ICRP 37 (2 to 4), 2007; Crossref has no entry for the original, so this citation is not confirmed there |
-| AD4 | Bogaard, Buckingham and Pierens 1978, "Rayleigh scattering depolarization ratio and molecular polarizability anisotropy for gases" | Journal of the Chemical Society, Faraday Transactions 2, doi 10.1039/f19787403008 |
-| AD4 | Sneep and Ubachs 2005, "Direct measurement of the Rayleigh scattering cross section in various gases"; Bates 1984, "Rayleigh scattering by air"; Bucholtz 1995, Rayleigh-scattering calculations for the terrestrial atmosphere (title from the research note, not checked) | JQSRT 92, 293 to 310, doi 10.1016/j.jqsrt.2004.07.025; Planetary and Space Science 32, 785 to 790, doi 10.1016/0032-0633(84)90102-8 |
-| AD7 | Tabazadeh, Toon and Clegg 1997, "A new parameterization of H2SO4/H2O aerosol composition: Atmospheric implications" | Geophysical Research Letters, doi 10.1029/97GL01879 |
-| AD7 | Zeleznik 1991, "Thermodynamic Properties of the Aqueous Sulfuric Acid System to 350 K" | Journal of Physical and Chemical Reference Data, doi 10.1063/1.555899 |
-| AD8 | JPL Publication 19-5, "Chemical Kinetics and Photochemical Data for Use in Atmospheric Studies, Evaluation No. 19" (the evaluation named in the plan; title from memory, not found in Crossref) | NASA Jet Propulsion Laboratory |
+- BC3: Stixrude and Lithgow-Bertelloni has two parts, Part I (GJI 162, 610, 2005, doi 10.1111/j.1365-246x.2005.02642.x, bronze open access) and Part II (GJI 184, 1180, 2011, doi 10.1111/j.1365-246x.2010.04890.x); the 2024 paper III named earlier is what the second-hand copy carries.
+- BC4: Palme and O'Neill and Rudnick and Gao each have a 2014 second edition of the Treatise on Geochemistry (prefer it) and an earlier first edition.
+- BC7, BC12: Fray and Schmitt 2009 is unchanged; a HAL record exists. Bierson and Nimmo 2019 has a free author copy in PubMed Central (PMC7058130), which a thread can fetch itself.
+- BC13: the free extract of ICRP 103 stops before the wR and wT tables (section 4, pages 61 to 78), so those pages are the ones to fetch.
+- AD4: the numbers needed (depolarization of SO2 and H2S) are in Bogaard, Buckingham, Pierens and White 1978 (J. Chem. Soc., Faraday Trans. 1, 74, 3008, doi 10.1039/f19787403008), not in King 1923; King (Proc. R. Soc. A 104, 333, doi 10.1098/rspa.1923.0113) is the origin of the factor, so the item names both. Sneep and Ubachs 2005, Bates 1984 and Bucholtz 1995 (Appl. Opt. 34, 2765) stay on the list.
+- AD7: Tabazadeh, Toon, Clegg and Hamill 1997 (GRL 24, 1931, bronze open access at Wiley) and Zeleznik 1991 (JPCRD 20, 1157).
+- AD8: JPL Publication 19-5 is Burkholder et al. 2020, Evaluation No. 19.
+- Free copies that make some "refused" rows readable by a thread: Lodders 2003 (IOP bronze PDF, for BC1), Sossi 2020 (open access, already read).
+- On arXiv, so a research thread reads them and Boss need not: Aumer and Binney 2009 (0905.2512, GR4), Haywood 2013 (1305.4663) and Bensby 2014 (1309.2631) (GR6), Pinna 2019a and b (1901.04310, 1904.01260) (GR6), Graus 2019 (1808.03654, an inference) and Graus's FIRE age-gradient paper (1901.05487) (GR15). GR4, GR6 and GR15 therefore move from class B to class A in section 3.
 
 ## 9. Order of work
 
