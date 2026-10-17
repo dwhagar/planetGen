@@ -188,6 +188,30 @@ def test_a_configured_jobs_dir_is_left_alone(tmp_path):
     assert os.listdir(old) == ["20261001-010101-aaaa"]
 
 
+def test_the_old_galaxy_settings_folder_is_removed_once(tmp_path):
+    module = _deploy_paths_module()
+    jobs = tmp_path / "jobs"
+    (jobs / "galaxy-settings").mkdir(parents=True)
+    (jobs / "galaxy-settings" / "a.json").write_text("{}")
+    _job(jobs, "20261001-010101-aaaa", "succeeded")
+    lines = module.remove_galaxy_settings(str(jobs))
+    assert len(lines) == 1 and "galaxy-settings" in lines[0]
+    assert os.listdir(jobs) == ["20261001-010101-aaaa"]
+    assert module.remove_galaxy_settings(str(jobs)) == []  # nothing left to do
+
+
+def test_a_galaxy_settings_link_is_removed_not_followed(tmp_path):
+    module = _deploy_paths_module()
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    (elsewhere / "keep.txt").write_text("keep")
+    jobs = tmp_path / "jobs"
+    jobs.mkdir()
+    os.symlink(elsewhere, jobs / "galaxy-settings")
+    module.remove_galaxy_settings(str(jobs))
+    assert not (jobs / "galaxy-settings").exists() and (elsewhere / "keep.txt").exists()
+
+
 def test_create_cache_dir_moves_old_jobs_before_making_the_folder():
     code = _code_lines("create-cache-dir.sh")
     move = code.index('"$PYTHON" -I "$APACHE_DIR/deploy-paths.py" --move-old-jobs "$JOBS_DIR"')

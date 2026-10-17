@@ -1,5 +1,5 @@
 {
- "api_version": 3,
+ "api_version": 4,
  "routes": [
   "/api/admin/backups GET",
   "/api/admin/backups POST",
@@ -7,8 +7,6 @@
   "/api/admin/backups/<name>/download GET",
   "/api/admin/backups/<name>/restore POST",
   "/api/admin/duplicate-names GET",
-  "/api/admin/galaxy-settings GET",
-  "/api/admin/galaxy-settings/<name> GET",
   "/api/admin/generation-stats GET",
   "/api/admin/generation-stats/reset POST",
   "/api/admin/lockouts GET",

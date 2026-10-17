@@ -40,11 +40,12 @@ this API instead.
 
 Every `/api` answer carries the API version in the `X-PlanetGen-API-Version` header, and `/api/health` reports it as `api_version` (`src/planetgen/api/version.py`, API.22). A breaking change bumps it, the route snapshot `src/tests/fixtures/api_routes.json` moves with it, and it gets a line here.
 
+- **4** (ADM.50): `GET /api/admin/galaxy-settings` and `GET /api/admin/galaxy-settings/<name>` are gone with the galaxy settings files.
 - **3** (API.23, stage 2): stars, planets, moons, asteroid belts, comets and facilities are named by their object ID too, in the same way: `id`, `star_id`, `planet_id`, `moon_id`, `belt_id`, `comet_id`, `host_id` and `homeworld_planet_id` fields, `<kind>:<ID>` references (including the keys of `class-options` and the `around`/`parent` fields of a system scene), the section keys of `/api/systems/<id>/sections`, and the URLs (`/api/planets/<id>`, `/api/moons/<id>/class`, `/api/facilities/<id>`, ...). A facility's `host_id` (on `POST /api/facilities` and `GET /api/facilities/orbit`) is the host's ID: a sector's for `host_type` `space`. A row number is refused.
 - **2** (API.23, stage 1): sectors, systems and phenomena are named by their object ID, printed as `0008000000-4000000-000`, and not by their database row number. IDs appear in every `id`, `sector_id` and `ref` field of those answers, in the URLs (`/api/systems/<id>`, `/api/sectors/<id>`, `/api/phenomena/<type>/<id>`, `/api/nebulae/<id>/...`) and in `from`/`to`/`course` references such as `system:0008000000-4000000-000`. A row number is refused (404). A sector's ID is the hex designation of its grid address (shell, band and wedge bit-packed, e.g. `FE81000A2B`), or `(1 << 40) + id` when it was made by hand with no grid address.
 - **1**: the first numbered version.
 
-The sector grid changed to shells, bands and wedges on 2026-10-15 (the spherical switch). Every sector address in a request or an answer is now `shell`/`band`/`wedge` (`shell_index`/`band_index`/`wedge_index` in answers) where it was `ring`/`layer`/`slot` (`ring_index`/`layer_index`/`ring_slot_index`), and sector IDs were renumbered from the new designations. The API version was not raised for it and is still 3.
+The sector grid changed to shells, bands and wedges on 2026-10-15 (the spherical switch). Every sector address in a request or an answer is now `shell`/`band`/`wedge` (`shell_index`/`band_index`/`wedge_index` in answers) where it was `ring`/`layer`/`slot` (`ring_index`/`layer_index`/`ring_slot_index`), and sector IDs were renumbered from the new designations. The API version was not raised for it.
 
 ## Endpoints
 
@@ -297,7 +298,10 @@ connectivity to that specific schema rather than the default one.
   `ambient_density_cm3`, `temperature_k`, `centre_distance_pc`) or `null`.
   It also carries `unresolved` (GEN.281): `null` for a cell filled whole, else what a cell above the cell star
   ceiling leaves unresolved (`ceiling_systems`, `luminosity_cap_sol`, `expected_systems`, `unresolved_systems`,
-  `unresolved_mass_solar`), worked out from its address and never stored.
+  `unresolved_mass_solar`), worked out from its address and never stored. It also carries `scatter_tier` (GEN.333): `null`
+  outside the galaxy or before a scatter ran, else the tier of the sector's band (`core`, `baseline` or `halo`) and the
+  limits the galaxy scatter drew its stars at there (`min_luminosity_sol`, `mass_limit_sol`, the latter `null` when the
+  scatter had no mass pass).
 - `GET /api/galaxy/cell?shell=<i>&band=<j>&wedge=<k>` (or `?x=&y=&z=`,
   parsecs, for the cell holding that point) — one cell of the spherical
   sector grid, whether or not anything was generated there
@@ -744,12 +748,6 @@ forced credential change. They back the admin stats page
 - `POST /api/admin/generation-stats/reset` — deletes every recorded generation
   rate (PERF.32); the next run records afresh and estimates from defaults until
   it has. Returns `{"deleted": n}`; audited as `generation_stats.reset`.
-- `GET /api/admin/galaxy-settings` and `GET /api/admin/galaxy-settings/<name>` —
-  the galaxy's creation-settings files (ADM.18), newest first: `{"items":
-  [{"name", "seed", "version_key", "created_at", "size", "current"}]}`
-  (`current` is true for the newest file of each seed; the others are dated
-  backups), and one file's JSON (`404` for a name that is not a settings file).
-  ADM.50 removes the settings files and these two routes.
 - `GET /api/admin/naming-key[?db=]` — the galaxy's naming key (GEN.70):
   `{"database", "key", "codec_version", "current_codec_version",
   "drawn_at", "changed_at", "changed_by"}`; `key` is `null` before the
