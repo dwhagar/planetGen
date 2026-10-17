@@ -14109,8 +14109,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against Vc by Comeron 2018 (newer than Yoachim and Dalcanton 2006, two verified
   sources: newest wins), not one of the six widen-and-keep answers.
   Citations: the pitch-angle paper is Yu and Ho 2019 (ApJ 871, 194), and
-  'Hart 2017' must name which of MNRAS 468, 1850 or MNRAS 472, 2263
-  holds the pitch and bulge result.
+  'Hart 2017' is MNRAS 472, 2263
+  (arXiv:1708.04628, arm shares and pitch angles; Core 1 checked it at
+  1:19 PM EDT as the lane reported), not MNRAS 468, 1850 (star formation
+  against arm number). It holds no bulge result: the bulge share cites
+  Graham and Worley 2008 and Erwin 2005 for the bar.
   Prerequisites: none. Related: GEN.401, GEN.402, GEN.531.
 
 - [ ] **GEN.533 The galaxy shape draws bar presence, axis ratios and angle from the seed, rebuilt each time and not stored in a column**
