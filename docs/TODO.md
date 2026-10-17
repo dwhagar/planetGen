@@ -12523,6 +12523,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.369. Related: GEN.324, GEN.240, GEN.369, GEN.366,
   GEN.319.
 
+- [ ] **GEN.527 The second star of a wide pair in a saved runaway system loads back 0.4 m/s off the system's velocity: find the cause instead of loosening the test (bug)**
+  Found by Core 1 (2026-10-17, 5:19 AM EDT as the lane reported, #1997),
+  relayed by the coordinator, filed by the TODO thread.
+  `src/tests/test_system_velocity.py::test_a_saved_runaway_system_loads_back_with_the_velocity_it_had`
+  failed 1 time in about 25 runs (a random system, only with a wide
+  pair): since GEN.336 the second star of a wide pair takes the system's
+  rotation speed, which is 0.4 m/s of 57 km/s off (7.5e-6 relative
+  against a tolerance of 1e-6). Before the stack it failed 0 of 100.
+  #1997 widened the test's tolerance to 1e-4 (0 of 120 failures), which
+  hides the difference rather than explaining it. Do: find why the
+  second star's velocity is not the saved system velocity plus its
+  orbital motion (the rotation speed taken for the second star, an order
+  of operations in the load path, or float rounding in the orbit
+  conversion) and fix the cause so the tolerance can return to 1e-6, or
+  state in the test why 1e-4 is the right bound with the cause named.
+  Done: a loaded wide pair's stars carry the velocity the saved system
+  had to the stated tolerance, the test holds its original bound (or a
+  bound whose reason is written in the test) over 200 random systems,
+  and the cause is recorded on this item. Fails on main: yes (flaky,
+  about 1 in 25). Reproducer: `python -m pytest -q
+  src/tests/test_system_velocity.py --count 100` or a loop of the test
+  until it fails. Owner: Core 1 (proposed, its point-model stack changed
+  GEN.336's path).
+  Prerequisites: none. Related: GEN.336, TEST.193.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.20 Short-term caching through the work queue and API**
@@ -15925,75 +15950,6 @@ clears each one.
   plan tests and list the jobs directory.
   Prerequisites: none.
 
-- [ ] **TEST.193 A module fixture's `DROP DATABASE IF EXISTS` blocks for 853 s on a metadata lock that another connection holds, so a browser test hangs in teardown (bug)**
-  Found by Core 2 (2026-10-16, 5:04 PM EDT), filed by the TODO thread.
-  In the gate for PERF.88,
-  `src/tests/test_web_browser_sector_reach.py::test_no_scene_is_loaded_while_the_camera_is_far`
-  hung in teardown: the module fixture `site_db`
-  (`src/tests/test_web_a11y.py:275`) ran `DROP DATABASE IF EXISTS` and
-  waited 853 s on a metadata lock, in the gate's first run and again in
-  its retry. A connection left open by something (the same kind of lock
-  as the interstellar_comets one Boss hit on a migration) holds the
-  lock. Done: the fixture closes or kills the connections that hold the
-  database before the drop, or fails at once with the name of the holder
-  instead of waiting; the teardown never waits more than a few seconds;
-  and a test shows a held connection no longer stalls it. Fails on main:
-  not checked, the PERF.88 diff touches no test fixture. Frequency: once
-  in 3 gates. Reproducer: none; the same file passed alone (7 of 7)
-  right after. Related to TEST.190 (a failing session fixture makes
-  dependents wait their full timeout).
-  Core 2 reproduced it twice in a row (2026-10-16, 5:52 PM EDT, the
-  OPS.56 gate and its rerun alone): the holder is an idle connection
-  (state Sleep, database `planetgen_a11y_*`, the same MySQL) that stays
-  open while `DROP DATABASE planetgen_a11y_*` waits 853 s; the PERF.88
-  gate hit the same shape. Reproducer: run `scripts/test.py changed`
-  with the browser tests selected and read `show full processlist` in
-  mysql during the teardown.
-  Sighting (Core 2, 2026-10-16, 8:12 PM EDT, DB.18 gate: scripts/test.py
-  changed, 468 passed, 1 failed, 2 errors): three browser tests hung
-  about 15 minutes in setup or teardown:
-  test_web_browser_sector_open::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel,
-  test_web_browser_sector_reach::test_no_scene_is_loaded_while_the_camera_is_far
-  and test_web_browser_units::test_the_server_text_is_the_automatic_text
-  (passes alone). Fails on main: yes (the same two failed in the OPS.56
-  gate). Frequency: every full gate this evening, so it is no longer rare
-  and costs each lane about 15 minutes a gate; one root cause is likely.
-  Owner: Core 1 (Boss, 2026-10-16, 8:23 PM EDT, card "Core 1 next"): starts right after
-  its current stack and the GEN.372 audit merge, ahead of its bug phase.
-  TEST.193 and TEST.195 are likely one root cause, so Core 1 takes both together.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): TEST.195 folded in. Second symptom:
-  `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel`
-  timed out at 30 s fetching `/sector/<id>/galaxy` in a full gate run
-  with 2 browser workers (Core 2, 2026-10-16, 5:52 PM EDT) and passed
-  alone; the same sighting as the 8:12 PM EDT DB.18 gate. Likely one
-  root cause with the setup or teardown hang (Core 1 takes both); if the
-  metadata-lock fix does not stop this symptom, it is split back out.
-  Agreed by Bug Hunt (2026-10-17, 12:33 AM EDT as the lane reported).
-  Investigation record (Core 1, 2026-10-17, 12:59 AM EDT as the lane
-  reported): reproduced twice (12:32 and 12:38 AM EDT) with `pytest -m
-  browser -n 2` on test_web_browser_sector_open, _sector_reach and
-  _units, load average 5 to 8 from other lanes. The holder was a server
-  request thread of `/api/galaxy/tiles` (`galaxy_tiles_route`) still
-  running when the module fixture `site_db` dropped `planetgen_a11y_*`
-  (connection state 'Creating tmp table'; pooled checkouts held 4 to 6 s
-  under load; peak simultaneous checkouts 3, so the pool is not
-  exhausted; every tile piece is fast, at most 0.1 s, the request just
-  loops over many tiles). The old drop waited on that connection's lock
-  with no limit (853 s seen in gates). Fix (commit on claude/test193,
-  its gate started 12:56 AM EDT and widens to everything because
-  conftest.py and dbpool.py change): `tests/served.py` waits up to 8 s
-  for running requests at server stop, and `dbpool.drop_database` waits
-  at most 10 s and kills and names the holders. TEST.195's 30 s stall
-  could NOT be reproduced (three runs at 12:32, 12:38 and 12:49 AM EDT,
-  12 and 157 tests passing); the `/sector/<id>/galaxy` fetch is a
-  trivial redirect, so a stall there means the server thread was
-  starved. Core 1 removed that fetch from the tests (the designation is
-  computed in-process; the redirect stays tested in
-  test_web_sector_nav), so for TEST.195 the status is: fetch removed,
-  stall unreproduced, not cause found.
-  Prerequisites: none.
-
 - [ ] **TEST.194 `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug)**
   Found by the Settings lane (2026-10-16, 5:47 PM EDT), filed by the
   TODO thread.
@@ -16453,6 +16409,45 @@ clears each one.
   round-trip column of TEST.217), consistent with a 1 in 40 draw. Bug
   Hunt's `_placed_nebula(holds_ly=6)` fix is still the open fix.
   Prerequisites: none. Related: TEST.213, TEST.194, TEST.208.
+
+- [ ] **TEST.218 `test_first_control_connections_at_once` leaves 3 idle connections open on `planetgen_test_*` when its fixture ends: the test should close its own connections (bug)**
+  Found by Core 1 (2026-10-17, 5:19 AM EDT as the lane reported, #1997
+  gate), filed by the TODO thread.
+  `src/tests/test_db_schema_race.py::test_first_control_connections_at_once`
+  leaves 3 idle connections (state Sleep, not from a pool) on
+  `planetgen_test_*` when its fixture ends; the new drop warning of
+  TEST.193 names them and ends them, so nothing hangs, but the test
+  should close its own connections. Do: the test closes the connections
+  it opens (in a finally or a fixture finalizer), and the drop warning
+  no longer names it in a full run. Done: a full run of the file prints
+  no drop warning for it, and a test asserts no connection of the test's
+  own stays open at the fixture's end. Fails on main: yes (after #1997).
+  Frequency: every full run (the warning is in the gate log).
+  Reproducer: `python -m pytest -q src/tests/test_db_schema_race.py` and
+  read the drop warning. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.193, TEST.208.
+
+- [ ] **TEST.219 Browser pages still have 1 to 7 requests running 8 s after the server stops: find what keeps them busy and make it faster**
+  Found by Core 1 (2026-10-17, 5:19 AM EDT as the lane reported, #1997
+  gate), filed by the TODO thread. The new TEST.193 warnings list
+  browser test files whose pages still had 1 to 7 requests running 8 s
+  after the server stopped: test_web_generate_alignment 7,
+  test_web_browser_controls 7, others 1 to 2. A request that is still
+  running 8 s after its page closed is worth a look by whoever owns the
+  Generate and map pages; kind perf under load (load average 6 to 8 from
+  other lanes), not blocking, and the same shape as the
+  `/api/galaxy/tiles` request Core 1 found holding the lock behind
+  TEST.193 (every tile piece at most 0.1 s, the request loops over many
+  tiles). Do: find which routes the leftover requests are (the warning
+  names the files, not the routes), time them alone and under load, and
+  either stop the work when the client has gone or make the loop
+  cheaper. Done: the warnings no longer list those files in a full run,
+  or each remaining request is named with the reason it runs long. Fails
+  on main: yes. Frequency: every full run. Reproducer: run
+  `scripts/test.py changed` with the browser files selected and read the
+  TEST.193 warnings. Owner: none proposed (a Generate and map page
+  owner).
+  Prerequisites: none. Related: TEST.193, TEST.195, PERF.88.
 
 ## USR: User accounts
 
