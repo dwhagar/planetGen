@@ -13006,7 +13006,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in it replaces a placeholder until it is checked claim by claim
   against the paper (verified wins on a contradiction). The gap-filling
   thread will say how large the verification job is.
-  Gap-filling plan filed (2026-10-17, about 11:20 AM EDT;
+  Gap-filling plan filed (2026-10-17, about 11:16 AM EDT;
   docs/design/gap-filling-plan.md), sizing and answers. Gemini batch 1
   holds about 110 distinct claims, about 45 checkable; the plan checked
   20 of them: 8 agree with verified sources, 7 are contradicted by a
