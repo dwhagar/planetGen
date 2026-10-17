@@ -5364,9 +5364,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `galaxy/galactic_orbit.py`. The Hernquist, Miyamoto-Nagai and NFW
   module is GEN.338 (needs GEN.144), unbuilt and unowned, in 8.3. So
   this item needs GEN.338 and moves from 8.1 to 8.3 behind it; it no
-  longer gates the 8.1 headline (GEN.301). Owner: Core 3 proposed for
-  GEN.144, GEN.338 and this item when 8.3 starts (nothing before 8.1
-  closes).
+  longer gates the 8.1 headline (GEN.301). Decided (Boss, 2026-10-16,
+  8:41 PM EDT, card "Keep in 8.3"): GEN.285, GEN.338 and GEN.144 stay in
+  8.3; Core 3 is proposed as owner of all three when 8.3 starts (nothing
+  before 8.1 closes).
   Prerequisites: GEN.338. Related: GEN.280 (built), GEN.198.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
