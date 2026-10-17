@@ -573,6 +573,12 @@ One train, in build order. Titles only; the TODO thread numbers them and assigns
 14. **Docs** (Quality): `galaxy-disk-density.md`, `galaxy-coordinate-system.md` (reach and outline), `globular-clusters.md` (status), `interstellar-object-rates.md` (populations and factors).
 15. **Tests** (Quality): no emission, reflection or core-collapse remnant in a halo or old cluster cell; a planetary nebula always has its white dwarf; a core-collapse remnant has a compact core at the stated share; every hosted nebula holds its host star and every D or E region its members inside its radius; a Wolf-Rayet nebula holds a W star; tiling at the reach, ID round trip at the widest shell, profile and empty-sector determinism, the pre-placed share per population.
 
+## 10. Planned for 8.5: the plan configuration and two switches (Boss, 2026-10-17)
+
+Version 8.1 builds the halo and the satellite galaxies first, always on. Boss (4:31 PM EDT, changed at 4:48 PM and 4:49 PM EDT) then asked that 8.5 make them two independent switches, **halo** and **satellite galaxies**, both default off; halo does not mean satellite galaxies. Each is set by its own command that configures the plan. The plan configuration, stored with the galaxy, tells scatter and sector generation the boundaries of the sector plan, controls how far scatters can go around the galaxy, and says which sector addresses are valid. It also tells the scatter functions whether they may scatter the halo, the satellite galaxies, either or both: every scatter command reads the stored setting and each scatter kind checks only the switch that concerns it. Scatter and sector generation read the configuration and never decide a boundary, a reach or a valid address themselves.
+
+What exists today and would be extended: `GalaxyBounds` (`galaxy/skeleton.py`) holds the reach (`contains`, the valid addresses) and the outline (`qualifies`); how far the scatters go is the constant `tuning.SCATTER_COVERS_REACH`; the satellite galaxies are placed unconditionally by the plan build (`generation/satellites.py`). The items are GEN.537 (the design), GEN.538 (the configuration as the single source), GEN.539 (the halo command), GEN.540 (the satellite galaxies command), MAP.248, UX.137 and TEST.226 (goal #2095).
+
 ## Sources
 
 All read as search-result summaries; none opened in full.

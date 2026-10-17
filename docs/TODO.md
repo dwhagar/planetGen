@@ -884,16 +884,25 @@ with `clamp()`.
   themes and at phone width. Owner: Core 2 (proposed).
   Prerequisites: none. Related: PERF.105, UX.118.
 
-- [ ] **UX.137 The Generate page, the settings and the command line set the halo and intergalactic switch, and say what it is**
+- [ ] **UX.137 The Generate page, the settings and the command line set the halo and the satellite galaxies switches, each through its own command, and say what they are**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
   intergalactic generation to be a switch that defaults to off, put that
-  in for 8.5 please, we'll get it working first." Done: the Generate
-  page and the settings page show the switch (one control, default off)
-  with a one-line plain explanation, the command line and the API set it
-  through the same stored setting, turning it on offers the commands
-  that will run (the step list, with its estimate), and turning it off
-  says that nothing is deleted. Owner: Core 2 (proposed).
-  Prerequisites: GEN.538. Related: GEN.538, UX.116.
+  in for 8.5 please, we'll get it working first." Changed by Boss,
+  2026-10-17, 4:48 PM EDT: "Make there be 2 switches, halo and satellite
+  galaxies, both default to off, halo doesn't mean satellite galaxies,
+  they are separate commands used to configure the plan. That plan
+  configuration tells scatter and sector generation the boundaries of
+  the sector plan and control how far scatters can go around the galaxy
+  and what sector addresses are valid." Done: the Generate page and the
+  settings page show the two switches as two controls (both default
+  off), each with a one-line plain explanation that halo and satellite
+  galaxies are separate, each running its own command (GEN.539, GEN.540)
+  as a step; turning one on offers the commands that will run (the step
+  list, with its estimate); turning one off says that nothing is
+  deleted; the command line and the API set them through the same
+  commands. Owner: Core 2 (proposed).
+  Prerequisites: GEN.539, GEN.540. Related: GEN.539, GEN.540, UX.116.
+
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -2373,20 +2382,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the threshold, not at the focus depth. Owner: Core 2 (proposed).
   Prerequisites: MAP.245. Related: MAP.225, MAP.245.
 
-- [ ] **MAP.248 The maps and pages follow the halo and intergalactic switch: nothing is drawn, picked or offered beyond the outline when it is off**
+- [ ] **MAP.248 The maps and pages follow the plan configuration: with the halo or the satellite galaxies off, nothing is drawn, picked or offered beyond the configured boundaries**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
   intergalactic generation to be a switch that defaults to off, put that
-  in for 8.5 please, we'll get it working first." Done: with the switch
-  off the Galaxy Map draws no satellites, clusters, wanderers or halo
-  scatter beyond the outline and offers no halo layer toggle, "Show on
-  Galaxy Map" and the uncharted address pages for an address beyond the
-  outline say the halo and intergalactic generation is off (not "outside
-  the galaxy"), the tiles carry nothing beyond the outline, and the pick
-  and the zoom hand-off of MAP.243 are not offered where nothing exists;
-  with it on everything of MAP.207, MAP.243 and MAP.239 works as built
-  in 8.1; a browser test per state. Owner: Core 2 (proposed).
-  Prerequisites: GEN.538, MAP.243. Related: GEN.538, MAP.207, MAP.243,
-  MAP.239.
+  in for 8.5 please, we'll get it working first." Changed by Boss,
+  2026-10-17, 4:48 PM EDT: "Make there be 2 switches, halo and satellite
+  galaxies, both default to off, halo doesn't mean satellite galaxies,
+  they are separate commands used to configure the plan. That plan
+  configuration tells scatter and sector generation the boundaries of
+  the sector plan and control how far scatters can go around the galaxy
+  and what sector addresses are valid." Done: the Galaxy Map and the
+  pages read the boundaries and the two switches from the plan
+  configuration (GEN.538); with the halo off they draw no halo scatter
+  beyond the outline and offer no halo layer toggle, with the satellite
+  galaxies off no satellites are drawn or listed (each switch
+  independent of the other), "Show on Galaxy Map" and the uncharted
+  address pages for an address outside the configured boundaries say it
+  is outside the generated galaxy and which switch is off (not just
+  "outside the galaxy"), the tiles carry nothing beyond them, and the
+  pick and the zoom hand-off of MAP.243 are not offered where nothing
+  exists; with a switch on everything of MAP.207, MAP.243 and MAP.239
+  works as built in 8.1; a browser test per combination of the switches.
+  Owner: Core 2 (proposed).
+  Prerequisites: GEN.538, GEN.539, GEN.540, MAP.243. Related: GEN.538,
+  GEN.539, GEN.540, MAP.207, MAP.243, MAP.239.
+
 
 ## NAV: Navigation and courses
 
@@ -13767,55 +13787,177 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   research lane). This is a Boss research item.
   Prerequisites: none. Related: GEN.532, GEN.531.
 
-- [ ] **GEN.537 Design the halo and intergalactic switch: what it covers, where it is stored, what off means and what turns on later**
+- [ ] **GEN.537 Design the plan configuration: the boundaries of the sector plan, how far scatters go, which sector addresses are valid, and the two switches halo and satellite galaxies (both default off)**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
   intergalactic generation to be a switch that defaults to off, put that
-  in for 8.5 please, we'll get it working first." Version 8.1 builds the
-  halo and intergalactic generation first, always on (GEN.301: the three
-  scatters fill the whole sphere to the 262 kpc reach, with the
-  satellites, clusters and wanderers as components); 8.5 makes it a
-  switch that defaults to off. Done: a design note (docs/design) that
-  settles, with Boss by card: (1) what the switch covers (the scatters
-  beyond the disc outline, the satellite, cluster and wanderer
-  components placed there, the halo luminosity floor tier, and the
-  intergalactic profile cells; the 262 kpc reach and the 96-bit IDs stay
-  either way, because they are addressing, not content); (2) where it is
-  stored: proposed as one galaxy setting stored beside the seed, default
-  off for a galaxy created after 8.5, and for a galaxy that already
-  holds halo or intergalactic content the 8.5 migration sets it from
-  what the galaxy holds (a migration step, not a compatibility shim);
-  (3) what off means: nothing is generated or stored beyond the outline,
-  the interior is the same stars for the same seed whether the switch is
-  on or off (a test), and an address beyond the outline answers "outside
-  the generated galaxy" with the reason; (4) what turning it on later
-  does: the halo and intergalactic commands run for the missing part
-  only, no interior regeneration; turning it off later stops generating
-  and hides, and deleting what exists is the separate admin delete; (5)
-  the one-command rule (PERF.118, PERF.120): the switch decides which
-  commands the wrapper's step list contains, so off means the halo and
-  intergalactic commands are never selected and never touched. Owner:
-  the design thread (coordinator to assign); Boss approves the choices
-  by card.
-  Prerequisites: none. Related: GEN.301, PERF.118, PERF.121, MAP.243,
-  MAP.207.
+  in for 8.5 please, we'll get it working first." Changed by Boss,
+  2026-10-17, 4:48 PM EDT: "Make there be 2 switches, halo and satellite
+  galaxies, both default to off, halo doesn't mean satellite galaxies,
+  they are separate commands used to configure the plan. That plan
+  configuration tells scatter and sector generation the boundaries of
+  the sector plan and control how far scatters can go around the galaxy
+  and what sector addresses are valid." What exists (read from main,
+  2026-10-17): the plan's boundaries are `GalaxyBounds`
+  (galaxy/skeleton.py): the reach (`reach_shell_index`, set by `plan
+  --reach-shells`, stored in `galaxy_shape` with the outline in
+  `galaxy_shell`), whose `contains` says which sector addresses are
+  valid and is today the only refusal a generation path has (GEN.235),
+  and the outline, whose `qualifies` is where the paths that pick cells
+  nobody named stay; how far a scatter goes is not in the plan but the
+  program constant `tuning.SCATTER_COVERS_REACH = True`, read in
+  generation/run_plan.py (the bright-star and phenomena scatters);
+  satellite galaxies are placed unconditionally by
+  `satellites.place_satellites` inside the plan build (run_plan.py,
+  `generation/satellites.py`). Version 8.1 builds the halo and the
+  satellite galaxies first, always on (GEN.301). Done: a design note
+  (docs/design) that settles, with Boss by card: (1) the plan
+  configuration as the single source of the boundaries of the sector
+  plan, how far each scatter can go around the galaxy, and which sector
+  addresses are valid, read by the scatter commands and by sector
+  generation, which never decide those themselves (it replaces the
+  `SCATTER_COVERS_REACH` constant and the reach and outline checks
+  scattered through generation, and extends `GalaxyBounds`, which
+  already holds the reach and the outline); (2) two switches, halo and
+  satellite galaxies, both default off and independent (halo does not
+  mean satellite galaxies): what each adds to the valid addresses and to
+  the scatter reach (halo: the cells beyond the outline out to the reach
+  and the scatter rows there; satellite galaxies: the volumes of the
+  satellite galaxies and their stars, which may lie beyond the outline),
+  and what off means (nothing generated or stored there, the interior
+  the same stars for the same seed whether either is on or off, an
+  address outside the configured boundaries answers "outside the
+  generated galaxy" with the reason); (3) each switch is set by its own
+  command under the one-command rule (PERF.118, PERF.120): a halo
+  command and a satellite-galaxies command, each doing only that and
+  writing only the plan configuration, with their own parameters; the
+  262 kpc reach and the 96-bit IDs stay as addressing; (4) where the
+  configuration is stored (proposed: beside the galaxy shape, set by a
+  migration from what an existing galaxy holds, so a galaxy built in 8.1
+  with both on keeps them on, and default off for a galaxy created after
+  8.5); (5) what turning a switch on later does (the missing part only,
+  no interior regeneration) and what turning it off does (generation
+  stops and the maps hide it; deleting what exists is the separate admin
+  delete); (6) how the wrapper uses it: the step list holds the halo and
+  satellite commands only when the configuration allows them, so a
+  switch that is off means those commands are never selected and never
+  touched. Owner: the design thread (coordinator to assign); Boss
+  approves the choices by card.
+  Prerequisites: none. Related: GEN.301, PERF.118, PERF.121, GEN.235,
+  MAP.243, MAP.207.
+  Added (Boss, 2026-10-17, 4:49 PM EDT: "the galaxy setting will also
+  tell the scatter functions if they can scatter the halo and / or the
+  satellite galaxies, either / or"): the stored galaxy setting (halo on
+  or off, satellite galaxies on or off) is read by every scatter
+  command, and each scatter kind checks only the switch that concerns
+  it: the halo scatter kinds read the halo switch, the satellite and
+  satellite-component scatter kinds read the satellite switch, the kinds
+  that concern neither (the disc, bulge and core scatters) read neither;
+  either switch can be on without the other. The design settles which
+  scatter kind reads which switch.
 
-- [ ] **GEN.538 The halo and intergalactic switch: a stored galaxy setting, default off, that decides whether the halo and intergalactic commands are in the step list**
+
+- [ ] **GEN.538 The plan configuration is the single source of the plan's boundaries, scatter reach and valid sector addresses: scatter and sector generation read it and never decide them**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
   intergalactic generation to be a switch that defaults to off, put that
-  in for 8.5 please, we'll get it working first." Done: the design note
-  of the switch item (GEN.537) is built: the setting is stored and read
-  in one place (and migrated from what an existing galaxy holds); the
-  scatter commands for the halo and the intergalactic cells, the
-  satellite, cluster and wanderer components beyond the outline and the
-  halo floor tier are each their own command (PERF.121, PERF.120), and
-  the wrapper includes them in the step list only when the setting is
-  on; with it off nothing beyond the outline is generated or stored and
-  the interior is the same stars for the same seed; the Generate page,
-  the API and the command line set it (UX.137); tests run both states.
-  Owner: Core 1 or Core 3 (proposed, whichever holds the halo scatter
-  code after 8.1).
-  Prerequisites: GEN.537, GEN.301, PERF.121. Related: GEN.301, GEN.537,
-  PERF.121.
+  in for 8.5 please, we'll get it working first." Changed by Boss,
+  2026-10-17, 4:48 PM EDT: "Make there be 2 switches, halo and satellite
+  galaxies, both default to off, halo doesn't mean satellite galaxies,
+  they are separate commands used to configure the plan. That plan
+  configuration tells scatter and sector generation the boundaries of
+  the sector plan and control how far scatters can go around the galaxy
+  and what sector addresses are valid." What exists (read from main,
+  2026-10-17): the plan's boundaries are `GalaxyBounds`
+  (galaxy/skeleton.py): the reach (`reach_shell_index`, set by `plan
+  --reach-shells`, stored in `galaxy_shape` with the outline in
+  `galaxy_shell`), whose `contains` says which sector addresses are
+  valid and is today the only refusal a generation path has (GEN.235),
+  and the outline, whose `qualifies` is where the paths that pick cells
+  nobody named stay; how far a scatter goes is not in the plan but the
+  program constant `tuning.SCATTER_COVERS_REACH = True`, read in
+  generation/run_plan.py (the bright-star and phenomena scatters);
+  satellite galaxies are placed unconditionally by
+  `satellites.place_satellites` inside the plan build (run_plan.py,
+  `generation/satellites.py`). Done: the design of the plan
+  configuration item (GEN.537) is built: the stored configuration
+  (extending `galaxy_shape` and `GalaxyBounds`) holds the boundaries of
+  the sector plan (reach and outline), how far each scatter can go, the
+  two switches, and which sector addresses are valid; the scatter
+  commands (PERF.121) and sector generation (the sector, shell, band,
+  wedge, course, neighbourhood and random-start paths, `span.py`,
+  `ensure_sector_generated`) read them from it and no generation code
+  decides a boundary, a reach or an address by its own constant (a grep
+  test finds `SCATTER_COVERS_REACH`, the `min(high, reach)` clamps and
+  the like gone); the migration sets the stored values for an existing
+  galaxy from what it holds; the interior is the same stars for the same
+  seed whatever the configuration. Owner: Core 1 or Core 3 (proposed,
+  whichever holds the plan and scatter code after 8.1).
+  Prerequisites: GEN.537, GEN.301, PERF.121. Related: GEN.537, GEN.301,
+  GEN.235, PERF.121.
+  Added (Boss, 2026-10-17, 4:49 PM EDT: "the galaxy setting will also
+  tell the scatter functions if they can scatter the halo and / or the
+  satellite galaxies, either / or"): the stored galaxy setting (halo on
+  or off, satellite galaxies on or off) is read by every scatter
+  command, and each scatter kind checks only the switch that concerns
+  it: the halo scatter kinds read the halo switch, the satellite and
+  satellite-component scatter kinds read the satellite switch, the kinds
+  that concern neither (the disc, bulge and core scatters) read neither;
+  either switch can be on without the other. Done also: a test per
+  scatter kind that it reads only its own switch.
+
+- [ ] **GEN.539 The halo command: its own command that switches the halo on or off in the plan configuration (default off) and sets how far the halo reaches**
+  Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
+  intergalactic generation to be a switch that defaults to off, put that
+  in for 8.5 please, we'll get it working first." Changed by Boss,
+  2026-10-17, 4:48 PM EDT: "Make there be 2 switches, halo and satellite
+  galaxies, both default to off, halo doesn't mean satellite galaxies,
+  they are separate commands used to configure the plan. That plan
+  configuration tells scatter and sector generation the boundaries of
+  the sector plan and control how far scatters can go around the galaxy
+  and what sector addresses are valid." Done: one command, doing only
+  this, switches the halo on or off in the plan configuration and sets
+  its parameters (how far out the halo scatter and the valid sector
+  addresses beyond the outline reach, up to the 262 kpc reach); it does
+  not touch the satellite galaxies, never scatters anything itself, and
+  writes only the plan configuration; with the halo on, the scatter and
+  sector generation commands read the wider boundary from the
+  configuration (GEN.538) and the wrapper lists the halo scatter
+  commands; with it off they are never selected; default off for a new
+  galaxy; the interior is unchanged either way (a test); the Generate
+  page and the API run it as a step (UX.137). Owner: Core 1 or Core 3
+  (proposed).
+  Prerequisites: GEN.538, PERF.121. Related: GEN.537, GEN.538, GEN.540,
+  PERF.120.
+  Boss, 2026-10-17, 4:49 PM EDT: the halo scatter kinds read this switch
+  from the stored galaxy setting, and no other scatter kind does.
+
+- [ ] **GEN.540 The satellite galaxies command: its own command that switches the satellite galaxies on or off in the plan configuration (default off), separate from the halo**
+  Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
+  intergalactic generation to be a switch that defaults to off, put that
+  in for 8.5 please, we'll get it working first." Changed by Boss,
+  2026-10-17, 4:48 PM EDT: "Make there be 2 switches, halo and satellite
+  galaxies, both default to off, halo doesn't mean satellite galaxies,
+  they are separate commands used to configure the plan. That plan
+  configuration tells scatter and sector generation the boundaries of
+  the sector plan and control how far scatters can go around the galaxy
+  and what sector addresses are valid." Done: one command, doing only
+  this, switches the satellite galaxies on or off in the plan
+  configuration and sets their parameters (how many and how far, from
+  the satellite draw of the plan); halo does not mean satellite
+  galaxies, so it does not touch the halo and the halo does not touch
+  it; it never places or scatters anything itself and writes only the
+  plan configuration; with the satellite galaxies on, the valid sector
+  addresses include their volumes (which may lie beyond the outline) and
+  the wrapper lists the satellite placement and the component scatters;
+  with them off the plan places none (`satellites.place_satellites` is
+  only called when the configuration says so, and nothing else decides),
+  and the satellite commands are never selected; default off for a new
+  galaxy; a test per switch state and for each combination of the two
+  switches. Owner: Core 1 or Core 3 (proposed).
+  Prerequisites: GEN.538, PERF.121. Related: GEN.537, GEN.538, GEN.539,
+  PERF.120, GEN.371.
+  Boss, 2026-10-17, 4:49 PM EDT: the satellite scatter kinds read this
+  switch from the stored galaxy setting, and no other scatter kind does.
+
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -18740,19 +18882,31 @@ clears each one.
   nothing is quarantined. Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.213, GEN.76.
 
-- [ ] **TEST.226 Tests for the halo and intergalactic switch: the interior is identical with it on and off, off generates nothing beyond the outline, on gives the 8.1 sphere**
+- [ ] **TEST.226 Tests for the plan configuration and its two switches: the interior is identical with each combination, off generates nothing beyond the boundaries, addresses outside them are refused, the 8.1 sphere is the all-on case**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
   intergalactic generation to be a switch that defaults to off, put that
-  in for 8.5 please, we'll get it working first." Done: a test that
-  generates the same seed with the switch on and off and compares the
-  interior sectors, bright stars and phenomena inside the outline row
-  for row; a test that with it off no row exists beyond the outline and
-  no halo or intergalactic command was selected; the whole-sphere audits
-  (TEST.159, TEST.160, TEST.185) run with the switch on and say so; a
-  migration test that an existing galaxy with halo content reads as on
-  and one without reads as off. Owner: Quality (proposed).
-  Prerequisites: GEN.538. Related: GEN.538, TEST.159, TEST.160,
-  TEST.185.
+  in for 8.5 please, we'll get it working first." Changed by Boss,
+  2026-10-17, 4:48 PM EDT: "Make there be 2 switches, halo and satellite
+  galaxies, both default to off, halo doesn't mean satellite galaxies,
+  they are separate commands used to configure the plan. That plan
+  configuration tells scatter and sector generation the boundaries of
+  the sector plan and control how far scatters can go around the galaxy
+  and what sector addresses are valid." Done: a test that generates the
+  same seed with every combination of the halo and the satellite
+  galaxies (both off, either, both on) and compares the interior
+  sectors, bright stars and phenomena inside the outline row for row; a
+  test that with a switch off no row exists beyond the boundary it
+  controls and none of its commands was selected; a test that sector
+  generation refuses an address outside the configured boundaries with
+  the reason, and that scatter and sector generation take their
+  boundaries only from the configuration; the whole-sphere audits
+  (TEST.159, TEST.160, TEST.185) run with both switches on and say so; a
+  migration test that an existing galaxy with halo or satellite content
+  reads those switches as on and one without as off. Owner: Quality
+  (proposed).
+  Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.538, GEN.539,
+  GEN.540, TEST.159, TEST.160, TEST.185.
+
 
 ## USR: User accounts
 
