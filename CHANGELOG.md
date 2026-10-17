@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1623] - 2026-10-17
+
+**Headline:** The GEN.368 note now says the arxiv.org access for the verifying thread is in place.
+
+### Changed
+- GEN.368 no longer says the arxiv.org allowance waits on Boss: the domain was added and a verifying thread is reading the cited papers.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1622] - 2026-10-17
 
 **Headline:** The plan records Boss's mass range, scatter and source decisions for the random-galaxy laws and the extra fixed content the survey found.
