@@ -12,6 +12,7 @@ Rules:
 
 | Issue | State | Goal | Items |
 |---|---|---|---|
+| [#1914](https://github.com/dwhagar/planetGen/issues/1914) | open | Galaxy types: one family per known galaxy type, drawn from the seed (9.4) | DB.66, DOC.59, GEN.378, GEN.379, GEN.380, GEN.381, GEN.382, GEN.383, GEN.384, GEN.385, GEN.386, GEN.387, GEN.388, GEN.389, GEN.390, MAP.242, TEST.204, UX.134, UX.135 |
 | [#1846](https://github.com/dwhagar/planetGen/issues/1846) | open | Map labels: names for stars, systems, sectors, big features and nebulae | MAP.229, MAP.230, MAP.231, MAP.232, MAP.233 |
 | [#1845](https://github.com/dwhagar/planetGen/issues/1845) | open | One configuration file and the settings page (8.1) | ADM.43, ADM.44, ADM.50, ADM.83, ADM.84, ADM.85, ADM.86, ADM.87, ADM.96, GEN.303 |
 | [#1844](https://github.com/dwhagar/planetGen/issues/1844) | open | Backups: the archive, parity data, control database and repair from an archive | ADM.87, ADM.88, ADM.89, ADM.90, ADM.91, DB.40, DB.41, DB.42, DOC.56, OPS.55, TEST.180 |
@@ -27,7 +28,7 @@ Rules:
 | [#1802](https://github.com/dwhagar/planetGen/issues/1802) | open | Galaxy Map forward-to-current test failed once: a click on a block with 0 sectors charted did nothing (TEST.172) | TEST.172 |
 | [#1758](https://github.com/dwhagar/planetGen/issues/1758) | open | test_math_check::test_whole_run_is_fast and the Galaxy Map breadcrumb folding test fail under full-suite load (TEST.170) | TEST.170 |
 | [#1726](https://github.com/dwhagar/planetGen/issues/1726) | open | Interface update: every control works on the whole sphere | UX.115, TEST.168 |
-| [#1694](https://github.com/dwhagar/planetGen/issues/1694) | open | Test failures under parallel load and on MySQL 8.4 | TEST.116, TEST.167, TEST.126, TEST.127, TEST.128, TEST.134, TEST.137, TEST.140, TEST.141, TEST.144, TEST.189, TEST.190, TEST.187, TEST.188, TEST.191, TEST.192, TEST.193, TEST.194, TEST.195, TEST.197, TEST.198, TEST.199, TEST.202 |
+| [#1694](https://github.com/dwhagar/planetGen/issues/1694) | open | Test failures under parallel load and on MySQL 8.4 | TEST.116, TEST.167, TEST.126, TEST.127, TEST.128, TEST.134, TEST.137, TEST.140, TEST.141, TEST.144, TEST.189, TEST.190, TEST.187, TEST.188, TEST.191, TEST.192, TEST.193, TEST.194, TEST.195, TEST.197, TEST.198, TEST.199, TEST.202, TEST.203, TEST.205 |
 | [#1693](https://github.com/dwhagar/planetGen/issues/1693) | open | View from a planet: sky maps and constellations | VIEW.1, VIEW.2, VIEW.3, VIEW.4, VIEW.6, VIEW.7, VIEW.8, VIEW.9, VIEW.10, DB.64, VIEW.11, VIEW.12, VIEW.13, VIEW.14, VIEW.15, VIEW.16, VIEW.17 |
 | [#1691](https://github.com/dwhagar/planetGen/issues/1691) | open | Documentation corrections and the docs index | DOC.4, DOC.21, DOC.24, DOC.52, DOC.53 |
 | [#1690](https://github.com/dwhagar/planetGen/issues/1690) | open | Static help section for the web interface | DOC.6, DOC.7, DOC.8, DOC.9, DOC.10, DOC.11, DOC.12, DOC.13, DOC.14, DOC.15, DOC.16, DOC.18, DOC.57, DOC.58 |

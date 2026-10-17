@@ -131,8 +131,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.85 | Settings backups, restore, import and export on the settings page |  |  |
-| ADM.43 | A full configuration page under Admin | ADM.85 | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). Umbrella; the Owner tier is ADM.86 in 8.2. |
+| ADM.43 | A full configuration page under Admin |  | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). Umbrella; the Owner tier is ADM.86 in 8.2. |
 | ADM.44 | Web, Open Graph and SEO settings | ADM.43 | GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743). Moved from 8.2 with ADM.43. |
 
 ### Generate page and directives
@@ -182,6 +181,8 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.197 | `test_page_is_accessible_and_fits[web.sector-phone-light]` failed under load and passed alone: find the cause and make it robust (bug) |  | Flaky test finding from Core 3, 6:22 PM EDT. |
 | TEST.198 | `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug) |  | Flaky test finding from Core 3, 6:22 PM EDT. |
 | TEST.202 | `test_galaxy_map_drill_down_by_clicks` failed under load and passed alone: call 28 s to 52 s on a loaded worker (bug) |  | Core 3 finding. |
+| TEST.203 | `test_one_worker_leaves_the_runs_own_random_stream_alone` failed once under heavy load with WorkerDied "the task's job ended canceled" and passes alone (bug) |  | Settings lane finding. |
+| TEST.205 | `test_no_reserved_word_is_an_unquoted_identifier` fails on main: the DB.18 migration helpers use LOCK in `ALGORITHM=INPLACE, LOCK=NONE` (bug) |  | Core 1 finding after DB.18 (#1901); fails on main every run. |
 | TEST.199 | `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on main for a far-tail case: the halo subtraction loses precision, 2.4e-9 against a 1e-9 tolerance (bug) |  | Core 2 found it; fails on main; also a GEN.372 finding. |
 
 ### Nebula data foundations
@@ -298,13 +299,11 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| API.27 | A read-only profile lookup for any address in the reach, so an uncharted sector can be previewed |  | Whole-sphere build train, Boss 2026-10-15. Step 8. Interface. |
-| GEN.276 | The sphere-to-key-runs cover: `sphere_runs` over the existing cell key (at most 256 merged runs) |  | Spherical region query, stage C. Step 2. Core. |
+| GEN.276 | The sphere-to-key-runs cover: `sphere_runs` over the existing cell key (at most 256 merged runs) |  | Spherical region query, stage C. Step 2. Core. Boss 9:16 PM EDT: next for Core 2 after GEN.135 and GEN.306. |
 | NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map |  | Boss 04:39Z. Map action opening NAV.44; drawn sphere optional. |
-| NAV.60 | What is nearby reads by the cell key: one statement for every kind, including objects with no sector and unbuilt scatter rows | GEN.276 | Spherical region query, stage C. Step 3. Core. |
+| NAV.60 | What is nearby reads by the cell key: one statement for every kind, including objects with no sector and unbuilt scatter rows | GEN.276 | Spherical region query, stage C. Step 3. Core. Boss 9:16 PM EDT: after GEN.276. |
 | NAV.61 | Nearest-first by a radius ladder, and a dense-core guard with an early-stop count | NAV.60 | Spherical region query, stage C. Step 4. Core. |
 | GEN.376 | Region test uses the haversine form for angles under 1e-3 rad in `galaxy/region.py` |  | GEN.372 audit. |
-| UX.113 | The sector page shows the profile of any address in the reach, and heavy cells and far neighbourhoods warn before they run | API.27 | Whole-sphere build train, Boss 2026-10-15. Step 8. Interface. |
 | UX.114 | Scatter-row pages list the stored members and the map shows a system mass |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 8. Interface. |
 
 ## Phase 4: New scatters: components, clusters and audits
@@ -319,7 +318,7 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 | GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius |  | From GEN.133's four unbuilt proposals (star-types-by-galactic-radius.md); Boss to confirm which he wants. |
 | GEN.322 | Band groups and the halo term: the bright-star and mass passes cover the 262 kpc reach |  | Split from GEN.240. |
 | GEN.323 | The phenomena pass runs on the object-first sampler | GEN.322 | Split from GEN.240. |
-| GEN.368 | Plan the appearance rates of everything the Milky Way supplies as fixed content: the count, place and size laws, with sources, so a random galaxy draws them from its seed |  | Core 1; Boss 4:00 PM EDT: plan the probabilities. |
+| GEN.368 | Plan the appearance rates of everything the Milky Way supplies as fixed content: the count, place and size laws, with sources, so a random galaxy draws them from its seed |  | Core 1; Boss 4:00 PM EDT: plan the probabilities. Boss 9:16 PM EDT: next for Core 1 after its stack, the audit and TEST.193/195. |
 | GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies | GEN.368 | Core 1; Boss 4:02 PM EDT: feasibility study. |
 | GEN.369 | Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option | GEN.368, GEN.371 | Core 1; Boss 4:01 PM EDT: Draw them. |
 | GEN.324 | A component pass: clusters, the Clouds and Sagittarius place their stars, and the fill adds the component's density to lambda | GEN.322 | Split from GEN.240. |
@@ -365,13 +364,12 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | GEN.284 | Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut | GEN.325 | Core 3; step 4 of the galactic core note |
 | GEN.286 | Horizontal-branch and AGB phases in the stellar evolution model |  | Core 3; HB and AGB phases (Boss, 1:12 AM EDT); plan in note 5.3; no migration; interim [Fe/H] defaults until GEN.158 |
 | GEN.287 | The stellar evolution model spreads giant-branch stars evenly in log luminosity, which probably overstates the bright giants by about a factor of two against real halo counts (bug) |  | Core 3; folded into GEN.286 unless Core 3 says otherwise |
-| UX.116 | Sliders for every scatter and fill limit: one limit_slider with a number box, in three new segments under the scatter-limits row of the Generate page |  | Core 3; sliders for the scatter and fill limits |
 
 ### Interface update
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.115 | Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages) | GEN.240, NAV.61, API.27, UX.113, NAV.45 | Interface; queued after sphere stages (Boss, 12:52 AM EDT) |
+| UX.115 | Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages) | GEN.240, NAV.61, NAV.45 | Interface; queued after sphere stages (Boss, 12:52 AM EDT) |
 | TEST.168 | Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs | UX.115 | Quality; queued after UX.115 |
 
 ### Docs
@@ -403,6 +401,12 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | GEN.297 | Calibrate the cluster generator against the Harris file: its distributions guide the laws, and no real cluster is placed in any galaxy |  | The file arrived (Boss, 3:04 PM EDT); Core 3, cluster line. |
 | GEN.366 | Check the reference satellite table against McConnachie 2012: it only tests that the derived population looks plausible | GEN.369 | Finding from Core 3. |
 
+### Galaxy types groundwork
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.378 | The galaxy type families: the checked design with its scaling relation table and the draw order | GEN.368 | Boss 8:48 PM EDT, for 9.4: step 1 of the galaxy types chain; Core 1 proposed. |
+
 ## Phase 6: The headline closes
 
 The last audits and the headline: they test the component pass, the core and the halo, so they come after phases 4 and 5.
@@ -415,4 +419,4 @@ The last audits and the headline: they test the component pass, the core and the
 | TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | TEST.184, TEST.185 | Whole-sphere build train, Boss 2026-10-15. Step 15. Quality. |
 | TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | GEN.240, GEN.282, GEN.321, TEST.186 | Phenomena catalogue, Boss 2026-10-15. Step 4. Quality. |
 | TEST.196 | Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged | GEN.103, TEST.186 | Core 4; Boss 6:15 PM EDT: expected-numbers check for GEN.103. |
-| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.244, GEN.259, GEN.282, GEN.284, GEN.286, GEN.287, GEN.298, UX.116, TEST.159, TEST.160, TEST.196 |  |
+| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.244, GEN.259, GEN.282, GEN.284, GEN.286, GEN.287, GEN.298, TEST.159, TEST.160, TEST.196 |  |

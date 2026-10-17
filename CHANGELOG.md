@@ -2,6 +2,128 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1614] - 2026-10-17
+
+**Headline:** API.27 and UX.113 (the read-only Sector Profile lookup and the profile panel on the sector page) leave the TODO list.
+
+### Changed
+- API.27 and UX.113 retired on Core 4's merge (#1919); UX.115 no longer waits on them.
+
+TODO items resolved: API.27, UX.113 / Added: none
+
+## [8.0.1613] - 2026-10-17
+
+**Headline:** Any address in the galaxy now has a page showing what the galaxy's shape says it holds.
+
+### Added
+- The sector page has a Profile panel: the region, the expected systems, the stellar populations with their share, age, [Fe/H], velocity dispersion and motion, the gas and any superbubble, and the dark matter, from `GET /api/galaxy/profile`.
+- `/sector/at/<shell>/<band>/<wedge>` shows the same panel for any cell of the grid: a charted cell redirects to its sector, an uncharted one shows its place, the stars and phenomena waiting in it and the Profile.
+- A heavy cell warns before it is run: when it expects more systems than the cell star ceiling, or its fill is expected to take two minutes or more on one worker, the page says so with the size and time (`estimate` in the profile answer, from the server's own stored speeds).
+
+TODO items resolved: UX.113 / Added: none
+
+## [8.0.1612] - 2026-10-17
+
+**Headline:** The API can show the profile of any sector in the galaxy, charted or not.
+
+### Added
+- `GET /api/galaxy/profile` returns the Sector Profile (region, density, expected systems, the mix of populations with their ages, [Fe/H] and velocity dispersion, gas, superbubble, dark matter and the rate factors per kind) of any cell by address or by point, read only and computed from the stored galaxy shape and the address alone, so an uncharted sector can be previewed.
+
+TODO items resolved: API.27 / Added: none
+
+## [8.0.1611] - 2026-10-17
+
+**Headline:** A failing portability test on main (the DB.18 helpers use LOCK) is on the TODO list for Core 2.
+
+### Added
+- TEST.205 (bug): `test_no_reserved_word_is_an_unquoted_identifier` fails on main since DB.18 (#1901); Core 1's finding, owner Core 2.
+
+TODO items resolved: none / Added: TEST.205
+
+## [8.0.1610] - 2026-10-17
+
+**Headline:** GEN.368 and GEN.276 with NAV.60 go next in their lanes' queues (Boss, "Both next").
+
+### Changed
+- GEN.368 (Core 1: stack, GEN.372 audit, TEST.193 and TEST.195, then GEN.368, GEN.369, GEN.371, GEN.366) and GEN.276 with NAV.60 (Core 2: GEN.135 gate, GEN.306, then GEN.276 and NAV.60) record Boss's 9:16 PM EDT decision and an owner line each.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1609] - 2026-10-17
+
+**Headline:** Each galaxy type in 9.4 gets a simple vector outline so the user sees roughly what the model looks like.
+
+### Added
+- UX.135: one hand-drawn static SVG outline per galaxy family (spiral, barred spiral, lenticular, elliptical, irregular, dwarf spheroid) in the icon library, shown on the Generate page and in the Galaxy Map key (UX.134 and MAP.242 now need it).
+
+TODO items resolved: none / Added: UX.135
+
+## [8.0.1608] - 2026-10-17
+
+**Headline:** A new 9.4 plan for galaxy types: spiral, lenticular, elliptical, irregular and dwarf families drawn from the seed, as a chain of 18 required items.
+
+### Added
+- The 9.4 version page (galaxy types), the plan note docs/design/galaxy-types.md and the release roadmap entry; the old "Hubble-sequence generator" suggestion becomes this headline.
+- Items GEN.378 to GEN.390, DB.66, UX.134, MAP.242, TEST.204 and DOC.59, and the goal issue #1914. GEN.378 (the checked design, 8.1), DB.66 and GEN.379 (the family key and the component density model, 8.3) are the foundations counted back from 9.4.
+
+### Changed
+- GEN.338 needs GEN.379 and keeps a zero-mass component legal; GEN.368 notes that its shape row is the spiral family's row of the wider draw.
+
+TODO items resolved: none / Added: GEN.378, GEN.379, GEN.380, GEN.381, GEN.382, GEN.383, GEN.384, GEN.385, GEN.386, GEN.387, GEN.388, GEN.389, GEN.390, DB.66, UX.134, MAP.242, TEST.204, DOC.59
+
+## [8.0.1607] - 2026-10-17
+
+**Headline:** The forward-to-current browser test flake has a third sighting on the TODO list.
+
+### Changed
+- TEST.172 records Core 3's UX.116 gate failure (under load, passes alone), the third sighting.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1606] - 2026-10-17
+
+**Headline:** UX.116 (limit sliders on the Generate page) leaves the TODO list.
+
+### Changed
+- UX.116 retired on Core 3's merge (#1911): scatter and fill limits are sliders with core, halo and dense-cell segments and a Reset.
+
+TODO items resolved: UX.116 / Added: none
+
+## [8.0.1605] - 2026-10-17
+
+**Headline:** ADM.85 (the backups screen, restore, and settings export and import) leaves the TODO list.
+
+### Added
+- TEST.203 (bug): `test_one_worker_leaves_the_runs_own_random_stream_alone` failed once under heavy load with a cancelled job and passes alone (Settings lane).
+
+### Changed
+- ADM.85 retired on the Settings lane's merge (#1905); TEST.199 records a second sighting.
+
+TODO items resolved: ADM.85 / Added: TEST.203
+
+## [8.0.1604] - 2026-10-17
+
+**Headline:** Every scatter and fill limit on the Generate page is a slider with a number box at its end, in segments for the core, the halo and the crowded cells.
+
+### Changed
+- **The luminosity floor is a slider, not a dropdown (UX.116).** The galaxy-wide mass limit and luminosity floor, on Plan, New galaxy and Redo scatters, are sliders that move a number box at their end; the box shows the value and takes a typed one. The luminosity floor keeps its presets as the slider's stops and now takes any number between them.
+
+### Added
+- **Three segments under the galaxy-wide limits on Plan and New galaxy.** *Core*: its luminosity floor and mass limit, which follow the galaxy-wide ones (110% of them) until one is set, with a warning if the floor goes below the galaxy-wide one. *Halo and intergalactic space*: its luminosity floor (default 500, from 50). *Dense cells*: the cell star ceiling (default 5,000, with what a full cell costs in time and storage) and the fill luminosity cap (default 100). Each segment has a Reset to the defaults. They set `planetgen plan --core-min-luminosity`, `--core-mass-limit`, `--halo-min-luminosity`, `--cell-star-ceiling` and `--fill-luminosity-cap`, and a number outside a slider's range is refused with the field named.
+
+TODO items resolved: UX.116. Added: none.
+
+## [8.0.1603] - 2026-10-17
+
+**Headline:** The Admin Settings page now has a backups screen: see every backup, make one, compare it with today's settings and restore all or part of it, and export or import the settings that an admin may change.
+
+### Changed
+- New page `/admin/settings/backups` (linked from Settings): every backup archive newest first with who made it, why, which parts it holds and its size, and Back up now. Opening an archive checks it against its recorded hashes, compares its settings with today's `config.json` (the old and new value of each option a restore would change, a secret shown as `(changed)`, a backup that no longer fits the settings model refused with the reason) and restores the whole archive or only the parts ticked. A restore first backs up what it replaces, writes an audit row per changed option and per restore, and from the web puts back only the options an admin may change, so it can never swap the database password or the secret key.
+- Downloading an archive is for the Owner only (it holds every secret in `config.json`); an admin sees why it is not offered.
+- New Export and Import on the same screen: the export is the options set in `config.json` that an admin may change, without secrets or server-only options; an import is checked exactly like an edit (type, range, who may change each option, unknown keys), shows the review diff and saves with a backup and an audit row (`config.import`). One bad value changes nothing.
+- New API routes `GET` and `POST /api/admin/backups`, `GET /api/admin/backups/<name>`, `POST .../restore`, `GET .../download`, `GET /api/admin/settings/export` and `POST /api/admin/settings/import` (`docs/api.md`).
+- The pending-restart banner on the admin pages and the intro links on the settings pages now underline their links, as the accessibility check requires.
+
 ## [8.0.1602] - 2026-10-17
 
 **Headline:** The galactic potential items (GEN.338, GEN.115, GEN.144) are rewritten so the potential is derived from the generated galaxy, with the Milky Way's numbers only as reference values.

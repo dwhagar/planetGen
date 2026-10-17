@@ -401,6 +401,7 @@ def sample_params(site_app, sample_job, sample_job_tree):
         "phenomenon_id": phenomenon["id"],
         "scatter_id": scatter_id,  # web.uncharted_phenomenon
         "quadrant": "I",
+        "shell": 40, "band": 0, "wedge": 3,  # web.sector_at: a cell nothing was generated in
         "page": 1,
         "job_id": sample_job,
         "name": "index",  # web.old_page: /index.py, an old CGI URL

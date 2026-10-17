@@ -27,6 +27,10 @@ Admin actions are POST forms to the same URL, each carrying
   instead, handled by `web/edit_actions.py`: delete the sector with
   everything in it, or delete it and generate its cell again.
 
+The page also carries the sector's Profile (UX.113; `web/profile_view.py`, `GET /api/galaxy/profile`), and
+`/sector/at/<shell>/<band>/<wedge>` shows the same panel for any address of the grid: it sends a charted address to its
+sector and shows an uncharted one's place, profile, waiting stars and what charting it would take.
+
 A successful action flashes its message and redirects (303) back to the
 GET page, so reloading never repeats it. A failed one re-renders the page
 with the error next to its form. A POST without an admin session, or with
@@ -63,6 +67,7 @@ from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 
 from . import bp, edit_actions, generate_page, jobs, tables
+from .profile_view import FAR_RUN_SECTORS, profile_view
 from .helpers import (
     bookmark, crumb, current_admin, db_name, generate_target, page_url, render_page, trusted_html,
 )
@@ -578,6 +583,18 @@ def _sector_map_html(detail, pick, admin):
     )
 
 
+def _profile_panel(address, charted=False):
+    """The view of the profile of `address` (`profile_view`), or `None` when the API has none to give (no galaxy planned,
+    or a cell it will not describe): the page then shows no panel."""
+    if None in address:
+        return None
+    try:
+        return profile_view(apiclient.get_galaxy_profile(db_name(), *address), charted=charted)
+    except (apiclient.ApiError, apiclient.NotFoundError) as exc:
+        log.debug(f"No profile for {address}: {exc}")
+        return None
+
+
 def sector_designation(sector):
     """A sector's galaxy designation (`provisional_sector_designation`),
     or `None` for a sector with no galaxy address."""
@@ -729,6 +746,45 @@ def sector(sector_id):
         wiki_backends=wiki_backends,
         errors=errors,
         estimate=estimate,
+        far_run_sectors=FAR_RUN_SECTORS,
         messages=get_flashed_messages(category_filter=[_FLASH_CATEGORY]),
         pick=pick,
+        profile=_profile_panel((detail.get("shell_index"), detail.get("band_index"), detail.get("wedge_index")),
+                               charted=True) if detail["placed"] else None,
+    )
+
+
+@bp.route("/sector/at/<int:shell>/<int:band>/<int:wedge>")
+def sector_at(shell, band, wedge):
+    """
+    Any cell of the grid by address (UX.113): a charted cell goes to its sector page; an uncharted one shows its place,
+    its profile, the bright stars and phenomena the scatters left waiting in it, and what charting it would take (the
+    Generate page's Address mode makes it).
+    """
+    try:
+        cell = apiclient.get_uncharted_sector(db_name(), shell, band, wedge)
+    except apiclient.NotFoundError:
+        abort(404)
+    except apiclient.ApiError as exc:
+        if exc.status_code == 400:
+            abort(404)
+        raise
+    if cell.get("sector_id") is not None:
+        return redirect(url_for("web.sector", sector_id=cell["sector_id"]), code=302)
+    designation = cell["designation"]
+    return render_page(
+        "sector_uncharted.html",
+        title=f"Uncharted sector {designation}",
+        section="sectors",
+        breadcrumbs=[crumb("Sectors", "sectors"), crumb(f"Uncharted {designation}")],
+        description=f"Uncharted sector {designation}: what the galaxy's shape says it holds, and what charting it would take.",
+        cell=cell,
+        designation=designation,
+        address=(shell, band, wedge),
+        edge_text=format_distance_ly(pc_to_ly(cell["edge_pc"])),
+        star_count=len(cell.get("stars") or ()),
+        scattered_count=len(cell.get("scattered") or ()),
+        galaxy_url=page_url("galaxy"),
+        can_generate=current_admin() is not None,
+        profile=_profile_panel((shell, band, wedge)),
     )
