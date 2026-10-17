@@ -170,6 +170,7 @@ def test_only_the_table_names_what_a_unit_runs():
 def _scatter_mass(mysql_config, workers, on_run_record):
     """Draws the toy galaxy's massive stars (8 solar masses and up) and returns the stars stored, sorted."""
     from planetgen.db import store
+    from planetgen.galaxy import scatter_limits
     from planetgen.generation import run_plan
     from planetgen.generation import star_population as starPopulation
     from tests.test_bright_star_scatter import EXTENTS, _plan_args, _seed_galaxy
@@ -182,9 +183,11 @@ def _scatter_mass(mysql_config, workers, on_run_record):
         conn.commit()
     finally:
         conn.close()
+    limits = scatter_limits.ScatterLimits.of(skeleton, 1000.0, 8.0)
+    tiered = scatter_limits.mass_pass(limits, starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL)
     run_plan._scatter_shells(args, mysql_config, skeleton, EXTENTS, set(), starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL,
-                             77, "Massive stars", mass_range=(8.0, None), stats_kind="scatter-mass",
-                             task_kind="mass-stars", on_run_record=on_run_record)
+                             77, "Massive stars", stats_kind="scatter-mass", task_kind="mass-stars", tiered=tiered,
+                             on_run_record=on_run_record)
     conn = store.get_connection(mysql_config)
     try:
         columns = ", ".join(store.BRIGHT_STAR_COLUMNS)
@@ -222,3 +225,16 @@ def test_the_shells_are_cut_into_the_same_units_whatever_the_worker_count():
     assert max(len(chunk) for chunk in chunks) <= run_plan.MAX_SHELLS_PER_CHUNK
     weights = [sum(row[2] for row in chunk) for chunk in chunks]
     assert weights == sorted(weights, reverse=True), "the heaviest unit first"
+
+
+def test_a_tiered_pass_travels_as_json_and_comes_back_equal():
+    from planetgen.galaxy import scatter_limits
+    from tests.test_gen_scatter_tiers import FLOOR, MASS, _skeleton
+    skeleton = _skeleton()
+    limits = scatter_limits.ScatterLimits.of(skeleton, FLOOR, MASS)
+    for tiered in (scatter_limits.mass_pass(limits, 100.0), scatter_limits.luminosity_pass(limits),
+                   scatter_limits.band_pass(limits, scatter_limits.ScatterLimits.of(skeleton, FLOOR * 10, MASS)),
+                   scatter_limits.mass_pass(scatter_limits.ScatterLimits.of(skeleton, FLOOR, None), 100.0), None):
+        import json
+        sent = json.loads(json.dumps(scatter_limits.tiered_to_json(tiered)))
+        assert scatter_limits.tiered_from_json(sent, skeleton) == tiered
