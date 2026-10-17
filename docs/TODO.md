@@ -2054,12 +2054,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   request; hovering one names it and gives its radius and centre; it is
   a picker layer so a click selects it. Needs the registry (MAP.217).
   The key text itself is MAP.234. Owner: Core 2.
-  Superbubble density (Boss, 2026-10-16, 9:27 PM EDT): once the stars
-  follow the bubbles (GEN.391 to GEN.395), the drawn layer is an
-  explanation and debug overlay, not how bubbles are shown. Open
-  default, a Boss card follows: keep this layer, off by default; MAP.236
-  keeps its place for when the layer is on. Nothing changes in this item
-  until Boss decides.
+  Superbubble density, Decided (Boss, 2026-10-16, 9:38 PM EDT): once the
+  stars follow the bubbles (GEN.391 to GEN.395), the drawn layer is an
+  explanation and debug overlay, not how bubbles are shown. Keep this
+  layer, off by default; MAP.236 stays at lower priority.
   Prerequisites: MAP.217. Related: MAP.234, MAP.217, GEN.254.
 
 - [ ] **MAP.236 Superbubbles need clearer bounds and slightly more transparency on the Galaxy Map**
@@ -2078,9 +2076,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the fill alpha is lower than 0.14. The key entry and toggle are
   MAP.234 and MAP.235; this item changes only the look.
   Owner: Core 2 (the Galaxy Map; proposed, Core 2 reads the plan).
-  Superbubble density (Boss, 2026-10-16, 9:27 PM EDT): the layer becomes
-  an optional overlay once the bubbles shape the stars (GEN.391); this
-  item stands, lower priority, until Boss decides the layer's fate.
+  Superbubble density, Decided (Boss, 2026-10-16, 9:38 PM EDT): the layer
+  becomes an optional overlay, off by default, once the bubbles shape the
+  stars (GEN.391); this item stays, at lower priority, for when the
+  overlay is on.
   Prerequisites: none. Related: MAP.234, MAP.235, GEN.254.
 
 - [ ] **MAP.237 The Galaxy Map's "Charted only" view is invisible again: charted space cannot be told from the rest (bug)**
@@ -7770,6 +7769,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4 informed (GEN.134 edits density.py).
   Prerequisites: none. Related: GEN.254, GEN.298, GEN.244, GEN.282,
   GEN.379, DB.38, ADM.94, MAP.235, MAP.236.
+  Decided (Boss, 2026-10-16, 9:38 and 9:39 PM EDT): a bubble changes the
+  young and intermediate star density only (old stars, halo, bulge,
+  clusters and satellites unchanged); the drawn layer stays as an
+  optional overlay, off by default; the chain stays in 8.1. The checked
+  design sets the strengths, not these choices.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
 
 - [ ] **GEN.392 A bubble field handle on the galaxy shape: seed-carried bubbles with a box cut, a certified maximum factor and a bubble-free density read**
@@ -7864,6 +7868,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   identical to before. No fixed content (Boss, 4:11 and 4:14 PM EDT):
   the bubbles stay derived from the seed; every strength is a calculated
   or drawn law with its source named.
+  Decided (Boss, 2026-10-16, 9:38 and 9:39 PM EDT): only the young and
+  intermediate populations follow the bubbles; old stars stay uniform.
   Prerequisites: GEN.393, NAV.60. Related: DB.38, ADM.94, GEN.298.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
 
@@ -11446,6 +11452,8 @@ clears each one.
   the bright-star scatter and the sector fill agree on the same cell;
   the same seed gives the same rows twice; the phenomena counts follow
   the factor. Uses TEST.186's census harness.
+  Decided (Boss, 2026-10-16, 9:38 and 9:39 PM EDT): old, bulge, halo,
+  cluster and satellite counts must equal the bubble-free control.
   Prerequisites: GEN.394, GEN.395, TEST.186. Related: GEN.391, TEST.204.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
 
