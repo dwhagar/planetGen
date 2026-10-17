@@ -17,7 +17,7 @@ release is stamped.
 | MAP | MAP.247 |
 | NAV | NAV.63 |
 | GEN | GEN.537 |
-| PERF | PERF.113 |
+| PERF | PERF.120 |
 | DB | DB.73 |
 | API | API.32 |
 | ADM | ADM.97 |
@@ -1670,6 +1670,13 @@ Parents marked "new parent" had no old number of their own.
 | PERF.110 | XFetch refresh for costly entries that expire by age | none | done, PR #2050 |
 | PERF.111 | `ResponseCache.put` without a database never trims the page cache: the cache grows past `max_entries`, and the thread test fails when its last put is one of those (bug) | none | open |
 | PERF.112 | The uncharted-star count runs a full COUNT(*) on every request: keep the count so the page and the API do not scan bright_stars each time (performance) | none | open |
+| PERF.113 | The neighbour link of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | open |
+| PERF.114 | The population pass of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | open |
+| PERF.115 | The settle stage of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | open |
+| PERF.116 | The habitability re-score (`plan --habitability`): measure it, and split it into chunks of systems if the time warrants | none | open |
+| PERF.117 | The map-luminosity fill (`plan --map-luminosity`): measure it, and split it into id-range chunks if the time warrants | none | open |
+| PERF.118 | Generation as commands: every stage is its own command, and one wrapper builds the command list and queues each command as one queue item | none | open |
+| PERF.119 | The Generate page, the API and the one-off sector and system commands start their runs through the wrapper | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -1864,7 +1871,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.115 | Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages) | none | open |
 | UX.116 | Sliders for every scatter and fill limit: one limit_slider with a number box, in three new segments under the scatter-limits row of the Generate page | none | done, PR #1911 |
 | UX.117 | The Apply filters button on the phenomena list disappears while the list loads (bug) | none | done, PR #1778 |
-| UX.118 | Slow pages show a progress bar while their data loads: the search page and the phenomena list pages | none | open |
+| UX.118 | Slow pages show a progress bar while their data loads: the search page and the phenomena list pages | none | done, PR #2089 |
 | UX.119 | An HTML renderer for the Document: facts, rating and composition tables, with unit spans, in both themes | none | open |
 | UX.120 | The system page and the one-off system page use it: every body's detail from the Document | none | open |
 | UX.121 | The logging layer and the written standard | none | open |

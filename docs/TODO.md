@@ -611,40 +611,6 @@ with `clamp()`.
   Prerequisites: NAV.61, MAP.243.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
 
-- [ ] **UX.118 Slow pages show a progress bar while their data loads: the search page and the phenomena list pages**
-  Boss (2026-10-16, 12:21 PM EDT): "have a progress bar in the search
-  page so the user knows it is loading, that is one of the main issues".
-  Owner Core 2, after PERF.105. When a page's data is being built by a
-  queued job (PERF.105), the page shows a loading state with a progress
-  bar (done of total, percentage and ETA from the status route, in the
-  ladder units and the wording of the description layer), keeps working
-  controls, can be cancelled, and swaps in the finished list without a
-  full reload; the search page and the phenomena list pages (black
-  holes, neutron stars and the rest of the kinds) are the first users,
-  and every other slow list takes it by marking its route slow. The bar
-  is accessible (role progressbar, a live text status, reduced-motion
-  respected) and works at phone width. A failed job shows its error and
-  a retry. Done: the progress bar component, the search page and the
-  phenomena list pages on it, and browser tests for the loading,
-  finished, cancelled and failed states in light and dark.
-  PERF.105 is merged (#2066, 2:05 PM EDT as Core 2 reported): the
-  mechanism only, no page uses it yet. Facts this item needs from Core
-  2: Pending.job has state, done, total, unit, estimated, eta_seconds,
-  seconds, cancelling, error, cache_key and target. Progress is an
-  ESTIMATE (elapsed share of expected time, capped at 95 percent,
-  estimated: true), so the bar text must say so; a real row count is
-  PERF.99. Retry is pagejobs.ensure(..., retry=True) (a failed or
-  cancelled job is shown 30 s, then replaced). Cancel on the API is
-  ADMIN ONLY (the API takes no anonymous write), so a visitor's Cancel
-  must mean 'stop waiting' and never cancels the shared job. The cost
-  rule: last timed build over 3 s, or never timed and the route's tables
-  over 2,000,000 rows (tuning.SLOW_PAGE_*). A route opts in with
-  allow_pending and must be in slowpages.PATH_TABLES (phenomena, search,
-  uncharted-systems and systems today). Endpoints: GET
-  /api/table-estimates, GET /api/page-jobs/<id>, POST
-  /api/page-jobs/<id>/cancel. Design: docs/design/slow-page-answers.md.
-  Prerequisites: none. Related: PERF.104, UX.117, UX.3.
-
 - [ ] **UX.119 An HTML renderer for the Document: facts, rating and composition tables, with unit spans, in both themes**
   Split from UX.105 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). Add the fourth renderer beside text,
@@ -13920,6 +13886,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 28 of 54). This replaces any earlier owner line on this item.
+  Decided (Boss, 2026-10-17, 4:12 PM EDT): every part of the generate
+  process, all the scatter phases included, is an individual command,
+  and a general process wrapper makes the list of the commands to run
+  and puts them into the Redis queue individually: the wrapper builds
+  the command list, each command is one queue item. Built by PERF.118
+  (the wrapper), PERF.106 to PERF.108 (the stages as commands) and
+  PERF.119 (every start path).
 
 - [ ] **PERF.98 Work queue step 4: the remaining stages and the sector and backfill units on the new queue**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
@@ -13957,6 +13930,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 36 of 54). This replaces any earlier owner line on this item.
+  Boss, 2026-10-17, 4:12 PM EDT: every stage in this item is a command
+  registered with the wrapper of PERF.118, and the wrapper builds the
+  command list, each command is one queue item; the stages are not wired
+  in any other way. PERF.118 (the wrapper) comes first and PERF.119
+  (every start path uses it) comes after this umbrella.
   Prerequisites: PERF.106, PERF.107, PERF.108. Related: PERF.86.
 
 - [ ] **PERF.99 Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command**
@@ -13988,7 +13966,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 37 of 54). This replaces any earlier owner line on this item.
-  Prerequisite: PERF.98. Related: PERF.86, UX.3.
+  Prerequisites: PERF.98, PERF.119. Related: PERF.86, UX.3.
 
 - [ ] **PERF.100 Work queue step 6: delete the old machinery and the work_* tables (Alembic migration)**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
@@ -14057,7 +14035,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.401 merged (#2051, Core 1, 12:50 PM EDT as the lane reported), so
   the wait on it is over: Core 5 can take the item (the coordinator told
   Core 5 at 12:51 PM EDT).
-  Prerequisites: none. Related: PERF.98.
+  Boss, 2026-10-17, 4:12 PM EDT: every stage in this item is a command
+  registered with the wrapper of PERF.118, and the wrapper builds the
+  command list, each command is one queue item; the stages are not wired
+  in any other way.
+  Prerequisites: PERF.118. Related: PERF.98.
 
 - [ ] **PERF.107 The sector units and the stages around them: start, neighborhood, sectors, link, population and settle**
   Split from PERF.98 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -14074,6 +14056,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 30 of 54). This replaces any earlier owner line on this item.
+  Boss, 2026-10-17, 4:12 PM EDT: every stage in this item is a command
+  registered with the wrapper of PERF.118, and the wrapper builds the
+  command list, each command is one queue item; the stages are not wired
+  in any other way.
   Prerequisites: PERF.106. Related: PERF.98.
 
 - [ ] **PERF.108 The backfill as queue units: chunks of at least 10,000 cells, one enumeration (folds in PERF.18)**
@@ -14103,6 +14089,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 31 of 54). This replaces any earlier owner line on this item.
+  Boss, 2026-10-17, 4:12 PM EDT: every stage in this item is a command
+  registered with the wrapper of PERF.118, and the wrapper builds the
+  command list, each command is one queue item; the stages are not wired
+  in any other way.
   Prerequisites: PERF.107. Related: PERF.98.
 
 - [ ] **PERF.111 `ResponseCache.put` without a database never trims the page cache: the cache grows past `max_entries`, and the thread test fails when its last put is one of those (bug)**
@@ -14155,6 +14145,166 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   built, a rescatter and a reset (a test for each), and the measurement
   is on the item. Owner: Core 5 (proposed, PERF.75's author).
   Prerequisites: none. Related: PERF.75, PERF.71, UX.87.
+
+- [ ] **PERF.113 The neighbour link of a galaxy run: measure it, and split it into chunks of sectors if the time warrants**
+  Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
+  parallelized in a way that helps (a thread per chunk for scatters, a
+  worker per sector for sector generation). Audit finding: `link`
+  (`store.link_sector_neighbors`, db/store.py, called by the `galaxy`
+  command) runs on one connection in one process in batches of
+  LINK_BATCH_SECTORS, and PERF.107 only moves it onto the queue as ONE
+  one-shot unit. Done: the stage is timed and the figure recorded; if it
+  justifies it, `link` becomes static chunks of sectors (each chunk
+  writes only its own sectors' neighbour rows, so chunks cannot
+  collide), with the run-record barrier before `population`. Same rule
+  for every stage: measure first. Time the stage on an idle box for a
+  galaxy of the size a real run makes and write the figure in the PR;
+  split it into parallel units only if that time is large enough to
+  matter (about a minute or more), otherwise leave it as one unit and
+  say so in the PR. Either way the result must be identical for the same
+  seed at 1 and at 4 workers (a test that compares the stored rows), and
+  the units are static chunks, not a work-stealing split, so a rerun
+  gives the same chunks.
+  Prerequisites: PERF.107. Related: PERF.98, PERF.107.
+
+- [ ] **PERF.114 The population pass of a galaxy run: measure it, and split it into chunks of sectors if the time warrants**
+  Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
+  parallelized in a way that helps (a thread per chunk for scatters, a
+  worker per sector for sector generation). Audit finding:
+  `run_population` (generation/run_population.py) calls `model.run_pass`
+  in one process, and PERF.107 only moves it onto the queue as ONE
+  one-shot unit. Done: the stage is timed and the figure recorded; if it
+  justifies it, the pass runs as static chunks of sectors after the
+  `link` barrier, with the pass's draws depending only on the seed and
+  the system's own address. Same rule for every stage: measure first.
+  Time the stage on an idle box for a galaxy of the size a real run
+  makes and write the figure in the PR; split it into parallel units
+  only if that time is large enough to matter (about a minute or more),
+  otherwise leave it as one unit and say so in the PR. Either way the
+  result must be identical for the same seed at 1 and at 4 workers (a
+  test that compares the stored rows), and the units are static chunks,
+  not a work-stealing split, so a rerun gives the same chunks.
+  Prerequisites: PERF.107. Related: PERF.98, PERF.107.
+
+- [ ] **PERF.115 The settle stage of a galaxy run: measure it, and split it into chunks of sectors if the time warrants**
+  Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
+  parallelized in a way that helps (a thread per chunk for scatters, a
+  worker per sector for sector generation). Audit finding:
+  `settle_after_run` (generation/run_galaxy.py) calls
+  `sector_paths.settle_sectors`, which settles the sectors one after the
+  other in one process; only a crowded sector's bodies are split over
+  worker processes inside it (PERF.80). PERF.107 moves the stage onto
+  the queue as ONE one-shot unit. Done: the stage is timed and the
+  figure recorded; if it justifies it, the settle runs as static chunks
+  of sectors (each path depends only on the final neighbour set, which
+  is fixed by then, and each chunk saves only its own sectors' paths).
+  Same rule for every stage: measure first. Time the stage on an idle
+  box for a galaxy of the size a real run makes and write the figure in
+  the PR; split it into parallel units only if that time is large enough
+  to matter (about a minute or more), otherwise leave it as one unit and
+  say so in the PR. Either way the result must be identical for the same
+  seed at 1 and at 4 workers (a test that compares the stored rows), and
+  the units are static chunks, not a work-stealing split, so a rerun
+  gives the same chunks.
+  Prerequisites: PERF.107. Related: PERF.98, PERF.107, PERF.80.
+
+- [ ] **PERF.116 The habitability re-score (`plan --habitability`): measure it, and split it into chunks of systems if the time warrants**
+  Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
+  parallelized in a way that helps (a thread per chunk for scatters, a
+  worker per sector for sector generation). Audit finding:
+  `fill_habitability` (generation/run_plan.py) re-scores the systems in
+  id order in batches of HABITABILITY_BATCH_SYSTEMS on one connection in
+  one process (each body is pure Python work in
+  `store.refresh_habitability`), and PERF.106 only moves the plan modes
+  onto run records. Done: the stage is timed and the figure recorded; if
+  it justifies it, the re-score runs as static id-range chunks of
+  systems, one transaction per batch as now. Same rule for every stage:
+  measure first. Time the stage on an idle box for a galaxy of the size
+  a real run makes and write the figure in the PR; split it into
+  parallel units only if that time is large enough to matter (about a
+  minute or more), otherwise leave it as one unit and say so in the PR.
+  Either way the result must be identical for the same seed at 1 and at
+  4 workers (a test that compares the stored rows), and the units are
+  static chunks, not a work-stealing split, so a rerun gives the same
+  chunks.
+  Prerequisites: PERF.106. Related: PERF.98, PERF.106.
+
+- [ ] **PERF.117 The map-luminosity fill (`plan --map-luminosity`): measure it, and split it into id-range chunks if the time warrants**
+  Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
+  parallelized in a way that helps (a thread per chunk for scatters, a
+  worker per sector for sector generation). Audit finding:
+  `fill_map_luminosity` (generation/run_plan.py) fills
+  `phenomenon_scatter.map_luminosity_sol` in id-range batches of
+  MAP_LUMINOSITY_BATCH_IDS one after the other on one connection, as
+  SQL, and PERF.106 only moves the plan modes onto run records. It is
+  database-bound, so more connections may not help: that is what the
+  measurement decides. Done: the stage is timed and the figure recorded;
+  if parallel id-range chunks (the same batches, each its own statement
+  and commit) shorten it, it runs that way. Same rule for every stage:
+  measure first. Time the stage on an idle box for a galaxy of the size
+  a real run makes and write the figure in the PR; split it into
+  parallel units only if that time is large enough to matter (about a
+  minute or more), otherwise leave it as one unit and say so in the PR.
+  Either way the result must be identical for the same seed at 1 and at
+  4 workers (a test that compares the stored rows), and the units are
+  static chunks, not a work-stealing split, so a rerun gives the same
+  chunks.
+  Prerequisites: PERF.106. Related: PERF.98, PERF.106.
+
+- [ ] **PERF.118 Generation as commands: every stage is its own command, and one wrapper builds the command list and queues each command as one queue item**
+  Boss, 2026-10-17, 4:12 PM EDT: "Rework so every part of the generate
+  process, all the scatter phases, are individual commands, then a
+  general process wrapper makes a list of the commands that need to be
+  run, and then puts those into the redis queue individually." The
+  wrapper builds the command list, each command is one queue item. Today
+  `run_plan` and `run_galaxy` run their stages one after another in one
+  process, and only the scatter shells fan out as units
+  (`queue/units.py` HANDLERS, `run_plan.scatter_shells_unit`, built by
+  PERF.97); the stage list of `generation/stages.py` is used for the
+  bars, not to drive the run. Shape: (1) a command registry: every
+  stage, and every chunk of a chunked stage, is a command, a kind in the
+  units registry with JSON arguments and a JSON result, that can also be
+  run alone from the command line for a test or a rerun with the same
+  arguments; (2) the wrapper: a pure function from the parsed arguments
+  of `planetgen galaxy` and `planetgen plan` to the ordered stages, each
+  stage a list of commands with its arguments and predicted cost (this
+  is what `stages.galaxy_stages` and `plan_stages` become), so the list
+  can be printed without running anything; (3) the enqueue: the wrapper
+  writes the run record and queues the first stage's commands, and the
+  done-set barrier of the run record queues the next stage's, as
+  designed in docs/design/redis-and-the-work-queue.md 5.1; (4)
+  `planetgen galaxy` and `planetgen plan` become thin: build the list,
+  queue it, follow the events, with `--workers 1` on the same path.
+  Done: the mass scatter, already a unit, is the first stage built and
+  queued by the wrapper and its commands each run alone; the list for
+  the same arguments is the same every time; a test lists a `galaxy` run
+  and a `plan` run and checks every command named is registered; the
+  PERF.106 to PERF.108 stages are each added as commands of this wrapper
+  and nothing else starts a stage. Owner: Core 5 (the chain of PERF.106
+  to PERF.108 and PERF.98, built first so the three stage items fill the
+  wrapper).
+  Prerequisites: none. Related: PERF.86, PERF.97, PERF.98, PERF.106,
+  PERF.107, PERF.108.
+  Design: [docs/design/redis-and-the-work-queue.md](design/redis-and-the-work-queue.md)
+
+- [ ] **PERF.119 The Generate page, the API and the one-off sector and system commands start their runs through the wrapper**
+  Boss, 2026-10-17, 4:12 PM EDT: "Rework so every part of the generate
+  process, all the scatter phases, are individual commands, then a
+  general process wrapper makes a list of the commands that need to be
+  run, and then puts those into the redis queue individually." The
+  wrapper builds the command list, each command is one queue item. Once
+  the stages are commands (PERF.106 to PERF.108), every way to start
+  generation uses the one wrapper of PERF.118: the Generate page
+  (`web/generate_page.py`, `web/job_runner.py`), the API jobs
+  (`queue/api_jobs.py`) and the one-off `planetgen sector` and
+  `planetgen system` commands (each a one-command run), so there is no
+  second way to run a stage and no start path that skips the run record.
+  Done: each of those entry points builds its command list with the
+  wrapper and queues it; a test starts a run from each and finds it on
+  the run record; a grep finds no stage started outside the wrapper.
+  Owner: Core 5 (after PERF.98, before PERF.99 reads the run record on
+  the pages).
+  Prerequisites: PERF.98, PERF.118. Related: PERF.99, PERF.118.
 
 ## DB: Database and schema
 
@@ -16424,6 +16574,15 @@ clears each one.
   family and fix; close with this item and reopen only on a captured
   traceback. Agreed by Bug Hunt (2026-10-17, 12:33 AM EDT as the lane
   reported).
+  Sighting (Core 2, 2026-10-17, 4:10 PM EDT as the lane reported, UX.118
+  gate, #2089):
+  `src/tests/test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names`
+  (already on this item's list) failed in the loaded browser phase (box
+  load about 9) and passed on the gate's own re-run alone (load 7 to 8,
+  so not idle). Failure text not captured yet (.test-failures.jsonl in
+  Core 2's worktree). Fails on main: not checked. The MAP.227 breadcrumb
+  change is in main, so the next capture decides whether this is the
+  load timeout of this item or a real breadcrumb race.
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
@@ -16983,6 +17142,13 @@ clears each one.
   twice on 2026-10-16, Core 5 once). Reproducer: `PYTHONPATH=src python3
   -m pytest src/tests/test_web_browser_maps.py -k drill_down_by_clicks`
   while a gate runs. Bug Hunt owns it.
+  Sighting (Core 2, 2026-10-17, 4:10 PM EDT as the lane reported, UX.118
+  gate, #2089): `test_galaxy_map_drill_down_by_clicks` failed in the
+  loaded browser phase of the gate (box load about 9) and passed on the
+  gate's own re-run alone (load 7 to 8, so not idle). Failure text not
+  captured yet (full reports are in .test-failures.jsonl in Core 2's
+  worktree). Fails on main: not checked. Frequency: now 4 loaded gate
+  runs seen for this test.
   Prerequisites: none. Related: MAP.210, TEST.170, TEST.171.
 
 - [ ] **TEST.174 test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug)**

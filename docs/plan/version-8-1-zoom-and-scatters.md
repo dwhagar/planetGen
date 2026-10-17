@@ -23,20 +23,26 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | PERF.75 | The jump-by-value box for the big data tables (keyset paging is done for the Systems, Uncharted stars and Phenomena tables) |  | Decided by default. Foundations lane 1. |
 | PERF.112 | The uncharted-star count runs a full COUNT(*) on every request: keep the count so the page and the API do not scan bright_stars each time (performance) |  | Core 5 finding: the uncharted-star count scans bright_stars on every request. Core 5 proposed. |
 | PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply |  |  |
-| PERF.106 | The plan command on the run record, with stage timing, the killed-worker handler and job timeouts |  | Split from PERF.98. |
+| PERF.118 | Generation as commands: every stage is its own command, and one wrapper builds the command list and queues each command as one queue item |  | Boss, 2026-10-17, 4:12 PM EDT: the wrapper builds the command list, each command is one queue item. |
+| PERF.106 | The plan command on the run record, with stage timing, the killed-worker handler and job timeouts | PERF.118 | Split from PERF.98. |
 | PERF.107 | The sector units and the stages around them: start, neighborhood, sectors, link, population and settle | PERF.106 | Split from PERF.98. |
 | PERF.108 | The backfill as queue units: chunks of at least 10,000 cells, one enumeration (folds in PERF.18) | PERF.107 | Split from PERF.98. |
+| PERF.113 | The neighbour link of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | PERF.107 | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
+| PERF.114 | The population pass of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | PERF.107 | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
+| PERF.115 | The settle stage of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | PERF.107 | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
+| PERF.116 | The habitability re-score (`plan --habitability`): measure it, and split it into chunks of systems if the time warrants | PERF.106 | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
+| PERF.117 | The map-luminosity fill (`plan --map-luminosity`): measure it, and split it into id-range chunks if the time warrants | PERF.106 | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
 | PERF.98 | Work queue step 4: the remaining stages and the sector and backfill units on the new queue | PERF.106, PERF.107, PERF.108 | PERF.86 step 4 |
+| PERF.119 | The Generate page, the API and the one-off sector and system commands start their runs through the wrapper | PERF.98, PERF.118 | Boss, 2026-10-17, 4:12 PM EDT: every start path uses the wrapper. |
 | GEN.309 | The backfill picks the draw path per block and gives the same stars wherever it lands | PERF.108 | Split from GEN.42. |
 | GEN.40 | Weed out sectors by star density before the bright-star backfill | GEN.309 | Parent; closes with its subitems. |
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands | GEN.309 | Research: ledger size at full galaxy. |
-| PERF.99 | Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command | PERF.98 | PERF.86 step 5 |
+| PERF.99 | Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command | PERF.98, PERF.119 | PERF.86 step 5 |
 | GEN.310 | Fill a whole block of the shell ladder: planetgen generate --block and the queue job | PERF.99 | Split from GEN.231. |
 | UX.127 | The Galaxy Map block menu offers Generate again | GEN.310 | Split from GEN.231. |
 | GEN.231 | Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back | GEN.310, UX.127 | Maps hand-off 2026-10-15. Core, then Interface for the buttons. |
 | DB.29 | update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them | PERF.99 |  |
 | PERF.100 | Work queue step 6: delete the old machinery and the work_* tables (Alembic migration) | DB.29 | PERF.86 step 6 |
-| UX.118 | Slow pages show a progress bar while their data loads: the search page and the phenomena list pages |  | Boss 2026-10-16; Core 2, after PERF.105. |
 | OPS.59 | `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug) |  | Finding from a lane. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 
 ### Reproducible galaxies
