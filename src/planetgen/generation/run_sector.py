@@ -21,11 +21,13 @@ from planetgen.db import store
 from planetgen.galaxy import seed as galaxySeed
 from planetgen.generation import directives
 from planetgen.generation import fill_stages
+from planetgen.generation import nebula_contents
 from planetgen.generation import system_pass
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import nebula_field
+from planetgen.galaxy.frame import galaxy_to_local_pc
 from planetgen.galaxy.system_position import random_unit_vector
-from planetgen.physics import constants
+from planetgen.physics import constants, stellar_evolution
 from planetgen import tuning as program_constants
 from planetgen.util import draw
 from planetgen.util import log
@@ -239,6 +241,9 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
         hosted = add_star_hosted_nebulae(sector, args, chance_factor=kind_factors.get("nebula", 1.0))
     fill_stages.count(sector, fill_stages.NEBULAE, "nebula", len(hosted))
     new_entries.extend(hosted)
+    if cloud_field is not None:
+        with fill_stages.stage(sector, fill_stages.NEBULAE, "protostars"):
+            add_cloud_protostars(sector, args, cloud_field, galactic_center_dist_ly)
     return new_entries
 
 
@@ -258,7 +263,7 @@ def _add_planetary_nebula(sector, args, nebula, galactic_center_dist_ly=None, po
     config = SystemConfig()
     config.MARKDOWN = args.markdown
     config.STAR_TYPE = draw.choice(program_constants.PLANETARY_NEBULA_CENTRAL_STAR_TYPES)
-    config.BINARY_SYSTEM = False
+    nebula_contents.planetary_central_config(config)  # GEN.320: a close companion in 20%
     system = StarSystem(system_config=config, galactic_center_dist_ly=galactic_center_dist_ly)
     try:
         if position is None:
@@ -296,25 +301,53 @@ def add_star_hosted_nebulae(sector, args, chance_factor=1.0):
         stars = getattr(system_entry.star_system, "stars", None) or []
         if not stars:
             continue
-        code = _spectral_code(stars[0])
-        match = re.fullmatch(r"([OBAFGKM])([0-9])V", code)
-        if match is None:
+        nebula = nebula_contents.hosted_nebula_of(stars[0], chance_factor, args.markdown)
+        if nebula is None:
             continue
-        letter, subclass = match.group(1), int(match.group(2))
-        age_myr = stars[0].age * 1000.0
-        for rule_letter, low, high, classes, chance in program_constants.NEBULA_HOST_RULES:
-            if letter != rule_letter or not (low <= subclass <= high):
+        log.debug(f"Sector {sector.name!r}: {_spectral_code(stars[0])} star {system_entry.star_system.name!r} "
+                  f"lights class {nebula.nebula_class} nebula {nebula.name!r}")
+        entries.append(sector.add_phenomenon(nebula, "nebula", position=system_entry.position))
+    return entries
+
+
+def add_cloud_protostars(sector, args, cloud_field, galactic_center_dist_ly=None):
+    """
+    Builds the protostars of the field clouds that reach `sector` (GEN.320): each Bok globule (P) and star-forming core
+    (Q) draws its members from its own seed (`nebula_contents.cloud_members`), and the sector builds the ones whose
+    points fall inside it, each as an ordinary young system at its point. A member that finds the sector's cell closed
+    to it is skipped, not the cloud.
+
+    Args:
+        sector (SpaceSector): The populated sector, with `field_nebulae` set.
+        args (argparse.Namespace): Parsed arguments.
+        cloud_field (tuple): `(galaxy_seed, shape, center_pc, reach_pc)` as `generate_sector_phenomena` took it.
+        galactic_center_dist_ly (float, optional): As in `generate_sector`.
+
+    Returns:
+        list: The new systems' `SectorSystemEntry` instances.
+    """
+    galaxy_seed, _shape, center_pc, _reach = cloud_field
+    entries = []
+    for nebula, cloud_center in sector.field_nebulae:
+        for member in nebula_contents.cloud_members(galaxy_seed, nebula, cloud_center):
+            local = tuple(pc_to_ly(value) for value in galaxy_to_local_pc(center_pc, member.position_pc))
+            if not sector.contains(local):
                 continue
-            young = tuple(c for c in classes if age_myr <= program_constants.NEBULA_CLASS_MAX_AGE_MYR[c])
-            if young and draw.random() < chance * chance_factor:
-                config = SystemConfig()
-                config.MARKDOWN = args.markdown
-                nebula_class = choose_weighted_class(young, "Star-hosted nebula class")
-                nebula = Nebula(config, nebula_class=nebula_class, host=(letter, subclass), age_myr=age_myr)
-                log.debug(f"Sector {sector.name!r}: {code} star {system_entry.star_system.name!r} "
-                          f"lights class {nebula_class} nebula {nebula.name!r}")
-                entries.append(sector.add_phenomenon(nebula, "nebula", position=system_entry.position))
-            break
+            config = run_system.build_system_config(args)
+            config.POPULATION = "young"
+            age_gy = member.age_yr / 1.0e9
+            with draw.bound(member.seed):
+                params = stellar_evolution.star_params(member.mass_sol, age_gy,
+                                                       stellar_evolution.evolve_star(member.mass_sol, age_gy))
+                system = StarSystem(system_config=config, galactic_center_dist_ly=galactic_center_dist_ly,
+                                    primary_star_params=params)
+            try:
+                entry = sector.add_preplaced_system(system, local, system_config=config)
+            except ValueError:
+                continue
+            entry.system_seed = member.seed
+            fill_stages.count(sector, fill_stages.NEBULAE, "protostar")
+            entries.append(entry)
     return entries
 
 
