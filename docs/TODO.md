@@ -5325,48 +5325,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.244. Related: GEN.280, GEN.246.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
-- [ ] **GEN.283 Scatter limits by place: a core luminosity floor and mass limit, a halo luminosity floor (default 500, lowest 50), and the baseline everywhere else**
-  Build step of the realistic galactic core plan
-  (docs/design/realistic-galactic-core.md, sections 5 and 9; Boss's
-  item, 2026-10-16, 12:43 AM EDT; note updated for Boss's 1:09 and 1:10
-  AM EDT messages, #1733). Owner Core 3, goal issue #1677. Boss (12:51
-  AM EDT): "the density plan should match as close as we can real-world
-  or at least real possible observations about the galactic density and
-  star counts and all that. THEN for our scatter sweeps, we tweak our
-  minimum mass and minimum luminosity values when we scatter." Boss
-  (1:09 and 1:10 AM EDT): a halo luminosity floor that defaults to 500
-  and can be set no lower than 100 solar luminosities (Boss, 2026-10-15
-  10:06 PM EDT: lowest allowed is now 50, default still 500), and the
-  scatter
-  core with its own levers defaulting to about 10% above the defaults.
-  Done: three settings: a core luminosity floor (default 9,900, the
-  baseline times 1.1, following the baseline until moved), a core mass
-  limit (default 15.4) and a halo luminosity floor (default 500, slider
-  range from 50 up to 4,000,000); the halo has no mass limit of its own;
-  the disc,
-  bulge, satellites and clusters stay on the baseline; the tier is
-  chosen per band by the dominant term of lambda; L_cell and M_cell in
-  the passes, the backfill and the fill; placed_star_fraction uses the
-  cell's cuts; the metallicity argument comes from GEN.158. Three new
-  galaxy_shape columns (core_min_luminosity_sol, core_mass_limit_sol,
-  halo_min_luminosity_sol) share one Core 1 migration revision with
-  GEN.281; options planetgen plan --core-min-luminosity,
-  --core-mass-limit and --halo-min-luminosity. A halo floor of 500 gives
-  about 3.8 million rows (0.6 GB). To allow a floor of 50 the build
-  lowers the ceiling of `WD_LUMINOSITY_RANGE_SOL` from 100 to 50 so
-  `star_population._check_threshold` accepts it (Core 3's finding;
-  GEN.149, now built, changed the same white-dwarf constants), and the plan option `--halo-min-luminosity` accepts 50.
-  Migration revision (updated 2026-10-16, 11:25 AM EDT, GEN.281 merged as #1820): 0098 shipped with GEN.281 alone. The scatter-limit tier itself is a field on SectorProfile with a tuning constant, no column.
-  Built-on note (Core 1, 2026-10-16, 3:17 AM EDT, GEN.235 merged as
-  #1784): the scatter-limit tier is a field plus a tuning constant on
-  SectorProfile in galaxy/profile.py, no columns.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: DB.54, GEN.333. GEN.283 mixes a Core 1
-  migration with the tier logic, and the sliders wait on the wrong half.
-  Prerequisites: GEN.333. Related: GEN.234, GEN.237.
-  Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
-
 - [ ] **GEN.284 Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut**
   Build step of the realistic galactic core plan
   (docs/design/realistic-galactic-core.md, section 9; Boss's item,
@@ -6473,20 +6431,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   line on this item.
   Prerequisites: DB.53, GEN.314, GEN.315. Related: GEN.275.
 
-- [ ] **GEN.333 Scatter limits by place: the tier chosen per band by the dominant lambda term, applied in the passes, the backfill and the fill**
-  Split from GEN.283 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). The tier is chosen per band by
-  the dominant term of lambda (core, halo, or the baseline for disc,
-  bulge, satellites and clusters); L_cell and M_cell are used in the
-  passes, the backfill and the fill, and placed_star_fraction uses the
-  cell's cuts; the metallicity argument comes from GEN.158. To allow a
-  floor of 50 the ceiling of WD_LUMINOSITY_RANGE_SOL goes from 100 to 50
-  so star_population._check_threshold accepts it. Done: a halo floor of
-  500 gives about 3.8 million rows (0.6 GB), the core tier follows the
-  baseline until moved, a cell never changes tier mid-band, and scatter
-  plus fill still sum to the untiered expected total.
-  Prerequisites: DB.54. Related: GEN.283.
-
 - [ ] **GEN.334 Pair closest-approach library: sweep, pair windows, window cap and chunking**
   Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
   item for smaller chunks and shared work, 1:33 PM EDT: shared
@@ -7309,6 +7253,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with two points a few parsecs apart at 262 kpc gives the right angle
   within a stated relative bound. Owner: Core 4 (region query).
   Prerequisites: none. Related: GEN.372, GEN.276, NAV.60.
+
+- [ ] **GEN.377 Scatter limits by place for the neutron star and black hole scatter below the cut: the core and halo tiers apply to it, not one global mass cut**
+  Found by Core 3 (2026-10-16, 8:34 PM EDT, after GEN.333 merged as
+  #1904), filed by the TODO thread at its request as a later 8.1 item.
+  GEN.333 applies the tiers (core, baseline, halo) to the star scatter;
+  the phenomena scatter below the cut (neutron stars and black holes
+  from stellar density) still keeps ONE global mass cut, so the core and
+  halo tiers do not apply to it. Done: the neutron star and black hole
+  scatter below the cut takes its mass limit by place (core, baseline,
+  halo) the same way GEN.333 does for stars, with the tier chosen per
+  band by the dominant lambda term; the three limits are the same
+  settings the Generate page already shows (UX.116), with no extra
+  setting; a test shows that a core band and a halo band cut the
+  phenomena at their own tier limits and the baseline is unchanged.
+  Changed behaviour recorded with GEN.333: the brightest white dwarf is
+  now 50 solar luminosities (it was 100), so the luminosity floors and
+  caps may go as low as 50. Owner: Core 3.
+  Prerequisites: none. Related: GEN.333, GEN.283, UX.116, GEN.301.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -10261,7 +10223,7 @@ clears each one.
   on the census harness (the new first item of the Whole-sphere audits
   thread); TEST.161, TEST.162 and TEST.164 add their checks to it, not
   counters of their own.
-  Prerequisites: GEN.240, GEN.282, GEN.283, GEN.321,
+  Prerequisites: GEN.240, GEN.282, GEN.321,
   TEST.186.
   Related: TEST.159.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
@@ -10480,6 +10442,10 @@ clears each one.
   order set at 3:00 PM EDT: non-test bugs, then the database-version
   test failures, then the failures that hit full runs, then the one-off
   load flakes). Fix the cause; no skipping or quarantine.
+  Second sighting (Core 3, 2026-10-16, 8:34 PM EDT, GEN.333 gate: full
+  `changed`, 118 minutes, load 16): failed again under load and passed
+  alone (call 28 s on a loaded worker); the same gate failed
+  `test_galaxy_map_drill_down_by_clicks` (filed as TEST.202).
   Prerequisites: none. Related: MAP.210, TEST.170, TEST.171.
 
 - [ ] **TEST.173 test_gen_bright_scatter_edges::test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star failed once under gate load with an empty ring in _nearest (bug)**
@@ -10923,6 +10889,23 @@ clears each one.
   dependent. Compensated sums for the long accumulations wait for
   GEN.109 (Boss card): see the note on GEN.109. Owner: Core 1.
   Prerequisites: none. Related: GEN.372, GEN.109.
+
+- [ ] **TEST.202 `test_galaxy_map_drill_down_by_clicks` failed under load and passed alone: call 28 s to 52 s on a loaded worker (bug)**
+  Found by Core 3 (2026-10-16, 8:34 PM EDT, in the GEN.333 gate: full
+  `changed`, 118 minutes, load 16), filed by the TODO thread.
+  `src/tests/test_web_browser_maps.py::test_galaxy_map_drill_down_by_clicks`
+  failed under load and passed alone (call 52 s on a loaded worker); the
+  same gate also failed
+  `test_galaxy_map_forward_to_current_jumps_to_the_newest_view` (call 28
+  s; TEST.172 carries that sighting). Fails on main: not checked.
+  Frequency: once. Reproducer: none beyond a loaded full run. Done: the
+  cause is found (a fixed wait or a click before the stage view is
+  ready, or a real slow path in the drill-down), the test waits on the
+  condition it needs, it passes under the same load, and no quarantine.
+  Likely the same family as TEST.197 (a timing assumption under load)
+  and the browser hangs of TEST.193 and TEST.195, so Core 1 reads them
+  together. Owner: Core 1, bug phase.
+  Prerequisites: none. Related: TEST.172, TEST.197, TEST.193, TEST.195.
 
 ## USR: User accounts
 
