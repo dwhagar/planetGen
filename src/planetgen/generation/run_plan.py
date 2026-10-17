@@ -1670,9 +1670,8 @@ def scatter_phenomena(args):
         component_task = None
         if galaxy_components:
             component_task = (len(tasks), galaxy_components)
-            component_weight = sum(componentPass.systems_of(component) * sum(
-                rate for _kind, _subtype, rate in componentPass.phenomenon_rates(min_mass_solar))
-                for component in galaxy_components)
+            component_weight = sum(componentPass.expected_phenomena(component, min_mass_solar)
+                                   for component in galaxy_components)
             tasks[component_task[0]] = [(COMPONENT_TASK_SHELL, COMPONENT_TASK_SHELL, component_weight)]
             weights[component_task[0]] = component_weight + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS
         shell_total = len(extents) + len(beyond_shells) + (0 if far is None else reach_shell - first_far + 1)
@@ -1804,7 +1803,7 @@ def _phenomenon_shells_task(payload):
                 shape, first_far, last_far, edge_pc, expected, seed, skip_addresses=skip, min_mass_solar=min_mass))
         if payload.get("components"):
             runs.append(componentPass.scatter_phenomena(
-                payload["components"], edge_pc, seed, skip_addresses=skip, min_mass_solar=min_mass))
+                payload["components"], edge_pc, seed, skip_addresses=skip, min_mass_solar=min_mass, shape=shape))
         for rows in runs:
             for row in rows:
                 label = phenomenon_scatter.class_label(row[3], row[4])

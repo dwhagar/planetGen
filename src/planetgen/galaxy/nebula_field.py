@@ -72,14 +72,18 @@ def _gas_tracer(position_pc, shape):
     young stars' density (they form from it, so they share its thin layer
     and its radial profile), with the young stars' own arm contrast swapped
     for the gas's (`NEBULA_FIELD_ARM_AMPLITUDE`): molecular gas crowds the
-    arms less than the stars born there do.
+    arms less than the stars born there do. A satellite galaxy's young stars
+    (`satellite_young`) add the same way, with no arm contrast: the gas they
+    formed from is the satellite's own (GEN.528).
     """
-    young = galaxyDensity.population_densities(position_pc, shape)["young"]
+    mix = galaxyDensity.population_densities(position_pc, shape)
+    # A satellite galaxy's young stars (GEN.526) formed from its own gas, which no spiral arm of the disk shapes.
+    satellite = max(mix["satellite_young"], 0.0)
     arm_cos = galaxyDensity._arm_cosine(position_pc[0], position_pc[1], shape)
     star_contrast = 1 + tuning.STELLAR_POPULATION_ARM_AMPLITUDE["young"] * arm_cos
     if star_contrast <= 0.0:
-        return 0.0
-    return max(young, 0.0) / star_contrast * (1 + tuning.NEBULA_FIELD_ARM_AMPLITUDE * arm_cos)
+        return satellite
+    return max(mix["young"], 0.0) / star_contrast * (1 + tuning.NEBULA_FIELD_ARM_AMPLITUDE * arm_cos) + satellite
 
 
 @functools.lru_cache(maxsize=8)
