@@ -403,6 +403,94 @@ This also covers a question Boss did not ask: a **planetary nebula's central whi
 | Be stars and other stellar attributes (decretion disks, carbon stars, Mira variables) | state or attribute on an ordinary star; no new kind |
 | Transients: gamma-ray bursts, fast radio bursts, kilonovae | out of scope: they have no persistent object to place |
 
+### 5.13 The laws that replace the fixed content (GEN.368)
+
+**Status:** a table for Boss to read and approve before any build. Boss's rules: no fixed content and no Milky Way preset (2026-10-16, 4:11 and 4:14 PM EDT); a calculated or derived law over a drawn one wherever the science gives one; a seeded draw only where the science gives a distribution; a research request to Boss where a piece cannot be looked up.
+
+**What could not be checked.** The session that wrote this table cannot reach arxiv.org or ar5iv (no DNS), so no paper's text or table was read. Every number below comes from search-result summaries, from a code library that quotes the paper, or from memory, and each row says which (`snippet`, `secondary`, `recall`). Nothing in this table is `verified`. Section 5.13.6 lists what Boss would have to check, or what network access would let a thread check.
+
+#### 5.13.1 The chain
+
+One root draw, then each link reads only the links before it. Every link that has a scatter draws it from the galaxy seed (`unit_seed(galaxy_seed, "<link name>")`), as a log-normal about the median law, so two seeds give two different galaxies and one seed gives the same galaxy.
+
+1. **Stellar mass** `M*` from the galaxy stellar mass function (row 1), inside the range of the family being built.
+2. **Halo mass** `Mh` from `M*` by the stellar-to-halo relation, inverted numerically, with its scatter (row 2).
+3. **Virial radius and concentration** from `Mh` (row 3); the dark matter profile, the enclosed mass at any radius and the circular speed follow by calculation (row 12).
+4. **Size and shape of the stars** from `M*`: disk scale length, scale height, bulge share and size, bar, arms (rows 4 to 6).
+5. **Central black hole and nuclear cluster** from the bulge (rows 7 and 8).
+6. **Globular clusters** from `Mh` (row 9) and **satellites** from the subhalo population of `Mh` (row 10).
+7. **Home position**, **metallicity** and **rates** from the shapes above (rows 11, 13, 14).
+
+The worked example below is arithmetic, not a measurement: Moster, Naab and White 2013 at z = 0 (row 2) inverted numerically, a virial radius at 200 times the critical density with h = 0.671, and the concentration of row 3. It shows that the chain gives plausible orders of magnitude from one root number.
+
+| `M*` (solar) | `Mh` (solar) | `M*/Mh` | c200 | r200 (kpc) |
+|---|---|---|---|---|
+| 3e9 | 1.65e11 | 0.018 | 10.0 | 116 |
+| 1e10 | 3.15e11 | 0.032 | 9.4 | 144 |
+| 3e10 | 8.27e11 | 0.036 | 8.5 | 199 |
+| 5e10 | 2.00e12 | 0.025 | 7.8 | 268 |
+| 1e11 | 1.07e13 | 0.0093 | 6.6 | 468 |
+| 3e11 | 1.76e14 | 0.0017 | 5.0 | 1189 |
+
+Two things follow from it. The reach of 262 kpc (decided 2026-10-15) holds a halo's r200 only up to about `M*` = 5e10; a heavier galaxy's halo extends past the grid, which the halo density term already handles by being a profile, not a cutoff. And the stellar mass range of the spiral family (Q1) decides how much of the table is exercised.
+
+#### 5.13.2 The table
+
+Columns: what the code holds today and where; the law; its parameters and scatter; the source and how far it was checked; what it replaces. "Draw" means a seeded log-normal about the median with the scatter shown.
+
+| # | Replaces (file, value) | Law | Parameters, scatter | Source and status |
+|---|---|---|---|---|
+| 1 | The galaxy mass itself: not drawn today; the whole galaxy is the Milky Way's | Double Schechter stellar mass function; draw `M*` by inverse CDF inside the range of the family | log M* = 10.66, phi1 = 3.96e-3, alpha1 = -0.35, phi2 = 0.79e-3, alpha2 = -1.47 (Mpc^-3, h = 0.7); valid about 1e8 to 3e11 | Baldry et al. 2012, MNRAS 421, 621; `snippet`. Alternatives: Wright et al. refit (log M* = 10.78), Li and White 2009 (single Schechter, `snippet`, said to underfit the massive end) |
+| 2 | `HALO_MASS_SOLAR` 1.5e9 and `HALO_SYSTEM_FRACTION` 1.25% (`tuning.py:785`), and `MILKY_WAY_MASS` 1.15e12 as the halo (`constants.py:60`) | Stellar-to-halo mass relation: M*/Mh = 2N / [(Mh/M1)^-beta + (Mh/M1)^gamma]; invert numerically (it is monotonic); draw Mh with 0.2 dex | z = 0: log M1 = 11.590, N = 0.0351, beta = 1.376, gamma = 0.608 | Moster, Naab and White 2013, MNRAS 428, 3121; `secondary` (an appendix of arXiv:1609.03956; one citing paper printed gamma = 0.698, taken as a typo). Behroozi et al. 2013 parameters (log M1 = 11.514, log eps = -1.777, alpha = -1.412, delta = 3.508, gamma = 0.316; `secondary`, from hod-mod) are the alternative; Behroozi et al. 2019 parameters not found |
+| 3 | `GALAXY_DISK_SCALE_LENGTH_PC` for the dark matter (`tuning.py:870`: NFW 5.4e11, 16 kpc) and the Hill sphere central mass (`constants.py:60`) | Virial radius from the overdensity of Bryan and Norman 1998 (`Delta_c` = 18 pi^2 + 82x - 39x^2, x = Omega_m(z) - 1), NFW concentration c200 = 10^(0.905 - 0.101 log10(M200 h / 1e12)) with a draw of 0.11 dex | Planck-like h = 0.671, Omega_m = 0.3175; relaxed halos | Bryan and Norman 1998 (`secondary`); Dutton and Maccio 2014 (`secondary`; the 0.11 dex scatter is `recall`, the search found only 0.2 dex for the Einasto shape). Duffy et al. 2008 (A, B, C = 5.71, -0.084, -0.47 for 200c; `secondary`, easy to confuse with its 200m and virial sets) is the alternative |
+| 4 | Disk scale length 2600 pc (`cli/generate.py:885`, `web/generate_page.py`), thick disk length 0.769 and height 3 (`tuning.py:729`) | Late-type size-mass relation: effective radius Re proportional to `M*`^0.22 above 3e9, scatter about 0.16 dex; disk scale length Rd = Re / 1.678 (exact for an exponential disk) | Slope 0.22 (`snippet`); the normalisation is `recall`, low confidence (about 7 kpc at 5e10 for late types); a thick disk's size ratio to the thin disk is not in any source found | van der Wel et al. 2014, ApJ 788, 28 (`snippet`, abstract); Shen et al. 2003 (`snippet`; its mass-based coefficients are `recall`); Lange et al. 2015 not found |
+| 5 | Disk scale height 300 pc, thick 900 pc, population heights (`tuning.py:613,729`) | Height from length: hz = Rd / q with q about 7 (flattening of edge-on spirals, rising with rotation speed), draw 0.3 dex; the thick disk as a share of the thin disk stays a stated ratio with a research request | q about 7.3 plus or minus 2.2 is `recall` | Kregel, van der Kruit and de Grijs 2002, MNRAS 334, 646 (`snippet`; the mean ratio is `recall`); Bland-Hawthorn and Gerhard 2016 (`recall` only) |
+| 6 | Bulge 3.11 and 1580 pc, bar 27 degrees, arms 2 and 15 degrees, nuclear amplitude (`cli/generate.py:885-915`, `tuning.py:736-765`) | Bulge-to-total from the family and `M*` (a draw, centred near 0.1 for pseudo-bulges and 0.4 for classical bulges); bulge size from the same size law (row 4) with a Sersic index; bar present with probability about 0.29 (rising for redder, bulgier, lower-luminosity discs), bar length from the disk length; arm count and pitch angle drawn, with a trend from B/T (higher B/T, fewer and looser arms); bar angle uniform | All the quantities except the 0.29 are `recall` or trends without a formula | Gadotti 2009 (`snippet`); Masters et al. 2011 (`snippet`; 29.4 percent); Hart et al. 2017 (`snippet`, no formula); Seigar et al. 2006 (disputed by Yu and Ho 2018); Graham and Worley 2008 tables not found. The weakest row of the table |
+| 7 | `BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR` (1e6, 1e8) log-uniform (`tuning.py:1988`), dispersion 100 km/s (`tuning.py:1999`), quasar mass (1e8, 1e10) (`tuning.py:2886`) | Black hole mass from the bulge mass, M_BH / 1e9 = 0.49 (M_bulge / 1e11)^1.16 with 0.29 dex scatter; a galaxy without a classical bulge takes M_BH about 2.5e-4 M* (Reines and Volonteri) with its offset; dispersion from the M-sigma relation (log M = 8.491 + 4.384 log(sigma / 200)); the active-versus-quiescent split stays a draw from the Eddington ratio ranges | M-bulge slope 1.16 plus or minus 0.08; M-sigma 0.309 (sigma / 200)^4.38 at 1e9 | Kormendy and Ho 2013, ARA&A 51, 511 (`secondary`); McConnell and Ma 2013 (`snippet`, an alternative with slope 1.05 and 5.64); Reines and Volonteri 2015 (`snippet`; the fit is `recall`). Pseudo-bulges and discs do not follow the relation |
+| 8 | Nuclear cluster ratios to the bulge (`tuning.py:745-755`: 6.4e-4 mass, 2.07 pc scale, disc 61x) | Nuclear cluster mass from the galaxy mass by a power law of slope about 0.5 (0.33 to 0.36 in another fit), nucleation probability falling away from about 1e10 | Intercept and scatter not found | Neumayer, Seth and Boeker 2020 (`snippet`); Georgiev et al. 2016 (`secondary`, two sets of slopes quoted). Needs research |
+| 9 | `CLUSTER_COUNT_MILKY_WAY` 157 (`tuning.py:686`), cluster laws (`tuning.py:687-703`), Harris file | Total cluster system mass M_GCS = eta Mh with eta about 4e-5 and 0.2 dex scatter; count = M_GCS / mean cluster mass; the cluster mass function stays log-normal about a peak near 2e5 solar; the metallicity groups and the radial profile as GEN.297 calibrates them against the Harris file | eta: 4e-5 (Hudson, Harris and Harris 2014) against 6e-5 (Harris, Harris and Alessi 2013), unresolved; mass function width and radial profile not found | Hudson et al. 2014 via Harris et al. 2015 (`snippet`); Harris, Harris and Alessi 2013 (`snippet`); Jordan et al. 2007 (`snippet`). My arithmetic: 4e-5 times 1.3e12 over 2e5 gives about 260 clusters for a Milky Way mass halo against 157 observed, inside the scatter |
+| 10 | `MILKY_WAY_SATELLITES`, 11 rows (`generation/satellites.py:32`) | Subhalo mass function dN/dM proportional to M^-1.9, normalised by the subhalo mass fraction inside r200; positions from an Einasto profile far less concentrated than the dark matter; satellite stellar mass from the halo mass by a steeper low-mass relation (M* proportional to Mh^1.9 to 3.1) with a reionization cutoff below which a subhalo stays dark; [Fe/H] from <[Fe/H]> = -1.69 + 0.30 log(M* / 1e6); size, profile and age from mass relations (GEN.369) | Slope 1.9 (`snippet`); Einasto alpha = 0.678 and r_s = 0.81 r200 for one simulated halo (Aq-A-1); normalisation not found; cutoff not found | Springel et al. 2008, MNRAS 391, 1685 (`snippet`); Gao et al. 2004 (`snippet`); Brook et al. 2014 and Garrison-Kimmel et al. 2014 (`snippet`); Kirby et al. 2013 (`snippet`; the 0.17 dex scatter is `recall`); McConnachie 2012 (size-luminosity fit not found). Needs research |
+| 11 | `GALAXY_SUN_RADIUS_PC` 8200, `SUN_GALACTIC_RADIUS_PC` 8000, `GALACTIC_CENTER_DISTANCE_LY` 25800, hypervelocity 8000, clusters 8000 (five values for one idea) | One `home_radius_pc` of the galaxy, from the shape: about 3.1 disk scale lengths, with a seeded spread; height above the plane a draw from the thin disk. This is a design choice, not a published law (Q2) | The Milky Way's 8.2 kpc over 2.6 kpc is where 3.1 comes from; Lineweaver et al. 2004 place the habitable annulus at 7 to 9 kpc, Gowanlock et al. 2011 at 2.5 to 5 kpc; neither scales it with a disk length | `snippet` only; no source ties it to Rd. Boss decides (Q2) |
+| 12 | Rotation curve 220 km/s and 3000 pc (`constants.py:105`), `MILKY_WAY_MASS` as the central mass of every Hill sphere, hot halo and dark matter values | Calculated, not set: the enclosed mass at a radius is the sum of the disk, bulge, nuclear and halo terms the galaxy already has (the potential of GEN.338), so the circular speed v^2 = G M(<r) / r follows; a check against the baryonic Tully-Fisher relation M_b = 47 Vf^4 | Cross-check only | McGaugh 2012, AJ 143, 40 (`snippet`); the scatter of 0.15 dex is a simulation result |
+| 13 | Metallicity gradient 0.06 dex/kpc, solar-neighbourhood zero point, halo -1.6 and -2.2 (`tuning.py:623-634`) | Central metallicity and gradient from the galaxy's `M*` by the mass-metallicity relation, the gradient in units of the disk length; the halo from the same relation less an offset | Not found beyond the dwarf relation of row 10 | Gallazzi et al. 2005 (`snippet`, no numbers). Needs research |
+| 14 | Rates quoted at the Sun: supernova 1.5/Gyr, GRB 2/Gyr, AGN 10/Gyr (`physics/activity.py`), the phenomenon densities of `tuning.py:3007-3055` (rogue planets, neutron stars, black holes, nebulae and so on), the two local star densities 0.0985 and 0.14 per pc^3, nebula field values | Each rate is a per-star or per-mass rate times the local density of the right population, where the local density comes from the density model at `home_radius_pc` normalised to the galaxy's `M*` (no separate constant), and the star-formation history from the main sequence of star-forming galaxies | The per-star rates are physics (stellar evolution), the totals are not | Main-sequence relation not looked up. Needs research |
+
+#### 5.13.3 What stays a constant
+
+Physical constants and stellar-physics laws stay (G, the speed of light, the initial mass function, mass-luminosity). The grid design stays: the 4 pc sector edge, the 262 kpc reach, the 96-bit identity. The black hole stays exactly at the origin (Boss, 2026-10-16, 7:27 PM EDT, card "Exactly 0,0,0"). Population age ranges and velocity dispersions (`tuning.py:608`, `tuning.py:800`) are hand-set and have no source in this table; they become laws when a source for them is found, listed in 5.13.6.
+
+#### 5.13.4 Items the survey found that the item text did not list
+
+The five different Sun radii (row 11); the supernova, GRB and AGN rates (`physics/activity.py`); the dark matter, hot halo and ambient density values (`profile.py`, `tuning.py:859-871`); the population ages, dispersions, arm contrast and scale heights (`tuning.py:608-614,800`); the metallicity gradient; the phenomenon densities; the nebula and superbubble field values; the hypervelocity reference radius; the fixed halo fraction; the hard-coded 8000 and 1000 in `clusters.py:92`; and the two local stellar densities. `MILKY_WAY_STELLAR_LUMINOSITY_W` (`tuning.py:2964`) becomes the galaxy's own luminosity, which comes from `M*` by a mass-to-light ratio. The tests that pin the Milky Way values (`test_satellites.py`, `test_clusters.py`, `test_cluster_plan.py`, `test_galaxy_milky_way.py`, `test_gen_superbubble_field.py`) change when each row is built: they check the law, and the real values serve only as the plausibility target of GEN.366 (a derived galaxy at `M*` = 5e10 should fall inside the observed range of the real one).
+
+#### 5.13.5 The build that follows approval
+
+The shape-draw build is written once for every family (GEN.378 reads this table and extends it): a `draw_galaxy(seed, family)` that runs the chain in 5.13.1 and returns the shape, the halo, the home position and the component masses; `build_galaxy_shape` calls it; the plan and Generate defaults become "drawn from the seed", with the old numbers gone (no compatibility shim, per Boss). The new shape columns need a migration (DB.66, GEN.378); this item adds none.
+
+#### 5.13.6 Research requests for Boss
+
+If network access to arxiv.org (or ar5iv) can be allowed for a verifying thread, most of these become a reading task instead; otherwise they are the questions to look up. Each is the number the build needs and why.
+
+1. Moster, Naab and White 2013 Table 1 (parameter errors, scatter, halo definition) and the Behroozi et al. 2019 z = 0 parameters: the halo mass of every galaxy rests on them.
+2. The subhalo mass function normalisation, N(> m / M), and the satellite stellar-mass relation with its reionization cutoff, from Springel 2008, Gao 2004, Boylan-Kolchin 2010, Garrison-Kimmel 2017: sets the satellite count.
+3. The van der Wel 2014 normalisation and Shen 2003 Table 1 for the disk length of a given `M*`.
+4. Kregel 2002 flattening, and a source for how the thick disk scales with mass.
+5. B/T against Hubble type and Sersic index against mass (Graham and Worley 2008, Graham and Driver 2005); bar fraction against mass (Masters 2011, Sheth 2008); arm count and pitch angle (Hart 2017).
+6. Kormendy and Ho 2013 and McConnell and Ma 2013 scatter; the Reines and Volonteri 2015 fit and the offset between active and quiescent holes.
+7. The cluster system: eta (Harris 2013 against Hudson 2014), the cluster mass function peak and width (Harris 2001, Jordan 2007), the radial profile.
+8. Nuclear cluster intercept and scatter (Neumayer 2020, Georgiev 2016).
+9. A source for a home position that scales with disk length, or for a metallicity or star-formation criterion that picks it.
+10. The mass-metallicity relation and gradient for massive spirals (Gallazzi 2005 numbers), the star-forming main sequence, and the supernova and star-formation rate of a galaxy from its mass.
+11. Stellar halo mass fraction against `M*`, to replace the fixed 1.5e9 anchor.
+12. Morphology fractions by mass bin (Kelvin 2014 tables, Conselice 2006) for GEN.378.
+
+#### 5.13.7 Questions for Boss (defaults stand if unanswered)
+
+- **Q1 The mass range of the spiral family.** The root draw is `M*` from the Schechter function inside the family's range. Default: 3e9 to 2e11 solar (the size relation of row 4 is quoted above 3e9; the table's halo reach of 262 kpc holds r200 to about 5e10, heavier halos extend past the grid).
+- **Q2 The home position.** Default: 3.1 disk scale lengths with a seeded spread of 0.5 scale lengths and a height drawn from the thin disk. Alternative: exactly 3.1, or a research thread to find a published criterion.
+- **Q3 Sources.** Default: Boss allows arxiv.org for one verifying thread that reads every `snippet`, `secondary` and `recall` entry; the research list in 5.13.6 shrinks to what is not on arXiv. Alternative: Boss does the 12 requests.
+- **Q4 Scatter.** Default: every relation draws its intrinsic scatter from the seed (log-normal). Alternative: the median only, so the same `M*` always gives the same size.
+
 ## 6. What it costs
 
 | Item | Cost | Tag |
