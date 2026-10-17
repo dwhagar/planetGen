@@ -297,6 +297,12 @@ For the TODO thread to file if Boss agrees. Each is one PR; the numbers in brack
    7. Rewrite the notes and docstrings that describe the old model [DOC.20].
 5. A health check on the admin page: Redis answering, AOF on, memory policy, `used_memory`, last save status, worker count (monitoring, 2.3). Optional.
 
+### 5.12 Every stage a command, one wrapper (Boss, 2026-10-17, 4:12 PM EDT)
+
+Boss: every part of the generate process, all the scatter phases included, is an individual command, and a general process wrapper makes the list of the commands that need to run and puts them into the Redis queue individually. The wrapper builds the command list, each command is one queue item.
+
+This is the shape of 5.1 made explicit. A command is a kind in the units registry (`queue/units.py` HANDLERS) with JSON arguments and a JSON result, and can be run alone. The wrapper is a pure function from the arguments of `planetgen galaxy` or `planetgen plan` to the ordered stages, each a list of commands with predicted cost; it writes the run record and queues the first stage, and the barrier of 5.1 queues each next stage. A chunk of a chunked stage is its own command. Built by PERF.118 (the wrapper), PERF.106 to PERF.108 (the stages as commands) and PERF.119 (every start path goes through the wrapper).
+
 ## 6. Decisions for Boss
 
 Each has a default; the default is what a "yes" means.
