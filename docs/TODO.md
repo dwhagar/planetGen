@@ -356,7 +356,7 @@ with `clamp()`.
   Boss (2026-10-07 11:47Z): "Bookmark management system." Today
   bookmarks are kept per browser by `bookmarks.js` (NAV.40). Done when
   its subitems are.
-  Prerequisites: UX.46, UX.47, UX.48.
+  Prerequisites: none.
 
   - [ ] **UX.46 Wiping the galaxy wipes the bookmarks**
     Boss (2026-10-07 11:47Z): "When a galaxy is wiped all bookmarks are
@@ -597,7 +597,7 @@ with `clamp()`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 13 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: UX.104 (done, PR #1509).
+  Prerequisites: none.
 
 - [ ] **UX.109 Remove the old per-class description text**
   Remove SystemConfig.MARKDOWN, the per-class to_paragraph_list and
@@ -1274,7 +1274,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.151's tile keys; MAP.154, the nested lists, merged in #1303), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148
   and MAP.150, done in #1382); this umbrella closes last.
   Headline: 8.1 (infinite zoom: the fly-through Galaxy Map).
-  Prerequisites: MAP.153, MAP.155, MAP.157, MAP.159, MAP.226, MAP.245.
+  Prerequisites: MAP.245.
   Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
@@ -1386,7 +1386,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Scope after the review (2026-10-16 review): the gravity layer's data
   and drawing (zones, three modes, Lagrange points); its Menu entry, URL
   key and legend come from the layer registry.
-  Prerequisites: API.24, MAP.125. Related: MAP.167, MAP.131.
+  Prerequisites: API.24. Related: MAP.167, MAP.131.
 
 - [ ] **MAP.169 The System Map gravity layer: the orbital plane as a heat map with Lagrange points and Hill spheres**
   Done: the System Map has the same Gravity layer on the system's
@@ -1434,7 +1434,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reconciliation in the same query, so this item follows MAP.152 and
   uses its tile choice. Not a prerequisite of the 8.1 headline
   (MAP.146). Owner: Foundations lane 2, queued right after MAP.152.
-  Prerequisite: MAP.152. Related: MAP.148,
+  Prerequisites: none. Related: MAP.148,
   MAP.164, MAP.165, MAP.159, MAP.146.
   Status (2026-10-09): DB.24 done (Foundations lane 1, 2026-10-14,
   #1317, schema v83): nebula_field holds every kept class M and N cloud,
@@ -1502,7 +1502,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nebulae and for unfilled cells from the field. Done: the statistic,
   with a test that filled and unfilled cells agree on a seeded galaxy.
   Owner: Foundations lane 2.
-  Prerequisites: DB.24, MAP.172. Related: MAP.131, MAP.151 (done, PR
+  Prerequisites: MAP.172. Related: MAP.131, MAP.151 (done, PR
   #1539).
   Narrowed (2026-10-16 review): exposes MAP.172's cover in the
   stage-view statistics payload (filled from stored nebulae, unfilled
@@ -1605,7 +1605,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rim on the dark theme, chosen with the contrast checker of MAP.175,
   and a matching light-theme colour. Done: the tokens and the 3:1 test
   pass for the new colours. Owner: Foundations lane 2.
-  Prerequisite: MAP.175. Related: MAP.142.
+  Prerequisites: none. Related: MAP.142.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **MAP.183 Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc**
@@ -1639,7 +1639,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   frame of the largest group of created sectors and show only that
   region at the start; the frame comes from the charted-regions library
   (MAP.190), one group being the first case.
-  Prerequisites: MAP.152, MAP.190. Related: MAP.146, MAP.151 (done, PR
+  Prerequisites: MAP.190. Related: MAP.146, MAP.151 (done, PR
   #1539), MAP.190.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): needs MAP.190 (the regions library gives the frame); the
@@ -1725,7 +1725,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Scope after the review (2026-10-16 review): the spin-axis, direction
   and tilt drawing and the motion-vector drawing; the toggles are
   registered layers.
-  Prerequisites: MAP.217. Related: GEN.105, GEN.139, ADM.36, MAP.169.
+  Prerequisites: none. Related: GEN.105, GEN.139, ADM.36, MAP.169.
 
 - [ ] **MAP.194 Nebulae and globular clusters open their own zoom window from the Galaxy Map**
   GitHub issue [#1204](https://github.com/dwhagar/planetGen/issues/1204)
@@ -1948,7 +1948,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registry with black holes as its first kind, toggle and budget
   behaviour, and a browser test that finds a black-hole marker on a
   seeded sector and hides it when the kind is switched off.
-  Prerequisites: MAP.217. Related: MAP.132.
+  Prerequisites: none. Related: MAP.132.
 
 - [ ] **MAP.220 Markers for habitable worlds and chosen classes, optional per kind**
   Split from MAP.132 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -2024,7 +2024,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 2 (Boss, 2026-10-16, 2:43 PM EDT: after the 8.1 phase 1
   top 5, Core 2 takes the infinite zoom tree: MAP.146 and its subitems,
   then the label items).
-  Prerequisites: MAP.152. Related: MAP.146, MAP.116, MAP.123, MAP.217.
+  Prerequisites: none. Related: MAP.146, MAP.116, MAP.123, MAP.217.
 
 - [ ] **MAP.230 Names of stars, systems and sectors on the Galaxy Map**
   Boss (2026-10-16, 2:30 PM EDT): "Oh do we have map labels anywhere in
@@ -2134,7 +2134,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stars follow the bubbles (GEN.391 to GEN.395), the drawn layer is an
   explanation and debug overlay, not how bubbles are shown. Keep this
   layer, off by default; MAP.236 stays at lower priority.
-  Prerequisites: MAP.217. Related: MAP.234, MAP.217, GEN.254.
+  Prerequisites: none. Related: MAP.234, MAP.217, GEN.254.
 
 - [ ] **MAP.236 Superbubbles need clearer bounds and slightly more transparency on the Galaxy Map**
   Boss (2026-10-16, 7:24 PM EDT, timeline): "the super bubbles need
@@ -2503,7 +2503,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   draws one line through the route's stops with the ends named. Missing:
   the direct line drawn apart from the route, a fitted zoom, and any
   course inside a sector.
-  Prerequisites: NAV.21, NAV.22, NAV.23.
+  Prerequisites: none.
   Plan (2026-10-07): Boss (2026-10-07): "Plotted courses should appear
   on the galactic map and stay until cleared." See NAV.49.
 
@@ -2677,14 +2677,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Galaxy Map course (with NAV.20), with a legend entry; with
   `prefers-reduced-motion` it stays red without the pulse; it reads in
   both themes, and the route list also labels it in text so it isn't
-  shown by color alone. Prerequisites: UX.35.
+  shown by color alone. Prerequisites: none.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
   Done: a saved course (NAV.17) keeps which hops were unknown-space
   jumps when it was saved, and opening it checks again, since sectors
   may have been filled in the meantime; a hop that is now known shows
-  as ordinary, and the course says what changed. Prerequisite: NAV.17.
+  as ordinary, and the course says what changed. Prerequisites: none.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.49 Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared**
@@ -2695,7 +2695,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stay until cleared." Done: waypoints set from Star select mode are
   marked with an icon at every map level, two or more plot a course, and
   the course stays drawn on every map until cleared.
-  Prerequisites: MAP.122, NAV.17.
+  Prerequisites: MAP.122.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.54 One keep-out table for every kind of object: fields, supermassive holes and quasars, moons, stars in their own system, nebulae and remnants**
@@ -2773,7 +2773,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (NAV.4, NAV.23). The gravity map (GEN.198) is the same field drawn as
   a view and is related, not a prerequisite: NAV.6 does not wait for it.
   Headline: 8.5 (courses that bend around gravity wells).
-  Prerequisites: NAV.6, NAV.49, NAV.58, NAV.4, NAV.23. Related: GEN.198,
+  Prerequisites: NAV.6, NAV.49, NAV.58, NAV.4. Related: GEN.198,
   MAP.167.
 
 - [ ] **NAV.61 Nearest-first by a radius ladder, and a dense-core guard with an early-stop count**
@@ -2867,7 +2867,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   consistent at the outer edge of the habitable zone. Evidence: the
   planet class gap report
   (https://claude.ai/code/artifact/549f0ba8-ca6f-4d35-be2d-0c7591b93256).
-  Prerequisites: GEN.33, GEN.146.
+  Prerequisites: GEN.146.
   Plan (2026-10-07): Moved to phase 2 under GEN.90.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): a class contributes an albedo range, an atmosphere
@@ -2986,8 +2986,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   10-16 Earth masses come out up to 17,600 km, past class S's
   11,468 km top, and get S as the nearest fit (PR #415); Boss to decide
   whether those sizes make sense or need their own range.
-  Prerequisites: GEN.28, GEN.27, GEN.91, GEN.92, GEN.146, TEST.209,
-  TEST.210.
+  Prerequisites: GEN.28, GEN.27, GEN.146, TEST.209, TEST.210.
   Plan (2026-10-07): Under GEN.90: the refactor is the sweep, so it
   stays with it in phase 2.
   Research (2026-10-09, atmospheres-retention-and-classes.md): known
@@ -3328,7 +3327,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   has land animals, P is uncapped, and no class is an Earth-size world
   with air that life never touched (GEN.28's Z). Done when its subitems
   are.
-  Prerequisites: GEN.33, GEN.28, GEN.27, GEN.29, GEN.91, GEN.92.
+  Prerequisites: GEN.28, GEN.27, GEN.29.
   Design: [docs/design/habitability-index.md](design/habitability-index.md)
   Research (2026-10-09, atmospheres-retention-and-classes.md): the
   "Known conflicts" list gains: A and B atmospheres, S in non-hot zones,
@@ -3408,7 +3407,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planet could even form there and what would happen if one did, how it
   would change the planets development and envirionment according to the
   science." Done when the subitems are.
-  Prerequisite: GEN.95.
+  Prerequisites: none.
   Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
   - [ ] **GEN.95 Nebula conditions applied when planets and surfaces are generated**
@@ -3468,7 +3467,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   option advances it by a stated extra span in one go. Done when its
   subitems are.
   Headline: 8.3 (the orbital update system).
-  Prerequisites: GEN.115, GEN.109, GEN.110, GEN.289, GEN.290, GEN.291.
+  Prerequisites: GEN.289, GEN.290, GEN.291.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
   Research (2026-10-09, orbital-solvers-and-integrators.md): the Full
   Algorithm's one-year macro step and "nightly" language are superseded
@@ -3704,7 +3703,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   gravitational-criterion warnings.
   Needs the Hill-warning child of GEN.109 (child d), not the whole
   umbrella (2026-10-16 review).
-  Prerequisites: USR.3, GEN.344.
+  Prerequisites: GEN.344.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
 - [ ] **GEN.129 Multi-star systems of up to twelve stars**
@@ -4048,7 +4047,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and mass columns and the rogue sector-relative offsets come from the
   second and third children of GEN.294. Needs GEN.294:b, placed after
   them.
-  Prerequisites: GEN.336.
+  Prerequisites: none.
   Design: [docs/design/collisions-and-mergers.md](design/collisions-and-mergers.md)
 
 - [ ] **GEN.143 The orbital-event admin report, the last-collisions view and a test that runs the whole collision path**
@@ -4115,7 +4114,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   greenhouse (the composition chain of the 9.0 headline; the planet
   classes were built to land after it, so they wait for GEN.428 and
   GEN.411).
-  Prerequisites: GEN.355, GEN.92.
+  Prerequisites: GEN.355.
   Related: GEN.412, GEN.423, GEN.428.
   Design: [docs/design/atmospheres-retention-and-classes.md](design/atmospheres-retention-and-classes.md)
 
@@ -4397,7 +4396,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 8 of 48). This replaces any earlier owner line on this item.
-  Prerequisite: DB.24. Related: GEN.176, PERF.71.
+  Prerequisites: none. Related: GEN.176, PERF.71.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **GEN.209 Globular clusters are parent objects for their stars and are named when their sector is filled**
@@ -4465,7 +4464,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 5 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.214 (done, PR #1472).
+  Prerequisites: none.
 
 - [ ] **GEN.219 The habitability levels page and tooltips are generated from the limits**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
@@ -4480,7 +4479,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 6 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.214 (done, PR #1472).
+  Prerequisites: none.
 
 - [ ] **GEN.220 "Habitable" means the index**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
@@ -4607,7 +4606,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 25 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.235. Related: GEN.223, GEN.240.
+  Prerequisites: none. Related: GEN.223, GEN.240.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.239 High-velocity clouds and the Magellanic Stream as placed gas clouds (later)**
@@ -4618,7 +4617,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is not known from the searches done; get it before building. Done: the
   clouds exist as placed gas objects and the Stream is a chain of them.
   Later, after the components. Owner: Core (2026-10-15).
-  Prerequisite: GEN.237. Related: GEN.202, GEN.241.
+  Prerequisites: none. Related: GEN.202, GEN.241.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.241 Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds**
@@ -4869,7 +4868,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stars and the component table lists the stream. Later: not part of the
   whole-sphere train and nothing in it waits on this; plan after it.
   Owner: Core, later (2026-10-15).
-  Prerequisite: GEN.237. Related: GEN.239.
+  Prerequisites: none. Related: GEN.239.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.249 Be stars, carbon stars and Mira variables as star attributes (later)**
@@ -4959,7 +4958,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Scatter note (Core 3, 2026-10-16,
   docs/design/later-phenomena-scatter-rules.md (section 8)): derived at
   render; microquasar jets read the stored accreting member.
-  Prerequisite: GEN.242. Related: GEN.104, GEN.247.
+  Prerequisites: none. Related: GEN.104, GEN.247.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.256 A radiation hazard score derived from distance to hot stars, Wolf-Rayet stars, remnants and magnetars**
@@ -4989,7 +4988,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
   replaces any earlier owner named above). Core 1 still owns every
   migration revision: ask it before adding a table or column.
-  Prerequisites: GEN.233. Related: GEN.113.
+  Prerequisites: none. Related: GEN.113.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.258 Protostars embedded in giant molecular clouds**
@@ -5124,7 +5123,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
   PM EDT, 2026-10-16; queue in the lane report, queue position 9; start
   after Core 3 merges UX.116 (Generate page)).
-  Prerequisite: GEN.261. Related: GEN.129, GEN.180.
+  Prerequisites: none. Related: GEN.129, GEN.180.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.269 Interaction states in the star model: a Roche classifier, `interaction` on every pair, member state and flags, rejuvenated age and the new kinds**
@@ -5168,7 +5167,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   storing interaction on scatter_nodes and orbit_nodes, which waits on
   GEN.260 (migration 0093); exotic-star draws and rate alignment stay
   with GEN.270.
-  Prerequisites: GEN.260. Related: GEN.268, GEN.243, GEN.242,
+  Prerequisites: none. Related: GEN.268, GEN.243, GEN.242,
   GEN.270, GEN.271, GEN.272. Finding from Core 2 (2026-10-16, 4:58 AM
   EDT, GEN.158 merged as #1789): a binary's secondary shares its
   primary's [Fe/H] (stored column Star.metallicity_fe_h, migration
@@ -5744,7 +5743,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a cap per nebula so the nightly cost stays bounded (PERF.103's row ceiling counts every point). Source:
   Boss's question and the coordinator's answer. Phase 3, after GEN.294,
   GEN.109 and GEN.292.
-  Prerequisites: GEN.109, GEN.292. Related: GEN.75, GEN.115,
+  Prerequisites: GEN.292. Related: GEN.75, GEN.115,
   GEN.241, GEN.289, GEN.293, MAP.176, MAP.178.
 
 - [ ] **GEN.296 The uncharted-star information panel shows the star's metallicity [Fe/H], which is already stored on bright_stars**
@@ -5810,7 +5809,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   radius, surface brightness and host colour, red about 17 percent
   smaller than blue (Jordan 2005); invariance holds over a factor of
   about 350 in host luminosity, not 10^5.
-  Prerequisites: GEN.237. Related: GEN.160, GEN.237, GEN.162.
+  Prerequisites: none. Related: GEN.160, GEN.237, GEN.162.
 
 - [ ] **GEN.298 Remnants read the superbubble: the remnant size at build and the remnant factor use the bubble a supernova sits in**
   Follow-up from Core 3 (2026-10-16, 8:40 AM EDT, GEN.254 superbubble
@@ -5925,10 +5924,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.238, GEN.241, GEN.243, GEN.244, GEN.259, GEN.280,
-  GEN.282, GEN.283, GEN.284, GEN.298, UX.116, TEST.159, TEST.160,
-  GEN.447, GEN.448, GEN.449, GEN.450, TEST.196, GEN.463, GEN.467,
-  GEN.469, GEN.502, GEN.528, GEN.529, GEN.530.
+  Prerequisites: GEN.238, GEN.241, GEN.243, GEN.244, GEN.259, GEN.282,
+  GEN.284, GEN.298, TEST.159, TEST.160, GEN.447, GEN.448, GEN.449,
+  GEN.450, TEST.196, GEN.463, GEN.467, GEN.469, GEN.502, GEN.529,
+  GEN.530.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -5974,7 +5973,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and scatter membership by cell key; shell, band, wedge and ball come
   from `planetgen/galaxy/span.py` (`Span`) and
   `planetgen/galaxy/region.py` (`Region`).
-  Prerequisites: GEN.276. Related: ADM.57, NAV.60.
+  Prerequisites: none. Related: ADM.57, NAV.60.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
 - [ ] **GEN.303 Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000**
@@ -5999,7 +5998,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 43 of 43). This replaces any earlier owner line on this item.
-  Prerequisites: ADM.84. Related: GEN.281, GEN.283, ADM.43.
+  Prerequisites: none. Related: GEN.281, GEN.283, ADM.43.
 
 - [ ] **GEN.304 The canonical fingerprint encoder: floats to 9 significant digits, SHA-256, structural and float digests**
   Split from GEN.136 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6023,7 +6022,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 4 of 43). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.135. Related: GEN.136.
+  Prerequisites: none. Related: GEN.136.
 
 - [ ] **GEN.305 Store a leaf digest at save time and build the tree: roots and region digests**
   Split from GEN.136 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6059,7 +6058,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 15 of 43). This replaces any earlier owner line on this item.
-  Prerequisites: OPS.56. Related: GEN.57.
+  Prerequisites: none. Related: GEN.57.
 
 - [ ] **GEN.309 The backfill picks the draw path per block and gives the same stars wherever it lands**
   Split from GEN.42 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -6622,8 +6621,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   through the
   update to a field, a merged giant and a star, each in the event
   record.
-  Prerequisites: GEN.345, GEN.334, GEN.341, GEN.142, DB.56, GEN.197,
-  DB.55. Related: GEN.110.
+  Prerequisites: GEN.345, GEN.334, GEN.341, GEN.142, DB.56, GEN.197.
+  Related: GEN.110.
 
 - [ ] **GEN.347 The last-collisions admin view and the test that runs the whole collision path**
   Split from GEN.143 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6668,7 +6667,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   flags, weights, ranges, atmosphere, moon eligibility, rogue flag,
   reference page and the class-contract and 1,000-system tests; no old
   row or test expects T.
-  Prerequisites: GEN.33, GEN.355, GEN.146, GEN.428, GEN.411. Related:
+  Prerequisites: GEN.355, GEN.146, GEN.428, GEN.411. Related:
   GEN.28, GEN.412, GEN.423, GEN.428.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): a class contributes an albedo range, an atmosphere
@@ -6691,7 +6690,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   greenhouse (the composition chain of the 9.0 headline; the planet
   classes were built to land after it, so they wait for GEN.428 and
   GEN.411).
-  Prerequisites: GEN.33, GEN.428, GEN.411. Related: GEN.28, GEN.412,
+  Prerequisites: GEN.428, GEN.411. Related: GEN.28, GEN.412,
   GEN.423, GEN.428.
 
 - [ ] **GEN.352 Classes W and X, subsurface ocean bodies**
@@ -6710,7 +6709,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   greenhouse (the composition chain of the 9.0 headline; the planet
   classes were built to land after it, so they wait for GEN.428 and
   GEN.411).
-  Prerequisites: GEN.33, GEN.428, GEN.411. Related: GEN.28, GEN.412,
+  Prerequisites: GEN.428, GEN.411. Related: GEN.28, GEN.412,
   GEN.423, GEN.428.
 
 - [ ] **GEN.353 Class Y, Titan-like world**
@@ -6746,7 +6745,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   greenhouse (the composition chain of the 9.0 headline; the planet
   classes were built to land after it, so they wait for GEN.428 and
   GEN.411).
-  Prerequisites: GEN.92, GEN.146, GEN.428, GEN.411. Related: GEN.28,
+  Prerequisites: GEN.146, GEN.428, GEN.411. Related: GEN.28,
   GEN.412, GEN.423, GEN.428.
 
 - [ ] **GEN.355 Atmosphere retention module with its test table**
@@ -6763,7 +6762,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   none, Titan 0.59) and the answer written in the design note.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): its species list reads the gas table of GEN.410.
-  Prerequisites: GEN.33, GEN.410. Related: GEN.91.
+  Prerequisites: GEN.410. Related: GEN.91.
 
 - [ ] **GEN.356 Class N re-scoped as the hot, lifeless world; its life chemical and hidden timeline removed**
   Split from GEN.91 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -6783,7 +6782,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   greenhouse (the composition chain of the 9.0 headline; the planet
   classes were built to land after it, so they wait for GEN.428 and
   GEN.411).
-  Prerequisites: GEN.355, GEN.92, GEN.428, GEN.411. Related: GEN.91,
+  Prerequisites: GEN.355, GEN.428, GEN.411. Related: GEN.91,
   GEN.412, GEN.423, GEN.428.
 
 - [ ] **GEN.357 Generation knows the cloud it sits in: surrounding_cloud extended, containers found early, StarSystem.apply_cloud**
@@ -6949,7 +6948,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in the nebula field, with the numbers from the literature named, and a
   test that a Cloud sector holds nebulae at the stated rate. Later item;
   candidate for the deep-sky version.
-  Prerequisites: GEN.237. Related: GEN.237, GEN.282.
+  Prerequisites: none. Related: GEN.237, GEN.282.
 
 - [ ] **GEN.369 Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option**
   Boss (2026-10-16, 4:00 PM EDT, in the Core 1 thread; he tapped "Draw
@@ -7182,7 +7181,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
   the coordinator): Core 1 does it right after GEN.369 (order: GEN.368,
   GEN.369, GEN.371, GEN.366). Owner: Core 1.
-  Prerequisites: GEN.368. Related: GEN.368, GEN.369, GEN.324, GEN.237.
+  Prerequisites: none. Related: GEN.368, GEN.369, GEN.324, GEN.237.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.374 Orbit phase formulas reduce first, and the JavaScript Kepler solver uses tolerance 1e-12: Python, SQL and JavaScript agree**
@@ -7262,7 +7261,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4:11 and 4:14 PM EDT): no named galaxy, preset or hand-set value;
   reference galaxies only check the result. Owner: Core 1 proposed (it
   writes GEN.368's table), after GEN.368.
-  Prerequisites: GEN.368. Related: GEN.369, GEN.297, GEN.234, GEN.134,
+  Prerequisites: none. Related: GEN.369, GEN.297, GEN.234, GEN.134,
   GEN.338, GEN.390.
   Decided (Boss, 2026-10-16, 9:43 PM EDT, in the Core 1 thread:
   "Confirmed drop 'home', we will choose viewing based on where sectors
@@ -7752,7 +7751,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 18 of 43). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.407. Related: GEN.286, GEN.287, GEN.259.
+  Prerequisites: none. Related: GEN.286, GEN.287, GEN.259.
 
 - [ ] **GEN.397 `planetgen plan` stage 2 prints the progress weight as the number of phenomena to place (bug)**
   Rescatter read-only thread (Boss asked 2026-10-16, 9:35 PM EDT;
@@ -11213,7 +11212,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   recalled atomic masses of H-1 and He-4: check against NIST atomic
   weights), or the analytic t_MS(M, Z) of Hurley, Pols and Tout 2000,
   checked against a MIST track. Rule V.
-  Prerequisites: GEN.407. Related: GEN.407, GEN.463, GEN.396, GEN.301.
+  Prerequisites: none. Related: GEN.407, GEN.463, GEN.396, GEN.301.
 
 - [ ] **GEN.468 Settle the water share beyond the snow line: the Marboeuf-derived 0.14 to 0.39 of the solids against the convention of about 0.5**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -14258,7 +14257,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 11 of 43). This replaces any earlier owner line on this item.
-  Prerequisites: OPS.56.
+  Prerequisites: none.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **DB.17 Repair by regenerating a damaged sector from its seed when parity cannot rebuild it**
@@ -14284,7 +14283,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 30 of 43). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.57, DB.47, GEN.179.
+  Prerequisites: DB.47, GEN.179.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
 - [ ] **DB.29 update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them**
@@ -14528,7 +14527,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   galaxy followed by a passing check, a record from before an edit
   treated as stale and not as damage, and a refused restore while a save
   is writing parity.
-  Prerequisites: DB.40, DB.8. Related: DB.9, ADM.85, ADM.91.
+  Prerequisites: DB.40. Related: DB.9, ADM.85, ADM.91.
 
 - [ ] **DB.42 Repair the galaxy from an archive: `repair-db --from-archive` uses the parity part of a backup when the live parity file is missing or damaged**
   Boss (2:00 PM EDT): "we also have to build a way to use that data so
@@ -14590,7 +14589,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 24 of 43). This replaces any earlier owner line on this item.
-  Prerequisites: DB.18. Related: DB.9.
+  Prerequisites: none. Related: DB.9.
 
 - [ ] **DB.45 Storage checksum and the dirty flag: the export, the checksum and every writer**
   Split from DB.9 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -14691,7 +14690,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 5 of 43). This replaces any earlier owner line on this item.
-  Prerequisites: DB.18. Related: GEN.136.
+  Prerequisites: none. Related: GEN.136.
 
 - [ ] **DB.50 Migration only: structure columns for life and flavour**
   Split from DB.31 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -15476,7 +15475,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   else 202 with a job id). It calls the finalizer through API.8. Done:
   the spool and the state machine with tests for each transition, a
   restart that keeps staged units, and the spool cap.
-  Prerequisites: DB.62, API.10. Related: API.11.
+  Prerequisites: DB.62. Related: API.11.
 
 - [ ] **API.30 generate.py --remote: the client driver for sector and galaxy runs**
   Split from API.3 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -15495,7 +15494,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   default: sector and galaxy first). Done: a remote run against a test
   server fills the same sectors a local run does, survives a killed
   client and a restarted server, and a refused unit is reported.
-  Prerequisites: API.5, API.12, API.13, API.14, API.8. Related: API.3.
+  Prerequisites: API.5, API.8. Related: API.3.
 
 - [ ] **API.31 Every outgoing web request sends a standard User-Agent with the software, its version and the API version**
   Boss (2026-10-17, 11:33 AM EDT, typed in the project chat): "all web
@@ -15614,7 +15613,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   collision validation, the recompute, the unbound report) as a plan
   operation; ADM.72 adds the element form and the moons following on the
   same operation.
-  Prerequisites: GEN.109, ADM.92, ADM.58, ADM.65, ADM.66.
+  Prerequisites: ADM.92, ADM.58, ADM.65, ADM.66.
 
 - [ ] **ADM.52 A star system editor: plan a system as a 2D diagram or from the command line**
   GitHub issue [#1228](https://github.com/dwhagar/planetGen/issues/1228)
@@ -15784,7 +15783,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Done: replay after both rebuild paths, a test that a sector with edits
   rebuilds to the same stored rows, and the list of rows that cannot
   replay.
-  Prerequisites: ADM.60, DB.17, DB.9, GEN.57. Related: DB.9, DB.17,
+  Prerequisites: ADM.60, DB.17, DB.9. Related: DB.9, DB.17,
   GEN.57, GEN.59.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
@@ -16117,7 +16116,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   missing `mysqldump` reported with the install step, a test that
   sessions are not in the archive, and a test that the dump loads into a
   scratch schema (the restore itself is ADM.89).
-  Prerequisites: ADM.87. Related: ADM.43, ADM.85, USR.2.
+  Prerequisites: none. Related: ADM.43, ADM.85, USR.2.
 
 - [ ] **ADM.89 Control database restore: load a backed-up planetgen_control into a scratch schema, check it, then replace the live schema, from the command and from the settings page**
   Boss (2:00 PM EDT): "we also have to build a way to use that data so
@@ -16142,7 +16141,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   archive from a newer version, a refused restore while the guard is on,
   and a restore that fails in the scratch schema and leaves the live
   schema untouched.
-  Prerequisites: ADM.88, OPS.41. Related: ADM.85, ADM.43,
+  Prerequisites: ADM.88. Related: ADM.85, ADM.43,
   ADM.91.
 
 - [ ] **ADM.90 Database health and repair page: run the check, see damaged and unprotected sectors, repair from the live parity or from an archive, restore parts, as a queue job**
@@ -16246,7 +16245,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and a browser test checks the page for a running, a finished and a
   stalled run (the stalled one links to the incomplete uploads page,
   ADM.13).
-  Prerequisites: API.10, API.14, API.8. Related: API.3.
+  Prerequisites: API.8. Related: API.3.
 
 ## SEC: Security
 
@@ -16852,7 +16851,7 @@ clears each one.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 48 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.276. Related: NAV.60, DOC.51.
+  Prerequisites: none. Related: NAV.60, DOC.51.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
 - [ ] **TEST.168 Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs**
@@ -17155,7 +17154,7 @@ clears each one.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 35 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.309, TEST.77. Related: GEN.42.
+  Prerequisites: GEN.309. Related: GEN.42.
 
 - [ ] **TEST.183 A test that fails when a new output path formats its own lines**
   Split from UX.102 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -18244,7 +18243,7 @@ clears each one.
   of USR.2; "delete my account" is the delete-by-self rule USR.2 sets,
   and the data export reads each account list through the saved-list
   store so saved courses join it when NAV.19 lands (2026-10-16 review).
-  Prerequisites: USR.7, USR.26.
+  Prerequisites: USR.26.
   Design: [docs/design/settings-seo-and-accounts.md](design/settings-seo-and-accounts.md)
 
 - [ ] **USR.10 Users add their own objects (ships and stations) and track their movement on the map**
@@ -18303,7 +18302,7 @@ clears each one.
   Owner-only options of the settings page. Done: the catalogue and the
   check with tests for every role and permission, and a generated table
   in docs.
-  Prerequisites: USR.2. Related: USR.2, ADM.86.
+  Prerequisites: none. Related: USR.2, ADM.86.
   Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
 
 - [ ] **USR.13 Moderator role: assign and remove it on the admin accounts page, with the audit entry**
@@ -18420,7 +18419,7 @@ clears each one.
   of 8.6. The account page of USR.7 lists the user's own requests with
   their state and lets them withdraw a pending one. Done: the page
   section with a browser test.
-  Prerequisites: USR.16, USR.7. Related: USR.25, USR.7.
+  Prerequisites: USR.16. Related: USR.25, USR.7.
   Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
 
 - [ ] **USR.21 Request lifecycle: stale, withdrawn and expired requests**
@@ -18461,7 +18460,7 @@ clears each one.
   USR.3; each account chooses on or off. Done: the notices as queue
   jobs, the setting on the account page, and a test with a captured
   mailbox.
-  Prerequisites: USR.17, USR.3. Related: USR.25, USR.3.
+  Prerequisites: USR.17. Related: USR.25, USR.3.
   Design: [docs/design/roles-and-requests.md](design/roles-and-requests.md)
 
 - [ ] **USR.24 Audit view for roles and requests: who changed a role, who asked, who decided**
@@ -18656,7 +18655,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 12 of 43). This replaces any earlier owner line on this item.
-  Prerequisites: OPS.56.
+  Prerequisites: none.
 
 - [ ] **OPS.55 Nightly full backup: a backup step in the daily maintenance run that takes every part into one archive, with a schedule setting and a nightly retention setting**
   Boss (2026-10-16, 2:06 PM EDT): "Yes plese." to a nightly full backup
@@ -18683,7 +18682,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   off, a failure that leaves archives alone, pruning by kind, and a
   second run started during the first exiting at once; the daily run
   lists the step in its log.
-  Prerequisites: OPS.16, ADM.88, DB.40. Related: OPS.16, ADM.87,
+  Prerequisites: ADM.88, DB.40. Related: OPS.16, ADM.87,
   ADM.91.
 
 - [ ] **OPS.57 generator_battery_digest(): a database-free digest over 6 to 8 canned cases**
@@ -19573,7 +19572,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   library and its stored result for a seeded system, with tests for
   determinism, stability when the limiting magnitude changes slightly,
   and unique names.
-  Prerequisites: DB.64, VIEW.4, VIEW.12. Related: VIEW.3.
+  Prerequisites: DB.64, VIEW.12. Related: VIEW.3.
 
 - [ ] **VIEW.17 Constellation overlay: SVG lines and names over the sky chart, and the planet-sky card**
   Split from VIEW.3 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -19596,7 +19595,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Headline: 9.1 (the view from a planet: the sky from any planet or
   moon, with real constellations, rendered as a picture). A hand version
   bump needs Boss's word.
-  Prerequisites: VIEW.2, VIEW.3. Related: VIEW.1, MAP.167, GEN.421.
+  Prerequisites: none. Related: VIEW.1, MAP.167, GEN.421.
 
 ## POP: Population and politics
 
