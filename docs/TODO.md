@@ -7898,6 +7898,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   uses the better estimate; the test stays.
   Prerequisites: none. Related: GEN.322, GEN.333, GEN.280, GEN.321.
 
+- [ ] **GEN.399 Research the halo mass function and compare it with the halo mass approximation GEN.368 uses**
+  Boss (2026-10-16, 10:11 PM EDT, in the Core 1 thread): on the GEN.368
+  halo mass card he picked "Approximate" for now, and wants an item in
+  8.2 to research and find the halo mass function and compare it with
+  the approximation. Done: a research note in docs/design (named in
+  GEN.368's table once built) that names the halo mass function the
+  literature gives for the galaxy's stellar mass (the stellar-to-halo
+  relation with its scatter, and the halo mass function behind it, with
+  every source checked against the paper), states the approximation
+  GEN.368 actually built (Core 1 reports which), and compares them over
+  the stellar mass range of the first family (3e9 to 2e11 solar): a
+  table of halo mass against stellar mass for both, the largest
+  difference, and whether the approximation stays inside the scatter. If
+  the difference is larger than the scatter, a follow-up item replaces
+  the approximation with the researched function; if not, the note says
+  the approximation stands. A comparison test keeps the two within the
+  stated bound. No fixed content (Boss, 4:11 and 4:14 PM EDT): no named
+  galaxy sets any number.
+  Prerequisites: GEN.368. Related: GEN.368, GEN.378, GEN.380.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
