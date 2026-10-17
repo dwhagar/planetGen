@@ -726,6 +726,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <div class="starmap-centre" id="galaxymap3d-centre" aria-hidden="true" title="The center the view turns and zooms about"></div>
 <div class="starmap-scale" id="galaxymap3d-scale" aria-live="polite"></div>
 {legend_block}
+<div class="map-layer-legend" id="galaxymap3d-layer-legend" hidden></div>
 <div class="map-tooltip" id="galaxymap3d-tooltip" hidden></div>
 </div>
 </div>

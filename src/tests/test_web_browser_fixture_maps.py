@@ -325,6 +325,32 @@ def test_sector_map_kinds_can_be_hidden_one_by_one_and_the_choice_is_kept(page, 
     assert "hide" not in page.url
 
 
+def test_sector_map_a_registered_layer_has_a_menu_button_a_url_key_and_a_legend_line(page, map_site):
+    """MAP.217: a layer declared once in the shared registry (static/maplayers.js) shows in the Menu beside
+    the kinds, writes its off state into the URL's hide list and draws its legend line while on."""
+    _open_sector(page, map_site)
+    page.evaluate("""() => {
+        const layers = document.getElementById("galaxymap3d-canvas").__mapLayers;
+        layers.register({id: "testLayer", label: "Test layer", modes: ["galaxy", "sector"], group: "Show on the map",
+            urlKey: "hide", urlKeyOn: "show", legend: {text: "marks the test layer", swatch: "#f90"}});
+        layers.refresh();
+    }""")
+    _open_menu(page)
+    button = page.locator('#galaxymap3d-kinds button[data-layer="testLayer"]')
+    assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
+    legend = page.locator("#galaxymap3d-layer-legend")
+    assert "marks the test layer" in legend.inner_text()
+    button.click()
+    assert button.get_attribute("aria-pressed") == "false"
+    assert "hide=testLayer" in page.url
+    assert legend.is_hidden(), "an off layer has no legend line"
+    button.click()
+    assert "hide" not in page.url
+    assert "marks the test layer" in legend.inner_text()
+    # The kinds the sector stage owns still work beside it.
+    assert page.locator('#galaxymap3d-kinds button[data-kind="star"]').get_attribute("aria-pressed") == "true"
+
+
 def test_sector_map_show_on_map_shows_a_hidden_kind_again(page, map_site):
     _open_sector(page, map_site, "?contents_type=Rogue+Planet")
     _open_menu(page)

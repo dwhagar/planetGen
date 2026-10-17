@@ -2439,6 +2439,47 @@ code {
   vertical-align: middle;
 }
 
+.map-layer-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0.25rem 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.map-layer-legend[hidden] {
+  display: none;
+}
+/* On the Galaxy and Sector Maps the legend lines sit over the map's lower left. */
+.starmap-viewport > .map-layer-legend {
+  position: absolute;
+  left: 0.75rem;
+  bottom: 0.75rem;
+  max-width: 60%;
+  margin: 0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  pointer-events: none;
+}
+.map-layer-legend-swatch {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-right: 0.35rem;
+  vertical-align: -0.1rem;
+  border-radius: 2px;
+}
+.map-layer-legend-swatch.sysmap-legend-facility {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 0;
+}
+.sysmap-hide-facility .sysmap-facility,
+.sysmap-hide-facility .sysmap-facility-orbit {
+  display: none;
+}
+
 .sysmap-crumb {
   display: flex;
   flex-wrap: wrap;
@@ -2696,6 +2737,11 @@ code {
 
 .galaxy-kinds[hidden] {
   display: none;
+}
+
+/* MAP.217: the layer buttons sit in the Menu's flow as if they had no wrapper. */
+.galaxy-layers {
+  display: contents;
 }
 
 .galaxy-kinds-heading {
