@@ -6,7 +6,7 @@ stand, so `GET /api/galaxy/profile` and the sector page show the same fields. Re
 (`galaxy/profile.py`) and changes nothing.
 """
 
-import math
+from planetgen.util import detmath
 
 
 def _bubble(bubble, position_pc):
@@ -14,7 +14,7 @@ def _bubble(bubble, position_pc):
         return None
     return {"radius_pc": bubble.radius_pc, "ambient_density_cm3": bubble.ambient_density_cm3,
             "temperature_k": bubble.temperature_k, "center_pc": list(bubble.center_pc),
-            "centre_distance_pc": math.dist(bubble.center_pc, position_pc)}
+            "centre_distance_pc": detmath.dist(bubble.center_pc, position_pc)}
 
 
 def profile_report(profile):
