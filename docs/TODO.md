@@ -17538,6 +17538,14 @@ clears each one.
   Frequency: 1 of 1 full browser runs under load. Reproducer: run
   `scripts/test.py browser` while another gate is running (load above
   8). Bug Hunt owns it.
+  Sighting (Core 2, 2026-10-17, 11:35 AM EDT as the lane reported, its
+  MAP.225, MAP.227 and MAP.228 gate 9:36 to 11:18 AM EDT, load about 9.6
+  from other gates): failed again with "the system's scene never came
+  in", assert [], the second symptom. Core 2 reran it alone at 137.74 s
+  on gw0 at load 9.6 and it failed alone on main as well, so it fails
+  whenever the box is loaded, not only inside a gate. Fails on main:
+  yes, under load. Frequency: 1 of 1 gate runs, plus the alone rerun.
+  Bug Hunt owns it.
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
@@ -17686,6 +17694,35 @@ clears each one.
   Owner: Bug Hunt (bugs only, Boss, 2026-10-17, 10:06 AM EDT). This
   replaces any earlier owner line on this item.
   Prerequisites: none. Related: TEST.193, TEST.195, PERF.88.
+
+- [ ] **TEST.220 test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter finds `neutron-star` inside `magnetar neutron-star` (bug)**
+  Found by Core 2 (2026-10-17, 11:35 AM EDT as the lane reported, its
+  MAP.225, MAP.227 and MAP.228 gate 9:36 to 11:18 AM EDT), filed by the
+  TODO thread.
+  `src/tests/test_phenomenon_scatter.py::test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter`
+  failed in the full gate: `AssertionError: neutron-star`, from `assert
+  (' neutron-star' in 'Placed 9,958 phenomena in 1.1s: 3,465 stellar
+  black-hole, 1 planetary-nebula, 9 intermediate black-hole, 1 magnetar
+  neutron-star, 6,481 hypervelocity-star, 1 supermassive black-hole; 43
+  of them have companions.') ==
+  bool(summary['counts'].get('neutron-star'))`. Cause read by the TODO
+  thread from the test (line 201 of the file): the check `(f" {label}"
+  in final) == bool(summary["counts"].get(label))` looks for the label
+  as a substring, and the label `neutron-star` is a substring of
+  `magnetar neutron-star`, so a run that places a magnetar but no plain
+  neutron star reports True against a count of None. Fails on main: no
+  (Core 2 ran it in a clean worktree at origin/main 0690c541: it passed,
+  7 of 7 alone, and the whole 77-test file passed on both, 294 s and 301
+  s); it failed once inside the full gate, load about 4 to 9, on the
+  gate's base, so it depends on the draw that run made. Frequency: 1 of
+  1 gate run. Reproducer: none found idle; force a plan run whose draw
+  has a magnetar and no plain neutron star (for example a run with the
+  neutron-star count zeroed). Done: the check matches whole labels (the
+  label bounded by a separator, or the counts read from the summary
+  line's own fields), so `magnetar neutron-star` no longer satisfies
+  `neutron-star`; a test places a magnetar and no neutron star and
+  passes; no quarantine. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.213.
 
 ## USR: User accounts
 
