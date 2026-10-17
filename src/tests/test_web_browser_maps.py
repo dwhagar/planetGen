@@ -390,6 +390,11 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
         query = _query(page)
         assert query in queries[:at], f"Back went to {query!r}, not an earlier stage of {queries[:at]}"
         at = max(n for n in range(at) if queries[n] == query)
+        # The trail follows the camera (MAP.227): give a flight that a loaded run stalls time to land.
+        for _ in range(100):
+            if _crumbs(page) == steps[at][1]:
+                break
+            page.wait_for_timeout(100)
         assert _crumbs(page) == steps[at][1]
     before = _state(page)
     page.go_forward()
