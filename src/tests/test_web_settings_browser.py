@@ -14,13 +14,11 @@ Run with: pytest tests/test_web_settings_browser.py
 """
 
 import json
-import threading
 
 import pytest
 
 sync_api = pytest.importorskip("playwright.sync_api")
 
-from werkzeug.serving import make_server  # noqa: E402
 
 from planetgen.admin import auth  # noqa: E402
 from planetgen.api import settings as settings_api  # noqa: E402
@@ -31,6 +29,7 @@ from planetgen.db import store  # noqa: E402
 from planetgen.util import logpaths, settings, settings_view  # noqa: E402
 from planetgen.web.app import create_app  # noqa: E402
 
+from tests.served import served  # noqa: E402
 from tests.test_web_a11y import (  # noqa: E402,F401 -- the browser and axe fixtures, and the checks
     CSP_LISTENER, SCHEMES, VIEWPORTS, _axe_blocking, _overflow, axe_source, browser,
 )
@@ -74,14 +73,8 @@ def server(mysql_config, config):
         conn.close()
     app = create_app(SiteConfig)
     app.testing = True
-    httpd = make_server("127.0.0.1", 0, app, threaded=True)
-    thread = threading.Thread(target=httpd.serve_forever, daemon=True)
-    thread.start()
-    try:
-        yield f"http://127.0.0.1:{httpd.server_port}", session
-    finally:
-        httpd.shutdown()
-        thread.join(timeout=10)
+    with served(app) as url:
+        yield url, session
 
 
 @pytest.fixture(params=["admin", "host"])

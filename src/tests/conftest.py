@@ -114,6 +114,9 @@ def pytest_configure(config):
     browser_waits.install()  # a longer default wait for every browser context (TEST.126)
 
 
+dbpool.watch_checkouts()   # TEST.193: a database that cannot be dropped names the code that holds its connection
+
+
 def _test_server_kwargs():
     """Connection kwargs (host/port/user/password -- no database) for the
     MySQL server tests run against."""
@@ -301,13 +304,7 @@ def fresh_mysql_config(_mysql_server_available):
     finally:
         publicids.use(None)
         _db.close_pool(config)
-        admin_conn = pymysql.connect(**kwargs)
-        try:
-            with admin_conn.cursor() as cur:
-                cur.execute(f"DROP DATABASE IF EXISTS `{db_name}`")
-            admin_conn.commit()
-        finally:
-            admin_conn.close()
+        dbpool.drop_database(kwargs, db_name)
 
 
 @pytest.fixture(scope="session")
