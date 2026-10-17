@@ -92,7 +92,27 @@ def orbit_positions():
 
     scene = sample_scene()
     return {"scene": scene, "cases": [{"years": y, "positions": positions_at(scene, y)}
-                                      for y in (0.0, 0.05, 1.8, 37.5, -2.2, 400.0)]}
+                                      for y in (0.0, 0.05, 1.8, 37.5, -2.2, 400.0)],
+            "steps": universal_steps()}
+
+
+def universal_steps():
+    """GEN.289's `kepler.universal_step` over a circular, an eccentric, a thin and an open state for steps of every
+    size and sign, for `universalStep` in static/orbitpositions.js to match."""
+    from planetgen.physics.kepler import universal_step
+
+    mu = 1.327e11
+    states = [((1.5e8, 0.0, 0.0), (0.0, mu ** 0.5 / 1.5e8 ** 0.5, 0.0)),
+              ((1.5e8, 2.0e7, -1.0e6), (-5.0, 29.0, 1.0)),
+              ((1.5e8, 0.0, 0.0), (0.0, 12.0, 0.0)),
+              ((1.5e8, 0.0, 0.0), (0.0, 45.0, 0.0))]
+    cases = []
+    for position, velocity in states:
+        for dt in (0.0, 1.0e3, 1.0e7, 3.15576e7, -1.0e6, 3.15576e10):
+            moved = universal_step(position, velocity, mu, dt)
+            cases.append({"position": list(position), "velocity": list(velocity), "mu": mu, "dt": dt,
+                          "position_after": list(moved[0]), "velocity_after": list(moved[1])})
+    return cases
 
 
 def tile_pack():

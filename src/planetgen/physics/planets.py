@@ -19,7 +19,7 @@ and moon in a system after all of them have been generated.
 import math
 import re
 
-from planetgen.physics import constants, metallicity
+from planetgen.physics import body_state, constants, metallicity
 from planetgen.physics import atmosphere, habitability_world, hydrosphere, magnetism, radiation, rogue_surface, spin
 from planetgen import tuning
 from planetgen.util import draw
@@ -807,12 +807,10 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
     circular orbits -- no eccentricity), `orbital_inclination_deg` (the
     tilt of the orbital plane) and `orbital_ascending_node_deg` (where that
     plane crosses its primary's reference plane) fully orient the orbit in
-    3D; `orbital_phase_deg` is where the body currently sits around it.
-    Only `orbital_phase_deg` (and the `position_x/y/z`/`orbital_speed_kms`
-    derived from it, see `update_orbital_position`) ever change after
-    generation -- `planetgen.cli.orbits` advances phase (and position in
-    lockstep) over time based on `planet.period` -- the plane itself is
-    fixed for the body's lifetime, the same way its `distance` is.
+    3D; a phase drawn here is where the body starts around it, and is not
+    kept: the body is its state vector (`position_x/y/z`, `velocity_*_kms`,
+    see `update_orbital_position`), which `planetgen.cli.orbits` advances
+    over time on `planet.period` with `kepler.universal_step` (GEN.289).
 
     `position_x/y/z` (AU, via `update_orbital_position`) are this body's
     Cartesian position *relative to its orbital anchor* -- the star (or,
@@ -858,10 +856,10 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
     )
     planet.orbital_inclination_deg = draw.uniform(0, inclination_max)
     planet.orbital_ascending_node_deg = draw.uniform(0, 360)
-    planet.orbital_phase_deg = draw.uniform(0, 360)
+    phase_deg = draw.uniform(0, 360)
 
     generate_spin(planet, primary_mass_kg)
-    update_orbital_position(planet)
+    update_orbital_position(planet, phase_deg)
 
 
 def generate_spin(planet, primary_mass_kg):
@@ -909,52 +907,58 @@ def generate_spin(planet, primary_mass_kg):
 
 
 
-def update_orbital_position(planet):
+def update_orbital_position(planet, phase_deg=None):
     """
     Recomputes `planet.position_x/y/z` (AU, relative to its orbital
-    anchor), `planet.orbital_speed_kms`, and
+    anchor), its velocity, `planet.orbital_speed_kms`, and
     `planet.min_update_interval_years` from its current `distance`,
-    `period`, and orbital elements (`orbital_inclination_deg`/
-    `orbital_ascending_node_deg`/`orbital_phase_deg`), via
-    `orbits.orbital_position_au`/`circular_orbital_speed_kms`/
-    `minimum_update_interval_years`.
+    `period`, and orbital plane (`orbital_inclination_deg`/
+    `orbital_ascending_node_deg`), as a circular orbit
+    (`body_state.circular_state`).
 
     Called both at initial generation (`generate_orbital_motion_properties`,
-    right after `orbital_phase_deg` is rolled) and again by
+    which passes the phase it rolled) and again by
     `StarSystem.validate_system` whenever it corrects a top-level planet's
     `distance` post-hoc to resolve an orbital overlap -- the same
     "recompute anything that depends on distance" treatment `period`
-    already gets there (see that method's docstring). Position/speed/
-    `min_update_interval_years` would otherwise silently go stale relative
-    to the corrected `distance`/`period` the same way `period` itself
-    used to before that fix.
+    already gets there (see that method's docstring). There the body keeps
+    where it is along its plane: no phase is passed and the one the current
+    position has is used. Position/speed/`min_update_interval_years` would
+    otherwise silently go stale relative to the corrected `distance`/
+    `period` the same way `period` itself used to before that fix.
 
-    `planetgen.cli.orbits`'s periodic time-based advancement is a separate,
-    SQL-only path (`planetgen.db.store.advance_orbital_phases`) that
-    recomputes position directly in the database rather than through this
-    function -- this generator has no live "simulation loop" over
-    in-memory objects, only one-shot generation (this function) followed
-    by periodic database updates (see that module's own docstring).
-    `min_update_interval_years` doesn't depend on phase at all (only
-    `period`, fixed once generated), so `advance_orbital_phases` never
-    needs to touch it -- it only *reads* the column, to decide whether a
-    given call's `elapsed_years` is even worth writing for this row.
+    `planetgen.cli.orbits`'s periodic time-based advancement is a separate
+    path (`planetgen.db.store.advance_orbital_phases`) that moves the
+    stored state vector in the database rather than through this function
+    -- this generator has no live "simulation loop" over in-memory
+    objects, only one-shot generation (this function) followed by periodic
+    database updates (see that module's own docstring).
+    `min_update_interval_years` depends only on `period`, fixed once
+    generated, so the update never touches it -- it only *reads* the
+    column, to decide whether a given call's `elapsed_years` is even worth
+    writing for this row.
 
     Args:
         planet (Planet): The planet or moon to update in place. Must
                          already have `distance`, `period`,
-                         `orbital_inclination_deg`,
-                         `orbital_ascending_node_deg`, and
-                         `orbital_phase_deg` set.
+                         `orbital_inclination_deg` and
+                         `orbital_ascending_node_deg` set, and, without
+                         `phase_deg`, its position.
+        phase_deg (float, optional): Where along its orbit plane the body
+                         is (the argument of latitude); the one its
+                         current position has when not given.
     """
+    if phase_deg is None:
+        phase_deg = body_state.argument_of_latitude_deg(
+            (planet.position_x, planet.position_y, planet.position_z),
+            planet.orbital_inclination_deg, planet.orbital_ascending_node_deg)
     planet.set_position_au(*orbital_position_au(
-        planet.distance, planet.orbital_inclination_deg,
-        planet.orbital_ascending_node_deg, planet.orbital_phase_deg,
+        planet.distance, planet.orbital_inclination_deg, planet.orbital_ascending_node_deg, phase_deg,
     ))
     planet.orbital_speed_kms = circular_orbital_speed_kms(planet.distance, planet.period)
     to_kms = constants.AU_TO_KM / constants.SECONDS_PER_YEAR
     planet.set_velocity_kms(*(v * to_kms for v in circular_orbital_velocity_au_per_year(
-        planet.distance, planet.orbital_inclination_deg, planet.orbital_ascending_node_deg, planet.orbital_phase_deg,
+        planet.distance, planet.orbital_inclination_deg, planet.orbital_ascending_node_deg, phase_deg,
         planet.period)))
     planet.min_update_interval_years = minimum_update_interval_years(planet.period)
 

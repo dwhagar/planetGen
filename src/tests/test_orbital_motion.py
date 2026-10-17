@@ -86,11 +86,11 @@ def bodies(systems_with_moons):
     return planets, moons
 
 
-def test_orbital_orientation_and_phase_are_in_range(bodies):
+def test_orbital_orientation_is_in_range_and_there_is_no_stored_phase(bodies):
     planets, moons = bodies
     for body in planets + moons:
         assert 0 <= body.orbital_ascending_node_deg < 360
-        assert 0 <= body.orbital_phase_deg < 360
+        assert not hasattr(body, "orbital_phase_deg")  # GEN.289: the state vector is the body
 
     for planet in planets:
         assert 0 <= planet.orbital_inclination_deg <= pc.PLANET_ORBITAL_INCLINATION_MAX_DEG
@@ -239,7 +239,7 @@ def test_serializable_fields_include_orbital_motion_attributes():
     from planetgen.generation.planet import Planet
     for field in (
         "orbital_inclination_deg", "orbital_ascending_node_deg",
-        "orbital_phase_deg", "position_x", "position_y", "position_z",
+        "position_x", "position_y", "position_z",
         "orbital_speed_kms", "min_update_interval_years", "rotation_period_hours",
     ):
         assert field in Planet.SERIALIZABLE_FIELDS

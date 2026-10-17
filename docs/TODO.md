@@ -1346,7 +1346,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Scope after the review (2026-10-16 review): the System Map's gravity
   data and Hill spheres only; it is the same registered layer on a
   second map.
-  Prerequisites: MAP.168, GEN.289. Related: MAP.167, GEN.109.
+  Prerequisites: MAP.168. Related: MAP.167, GEN.109.
 
 - [ ] **MAP.170 The Galaxy Map gravity layer: the galaxy potential and region aggregates, coarse and optional**
   Later (phase 3+): a coarse gravity layer on the Galaxy Map drawn from
@@ -2505,6 +2505,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a lone star or object). Hops are bent one at a time; the route's stops
   do not change in practice (overhead 0.04% to 0.2% on average).
 
+  Prerequisites: none.
   - [ ] **NAV.25 Find the obstacles along a path**
     Done: from the corridor query of NAV.10 (and NAV.38's
     line-to-sectors helper), every
@@ -2567,7 +2568,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     introduced. `body_positions.positions_at` is the position source; no
     new ephemeris code. Galactic-scale motion is negligible at warp, so
     this stays system-only.
-    Prerequisites: GEN.289.
+    Prerequisites: none.
 
   - [ ] **NAV.28 Show and save the adjusted course**
     Done: the adjusted path, its extra length and its times beside the
@@ -3403,7 +3404,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   option advances it by a stated extra span in one go. Done when its
   subitems are.
   Headline: 8.3 (the orbital update system).
-  Prerequisites: GEN.289, GEN.290, GEN.291.
+  Prerequisites: GEN.290, GEN.291.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
   Research (2026-10-09, orbital-solvers-and-integrators.md): the Full
   Algorithm's one-year macro step and "nightly" language are superseded
@@ -5417,78 +5418,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.338. Related: GEN.280 (built), GEN.198.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
-- [ ] **GEN.289 Planets and moons kept as the universal point-in-space object, with point mass and movement vector stored, so perturbations have somewhere to land**
-  Finding (orbital-encounters research, 2026-10-15, kind: gap in
-  GEN.109): today a planet or moon is a distance, a period and a phase
-  on a circle (physics and db/store.py advance_orbital_phases:
-  orbital_phase_deg = MOD(phase + turn, 360), position and velocity
-  recomputed from the phase), so no pull from another body can change
-  its orbit. GEN.109 does not say that planets and moons must first
-  become state vectors (position and velocity relative to the host star,
-  at an epoch) advanced by a real propagator (kepler.universal_step for
-  the quiet case, a sub-stepped integrator while a perturber is inside
-  the system) before its influence set can apply. Done: planets and
-  moons are stored as vectors with parent and dynamical state (one
-  column per component, no JSON), the phase columns are removed (Core 1
-  adds the drop revision after the readers move), the pages, the API and
-  the JavaScript position parity read the derived elements, the quiet
-  case advances by `kepler.universal_step`, and a test shows a quiet
-  system costs about what `advance_orbital_phases` costs now. Source:
-  Boss's question of
-  2026-10-15 at 10:53 PM EDT (if the orbital motion ran 100 years of
-  movement in 1 second, what would the program account for when a black
-  hole or neutron star got close to a planetary system, and would
-  planets be ejected?) and its answer,
-  /mnt/project-files/research/orbital-encounters/answer.md. Boss asked
-  on 2026-10-15 (11:06 PM EDT) for these gaps to be filled; they join
-  the Phase 2 and 3 workflow and no lane builds them yet. Placement:
-  version 8.3, phase 1 (the Positions thread), before GEN.109. Boss's
-  design
-  (2026-10-15, 11:06 PM EDT): at each step in which orbital changes are
-  calculated, a planet or moon is moved by the summed gravitational
-  influence of point masses (the vector of the gravitational gradient of
-  the space it occupies), the other planets and moons of its system
-  counted by their point masses too, plus passing objects such as black
-  holes and neutron stars, so planets can be captured or ejected; the
-  orbital path comes out right and agrees with the
-  pass-through-the-sphere logic (the sector-crossing guard of GEN.223
-  and GEN.265). The planets and moons of a system enter the influence
-  set as point masses next to the passing bodies, so GEN.289's vectors
-  are what GEN.109 moves.
-  Boss (2026-10-15, 11:10 PM EDT): "Use our universal point in space
-  object for all objects and it should have a space for the point mass
-  and the vector of current movement." So every planet and moon is a
-  SpatialPosition3D (physics/position.py, GEN.74), the same object every
-  other body uses: its position, its velocity vector (system frame,
-  relative to the parent) and its point mass (mass_kg, mu following)
-  travel with it, and the gravity sum, the encounter search and the
-  integrator read and write that one object only. Stored one column per
-  component (x, y, z, vx, vy, vz, mass, epoch, parent type and id,
-  dynamical state), no JSON, in the point-column layout GEN.223 built; the
-  orbital elements shown on the pages are derived from the vector, and
-  the circular phase columns are replaced, not kept beside them (no
-  compatibility layer). GEN.294 gives every other object kind the same
-  object; the one migration for both is DB.55, whose revision number
-  Core 1 names. Design:
-  /mnt/project-files/research/orbital-encounters/capture-and-ejection-design.md.
-  Prerequisites: none. Related: GEN.105, GEN.109, GEN.110,
-  GEN.223,
-  GEN.294.
-  Rewritten (2026-10-16 review): this item is the build, not a design
-  note. The shared migration moved to the migration child of GEN.294
-  (one Core 1 revision); the prerequisites are the first and the
-  migration children of GEN.294, not GEN.115.
-  Read path (added (2026-10-16 review)):
-  `physics/body_positions.positions_at` and its browser twin
-  `static/orbitpositions.js` read the stored state vectors and advance
-  them by the universal-step solver for the quiet case, with the Python
-  and JavaScript parity test kept; NAV.27, ADM.72 and MAP.169 need it.
-  Owner: Blocker 1 (Boss, 2026-10-17, 3:40 PM EDT, typed in the project
-  chat: DB.53, then GEN.289 and GEN.294, go to Blocker 1; confirmed not
-  in progress in Core 1 at 3:42 PM EDT, and Core 1 dropped it from its
-  queue; order DB.53, GEN.289, GEN.294). This replaces any earlier owner
-  line on this item. It had no owner before.
-
 - [ ] **GEN.290 An encounter search that cannot miss a pass at large steps (100 years per second)**
   Finding (orbital-encounters research, 2026-10-15, kind: gap in
   GEN.109): GEN.109 describes forces from nearby bodies but no search
@@ -5523,7 +5452,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planets can be captured or ejected; the orbital path comes out right
   and agrees with the pass-through-the-sphere logic (the sector-crossing
   guard of GEN.223 and GEN.265).
-  Prerequisites: GEN.289, GEN.341, GEN.343, GEN.334. Related: GEN.105,
+  Prerequisites: GEN.341, GEN.343, GEN.334. Related: GEN.105,
   GEN.109,
   GEN.110,
   GEN.115,
@@ -5567,7 +5496,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   orbital path comes out right and agrees with the
   pass-through-the-sphere logic (the sector-crossing guard of GEN.223
   and GEN.265).
-  Prerequisites: GEN.289, GEN.290, GEN.343, GEN.346, GEN.197. Related:
+  Prerequisites: GEN.290, GEN.343, GEN.346, GEN.197. Related:
   GEN.105,
   GEN.109, GEN.110,
   GEN.115, GEN.223, GEN.289, GEN.290.
@@ -6488,7 +6417,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   at the core, mid radius, the rim, the top and bottom layers and across
   the slot-0 seam, the exact pairwise Hill criterion, a negative control
   without the margin, the cap, and a seed-reproducibility test.
-  Prerequisites: GEN.289. Related: GEN.109.
+  Prerequisites: none. Related: GEN.109.
 
 - [ ] **GEN.342 The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6522,7 +6451,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against the tidal approximation, and one 100-year step against a
   hundred one-year steps; a system with no perturber still takes the
   cheap clockwork.
-  Prerequisites: GEN.342, GEN.289, GEN.140. Related: GEN.109.
+  Prerequisites: GEN.342, GEN.140. Related: GEN.109.
 
 - [ ] **GEN.344 Hill-radius warnings by the gravitational criterion, to the debug and activity logs**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -9337,8 +9266,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   abundance pattern lives here. Done: a test checks the molar mass of
   every compound in the gas and materials tables against the sum of its
   elements; every number has a source.
-  Owner: Core 4 (proposed by the TODO thread, the same planet generation
-  code as the atmosphere items Boss gave it; to be confirmed).
+  Owner: Blocker 1 (Boss, 2026-10-17, 6:01 PM EDT, typed in the project
+  chat: "I want Blocker 1 to set itself up with PERF.118, GEN.438, and
+  GEN.440", after GEN.314 merges; it was proposed for Core 4 and never
+  started there).
   Part F of the Body composition research lane
   (docs/design/body-composition-parts/F-boss-note-check.md; 2026-10-17,
   1:28 AM EDT as the lane reported; checks Boss's research note of 1:22
@@ -9471,9 +9402,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done: the same star gives the same composition at any worker count; a
   test sweeps every kind of star in a generated galaxy and finds
   fractions that sum to one and match GEN.439's relations.
-  Owner: Core 4 (Boss tapped Core 4, 2026-10-17, 12:13 AM EDT, a card,
-  for the star composition items together with the other composition
-  design and table items).
+  Owner: Blocker 1 (Boss, 2026-10-17, 6:01 PM EDT, typed in the project
+  chat: "I want Blocker 1 to set itself up with PERF.118, GEN.438, and
+  GEN.440", after GEN.314 merges, with leave to take what it needs to
+  finish them unless already started elsewhere, 6:01 PM EDT: "Unless
+  it's already started elsewhere blocker can grab whatever items it
+  needs to complete those 3 once the current finishes"; it replaces
+  Boss's card tap for Core 4 of 12:13 AM EDT). The chain is GEN.438, then
+  GEN.439, then this item; GEN.439 moves to Blocker 1 too unless Core 4
+  has started it.
   Sources check (GEN.425): it returns the abundances the planet draws
   need, not only X, Y and Z: the iron, magnesium, silicon, oxygen and
   carbon ratios (Fe/Si, Mg/Si, C/O) with the scatter of the relations
@@ -13610,6 +13547,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   replacement of the 10 km/s young-population dispersion is its own item
   if the law is found. Owner: unowned (research; Boss or a read-only
   research lane). This is a Boss research item.
+  Stand-in in GEN.532 (Core 1, 2026-10-17, 5:55 PM EDT as the lane
+  reported): the first gate of GEN.532 showed the atomic-gas 10 km/s
+  made the young disc 0.40 of the old disc's height (nebula counts over
+  the ceiling: class M 22,804 against 20,000), so GEN.532 carries a
+  molecular birth-gas stand-in of 6.5 +/- 1 km/s (young disc 0.22 of the
+  old), labelled as replaced by this item. The reading to compare the
+  research against is the old atomic one (10 km/s, 0.40) and the
+  observed about 50 pc; the stand-in value itself has no source and is
+  entered in the stand-in registry as a placeholder.
   Prerequisites: none. Related: GEN.532, GEN.531.
 
 - [ ] **GEN.537 Design the plan configuration: the boundaries of the sector plan, how far scatters go, which sector addresses are valid, and the two switches halo and satellite galaxies (both default off)**
@@ -14406,9 +14352,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the same arguments is the same every time; a test lists a `galaxy` run
   and a `plan` run and checks every command named is registered; the
   PERF.106 to PERF.108 stages are each added as commands of this wrapper
-  and nothing else starts a stage. Owner: Core 5 (the chain of PERF.106
-  to PERF.108 and PERF.98, built first so the three stage items fill the
-  wrapper).
+  and nothing else starts a stage. Owner: Blocker 1 (Boss, 2026-10-17,
+  6:01 PM EDT, typed in the project chat: "I want Blocker 1 to set itself
+  up with PERF.118, GEN.438, and GEN.440", after GEN.314 merges; it was
+  Core 5's, which had only read it). Core 5 keeps the stage items
+  PERF.106 to PERF.108 and PERF.98 and builds them on this wrapper once
+  it has merged.
   Prerequisites: none. Related: PERF.86, PERF.97, PERF.98, PERF.106,
   PERF.107, PERF.108.
   Decided (Boss, 2026-10-17, 4:15 PM EDT): from the command line Boss
@@ -15591,6 +15540,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
   0106 DB.65 (merged, #2025), DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
   order they merge.
+  Update (TODO thread, 2026-10-17, 5:55 PM EDT): 0107 went to GEN.526
+  (satellite ages), 0108 to DB.72 (#2060) and 0109 to GEN.289 (#2108);
+  the head is 0109 and the next free is 0110. DB.69, DB.67, DB.70 and
+  DB.68 take the next free ids in the order they merge, so the numbers
+  above are the order, not the ids.
 
 - [ ] **DB.68 Planets and moons store the ozone column and the haze, dust and cloud optical depths**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -15607,6 +15561,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
   0106 DB.65 (merged, #2025), DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
   order they merge.
+  Update (TODO thread, 2026-10-17, 5:55 PM EDT): 0107 went to GEN.526
+  (satellite ages), 0108 to DB.72 (#2060) and 0109 to GEN.289 (#2108);
+  the head is 0109 and the next free is 0110. DB.69, DB.67, DB.70 and
+  DB.68 take the next free ids in the order they merge, so the numbers
+  above are the order, not the ids.
   Prerequisites: GEN.413, GEN.414, DB.67. Related: DB.67.
 
 - [ ] **DB.69 Planets and moons store the composition fractions**
@@ -15680,6 +15639,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
   0106 DB.65 (merged, #2025), DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
   order they merge.
+  Update (TODO thread, 2026-10-17, 5:55 PM EDT): 0107 went to GEN.526
+  (satellite ages), 0108 to DB.72 (#2060) and 0109 to GEN.289 (#2108);
+  the head is 0109 and the next free is 0110. DB.69, DB.67, DB.70 and
+  DB.68 take the next free ids in the order they merge, so the numbers
+  above are the order, not the ids.
 
 - [ ] **DB.70 Planets, moons and small bodies store the surface and small-body composition shares**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -15730,6 +15694,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
   0106 DB.65 (merged, #2025), DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
   order they merge.
+  Update (TODO thread, 2026-10-17, 5:55 PM EDT): 0107 went to GEN.526
+  (satellite ages), 0108 to DB.72 (#2060) and 0109 to GEN.289 (#2108);
+  the head is 0109 and the next free is 0110. DB.69, DB.67, DB.70 and
+  DB.68 take the next free ids in the order they merge, so the numbers
+  above are the order, not the ids.
 
 - [ ] **DB.71 Planets and moons store the partial pressures of the added gases, not only the ten stored today**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -16630,7 +16599,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   is the same operation in another form. Done: the plan operation, the
   page form, and tests for a planet with moons and for a refused
   crossing orbit.
-  Prerequisites: ADM.36, ADM.52, ADM.58, ADM.65, GEN.289. Related:
+  Prerequisites: ADM.36, ADM.52, ADM.58, ADM.65. Related:
   ADM.57,
   ADM.36, ADM.52.
   Scope after the review (2026-10-16 review): the element form and the
@@ -18505,6 +18474,16 @@ clears each one.
   test-side change is released (coordinator, 5:17 PM EDT). This item
   closes when the test passes on main with the fix and the test change
   merged, with no wait lengthened and nothing quarantined.
+  Check on main after the fix (Bug Hunt, 2026-10-17, 5:55 PM EDT as the
+  lane reported): on main 62bca47c, which has #2103, the unmodified test
+  passes (one idle run, 83 s), so Bug Hunt's held test-side change is
+  dropped and no test PR will be opened; its big gate (build 4632033c,
+  finished 5:51 PM EDT, 19,420 passed) failed only this test because
+  that branch predated #2103. Core 2's MAP.245 gate also ran it green on
+  the branch with the fix. Closes when later gates on main (Core 3's
+  GEN.321, Core 5's bundle, Core 1's GEN.532/533) pass it too; the TODO
+  thread retires it on the first merge report of a gate that ran after
+  #2103 with this test green.
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
@@ -19613,7 +19592,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the pre-upgrade check for schema v29 (stored page text dropped) and
   `cli.dedupe` the one-off backfill for names that predate the
   uniqueness rule (v24); neither runs from `update.sh` or `install.sh`,
-  and the database is at revision 0108. Done: both modules, their tests
+  and the database is at revision 0109. Done: both modules, their tests
   (src/tests/test_admin_script_cli.py and the render-parity cases of
   src/tests/test_system_render.py) and their docs lines are removed with
   no shim; nothing else imports them.

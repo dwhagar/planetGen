@@ -130,42 +130,37 @@ class Planet(HoldsOrbitPosition):
                                             with `orbital_inclination_deg`,
                                             fully orients the (circular)
                                             orbital plane in 3D.
-        orbital_phase_deg (float): This body's current position angle
-                                   around its (circular) orbit, in degrees.
-                                   Mutated in place by `planetgen.cli.orbits` as
-                                   time passes -- everything else here is
-                                   fixed at generation time.
         velocity_x_kms, velocity_y_kms, velocity_z_kms (float): This body's
                                    velocity, km/s, relative to its orbital
                                    anchor (the same one `position_x/y/z`
                                    is measured from): the tangent of its
-                                   circular orbit at its current phase,
+                                   circular orbit where it is,
                                    `orbital_speed_kms` long. Set with the
                                    position (`planetPhysics.
-                                   update_orbital_position`).
+                                   update_orbital_position`). With the
+                                   position, the mass and the epoch it is
+                                   the body's state; the nightly update
+                                   moves it (`physics.body_state`, GEN.289),
+                                   and there is no stored phase.
         position_x, position_y, position_z (float): This body's current
                                    Cartesian position, in AU, relative to
                                    its orbital anchor -- the star (or, for
                                    a binary system, the `BinaryStarProxy`
                                    standing in for the system's combined
                                    center) for a planet, the parent planet
-                                   for a moon. Derived from `distance` and
+                                   for a moon. Made from `distance` and
                                    the orbital elements above (see
                                    `planetPhysics.update_orbital_position`);
-                                   mutated in lockstep with
-                                   `orbital_phase_deg` as time passes.
+                                   moved by the nightly update.
         orbital_speed_kms (float): This body's circular orbital speed, in
                                    km/s -- constant around a circular orbit,
                                    so (unlike position) unaffected by
-                                   `orbital_phase_deg` changing over time;
-                                   only changes if `distance`/`period` do
+                                   the body moving; only changes if
+                                   `distance`/`period` do
                                    (see `StarSystem.validate_system`).
         min_update_interval_years (float): The shortest `elapsed_years`
                                    worth calling `store.advance_orbital_phases`
-                                   for -- below this, the phase delta added
-                                   is smaller than `orbital_phase_deg`'s own
-                                   floating-point resolution, so the update
-                                   would be a silent no-op (see
+                                   for (see
                                    `orbits.minimum_update_interval_years`).
                                    Not a narrative stat -- a guard value for
                                    the update path, derived purely from
@@ -198,7 +193,7 @@ class Planet(HoldsOrbitPosition):
         "life_chemical", "evolutionary_speed", "reflection_spectrum_visible",
         "reflection_spectrum_non_visible", "evolutionary_data", "flavor_text",
         "flavor_text_count", "habitable_zone", "volume", "period",
-        "orbital_inclination_deg", "orbital_ascending_node_deg", "orbital_phase_deg",
+        "orbital_inclination_deg", "orbital_ascending_node_deg",
         "position_x", "position_y", "position_z", "orbital_speed_kms",
         "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
         "min_update_interval_years",
@@ -323,7 +318,6 @@ class Planet(HoldsOrbitPosition):
         self.flavor_text_count = 0 # Initialize flavor text count for this planet
         self.orbital_inclination_deg = None
         self.orbital_ascending_node_deg = None
-        self.orbital_phase_deg = None
         self.position_x = None
         self.position_y = None
         self.position_z = None
