@@ -752,3 +752,4 @@ Baseline: PR #1817.
 | GEN.322 | 8.1 | Components and wanderers |
 | GEN.323 | 8.1 | Components and wanderers |
 | GEN.324 | 8.1 | Components and wanderers |
+| GEN.240 | 8.1 | Components and wanderers |

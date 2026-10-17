@@ -625,7 +625,7 @@ with `clamp()`.
   audit starts, so it checks the finished pages. Queued, not started:
   Interface and Quality stay idle until the sphere and generation stages
   finish (Boss, 12:27 AM EDT) unless Boss says earlier.
-  Prerequisites: GEN.240, NAV.61, NAV.45, MAP.243.
+  Prerequisites: NAV.61, NAV.45, MAP.243.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
 
 - [ ] **UX.118 Slow pages show a progress bar while their data loads: the search page and the phenomena list pages**
@@ -4431,117 +4431,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.237. Related: GEN.202, GEN.241.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **GEN.240 The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass**
-  Step 6 of the whole-sphere train. The bright-star and mass passes keep
-  their algorithm (one Poisson count per shell from a certified bound,
-  bands in proportion, accept by true density over bound;
-  `object_first.py`) but take the halo term in `band_majorants`, the new
-  populations in `fractions`, and band groups of 64 bands beyond the
-  outline: to 262 kpc that is about 2 minutes a pass instead of 2.25
-  hours, with under 10% efficiency loss beyond 8 kpc. The phenomena pass
-  walks every band of every shell today (`_band_rows`), which cannot
-  reach 262 kpc; it moves to the same object-first sampler, with its
-  rates, cut and below-cut draw at sector time unchanged. Components
-  (clusters, Clouds, Sagittarius) get their own pass: total star count
-  from the mass, positions by inverse transform of the profile table,
-  each star kept or dropped by the same pass cut, and the sector fill
-  adds the component's density to `lambda` so no pre-placed star is
-  counted twice. At the defaults the passes place nothing in the halo,
-  clusters or old satellites, a few thousand stars in the Clouds, and
-  about 9.1 million extra black-hole rows beyond the outline (Core 3's
-  measurement, accepted by Boss 2026-10-17, 12:52 AM EDT; the earlier
-  estimate was 2.4 million, 4% on top of the disk's scatter). Done: the
-  three passes cover the reach with the
-  same code, a pre-placed star is never drawn again at fill, and the
-  yields match the design note's table. Owner: Core (2026-10-15), after
-  GEN.232 (the cap on path integration for fast bodies); the wanderers
-  are GEN.238. Decided (Boss, 2026-10-15): the research note's
-  recommendation stands: reach 262 kpc (65,535 shells), 96-bit object
-  IDs, one rule set everywhere with per-sector parameters, nothing
-  generated unless asked, and an asked sector always generated and
-  saved.
-  Decided (Boss, 2026-10-15 5:27 PM EDT): the scatter from the origin
-  keeps the banded, layered approach it has now, because the bands of a
-  shell have fixed slices (Boss's recollection; Core checks it against
-  `object_first.py` and the band and wedge counts of `spherical.py`
-  before relying on it, and reports if it is wrong). The band groups of
-  this item stay inside that structure. Decided (Boss, 2026-10-15 5:27
-  PM EDT): early alpha, so the current database schema is not a
-  constraint. Redesign tables, columns and layouts as the work needs,
-  with one migration or a fresh galaxy; nothing is kept for the sake of
-  production data. Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and
-  backscatters get no systems, planets or moons, so bright stars,
-  massive stars, neutron stars, black holes and the other scattered
-  objects are bare rows; planets and moons are made only when a sector
-  is being filled with everything; a sector fill must represent every
-  kind of object, and when a fill meets a phenomenon that can have a
-  system (or makes one that can) it generates that system if the
-  real-world probabilities give it one; nebulae need stars and
-  phenomena, not planets. For this item: the three scatters write bare
-  rows and never build a system; the system is built when the sector
-  fills.
-  Decided (Boss, 2026-10-15 5:51 PM EDT), refining the 5:39 PM rule:
-  scatters still carry no planets or moons, but the stellar companions
-  of stars and star-like objects (stars, former stars, protostars,
-  neutron stars, black holes), including neutron star pairs, black hole
-  and neutron star pairs, black hole pairs and stars with neutron star
-  or black hole companions, are generated at scatter time, because such
-  systems matter for gravity; planets and moons still come only at
-  sector fill. Multi-star research is under way (docs to follow; the
-  coordinator relays its items). For this item: each scatter row carries
-  its stellar companions (their masses and orbit), but never planets or
-  moons; the band groups and the object-first sampler must place the
-  companions with the primary so a pair is one gravitational source.
-  Reworded (Boss, 2026-10-15 5:51 PM EDT;
-  docs/design/multi-star-systems.md): companions of stars and star-like
-  objects are generated at scatter time, planets, moons and belts at
-  sector fill; a scatter row is a system with a barycentre, a total mass
-  and stored members. Each scatter row's members are drawn in the
-  scatter passes (GEN.262), the band groups and the object-first sampler
-  must treat a row as one system (`1 + p_placed` bookkeeping), and the
-  whole-sphere passes take the same member columns (GEN.260).
-  Region query (stage C): scatter rows keep their (shell, band, wedge)
-  address columns and gain the point columns and cell key (DB.35); the
-  scatter pass keeps its bands and order and the key is computed from
-  whatever position it writes.
-  Prerequisites: none. Related: GEN.238, GEN.223.
-  Built-on note (Core 1, 2026-10-16, 12:03 PM EDT, GEN.236 merged as
-  #1824, no migration): SectorProfile.kind_factors carries one factor
-  per rare kind (supernova remnant = gas fraction; molecular cloud =
-  cold gas times the young share against the solar circle's; hosted
-  nebulae = cold gas alone; rogue planet and comet = planet occurrence
-  at the place's [Fe/H]; bound remnants, planetary nebulae and brown
-  dwarfs = 1; no magnetar factor, GEN.278 gates it); the fill and the
-  scatters apply them; metal-poor stars cap their object count at
-  ceil(16 x occurrence) below [Fe/H] -0.5 and thin gas giants.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: GEN.322, GEN.323, GEN.324. The item itself says
-  'the three scatters' and lists three deliverables: band groups and the
-  halo term for the bright-star and mass passes (about 2 minutes a pass
-  instead of 2.25 hours), moving the phenomena pass off its walk of
-  every band (_band_rows) onto the object-first sampler, and a new
-  component pass.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Its three subitems are merged: GEN.322 (#1991, epoch 5), GEN.323
-  (#1992, epoch 6) and GEN.324 (#1993, epoch 7), reported by Core 3 at
-  about 4:36, 4:45 and 4:55 AM EDT as the lane clock reported, after one
-  stack gate (3:13 to 4:29 AM EDT, 18,673 passed, 4 failed: three older
-  migration tests fixed in #1993 and TEST.217, fixed on main). The
-  umbrella stays open because the coordinator relayed that Core 3 starts
-  it next (4:55 AM EDT); its own Done list (the three passes cover the
-  reach with the same code, a pre-placed star is never drawn again at
-  fill, the yields match the design note's table) is for Core 3 to
-  confirm. Default-galaxy yields of GEN.324 are in the design note:
-  satellites 7.9e9 systems, clusters 1.7e8. A galaxy scattered before
-  this needs `planetgen plan --redo-scatters luminosity mass phenomena`.
-  Boss accepted the cap of 4 for GEN.323 at 12:52 AM EDT, so 9.1 million
-  black-hole rows beyond the outline stand (the Done figure of GEN.323).
-  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
-
 - [ ] **GEN.241 Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds**
   Step 12 of the whole-sphere train (design note section 5.10); replaces
   the text-only hosts and the "do not build" default of MAP.182, which
@@ -5929,10 +5818,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.244,
+  Prerequisites: GEN.238, GEN.241, GEN.242, GEN.243, GEN.244,
   GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.298, UX.116,
   TEST.159, TEST.160, GEN.447, GEN.448, GEN.449, GEN.450, TEST.196,
-  GEN.463, GEN.467, GEN.469, GEN.502.
+  GEN.463, GEN.467, GEN.469, GEN.502, GEN.526.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -12602,6 +12491,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
+- [ ] **GEN.526 Satellites with gas get young and intermediate populations derived from their age history and gas, so the Clouds hold massive stars**
+  Found by Core 3 while measuring GEN.240's yields (merged #1994), filed
+  by the TODO thread. The satellite population built by GEN.324 gives
+  every satellite one old age range and no young share, so at the
+  default floors the Large and Small Magellanic Clouds place 0 stars in
+  the mass pass and no bright star at the 9,000 solar luminosity floor;
+  about 1e6 bright stars appear only at the halo tier's floor of 500
+  (Core 3's rebuilt yields: 1.5e6 in all, halo 3.2e5, LMC 9.4e5, SMC
+  2.0e5, Sagittarius 3.8e4, clusters 1.4e4; black-hole rows 1.1e7;
+  planetary nebulae 2.4e3). The design note's default
+  (`docs/design/intergalactic-and-halo-contents.md`, open question 5,
+  Magellanic mix: 1% young and 9% intermediate until a better source is
+  found) was never built, and the NO FIXED CONTENT rule asks for a
+  derived share anyway. Do: each satellite's young and intermediate
+  shares are derived from its star formation history and gas mass (the
+  satellite's age range, its gas fraction and the same star formation
+  law the disk and the halo use), not from a fixed 1% and 9%; a
+  satellite with no gas keeps none; the stored scatter rows change, so
+  this is a generator epoch change joined to the one rescatter. Done:
+  the Clouds place massive stars in the mass pass and bright stars at
+  the default floor, the shares are calculated with the source named
+  (research first if the satellite history is not in the design notes;
+  lanes verify citations before relying on them), the design note's
+  yield table and open question 5 are updated with the measured values,
+  and `planetgen plan --redo-scatters luminosity mass phenomena`
+  applies. Decision for Boss (relay as a card): derive the shares from
+  age and gas as above, or keep the stated 1% and 9% as a labelled
+  stand-in until the research is done. Owner: Core 3 (proposed, the
+  GEN.324 and GEN.240 work).
+  Prerequisites: GEN.369. Related: GEN.324, GEN.240, GEN.369, GEN.366,
+  GEN.319.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.20 Short-term caching through the work queue and API**
@@ -15516,7 +15437,7 @@ clears each one.
   on the census harness (the new first item of the Whole-sphere audits
   thread); TEST.161, TEST.162 and TEST.164 add their checks to it, not
   counters of their own.
-  Prerequisites: GEN.240, GEN.282, GEN.321,
+  Prerequisites: GEN.282, GEN.321,
   TEST.186.
   Related: TEST.159.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
@@ -15918,7 +15839,7 @@ clears each one.
   region holds its members inside its radius; the pre-placed share of
   every population; no double count of a cluster star between the passes
   and the fill. Done: each test exists and runs in the normal suite.
-  Prerequisites: GEN.240, GEN.321, TEST.186. Related: TEST.159.
+  Prerequisites: GEN.321, TEST.186. Related: TEST.159.
 
 - [ ] **TEST.186 Census audit harness: fill seeded sectors per region class, count by kind and stage, compare to expectation within k Poisson sigma, print one report**
   Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
