@@ -6978,163 +6978,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   candidate for the deep-sky version.
   Prerequisites: GEN.237. Related: GEN.237, GEN.282.
 
-- [ ] **GEN.368 Plan the appearance rates of everything the Milky Way supplies as fixed content: the count, place and size laws, with sources, so a random galaxy draws them from its seed**
-  Boss (2026-10-16, 4:00 PM EDT, in the Core 1 thread; he tapped "Draw
-  them" on the decision card at 4:01 PM EDT): asked whether the
-  satellites are placed as in the Milky Way, said this is a random
-  procedural galaxy so identical things make no sense, and wants the
-  probabilities of things appearing worked out and planned. Done: one
-  design section (in docs/design/intergalactic-and-halo-contents.md, a
-  new part beside 5.5) that lists every place the generator copies the
-  Milky Way as fixed content and replaces each with a stated draw: the
-  satellite population (count follows the halo mass, distances a halo
-  distribution, masses a satellite mass function), the globular cluster
-  count and law, the galaxy shape (disk scale length and height, bulge
-  share, arm count, halo mass), the central black hole mass and the
-  nuclear cluster from their mass relations, and the rotation curve and
-  enclosed mass. Each row gives its law, its
-  parameters, the sources named, and the source it comes from; there is
-  no Milky Way option (Boss, 2026-10-16, 4:11 PM EDT), so the real
-  values appear only as reference data for plausibility tests.
-  Boss reads and approves the table before any build. The fixed places
-  found on 2026-10-16 (TODO thread survey): MILKY_WAY_SATELLITES (11
-  copied rows, generation/satellites.py); the Harris clusters of GEN.297
-  and CLUSTER_COUNT_MILKY_WAY = 157 (tuning.py); every shape default of
-  `generate` (scale length 2,600 pc, height 300 pc, bulge 3.11, COBE bar
-  1,580 pc); the central black hole (Sgr A*, 4.3e6) and nuclear cluster
-  (GEN.280); GALAXY_SUN_RADIUS_PC = 8,200 and
-  GALACTIC_CENTER_DISTANCE_LY = 25,800; MILKY_WAY_MASS (1.15e12) as the
-  central mass of every Hill sphere (binary.py, star.py, keepout.py);
-  the rotation curve (220 km/s, 3,000 pc; physics/constants.py). Owner:
-  Core 1 (it built GEN.237 and knows the table), after the global top 5
-  blockers unless Boss moves it up.
-  Boss (2026-10-16, 4:04 PM EDT, in the Core 1 thread): "we don't need
-  them to be the exact distances. What we need is for that to be
-  calculated or derived or generated, preferably calculated and derived
-  using real science." The table prefers a calculated or derived law
-  over a drawn one for every row, with the real science named; a drawn
-  value is allowed only where the science gives a distribution.
-  Method (Boss, 2026-10-16, 4:04 PM EDT: derive, do not hand-set; the
-  chain is Core 1's suggestion, each source to be checked in GEN.368):
-  the galaxy's halo mass from its own mass model -> virial radius ->
-  subhalo count from the subhalo mass function (dN/dM roughly M^-1.9,
-  from the Aquarius and Via Lactea simulations) -> radial placement from
-  a subhalo profile (less concentrated than the dark matter) -> stellar
-  mass from the stellar-to-halo mass relation (abundance matching) with
-  a low-mass cutoff for reionization -> size from the size-mass relation
-  -> [Fe/H] from the mass-metallicity relation (Kirby 2013) -> age and
-  profile from the mass and gas fraction, with tidal stripping near the
-  disk. Each link names its source in the doc and the code. The real
-  Milky Way rows serve only as a check that the derived population looks
-  plausible.
-  Boss (2026-10-16, 4:11 PM EDT, in the TODO thread): "There should be
-  no option to pick a Milky Way preset. The Harris file is designed to
-  give you an idea of how to build the procedure to generate a realistic
-  galaxy." The Milky Way is a reference for building and checking the
-  laws, never selectable content.
-  Boss (2026-10-16, 4:14 PM EDT, in the TODO thread): "I want to
-  reiterate that the idea is that we generate a scientifically accurate
-  galaxy as best we can. We generate the sectors of that, again as
-  accurately as we can, with what we can actually do processing-wise and
-  what we actually know. Astrophysics-wise that can be implemented I
-  don't want any fixed content. Everything should be procedurally
-  generated based on the random seeds that we already use. Random
-  numbers are used where we can. Things are derived everywhere we can or
-  calculated everywhere we can. If needed you should ask me to do
-  research if there are pieces missing that you can't look up yourself."
-  This widens the survey from the Milky Way to all fixed content: any
-  catalogue, table of named objects, preset, hand-placed object or
-  hand-set value that stands for content rather than for a physical
-  constant. Each row of the table is replaced by a derived or calculated
-  law, with a seeded draw only where the science gives a distribution.
-  The item also keeps a list of the pieces that cannot be looked up,
-  each with what is needed and why, and hands it to Boss as research
-  requests (the TODO thread puts them to him).
-  Finding (read-only thread, 2026-10-16, 7:21 PM EDT, from Boss's 7:24
-  PM EDT question "should the super massive black hole at the center of
-  the galaxy always be at exactly 0,0,0?"; repo facts checked on main):
-  the nucleus is pinned to (0,0,0) in three places: `store.GALACTIC_CENTER_PLACEMENT`
-  / `insert_quasar` (snaps any placement to the origin),
-  `phenomenon_scatter.nucleus_row` (position (0,0,0) in cell (0,0,0)) and
-  `run_sector.add_galactic_nucleus` (position (-dist,0,0) in the sector
-  frame); hypervelocity stars start from the origin too. Decided (Boss,
-  2026-10-16, 7:27 PM EDT, card "Exactly 0,0,0"): the central black hole
-  stays exactly on the origin, with no seeded offset or drift; the read-only
-  thread's offset proposal is not built. The hole's mass is still drawn,
-  not derived: `BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR` (1e6, 1e8)
-  log-uniform (`tuning.py`), quasar 1e8 to 1e10 log-uniform, both
-  independent of the bulge mass or the galaxy shape (real holes track
-  bulge mass and dispersion, M-sigma, Haring and Rix; figures from memory,
-  to be checked here), and the sphere-of-influence dispersion is a
-  constant 100 km/s (`BLACK_HOLE_SUPERMASSIVE_VELOCITY_DISPERSION_KMS`,
-  course-avoidance.md). Work for this item's central black hole row:
-  derive the hole mass and the dispersion from the galaxy's bulge mass or
-  dispersion by an M-bulge or M-sigma relation with its scatter as a
-  seeded draw, instead of the independent log-uniform range; the active
-  and quiescent split stays a draw. Kind: design gap, not a bug.
-  Galaxy types (Boss, 2026-10-16, 8:48 PM EDT, for 9.4): the galaxy
-  shape row of this table is the spiral family's row of a wider draw,
-  because 9.4 adds elliptical, lenticular, irregular and dwarf families
-  chosen from the seed (docs/design/galaxy-types.md, GEN.378). The table
-  is written with that in mind: the root draw is the stellar mass, the
-  halo mass follows from it by the stellar-to-halo relation, and the
-  shape-draw build that follows this item's approval is written once for
-  every family, so GEN.378 reads this table and extends it, and the
-  build is not redone for 9.4.
-  Prerequisites: none. Related: GEN.237, GEN.369, GEN.297, GEN.370,
-  GEN.378.
-  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
-  the coordinator): this item and its Core 1 chain go ahead of the rest
-  of Core 1's queue. Core 1's order: its current stack, the GEN.372
-  audit, TEST.193 and TEST.195, then GEN.368, GEN.369, GEN.371 and
-  GEN.366. Owner: Core 1. It blocks 65 items now, the galaxy types chain
-  (GEN.378) among them.
-  Decided (Boss, 2026-10-16, 9:43 PM EDT, in the Core 1 thread:
-  "Confirmed drop 'home', we will choose viewing based on where sectors
-  are generated."): the galaxy stores no home or Sun position, so the
-  "home position" row of the table (row 11) is removed. The Sun-radius
-  uses (the density calibration, the metallicity zero point, the rates
-  at the Sun and the fallback distance) become per-position calculations
-  from the galaxy's own model, and the map starts where sectors are
-  generated (as MAP.190 does). USR.11, a user's own home field, is a
-  different thing and stays. GEN.388 (the home position by family, 9.4)
-  is dropped.
-  Boss decisions reported by Core 1 (Boss, 2026-10-16, 9:40 to 9:43 PM
-  EDT, in the Core 1 thread): (1) the first family's stellar mass range
-  is 3e9 to 2e11 solar; (2) every derived law draws its natural scatter
-  from the seed (a log-normal about the median); (3) Boss allows
-  arxiv.org for one verifying thread (Boss added the domain at 9:44 PM
-  EDT; a verifying thread started reading the cited papers at 9:45 PM
-  EDT). Core 1's draft table is
-  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md (rows 1 to
-  14, not yet verified against a paper; research requests in
-  5.13.6). Fixed content found beyond this item's first list (draft
-  table 5.13.4), all to be replaced or listed as a stay-constant by the
-  same table: the five different Sun radii (removed with the home
-  position), the supernova, GRB and AGN rates (`physics/activity.py`),
-  the dark matter, hot halo and ambient density values (`profile.py`,
-  `tuning.py:859-871`), the population ages, dispersions, arm contrast
-  and scale heights (`tuning.py:608-614,800`), the metallicity gradient,
-  the phenomenon densities, the nebula and superbubble field values, the
-  hypervelocity reference radius, the fixed halo fraction, the 8000 and
-  1000 in `clusters.py:92`, the two local stellar densities, and
-  `MILKY_WAY_STELLAR_LUMINOSITY_W` (becomes the galaxy's own luminosity
-  from its mass-to-light ratio). Section 5.13.5 of the draft still says
-  the draw returns "the home position"; Core 1 removes it.
-  Table approved (Boss, 2026-10-16, 10:11 PM EDT, as Core 1 reported):
-  size source Shen et al. 2003; the halo mass by the approximation
-  (GEN.399 in 8.2 researches the halo mass function and compares); no
-  home position; every derived law draws its natural scatter from the
-  seed; the first family covers 3e9 to 2e11 solar. Paper check:
-  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md. Core 1's
-  docs PR (section 5.13 of
-  docs/design/intergalactic-and-halo-contents.md) is to follow its stack
-  gate; this item retires when that PR merges. The build items are
-  GEN.400 to GEN.406 (8.1 phase 5, thread "Galaxy laws build"); GEN.369
-  reads row 10 and GEN.338 reads row 12 (the rotation curve and the
-  enclosed mass are calculated from the potential, not set).
-  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
-
 - [ ] **GEN.369 Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option**
   Boss (2026-10-16, 4:00 PM EDT, in the Core 1 thread; he tapped "Draw
   them" on the decision card at 4:01 PM EDT): asked whether the
@@ -7165,7 +7008,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as an output, drawn from the galaxy's potential; the potential module
   is GEN.338 (8.3), so the velocities arrive with GEN.339 (8.3), not with
   this item's 8.1 build, which keeps them at rest and says so.
-  Prerequisites: GEN.368, GEN.371. Related: GEN.237, GEN.366, GEN.324,
+  Prerequisites: GEN.371. Related: GEN.237, GEN.366, GEN.324,
   GEN.297.
   Waits on GEN.371, the feasibility study of generating satellites
   through the scatter (Boss, 2026-10-16, 4:02 PM EDT); if the study
@@ -7282,61 +7125,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.369, GEN.371, GEN.366). Owner: Core 1.
   Prerequisites: GEN.368. Related: GEN.368, GEN.369, GEN.324, GEN.237.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
-
-- [ ] **GEN.372 Numeric precision audit at galactic scale: every float coordinate and sum, how far it gets from its origin, where the first error shows, and what needs a wider or split representation**
-  Boss (2026-10-16, 6:54 PM and 6:55 PM EDT, project chat): are 64-bit
-  numbers enough for positions at galactic scale, or do we need 128 or
-  256 bits, and who should own all of our bugs and concerns about it.
-  This is the one place they are collected. Existing coverage is
-  scattered: docs/design/orbital-updates.md (positions as integer
-  milliparsecs relative to the sector and kilometres relative to a
-  system, and a float64 spacing line of 32.8 km at 8.128 kpc),
-  docs/design/orbital-solvers-and-integrators.md (a float64 spacing
-  table), docs/design/galactic-potential.md (cancellation and float32
-  notes), the spherical sector design (a coarse integer address with a
-  local offset), the field kernel of PERF.88 (float64 sums), TEST.192 (a
-  cancellation in a test), and a GEN.142 note that says "about 14 km at
-  8 kpc". These disagree: 2^-40 pc is about 28 km at 8.128 kpc, and at
-  the 262 kpc reach the spacing is about 900 km below 262,144 pc and
-  about 1,800 km above it. Done: a written audit
-  (docs/design/numeric-precision-audit.md) with one table row for each
-  float quantity the galaxy stores, computes or draws (the galactic
-  position of every object kind, the sector-relative offset, system,
-  planet and moon frames, velocities, epochs and phases, orbital
-  elements, the field kernel and potential sums, the camera and render
-  path including float32 in the browser, the JavaScript twins, the API
-  wire formats, the 96-bit ID and cell key arithmetic), giving the
-  largest distance from its origin it reaches (up to the 262 kpc reach),
-  the spacing of a float64 there in kilometres, the smallest change that
-  must survive (a moon's move, the 0.01 mpc threshold, a planet's
-  orbit), and the first place the error shows. It says for each row
-  whether float64 plus the coarse integer address and a local offset is
-  enough, or where a wider sum is needed (a compensated or integer sum,
-  or mpmath, for long integrations from the galactic centre), recommends
-  the cases that need work as new items, and names a test for each (for
-  example a differenced-position test at 262 kpc). No build in this
-  item. Findings rule: any lane that meets a precision bug or concern
-  sends it to the TODO thread, which attaches it here. Owner: Core 1 (Boss
-  chose it by card, 2026-10-16, 6:59 PM EDT), who owns the point columns
-  (DB.55, GEN.336, GEN.337, GEN.294) and the IDs, with Core 2 reading the
-  camera and render rows.
-  Audit written (Core 1, 2026-10-16, 7:39 PM EDT; docs/design/numeric-precision-audit.md,
-  merging in its own PR): verdict, 64-bit is enough for every stored
-  value, no 128-bit or 256-bit column. Boss decided four items by card
-  (7:36 to 7:38 PM EDT): the nightly update keeps a local offset (document
-  and test only, TEST.200); the map tile root rises to the 262 kpc reach
-  (MAP.239); browser buffers become camera-relative now (MAP.240);
-  compensated sums wait for GEN.109. Items filed from the audit's section
-  5: MAP.239, MAP.240, GEN.374 (phase formula), DB.65 (cell key clamp),
-  GEN.375 (field kernel local origin), GEN.376 (region haversine),
-  TEST.200 (local offset limit), TEST.201 (block_stats order). GEN.372
-  resolves when the audit merges.
-  Finding attached (Core 2, 2026-10-16, 7:27 PM EDT): TEST.199, the
-  halo subtraction in the density skeleton loses precision in the far tail
-  (a relative gap of 2.4e-9 against 1e-9 at z = 36,706 pc).
-  Prerequisites: none. Related: GEN.294, GEN.139, GEN.142, GEN.223,
-  MAP.146, NAV.62, TEST.192, PERF.88, DB.55, TEST.199.
-  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
 - [ ] **GEN.373 Massive multiples sit in young regions: set `prevalence` from the cell's young share, with a derived cap on the rise**
   Split from GEN.103 (Core 4, 2026-10-16, 7:16 PM EDT; the coordinator
@@ -7546,7 +7334,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   can produce, never as defaults. No fixed content (Boss, 4:11 and 4:14
   PM EDT): no named galaxy, preset or hand-set value; reference galaxies
   only check the result.
-  Prerequisites: GEN.368, GEN.379, GEN.380. Related: GEN.134, GEN.369.
+  Prerequisites: GEN.379, GEN.380. Related: GEN.134, GEN.369.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.383 The elliptical family: Sérsic index and size from mass, intrinsic axis ratios, no disk, arms or bar, an old population**
@@ -7645,7 +7433,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stated fraction; same seed same galaxy. No fixed content (Boss, 4:11
   and 4:14 PM EDT): no named galaxy, preset or hand-set value; reference
   galaxies only check the result.
-  Prerequisites: GEN.382, GEN.383, GEN.297, GEN.368. Related: GEN.384,
+  Prerequisites: GEN.382, GEN.383, GEN.297. Related: GEN.384,
   GEN.280.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
@@ -7909,7 +7697,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass and the scatter difference per stellar mass, and a switch to the
   exact conditional if the difference matters. Needs GEN.368's build
   (GEN.400).
-  Prerequisites: GEN.368, GEN.400. Related: GEN.368, GEN.378, GEN.380.
+  Prerequisites: GEN.400. Related: GEN.368, GEN.378, GEN.380.
 
 - [ ] **GEN.400 The galaxy's mass chain: stellar mass from the Schechter function, the halo mass by the approximation, the virial radius and the concentration**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size

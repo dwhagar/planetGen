@@ -353,9 +353,8 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 | GEN.450 | The star-formation profile's radial slope: reconcile the Schmidt index with the observed gradient, with the choice named | GEN.134 | Core 4 citation re-check, 2026-10-17; follow-up of GEN.134. Core 4. |
 | GEN.322 | Band groups and the halo term: the bright-star and mass passes cover the 262 kpc reach |  | Split from GEN.240. |
 | GEN.323 | The phenomena pass runs on the object-first sampler | GEN.322 | Split from GEN.240. |
-| GEN.368 | Plan the appearance rates of everything the Milky Way supplies as fixed content: the count, place and size laws, with sources, so a random galaxy draws them from its seed |  | Core 1; Boss 4:00 PM EDT: plan the probabilities. Boss 9:16 PM EDT: next for Core 1 after its stack, the audit and TEST.193/195. |
-| GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies | GEN.368 | Core 1; Boss 4:02 PM EDT: feasibility study. |
-| GEN.369 | Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option | GEN.368, GEN.371 | Core 1; Boss 4:01 PM EDT: Draw them. |
+| GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies |  | Core 1; Boss 4:02 PM EDT: feasibility study. |
+| GEN.369 | Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option | GEN.371 | Core 1; Boss 4:01 PM EDT: Draw them. |
 | GEN.324 | A component pass: clusters, the Clouds and Sagittarius place their stars, and the fill adds the component's density to lambda | GEN.322 | Split from GEN.240. |
 | GEN.240 | The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass | GEN.322, GEN.323, GEN.324 | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
 | GEN.238 | Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population | GEN.323 | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
@@ -446,7 +445,7 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.378 | The galaxy type families: the checked design with its scaling relation table and the draw order | GEN.368 | Boss 8:48 PM EDT, for 9.4: step 1 of the galaxy types chain; Core 1 proposed. |
+| GEN.378 | The galaxy type families: the checked design with its scaling relation table and the draw order |  | Boss 8:48 PM EDT, for 9.4: step 1 of the galaxy types chain; Core 1 proposed. |
 
 ### Superbubble density
 
@@ -463,8 +462,8 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.406 | Research the population ages and velocity dispersions by component, the thick disk scaling and the stellar halo fraction so they become laws | GEN.368 | GEN.368 build, Boss approved the table 10:11 PM EDT; Core 1 proposed for GEN.400 to GEN.403, Core 3 or Core 4 for GEN.404 and GEN.405 (profile.py, activity.py), any lane for GEN.406. |
-| GEN.400 | The galaxy's mass chain: stellar mass from the Schechter function, the halo mass by the approximation, the virial radius and the concentration | GEN.368 | GEN.368 build, Boss approved the table 10:11 PM EDT; Core 1 proposed for GEN.400 to GEN.403, Core 3 or Core 4 for GEN.404 and GEN.405 (profile.py, activity.py), any lane for GEN.406. |
+| GEN.406 | Research the population ages and velocity dispersions by component, the thick disk scaling and the stellar halo fraction so they become laws |  | GEN.368 build, Boss approved the table 10:11 PM EDT; Core 1 proposed for GEN.400 to GEN.403, Core 3 or Core 4 for GEN.404 and GEN.405 (profile.py, activity.py), any lane for GEN.406. |
+| GEN.400 | The galaxy's mass chain: stellar mass from the Schechter function, the halo mass by the approximation, the virial radius and the concentration |  | GEN.368 build, Boss approved the table 10:11 PM EDT; Core 1 proposed for GEN.400 to GEN.403, Core 3 or Core 4 for GEN.404 and GEN.405 (profile.py, activity.py), any lane for GEN.406. |
 | GEN.401 | The shape of the stars from the stellar mass: disk length and height, thick disk, bulge, bar and arms replace the generate defaults | GEN.400 | GEN.368 build, Boss approved the table 10:11 PM EDT; Core 1 proposed for GEN.400 to GEN.403, Core 3 or Core 4 for GEN.404 and GEN.405 (profile.py, activity.py), any lane for GEN.406. |
 | GEN.402 | The central black hole mass and the nuclear cluster follow the bulge: the M-bulge and M-sigma relations replace the fixed ranges | GEN.401 | GEN.368 build, Boss approved the table 10:11 PM EDT; Core 1 proposed for GEN.400 to GEN.403, Core 3 or Core 4 for GEN.404 and GEN.405 (profile.py, activity.py), any lane for GEN.406. |
 | GEN.403 | The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157 | GEN.400 | GEN.368 build, Boss approved the table 10:11 PM EDT; Core 1 proposed for GEN.400 to GEN.403, Core 3 or Core 4 for GEN.404 and GEN.405 (profile.py, activity.py), any lane for GEN.406. |

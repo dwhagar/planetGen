@@ -1018,11 +1018,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.365 | Hot white dwarf and planetary-nebula central star radius disagrees with the radius that its luminosity and temperature imply (bug) | none | open |
 | GEN.366 | Check the reference satellite table against McConnachie 2012: it only tests that the derived population looks plausible | none | open |
 | GEN.367 | The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae | none | open |
-| GEN.368 | Plan the appearance rates of everything the Milky Way supplies as fixed content: the count, place and size laws, with sources, so a random galaxy draws them from its seed | none | open |
+| GEN.368 | Plan the appearance rates of everything the Milky Way supplies as fixed content: the count, place and size laws, with sources, so a random galaxy draws them from its seed | none | done, PR #1960 |
 | GEN.369 | Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option | none | open |
 | GEN.370 | Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug) | none | open |
 | GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies | none | open |
-| GEN.372 | Numeric precision audit at galactic scale: every float coordinate and sum, how far it gets from its origin, where the first error shows, and what needs a wider or split representation | none | open |
+| GEN.372 | Numeric precision audit at galactic scale: every float coordinate and sum, how far it gets from its origin, where the first error shows, and what needs a wider or split representation | none | done, PR #1959 |
 | GEN.373 | Massive multiples sit in young regions: set `prevalence` from the cell's young share, with a derived cap on the rise | none | open |
 | GEN.374 | Orbit phase formulas reduce first, and the JavaScript Kepler solver uses tolerance 1e-12: Python, SQL and JavaScript agree | none | open |
 | GEN.375 | Field kernel subtracts a local origin before its loop in `physics/sector_path.py` | none | open |
