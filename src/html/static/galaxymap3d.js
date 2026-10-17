@@ -70,7 +70,7 @@ const {
   POINT_FADE, cloudSizeShare, opacitySum, starShare,
 } = await import(`./starfade.js${VERSION_QUERY}`);
 const {
-  POINT_PX, STAR_POINT_GLSL, phenomenonLuminositySol, pointBrightness,
+  POINT_PX, STAR_POINT_GLSL, isUncharted, phenomenonLuminositySol, pointBrightness,
 } = await import(`./starpoint.js${VERSION_QUERY}`);
 const { fetchCutTiles, tileBoxOf } = await import(`./galaxytilecut.js${VERSION_QUERY}`);
 const { unpackResponse, unpackTile } = await import(`./tilepack.js${VERSION_QUERY}`);
@@ -1730,7 +1730,7 @@ function initGalaxyMap3d(canvasEl, data) {
       }
     });
     stars.forEach(function (star, i) {
-      uncharted[i] = star.generated || star.phenomenon || star.charted ? 0 : 1;
+      uncharted[i] = isUncharted(star) ? 1 : 0;
       // A phenomenon is drawn as the star of its mass: `map_luminosity_sol` is the
       // server's (planetgen.physics.stellar_evolution.phenomenon_map_luminosity_sol).
       var luminosity = star.phenomenon ? phenomenonLuminositySol(star.map_luminosity_sol, brightestSol) : star.luminosity_sol;
