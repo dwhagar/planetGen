@@ -3001,7 +3001,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     address, the directive digest and the attempt number
     (`generation/directives.py` seeds attempt a >= 1 from the
     directives' digest).
-    Prerequisites: GEN.306, GEN.307, TEST.181.
+    Prerequisites: GEN.307, TEST.181.
 
   - [ ] **OPS.15 Each update says whether it changes generated output**
     The second half of Boss's update "sweep". Done: after OPS.13's row
@@ -3112,6 +3112,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     made the generator epoch 2 (nebula shapes and the last bits of
     positions differ); the epoch and golden-files rule is waived until
     this item is built.
+    Generator epoch 3 (GEN.306, #1942, 11:28 PM EDT as the lane
+    reported): population streams are keyed on the homeworld's unique
+    ID; the golden files still do not exist, so the epoch and its note
+    went in together, as for epoch 2.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
     Prerequisites: GEN.304, OPS.57, GEN.57.
 
@@ -6021,21 +6025,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sector is added; the digests do not depend on save order or worker
   count.
   Prerequisites: GEN.304, DB.49. Related: GEN.136.
-
-- [ ] **GEN.306 Population seeds keyed on the object, not on row ids**
-  Split from GEN.57 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). `population/model.py` draws a
-  species' form from `Stream(species_id * 7919)`, a planet's life from
-  `Stream(planet_id)` and its technology from
-  `Stream(f"tech:{homeworld_planet_id}")`; row ids come from per-worker
-  id blocks, so the population changes with the worker count and the
-  fill order. Key every one of these streams on the object's unique ID
-  (uid) or the sector address plus the object's index. Changes stored
-  values, so it ships with a generator epoch bump (OPS.28 child a).
-  Done: the same galaxy gets the same species, ages and technology
-  indices at 1 and 4 workers and in two fill orders; a test says so; no
-  stream is seeded from a database id.
-  Prerequisites: OPS.56. Related: GEN.57.
 
 - [ ] **GEN.307 The object-ID collision number keyed on the lower address**
   Split from GEN.57 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -11372,7 +11361,7 @@ clears each one.
   content). Why: this is the proof GEN.57 states, and TEST.77's tier B
   stands on it. Done: the test runs in the `changed` gate and fails when
   a or b is reverted.
-  Prerequisites: GEN.306, GEN.307. Related: GEN.57.
+  Prerequisites: GEN.307. Related: GEN.57.
 
 - [ ] **TEST.182 Put one block-first backfill into the golden galaxy**
   Split from GEN.42 (2026-10-16, Boss 1:07 PM EDT: look at each item for
