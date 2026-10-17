@@ -793,7 +793,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) | none | open |
 | GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback | none | open |
 | GEN.142 | Peculiar velocity for rogue planets and asteroid fields | none | open |
-| GEN.143 | A collision_events table, an admin report and a test that runs the whole collision path | none | open |
+| GEN.143 | The orbital-event admin report, the last-collisions view and a test that runs the whole collision path | none | open |
 | GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs | none | open |
 | GEN.145 | Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30 | none | open |
 | GEN.146 | Teff-dependent habitable zone from the Kopparapu table | none | open |

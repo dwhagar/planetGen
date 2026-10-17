@@ -652,7 +652,7 @@ with `clamp()`.
   audit starts, so it checks the finished pages. Queued, not started:
   Interface and Quality stay idle until the sphere and generation stages
   finish (Boss, 12:27 AM EDT) unless Boss says earlier.
-  Prerequisites: GEN.240, NAV.61, NAV.45.
+  Prerequisites: GEN.240, NAV.61, NAV.45, MAP.243.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
 
 - [ ] **UX.118 Slow pages show a progress bar while their data loads: the search page and the phenomena list pages**
@@ -955,8 +955,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   blocks, and the slabs above and below) are drawn dimmed around the
   current one, without comets or rogue planets and within MAP.116's
   budget; regions between the camera and the one in view fade the
-  more they block it; arrow buttons and keys step to a neighbour at
-  the same level without zooming out, updating the URL and breadcrumb;
+  more they block it; arrow buttons and keys step to a neighbour at the
+  same level without zooming out, as a camera move to the neighbour's
+  frame (the URL carries the camera, MAP.228, and the breadcrumb is
+  derived from the position, MAP.227);
   the code for this is one shared engine piece, not one per map; and
   a browser test steps sideways and up and back on each map.
   Research (2026-10-09, course-avoidance.md): draw the course on a layer
@@ -974,6 +976,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.200's nav pad already covers) and the Sector and System Maps
   adopting the shared drawing; MAP.141 draws the faint context regions
   once.
+  Prerequisites: MAP.227, MAP.228.
 
 - [ ] **MAP.122 A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star**
   Boss (2026-10-07 11:47Z): "Button in Galaxy display to allow selecting
@@ -1524,7 +1527,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   frame of the largest group of created sectors and show only that
   region at the start; the frame comes from the charted-regions library
   (MAP.190), one group being the first case.
-  Prerequisite: MAP.152. Related: MAP.146, MAP.151 (done, PR #1539), MAP.190.
+  Prerequisites: MAP.152, MAP.190. Related: MAP.146, MAP.151 (done, PR
+  #1539), MAP.190.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): needs MAP.190 (the regions library gives the frame); the
+  earlier text that MAP.190 needs this item is gone.
 
 - [ ] **MAP.190 Several separate regions of created sectors: which one the Galaxy Map opens on**
   GitHub issue [#1232](https://github.com/dwhagar/planetGen/issues/1232)
@@ -1540,7 +1547,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   or corner contact is not contiguous, the default recorded on UX.48);
   the Galaxy Map's "which region to open on" and "jump between regions"
   and UX.48 read it (2026-10-16 review).
-  Prerequisite: MAP.189. Related: MAP.189, MAP.151 (done, PR #1539).
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): the two items needed each other. MAP.190 now comes first
+  and needs nothing; MAP.189 frames the largest region it returns (Core
+  2 reads both together).
+  Prerequisites: none. Related: MAP.189, MAP.151 (done, PR #1539).
 
 - [ ] **MAP.191 Galaxy Map default view: no density shading, only nebulae shade the stars behind them**
   GitHub issue [#1233](https://github.com/dwhagar/planetGen/issues/1233)
@@ -1824,7 +1835,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registry with black holes as its first kind, toggle and budget
   behaviour, and a browser test that finds a black-hole marker on a
   seeded sector and hides it when the kind is switched off.
-  Prerequisites: none. Related: MAP.132.
+  Prerequisites: MAP.217. Related: MAP.132.
 
 - [ ] **MAP.220 Markers for habitable worlds and chosen classes, optional per kind**
   Split from MAP.132 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -2093,7 +2104,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   becomes an optional overlay, off by default, once the bubbles shape the
   stars (GEN.391); this item stays, at lower priority, for when the
   overlay is on.
-  Prerequisites: none. Related: MAP.234, MAP.235, GEN.254.
+  Prerequisites: MAP.240. Related: MAP.234, MAP.235, GEN.254.
 
 - [ ] **MAP.237 The Galaxy Map's "Charted only" view is invisible again: charted space cannot be told from the rest (bug)**
   Boss (2026-10-16, 7:24 PM EDT, timeline): "the 'charted only' has gone
@@ -2327,9 +2338,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Prerequisites: UX.129.
 
   - [ ] **NAV.19 Saved courses in the account (after USR.7)**
-    Done: a `user_courses` table in the control database, owned by an
-    account; courses saved per browser can be imported into the account
-    once; the API lists and edits a user's own courses only.
+    Done: the `course` kind of the saved-list store (USR.7's
+    `user_saved`, no second table): courses saved per browser can be
+    imported into the account once through the one import path, and the
+    API lists and edits a user's own courses only.
   Decided (2026-10-10): Boss (19:12Z): save courses per browser until
   accounts exist (as the default taken).
   Scope after the review (2026-10-16 review): the Save course action
@@ -2657,9 +2669,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   through waypoints, sees it bend around the gravity wells and Hill
   spheres of the objects it passes (NAV.6 and its subitems), edits the
   waypoints (NAV.58), saves the course and opens it again on the map
-  (NAV.4, NAV.23). It is the pull model of the gravity map (GEN.198,
-  9.0) seen from the course planner: NAV.6 reuses the evaluator once it
-  exists.
+  (NAV.4, NAV.23). The gravity map (GEN.198) is the same field drawn as
+  a view and is related, not a prerequisite: NAV.6 does not wait for it.
   Headline: 8.5 (courses that bend around gravity wells).
   Prerequisites: NAV.6, NAV.49, NAV.58, NAV.4, NAV.23. Related: GEN.198,
   MAP.167.
@@ -3032,11 +3043,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
   - [ ] **OPS.15 Each update says whether it changes generated output**
     The second half of Boss's update "sweep". Done: after OPS.13's row
-    is written, the update script fingerprints a small fixed region
-    (GEN.58) from the galaxy seed under the new code, compares it with
-    the fingerprint stored in the previous history row, stores the new
-    one, and reports "generated output unchanged" or names the sectors
-    that differ. The live galaxy is not touched. A test runs it across a
+    is written, the update script runs `generator_battery_digest()`
+    under the new code, compares its per-case digests (OPS.57) with the
+    newest history row, stores the new digest, and reports "generated
+    output unchanged" or names the first differing case. The live galaxy
+    is not touched. A test runs it across a
     change that alters a sector.
     Research (2026-10-09, reproducible-galaxies.md): the compared
     fingerprint is the battery digest from the epoch item
@@ -3925,9 +3936,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.336.
   Design: [docs/design/collisions-and-mergers.md](design/collisions-and-mergers.md)
 
-- [ ] **GEN.143 A collision_events table, an admin report and a test that runs the whole collision path**
-  `collision_events` table, the admin report in design section 7 and a
-  "last collisions" admin view, plus a test that seeds two rogues on a
+- [ ] **GEN.143 The orbital-event admin report, the last-collisions view and a test that runs the whole collision path**
+  The admin report in design section 7 and a "last collisions" admin
+  view over `orbital_events` (DB.56, written by GEN.197), plus a test
+  that seeds two rogues on a
   collision course through the whole update to the field, giant merger
   and star branches. Cross-link collisions-and-mergers.md from
   nebula-and-asteroid-field-classes.md and interstellar-object-rates.md.
@@ -3947,8 +3959,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `physics/constants.py` has 7.91 kpc (`GALACTIC_CENTER_DISTANCE_LY =
   25800`), the GEN.115 text and design docs 8.128 kpc, and
   `tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH` 8.2 kpc. Done: one named
-  value for the test radius (8.128 kpc, the Gaia curve) and one for
-  placing the Sun in the density model (8.2 kpc), used everywhere. Also
+  value for the test radius (8.128 kpc, the Gaia curve), used by the
+  plausibility test and the docs; the value that placed the Sun in the
+  density model (8.2 kpc) is not kept, because GEN.404 removes it (Boss,
+  9:43 PM EDT). Also
   correct the comment in `physics/constants.py` (lines 95 to 103)
   claiming 206 km/s and 236 Myr: the Sun's angular speed from Sgr A*
   gives about 203 Myr, and the new model's circular period at 8.128 kpc
@@ -3968,6 +3982,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   per-position calculation from the galaxy's own model (GEN.368's build
   finds the uses).
   Prerequisites: none.
+  Related: GEN.404, GEN.370.
   Design: [docs/design/galactic-potential.md](design/galactic-potential.md)
 
 - [ ] **GEN.145 Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30**
@@ -5188,10 +5203,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
   Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
-  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.269 (Core 3) and GEN.253). Core 4 asks Core 3
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.269 (Core 3);
+  GEN.253 is related, not a prerequisite). Core 4 asks Core 3
   before touching stellar evolution constants in tuning.py. A line here
   that named Core 3 or Core 4 earlier is replaced by this one.
-  Prerequisites: GEN.269, GEN.253. Related: GEN.253, GEN.130, GEN.268.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): the stale prerequisite on GEN.253 is dropped: the
+  2026-10-16 review line (self-contained table, GEN.253 independent) was
+  the newer decision. Core 4 can build it as soon as GEN.269 lands.
+  Prerequisites: GEN.269. Related: GEN.253, GEN.130, GEN.268.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.272 Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples**
@@ -5922,7 +5942,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and scattering, including the halo).
   Prerequisites: GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.244,
   GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.298, UX.116,
-  TEST.159, TEST.160, GEN.447, GEN.448, GEN.449, GEN.450.
+  TEST.159, TEST.160, GEN.447, GEN.448, GEN.449, GEN.450, TEST.196.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -6382,7 +6402,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: DB.53. Related: GEN.273.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): GEN.329 first: it owns the `runaway_origin` column and
+  its values, and this item writes `dynamical` into it. Core 3 may carry
+  the two in one PR; check that the column is in DB.53's remaining
+  slices.
+  Prerequisites: DB.53, GEN.329. Related: GEN.273.
 
 - [ ] **GEN.328 Groups at fill in star-forming cores and OB regions**
   Split from GEN.273 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6673,8 +6698,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (mass_kg, formed_at, origin_event_id and a velocity, columns from
   GEN.294:m, not a second migration), the merged giant or the star
   (reported to the admin), retires the destroyed bodies under the
-  object-ID rules of GEN.197, and writes each event through GEN.143's
-  record. Done: two seeded rogues on a collision course go through the
+  object-ID rules of GEN.197, and writes each event through GEN.197's
+  `record_event`. Done: two seeded rogues on a collision course go
+  through the
   update to a field, a merged giant and a star, each in the event
   record.
   Prerequisites: GEN.345, GEN.334, GEN.341, GEN.142, DB.56, GEN.197,
@@ -6808,6 +6834,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   turned out to be built already (the nebula and remnant age columns have
   existed since v87 and v38; Core 2, 6:05 PM EDT), so Core 4 can take it
   now.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): read docs/design/composition-model.md before building it:
+  the nebula's composition flags are either dropped or routed through
+  the composition chain (GEN.428 reads the host's iron, magnesium and
+  silicon, GEN.440 derives the star's composition), so no second set of
+  composition fields is invented.
   Prerequisites: none. Related: GEN.95, DB.59.
 
 - [ ] **GEN.358 GEN.94's rules and the four exotic-environment additions reach planet formation**
@@ -7192,11 +7224,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the enclosed mass inside the disk (the orbit function already avoids
   that, `galaxy/galactic_orbit.py`). Done: the central mass is the
   galaxy's mass enclosed within the star's radius from the density
-  model, the default distance is removed in favour of the position the
-  caller has, and a test shows a galaxy twice the size changes the Hill
+  model, the default distance is already gone (GEN.404), and a test
+  shows a galaxy twice the size changes the Hill
   radius. Fails on main: no failure, a fixed assumption. Related:
   GEN.368, GEN.285.
-  Prerequisites: none. Related: GEN.368, GEN.285, GEN.223.
+  Prerequisites: GEN.400, GEN.404. Related: GEN.368, GEN.285, GEN.223.
 
 - [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
   Boss (2026-10-16, 4:02 PM EDT, in the Core 1 thread): "we'll need a
@@ -7382,7 +7414,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Changed behaviour recorded with GEN.333: the brightest white dwarf is
   now 50 solar luminosities (it was 100), so the luminosity floors and
   caps may go as low as 50. Owner: Core 3.
-  Prerequisites: none. Related: GEN.333, GEN.283, UX.116, GEN.301.
+  Prerequisites: GEN.323. Related: GEN.333, GEN.283, UX.116, GEN.301.
 
 - [ ] **GEN.378 The galaxy type families: the checked design with its scaling relation table and the draw order**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
@@ -7766,7 +7798,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rows. No fixed content (Boss, 4:11 and 4:14 PM EDT): the bubbles stay
   derived from the seed; every strength is a calculated or drawn law
   with its source named.
-  Prerequisites: GEN.393, GEN.322, GEN.323. Related: GEN.240, GEN.301.
+  Prerequisites: GEN.393, GEN.322, GEN.323. Related: GEN.240, GEN.301,
+  GEN.377.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
 
 - [ ] **GEN.395 Sector build follows the bubbles: the fill count from the cell mean, star positions weighted by the factor, shown in the profile and the region query**
@@ -7805,9 +7838,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   classifies stars along a 1 to 2 solar mass red giant branch at several
   metallicities and gets class III for the giants; the classref tests
   keep their coverage; no hand-set range stays. The generator epoch rule
-  applies if the class of any generated star changes. Not Core 3's: it
+  applies if the class of any generated star changes; it rides the epoch
+  bump of GEN.407 (the red giant branch law this range is derived from)
+  instead of taking its own. Not Core 3's: it
   left the table alone.
-  Prerequisites: none. Related: GEN.286, GEN.287, GEN.259.
+  Prerequisites: GEN.407. Related: GEN.286, GEN.287, GEN.259.
 
 - [ ] **GEN.397 `planetgen plan` stage 2 prints the progress weight as the number of phenomena to place (bug)**
   Rescatter read-only thread (Boss asked 2026-10-16, 9:35 PM EDT;
@@ -7892,8 +7927,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   effective halo mass scatter), the virial radius from the Bryan and
   Norman overdensity and the NFW concentration with its scatter. It
   replaces `HALO_MASS_SOLAR`, `HALO_SYSTEM_FRACTION` and
-  `MILKY_WAY_MASS` as the central mass of every Hill sphere (binary.py,
-  star.py, keepout.py). Done: the same seed gives the same chain; a
+  `MILKY_WAY_MASS` as the galaxy's total mass; the Hill spheres
+  (binary.py, star.py, keepout.py) read this chain's virial mass until
+  GEN.370 (8.3) replaces it with the mass enclosed at the star's radius.
+  Done: the same seed gives the same chain; a
   histogram over 10,000 seeds matches the Schechter function within
   sampling error; every draw stays in the range; the worked table of the
   draft (5e10 gives a halo near 2e12 solar) is reproduced within its
@@ -7905,7 +7942,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the one random wrapper. No compatibility shim: the old constant
   goes in the same change. A change that alters the generator output
   follows the epoch rule.
-  Prerequisites: GEN.368. Related: GEN.399, GEN.378, GEN.380, GEN.369.
+  Prerequisites: GEN.368. Related: GEN.399, GEN.378, GEN.380, GEN.369,
+  GEN.370.
 
 - [ ] **GEN.401 The shape of the stars from the stellar mass: disk length and height, thick disk, bulge, bar and arms replace the generate defaults**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -8014,13 +8052,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   home or Sun position. The five Sun radii (`GALAXY_SUN_RADIUS_PC`
   8,200, `SUN_GALACTIC_RADIUS_PC` 8,000, `GALACTIC_CENTER_DISTANCE_LY`,
   the hypervelocity radius, the cluster radius) go; the density
-  calibration comes from the galaxy's mass, the metallicity zero point
-  from the central metallicity (GEN.405), the rates quoted at the Sun
-  per object (GEN.405) and the fallback distance of a sector with no
-  placement from the sector's real place. The map starts where sectors
+  calibration comes from the galaxy's mass (GEN.400, GEN.401), the
+  hypervelocity and cluster reach from the galaxy's own scales, and the
+  fallback distance of a sector with no placement from the sector's real
+  place; the default distance goes here (callers pass the position they
+  have), while GEN.370 (8.3) then changes the central mass. The
+  metallicity zero point and the rates quoted at the Sun per object are
+  GEN.405's, so the two items do not wait on each other. The map starts
+  where sectors
   are generated (MAP.190 already does). GEN.144's Milky Way test radius
   stays as a test reference only. Done: no code or doc reads a Sun
-  radius as galaxy content (a grep test, the reference radius excepted);
+  radius for the density calibration, the hypervelocity or cluster
+  reach, the fallback distance or the default tidal distance (a grep
+  test on those names, the reference radius excepted; GEN.405's grep
+  closes the rest);
   the density and the sector profile agree with the old model at the
   test radius within the derived scatter; the tests that pinned the
   Milky Way values check the law. No fixed content (Boss, 4:11 and 4:14
@@ -8036,6 +8081,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   owns the metallicity and star-density work in GEN.103 and GEN.134); it
   starts after GEN.368 and GEN.400 merge, so Core 4's current queue does
   not change.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): split of the Sun uses made with GEN.405 (metallicity and
+  rates) and GEN.370 (central mass), so GEN.404 and GEN.405 no longer
+  point at each other; GEN.406 (research) now comes first in the Galaxy
+  laws build and GEN.405 waits for it.
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -8057,8 +8107,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   local density of the right population from the density model,
   normalised to the stellar mass, with the star-formation history from
   the main sequence; `MILKY_WAY_STELLAR_LUMINOSITY_W` becomes the
-  galaxy's own luminosity from a mass-to-light ratio. Done: no value
-  quoted at the Sun remains; the rates at a position follow the local
+  galaxy's own luminosity from a mass-to-light ratio. Done: the
+  metallicity zero point comes from the central metallicity and the
+  per-object rates quoted at the Sun become local rates (both moved here
+  from GEN.404); no value quoted at the Sun and no Sun radius remains
+  anywhere (a grep test, the reference radius excepted, closing
+  GEN.404's); the rates at a position follow the local
   density; the research requests are answered in the doc before the
   numbers are built, or the item stays blocked on them. No fixed content
   (Boss, 4:11 and 4:14 PM EDT): no Milky Way preset or option; the real
@@ -8072,7 +8126,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   owns the metallicity and star-density work in GEN.103 and GEN.134); it
   starts after GEN.368 and GEN.400 merge, so Core 4's current queue does
   not change.
-  Prerequisites: GEN.404. Related: GEN.319, GEN.320, GEN.134, GEN.254.
+  Prerequisites: GEN.404, GEN.406. Related: GEN.319, GEN.320, GEN.134,
+  GEN.254.
 
 - [ ] **GEN.406 Research the population ages and velocity dispersions by component, the thick disk scaling and the stellar halo fraction so they become laws**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -8335,8 +8390,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in the text is in the stored mixture above a stated threshold, and
   that the text, the composition table and the molar density agree.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Prerequisites: GEN.410, GEN.411, GEN.413. Related: GEN.208, GEN.218,
+  Prerequisites: GEN.410, GEN.411, GEN.413, GEN.221. Related: GEN.208,
+  GEN.218,
   TEST.209.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): GEN.221 (Foundations Wording) writes the short wording of
+  the planet and moon paragraph first; this item and GEN.430 only change
+  which table the named materials come from, and are best done as one
+  describer change by Core 4.
 
 - [ ] **GEN.416 Blackbody colour of a star: Planck to the CIE curves to sRGB, as the first part of the photometry library**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8369,7 +8430,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   exponent near -4.08 across the visible; doubling the pressure doubles tau; a
   pure hydrogen air scatters 0.20 as much per molecule as
   nitrogen (helium 0.013, carbon dioxide 2.5); no NaN for any generated class.
-  Prerequisites: GEN.410, GEN.411. Related: GEN.418.
+  Prerequisites: GEN.410, GEN.411. Related: GEN.418, VIEW.14.
 
 - [ ] **GEN.418 Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8711,7 +8772,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   named in the text is in the stored fractions above a stated share and
   that the shares quoted equal the stored ones.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
-  Prerequisites: GEN.428, GEN.429. Related: GEN.415, GEN.218, GEN.208.
+  Prerequisites: GEN.428, GEN.429, GEN.221. Related: GEN.415, GEN.218,
+  GEN.208.
 
 - [ ] **GEN.431 Research: what is in the atmospheres of every kind of world, and the numbers each compound needs**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -8917,7 +8979,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 4 (Boss tapped Core 4, 2026-10-17, 12:13 AM EDT, a card,
   for the star composition items together with the other composition
   design and table items).
-  Prerequisites: GEN.433. Related: GEN.439, GEN.440, GEN.407, GEN.269.
+  Prerequisites: GEN.433. Related: GEN.439, GEN.440, GEN.407, GEN.269,
+  GEN.253, GEN.249.
 
 - [ ] **GEN.436 The radiation design: atmospheric transmission and greenhouse by band, shielding by column, and the ground's own dose**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9066,7 +9129,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against [Fe/H], from a cited solar abundance set (the check typed
   Asplund-style values from memory; Lodders 2003 and Asplund 2009 were
   not read).
-  Prerequisites: GEN.439. Related: GEN.428, GEN.446, GEN.158.
+  Prerequisites: GEN.439. Related: GEN.428, GEN.446, GEN.158, GEN.242,
+  GEN.243, GEN.252, GEN.269, GEN.253, GEN.249.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): it reads each star kind and flag the other items add
+  (pre-main-sequence GEN.242, Wolf-Rayet GEN.243, brown dwarfs GEN.252,
+  the stripped-helium and other kinds of GEN.269, the white-dwarf
+  pollution and carbon-star flags of GEN.253 and GEN.249) instead of
+  contradicting them: a polluted white dwarf reports its debris metals,
+  a carbon star C/O above 1 from its flag. Core 3 owns `evolve_star`
+  edits; ask it first.
 
 - [ ] **GEN.441 Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9239,7 +9311,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bodies of every kind and checks that every material named is in the
   stored or derived composition above a stated share and that the quoted
   figures equal them.
-  Prerequisites: GEN.440, GEN.441, GEN.442, GEN.444, GEN.445. Related:
+  Prerequisites: GEN.440, GEN.441, GEN.442, GEN.444, GEN.445, GEN.221.
+  Related:
   GEN.430, GEN.415, GEN.420, GEN.208.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
@@ -10336,13 +10409,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
 - [ ] **DB.56 The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings**
   Split from GEN.143 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). One row per event in
-  `collision_events` with the columns of collisions-and-mergers.md
+  `orbital_events` with the columns of collisions-and-mergers.md
   section 7 (event id, run id, impact and detection time, outcome code,
   regime, seed string; each participant; the numbers; the conservation
   check; the products; context and flags including `numeric_warning`),
-  and a `record_collision(conn, event)` writer. Core 1 places the
-  revision. Done: the revision applies, an event written by the writer
-  reads back whole, no view yet.
+  The writer is GEN.197's `record_event`. Core 1 places the revision.
+  Done: the revision applies and a hand-built row inserts and reads back
+  whole, no view yet.
   Placed before child b of GEN.110, which writes its events here
   (2026-10-16 review).
   Scope after the review (2026-10-16 review): one table for every
@@ -10369,7 +10442,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Split from USR.2 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). USR.2, USR.4, USR.5 and USR.6 each
   need control-database tables; Core 1 places one revision (the next
-  control version) instead of three. It adds role (user, admin, Owner),
+  control version) instead of three. It adds role (user, moderator,
+  admin, Owner; moderator is accepted by the column constraint and has
+  no permissions until 10.0, as USR.2 states),
   email and status (active, disabled) to the accounts table (Boss,
   2026-10-10: add the columns now, rename `admin_users` to `accounts`
   later), a database-level single-Owner unique index on a generated
@@ -10378,9 +10453,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `invite_uses`; existing admins get role admin and the lowest id
   becomes the Owner. Done: the revision applies on a control database
   with several admins and on a fresh install (install creates exactly
-  one Owner), a second Owner insert fails in MySQL, and the schema
+  one Owner), a second Owner insert fails in MySQL, a moderator row
+  inserts and reads back, and the schema
   header comments are updated.
-  Prerequisites: none. Related: USR.2.
+  Prerequisites: none. Related: USR.2, USR.26.
 
 - [ ] **DB.60 Migration: record the density multiplier used on each filled sector (migration only)**
   Split from MAP.119 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -12626,8 +12702,9 @@ clears each one.
   restore leaving the others alone, retention keeping the newest full
   archive, and every restore refused while the update guard is on. Done:
   the test in the gate, with the run named in the PR.
-  Also covers the nightly step (OPS.55): due and not due, and the
-  pruning by kind.
+  The nightly step's own unit tests (due and not due, the pruning by
+  kind) belong to OPS.55; this scenario only checks that retention keeps
+  the newest full archive.
   Prerequisites: ADM.89, DB.42, ADM.90, OPS.55. Related: ADM.91.
 
 - [ ] **TEST.181 The order-independence test: the same sectors at 1 and 4 workers and in two orders**
@@ -13802,12 +13879,13 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   number just sequential integers) ... by the end of phase 1." Done: one
   plain integer, 1, 2, 3 ..., named the generator version, that says
   which rules made a galaxy. It is OPS.28's `generator_epoch` under the
-  name Boss asked for, so there is one counter, not two: bumped by the
-  same PR rule (a change that alters generated output for the same seed
-  bumps it), stored with each galaxy's history row (OPS.13), per sector
-  (DB.16) and in the current galaxy's internal record (ADM.50), shown on the admin status
-  page beside the DB schema number, and returned by the API status
-  response. The release version (MAJOR.REVISION.BUILD) stays as it is.
+  name Boss asked for, so there is one counter, not two: bumped by
+  OPS.56's PR rule and stored by OPS.28, OPS.58, DB.16 and ADM.50 (the
+  history row, the sector and the galaxy record), so this item only
+  shows it: on the admin status page beside the DB schema number, and in
+  the API status response (an added field is not a breaking change; say
+  so in docs/api.md). The release version (MAJOR.REVISION.BUILD) stays
+  as it is.
   Decided (Boss, 2026-10-09 21:02Z): the generator version and OPS.28's
   `generator_epoch` are the same number, bumped only when output changes
   for the same seed.
@@ -14663,7 +14741,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   measured in the generated frame (VIEW.6). Done:
   `horizon_view(observer, time)` with tests for a pole, the equator and
   a tilted planet.
-  Prerequisites: VIEW.12, VIEW.13, VIEW.6. Related: VIEW.2.
+  Prerequisites: VIEW.12, VIEW.13, VIEW.6, GEN.417, GEN.418. Related:
+  VIEW.2.
 
 - [ ] **VIEW.15 Whole-sky PNG: Hammer-Aitoff projection, written with numpy and zlib, cached and served by the API**
   Split from VIEW.3 (2026-10-16, Boss 1:07 PM EDT: look at each item for
