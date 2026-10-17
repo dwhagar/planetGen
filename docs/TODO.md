@@ -2257,12 +2257,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane starts first.
   Prerequisites: MAP.239. Related: MAP.207,
   MAP.219, MAP.210, UX.115, GEN.322, API.27.
-  Possible second sighting (Boss, 2026-10-17, 3:09 PM EDT, screenshots
-  under /mnt/project-files/bugs/galaxy-halo-group-2026-10-17/): a loose
-  group of stars far above the disc on a fresh galaxy cannot be reached
-  or selected; filed as MAP.246 for Bug Hunt to reproduce and say
-  whether this item's cause explains it, and folded into this item if it
-  does.
+  Second sighting, confirmed (Boss, 2026-10-17, 3:09 PM EDT, screenshots
+  under /mnt/project-files/bugs/galaxy-halo-group-2026-10-17/, folded in
+  from MAP.246): a loose group of stars far above the disc on a fresh
+  galaxy cannot be reached or selected. Bug Hunt reproduced it on Boss's
+  seed 2AFA1AD866D4BEB8646BF53C77A43DD6 (PlanetGen 8.0.1737; run: galaxy
+  --then-scatter --phenomenon-min-mass 14 --compact-min-mass star
+  --bright-star-min-luminosity 9000) at 4:30 PM EDT as the lane
+  reported: the group is one of the 11 satellite galaxies the plan drew,
+  5.7 kpc out and 2.3 kpc above the plane; the disc outline ends at
+  shell 1,511 and the group's stars sit at shells 1,604 to 1,620, so no
+  block or window exists there; the wheel stops at a camera distance of
+  6,912 pc and a click on one of its stars reports "Block 0·0·0, 0
+  sectors charted" instead of the star. This is exactly cause (1) and
+  (2) above; MAP.225's anchor problem is not involved. Screenshot of the
+  reproduction:
+  /mnt/project-files/bugs/galaxy-halo-group-2026-10-17/repro-zoom-stops-at-6911pc.png
+  (Bug Hunt's regeneration was cut off in its last stage, so star counts
+  may differ slightly). A fix lets Boss reach the satellite stars, so a
+  browser test on this seed (or a seeded satellite) selects a satellite
+  star and zooms to it.
+  Order (TODO thread, 2026-10-17, 4:25 PM EDT): this is the only open
+  bug that stops Boss reaching stars he can see, so it is worth taking
+  before the end of the infinite zoom tree. Its one hard prerequisite is
+  MAP.239 (the tile root to the reach: small, no prerequisite, Core 2,
+  queue position 31); the scatter rows beyond the outline of GEN.322 and
+  GEN.323 are only needed for the tile part, not for the pick and the
+  hand-off. It edits the wheel hand-off `zoomAcross` in
+  galaxystageview.js, which MAP.245 is also changing, so one lane should
+  hold both: Core 2 right after MAP.245 merges.
 
 - [ ] **MAP.244 The maps and pages use the atmosphere colour where they showed the planet colour**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -2315,45 +2338,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   picked object, and a browser test zooms toward a star in front of its
   choice mesh and ends at the star. Core 2 was told by the coordinator
   to make sure of this and to add that test.
+  Built on branch map245 (Core 2, 2026-10-17, 4:24 PM EDT as the lane
+  reported; its gate runs until about 6:00 PM EDT, then it merges): the
+  anchor (the step never anchors on a mesh behind the picked object;
+  TEST.213 passes on the branch), the path clearance and the half-way
+  double click are done, with 3 new browser tests and 1 node test. The
+  column-density ray fallback is split out as MAP.247; this item is
+  retired when the branch merges.
   Prerequisites: none. Related: MAP.225, MAP.146, MAP.199, MAP.226.
 
-- [ ] **MAP.246 A loose group of stars far above the disc on a fresh galaxy cannot be reached by zoom or navigation and cannot be selected (bug)**
-  Boss (2026-10-17, 3:09 PM EDT, typed in the project chat, two
-  screenshots at
-  /mnt/project-files/bugs/galaxy-halo-group-2026-10-17/boss-screenshot-1.png
-  and boss-screenshot-2.png), filed by the TODO thread at the
-  coordinator's relay: "Ok, we've got a bug... fresh galaxy... We can
-  see the group of stars off to one corner there, I cannot get near them
-  nor can I select them." What the screenshots show: the Galaxy Map of a
-  fresh galaxy at 'In Sector 2·0·0', scale bar '500 sectors, 2 kpc
-  (6,523 ly)', the disc edge-on in the middle and a loose, roughly round
-  group of white points well above the disc (upper middle in the first,
-  upper right in the second, after Boss turned the view). Not reproduced
-  yet and the kind of object is not known (a satellite galaxy, a
-  globular cluster or a swarm of wanderers are all drawn beyond the disc
-  outline). Suspected relation, not checked in a browser: MAP.243
-  describes the halo's objects as drawn points that cannot be picked and
-  a zoom that stops short because blocks and hand-offs exist only inside
-  the outline; this may be the same cause seen on a group instead of a
-  black hole. Do: reproduce on a fresh galaxy (ask Boss for the seed
-  through the coordinator if the same group does not appear), name what
-  the group is, say whether MAP.243's cause explains it, and fix the
-  cause when it is bug-sized. Done: the cause is recorded on this item;
-  if it is exactly the cause MAP.243 names (no block or window outside
-  the outline), this item is folded into MAP.243 with the screenshots as
-  its sighting and reported here; otherwise a click or wheel run onto
-  the group selects and reaches it, a browser test on a seeded galaxy
-  places such a group and selects it, and nothing is quarantined. Owner:
-  Bug Hunt (Boss's lanes, strictly bugs; assigned by the coordinator at
-  3:09 PM EDT).
-  Boss's seed (2026-10-17, 3:22 PM EDT, typed in the project chat,
-  relayed by the coordinator): galaxy seed
-  2AFA1AD866D4BEB8646BF53C77A43DD6, PlanetGen 8.0.1737
-  (000800000006C9030C0300), run: galaxy --then-scatter
-  --phenomenon-min-mass 14 --compact-min-mass star
-  --bright-star-min-luminosity 9000. Reproduce on this seed first; the
-  screenshots show it.
-  Prerequisites: none. Related: MAP.243, MAP.207, MAP.219, MAP.210.
+- [ ] **MAP.247 The wheel zoom's column-density ray fallback: where the cursor ray hits nothing pickable, the point is the first sample where the integrated column density passes a threshold**
+  Split from MAP.245 (Core 2, 2026-10-17, 4:24 PM EDT as the lane
+  reported: the cell scene has no density field where the cursor ray
+  hits nothing, so the fallback was not built; relayed by the
+  coordinator). The wheel's point under the cursor is, in order, the
+  picked star, remnant or cell, else the first sample along the cursor
+  ray where the integrated column density passes a threshold (this
+  item), else the point at the current focus depth (built). Done: the
+  cell scene carries the density the ray integrates (or reads it from
+  the stage's density tiles), the threshold is a named constant with its
+  reason, and a browser test zooms with the cursor over empty space
+  between the stars of a dense region and ends where the column passes
+  the threshold, not at the focus depth. Owner: Core 2 (proposed).
+  Prerequisites: MAP.245. Related: MAP.225, MAP.245.
 
 ## NAV: Navigation and courses
 
@@ -19215,8 +19222,11 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   address, the user, all, or the forgotten devices);
   `cli.version_history` only records the version key, and listing is
   only `planetgen versions` (`--list` removed, no shim); a test per
-  command; the docs and `update.sh` lines follow. Owner: unassigned
-  (small).
+  command; the docs and `update.sh` lines follow.
+  Owner: Bug Hunt (Boss, 2026-10-17, 4:25 PM EDT, relayed by the
+  coordinator: "hand OPS.60 and OPS.61 to bug hunt to work on while
+  the galaxy generates"; Boss's explicit exception to "Bug Hunt
+  strictly bugs", for these two items only).
   Prerequisites: none. Related: PERF.120.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
@@ -19232,7 +19242,11 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   and the database is at revision 0108. Done: both modules, their tests
   (src/tests/test_admin_script_cli.py and the render-parity cases of
   src/tests/test_system_render.py) and their docs lines are removed with
-  no shim; nothing else imports them. Owner: unassigned (small).
+  no shim; nothing else imports them.
+  Owner: Bug Hunt (Boss, 2026-10-17, 4:25 PM EDT, relayed by the
+  coordinator: "hand OPS.60 and OPS.61 to bug hunt to work on while
+  the galaxy generates"; Boss's explicit exception to "Bug Hunt
+  strictly bugs", for these two items only).
   Prerequisites: none. Related: PERF.120.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
