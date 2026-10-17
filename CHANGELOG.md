@@ -2,6 +2,142 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1634] - 2026-10-17
+
+**Headline:** TEST.208 is filed: `scripts/test.py --resume` should reuse a test's earlier pass across builds when none of its own dependencies changed.
+
+### Added
+- TEST.208 (8.1 phase 1, goal issue #1694): a per-test dependency fingerprint so a cancelled gate after a merge of main reruns only the tests the merge affects; a changed package, server or day still reruns everything. TEST.148 carries a note that it widens.
+
+TODO items resolved: none / Added: TEST.208
+
+## [8.0.1633] - 2026-10-17
+
+**Headline:** The Bug Hunt lane is recorded as the proposed owner of the open Phase 1 bugs.
+
+### Changed
+- 31 bug items (the eight that had no owner, and the bug phase Core 1 had not started) now name Bug Hunt as proposed owner in TODO.md and the 8.1 plan notes; Core 1 keeps TEST.193, TEST.195, DB.33, DB.29 and GEN.229.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1632] - 2026-10-17
+
+**Headline:** TEST.207 is withdrawn from the plan: the accessibility fixture errors it described were already fixed.
+
+### Changed
+- TEST.207 (the `page_targets` fixture errors from `web.admin_backup`) was filed from a stale checkout; #1921 had already fixed it (`NO_SAMPLE_OBJECT`) and the tests pass on main, so it leaves the TODO list and the issue group without counting as progress.
+
+TODO items resolved: TEST.207 (withdrawn, fixed before filed) / Added: none
+
+## [8.0.1631] - 2026-10-17
+
+**Headline:** The plan files the corrections the stellar tables check found for the horizontal-branch and red giant values.
+
+### Added
+- GEN.407: five values recalled for GEN.286 and GEN.287 do not match the published sources (the red giant time law, the evolutionary flux, the HB colour row, the extreme HB luminosity and the tip); grouped under #1666, Core 3 proposed.
+
+### Changed
+- TEST.207 names Core 2 as the proposed owner, after GEN.306 and ahead of GEN.276.
+
+TODO items resolved: none / Added: GEN.407
+
+## [8.0.1630] - 2026-10-17
+
+**Headline:** The plan files the accessibility fixture failure that has been red on main since the backups screen and records the owners of the Sun radius removal.
+
+### Added
+- TEST.207 (bug): the `page_targets` fixture of the web accessibility tests errors 24 tests because `web.admin_backup` answers 302 and 404 with the sample database (Core 1's finding; grouped under #1694).
+
+### Changed
+- GEN.404 and GEN.405 note Core 4 as the proposed owner, after GEN.368 and GEN.400 merge.
+
+TODO items resolved: none / Added: TEST.207
+
+## [8.0.1629] - 2026-10-17
+
+**Headline:** The plan has the build chain for GEN.368's approved laws that replace the Milky Way's fixed values.
+
+### Added
+- GEN.400 to GEN.406 (8.1 phase 5, thread "Galaxy laws build"): the mass chain, the shape of the stars, the black hole and nuclear cluster, the cluster count, the removal of the Sun radii, metallicity and rates by position, and a research item for the open sources; grouped under #1673.
+
+### Changed
+- GEN.368 notes that Boss approved its table (10:11 PM EDT); GEN.369, GEN.338 and GEN.399 note how the table meets them.
+
+TODO items resolved: none / Added: GEN.400, GEN.401, GEN.402, GEN.403, GEN.404, GEN.405, GEN.406
+
+## [8.0.1628] - 2026-10-17
+
+**Headline:** The plan has an 8.2 item to research the halo mass function and compare it with the halo mass approximation.
+
+### Added
+- The new GEN item (research and compare the halo mass function with GEN.368's approximation) sits in 8.2 phase 2 and needs GEN.368; it is grouped under goal issue #1673.
+
+TODO items resolved: none / Added: GEN.399
+
+## [8.0.1627] - 2026-10-17
+
+**Headline:** The plan files the rescatter measurements: a wrong progress line, a star-count mismatch and stale generation cost notes.
+
+### Added
+- GEN.397 (bug): the stage-2 line of `plan` prints the progress weight as the number of phenomena. GEN.398 (bug): the massive-star and bright-star passes place 70 and 12 percent more than their log lines expect. DOC.62: the generation cost figures and the `--redo-scatters` scope are stale in the docs.
+
+### Changed
+- OPS.58, GEN.322 and GEN.323 note that scatter passes carry no epoch mark and that `--redo-scatters` redoes rows only.
+
+TODO items resolved: none / Added: GEN.397, GEN.398, DOC.62
+
+## [8.0.1626] - 2026-10-17
+
+**Headline:** The stellar evolution fixes for horizontal-branch and giant stars are done, and the old Yerkes class III range is filed.
+
+### Changed
+- GEN.286 and GEN.287 (horizontal branch, asymptotic giant branch and the red giant luminosity law, #1932) leave the TODO list; GEN.322 notes that earlier galaxies need `planetgen plan --redo-scatters mass luminosity` because the halo rows at the 500 floor fall from about 3.8 million to about 190,000.
+
+### Added
+- GEN.396: revisit the Yerkes class III luminosity range, which sits above many dim red giants.
+
+TODO items resolved: GEN.286, GEN.287 / Added: GEN.396
+
+## [8.0.1625] - 2026-10-17
+
+**Headline:** Old stars now have a horizontal branch and an asymptotic giant branch, and their red giant branch spends its time at each luminosity as a real one does, so the bright-giant counts match real ones.
+
+### Added
+- **A horizontal branch and an asymptotic giant branch (GEN.286).** A star lighter than 2.2 solar masses burns helium in its core for about a hundredth of its main-sequence life as a class III star of 40 to 60 solar luminosities, then climbs the asymptotic giant branch for a five-hundredth of it, before it becomes a white dwarf. The horizontal-branch colour (red clump, RR Lyrae, blue or extreme, by [Fe/H] and age) sets its temperature, and the star keeps the [Fe/H] its colour was drawn from. They show in the scatter at a floor of 50 to 60 solar luminosities and in every sector fill (halo, bulge, clusters), with "Horizontal Branch Giant" or "Asymptotic Giant" in the type text. The pre-placement tables and the mass bands mirror the new phases.
+
+### Changed
+- **The red giant branch runs from its base to its tip with the real luminosity function (GEN.287).** The time a giant spends per unit of ln L falls as L^-0.9, from its base (about 3 solar luminosities for an old turn-off star) to 2,500, instead of an even spread over 50 to 1,000 with a 2% tip. Most giants are now dim K giants and the bright ones are far fewer: the halo scatter at a floor of 500 solar luminosities stores about 190,000 rows, not 3.8 million, and its counts agree with the evolutionary flux of an old population. A galaxy scattered before this has too many bright giants: `planetgen plan --redo-scatters mass luminosity` draws them again.
+- **A star that ends its giant phases becomes a white dwarf later, by 1.2% of its main-sequence life** (the horizontal branch and the asymptotic giant branch lie between), and a subgiant brightens to 3.5 times its main-sequence luminosity, not twice.
+
+TODO items resolved: GEN.286, GEN.287. Added: none.
+
+## [8.0.1624] - 2026-10-17
+
+**Headline:** The goal issues are consolidated into fewer chains and the old single-item issues are closed into them.
+
+### Changed
+- `docs/plan/issue-groups.md`: the single-test failure issues, the old feature requests and the small follow-up issues move into the goal issue that covers their topic (test failures, the Galaxy Map, descriptions, edit everything, the Redis queue, performance, install and update, phenomena, multi-star systems, docs); the issues that are done or duplicated are marked closed.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1623] - 2026-10-17
+
+**Headline:** The GEN.368 note now says the arxiv.org access for the verifying thread is in place.
+
+### Changed
+- GEN.368 no longer says the arxiv.org allowance waits on Boss: the domain was added and a verifying thread is reading the cited papers.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1622] - 2026-10-17
+
+**Headline:** The plan records Boss's mass range, scatter and source decisions for the random-galaxy laws and the extra fixed content the survey found.
+
+### Changed
+- GEN.368, GEN.378 and GEN.380 note the first family's stellar mass range (3e9 to 2e11 solar), that every derived law draws its natural scatter from the seed, the arxiv.org allowance for one verifying thread, and the fixed values the draft table found beyond the item's first list.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1621] - 2026-10-17
 
 **Headline:** The plan records that the galaxy keeps no home position, and retires the deterministic-math item.

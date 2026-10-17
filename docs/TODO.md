@@ -594,11 +594,9 @@ with `clamp()`.
   table in the union or double counting). Owner: Database
   (count and cache). Queued behind the Spherical Sector Coordinates stop
   (Boss, 2026-10-15 06:39Z).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none.
 
 - [ ] **UX.114 Scatter-row pages list the stored members and the map shows a system mass**
@@ -840,6 +838,7 @@ with `clamp()`.
   a galaxy with no pass. Fails on main: yes. Frequency: always on a
   galaxy before the first population pass. Reproducer: start a fresh
   galaxy and request both URLs.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none.
 
 - [ ] **UX.134 Generate page: the galaxy type shows what the seed drew and can be pinned**
@@ -5459,55 +5458,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.338. Related: GEN.280 (built), GEN.198.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
-- [ ] **GEN.286 Horizontal-branch and AGB phases in the stellar evolution model**
-  Boss (2026-10-16, 1:12 AM EDT): "why not build the model of
-  horizontal-branch stars into the mix?" The stellar evolution model
-  (src/planetgen/physics/stellar_evolution.py) has no horizontal-branch
-  phase, which makes the halo scatter counts low. Plan: section 5.3 of
-  docs/design/realistic-galactic-core.md (merged, #1735). Done:
-  evolve_star gains core helium-burning phases (red clump or red
-  horizontal branch, RR Lyrae, blue horizontal branch, extreme
-  horizontal branch: 10 to 60 solar luminosities, 4,600 to 35,000 K, 0.1
-  Gyr) and AGB phases (100 to 2,500 solar luminosities, 0.02 Gyr) for
-  stars under 2.2 solar masses between the giant phase and the white
-  dwarf; the colour is drawn from [Fe/H] and age; star_population's
-  _bright_windows, _bright_table and mass-band tables mirror the new
-  phases; Yerkes III with the type text, no column, no migration.
-  Measured: halo scatter rows at 100, 500 and 1000 floors are 12
-  million, 3.8 million and 310,000 now; the horizontal branch adds none,
-  the AGB adds 2.6%, 4% and 28%. [Fe/H] comes from GEN.158 (Core 2) or,
-  until it lands, from interim population defaults (halo -1.6 and -2.2,
-  disc and bulge -0.1). Boss (2026-10-15 10:06 PM EDT): the
-  horizontal-branch stars are to be fully part of the generation of a
-  sector, the fill as well as the scatter, in the proper proportions,
-  with the giant-branch spread of GEN.287 built in the same pipeline;
-  "go ahead and build the fix into
-  your pipe". Acceptance test (Core 3's figures): sampled old, halo and
-  bulge populations put about 0.8 to 1.2% of their stars on the
-  horizontal branch, the colour shares follow [Fe/H] (-2.2, -1.5, -0.1),
-  halo, bulge and globular-cluster cells all show them, and scatter plus
-  fill still sum to the untiered expected total. Owner Core 3 (Boss,
-  1:12 AM EDT). Goal issue #1677.
-  Prerequisites: none. Related: GEN.158, GEN.283, GEN.234, GEN.237,
-  GEN.159, GEN.160, GEN.236.
-  Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
-
-- [ ] **GEN.287 The stellar evolution model spreads giant-branch stars evenly in log luminosity, which probably overstates the bright giants by about a factor of two against real halo counts (bug)**
-  Finding from Core 3 (2026-10-16, 1:14 AM EDT, kind: model accuracy,
-  written in its galactic core note
-  docs/design/realistic-galactic-core.md, no fix planned there): the
-  giant-branch stars of the stellar evolution model are spread evenly in
-  log luminosity, which probably overstates the bright giants by about a
-  factor of two compared with real halo counts. Boss wants densities and
-  star counts to match real observations. Done: the giant-branch
-  luminosity distribution follows the time spent at each luminosity (the
-  real luminosity function) and the halo giant counts are checked
-  against published halo counts; built together with GEN.286 in the same
-  pipeline, not queued separately (Boss, 2026-10-15 10:06 PM EDT: "go
-  ahead and build the fix into your pipe"). Owner Core 3, goal issue
-  #1677.
-  Prerequisites: none. Related: GEN.286, GEN.283.
-
 - [ ] **GEN.289 Planets and moons kept as the universal point-in-space object, with point mass and movement vector stored, so perturbations have somewhere to land**
   Finding (orbital-encounters research, 2026-10-15, kind: gap in
   GEN.109): today a planet or moon is a distance, a period and a phase
@@ -5997,8 +5947,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
   Prerequisites: GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.244,
-  GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.286, GEN.287,
-  GEN.298, UX.116, TEST.159, TEST.160.
+  GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.298, UX.116,
+  TEST.159, TEST.160.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -6373,6 +6323,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Existing galaxies (Core 3 report, #1932, 2026-10-16, 10:00 PM EDT):
+  GEN.286 and GEN.287 change the stored scatter rows (the halo scatter
+  rows at the 500 luminosity floor fall from about 3.8 million to about
+  190,000), so a galaxy scattered earlier needs `planetgen plan
+  --redo-scatters mass luminosity` (as after GEN.333).
+  Redo scope (rescatter thread finding, 2026-10-16): `--redo-scatters`
+  redoes rows only; satellites and clusters (`galaxy_components`) are
+  drawn only by a full `plan`. DOC.62 puts the line in docs/cli.md.
   Prerequisites: GEN.237. Related: GEN.240.
 
 - [ ] **GEN.323 The phenomena pass runs on the object-first sampler**
@@ -6389,6 +6347,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Redo scope (rescatter thread finding, 2026-10-16): `--redo-scatters`
+  redoes rows only; satellites and clusters (`galaxy_components`) come
+  only from a full `plan`. DOC.62 documents it.
   Prerequisites: GEN.322. Related: GEN.240.
 
 - [ ] **GEN.324 A component pass: clusters, the Clouds and Sagittarius place their stars, and the fill adds the component's density to lambda**
@@ -6649,6 +6610,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   component of zero mass is legal and tested (a galaxy without a disk,
   an elliptical, needs no change in the potential); GEN.379 and DB.66
   sit just before this item in the thread.
+  GEN.368's approved table (Boss, 10:11 PM EDT), row 12: the rotation
+  curve and the enclosed mass are calculated from this potential (v
+  squared = G M(<r) / r), not set, and `MILKY_WAY_MASS` goes as the
+  central mass of every Hill sphere (GEN.400); the baryonic Tully-Fisher
+  relation is a cross-check only.
   Prerequisites: GEN.144, GEN.369, GEN.379. Related: GEN.115.
 
 - [ ] **GEN.339 Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded**
@@ -7175,6 +7141,40 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generated (as MAP.190 does). USR.11, a user's own home field, is a
   different thing and stays. GEN.388 (the home position by family, 9.4)
   is dropped.
+  Boss decisions reported by Core 1 (Boss, 2026-10-16, 9:40 to 9:43 PM
+  EDT, in the Core 1 thread): (1) the first family's stellar mass range
+  is 3e9 to 2e11 solar; (2) every derived law draws its natural scatter
+  from the seed (a log-normal about the median); (3) Boss allows
+  arxiv.org for one verifying thread (Boss added the domain at 9:44 PM
+  EDT; a verifying thread started reading the cited papers at 9:45 PM
+  EDT). Core 1's draft table is
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md (rows 1 to
+  14, not yet verified against a paper; research requests in
+  5.13.6). Fixed content found beyond this item's first list (draft
+  table 5.13.4), all to be replaced or listed as a stay-constant by the
+  same table: the five different Sun radii (removed with the home
+  position), the supernova, GRB and AGN rates (`physics/activity.py`),
+  the dark matter, hot halo and ambient density values (`profile.py`,
+  `tuning.py:859-871`), the population ages, dispersions, arm contrast
+  and scale heights (`tuning.py:608-614,800`), the metallicity gradient,
+  the phenomenon densities, the nebula and superbubble field values, the
+  hypervelocity reference radius, the fixed halo fraction, the 8000 and
+  1000 in `clusters.py:92`, the two local stellar densities, and
+  `MILKY_WAY_STELLAR_LUMINOSITY_W` (becomes the galaxy's own luminosity
+  from its mass-to-light ratio). Section 5.13.5 of the draft still says
+  the draw returns "the home position"; Core 1 removes it.
+  Table approved (Boss, 2026-10-16, 10:11 PM EDT, as Core 1 reported):
+  size source Shen et al. 2003; the halo mass by the approximation
+  (GEN.399 in 8.2 researches the halo mass function and compares); no
+  home position; every derived law draws its natural scatter from the
+  seed; the first family covers 3e9 to 2e11 solar. Paper check:
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md. Core 1's
+  docs PR (section 5.13 of
+  docs/design/intergalactic-and-halo-contents.md) is to follow its stack
+  gate; this item retires when that PR merges. The build items are
+  GEN.400 to GEN.406 (8.1 phase 5, thread "Galaxy laws build"); GEN.369
+  reads row 10 and GEN.338 reads row 12 (the rotation curve and the
+  enclosed mass are calculated from the potential, not set).
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.369 Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option**
@@ -7249,6 +7249,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
   the coordinator): Core 1 builds it right after GEN.368 (order:
   GEN.368, GEN.369, GEN.371, GEN.366). Owner: Core 1.
+  GEN.368's approved table (Boss, 10:11 PM EDT): row 10 gives the
+  satellite laws (subhalo mass function slope 1.9, Einasto placement,
+  the stellar mass from the halo mass with a reionization cutoff, [Fe/H]
+  from the mass-metallicity relation); the reionization cutoff and the
+  size-luminosity fit are open research (GEN.406).
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
@@ -7483,6 +7488,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are generated."): the family design stores no home or Sun position;
   GEN.388 is dropped and the design lists no home row. Per-position
   calculations replace every Sun-radius use.
+  The first family's stellar mass range is 3e9 to 2e11 solar and every
+  derived law draws its natural scatter from the seed (Boss, 2026-10-16,
+  9:40 to 9:43 PM EDT, reported by Core 1); GEN.368's draft table
+  (/mnt/project-files/reports/gen368-laws-table-2026-10-17.md, 5.13.1
+  chain, rows 1 to 10) is the spiral family's start, and the family
+  table here extends it.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.379 The density model as a list of components, each with an amplitude that may be 0, and a mass for each component**
@@ -7530,6 +7541,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   no family or mass appears as a default. No fixed content (Boss, 4:11
   and 4:14 PM EDT): no named galaxy, preset or hand-set value; reference
   galaxies only check the result.
+  Mass limits: the first family's range is 3e9 to 2e11 solar stellar
+  mass (Boss, 2026-10-16, 9:40 PM EDT, reported by Core 1); GEN.378
+  states the other families' ranges.
   Prerequisites: GEN.378, GEN.379. Related: GEN.368, GEN.369, GEN.381.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
@@ -7853,6 +7867,342 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   intermediate populations follow the bubbles; old stars stay uniform.
   Prerequisites: GEN.393, NAV.60. Related: DB.38, ADM.94, GEN.298.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
+
+- [ ] **GEN.396 Revisit the Yerkes class III luminosity range: 50 to 1000 solar luminosities sits above many dim red giants**
+  Core 3's finding on GEN.286 and GEN.287 (merged #1932, 2026-10-16,
+  10:00 PM EDT): `constants.YERKES_LUMINOSITY_RANGES` gives class III 50
+  to 1,000 solar luminosities, but the red giant branch now starts near
+  3 solar luminosities (the law of GEN.287), so classification by that
+  range mislabels many dim giants. Done: the class III range, and the
+  neighbouring classes if they overlap it, follow from the evolved
+  star's own luminosity and mass (calculated, not set); a test
+  classifies stars along a 1 to 2 solar mass red giant branch at several
+  metallicities and gets class III for the giants; the classref tests
+  keep their coverage; no hand-set range stays. The generator epoch rule
+  applies if the class of any generated star changes. Not Core 3's: it
+  left the table alone.
+  Prerequisites: none. Related: GEN.286, GEN.287, GEN.259.
+
+- [ ] **GEN.397 `planetgen plan` stage 2 prints the progress weight as the number of phenomena to place (bug)**
+  Rescatter read-only thread (Boss asked 2026-10-16, 9:35 PM EDT;
+  measured 9:37 to 10:07 PM EDT on a 4-core box, main 8.0.1617, default
+  galaxy, seed 0123456789abcdef0123456789abcdef; note
+  /mnt/project-files/reports/rescatter-worth-it-2026-10-16.md). Stage 2
+  prints "Phenomena: about 186,763,602 to place in 3,764 shells". That
+  figure is the progress weight (shell_expected plus BAND_WEIGHT_STARS =
+  5 per band, `run_plan.py` near line 1415); the real expected rows are
+  about 75.5 million (the sum of `phenomenon_scatter.shell_expected`,
+  within 0.1 percent of the rows placed on the chunks checked). Fails on
+  main, every run, default settings. Reproducer: `planetgen plan` on a
+  fresh database and read the first stage-2 line. Done: the line states
+  the expected rows and the progress weight is not shown as a count; a
+  test pins the wording to the sum of `shell_expected`.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
+  Prerequisites: none. Related: GEN.240, GEN.323.
+
+- [ ] **GEN.398 The massive-star and bright-star passes place more stars than their log lines expect: 70 and 12 percent over (bug)**
+  Rescatter read-only thread (Boss asked 2026-10-16, 9:35 PM EDT;
+  measured 9:37 to 10:07 PM EDT on a 4-core box, main 8.0.1617, default
+  galaxy, seed 0123456789abcdef0123456789abcdef; note
+  /mnt/project-files/reports/rescatter-worth-it-2026-10-16.md). The
+  massive-star pass logged "about 156,808 stars expected" and placed
+  265,909 (70 percent over; the per-chunk "added N stars" lines sum to
+  265,909); the bright-star pass logged "about 693,089" and placed
+  778,980 (12 percent over). scatter-queue-feasibility.md had the
+  sampler within 1.5 sigma of expected at 8 solar masses. It may be only
+  the coarse WEIGHT_BAND_SAMPLES estimate behind the log line, or the
+  sampler after GEN.333 and GEN.280. Fails on main, every run.
+  Reproducer: `planetgen plan --redo-scatters mass luminosity` on a
+  planned galaxy and compare the two log lines. Done: the cause is named
+  (estimate or sampler); if the sampler is wrong the placed count
+  matches the integral of the density within k Poisson sigma over a
+  small galaxy test, and if only the estimate is coarse the log line
+  uses the better estimate; the test stays.
+  Prerequisites: none. Related: GEN.322, GEN.333, GEN.280, GEN.321.
+
+- [ ] **GEN.399 Research the halo mass function and compare it with the halo mass approximation GEN.368 uses**
+  Boss (2026-10-16, 10:11 PM EDT, in the Core 1 thread): on the GEN.368
+  halo mass card he picked "Approximate" for now, and wants an item in
+  8.2 to research and find the halo mass function and compare it with
+  the approximation. Done: a research note in docs/design (named in
+  GEN.368's table once built) that names the halo mass function the
+  literature gives for the galaxy's stellar mass (the stellar-to-halo
+  relation with its scatter, and the halo mass function behind it, with
+  every source checked against the paper), states the approximation
+  GEN.368 actually built (Core 1 reports which), and compares them over
+  the stellar mass range of the first family (3e9 to 2e11 solar): a
+  table of halo mass against stellar mass for both, the largest
+  difference, and whether the approximation stays inside the scatter. If
+  the difference is larger than the scatter, a follow-up item replaces
+  the approximation with the researched function; if not, the note says
+  the approximation stands. A comparison test keeps the two within the
+  stated bound. No fixed content (Boss, 4:11 and 4:14 PM EDT): no named
+  galaxy sets any number.
+  Method (Core 1's suggestion, 2026-10-16, 10:12 PM EDT): read a halo
+  mass function source in the paper (for example Tinker et al. 2008 or
+  Sheth and Tormen 1999), build the exact conditional P(Mh | M*) as the
+  halo mass function times the log-normal in M* about the Moster median
+  with 0.15 dex scatter, and compare it with GEN.368's approximation
+  (the median inverse with an effective Mh scatter of 0.15 dex divided
+  by the slope). Done adds: a test and a note showing the typical halo
+  mass and the scatter difference per stellar mass, and a switch to the
+  exact conditional if the difference matters. Needs GEN.368's build
+  (GEN.400).
+  Prerequisites: GEN.368, GEN.400. Related: GEN.368, GEN.378, GEN.380.
+
+- [ ] **GEN.400 The galaxy's mass chain: stellar mass from the Schechter function, the halo mass by the approximation, the virial radius and the concentration**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Rows 1 to
+  3. A pure function `draw_mass_chain(seed)` takes the stellar mass from
+  the double Schechter function inside the first family's range, the
+  halo mass from the stellar-to-halo relation inverted numerically with
+  the approximation GEN.399 later checks (median inverse with an
+  effective halo mass scatter), the virial radius from the Bryan and
+  Norman overdensity and the NFW concentration with its scatter. It
+  replaces `HALO_MASS_SOLAR`, `HALO_SYSTEM_FRACTION` and
+  `MILKY_WAY_MASS` as the central mass of every Hill sphere (binary.py,
+  star.py, keepout.py). Done: the same seed gives the same chain; a
+  histogram over 10,000 seeds matches the Schechter function within
+  sampling error; every draw stays in the range; the worked table of the
+  draft (5e10 gives a halo near 2e12 solar) is reproduced within its
+  scatter; the old constants are gone and their tests check the law. No
+  fixed content (Boss, 4:11 and 4:14 PM EDT): no Milky Way preset or
+  option; the real values are only plausibility targets (GEN.366). Each
+  law is written with its source named in the code and the doc; the
+  scatter is a log-normal drawn through `unit_seed(galaxy_seed, ...)`
+  and the one random wrapper. No compatibility shim: the old constant
+  goes in the same change. A change that alters the generator output
+  follows the epoch rule.
+  Prerequisites: GEN.368. Related: GEN.399, GEN.378, GEN.380, GEN.369.
+
+- [ ] **GEN.401 The shape of the stars from the stellar mass: disk length and height, thick disk, bulge, bar and arms replace the generate defaults**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Rows 4 to
+  6 and 5.13.5. `draw_galaxy(seed, family)` runs the mass chain and
+  returns the shape; `build_galaxy_shape` calls it and the plan and
+  Generate defaults become "drawn from the seed". The disk scale length
+  follows Shen et al. 2003 (the van der Wel relation only cross-checks
+  the scatter); the height follows the thickness law; the thick disk
+  keeps a stated ratio to the thin disk with a research request in the
+  note; bulge-to-total, bulge size, bar fraction, bar length, arm count
+  and pitch angle follow the table, and the arm-direction conflict
+  between the sources is decided here and written in the doc. The old
+  numbers (scale length 2,600 pc, height 300 pc, bulge 3.11, COBE bar
+  1,580 pc) go. GEN.378 extends this to every family, so the function
+  takes a family argument and the spiral family is its first. Done: the
+  shape of a draw has every parameter inside its stated range; the laws
+  over many seeds follow the stated trends (size with mass, bulge share
+  with stage, bar fraction); the same seed gives the same shape; the
+  `generate` command, the web page and the stored shape read the drawn
+  values. No fixed content (Boss, 4:11 and 4:14 PM EDT): no Milky Way
+  preset or option; the real values are only plausibility targets
+  (GEN.366). Each law is written with its source named in the code and
+  the doc; the scatter is a log-normal drawn through
+  `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
+  compatibility shim: the old constant goes in the same change. A change
+  that alters the generator output follows the epoch rule.
+  Prerequisites: GEN.400. Related: GEN.378, GEN.382, GEN.366, GEN.134.
+
+- [ ] **GEN.402 The central black hole mass and the nuclear cluster follow the bulge: the M-bulge and M-sigma relations replace the fixed ranges**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Rows 7
+  and 8. The black hole mass comes from the bulge mass (Kormendy and Ho
+  2013, with its scatter) or, without a classical bulge, from the
+  stellar mass; its velocity dispersion from the M-sigma relation; the
+  active or quiescent split stays a draw from the Eddington ratio
+  ranges; the hole stays exactly on the origin (Boss, 7:27 PM EDT). The
+  nuclear cluster mass follows the stellar mass by a power law with
+  nucleation falling away above the mass the table gives; the Georgiev
+  against Neumayer slope conflict is decided here and written in the
+  doc. Replaces `BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR`, the 100 km/s
+  dispersion, the quasar mass range and the nuclear ratios
+  (`tuning.py:745-755, 1988, 1999, 2886`). Done: the black hole mass
+  tracks the bulge mass with the stated scatter over many seeds; the
+  dispersion follows M-sigma; a galaxy without a bulge draws a small
+  hole or none by the stated fraction; the old constants are gone; same
+  seed same galaxy. No fixed content (Boss, 4:11 and 4:14 PM EDT): no
+  Milky Way preset or option; the real values are only plausibility
+  targets (GEN.366). Each law is written with its source named in the
+  code and the doc; the scatter is a log-normal drawn through
+  `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
+  compatibility shim: the old constant goes in the same change. A change
+  that alters the generator output follows the epoch rule.
+  Prerequisites: GEN.401. Related: GEN.280, GEN.387, GEN.368.
+
+- [ ] **GEN.403 The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Row 9.
+  The cluster system mass is a fraction of the halo mass with its
+  scatter (the eta source is chosen between the two papers in the doc),
+  the count is that mass over the mean cluster mass, the mass function
+  stays log-normal about its peak, and GEN.297's calibration against the
+  Harris file still gives each cluster's law. Replaces
+  `CLUSTER_COUNT_MILKY_WAY` and the hard-coded 8000 and 1000 in
+  `clusters.py:92`. The cluster radial profile is still open in the
+  table and stays a stated research request. Done: the count over many
+  seeds follows the system mass with the stated scatter; a Milky Way
+  mass halo gives a count inside the observed range; the old constants
+  are gone; same seed same clusters. No fixed content (Boss, 4:11 and
+  4:14 PM EDT): no Milky Way preset or option; the real values are only
+  plausibility targets (GEN.366). Each law is written with its source
+  named in the code and the doc; the scatter is a log-normal drawn
+  through `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
+  compatibility shim: the old constant goes in the same change. A change
+  that alters the generator output follows the epoch rule.
+  Prerequisites: GEN.400. Related: GEN.297, GEN.366, GEN.387.
+
+- [ ] **GEN.404 The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Row 11
+  (Boss, 9:43 PM EDT, "Confirmed drop 'home'"): the galaxy stores no
+  home or Sun position. The five Sun radii (`GALAXY_SUN_RADIUS_PC`
+  8,200, `SUN_GALACTIC_RADIUS_PC` 8,000, `GALACTIC_CENTER_DISTANCE_LY`,
+  the hypervelocity radius, the cluster radius) go; the density
+  calibration comes from the galaxy's mass, the metallicity zero point
+  from the central metallicity (GEN.405), the rates quoted at the Sun
+  per object (GEN.405) and the fallback distance of a sector with no
+  placement from the sector's real place. The map starts where sectors
+  are generated (MAP.190 already does). GEN.144's Milky Way test radius
+  stays as a test reference only. Done: no code or doc reads a Sun
+  radius as galaxy content (a grep test, the reference radius excepted);
+  the density and the sector profile agree with the old model at the
+  test radius within the derived scatter; the tests that pinned the
+  Milky Way values check the law. No fixed content (Boss, 4:11 and 4:14
+  PM EDT): no Milky Way preset or option; the real values are only
+  plausibility targets (GEN.366). Each law is written with its source
+  named in the code and the doc; the scatter is a log-normal drawn
+  through `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
+  compatibility shim: the old constant goes in the same change. A change
+  that alters the generator output follows the epoch rule.
+  Prerequisites: GEN.400, GEN.401. Related: GEN.144, GEN.405, MAP.190,
+  USR.11.
+  Owner (coordinator, 2026-10-16, 10:16 PM EDT): Core 4 proposed (it
+  owns the metallicity and star-density work in GEN.103 and GEN.134); it
+  starts after GEN.368 and GEN.400 merge, so Core 4's current queue does
+  not change.
+
+- [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Rows 13
+  and 14. The central metallicity and the gradient come from the stellar
+  mass by the mass-metallicity relation (the numbers are an open
+  research request in the table: Gallazzi 2005 and the star-forming main
+  sequence have no numbers read yet), the halo metallicity from the same
+  relation less an offset; each rate (supernova, gamma-ray burst, active
+  nucleus, the phenomenon densities of `tuning.py:3007-3055`, the nebula
+  and superbubble field values, the two local stellar densities 0.0985
+  and 0.14 per cubic parsec) is a per-star or per-mass rate times the
+  local density of the right population from the density model,
+  normalised to the stellar mass, with the star-formation history from
+  the main sequence; `MILKY_WAY_STELLAR_LUMINOSITY_W` becomes the
+  galaxy's own luminosity from a mass-to-light ratio. Done: no value
+  quoted at the Sun remains; the rates at a position follow the local
+  density; the research requests are answered in the doc before the
+  numbers are built, or the item stays blocked on them. No fixed content
+  (Boss, 4:11 and 4:14 PM EDT): no Milky Way preset or option; the real
+  values are only plausibility targets (GEN.366). Each law is written
+  with its source named in the code and the doc; the scatter is a
+  log-normal drawn through `unit_seed(galaxy_seed, ...)` and the one
+  random wrapper. No compatibility shim: the old constant goes in the
+  same change. A change that alters the generator output follows the
+  epoch rule.
+  Owner (coordinator, 2026-10-16, 10:16 PM EDT): Core 4 proposed (it
+  owns the metallicity and star-density work in GEN.103 and GEN.134); it
+  starts after GEN.368 and GEN.400 merge, so Core 4's current queue does
+  not change.
+  Prerequisites: GEN.404. Related: GEN.319, GEN.320, GEN.134, GEN.254.
+
+- [ ] **GEN.406 Research the population ages and velocity dispersions by component, the thick disk scaling and the stellar halo fraction so they become laws**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Open
+  points 5 and 8 of the table: the population age ranges and dispersions
+  (`tuning.py:608-614, 800`) are hand-set with no source; the thick
+  disk's size ratio to the thin disk and a stellar halo mass fraction
+  against the stellar mass are missing (Harmsen et al. 2017 gives 2 to
+  14 percent for six Milky Way mass discs only; the fixed 1.5e9 anchor
+  stays until a law is found); the reionization cutoff mass and a
+  satellite size-luminosity fit (row 10) and the cluster radial profile
+  and the halo metallicity offset (rows 9 and 13) are also open. Done: a
+  research note in docs/design with each source read in the paper, its
+  range and scatter, and a request to Boss for any that cannot be found;
+  then the numbers go into GEN.401, GEN.403, GEN.405 and GEN.369 as
+  laws. A verifying thread can read arXiv (Boss allowed it, 9:44 PM
+  EDT).
+  Prerequisites: GEN.368. Related: GEN.369, GEN.401, GEN.403, GEN.405.
+
+- [ ] **GEN.407 Correct the horizontal-branch and red giant tables to the checked sources: the RGB time law, the evolutionary flux, the HB colour row, the extreme HB luminosity and the tip**
+  Findings of the stellar tables check thread (read-only; Boss tapped
+  "Thread checks" at 10:04 PM EDT; report
+  /mnt/project-files/reports/stellar-evolution-tables-check-2026-10-17.md)
+  on the values Core 3 recalled for GEN.286 and GEN.287 (merged #1932):
+  five do not match the published sources. (1) The red giant branch time
+  law L^-0.9 is too steep: a published core-mass-luminosity fit (arXiv
+  2503.17772 equation 1) gives a local slope of -0.84 at the base
+  flattening to -0.56 at the tip, so giants above 500 solar luminosities
+  are undercounted about 2 times. (2) The evolutionary flux 2.2e-11 is
+  not in the literature: Buzzoni 1989 through Renzini 1997 gives 1.7
+  plus or minus 0.4 e-11. (3) The HB colour row at [Fe/H] -1.5 is about
+  0.25 redder in HB type than the 57 cluster mean (Salaris et al. 2004
+  Table 2) and the code names no metallicity scale. (4) The extreme HB
+  luminosity of 40 to 60 solar conflicts with the design note's own 10
+  to 40, and extreme HB stars skip the AGB. (5) The tip of 2,500 solar
+  luminosities is 1,650 to 1,780 for Z = 1e-4 (Serenelli 2017 Table 2).
+  Matches: R = 1.4 (halo mean 1.44 plus or minus 0.06), the colour rows
+  at -2.2 and -0.7, the temperature boundaries. Not verifiable: the RR
+  Lyrae and extreme shares, the 0.1 dex per Gy age shift, the AGB
+  lifetime. Done: each of the five values follows its source (the law as
+  a calculated function of core mass or metallicity, not a set
+  constant), the metallicity scale of the colour table is named, the
+  design note realistic-galactic-core.md 5.3 states the checked values
+  and marks the three unverifiable ones, the halo luminosity tier tests
+  keep their coverage, and the generator epoch rule applies because
+  stored scatter rows change (older galaxies need `planetgen plan
+  --redo-scatters mass luminosity`). Core 3 keeps its values flagged
+  until this lands. Owner: Core 3 proposed.
+  Prerequisites: none. Related: GEN.286, GEN.287, GEN.322, GEN.396,
+  GEN.259.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -10218,11 +10568,9 @@ clears each one.
   on the same code that timed out alone at 4:20 PM EDT, so it is not
   deterministic; GEN.232 merged in #1660, so Quality re-checks it in the
   next full run.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none.
 
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
@@ -10240,11 +10588,9 @@ clears each one.
   open for the first recurrence (with the captured seed): the test pins
   the star type, so a different stored type may be a real pin bug in the
   product, not test luck. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.111, TEST.71.
 
 - [ ] **TEST.126 The heavy WebGL browser-map tests time out when four workers run them together (bug)**
@@ -10305,11 +10651,9 @@ clears each one.
   playwright error) and ::test_nav_ends_picked_from_bookmarks_on_every_page
   failed once and pass alone, not checked on main. Same family; the
   rebuild's captured traceback and serial re-run tell load from real.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
@@ -10327,11 +10671,9 @@ clears each one.
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
   the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.111, TEST.116.
 
 - [ ] **TEST.128 test_spatial_position_db and test_web_db_fields fail under a parallel run on one MySQL (bug)**
@@ -10352,11 +10694,9 @@ clears each one.
   with PERF.89): tests/test_work_queue_admin.py::
   test_a_paused_queue_node_stands_by_until_resumed[2] failed once and
   passes alone: the same parallel-run family on the shared database.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.111, TEST.123.
 
 - [ ] **TEST.129 Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug)**
@@ -10382,11 +10722,9 @@ clears each one.
   (2026-10-14, #1313, suite green): the stored last-updated time is
   compared the way MySQL 8.4 rounds it. Retire this item once the
   scheduled MySQL 8.4 CI run on main is green.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.116, TEST.126.
 
 - [ ] **TEST.130 test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug)**
@@ -10409,11 +10747,9 @@ clears each one.
   not reproducible; the test now builds comets by construction so it
   exercises the comet path every time. Stays open until the cause is
   found or five clean full runs pass.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.123, GEN.122.
 
 - [ ] **TEST.131 Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve**
@@ -10444,11 +10780,9 @@ clears each one.
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
   the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.126, TEST.127, TEST.128.
 
 - [ ] **TEST.135 Big-galaxy query-budget test for the nebula reads**
@@ -10481,11 +10815,9 @@ clears each one.
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
   the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.111, TEST.128, TEST.132 (done, PR #1578).
 
 - [ ] **TEST.138 test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug)**
@@ -10507,11 +10839,9 @@ clears each one.
   under load; same family, same fix.
   Same family and fix as TEST.126 (`tests/browser_waits.py`): close with
   it, reopen only on a captured traceback (2026-10-16 review).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.126, TEST.128, TEST.137.
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
@@ -10531,11 +10861,9 @@ clears each one.
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
   the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.128, TEST.137, TEST.138.
 
 - [ ] **TEST.141 test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug)**
@@ -10552,11 +10880,9 @@ clears each one.
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
   the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.128, TEST.132 (done, PR #1578), TEST.134.
 
 - [ ] **TEST.144 test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug)**
@@ -10574,11 +10900,9 @@ clears each one.
   Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Same family and fix as TEST.126 (`tests/browser_waits.py`): close with
   it (2026-10-16 review).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.126, TEST.138.
 
 - [ ] **TEST.148 Investigate resuming a test run where it left off when the build is the same**
@@ -10607,6 +10931,9 @@ clears each one.
   the cloud environment cannot be resumed; the browser phase has to be
   rerun alone with `scripts/test.py browser`. Decide whether the build
   id should keep the package list.
+  Boss (2026-10-16, 10:37 PM EDT) wants the reuse to carry across builds
+  when a test's own dependencies are unchanged; filed as TEST.208. The
+  same-build-only rule above is what TEST.208 widens.
   Prerequisites: none. Related: TEST.139 (done, PR #1605).
 
 - [ ] **TEST.155 Wording and index agree: property test**
@@ -10792,11 +11119,9 @@ clears each one.
   check whether it still hangs). Done: the cause is found and the test
   is made reliable without skipping or loosening it, or the product bug
   it hides is fixed. Owner: Quality (2026-10-15).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.111, GEN.232.
 
 - [ ] **TEST.168 Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs**
@@ -10855,11 +11180,9 @@ clears each one.
   Scope after the 2026-10-16 review: only the
   `test_math_check::test_whole_run_is_fast` timing test (a relative
   budget); the breadcrumb folding test joins the TEST.126 family.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.111, TEST.138, TEST.163, TEST.167.
 
 - [ ] **TEST.171 test_gen_resume::test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards failed once under gate load with no scattered system (0 > 0) and passes alone (bug)**
@@ -10875,11 +11198,9 @@ clears each one.
   proves, and the same gate shows it green. Owner: unassigned.
   Owns pinning the random galaxy seed in the shared `_seed_galaxy` test
   helper (2026-10-16 review); TEST.173 shares the helper.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.170, TEST.111.
 
 - [ ] **TEST.172 test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug)**
@@ -10897,11 +11218,9 @@ clears each one.
   entered, or the click really does nothing on an empty rim block) and
   the test or the page is fixed without loosening what the test proves.
   Owner: unassigned.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Second sighting (Core 3, 2026-10-16, 8:34 PM EDT, GEN.333 gate: full
   `changed`, 118 minutes, load 16): failed again under load and passed
   alone (call 28 s on a loaded worker); the same gate failed
@@ -10928,11 +11247,9 @@ clears each one.
   unassigned.
   No separate seed fix (2026-10-16 review): check that its nearest
   backfill cell draws a star under the seed TEST.171 pins.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.132, TEST.171, TEST.172.
 
 - [ ] **TEST.174 test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug)**
@@ -10954,11 +11271,9 @@ clears each one.
   Scope after the 2026-10-16 review: capture the failure text on the
   next sighting; the phone-light sighting (an aborted `/galaxy/tiles`
   request) is a page-stat flake of the TEST.126 family.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.170, TEST.172.
 
 - [ ] **TEST.175 Edit everything end to end: the headline scenarios with approval and undo**
@@ -11148,6 +11463,7 @@ clears each one.
   on main: yes, when that test runs. Frequency: every run of the test.
   Reproducer: run the migrate test, then `cat
   /var/lib/planetGen/state/maintenance.json`.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none.
 
 - [ ] **TEST.190 A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug)**
@@ -11161,6 +11477,7 @@ clears each one.
   run in seconds. Fails on main: yes. Frequency: whenever a session
   fixture fails. Reproducer: make the server fixture raise after its
   start and time the run.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none. Related: TEST.167.
 
 - [ ] **TEST.191 The plan tests write real settings JSON into `/var/lib/planetGen/jobs/galaxy-settings` and log "No naming key drawn ... Unknown database": give them a temporary directory and a test database**
@@ -11226,6 +11543,7 @@ clears each one.
   unknown. Frequency: 1 of 1 run under load. Reproducer: none beyond the
   full browser phase; try the file with two browser workers and a busy
   machine.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none.
 
 - [ ] **TEST.195 `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` timed out at 30 s fetching `/sector/<id>/galaxy` inside a full gate run and passed alone (bug)**
@@ -11288,6 +11606,7 @@ clears each one.
   and not a fixed time, and it passes under the same load, with no
   quarantine. Fails on main: not checked. Frequency: once. Reproducer:
   none beyond the full suite at load about 9.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none.
 
 - [ ] **TEST.198 `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug)**
@@ -11300,6 +11619,7 @@ clears each one.
   condition it needs, and it passes under the same load, with no
   quarantine. Fails on main: not checked. Frequency: once. Reproducer:
   none beyond the full suite at load about 9.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none.
 
 - [ ] **TEST.199 `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on main for a far-tail case: the halo subtraction loses precision, 2.4e-9 against a 1e-9 tolerance (bug)**
@@ -11327,7 +11647,8 @@ clears each one.
   (the precision audit). Related: TEST.192 (an earlier fuzz bound).
   Second sighting (Settings lane, 2026-10-16, 4:57 PM EDT, reported again at 8:45 PM EDT
   from its ADM.85 full run): the same test failed in that run too.
-  Owner: Core 1 (proposed: its bug phase and GEN.372).
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT); the
+  GEN.372 audit stays with Core 1.
   Prerequisites: none. Related: GEN.372, TEST.192, GEN.301.
 
 - [ ] **TEST.200 The nightly local offset limit is documented and pinned by `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point`**
@@ -11370,7 +11691,7 @@ clears each one.
   condition it needs, it passes under the same load, and no quarantine.
   Likely the same family as TEST.197 (a timing assumption under load)
   and the browser hangs of TEST.193 and TEST.195, so Core 1 reads them
-  together. Owner: Core 1, bug phase.
+  together. Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none. Related: TEST.172, TEST.197, TEST.193, TEST.195.
 
 - [ ] **TEST.203 `test_one_worker_leaves_the_runs_own_random_stream_alone` failed once under heavy load with WorkerDied "the task's job ended canceled" and passes alone (bug)**
@@ -11385,8 +11706,8 @@ clears each one.
   by a worker restart under load, or the test races the worker), the
   test waits on the condition it needs or the job is not cancelled, it
   passes under the same load, and no quarantine. Likely related to the
-  load flakes of TEST.197 and TEST.202. Owner: Core 1, bug phase
-  (one-off load flakes).
+  load flakes of TEST.197 and TEST.202. Owner: Bug Hunt (proposed,
+  Boss's lane started 10:20 PM EDT).
   Prerequisites: none. Related: TEST.197, TEST.202, TEST.193.
 
 - [ ] **TEST.204 Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges**
@@ -11417,6 +11738,37 @@ clears each one.
   cluster and satellite counts must equal the bubble-free control.
   Prerequisites: GEN.394, GEN.395, TEST.186. Related: GEN.391, TEST.204.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
+
+- [ ] **TEST.208 `scripts/test.py --resume` reuses an earlier pass across builds when none of that test's own dependencies changed**
+  Boss (2026-10-16, 10:37 PM EDT, project chat): "are we using resumable
+  tests when things get canceled? That's what they were built for so if
+  the code hasn't changed you can expect the same answer from a test."
+  Core 1 reported (10:40 PM EDT, as the lane reported) that `--resume`
+  (TEST.148 to TEST.152) works only for the identical build id, which
+  hashes the whole checkout, so any merge of main after a cancelled gate
+  starts from zero and costs hours. The tool already records which files
+  each test depends on (the dependency map `scripts/depmap.py` behind
+  `changed`). Do: keep a per-test record of the pass together with a
+  fingerprint of that test's own dependencies (the files the dependency
+  map lists for it, its fixtures, the installed packages, the database
+  and Redis servers and the day), and let `--resume` skip a test whose
+  earlier pass has the same fingerprint, even when the build id differs.
+  A changed dependency file, fixture, package, server or day reruns that
+  test; a change to the environment (packages, servers, day, test
+  command) reruns all. Default taken (the TEST.148 decision stands): the
+  reuse is explicit, behind `--resume`, never automatic and not part of
+  the merge gate; the last line says how many tests were reused and from
+  which run. Done: a cancelled or restarted gate after a merge of main
+  reruns only the tests whose dependencies changed; tests prove that a
+  changed dependency file forces a rerun, an unchanged one is reused,
+  and a changed package, server or day forces all; docs/testing.md and
+  the usage text say so. Fails on main: not a failure, a missing
+  feature. Reproducer: start `scripts/test.py changed`, cancel it, merge
+  main, run it again with `--resume` and see it refuse or start from
+  zero.
+  Owner: Bug Hunt (proposed, as the coordinator suggested; any lane).
+  Prerequisites: none. Related: TEST.148, TEST.150, TEST.151, TEST.152,
+  TEST.139.
 
 ## USR: User accounts
 
@@ -12149,6 +12501,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   warning. Done: the migration with an old-schema fixture, the row, the
   record, the check, and tests for an unchanged update, a changed lock
   file and an epoch difference.
+  Rescatter thread finding (2026-10-16): a scatter made before the epoch
+  2 merge (#1927, 9:42 PM EDT) is unlabelled: `generation_runs` carries
+  `planetgen_version` and outcome per run (a redo run is dated), but the
+  galaxy keeps no mark of which epoch or build each scatter pass was
+  made at, so nothing can say a galaxy is epoch 1. This item's record
+  should carry the epoch per pass.
   Prerequisites: OPS.57. Related: OPS.28.
 
 - [ ] **OPS.59 `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug)**
@@ -12161,6 +12519,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   process is left. Fails on main: yes. Frequency: every SIGTERM during a
   run. Reproducer: start the command, `kill -TERM` it, then `ps` for the
   child.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none.
 
 ## DOC: Documentation
@@ -12605,6 +12964,27 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   is described as the optional overlay it is. Docs only.
   Prerequisites: GEN.395. Related: GEN.391, DOC.52.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
+
+- [ ] **DOC.62 Docs: the generation cost figures and the redo scope are stale (the phenomena cut, rows, bytes and time; `--redo-scatters` leaves satellites and clusters alone)**
+  Rescatter read-only thread (Boss asked 2026-10-16, 9:35 PM EDT;
+  measured 9:37 to 10:07 PM EDT on a 4-core box, main 8.0.1617, default
+  galaxy, seed 0123456789abcdef0123456789abcdef; note
+  /mnt/project-files/reports/rescatter-worth-it-2026-10-16.md).
+  generation-performance-study.md says 161 GB and 2.6 hours for the
+  phenomena scatter at the default scale and
+  phenomenon-scatter-mass-cut.md recommends 20 solar masses (about 2.7e5
+  rows). The built default is a 14 solar mass cut: about 75.5 million
+  rows, 231 bytes a row with two indexes (about 17.5 GB while writing,
+  about 21 GB with the two indexes rebuilt), about 46 minutes of writes
+  at 4 workers (about 23,500 rows a second) plus the unmeasured index
+  builds, nebula field and epoch stamp; the star passes took 1,222.8 s
+  for 1,044,932 rows and under 1 GB. Also docs/cli.md next to the
+  `--redo-scatters` text: it redoes rows only; satellites and clusters
+  (`galaxy_components`) are drawn only by a full `plan`, so a galaxy
+  planned before GEN.159 and GEN.237 has an empty component table until
+  a full plan. Done: the two design notes and cli.md carry the measured
+  table and the one-line scope; nothing else changes.
+  Prerequisites: none. Related: GEN.240, GEN.322, GEN.323.
 
 ## VIEW: The view from a planet
 
