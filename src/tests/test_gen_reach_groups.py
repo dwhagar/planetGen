@@ -26,6 +26,9 @@ TIERED = scatter_limits.luminosity_pass(LIMITS)
 BY_TIER = brightStars.tier_fractions_of(TIERED)
 SHELL, OUTLINE = 800, 60
 """A shell the toy halo fills and an outline that reaches 60 bands either side of its equator."""
+PLAN_SEED = bytes(range(16))
+"""A fixed galaxy seed: a galaxy with none draws a new scatter seed every run, and with a few hundred stars expected a run
+may place none beyond the outline of the shells that have one."""
 
 
 def _outline_volume(shell, high_band):
@@ -180,7 +183,8 @@ def test_a_plan_scatter_covers_the_reach_and_a_pre_placed_star_is_never_drawn_tw
     monkeypatch.setattr(tuning, "SCATTER_COVERS_REACH", True)
     from tests.test_bright_star_scatter import E_VALUE as e_value, EDGE_PC as edge_pc, SHAPE as shape
     store.save_galaxy_shape(shape, edge_pc=edge_pc, outer_shell_index=8, expected_system_count_at_density_1=e_value,
-                            config=mysql_config, cell_star_ceiling=1e12, reach_shell_index=12)
+                            config=mysql_config, cell_star_ceiling=1e12, reach_shell_index=12,
+                            galaxy_seed=PLAN_SEED)
     store.replace_galaxy_shells(EXTENTS, config=mysql_config)
     summary = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only",
                                                        "--bright-star-min-luminosity", "30000"))
