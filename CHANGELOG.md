@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1633] - 2026-10-17
+
+**Headline:** The Bug Hunt lane is recorded as the proposed owner of the open Phase 1 bugs.
+
+### Changed
+- 31 bug items (the eight that had no owner, and the bug phase Core 1 had not started) now name Bug Hunt as proposed owner in TODO.md and the 8.1 plan notes; Core 1 keeps TEST.193, TEST.195, DB.33, DB.29 and GEN.229.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1632] - 2026-10-17
 
 **Headline:** TEST.207 is withdrawn from the plan: the accessibility fixture errors it described were already fixed.
