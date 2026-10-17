@@ -3,6 +3,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>planetGen Architecture</title>
+<meta name="description" content="The architecture as an illustrated overview: the modules, the main flows, the data and the deployment; for anyone new to the code. The architecture map goes down to functions.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -142,6 +143,7 @@ footer{margin-top:60px;color:var(--muted);font-size:.85rem;border-top:1px solid 
 <div class="wrap">
   <header>
     <span class="eyebrow">planetGen · version 8.0.1723 · content schema v106 · control schema v14 · snapshot of 2026-10-17</span>
+    <div class="lede" style="margin:8px 0 0"><a href="../index.html">Docs index</a> · <a href="architecture-map.html">Architecture map (down to functions)</a></div>
     <h1 style="margin-top:6px">Architecture</h1>
     <p class="lede">How the procedural galaxy generator fits together: what a person runs, the generation library, the one module that writes MySQL, the Flask site that serves the maps, and how it is installed and released. Space is a spherical grid: every sector is addressed by shell, band and wedge. The code map and the five flows below are taken from <code>docs/design/architecture.md</code>, which is the text to edit; this page is the illustrated snapshot of it.</p>
     <div class="meta"><span><b>134,467</b> lines of source</span><span><b>334</b> source files</span><span><b>441</b> test files</span><span><b>61</b> content tables</span><span><b>18</b> control tables</span><span><b>43</b> page templates</span></div>

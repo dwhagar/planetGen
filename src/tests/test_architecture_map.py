@@ -126,6 +126,11 @@ def test_the_check_command_reports_a_stale_module_list(tmp_path, monkeypatch, ca
     assert amap.main(["--check"]) == 0
 
 
+def _heading(page, text):
+    """Waits for the view to be the one named `text` (a click changes the hash, and the page renders after it)."""
+    page.wait_for_function("t => (document.querySelector('h2') || {textContent: ''}).textContent.trim().startsWith(t)", arg=text)
+
+
 def test_the_page_opens_offline_and_drills_down_to_a_functions_source(browser):
     page = browser.new_page()
     outside, errors = [], []
@@ -136,14 +141,15 @@ def test_the_page_opens_offline_and_drills_down_to_a_functions_source(browser):
         page.wait_for_selector("body[data-ready='1']", timeout=60000)
         assert page.locator("rect.box").count() >= 15
         page.click("g[data-area='queue'] rect", force=True)
-        assert page.inner_text("h2") == "queue"
+        _heading(page, "queue")
         page.click("td > a[href='#/mod/planetgen.queue.units']")
-        assert page.inner_text("h2") == "queue.units"
+        _heading(page, "queue.units")
         page.click("tbody tr a:text-is('run_unit')")
-        assert page.inner_text("h2").startswith("run_unit")
+        _heading(page, "run_unit")
         assert "def run_unit" in page.inner_text("pre.src")
         assert page.locator("ul.edges li").count() > 0
         page.goto("file://" + PAGE + "#/flow")
+        _heading(page, "Flows")
         page.wait_for_selector("section")
         assert page.locator("section").count() >= 5
         page.fill("#search", "ensure_workers")
