@@ -1,0 +1,44 @@
+{#- planetgen/web/templates/admin_images.html -- /admin/settings/images (ADM.44). -#}
+{% extends "base.html" %}
+{% block content %}
+{%- if message %}<p class="hint" role="status">{{ message }}</p>{% endif %}
+{%- if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+{%- if data %}
+<p class="inline-links">The pictures the site gives browsers and link previews. A picture is checked when it is uploaded and kept under a name made from its content. The other options for icons and link previews are on the <a href="{{ page_url('admin_settings') }}">settings page</a>.</p>
+{%- for image in data.images %}
+<section class="panel" aria-labelledby="image-{{ image.kind }}">
+  <h2 id="image-{{ image.kind }}">{{ image.title }}</h2>
+  <p>{{ image.help }}</p>
+  {%- if image.url %}
+  <p>In use: <a href="{{ image.url }}">{{ image.name }}</a> ({{ image.mime }}{% if image.width %}, {{ image.width }} by {{ image.height }}{% endif %}).</p>
+  <p><img class="settings-image" src="{{ image.url }}" alt="The {{ image.title | lower }} in use"{% if image.width %} width="{{ [image.width, 240] | min }}"{% endif %}></p>
+  {%- elif image.kind == 'default_image' %}
+  <p>In use: the built-in picture.</p>
+  <p><img class="settings-image" src="{{ data.built_in_preview }}" alt="The built-in link preview picture" width="240"></p>
+  {%- elif image.kind == 'favicon_svg' %}
+  <p>In use: the built-in icon.</p>
+  {%- else %}
+  <p>None is set.</p>
+  {%- endif %}
+  <form method="post" action="{{ page_url('admin_images') }}" enctype="multipart/form-data" class="search-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="kind" value="{{ image.kind }}">
+    <div class="search-field">
+      <label for="file-{{ image.kind }}">New file ({{ image.formats | map('upper') | join(' or ') }}, up to {{ data.max_bytes // 1024 }} KB)</label>
+      <input type="file" id="file-{{ image.kind }}" name="file" accept="{% for f in image.formats %}.{{ f }}{% if not loop.last %},{% endif %}{% endfor %}" required>
+    </div>
+    <button type="submit" class="btn">Upload</button>
+  </form>
+  {%- if image.url %}
+  <form method="post" action="{{ page_url('admin_images') }}" class="settings-confirm">
+    {{ csrf_field() }}
+    <input type="hidden" name="kind" value="{{ image.kind }}">
+    <button type="submit" name="remove" value="1" class="btn btn-secondary">Use the built-in one</button>
+  </form>
+  {%- endif %}
+</section>
+{%- endfor %}
+{%- else %}
+<section class="panel"><p>The pictures could not be loaded.</p></section>
+{%- endif %}
+{% endblock %}

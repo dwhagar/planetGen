@@ -42,6 +42,7 @@ from collections import namedtuple
 import numpy as np
 
 from planetgen import tuning
+from planetgen.util import detmath
 
 GalaxyShape = namedtuple(
     "GalaxyShape",
@@ -248,7 +249,7 @@ HALO_MASS_STEPS = 60
 
 def _halo_scalar(r_cyl, z, terms):
     """`_halo` at one point, in plain floats (the one-point forms run per cell)."""
-    ratio = max(math.hypot(r_cyl, z / terms["halo_axis_ratio"]), terms["halo_core_pc"]) / terms["halo_break_pc"]
+    ratio = max(detmath.hypot(r_cyl, z / terms["halo_axis_ratio"]), terms["halo_core_pc"]) / terms["halo_break_pc"]
     return terms["halo_amplitude"] * ratio ** -(terms["halo_inner_slope"] if ratio < 1.0 else terms["halo_outer_slope"])
 
 
@@ -263,7 +264,7 @@ def _halo(r_cyl, z, terms):
 def halo_density(position_pc, shape):
     """The halo's `relative_density` at `position_pc` (`k_norm` applied): what the halo adds to a cell."""
     x, y, z = position_pc
-    return shape.k_norm * _halo_scalar(math.hypot(x, y), z, halo_terms(shape))
+    return shape.k_norm * _halo_scalar(detmath.hypot(x, y), z, halo_terms(shape))
 
 
 def halo_local_density_scale(shape):
@@ -332,7 +333,7 @@ def nuclear_bound(r_cyl, z, shape):
     """The nuclear terms' sum at `(r_cyl, z)` (unnormalized). Both depend on the radius or the height alone, so
     this is their value at any azimuth and the bound of the sector's outline."""
     terms = model_terms(shape)
-    return _nuclear_cluster(math.hypot(r_cyl, z), terms) + _nuclear_disc(r_cyl, z, terms)
+    return _nuclear_cluster(detmath.hypot(r_cyl, z), terms) + _nuclear_disc(r_cyl, z, terms)
 
 
 def _bulge(x, y, z, shape, terms):
@@ -369,7 +370,7 @@ def _components(position_pc, shape):
     point, unnormalized."""
     x, y, z = position_pc
     terms = model_terms(shape)
-    r_cyl = math.hypot(x, y)
+    r_cyl = detmath.hypot(x, y)
     thin = math.exp(-r_cyl / shape.disk_scale_length_pc) * _vertical(z, shape.disk_scale_height_pc)
     return _bulge(x, y, z, shape, terms), thin, _thick_disk(r_cyl, z, shape, terms), _arm_cosine(x, y, shape)
 
@@ -390,8 +391,8 @@ def _raw_density(position_pc, shape):
               unnormalized (`>= 0`).
     """
     bulge, thin, thick, arm_cos = _components(position_pc, shape)
-    halo = _halo_scalar(math.hypot(position_pc[0], position_pc[1]), position_pc[2], halo_terms(shape))
-    nuclear = nuclear_bound(math.hypot(position_pc[0], position_pc[1]), position_pc[2], shape)
+    halo = _halo_scalar(detmath.hypot(position_pc[0], position_pc[1]), position_pc[2], halo_terms(shape))
+    nuclear = nuclear_bound(detmath.hypot(position_pc[0], position_pc[1]), position_pc[2], shape)
     return bulge + thin * shape.arm_level * (1 + shape.arm_amplitude * arm_cos) + thick + halo + nuclear
 
 
@@ -399,7 +400,7 @@ def _arm_cosine(x, y, shape):
     """`cos(arm_count * (theta - theta_arm))` at `(x, y)`: 1 on an arm's
     crest, -1 midway between arms; 0 at the center, where arms are
     undefined."""
-    r_cyl = math.hypot(x, y)
+    r_cyl = detmath.hypot(x, y)
     if r_cyl <= 1e-9:
         return 0.0
     theta = math.atan2(y, x)
@@ -438,7 +439,7 @@ def population_densities(position_pc, shape):
     z = position_pc[2]
     bulge, thin, thick, arm_cos = _components(position_pc, shape)
     disk = shape.k_norm * thin * shape.arm_level * (1 + shape.arm_amplitude * arm_cos)
-    halo = shape.k_norm * _halo_scalar(math.hypot(position_pc[0], position_pc[1]), z, halo_terms(shape))
+    halo = shape.k_norm * _halo_scalar(detmath.hypot(position_pc[0], position_pc[1]), z, halo_terms(shape))
 
     ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
     formation_span = tuning.STAR_FORMATION_AGE_RANGE_GY[1] - tuning.STAR_FORMATION_AGE_RANGE_GY[0]
@@ -460,8 +461,8 @@ def population_densities(position_pc, shape):
     densities["halo"] = max(halo, 0.0)
     densities.update(_component_densities(position_pc, shape))
     terms = model_terms(shape)
-    r_cyl = math.hypot(position_pc[0], position_pc[1])
-    densities["nuclear_cluster"] = shape.k_norm * _nuclear_cluster(math.hypot(r_cyl, z), terms)
+    r_cyl = detmath.hypot(position_pc[0], position_pc[1])
+    densities["nuclear_cluster"] = shape.k_norm * _nuclear_cluster(detmath.hypot(r_cyl, z), terms)
     densities["nuclear_disc"] = shape.k_norm * _nuclear_disc(r_cyl, z, terms)
     return densities
 

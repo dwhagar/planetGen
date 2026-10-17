@@ -71,7 +71,7 @@ from planetgen.admin import activity_log
 from planetgen.db import alembic_runner, login, point_columns, scatter_systems
 from planetgen.names import object_id as objectId
 from planetgen import tuning
-from planetgen.galaxy import component_field as componentField, components as galaxyComponents, nebula_field as nebulaField, object_uid as objectUid, seed as galaxySeed, uid as galaxyUid, version_key as versionKey
+from planetgen.galaxy import component_field as componentField, components as galaxyComponents, nebula_field as nebulaField, object_uid as objectUid, scatter_limits as scatterLimits, seed as galaxySeed, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, radiation, spin
 from planetgen.util import log
 from planetgen.util.settings import env_name, get_settings
@@ -112,6 +112,7 @@ from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sect
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.generation.wide_binary import WideBinaryPair
 from planetgen.util import draw
+from planetgen.util import detmath
 
 _SYSTEM_POINT = point_columns.LAYOUTS["star_systems"]
 """point_columns.PointLayout: The point of a star system (GEN.335), whose SQL below takes its column lists from it."""
@@ -4277,7 +4278,7 @@ def innermost_container(point_pc, containers, own_radius_pc=0.0, own=None):
             continue
         if container["radius_pc"] <= own_radius_pc:
             continue
-        if math.dist(point_pc, container["center"]) > container["radius_pc"]:
+        if detmath.dist(point_pc, container["center"]) > container["radius_pc"]:
             continue
         if best is not None and container["radius_pc"] >= best["radius_pc"]:
             continue
@@ -4573,7 +4574,7 @@ class _SystemGrid:
             best = sorted(
                 (distance, system_id)
                 for system_id, other in self.systems
-                if system_id != exclude and (distance := math.dist(point, other)) <= limit_pc
+                if system_id != exclude and (distance := detmath.dist(point, other)) <= limit_pc
             )
             return best[:count]
         for shell in range(max_shell + 1):
@@ -4587,7 +4588,7 @@ class _SystemGrid:
                         for system_id, other in self.cells.get((cx + dx, cy + dy, cz + dz), ()):
                             if system_id == exclude:
                                 continue
-                            distance = math.dist(point, other)
+                            distance = detmath.dist(point, other)
                             if distance <= limit_pc:
                                 best.append((distance, system_id))
             best.sort()
@@ -4763,7 +4764,7 @@ def _sectors_near(conn, centers, reach_pc):
     points = list(centers.values())
     for row in rows:
         center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
-        if any(math.dist(center, p) <= reach_pc for p in points):
+        if any(detmath.dist(center, p) <= reach_pc for p in points):
             near[row["id"]] = center
     return near
 
@@ -5125,7 +5126,7 @@ def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=No
         point = local_to_galaxy_pc(center, tuple(ly_to_pc(c) for c in offset_ly))
         placement_values = (*point, math.sqrt(sum(c * c for c in point)))
         # GEN.125: on the galaxy's rotation curve at its place.
-        speed_kms, _period_gy = calculate_galactic_orbit(pc_to_ly(math.hypot(point[0], point[1])))
+        speed_kms, _period_gy = calculate_galactic_orbit(pc_to_ly(detmath.hypot(point[0], point[1])))
         velocity_kms = tuple(v / 1000.0 for v in galactic_velocity_ms(point, speed_kms))
     elif offset_ly is not None:
         raise FacilityError("only a stand-alone facility has a position in space")
@@ -5439,7 +5440,7 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
         " WHERE host_type = 'space' AND center_x_pc IS NOT NULL"
         " AND (next_update_due IS NULL OR next_update_due <= ?) ORDER BY next_update_due, id", (clock.end_unix,)
     ).fetchall():
-        speed_kms, period_gy = calculate_galactic_orbit(pc_to_ly(math.hypot(row["center_x_pc"], row["center_y_pc"])))
+        speed_kms, period_gy = calculate_galactic_orbit(pc_to_ly(detmath.hypot(row["center_x_pc"], row["center_y_pc"])))
         epoch, interval, due = _due_interval_s(row, clock, speed_kms, "galactic")
         if due > clock.end_unix or (budget is not None and not budget.take("space_facilities")):
             scheduled.append((epoch, due, row["id"]))
@@ -5545,7 +5546,7 @@ def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1), budget=N
             (clock.end_unix,)).fetchall()
         for row in rows:
             point = (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0, row["position_z_mpc"] / 1000.0)
-            speed_kms, period_gy = calculate_galactic_orbit(pc_to_ly(math.hypot(point[0], point[1])))
+            speed_kms, period_gy = calculate_galactic_orbit(pc_to_ly(detmath.hypot(point[0], point[1])))
             stored = None not in (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
             velocity = ((row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]) if stored
                         else tuple(c / 1000.0 for c in galactic_velocity_ms(point, speed_kms)))
@@ -5719,25 +5720,63 @@ def delete_unbuilt_bright_stars(conn, address):
     conn.execute(f"DELETE FROM bright_stars WHERE {where}", tuple(address))
 
 
-def clear_bright_star_pass(conn, part, mass_limit_sol):
+def _cell_tiers(limits, cells):
+    """`{(shell, band, wedge): tier index}` of each of `cells`, one tier lookup per shell (`ScatterLimits.tiers_in`)."""
+    by_shell = {}
+    for cell in cells:
+        by_shell.setdefault(cell[0], []).append(cell)
+    found = {}
+    for shell_index, group in by_shell.items():
+        high = max(abs(cell[1]) for cell in group)
+        tiers = limits.tiers_in(shell_index, high)
+        for cell in group:
+            found[cell] = int(tiers[cell[1] + high])
+    return found
+
+
+def _delete_bright_stars_by_id(conn, ids, batch_size=500):
+    """Deletes the bright stars with these ids and their member trees."""
+    for start in range(0, len(ids), batch_size):
+        chunk = ids[start:start + batch_size]
+        marks = ", ".join("?" for _ in chunk)
+        scatter_systems.delete_member_trees_where(conn, "bright_stars", f"t.id IN ({marks})", tuple(chunk))
+        conn.execute(f"DELETE FROM bright_stars WHERE id IN ({marks})", tuple(chunk))
+
+
+def clear_bright_star_pass(conn, part, limits):
     """
     Deletes one pass of the star scatter and leaves the other (GEN.196):
-    `part` "mass" removes the stars born at `mass_limit_sol` or more (the mass
+    `part` "mass" removes the stars born at their band's mass limit or more (the mass
     pass's), "luminosity" the lighter ones (the luminosity pass's). The
     sectors' own bright-star levels go back to untouched, as
     `clear_bright_stars` does, and what the removed pass recorded is
     forgotten: the mass limit for "mass", the floor and seed for "luminosity".
+
+    `limits` (`galaxy.scatter_limits.ScatterLimits`, GEN.333) gives each band's mass limit, which the core's
+    differs from the baseline's: a star at or above the highest limit is the mass pass's wherever it is, one under
+    the lowest the luminosity pass's, and the few between are told apart by their band's tier.
     """
-    if part == "mass":
-        scatter_systems.delete_member_trees_where(conn, "bright_stars", "t.initial_mass_sol >= ?", (mass_limit_sol,))
-        conn.execute("DELETE FROM bright_stars WHERE initial_mass_sol >= ?", (mass_limit_sol,))
-        forget = "bright_star_mass_limit_sol = NULL"
-    elif part == "luminosity":
-        scatter_systems.delete_member_trees_where(conn, "bright_stars", "t.initial_mass_sol < ?", (mass_limit_sol,))
-        conn.execute("DELETE FROM bright_stars WHERE initial_mass_sol < ?", (mass_limit_sol,))
-        forget = "bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL"
-    else:
+    if part not in ("mass", "luminosity"):
         raise ValueError(f"part must be 'mass' or 'luminosity', not {part!r}")
+    masses = [found.mass_limit_sol for found in limits.tiers]
+    low, high = min(masses), max(masses)
+    if part == "mass":
+        scatter_systems.delete_member_trees_where(conn, "bright_stars", "t.initial_mass_sol >= ?", (high,))
+        conn.execute("DELETE FROM bright_stars WHERE initial_mass_sol >= ?", (high,))
+        forget = "bright_star_mass_limit_sol = NULL"
+    else:
+        scatter_systems.delete_member_trees_where(conn, "bright_stars", "t.initial_mass_sol < ?", (low,))
+        conn.execute("DELETE FROM bright_stars WHERE initial_mass_sol < ?", (low,))
+        forget = "bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL"
+    if low < high:
+        between = conn.execute(
+            "SELECT id, shell_index, band_index, wedge_index, initial_mass_sol FROM bright_stars"
+            " WHERE initial_mass_sol >= ? AND initial_mass_sol < ?", (low, high)).fetchall()
+        tiers = _cell_tiers(limits, {(row["shell_index"], row["band_index"], row["wedge_index"]) for row in between})
+        _delete_bright_stars_by_id(conn, [
+            row["id"] for row in between
+            if (row["initial_mass_sol"] >= masses[tiers[(row["shell_index"], row["band_index"], row["wedge_index"])]])
+            == (part == "mass")])
     conn.execute("UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0")
     conn.execute("UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0")
     conn.execute("UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL")
@@ -5767,6 +5806,20 @@ def bright_star_mass_limit(conn):
     return float(row["bright_star_mass_limit_sol"])
 
 
+def scatter_limits_of(conn, skeleton=None):
+    """
+    The galaxy's scatter limits by place (`galaxy.scatter_limits.ScatterLimits`, GEN.333): the baseline the scatter
+    recorded (`bright_star_scatter_settings`, `bright_star_mass_limit`) and the core and halo settings of
+    `galaxy_shape`. Before any scatter ran (or with no galaxy) no tier has a limit.
+    """
+    skeleton = get_galaxy_shape(conn) if skeleton is None else skeleton
+    if skeleton is None:
+        return scatterLimits.ScatterLimits(None, None, None)
+    settings = bright_star_scatter_settings(conn)
+    return scatterLimits.ScatterLimits.of(skeleton, None if settings is None else settings[0],
+                                          bright_star_mass_limit(conn))
+
+
 def bright_star_scatter_settings(conn):
     """`(min_luminosity_sol, seed)` of the galaxy's scatter, or `None`
     when none has run (a fill then behaves exactly as before)."""
@@ -5777,19 +5830,30 @@ def bright_star_scatter_settings(conn):
     return row["bright_star_min_luminosity_sol"], row["bright_star_seed"]
 
 
-def bright_star_marked_addresses(conn, min_mass_sol, min_luminosity_w):
+def bright_star_marked_addresses(conn, limits):
     """
     The sectors the star scatter's mass pass marked (GEN.185): the
-    `(shell, band, wedge)` addresses holding a star born at `min_mass_sol`
-    solar masses or more that shines at `min_luminosity_w` watts or more.
+    `(shell, band, wedge)` addresses holding a star born at their band's mass limit
+    or more that shines at their band's luminosity floor or more (`limits`, a
+    `galaxy.scatter_limits.ScatterLimits`: the core, baseline and halo tiers each have their own, GEN.333).
     The luminosity pass skips them, since they already hold a star that
     bright. Read between the passes, when the table holds only the mass
     pass's stars.
     """
+    tiers = [(found.mass_limit_sol, found.min_luminosity_sol * physical_constants.SOLAR_LUMINOSITY)
+             for found in limits.tiers]
+    if any(mass is None for mass, _watts in tiers):
+        return set()
+    flags = ", ".join(f"MAX(initial_mass_sol >= ? AND luminosity_w >= ?) AS t{index}" for index in range(3))
+    values = [value for item in tiers for value in item]
     rows = conn.execute(
-        "SELECT DISTINCT shell_index, band_index, wedge_index FROM bright_stars"
-        " WHERE initial_mass_sol >= ? AND luminosity_w >= ?", (min_mass_sol, min_luminosity_w)).fetchall()
-    return {(row["shell_index"], row["band_index"], row["wedge_index"]) for row in rows}
+        f"SELECT shell_index, band_index, wedge_index, {flags} FROM bright_stars"
+        " WHERE initial_mass_sol >= ? AND luminosity_w >= ?"
+        " GROUP BY shell_index, band_index, wedge_index",
+        (*values, min(mass for mass, _watts in tiers), min(watts for _mass, watts in tiers))).fetchall()
+    cells = [(row["shell_index"], row["band_index"], row["wedge_index"]) for row in rows]
+    found = _cell_tiers(limits, cells)
+    return {cell for cell, row in zip(cells, rows) if row[f"t{found[cell]}"]}
 
 
 def stamp_phenomenon_scatter_epoch(conn):
@@ -6225,8 +6289,7 @@ def bright_star_fill_level(conn, shell_index, band_index, wedge_index):
             (shell_index, band_index, wedge_index))
         if level is not None and level > 0:
             return level
-    settings = bright_star_scatter_settings(conn)
-    return settings[0] if settings else None
+    return scatter_limits_of(conn).level_at(shell_index, band_index)
 
 
 def bright_star_fill_mass_limit(conn, shell_index, band_index, wedge_index):
@@ -6241,7 +6304,7 @@ def bright_star_fill_mass_limit(conn, shell_index, band_index, wedge_index):
             (shell_index, band_index, wedge_index))
         if mass is not None:
             return mass
-    return bright_star_mass_limit(conn)
+    return scatter_limits_of(conn).mass_limit_at(shell_index, band_index)
 
 
 DENSITY_RATIO_WINDOW = 1000
@@ -6280,7 +6343,7 @@ def record_sector_stats(conn, sector_id, address, center_pc):
             # GEN.281: a capped cell aimed at the stars it resolves, so its ratio to what it got stays meaningful.
             found = galaxyResolution.cell_resolution(
                 galaxyProfile.sector_profile(address, skeleton), skeleton.cell_star_ceiling,
-                skeleton.fill_luminosity_cap_sol, bright_star_mass_limit(conn))
+                skeleton.fill_luminosity_cap_sol, scatter_limits_of(conn, skeleton).mass_limit_at(*address[:2]))
             if found.capped:
                 expected = found.resolved_systems
     systems = conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["n"]
@@ -6381,13 +6444,13 @@ def galaxy_density_ratio(conn):
     return row["density_ratio_avg"], int(row["density_ratio_samples"])
 
 
-def delete_unfinished_band(conn, below_luminosity_w, keep_addresses=(), batch_size=500):
+def delete_unfinished_band(conn, limits, keep_addresses=(), batch_size=500):
     """
-    Deletes the unbuilt bright stars below `below_luminosity_w` (the
-    galaxy's star-fill level) outside `keep_addresses`: what a band run
+    Deletes the unbuilt bright stars below the galaxy's star-fill level outside `keep_addresses`: what a band run
     (`planetgen plan --bright-stars-down-to`) that stopped part way left
     in the bands it got through, since the level only moves once a band
-    is whole (GEN.32). Every finished scatter or band is at or above the
+    is whole (GEN.32). `limits` (`galaxy.scatter_limits.ScatterLimits`, GEN.333) is the level before the run, and
+    each band's level is its tier's. Every finished scatter or band is at or above the
     level, and the stars below it that belong there (a backfilled block's,
     a filled sector's) are in `keep_addresses` or built.
 
@@ -6395,25 +6458,30 @@ def delete_unfinished_band(conn, below_luminosity_w, keep_addresses=(), batch_si
         int: Stars deleted.
     """
     keep = set(keep_addresses)
+    floors = [found.min_luminosity_sol * physical_constants.SOLAR_LUMINOSITY for found in limits.tiers]
     rows = conn.execute(
         "SELECT shell_index, band_index, wedge_index FROM bright_stars"
         " WHERE luminosity_w < ? AND star_system_id IS NULL"
-        " GROUP BY shell_index, band_index, wedge_index", (below_luminosity_w,)).fetchall()
+        " GROUP BY shell_index, band_index, wedge_index", (max(floors),)).fetchall()
     cells = [(row["shell_index"], row["band_index"], row["wedge_index"]) for row in rows]
     cells = [cell for cell in cells if cell not in keep]
+    tiers = _cell_tiers(limits, cells)
     deleted = 0
-    for start in range(0, len(cells), batch_size):
-        chunk = cells[start:start + batch_size]
-        placeholders = ", ".join("(?, ?, ?)" for _ in chunk)
-        scatter_systems.delete_member_trees_where(
-            conn, "bright_stars", "t.luminosity_w < ? AND t.star_system_id IS NULL"
-            f" AND (t.shell_index, t.band_index, t.wedge_index) IN ({placeholders})",
-            (below_luminosity_w, *[value for cell in chunk for value in cell]))
-        cur = conn.execute(
-            "DELETE FROM bright_stars WHERE luminosity_w < ? AND star_system_id IS NULL"
-            f" AND (shell_index, band_index, wedge_index) IN ({placeholders})",
-            (below_luminosity_w, *[value for cell in chunk for value in cell]))
-        deleted += cur.rowcount
+    for tier in range(3):
+        below_luminosity_w = floors[tier]
+        mine = [cell for cell in cells if tiers[cell] == tier]
+        for start in range(0, len(mine), batch_size):
+            chunk = mine[start:start + batch_size]
+            placeholders = ", ".join("(?, ?, ?)" for _ in chunk)
+            scatter_systems.delete_member_trees_where(
+                conn, "bright_stars", "t.luminosity_w < ? AND t.star_system_id IS NULL"
+                f" AND (t.shell_index, t.band_index, t.wedge_index) IN ({placeholders})",
+                (below_luminosity_w, *[value for cell in chunk for value in cell]))
+            cur = conn.execute(
+                "DELETE FROM bright_stars WHERE luminosity_w < ? AND star_system_id IS NULL"
+                f" AND (shell_index, band_index, wedge_index) IN ({placeholders})",
+                (below_luminosity_w, *[value for cell in chunk for value in cell]))
+            deleted += cur.rowcount
     return deleted
 
 
@@ -6504,7 +6572,7 @@ def sectors_reached_by(conn, center_pc, radius_pc):
     ).fetchall()
     return [
         row["id"] for row in rows
-        if math.dist(center_pc, (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])) <= reach
+        if detmath.dist(center_pc, (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])) <= reach
     ]
 
 

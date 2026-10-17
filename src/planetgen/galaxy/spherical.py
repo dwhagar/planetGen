@@ -55,6 +55,7 @@ from planetgen.galaxy.frame import (
     local_to_galaxy_pc,
     sector_orientation,
 )
+from planetgen.util import detmath
 
 __all__ = [
     "BAND_ARC_EDGES", "CAP_RIM_WEDGES", "HAND_CUT_SHELLS", "SectorCell", "ShellLayout",
@@ -950,7 +951,7 @@ def enumerate_sectors_within_radius(center, radius_pc, edge_pc):
                     wedges = _wedges_near_longitude(n, lon_c, width + 1e-6)
             for wedge in wedges:
                 x, y, zz = sector_position_pc(shell, band, wedge, edge_pc)
-                distance = math.dist((x, y, zz), center)
+                distance = detmath.dist((x, y, zz), center)
                 if distance <= radius_pc + eps:
                     yield (shell, band, wedge, x, y, zz, distance)
 

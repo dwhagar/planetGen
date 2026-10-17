@@ -64,6 +64,7 @@ from collections import namedtuple
 
 from planetgen import tuning
 from planetgen.util.format import format_period_years
+from planetgen.util import detmath
 
 FRAME_GALACTIC = "galactic"
 """str: The Galactic Standard Frame (North = the galactic core)."""
@@ -189,7 +190,7 @@ def course_between(origin, destination, frame=FRAME_GALACTIC, center=_ORIGIN, up
     d_up = _dot(displacement, u_hat)
 
     bearing = math.degrees(math.atan2(d_east, d_north)) % 360.0
-    elevation = math.degrees(math.atan2(d_up, math.hypot(d_north, d_east)))
+    elevation = math.degrees(math.atan2(d_up, detmath.hypot(d_north, d_east)))
     return Course(distance_ly=distance, bearing_deg=bearing, mark_deg=elevation % 360.0,
                   elevation_deg=elevation, frame=frame)
 

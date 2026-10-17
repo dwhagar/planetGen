@@ -103,3 +103,17 @@ fractions of B, A and white dwarfs change, and M, K and G stay flat (M 74-75%, K
 2. Lower the young population's B share, or cut its weight, to bring local B stars to about 0.04%.
 3. Give the bulge a small young tail (about 10% under 5 Gyr, between the HST and microlensing figures).
 4. Add a metallicity gradient only if planet occurrence is later tied to it. Globular clusters are a second reason to add a metallicity value: their giant-planet cull is `10^(2 [Fe/H])` ([globular-clusters.md](globular-clusters.md) section 7).
+
+## How the proposals are built (Boss, 2026-10-16)
+
+Boss's NO FIXED CONTENT ruling (2026-10-16, 4:11 and 4:14 PM EDT) applies to all four proposals above. The numbers in them
+(a peak at 5 kpc, a slope of -0.28 dex per kpc, a dip inside 3 kpc, B stars at 0.04%, a bulge tail of 10% under 5 Gyr) are
+the Milky Way's observed values. They are test targets that show the derived result is plausible, never inputs to the
+generator and never a preset. GEN.134 is built derived: the star-formation profile by radius follows from the galaxy's own
+shape (its disk scale length, its bulge and bar, and the gas supply those imply), the B share follows from the mass function
+and the star-formation history, and the bulge's young tail follows from the bulge's own formation model. Each value is
+calculated or drawn from the existing seeds, with real science named for every link, and the Milky Way figures above are only
+what the plausibility test compares the result with.
+
+Boss chose Core 4 to take GEN.134 first and to research the inner-disc dip (2026-10-16, 8:40 PM EDT, card "Core 4 first").
+Core 4 asks Boss only for what it cannot look up or verify.
