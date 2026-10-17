@@ -14142,30 +14142,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   it yet.
   Prerequisites: none. Related: VIEW.3.
 
-- [ ] **DB.65 Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates**
-  From the GEN.372 precision audit (Core 1,
-  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
-  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
-  stored value. Done: `cell_index` and `cell_keys` in
-  `src/planetgen/.../cellkey.py` clamp the per-axis index at 2^21-1 so a
-  coordinate past the reach cannot wrap into another cell's key, and the
-  generated SQL expression does the same (one migration, which needs a
-  revision from Core 1); a test pins that a point beyond the reach maps
-  to the edge cell in both the Python and the SQL form. Small. Owner:
-  Core 1 (needs a migration revision).
-  Migration revision: 0105, after DB.53's 0104 (Core 1, 2026-10-16, 7:42 PM EDT;
-  numbers are assigned at merge time against main).
-  Migration revision shift (Core 3, GEN.324 #1993 merged about 4:55 AM
-  EDT as the lane reported): GEN.324 took 0105_satellite_stars because
-  main's head was 0104 and alembic_runner requires contiguous ids
-  (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
-  DB.65 0106, DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
-  order they merge.  Migration tests that count the populations of
-  chk_bright_stars_population use bright_stars.POPULATIONS (changed in
-  test_migration_halo_populations, test_migration_nuclear_structures and
-  test_migration_orbit_nodes).
-  Prerequisites: none. Related: GEN.372, DB.55.
-
 - [ ] **DB.66 The shape row carries the galaxy family and one column per density component, as a migration only**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
   generation based on known galaxy types, as a chain of required items
@@ -14204,7 +14180,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   EDT as the lane reported): GEN.324 took 0105_satellite_stars because
   main's head was 0104 and alembic_runner requires contiguous ids
   (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
-  DB.65 0106, DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
+  0106 DB.65 (merged, #2025), DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
   order they merge.
 
 - [ ] **DB.68 Planets and moons store the ozone column and the haze, dust and cloud optical depths**
@@ -14220,7 +14196,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   EDT as the lane reported): GEN.324 took 0105_satellite_stars because
   main's head was 0104 and alembic_runner requires contiguous ids
   (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
-  DB.65 0106, DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
+  0106 DB.65 (merged, #2025), DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
   order they merge.
   Prerequisites: GEN.413, GEN.414, DB.67. Related: DB.67.
 
@@ -14293,7 +14269,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   EDT as the lane reported): GEN.324 took 0105_satellite_stars because
   main's head was 0104 and alembic_runner requires contiguous ids
   (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
-  DB.65 0106, DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
+  0106 DB.65 (merged, #2025), DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
   order they merge.
 
 - [ ] **DB.70 Planets, moons and small bodies store the surface and small-body composition shares**
@@ -14343,7 +14319,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   EDT as the lane reported): GEN.324 took 0105_satellite_stars because
   main's head was 0104 and alembic_runner requires contiguous ids
   (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
-  DB.65 0106, DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
+  0106 DB.65 (merged, #2025), DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
   order they merge.
 
 - [ ] **DB.71 Planets and moons store the partial pressures of the added gases, not only the ten stored today**
@@ -17004,6 +16980,15 @@ clears each one.
   EDT, main with #2004, load 0.1): passed in 124.68 s. So it fails only
   under load; the two symptoms (the disc share short of 1, the scene
   never loading) both point to waits that are too short under load.
+  Sighting (Core 1, 2026-10-17, about 11:08 AM EDT as the lane reported,
+  DB.65's browser phase `scripts/test.py browser` on build
+  1cee3909da2b9fa6, 10:21 to 11:08 AM EDT, load about 10 on 4 cores):
+  failed once with "comparison failed" (the screenshot comparison of the
+  disc fade); 639 passed, 1 failed, 79 skipped. It passes alone (rerun
+  alone, 163.73 s on gw0, load 10.1). Fails on main: not checked.
+  Frequency: 1 of 1 full browser runs under load. Reproducer: run
+  `scripts/test.py browser` while another gate is running (load above
+  8). Bug Hunt owns it.
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
