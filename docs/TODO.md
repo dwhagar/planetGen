@@ -12899,6 +12899,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   item is labelled as such (source marker stand-in or placeholder, with
   this item as its replacement research) so it can be replaced without a
   search through the code.
+  Gemini batch 1 (2026-10-17, arrived at 10:52 AM EDT as the coordinator
+  reported; Boss pasted it into the "Gap-filling plan (2026-10-17)"
+  thread): galactic structural scaling laws, kinematics, assembly
+  histories and ex situ halo fractions. It is unverified input: no claim
+  in it replaces a placeholder until it is checked claim by claim
+  against the paper (verified wins on a contradiction). The gap-filling
+  thread will say how large the verification job is.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
