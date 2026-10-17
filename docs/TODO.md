@@ -9266,8 +9266,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   abundance pattern lives here. Done: a test checks the molar mass of
   every compound in the gas and materials tables against the sum of its
   elements; every number has a source.
-  Owner: Core 4 (proposed by the TODO thread, the same planet generation
-  code as the atmosphere items Boss gave it; to be confirmed).
+  Owner: Blocker 1 (Boss, 2026-10-17, 6:01 PM EDT, typed in the project
+  chat: "I want Blocker 1 to set itself up with PERF.118, GEN.438, and
+  GEN.440", after GEN.314 merges; it was proposed for Core 4 and never
+  started there).
   Part F of the Body composition research lane
   (docs/design/body-composition-parts/F-boss-note-check.md; 2026-10-17,
   1:28 AM EDT as the lane reported; checks Boss's research note of 1:22
@@ -9400,9 +9402,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done: the same star gives the same composition at any worker count; a
   test sweeps every kind of star in a generated galaxy and finds
   fractions that sum to one and match GEN.439's relations.
-  Owner: Core 4 (Boss tapped Core 4, 2026-10-17, 12:13 AM EDT, a card,
-  for the star composition items together with the other composition
-  design and table items).
+  Owner: Blocker 1 (Boss, 2026-10-17, 6:01 PM EDT, typed in the project
+  chat: "I want Blocker 1 to set itself up with PERF.118, GEN.438, and
+  GEN.440", after GEN.314 merges, with leave to take what it needs to
+  finish them unless already started elsewhere, 6:01 PM EDT: "Unless
+  it's already started elsewhere blocker can grab whatever items it
+  needs to complete those 3 once the current finishes"; it replaces
+  Boss's card tap for Core 4 of 12:13 AM EDT). The chain is GEN.438, then
+  GEN.439, then this item; GEN.439 moves to Blocker 1 too unless Core 4
+  has started it.
   Sources check (GEN.425): it returns the abundances the planet draws
   need, not only X, Y and Z: the iron, magnesium, silicon, oxygen and
   carbon ratios (Fe/Si, Mg/Si, C/O) with the scatter of the relations
@@ -14344,9 +14352,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the same arguments is the same every time; a test lists a `galaxy` run
   and a `plan` run and checks every command named is registered; the
   PERF.106 to PERF.108 stages are each added as commands of this wrapper
-  and nothing else starts a stage. Owner: Core 5 (the chain of PERF.106
-  to PERF.108 and PERF.98, built first so the three stage items fill the
-  wrapper).
+  and nothing else starts a stage. Owner: Blocker 1 (Boss, 2026-10-17,
+  6:01 PM EDT, typed in the project chat: "I want Blocker 1 to set itself
+  up with PERF.118, GEN.438, and GEN.440", after GEN.314 merges; it was
+  Core 5's, which had only read it). Core 5 keeps the stage items
+  PERF.106 to PERF.108 and PERF.98 and builds them on this wrapper once
+  it has merged.
   Prerequisites: none. Related: PERF.86, PERF.97, PERF.98, PERF.106,
   PERF.107, PERF.108.
   Decided (Boss, 2026-10-17, 4:15 PM EDT): from the command line Boss
