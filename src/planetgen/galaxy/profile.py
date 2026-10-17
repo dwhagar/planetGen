@@ -37,6 +37,8 @@ import functools
 import math
 from dataclasses import dataclass, field
 
+import numpy as np
+
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField
 from planetgen.galaxy import density as galaxyDensity
@@ -202,6 +204,23 @@ def _young_and_old_against_the_solar_circle(populations, shape):
     young = 0.0 if reference <= 0.0 else young_share / reference
     old = (1.0 - young_share) / (1.0 - reference) if reference < 1.0 else 0.0
     return young, old
+
+
+def planetary_nebula_factor_array(x, y, z, shape):
+    """
+    `kind_factors_at`'s `planetary-nebula` factor at arrays of points (GEN.528): the share of the stars that are not
+    young against the solar circle's (`_reference_young_share`), capped at 1, from the continuous populations' array
+    form. The phenomenon scatters weigh a longitude bin by it, so a place where the young are most of the stars (an
+    arm's crest, the inner disk's thin layer) makes fewer planetary nebulae than an old one, as the sector fill does.
+    """
+    mix = galaxyDensity.population_densities_array(x, y, z, shape)
+    total = sum(np.maximum(value, 0.0) for value in mix.values())
+    young = np.maximum(mix["young"], 0.0) + np.maximum(mix["satellite_young"], 0.0)
+    share = np.where(total > 0.0, young / np.where(total > 0.0, total, 1.0), 0.0)
+    reference = _reference_young_share(shape)
+    if reference >= 1.0:
+        return np.zeros_like(share)
+    return np.minimum(1.0, (1.0 - share) / (1.0 - reference))
 
 
 def type_ia_share_at(populations, shape):
