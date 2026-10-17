@@ -316,9 +316,15 @@ def _identifier_positions(tokens):
             found.add(i + 1)
         # `col = ...`, `col < ...` and the like, but not `CHARACTER SET = x`.
         if nxt is not None and nxt.text in ("=", "<", ">", "<=", ">=", "<>", "!=", "<=>") \
-                and not tok.is_word("SET", "COLLATE", "CHARSET"):
+                and not tok.is_word("SET", "COLLATE", "CHARSET") and not _is_lock_clause(tokens, i):
             found.add(i)
     return found
+
+
+def _is_lock_clause(tokens, i):
+    """`LOCK=NONE` (or SHARED, EXCLUSIVE, DEFAULT), the locking clause at the end of an `ALTER TABLE`."""
+    return tokens[i].is_word("LOCK") and i + 2 < len(tokens) and tokens[i + 2].is_word(
+        "NONE", "SHARED", "EXCLUSIVE", "DEFAULT")
 
 
 def reserved_identifiers(sql):
