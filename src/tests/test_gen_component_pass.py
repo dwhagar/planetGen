@@ -174,7 +174,7 @@ def test_the_phenomena_of_a_component_are_its_systems_times_each_classs_rate():
 @pytest.mark.db
 def test_a_plan_scatter_places_the_components_stars_and_phenomena(mysql_config):
     from tests.test_bright_star_scatter import E_VALUE as e_value, EDGE_PC as edge_pc, SHAPE as shape
-    found = [_cluster(mass=1.0e8, half=3.0, center=(20.0, 10.0, 5.0)),
+    found = [_cluster(mass=1.0e8, half=30.0, w0=5, center=(150.0, -90.0, 60.0)),
              _satellite(mass=1.0e8, half=40.0, center=(150.0, -90.0, 60.0))]
     store.save_galaxy_shape(shape, edge_pc=edge_pc, outer_shell_index=8, expected_system_count_at_density_1=e_value,
                             config=mysql_config, cell_star_ceiling=1e12, galaxy_seed=bytes(range(16)))
