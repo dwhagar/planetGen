@@ -2327,6 +2327,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane starts first.
   Prerequisites: MAP.239. Related: MAP.207,
   MAP.219, MAP.210, UX.115, GEN.322, API.27.
+  Possible second sighting (Boss, 2026-10-17, 3:09 PM EDT, screenshots
+  under /mnt/project-files/bugs/galaxy-halo-group-2026-10-17/): a loose
+  group of stars far above the disc on a fresh galaxy cannot be reached
+  or selected; filed as MAP.246 for Bug Hunt to reproduce and say
+  whether this item's cause explains it, and folded into this item if it
+  does.
 
 - [ ] **MAP.244 The maps and pages use the atmosphere colour where they showed the planet colour**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -2369,6 +2375,37 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 2 (the infinite zoom tree; behind PERF.105 and
   UX.118, among the maps).
   Prerequisites: none. Related: MAP.225, MAP.146, MAP.199, MAP.226.
+
+- [ ] **MAP.246 A loose group of stars far above the disc on a fresh galaxy cannot be reached by zoom or navigation and cannot be selected (bug)**
+  Boss (2026-10-17, 3:09 PM EDT, typed in the project chat, two
+  screenshots at
+  /mnt/project-files/bugs/galaxy-halo-group-2026-10-17/boss-screenshot-1.png
+  and boss-screenshot-2.png), filed by the TODO thread at the
+  coordinator's relay: "Ok, we've got a bug... fresh galaxy... We can
+  see the group of stars off to one corner there, I cannot get near them
+  nor can I select them." What the screenshots show: the Galaxy Map of a
+  fresh galaxy at 'In Sector 2·0·0', scale bar '500 sectors, 2 kpc
+  (6,523 ly)', the disc edge-on in the middle and a loose, roughly round
+  group of white points well above the disc (upper middle in the first,
+  upper right in the second, after Boss turned the view). Not reproduced
+  yet and the kind of object is not known (a satellite galaxy, a
+  globular cluster or a swarm of wanderers are all drawn beyond the disc
+  outline). Suspected relation, not checked in a browser: MAP.243
+  describes the halo's objects as drawn points that cannot be picked and
+  a zoom that stops short because blocks and hand-offs exist only inside
+  the outline; this may be the same cause seen on a group instead of a
+  black hole. Do: reproduce on a fresh galaxy (ask Boss for the seed
+  through the coordinator if the same group does not appear), name what
+  the group is, say whether MAP.243's cause explains it, and fix the
+  cause when it is bug-sized. Done: the cause is recorded on this item;
+  if it is exactly the cause MAP.243 names (no block or window outside
+  the outline), this item is folded into MAP.243 with the screenshots as
+  its sighting and reported here; otherwise a click or wheel run onto
+  the group selects and reaches it, a browser test on a seeded galaxy
+  places such a group and selects it, and nothing is quarantined. Owner:
+  Bug Hunt (Boss's lanes, strictly bugs; assigned by the coordinator at
+  3:09 PM EDT).
+  Prerequisites: none. Related: MAP.243, MAP.207, MAP.219, MAP.210.
 
 ## NAV: Navigation and courses
 
