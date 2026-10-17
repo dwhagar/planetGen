@@ -8106,6 +8106,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that alters the generator output follows the epoch rule.
   Prerequisites: GEN.400, GEN.401. Related: GEN.144, GEN.405, MAP.190,
   USR.11.
+  Owner (coordinator, 2026-10-16, 10:16 PM EDT): Core 4 proposed (it
+  owns the metallicity and star-density work in GEN.103 and GEN.134); it
+  starts after GEN.368 and GEN.400 merge, so Core 4's current queue does
+  not change.
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -8138,6 +8142,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   random wrapper. No compatibility shim: the old constant goes in the
   same change. A change that alters the generator output follows the
   epoch rule.
+  Owner (coordinator, 2026-10-16, 10:16 PM EDT): Core 4 proposed (it
+  owns the metallicity and star-density work in GEN.103 and GEN.134); it
+  starts after GEN.368 and GEN.400 merge, so Core 4's current queue does
+  not change.
   Prerequisites: GEN.404. Related: GEN.319, GEN.320, GEN.134, GEN.254.
 
 - [ ] **GEN.406 Research the population ages and velocity dispersions by component, the thick disk scaling and the stellar halo fraction so they become laws**
@@ -11727,6 +11735,27 @@ clears each one.
   cluster and satellite counts must equal the bubble-free control.
   Prerequisites: GEN.394, GEN.395, TEST.186. Related: GEN.391, TEST.204.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
+
+- [ ] **TEST.207 The page_targets fixture of the web accessibility tests errors 24 tests: web.admin_backup answers 302 and 404 with the sample database (bug)**
+  Core 1's finding (2026-10-16, 10:12 PM EDT; kind test, module fixture
+  error): the `page_targets` fixture of `src/tests/test_web_a11y.py`
+  errors 24 tests (`test_web_edit_menu.py` 5,
+  `test_web_generate_alignment.py` 12, `test_web_system_nav_row.py` 7)
+  with "Failed: web.admin_backup: GET
+  /admin/settings/backups/20200101T000000Z.tar.bz2 answered 302
+  (anonymous) / 404 (admin) with the sample database". Fails on main:
+  yes (clean origin/main,
+  `test_web_edit_menu.py::test_edit_menu_opens_a_dialog_with_the_mouse`).
+  Frequency: every run. Reproducer: `python -m pytest
+  src/tests/test_web_edit_menu.py::test_edit_menu_opens_a_dialog_with_the_mouse`.
+  Likely cause: ADM.85 (#1905, the backups screen) added the endpoint
+  `web.admin_backup` and the accessibility sample parameters expect the
+  file route to answer 200 for an admin. Done: the sample database holds
+  a backup file the route can serve (or the sample parameter names an
+  existing one), the 24 tests pass, and a check keeps every new route's
+  sample valid. Owner guess: the Settings lane (ADM.85, ADM.84); Core 1
+  told it.
+  Prerequisites: none. Related: ADM.85, ADM.84, TEST.172, TEST.174.
 
 ## USR: User accounts
 
