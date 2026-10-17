@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1615] - 2026-10-17
+
+**Headline:** Boss's halo bug (nothing in the halo can be selected or entered on the Galaxy Map) is filed with its causes and a slot.
+
+### Added
+- MAP.243 (bug): the Galaxy Map cannot select or enter anything in the halo; no existing item covers selecting and entering (MAP.207 and MAP.219 only draw and pick markers, in 8.8). Slotted in 8.1 phase 5 with the interface update, Core 2 proposed after the infinite zoom tree.
+
+TODO items resolved: none / Added: MAP.243
+
 ## [8.0.1614] - 2026-10-17
 
 **Headline:** API.27 and UX.113 (the read-only Sector Profile lookup and the profile panel on the sector page) leave the TODO list.
