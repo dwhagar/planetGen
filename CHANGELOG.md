@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1642] - 2026-10-17
+
+**Headline:** The atmosphere sources check is done and its corrections are folded into the gas table, ozone, aerosol and giant-planet items.
+
+### Added
+- docs/design/atmosphere-sources-check.md: the result of GEN.408, 19 sources with what was read, what is second-hand and what Boss must research.
+
+### Changed
+- GEN.409, GEN.410, GEN.413, GEN.414, GEN.417 and GEN.419 carry the nine corrections and the design findings (the reference temperature per gas, the Kozakis ozone fit, grey dust, the Sudarsky bounds and the Cahoy colour table); the plan note lists what stays open for Boss's research.
+
+TODO items resolved: GEN.408 / Added: none
+
 ## [8.0.1641] - 2026-10-17
 
 **Headline:** The bulk composition that drives a body's density, mass and gravity is planned in 8.4, ahead of the atmosphere chain.
