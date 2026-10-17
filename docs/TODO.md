@@ -3109,8 +3109,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     diffs. The epoch item owns the `golden_update` tool and the
     `--check-pr` rule. Needs the deterministic math helpers first. Once
     GEN.42 lands, include one block-first backfill in the golden galaxy.
+    Generator epoch (Core 2, #1927, 2026-10-16, 9:42 PM EDT): GEN.135
+    made the generator epoch 2 (nebula shapes and the last bits of
+    positions differ); the epoch and golden-files rule is waived until
+    this item is built.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-    Prerequisites: GEN.304, OPS.57, GEN.57, GEN.135.
+    Prerequisites: GEN.304, OPS.57, GEN.57.
 
   - [ ] **API.17 Remote generation reproduces what the server would make**
     Done: a remote run (API.12's download, API.13's generation without a
@@ -3850,28 +3854,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   after Core 3 merges GEN.283 and GEN.333 (tuning.py and the profile)).
   Prerequisites: none. Related: GEN.133 (done).
 
-- [ ] **GEN.135 Deterministic math helpers for every stored float, with a lint and frozen constants**
-  Python 3.9 gives different sectors from Python 3.10 to 3.13 on all 30
-  probe sectors (the research measured it); with `sqrt(x*x+y*y)` in
-  place of `math.hypot` all five interpreters agree. Done:
-  `planetgen/util/detmath.py` with `hypot(*c)`, `dist(a, b)` and `fsum`;
-  `math.hypot`, `math.dist` and float `sum()` replaced at about 25
-  stored-value sites in `galaxy/`, `population/`, `physics/` and `db/`
-  (`geometry.sector_address_at` already does it); the AST scan in
-  `test_reproducible_draws.py` extended to reject the old calls; the
-  astropy-derived constants in `physics/constants.py` frozen as literals
-  (`HYDROGEN_ATOM_MASS_KG` differs by 1.35e-9 between astropy 6.1.7 and
-  8.0.1) with a test that the astropy values equal them; `@` (BLAS)
-  removed from `galaxy/nebula_shape.py` (lines 107, 163) and
-  `physics/sector_path.py` (line 232). It changes stored values, so it
-  ships with a generator epoch bump (the Python 3.9 CI leg that blocked
-  TEST.77 is gone, OPS.42 merged in #1291). Related: GEN.66 follow-up on pinning astropy's constant
-  sets.
-  The epoch counter it bumps is built by the first child of OPS.28;
-  GEN.135 needs it so the order is not a circle.
-  Prerequisites: OPS.56.
-  Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-
 - [ ] **GEN.136 Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests**
   GEN.58 as built hashes floats exactly; the research recommends
   rounding to 9 significant digits (generation-determinism.md section
@@ -4005,9 +3987,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   radius (2026-10-16 review).
   NO FIXED CONTENT (2026-10-16, 8:43 PM EDT): 8.128 kpc and 8.2 kpc are
   the Milky Way's values. The one named value for the test radius stays
-  as the reference for the Milky Way plausibility test only; the Sun's
-  position in a generated galaxy is the derived home position of GEN.368,
-  not a constant.
+  as the reference for the Milky Way plausibility test only.
+  Decided (Boss, 2026-10-16, 9:43 PM EDT, "Confirmed drop 'home'"): the
+  galaxy stores no home or Sun position, so there is no derived home
+  position either; the value that places the Sun in the density model is
+  not a galaxy constant, and each use of a Sun radius becomes a
+  per-position calculation from the galaxy's own model (GEN.368's build
+  finds the uses).
   Prerequisites: none.
   Design: [docs/design/galactic-potential.md](design/galactic-potential.md)
 
@@ -5966,7 +5952,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   SpatialPosition3D reading its mass and length through it, a property
   test that every kind round-trips through every rung and that the
   Python and JavaScript copies agree, and the design note updated.
-  Prerequisites: GEN.294, GEN.135. Related: GEN.74, GEN.109, UX.107,
+  Prerequisites: GEN.294. Related: GEN.74, GEN.109, UX.107,
   UX.108.
   Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
 
@@ -7081,8 +7067,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   distribution, masses a satellite mass function), the globular cluster
   count and law, the galaxy shape (disk scale length and height, bulge
   share, arm count, halo mass), the central black hole mass and the
-  nuclear cluster from their mass relations, the home position, and the
-  rotation curve and enclosed mass. Each row gives its law, its
+  nuclear cluster from their mass relations, and the rotation curve and
+  enclosed mass. Each row gives its law, its
   parameters, the sources named, and the source it comes from; there is
   no Milky Way option (Boss, 2026-10-16, 4:11 PM EDT), so the real
   values appear only as reference data for plausibility tests.
@@ -7179,6 +7165,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   audit, TEST.193 and TEST.195, then GEN.368, GEN.369, GEN.371 and
   GEN.366. Owner: Core 1. It blocks 65 items now, the galaxy types chain
   (GEN.378) among them.
+  Decided (Boss, 2026-10-16, 9:43 PM EDT, in the Core 1 thread:
+  "Confirmed drop 'home', we will choose viewing based on where sectors
+  are generated."): the galaxy stores no home or Sun position, so the
+  "home position" row of the table (row 11) is removed. The Sun-radius
+  uses (the density calibration, the metallicity zero point, the rates
+  at the Sun and the fallback distance) become per-position calculations
+  from the galaxy's own model, and the map starts where sectors are
+  generated (as MAP.190 does). USR.11, a user's own home field, is a
+  different thing and stays. GEN.388 (the home position by family, 9.4)
+  is dropped.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.369 Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option**
@@ -7482,6 +7478,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   writes GEN.368's table), after GEN.368.
   Prerequisites: GEN.368. Related: GEN.369, GEN.297, GEN.234, GEN.134,
   GEN.338, GEN.390.
+  Decided (Boss, 2026-10-16, 9:43 PM EDT, in the Core 1 thread:
+  "Confirmed drop 'home', we will choose viewing based on where sectors
+  are generated."): the family design stores no home or Sun position;
+  GEN.388 is dropped and the design lists no home row. Per-position
+  calculations replace every Sun-radius use.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.379 The density model as a list of components, each with an amplitude that may be 0, and a mass for each component**
@@ -7676,26 +7677,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.280.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
-- [ ] **GEN.388 The home position by family: one rule of the shape, with the spiral rule as the disk case**
-  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
-  generation based on known galaxy types, as a chain of required items
-  counted back from 9.4. Today the home object sits near 3.15 disk scale
-  lengths at the inter-arm minimum (`GALAXY_SUN_RADIUS_PC`; GEN.144
-  gives one distance and GEN.368 plans its draw). A family needs its own
-  rule: a disk family places the home at a radius drawn from the
-  stellar-mass-weighted distribution of disk stars, a few scale lengths
-  out and off the arm crest; a spheroid family places it at a drawn
-  fraction of the effective radius in any direction; the rule is one
-  function of the shape and stays inside the reach. Done: the function
-  is tested for each family on a small galaxy (the radius distribution,
-  off the arm crest for the disk case, inside the reach); the sector
-  page, the maps and the frames read the stored home and need no change;
-  same seed same position. No fixed content (Boss, 4:11 and 4:14 PM
-  EDT): no named galaxy, preset or hand-set value; reference galaxies
-  only check the result.
-  Prerequisites: GEN.144, GEN.382, GEN.383. Related: GEN.368, GEN.384.
-  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
-
 - [ ] **GEN.389 Galaxy creation draws the family from the seed and stores it, with the family in the log, the API and the version check**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
   generation based on known galaxy types, as a chain of required items
@@ -7715,7 +7696,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   later note. No fixed content (Boss, 4:11 and 4:14 PM EDT): no named
   galaxy, preset or hand-set value; reference galaxies only check the
   result.
-  Prerequisites: GEN.384, GEN.386, GEN.387, GEN.388, GEN.385, GEN.382,
+  Prerequisites: GEN.384, GEN.386, GEN.387, GEN.385, GEN.382,
   GEN.383, DB.66. Related: API.28, GEN.369, GEN.297, GEN.301.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
@@ -11421,26 +11402,6 @@ clears each one.
   Prerequisites: GEN.389. Related: TEST.196, GEN.378, GEN.366.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
-- [ ] **TEST.205 `test_no_reserved_word_is_an_unquoted_identifier` fails on main: the DB.18 migration helpers use LOCK in `ALGORITHM=INPLACE, LOCK=NONE` (bug)**
-  Finding from Core 1 (2026-10-16, 9:2x PM EDT, kind: test, fails on
-  main: yes, on a clean origin/main since DB.18 (#1901), how often:
-  every run), filed by the TODO thread.
-  `src/tests/test_sql_portability.py::test_no_reserved_word_is_an_unquoted_identifier`
-  fails with "Reserved words used as unquoted identifiers:
-  planetgen/db/migrations/helpers.py:197 and :207 'LOCK' in
-  ALGORITHM=INPLACE, LOCK=NONE". Reproducer: `python -m pytest
-  src/tests/test_sql_portability.py -k reserved_word`. Core 1 found it
-  in its stack gate and asked Core 2, the author of DB.18, at the same
-  time. Done: the helpers' `ALTER TABLE ... ALGORITHM=INPLACE,
-  LOCK=NONE` statements are accepted by the test as SQL syntax (LOCK is
-  syntax there, so `SYNTAX_KEYWORDS` in the test names it with a reason)
-  or the statements are written so the test passes, without loosening
-  what the test proves for identifiers; the test passes on main. Every
-  full run fails until it is fixed, so it goes ahead of other bug work.
-  Owner: Core 2 (DB.18's lane), asked by Core 1; the TODO thread
-  confirms with Core 2.
-  Prerequisites: none. Related: TEST.203, DB.9.
-
 - [ ] **TEST.206 Superbubble density tests: rim excess, interior depletion, old stars unchanged, scatter against fill and determinism**
   Boss (2026-10-16, 9:27 PM EDT): instead of drawing the bubbles, store
   the regions and let them adjust the star density function for the
@@ -11758,6 +11719,10 @@ clears each one.
   Scope after the review (2026-10-16 review): the home field on the
   account and the override of the default; the default (the largest
   group) comes from the charted-regions library (MAP.190).
+  Decided (Boss, 2026-10-16, 9:43 PM EDT, in the Core 1 thread:
+  "Confirmed drop 'home', we will choose viewing based on where sectors
+  are generated."): the galaxy has no home position; this item (a user's
+  own home field) is unchanged and is the only home.
   Prerequisites: MAP.189, MAP.190. Related: MAP.189, MAP.190, USR.8.
 
 - [ ] **USR.12 Permission catalogue and one `can()` check: user, moderator, admin and Owner as data**
@@ -12166,7 +12131,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   function and a test that it is stable across two runs and two hash
   seeds, and that changing one canned draw changes exactly one case's
   digest.
-  Prerequisites: GEN.135, GEN.304. Related: OPS.28.
+  Prerequisites: GEN.304. Related: OPS.28.
 
 - [ ] **OPS.58 The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment**
   Split from OPS.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
