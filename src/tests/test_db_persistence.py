@@ -1642,8 +1642,13 @@ def test_bright_star_web_queries(mysql_config):
             == [s for s in boxed if s["system_id"] is None]
 
         status = queryDb.bright_star_scatter_status(conn)
+        limits = status.pop("limits")
         assert status == {"scattered": True, "min_luminosity_sol": 100.0, "seed": 9,
                           "default_min_luminosity_sol": 9000.0}
+        # The core follows the galaxy-wide limits (GEN.333 / UX.116) until its own are set.
+        assert limits["core_follows"] is True
+        assert limits["core_min_luminosity_sol"] == pytest.approx(100.0 * tuning.CORE_TIER_FACTOR)
+        assert limits["halo_min_luminosity_sol"] == tuning.HALO_MIN_LUMINOSITY_SOL
 
         # A re-scatter empties the table and restarts the ids, so the id
         # span still counts exactly.

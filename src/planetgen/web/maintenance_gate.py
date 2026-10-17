@@ -26,7 +26,7 @@ MESSAGE = ("The site is being updated and is unavailable for now: the galaxy's s
 """str: What a refused visitor is told."""
 
 OPEN_PATHS = frozenset({
-    "/maintenance", "/login", "/login/code", "/logout",
+    "/maintenance", "/robots.txt", "/login", "/login/code", "/logout",
     "/api/auth/login", "/api/auth/login/totp", "/api/auth/logout", "/api/auth/me",
 })
 """frozenset: The paths a visitor can still reach while maintenance is on."""

@@ -19,6 +19,8 @@ from planetgen.util import log, settings_view
 
 from planetgen.api.admin import bp as admin_bp
 from planetgen.api.settings import bp as settings_bp
+from planetgen.api.backups import bp as backups_bp
+from planetgen.api.images import bp as images_bp
 from planetgen.api.auth import bp as auth_bp
 from planetgen.api.common import ApiError, close_control_db
 from planetgen.api.config import Config
@@ -66,6 +68,8 @@ def create_app(config_object=Config):
     app.register_blueprint(auth_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(settings_bp)
+    app.register_blueprint(backups_bp)
+    app.register_blueprint(images_bp)
     app.register_blueprint(population_bp)
     app.register_blueprint(facility_types_bp)
     app.register_blueprint(edits_bp)

@@ -3779,17 +3779,39 @@ def bright_star_scatter_status(conn):
 
     Returns:
         dict: `scattered` (bool), `min_luminosity_sol` and `seed` (both
-            `None` until a scatter runs), and `default_min_luminosity_sol`
-            (`BRIGHT_STAR_MIN_LUMINOSITY_SOL`, what a plain plan uses).
+            `None` until a scatter runs), `default_min_luminosity_sol`
+            (`BRIGHT_STAR_MIN_LUMINOSITY_SOL`, what a plain plan uses) and
+            `limits` (UX.116): the settings stored with the plan, `None`
+            without one: `core_min_luminosity_sol` and `core_mass_limit_sol`
+            (what the core takes: the one set, else the galaxy-wide one times
+            `CORE_TIER_FACTOR`), `core_follows` (neither was set),
+            `halo_min_luminosity_sol`, `cell_star_ceiling` and `fill_luminosity_cap_sol`.
     """
     row = conn.execute(
-        "SELECT bright_star_min_luminosity_sol, bright_star_seed FROM galaxy_shape WHERE id = 1").fetchone()
+        "SELECT bright_star_min_luminosity_sol, bright_star_seed, bright_star_mass_limit_sol, core_min_luminosity_sol,"
+        " core_mass_limit_sol, halo_min_luminosity_sol, cell_star_ceiling, fill_luminosity_cap_sol"
+        " FROM galaxy_shape WHERE id = 1").fetchone()
     scattered = row is not None and row["bright_star_min_luminosity_sol"] is not None
+    limits = None
+    if row is not None:
+        level = float(row["bright_star_min_luminosity_sol"]) if scattered else tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL
+        mass = (float(row["bright_star_mass_limit_sol"]) if row["bright_star_mass_limit_sol"] is not None
+                else tuning.PHENOMENON_MIN_MASS_SOLAR)
+        core_floor, core_mass = row["core_min_luminosity_sol"], row["core_mass_limit_sol"]
+        limits = {
+            "core_min_luminosity_sol": float(core_floor) if core_floor is not None else level * tuning.CORE_TIER_FACTOR,
+            "core_mass_limit_sol": float(core_mass) if core_mass is not None else mass * tuning.CORE_TIER_FACTOR,
+            "core_follows": core_floor is None and core_mass is None,
+            "halo_min_luminosity_sol": float(row["halo_min_luminosity_sol"]),
+            "cell_star_ceiling": float(row["cell_star_ceiling"]),
+            "fill_luminosity_cap_sol": float(row["fill_luminosity_cap_sol"]),
+        }
     return {
         "scattered": scattered,
         "min_luminosity_sol": float(row["bright_star_min_luminosity_sol"]) if scattered else None,
         "seed": row["bright_star_seed"] if scattered else None,
         "default_min_luminosity_sol": tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
+        "limits": limits,
     }
 
 

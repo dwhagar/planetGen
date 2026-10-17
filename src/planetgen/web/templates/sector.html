@@ -3,6 +3,7 @@
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
 {% from "partials/datatable.html" import datatable with context %}
+{% from "partials/profile.html" import profile_panel with context %}
 {%- set groups = [] %}
 {#- ADM.34, UX.75: the sector's admin actions are built here, outside the blocks, so the
     action bar (subhead) and the dialogs (content) share them. -#}
@@ -119,6 +120,9 @@ neighborhood around it requires a galaxy-placed sector (one generated with
 {%- if show_generate and estimate %}
 <sl-dialog id="admin-estimate" class="edit-dialog" label="Generate neighborhood" open>
   <p id="neighborhood-estimate">{{ estimate.summary }}</p>
+  {%- if estimate.sectors > far_run_sectors %}
+  <p class="hint" id="far-run" role="status"><strong>A very large run:</strong> {{ num(estimate.sectors) }} sectors is more than the {{ num(far_run_sectors) }} that a run is warned about. A cell outside the galaxy's outline takes every cell of the reach within the radius, and most of them are empty halo.</p>
+  {%- endif %}
   {%- if estimate.refused %}
   <p class="error" role="alert">{{ estimate.refusal }}</p>
   <p class="hint">You can still generate them. Generating anyway is recorded in the activity log.</p>
@@ -142,8 +146,14 @@ neighborhood around it requires a galaxy-placed sector (one generated with
 {%- if sector.unresolved %}
 <p class="hint sector-details" id="unresolved"><strong>Unresolved:</strong> this cell expects about {{ num(sector.unresolved.expected_systems) }} systems, more than the {{ num(sector.unresolved.ceiling_systems) }} a cell resolves, so only the stars at or above {{ num(sector.unresolved.luminosity_cap_sol) }} solar luminosities were made. The rest, about {{ num(sector.unresolved.unresolved_systems) }} systems and {{ num(sector.unresolved.unresolved_mass_solar) }} solar masses, is worked out from the address and not stored.</p>
 {%- endif %}
+{%- if sector.scatter_tier %}
+<p class="hint sector-details" id="scatter-tier"><strong>Scatter tier:</strong> this band is in the {{ sector.scatter_tier.tier }} tier, so the galaxy scatter placed every star of {{ num(sector.scatter_tier.min_luminosity_sol) }} solar luminosities or more{% if sector.scatter_tier.mass_limit_sol is not none %} and every star born at {{ num(sector.scatter_tier.mass_limit_sol) }} solar masses or more{% endif %} here.</p>
+{%- endif %}
 {%- if sector.superbubble %}
 <p class="hint sector-details" id="superbubble"><strong>Superbubble:</strong> inside a cavity {{ "%g"|format(sector.superbubble.radius_pc * 2) }} pc across, {{ "%g"|format(sector.superbubble.centre_distance_pc) }} pc from its centre. The gas here is ionised, about {{ "%g"|format(sector.superbubble.temperature_k) }} K and {{ "%g"|format(sector.superbubble.ambient_density_cm3) }} atoms per cm³, and no molecular cloud survives in it.</p>
+{%- endif %}
+{%- if profile %}
+{{ profile_panel(profile) }}
 {%- endif %}
 <section class="panel" id="sector-contents" aria-labelledby="contents-heading">
   <h2 id="contents-heading">Contents</h2>
