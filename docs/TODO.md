@@ -2360,6 +2360,71 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.538, GEN.539, GEN.540, MAP.243. Related: GEN.538,
   GEN.539, GEN.540, MAP.207, MAP.243, MAP.239.
 
+- [ ] **MAP.249 The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug)**
+  Boss (2026-10-17, 6:48 PM EDT, typed in the project chat, relayed by
+  the coordinator at 6:49 PM EDT): "Just tested the galaxy map it is
+  utterly unusable, it's laggy, slow, moving between zoom levels slogs
+  the entire thing down." Cause not known; nothing below is a finding
+  until it is measured. Candidates to measure, not to assume: the number
+  and size of the tiles a zoom step requests (the fly-through view loads
+  684 to 936 tiles all round, docs/design/fly-through-view-distance.md),
+  tiles built per request with no cache (PERF.130 to PERF.134 are the
+  plan for that), the star and marker count one view holds against the
+  cap, per-frame work on the main thread (picking, the opacity law,
+  buffer rebuilds on a level change), and the server time to build a
+  tile on a whole-sphere galaxy. Do: profile first on Boss's own galaxy
+  (browser performance trace and the network panel for a zoom in and a
+  zoom out across several levels: requests, bytes and time per step,
+  main-thread time per frame, server time per tile), write the numbers
+  on the goal issue, name the cause, then fix the measured cause in
+  proportion. Done: the frame time while flying and the time from a
+  level change to a settled view are measured before and after on the
+  same galaxy and written on the issue, the cause is named, and a test
+  or benchmark in the PERF.31 style keeps the figure from regressing; if
+  the cause is the missing tile cache, the fix is PERF.130 to PERF.132
+  brought forward and this item says so. Fails on main: yes (Boss tested
+  his server, which runs main). Frequency: every level change on his
+  galaxy. Reproducer: open the Galaxy Map on his galaxy, zoom across
+  several levels. Owner: Core 2 (Boss via the coordinator, 6:49 PM EDT),
+  ahead of MAP.247 in its queue.
+  Prerequisites: none. Related: MAP.239, MAP.152, MAP.147, PERF.129,
+  PERF.130, PERF.131, PERF.132, PERF.133.
+
+- [ ] **MAP.250 When a map chooses which stars to show, halo and satellite-galaxy stars are the lowest priority and are always cut first, before anything else**
+  Boss (2026-10-17, 6:48 PM EDT, typed in the project chat, relayed by
+  the coordinator at 6:49 PM EDT): "when choosing stars to show on any
+  map, halo and satellite galaxies are the lowest priority and should
+  always be cut first before anything else." Decided. It applies to
+  every map and every place that spends a star budget: the Galaxy Map
+  tile lists and their per-tile budgets, the nested lists of MAP.154 (a
+  parent list is a subset of each child's list, so the tier must be part
+  of the key every level uses), the on-screen limit and the 70,000-star
+  view cap, the stage views, the Sector Map and any other list that has
+  to drop stars to fit. Today the bright lists rank by luminosity times
+  the population weight (`BRIGHT_STAR_POPULATION_WEIGHT`,
+  docs/design/zoom-star-visibility.md stage 2); this adds a tier above
+  that key: a star of the halo or of a satellite galaxy ranks below
+  every other star whatever its luminosity, so a budget cut removes them
+  first and only then touches the disc and the bulge. Halo and satellite
+  galaxies are two classes (they are separate switches in 8.5, GEN.537
+  to GEN.540), the cut order among the two is for Core 2 to propose with
+  the rule written down (default: satellite galaxies before the halo,
+  since they are farther and more numerous; Boss may overrule). Done:
+  one ranking function holds the tier, every budget in the list above
+  reads it and none keeps its own order; a test fills a budget-limited
+  tile with halo, satellite and disc stars and checks no disc or bulge
+  star is dropped while any halo or satellite star of the same budget is
+  still shown, at several levels, and that the nested lists stay
+  subsets; the rule is written in docs/design/zoom-star-visibility.md.
+  The tile cache (PERF.129 to PERF.134) stores tiles built by this rule,
+  so the change bumps the tile cache stamp and the cached tiles are
+  rebuilt once. Owner: Core 2 (Boss via the coordinator, 6:49 PM EDT),
+  ahead of MAP.247 in its queue, after the lag bug above is profiled.
+  Prerequisites: none. Related: MAP.154, MAP.158, MAP.195, MAP.243,
+  MAP.248, GEN.537, PERF.129, PERF.130, PERF.131, PERF.132, PERF.133,
+  PERF.134.
+  Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
+
 
 ## NAV: Navigation and courses
 
@@ -14452,6 +14517,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: PERF.130, PERF.131, PERF.132, PERF.133, PERF.134.
   Related: PERF.41, PERF.104, PERF.120, PERF.127, MAP.158, MAP.159,
   MAP.195, MAP.239.
+  Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
+  stored here are built with halo and satellite-galaxy stars ranked
+  below every other star, so a budget cut removes them first; landing
+  that rule bumps the tile cache stamp and the cached tiles are rebuilt
+  once. The galaxy map lag Boss reported at the same time is MAP.249; if
+  its cause is the missing cache, this item is brought forward.
 
 - [ ] **PERF.130 Build the first several zoom levels of the Galaxy Map ahead of the first visitor: the opening view and every level down to a chosen depth**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -14485,6 +14556,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   finds every tile a cache hit. Owner: Core 2 (proposed).
   Prerequisites: PERF.118, PERF.127, MAP.239. Related: PERF.129,
   PERF.127, PERF.104, MAP.239.
+  Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
+  stored here are built with halo and satellite-galaxy stars ranked
+  below every other star, so a budget cut removes them first; landing
+  that rule bumps the tile cache stamp and the cached tiles are rebuilt
+  once. The galaxy map lag Boss reported at the same time is MAP.249; if
+  its cause is the missing cache, this item is brought forward.
 
 - [ ] **PERF.131 Store the tiles compressed and serve the stored bytes with their encoding, so a request does no compression**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -14520,6 +14597,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   browser unpacks, whichever the measurement favours), the disk size of
   the cache is reported for both forms, and the response is the same
   data as today for the same tiles (a test). Owner: Core 2 (proposed).
+  Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
+  stored here are built with halo and satellite-galaxy stars ranked
+  below every other star, so a budget cut removes them first; landing
+  that rule bumps the tile cache stamp and the cached tiles are rebuilt
+  once. The galaxy map lag Boss reported at the same time is MAP.249; if
+  its cause is the missing cache, this item is brought forward.
   Prerequisites: PERF.118. Related: PERF.129, MAP.159, MAP.158.
 
 - [ ] **PERF.132 Build proactively on a visit: the surrounding tiles and the next zoom levels are built and cached in the background**
@@ -14555,6 +14638,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed).
   Prerequisites: PERF.118, PERF.130, PERF.131. Related: PERF.129,
   PERF.130, PERF.131.
+  Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
+  stored here are built with halo and satellite-galaxy stars ranked
+  below every other star, so a budget cut removes them first; landing
+  that rule bumps the tile cache stamp and the cached tiles are rebuilt
+  once. The galaxy map lag Boss reported at the same time is MAP.249; if
+  its cause is the missing cache, this item is brought forward.
 
 - [ ] **PERF.133 Keep every tile until the data changes: invalidate by what changed, rebuild what a change touched, and never evict a valid tile for size**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -14589,6 +14678,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   window payloads; tests for a change inside one sector (only its tiles
   and parents rebuilt), a re-planned galaxy (a new generation) and a
   full cache (nothing valid deleted). Owner: Core 2 (proposed).
+  Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
+  stored here are built with halo and satellite-galaxy stars ranked
+  below every other star, so a budget cut removes them first; landing
+  that rule bumps the tile cache stamp and the cached tiles are rebuilt
+  once. The galaxy map lag Boss reported at the same time is MAP.249; if
+  its cause is the missing cache, this item is brought forward.
   Prerequisites: PERF.130. Related: PERF.129, PERF.41, PERF.104.
 
 - [ ] **PERF.134 The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions**
@@ -14621,6 +14716,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   admin log; a test per action. Owner: Core 2 (proposed).
   Prerequisites: PERF.130, PERF.133. Related: PERF.129, PERF.130,
   PERF.133.
+  Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
+  stored here are built with halo and satellite-galaxy stars ranked
+  below every other star, so a budget cut removes them first; landing
+  that rule bumps the tile cache stamp and the cached tiles are rebuilt
+  once. The galaxy map lag Boss reported at the same time is MAP.249; if
+  its cause is the missing cache, this item is brought forward.
 
 ## DB: Database and schema
 
