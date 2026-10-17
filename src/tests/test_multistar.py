@@ -14,7 +14,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.generation import multistar
-from planetgen.physics import stability
+from planetgen.physics import ms_lifetime, stability, stellar_evolution as evolution
 from planetgen.util import draw
 
 OLD = 8.0e9
@@ -159,7 +159,7 @@ def test_members_take_their_state_from_the_age():
 
 def test_a_collapsed_placed_star_is_refused():
     with pytest.raises(ValueError):
-        _tree(multistar.Placed("star", 25.0), 6.5e6, 1)
+        _tree(multistar.Placed("star", 25.0), 2.0 * ms_lifetime.lifetime_gy(25.0) * 1.0e9, 1)
     with pytest.raises(ValueError):
         multistar.placed_class(multistar.Placed("planet", 1.0))
 
@@ -207,8 +207,9 @@ def test_a_neutron_star_pair_odds_and_recycled_pulsars_mostly_have_white_dwarfs(
 
 def test_a_living_massive_star_gets_a_compact_companion_only_in_the_last_third_of_its_life():
     placed = multistar.Placed("star", 20.0)
-    late = [_tree(placed, 5.0e6, seed) for seed in range(6000)]
-    early = [_tree(placed, 1.0e6, seed) for seed in range(2000)]
+    life_yr = ms_lifetime.lifetime_gy(20.0) * evolution.remnant_age_fraction(20.0) * 1.0e9
+    late = [_tree(placed, 0.75 * life_yr, seed) for seed in range(6000)]
+    early = [_tree(placed, 0.15 * life_yr, seed) for seed in range(2000)]
     compact = sum(tree.compact_count > 0 for tree in late)
     assert 0.5 * 0.009 * 6000 < compact < 2.0 * 0.009 * 6000
     assert sum(tree.compact_count > 0 for tree in early) == 0
@@ -219,7 +220,7 @@ def test_a_living_massive_star_gets_a_compact_companion_only_in_the_last_third_o
 
 def test_a_giant_can_have_a_white_dwarf_companion():
     placed = multistar.Placed("star", 3.0)
-    lifetime = 10.0e9 * 3.0 ** -2.5 * 1.2
+    lifetime = ms_lifetime.lifetime_gy(3.0) * 1.0e9 * 1.2
     kinds = Counter(m.kind for seed in range(6000) for m in _tree(placed, lifetime * 0.9, seed).members[1:])
     assert kinds["white-dwarf"] > 0
 

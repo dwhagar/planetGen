@@ -22,7 +22,7 @@ import re
 
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
-from planetgen.physics import activity, metallicity, pre_main_sequence, spin
+from planetgen.physics import activity, metallicity, ms_lifetime, pre_main_sequence, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -67,9 +67,9 @@ def _sample_evolved_star_mass_sol(min_mass_sol, max_mass_sol):
     (giant, subgiant, bright giant, supergiant, or hypergiant) uniformly
     from `[min_mass_sol, max_mass_sol]`, rejecting and resampling any draw
     whose implied main-sequence lifespan
-    (`SOLAR_MS_LIFESPAN_GY * mass_sol ** MS_LIFESPAN_MASS_EXPONENT`, the
-    same formula `Star._calculate_initial_star_age_and_lifespan`'s
-    evolved-star branch uses) would already exceed
+    (`ms_lifetime.lifetime_gy`, the same function
+    `Star._calculate_initial_star_age_and_lifespan`'s evolved-star branch
+    uses) would already exceed
     `tuning.UNIVERSE_AGE_GY` on its own.
 
     Such a mass could not actually have finished a main-sequence phase yet
@@ -88,7 +88,7 @@ def _sample_evolved_star_mass_sol(min_mass_sol, max_mass_sol):
 
     Not used for Yerkes class VI (subdwarfs): their entire allowed mass
     range (0.1-0.8 Msun, see `constants.YERKES_MASS_CONSTRAINTS`)
-    sits below the ~0.88 Msun cutoff, so every draw would be rejected. Real
+    sits below the ~0.93 Msun cutoff, so every draw would be rejected. Real
     subdwarfs are thought to form via binary mass-stripping rather than
     single-star post-main-sequence evolution, so applying a single-star
     progenitor-lifespan check to their mass isn't physically appropriate
@@ -114,8 +114,7 @@ def _sample_evolved_star_mass_sol(min_mass_sol, max_mass_sol):
     """
     for _ in range(tuning.EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS):
         mass_sol = draw.uniform(min_mass_sol, max_mass_sol)
-        ms_lifespan = (tuning.SOLAR_MS_LIFESPAN_GY
-                       * mass_sol ** tuning.MS_LIFESPAN_MASS_EXPONENT)
+        ms_lifespan = ms_lifetime.lifetime_gy(mass_sol)
         if ms_lifespan <= tuning.UNIVERSE_AGE_GY:
             return mass_sol
 
@@ -434,7 +433,7 @@ class Star(LazySaladName):
             # for the (much shorter) post-main-sequence phase it's
             # currently in.
             mass_sol = self.mass / constants.SOLAR_MASS_TO_KG
-            ms_lifespan = tuning.SOLAR_MS_LIFESPAN_GY * mass_sol ** tuning.MS_LIFESPAN_MASS_EXPONENT
+            ms_lifespan = ms_lifetime.lifetime_gy(mass_sol)
             lifespan = ms_lifespan / tuning.MS_LIFESPAN_FRACTION_OF_TOTAL
 
             # The star must already have completed its main-sequence phase to

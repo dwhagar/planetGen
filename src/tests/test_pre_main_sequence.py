@@ -6,6 +6,7 @@ stage a star of a mass and age is in, `evolve_star` and `star_params` for a youn
 `Star` and in `stars`, the companions of a protostar (Perseus' multiplicity) and the words of the star page.
 """
 
+import math
 import statistics
 
 import pytest
@@ -16,26 +17,40 @@ from planetgen.describe import build as describe_build
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
-from planetgen.physics import pre_main_sequence as pms
+from planetgen.physics import constants, pre_main_sequence as pms
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 
 MYR = 1.0e6
 
 
-@pytest.mark.parametrize("mass, low_myr, high_myr", [
-    (0.1, 500.0, 2000.0), (0.3, 100.0, 600.0), (0.5, 50.0, 250.0), (1.0, 20.0, 80.0), (2.0, 4.0, 15.0), (5.0, 0.3, 3.0),
+@pytest.mark.parametrize("mass, bhac15_myr", [
+    (0.1, 554.0), (0.2, 241.0), (0.3, 195.0), (0.5, 146.0), (0.8, 62.4), (1.0, 39.3), (1.4, 17.4),
 ])
-def test_the_contraction_time_is_near_what_published_tracks_give(mass, low_myr, high_myr):
-    """The anchors are remembered, not tabulated: a solar mass reaches the main sequence in some 40 Myr and 0.1 solar
-    masses in about 1 Gyr, the old `31 Myr * m^-2.5` law gave 10 Gyr there."""
-    assert low_myr < pms.contraction_time_yr(mass) / MYR < high_myr
+def test_the_contraction_time_is_near_what_the_bhac15_tracks_give(mass, bhac15_myr):
+    """GEN.529: the age at which the published tracks' radius is within 2% of its minimum (Baraffe et al. 2015,
+    solar metallicity); the model is within 0.25 dex of it at every one of these masses."""
+    assert abs(math.log10(pms.contraction_time_yr(mass) / MYR / bhac15_myr)) < 0.25
+
+
+@pytest.mark.parametrize("mass, teff_1_myr, radius_first_rsun", [
+    (0.1, 2935.0, 1.033), (0.3, 3428.0, 2.215), (0.5, 3803.0, 2.458), (1.0, 4377.0, 3.096), (1.4, 4658.0, 3.621),
+])
+def test_the_hayashi_temperature_and_birthline_radius_are_the_bhac15_ones(mass, teff_1_myr, radius_first_rsun):
+    """The effective temperature at 1 Myr and the radius at the table's first age (0.5 Myr) of the BHAC15 tracks."""
+    assert pms.hayashi_temperature_k(mass) == pytest.approx(teff_1_myr, rel=0.08)
+    assert pms.birthline_radius_m(mass) / constants.SOLAR_RADIUS_M == pytest.approx(radius_first_rsun, rel=0.3)
+
+
+def test_the_longest_contraction_shortcut_covers_the_lightest_star():
+    assert pms.contraction_time_yr(0.08) < tuning.PRE_MAIN_SEQUENCE_LONGEST_YR
+    assert pms.contraction_time_yr(0.08) > 0.8 * tuning.PRE_MAIN_SEQUENCE_LONGEST_YR
 
 
 def test_a_heavier_star_contracts_faster_and_the_old_law_is_gone():
     times = [pms.contraction_time_yr(m) for m in (0.1, 0.2, 0.5, 1.0, 2.0, 4.0, 7.0)]
     assert times == sorted(times, reverse=True)
-    assert pms.contraction_time_yr(0.1) < 2.0e9
+    assert pms.contraction_time_yr(0.1) < 1.0e9  # the old `31 Myr * m^-2.5` law gave 10 Gyr here
 
 
 @pytest.mark.parametrize("mass", [0.1, 0.3, 1.0, 3.0, 7.0])
@@ -57,12 +72,15 @@ def test_the_track_dims_and_heats_towards_the_main_sequence_without_a_jump(mass)
 def test_the_stage_follows_the_mass_and_the_age():
     assert pms.stage(1.0, 0.2 * MYR) == pms.PROTOSTAR
     assert pms.stage(1.0, 2.0 * MYR) == pms.PRE_MAIN_SEQUENCE
-    assert pms.stage(1.0, 11.0 * MYR) is None  # no state is drawn at 10 Myr or more
-    assert pms.stage(0.2, 9.0 * MYR) == pms.PRE_MAIN_SEQUENCE
-    assert pms.stage(0.2, 12.0 * MYR) is None
+    assert pms.stage(1.0, 11.0 * MYR) == pms.PRE_MAIN_SEQUENCE  # GEN.529: no 10 Myr cap, the track takes 37 Myr
+    assert pms.stage(1.0, 45.0 * MYR) is None
+    assert pms.stage(0.2, 100.0 * MYR) == pms.PRE_MAIN_SEQUENCE  # a red dwarf is still shrinking at 100 Myr
+    assert pms.stage(0.2, 400.0 * MYR) is None
+    assert pms.stage(0.1, 600.0 * MYR) == pms.PRE_MAIN_SEQUENCE
+    assert pms.stage(0.1, 1100.0 * MYR) is None
     assert pms.stage(20.0, 0.1 * MYR) is None  # 8 solar masses or more have none
     assert pms.stage(5.0, 0.7 * MYR) == pms.PRE_MAIN_SEQUENCE
-    assert pms.stage(5.0, 0.9 * MYR) is None  # contracted already: the model takes 0.87 Myr
+    assert pms.stage(5.0, 1.3 * MYR) is None  # contracted already: the model takes 1.1 Myr
     assert pms.stage(5.0, 0.2 * MYR) == pms.PROTOSTAR
 
 
@@ -71,8 +89,10 @@ def test_evolve_star_gives_a_young_star_its_state_and_leaves_older_ones_alone():
     assert young["yerkes_class"] == "protostar" and young["disk_class"] == "I" and young["radius_km"] is None
     assert young["lifespan_gy"] > 5.0  # the lifespan of the star it will be
     assert evolution.evolve_star(1.0, 0.005)["yerkes_class"] == "PMS"
-    for mass, age in ((1.0, 0.5), (1.0, 0.011), (0.2, 0.05), (10.0, 0.0001)):
+    for mass, age in ((1.0, 0.5), (1.0, 0.05), (0.2, 0.4), (10.0, 0.0001)):
         assert evolution.evolve_star(mass, age)["yerkes_class"] == "V"
+    for mass, age in ((1.0, 0.011), (0.2, 0.1)):
+        assert evolution.evolve_star(mass, age)["yerkes_class"] == "PMS"
 
 
 def test_the_type_text_names_the_stage_without_a_numeral():
@@ -80,7 +100,7 @@ def test_the_type_text_names_the_stage_without_a_numeral():
     assert protostar["type"].endswith("Class I Protostar") and protostar["yerkes_class"] == "protostar"
     young = evolution.star_params(1.0, 0.005, evolution.evolve_star(1.0, 0.005))
     assert young["type"].endswith("Pre-Main-Sequence Star") and young["yerkes_class"] == "PMS"
-    assert young["phase_end_age_gy"] == pytest.approx(tuning.PRE_MAIN_SEQUENCE_MAX_AGE_YR / 1e9)
+    assert young["phase_end_age_gy"] == pytest.approx(pms.contraction_time_yr(1.0) / 1e9)
     assert evolution.star_params(1.0, 0.5, evolution.evolve_star(1.0, 0.5))["type"].startswith("G2V")
 
 
@@ -186,9 +206,12 @@ def test_the_disk_is_stored_with_the_star_and_comes_back(mysql_config):
 
 
 def test_a_population_draw_is_rarely_young():
-    """About a thousandth of the disk's stars are under 10 Myr; the share of those drawn as contracting is the
-    lighter ones' (8 solar masses and over have no state)."""
+    """Under 10 Myr a thousandth of the disk's stars are young; with the track taking a red dwarf 0.1 to 0.7 Gyr
+    (GEN.529) about 3.6% are still contracting, nearly all of them red dwarfs; 8 solar masses and over have no state."""
     import random
     rng = random.Random(7)
-    young = [evolution.sample_living_star(rng=rng)[2]["yerkes_class"] in ("PMS", "protostar") for _ in range(40000)]
-    assert 0.0002 < statistics.mean(young) < 0.003
+    draws = [evolution.sample_living_star(rng=rng) for _ in range(40000)]
+    young = [draw_[2]["yerkes_class"] in ("PMS", "protostar") for draw_ in draws]
+    assert 0.015 < statistics.mean(young) < 0.06
+    masses = [draw_[2]["mass_sol"] for draw_, is_young in zip(draws, young) if is_young]
+    assert statistics.median(masses) < 0.5
