@@ -124,7 +124,7 @@ PARAM_NAMES = sorted({
     *PAGE_PARAMS, *OFFSET_PARAMS, *SIZE_PARAMS,
     "limit", "db", "next", "format", "code", "wiki", "quadrant", "tiles", "density", "stamp", "since",
     "from", "to", "from_kind", "to_kind", "from_type", "to_type", "from_id", "to_id", "from_sector",
-    "to_sector", "radius", "star_type", "sector_id", "ring", "layer", "slot", "x", "y", "z", "q",
+    "to_sector", "radius", "star_type", "sector_id", "shell", "band", "wedge", "x", "y", "z", "q",
     "sector_q", "system_q", "star_q", "planet_q", "moon_q", "type", "spectral", "luminosity", "class",
     "body", "life", "equipment", "moon_class", "moon_body", "moon_life", "moon_equipment", "job",
 })
@@ -694,9 +694,9 @@ _API_BAD_INPUT = [
     ("/api/nav", {"from": "sector:1", "to": "1"}),
     ("/api/nav", {"from": "1", "to": "planet:99999999"}),
     ("/api/nav", {"from": str(2 ** 63), "to": "1"}), ("/api/galaxy/cell", {}),
-    ("/api/galaxy/cell", {"ring": "a", "layer": "0", "slot": "0"}), ("/api/galaxy/cell", {"ring": "0", "layer": "0"}),
+    ("/api/galaxy/cell", {"shell": "a", "band": "0", "wedge": "0"}), ("/api/galaxy/cell", {"shell": "0", "band": "0"}),
     ("/api/galaxy/cell", {"x": "nan", "y": "0", "z": "0"}), ("/api/galaxy/cell", {"x": "inf", "y": "0", "z": "0"}),
-    ("/api/galaxy/cell", {"ring": "-1", "layer": "0", "slot": "0"}), ("/api/galaxy/cell", {"ring": "1.5", "layer": "0", "slot": "0"}),
+    ("/api/galaxy/cell", {"shell": "-1", "band": "0", "wedge": "0"}), ("/api/galaxy/cell", {"shell": "1.5", "band": "0", "wedge": "0"}),
     ("/api/search", {"star_min_radius_km": "abc"}), ("/api/search", {"star_min_radius_km": "-1"}),
     ("/api/search", {"moon_max_radius_km": "-inf"}),
     ("/api/search", {"star_min_radius_km": "5", "star_max_radius_km": "1"}), ("/api/search", {"limit": "0"}),
@@ -1456,9 +1456,9 @@ def test_regression_web_search_bad_size_range_is_not_a_502(app, fuzz_db, params)
     assert response.status_code in (200, 400)
 
 
-# B6 (fixed): /api/galaxy/cell with a far point/ring overflows in galaxyGeometry (OverflowError) -> 500
+# B6 (fixed): /api/galaxy/cell with a far point/shell overflows in galaxyGeometry (OverflowError) -> 500
 @pytest.mark.parametrize("params", [{"x": "1e200", "y": "0", "z": "0"}, {"x": "1e308", "y": "1e308", "z": "0"},
-                                    {"ring": "1" + "0" * 160, "layer": "0", "slot": "0"}])
+                                    {"shell": "1" + "0" * 160, "band": "0", "wedge": "0"}])
 def test_regression_galaxy_cell_far_address_is_a_400(app, fuzz_db, params):
     response = app.test_client().get("/api/galaxy/cell", query_string=params)
     assert response.status_code in (200, 400)

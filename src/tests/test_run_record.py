@@ -32,11 +32,11 @@ def test_a_second_run_gets_busy_until_the_first_ends(conn):
 
 
 def test_the_record_reads_back_with_its_stages_and_counters(conn):
-    run_id = runrecord.start_run(conn, "Fill ring 1", _stages(), who="boss", database="g1", argv=["galaxy"],
+    run_id = runrecord.start_run(conn, "Fill shell 1", _stages(), who="boss", database="g1", argv=["galaxy"],
                                  seed=7, now=100)
     runrecord.begin_stage(conn, run_id, 0, now=101)
     run = runrecord.read_run(conn, run_id)
-    assert run["title"] == "Fill ring 1" and run["state"] == "running" and run["current"] == 0
+    assert run["title"] == "Fill shell 1" and run["state"] == "running" and run["current"] == 0
     assert [stage["key"] for stage in run["stages"]] == ["mass", "sectors"]
     assert run["stages"][0]["units"] == 4 and run["stages"][0]["cost_total"] == 8.0
     assert run["stages"][0]["started"] == 101 and run["stages"][1]["started"] is None

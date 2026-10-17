@@ -92,7 +92,7 @@ def test_drill_parameters_with_a_course(client, fake, monkeypatch):
     from planetgen.web import nav_page
 
     course = {"scope": "sector", "navUrl": "/nav?from=system:1&to=system:2", "points": [],
-              "sector": {"id": 9, "name": "Nine", "ring": 5, "layer": 1, "slot": 20}}
+              "sector": {"id": 9, "name": "Nine", "shell": 5, "band": 1, "wedge": 20}}
     asked = []
     monkeypatch.setattr(nav_page, "galaxy_course", lambda f, t: asked.append((f, t)) or course)
     html = _assert_clean_page(client.get("/galaxy?course=system:1,system:2&at=243.7.14.0&p=1&sector=R1.L1.S1"))
@@ -284,7 +284,8 @@ def test_locate_ambiguous_names(db_client, mysql_config):
 @pytest.mark.parametrize("query", [
     "x=inf&y=0&z=0", "x=0&y=-inf&z=0", "x=0&y=0&z=nan", "x=1e309&y=0&z=0", "x=1e308&y=1e308&z=1e308",
     "x=-1e300&y=1e300&z=0", "x=1,2&y=0&z=0", "x=%E2%91%A0&y=0&z=0",
-    f"ring=0&layer={10 ** 30}&slot=0", f"ring=5&layer=0&slot={10 ** 30}", "ring=-5&layer=0&slot=0",
+    f"shell=5&band=0&wedge={10 ** 30}", f"shell=5&band={10 ** 30}&wedge=0", "shell=-5&band=0&wedge=0",
+    "shell=a&band=0&wedge=0", "shell=5&band=0",
 ])
 def test_cell_out_of_range_coordinates_are_400(db_client, mysql_config, query):
     store.get_connection(mysql_config).close()
@@ -293,13 +294,13 @@ def test_cell_out_of_range_coordinates_are_400(db_client, mysql_config, query):
     assert "error" in response.get_json()
 
 
-def test_cell_far_past_the_galaxy_by_ring_is_described_not_refused(db_client, mysql_config):
-    """Pinned as found: a ring far past any galaxy (10**30) is still an
+def test_cell_far_past_the_galaxy_by_shell_is_described_not_refused(db_client, mysql_config):
+    """Pinned as found: a shell far past any galaxy (10**30) is still an
     integer address, so the cell is described (about 4e30 pc out, with
     `in_galaxy` null before a plan) rather than refused -- a clean answer
     either way, never an overflow."""
     store.get_connection(mysql_config).close()
-    response = db_client.get(f"/api/galaxy/cell?ring={10 ** 30}&layer=0&slot=0")
+    response = db_client.get(f"/api/galaxy/cell?shell={10 ** 30}&band=0&wedge=0")
     assert response.status_code in (200, 400)
     if response.status_code == 200:
         assert response.get_json()["in_galaxy"] is None
@@ -319,7 +320,7 @@ def test_stage_out_of_range_keys_against_the_real_database(db_client, mysql_conf
 
 
 def test_stage_far_past_the_galaxy_is_an_empty_block(db_client, mysql_config):
-    """Pinned as found: a block ring far past any galaxy is a well-formed
+    """Pinned as found: a block shell far past any galaxy is a well-formed
     key, so it answers an empty stage rather than a 400."""
     store.get_connection(mysql_config).close()
     response = db_client.get(f"/galaxy/stage?at=243.{10 ** 30}.0.0")

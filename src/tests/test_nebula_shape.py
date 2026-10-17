@@ -8,6 +8,7 @@ inside the bounding sphere of radius 1.
 
 import json
 import random
+import warnings
 
 import numpy as np
 import pytest
@@ -85,6 +86,15 @@ def test_the_mesh_lies_on_the_boundary_of_what_contains_says(seed):
     assert np.median(error) < 0.05 and error.max() < 0.35
     low_verts, low_faces = shape.mesh("low")
     assert 0 < len(low_faces) < len(faces)
+
+
+def test_building_a_mesh_raises_no_numpy_deprecation_warning():
+    """TEST.188: scikit-image's own array reshaping is not allowed to reach the test log."""
+    shape = _shape(1)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", DeprecationWarning)
+        assert len(shape.mesh("low")[1]) > 0
+        assert len(shape.mesh("full")[1]) > 0
 
 
 def test_the_low_poly_mesh_is_coarser_than_the_full_one_and_not_a_sphere():
