@@ -41,7 +41,6 @@ test time and the page's own CSP stays in force.
 
 import os
 import random
-import threading
 import uuid
 
 import pymysql
@@ -49,7 +48,6 @@ import pytest
 
 sync_api = pytest.importorskip("playwright.sync_api")
 
-from werkzeug.serving import make_server  # noqa: E402
 
 from planetgen.util import draw
 from planetgen.web.app import create_app  # noqa: E402
@@ -62,6 +60,7 @@ from planetgen.db.store import MySQLConfig  # noqa: E402
 
 from tests.bughunt_support import forced_system_config, mysql_argv, run_cli  # noqa: E402
 from tests import dbpool  # noqa: E402
+from tests.served import served  # noqa: E402
 from tests.conftest import _test_server_kwargs  # noqa: E402
 
 AXE_JS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vendor", "axe-core", "axe.min.js")
@@ -308,14 +307,8 @@ def admin_token(site_db):
 
 @pytest.fixture(scope="module")
 def base_url(site_app):
-    server = make_server("127.0.0.1", 0, site_app, threaded=True)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    try:
-        yield f"http://127.0.0.1:{server.server_port}"
-    finally:
-        server.shutdown()
-        thread.join(timeout=10)
+    with served(site_app) as url:
+        yield url
 
 
 # --- Sample URL parameters ------------------------------------------------------------
