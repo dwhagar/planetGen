@@ -5,6 +5,4 @@
 - The old defaults (2,600 pc, 300 pc, 1,580 pc, 3.11, two arms at 15 degrees) are gone from the plan, the CLI and the page. They stay only as the reference shape the math check measures the model against.
 - Bar presence and the bar's axes and angle stay the model's constants until the shape columns of DB.66; the stage rule is a stand-in (design note 5.13.8).
 
-generation-output: changed
-
 TODO items resolved: GEN.401. Added: none.

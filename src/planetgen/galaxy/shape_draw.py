@@ -200,7 +200,7 @@ def draw_galaxy(galaxy_seed, family=SPIRAL, arm_level=1.0, **fixed):
         ValueError: For a family other than `SPIRAL`, or an option name that is not one of the six.
     """
     if family != SPIRAL:
-        raise ValueError(f"no shape law for the {family!r} family yet (GEN.378 adds them)")
+        raise ValueError(f"no shape law for the {family!r} family yet")
     unknown = set(fixed) - {"disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc",
                             "bulge_amplitude", "arm_count", "pitch_angle_deg"}
     if unknown:
