@@ -75,7 +75,10 @@ What it changed in the plan:
 5. Refractivity and King factors of H2S, SO2 (Bogaard 1978), NH3 and CO.
 6. Condensation curves of NH3, H2O and CH4 (Lodders and Fegley 2002, Lodders 2003 and 2010, Weidenschilling and Lewis 1973).
 7. Bucholtz 1995 Table 3, and the originals of Peck and Huang 1977, Kasting and Donahue 1980, Segura 2003, Hulburt 1953, an Angstrom-exponent review.
-8. Widening the proxy (Project settings, environment network): doi.org, ADS, Science, Copernicus (AMT, ACP), Optica, ScienceDirect, NTRS and the Mainz and Bremen data hosts.
+8. Ice sublimation curves for N2, CO, CH4 and CO2, which the vapour-pressure relations reached by the mixing-ratio research (part 5) do not cover.
+9. Per-comet abundance tables (volatile ratios by comet, not the few well-known ones).
+10. Magma-ocean redox papers: the mantle redox of a young rocky planet and how it drifts (the code's mean is 3.5 above the iron-wuestite buffer, the building blocks sit near 0 to 1 below; GEN.451).
+11. Widening the proxy (Project settings, environment network): doi.org, ADS, Science, Copernicus (AMT, ACP), Optica, ScienceDirect, NTRS and the Mainz and Bremen data hosts.
 
 Until an item is researched, its design entry names the seeded range used meanwhile (rule: nothing fixed per class). Boss widened the network at about 12:02 AM EDT on 2026-10-17: arxiv.org itself is reachable now and the Atmosphere research lane (GEN.431) re-reads the four sources the check could not reach.
 

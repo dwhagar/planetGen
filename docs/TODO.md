@@ -281,20 +281,6 @@ with `clamp()`.
   record, the banner on every page and the hour-rounding rule;
   command-line runs appear because PERF.98 puts them on the run record.
 
-- [ ] **UX.32 Planet rows show the class only, without the type and moon labels**
-  Boss (2026-10-01 23:53Z): "Remove type of planet (Terrestrial / gas)
-  and moon from the row display just giving class instead of class and
-  type." Today each planet row's chips (`systempage.py`, around line
-  215) are "Class X", a type chip ("Terrestrial" or "Gas Giant" from
-  `_type_chip`, or "Habitable"), optional "Habitable moon" and
-  "Inhabited", then distance, period and gravity, and moons sit in a
-  "N moons of X" group under the row. Done: the row shows the class
-  (linked to its reference page) and no Terrestrial/Gas Giant chip or
-  moon label; the moons stay reachable from a small count on the row.
-  Question (decided below): does "Habitable" stay as a chip?
-  Decided (2026-10-10): Boss (19:12Z): keep the Habitable chip; revisit
-  with a habitable-class-only chip later.
-
 - [ ] **UX.49 Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site**
   UX.40 (done, PRs #528, #533, #539, #544) moved the buttons, menus and
   dialogs onto Shoelace and lined up the Generate page's text boxes with
@@ -416,7 +402,7 @@ with `clamp()`.
     charted space and wants colour and opacity highlighting instead, so
     the region highlight here is a fill (the same as MAP.238), not an
     outline.
-    Prerequisites: UX.47, MAP.190. Related: MAP.238.
+    Prerequisites: UX.47, MAP.190. Related: MAP.237.
 
 - [ ] **UX.82 Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle**
   Carry into UX.43 or a small follow-up: a check that every file under
@@ -462,11 +448,17 @@ with `clamp()`.
   for each category where the planet falls and why, with no extra
   information (GEN.208). Owner: UX (moved from the
   retired Bugfixes lane 2, Boss 2026-10-15 05:39Z), in its queue order.
-  Prerequisites: UX.101. Related: UX.30 (absorbed into UX.105), UX.32,
-  UX.101, GEN.208 (done, PR #1433).
+  Prerequisites: UX.101. Related: UX.30, UX.105, UX.101, GEN.208.
   Scope after the review (2026-10-16 review): removes the notes, builds
   the symbol column from UX.101's shapes and sets the description in
   paragraph form (GEN.208); needs UX.101.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): UX.32 folded in. Planet rows show the class only (Boss,
+  2026-10-01 23:53Z): the row shows the class (linked to its reference
+  page) and no Terrestrial/Gas Giant chip or moon label, and the moons
+  stay reachable from a small count on the row; the Habitable chip stays
+  (Boss, 2026-10-10 19:12Z: keep it, revisit with a habitable-class-only
+  chip later). Coordinate with GEN.220.
 
 - [ ] **UX.101 The PHI-6 symbols as vector shapes in the icon library, both themes, coloured by rating**
   GitHub issue [#1221](https://github.com/dwhagar/planetGen/issues/1221)
@@ -546,8 +538,7 @@ with `clamp()`.
   04:21Z): markdown is no longer the web default for any planet or
   system text; the richer tables replace it, and markdown and wikitext
   are generated on the fly only when the user asks.
-  Prerequisites: UX.119, UX.120. Related: UX.30 (absorbed into this
-  item), UX.32, UX.101.
+  Prerequisites: UX.119, UX.120. Related: UX.30, UX.100, UX.101.
   Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
   chunks and shared work): this item is now the umbrella and is done
   when its subitems are: UX.119, UX.120. A renderer and a page rewrite
@@ -1808,7 +1799,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 2 (Boss, 2026-10-16, 3:00 PM EDT: a global top blocker, 40
   items wait on it), after the 8.1 phase 1 top 5.
 
-- [ ] **MAP.218 Galaxy Map density control: a readout for everyone, an editor for admins, with preview, confirm and undo**
+- [ ] **MAP.218 Galaxy Map density control: a readout for everyone, an editor for admins over any region, with preview, confirm and undo**
   Split from MAP.119 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). On the Galaxy Map info panel
   guests and users see a static readout ('Expected density: 6.3 systems
@@ -1821,7 +1812,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   b as a region. Done: the panel for both audiences, the admin edit
   calling `set_override`, and a browser test that edits, previews,
   confirms and undoes on a seeded galaxy.
-  Prerequisites: ADM.94. Related: MAP.119.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): ADM.73 folded in. The edit also covers any region, not
+  only the slab or block in view (Boss, 2026-10-16, 1:07 PM EDT,
+  headline of 8.6, ADM.57): the admin picks a region of any shape with
+  the tool of MAP.212, sets a multiplier from 0.1 to 10, previews the
+  effect over it, confirms and can undo; the override table of DB.38
+  holds it and every later fill reads it; each change is logged; and a
+  test shows that two overlapping regions combine in a stated order.
+  Prerequisites: ADM.94, DB.38, GEN.302, MAP.212. Related: MAP.119.
 
 - [ ] **MAP.219 Galaxy Map marker layer: a kind registry with per-kind toggles, the zoom budget and picking, shipping the black-hole kind**
   Split from MAP.132 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -2106,7 +2105,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   overlay is on.
   Prerequisites: MAP.240. Related: MAP.234, MAP.235, GEN.254.
 
-- [ ] **MAP.237 The Galaxy Map's "Charted only" view is invisible again: charted space cannot be told from the rest (bug)**
+- [ ] **MAP.237 The Galaxy Map's "Charted only" view is invisible again, and charted regions are shown by colour and opacity, not outlined blocks (bug)**
   Boss (2026-10-16, 7:24 PM EDT, timeline): "the 'charted only' has gone
   back to being invisible from the galactic map, so we need some kind of
   way to see where they are." MAP.111 made "Charted only" dim blocks
@@ -2124,28 +2123,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a screenshot (or the drawn colours) with the toggle on and off at each
   stage and fails if they are the same.
   Owner: Core 2 (the Galaxy Map; proposed, Core 2 reads the plan).
-  Prerequisites: none. Related: MAP.111, MAP.112, MAP.238, MAP.190,
-  UX.48.
-
-- [ ] **MAP.238 Charted regions shown by colour and opacity, not outlined blocks: drop the outlines everywhere charted space is marked**
-  Boss (2026-10-16, 7:24 PM EDT, timeline): "I also don't like the
-  outlined blocks for it, they are really ugly and make it hard to
-  navigate and see where you are. So rather I want to highlight with
-  color and opacity." Today charted space is marked by an outline around
-  each charted block (MAP.111) and UX.48 plans an outlined region shape.
-  Done: charted blocks and regions are highlighted by a fill colour and
-  opacity that rise with the filled share (the amber of generated blocks
-  already grows more solid with it), with no outline drawn around
-  charted blocks or regions on the Galaxy Map or the Sector Map;
-  "Charted only" (the Menu) raises the highlight and dims the rest; the
-  hover outline on a choice stays (it marks what the pointer is on, not
-  charted space); the region highlight of UX.48 uses the same fill. Both
-  themes, every stage, and a browser test that no outline mesh is built
-  for charted blocks and the fill differs between a charted and an empty
-  block. Needs MAP.237 (the toggle must show something at all before it
-  is restyled), and changes the look MAP.111 gave it.
-  Owner: Core 2 (the Galaxy Map; proposed, Core 2 reads the plan).
-  Prerequisites: MAP.237. Related: MAP.237, MAP.111, MAP.190, UX.48.
+  Prerequisites: none. Related: MAP.111, MAP.112, MAP.190, UX.48.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): MAP.238 folded in. After the toggle shows something at
+  all, charted blocks and regions are restyled: highlighted by a fill
+  colour and opacity that rise with the filled share (the amber of
+  generated blocks already grows more solid with it), with no outline
+  drawn around charted blocks or regions on the Galaxy Map or the Sector
+  Map (Boss, 2026-10-16, 7:24 PM EDT: "I also don't like the outlined
+  blocks for it, they are really ugly"); "Charted only" (the Menu)
+  raises the highlight and dims the rest; the hover outline on a choice
+  stays (it marks what the pointer is on, not charted space); the region
+  highlight of UX.48 uses the same fill. Both themes, every stage, and a
+  browser test that no outline mesh is built for charted blocks and that
+  the fill differs between a charted and an empty block. This replaces
+  the sentence above that the look is a separate item. MAP.214 (the
+  default view) points here for the charted look.
 
 - [ ] **MAP.239 Raise the Galaxy Map tile root to the 262 kpc reach: `TILE_ROOT` in `galaxy/viewport.py` and `galaxymap3d.js`**
   From the GEN.372 precision audit (Core 1,
@@ -2486,7 +2479,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     "shortest".
     Waits on NAV.62: the study of how the gravity of the stars a cell
     leaves out is added to the course (Boss, 2026-10-16, 5:01 PM EDT).
-    Prerequisites: NAV.55, NAV.56, NAV.62.
+    Prerequisites: NAV.56, NAV.62, NAV.54.
 
   - [ ] **NAV.27 Moving bodies inside a system**
     Inside a system the planets move. Done: the in-system planner uses
@@ -2624,16 +2617,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   remnants pass through with a corrected note, and the galactic centre
   is exempt; F_lim and the floors read from tuning. Done as stated
   above, one test per kind; it no longer needs NAV.51.
-  Prerequisites: NAV.55.
-  Design: [docs/design/course-avoidance.md](design/course-avoidance.md)
-
-- [ ] **NAV.55 A tuning block for the keep-out knobs**
-  Put the keep-out knobs in `tuning.py`: F_lim = 50 kW/m^2, the star
-  floor of 10 R_star, the below-resolution fraction (0.002 of the leg)
-  and the polish tolerances.
-  First in the Steering thread: the polish tolerances and the
-  below-resolution fraction are read by the planner (NAV.26) and the
-  F_lim and star floor by the radii table (NAV.54) (2026-10-16 review).
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): NAV.55 folded in. The knobs go in `tuning.py`: F_lim = 50
+  kW/m^2, the star floor of 10 R_star, the below-resolution fraction
+  (0.002 of the leg) and the polish tolerances; the planner (NAV.26)
+  reads the polish tolerances and the fraction, and the radii table here
+  reads F_lim and the star floor.
   Prerequisites: none.
   Design: [docs/design/course-avoidance.md](design/course-avoidance.md)
 
@@ -3056,7 +3045,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
     Prerequisites: OPS.57, OPS.58.
 
-  - [ ] **OPS.16 A daily maintenance script for Linux, macOS and Windows**
+  - [ ] **OPS.16 A daily maintenance script for Linux and macOS, with its lock helper**
     Boss (2026-10-02 02:28Z): "We're going to have to build a
     maintenance script for powershell and bash that will run the
     positional update script, then kick off this delta script ..."
@@ -3065,14 +3054,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     galaxy rebuild, so this script runs the positional update only (and
     any later daily step). Decided (Boss, 2026-10-09 20:52Z): keep the
     daily positional update.
-    Done: `scripts/maintenance.sh` (Linux and macOS) and
-    `scripts/maintenance.ps1` (Windows) run once a day: the
-    positional update (`updateOrbits.py`). A lock keeps two runs
+    Done: `scripts/maintenance.sh` (Linux and macOS) runs once a day:
+    the positional update (`planetgen.cli.orbits`). A lock keeps two
+    runs
     from overlapping, every step logs to the normal log, and the script
     exits non-zero on any failure. Optionally it also runs OPS.15's
     fingerprint check, so changed output is noticed daily. A test runs
     it on a small galaxy and checks a second run started during the
-    first exits at once. Prerequisites: OPS.30.
+    first exits at once. Prerequisites: none.
     Research (2026-10-09, db-check-and-parity-repair.md): the parity
     export and checksum must not cover the columns the orbit update
     rewrites, or the daily run invalidates all of them; the run also
@@ -3095,8 +3084,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     alert after 3 skipped days).
     Note (2026-10-09): The Windows parts are dropped by OPS.39 (Boss,
     2026-10-10 04:25Z).
-    Needs OPS.30 (the lock helper) first and the thread order is OPS.30,
-    OPS.16, OPS.17 (2026-10-16 review).
+    The lock helper (OPS.30, folded in) is built first; the thread order
+    is OPS.16, OPS.17.
+    Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+    2026-10-17): OPS.30 folded in. The lock helper comes first in this
+    item: `planetgen/util/locks.py` with `filelock`, a sidecar info
+    file, `timeout=0` helpers and `PermissionError` handling, plus a
+    two-process test on Linux and macOS (the Windows parts are dropped
+    by OPS.39).
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **OPS.17 Install and update set up the daily maintenance schedule**
@@ -3905,18 +3900,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/orbital-solvers-and-integrators.md](design/orbital-solvers-and-integrators.md)
 
-- [ ] **GEN.141 Faster Kepler solver (Mikkola or Markley) with brentq as fallback**
-  Swap `solve_eccentric_anomalies` for Mikkola or Markley with `brentq`
-  as fallback (20 to 30 times faster for comets). Low priority. When
-  planets gain eccentricity (MAP.70 and MAP.62 are built), reuse the
-  same non-iterative solver in `body_positions.py` and
-  `orbitpositions.js` so the parity test stays simple.
-  Math Research (2026-10-14): production code does not yet call the vector
-  `solve_eccentric_anomalies` (1.36 us against 20.9 us for the scalar
-  `brentq`); use it wherever updates are batched (GEN.212).
-  Prerequisites: none.
-  Design: [docs/design/orbital-solvers-and-integrators.md](design/orbital-solvers-and-integrators.md)
-
 - [ ] **GEN.142 Peculiar velocity for rogue planets and asteroid fields**
   `rogue_planets` and `asteroid_fields` have no velocity, so the
   co-rotation model gives neighbouring rogues near-zero relative speed
@@ -4135,20 +4118,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   show what was asked and what was drawn.
   Prerequisites: none. Related: GEN.96, GEN.97.
 
-- [ ] **GEN.180 Directives: a forced fill (met_forced) after K failed draws**
+- [ ] **GEN.180 Directives: a forced fill (met_forced) after K failed draws, and refusal of impossible requests up front**
   Left over from GEN.96 (PR #915, Foundations lane 1). Done: when a
   directive is not met after K draws (K set in tuning.py), the generator
   takes the fallback fill marked `met_forced` instead of failing or
   looping, and the result says it was forced; a test covers a directive
   that cannot be met by drawing.
-  Prerequisites: none. Related: GEN.96.
-
-- [ ] **GEN.181 Directives: refuse impossible requests up front from the compound-Poisson tables**
-  Left over from GEN.96 (PR #915, Foundations lane 1). Done: before any
-  drawing, a directive whose requested mix cannot occur in the sector
-  (judged from the compound-Poisson tables) is refused with the reason,
-  in the Generate page and the CLI.
-  Prerequisites: none. Related: GEN.96, GEN.180.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): GEN.181 folded in. Also refuse impossible requests up
+  front: before any drawing, a directive whose requested mix cannot
+  occur in the sector (judged from the compound-Poisson tables) is
+  refused with the reason, in the Generate page and the CLI. GEN.179
+  stores the `met_forced` status in its attempt record.
+  Prerequisites: none. Related: GEN.96, GEN.179.
 
 - [ ] **GEN.197 Orbital event record: the `record_event` writer and the object-ID rules for ejection, capture, merger and split**
   Source: docs/design/object-id-options.md section 0 (Boss decided
@@ -4199,15 +4181,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   drawn (galactic for a sector, system for the System Map, planetary for
   a moon neighbourhood), read from the same constants, not a copy. See
   the new section in docs/design/gravity-map.md.
-  Prerequisites: GEN.338, GEN.342. Related: GEN.105, NAV.6,
-  TEST.131,
-  PERF.72, MAP.167.
+  Prerequisites: GEN.338, GEN.342. Related: GEN.105, NAV.6, PERF.72,
+  MAP.167.
   Scope after the review (2026-10-16 review): the tidal tensor and its
   eigenvalue, the galaxy potential term (GEN.115, GEN.285), the near and
   far split with per-region aggregates and the gradient step from
   THRESHOLDS_M; pull and potential at a point come from the field kernel
   (PERF.88). Course planning (NAV.6) reuses nothing from it: NAV.6,
   NAV.25 and NAV.26 plan around keep-out spheres.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): TEST.131 folded in. Its tests are part of this item and
+  land in the same PR (Test Suite Rebuild decision, 2026-10-14): the
+  evaluator matches Newton for two bodies to 1e-9 relative; the
+  Sun-Earth L1 and L2 points land near 1.5 million km with a saddle in
+  the tidal gradient; it stays finite inside a softened source; the
+  galaxy potential's rotation curve matches the published one (a
+  plausibility target only); the near and far split agrees with the
+  exact sum to a stated tolerance on a random sector; the same seed
+  gives the same field twice.
 
 - [ ] **GEN.199 Per-zone gravity grid for a sector: stored in a cache and rebuilt when the orbits update**
   Done: for a sector, the field (GEN.198) is sampled at the centre of
@@ -4285,7 +4276,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `solve_eccentric_anomalies` for batched comets; the NumPy move of the
   stars is the stepper (child c of GEN.115). Moved after that child so
   the loop is rewritten once.
-  Prerequisites: GEN.340. Related: GEN.105, GEN.141, PERF.88.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): GEN.141 folded in. Also swap `solve_eccentric_anomalies`
+  for Mikkola or Markley with `brentq` as the fallback (20 to 30 times
+  faster for comets; low priority); when planets gain eccentricity
+  (MAP.70 and MAP.62 are built), reuse the same non-iterative solver in
+  `body_positions.py` and `orbitpositions.js` so the parity test stays
+  simple (GEN.374 fixes the JavaScript solver's tolerance first).
+  Prerequisites: GEN.340. Related: GEN.105, PERF.88.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 - [ ] **GEN.218 One habitability describer, in the short wording**
@@ -4321,7 +4319,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class pages label the flag "Habitable class". Touches UX
   (UX.32 chip decision, UX.101 symbols): coordinate before editing
   systempage.py.
-  Prerequisites: GEN.218, UX.120. Related: UX.32, UX.101.
+  Prerequisites: GEN.218, UX.120. Related: UX.100, UX.101.
 
 - [ ] **GEN.221 Short plain prose for the fixed text**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
@@ -8607,6 +8605,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ones upgraded, in this lane's draft. SCvH 1995 was read from the ADS
   scan (articles.adsabs.harvard.edu), Lodders 2003 and journal pages
   behind a bot check were not.
+  Part 5 landed (Atmosphere research lane, 2026-10-17, 12:26 AM EDT as
+  the lane reported): mixing ratios by class, about 139 rows read from
+  papers and 45 computed
+  (design-drafts/atmosphere-parts/05-mixing-ratios-by-class.md). Its
+  finding is filed as GEN.451; its gaps (ice sublimation curves for N2,
+  CO, CH4 and CO2, per-comet abundance tables, magma-ocean redox papers)
+  are on the research list of atmosphere-colour.md section 4. The other
+  six parts are still running; the assembled draft merges into
+  docs/design when it arrives.
   Prerequisites: none. Related: GEN.409, GEN.410, GEN.434, GEN.437.
 
 - [ ] **GEN.432 Research: what rocky, icy and giant bodies and their small relatives are made of, and the numbers each material needs**
@@ -9212,40 +9219,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   touching its files.
   Prerequisites: GEN.134. Related: GEN.134, GEN.405, GEN.386, TEST.186.
 
-## PERF: Speed, caching, bulk generation and parallel work
+- [ ] **GEN.451 The mantle redox mean follows the meteorite building blocks: a young rocky planet starts reduced, not at the modern Earth's 3.5 above the iron-wuestite buffer**
+  Finding of the Atmosphere research lane, part 5 (mixing ratios by
+  class,
+  /mnt/project-files/design-drafts/atmosphere-parts/05-mixing-ratios-by-class.md;
+  2026-10-17, 12:26 AM EDT as the lane reported; relayed by the
+  coordinator): `REDOX_EARTH_DELTA_IW = 3.5` in physics/atmosphere.py
+  (the mean of the drawn mantle redox, with `REDOX_SLOPE` 2.0 per decade
+  of mass and `REDOX_SIGMA` 1.0) is far more oxidised than the
+  building-block values of meteorites (about 1 below to 0 above the
+  iron-wuestite buffer), so a young rocky planet should start reduced.
+  The modern Earth's 3.5 is a test value, not a law (NO FIXED CONTENT).
+  Done: the mean mantle redox is a function written from the sources
+  (building blocks, core formation, planet mass and age, with the seeded
+  scatter), a young rocky planet's mean falls inside the meteorite range
+  and an old, large one reaches the oxidised side, the outgassed mixes
+  of GEN.411 and GEN.422 read it, the constant is gone in the same
+  change (no shim), and a test checks the young-planet mean against the
+  meteorite range and the modern Earth value as a plausibility target
+  only. Generator epoch bump; it joins the one rescatter of 8.4's
+  stored-value changes. Owner: Core 4 (the 8.4 atmosphere chain,
+  proposed).
+  Prerequisites: GEN.431, GEN.410. Related: GEN.409, GEN.411, GEN.422,
+  GEN.428.
 
-- [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
-  Boss (2026-10-01 22:13Z): "make the GEN.30 backfill parallelized and
-  use the work queue." Today `backfill_bright_stars_around`
-  (`generate.py`) runs in one process, one block at a time: after a
-  sector run, in the block top-up loop in `add_bright_star_band`, and
-  inline inside web requests (the map visit and the API neighborhood
-  route). Each block takes a row lock and commits on its own, so blocks
-  can be separate work-queue tasks. Done: the backfill's blocks run as
-  tasks on the work queue (`stellarObjects/workQueue.py`, PERF.8) with
-  the run's worker count, giving the same stars as the one-process
-  backfill for the same seed, and the in-request backfills queue their
-  work instead of doing it inside the request. The bright-star scatter
-  already runs per layer in parallel (PERF.7) but stays serial within a
-  layer.
-  Plan (2026-10-07): The backfill blocks become RQ jobs (PERF.24).
-  Research (2026-10-09, sampling-backfill-and-resume.md): pre-warm or
-  persist the band-fraction tables (`star_population._bright_table`, an
-  `lru_cache`): a forked RQ work horse rebuilds them on every job (5 s
-  with a 1000 L_sun ceiling, 40 s without). Make the task unit a chunk
-  of at least about 10^4 cells. The CPU gain is small (draws are about
-  0.06 ms per cell; SQL and neighbour locks dominate, 1.87 times at 2 to
-  4 workers). Discovery enumerates a 60-fold redundant list (531 calls
-  and 1.0 million enumerated cells for a 50 pc core, about 70 s
-  extrapolated for 200 pc): enumerate once around the run's boundary or
-  bounding disc and keep cells within the tier radius of the region.
-  Research (2026-10-09, generation-performance-study.md): the remark
-  that the CPU gain is small is wrong for the scatter: 95% of its CPU
-  was per-job import and band-table rebuild, and pre-warming the worker
-  took 322 s to 39.5 s (PERF.42).
-  Folded into the backfill-as-queue-units child of PERF.98 (chunks of at
-  least 10,000 cells, one enumeration, pre-warmed tables); it closes
-  when that child ships (2026-10-16 review).
+## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.20 Short-term caching through the work queue and API**
   Boss (2026-10-01 22:17Z): "Everything should go through the work
@@ -9618,6 +9616,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   backfill runs wholly on the new queue and gives the same stars for the
   same seed at any worker count; the old executor is unused by any
   generation command; a test with a backfill of at least two chunks.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): PERF.18 folded in. Boss's order of 2026-10-01 stays: the
+  backfill runs as tasks on the work queue with the run's worker count
+  and gives the same stars as the one-process backfill for the same
+  seed; the research on the per-job band-table rebuild and the 60-fold
+  redundant enumeration is in
+  docs/design/sampling-backfill-and-resume.md and
+  generation-performance-study.md.
   Prerequisites: PERF.107. Related: PERF.98.
 
 - [ ] **PERF.109 Cache the Generate page estimate**
@@ -11262,25 +11268,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   moons following; the operation itself is ADM.36's.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
-- [ ] **ADM.73 Density overrides for any region: store them, show them, and apply them to later fills**
-  Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
-  has complete control; the world adjusts to what the admin wants, after
-  the admin approves the generation plan. Extend the density edit of
-  MAP.119 from the slab or block in view to any region: the admin picks
-  a region (the tool of MAP.212), sets a multiplier from 0.1 to 10,
-  previews the effect, confirms, and can undo; the override table of
-  DB.38 holds it and every later fill reads it. Done: the edit, preview
-  and undo, the later-fill read, the logged entry, and tests that two
-  overlapping regions combine in a stated order.
-  Prerequisites: DB.38, GEN.302, MAP.212, ADM.94. Related: ADM.57,
-  MAP.119.
-  Scope after the review (2026-10-16 review): the region tool hand-off
-  for any shape, the preview over an arbitrary region and the test that
-  two overlapping regions combine; the store and the fill read are the
-  second child of MAP.119 (which already stores
-  `region_density_overrides`, DB.38).
-  Design: [docs/design/edit-everything.md](design/edit-everything.md)
-
 - [ ] **ADM.74 Adjust the world to a density change: a plan that adds or removes systems so a region matches its new density**
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
   has complete control; the world adjusts to what the admin wants, after
@@ -11292,7 +11279,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   sector. Done: the plan generator, the approval of it through the
   screen of ADM.66, and tests that a raised and a lowered density each
   reach the target within a stated tolerance.
-  Prerequisites: ADM.73, ADM.58, ADM.65. Related: ADM.57.
+  Prerequisites: ADM.58, ADM.65, MAP.218. Related: ADM.57.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
 - [ ] **ADM.75 Rearrange a system around a change to a planet, moon or belt: the plan that fewest changes make valid again**
@@ -11848,21 +11835,6 @@ clears each one.
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.123, GEN.122.
-
-- [ ] **TEST.131 Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve**
-  Done: the evaluator (GEN.198) matches Newton for two bodies to 1e-9
-  relative, puts the Sun-Earth L1 and L2 points where the published
-  distances are (about 1.5 million km) with a saddle in the tidal
-  gradient, stays finite inside a softened source, and reproduces the
-  galaxy potential's rotation curve (229.3 km/s at 8.128 kpc); the
-  near/far split agrees with the exact sum to a stated tolerance on a
-  random sector; the same seed gives the same field twice.
-  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): stays
-  with whoever builds the gravity evaluator (GEN.198): they write these
-  tests in the same PR as a normal gravity test file. Owner: that
-  builder.
-  Prerequisite: GEN.198. Related: GEN.198, GEN.115.
 
 - [ ] **TEST.134 test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug)**
   Bugfixes lane 1 (2026-10-10, full local suite 19:41Z to 20:54Z, -n 4):
@@ -13643,16 +13615,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: none.
   Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
 
-- [ ] **OPS.30 A lock helper for the maintenance run**
-  `planetgen/util/locks.py` with `filelock` (pinned `==3.19.1` for
-  Python 3.9, current otherwise), a sidecar info file, `timeout=0`
-  helpers and `PermissionError` handling, plus a two-process test on
-  Linux and macOS.
-  Note (2026-10-09): The Windows parts are dropped by OPS.39 (Boss,
-  2026-10-10 04:25Z).
-  Prerequisites: none.
-  Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
-
 - [ ] **OPS.35 A vendored-version lock file for the static libraries**
   `static/vendor/VENDORED.json` (version, npm `dist.integrity`, SHA-256
   per shipped file, esbuild version, licence) written by the vendor
@@ -13920,8 +13882,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   know about. Done: the sweep is run again on main, anything new is
   fixed in the same pass, README's headline feature list and the release
   headline are checked, and the result is recorded here.
-  Prerequisites: DOC.19, DOC.20, DOC.24, DOC.47, DOC.48, DOC.49,
-  DOC.50, DOC.51, DOC.52, DOC.53. Related: DOC.4.
+  Prerequisites: DOC.19, DOC.20, DOC.24, DOC.47, DOC.48, DOC.50, DOC.51,
+  DOC.52, DOC.53. Related: DOC.4.
   Runs last: re-run the sweep when the other 8.1 DOC items are done
   (2026-10-16 review).
 
@@ -14018,17 +13980,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: GEN.241, GEN.243.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **DOC.49 Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue**
-  Step 9 of the phenomena train. `interstellar-object-rates.md`,
-  `anomalies.md`, `multistar-and-compact-systems.md` and
-  `nebula-and-asteroid-field-classes.md` say where each kind now lives
-  (`phenomena-catalogue-and-fill.md` and the registry). Done: each of
-  the four names the catalogue section and the registry row for its
-  kinds, and the Wolf-Rayet and compact-remnant rules agree with the
-  build. Owner: Quality, after the code.
-  Prerequisite: GEN.130. Related: DOC.48.
-  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
-
 - [ ] **DOC.50 Docs: the schema, the multi-star note and the catalogue say where the members live**
   Step 10 (design note 11 item 10). `database-schema.md` (the two new
   tables and the two new columns), `multistar-and-compact-systems.md`
@@ -14044,8 +13995,17 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `phenomena-catalogue-and-fill.md` section 4 to the catalogue sections
   13 to 16, and the cap of twelve. Runs after the catalogue code and
   audit.
-  Prerequisites: GEN.264, TEST.164. Related:
-  DOC.49.
+  Prerequisites: GEN.264, TEST.164, GEN.130.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): DOC.49 folded in. This item also points the rate,
+  anomaly, multi-star and nebula notes (`interstellar-object-rates.md`,
+  `anomalies.md`, `multistar-and-compact-systems.md`,
+  `nebula-and-asteroid-field-classes.md`) at the phenomena catalogue:
+  each names the catalogue section and the registry row for its kinds,
+  and the Wolf-Rayet and compact-remnant rules agree with the build. It
+  also waits for GEN.130; DOC.48 edits the same two notes
+  (`interstellar-object-rates.md`, `anomalies.md`), so land it before or
+  after, not in parallel.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **DOC.51 Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder**
@@ -14465,19 +14425,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: none.
   Design: [docs/design/sky-view.md](design/sky-view.md)
 
-- [ ] **VIEW.10 A HYG calibration test: a generated sky has about 9,000 stars at V <= 6.5**
-  Pillow is already installed through scikit-image (pillow 11.3.0 below
-  Python 3.10, 12.3.0 above) and no repo code imports it; declare it if
-  Pillow is used (open question for Boss, default: SVG overlay, Pillow
-  only for a self-contained PNG with text). A calibration test that
-  reads HYG from a developer machine (not committed).
-  Rewritten (2026-10-16 review): the "declare pillow" half is dropped
-  (not declared; no repo code imports it; revisit only if VIEW.3 adds
-  burned-in text); the calibration test moved to phase 2 after the
-  photometry library and the sky tiers, which it needs.
-  Prerequisites: VIEW.11, VIEW.7.
-  Design: [docs/design/sky-view.md](design/sky-view.md)
-
 - [ ] **VIEW.11 Photometry library: apparent magnitude, bolometric correction, blackbody colour and the extinction law**
   Split from VIEW.2 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). Pure array functions in
@@ -14507,6 +14454,11 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   have run. Done: `sky_from(observer)` returning about 9,000 stars at V
   <= 6.5 for a seeded planet, with tests for the cut, the light-time
   step and the incomplete state.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): VIEW.10 folded in. Also the HYG calibration test (HYG is
+  read from a developer machine and not committed): a generated sky has
+  about 9,000 stars at V <= 6.5. Pillow is not declared; revisit only if
+  VIEW.3 adds burned-in text (the 2026-10-16 review).
   Prerequisites: VIEW.11, VIEW.7. Related: VIEW.2.
 
 - [ ] **VIEW.13 Galactic band: the glow of the unresolved stars and dust along each line of sight**
