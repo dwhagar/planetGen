@@ -58,18 +58,42 @@ subhead (badges or actions under the <h1>). -#}
 </sl-dropdown>
 {%- endmacro -%}
 <!doctype html>
-<html lang="en">
+{%- set head_info = seo_head(title, description) -%}
+<html lang="{{ head_info.lang }}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ title }} - {{ site_name }}</title>
-{%- if description %}
-<meta name="description" content="{{ description }}">
+<title>{{ head_info.title }}</title>
+{%- if head_info.description %}
+<meta name="description" content="{{ head_info.description }}">
+{%- endif %}
+{%- if head_info.keywords %}
+<meta name="keywords" content="{{ head_info.keywords }}">
+{%- endif %}
+{%- if head_info.robots %}
+<meta name="robots" content="{{ head_info.robots }}">
+{%- endif %}
+{%- if head_info.canonical %}
+<link rel="canonical" href="{{ head_info.canonical }}">
 {%- endif %}
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#f6f7fb" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#14151e" media="(prefers-color-scheme: dark)">
-<link rel="icon" type="image/svg+xml" href="{{ static_url('favicon.svg') }}">
+<meta name="theme-color" content="{{ head_info.theme_light }}" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="{{ head_info.theme_dark }}" media="(prefers-color-scheme: dark)">
+{%- for icon_link in head_info.icons %}
+<link rel="{{ icon_link.rel }}" type="{{ icon_link.type }}" href="{{ icon_link.href }}"{% if icon_link.sizes %} sizes="{{ icon_link.sizes }}"{% endif %}>
+{%- endfor %}
+{%- if head_info.manifest %}
+<link rel="manifest" href="{{ head_info.manifest }}">
+{%- endif %}
+{%- for name, content in head_info.og %}
+<meta property="{{ name }}" content="{{ content }}">
+{%- endfor %}
+{%- for name, content in head_info.twitter %}
+<meta name="{{ name }}" content="{{ content }}">
+{%- endfor %}
+{%- if head_info.json_ld %}
+<script type="application/ld+json">{{ head_info.json_ld | safe }}</script>
+{%- endif %}
 <script src="{{ static_url('theme.js') }}"></script>
 <script src="{{ static_url('localtime.js') }}" defer></script>
 <link rel="stylesheet" href="{{ static_url('vendor/shoelace/themes/light.css') }}">

@@ -677,3 +677,9 @@ class QueueAction(Lenient):
         if self.action not in ("pause", "resume"):
             raise ValueError("'action' must be pause or resume")
         return self
+
+
+class ImageUpload(Body):
+    """`POST /api/admin/images/<kind>`: the picture as base64 text (PNG, JPEG, ICO or SVG, by `kind`)."""
+
+    data: StrictStr
