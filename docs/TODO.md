@@ -6167,6 +6167,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Blocker 1 (Boss, 2026-10-17, 3:47 PM EDT, card answer relayed
+  in words by the coordinator: GEN.314 goes to Blocker 1 after GEN.289;
+  Core 3 confirmed it was never started and dropped it from its queue).
+  This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.129.
 
 - [ ] **GEN.315 A fill builds a system from its stored members and nodes; the system pass keeps only planets, moons, belts and disks**
