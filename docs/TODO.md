@@ -8264,6 +8264,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the decisions, a worked example and the test targets (Earth air gives
   tau 0.097 at 550 nm and a blue sky, a red dwarf world and a thin CO2
   world give what the physics says), and Boss approves it.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
   Prerequisites: GEN.408. Related: GEN.410, GEN.411, GEN.412, GEN.413,
   GEN.414, GEN.416, GEN.417, GEN.418.
 
@@ -8289,6 +8290,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   toxicity code and in the docs, and each appears in the table or is
   dropped from the text. Done: a test fails when a gas named anywhere in
   the code is missing from the table; every number has a source.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
   Prerequisites: GEN.409. Related: GEN.208, GEN.85, GEN.355, GEN.411,
   GEN.415.
 
@@ -8317,6 +8319,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by more than 10 percent for classes A, B, E, G, H, L and Q; GEN.422,
   GEN.423 and GEN.424 carry the related fixes (the recalculation redraw,
   density, scale height and greenhouse from the mix, the balance gas).
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
   Prerequisites: GEN.410. Related: GEN.85, GEN.355, GEN.223, DB.67.
 
 - [ ] **GEN.412 Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give**
@@ -8335,6 +8338,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class, and that the inverse returns the drawn values to a stated
   tolerance; where the inverse has no solution it says so and the
   migration draws from the class range, seeded.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
   Prerequisites: GEN.409. Related: DB.67, GEN.85, GEN.355.
 
 - [ ] **GEN.413 Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance**
@@ -8354,6 +8358,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ozone column near the measured 300 Dobson units within a stated
   tolerance, a world with no oxygen has none, and the habitability UV
   index reads the same number.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
   Prerequisites: GEN.408, GEN.411. Related: GEN.87, GEN.189, DB.68.
 
 - [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
@@ -8372,6 +8377,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   oceans has cloud and little dust, a dry thin-air world has dust, a
   methane and nitrogen world under UV has haze; a test pins each rule
   with a physical range, nothing is fixed per class.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
   Prerequisites: GEN.411, GEN.412. Related: GEN.413, DB.68, GEN.418.
 
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
@@ -8386,6 +8392,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generates planets of every class and checks that each compound named
   in the text is in the stored mixture above a stated threshold, and
   that the text, the composition table and the molar density agree.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
   Prerequisites: GEN.410, GEN.411, GEN.413. Related: GEN.208, GEN.218,
   TEST.209.
 
@@ -8496,6 +8503,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   drawn albedo, greenhouse multiplier, redox and mix; after the
   freeze-out the pressure, the mix and the temperature satisfy the
   formula together; a test says so for every class.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
   Prerequisites: GEN.411, GEN.412. Related: GEN.411, GEN.412, GEN.423,
   TEST.209.
 
@@ -8516,6 +8524,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   them. Done: every generated planet has density, scale height and
   greenhouse multiplier that follow from its stored mixture, a test
   changes the mix and the values move as the formulas say.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
   Prerequisites: GEN.410, GEN.411, GEN.412. Related: GEN.411, GEN.422,
   TEST.209.
 
@@ -8533,6 +8542,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   helium-rich atmosphere has a mean molar mass near 2 to 4 g/mol, not
   28; habitability, the scale height and the molar density all read the
   same stored number; a test says so.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
   Prerequisites: GEN.410, GEN.411. Related: GEN.411, GEN.423, TEST.209.
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -9699,6 +9709,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   a database of the previous revision and every row has the three
   values; a test checks the values agree with the stored temperature and
   pressure.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
   Prerequisites: GEN.411, GEN.412, GEN.422, GEN.423, GEN.424. Related:
   DB.65, DB.68, GEN.412.
 
@@ -9710,6 +9721,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   filled for old rows by the same derivations (a migration only, in the
   revision after DB.67). Done: every row has the values; a test checks
   them against the stored mixture.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
   Prerequisites: GEN.413, GEN.414, DB.67. Related: DB.67.
 
 ## API: The JSON API
