@@ -28,8 +28,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | PERF.75 | Keyset paging for the other data tables and the jump-by-value box (Systems name sort done) |  | Decided by default. Foundations lane 1. |
 | PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply |  |  |
 | PERF.91 | Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws) |  |  |
-| PERF.97 | Work queue step 3: the mass scatter end to end on the new queue |  | PERF.86 step 3 |
-| PERF.106 | The plan command on the run record, with stage timing, the killed-worker handler and job timeouts | PERF.97 | Split from PERF.98. |
+| PERF.106 | The plan command on the run record, with stage timing, the killed-worker handler and job timeouts |  | Split from PERF.98. |
 | PERF.107 | The sector units and the stages around them: start, neighborhood, sectors, link, population and settle | PERF.106 | Split from PERF.98. |
 | PERF.108 | The backfill as queue units: chunks of at least 10,000 cells, one enumeration (folds in PERF.18) | PERF.107 | Split from PERF.98. |
 | PERF.98 | Work queue step 4: the remaining stages and the sector and backfill units on the new queue | PERF.106, PERF.107, PERF.108 | PERF.86 step 4 |
