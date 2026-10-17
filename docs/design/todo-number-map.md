@@ -14,19 +14,19 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.136 |
-| MAP | MAP.244 |
+| MAP | MAP.245 |
 | NAV | NAV.63 |
-| GEN | GEN.408 |
+| GEN | GEN.526 |
 | PERF | PERF.111 |
-| DB | DB.67 |
+| DB | DB.72 |
 | API | API.31 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.209 |
+| TEST | TEST.218 |
 | USR | USR.31 |
 | OPS | OPS.60 |
-| DOC | DOC.63 |
-| VIEW | VIEW.18 |
+| DOC | DOC.67 |
+| VIEW | VIEW.19 |
 | POP | POP.15 |
 
 ## Why this exists
@@ -461,7 +461,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.70 | Specification form: "regenerate to this specification" built from the aspect catalogue and the system generator options | none | open |
 | ADM.71 | Move a star system or phenomenon within its sector or to another sector, as a plan | none | open |
 | ADM.72 | Edit a body's orbit: distance, eccentricity, inclination and angles, with its moons following, as a plan | none | open |
-| ADM.73 | Density overrides for any region: store them, show them, and apply them to later fills | none | open |
+| ADM.73 | Density overrides for any region: store them, show them, and apply them to later fills | none | merged into MAP.218 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | ADM.74 | Adjust the world to a density change: a plan that adds or removes systems so a region matches its new density | none | open |
 | ADM.75 | Rearrange a system around a change to a planet, moon or belt: the plan that fewest changes make valid again | none | open |
 | ADM.76 | Rearrange a system around a change to a star: class, mass, luminosity or companions | none | open |
@@ -479,7 +479,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.88 | Control database backup part: a dump of the planetgen_control schema (admin logins, API keys, run records) in the backup archive | none | open |
 | ADM.89 | Control database restore: load a backed-up planetgen_control into a scratch schema, check it, then replace the live schema, from the command and from the settings page | none | open |
 | ADM.90 | Database health and repair page: run the check, see damaged and unprotected sectors, repair from the live parity or from an archive, restore parts, as a queue job | none | open |
-| ADM.91 | Backups and repair, target 9.0: one bz2 archive of the settings, the control database and the parity data, and the ways to use it (restore the control database, restore parity, repair the galaxy, the repair page) | none | open |
+| ADM.91 | Backups and repair, target 8.9: one bz2 archive of the settings, the control database and the parity data, and the ways to use it (restore the control database, restore parity, repair the galaxy, the repair page) | none | open |
 | ADM.92 | Admin shell: one layout, one navigation and the shared table, form, confirmation and job-log components | none | open |
 | ADM.93 | Move every existing admin page onto the shell and fix the defects the audit ranks above its line | none | open |
 | ADM.94 | Density override store and the fill read: set, undo and combine overrides for any region, and have later fills use them | none | open |
@@ -569,7 +569,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.52 | Migration only: drop the prose columns and tables | none | open |
 | DB.53 | Built-system star storage: the orbit_nodes table, stars.parent_node_id, planets.host_node_id, the catalogue columns and the disk descriptor (one Core 1 revision) | none | open |
 | DB.54 | The three scatter-limit settings as galaxy_shape columns: core luminosity floor, core mass limit and halo luminosity floor | none | done, PR #1887 |
-| DB.55 | One additive migration for the 8.3 schema: point columns for every kind, heaviest object per sector, asteroid-field provenance | none | open |
+| DB.55 | One additive migration for the 8.3 schema: point columns for every kind, heaviest object per sector, asteroid-field provenance | none | done, PR #1952 |
 | DB.56 | The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings | none | open |
 | DB.57 | The update records what it moved: a replace-each-run table of previous and new positions | none | open |
 | DB.58 | Control-schema revision for accounts: role, email and status, the single-Owner index, account_tokens and invite_uses | none | open |
@@ -581,6 +581,11 @@ Parents marked "new parent" had no old number of their own.
 | DB.64 | Table for stored constellations (migration only) | none | open |
 | DB.65 | Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates | none | open |
 | DB.66 | The shape row carries the galaxy family and one column per density component, as a migration only | none | open |
+| DB.67 | Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with | none | open |
+| DB.68 | Planets and moons store the ozone column and the haze, dust and cloud optical depths | none | open |
+| DB.69 | Planets and moons store the composition fractions | none | open |
+| DB.70 | Planets, moons and small bodies store the surface and small-body composition shares | none | open |
+| DB.71 | Planets and moons store the partial pressures of the added gases, not only the ten stored today | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -629,7 +634,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.46 | Docs for the spherical sector grid | none | done, PR #1627 |
 | DOC.47 | Rebuild docs/design/architecture.html from the new architecture.md | none | open |
 | DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | none | open |
-| DOC.49 | Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue | none | open |
+| DOC.49 | Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue | none | merged into DOC.50 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | none | open |
 | DOC.51 | Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder | none | open |
 | DOC.52 | A docs index page: links to every HTML page under docs/, each with a description of what it contains | none | open |
@@ -643,6 +648,10 @@ Parents marked "new parent" had no old number of their own.
 | DOC.60 | Settings note: read sections A2 and A6 of the settings and accounts design against the built one-file settings and fix what is stale | none | open |
 | DOC.61 | Docs: how the bubbles shape the stars, the setting values and what the drawn layer now is | none | open |
 | DOC.62 | Docs: the generation cost figures and the redo scope are stale (the phenomena cut, rows, bytes and time; `--redo-scatters` leaves satellites and clusters alone) | none | open |
+| DOC.63 | Docs: the atmosphere data model, the gas table and how the values agree | none | open |
+| DOC.64 | Docs: the atmosphere colour, its method and its sources | none | open |
+| DOC.65 | Docs: bulk composition, the materials table and how density, mass and gravity follow | none | open |
+| DOC.66 | Docs: the composition model of stars, bodies and atmospheres, the radiation it derives and the sources of every number | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -745,7 +754,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.100 | Phenomena placed galaxy-wide first and kept when sectors fill | none | done, PR #793 |
 | GEN.101 | Fill order: nearest sectors first along a pruned Hilbert octree curve | none | done, PR #1807 |
 | GEN.102 | Investigate filling all near-zero-density void space at once | none | done, decided no pre-fill (Boss, 2026-10-16, 5:55 PM EDT) |
-| GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure | none | open |
+| GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure | none | done, PR #1953 |
 | GEN.104 | A spin vector and a realistic axial tilt for every rotating object | none | done, PR #826 |
 | GEN.105 | Orbital updates | none | open |
 | GEN.106 | Movement thresholds and a next-update-due column | none | done, PR #802 |
@@ -776,16 +785,16 @@ Parents marked "new parent" had no old number of their own.
 | GEN.131 | Bright-star scatter logs how many stars it added to each layer, by type | none | done, PR #805 |
 | GEN.132 | Per-sector regional rates for neutron stars and black holes, extended system-wide where the research supports it | none | done, PR #807 |
 | GEN.133 | Analysis of every star type's rate against its distance from the galactic core | none | done, PR #807 |
-| GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius | none | open |
+| GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius | none | done, PR #1972 |
 | GEN.135 | Deterministic math helpers for every stored float, with a lint and frozen constants | none | done, PR #1927 |
 | GEN.136 | Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests | none | open |
 | GEN.137 | Placed objects move along a galactic orbit but never by velocity times time, and phenomenon_scatter has no plan time (bug) | none | done, PR #843 |
 | GEN.138 | Moon `hill_radius_km` uses the star's mass, so moon spacing and the orbit slider are wrong (bug) | none | done, PR #865 |
 | GEN.139 | Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built) | none | open |
 | GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) | none | open |
-| GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback | none | open |
+| GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback | none | merged into GEN.212 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | GEN.142 | Peculiar velocity for rogue planets and asteroid fields | none | open |
-| GEN.143 | A collision_events table, an admin report and a test that runs the whole collision path | none | open |
+| GEN.143 | The orbital-event admin report, the last-collisions view and a test that runs the whole collision path | none | open |
 | GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs | none | open |
 | GEN.145 | Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30 | none | open |
 | GEN.146 | Teff-dependent habitable zone from the Kopparapu table | none | open |
@@ -822,8 +831,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.177 | Planetary magnetic fields: a stagnant-lid factor | none | done, PR #1410 |
 | GEN.178 | Magnetic fields: the induced field of an ocean moon | none | done, PR #1447 |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector | none | open |
-| GEN.180 | Directives: a forced fill (met_forced) after K failed draws | none | open |
-| GEN.181 | Directives: refuse impossible requests up front from the compound-Poisson tables | none | open |
+| GEN.180 | Directives: a forced fill (met_forced) after K failed draws, and refusal of impossible requests up front | none | open |
+| GEN.181 | Directives: refuse impossible requests up front from the compound-Poisson tables | none | merged into GEN.180 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | GEN.182 | Some comets' orbits do not bring them back: they are ejected into space (bug) | none | done, PR #938 |
 | GEN.183 | A mass cut the user sets: preset values on a slider from 8 to 20 solar masses | none | done, PR #969 |
 | GEN.184 | A luminosity floor the user sets: presets from 2500 to 4 million solar luminosities, default 3000 | none | done, PR #965 |
@@ -918,7 +927,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.273 | Young groups and trapezia: the `group` node, offset and velocity columns, a decay age and the remnant draw | none | open |
 | GEN.274 | Cluster-hosted compact binaries and runaway bookkeeping: `runaway_origin` and the compact companion left by a supernova | none | open |
 | GEN.275 | Substellar and circumbinary types: brown-dwarf and planetary-mass companions, circumbinary disks and planets | none | open |
-| GEN.276 | The sphere-to-key-runs cover: `sphere_runs` over the existing cell key (at most 256 merged runs) | none | open |
+| GEN.276 | The sphere-to-key-runs cover: `sphere_runs` over the existing cell key (at most 256 merged runs) | none | done, PR #1966 |
 | GEN.277 | Design note: which of the later phenomena are scattered, backfilled or stay sector-fill-only | none | done, PR #1721 |
 | GEN.278 | Magnetar scatter class: magnetars drawn as scatter rows of young neutron stars | none | done, PR #1805 |
 | GEN.279 | A realistic galactic core from the density and generation model (replaces the dropped one-off nuclear-cluster object GEN.155) | none | done, PR #1728 |
@@ -948,7 +957,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.303 | Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000 | none | open |
 | GEN.304 | The canonical fingerprint encoder: floats to 9 significant digits, SHA-256, structural and float digests | none | open |
 | GEN.305 | Store a leaf digest at save time and build the tree: roots and region digests | none | open |
-| GEN.306 | Population seeds keyed on the object, not on row ids | none | open |
+| GEN.306 | Population seeds keyed on the object, not on row ids | none | done, PR #1942 |
 | GEN.307 | The object-ID collision number keyed on the lower address | none | open |
 | GEN.308 | A block-first sampler for the backfill: a Poisson candidate count from the block's density bound, then thinning | none | open |
 | GEN.309 | The backfill picks the draw path per block and gives the same stars wherever it lands | none | open |
@@ -978,8 +987,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.333 | Scatter limits by place: the tier chosen per band by the dominant lambda term, applied in the passes, the backfill and the fill | none | done, PR #1904 |
 | GEN.334 | Pair closest-approach library: sweep, pair windows, window cap and chunking | none | open |
 | GEN.335 | One definition of the stored point columns, and a test that lists every object table | none | done, PR #1883 |
-| GEN.336 | Compact and free objects hold a velocity vector and a mass: stars, black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants | none | open |
-| GEN.337 | Epoch, vector and mass for the rest: belts, quasars, comets, facilities, scatter points and members | none | open |
+| GEN.336 | Compact and free objects hold a velocity vector and a mass: stars, black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants | none | done, PR #1952 |
+| GEN.337 | Epoch, vector and mass for the rest: belts, quasars, comets, facilities, scatter points and members | none | done, PR #1952 |
 | GEN.338 | The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests | none | open |
 | GEN.339 | Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded | none | open |
 | GEN.340 | One star stepper: kick-drift-kick in the potential, a step per object, on arrays | none | open |
@@ -1010,11 +1019,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.365 | Hot white dwarf and planetary-nebula central star radius disagrees with the radius that its luminosity and temperature imply (bug) | none | open |
 | GEN.366 | Check the reference satellite table against McConnachie 2012: it only tests that the derived population looks plausible | none | open |
 | GEN.367 | The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae | none | open |
-| GEN.368 | Plan the appearance rates of everything the Milky Way supplies as fixed content: the count, place and size laws, with sources, so a random galaxy draws them from its seed | none | open |
+| GEN.368 | Plan the appearance rates of everything the Milky Way supplies as fixed content: the count, place and size laws, with sources, so a random galaxy draws them from its seed | none | done, PR #1960 |
 | GEN.369 | Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option | none | open |
 | GEN.370 | Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug) | none | open |
 | GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies | none | open |
-| GEN.372 | Numeric precision audit at galactic scale: every float coordinate and sum, how far it gets from its origin, where the first error shows, and what needs a wider or split representation | none | open |
+| GEN.372 | Numeric precision audit at galactic scale: every float coordinate and sum, how far it gets from its origin, where the first error shows, and what needs a wider or split representation | none | done, PR #1959 |
 | GEN.373 | Massive multiples sit in young regions: set `prevalence` from the cell's young share, with a derived cap on the rise | none | open |
 | GEN.374 | Orbit phase formulas reduce first, and the JavaScript Kepler solver uses tolerance 1e-12: Python, SQL and JavaScript agree | none | open |
 | GEN.375 | Field kernel subtracts a local origin before its loop in `physics/sector_path.py` | none | open |
@@ -1049,7 +1058,125 @@ Parents marked "new parent" had no old number of their own.
 | GEN.404 | The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position | none | open |
 | GEN.405 | Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values | none | open |
 | GEN.406 | Research the population ages and velocity dispersions by component, the thick disk scaling and the stellar halo fraction so they become laws | none | open |
-| GEN.407 | Correct the horizontal-branch and red giant tables to the checked sources: the RGB time law, the evolutionary flux, the HB colour row, the extreme HB luminosity and the tip | none | open |
+| GEN.407 | Correct the horizontal-branch and red giant tables to the checked sources: the RGB time law, the evolutionary flux, the HB colour row, the extreme HB luminosity and the tip | none | done, PR #1985 |
+| GEN.408 | Research: verify the atmosphere sources and say what is missing | none | done, PR #1951 |
+| GEN.409 | The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model | none | open |
+| GEN.410 | One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention | none | open |
+| GEN.411 | The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree | none | open |
+| GEN.412 | Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give | none | open |
+| GEN.413 | Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance | none | open |
+| GEN.414 | Haze, dust and cloud: derived or drawn optical depths for every planet and moon | none | open |
+| GEN.415 | Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture | none | open |
+| GEN.416 | Blackbody colour of a star: Planck to the CIE curves to sRGB, as the first part of the photometry library | none | open |
+| GEN.417 | Rayleigh optical depth of the mixture: per-gas cross sections from the table and the air column from pressure and gravity | none | open |
+| GEN.418 | Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce | none | open |
+| GEN.419 | Atmosphere colour of gas and ice giants, read at a reference level in the cloud tops | none | open |
+| GEN.420 | The descriptions show the atmosphere colour: a swatch and a word in the planet and moon facts, in every output | none | open |
+| GEN.421 | Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it | none | open |
+| GEN.422 | Stop the recalculation redraw and order the steps so pressure, mixture and temperature agree after the cold-side freeze-out | none | open |
+| GEN.423 | Atmosphere density, scale height and the greenhouse multiplier follow from the mixture | none | open |
+| GEN.424 | The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture | none | open |
+| GEN.425 | Research: verify the mass-radius and equation-of-state sources and say what is missing | none | done, PR #1957 |
+| GEN.426 | The bulk composition design: the fractions, the equation of state, the draws and the derived density, mass and gravity | none | open |
+| GEN.427 | One table of the bulk materials with their equation-of-state constants and the source of each | none | open |
+| GEN.428 | Planets and moons draw their bulk composition fractions instead of carrying a fixed text | none | open |
+| GEN.429 | Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation | none | open |
+| GEN.430 | The planet and moon descriptions state the composition from the stored fractions | none | open |
+| GEN.431 | Research: what is in the atmospheres of every kind of world, and the numbers each compound needs | none | done, PR #1970 |
+| GEN.432 | Research: what rocky, icy and giant bodies and their small relatives are made of, and the numbers each material needs | none | done, PR #1972 |
+| GEN.433 | Research: what stars and stellar remnants are made of, and the numbers each needs | none | done, PR #1972 |
+| GEN.434 | Research: radiation through atmospheres and at the ground, and the numbers it needs | none | done, PR #1972 |
+| GEN.435 | The stellar composition design: the abundance relations, what is stored and what is derived, and the remnants | none | open |
+| GEN.436 | The radiation design: atmospheric transmission and greenhouse by band, shielding by column, and the ground's own dose | none | open |
+| GEN.437 | The composition model: how the element, compound, material and body tables link, and what is stored against derived | none | open |
+| GEN.438 | One table of the elements and their isotopes: atomic data and the radioactive isotopes' half-lives and decay energies | none | open |
+| GEN.439 | The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers | none | open |
+| GEN.440 | Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf | none | open |
+| GEN.441 | Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air | none | open |
+| GEN.442 | Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line | none | open |
+| GEN.443 | Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud | none | open |
+| GEN.444 | Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content | none | open |
+| GEN.445 | Habitability, toxicity and the UV index read the derived radiation instead of the proxies | none | open |
+| GEN.446 | The descriptions state the composition of stars, surfaces and small bodies, and the radiation at the surface | none | open |
+| GEN.447 | The wide-pair encounter limit uses the relative-velocity dispersion and the mass-weighted perturber mass | none | open |
+| GEN.448 | Massive stars get binaries between 0.25 and 50 AU, so the metallicity trend reaches the separations where it was measured | none | open |
+| GEN.449 | The companion table for mid and early B stars is raised to the observed frequencies | none | open |
+| GEN.450 | The star-formation profile's radial slope: reconcile the Schmidt index with the observed gradient, with the choice named | none | open |
+| GEN.451 | The mantle redox mean follows the meteorite building blocks: a young rocky planet starts reduced, not at the modern Earth's 3.5 above the iron-wuestite buffer | none | open |
+| GEN.452 | The condensation table is replaced by the checked saturation curves: the hydrogen sulphide row is a copy of the sulphur dioxide row, and carbon dioxide, sulphur dioxide and the cold gases are 2 to 20 K off (bug) | none | open |
+| GEN.453 | The radiation constants are corrected: the dipole cutoff scales with moment over radius squared, the dose curve against the column and the field factor follow the measured and simulated tables (bug) | none | open |
+| GEN.454 | Giant planets, ice giants and brown dwarfs draw their atmosphere mixture from the equilibrium chemistry sequence: by temperature, pressure, metallicity and quench | none | open |
+| GEN.455 | Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates | none | open |
+| GEN.456 | Lava worlds and hot rocky planets draw a vapour atmosphere over the magma from the surface composition and temperature: sodium, potassium, silicon monoxide, magnesium, iron and the oxides | none | open |
+| GEN.457 | The small bodies and moons composition design: the taxon and comet draws, compaction, the moon origin types and the ice fraction | none | open |
+| GEN.458 | Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes | none | open |
+| GEN.459 | One radiogenic module: heat from the isotope-wise decay of potassium, thorium, uranium and aluminium-26, drawn from the host star's abundances, replaces the bulk-silicate values that are 37 to 50 percent too high and the separate ground-dose draw (bug) | none | open |
+| GEN.460 | Giant planets and brown dwarfs get their radius and heavy-element content from the checked laws: the heavy-element mass law, the Fortney and Baraffe tables with inflation, and the burning limits shifted by metallicity and helium (bug) | none | open |
+| GEN.461 | The hydrosphere reads the stored water mass fraction: the compressed water-layer depth, the base pressure, the high-pressure ice and the liquidus are recomputed, and the class label follows from the water share (bug) | none | open |
+| GEN.462 | Ground albedo by band: the area-weighted colour of the ground, ice and ocean cover with space weathering, handed to the atmosphere colour once | none | open |
+| GEN.463 | The neutron star's radius is derived from sourced mass-radius relations instead of the fixed range of 10 to 13 km (bug) | none | open |
+| GEN.464 | The disk solids law reads the star's metal mass fraction Z over Z0, not 10 to the power of [Fe/H], which is off by 1.7 to 3 times in metal-poor alpha-enhanced stars | none | open |
+| GEN.465 | A second extraction pass over the sources the body and atmosphere research could not reach and that are reachable now | none | open |
+| GEN.466 | Moons draw their origin type, ice fraction and composition from the parent, the circumplanetary ice line and the age | none | open |
+| GEN.467 | The main-sequence lifetime is derived from sourced stellar relations instead of the fixed 10 Gyr for one solar mass and a power law of -2.5 (bug) | none | open |
+| GEN.468 | Settle the water share beyond the snow line: the Marboeuf-derived 0.14 to 0.39 of the solids against the convention of about 0.5 | none | open |
+| GEN.469 | The disk's star-formation history from the gas law: the local B-star share is 0.2 percent against the observed 0.04 percent | none | open |
+| GEN.470 | One saturation-pressure function p_sat(species, T) for the gases and ices: the Fray and Schmitt polynomials, water by Feistel and Wagner, and its tests | none | open |
+| GEN.471 | Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K | none | open |
+| GEN.472 | One gated possibility-table format and loader: every composition category is a table of possibilities with a class gate and a weight, drawn by the normalised weights of the rows that pass | none | open |
+| GEN.473 | Replace the asteroid taxon shares and the zone kernel, measured in the Solar System belt, by a derived or general distribution | none | open |
+| GEN.474 | Replace the Earth rock-type library, measured on Earth, by ground types derived from the bulk composition and the melting of the mantle | none | open |
+| GEN.475 | Meteorite groups become outputs and not inputs: regions of composition space reachable from the drawn bulk, with the measured groups kept as calibration | none | open |
+| GEN.476 | Aluminium-26 and iron-60 follow from the star's formation environment, not from the Solar System's own value and range | none | open |
+| GEN.477 | The asteroid belt and field composition is drawn from the star, the distance and the belt's mass, not four names drawn uniformly from a list of 84 (bug) | none | open |
+| GEN.478 | The atmosphere possibility tables: the 16 categories and 104 rows of part 09, loaded through the gated table loader, with every row that has no sourced weight flagged and drawn from its bracket | none | open |
+| GEN.479 | The class atmosphere mixes contradict the checked chemistry: classes C, D and S have no mix, free oxygen sits in seven classes with no life rule, class L is 60 percent argon, E and F hold ammonia and methane at 340 to 400 K, N reads reducing and is oxidised, and I, J and T share one mix in every zone (bug) | none | open |
+| GEN.480 | Source the occurrence weights of bare rock, hydrogen-helium envelope and water-rich worlds and of the envelope metal fraction, by radius, mass and insolation (AR1) | none | open |
+| GEN.481 | Source the volatile delivery against formation distance: the water mass fraction by a_form and the snow-line law over time (AR2) | none | open |
+| GEN.482 | Source the magma-ocean fO2 prior against mass and the oxidation law of the later mantle (AR3) | none | open |
+| GEN.483 | Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4) | none | open |
+| GEN.484 | Source the giant planets' C/O distribution and the fraction of carbon-rich hosts (AR5) | none | open |
+| GEN.485 | Source the hot-Jupiter thermochemistry above 2200 K, a Kzz distribution and the edges of the 1500 K and 2200 K regimes (AR6) | none | open |
+| GEN.486 | Source the lava-world vapour regimes and the fraction of lava worlds that keep volatiles (AR7) | none | open |
+| GEN.487 | Source the evolved and frost atmospheres: cold vapour pressures, the habitable-zone coefficients, the occurrence of Titan-, Pluto- and Venus-like bodies and the abiotic O2 frequency (AR8) | none | open |
+| GEN.488 | Source the comet coma classes and their volatile ratios (AR9) | none | open |
+| GEN.489 | Source the white-dwarf and pulsar planet options (AR10) | none | open |
+| GEN.490 | Source the trace-gas presence weights (AR11) | none | open |
+| GEN.491 | Source the cloud and haze windows and yields (AR12) | none | open |
+| GEN.492 | Source the ground radioisotope abundances by host and the potassium depletion by body class (AR13) | none | open |
+| GEN.493 | Source the initial-rotation distribution and the saturation time against stellar mass for the host-star UV regime (AR14) | none | open |
+| GEN.494 | Source the brown-dwarf type against temperature and the T/Y boundary near 500 to 700 K (AR15) | none | open |
+| GEN.495 | The comet population table: species ranges and log-normal scatters replace the draw centred on one comet, with a carbon-chain-depleted flag | none | open |
+| GEN.496 | The photolysis lifetime table: species lifetimes at 1 AU for the quiet Sun, the active-Sun factors and the species-specific stellar-spectrum ratios | none | open |
+| GEN.497 | The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve | none | open |
+| GEN.498 | One oxygen-fugacity scale for the generator: the reference fixed, delta-IW stored on it, and the buffers converted | none | open |
+| GEN.499 | The lava-world vapour species and mean molar mass from temperature and composition, replacing the heavy-oxide range of 40 to 60 g/mol | none | open |
+| GEN.500 | The licence audit: the licence column filled for every data source, and the permission list for NIST, JPL, Leiden, Bremen and Karkoschka | none | open |
+| GEN.501 | Source the activity factor of the NH3 photolysis rate from the Huebner and Mukherjee rate tables | none | open |
+| GEN.502 | The giant branch finishes the stellar tables check: the red giant time law as a function of core mass, the tip by metallicity and the branch duration against the observed horizontal-branch ratio | none | open |
+| GEN.503 | The shared tuning harness: a target table, a simulate-and-compare function and a loader that refuses a tunable row without a target | none | open |
+| GEN.504 | The Kepler transit-plus-recovery selection model | none | open |
+| GEN.505 | The mass-radius sample selection model | none | open |
+| GEN.506 | The JWST atmosphere target-selection model | none | open |
+| GEN.507 | The comet admission model by heliocentric distance | none | open |
+| GEN.508 | The white-dwarf pollution detection and settling model | none | open |
+| GEN.509 | Tuned draw builder B1: the radius valley and the envelope | none | open |
+| GEN.510 | Tuned draw builder B2: delivery and water worlds | none | open |
+| GEN.511 | Tuned draw builder B3: retention and lava worlds | none | open |
+| GEN.512 | Tuned draw builder B4: the iron branch | none | open |
+| GEN.513 | Tuned draw builder B5: redox and white-dwarf debris | none | open |
+| GEN.514 | Tuned draw builder B6: radioisotopes | none | open |
+| GEN.515 | Tuned draw builder B7: ground and petrology | none | open |
+| GEN.516 | Tuned draw builder B8: giant planets | none | open |
+| GEN.517 | Tuned draw builder B9: brown dwarfs | none | open |
+| GEN.518 | Tuned draw builder B10: the chemistry module | none | open |
+| GEN.519 | Tuned draw builder B11: aerosol amplitude | none | open |
+| GEN.520 | Tuned draw builder B12: the comet sampler | none | open |
+| GEN.521 | Tuned draw builder B13: belts | none | open |
+| GEN.522 | Tuned draw builder B14: moons and Kuiper belt objects | none | open |
+| GEN.523 | Tuned draw builder B15: host-star activity | none | open |
+| GEN.524 | Tuned draw builder B16: halogens and trace gases | none | open |
+| GEN.525 | Tuned draw builder B17: the design-flag registry | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1267,7 +1394,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.215 | Nebulae tint the stars seen through them, with soft translucent boundaries | none | open |
 | MAP.216 | Admin page of the objects that moved in the last update, with the movement vector and a map ghost of the old position | none | open |
 | MAP.217 | Map layer interface: one registry the Galaxy stage view, the Sector Map and the System Map share for a toggled layer (menu entry, modes, URL key, legend, picker layer, fade rule) | none | open |
-| MAP.218 | Galaxy Map density control: a readout for everyone, an editor for admins, with preview, confirm and undo | none | open |
+| MAP.218 | Galaxy Map density control: a readout for everyone, an editor for admins over any region, with preview, confirm and undo | none | open |
 | MAP.219 | Galaxy Map marker layer: a kind registry with per-kind toggles, the zoom budget and picking, shipping the black-hole kind | none | open |
 | MAP.220 | Markers for habitable worlds and chosen classes, optional per kind | none | open |
 | MAP.221 | Station and vessel icons on the Galaxy Map | none | open |
@@ -1286,13 +1413,14 @@ Parents marked "new parent" had no old number of their own.
 | MAP.234 | Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws | none | open |
 | MAP.235 | Superbubbles as a registered Galaxy Map layer: a toggle, a hover name and radius, and a key row | none | open |
 | MAP.236 | Superbubbles need clearer bounds and slightly more transparency on the Galaxy Map | none | open |
-| MAP.237 | The Galaxy Map's "Charted only" view is invisible again: charted space cannot be told from the rest (bug) | none | open |
-| MAP.238 | Charted regions shown by colour and opacity, not outlined blocks: drop the outlines everywhere charted space is marked | none | open |
+| MAP.237 | The Galaxy Map's "Charted only" view is invisible again, and charted regions are shown by colour and opacity, not outlined blocks (bug) | none | open |
+| MAP.238 | Charted regions shown by colour and opacity, not outlined blocks: drop the outlines everywhere charted space is marked | none | merged into MAP.237 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | MAP.239 | Raise the Galaxy Map tile root to the 262 kpc reach: `TILE_ROOT` in `galaxy/viewport.py` and `galaxymap3d.js` | none | open |
 | MAP.240 | Browser buffers hold camera-relative coordinates: territory dots, superbubbles, made rings, block prisms, stage views, system view dots and belts | none | open |
 | MAP.241 | Stars on the star maps should glow brighter, not grow bigger: size stays small, glow and colour carry luminosity and temperature (bug) | none | open |
 | MAP.242 | The Galaxy Map and its key draw what the family has: arms and bar only where they exist, a spheroid shell, a lens or a clumpy body | none | open |
 | MAP.243 | The Galaxy Map cannot select or enter anything in the halo: the halo's scatter objects are not pickable at galaxy scale and a zoom toward one stops without opening a view (bug) | none | open |
+| MAP.244 | The maps and pages use the atmosphere colour where they showed the planet colour | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -1347,12 +1475,12 @@ Parents marked "new parent" had no old number of their own.
 | NAV.52 | Port `join_islands` and the k-d tree to cKDTree | none | done, PR #1172 |
 | NAV.53 | A `cells_touching_sphere` helper, and pad `store.sectors_reached_by` by one edge (bug) | none | done, PR #843 |
 | NAV.54 | One keep-out table for every kind of object: fields, supermassive holes and quasars, moons, stars in their own system, nebulae and remnants | none | open |
-| NAV.55 | A tuning block for the keep-out knobs | none | open |
+| NAV.55 | A tuning block for the keep-out knobs | none | merged into NAV.54 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | NAV.56 | Census of overlapping keep-out spheres in a generated galaxy | none | open |
 | NAV.57 | The Intergalactic Frame in navigation-frames.md and `navigation.py` | none | open |
 | NAV.58 | Edit a course: add, remove, reorder and drag its waypoints, then save the edit | none | open |
 | NAV.59 | Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses | none | open |
-| NAV.60 | What is nearby reads by the cell key: one statement for every kind, including objects with no sector and unbuilt scatter rows | none | open |
+| NAV.60 | What is nearby reads by the cell key: one statement for every kind, including objects with no sector and unbuilt scatter rows | none | done, PR #1977 |
 | NAV.61 | Nearest-first by a radius ladder, and a dense-core guard with an early-stop count | none | open |
 | NAV.62 | Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
@@ -1370,7 +1498,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.13 | Every update records the version key, keeping the last 10 | none | done, PR #810 |
 | OPS.14 | A warning when the running version key differs from the galaxy's | none | done, PR #876 |
 | OPS.15 | Each update says whether it changes generated output | none | open |
-| OPS.16 | A daily maintenance script for Linux, macOS and Windows | none | open |
+| OPS.16 | A daily maintenance script for Linux and macOS, with its lock helper | none | open |
 | OPS.17 | Install and update set up the daily maintenance schedule | none | open |
 | OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | none | dropped (Boss, 2026-10-09 20:42Z) |
 | OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) | none | done, PR #525 |
@@ -1384,7 +1512,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.27 | The Windows installer and docs point at Redis in WSL, not Memurai | none | done, PR #475 |
 | OPS.28 | Generator epoch and battery digest: say whether two checkouts generate the same galaxy | none | open |
 | OPS.29 | Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts | none | open |
-| OPS.30 | A lock helper for the maintenance run | none | open |
+| OPS.30 | A lock helper for the maintenance run | none | merged into OPS.16 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | OPS.31 | Lint every example plist, XML and service file in CI | none | done, PR #1715 |
 | OPS.32 | `examples/macos/org.planetgen.update.plist` is not well-formed XML, so the update daemon silently fails to install (bug) | none | done, PR #865 |
 | OPS.33 | `.gitattributes` has no LF pins for the lock files and word list, so hashes differ between a Windows and a Linux checkout (bug) | none | done, PR #843 |
@@ -1431,7 +1559,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.15 | Fewer queries per web page | none | done, PR #223 |
 | PERF.16 | Search names without scanning every row | none | done, PR #223 |
 | PERF.17 | A time limit on web database statements | none | done, PR #223 |
-| PERF.18 | Run the GEN.30 bright-star backfill in parallel on the work queue | none | open |
+| PERF.18 | Run the GEN.30 bright-star backfill in parallel on the work queue | none | merged into PERF.108 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | PERF.19 | Everything the API or web site starts runs on the work queue (investigate) | none | done, PR #492 |
 | PERF.20 | Short-term caching through the work queue and API | none | open |
 | PERF.21 | Generation works with any worker count: the parallel path is built, used and tested (bug) | none | done, PR #371 |
@@ -1632,7 +1760,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.29 | Every comet in a system shows its type as a link (bug) | none | done, PR #487 |
 | UX.30 | Planet information without the Markdown render | none | absorbed into UX.105 |
 | UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | none | done, PR #533 |
-| UX.32 | Planet rows show the class only, without the type and moon labels | none | open |
+| UX.32 | Planet rows show the class only, without the type and moon labels | none | merged into UX.100 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | UX.33 | Filter phenomena by their classes and types (bug) | none | done, PR #606 |
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) | none | done, PR #448 |
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens | none | done, PR #879 |
@@ -1745,7 +1873,7 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.7 | Sky tiers and the backfill cost measurement | none | open |
 | VIEW.8 | A dust model for the sky: the galactic extinction law and `nebulae.extinction_av` | none | open |
 | VIEW.9 | Replace the BC_V table with a published relation (Flower 1996 or Torres 2010) | none | open |
-| VIEW.10 | A HYG calibration test: a generated sky has about 9,000 stars at V <= 6.5 | none | open |
+| VIEW.10 | A HYG calibration test: a generated sky has about 9,000 stars at V <= 6.5 | none | merged into VIEW.12 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | VIEW.11 | Photometry library: apparent magnitude, bolometric correction, blackbody colour and the extinction law | none | open |
 | VIEW.12 | Sky catalogue: the stars an observer sees, with direction, brightness and light-time | none | open |
 | VIEW.13 | Galactic band: the glow of the unresolved stars and dust along each line of sight | none | open |
@@ -1753,6 +1881,7 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.15 | Whole-sky PNG: Hammer-Aitoff projection, written with numpy and zlib, cached and served by the API | none | open |
 | VIEW.16 | Constellations: the seeded partition over the brightest stars, stored per system, named by the codec, with Bayer labels | none | open |
 | VIEW.17 | Constellation overlay: SVG lines and names over the sky chart, and the planet-sky card | none | open |
+| VIEW.18 | Headline of 9.1: the view from a planet, with its starmap, its picture and its constellations | none | open |
 
 ## Tree IDs to flat IDs
 
@@ -1970,24 +2099,24 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.128 | test_spatial_position_db and test_web_db_fields fail under a parallel run on one MySQL (bug) | none | open |
 | TEST.129 | Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug) | none | open |
 | TEST.130 | test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug) | none | open |
-| TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | none | open |
+| TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | none | merged into GEN.198 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) | none | done, PR #1578 |
 | TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems | none | done, PR #1405 |
 | TEST.134 | test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug) | none | open |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads | none | open |
 | TEST.136 | A nebula-rate audit test: the nebula counts and fillings stay inside the observed bands | none | done, PR #1239 |
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) | none | open |
-| TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) | none | open |
+| TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) | none | merged into TEST.126 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.139 | Rework, optimise and rebuild the whole test suite so it runs faster and in modules | none | done, PR #1605 |
 | TEST.140 | test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug) | none | open |
 | TEST.141 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug) | none | open |
 | TEST.142 | test_a_table_keeps_its_sort_and_filter_across_a_reload fails on main: its fake get_systems lacks the new `after` argument (bug) | none | done, PR #1313 |
 | TEST.143 | test_install_checkout_leaves_a_current_editable_install_alone fails when the suite runs from a git worktree (bug) | none | done, PR #1313 |
-| TEST.144 | test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug) | none | open |
+| TEST.144 | test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug) | none | merged into TEST.126 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.145 | Subprocess tests must run the checkout under test, not the installed copy of another checkout (bug) | none | done, PR #1367 |
 | TEST.146 | Rate-limit tests fail when the between-test reset wipes every limiter key on the shared Redis (bug) | none | done, PR #1367 |
 | TEST.147 | Two nebula-field table tests fail under load and pass alone (bug) | none | done, PR #1405 |
-| TEST.148 | Investigate resuming a test run where it left off when the build is the same | none | open |
+| TEST.148 | Investigate resuming a test run where it left off when the build is the same | none | merged into TEST.208 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.149 | Two physics tests fail under load and pass alone (bug) | none | done, PR #1405 |
 | TEST.150 | Test run progress log and build id for resuming a run | none | done, PR #1431 |
 | TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build | none | done, PR #1484 |
@@ -2006,13 +2135,13 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | none | open |
 | TEST.165 | Re-measure the region query on a real generated galaxy, warm and cold | none | open |
 | TEST.166 | The cell key follows an object across a cube boundary, and the point columns and the key round-trip bit for bit | none | done, PR #1881 |
-| TEST.167 | test_random_start_mode_respects_min_start_density hit a 900 s timeout in a full run and passes alone (bug) | none | open |
+| TEST.167 | test_random_start_mode_respects_min_start_density hit a 900 s timeout in a full run and passes alone (bug) | none | merged into TEST.111 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.168 | Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs | none | open |
 | TEST.169 | Admin page browser tests: every admin page and task works end to end after the streamline | none | open |
 | TEST.170 | test_math_check::test_whole_run_is_fast and the Galaxy Map breadcrumb folding test fail under full-suite load and pass alone (bug) | none | open |
 | TEST.171 | test_gen_resume::test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards failed once under gate load with no scattered system (0 > 0) and passes alone (bug) | none | open |
 | TEST.172 | test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug) | none | open |
-| TEST.173 | test_gen_bright_scatter_edges::test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star failed once under gate load with an empty ring in _nearest (bug) | none | open |
+| TEST.173 | test_gen_bright_scatter_edges::test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star failed once under gate load with an empty ring in _nearest (bug) | none | merged into TEST.171 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.174 | test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug) | none | open |
 | TEST.175 | Edit everything end to end: the headline scenarios with approval and undo | none | open |
 | TEST.176 | Plan engine properties: any sequence of edits leaves every system valid, and undo restores every row | none | open |
@@ -2034,20 +2163,29 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.192 | The galaxy-grid fuzz test `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on a float cancellation of the halo subtraction far above the disk (bug) | none | done, PR #1883 |
 | TEST.193 | A module fixture's `DROP DATABASE IF EXISTS` blocks for 853 s on a metadata lock that another connection holds, so a browser test hangs in teardown (bug) | none | open |
 | TEST.194 | `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug) | none | open |
-| TEST.195 | `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` timed out at 30 s fetching `/sector/<id>/galaxy` inside a full gate run and passed alone (bug) | none | open |
+| TEST.195 | `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` timed out at 30 s fetching `/sector/<id>/galaxy` inside a full gate run and passed alone (bug) | none | merged into TEST.193 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.196 | Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged | none | open |
-| TEST.197 | `test_page_is_accessible_and_fits[web.sector-phone-light]` failed under load and passed alone: find the cause and make it robust (bug) | none | open |
+| TEST.197 | `test_page_is_accessible_and_fits[web.sector-phone-light]` failed under load and passed alone: find the cause and make it robust (bug) | none | merged into TEST.174 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.198 | `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug) | none | open |
 | TEST.199 | `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on main for a far-tail case: the halo subtraction loses precision, 2.4e-9 against a 1e-9 tolerance (bug) | none | open |
 | TEST.200 | The nightly local offset limit is documented and pinned by `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point` | none | open |
 | TEST.201 | `block_stats` totals do not depend on the order of the rows: a test | none | open |
-| TEST.202 | `test_galaxy_map_drill_down_by_clicks` failed under load and passed alone: call 28 s to 52 s on a loaded worker (bug) | none | open |
+| TEST.202 | `test_galaxy_map_drill_down_by_clicks` failed under load and passed alone: call 28 s to 52 s on a loaded worker (bug) | none | merged into TEST.172 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.203 | `test_one_worker_leaves_the_runs_own_random_stream_alone` failed once under heavy load with WorkerDied "the task's job ended canceled" and passes alone (bug) | none | open |
 | TEST.204 | Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges | none | open |
 | TEST.205 | `test_no_reserved_word_is_an_unquoted_identifier` fails on main: the DB.18 migration helpers use LOCK in `ALGORITHM=INPLACE, LOCK=NONE` (bug) | none | done, PR #1927 |
 | TEST.206 | Superbubble density tests: rim excess, interior depletion, old stars unchanged, scatter against fill and determinism | none | open |
 | TEST.207 | The page_targets fixture of the web accessibility tests errors 24 tests: web.admin_backup answers 302 and 404 with the sample database (bug) | none | withdrawn: fixed before it was filed (PR #1921, NO_SAMPLE_OBJECT, 2026-10-16, 9:26 PM EDT) |
 | TEST.208 | `scripts/test.py --resume` reuses an earlier pass across builds when none of that test's own dependencies changed | none | open |
+| TEST.209 | One consistency sweep over every planet and moon class: composition, density, temperature, ozone, aerosols and text all agree | none | open |
+| TEST.210 | A bulk composition sweep over every class: fractions, density, mass, radius and gravity agree | none | open |
+| TEST.211 | A star composition sweep: every kind of star, remnant and brown dwarf, fractions, trends and determinism | none | open |
+| TEST.212 | A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition | none | open |
+| TEST.213 | `test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star` failed in a loaded browser run: the wheel loop opened the system before the disc reached full share (bug) | none | open |
+| TEST.214 | Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence | none | open |
+| TEST.215 | The Solar System calibration rows live in test files only: a flag fences them and a test fails when a generator table reads one | none | open |
+| TEST.216 | `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed in the full parallel gate: the nested system's `inside_nebula_id` was None, and it passes alone (bug) | none | open |
+| TEST.217 | `test_every_column_is_written` found a NULL in every row of `moons.evolutionary_speed` in the full parallel gate, and passes alone (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

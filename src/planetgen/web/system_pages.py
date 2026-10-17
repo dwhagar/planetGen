@@ -18,6 +18,8 @@ Nothing here reads a database name from the request (`db_name()`), and
 every link is a plain GET link (`page_url`).
 """
 
+import math
+
 from flask import abort, jsonify, redirect, request
 from markupsafe import Markup
 from planetgen.galaxy import objectref
@@ -25,11 +27,12 @@ from planetgen.physics import constants as physical_constants
 from planetgen.physics.lensing import einstein_radius_against_galactic_centre_m
 from planetgen.web.lib import apiclient, facility_display
 from planetgen.web.lib.fmt import (
-    distance_km_html, distance_ly_html, format_distance_km, format_number, linkify_nearest,
+    distance_km_html, distance_ly_html, format_distance_km, format_members, format_number, linkify_nearest,
     nearest_systems_html, period_years_html, quantity_html, runaway_text, speed_kms_html,
 )
 from planetgen.web.lib.datatable import Column, Facet, Result, Table
 from planetgen.web.maps.starmap import HYPERVELOCITY_EXPECTED_STAR
+from planetgen.web.scatter_members_view import members_view
 from planetgen.web.maps.phenomenonmap import render_phenomenon_map_panel
 from planetgen.web.maps.phenomenonrender import render_nebula_view_panel, render_phenomenon_view_panel, view_kind
 from planetgen.web.maps.systemmap import render_system_map_panel
@@ -474,6 +477,7 @@ def _phenomena_load(state, limit, offset, want_facets):
         {"text": row["sector_name"], "href": page_url("sector", sector_id=row["sector_id"])}
         if row["sector_id"] is not None else {"text": "None", "muted": True},
         {"text": "Yes" if row["placed"] else "No"},
+        {"text": format_members(row.get("member_count"), row.get("system_mass_solar"))},
     ] for row in envelope["items"]]
     facets = None
     if want_facets:
@@ -489,7 +493,8 @@ def _phenomena_load(state, limit, offset, want_facets):
 PHENOMENA_TABLE = tables.register(Table(
     "phenomena", "Phenomena",
     [Column("name", "Name"), Column("type", "Type"), Column("descriptor", "Descriptor"),
-     Column("radius", "Radius"), Column("sector", "Sector"), Column("placed", "On Galaxy Map")],
+     Column("radius", "Radius"), Column("sector", "Sector"), Column("placed", "On Galaxy Map"),
+     Column("members", "Members", sortable=False)],
     _phenomena_load,
     facets=[Facet("type", "Type"), Facet("descriptor", "Descriptor")],
     noun=("phenomenon", "phenomena"),
@@ -541,6 +546,9 @@ def _uncharted_fields(detail):
                    "solar luminosities; the star itself is drawn when its sector is generated"), None))
     if detail.get("mass_solar") is not None:
         fields.append(("Mass", _solar_mass(detail["mass_solar"]), None))
+    if detail.get("member_count"):
+        fields.append(("Members", f"{detail['member_count']} (see below)", None))
+        fields.append(("System mass", _solar_mass(detail["system_mass_solar"]), None))
     if detail.get("speed_kms") is not None:
         fields.append(("Speed", speed_kms_html(detail["speed_kms"]), None))
         if detail.get("flight_years"):
@@ -587,6 +595,7 @@ def uncharted_phenomenon(scatter_id):
         built_note=None if not detail["built"] else
         "Its sector has been generated, but this record could not be matched to what was made from it.",
         fields=_uncharted_fields(detail),
+        members=members_view(detail),
     )
 
 
@@ -800,6 +809,15 @@ CLASS_COLUMNS = {
 links by its letter."""
 
 
+def _with_galactic_speed(detail):
+    """`detail` plus `galactic_orbital_speed_kms`, the length of the movement vector it stores (GEN.336): the page shows
+    a speed, the table keeps the vector."""
+    parts = [detail.get(f"velocity_{axis}_kms") for axis in "xyz"]
+    if any(part is None for part in parts):
+        return detail
+    return {**detail, "galactic_orbital_speed_kms": math.sqrt(sum(part * part for part in parts))}
+
+
 def _with_derived_fields(phenomenon_type, detail):
     """`detail` plus the values worked out from it rather than stored: the
     Einstein radius (GEN.154) of a black hole, neutron star or rogue planet
@@ -831,7 +849,7 @@ def phenomenon_fields(phenomenon_type, detail):
             detail["temperature_k"] = hawking_temperature_k(detail["mass_solar"])
         if not detail.get("luminosity_w"):
             detail["luminosity_w"] = hawking_luminosity_w(detail["mass_solar"])
-    detail = _with_derived_fields(phenomenon_type, detail)
+    detail = _with_derived_fields(phenomenon_type, _with_galactic_speed(detail))
     for column, label, formatter in FIELD_SPECS.get(phenomenon_type, []):
         raw = detail.get(column)
         if raw is None:

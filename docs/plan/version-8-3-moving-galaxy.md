@@ -18,26 +18,21 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.372 | Numeric precision audit at galactic scale: every float coordinate and sum, how far it gets from its origin, where the first error shows, and what needs a wider or split representation |  | Owner Core 1 (Boss, 6:59 PM EDT); Boss 6:54 PM EDT: precision at galactic scale. Holds every precision finding. |
 | TEST.201 | `block_stats` totals do not depend on the order of the rows: a test |  | GEN.372 audit. |
 | TEST.200 | The nightly local offset limit is documented and pinned by `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point` |  | GEN.372 audit; Boss card. |
 | GEN.375 | Field kernel subtracts a local origin before its loop in `physics/sector_path.py` |  | GEN.372 audit. |
 | DB.65 | Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates |  | GEN.372 audit; small, needs a revision. |
 | GEN.374 | Orbit phase formulas reduce first, and the JavaScript Kepler solver uses tolerance 1e-12: Python, SQL and JavaScript agree |  | GEN.372 audit. |
-| DB.55 | One additive migration for the 8.3 schema: point columns for every kind, heaviest object per sector, asteroid-field provenance |  | Split from GEN.294. Core 1 owns migrations. |
-| GEN.336 | Compact and free objects hold a velocity vector and a mass: stars, black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants | DB.55 | Split from GEN.294. |
-| GEN.337 | Epoch, vector and mass for the rest: belts, quasars, comets, facilities, scatter points and members | DB.55, GEN.336 | Split from GEN.294. |
-| GEN.294 | Every object in the galaxy is held as one SpatialPosition3D with its position, point mass and movement vector stored as columns | DB.55, GEN.336, GEN.337, GEN.372 | Boss 2026-10-15 11:12 PM EDT. |
+| GEN.294 | Every object in the galaxy is held as one SpatialPosition3D with its position, point mass and movement vector stored as columns |  | Boss 2026-10-15 11:12 PM EDT. |
 | GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) |  | Research follow-up to GEN.108 (built). |
-| GEN.289 | Planets and moons kept as the universal point-in-space object, with point mass and movement vector stored, so perturbations have somewhere to land | DB.55 |  |
-| GEN.142 | Peculiar velocity for rogue planets and asteroid fields | GEN.336 | Research: prerequisite of GEN.110. |
+| GEN.289 | Planets and moons kept as the universal point-in-space object, with point mass and movement vector stored, so perturbations have somewhere to land |  |  |
+| GEN.142 | Peculiar velocity for rogue planets and asteroid fields |  | Research: prerequisite of GEN.110. |
 
 ### Nightly maintenance
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| OPS.30 | A lock helper for the maintenance run |  | Research: used by OPS.16 (ADM.20's admin merge was dropped). |
-| OPS.16 | A daily maintenance script for Linux, macOS and Windows | OPS.30 | scripts/maintenance.sh and .ps1: positional update, delta merge, rotation; lock; optional OPS.15 check. |
+| OPS.16 | A daily maintenance script for Linux and macOS, with its lock helper |  | scripts/maintenance.sh and .ps1: positional update, delta merge, rotation; lock; optional OPS.15 check. |
 | OPS.17 | Install and update set up the daily maintenance schedule | OPS.16 | Same scripts as OPS.7/OPS.8/OPS.13 (install/update, deploy-common), after them. |
 
 ### Movement on the maps
@@ -57,7 +52,7 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 | GEN.379 | The density model as a list of components, each with an amplitude that may be 0, and a mass for each component | GEN.378, DB.66 | Step 3 of the galaxy types chain (9.4); GEN.338 reads its component masses. |
 | GEN.338 | The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests | GEN.144, GEN.369, GEN.379 | Split from GEN.115. |
 | GEN.285 | Nuclear mass components in the galactic potential for the orbital update | GEN.338 | Core 3; step 5 of the galactic core note; moved from 8.1 (no potential module until GEN.338); Boss 8:41 PM EDT: stays in 8.3. |
-| GEN.370 | Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug) |  | Found by the TODO thread. |
+| GEN.370 | Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug) | GEN.400, GEN.404 | Found by the TODO thread. |
 
 ## Phase 2: The update itself
 
@@ -68,7 +63,6 @@ N-body influence, collisions, encounters and the Quantity class.
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.139 | Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built) |  | Research follow-up to GEN.106 (built). |
-| GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback |  | Research: optional speed-up. |
 | GEN.339 | Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded | GEN.338, GEN.294 | Split from GEN.115. |
 | GEN.340 | One star stepper: kick-drift-kick in the potential, a step per object, on arrays | GEN.338, GEN.294, GEN.139 | Split from GEN.115. |
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | GEN.338, GEN.339, GEN.340 | Model from Boss's "Computational Astrodynamics.md" (2026-10-07): bulge, disk and halo potential. |
@@ -82,7 +76,7 @@ N-body influence, collisions, encounters and the Quantity class.
 | DB.56 | The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings |  | Split from GEN.143. Core 1 owns migrations. |
 | GEN.197 | Orbital event record: the `record_event` writer and the object-ID rules for ejection, capture, merger and split | DB.56 |  |
 | GEN.345 | Collision outcomes as a pure function: regime table, giant merger, fusion check, conservation |  | Split from GEN.110. |
-| GEN.346 | Applying a collision to the galaxy: new asteroid field, merged giant, merger-remnant star, retired bodies, events | GEN.345, GEN.334, GEN.341, GEN.142, DB.56, GEN.197, DB.55 | Split from GEN.110. |
+| GEN.346 | Applying a collision to the galaxy: new asteroid field, merged giant, merger-remnant star, retired bodies, events | GEN.345, GEN.334, GEN.341, GEN.142, DB.56, GEN.197 | Split from GEN.110. |
 | GEN.110 | Rogue planet collisions: asteroid fields, merged giants and new stars | GEN.345, GEN.346 |  |
 | GEN.290 | An encounter search that cannot miss a pass at large steps (100 years per second) | GEN.289, GEN.341, GEN.343, GEN.334 |  |
 | GEN.291 | A bound planet becomes a rogue planet when an encounter unbinds it: the unbind and capture test and the event log | GEN.289, GEN.290, GEN.343, GEN.346, GEN.197 |  |
@@ -108,7 +102,7 @@ The event records, the long-step rules and the gravity field evaluator the cours
 |---|---|---|---|
 | GEN.111 | Email the admin when two objects are inside each other's Hill radius | USR.3, GEN.344 | Needs USR.3's SMTP settings. |
 | GEN.347 | The last-collisions admin view and the test that runs the whole collision path | DB.56, GEN.346 | Split from GEN.143. |
-| GEN.143 | A collision_events table, an admin report and a test that runs the whole collision path | DB.56, GEN.347 | Research: makes the collision code testable. |
+| GEN.143 | The orbital-event admin report, the last-collisions view and a test that runs the whole collision path | DB.56, GEN.347 | Research: makes the collision code testable. |
 
 ### Long steps
 
@@ -123,7 +117,6 @@ The event records, the long-step rules and the gravity field evaluator the cours
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential | GEN.338, GEN.342 | Gravity map foundation (Boss 2026-10-10). |
-| TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | GEN.198 |  |
 
 ### What moved in the last update
 

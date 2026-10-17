@@ -7,7 +7,8 @@ A scatter row (`bright_stars`, `phenomenon_scatter`) with companions is one poin
 its position, velocity and epoch columns move with the nightly update like any other scatter point
 (`store.advance_scatter_points`), `system_mass_solar` is the mass it carries, and `member_count` says it has members.
 The members and their orbits are `scatter_members` and `scatter_nodes`, which the nightly update never writes: a
-member's place is computed on read from the node phases (`physics.system_tree`).
+member's place is computed on read from the node phases (`physics.system_tree`). A member carries the epoch its tree
+was drawn at (`epoch_unix`, GEN.337): when its offset and velocity, where it has them, hold.
 
 `store_member_tree` writes a drawn tree (`generation.multistar.MemberTree`) under a row, `delete_member_tree` takes it
 away again (the build of a row does that in its own transaction), `read_member_tree` reads it back, and
@@ -22,7 +23,7 @@ SOURCES = {"bright_stars": 1, "phenomenon_scatter": 2}
 
 _MEMBER_COLUMNS = (
     "source", "source_id", "member_no", "parent_node_no", "slot", "kind", "state", "flags", "mass_solar",
-    "initial_mass_solar", "seed")
+    "initial_mass_solar", "seed", "epoch_unix")
 _NODE_COLUMNS = (
     "source", "source_id", "node_no", "parent_node_no", "slot", "mass_solar", "separation_km", "eccentricity",
     "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg", "epoch_unix", "period_years",
@@ -43,9 +44,9 @@ def delete_member_tree(conn, table, row_id):
         conn.execute(f"DELETE FROM {child} WHERE source = ? AND source_id = ?", (source, row_id))
 
 
-def _member_values(source, row_id, tree):
+def _member_values(source, row_id, tree, epoch_unix):
     return [(source, row_id, m.member_no, m.parent_node_no, m.slot, m.kind, m.state, m.flags, m.mass_solar,
-             m.initial_mass_solar, m.seed) for m in tree.members]
+             m.initial_mass_solar, m.seed, epoch_unix) for m in tree.members]
 
 
 def _node_values(source, row_id, tree, epoch_unix):
@@ -82,7 +83,7 @@ def store_member_tree(conn, table, row_id, tree, epoch_unix):
     if not tree.nodes:
         conn.execute(f"UPDATE {table} SET member_count = NULL, system_mass_solar = NULL WHERE id = ?", (row_id,))
         return
-    _insert_members(conn, _member_values(source, row_id, tree))
+    _insert_members(conn, _member_values(source, row_id, tree, epoch_unix))
     _insert_nodes(conn, _node_values(source, row_id, tree, epoch_unix))
     conn.execute(f"UPDATE {table} SET member_count = ?, system_mass_solar = ? WHERE id = ?",
                  (tree.member_count, tree.system_mass_solar, row_id))
@@ -120,7 +121,7 @@ def store_member_trees(conn, table, items, epoch_unix, batch_rows=2000):
     for row_id, tree in items:
         if not tree.nodes:
             continue
-        members.extend(_member_values(source, row_id, tree))
+        members.extend(_member_values(source, row_id, tree, epoch_unix))
         nodes.extend(_node_values(source, row_id, tree, epoch_unix))
         counts.append((tree.member_count, tree.system_mass_solar, row_id))
         stored += 1
