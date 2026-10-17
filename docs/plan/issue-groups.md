@@ -23,7 +23,7 @@ Rules:
 | [#1844](https://github.com/dwhagar/planetGen/issues/1844) | open | Backups: the archive, parity data, control database and repair from an archive | ADM.87, ADM.88, ADM.89, ADM.90, ADM.91, DB.40, DB.41, DB.42, DOC.56, OPS.55, TEST.180 |
 | [#1843](https://github.com/dwhagar/planetGen/issues/1843) | open | Roles and permissions: requests, reviews, lifecycle and audit (10.0) | DB.39, DOC.55, TEST.178, TEST.179, USR.12, USR.13, USR.14, USR.15, USR.16, USR.17, USR.18, USR.19, USR.20, USR.21, USR.22, USR.23, USR.24, USR.25 |
 | [#1842](https://github.com/dwhagar/planetGen/issues/1842) | open | Edit everything: change plans, regions, regeneration and locks (8.6) | ADM.57, ADM.58, ADM.59, ADM.60, ADM.61, ADM.62, ADM.63, ADM.64, ADM.65, ADM.66, ADM.67, ADM.68, ADM.69, ADM.70, ADM.71, ADM.72, ADM.74, ADM.75, ADM.76, ADM.77, ADM.78, ADM.79, ADM.80, ADM.81, ADM.82, ADM.92, ADM.93, ADM.94, API.28, DB.36, DB.37, DB.38, DB.60, DOC.54, DOC.57, GEN.302, MAP.212, MAP.218, TEST.175, TEST.176, TEST.177, ADM.52 |
-| [#1828](https://github.com/dwhagar/planetGen/issues/1828) | closed | Slow pages queue their data in Redis and show a progress bar | PERF.105, UX.118 |
+| [#1828](https://github.com/dwhagar/planetGen/issues/1828) | closed | Slow pages queue their data in Redis and show a progress bar | UX.118 |
 | [#1750](https://github.com/dwhagar/planetGen/issues/1750) | closed | Site cache warm-up after an update, then rebuild only what a change invalidates | PERF.104 |
 | [#1749](https://github.com/dwhagar/planetGen/issues/1749) | closed | Hypervelocity stars show no accessible info; button to the phenomenon page or the star system (MAP.211) | MAP.211 |
 | [#1748](https://github.com/dwhagar/planetGen/issues/1748) | closed | Phenomena list: the Apply filters button disappears while the list loads (UX.117) | UX.117 |
@@ -98,7 +98,7 @@ Rules:
 | [#1232](https://github.com/dwhagar/planetGen/issues/1232) | closed | Restrict the Field | MAP.189, MAP.190, USR.11 |
 | [#1231](https://github.com/dwhagar/planetGen/issues/1231) | closed | See most recently changed positions | MAP.192, DB.57, MAP.216 |
 | [#1230](https://github.com/dwhagar/planetGen/issues/1230) | closed | Complete review and rebuild of testing system | TEST.139 |
-| [#1229](https://github.com/dwhagar/planetGen/issues/1229) | open | Work queue on Redis: remaining steps and follow-ons | PERF.86, PERF.98, PERF.99, PERF.100, PERF.29, PERF.30, DOC.20, PERF.106, PERF.107, PERF.108, PERF.105, UX.118 |
+| [#1229](https://github.com/dwhagar/planetGen/issues/1229) | open | Work queue on Redis: remaining steps and follow-ons | PERF.86, PERF.98, PERF.99, PERF.100, PERF.29, PERF.30, DOC.20, PERF.106, PERF.107, PERF.108, UX.118 |
 | [#1228](https://github.com/dwhagar/planetGen/issues/1228) | closed | Star system editor | ADM.51, ADM.52 |
 | [#1227](https://github.com/dwhagar/planetGen/issues/1227) | closed | Show axis, tilt, and rotations | MAP.193 |
 | [#1226](https://github.com/dwhagar/planetGen/issues/1226) | open | New feature:  User objects | USR.10, POP.11, DB.63, USR.29, USR.30 |
