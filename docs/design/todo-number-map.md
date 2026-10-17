@@ -532,7 +532,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.15 | A migration progress bar with the time remaining | none | done, PR #924 |
 | DB.16 | Store the generator epoch and run id on each sector instead of four version text columns | none | open |
 | DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | none | open |
-| DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates | none | open |
+| DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates | none | done, PR ##1901 |
 | DB.19 | Compact or derive phenomenon rows (needed only if the mass cut is lowered to 10 solar masses or less) | none | closed, not needed at the 20 solar mass cut (PR #866); reopen if the cut is lowered to 10 solar masses or less |
 | DB.20 | Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table | none | done, PR #1055 |
 | DB.21 | A deep pass for the database check: validate every star system, with the estimated time shown first | none | done, PR #1082 |

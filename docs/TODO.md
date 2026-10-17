@@ -7846,28 +7846,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: GEN.57, DB.47, GEN.179.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
-- [ ] **DB.18 Migration helpers for slow DDL: online indexes, instant columns and batched updates**
-  `planetgen/db/migrations/helpers.py` with `add_index_online`,
-  `add_column_instant`, `batched_update` (keyset-paged, commit per
-  batch, progress callback), `exists_*` checks and a `lock_wait_timeout`
-  context. Every slow DDL is written through `op.execute` with explicit
-  `ALGORITHM=` and `LOCK=NONE`; never `op.batch_alter_table` on the
-  large tables. Budget 11 to 31 minutes per index per 1.6e8 rows (a
-  sizing figure, not the scatter's row count).
-  Revision 0063 (DB.13) builds five indexes with plain `CREATE INDEX`
-  and a per-row INSERT loop: fine today, not a pattern for the 10^8-row
-  tables.
-  Owner of the shared migration helpers: moved into the Reproducible
-  galaxies thread before DB.16 and the migration children of DB.9 and
-  GEN.136 (2026-10-16 review).
-  Owner of the shared migration helpers: moved into the Reproducible
-  galaxies thread, before the migration children of DB.9 and GEN.136 and
-  before DB.16 (2026-10-16 review).
-  Owner: Core 2 (Boss, 2026-10-16, 2:42 PM EDT: Core 2 takes the 8.1
-  phase 1 top 5 blockers: PERF.88, OPS.56, ADM.50, DB.59, DB.18, then
-  PERF.97). Core 1 only hands out the migration revision number.
-  Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
-
 - [ ] **DB.29 update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them**
   Boss, 2026-10-15 02:55Z: "Add TODO item, when migrating the database
   to a new version, if there are active jobs, ask the user to cancel the
@@ -8461,6 +8439,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   revision from Core 1); a test pins that a point beyond the reach maps
   to the edge cell in both the Python and the SQL form. Small. Owner:
   Core 1 (needs a migration revision).
+  Migration revision: 0105, after DB.53's 0104 (Core 1, 2026-10-16, 7:42 PM EDT;
+  numbers are assigned at merge time against main).
   Prerequisites: none. Related: GEN.372, DB.55.
 
 ## API: The JSON API
@@ -10789,6 +10769,15 @@ clears each one.
   gate hit the same shape. Reproducer: run `scripts/test.py changed`
   with the browser tests selected and read `show full processlist` in
   mysql during the teardown.
+  Sighting (Core 2, 2026-10-16, 8:12 PM EDT, DB.18 gate: scripts/test.py
+  changed, 468 passed, 1 failed, 2 errors): three browser tests hung
+  about 15 minutes in setup or teardown:
+  test_web_browser_sector_open::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel,
+  test_web_browser_sector_reach::test_no_scene_is_loaded_while_the_camera_is_far
+  and test_web_browser_units::test_the_server_text_is_the_automatic_text
+  (passes alone). Fails on main: yes (the same two failed in the OPS.56
+  gate). Frequency: every full gate this evening, so it is no longer rare
+  and costs each lane about 15 minutes a gate; one root cause is likely.
   Prerequisites: none.
 
 - [ ] **TEST.194 `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug)**
@@ -10816,6 +10805,15 @@ clears each one.
   waits on the condition it needs or the route is made fast enough, with
   no quarantine. Fails on main: unknown. Frequency: once so far.
   Reproducer: none beyond the full browser phase with 2 workers.
+  Sighting (Core 2, 2026-10-16, 8:12 PM EDT, DB.18 gate: scripts/test.py
+  changed, 468 passed, 1 failed, 2 errors): three browser tests hung
+  about 15 minutes in setup or teardown:
+  test_web_browser_sector_open::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel,
+  test_web_browser_sector_reach::test_no_scene_is_loaded_while_the_camera_is_far
+  and test_web_browser_units::test_the_server_text_is_the_automatic_text
+  (passes alone). Fails on main: yes (the same two failed in the OPS.56
+  gate). Frequency: every full gate this evening, so it is no longer rare
+  and costs each lane about 15 minutes a gate; one root cause is likely.
   Prerequisites: none.
 
 - [ ] **TEST.196 Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged**
