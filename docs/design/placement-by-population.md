@@ -189,7 +189,7 @@ dispersion and used 0.4 solar masses for the perturber mass: `place_terms.RELATI
 population dispersion (`STELLAR_POPULATION_DISPERSION_KMS` are one-dimensional), and `place_terms.mass_weighted_perturber_mass_solar`
 computes `<M^2> / <M>` from the generator's own initial mass function (`tuning.IMF_BREAKS_SOL`, `IMF_SLOPES`), aged to each
 population's age range at a steady rate (`tuning.STELLAR_POPULATION_AGE_RANGES_GY`), with the remnants of what has left the main
-sequence: stars up to the turn-off where `SOLAR_MS_LIFESPAN_GY * M^MS_LIFESPAN_MASS_EXPONENT` reaches the age, white dwarfs from the
+sequence: stars up to the turn-off where the main-sequence lifetime of Hurley, Pols and Tout 2000 (`ms_lifetime.mass_for_lifetime_gy`) reaches the age, white dwarfs from the
 `WHITE_DWARF_PROGENITOR_SOL` range by the initial-final relation (`WD_IFMR_*`), neutron stars from there to the black hole range's
 start (`BLACK_HOLE_PROGENITOR_SOL[0]`, 20 solar masses) and black holes above it, the last two uniform over their mass ranges as
 the generator draws them. A cell takes the share-weighted mix of the populations it holds (`from_profile`). The two corrections go

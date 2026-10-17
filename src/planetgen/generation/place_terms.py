@@ -18,7 +18,7 @@ import numpy as np
 
 from planetgen import tuning
 from planetgen.generation import multistar
-from planetgen.physics import constants
+from planetgen.physics import constants, ms_lifetime
 
 
 RELATIVE_VELOCITY_FACTOR = math.sqrt(2.0)
@@ -72,7 +72,7 @@ def _present_day_moments(age_gy, remnants=True):
     the white dwarf range's top to the black hole range's start; a black hole the rest up to the IMF's top.
     """
     top = tuning.IMF_BREAKS_SOL[-1]
-    turn_off = min(top, (tuning.SOLAR_MS_LIFESPAN_GY / age_gy) ** (1.0 / -tuning.MS_LIFESPAN_MASS_EXPONENT))
+    turn_off = min(top, ms_lifetime.mass_for_lifetime_gy(age_gy))
     low_edge = tuning.IMF_BREAKS_SOL[0]
     mass = _imf_integral(1.0, low_edge, turn_off)
     square = _imf_integral(2.0, low_edge, turn_off)
