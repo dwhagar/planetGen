@@ -16,7 +16,10 @@ always was.
 1. its last build (`pagejobs.record_duration`, kept `tuning.SLOW_PAGE_TIMING_SECONDS`) took longer than
    `tuning.SLOW_PAGE_SECONDS`; a measured time beats any estimate, so a request that turned out quick is quick
    from then on; or
-2. it has never been timed and the tables its route reads in full (`PATH_TABLES`) hold more than
+2. it has never been timed itself, and the slowest build of any request on the same route within the last
+   `tuning.SLOW_PAGE_PATH_SECONDS` took longer than `tuning.SLOW_PAGE_SECONDS` (a search for a new name, just after a
+   wide one); a route whose recent builds were all quick is quick for a request not seen before; or
+3. nothing on the route has been timed lately and the tables its route reads in full (`PATH_TABLES`) hold more than
    `tuning.SLOW_PAGE_ROW_BUDGET` rows, by the database's own estimate (`GET /api/table-estimates`, kept a minute
    in the process).
 
@@ -48,6 +51,7 @@ PATH_TABLES = {
 longest matching prefix counts."""
 
 _allowed = contextvars.ContextVar("planetgen_slow_pages_allowed", default=False)
+_retrying = contextvars.ContextVar("planetgen_slow_pages_retrying", default=False)
 _notices = threading.local()
 
 _estimates = {}
@@ -69,12 +73,19 @@ class Pending(Exception):
 
 
 @contextlib.contextmanager
-def allow_pending():
-    """`with allow_pending():` -- inside the block, a slow request raises `Pending` instead of being built."""
-    token = _allowed.set(True)
+def allow_pending(retry=False):
+    """
+    `with allow_pending():` -- inside the block, a slow request raises `Pending` instead of being built.
+
+    Args:
+        retry (bool): The visitor asked to try again: a job that failed or was cancelled is replaced by a new one at
+            once, not shown again.
+    """
+    token, retrying = _allowed.set(True), _retrying.set(retry)
     try:
         yield
     finally:
+        _retrying.reset(retrying)
         _allowed.reset(token)
 
 
@@ -135,14 +146,17 @@ def cost(db, path, target):
     Whether building `target` is slow.
 
     Returns:
-        dict | None: `rows` (the estimate, or `None`), `expected` (seconds) and `why` (`"timed"` or `"rows"`) for a
-            slow request; `None` for one that isn't.
+        dict | None: `rows` (the estimate, or `None`), `expected` (seconds) and `why` (`"timed"`, `"route"` or
+            `"rows"`) for a slow request; `None` for one that isn't.
     """
     from planetgen.queue import pagejobs   # not at import: a page that never opts in doesn't load the queue
     last = pagejobs.last_duration(db, target)
     rows = estimated_rows(db, path)
     if last is not None:
         return {"rows": rows, "expected": last, "why": "timed"} if last > tuning.SLOW_PAGE_SECONDS else None
+    recent = pagejobs.slowest_recent_duration(db, path)
+    if recent is not None:
+        return {"rows": rows, "expected": recent, "why": "route"} if recent > tuning.SLOW_PAGE_SECONDS else None
     if rows is not None and rows > tuning.SLOW_PAGE_ROW_BUDGET:
         return {"rows": rows, "expected": rows / tuning.SLOW_PAGE_ROWS_PER_SECOND, "why": "rows"}
     return None
@@ -160,7 +174,7 @@ def pending_for(db, path, target):
     if slow is None:
         return None
     try:
-        job = pagejobs.ensure(db, target, slow["rows"], slow["expected"])
+        job = pagejobs.ensure(db, target, slow["rows"], slow["expected"], retry=_retrying.get())
     except pagejobs.NoQueue as exc:
         _notices.text = ("This page is slow to build and the work queue is not available, so it was built while "
                          "you waited.")

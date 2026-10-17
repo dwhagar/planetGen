@@ -65,9 +65,10 @@ def test_bright_fraction_matches_the_whole_model(young_brute_force):
 
 
 def test_bright_fraction_of_the_whole_disk_is_well_under_a_thousandth():
-    # About 2.2e-4 of all stars at >= 500 Lsun. The galaxy studies' older estimate was ~7e-4, from a giant branch
-    # spread evenly in log luminosity; with the time-at-luminosity law (GEN.287) the old giants are far fewer.
-    assert 1.5e-4 < sp.bright_star_fraction(THRESHOLD) < 5e-4
+    # About 1.2e-4 of all stars at >= 500 Lsun. The galaxy studies' older estimate was ~7e-4, from a giant branch
+    # spread evenly in log luminosity; with the time-at-luminosity law (GEN.287) the old giants are far fewer, and
+    # with the Hurley giant branch (GEN.502: 1.0% of a solar-mass branch above 500 Lsun) fewer again.
+    assert 0.8e-4 < sp.bright_star_fraction(THRESHOLD) < 3e-4
     assert sp.bright_star_fraction(THRESHOLD, "young") > 5 * sp.bright_star_fraction(THRESHOLD, "old")
 
 

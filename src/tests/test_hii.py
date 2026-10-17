@@ -11,7 +11,7 @@ import pytest
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula
-from planetgen.physics import hii
+from planetgen.physics import hii, ms_lifetime
 from planetgen.util import draw
 
 
@@ -55,7 +55,7 @@ def test_old_clusters_lose_their_hottest_stars():
     young = hii.cluster_hosts(1e5, 0.2)
     old = hii.cluster_hosts(1e5, 10.0)
     assert max(young) > 40.0
-    assert max(old) < 16.5  # the generator's t_MS = 10 Gy M^-2.5 law: 10 Myr is 15.8 Msun
+    assert max(old) < ms_lifetime.mass_for_lifetime_gy(0.010) * 1.001  # the lifetime fit (GEN.467): about 18 Msun
     assert len(old) < len(young)
 
 

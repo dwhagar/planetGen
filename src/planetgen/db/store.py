@@ -1524,6 +1524,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (109, lambda shape: ("planets", "orbital_phase_deg") not in shape["columns"]),
     (108, _type_marker("bright_stars", "band_index", "int")),
     (107, _check_marker("chk_bright_stars_population", "satellite_young")),
     (106, lambda shape: "least(" in shape["generated"].get(("star_systems", "cell_key"), "")),
@@ -2835,7 +2836,7 @@ _BODY_COLUMNS = (
     "scale_height_km", "hill_radius_km", "min_orbit_distance_km",
     "habitable_zone_inner_km", "habitable_zone_outer_km",
     "life_chemical", "evolutionary_speed", "flavor_text", "flavor_text_count",
-    "orbital_inclination_deg", "orbital_ascending_node_deg", "orbital_phase_deg",
+    "orbital_inclination_deg", "orbital_ascending_node_deg",
     *point_columns.LAYOUTS["planets"].position, "orbital_speed_kms", *point_columns.LAYOUTS["planets"].velocity,
     "min_update_interval_years",
     "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
@@ -2878,7 +2879,6 @@ def body_row_values(body):
         body.life_chemical, body.evolutionary_speed,
         body.flavor_text, body.flavor_text_count,
         body.orbital_inclination_deg, body.orbital_ascending_node_deg,
-        body.orbital_phase_deg,
         body.position_x * physical_constants.AU_TO_KM,
         body.position_y * physical_constants.AU_TO_KM,
         body.position_z * physical_constants.AU_TO_KM,
@@ -2913,6 +2913,12 @@ def body_child_rows(conn, body, body_id):
     )
 
 
+def planet_parent(star_id, star_system_id):
+    """`(parent_type, parent_id)` of a planet (GEN.289): the star it orbits, or, for a close pair's circumbinary
+    planet (`star_id` None), the system, whose barycenter it orbits."""
+    return ("star", star_id) if star_id is not None else ("system", star_system_id)
+
+
 def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
     """
     Inserts a `planets` row for one top-level `Planet` (never a moon --
@@ -2934,10 +2940,11 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
     Returns:
         int: The new `planets.id`.
     """
-    columns = ("star_system_id", "star_id", "orbital_index") + _BODY_COLUMNS + _PLANET_ONLY_COLUMNS
+    columns = ("star_system_id", "star_id", "orbital_index", "parent_type", "parent_id") + _BODY_COLUMNS \
+        + _PLANET_ONLY_COLUMNS
     cur = conn.execute(
         f"INSERT INTO planets ({', '.join(columns)}) VALUES ({', '.join('?' * len(columns))})",
-        (star_system_id, star_id, orbital_index, *body_row_values(planet)),
+        (star_system_id, star_id, orbital_index, *planet_parent(star_id, star_system_id), *body_row_values(planet)),
     )
     planet_id = cur.lastrowid
 
@@ -2971,10 +2978,10 @@ def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -
     Returns:
         int: The new `moons.id`.
     """
-    columns = ("planet_id", "star_system_id", "star_id", "orbital_index") + _BODY_COLUMNS
+    columns = ("planet_id", "star_system_id", "star_id", "orbital_index", "parent_type", "parent_id") + _BODY_COLUMNS
     cur = conn.execute(
         f"INSERT INTO moons ({', '.join(columns)}) VALUES ({', '.join('?' * len(columns))})",
-        (planet_id, star_system_id, star_id, orbital_index, *body_row_values(moon)),
+        (planet_id, star_system_id, star_id, orbital_index, "planet", planet_id, *body_row_values(moon)),
     )
     moon_id = cur.lastrowid
 
@@ -8446,7 +8453,6 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         "period": row["period_years"],
         "orbital_inclination_deg": row["orbital_inclination_deg"],
         "orbital_ascending_node_deg": row["orbital_ascending_node_deg"],
-        "orbital_phase_deg": row["orbital_phase_deg"],
         "position_x": row["position_x_km"] / physical_constants.AU_TO_KM,
         "position_y": row["position_y_km"] / physical_constants.AU_TO_KM,
         "position_z": row["position_z_km"] / physical_constants.AU_TO_KM,
@@ -9226,15 +9232,89 @@ def _report(on_progress, label, done, total):
         on_progress(label, done, total)
 
 
+STATE_BATCH_ROWS = 20_000
+"""int: How many due planets or moons `_advance_body_states` reads, steps and writes at a time."""
+
+STATE_WRITE_ROWS = 2_000
+"""int: How many stepped rows go into one `UPDATE` (a `VALUES ROW` table joined to the table)."""
+
+_STATE_COLUMNS = ("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms")
+
+
+def _advance_body_states(conn, clock, table, scale, budget=None):
+    """
+    Moves every due planet or moon of `table` (`planets` or `moons`) from its own epoch to `clock.end_unix` along its
+    orbit (GEN.289): its stored position and velocity are stepped by `kepler.universal_step`
+    (`physics/state_kernel.py`, compiled, the same arithmetic) on the pull `mu = (2 pi / period)^2 distance^3` of what it
+    goes round (`physics.body_state.mu_km3_s2`), and the epoch becomes the update's end and the next due time that plus
+    the interval its new speed gives (`position.update_interval_s`). `batch` rows are read, stepped and written at a
+    time, oldest due first, up to the run's limit for the table when `budget` has one.
+
+    A row the step cannot move (no convergence, a body on its primary) is logged and keeps its state and epoch; its
+    next due time still moves on, so it is tried again in a later run and a bad row never holds the others up.
+
+    Returns:
+        int: The rows moved.
+    """
+    from planetgen.physics import state_kernel  # compiled: kept off the web app's import path (OPS.42)
+    import numpy as np
+
+    limit = budget.limit(table) if budget is not None else None
+    threshold_km = THRESHOLDS_M[scale] / 1000.0
+    seconds_per_year = physical_constants.SECONDS_PER_YEAR
+    columns = ", ".join(_STATE_COLUMNS)
+    moved = seen = 0
+    while limit is None or seen < limit:
+        take = STATE_BATCH_ROWS if limit is None else min(STATE_BATCH_ROWS, limit - seen)
+        rows = conn.execute(
+            f"SELECT id, {columns}, distance_km, period_years, epoch_unix FROM {table}"
+            f" WHERE period_years > 0 AND next_update_due <= ? ORDER BY next_update_due, id LIMIT {int(take)}",
+            (clock.end_unix,)).fetchall()
+        if not rows:
+            break
+        seen += len(rows)
+        ids = [row["id"] for row in rows]
+        states = np.array([[row[name] for name in _STATE_COLUMNS] for row in rows], dtype=np.float64)
+        distance = np.array([row["distance_km"] for row in rows], dtype=np.float64)
+        period_s = np.array([row["period_years"] for row in rows], dtype=np.float64) * seconds_per_year
+        epoch = np.array([row["epoch_unix"] for row in rows], dtype=np.float64)
+        mus = (2.0 * math.pi / period_s) ** 2 * distance ** 3
+        stepped, status = state_kernel.step_many(states, mus, clock.end_unix - epoch)
+        failed = status != state_kernel.OK
+        for index in np.flatnonzero(failed):
+            log.error(f"{table} {ids[index]}: the orbital step did not move it (status {int(status[index])}); "
+                      f"its state and epoch are kept")
+        new_epoch = np.where(failed, epoch, clock.end_unix)
+        speed = np.sqrt(stepped[:, 3] ** 2 + stepped[:, 4] ** 2 + stepped[:, 5] ** 2)
+        with np.errstate(divide="ignore"):
+            interval = np.where(speed > 0.0, np.minimum(threshold_km / np.where(speed > 0.0, speed, 1.0),
+                                                        MAX_UPDATE_INTERVAL_S), MAX_UPDATE_INTERVAL_S)
+        due = clock.end_unix + interval
+        for start in range(0, len(ids), STATE_WRITE_ROWS):
+            stop = start + STATE_WRITE_ROWS
+            values = ",".join(
+                "ROW(" + ",".join(map(_scatter_value, (ids[i], *stepped[i].tolist(), float(new_epoch[i]), float(due[i]))))
+                + ")" for i in range(start, min(stop, len(ids))))
+            conn.execute_literal(
+                f"UPDATE {table} t JOIN (VALUES {values}) AS v(id, px, py, pz, vx, vy, vz, epoch, due) ON t.id = v.id"
+                " SET t.position_x_km = v.px, t.position_y_km = v.py, t.position_z_km = v.pz,"
+                " t.velocity_x_kms = v.vx, t.velocity_y_kms = v.vy, t.velocity_z_kms = v.vz,"
+                " t.epoch_unix = v.epoch, t.next_update_due = v.due")
+        moved += int(len(ids) - failed.sum())
+    return moved
+
+
 def advance_orbital_phases(conn, clock, on_progress=None, budget=None):
     """
     Advances the orbits inside star systems that are due (GEN.106): every
-    planet's and moon's `orbital_phase_deg`, and a binary pair's
+    planet's and moon's state vector (GEN.289, `_advance_body_states`: its
+    stored position and velocity stepped on its orbit by
+    `kepler.universal_step`), and a binary pair's
     `binary_mutual_orbital_phase_deg`, each by the time from its own epoch
-    to `clock.end_unix`, given its own stored period -- one set-based
-    `UPDATE` per table rather than a per-row Python loop, so this stays
-    fast regardless of how many bodies the database holds (see
-    `planetgen.cli.orbits`). Galactic orbits are `advance_galactic_positions`'.
+    to `clock.end_unix`, given its own stored period -- the bodies in
+    batches through a compiled step, the pairs by one set-based `UPDATE`
+    (see `planetgen.cli.orbits`). Galactic orbits are
+    `advance_galactic_positions`'.
 
     Due: a row's `next_update_due` (indexed) is at or before the update's
     end, so it has moved at least its threshold since its epoch (0.01 AU
@@ -9244,15 +9324,10 @@ def advance_orbital_phases(conn, clock, on_progress=None, budget=None):
     A row that isn't due is neither moved nor counted. A moved row's epoch
     becomes the update's end and its next due time that plus its interval.
 
-    `position_x/y/z_km` and the velocity are recomputed in lockstep from
-    the *new* phase -- position is a pure function of distance/
-    inclination/ascending-node/phase. `orbital_phase_deg` is assigned first
-    in the `SET` list and every position expression below reads it back
-    afterward, relying on documented single-table `UPDATE` behavior
-    (MySQL/MariaDB evaluate a single table's `SET` assignments left to
-    right, so a later expression sees an earlier assignment's *new* value);
-    the epoch is assigned last, so the phase reads the old one. See
-    `orbits.orbital_position_au`'s docstring for the same formula in Python.
+    A planet or moon has no phase: the step reads its stored position and
+    velocity, so an orbit another body's pull has changed is carried on as
+    it now is. A quiet circular orbit comes out where the circular phase
+    put it, to rounding (`tests/test_state_kernel.py`).
 
     `binary_mutual_position_x/y/z_km` (the secondary's position relative to
     the primary) and each star's offset from the pair's barycenter
@@ -9290,46 +9365,12 @@ def advance_orbital_phases(conn, clock, on_progress=None, budget=None):
             `"binary_mutual_orbits"`, `"binary_planetary_wobbles"`.
     """
     counts = {}
-    circular_rate = CIRCULAR_VELOCITY_SQL
     for table, scale in (("planets", "system"), ("moons", "planetary")):
-        interval = _update_interval_sql(circular_rate, scale)
+        interval = _update_interval_sql(CIRCULAR_VELOCITY_SQL, scale)
         _schedule_updates(conn, clock, table, interval, "period_years > 0")
-        limited, tail = _ordered_limit(budget, table)
-        cur = conn.execute(
-            f"""
-            UPDATE {table}
-            SET orbital_phase_deg = MOD(orbital_phase_deg + {_phase_turn_sql("period_years")}, 360),
-                position_x_km = distance_km * (
-                    COS(RADIANS(orbital_ascending_node_deg)) * COS(RADIANS(orbital_phase_deg))
-                    - SIN(RADIANS(orbital_ascending_node_deg)) * SIN(RADIANS(orbital_phase_deg))
-                      * COS(RADIANS(orbital_inclination_deg))
-                ),
-                position_y_km = distance_km * (
-                    SIN(RADIANS(orbital_ascending_node_deg)) * COS(RADIANS(orbital_phase_deg))
-                    + COS(RADIANS(orbital_ascending_node_deg)) * SIN(RADIANS(orbital_phase_deg))
-                      * COS(RADIANS(orbital_inclination_deg))
-                ),
-                position_z_km = distance_km * SIN(RADIANS(orbital_phase_deg)) * SIN(RADIANS(orbital_inclination_deg)),
-                velocity_x_kms = {circular_rate} * (
-                    -COS(RADIANS(orbital_ascending_node_deg)) * SIN(RADIANS(orbital_phase_deg))
-                    - SIN(RADIANS(orbital_ascending_node_deg)) * COS(RADIANS(orbital_phase_deg))
-                      * COS(RADIANS(orbital_inclination_deg))
-                ),
-                velocity_y_kms = {circular_rate} * (
-                    -SIN(RADIANS(orbital_ascending_node_deg)) * SIN(RADIANS(orbital_phase_deg))
-                    + COS(RADIANS(orbital_ascending_node_deg)) * COS(RADIANS(orbital_phase_deg))
-                      * COS(RADIANS(orbital_inclination_deg))
-                ),
-                velocity_z_kms = {circular_rate} * COS(RADIANS(orbital_phase_deg)) * SIN(RADIANS(orbital_inclination_deg)),
-                epoch_unix = ?,
-                next_update_due = ? + {interval}
-            WHERE period_years > 0 AND next_update_due <= ?{tail}
-            """,
-            (clock.end_unix, clock.end_unix, clock.end_unix, clock.end_unix),
-        )
-        if limited is not None:
+        counts[table] = _advance_body_states(conn, clock, table, scale, budget)
+        if budget is not None and budget.limit(table) is not None:
             budget.defer_remaining(conn, clock, table)
-        counts[table] = cur.rowcount
         _report(on_progress, table, len(counts), ORBITAL_PHASE_UPDATES)
 
     # v20: each star's own reflex-offset "wobble" from the planets it

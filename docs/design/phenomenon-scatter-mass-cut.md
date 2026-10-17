@@ -95,6 +95,7 @@ with a 0.1% chance a black hole is intermediate-mass, log-uniform 100 to 1e5 (me
 of the black holes are below 20 and the 0.1% above it carry **53% of all black-hole mass** (2.2e5 holes
 of 14,500 mean: 3.2e9 solar masses against 2.7e9 in the stellar ones) [C]. If that share is not what Boss
 meant by 0.1%, it is a tuning question (BLACK_HOLE_INTERMEDIATE_MASS_CHANCE), not a cut question.
+(GEN.259, 2026-10-17: Boss chose "hundreds"; the chance is now 3e-6, about 300 intermediate-mass holes carrying 0.35% of the black-hole mass (4.4e6 solar masses against 1.25e9), and the 2.2e5 and 53% above are the 0.1% figures.)
 
 Two jobs for a pre-placed mass:
 

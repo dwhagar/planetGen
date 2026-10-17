@@ -168,6 +168,9 @@ subhead (badges or actions under the <h1>). -#}
   {%- if waiting %}
   <p class="error restart-banner inline-links" role="status">Saved settings are waiting for a restart of the web server: {{ waiting | map(attribute=1) | join(', ') }}. <a href="{{ page_url('admin_settings') }}">Settings</a></p>
   {%- endif %}
+  {%- set slow_note = slow_notice() %}{% if slow_note %}
+  <p class="hint slow-notice" role="status">{{ slow_note }}</p>
+  {%- endif %}
   {#- UX.3: shown to every visitor while a background run changes the galaxy; `galaxybanner.js` keeps it current. -#}
   {%- set changing = galaxy_status() %}
   <p class="galaxy-banner" role="status" data-status-url="{{ url_for('web.galaxy_status') }}" data-poll-seconds="30"{% if not changing.active %} hidden{% endif %}>{{ changing.text if changing.active }}</p>

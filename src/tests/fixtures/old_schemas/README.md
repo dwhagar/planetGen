@@ -60,3 +60,4 @@ Commit each file came from:
 - v105: 0690c541 (GEN.324 satellite stars, before DB.65 cell key edge)
 - v106: 9c172019 (DB.65 cell key edge, before GEN.526 satellite young and intermediate populations)
 - v107: 9a8f7671 (GEN.526 satellite young and intermediate populations, before DB.72 band_index INT)
+- v108: 039042e (DB.72 band_index INT, before GEN.289 planet state vectors)

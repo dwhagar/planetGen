@@ -35,12 +35,11 @@ merged or wrapped.
 import math
 
 from planetgen import tuning
-from planetgen.generation import place_terms
+from planetgen.generation import companion_classes, place_terms
 from planetgen.physics import constants
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.util import draw
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from planetgen.util.random import log_uniform
 from planetgen.generation.star import Star
 from planetgen.physics.orbits import (
     circular_orbital_speed_kms, hill_radius_in_pair_au, holman_wiegert_critical_semimajor_axis,
@@ -105,7 +104,7 @@ class WideBinaryPair:
     `store.advance_orbital_phases` never needs to join back to `stars`.
     """
 
-    def __init__(self, system_config, primary: Star, secondary: Star):
+    def __init__(self, system_config, primary: Star, secondary: Star, inner_boost=1.0):
         """
         Generates a fresh wide-binary orbital relationship between two
         already-generated stars, including each star's own Holman &
@@ -121,6 +120,8 @@ class WideBinaryPair:
                 turns out to be the more massive of the two, mirroring
                 `BinaryStarProxy.__init__`'s identical convention -- the
                 caller need not know which is heavier ahead of time.
+            inner_boost (float): The weight of the 0.25 to 10 AU range of separations after the metallicity trend
+                (`companion_classes.CompanionOdds.inner_boost`); 1 with none.
         """
         self.system_config = system_config
 
@@ -129,8 +130,8 @@ class WideBinaryPair:
         self.primary = primary
         self.secondary = secondary
 
-        # Real wide-binary separations are observed roughly log-uniform
-        # over several decades, and their eccentricities -- unlike the
+        # The separation follows Moe & Di Stefano's companions per decade of
+        # period for the primary's mass (GEN.448), and the eccentricities -- unlike the
         # close/P-type pair, which tidally circularizes -- are broadly
         # consistent with a "thermal" distribution; see
         # tuning.WIDE_BINARY_SEPARATION_MIN_AU and
@@ -138,7 +139,9 @@ class WideBinaryPair:
         # axis is the place's survival limit (GEN.103), not a constant.
         self.max_separation_au = wide_pair_limit_au(system_config, primary, secondary)
         """float: The widest axis the pair's place allowed when it was drawn (not saved)."""
-        self.separation_au = sample_wide_binary_separation_au(self.max_separation_au)
+        self.separation_au = sample_wide_binary_separation_au(
+            self.max_separation_au, place_terms.born_mass_solar(primary),
+            place_terms.born_mass_solar(primary) + place_terms.born_mass_solar(secondary), inner_boost)
         self.eccentricity = sample_wide_binary_eccentricity()
 
         self.periapsis_au = self.separation_au * (1 - self.eccentricity)
@@ -329,24 +332,23 @@ def wide_pair_limit_au(system_config, primary, secondary):
     return min(limit, tuning.WIDE_BINARY_SEPARATION_CEILING_AU)
 
 
-def sample_wide_binary_separation_au(max_au):
+def sample_wide_binary_separation_au(max_au, born_mass_solar=1.0, total_mass_solar=2.0, inner_boost=1.0):
     """
-    Draws an S-type (wide) binary's separation (semi-major axis), log-
-    uniformly between `tuning.WIDE_BINARY_SEPARATION_MIN_AU` and `max_au`
-    (the place's survival limit, `wide_pair_limit_au`; a limit under the
-    lower bound gives the lower bound, which only a pair forced wide reaches)
-    -- see the lower bound's own docstring for why log-uniform (not
-    linear-uniform) sampling is used. One `random.uniform` draw
-    (`planetgen.util.random.log_uniform`).
+    Draws an S-type (wide) binary's separation (semi-major axis) from Moe and Di Stefano's companions per decade of
+    period for a primary of this mass (`generation.companion_classes`, GEN.448), between
+    `tuning.WIDE_BINARY_SEPARATION_MIN_AU` and `max_au` (the place's survival limit, `wide_pair_limit_au`; a limit under
+    the lower bound gives the lower bound, which only a pair forced wide reaches). One uniform draw.
 
     Args:
         max_au (float): The widest axis the pair keeps, AU.
+        born_mass_solar (float): The primary's birth mass, solar masses (it picks the distribution).
+        total_mass_solar (float): The pair's birth mass in total (it sets the period of an axis).
+        inner_boost (float): The weight of the 0.25 to 10 AU range after the metallicity trend (1 with none).
 
     Returns:
         float: A separation, in AU.
     """
-    low = tuning.WIDE_BINARY_SEPARATION_MIN_AU
-    return log_uniform(low, max(low, max_au))
+    return companion_classes.sample_separation_au(born_mass_solar, total_mass_solar, max_au, inner_boost)
 
 
 def sample_wide_binary_eccentricity():
