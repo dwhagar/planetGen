@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1674] - 2026-10-17
+
+**Headline:** Two test failures from the UX.114 gate are filed as bugs.
+
+### Changed
+
+Core 4's full gate of UX.114 failed twelve tests; ten were its own and are fixed in its branch, and two are not: `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` and `test_every_column_is_written` (the `moons.evolutionary_speed` column), both of which pass alone on main and failed only in the full parallel run. They are filed under the test-failures goal for the Bug Hunt.
+
+TODO items resolved: none / Added: TEST.216, TEST.217
+
 ## [8.0.1673] - 2026-10-17
 
 **Headline:** NAV.60 retired: what is nearby reads by the cell key.
