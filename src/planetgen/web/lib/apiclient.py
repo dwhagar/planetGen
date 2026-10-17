@@ -422,6 +422,12 @@ def get_uncharted_systems(db, limit=None, offset=None, sort=None, descending=Fal
     return _request("/uncharted-systems", [(key, value) for key, value in params if value is not None])
 
 
+def get_uncharted_system(db, bright_star_id):
+    """Returns `GET /api/uncharted-systems/<id>`'s dict (UX.114) -- see `db.query.uncharted_system_detail`."""
+    _require_db(db)
+    return _request(f"/uncharted-systems/{int(bright_star_id)}", {"db": db})
+
+
 def get_system(db, system_id):
     """Returns `GET /api/systems/<id>`'s detail dict -- see
     `db.query.system_detail`'s docstring for the shape."""

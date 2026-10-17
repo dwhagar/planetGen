@@ -108,8 +108,13 @@ Zahnle and Catling (2017, arXiv:1702.03386): solar-system bodies with and
 without atmospheres separate along cumulative insolation proportional to
 `v_esc^4`, and exoplanets crowd along the extrapolation [S]. A pure
 energy-limited argument gives an exponent of about 3, so the slope is empirical
-[S]. Meni-Gallardo and Pallé (2025) keep slope 4 with a higher zero point [S,
-snippets only]. The constant here is fitted, not copied.
+[S]. Meni-Gallardo and Pallé (2025, arXiv:2508.12865) do not keep slope 4: their
+fit has slope 5.77 and intercept -4.35 (checked 2026-10-17, Tunable gaps
+investigation; the earlier snippet reading was wrong), and Berta-Thompson (2025,
+arXiv:2507.02136) fits a logistic in the cumulative insolation. Zahnle and
+Catling draw the line by eye and give no constant K. The constant here is fitted
+to 13 Solar System bodies and is contradicted by 55 Cnc e and TOI-561 b (K 12 to
+190 times higher); it is replaced by the tuned draw of GEN.511.
 
 Fit [C], bodies as (v_esc km/s, S in Earth units, state): Mercury (4.25, 6.67,
 none), Venus (10.36, 1.91, dense), Earth (11.19, 1.0, dense), Moon (2.38, 1.0,
@@ -140,7 +145,7 @@ the star to its age / cumulative XUV of the Sun to 4.5 Gyr)`, the "XUV exposure
 index"
 ([activity-magnetism-radiation-hydrosphere.md](activity-magnetism-radiation-hydrosphere.md)
 2.3). With a stand-in XUV history (`t_sat` 2 Gyr, decay index 1.23) TRAPPIST-1 b and
-c come out at r = 5.2 and 3.0 (JWST: bare rock or under 0.1 bar [S]), e at 2.2,
+c come out at r = 5.2 and 3.0 (JWST: an atmosphere of 1 bar or more is disfavoured; "under 0.1 bar" is in no paper read, Tunable gaps investigation 2026-10-17), e at 2.2,
 f at 0.71 and g at 0.35 (could hold air); LHS 3844 b at 36 (none; bare rock
 [R]); 55 Cnc e at 22 (JWST finds a likely CO2/CO atmosphere over a magma ocean
 [S, Hu et al. 2024], so the 2.5 to 30 band is real).

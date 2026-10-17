@@ -1323,6 +1323,9 @@
 --   (`disk_kind`, `disk_mass_solar`, `disk_inner_au`, `disk_outer_au`); on `planets` `host_node_id`. A close or wide pair
 --   becomes one node from its stored mutual orbit, and each star's offset is its stored binary position.
 --
+-- v105 (GEN.324): `bright_stars.population` also takes `satellite`, the stars of a satellite galaxy placed by the component
+--   pass (a cluster's are `cluster`, v94).
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -3346,7 +3349,7 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     KEY idx_bright_stars_luminosity (luminosity_w),
     KEY idx_bright_stars_next_update_due (next_update_due),
     KEY idx_bright_stars_population (population, off_plane, luminosity_w),
-    CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge', 'halo', 'cluster', 'nuclear_cluster', 'nuclear_disc')),
+    CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge', 'halo', 'cluster', 'satellite', 'nuclear_cluster', 'nuclear_disc')),
     CONSTRAINT fk_bright_stars_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -75,9 +75,14 @@ What it changed in the plan:
 5. Refractivity and King factors of H2S, SO2 (Bogaard 1978), NH3 and CO.
 6. Condensation curves of NH3, H2O and CH4 (Lodders and Fegley 2002, Lodders 2003 and 2010, Weidenschilling and Lewis 1973).
 7. Bucholtz 1995 Table 3, and the originals of Peck and Huang 1977, Kasting and Donahue 1980, Segura 2003, Hulburt 1953, an Angstrom-exponent review.
-8. Widening the proxy (Project settings, environment network): doi.org, ADS, Science, Copernicus (AMT, ACP), Optica, ScienceDirect, NTRS and the Mainz and Bremen data hosts.
+8. Ice sublimation curves for N2, CO, CH4 and CO2, which the vapour-pressure relations reached by the mixing-ratio research (part 5) do not cover.
+9. Per-comet abundance tables (volatile ratios by comet, not the few well-known ones).
+10. Magma-ocean redox papers: the mantle redox of a young rocky planet and how it drifts (the code's mean is 3.5 above the iron-wuestite buffer, the building blocks sit near 0 to 1 below; GEN.451).
+11. Widening the proxy (Project settings, environment network): doi.org, ADS, Science, Copernicus (AMT, ACP), Optica, ScienceDirect, NTRS and the Mainz and Bremen data hosts.
 
-Until an item is researched, its design entry names the seeded range used meanwhile (rule: nothing fixed per class). Boss widened the network at about 12:02 AM EDT on 2026-10-17: arxiv.org itself is reachable now and the Atmosphere research lane (GEN.431) re-reads the four sources the check could not reach.
+Until an item is researched, its design entry names the seeded range used meanwhile (rule: nothing fixed per class). Boss widened the network at about 12:02 AM EDT on 2026-10-17: arxiv.org itself is reachable now and the Atmosphere research lane (GEN.431) re-read the four sources the check could not reach.
+
+**Result of the Atmosphere research (GEN.431, 2026-10-17, merged as [atmosphere-composition.md](atmosphere-composition.md) with seven parts in `atmosphere-composition-parts/`):** the four unreached sources were re-checked. The Peck and Huang 1977 H2 constants were read in the refractiveindex.info database file (data, CC0; paper not reached); the Burkholder and Talukdar 1994 and Serdyuchenko 2014 cross sections were read in the Mainz and Bremen data files (the Bremen page states no licence); the Chandrasekhar ground-bounce factor was re-derived and checked by Monte Carlo; Sneep and Ubachs, Bates, Kasting and Donahue, Segura and Kasten and Young stay second-hand. The open CO2 value at 532 nm closes at 13.3e-27 cm2 (measured in He 2021). The ranked research list in section 6 of that note supersedes the list above where they differ (the ice sublimation curves of Fray and Schmitt 2009 lead it). The findings that change the code are GEN.452 (the condensation table), GEN.453 (the radiation constants), GEN.451 (the mantle redox), and DB.71 with GEN.410 (the species that are not stored).
 
 ## 5. Bulk composition: the cause of mass, density and gravity
 

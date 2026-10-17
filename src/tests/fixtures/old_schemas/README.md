@@ -56,3 +56,4 @@ Commit each file came from:
 - v101: a438b42f (DB.54 scatter limits by place, before DB.55 point columns)
 - v102: the schema of migration 0102 (DB.55 point columns, before GEN.336 movement vector); built in one change with v103 and v104, so no commit of main carries it alone
 - v103: the schema of migration 0103 (GEN.336 movement vector, before DB.53 orbit nodes); same change, no commit of main carries it alone
+- v104: 3940ad23 (DB.55, GEN.336 and DB.53 together as #1952, before GEN.324 satellite stars)

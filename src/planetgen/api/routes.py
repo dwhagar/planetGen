@@ -84,6 +84,7 @@ from planetgen.db.query import (
     open_readonly,
     phenomenon_detail as query_phenomenon_detail,
     scattered_phenomenon_detail as query_scattered_phenomenon_detail,
+    uncharted_system_detail as query_uncharted_system_detail,
     resolve_object,
     nebula_shape as query_nebula_shape,
     nebula_surroundings as query_nebula_surroundings,
@@ -1209,6 +1210,20 @@ def uncharted_systems():
         "items": list_uncharted_systems(db, limit=limit, offset=offset, sort=sort, descending=descending),
         "total": count_uncharted_systems(db), "limit": limit, "offset": offset,
     })
+
+
+@bp.route("/uncharted-systems/<int:bright_star_id>")
+def uncharted_system(bright_star_id):
+    """
+    `GET /api/uncharted-systems/<id>` -- one scattered star (UX.114): the same fields as a `GET /api/uncharted-systems`
+    item, `system_id` (the system built around it, `null` while it is uncharted) and, for a star with company
+    that is not built yet, its `members` and orbit `nodes` (`db.query.uncharted_system_detail`). 404 for an id that
+    is no row.
+    """
+    try:
+        return jsonify(query_uncharted_system_detail(get_db(), bright_star_id))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 404
 
 
 @bp.route("/uncharted-systems/<int:bright_star_id>/generate", methods=["POST"])

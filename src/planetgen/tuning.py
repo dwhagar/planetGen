@@ -504,17 +504,25 @@ BRIGHT_GIANT_MIN_MASS_SOL = 4.0
 # That is the real luminosity function, and it follows from the physics: the
 # helium core grows by the hydrogen shell burning at the star's luminosity, so
 # dt = (X Q / L) dMc, and the luminosity climbs as a power Mc^p of the core
-# mass (p about 10 for the low-mass cores of an old population), which gives
-# dt/dlnL proportional to L^(1/p - 1), slope 0.9 [R, Refsdal and Weigert 1970;
-# Salaris and Cassisi 2005; recalled, unconfirmed]. The tip is where the core
-# helium ignites (near 2,500 Lsun, M_bol about -3.7; Salaris and Cassisi 2005).
+# mass, which gives dt/dlnL proportional to L^(1/p - 1) [R, Refsdal and Weigert
+# 1970; Salaris and Cassisi 2005; recalled, unconfirmed]. p is about 10 at the
+# base and about 5 at the tip, so the true slope flattens from -0.83 to -0.56
+# along the branch (the core-mass-luminosity fit of arXiv 2503.17772, eq. 1:
+# one data point [P]); one exponent, 0.78, reproduces that fit's share of the
+# branch spent above 50, 100, 500 and 1,000 Lsun (9.6, 5.5, 1.3 and 0.59%)
+# within 15% (stellar tables check, 2026-10-17); the first value, 0.9, undercounted
+# the giants above 500 Lsun by a factor of two. The tip is where the core
+# helium ignites: near 2,500 Lsun for a solar-metallicity star (Serenelli et al.
+# 2017, table 2: 2,410 to 2,450 at Z 0.004), 1,650 to 1,780 at Z 0.0001, so 15 to
+# 50% high for an [Fe/H] -2 halo star [P]; one tip, until the giant knows its [Fe/H].
 # Log-uniform spreading over 50 to 1,000 Lsun, which this replaces, put every
 # giant above 50 Lsun and overstated the bright ones many times against real
 # counts: the real branch spends most of its time near its base (its
 # observed ratio of horizontal-branch stars to red giants brighter than the
-# horizontal branch is about 1.4 [R, Salaris et al. 2004]).
+# horizontal branch is 1.44 +- 0.06 for the 41 halo clusters of Salaris et
+# al. 2004, table 2, and 1.51 +- 0.05 for all 57 [P]).
 GIANT_BRANCH_TIP_LUMINOSITY_SOL = 2500.0
-GIANT_BRANCH_TIME_SLOPE = 0.9
+GIANT_BRANCH_TIME_SLOPE = 0.78
 BRIGHT_GIANT_LUMINOSITY_RANGE_SOL = (1000.0, 10000.0)  # log-uniform
 GIANT_TEMPERATURE_RANGE_K = (3500.0, 5000.0)
 # The horizontal branch (core helium burning): one luminosity range, whatever
@@ -523,24 +531,36 @@ GIANT_TEMPERATURE_RANGE_K = (3500.0, 5000.0)
 # are the metal-rich, RR Lyrae the middle, blue horizontal-branch the
 # metal-poor and extreme horizontal-branch (hot subdwarfs) a few percent of
 # old stars (docs/design/realistic-galactic-core.md 5.3) [R, recalled, unconfirmed:
-# Lee, Demarque and Zinn 1994; Catelan 2009].
-HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL = (40.0, 60.0)
+# Lee, Demarque and Zinn 1994; Catelan 2009]. The luminosity is the RR Lyrae
+# level, 36 to 47 Lsun (M_V 0.56 to 0.80 at [Fe/H] -1.6, Catelan 2009; Gould and
+# Popowski 1998) and the red clump's 30 to 40 [P, stellar tables check]; a hot
+# subdwarf is dimmer, 10 to 40 Lsun, and skips the AGB, which is not modelled
+# (a few percent of old stars). The strip is 6,100 to 7,500 K (blue edge 7,400
+# to 7,600 K, red edge 6,100 to 6,250 K); red horizontal-branch stars fill the
+# 4,600 to 6,100 K below it; 20,000 K is the usual extreme boundary [P].
+HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL = (35.0, 50.0)
 HORIZONTAL_BRANCH_COLOUR_TEMPERATURE_RANGE_K = {
-    "red": (4600.0, 5300.0), "rr-lyrae": (5900.0, 7400.0),
+    "red": (4600.0, 6100.0), "rr-lyrae": (6100.0, 7500.0),
     "blue": (7500.0, 20000.0), "extreme": (20000.0, 35000.0),
 }
 # Colour shares (blue, RR Lyrae, red, extreme) at [Fe/H] anchors, linear
 # between them and held beyond the ends: nearly all blue at -2.2, a mix at
-# -1.5 (the intermediate halo), nearly all red above -0.5.
+# -1.5 (the intermediate halo), nearly all red above -0.5. The anchors are on
+# the Zinn and West (1984) scale, the one the 57 globular clusters of Salaris et
+# al. 2004, table 2, are listed on: their mean HB type, (blue - red) / all, is
+# +0.75 at -2.2, +0.50 at -1.5 and -0.92 at -0.7 (the Carretta and Gratton 1997
+# scale, 0.2 dex higher at -1.5, gives +0.72 there). The RR Lyrae and extreme
+# shares and the -0.1 row are unverified [R].
 HORIZONTAL_BRANCH_COLOURS = (
     (-2.2, (0.82, 0.07, 0.02, 0.09)),
-    (-1.5, (0.43, 0.25, 0.25, 0.07)),
+    (-1.5, (0.55, 0.25, 0.13, 0.07)),
     (-0.7, (0.06, 0.06, 0.86, 0.02)),
     (-0.1, (0.0, 0.0, 0.98, 0.02)),
 )
 # The second parameter: a younger population has a redder branch, as if its
 # [Fe/H] were higher by this many dex for each Gy it is younger than the
-# reference age.
+# reference age. No published figure was found; the papers imply 0.12 to 0.23
+# dex per Gy indirectly (Lee et al. 1999, 2001; Catelan 2009) [R].
 HORIZONTAL_BRANCH_AGE_SHIFT_DEX_PER_GY = 0.1
 HORIZONTAL_BRANCH_REFERENCE_AGE_GY = 12.0
 # The asymptotic giant branch: the same time-at-luminosity law, between these.
@@ -659,6 +679,30 @@ STELLAR_POPULATION_AGE_RANGES_GY = {
 }
 STELLAR_POPULATION_SCALE_HEIGHT_RATIO = {"young": 50 / 300, "intermediate": 150 / 300, "old": 1.0}
 STELLAR_POPULATION_ARM_AMPLITUDE = {"young": 0.9, "intermediate": 0.4, "old": 0.0}
+
+# How much of the thin disk's recent star formation a place holds (GEN.134, `galaxy.star_formation`): derived from the
+# galaxy's shape, with the Milky Way's profile only as a test target.
+STAR_FORMATION_LAW_EXPONENT = 1.4
+"""float: The Kennicutt-Schmidt exponent: the rate per area goes as the gas per area to this power (Kennicutt 1998:
+1.4 +/- 0.15 over 61 spirals and 36 starbursts; other fits run from 1.3 to 1.65)."""
+GAS_TO_STELLAR_SCALE_LENGTH_RATIO = 1.0
+"""float: The gas disk's scale length over the stellar disk's. An assumption, not a measurement: the observed gas
+disk is more extended, which would make the outer disk younger; 1 is the plain reading, and the profile test shows
+what it gives against the observed fall."""
+BAR_GAP_RADIUS_RATIO = 2.2
+"""float: The radius inside which the bar has depleted the star-forming gas, over the bulge's scale radius (the bar's
+length scale). The molecular gas has a gap from 0.5 to 3.5 kpc in a 2026 reconstruction whose outer edge is taken to match the
+bar's half-length (arXiv 2603.17341, read; another estimate of the half-length is 5.0 kpc), against the bulge's 1.58 kpc scale radius:
+2.2 (a model constant of the shape, like `BULGE_AXIS_RATIO_Y`, not derived)."""
+BAR_GAP_STAR_FORMATION_FLOOR = 0.03
+"""float: What is left of the star formation at the centre of the bar gap, as a share of the unbarred rate. The
+simulations remove the gas "on 1 Gyr timescales" after the bar forms (arXiv 1908.11119, read), so 0.03 is what 3.5 Gyr
+leaves (`exp(-3.5)`); the observed deficit depends on the reconstruction (design note, 'the bar gap'), so this is a default [open]: below about 0.05
+the rate per area peaks at the gap's edge, the ring a bar leaves."""
+BAR_GAP_EDGE_POWER = 4.0
+"""float: How sharp the gap's edge is: the rate rises as `u^p / (1 + u^p)` with `u` the radius over the gap radius.
+The bar's gas is swept in over its length and what lies beyond is untouched, so the edge is steep; 2 gives a ramp
+that never leaves a ring, 4 a ring at the bar's end [a model default, open]."""
 
 # Metallicity ([Fe/H], dex; GEN.158, docs/design/globular-clusters.md 5). The
 # disc populations follow a mild radial gradient of -0.06 dex per kpc [recalled,
@@ -928,6 +972,27 @@ of these that its expected count rarely exceeds (`OBJECT_FIRST_TAIL`); an object
 
 OBJECT_FIRST_TAIL = 1.0e-4
 """float: The chance a sector's Poisson count may exceed its capacity (PERF.58)."""
+
+SCATTER_COVERS_REACH = True
+"""bool: The bright-star and mass passes draw the grid's whole reach (262 kpc by default), the bands beyond the outline
+included (GEN.322). Always true in a run; the tests turn it off, because a toy galaxy's fixed-size halo would fill the
+reach with stars."""
+
+OBJECT_FIRST_FAR_PIECES = 16
+"""int: Steps of colatitude each hemisphere of a far run of shells is cut into when the shells too faint to bound one
+by one are drawn together (`object_first.ReachGroups.far`, GEN.322)."""
+
+OBJECT_FIRST_FAR_STEPS = 128
+"""int: A far run of shells is as thick as 1/this of its distance from the centre (`ReachGroups.far_blocks`)."""
+
+OBJECT_FIRST_FAR_MEAN = 4.0
+"""float: A shell beyond the outline is drawn on its own, in groups of bands, while its coarse bound expects at least
+this many stars; the shells past the last such one are drawn together (GEN.322). A waste of this many candidates a shell
+costs about a hundred microseconds, so it is not set to keep the loss under 10%."""
+
+OBJECT_FIRST_GROUP_BANDS = 64
+"""int: Beyond the galaxy's outline the object-first scatter bounds the density over groups of this many bands (GEN.322),
+the group's bound being taken at its nearest point; a pass to the 262 kpc reach would otherwise bound 6.75e9 bands."""
 
 POISSON_REJECTION_MEAN = 10.0
 """float: From this mean up `util/poisson.py` draws a Poisson count by transformed rejection (constant time);
@@ -2158,10 +2223,11 @@ MAGNETAR_SPIN_PERIOD_MS_RANGE = (2000.0, 12000.0)
 # so 1e-7 of them. They follow the young population, not the stars, so the
 # rate per star is divided by the young population's share of all stars in
 # a Milky Way-like galaxy (the integral of the young density over that of
-# every component, 0.48%: test_gen_magnetar_scatter checks it); a galaxy
+# every component, 0.44% since GEN.134 made the bulge and bar gap hold
+# fewer young stars: test_gen_magnetar_scatter checks it); a galaxy
 # with a different young share holds proportionally more or fewer.
 MAGNETAR_PER_NEUTRON_STAR = 1.0e-7
-MAGNETAR_YOUNG_STAR_SHARE = 0.0048
+MAGNETAR_YOUNG_STAR_SHARE = 0.0044
 # A scattered magnetar's age: from the first century to the end of its active life.
 MAGNETAR_AGE_RANGE_GY = (1.0e-7, MAGNETAR_ACTIVE_LIFETIME_YR / 1e9)
 

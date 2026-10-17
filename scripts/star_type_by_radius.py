@@ -31,9 +31,10 @@ def default_shape():
     parser = argparse.ArgumentParser()
     add_plan_arguments(parser)
     a = parser.parse_args([])
+    arm_amplitude, arm_level = density.arm_terms(a.arm_density, a.interarm_density)
     return density.build_galaxy_shape(
         a.disk_scale_length_pc, a.disk_scale_height_pc, a.bulge_scale_radius_pc, a.bulge_amplitude,
-        a.arm_count, math.radians(a.pitch_angle_deg), a.arm_amplitude)
+        a.arm_count, math.radians(a.pitch_angle_deg), arm_amplitude, arm_level=arm_level)
 
 
 def population_classes(population, count):
