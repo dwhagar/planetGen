@@ -4247,6 +4247,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 20 of 43). This replaces any earlier owner line on this item.
+  Owner: Core 5 (Boss, 2026-10-17, 10:39 AM EDT, card "Apply TODO's
+  three small lane reorderings?", tapped "Apply all three", relayed in
+  words; Core 1 confirmed at 10:41 AM EDT as the lane reported that it
+  has not started it): it sits beside PERF.99, GEN.310 and GEN.231,
+  whose files it shares (the Generate page, cli/generate.py,
+  run_plan.py). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.96, GEN.179.
 
 - [ ] **GEN.197 Orbital event record: the `record_event` writer and the object-ID rules for ejection, capture, merger and split**
@@ -4488,6 +4494,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 21 of 43). This replaces any earlier owner line on this item.
+  Owner: Core 5 (Boss, 2026-10-17, 10:39 AM EDT, card "Apply TODO's
+  three small lane reorderings?", tapped "Apply all three", relayed in
+  words; Core 1 confirmed at 10:41 AM EDT as the lane reported that it
+  has not started it): it sits beside PERF.99, GEN.310 and GEN.231,
+  whose files it shares (the Generate page, cli/generate.py,
+  run_plan.py). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.228 (done, PR #1610).
 
 - [ ] **GEN.231 Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back**
@@ -4862,6 +4874,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4:49 PM EDT; Core 3 agreed 4:53 PM EDT; ready: no blocker). Core 4 asks Core 3
   before touching stellar evolution constants in tuning.py. A line here
   that named Core 3 or Core 4 earlier is replaced by this one.
+  Order (Boss, 2026-10-17, 10:39 AM EDT, card "Apply TODO's three small
+  lane reorderings?", tapped "Apply all three"; Core 4 said it has not
+  started it): Core 4 builds it right after GEN.469, ahead of its
+  description layer, because Core 3's GEN.331 and GEN.275 wait on it.
   Prerequisites: none. Related: GEN.129.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -7036,6 +7052,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the stellar mass from the halo mass with a reionization cutoff, [Fe/H]
   from the mass-metallicity relation); the reionization cutoff and the
   size-luminosity fit are open research (GEN.406).
+  Research landed (GEN.406 retired, 2026-10-17, about 10:42 AM EDT;
+  docs/design/galaxy-laws-research.md, sections Q3, Q4, Q6 to Q8): the
+  occupation gate, the stellar mass at the cutoff, the dwarf and
+  satellite size law (Carlsten 2021, with scatter), the dispersion from
+  the enclosed mass (Wolf 2010), quenching times and the clusters in
+  satellites. Conflicts 1, 2 and 4 (where galaxy formation switches on,
+  the scatter in stellar mass at fixed halo mass, satellite size against
+  halo size) carry proposed defaults: field dwarfs by Benitez-Llambay
+  and Frenk, subhaloes by Nadler's erf with M50 at 8.5e7 and a hard
+  floor at a peak mass of 1e6, scatter 0.5 dex field and 0.19 dex
+  satellites.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
@@ -7373,8 +7400,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   calculated or drawn law with its source named. No fixed content (Boss,
   4:11 and 4:14 PM EDT): no named galaxy, preset or hand-set value;
   reference galaxies only check the result.
-  Prerequisites: GEN.382, GEN.383, GEN.385, GEN.405,
-  GEN.406. Related:
+  Prerequisites: GEN.382, GEN.383, GEN.385, GEN.405. Related:
   GEN.385, GEN.320.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): it is the family scaling of GEN.405's metallicity law and
@@ -7735,6 +7761,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 1 of 43). This replaces any earlier owner line on this item.
+  Research landed (GEN.406 retired, 2026-10-17, about 10:42 AM EDT;
+  docs/design/galaxy-laws-research.md, sections Q1, Q3, Q5, Q7). Re-read
+  before the lane goes further: (1) the stellar halo anchor 1.5e9 is a
+  Milky Way copy and wrong: Deason et al. 2019 gives 1.4 +/- 0.4e9 and
+  about 2% of the galaxy, not the 3% in the tuning.py docstring; the
+  halo law for 3e9 to 2e11 solar masses is a labelled placeholder f =
+  0.05 (M*/5e10)^0.79 with 0.33 dex scatter (no measured law below
+  3.8e10; request R1 on GEN.531); (2) the thick disk laws conflict with
+  Comeron 2018 and with the code's 0.769 length ratio (thick shorter, a
+  Milky Way star-count number): the external-galaxy ratio 1.15
+  (Vc/100)^-0.2 and the Yoachim and Dalcanton mass ratio are proposed
+  defaults, both carried and flagged in the note's conflicts 5 and 6;
+  (3) the tuning.py scale heights (50/300, 150/300, 1) and dispersions
+  (15, 25, 50) cannot both hold if height goes as dispersion squared:
+  take both from one law (note Q5 and Q3).
   Prerequisites: none. Related: GEN.378, GEN.382, GEN.366, GEN.134.
 
 - [ ] **GEN.402 The central black hole mass and the nuclear cluster follow the bulge: the M-bulge and M-sigma relations replace the fixed ranges**
@@ -7813,6 +7854,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 3 of 43). This replaces any earlier owner line on this item.
+  Research landed (GEN.406 retired, 2026-10-17, about 10:42 AM EDT;
+  docs/design/galaxy-laws-research.md, sections Q3, Q4, Q6, Q8): the
+  cluster system radius and profile, the dwarf-end count and the
+  occupation draw, the halo dispersion for the Jeans equation and the
+  ages by component are there. Conflict 3 (cluster system size against
+  halo mass: Hudson and Robison R200^2.63 against Forbes R200^1, a 2.6
+  times difference at Milky Way mass) carries a proposed default; the
+  cluster system's join between the dwarf and the massive range is an
+  unsourced placeholder (requests R7 to R9 on GEN.531). The halo mass
+  law above 1e11 is a placeholder (R14).
   Prerequisites: none. Related: GEN.297, GEN.366, GEN.387.
 
 - [ ] **GEN.404 The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position**
@@ -7907,7 +7958,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   owns the metallicity and star-density work in GEN.103 and GEN.134); it
   starts after GEN.368 and GEN.400 merge, so Core 4's current queue does
   not change.
-  Prerequisites: GEN.404, GEN.406. Related: GEN.319, GEN.320, GEN.134,
+  Prerequisites: GEN.404. Related: GEN.319, GEN.320, GEN.134,
   GEN.254.
   Body composition research lane finding F6 (2026-10-17):
   `METALLICITY_DISC_FALL_DEX_PER_KPC = 0.06` (tuning.py, marked
@@ -7915,46 +7966,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Table 1 (R > 6 kpc); the position-dependent metallicity of this item
   derives the gradient from the galaxy's laws, and the comment and
   constant go with it.
-
-- [ ] **GEN.406 Research the population ages and velocity dispersions by component, the thick disk scaling and the stellar halo fraction so they become laws**
-  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
-  source Shen et al. 2003, approximation for the halo mass, no home
-  position, every derived law draws its natural scatter from the seed,
-  the first family covers 3e9 to 2e11 solar stellar mass; paper check
-  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
-  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
-  1's docs PR merges; draft
-  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Open
-  points 5 and 8 of the table: the population age ranges and dispersions
-  (`tuning.py:608-614, 800`) are hand-set with no source; the thick
-  disk's size ratio to the thin disk and a stellar halo mass fraction
-  against the stellar mass are missing (Harmsen et al. 2017 gives 2 to
-  14 percent for six Milky Way mass discs only; the fixed 1.5e9 anchor
-  stays until a law is found); the reionization cutoff mass and a
-  satellite size-luminosity fit (row 10) and the cluster radial profile
-  and the halo metallicity offset (rows 9 and 13) are also open. Done: a
-  research note in docs/design with each source read in the paper, its
-  range and scatter, and a request to Boss for any that cannot be found;
-  then the numbers go into GEN.401, GEN.403, GEN.405 and GEN.369 as
-  laws. A verifying thread can read arXiv (Boss allowed it, 9:44 PM
-  EDT).
-  Moved here from GEN.400 (Core 1, 2026-10-17, 8:50 AM EDT as the lane
-  reported, GEN.400 merged as #2011, epoch 10): `HALO_MASS_SOLAR`
-  (1.5e9) and `HALO_SYSTEM_FRACTION` in `tuning.py` are the STELLAR halo
-  (3% of the visible mass), not the dark matter halo the mass chain
-  draws, so GEN.400 left them in place; the laws table has no law for
-  the stellar halo fraction. They stay until this item researches the
-  stellar halo fraction and replaces them with a law; the
-  old-constants-are-gone check of GEN.400 does not cover them.
-  Owner: the read-only research thread "Galaxy laws research GEN.406
-  (2026-10-17)" (Boss, 2026-10-17, 10:20 AM EDT, card "Who does the
-  GEN.406 galaxy research?", tapped "New research thread"; relayed in
-  words by the coordinator). Not Core 1: it leaves Core 1's queue. The
-  thread writes
-  /mnt/project-files/reports/gen-406-galaxy-research-2026-10-17.md; the
-  TODO thread files the note when the coordinator says it is done, and
-  the numbers then go to GEN.401, GEN.403, GEN.405 and GEN.369.
-  Prerequisites: GEN.368. Related: GEN.369, GEN.401, GEN.403, GEN.405.
+  Research landed (GEN.406 retired, 2026-10-17, about 10:42 AM EDT;
+  docs/design/galaxy-laws-research.md, sections Q2 and Q4): the halo
+  metallicity law and its offset (Harmsen 2017: about -0.6 dex against
+  the relation at the halo mass, about -0.9 dex against the host's own
+  centre, derived there; D'Souza and Bell 2018 give a physical
+  alternative) and the ages of the components for the rates by
+  population. Conflicts 9 (halo age: the code's 10 to 13 Gyr against
+  Harmsen 2023's younger massive haloes) and 10 (the metallicity
+  baseline) need a default. GEN.406 no longer blocks this item.
 
 - [ ] **GEN.409 The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8007,6 +8027,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   finding 5 (the mean molar mass of the mixture replaces
   `atm_molar_density` in the scale height and in tau0) belongs to
   GEN.423.
+  Owner: Blocker 1 (Boss, 2026-10-17, 10:29 AM EDT, typed in the project
+  chat: "whatever Blocker 1 needs to complete the 2 assigned tasks, it
+  should take unless they are in progress"; Core 4 confirmed at 10:35 AM
+  EDT as the lane reported that it is not in progress; the coordinator
+  moved it at 10:41 AM EDT). Blocker 1 builds it after TEST.186 because
+  GEN.437 and GEN.472 wait on it. This replaces any earlier owner line
+  on this item.
 
 - [ ] **GEN.410 One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8798,6 +8825,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to 5.37 g/cm3 for ice and frozen hydrocarbons, real icy bodies 1 to
   2.5) and F10 (a recalculation must not redraw composition) are
   requirements here.
+  Owner: Blocker 1 (Boss, 2026-10-17, 10:29 AM EDT, typed in the project
+  chat: "whatever Blocker 1 needs to complete the 2 assigned tasks, it
+  should take unless they are in progress"; Core 4 confirmed at 10:35 AM
+  EDT as the lane reported that it is not in progress; the coordinator
+  moved it at 10:41 AM EDT). Blocker 1 builds it after TEST.186 because
+  GEN.437 and GEN.472 wait on it. This replaces any earlier owner line
+  on this item.
 
 - [ ] **GEN.427 One table of the bulk materials with their equation-of-state constants and the source of each**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -9159,6 +9193,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   decided to be derived). Findings: the Thiabaud Fe/Si, Mg/Si, C/O box
   is a compilation envelope (88 percent of a solar-neighbourhood draw
   inside it), so the design uses the drawn distributions.
+  Owner: Blocker 1 (Boss, 2026-10-17, 10:29 AM EDT, typed in the project
+  chat: "whatever Blocker 1 needs to complete the 2 assigned tasks, it
+  should take unless they are in progress"; Core 4 confirmed at 10:35 AM
+  EDT as the lane reported that it is not in progress; the coordinator
+  moved it at 10:41 AM EDT). Blocker 1 builds it after TEST.186 because
+  GEN.437 and GEN.472 wait on it. This replaces any earlier owner line
+  on this item.
 
 - [ ] **GEN.436 The radiation design: atmospheric transmission and greenhouse by band, shielding by column, and the ground's own dose**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9233,6 +9274,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by secondary neutrons' holds only for the dose equivalent (50 percent
   at the surface to over 80 percent below 50 cm on Mars); the
   absorbed-dose share is 2 to 9 percent.
+  Owner: Blocker 1 (Boss, 2026-10-17, 10:29 AM EDT, typed in the project
+  chat: "whatever Blocker 1 needs to complete the 2 assigned tasks, it
+  should take unless they are in progress"; Core 4 confirmed at 10:35 AM
+  EDT as the lane reported that it is not in progress; the coordinator
+  moved it at 10:41 AM EDT). Blocker 1 builds it after TEST.186 because
+  GEN.437 and GEN.472 wait on it. This replaces any earlier owner line
+  on this item.
 
 - [ ] **GEN.437 The composition model: how the element, compound, material and body tables link, and what is stored against derived**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9264,6 +9312,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.410, GEN.427, GEN.439.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
+  Owner: Blocker 1 (Boss, 2026-10-17, 10:29 AM EDT, typed in the project
+  chat: "whatever Blocker 1 needs to complete the 2 assigned tasks, it
+  should take unless they are in progress"; Core 4 confirmed at 10:35 AM
+  EDT as the lane reported that it is not in progress; the coordinator
+  moved it at 10:41 AM EDT). Blocker 1 builds it after TEST.186 because
+  GEN.437 and GEN.472 wait on it. This replaces any earlier owner line
+  on this item.
 
 - [ ] **GEN.438 One table of the elements and their isotopes: atomic data and the radioactive isotopes' half-lives and decay energies**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -12799,6 +12854,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   owner above.
   Prerequisites: none. Related: GEN.320, GEN.241, MAP.182.
 
+- [ ] **GEN.531 Boss's research requests from the galaxy laws research (R1 to R15): the observed stellar halo, the dwarf range, the thick disk fits and the cluster system**
+  Filed by the TODO thread from the GEN.406 research thread (2026-10-17,
+  finished 10:38 AM EDT as it reported;
+  docs/design/galaxy-laws-research.md, the section Requests for Boss's
+  research list). Nothing below could be found in a reachable source;
+  each names the paper or dataset and the quantity, and until it is
+  answered the build items carry the labelled placeholders or proposed
+  defaults of the note. R1: observed stellar halo mass against M* for
+  3e9 to 3e10 (GEN.401). R2: numeric curves from Rodriguez-Gomez 2016
+  Fig 3, D'Souza 2014 Fig 16 and Benitez-Llambay and Frenk 2020 Fig 10.
+  R3: the thick/thin mass and length ratios as formulas (Comeron 2018
+  and the S4G papers), to settle conflicts 5 and 6. R4: the age-velocity
+  relation normalisation for other galaxies (GEN.447, GEN.401). R5: the
+  scatter of the Courteau 2007 Vc-sigma0 relation. R6: the oldest thick
+  disk age against host mass (GEN.386). R7: the radius ratio of
+  metal-poor to metal-rich cluster systems (GEN.403). R8: cluster system
+  radii at stellar masses 10^8.5 to 10^10.3. R9: extragalactic cluster
+  half-light radii, cluster ages against host mass and nuclear
+  populations (GEN.297, GEN.280). R10: halo age against halo mass with
+  more than six haloes. R11: the dwarf-range stellar-to-halo relation
+  and its scatter (Fitts 0.5 dex against Nadler 0.19 dex). R12: the
+  reionization redshift spread. R13: the ultrafaint size relation. R14:
+  the halo mass law above 1e11. R15: the occupation fraction and its
+  width against halo mass (Graus 2019, Fitts 2018). Done: each request
+  is answered by a read source (or Boss says to keep the placeholder),
+  the number goes to the item named and the note's status moves from
+  placeholder to verified. It does not gate GEN.301: the placeholders
+  are labelled and the laws build on them. Owner: Boss (a research list;
+  a read-only research thread reads each source on request).
+  Prerequisites: none. Related: GEN.401, GEN.403, GEN.405, GEN.369,
+  GEN.386, GEN.447, GEN.297, GEN.280.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.20 Short-term caching through the work queue and API**
@@ -13175,6 +13262,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 29 of 54). This replaces any earlier owner line on this item.
+  Order (Blocker/scheduler review of 2026-10-17, applied by the
+  coordinator at 10:41 AM EDT): Core 5 starts this item after Core 1's
+  GEN.401 merges, because the plan command and the queue chain edit
+  run_plan.py, cli/generate.py and web/generate_page.py, which GEN.401
+  is changing (Core 1 reported those as its files); Core 5's small items
+  fill the gap.
   Prerequisites: PERF.97. Related: PERF.98.
 
 - [ ] **PERF.107 The sector units and the stages around them: start, neighborhood, sectors, link, population and settle**
@@ -18067,6 +18160,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 53 of 53). This replaces any earlier owner line on this item.
+  Order (Boss, 2026-10-17, 10:39 AM EDT, card tapped "Apply all three"):
+  Core 2 builds it right after DOC.19, ahead of its maps tail, because
+  Core 5's closing docs pass DOC.18 waits on it. Core 2's answer on
+  whether it has started it is pending.
   Prerequisites: none. Related: DOC.27, DOC.28 (done, PR #1628).
 
 - [ ] **DOC.48 Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes**
