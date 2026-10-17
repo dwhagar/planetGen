@@ -1619,7 +1619,7 @@ def test_galaxy_sectors_in_box_samples_evenly_past_the_cap(mysql_config):
 
 def test_galaxy_tiles_rejects_bad_requests(client, mysql_config):
     _db.get_connection(mysql_config).close()
-    assert client.get("/api/galaxy/tiles?tiles=13/0/0/0").status_code == 400
+    assert client.get(f"/api/galaxy/tiles?tiles={TILE_MAX_LEVEL + 1}/0/0/0").status_code == 400
     assert client.get("/api/galaxy/tiles?tiles=1/2/0/0").status_code == 400
     assert client.get("/api/galaxy/tiles?tiles=nonsense").status_code == 400
     too_many = ",".join(f"12/{i}/0/0" for i in range(129))
