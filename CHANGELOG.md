@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1725] - 2026-10-17
+
+**Headline:** The test suite has one census harness that fills seeded sectors per region class and checks the counts of each kind against their expectation.
+
+### Added
+- **The census audit harness (`src/tests/audit/census.py`).** It fills a fixed set of seeded sectors for each region class, counts what each fill made by stage and kind, tests each count against its expectation within four Poisson sigma, applies the rule that a kind expected 20 or more times appears at least once, flags a kind found where its gate expects none, and writes one report. The representation, fill-stage, multiplicity, catalogue-type and whole-sphere audits add their checks to it and keep no counters of their own.
+
+TODO items resolved: TEST.186. Added: none.
+
 ## [8.0.1724] - 2026-10-17
 
 **Headline:** The illustrated architecture page is rebuilt from the current architecture document.
