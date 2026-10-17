@@ -90,8 +90,8 @@
     {%- for entry in counts %}<span class="badge">{{ num(entry.count) }} {{ entry.label|lower }}</span>{% endfor %}
   </p>
   {%- endif %}
-  {%- if not_generated %}
-  <p class="hint">{{ num(not_generated) }} of the {{ num(sectors_in_range) }} sectors in range {{ "is" if not_generated == 1 else "are" }} uncharted, so what is there is not listed.</p>
+  {%- if not_generated_total %}
+  <p class="hint">{{ num(not_generated_total) }} {{ "object" if not_generated_total == 1 else "objects" }} in range {{ "is" if not_generated_total == 1 else "are" }} not generated yet ({% for entry in not_generated %}{{ entry.label }}: {{ num(entry.count) }}{{ ", " if not loop.last }}{% endfor %}), so {{ "it is" if not_generated_total == 1 else "they are" }} not listed.</p>
   {%- endif %}
   {%- if rows %}
   <div class="table-scroll"><table>

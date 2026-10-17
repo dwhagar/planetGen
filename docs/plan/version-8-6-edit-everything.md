@@ -55,7 +55,7 @@ The foundations every editor stands on: the change plan and its store, the unit 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | DB.38 | Region density overrides table (migration only) |  | Core 1 owns migrations |
-| GEN.302 | A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it | GEN.276 | Reads by the cell key built in 8.1 |
+| GEN.302 | A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it |  | Reads by the cell key built in 8.1 |
 | MAP.212 | A region selection tool on the Galaxy Map and the Sector Map, for admin actions | GEN.302, MAP.217 |  |
 | DB.60 | Migration: record the density multiplier used on each filled sector (migration only) | DB.38 | Split from MAP.119. Core 1 owns migrations. |
 
@@ -86,8 +86,7 @@ The screens and marks the editors use: the approval screen, the plan history, lo
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | ADM.94 | Density override store and the fill read: set, undo and combine overrides for any region, and have later fills use them | DB.38, DB.60, GEN.302 | Split from MAP.119. |
-| ADM.73 | Density overrides for any region: store them, show them, and apply them to later fills | DB.38, GEN.302, MAP.212, ADM.94 |  |
-| MAP.218 | Galaxy Map density control: a readout for everyone, an editor for admins, with preview, confirm and undo | ADM.94 | Split from MAP.119. |
+| MAP.218 | Galaxy Map density control: a readout for everyone, an editor for admins over any region, with preview, confirm and undo | ADM.94, DB.38, GEN.302, MAP.212 | Split from MAP.119. |
 | MAP.119 | Expected star density editable by admins on the Galaxy Map | DB.60, ADM.94, MAP.218 |  |
 
 ### Admin shell
@@ -128,7 +127,7 @@ Each editor produces a plan: move a system, edit an orbit, adjust the world to a
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.74 | Adjust the world to a density change: a plan that adds or removes systems so a region matches its new density | ADM.73, ADM.58, ADM.65 |  |
+| ADM.74 | Adjust the world to a density change: a plan that adds or removes systems so a region matches its new density | ADM.58, ADM.65, MAP.218 |  |
 
 ### The rearranger
 

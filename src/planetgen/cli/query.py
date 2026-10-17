@@ -138,8 +138,7 @@ def main():
             for row in result["rows"]:
                 parent = f" -- {row['parent']['name']}" if row["parent"] else ""
                 print(f"[{row['ref']}] {row['name']}{parent} -- {row['distance_pc']:.2f} pc")
-            print(f"{result['total']} found; {result['sectors_in_range'] - result['sectors_generated']} of "
-                  f"{result['sectors_in_range']} sectors in range are uncharted.")
+            print(f"{result['total']} found; {result['not_generated_total']} more in range are not generated yet.")
 
         elif args.command == 'planets':
             planets = list_planets(

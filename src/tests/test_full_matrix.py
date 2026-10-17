@@ -145,7 +145,7 @@ def test_full_system_generates_with_belt_and_habitable_world_across_every_star_t
 
     `BINARY_SYSTEM` is pinned False: left at its own default it now rolls
     real, spectral-class-dependent chance (see
-    `StarSystem._should_generate_binary`), and an S-type (wide) pair's own
+    `StarSystem._companion`), and an S-type (wide) pair's own
     `a_crit_au` stability ceiling can make these two guarantees
     geometrically impossible for an especially luminous host (e.g. an
     O-type supergiant's habitable zone can sit beyond any sampled

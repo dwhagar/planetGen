@@ -684,7 +684,7 @@ Baseline: PR #1817.
 | UX.111 | 8.1 | Spherical Sector Coordinates (TOP PRIORITY, Boss 2026-10-15 06:39Z) |
 | UX.112 | 8.1 | Spherical Sector Coordinates (TOP PRIORITY, Boss 2026-10-15 06:39Z) |
 | UX.117 | 8.1 | Maps |
-| VIEW.5 | 9.0 | View |
+| VIEW.5 | 9.1 | View |
 | GEN.281 | 8.1 | Anomalies |
 | GEN.236 | 8.1 | Orbital updates |
 | PERF.104 | 8.1 | Orbital updates |
@@ -730,3 +730,18 @@ Baseline: PR #1817.
 | TEST.205 | 8.1 | Bugs and flaky tests |
 | GEN.286 | 8.1 | Galactic core and halo |
 | GEN.287 | 8.1 | Galactic core and halo |
+| GEN.306 | 8.1 | Reproducible galaxies |
+| GEN.408 | 8.4 | Atmosphere sources and design |
+| DB.55 | 8.3 | Positions as one object |
+| GEN.336 | 8.3 | Positions as one object |
+| GEN.337 | 8.3 | Positions as one object |
+| GEN.103 | 8.1 | Components and wanderers |
+| GEN.425 | 8.1 | Composition research and design |
+| GEN.372 | 8.3 | Positions as one object |
+| GEN.368 | 8.1 | Components and wanderers |
+| GEN.276 | 8.1 | Region query |
+| GEN.431 | 8.1 | Composition research and design |
+| GEN.432 | 8.1 | Composition research and design |
+| GEN.433 | 8.1 | Composition research and design |
+| GEN.434 | 8.1 | Composition research and design |
+| GEN.134 | 8.1 | Components and wanderers |

@@ -53,3 +53,6 @@ Commit each file came from:
 - v98: d320eba5 (GEN.281 cell star ceiling and fill luminosity cap, before GEN.280 nuclear structures)
 - v99: 47705939 (GEN.280 nuclear structures, before GEN.281 cell star ceiling default and CHECK)
 - v100: 21884c05 (GEN.364 cell star ceiling 5,000 and its CHECK, before DB.54 scatter limits by place)
+- v101: a438b42f (DB.54 scatter limits by place, before DB.55 point columns)
+- v102: the schema of migration 0102 (DB.55 point columns, before GEN.336 movement vector); built in one change with v103 and v104, so no commit of main carries it alone
+- v103: the schema of migration 0103 (GEN.336 movement vector, before DB.53 orbit nodes); same change, no commit of main carries it alone
