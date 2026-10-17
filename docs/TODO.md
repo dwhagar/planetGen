@@ -6821,7 +6821,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shows a galaxy twice the size changes the Hill
   radius. Fails on main: no failure, a fixed assumption. Related:
   GEN.368, GEN.285.
-  Prerequisites: GEN.400, GEN.404. Related: GEN.368, GEN.285, GEN.223.
+  Prerequisites: GEN.404. Related: GEN.368, GEN.285, GEN.223.
 
 - [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
   Boss (2026-10-16, 4:02 PM EDT, in the Core 1 thread): "we'll need a
@@ -7043,7 +7043,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Mass limits: the first family's range is 3e9 to 2e11 solar stellar
   mass (Boss, 2026-10-16, 9:40 PM EDT, reported by Core 1); GEN.378
   states the other families' ranges.
-  Prerequisites: GEN.378, GEN.379, GEN.400, GEN.401. Related: GEN.368,
+  Prerequisites: GEN.378, GEN.379, GEN.401. Related: GEN.368,
   GEN.369, GEN.381.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
@@ -7462,41 +7462,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass and the scatter difference per stellar mass, and a switch to the
   exact conditional if the difference matters. Needs GEN.368's build
   (GEN.400).
-  Prerequisites: GEN.400. Related: GEN.368, GEN.378, GEN.380.
-
-- [ ] **GEN.400 The galaxy's mass chain: stellar mass from the Schechter function, the halo mass by the approximation, the virial radius and the concentration**
-  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
-  source Shen et al. 2003, approximation for the halo mass, no home
-  position, every derived law draws its natural scatter from the seed,
-  the first family covers 3e9 to 2e11 solar stellar mass; paper check
-  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
-  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
-  1's docs PR merges; draft
-  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Rows 1 to
-  3. A pure function `draw_mass_chain(seed)` takes the stellar mass from
-  the double Schechter function inside the first family's range, the
-  halo mass from the stellar-to-halo relation inverted numerically with
-  the approximation GEN.399 later checks (median inverse with an
-  effective halo mass scatter), the virial radius from the Bryan and
-  Norman overdensity and the NFW concentration with its scatter. It
-  replaces `HALO_MASS_SOLAR`, `HALO_SYSTEM_FRACTION` and
-  `MILKY_WAY_MASS` as the galaxy's total mass; the Hill spheres
-  (binary.py, star.py, keepout.py) read this chain's virial mass until
-  GEN.370 (8.3) replaces it with the mass enclosed at the star's radius.
-  Done: the same seed gives the same chain; a
-  histogram over 10,000 seeds matches the Schechter function within
-  sampling error; every draw stays in the range; the worked table of the
-  draft (5e10 gives a halo near 2e12 solar) is reproduced within its
-  scatter; the old constants are gone and their tests check the law. No
-  fixed content (Boss, 4:11 and 4:14 PM EDT): no Milky Way preset or
-  option; the real values are only plausibility targets (GEN.366). Each
-  law is written with its source named in the code and the doc; the
-  scatter is a log-normal drawn through `unit_seed(galaxy_seed, ...)`
-  and the one random wrapper. No compatibility shim: the old constant
-  goes in the same change. A change that alters the generator output
-  follows the epoch rule.
-  Prerequisites: GEN.368. Related: GEN.399, GEN.378, GEN.380, GEN.369,
-  GEN.370.
+  Prerequisites: none. Related: GEN.368, GEN.378, GEN.380.
 
 - [ ] **GEN.401 The shape of the stars from the stellar mass: disk length and height, thick disk, bulge, bar and arms replace the generate defaults**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -7530,7 +7496,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
   compatibility shim: the old constant goes in the same change. A change
   that alters the generator output follows the epoch rule.
-  Prerequisites: GEN.400. Related: GEN.378, GEN.382, GEN.366, GEN.134.
+  Prerequisites: none. Related: GEN.378, GEN.382, GEN.366, GEN.134.
 
 - [ ] **GEN.402 The central black hole mass and the nuclear cluster follow the bulge: the M-bulge and M-sigma relations replace the fixed ranges**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -7600,7 +7566,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   law and does not define a second count. Boss approved this halo-mass
   law in GEN.368's table (2026-10-16, 10:11 PM EDT); GEN.164's older
   S_N-by-morphology count is superseded by it.
-  Prerequisites: GEN.400. Related: GEN.297, GEN.366, GEN.387.
+  Prerequisites: none. Related: GEN.297, GEN.366, GEN.387.
 
 - [ ] **GEN.404 The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -7638,7 +7604,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   through `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
   compatibility shim: the old constant goes in the same change. A change
   that alters the generator output follows the epoch rule.
-  Prerequisites: GEN.400, GEN.401. Related: GEN.144, GEN.405, MAP.190,
+  Prerequisites: GEN.401. Related: GEN.144, GEN.405, MAP.190,
   USR.11.
   Owner (coordinator, 2026-10-16, 10:16 PM EDT): Core 4 proposed (it
   owns the metallicity and star-density work in GEN.103 and GEN.134); it
@@ -7725,6 +7691,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   then the numbers go into GEN.401, GEN.403, GEN.405 and GEN.369 as
   laws. A verifying thread can read arXiv (Boss allowed it, 9:44 PM
   EDT).
+  Moved here from GEN.400 (Core 1, 2026-10-17, 8:50 AM EDT as the lane
+  reported, GEN.400 merged as #2011, epoch 10): `HALO_MASS_SOLAR`
+  (1.5e9) and `HALO_SYSTEM_FRACTION` in `tuning.py` are the STELLAR halo
+  (3% of the visible mass), not the dark matter halo the mass chain
+  draws, so GEN.400 left them in place; the laws table has no law for
+  the stellar halo fraction. They stay until this item researches the
+  stellar halo fraction and replaces them with a law; the
+  old-constants-are-gone check of GEN.400 does not cover them.
   Prerequisites: GEN.368. Related: GEN.369, GEN.401, GEN.403, GEN.405.
 
 - [ ] **GEN.409 The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model**
