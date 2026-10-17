@@ -4468,8 +4468,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   adds the component's density to `lambda` so no pre-placed star is
   counted twice. At the defaults the passes place nothing in the halo,
   clusters or old satellites, a few thousand stars in the Clouds, and
-  about 2.4 million extra black-hole rows outside the disk (4% on top of
-  the disk's scatter). Done: the three passes cover the reach with the
+  about 9.1 million extra black-hole rows beyond the outline (Core 3's
+  measurement, accepted by Boss 2026-10-17, 12:52 AM EDT; the earlier
+  estimate was 2.4 million, 4% on top of the disk's scatter). Done: the
+  three passes cover the reach with the
   same code, a pre-placed star is never drawn again at fill, and the
   yields match the design note's table. Owner: Core (2026-10-15), after
   GEN.232 (the cap on path integration for fast bodies); the wanderers
@@ -6313,8 +6315,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   below-cut draw at sector time unchanged and the cell key written from
   whatever position it writes. Done: the pass covers the reach, a seeded
   galaxy inside the outline gets the same phenomenon rows as before (a
-  test compares), and about 2.4 million extra black-hole rows appear
-  outside the disk at the defaults.
+  test compares), and about 9.1 million extra black-hole rows appear
+  beyond the outline at the defaults (1.9 million beyond 15 kpc and 7
+  million in the inner shells above and below the disk; Core 3 measured
+  it and Boss accepted it with the cap and the physical weights kept,
+  2026-10-17, 12:52 AM EDT).
   Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
@@ -6325,9 +6330,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Finding (Core 3, 2026-10-17, relayed by the coordinator at 12:47 AM
   EDT): measured about 9.1 million black-hole rows beyond the outline,
   not 2.4 million (1.9 million beyond 15 kpc and 7 million in the inner
-  shells above and below the disk). The Done figure stays until Boss
-  answers the coordinator's card on accepting it; then it is corrected
-  here and in GEN.240's text.
+  shells above and below the disk). Boss accepted it (card "Accept",
+  2026-10-17, 12:52 AM EDT, as the coordinator relayed), so the Done
+  figure here and in GEN.240's text is now 9.1 million.
   Prerequisites: GEN.322. Related: GEN.240.
 
 - [ ] **GEN.324 A component pass: clusters, the Clouds and Sagittarius place their stars, and the fill adds the component's density to lambda**
