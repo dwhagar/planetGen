@@ -58,8 +58,8 @@ were rerun while writing this document.
 - **Stability needs a Kozai-Lidov screen (5.2).** Without it 16.7% of tested
   levels failed within 10^4 inner orbits; with it 598 of 600 held, and 30 of 30
   whole systems held [C].
-- **Today's binary generator misses 43% of real binaries (4):** nothing is drawn
-  between 0.26 and 50 AU.
+- **The binary generator missed 43% of real binaries (4):** nothing was drawn
+  between 0.26 and 50 AU. Built in GEN.448 (4).
 - **GEN.130: go in slices, no-go on four items (8).**
 
 ## 1. What the repo does today (checked 2026-10-09)
@@ -72,15 +72,20 @@ were rerun while writing this document.
   no `stars` row ([database-schema.md](../database-schema.md), "Binary
   configuration").
 - **Wide (S-type) pair.** `WideBinaryPair` (`generation/wide_binary.py`):
-  separation log-uniform 50 to 10,000 AU, thermal eccentricity capped at 0.8, live
-  position circular ("a deliberate, documented simplification"). Each star keeps
-  its planets and its Holman and Wiegert `wide_binary_a_crit_km`.
+  separation from Moe and Di Stefano's companions per decade of period, between
+  0.25 AU and the place's survival limit (GEN.448; it was log-uniform from 50 to 10,000
+  AU), thermal eccentricity capped at 0.8, live position circular ("a deliberate,
+  documented simplification"). Each star keeps its planets and its Holman and
+  Wiegert `wide_binary_a_crit_km`.
 - **Choice.** `StarSystem._companion` rolls
   `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS` (O 0.90, B 0.65, A 0.55, F 0.47,
-  G 0.44, K 0.40, M 0.26), then `WIDE_BINARY_DEFAULT_CHANCE = 0.5`. Since GEN.103
-  it is one roll: the odds of the close share are multiplied by `F([Fe/H]) / F(0)` of the primary's
-  own [Fe/H] (every mass), the wide share is not, and a wide pair's axis is drawn up
-  to the place's survival limit instead of 10,000 AU
+  G 0.44, K 0.40, M 0.26) for "has a companion", then shares it between the close
+  range (0.05 to 0.25 AU, a P-type pair), the inner range (0.25 to 10 AU) and the outer range (10 AU and out)
+  by the companions per decade of period of Moe and Di Stefano's Table 13
+  (`generation/companion_classes.py`, `tuning.COMPANIONS_PER_DECADE_BY_PRIMARY_MASS`), for the
+  primary's mass. The close and inner ranges are the ones Moe, Kratter and Badenes measured (periods under 10^4 days), so
+  since GEN.103 the odds of the two together are multiplied by `F([Fe/H]) / F(0)` of the primary's own [Fe/H]
+  (every mass); the outer range is not, and a wide pair's axis is drawn up to the place's survival limit
   ([placement-by-population.md](placement-by-population.md) 3.1 and 3.3).
 - **Holman and Wiegert** is implemented in `physics/orbits.py`
   (`holman_wiegert_critical_semimajor_axis`, `holman_wiegert_circumbinary_a_crit_au`);
@@ -187,9 +192,16 @@ per-step ratio set so the FG row reproduces Tokovinin's 4% and 1%.
 | G | 0.54500 | 0.33500 | 0.08000 | 0.03202 | 0.00705 | 0.00085 | 0.00008 | 1.62 |
 | F | 0.50000 | 0.34000 | 0.11000 | 0.04003 | 0.00881 | 0.00106 | 0.00011 | 1.72 |
 | A | 0.40000 | 0.40000 | 0.15000 | 0.03741 | 0.01048 | 0.00189 | 0.00023 | 1.87 |
-| B | 0.25000 | 0.40000 | 0.22000 | 0.08962 | 0.03137 | 0.00784 | 0.00118 | 2.28 |
+| B (2.1 to 5 Msun) | 0.25000 | 0.40000 | 0.22000 | 0.08962 | 0.03137 | 0.00784 | 0.00118 | 2.28 |
+| B-mid (5 to 9 Msun) | 0.24000 | 0.36000 | 0.25143 | 0.10241 | 0.03585 | 0.00896 | 0.00135 | 2.37 |
+| B-early (9 to 16 Msun) | 0.16000 | 0.32000 | 0.32686 | 0.13314 | 0.04660 | 0.01165 | 0.00175 | 2.63 |
 | O | 0.10000 | 0.25000 | 0.30000 | 0.21354 | 0.09610 | 0.03363 | 0.00673 | 3.08 |
 | Weighted by `SPECTRAL_PROBABILITIES_NORMAL` | 0.69070 | 0.25604 | 0.03987 | 0.01069 | 0.00238 | 0.00029 | 0.00003 | 1.38 |
+
+The B-mid and B-early rows (GEN.449) take their first two columns from Moe and Di Stefano's Table 13 (single 0.24 and 0.16, binary 0.36 and 0.32,
+triple or more 0.40 and 0.52; `tuning.MULTIPLICITY_BY_PRIMARY_MASS_BIN`) and split the rest across 3 to 7 stars in the B row's proportions. The chance of a companion
+(1 - single) is 0.76 and 0.84 there against the letter's 0.65. The B row keeps its values for the late-B stars: the bin of 2 to 5 solar masses holds A and late B together at 0.59 +-0.11, and the letter's 0.65 sits inside that.
+The weighted row below still reads the B row for every B star: B is 0.12% of the normal mix, so the two new rows move its figures by under 0.0005.
 
 The N >= 4 total per class is 0.007 (M), 0.025 (K), 0.040 (G), 0.050 (F, A), 0.130
 (B), 0.350 (O), split across N=4..7 by per-step ratios 0.22, 0.12, 0.10 (M to F),
@@ -201,8 +213,9 @@ columns with a prevalence knob (`prevalence.scaled_chance`); to force N, use a
 directive.
 
 Against the code: M, K, G and F match `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`
-within 0.03, but B (0.65) and A (0.55) are low against 0.75 and 0.60 (Moe and Di
-Stefano: B about 0.75 to 0.8, A about 0.6 to 0.65). The mean of 1.38 stars per
+within 0.03, but B (0.65) and A (0.55) were low against 0.75 and 0.60 (Moe and Di
+Stefano: B about 0.75 to 0.8, A about 0.6 to 0.65). Table 13's bins settle it (GEN.449): A and late B
+0.59 +-0.11 (the letters' 0.55 and 0.65 stand), mid B 0.76 and early B 0.84 (now the B-mid and B-early classes, by birth mass). The mean of 1.38 stars per
 system replaces the "about 1.3" in
 [interstellar-object-rates.md](interstellar-object-rates.md); those rates are per
 star and `run_sector.sector_star_count` already sums `len(entry.star_system.stars)`,
@@ -217,9 +230,9 @@ Eccentricity: circular below about 7 days, otherwise thermal `f(e) = 2e` capped 
 ## 4. Binary period and mass-ratio redraw
 
 With the log-normal law and a 1.5 Msun pair, the shares of binaries by separation
-are [C]:
+were [C]:
 
-| Separation | Share of binaries | Generated today |
+| Separation | Share of binaries | Generated before GEN.448 |
 |---|---|---|
 | below 0.26 AU | 6.6% (4.2% inside 0.05 to 0.26 AU) | `binary.py`, 0.05 to 0.25 AU |
 | 0.26 to 50 AU | 43.3% | nothing |
@@ -227,13 +240,25 @@ are [C]:
 | above 10,000 AU | 6.5% | nothing (unbound by passing stars) |
 
 The 0.26 to 50 AU range is where Holman and Wiegert planet zones of 0.1 to 15 AU
-and the habitable zones interact most. Fix (GEN.129 step 1, no schema change):
-draw one log-normal period, truncated at the wide-binary survival limit (keep
-10,000 AU; Jiang and Tremaine's 0.1 to 0.2 pc is cited in `tuning.py`), draw
-eccentricity as in 3.3, and let the planet code decide S-type or P-type from the
-limits (5.6). The close/wide coin flip (`WIDE_BINARY_DEFAULT_CHANCE`) goes away and
-the `wide_binary` directive becomes a period range. Option for O and B primaries:
-move the mean toward log P = 3.5. The metallicity dependence is in 6.6.
+and the habitable zones interact most.
+
+Built (GEN.448, no schema change): one distribution of companions over period for the
+whole range replaces the close/wide coin flip (`WIDE_BINARY_DEFAULT_CHANCE` is gone) and
+the nothing between 0.25 and 50 AU. It is Moe and Di Stefano's own (2017, Table 13: companions per decade of log P
+at 1, 3, 5 and 7 for primaries of 1.0, 3.16, 6.71, 12 and 25 solar masses, straight lines between, flat past the ends)
+rather than the log-normal law, because the lines give the massive stars their larger close share
+(a log-normal fit left them about 2%). For a 1.55 solar mass pair around a G dwarf the shares of the companions
+are 5.7% inside 0.25 AU, 24% from 0.25 to 10 AU, 17% from 10 to 50 AU, 31% from 50 to 1,000 AU and 22% beyond
+1,000 AU up to the 11,400 AU the Sun's neighbourhood keeps [C]. A pair's axis is drawn from the same lines cut at 0.25 AU and the
+place's limit, the part under 10 AU carrying the metallicity factor's weight, so the trend shapes the
+separations as well as the odds. The limit is the place's alone (the survival limit of GEN.103 and GEN.447; a place that keeps no
+pair wider than 0.25 AU loses the wide chance, and a forced companion is a close pair). The S-type stability limit of the pair
+(`a_crit_au`, 5.6) is unchanged: a pair a few AU apart leaves each star only a fraction of an AU for planets and comets
+(a forced comet is then an unmet requirement, like a forced habitable world), which is the physics, not a rule.
+Eccentricity stays as in 3.3, and the `wide_binary` directive keeps its meaning (forced wide or close).
+The absolute level inside 10 AU is about 0.6 of the pooled line's (a G dwarf 0.13 at [Fe/H] 0 against the line's 0.20 or 0.24 at -0.2),
+(Table 13's 0.15 companions inside log P 3.7 are a count per primary and the generator's chance is the fraction of stars with one,
+which may account for part of it; the cause is not settled [R]). TEST.196 checks the level against the published ranges.
 
 ## 5. Dynamical stability
 

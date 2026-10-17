@@ -12,6 +12,7 @@ from collections import Counter
 
 import pytest
 
+from planetgen import tuning
 from planetgen.generation import multistar
 from planetgen.physics import ms_lifetime, stability, stellar_evolution as evolution
 from planetgen.util import draw
@@ -300,3 +301,38 @@ def test_scattered_objects_carry_no_planets_or_belts():
         for seed in range(200):
             kinds.update(member.kind for member in _tree(placed, age, seed).members)
     assert kinds <= set(multistar.MEMBER_KINDS)
+
+
+def test_the_b_star_rows_reproduce_moe_and_di_stefanos_table_13_fractions():
+    # GEN.449: single, binary and triple-or-more fractions of the mid-B and early-B bins.
+    for name, row in (("mid B", "B-mid"), ("early B", "B-early")):
+        bin_ = tuning.MULTIPLICITY_BY_PRIMARY_MASS_BIN[name]
+        table = multistar.STAR_COUNT_PROBABILITIES[row]
+        assert sum(table) == pytest.approx(1.0, abs=1e-4)
+        assert table[0] == pytest.approx(bin_["single"], abs=1e-4)
+        assert table[1] == pytest.approx(bin_["binary"], abs=1e-4)
+        assert sum(table[2:]) == pytest.approx(bin_["multiple"], abs=1e-4)
+        assert tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS[row] == pytest.approx(1.0 - bin_["single"])
+
+
+def test_the_table_13_bins_hold_their_own_totals_and_rise_with_mass():
+    bins = tuning.MULTIPLICITY_BY_PRIMARY_MASS_BIN.values()
+    for bin_ in bins:
+        assert bin_["single"] + bin_["binary"] + bin_["multiple"] == pytest.approx(1.0, abs=0.011)
+    ordered = sorted(bins, key=lambda b: b["masses"][0])
+    assert [b["single"] for b in ordered] == sorted((b["single"] for b in ordered), reverse=True)
+    assert [b["multiplicity"] for b in ordered] == sorted(b["multiplicity"] for b in ordered)
+
+
+@pytest.mark.parametrize("mass, letter, key", [(0.5, "K", "K"), (3.0, "B", "B"), (4.99, "B", "B"), (5.0, "B", "B-mid"),
+                                                (8.9, "B", "B-mid"), (9.0, "B", "B-early"), (15.9, "B", "B-early"),
+                                                (16.0, "O", "O"), (1.5, "A", "A")])
+def test_the_companion_class_splits_the_b_stars_by_birth_mass(mass, letter, key):
+    assert multistar.companion_class(mass, letter) == key
+    assert multistar.companion_class(mass) == (key if letter != "B" else multistar.companion_class(mass, "B"))
+
+
+def test_the_chance_of_a_companion_rises_through_the_b_sub_classes_to_o():
+    table = tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS
+    chain = [table[k] for k in ("A", "B", "B-mid", "B-early", "O")]
+    assert chain == sorted(chain) and chain[2] == pytest.approx(0.76) and chain[3] == pytest.approx(0.84)

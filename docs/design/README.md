@@ -20,7 +20,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [later-phenomena-scatter-rules.md](later-phenomena-scatter-rules.md) | Which later phenomena are scattered, backfilled or fill-only (goal issue #1677): what each item stores, the magnetar scatter class, what the rule set and the profile gain, the columns for Core 1, and the changes to the TODO items | recommendation (Core 3, 2026-10-16; defaults stand, nothing built yet) |
 | [todo-number-map.md](todo-number-map.md) | Old TODO numbers to category IDs, and the next free ID of each category | reference |
 | [cache-warm-up.md](cache-warm-up.md) | The page cache shared through Redis, the data tags each answer reads and each change bumps, and the warm-up that fills it after an update (PERF.104) | built (Core 2, 2026-10-16) |
-| [slow-page-answers.md](slow-page-answers.md) | A page request that is slow to build queues one job that stores the answer in the tagged page cache, with a cost rule, a status route, a node on the queue page, a cancel and a fallback (PERF.105) | built (Core 2, 2026-10-17; no page uses it yet, UX.118) |
+| [slow-page-answers.md](slow-page-answers.md) | A page request that is slow to build queues one job that stores the answer in the tagged page cache, with a cost rule, a status route, a node on the queue page, a cancel and a fallback (PERF.105) | built (Core 2, 2026-10-17; the search and phenomena pages use it, UX.118, #2089) |
 | [library-migration.md](library-migration.md) | Moving to third-party libraries and into packages | built (queue being redone, PERF.86) |
 | [math-and-library-efficiency.md](math-and-library-efficiency.md) | Where the heavy math runs; Python 3.12 and numba | partly built (PERF.88 open) |
 
@@ -139,6 +139,7 @@ A note's own status line, at its top, is the authority; this page only points at
 
 | Note | What it covers | Status |
 |---|---|---|
+| [command-inventory.md](command-inventory.md) | Every command does one and only one thing and the order lives only in the wrapper's step list: Boss's principle (2026-10-17), and the inventory of every command and entry point with the item that reshapes each one (PERF.118, PERF.120 to PERF.128, OPS.60, OPS.61) | plan |
 | [redis-and-the-work-queue.md](redis-and-the-work-queue.md) | How Redis is used and what to change (PERF.86) | research (decided; being built) |
 | [work-queue-audit.md](work-queue-audit.md) | What starts work and what moves to the queue | built (replaced in part by PERF.86) |
 | [performance-eta-queue-and-caching.md](performance-eta-queue-and-caching.md) | Progress estimates, the job queue and caching | research (queue under redo) |

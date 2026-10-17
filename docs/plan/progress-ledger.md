@@ -795,3 +795,12 @@ Baseline: PR #1817.
 | DOC.60 | 8.1 | Docs |
 | GEN.527 | 8.1 | Components and wanderers |
 | GEN.528 | 8.1 | Components and wanderers |
+| DB.53 | 8.1 | Star-system storage |
+| GEN.294 | 8.3 | Positions as one object |
+| UX.3 | 8.1 | Generate page and directives |
+| DOC.24 | 8.1 | Docs |
+| UX.118 | 8.1 | Queue, caches and performance |
+| GEN.449 | 8.1 | Multi-star and compact systems |
+| GEN.448 | 8.1 | Multi-star and compact systems |
+| GEN.447 | 8.1 | Multi-star and compact systems |
+| MAP.245 | 8.1 | Fly-through map |

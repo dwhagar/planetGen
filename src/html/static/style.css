@@ -789,6 +789,21 @@ tbody tr:last-child td {
   font-weight: 600;
 }
 
+/* UX.3: the notice every visitor sees while a background run changes the galaxy */
+.galaxy-banner {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--bg-subtle);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--tier-yellow);
+  border-radius: var(--radius);
+}
+
+.galaxy-banner[hidden] {
+  display: none;
+}
+
 /* The map panels: interactive 3D WebGL scenes (the Galaxy Map's, and the sector
    page's, which is the same engine locked to its sector) */
 .starmap-layout {
@@ -3513,6 +3528,33 @@ body.app {
   min-width: 0;
   height: 1rem;
   accent-color: var(--accent);
+}
+
+/* The loading state of a slow page (static/slowload.js, UX.118). */
+.slow-load .job-progress progress {
+  min-width: 10rem;
+}
+
+.slow-load .job-progress [data-slow-percent] {
+  min-width: 3ch;
+  font-variant-numeric: tabular-nums;
+}
+
+.slow-load-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.slow-load [hidden] {
+  display: none;
+}
+
+/* A bar with no value moves by itself; for a reader who asked for less motion the words say it instead. */
+@media (prefers-reduced-motion: reduce) {
+  .slow-load progress:not([value]) {
+    display: none;
+  }
 }
 
 .job-log {

@@ -15,6 +15,8 @@ Keys (`PREFIX` is `planetgen`; the tests give it a prefix of their own):
 * `<PREFIX>:run:<id>:s<k>:results`   hash: unit -> the JSON result it returned (PERF.97), written before the unit
                                   joins the done set, so a unit found done has its result.
 * `<PREFIX>:run:<id>:s<k>:progress`  hash: unit -> `"done,estimate"`, a unit's work so far while it runs (PERF.97).
+* `<PREFIX>:run:<id>:banner`     string: the whole hours the site banner shows for the run (UX.3), so every visitor
+                                  sees one figure; expires a day after it is written.
 * `<PREFIX>:run:<id>:events`     stream: the log and timeline, `XADD` with `MAXLEN ~ EVENTS_MAXLEN`.
 * `<PREFIX>:run:active`          string: the run that owns the machine, `SET NX`, so a second run gets "busy".
 
@@ -108,6 +110,10 @@ def results_key(run_id, index):
 
 def progress_key(run_id, index):
     return _k("run", run_id, f"s{index}", "progress")
+
+
+def banner_key(run_id):
+    return _k("run", run_id, "banner")
 
 
 def active_key():

@@ -46,6 +46,7 @@ from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import classref  # noqa: E402
 from planetgen.web.lib import pagecache  # noqa: E402
 from planetgen.web.lib import pagetags  # noqa: E402
+from planetgen.web.lib.slowpages import take_notice as slow_notice  # noqa: E402
 from planetgen.db import dataversion  # noqa: E402
 from planetgen.web.lib.fmt import STATIC_VERSION, format_number, utc_time_html  # noqa: E402
 from planetgen.web.lib.fmt import static_url as fmt_static_url  # noqa: E402
@@ -139,6 +140,13 @@ def math_check_failures():
     return [result.name for result in mathcheck.startup_failures()]
 
 
+def galaxy_status_now():
+    """What `lib/galaxystatus` says about a run changing the galaxy, for the banner on every page (UX.3)."""
+    from .helpers import db_name
+    from .lib import galaxystatus
+    return galaxystatus.status(db_name())
+
+
 def edit_flashes():
     """What the last admin Delete or Regenerate flashed (`edit_actions`)."""
     from .edit_actions import messages
@@ -160,9 +168,11 @@ def _template_globals():
         "page_url": page_url,
         "current_admin": current_admin,
         "maintenance_state": maintenance.read,
+        "galaxy_status": galaxy_status_now,
         "pending_restart_options": settings_view.pending_restart,
         "csrf_field": csrf.csrf_field,
         "edit_flashes": edit_flashes,
+        "slow_notice": slow_notice,
         "math_check_failures": math_check_failures,
         "utc_time": lambda value: Markup(utc_time_html(value)),
         # UX.20: every count or measurement a template shows, `num(x)` or
@@ -187,6 +197,7 @@ from . import system_page  # noqa: E402,F401 -- /admin/generate/system
 from . import population_pages  # noqa: E402,F401 -- /species, /polities
 from . import class_pages  # noqa: E402,F401 -- /classes, /classes/<type>, /classes/<type>/<code>
 from . import maintenance_page  # noqa: E402,F401 -- /maintenance (UX.112)
+from . import galaxy_status_page  # noqa: E402,F401 -- /galaxy-status (UX.3)
 from . import old_urls  # noqa: E402,F401 -- /<name>.py -> 301 to the page that replaced it
 
 

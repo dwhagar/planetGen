@@ -52,7 +52,7 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const S = await import(`./galaxystages.js${VERSION_QUERY}`);
 const P = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const MC = await import(`./mapcontrol.js${VERSION_QUERY}`);
-const { worldUnitsPerPixel } = await import(`./mapcore.js${VERSION_QUERY}`);
+const { worldUnitsPerPixel, nearestOnScreen } = await import(`./mapcore.js${VERSION_QUERY}`);
 const B = await import(`./bookmarks.js${VERSION_QUERY}`);
 const { createSelection } = await import(`./picker.js${VERSION_QUERY}`);
 const { createBreadcrumb } = await import(`./breadcrumb.js${VERSION_QUERY}`);
@@ -115,6 +115,10 @@ const ACROSS_COOLDOWN_MS = 900;
 // long scroll carries across one stage and stops there (MAP.152).
 const ACROSS_PAUSE_MS = 300;
 const NEAREST_STAR_REACH = 0.35;
+
+// MAP.245: how near a star is to the pointer, in pixels, for the wheel to zoom toward it.
+const STAR_ANCHOR_PX = 14;
+
 // The zoom policies (mapcontrol.js): a short range around the fit, and
 // on the whole galaxy only closer than its fit.
 const FREE_VIEW_ZOOM = MC.zoomPolicy(MC.ZOOM_RANGE, MIN_ZOOM, MAX_ZOOM);
@@ -687,6 +691,10 @@ export function createStageView(host) {
     const rect = canvasEl.getBoundingClientRect();
     return { x: rect.left + ((v.x + 1) / 2) * rect.width, y: rect.top + ((1 - v.y) / 2) * rect.height };
   };
+
+  // MAP.245: the point the wheel zooms toward at a screen point (`anchorUnder`), [x, y, z] in the map's frame, or
+  // null. Read by the browser tests.
+  canvasEl.galaxyAnchorUnder = function (clientX, clientY) { return anchorUnder(clientX, clientY); };
 
   // Whether the map has caught up with its stage: what is drawn is the
   // stage the breadcrumb names and no flight is running. The stage changes
@@ -2111,18 +2119,41 @@ export function createStageView(host) {
     applyView();
   }
 
-  // MAP.150: the world point under a screen point: the nearest thing the
-  // picker finds there, else the point on the plane through the view's
-  // middle (the focus) at right angles to the way the camera looks.
+  // MAP.245: the stars of the open sector the wheel and the clicks can take for a thing: those with a system, not
+  // left off the map.
+  function sectorStars() {
+    if (!entered || enteredSystem) return [];
+    return sectorStage.entries().filter(function (e) {
+      return e.href && e.endpoint && e.endpoint.indexOf("system:") === 0 && !sectorStage.hides(e);
+    });
+  }
+
+  // MAP.245: the star of the open sector under a screen point (within STAR_ANCHOR_PX of it on the screen), as
+  // [x, y, z], or null. The stars are not picked (MAP.101), so this is what lets the wheel know one is there.
+  function starUnder(clientX, clientY) {
+    const stars = sectorStars();
+    if (!stars.length) return null;
+    camera.updateMatrixWorld();
+    const found = nearestOnScreen(stars, camera, canvasEl.getBoundingClientRect(), clientX, clientY,
+      { reach: function () { return STAR_ANCHOR_PX; } });
+    return found ? [found.entry.x, found.entry.y, found.entry.z] : null;
+  }
+
+  // MAP.150: the world point under a screen point: a star of the open sector there (MAP.245), else the nearest
+  // thing the picker finds there, else the point on the plane through the view's middle (the focus) at right
+  // angles to the way the camera looks. In the open sector the picker's cells and walls lie behind the stars and
+  // are never taken for the point: the way to the point must not end on a mesh behind what is pointed at.
   function anchorUnder(clientX, clientY) {
     const rect = canvasEl.getBoundingClientRect();
     if (!view || !rect.width || !rect.height) return null;
+    const star = starUnder(clientX, clientY);
+    if (star) return star;
     const ray = new THREE.Raycaster();
     ray.setFromCamera(new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1), camera);
     const origin = ray.ray.origin;
     const direction = ray.ray.direction;
     const found = picker.pick(clientX, clientY);
-    if (found && found.distance > 0) {
+    if (found && found.distance > 0 && !(entered && found.layer === choiceLayer)) {
       return [origin.x + direction.x * found.distance, origin.y + direction.y * found.distance, origin.z + direction.z * found.distance];
     }
     const forward = new THREE.Vector3(view.target[0], view.target[1], view.target[2]).sub(origin).normalize();
@@ -2138,6 +2169,26 @@ export function createStageView(host) {
     applyView();
   }
 
+  // MAP.225, MAP.245: the zoom factor a step toward `anchor` may take: no more than half the way to it (`MC.limitApproach`),
+  // and never through a star of the open sector (`MC.limitPathClearance`; the clearance is a share of the view's
+  // distance, ZOOM_CLEARANCE).
+  function limitedStep(anchor, factor) {
+    const eye = camera.position;
+    const away = Math.hypot(anchor[0] - eye.x, anchor[1] - eye.y, anchor[2] - eye.z);
+    const clearance = ZOOM_CLEARANCE * view.dist;
+    let asked = MC.limitApproach(factor, away, clearance);
+    if (asked < 1) {
+      const stars = sectorStars();
+      if (stars.length) {
+        const to = [anchor[0] + asked * (eye.x - anchor[0]), anchor[1] + asked * (eye.y - anchor[1]), anchor[2] + asked * (eye.z - anchor[2])];
+        const allowed = MC.limitPathClearance([eye.x, eye.y, eye.z], to,
+          stars.map(function (e) { return [e.x, e.y, e.z]; }), clearance);
+        asked = 1 - allowed * (1 - asked);
+      }
+    }
+    return asked;
+  }
+
   // MAP.225: the wheel zooms toward the point under the pointer, which stays where it is on the screen: the
   // picked star, remnant or cell, else the point of the focus plane under it (`anchorUnder`). A step in moves the
   // eye by no more than half the way to that point (`MC.limitApproach`), so it is a logarithmic approach and the
@@ -2150,9 +2201,7 @@ export function createStageView(host) {
       zoomBy(factor);
       return;
     }
-    const eye = camera.position;
-    const away = Math.hypot(anchor[0] - eye.x, anchor[1] - eye.y, anchor[2] - eye.z);
-    const asked = MC.limitApproach(factor, away, ZOOM_CLEARANCE * view.dist);
+    const asked = limitedStep(anchor, factor);
     const before = view.dist;
     view.zoom = MC.clampDistance(zoomPolicyFor(resolved), view.zoom * asked, 1);
     reframe();
@@ -2448,11 +2497,38 @@ export function createStageView(host) {
     act(index, found && found.hit ? { x: found.hit.point.x, y: found.hit.point.y, z: found.hit.point.z } : null);
   }
 
+  // MAP.245: a double click on empty space flies half way toward the point under the pointer (the zoom of a wheel
+  // step, as far as it may go, in one flight); false when the view cannot be moved. The point stays where it is on
+  // the screen, as it does for the wheel.
+  function flyHalfWayTo(event) {
+    if (!view || animation || !resolved || !view.fit || !isFree(resolved) || !MC.canZoom(zoomPolicyFor(resolved))) return false;
+    const anchor = anchorUnder(event.clientX, event.clientY);
+    if (!anchor) return false;
+    const asked = limitedStep(anchor, 0.5);
+    const zoom = MC.clampDistance(zoomPolicyFor(resolved), view.zoom * asked, 1);
+    const taken = view.zoom > 0 ? zoom / view.zoom : 1;
+    if (!(taken < 1)) return false;
+    const target = MC.targetAboutAnchor(view.target, anchor, taken);
+    clampPan(target, view.fit.target, PAN_REACH * view.fit.dist * Math.tan(fovHalf()));
+    const to = { target: target, dist: view.dist * taken, quat: view.quat.clone() };
+    const kept = view;
+    followBody = null;
+    showTooltip("", 0, 0);
+    flyCamera(viewNow(), to, null, function () {
+      view = Object.assign({}, kept, { target: target.slice(), dist: to.dist, quat: to.quat.clone(), zoom: zoom });
+      applyView();
+    });
+    return true;
+  }
+
   // MAP.146: a double click on something of the scene (a star, a phenomenon, a body of the open system) flies the
   // camera to it. On anything else it is two clicks, as ever (a touch screen's second tap on a block acts on it).
   function doubleClickAt(event, type) {
     if (animation) return;
     const found = picker.pick(event.clientX, event.clientY);
+    // MAP.245: on empty space (nothing picked) it flies half way toward the point under the pointer. A block stays
+    // two clicks.
+    if (!found && flyHalfWayTo(event)) return;
     if (!found || found.layer === choiceLayer) {
       clickAt(event, type);
       return;

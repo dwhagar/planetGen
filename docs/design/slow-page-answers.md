@@ -1,7 +1,7 @@
 # Slow page requests as jobs (PERF.105)
 
-Informs: PERF.105, UX.118 (the loading state and progress bar), PERF.104 (the page cache), PERF.86 (Redis rules), PERF.99
-Status: built (Core 2, 2026-10-17): the mechanism. No page uses it yet; UX.118 puts the phenomena lists and the search on it. Nothing here changes a table; no migration.
+Informs: PERF.105, UX.118, PERF.104 (the page cache), PERF.86 (Redis rules), PERF.99
+Status: built (Core 2, 2026-10-17): the mechanism (PERF.105) and the loading state on the Phenomena list and the Search page (UX.118). Nothing here changes a table; no migration.
 
 ## The problem
 
@@ -38,6 +38,18 @@ The expected time of a request nothing has timed is its rows over `SLOW_PAGE_ROW
 | `planetgen:slowmeta:<id>` | the request, estimated rows and seconds, created, started, finished, cancel flag, queue job id | 1 h |
 | `planetgen:slowtime:<db>:<digest>` | how long the last build took, seconds | 7 days |
 
-## Not here
+## The loading state (UX.118)
 
-The loading state, the progress bar, the retry button and the swap-in of the finished list belong to UX.118; moving the phenomena lists and the search onto `allow_pending` belongs with them. Splitting a list into counted steps is PERF.99.
+**A route marks itself slow with one decorator.** `@slow_route(title, section, breadcrumbs, description)` (`web/lib/slowroute.py`) runs the view inside `allow_pending`. When the view raises `Pending`, the visitor gets the page's own frame (header, title, breadcrumbs) with a panel in place of the content: a progress bar, one line of status, Stop waiting. The answer is `202`, `Cache-Control: no-store`, `X-Robots-Tag: noindex`, so nothing keeps or indexes a waiting page. `/phenomena` and `/search` are the first users; another slow list takes it by adding the decorator and listing its tables in `slowpages.PATH_TABLES`.
+
+**`static/slowload.js` polls and swaps.** It asks `GET /api/page-jobs/<id>` every second and draws the estimate in the site's own units (`numberformat.js` for the counts, `unitladder.js` for the time left): "About 30% (an estimate: 300 of 1,000 rows), about 5 s left." A job still queued leaves the bar without a value ("Waiting for a worker to start building this page."); one past its expected time says "still working". When the job has succeeded it fetches the same address again and puts the finished page's content in place of the panel without a page load (`<main>` replaced, the title updated, the finished page's own module scripts loaded, so its table starts). If that page is waiting for another job (a search asks for several answers: the facets, then each panel) the panel switches to that job's progress and carries on. A job that expired (404) is answered by asking for the page itself.
+
+**Failed, cancelled, stopped.** A failed job shows its error and Try again; a job an administrator cancelled says so and offers the same. Try again asks for the page with `X-Slow-Retry: 1`, which replaces the failed job at once. Stop waiting stops this page polling and nothing else (the job is shared); Check again picks it up.
+
+**Accessible and quiet.** The bar is a `<progress>` named by the panel's heading and described by the status line, which is a polite live region; the error is an alert. The text carries the same information as the bar. For a reader who asked for less motion a bar with no value (the moving kind) is hidden and the words stand alone. The panel wraps at phone width. Without JavaScript the page refreshes itself every five seconds (`<noscript>`) until the answer is there.
+
+**When the queue can't take it,** the page is built in the request and shows a line at the top saying so (`slow_notice`, from `slowpages.take_notice`).
+
+**Route timing.** A search for a new name has never been timed, and the row estimate alone would queue every one. So a request not timed itself takes the slowest build of any request on its route in the last ten minutes (`planetgen:slowpath:...`): a route that has been quick lately is quick for a new request, one that was slow lately is slow. The row estimate decides only a route nothing has been timed on.
+
+**Not here.** The table's own scrolling and sorting fetch pages of rows from a data route that is not marked slow (it builds in the request, as before, and keeps its busy handling, UX.96); marking it needs `datatable.js` to wait on a job, which is a later item. Splitting a list into counted steps is PERF.99.

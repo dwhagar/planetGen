@@ -61,10 +61,13 @@ STAR_COUNT_PROBABILITIES = {
     "F": (0.50000, 0.34000, 0.11000, 0.04003, 0.00881, 0.00106, 0.00011),
     "A": (0.40000, 0.40000, 0.15000, 0.03741, 0.01048, 0.00189, 0.00023),
     "B": (0.25000, 0.40000, 0.22000, 0.08962, 0.03137, 0.00784, 0.00118),
+    "B-mid": (0.24000, 0.36000, 0.25143, 0.10241, 0.03585, 0.00896, 0.00135),
+    "B-early": (0.16000, 0.32000, 0.32686, 0.13314, 0.04660, 0.01165, 0.00175),
     "O": (0.10000, 0.25000, 0.30000, 0.21354, 0.09610, 0.03363, 0.00673),
 }
 """dict: The chance of 1 to 7 stars to a system, by the placed star's spectral
-class (multistar-and-compact-systems.md 3.3)."""
+class (multistar-and-compact-systems.md 3.3). The B-mid and B-early rows (GEN.449) take the single and binary fractions
+of `tuning.MULTIPLICITY_BY_PRIMARY_MASS_BIN` and split the rest across 3 to 7 stars in the proportions of the B row."""
 
 SPECTRAL_CLASS_LOWER_MASS_SOL = (("O", 16.0), ("B", 2.1), ("A", 1.4), ("F", 1.04), ("G", 0.8), ("K", 0.45), ("M", 0.0))
 """tuple: The initial mass at which each spectral class begins, heaviest first."""
@@ -303,6 +306,18 @@ def spectral_class(initial_mass_sol):
     return "M"
 
 
+def companion_class(initial_mass_sol, letter=None):
+    """The key into `STAR_COUNT_PROBABILITIES` and `tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS` of a star: its
+    spectral letter (from the mass when `letter` is None), with the B stars of 5 to 16 solar masses split into B-mid and
+    B-early (Moe and Di Stefano's bins, GEN.449)."""
+    letter = letter or spectral_class(initial_mass_sol)
+    if letter == "B":
+        for name, lower in tuning.B_SUBCLASS_LOWER_MASS_SOL:
+            if initial_mass_sol >= lower:
+                return name
+    return letter
+
+
 def placed_class(placed):
     """The `MEMBER_STATE_BY_PLACED` key of a placed object, or None when it has no companion table
     (a star of under 2 solar masses)."""
@@ -361,7 +376,7 @@ def same_class_companions(kind, recycled_share=0.0):
 def star_count_weights(initial_mass_sol, prevalence=1.0):
     """The weights of 1 to 7 stars for a star of this initial mass, the five-or-more columns scaled by
     `prevalence`."""
-    row = STAR_COUNT_PROBABILITIES[spectral_class(initial_mass_sol)]
+    row = STAR_COUNT_PROBABILITIES[companion_class(initial_mass_sol)]
     return tuple(weight * (prevalence if count >= 5 else 1.0) for count, weight in enumerate(row, start=1))
 
 
