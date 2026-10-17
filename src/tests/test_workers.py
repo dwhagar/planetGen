@@ -12,6 +12,8 @@ import rq
 
 from planetgen.queue import api_jobs, redisqueue, workers
 
+pytestmark = pytest.mark.real_queue
+
 
 def _queue_name():
     return f"planetgen-api-test-{uuid.uuid4().hex[:12]}"

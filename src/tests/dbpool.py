@@ -29,9 +29,14 @@ test that left the difference.
 import os
 import re
 import sys
+import threading
+import traceback
 import uuid
+import warnings
 
 import pymysql
+import sqlalchemy.event
+import sqlalchemy.pool
 
 from planetgen.db import store as _db
 from planetgen.db.store import MySQLConfig
@@ -88,6 +93,99 @@ def _forget_redis(name):
         pass
 
 
+_checked_out = {}
+"""server connection id -> (thread name, stack) of every pooled connection a caller holds right now (TEST.193): when
+a database cannot be dropped because a connection still holds it, this names the code that took it."""
+
+
+def _note_checkout(dbapi_connection, _record, _proxy):
+    try:
+        _checked_out[dbapi_connection.thread_id()] = (
+            threading.current_thread().name,
+            "".join(traceback.format_list(traceback.extract_stack(limit=14)[:-2])))
+    except Exception:  # a connection without an id (a fake): nothing to note
+        pass
+
+
+def _note_checkin(dbapi_connection, _record):
+    try:
+        _checked_out.pop(dbapi_connection.thread_id(), None)
+    except Exception:
+        pass
+
+
+def watch_checkouts():
+    """Starts noting which code holds each pooled connection (once per process)."""
+    if not getattr(watch_checkouts, "started", False):
+        sqlalchemy.event.listen(sqlalchemy.pool.Pool, "checkout", _note_checkout)
+        sqlalchemy.event.listen(sqlalchemy.pool.Pool, "checkin", _note_checkin)
+        watch_checkouts.started = True
+
+
+DROP_WAIT_SECONDS = 10
+"""How long a `DROP DATABASE` of a test database waits for a lock before it fails (TEST.193). Without a limit the
+server waits as long as another connection holds a table of the database (it waited 853 s in a gate run)."""
+
+
+def database_holders(cur, name):
+    """`[(connection id, user, host, command, idle seconds, state)]` of the other connections that use or hold a lock
+    on database `name`: those whose current database it is, and those holding a granted metadata lock on one of its
+    tables (a connection that did `USE` something else but read from it; needs the server's performance schema,
+    which some servers run without, and then only the first kind is found)."""
+    found = {}
+    cur.execute(
+        "SELECT ID, USER, HOST, COMMAND, TIME, STATE FROM information_schema.PROCESSLIST"
+        " WHERE DB = %s AND ID <> CONNECTION_ID()", (name,))
+    for row in cur.fetchall():
+        found[row[0]] = tuple(row)
+    try:
+        cur.execute(
+            "SELECT DISTINCT t.PROCESSLIST_ID, t.PROCESSLIST_USER, t.PROCESSLIST_HOST, t.PROCESSLIST_COMMAND,"
+            " t.PROCESSLIST_TIME, t.PROCESSLIST_STATE FROM performance_schema.metadata_locks m"
+            " JOIN performance_schema.threads t ON t.THREAD_ID = m.OWNER_THREAD_ID"
+            " WHERE m.OBJECT_SCHEMA = %s AND m.LOCK_STATUS = 'GRANTED' AND t.PROCESSLIST_ID IS NOT NULL"
+            " AND t.PROCESSLIST_ID <> CONNECTION_ID()", (name,))
+        for row in cur.fetchall():
+            found.setdefault(row[0], tuple(row))
+    except pymysql.MySQLError:  # no performance schema: the first list is all there is
+        pass
+    return sorted(found.values())
+
+
+def drop_database(server_kwargs, name, wait_seconds=DROP_WAIT_SECONDS):
+    """Drops test database `name`, first ending every connection that still holds it (TEST.193), and never waits
+    more than `wait_seconds` for a lock. A connection left open by a thread that outlived its test (a server thread
+    still writing a response the browser gave up on, a pooled connection checked out) would otherwise keep the
+    drop waiting for minutes.
+
+    Returns:
+        list[tuple]: The connections it ended, as `database_holders` lists them (empty when none was open)."""
+    conn = pymysql.connect(**server_kwargs)
+    ended = []
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SET SESSION lock_wait_timeout = %s", (int(wait_seconds),))
+            for holder in database_holders(cur, name):
+                try:
+                    cur.execute(f"KILL {int(holder[0])}")
+                    ended.append(holder)
+                except pymysql.MySQLError:  # it ended on its own meanwhile
+                    pass
+            cur.execute(f"DROP DATABASE IF EXISTS `{name}`")
+        conn.commit()
+    finally:
+        conn.close()
+    if ended:
+        lines = []
+        for h in ended:
+            taken = _checked_out.get(h[0])
+            where = f"\n  taken in thread {taken[0]} by:\n{taken[1]}" if taken else " (not from a pool)"
+            lines.append(f"id {h[0]} {h[1]}@{h[2]} {h[3]} idle {h[4]} s state {h[5]}{where}")
+        warnings.warn(f"TEST.193: {len(ended)} connection(s) still held {name} when its fixture ended: "
+                      + "; ".join(lines))
+    return ended
+
+
 class WorkerDatabase:
     """The database one test process reuses."""
 
@@ -126,13 +224,7 @@ class WorkerDatabase:
             return
         _db.close_pool(config)
         forget_database(config)
-        conn = self._admin()
-        try:
-            with conn.cursor() as cur:
-                cur.execute(f"DROP DATABASE IF EXISTS `{config.database}`")
-            conn.commit()
-        finally:
-            conn.close()
+        drop_database(self.server, config.database)
 
     def _inspect(self, cur, name):
         """(structure, created, increments): the database's shape without row data."""

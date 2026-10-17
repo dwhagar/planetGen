@@ -1,0 +1,29 @@
+{#- The stored members of an unbuilt scatter row (UX.114, web/scatter_members_view.py): a table of its stars and
+    compact objects and one of the orbits that bind them. `view` is `members_view(tree)`. -#}
+{%- if view.members %}
+<section class="panel" aria-labelledby="members-heading">
+  <h2 id="members-heading">Members</h2>
+  <p class="muted">Drawn with the point when the scatter ran. Where each sits is decided when its sector is generated.</p>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">No.</th><th scope="col">Kind</th><th scope="col">Mass</th></tr></thead>
+    <tbody>
+      {%- for number, kind, mass in view.members %}
+      <tr><td>{{ number }}</td><td>{{ kind }}</td><td>{{ mass }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{%- if view.orbits %}
+<section class="panel" aria-labelledby="orbits-heading">
+  <h2 id="orbits-heading">Orbits</h2>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">No.</th><th scope="col">Joins</th><th scope="col">Separation</th><th scope="col">Period</th><th scope="col">Eccentricity</th></tr></thead>
+    <tbody>
+      {%- for number, kind, separation, period, eccentricity in view.orbits %}
+      <tr><td>{{ number }}</td><td>{{ kind }}</td><td>{{ separation }}</td><td>{{ period }}</td><td>{{ eccentricity }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{%- endif %}
+{%- endif %}

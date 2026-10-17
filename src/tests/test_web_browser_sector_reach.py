@@ -73,7 +73,7 @@ class _Scene:
         self.centre = (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"])
         scene = page.request.get(f"{base_url}/sector/{self.id}/scene").json()
         self.edge = scene["halfEdgePc"] * 2
-        self.code = _designation(page, base_url, self.id)
+        self.code = _designation(detail)
         self.requests = []
         page.on("request", lambda request: self.requests.append(request.url) if re.search(rf"/sector/{self.id}/scene", request.url) else None)
 

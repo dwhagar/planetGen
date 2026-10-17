@@ -12,9 +12,28 @@
     },
     {
       "epoch": 3,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1635",
       "reason": "The population pass draws species, civilization ages, technology levels, governments and polity colors from the homeworld's unique ID instead of a row id, so the same galaxy no longer differs between worker counts (GEN.306)."
+    },
+    {
+      "epoch": 4,
+      "first_release": "8.0.1679",
+      "reason": "Stars leaving the main sequence follow the real phases and tables: a horizontal branch (35 to 50 solar luminosities, colour from [Fe/H] and age) and an asymptotic giant branch for stars under 2.2 solar masses, a red giant branch whose time per unit of ln L falls as L^-0.78 instead of an even spread, and the corrected horizontal-branch temperature ranges and colour shares, so a giant or horizontal-branch star's luminosity, temperature and type differ (GEN.286, GEN.287, GEN.407)."
+    },
+    {
+      "epoch": 5,
+      "first_release": "8.0.1685",
+      "reason": "The bright-star and mass passes cover the 262 kpc reach in groups of 64 bands, drawing stars beyond the outline from new streams (GEN.322)."
+    },
+    {
+      "epoch": 6,
+      "first_release": "8.0.1686",
+      "reason": "The phenomena pass covers the 262 kpc reach in groups of bands, drawing black holes, neutron stars, planetary nebulae, supernova remnants and magnetars beyond the outline from new streams (GEN.323)."
+    },
+    {
+      "epoch": 7,
+      "first_release": "8.0.1687",
+      "reason": "The clusters and the satellite galaxies place their own bright and massive stars and phenomena from their profiles, and bright stars take the satellite population (GEN.324)."
     }
   ]
 }

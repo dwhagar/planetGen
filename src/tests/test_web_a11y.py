@@ -41,7 +41,6 @@ test time and the page's own CSP stays in force.
 
 import os
 import random
-import threading
 import uuid
 
 import pymysql
@@ -49,7 +48,6 @@ import pytest
 
 sync_api = pytest.importorskip("playwright.sync_api")
 
-from werkzeug.serving import make_server  # noqa: E402
 
 from planetgen.util import draw
 from planetgen.web.app import create_app  # noqa: E402
@@ -61,6 +59,8 @@ from planetgen.admin import auth
 from planetgen.db.store import MySQLConfig  # noqa: E402
 
 from tests.bughunt_support import forced_system_config, mysql_argv, run_cli  # noqa: E402
+from tests import dbpool  # noqa: E402
+from tests.served import served  # noqa: E402
 from tests.conftest import _test_server_kwargs  # noqa: E402
 
 AXE_JS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vendor", "axe-core", "axe.min.js")
@@ -210,6 +210,24 @@ def _add_scattered_phenomenon(config):
         conn.close()
 
 
+def _add_scattered_star(config):
+    """One unbuilt scattered star with a three-member tree, so the uncharted star page (UX.114) has a row to show."""
+    from planetgen.db import scatter_systems
+    from planetgen.generation import multistar
+    conn = store.get_connection(config)
+    try:
+        row_id = conn.execute(
+            "INSERT INTO bright_stars (shell_index, band_index, wedge_index, position_x_mpc, position_y_mpc,"
+            " position_z_mpc, population, star_type, yerkes_class, mass_kg, radius_km, temperature_k, luminosity_w,"
+            " age_gy, initial_mass_sol, seed) VALUES (7, 2, 3, 30000, 40000, 0, 'young', 'B2V', 'V', 1e31, 1e6,"
+            " 20000, 1e30, 0.1, 5.0, ?)", (SCATTER_SEED,)).lastrowid
+        tree = multistar.draw_member_tree(multistar.Placed("star", 1.0), 5e9, draw.Stream(SCATTER_SEED), n_stars=3)
+        scatter_systems.store_member_tree(conn, "bright_stars", row_id, tree, 1_700_000_000.0)
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def _seat_loose_systems(config):
     """Puts the systems `planetgen system` made alone into the fixture's first sector, so the pages' sample system
     has planets and a sector; the batch fill of a shell makes planet-less systems on the switch branch (GEN.227).
@@ -264,18 +282,13 @@ def site_db(_mysql_server_available):
                 run_cli("phenomenon", ["--type", kind, "--quiet"] + target)
             _add_population(config)
             _add_scattered_phenomenon(config)
+            _add_scattered_star(config)
         finally:
             draw.setstate(state)
         yield config
     finally:
         store.close_pool(config)
-        admin_conn = pymysql.connect(**kwargs)
-        try:
-            with admin_conn.cursor() as cur:
-                cur.execute(f"DROP DATABASE IF EXISTS `{name}`")
-            admin_conn.commit()
-        finally:
-            admin_conn.close()
+        dbpool.drop_database(kwargs, name)
 
 
 @pytest.fixture(scope="module")
@@ -313,14 +326,8 @@ def admin_token(site_db):
 
 @pytest.fixture(scope="module")
 def base_url(site_app):
-    server = make_server("127.0.0.1", 0, site_app, threaded=True)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    try:
-        yield f"http://127.0.0.1:{server.server_port}"
-    finally:
-        server.shutdown()
-        thread.join(timeout=10)
+    with served(site_app) as url:
+        yield url
 
 
 # --- Sample URL parameters ------------------------------------------------------------
@@ -390,6 +397,7 @@ def sample_params(site_app, sample_job, sample_job_tree):
     conn = store.get_connection(site_app.config["MYSQL_CONFIG"])
     try:
         scatter_id = conn.execute("SELECT id FROM phenomenon_scatter WHERE seed = ?", (SCATTER_SEED,)).fetchone()["id"]
+        bright_star_id = conn.execute("SELECT id FROM bright_stars WHERE seed = ?", (SCATTER_SEED,)).fetchone()["id"]
     finally:
         conn.close()
     return {
@@ -400,6 +408,7 @@ def sample_params(site_app, sample_job, sample_job_tree):
         "phenomenon_type": phenomenon["type"],
         "phenomenon_id": phenomenon["id"],
         "scatter_id": scatter_id,  # web.uncharted_phenomenon
+        "bright_star_id": bright_star_id,  # web.uncharted_star
         "quadrant": "I",
         "shell": 40, "band": 0, "wedge": 3,  # web.sector_at: a cell nothing was generated in
         "page": 1,

@@ -12,6 +12,9 @@ Keys (`PREFIX` is `planetgen`; the tests give it a prefix of their own):
                                   the units took, first and last finish) and the decayed sums the ETA reads.
 * `<PREFIX>:run:<id>:s<k>:done`  set: the indexes of the units that finished; also the barrier.
 * `<PREFIX>:run:<id>:s<k>:advanced`  string: set once, by the unit that completes the stage.
+* `<PREFIX>:run:<id>:s<k>:results`   hash: unit -> the JSON result it returned (PERF.97), written before the unit
+                                  joins the done set, so a unit found done has its result.
+* `<PREFIX>:run:<id>:s<k>:progress`  hash: unit -> `"done,estimate"`, a unit's work so far while it runs (PERF.97).
 * `<PREFIX>:run:<id>:events`     stream: the log and timeline, `XADD` with `MAXLEN ~ EVENTS_MAXLEN`.
 * `<PREFIX>:run:active`          string: the run that owns the machine, `SET NX`, so a second run gets "busy".
 
@@ -97,6 +100,14 @@ def advanced_key(run_id, index):
 
 def events_key(run_id):
     return _k("run", run_id, "events")
+
+
+def results_key(run_id, index):
+    return _k("run", run_id, f"s{index}", "results")
+
+
+def progress_key(run_id, index):
+    return _k("run", run_id, f"s{index}", "progress")
 
 
 def active_key():
@@ -284,7 +295,8 @@ def finish_run(conn, run_id, state="done", error=None, now=None):
     stages = len(json.loads(conn.hget(run_key(run_id), "stages")))
     keys = [run_key(run_id), events_key(run_id)]
     for index in range(stages):
-        keys += [stage_key(run_id, index), done_key(run_id, index), advanced_key(run_id, index)]
+        keys += [stage_key(run_id, index), done_key(run_id, index), advanced_key(run_id, index),
+                 results_key(run_id, index), progress_key(run_id, index)]
     pipe = conn.pipeline()
     for key in keys:
         pipe.expire(key, KEEP_SECONDS)

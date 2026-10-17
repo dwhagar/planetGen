@@ -64,6 +64,7 @@ CHILD_TABLES = (
     ("interstellar_comet_composition", "comet_id", "interstellar_comets"),
     ("asteroid_field_composition", "field_id", "asteroid_fields"),
     ("nebula_shape_balls", "nebula_id", "nebulae"),
+    ("orbit_nodes", "star_system_id", "star_systems"),
 )
 """tuple: `(table, foreign key, parent table)` of the child rows of an
 object a sector holds."""

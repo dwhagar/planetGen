@@ -28,6 +28,7 @@ WARM_MODULES = (
     "planetgen.generation.run_common",
     "planetgen.generation.bright_stars",
     "planetgen.queue.api_jobs",
+    "planetgen.queue.units",
     "planetgen.web.job_runner",
 )
 """tuple: The modules the queue's tasks run in. Imported before the worker

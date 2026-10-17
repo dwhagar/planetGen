@@ -115,7 +115,7 @@ def test_the_sweep_finds_the_formatters():
     assert {("fmt", "format_number"), ("fmt", "format_distance_km"), ("fmt", "format_density"),
             ("fmt", "format_temperature_k"), ("tabledisplay", "format_mass"),
             ("tabledisplay", "format_body_distance")} <= names
-    assert {n for m, n, _f in FORMATTERS} - {n for m, n, _f in ONE_ARG} == {"format_density"}
+    assert {n for m, n, _f in FORMATTERS} - {n for m, n, _f in ONE_ARG} == {"format_density", "format_members"}
 
 
 @pytest.mark.parametrize("module", [fmt, tabledisplay], ids=lambda m: m.__name__)
@@ -199,6 +199,19 @@ def test_format_density_never_raises_or_prints_garbage(edge, count):
     _clean(out)
     if not (_is_number(edge) and edge > 0 and _is_number(count)):
         assert out == "n/a"
+
+
+@pytest.mark.parametrize("count", BAD_NUMBERS, ids=_id)
+@pytest.mark.parametrize("mass", BAD_NUMBERS, ids=_id)
+def test_format_members_never_raises_or_prints_garbage(count, mass):
+    _clean(fmt.format_members(count, mass))
+
+
+def test_format_members_reads_for_a_row_with_company_and_is_a_dash_without():
+    assert fmt.format_members(0, 1.0) == "\u2013"
+    assert fmt.format_members(None, None) == "\u2013"
+    assert fmt.format_members(3, 2.4).startswith("3 members, ")
+    assert fmt.format_members(1, 2.4).startswith("1 member, ")
 
 
 def test_format_density_still_reads_for_a_real_sector():
