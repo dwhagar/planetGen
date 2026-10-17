@@ -13640,6 +13640,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.447 author).
   Prerequisites: none. Related: GEN.447, GEN.450.
 
+- [ ] **GEN.542 scripts/star_type_by_radius.py fails with a TypeError because the plan arguments now default the disk and arm options to None (bug)**
+  Found by Core 4 (2026-10-17, 5:30 PM EDT as the lane reported, relayed
+  7:08 PM EDT), filed by the TODO thread; reproduced on current main at
+  7:10 PM EDT. `scripts/star_type_by_radius.py` (the analysis script of
+  GEN.133, changed by GEN.134) stops in `default_shape` with `TypeError:
+  must be real number, not NoneType` at
+  `math.radians(a.pitch_angle_deg)`, because `add_plan_arguments` now
+  defaults the disk and arm options to None (the shape is drawn from the
+  seed). Fails on main: yes. Frequency: every run. Reproducer: `python
+  scripts/star_type_by_radius.py --stars 100`. Do: build the shape the
+  way the plan does (the seed's drawn shape through the same function
+  the plan calls) or give the script its own explicit arguments, with no
+  fixed Milky Way values. Done: the script runs to its table and a small
+  test runs it with a few stars and checks it exits 0. Owner: Bug Hunt
+  (proposed).
+  Prerequisites: none. Related: GEN.133, GEN.134.
+
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -18603,6 +18620,25 @@ clears each one.
   quarantining. Done: the cause is on this item and the test passes
   under load in a gate. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.126, TEST.172, TEST.213.
+
+- [ ] **TEST.228 test_stars_and_phenomena_fit_within_their_sectors_real_cells compares a dark cloud's centre with its sector's cell, but the cloud is filed by its centroid**
+  Observation by Core 1 (2026-10-17, 7:07 PM EDT as the lane reported),
+  filed by the TODO thread.
+  `src/tests/test_galaxy_gen.py::test_stars_and_phenomena_fit_within_their_sectors_real_cells`
+  compares a nebula's centre with its sector's cell, but a field cloud
+  (class M to Q, nebula_type dark) is filed under the sector holding its
+  centroid, so a large cloud near a cell face has its centre outside the
+  cell. It passed 4 of 4 on main (7f17820b) because no such cloud landed
+  there; with GEN.532's changed gas it failed about 1 run in 3 with a
+  random seed. Core 1's PR excludes dark clouds from the centre check.
+  Do: replace that exclusion with the right check, the centroid of a
+  dark cloud inside its sector's cell and the centre check for every
+  other nebula. Done: the test passes on random seeds for 30 runs and a
+  dark cloud placed on a cell face is checked by its centroid. Fails on
+  main: no (not reached by the current seeds). Frequency: about 1 run in
+  3 once GEN.532 is merged, until Core 1's exclusion lands. Reproducer:
+  run the test with random seeds on GEN.532's branch.
+  Prerequisites: GEN.532. Related: GEN.532.
 
 
 ## USR: User accounts
