@@ -254,11 +254,18 @@ def _crumbs(page):
 
 
 def _query(page):
-    return urlparse(page.url).query
+    """The address as the tests read it: its query without the camera it carries once the view is still
+    (MAP.228), led by "win=m.shell.band.wedge" naming the window on screen (the stage is no part of the address)."""
+    parts = [part for part in urlparse(page.url).query.split("&") if part and not part.startswith("cam=")]
+    win = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStage()")["win"]
+    if win and not any(part.startswith("sector=") for part in parts):
+        centre = win["centre"]
+        parts.insert(0, f"win={centre['m']}.{centre['shell']}.{centre['band']}.{centre['wedge']}")
+    return "&".join(parts)
 
 
 def _state(page):
-    return page.url, _crumbs(page)
+    return _query(page), _crumbs(page)
 
 
 def _wait_settled(page, before=None, timeout_s=15.0):
@@ -411,9 +418,13 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
     _wait_settled(page, before)
     assert _crumbs(page) == crumbs[:-1], "Up drops the last breadcrumb"
 
-    # A stage's URL opens it directly.
-    deep_query, deep_crumbs = steps[-2]
-    _open_galaxy(page, base_url, "?" + deep_query)
+    # An address opens the view it was copied at directly (MAP.228): the camera is in it, the stage worked out.
+    page.wait_for_timeout(600)
+    deep_url, deep_crumbs = page.url, _crumbs(page)
+    assert "cam=" in deep_url, deep_url
+    _open(page, deep_url, "#galaxymap3d-canvas")
+    page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
+    _wait_settled(page)
     assert _crumbs(page) == deep_crumbs
 
     # A breadcrumb button goes back up; Reset goes home.

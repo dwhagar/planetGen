@@ -1115,6 +1115,7 @@ export function createStageView(host) {
   // Every frame: the running move, if any.
   function step(now) {
     if (!active) return;
+    if (camChangedAt && now - camChangedAt >= CAM_URL_DELAY_MS) writeCameraAddress();
     sectorStage.update();
     systemStage.update(Date.now());
     updateAmbient(now);
@@ -2337,6 +2338,9 @@ export function createStageView(host) {
     });
   }
 
+  // For the browser tests: the stage on screen.
+  canvasEl.galaxyStage = function () { return stage; };
+
   // For the browser tests: opens the window of `g` cells round the cell {m, shell, band, wedge}, as the
   // breadcrumb's crumbs and a click on a block do.
   canvasEl.galaxyOpenWindow = function (cell, g) {
@@ -2548,7 +2552,7 @@ export function createStageView(host) {
 
   // The camera the address asked for, until the stage it names is on screen (flyTo takes it up).
   let pendingCamera = null;
-  let camTimer = 0;
+  let camChangedAt = 0;
   const CAM_URL_DELAY_MS = 350;
 
   // The view as {target, dist, quat: [x, y, z, w]}, or null.
@@ -2623,15 +2627,14 @@ export function createStageView(host) {
   }
 
   // Writes the view's camera into the address in place (no history entry of its own) once it has been still for
-  // a moment; a stage hop makes its own entry (`go`). An opened sector or system keeps its own address.
+  // a moment (`step` checks); a stage hop makes its own entry (`go`). An opened sector or system keeps its own address.
   function scheduleCameraAddress() {
     if (pinned || !active) return;
-    if (camTimer) clearTimeout(camTimer);
-    camTimer = setTimeout(writeCameraAddress, CAM_URL_DELAY_MS);
+    camChangedAt = performance.now();
   }
 
   function writeCameraAddress() {
-    camTimer = 0;
+    camChangedAt = 0;
     if (!active || pinned || !view || animation || entered || enteredSystem || !resolved || !resolved.view) return;
     const params = new URLSearchParams(location.search);
     const query = cameraQueryFor(resolved, currentCamera());
