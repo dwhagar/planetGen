@@ -11334,6 +11334,26 @@ clears each one.
   Prerequisites: GEN.389. Related: TEST.196, GEN.378, GEN.366.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
+- [ ] **TEST.205 `test_no_reserved_word_is_an_unquoted_identifier` fails on main: the DB.18 migration helpers use LOCK in `ALGORITHM=INPLACE, LOCK=NONE` (bug)**
+  Finding from Core 1 (2026-10-16, 9:2x PM EDT, kind: test, fails on
+  main: yes, on a clean origin/main since DB.18 (#1901), how often:
+  every run), filed by the TODO thread.
+  `src/tests/test_sql_portability.py::test_no_reserved_word_is_an_unquoted_identifier`
+  fails with "Reserved words used as unquoted identifiers:
+  planetgen/db/migrations/helpers.py:197 and :207 'LOCK' in
+  ALGORITHM=INPLACE, LOCK=NONE". Reproducer: `python -m pytest
+  src/tests/test_sql_portability.py -k reserved_word`. Core 1 found it
+  in its stack gate and asked Core 2, the author of DB.18, at the same
+  time. Done: the helpers' `ALTER TABLE ... ALGORITHM=INPLACE,
+  LOCK=NONE` statements are accepted by the test as SQL syntax (LOCK is
+  syntax there, so `SYNTAX_KEYWORDS` in the test names it with a reason)
+  or the statements are written so the test passes, without loosening
+  what the test proves for identifiers; the test passes on main. Every
+  full run fails until it is fixed, so it goes ahead of other bug work.
+  Owner: Core 2 (DB.18's lane), asked by Core 1; the TODO thread
+  confirms with Core 2.
+  Prerequisites: none. Related: TEST.203, DB.9.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
