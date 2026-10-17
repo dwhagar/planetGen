@@ -254,11 +254,12 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
+| GEN.472 | One gated possibility-table format and loader: every composition category is a table of possibilities with a class gate and a weight, drawn by the normalised weights of the rows that pass | GEN.437 | Boss 1:40 AM EDT: gated possibility tables with weighted probabilities; the one format and loader every composition table uses. Core 4 proposed. |
 | GEN.438 | One table of the elements and their isotopes: atomic data and the radioactive isotopes' half-lives and decay energies | GEN.437 | Boss 11:58 PM EDT; atomic data and the radioactive isotopes; no abundance pattern. |
-| GEN.410 | One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention | GEN.409, GEN.437, GEN.438 | Boss 11:24 PM EDT; the one table the rest reads. Core 4 proposed (Boss, 11:41 PM EDT). |
-| GEN.427 | One table of the bulk materials with their equation-of-state constants and the source of each | GEN.426, GEN.437, GEN.438 | Boss 11:49 PM EDT; the one materials table. Core 4 proposed. |
+| GEN.410 | One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention | GEN.409, GEN.437, GEN.438, GEN.472 | Boss 11:24 PM EDT; the one table the rest reads. Core 4 proposed (Boss, 11:41 PM EDT). |
+| GEN.427 | One table of the bulk materials with their equation-of-state constants and the source of each | GEN.426, GEN.437, GEN.438, GEN.472 | Boss 11:49 PM EDT; the one materials table. Core 4 proposed. |
 | GEN.470 | One saturation-pressure function p_sat(species, T) for the gases and ices: the Fray and Schmitt polynomials, water by Feistel and Wagner, and its tests | GEN.410, GEN.427 | Body composition research lane part F items F1 and F1t; no behaviour change until GEN.452 reads it. Core 4 proposed. |
-| GEN.439 | The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers | GEN.435, GEN.437, GEN.438 | Boss 11:58 PM EDT; a constants-and-functions module, no database access. |
+| GEN.439 | The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers | GEN.435, GEN.437, GEN.438, GEN.472 | Boss 11:58 PM EDT; a constants-and-functions module, no database access. |
 
 
 ## Phase 3: New scatters: stars, nebulae and the region query
@@ -330,7 +331,7 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.440 | Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf | GEN.439 | Boss 11:58 PM EDT; a pure function of stored values; no column, no stored change. |
+| GEN.440 | Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf | GEN.439, GEN.472 | Boss 11:58 PM EDT; a pure function of stored values; no column, no stored change. |
 | GEN.464 | The disk solids law reads the star's metal mass fraction Z over Z0, not 10 to the power of [Fe/H], which is off by 1.7 to 3 times in metal-poor alpha-enhanced stars | GEN.440 | Body composition research lane finding F6 (A-S2); generator epoch bump. Core 4 proposed. |
 
 ## Phase 4: New scatters: components, clusters and audits
@@ -380,6 +381,7 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | TEST.211 | A star composition sweep: every kind of star, remnant and brown dwarf, fractions, trends and determinism | GEN.440 | Boss 11:58 PM EDT; the proof of the star composition. |
+| TEST.214 | Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence | GEN.472, GEN.410, GEN.427, GEN.439 | Boss 1:40 AM EDT: the gated weights add up to 100 percent; registry walk, so later tables are covered. Core 4 proposed. |
 
 ## Phase 5: New scatters: core, halo, interface update and docs
 

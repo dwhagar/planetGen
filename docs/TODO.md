@@ -8135,7 +8135,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fails when a gas named anywhere in the code is missing from the table;
   every number has a source.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Prerequisites: GEN.409, GEN.437, GEN.438. Related: GEN.208, GEN.85,
+  Prerequisites: GEN.409, GEN.437, GEN.438, GEN.472. Related: GEN.208,
+  GEN.85,
   GEN.355, GEN.411, GEN.415, DB.71.
   Now an 8.1 data table (Boss, 11:58 PM EDT): it adds no behaviour until
   the generation chain of 8.4 reads it; its molar masses come from the
@@ -8177,6 +8178,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a row without one; the licence question of the cross-section files
   (Mainz, Serdyuchenko, Heays 2017, Huebner 2015) is open (master
   section 6 item 13 of docs/design/atmosphere-composition.md).
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): the gas and compound table is the constants table the
+  others cite, and it is also a gated table: each gas row carries the
+  supported classes (the gate) and a source and licence column, so a
+  class's possible gases are the rows that pass its gate; the weights of
+  the atmosphere recipes that draw from it are in GEN.411 and GEN.454 to
+  GEN.456. Every number keeps its source.
   Related: DB.71.
 
 - [ ] **GEN.411 The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree**
@@ -8214,6 +8223,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   real-gas Z of a mixture are in part 01 sections 10 and 11; the
   species-by-class distributions to draw the partials from are part 05;
   the added species need storage (DB.71).
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): the atmosphere recipes are gated rows: each recipe
+  (for example a reduced hydrogen-rich, a nitrogen-carbon-dioxide, an
+  oxidised, a thin exosphere recipe, the set named by the gas table and
+  the research of part 05, none copied from the Solar System) lists the
+  classes it supports and a weight that may depend on the star and the
+  formation distance (route 2) and on the mass and temperature
+  (retention); the drawn recipe gives the ranges of the partial
+  pressures, which are normalised so the mixture, the pressure and the
+  molar density agree. Weights carry their source or are `open`.
 
 - [ ] **GEN.412 Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8232,6 +8252,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tolerance; where the inverse has no solution it says so and the
   migration draws from the class range, seeded.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): this item has no table of its own: it records the
+  albedo and greenhouse multiplier the drawn recipe (GEN.411) and the
+  ground (GEN.462) give; the only new rule is that it reads the row the
+  loader drew and never a fixed per-class value.
   Prerequisites: GEN.409. Related: DB.67, GEN.85, GEN.355.
 
 - [ ] **GEN.413 Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance**
@@ -8725,7 +8751,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a row without one; the licence question of the cross-section files
   (Mainz, Serdyuchenko, Heays 2017, Huebner 2015) is open (master
   section 6 item 13 of docs/design/atmosphere-composition.md).
-  Prerequisites: GEN.426, GEN.437, GEN.438. Related: GEN.410, GEN.428.
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): the material table carries the supported-classes gate
+  on each row (iron and its alloys, the silicates, the ices by pressure
+  phase, the envelopes) with the source and licence column of the F5
+  rule, so the bulk recipes of GEN.428 and the taxon rows of GEN.457
+  draw only among the materials a class can hold.
+  Prerequisites: GEN.426, GEN.437, GEN.438, GEN.472. Related: GEN.410,
+  GEN.428.
 
 - [ ] **GEN.428 Planets and moons draw their bulk composition fractions instead of carrying a fixed text**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -8802,8 +8836,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test target here and in TEST.210), not 3.9 to 5.4. Core mass fraction
   from the star is 0.2 to 0.47 with the Thiabaud box used only as a
   plausibility box.
-  Prerequisites: GEN.427, GEN.440, GEN.458. Related: GEN.429, DB.69,
+  Prerequisites: GEN.427, GEN.440, GEN.458, GEN.472. Related: GEN.429,
+  DB.69,
   GEN.430.
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): the bulk composition is drawn as a possibility: the
+  rows are the recipes (for example an iron-rich, a silicate-dominated,
+  a volatile-rich and a gas-envelope recipe, the set to be named by
+  GEN.426 from the research and never from the Solar System), each with
+  its supported classes and a weight that is a function of the host
+  star's abundances (GEN.440), the formation distance and the system's
+  snow line (GEN.458); the fractions the recipe's ranges give are then
+  drawn and normalised to one. Route 1 (the inverse, from an imported
+  density) bypasses the draw. Depends on the loader GEN.472; add it to
+  the prerequisites at the next design pass.
 
 - [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -9065,6 +9112,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a row without one; the licence question of the cross-section files
   (Mainz, Serdyuchenko, Heays 2017, Huebner 2015) is open (master
   section 6 item 13 of docs/design/atmosphere-composition.md).
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): the element table is a constants table, not a draw: it
+  has no weights and no class gate (it gains the source and licence
+  columns of the format); the weights that use it are the abundance rows
+  of GEN.439 and the recipes above it, which is why it is not a
+  possibility table itself.
   Prerequisites: GEN.437. Related: GEN.410, GEN.427, GEN.439, GEN.444.
 
 - [ ] **GEN.439 The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers**
@@ -9103,7 +9157,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   K abundances (A-D5, read by GEN.459). The neutron-star radius is
   GEN.463's, not this table's, until Boss's decided replacement lands.
   Abundance scale: Asplund 2021 (Decided, 1:24 AM EDT).
-  Prerequisites: GEN.435, GEN.437, GEN.438. Related: GEN.440, GEN.428.
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): the abundance relations become gated rows: each row is
+  a population (thin disk, thick disk, halo, bulge, young cluster) and a
+  remnant or star kind, with the supported classes as the gate and a
+  weight or weight function (of [Fe/H], age and galactocentric position)
+  that comes from its relation's source with the scatter stated; the
+  weights of the rows that pass add up to 100 percent and a row without
+  a source is `open`.
+  Prerequisites: GEN.435, GEN.437, GEN.438, GEN.472. Related: GEN.440,
+  GEN.428.
 
 - [ ] **GEN.440 Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9135,7 +9199,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against [Fe/H], from a cited solar abundance set (the check typed
   Asplund-style values from memory; Lodders 2003 and Asplund 2009 were
   not read).
-  Prerequisites: GEN.439. Related: GEN.428, GEN.446, GEN.158, GEN.242,
+  Prerequisites: GEN.439, GEN.472. Related: GEN.428, GEN.446, GEN.158,
+  GEN.242,
   GEN.243, GEN.252, GEN.269, GEN.253, GEN.249.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): it reads each star kind and flag the other items add
@@ -9155,6 +9220,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Wolf-Rayet types, Pop III) and A-D5 (birth radioisotopes); whether any
   of it is stored is the open point of GEN.435. The disk solids law
   reads Z / Z0 (GEN.464).
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): the derived star composition draws its row
+  (population, kind) through the loader from the stored [Fe/H], age and
+  population, so the gate is the star's kind and the weight function is
+  the star's own stored values; no new column, and the derived fractions
+  are normalised after the draw.
 
 - [ ] **GEN.441 Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9182,7 +9254,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shares sum to one, agree with its bulk fractions and its temperature,
   and the ground's albedo and radiogenic content can be read from them;
   a test says so for every class.
-  Prerequisites: GEN.428, GEN.429, GEN.459, GEN.461. Related: DB.70,
+  Prerequisites: GEN.428, GEN.429, GEN.459, GEN.461, GEN.472. Related:
+  DB.70,
   GEN.444, GEN.418,
   GEN.412.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
@@ -9197,6 +9270,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (Hayne laws, Gundlach and Blum conduction, E12); the radiogenic heat
   of GEN.459 and the hydrosphere of GEN.461 come first; the albedo by
   band is GEN.462.
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): the surface and crust composition is drawn from gated
+  rows (the mineral, ice and ocean covers a class and temperature can
+  hold) with the weight a function of the bulk fractions, the
+  temperature and the air; ground albedo (GEN.462) is then the
+  area-weighted result.
 
 - [ ] **GEN.442 Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9240,9 +9320,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Class D density replacement (finding F3): rock mass fraction from a
   truncated normal on [0.45, 0.95], a parametrisation to replace when
   sourced. The moons are GEN.466.
-  Prerequisites: GEN.428, GEN.429, GEN.458, GEN.459, GEN.470. Related:
+  Prerequisites: GEN.428, GEN.429, GEN.458, GEN.459, GEN.470, GEN.472.
+  Related:
   DB.70,
   GEN.360, GEN.441.
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): the taxon and comet rows (the S, C, X and D-type taxa,
+  comet and Kuiper-belt volatile classes) are possibilities gated by the
+  object kind, with a weight that is a function of a / a_snow (the zone
+  kernel of part D) and the host star.
 
 - [ ] **GEN.443 Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9675,9 +9762,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (hydrogen, helium and the metals sum to the drawn metallicity), the
   dominant carbon and nitrogen carriers by temperature, and determinism.
   Owner: Core 4 (proposed).
-  Prerequisites: GEN.410, GEN.411, GEN.460. Related: GEN.409, GEN.410,
+  Prerequisites: GEN.410, GEN.411, GEN.460, GEN.472. Related: GEN.409,
+  GEN.410,
   GEN.411,
   GEN.419, GEN.451.
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): the giant and brown-dwarf mixtures are possibility
+  rows gated by the class (cool giant, ice giant, warm giant, hot
+  Jupiter, T and L dwarf), with weights that follow temperature,
+  pressure, metallicity and quench from the equilibrium sequence; the
+  element budget keeps the fractions normalised.
 
 - [ ] **GEN.455 Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -9703,7 +9798,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against the source and loss rates of part 04 within the stated spread,
   and that a body with an atmosphere of any pressure never gets an
   exosphere. Owner: Core 4 (proposed).
-  Prerequisites: GEN.441, GEN.442, GEN.410. Related: GEN.409, GEN.410,
+  Prerequisites: GEN.441, GEN.442, GEN.410, GEN.472. Related: GEN.409,
+  GEN.410,
   GEN.441, GEN.442, DB.70, GEN.446.
   Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
   composition thread and routed by the coordinator to the Atmosphere
@@ -9719,6 +9815,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   D read (CO/H2O median 3.3 with range 0.3 to 26 and CO2/H2O median 12
   with range 2 to 30 in Harrington Pinto 2022; 67P CH4 0.34 and NH3 0.67
   percent), but the lower CO bound of 0.15 percent was not found.
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): the exosphere and coma recipes are gated rows by body
+  kind (airless rocky, comet, icy moon), with the weights from the
+  surface composition (GEN.441) and the star's wind.
 
 - [ ] **GEN.456 Lava worlds and hot rocky planets draw a vapour atmosphere over the magma from the surface composition and temperature: sodium, potassium, silicon monoxide, magnesium, iron and the oxides**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -9743,7 +9844,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   three melt temperatures within the stated spread, that the partials
   sum to the surface pressure, and determinism. Owner: Core 4
   (proposed).
-  Prerequisites: GEN.441, GEN.410, GEN.411, GEN.414, GEN.451. Related:
+  Prerequisites: GEN.441, GEN.410, GEN.411, GEN.414, GEN.451, GEN.472.
+  Related:
   GEN.409,
   GEN.410, GEN.411, GEN.414, GEN.418, GEN.441.
   Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
@@ -9762,6 +9864,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   redox state of GEN.451 (the lava planet's oxygen fugacity sets the
   vapour); the sources named in Boss's note (Schaefer, Lodders and
   Fegley 2012, LavAtmos) were not read.
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): the lava-world vapour recipes are gated rows by the
+  surface composition and temperature (the redox state of GEN.451 sets
+  the weights), so the vapour is one drawn recipe whose partial
+  pressures are normalised.
 
 - [ ] **GEN.457 The small bodies and moons composition design: the taxon and comet draws, compaction, the moon origin types and the ice fraction**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -9793,6 +9901,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Kuiper-like object, a regular moon and a captured moon, as test
   targets only) and the test targets, and Boss approves it. Owner: Core
   4 (proposed, with the composition chain).
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): the small-body design writes its tables in the gated
+  format: the taxon table, the comet volatile table and the moon origin
+  table (disk, impact, captured, ring, binary) are possibility tables
+  with the supported classes and weights of part D (the zone-weight
+  kernel in a / a_snow) and a source each; the note lists every open
+  weight.
   Prerequisites: none. Related: GEN.426, GEN.442, GEN.466, GEN.437.
 
 - [ ] **GEN.458 Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes**
@@ -9824,6 +9940,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   constant. Owner: Core 4 (proposed, with the composition chain).
   Prerequisites: GEN.426. Related: GEN.426, GEN.428, GEN.442, GEN.461,
   GEN.466, DB.69.
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): no table: the snow line is a drawn scalar (0.2 dex
+  around the 170 K position) that the gated weights of GEN.428, GEN.442
+  and GEN.466 take as an argument.
 
 - [ ] **GEN.459 One radiogenic module: heat from the isotope-wise decay of potassium, thorium, uranium and aluminium-26, drawn from the host star's abundances, replaces the bulk-silicate values that are 37 to 50 percent too high and the separate ground-dose draw (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -9869,6 +9990,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/atmosphere-composition.md); the lane's parts A and E hold
   the read abundance trends. Awaiting verification; not a verified
   input, and every number stays labelled by what the lane read.
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): no table: the radiogenic heat is derived from the host
+  star's abundances through the isotope rows of the element table, and
+  does not draw a recipe.
 
 - [ ] **GEN.460 Giant planets and brown dwarfs get their radius and heavy-element content from the checked laws: the heavy-element mass law, the Fortney and Baraffe tables with inflation, and the burning limits shifted by metallicity and helium (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -9916,6 +10042,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the lane reported): the Thorngren exponent matches (0.61) but the
   scatter is 0.26 dex (factor 1.82) in the paper as read, not 0.3 to 0.5
   dex; keep 0.26 dex.
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): no table: the giants' radius and heavy-element content
+  follow the checked laws; the recipe weights of GEN.454 supply its
+  heavy-element mass.
 
 - [ ] **GEN.461 The hydrosphere reads the stored water mass fraction: the compressed water-layer depth, the base pressure, the high-pressure ice and the liquidus are recomputed, and the class label follows from the water share (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -9957,6 +10088,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   B/T (Sloan and Koh 2007, Choukroun 2010); the Venus acid part belongs
   to GEN.414. Awaiting verification; not a verified input, and every
   number stays labelled by what the lane read.
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): no table of its own: the hydrosphere reads the water
+  fraction of the drawn bulk recipe (GEN.428) and the surface rows of
+  GEN.441.
 
 - [ ] **GEN.462 Ground albedo by band: the area-weighted colour of the ground, ice and ocean cover with space weathering, handed to the atmosphere colour once**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -9984,6 +10120,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed, with the composition chain).
   Prerequisites: GEN.441, GEN.442. Related: GEN.412, GEN.418, GEN.441,
   GEN.442, MAP.244, DB.70.
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): no table of its own: the ground albedo by band is the
+  area-weighted result of the drawn surface rows (GEN.441), each
+  carrying the band albedo of its material row in GEN.427.
 
 - [ ] **GEN.463 The neutron star's radius is derived from sourced mass-radius relations instead of the fixed range of 10 to 13 km (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -10035,6 +10176,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   table at [Fe/H] of 0, -0.5, -1 and -2 for the thin disc and the
   high-alpha branch, and determinism. Owner: Core 4 (proposed, with the
   composition chain).
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): no table: the solids law reads the star's Z over Z0
+  and gives the weight functions of GEN.428 their argument.
   Prerequisites: GEN.440. Related: GEN.405, GEN.435, GEN.439, GEN.440.
 
 - [ ] **GEN.465 A second extraction pass over the sources the body and atmosphere research could not reach and that are reachable now**
@@ -10088,8 +10233,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the parent beyond the ice line in the physical direction, the same
   system gives the same moons at any worker count, and a test says so.
   Owner: Core 4 (proposed, with the composition chain).
-  Prerequisites: GEN.428, GEN.429, GEN.442, GEN.458. Related: GEN.442,
+  Prerequisites: GEN.428, GEN.429, GEN.442, GEN.458, GEN.472. Related:
+  GEN.442,
   GEN.457, GEN.461, DB.70.
+  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  docs/design/composition-model.md; format and loader GEN.472, the sum
+  test TEST.214): the moon origin types are the rows of one gated table
+  (the origin type is the possibility, the supported classes are the
+  parent's class and the moon's size range), with the weights from the
+  parent, the circumplanetary ice line and the age; the ice fraction and
+  composition follow from the drawn row.
 
 - [ ] **GEN.467 The main-sequence lifetime is derived from sourced stellar relations instead of the fixed 10 Gyr for one solar mass and a power law of -2.5 (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -10230,6 +10383,54 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and determinism. Owner: Core 4 (proposed, with the composition chain).
   Prerequisites: GEN.461, GEN.427. Related: GEN.427, GEN.441, GEN.461,
   GEN.466, GEN.456.
+
+- [ ] **GEN.472 One gated possibility-table format and loader: every composition category is a table of possibilities with a class gate and a weight, drawn by the normalised weights of the rows that pass**
+  Boss (2026-10-17, 1:40 AM EDT, typed in the project chat): "We have to
+  add to our composition plans that what I'd like to do is for each
+  composition have a list of possibilities with their weighted
+  probabilities (for all compositions, each category will have a table
+  of possibilities and their associated values). So, list items will be
+  gated, each table line has a list of supported planet or object
+  classes and then we draw composition based on the composition
+  probabilities to add up to 100%." The coordinator answered yes in the
+  project chat with two refinements, taken here as the design: a weight
+  may be a function of the star and the formation distance (the route 2
+  draw, Decided 1:21 AM EDT), and every weight carries its source
+  (nothing invented, the standing no-fixed-content rule). Do: one
+  standard row format and one loader that every composition table uses,
+  with the columns possibility, supported classes (the class gate: the
+  planet, moon, star or object classes the row applies to), weight or
+  weight function, source and licence, and notes. The draw takes the
+  rows whose gate passes the body, evaluates each weight (a number, or a
+  function of the star's stored [Fe/H], mass and age and of the
+  formation distance and the snow line), drops rows whose weight is
+  zero, normalises the rest to add up to 100 percent and picks one with
+  the one random wrapper (GEN.56 draw.py) in the table's fixed row
+  order; a row then supplies the ranges its drawn fractions or partial
+  pressures take, and those fractions are normalised by their own item
+  (the mixture in GEN.411, the bulk fractions in GEN.428), so two
+  different sums are checked, the weights of the possibilities and the
+  fractions of the drawn one. A table in which no row passes the gate,
+  or in which every weight is zero, raises an error naming the class and
+  the table: there is no silent fallback to a fixed row. The loader
+  refuses a row without a source and a licence (the F5 rule of the Body
+  composition research lane), and a weight with no source is written
+  `open`: open rows of one gate split their share equally, the loader
+  lists every open weight in one report, and each is replaced when a
+  source or a derivation is found. Adding, removing or reweighting a row
+  changes the draws of every seed in its classes, so each table carries
+  a version and a change to it is a generator epoch bump
+  (src/tests/golden/epochs.json). The tables register themselves with
+  the loader, so a sweep can walk all of them. Done: unit tests on
+  synthetic tables cover the gate, a weight function, normalisation to
+  100 percent within 1e-12, the empty-gate and all-zero errors, the
+  refusal of a row without a source, the open-weight report and
+  determinism at any worker count; the format is written up in
+  docs/design/composition-model.md section 4b and the first real tables
+  (GEN.410, GEN.427, GEN.439) load through it. Owner: Core 4 (proposed,
+  with the composition chain).
+  Prerequisites: GEN.437. Related: GEN.410, GEN.427, GEN.428, GEN.439,
+  GEN.411, GEN.56, GEN.457, GEN.466.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -13854,6 +14055,10 @@ clears each one.
   planet, moon and star class, built as a census check on TEST.186's
   harness; TEST.209, TEST.210, TEST.211 and TEST.212 are four rule sets
   over it, not four builds.
+  Boss's gated possibility-table rule (1:40 AM EDT): the atmosphere
+  recipe rows of GEN.411 are covered by the registry sum test TEST.214;
+  this sweep checks the consistency of the drawn recipe with the text,
+  the temperature, the ozone and the aerosols.
 
 - [ ] **TEST.210 A bulk composition sweep over every class: fractions, density, mass, radius and gravity agree**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -13897,6 +14102,9 @@ clears each one.
   water fraction (about 6e-3), porosity is zero above the compaction
   pressure, and class D density is below 3000 kg/m3 for a rock fraction
   below 0.9.
+  Boss's gated possibility-table rule (1:40 AM EDT): the bulk recipe
+  rows of GEN.428 are covered by the registry sum test TEST.214; this
+  sweep checks the drawn fractions, density, mass and gravity.
 
 - [ ] **TEST.211 A star composition sweep: every kind of star, remnant and brown dwarf, fractions, trends and determinism**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -13930,6 +14138,10 @@ clears each one.
   invariants of its section 3.5 (X + Y + Z = 1, the targets of its
   section 4) and a distribution test of 1e5 draws against the Bensby and
   Feltzing quantiles and the Thiabaud box shares (A-V1, A-V2).
+  Boss's gated possibility-table rule (1:40 AM EDT): the weights of the
+  star-composition rows that pass a star's gate add up to 100 percent;
+  the check is TEST.214's registry walk and this sweep adds the
+  star-specific cases.
   Prerequisites: GEN.440. Related: TEST.210, GEN.439.
 
 - [ ] **TEST.212 A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition**
@@ -13979,6 +14191,34 @@ clears each one.
   passes under the same load, with no quarantine. Owner: Bug Hunt
   (proposed).
   Prerequisites: none. Related: TEST.194, TEST.126.
+
+- [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
+  Boss (2026-10-17, 1:40 AM EDT, typed in the project chat): "We have to
+  add to our composition plans that what I'd like to do is for each
+  composition have a list of possibilities with their weighted
+  probabilities (for all compositions, each category will have a table
+  of possibilities and their associated values). So, list items will be
+  gated, each table line has a list of supported planet or object
+  classes and then we draw composition based on the composition
+  probabilities to add up to 100%." Boss's check: the weights of the
+  rows that pass a class's gate add up to 100 percent. Do: one test
+  walks the registry of the possibility-table loader (GEN.472), so a
+  table added later is covered without a change to the test, and for
+  every table and every class in the code's class lists builds the gated
+  set at a sweep of stars and formation distances (the weight functions'
+  arguments), and checks that the normalised weights add up to 1.0
+  within 1e-12, that the gate of no class is empty, that no row has a
+  weight below zero or without a source and a licence, that the `open`
+  weights are reported and their number does not grow without a note,
+  and that a table in the code which is not registered fails the test
+  (no composition table outside the loader). It also checks the second
+  sum: the fractions or partial pressures a drawn row supplies add up to
+  one for a seeded sample of every class. Done: the test passes on every
+  table the build has and fails when a weight, a gate or a source is
+  broken on purpose in a copy of a table. Owner: Core 4 (proposed, with
+  the composition chain).
+  Prerequisites: GEN.472, GEN.410, GEN.427, GEN.439. Related: TEST.211,
+  TEST.210, TEST.209, GEN.428, GEN.411.
 
 ## USR: User accounts
 
