@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1626] - 2026-10-17
+
+**Headline:** The stellar evolution fixes for horizontal-branch and giant stars are done, and the old Yerkes class III range is filed.
+
+### Changed
+- GEN.286 and GEN.287 (horizontal branch, asymptotic giant branch and the red giant luminosity law, #1932) leave the TODO list; GEN.322 notes that earlier galaxies need `planetgen plan --redo-scatters mass luminosity` because the halo rows at the 500 floor fall from about 3.8 million to about 190,000.
+
+### Added
+- GEN.396: revisit the Yerkes class III luminosity range, which sits above many dim red giants.
+
+TODO items resolved: GEN.286, GEN.287 / Added: GEN.396
+
 ## [8.0.1625] - 2026-10-17
 
 **Headline:** Old stars now have a horizontal branch and an asymptotic giant branch, and their red giant branch spends its time at each luminosity as a real one does, so the bright-giant counts match real ones.
