@@ -29,6 +29,7 @@ from planetgen.db.store import get_galaxy_shape
 from planetgen.galaxy import objectref as object_ref
 from planetgen.galaxy.spherical import sector_address_at, sectors_along_segment
 from planetgen.physics.units import ly_to_pc, mpc_to_pc, pc_to_ly
+from planetgen.util import detmath
 
 _CHUNK = 500
 """int: Ids per `IN (...)` list."""
@@ -50,16 +51,16 @@ def segment_distance(point, start, end):
     dx, dy, dz = end[0] - ax, end[1] - ay, end[2] - az
     length_squared = dx * dx + dy * dy + dz * dz
     if length_squared == 0.0:
-        return math.dist(point, start), 0.0
+        return detmath.dist(point, start), 0.0
     t = ((point[0] - ax) * dx + (point[1] - ay) * dy + (point[2] - az) * dz) / length_squared
     t = max(0.0, min(1.0, t))
     nearest = (ax + t * dx, ay + t * dy, az + t * dz)
-    return math.dist(point, nearest), t * math.sqrt(length_squared)
+    return detmath.dist(point, nearest), t * math.sqrt(length_squared)
 
 
 def _pieces(start, end, reach):
     """The segment cut into `(midpoint, half_length)` pieces."""
-    length = math.dist(start, end)
+    length = detmath.dist(start, end)
     count = max(1, min(MAX_PIECES, math.ceil(length / (PIECE_RATIO * max(reach, 1e-9)))))
     pieces = []
     for index in range(count):

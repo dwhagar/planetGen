@@ -55,3 +55,9 @@ Account bookmarks, user API keys, the one-off system page, the home field and th
 | USR.8 | Every signed-in user can generate a one-off system | USR.26 | Boss 05:16Z. Today /admin/generate/system is admin-only and only admin accounts exist, so no earlier step is needed. Open question: per-user limit (default 30 an hour, admins unlimited). |
 | USR.9 | `seo.privacy_note` text, "download my data" and "delete my account" on the account page | USR.7, USR.26 | Research suggestion; not requested. |
 | USR.11 | A "home" field on user accounts: where the Galaxy Map zooms to when it opens | MAP.189, MAP.190 |  |
+
+### Halo mass research
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.399 | Research the halo mass function and compare it with the halo mass approximation GEN.368 uses | GEN.368, GEN.400 | Boss 10:11 PM EDT; research and comparison; Core 1 proposed (it writes GEN.368). |

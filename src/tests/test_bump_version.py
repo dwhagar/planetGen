@@ -415,6 +415,33 @@ def test_check_pr_rejects_a_jump_of_two_epochs(tmp_path):
     assert any("by one at most" in p for p in bump_version.check_pr(root, "main"))
 
 
+def _no_golden_repo(tmp_path):
+    root = _make_repo(str(tmp_path))
+    _epochs(root, 1)
+    _init_git(root)
+    _git(root, "checkout", "-q", "-b", "feature")
+    return root
+
+
+@needs_git
+def test_with_no_golden_file_checked_in_the_epoch_and_the_note_go_together(tmp_path):
+    root = _no_golden_repo(tmp_path)
+    _epochs(root, 2, pending=True)
+    _commit(root, GENERATION_NOTE)
+    assert bump_version.check_pr(root, "main") == []
+
+
+@needs_git
+@pytest.mark.parametrize("epoch, line, missing", [(True, False, "generation-output"), (False, True, "epoch bumped")])
+def test_with_no_golden_file_a_lone_epoch_or_note_line_is_still_refused(tmp_path, epoch, line, missing):
+    root = _no_golden_repo(tmp_path)
+    if epoch:
+        _epochs(root, 2, pending=True)
+    _commit(root, GENERATION_NOTE if line else FIXED_NOTE)
+    problems = bump_version.check_pr(root, "main")
+    assert len(problems) == 1 and missing in problems[0] and "golden files changed" not in problems[0].split("but not")[1], problems
+
+
 @needs_git
 def test_the_pr_that_adds_the_counter_is_not_held_to_the_rule(tmp_path):
     root = _make_repo(str(tmp_path))

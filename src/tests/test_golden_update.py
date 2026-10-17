@@ -77,3 +77,12 @@ def test_a_second_run_in_the_same_change_does_not_bump_twice(tmp_path):
         f.write("three")
     assert golden_update.bump("again", root, environ={}) == 2
     assert [entry["epoch"] for entry in _epochs(root)] == [1, 2]
+
+
+@needs_git
+def test_with_no_golden_file_yet_the_epoch_bumps_on_a_reason_alone(tmp_path):
+    root = _repo(tmp_path)
+    _git(root, "rm", "-q", "-f", os.path.join(golden_update.GOLDEN_DIR, "sector.txt"))
+    _git(root, "commit", "-q", "-m", "no golden files")
+    assert golden_update.bump("the maths moved", root, environ={}) == 2
+    assert _epochs(root)[-1]["pending"] is True

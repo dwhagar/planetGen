@@ -65,8 +65,9 @@ def test_bright_fraction_matches_the_whole_model(young_brute_force):
 
 
 def test_bright_fraction_of_the_whole_disk_is_well_under_a_thousandth():
-    # The galaxy studies' estimate: ~7e-4 of all stars at >= 500 Lsun.
-    assert 4e-4 < sp.bright_star_fraction(THRESHOLD) < 1e-3
+    # About 2.2e-4 of all stars at >= 500 Lsun. The galaxy studies' older estimate was ~7e-4, from a giant branch
+    # spread evenly in log luminosity; with the time-at-luminosity law (GEN.287) the old giants are far fewer.
+    assert 1.5e-4 < sp.bright_star_fraction(THRESHOLD) < 5e-4
     assert sp.bright_star_fraction(THRESHOLD, "young") > 5 * sp.bright_star_fraction(THRESHOLD, "old")
 
 
@@ -220,9 +221,9 @@ def test_the_dim_cap_never_removes_a_white_dwarf(monkeypatch):
     from planetgen.physics import stellar_evolution
     cap = prog_c.WD_LUMINOSITY_RANGE_SOL[1]
     white_dwarf = {"yerkes_class": "VII", "luminosity_sol": cap}
-    monkeypatch.setattr(stellar_evolution, "evolve_star", lambda mass, age, rng: dict(white_dwarf))
+    monkeypatch.setattr(stellar_evolution, "evolve_star", lambda mass, age, rng, **kwargs: dict(white_dwarf))
     assert stellar_evolution.sample_living_star(max_luminosity_sol=cap)[2] == white_dwarf
     giant = {"yerkes_class": "III", "luminosity_sol": cap}
-    monkeypatch.setattr(stellar_evolution, "evolve_star", lambda mass, age, rng: dict(giant))
+    monkeypatch.setattr(stellar_evolution, "evolve_star", lambda mass, age, rng, **kwargs: dict(giant))
     with pytest.raises(ValueError):
         stellar_evolution.sample_living_star(max_luminosity_sol=cap)

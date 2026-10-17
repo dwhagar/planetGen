@@ -722,3 +722,11 @@ Baseline: PR #1817.
 | GEN.283 | 8.1 | Galactic core and halo |
 | ADM.85 | 8.1 | Settings page |
 | UX.116 | 8.1 | Galactic core and halo |
+| API.27 | 8.1 | Region query |
+| UX.113 | 8.1 | Region query |
+| ADM.43 | 8.1 | Settings page |
+| ADM.44 | 8.1 | Settings page |
+| GEN.135 | 8.1 | Reproducible galaxies |
+| TEST.205 | 8.1 | Bugs and flaky tests |
+| GEN.286 | 8.1 | Galactic core and halo |
+| GEN.287 | 8.1 | Galactic core and halo |

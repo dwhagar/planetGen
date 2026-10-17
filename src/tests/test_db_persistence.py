@@ -24,6 +24,8 @@ import time
 
 import pytest
 
+from planetgen.util import detmath
+
 from planetgen.db import store
 from planetgen import tuning
 from planetgen.physics import constants as pc
@@ -1419,7 +1421,7 @@ def test_system_grid_nearest_matches_brute_force():
     grid = store._SystemGrid(systems)
     for _ in range(50):
         point = (rng.uniform(-5, 5), rng.uniform(-5, 5), rng.uniform(-5, 5))
-        brute = sorted((math.dist(point, p), i) for i, p in systems if math.dist(point, p) <= 4.0)[:3]
+        brute = sorted((detmath.dist(point, p), i) for i, p in systems if detmath.dist(point, p) <= 4.0)[:3]
         assert grid.nearest(point) == brute
 
 
@@ -1523,8 +1525,8 @@ def test_sectors_linked_later_get_the_links_they_would_have_had_at_save(mysql_co
                                   milliparsecs_to_ly(row["z"]))
         limit_ly = pc_to_ly(store.NEAREST_SYSTEMS_SEARCH_PC)
         for system_id, point in systems.items():
-            expected = sorted((math.dist(point, other), other_id) for other_id, other in systems.items()
-                              if other_id != system_id and math.dist(point, other) <= limit_ly)
+            expected = sorted((detmath.dist(point, other), other_id) for other_id, other in systems.items()
+                              if other_id != system_id and detmath.dist(point, other) <= limit_ly)
             stored = conn.execute(
                 "SELECT neighbor_system_id AS n FROM nearest_systems WHERE object_table = 'star_systems'"
                 " AND object_id = ? ORDER BY neighbor_rank", (system_id,)).fetchall()
