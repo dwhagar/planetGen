@@ -7325,7 +7325,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Mass limits: the first family's range is 3e9 to 2e11 solar stellar
   mass (Boss, 2026-10-16, 9:40 PM EDT, reported by Core 1); GEN.378
   states the other families' ranges.
-  Prerequisites: GEN.378, GEN.379, GEN.401. Related: GEN.368,
+  Prerequisites: GEN.378, GEN.379. Related: GEN.368,
   GEN.369, GEN.381.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
@@ -7372,7 +7372,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   can produce, never as defaults. No fixed content (Boss, 4:11 and 4:14
   PM EDT): no named galaxy, preset or hand-set value; reference galaxies
   only check the result.
-  Prerequisites: GEN.379, GEN.380, GEN.401. Related: GEN.134, GEN.369.
+  Prerequisites: GEN.379, GEN.380. Related: GEN.134, GEN.369.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.383 The elliptical family: Sérsic index and size from mass, intrinsic axis ratios, no disk, arms or bar, an old population**
@@ -7822,124 +7822,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.400).
   Prerequisites: none. Related: GEN.368, GEN.378, GEN.380.
 
-- [ ] **GEN.401 The shape of the stars from the stellar mass: disk length and height, thick disk, bulge, bar and arms replace the generate defaults**
-  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
-  source Shen et al. 2003, approximation for the halo mass, no home
-  position, every derived law draws its natural scatter from the seed,
-  the first family covers 3e9 to 2e11 solar stellar mass; paper check
-  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
-  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
-  1's docs PR merges; draft
-  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Rows 4 to
-  6 and 5.13.5. `draw_galaxy(seed, family)` runs the mass chain and
-  returns the shape; `build_galaxy_shape` calls it and the plan and
-  Generate defaults become "drawn from the seed". The disk scale length
-  follows Shen et al. 2003 (the van der Wel relation only cross-checks
-  the scatter); the height follows the thickness law; the thick disk
-  keeps a stated ratio to the thin disk with a research request in the
-  note; bulge-to-total, bulge size, bar fraction, bar length, arm count
-  and pitch angle follow the table, and the arm-direction conflict
-  between the sources is decided here and written in the doc. The old
-  numbers (scale length 2,600 pc, height 300 pc, bulge 3.11, COBE bar
-  1,580 pc) go. GEN.378 extends this to every family, so the function
-  takes a family argument and the spiral family is its first. Done: the
-  shape of a draw has every parameter inside its stated range; the laws
-  over many seeds follow the stated trends (size with mass, bulge share
-  with stage, bar fraction); the same seed gives the same shape; the
-  `generate` command, the web page and the stored shape read the drawn
-  values. No fixed content (Boss, 4:11 and 4:14 PM EDT): no Milky Way
-  preset or option; the real values are only plausibility targets
-  (GEN.366). Each law is written with its source named in the code and
-  the doc; the scatter is a log-normal drawn through
-  `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
-  compatibility shim: the old constant goes in the same change. A change
-  that alters the generator output follows the epoch rule. Owner: Core 1
-  (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 1 of 43). This replaces any earlier owner line on this item.
-  Research landed (GEN.406 retired, 2026-10-17, about 10:42 AM EDT;
-  docs/design/galaxy-laws-research.md, sections Q1, Q3, Q5, Q7). Re-read
-  before the lane goes further: (1) the stellar halo anchor 1.5e9 is a
-  Milky Way copy and wrong: Deason et al. 2019 gives 1.4 +/- 0.4e9 and
-  about 2% of the galaxy, not the 3% in the tuning.py docstring; the
-  halo law for 3e9 to 2e11 solar masses is a labelled placeholder f =
-  0.05 (M*/5e10)^0.79 with 0.33 dex scatter (no measured law below
-  3.8e10; request R1 on GEN.531); (2) the thick disk laws conflict with
-  Comeron 2018 and with the code's 0.769 length ratio (thick shorter, a
-  Milky Way star-count number): the external-galaxy ratio 1.15
-  (Vc/100)^-0.2 and the Yoachim and Dalcanton mass ratio are proposed
-  defaults, both carried and flagged in the note's conflicts 5 and 6;
-  (3) the tuning.py scale heights (50/300, 150/300, 1) and dispersions
-  (15, 25, 50) cannot both hold if height goes as dispersion squared:
-  take both from one law (note Q5 and Q3). Fills (2026-10-17,
-  gap-filling plan, docs/design/gap-filling-plan.md): the values this
-  item cannot source from a read paper are filled by the plan's section
-  5 (derived D, bracket B, theory prior T, or labelled placeholder P)
-  and registered in one stand-in registry (plan section 6: fill id,
-  kind, evidence label, source state, form, assumptions, validity range,
-  knobs, target id, falsifier test, replaced-by research item, sources,
-  licence, epoch). A lead such as Gemini may only widen a bracket, and
-  on a contradiction the verified source wins. A stand-in replaced later
-  changes stored output and rides the pending epoch. Galaxy gaps for
-  this item: GR1, GR10, GX5, GR14 (accreted halo integral of plan 4.2,
-  group X3, with the slope test against 0.79), GR3 bound and GR4 rule
-  (X2). Order X1, X2, X3. Decided (Boss, 2026-10-17, between 11:19 AM
-  and 11:23 AM EDT, card answers relayed in words by the coordinator;
-  docs/design/gap-filling-plan.md section 8): GX2 arm pitch against
-  bulge fraction: the sign is a 50/50 mixture and both sources stay
-  (Hart 2017, Yu and Ho 2018). GR5 (Courteau 2007 scatter) and GR3 rank
-  2 (Comeron 2011, 2012, 2014 tables): ship the plan's fills; a short
-  read-only VizieR search runs first, and a result replaces the fill
-  after this item merges. Papers list (2026-10-17, filed by the TODO
-  thread; docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for
-  the papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): Aumer and Binney 2009 (arXiv:0905.2512,
-  GR4) is readable by a thread; the Courteau and Comeron VizieR search
-  runs first (decision 6). VizieR search result (2026-10-17, finished
-  11:39 AM EDT as the coordinator reported;
-  docs/design/vizier-courteau-comeron.md): GR5 stays at the plan's fill
-  (log-normal 0.09 dex, bracket 0.06 to 0.12; the raw scatter of two
-  source samples is 0.104 to 0.123 dex, so 0.10 to 0.11 would match
-  them, and the true scatter about the Courteau relation is smaller and
-  unknown; the table is not reachable). GR3 rank 2 becomes the Comeron
-  2018 fit, J/A+A/610/A5: log10(M_thick/M_thin) = 2.113 - 1.086
-  log10(Vc), scatter 0.27 dex (the plan had 0.2), median height ratio
-  4.2 (the plan had 2.5) and median length ratio 1.46. 39 percent of the
-  124 real galaxies exceed the plan's hot-component bound, so the bound
-  test applies to the mean relation or carries a margin of 0.13 dex. The
-  replacement is a new stand-in version after this item merges (Core 1's
-  gate ends about 12:20 PM EDT). Gemini batch 1 check (2026-10-17,
-  finished 11:49 AM EDT as the lane clock reported;
-  docs/design/gemini-batch1-check.md): R2 tables: Illustris-1 median ex
-  situ fraction 0.026 at M* 1e9, 0.060 at 1e10, 0.12 at 4.7e10, 0.19 at
-  1e11, 0.34 at 2e11, 0.54 at 4.7e11, 0.72 at 1e12 (the low end of the
-  simulations); outer-component light fraction of the SDSS stacks, high
-  concentration 0.33 at 10.1, 0.53 at 10.9, 0.70 at 11.2, low
-  concentration 0.025, 0.18, 0.24 (log M* 10.0 to 11.4 only); the
-  crossover of 0.5 is at log M* 11.61, not 1.5e11. R5: Courteau scatter
-  0.097 dex about the paper's own line (by class: ellipticals 0.050, S0
-  to Sab 0.081, Sb to Sbc 0.095, Sc to Scd 0.076, lenticulars 0.133).
-  Thick-to-thin conflicts DECIDED, widen and keep both (Boss's cards,
-  tapped 12:02 PM EDT (read from the session log and relayed in words by
-  the coordinator)): the height ratio is drawn from 2.5 (Yoachim) to 4.2
-  (Comeron 2018, median 4.24), both trends kept, so the Comeron fit is
-  not only a second-ranked fill; the mass ratio against Vc is widened
-  between 0.53 (Vc/100)^-2.3 and 0.87 (Vc/100)^-1.09, both kept; the
-  Comeron heights and outer lengths against M* are in the check note.
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): GR3 for the Milky Way: Haywood 2013
-  gives M_thick/M_thin at least 0.2 and possibly up to about 1;
-  Gowanlock 2011 disc density forms give 0.24 and 0.29 [R]. Conflict to
-  widen and keep, not to resolve: the Knapen book's Comeron 2014
-  statement (hot-to-cold mass ratio independent of galaxy mass)
-  disagrees with the mass-dependent Comeron 2021 law the plan uses.
-  Pinna 2019a prints no thick-to-thin ratio (the digitized 0.45 is a
-  bin-mass ratio). The book's text layer loses minus signs: check any
-  sign taken from it against the primary paper.
-  Prerequisites: none. Related: GEN.378, GEN.382, GEN.366, GEN.134.
-
 - [ ] **GEN.402 The central black hole mass and the nuclear cluster follow the bulge: the M-bulge and M-sigma relations replace the fixed ranges**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
   source Shen et al. 2003, approximation for the halo mass, no home
@@ -8006,7 +7888,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass slope 0.48 (Neumayer 2020, zero point 6.51 at M* 1e9), against
   Georgiev 1.0 to 1.36: both kept (widened, Boss's decision 2); Gemini's
   0.65 is attributed to Neumayer and is not in the paper.
-  Prerequisites: GEN.401. Related: GEN.280, GEN.387, GEN.368.
+  Prerequisites: none. Related: GEN.280, GEN.387, GEN.368.
 
 - [ ] **GEN.403 The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -8125,7 +8007,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   through `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
   compatibility shim: the old constant goes in the same change. A change
   that alters the generator output follows the epoch rule.
-  Prerequisites: GEN.401. Related: GEN.144, GEN.405, MAP.190,
+  Prerequisites: none. Related: GEN.144, GEN.405, MAP.190,
   USR.11.
   Owner (coordinator, 2026-10-16, 10:16 PM EDT): Core 4 proposed (it
   owns the metallicity and star-density work in GEN.103 and GEN.134); it
@@ -13974,6 +13856,57 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   them. Recorded in the gap plan section 6.4 and 6, composition-model.md
   section 4a item 12 and atmosphere-composition.md section 11.
 
+- [ ] **GEN.532 The galaxy shape's thick disk, scale heights and stellar halo come from the research laws instead of the tuning.py numbers (the GEN.401 follow-up)**
+  Found by Core 1 while finishing GEN.401 (2026-10-17, 12:51 PM EDT as
+  the lane reported; GEN.401 merged as #2051), filed by the TODO thread.
+  GEN.401 now draws disk length and height, bulge radius and amplitude,
+  arm count and pitch angle from the seed. What it left, from the
+  GEN.406 research (docs/design/galaxy-laws-research.md) and the gap
+  plan (docs/design/gap-filling-plan.md): (1) the thick disk: the mass
+  ratio against Vc is widened between 0.53 (Vc/100)^-2.3 (Yoachim and
+  Dalcanton) and 0.87 (Vc/100)^-1.09 (Comeron 2018), both kept, the
+  length ratio is 1.15 (Vc/100)^-0.2 and the height ratio is drawn from
+  2.5 to 4.2 (Boss's card, 12:02 PM EDT, widen and keep both), replacing
+  the tuning ratios `THICK_DISK_*` (0.769 and 3, which are Milky Way
+  star-count numbers); the hot-component bound test applies to the mean
+  relation or carries a margin of 0.13 dex; (2) the scale heights
+  (50/300, 150/300, 1) and the dispersions (15, 25, 50) in `tuning.py`
+  come from one law, not two that cannot both hold; (3) the stellar halo
+  anchor 1.4e9 solar masses, about 2 percent of the galaxy (Deason
+  2019), replaces `HALO_MASS_SOLAR` 1.5e9, and the halo law for 3e9 to
+  2e11 solar masses is the labelled placeholder f = 0.05 (M*/5e10)^0.79
+  with 0.33 dex scatter (request R1 on GEN.531); (4) the Courteau
+  scatter of 0.097 dex (gap plan 4.9 and 7.2a) replaces the 0.09 dex
+  stand-in as a new stand-in version. Plan options already default to
+  'drawn' (done in #2051). Each value is registered in the stand-in
+  registry with its fill id and source state; the newest verified source
+  wins on a new conflict (Boss, 12:39 PM EDT) and the six
+  widen-and-keep-both answers stand. This changes numbers in `tuning.py`
+  and stored output, so it is a generator epoch change and rides the
+  pending epoch. Done: the thick-disk ratios, heights, dispersions and
+  halo anchor in `tuning.py` are replaced by the laws above with their
+  sources named in the code, the laws over many seeds follow the stated
+  trends, the same seed gives the same shape, the bound test passes, and
+  the epoch rule applies. Owner: Core 1 (proposed, GEN.401's author).
+  The stage rule of GEN.401 (Kelvin cumulative counts read as local
+  fractions) stays a listed stand-in (design note 5.13.8 and 5.13.6 item
+  6).
+  Prerequisites: none. Related: GEN.401, GEN.402, GEN.531.
+
+- [ ] **GEN.533 The galaxy shape draws bar presence, axes and angle from the seed into the DB.66 columns**
+  Found by Core 1 while finishing GEN.401 (2026-10-17, 12:51 PM EDT as
+  the lane reported; merged #2051), filed by the TODO thread. GEN.401
+  did not draw the bar by design: bar presence, the bar's axes and its
+  angle need the columns that DB.66 adds to the shape row (the bar
+  amplitude and axis ratios). Do: after DB.66, the draw decides from the
+  seed whether the galaxy has a bar (the bar fraction by stage from the
+  laws table), its length, axis ratios and angle, and stores them in the
+  DB.66 columns; the density model reads them. Done: the same seed gives
+  the same bar, the bar fraction over many seeds follows the stated
+  trend by stage, every parameter is inside its stated range, and the
+  epoch rule applies. Owner: Core 1 (proposed, GEN.401's author).
+  Prerequisites: DB.66. Related: GEN.401, GEN.378, DB.66.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.20 Short-term caching through the work queue and API**
@@ -14337,7 +14270,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   run_plan.py, cli/generate.py and web/generate_page.py, which GEN.401
   is changing (Core 1 reported those as its files); Core 5's small items
   fill the gap.
-  Prerequisites: PERF.97. Related: PERF.98.
+  GEN.401 merged (#2051, Core 1, 12:50 PM EDT as the lane reported), so
+  the wait on it is over: Core 5 can take the item (the coordinator told
+  Core 5 at 12:51 PM EDT).
+  Prerequisites: none. Related: PERF.98.
 
 - [ ] **PERF.107 The sector units and the stages around them: start, neighborhood, sectors, link, population and settle**
   Split from PERF.98 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -18199,6 +18135,25 @@ clears each one.
   so it is not part of a version's build; check the pinned version when
   the requirements are next locked.
   Prerequisites: none. Related: TEST.188.
+
+- [ ] **TEST.223 Two galaxy-map browser tests fail in a loaded full browser run and pass alone: the free camera from a window down, and forward to the current view (bug)**
+  Found by Core 1 in its GEN.401 gate (2026-10-17, 12:51 PM EDT as the
+  lane reported; `scripts/test.py changed --base origin/main`, build
+  55a74be6c17bdbce, 11:09 AM to 12:47 PM EDT, load about 10), filed by
+  the TODO thread.
+  `src/tests/test_web_browser_maps.py::test_galaxy_map_free_camera_from_a_window_down`
+  and
+  `src/tests/test_web_browser_maps.py::test_galaxy_map_forward_to_current_jumps_to_the_newest_view`
+  both failed in the full browser run (638 passed, 2 failed, 103
+  skipped) and both pass alone (15.73 s and 16.36 s on gw1 at load 10.4
+  and 10.7). The failure text was not relayed. Fails on main: not
+  checked. Frequency: 1 of 1 full runs each. Reproducer:
+  `scripts/test.py browser` while another gate is running. Same family
+  as TEST.213 and TEST.194 (waits too short under load). Done: the cause
+  of each is found, each test waits on the condition it needs and not a
+  fixed time, and both pass under the same load, with no quarantine.
+  Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.213, TEST.194.
 
 ## USR: User accounts
 
