@@ -285,7 +285,7 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 | `og.default_image` | text | empty | at once | any admin | none | The picture link previews show (a PNG or JPEG about 1200 by 630); empty uses the built-in one. Set it by uploading on the Images page. |
 | `og.twitter_card` | "summary" or "summary_large_image" | summary_large_image | at once | any admin | none | How X (Twitter) draws a preview: a large picture or a small one. |
 | `og.twitter_site` | text | empty | at once | any admin | none | The site's X (Twitter) account, as @name; empty names none. |
-| `og.generated_cards` | true or false | false | at once | any admin | none | Draw a preview picture per system and sector instead of one for the whole site. Off until a card drawer is installed (VIEW.3); every page then uses the default picture. |
+| `og.generated_cards` | true or false | false | at once | any admin | none | Draw a preview picture per system and sector instead of one for the whole site. Off until a card drawer is installed; every page then uses the default picture. |
 | `og.card_cache_mb` | number (MB) | 100 | at once | any admin | none | How much disk the drawn preview pictures may use. |
 | `og.card_cache_dir` | text | empty | at once | command line only | none | Where drawn preview pictures are cached; empty means the state folder. |
 | `mysql.host` | text | 127.0.0.1 | after a restart | command line only | `PLANETGEN_MYSQL_HOST` | The MySQL or MariaDB server's host name or address. |

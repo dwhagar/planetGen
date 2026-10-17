@@ -303,7 +303,7 @@
         },
         "generated_cards": {
           "default": false,
-          "description": "Draw a preview picture per system and sector instead of one for the whole site. Off until a card drawer is installed (VIEW.3); every page then uses the default picture.",
+          "description": "Draw a preview picture per system and sector instead of one for the whole site. Off until a card drawer is installed; every page then uses the default picture.",
           "title": "Generated Cards",
           "type": "boolean",
           "x-category": "og",

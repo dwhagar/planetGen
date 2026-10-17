@@ -377,7 +377,7 @@ class OpenGraph(_Section):
         "summary_large_image", "How X (Twitter) draws a preview: a large picture or a small one.", category="og")
     twitter_site: str = opt("", "The site's X (Twitter) account, as @name; empty names none.", category="og")
     generated_cards: bool = opt(False, "Draw a preview picture per system and sector instead of one for the whole "
-                                "site. Off until a card drawer is installed (VIEW.3); every page then uses the "
+                                "site. Off until a card drawer is installed; every page then uses the "
                                 "default picture.", category="og")
     card_cache_mb: float = opt(100, "How much disk the drawn preview pictures may use.", unit="MB", category="og",
                                ge=0)

@@ -503,3 +503,9 @@ def test_the_new_options_are_validated(config):
 def test_the_robots_boxes_are_multiline_on_the_settings_page(site, config):
     page = site.get("/admin/settings").get_data(as_text=True)
     assert '<textarea' in page and "Images (icons and link preview picture)" in page
+
+
+def test_the_error_page_for_an_undecodable_query_string_still_has_a_head(site, config):
+    _configure(config, base_url="https://galaxy.example.org/")
+    response = site.get("/classes", query_string=b"q=\xff\xfe")
+    assert response.status_code == 400 and "<title>" in response.get_data(as_text=True)

@@ -132,7 +132,10 @@ def head(title, description=None):
     settings = settingsModule.get_settings()
     endpoint = request.endpoint or ""
     index, follow = indexing_of(endpoint, settings)
-    query = canonical_query(request.args)
+    try:
+        query = canonical_query(request.args)
+    except (UnicodeDecodeError, ValueError):
+        query = []                                      # the error page for an undecodable query string
     klass = classify(endpoint)
     if klass in ("list", "top") and query and index:
         index = False                                   # ?page=N, filters: not indexed, but followed
