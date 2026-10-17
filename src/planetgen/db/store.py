@@ -1520,6 +1520,7 @@ def _check_marker(name, text):
 
 
 _VERSION_MARKERS = (
+    (107, _check_marker("chk_bright_stars_population", "satellite_young")),
     (106, lambda shape: "least(" in shape["generated"].get(("star_systems", "cell_key"), "")),
     (105, _check_marker("chk_bright_stars_population", "satellite")),
     (104, _column_marker("planets", "host_node_id")),

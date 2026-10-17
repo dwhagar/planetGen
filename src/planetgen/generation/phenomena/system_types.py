@@ -40,7 +40,7 @@ number in `test_system_type_rates._LANDED_OWNERS`, and the test then fails for
 a name the module lacks. The module exists since the member-tree generator."""
 
 POPULATIONS = ("young", "intermediate", "old", "bulge", "halo", "cluster", "satellite", "nuclear_cluster",
-               "nuclear_disc")
+               "nuclear_disc", "satellite_young", "satellite_intermediate")
 """tuple: The stellar populations of the sector profile's `mix` a type may be
 restricted to; `ANY` means all of them."""
 

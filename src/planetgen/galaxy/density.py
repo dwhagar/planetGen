@@ -42,6 +42,7 @@ from collections import namedtuple
 import numpy as np
 
 from planetgen import tuning
+from planetgen.galaxy import component_field as componentField
 from planetgen.galaxy import star_formation as starFormation
 from planetgen.util import detmath
 
@@ -527,6 +528,8 @@ def population_densities_array(x, y, z, shape):
     # per-band weights leave components to their own pass (GEN.161, GEN.240); the one-point form is the cell's.
     densities["cluster"] = np.zeros_like(densities["halo"])
     densities["satellite"] = np.zeros_like(densities["halo"])
+    densities["satellite_young"] = np.zeros_like(densities["halo"])
+    densities["satellite_intermediate"] = np.zeros_like(densities["halo"])
     densities["nuclear_cluster"] = shape.k_norm * _nuclear_cluster_array(np.sqrt(r_cyl ** 2 + np.square(z)), terms)
     densities["nuclear_disc"] = shape.k_norm * _nuclear_disc_array(r_cyl, z, terms)
     return densities
@@ -589,7 +592,9 @@ def _component_densities(position_pc, shape):
     """The components' part of the density at `position_pc` by kind (GEN.160, GEN.237): the systems the clusters and the
     satellites put in the cell's cube over the systems a cell holds at density 1, `0.0` each for a galaxy without."""
     components = shape.components
-    return {"cluster": 0.0, "satellite": 0.0} if components is None else components.densities(position_pc)
+    if components is None:
+        return dict.fromkeys(componentField.POPULATIONS_IN_THE_GATE, 0.0)
+    return components.densities(position_pc)
 
 
 def _component_density(position_pc, shape):
