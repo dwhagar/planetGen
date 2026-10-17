@@ -8179,7 +8179,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fails when a gas named anywhere in the code is missing from the table;
   every number has a source.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Prerequisites: GEN.409, GEN.437, GEN.438, GEN.472. Related: GEN.208,
+  Prerequisites: GEN.409, GEN.437, GEN.438, GEN.472, GEN.500. Related:
+  GEN.208,
   GEN.85,
   GEN.355, GEN.411, GEN.415, DB.71.
   Now an 8.1 data table (Boss, 11:58 PM EDT): it adds no behaviour until
@@ -8260,6 +8261,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (Mainz CC BY 4.0, Leiden citation request, JPL 19-5 public domain,
   Bremen unspecified, NMSU processed tables only) for the licence
   column.
+  Checked by the Body composition research lane against Boss's second
+  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
+  of docs/design/body-composition-research.md; the earlier 'awaiting
+  verification' note on this item is superseded for the body-related
+  claims): (part G4) licences: NIST SRD is copyrighted (permission
+  needed), JPL 19-5 is protected by copyright with US government purpose
+  use rights and is not public domain, only the 2013 Mainz snapshot
+  states CC BY 4.0, Leiden, Bremen and Karkoschka state none; derived
+  tables from NIST SRD, JPL 19-5, Leiden, Bremen and Karkoschka need
+  permission or a re-derivation from the primary measurements; the audit
+  is GEN.500, and the photolysis lifetimes are constants of this table
+  (GEN.496).
   Related: DB.71.
 
 - [ ] **GEN.411 The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree**
@@ -8960,7 +8973,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   phase, the envelopes) with the source and licence column of the F5
   rule, so the bulk recipes of GEN.428 and the taxon rows of GEN.457
   draw only among the materials a class can hold.
-  Prerequisites: GEN.426, GEN.437, GEN.438, GEN.472. Related: GEN.410,
+  Prerequisites: GEN.426, GEN.437, GEN.438, GEN.472, GEN.500. Related:
+  GEN.410,
   GEN.428.
   Boss (2026-10-17, 1:47 AM EDT, typed in the body composition thread):
   "basically anything an asteroid field or belt can be made of, a planet
@@ -8996,6 +9010,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/atmosphere-composition.md), recorded by the TODO thread as
   awaiting verification, not a verified input: the dataset licence table
   (see GEN.410) for the licence column.
+  Checked by the Body composition research lane against Boss's second
+  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
+  of docs/design/body-composition-research.md; the earlier 'awaiting
+  verification' note on this item is superseded for the body-related
+  claims): (part G4) licences: NIST SRD is copyrighted, JPL 19-5 is not
+  public domain, only the 2013 Mainz snapshot states CC BY 4.0, Leiden,
+  Bremen and Karkoschka state none; the licence column is mandatory and
+  the audit is GEN.500.
 
 - [ ] **GEN.428 Planets and moons draw their bulk composition fractions instead of carrying a fixed text**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -9396,7 +9418,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/atmosphere-composition.md), recorded by the TODO thread as
   awaiting verification, not a verified input: the dataset licence table
   (see GEN.410) for the licence column.
-  Prerequisites: GEN.437. Related: GEN.410, GEN.427, GEN.439, GEN.444.
+  Prerequisites: GEN.437, GEN.500. Related: GEN.410, GEN.427, GEN.439,
+  GEN.444.
+  Checked by the Body composition research lane against Boss's second
+  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
+  of docs/design/body-composition-research.md; the earlier 'awaiting
+  verification' note on this item is superseded for the body-related
+  claims): (part G4) licences: NIST SRD is copyrighted, JPL 19-5 is not
+  public domain, only the 2013 Mainz snapshot states CC BY 4.0, Leiden,
+  Bremen and Karkoschka state none; the licence column is mandatory and
+  the audit is GEN.500.
 
 - [ ] **GEN.439 The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9616,7 +9647,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Class D density replacement (finding F3): rock mass fraction from a
   truncated normal on [0.45, 0.95], a parametrisation to replace when
   sourced. The moons are GEN.466.
-  Prerequisites: GEN.428, GEN.429, GEN.458, GEN.459, GEN.470, GEN.472.
+  Prerequisites: GEN.428, GEN.429, GEN.458, GEN.459, GEN.470, GEN.472,
+  GEN.495.
   Related:
   DB.70,
   GEN.360, GEN.441.
@@ -9650,6 +9682,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   gated by class; there are no separate component lists per kind.
   Asteroids, comets, rings and dwarf planets read the shared table of
   GEN.427, with no list of their own.
+  Checked by the Body composition research lane against Boss's second
+  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
+  of docs/design/body-composition-research.md; the earlier 'awaiting
+  verification' note on this item is superseded for the body-related
+  claims): (part G1) the comet volatile draw reads the comet population
+  table (GEN.495); class by dynamical type is a weak predictor (only CO
+  separates, 28 percent of the variance), so the chemical classes of the
+  note are not used.
 
 - [ ] **GEN.443 Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9958,7 +9998,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only. Generator epoch bump; it joins the one rescatter of 8.4's
   stored-value changes. Owner: Core 4 (the 8.4 atmosphere chain,
   proposed).
-  Prerequisites: GEN.410, GEN.428, GEN.478. Related: GEN.409, GEN.411,
+  Prerequisites: GEN.410, GEN.428, GEN.478, GEN.498. Related: GEN.409,
+  GEN.411,
   GEN.422,
   GEN.428.
   Merged research (2026-10-17): part 05 holds the outgassed rocky-planet
@@ -10017,6 +10058,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and CH4 split of carbon in silicate melt by delta-IW (Hirschmann 2012,
   Gaillard 2014 and 2021) and the outgassed atmosphere by redox state;
   compare with finding 12.
+  Checked by the Body composition research lane against Boss's second
+  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
+  of docs/design/body-composition-research.md; the earlier 'awaiting
+  verification' note on this item is superseded for the body-related
+  claims): (part G3) QFM is IW + 3.1 to 3.6 (1 bar, 2200 to 1500 K) and
+  +3.4 to 4.0 (1 GPa), the CO2 > CO crossover is IW + 1.0 to 1.4, so the
+  note's '+2 equals QFM' boundary is right but is not QFM; Sossi's +0.5
+  for Earth is on his own scale (0.0 on the Hirschmann 2021 scale), so
+  the generator fixes one IW scale (see the item on one oxygen-fugacity
+  scale, GEN.498); the carbon-in-reduced-melt papers the note cites are
+  models (-4.7 appears only in N2 experiments), reduced melts hold
+  mainly CO and CH4 needs water, and the solubility laws are exponential
+  in NBO/O and mass action gives 10^(-0.5 delta-IW), so the note's forms
+  are schematic; no per-planet delta-IW distribution is published, and
+  part G3 F8 gives a labelled parametrisation (Doyle 2019, Deng 2020,
+  Guimond 2023, the Rubie to Siebert range).
 
 - [ ] **GEN.452 The condensation table is replaced by the checked saturation curves: the hydrogen sulphide row is a copy of the sulphur dioxide row, and carbon dioxide, sulphur dioxide and the cold gases are 2 to 20 K off (bug)**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -10082,6 +10139,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (Wagner liquid, Fray and Schmitt above about 50 K, Grundy 2024 and
   Blakley 2025 laboratory fits below); the sign inversions of Boss's
   note are unsupported.
+  Checked by the Body composition research lane against Boss's second
+  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
+  of docs/design/body-composition-research.md; the earlier 'awaiting
+  verification' note on this item is superseded for the body-related
+  claims): (part G4) the cold end is the laboratory-corrected N2, CO,
+  CH4, O2 and NH3 (Fray and Schmitt up to about 15 times too high for CO
+  near 25 K; Blakley 2024 covers O2 and NH3 only, Grundy 2024 N2, CO and
+  CH4, a 2026 Grundy preprint multiplies all five by 1.19 +/- 0.03; the
+  9.2 percent is an enthalpy excess, about 10.1 kJ/mol, not 9.2 kJ/mol)
+  and solid CO2 uses Span and Wagner equation 3.12 (the 0 to 800 K, 12
+  GPa range of the note belongs to Trusler 2011); H2 freezes below 13.96
+  K (Tc 33.145 to 33.18 K, HD Tc 35.908 K); the item is GEN.497.
 
 - [ ] **GEN.453 The radiation constants are corrected: the dipole cutoff scales with moment over radius squared, the dose curve against the column and the field factor follow the measured and simulated tables (bug)**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -10257,6 +10326,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   awaiting verification, not a verified input: the comet volatile table
   (CO, CO2, CH4, C2H6, NH3, HCN against water, with photochemical
   lifetimes at 1 AU); the NH3 range disagrees with finding 17.
+  Checked by the Body composition research lane against Boss's second
+  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
+  of docs/design/body-composition-research.md; the earlier 'awaiting
+  verification' note on this item is superseded for the body-related
+  claims): (part G1) comet ranges: CO 0.3 to 26 percent of water (0.15
+  for 103P), CO2 2 to 30, HCN from 0.03; NH3 photolysis lifetime at 1 AU
+  is about 6.7e3 s (5.4e3 to 7.7e3), not 2.5e4 s, and there is no 1.15
+  mm NH3 line (the ground rotational line is 572.498 GHz); the lifetimes
+  are quiet-Sun values and the active Sun shortens H2O by 1.7 and CO2 by
+  2.35 (items GEN.495 and GEN.496).
 
 - [ ] **GEN.456 Lava worlds and hot rocky planets draw a vapour atmosphere over the magma from the surface composition and temperature: sodium, potassium, silicon monoxide, magnesium, iron and the oxides**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -10282,7 +10361,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sum to the surface pressure, and determinism. Owner: Core 4
   (proposed).
   Prerequisites: GEN.441, GEN.410, GEN.411, GEN.414, GEN.451, GEN.472,
-  GEN.478.
+  GEN.478, GEN.499.
   Related:
   GEN.409,
   GEN.410, GEN.411, GEN.414, GEN.418, GEN.441.
@@ -10315,6 +10394,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   awaiting verification, not a verified input: the LavAtmos and VapoRock
   vaporisation lines, the sub-liquidus alkali regime and the
   super-liquidus monoxides above 2200 K.
+  Checked by the Body composition research lane against Boss's second
+  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
+  of docs/design/body-composition-research.md; the earlier 'awaiting
+  verification' note on this item is superseded for the body-related
+  claims): (part G3) Na dominates the vapour to 2700 to 2800 K, not 2200
+  K, and the mean molar mass is about 25 near 2000 K and 33 near 3000 K,
+  not 40 to 60 g/mol; the vapour equilibria are VapoRock-type
+  chemical-potential calculations (LavAtmos is arXiv:2210.10463, 9
+  oxides, GPL-3.0; VapoRock is AGPL-3.0; tools to read, not code to
+  copy), see the vapour species item GEN.499.
 
 - [ ] **GEN.457 The small bodies and moons composition design: the taxon and comet draws, compaction, the moon origin types and the ice fraction**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -10370,6 +10459,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1:47 AM EDT as the lane reported, read from the code at the commit it
   names), filed by the TODO thread. The existing belt draw it replaces
   is GEN.477.
+  Checked by the Body composition research lane against Boss's second
+  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
+  of docs/design/body-composition-research.md; the earlier 'awaiting
+  verification' note on this item is superseded for the body-related
+  claims): (part G1) the comet volatile draw of part D 3.4.2 becomes the
+  comet population table of GEN.495; 67P stays a test target.
   Prerequisites: none. Related: GEN.426, GEN.442, GEN.466, GEN.437.
 
 - [ ] **GEN.458 Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes**
@@ -10474,6 +10569,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   awaiting verification, not a verified input: the K/U and Th/U table by
   reservoir and the Th and U against [Fe/H] and alpha trend; Solar
   System values are test targets only.
+  Checked by the Body composition research lane against Boss's second
+  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
+  of docs/design/body-composition-research.md; the earlier 'awaiting
+  verification' note on this item is superseded for the body-related
+  claims): (part G2) Venus K/U is not Earth-like: Venera 8 and Vega give
+  K/U 5.9 to 15 (x10^3) and Th/U 2.3 to 3.0 with errors of 40 to 130
+  percent; Mercury Th/U is 2.4 +/- 0.9 (K 1150, Th 220 ppb, U 90 ppb;
+  abstract only), not 3.5 to 4.0; MORB Th/U is about 3.0 (part E keeps
+  3.04) with K/U 12.7e3; the Moon K/U is about 2.3e3. Part E 3.3: keep
+  x_Th sigma 0.22 dex as an upper bound (solar-twin scatter 0.05, pooled
+  Th/Mg 0.10, Eu 0.16), add a mean shift with [Fe/H] (Th/Fe slope -0.34
+  dex per dex, Eu/alpha -0.16 to -0.23); d_K log-uniform 0.03 to 1 stays
+  (observed bodies lie at 0.03 to 0.28). K/U and Th/U by reservoir are
+  calibration targets with the scatters of part G2, never presets.
 
 - [ ] **GEN.460 Giant planets and brown dwarfs get their radius and heavy-element content from the checked laws: the heavy-element mass law, the Fortney and Baraffe tables with inflation, and the burning limits shifted by metallicity and helium (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -10533,6 +10642,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   awaiting verification, not a verified input: the Thorngren scaling
   Z_planet/Z_star proportional to M^-alpha with alpha 0.45 to 0.55 (the
   Body composition lane read 0.61 and a scatter of 0.26 dex).
+  Checked by the Body composition research lane against Boss's second
+  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
+  of docs/design/body-composition-research.md; the earlier 'awaiting
+  verification' note on this item is superseded for the body-related
+  claims): Thorngren 2016 has the exponent -0.45 +/- 0.09 and prefactor
+  9.7 on the bulk heavy-element fraction Z (an upper limit on the
+  atmosphere's Z, not an atmospheric metallicity), and its sample starts
+  near 19 Earth masses; the heavy-element mass law of part C (57.9
+  (M/MJ)^0.61 Earth masses, 0.26 dex) is confirmed twice and the lane's
+  own re-fit is 55.6 (M/MJ)^0.60 with 0.32 dex raw rms, so state that Z
+  is bulk and add the 0.32 dex raw rms next to the 0.26 dex intrinsic
+  figure; the atmosphere Z is f Z_p with f about 0.2 for Jupiter and
+  Saturn (Thorngren and Fortney 2019); the core-mass placeholder
+  (log-uniform 5 to 20 Earth masses) is supported by Chachan 2025 (14.7
+  Earth masses). The 0.45 to 0.55 of the note matches the exponent in
+  magnitude only.
 
 - [ ] **GEN.461 The hydrosphere reads the stored water mass fraction: the compressed water-layer depth, the base pressure, the high-pressure ice and the liquidus are recomputed, and the class label follows from the water share (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -10666,6 +10791,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/composition-model.md; format and loader GEN.472, the sum
   test TEST.214): no table: the solids law reads the star's Z over Z0
   and gives the weight functions of GEN.428 their argument.
+  Checked by the Body composition research lane against Boss's second
+  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
+  of docs/design/body-composition-research.md; the earlier 'awaiting
+  verification' note on this item is superseded for the body-related
+  claims): the note's metal-poor stars have higher [Th/Fe] and [U/Fe]:
+  Th/Fe rises as [Fe/H] falls only inside +/- 0.1 dex of solar (slope
+  -0.338 +/- 0.049) and U is not measured in disc stars (part G2), so
+  the solids law does not take a Th or U trend from the note.
   Prerequisites: GEN.440. Related: GEN.405, GEN.435, GEN.439, GEN.440.
 
 - [ ] **GEN.465 A second extraction pass over the sources the body and atmosphere research could not reach and that are reachable now**
@@ -10872,6 +11005,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   beta-O2 lower by 1.6), Jager and Span 2012 for CO2, and H2, HD and He
   as non-condensable above their critical temperatures; the
   sign-inversion question agrees with finding 11.
+  Checked by the Body composition research lane against Boss's second
+  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
+  of docs/design/body-composition-research.md; the earlier 'awaiting
+  verification' note on this item is superseded for the body-related
+  claims): (part G4) the cold end is the laboratory-corrected N2, CO,
+  CH4, O2 and NH3 (Fray and Schmitt up to about 15 times too high for CO
+  near 25 K; Blakley 2024 covers O2 and NH3 only, Grundy 2024 N2, CO and
+  CH4, a 2026 Grundy preprint multiplies all five by 1.19 +/- 0.03; the
+  9.2 percent is an enthalpy excess, about 10.1 kJ/mol, not 9.2 kJ/mol)
+  and solid CO2 uses Span and Wagner equation 3.12 (the 0 to 800 K, 12
+  GPa range of the note belongs to Trusler 2011); H2 freezes below 13.96
+  K (Tc 33.145 to 33.18 K, HD Tc 35.908 K); the item is GEN.497.
 
 - [ ] **GEN.471 Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K**
   Part F of the Body composition research lane
@@ -10904,6 +11049,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   quadruple point (271.60 K, 1.044 MPa), the van der Waals and Platteeuw
   model, salt shifts, perchlorate deliquescence and the eutectic near
   205 K for Mg(ClO4)2, and the Venus H2SO4-H2O activity sources.
+  Checked by the Body composition research lane against Boss's second
+  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
+  of docs/design/body-composition-research.md; the earlier 'awaiting
+  verification' note on this item is superseded for the body-related
+  claims): (part G4) the CO2 hydrate Q1 of 271.60 K and 1.044 MPa is
+  Semenov 2023 with +/- 0.021 MPa (not +/- 0.002), and Q2 is 283.13 K at
+  4.494 MPa; the deliquescence relative humidity sources (Gough 2011,
+  Nuding 2014) and the JPL copyright page were not reached.
 
 - [ ] **GEN.472 One gated possibility-table format and loader: every composition category is a table of possibilities with a class gate and a weight, drawn by the normalised weights of the rows that pass**
   Boss (2026-10-17, 1:40 AM EDT, typed in the project chat): "We have to
@@ -10999,6 +11152,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   relayed it): the table weights are the odds of picking a possibility,
   the fractions inside the drawn row are normalised separately, and both
   sums are tested.
+  Checked by the Body composition research lane against Boss's second
+  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
+  of docs/design/body-composition-research.md; the earlier 'awaiting
+  verification' note on this item is superseded for the body-related
+  claims): (part G4) the licence column is mandatory for every row, and
+  the loader refuses a row without one (the audit is GEN.500).
 
 - [ ] **GEN.473 Replace the asteroid taxon shares and the zone kernel, measured in the Solar System belt, by a derived or general distribution**
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
@@ -11658,6 +11817,138 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   awaiting verification, not a verified input: the note's R15
   (brown-dwarf and exoplanet cloud regimes by kinetic grain growth).
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+
+- [ ] **GEN.495 The comet population table: species ranges and log-normal scatters replace the draw centred on one comet, with a carbon-chain-depleted flag**
+  Body composition research lane check of Boss's second research note
+  (2:11 AM EDT; checked 2:43 AM EDT as the lane reported; section 15 and
+  parts G1 to G4 of docs/design/body-composition-research.md), filed by
+  the TODO thread. G-1 (part G1, 31 claims: 17 confirmed, 9 partly, 2
+  contradicted, 3 unverifiable). Part D 3.4.2 draws the comet volatiles
+  log-normally around one comet (67P) with sigma 0.5 dex, which is too
+  low for several species (the CH3OH population geometric mean is about
+  1.9 percent against 0.21 at 67P, CH4 0.68 against 0.34; real scatter
+  0.22 to 0.37 dex and 0.64 dex for CO); class by dynamical type is a
+  weak predictor (only CO separates, 28 percent of the variance, p =
+  0.035). Do: take the species ranges and log-normal scatters of part G1
+  (CO 0.3 to 26 percent of water, 0.15 for 103P; CO2 2 to 30; HCN from
+  0.03; the interstellar-object CO/H2O range widens to include 3I/ATLAS
+  at 1.65) as the comet rows of the possibility tables (GEN.472),
+  continuous log-normals with a carbon-chain-depleted flag as the
+  parametrisation, and keep the one comet as a test target only. Done:
+  the comet volatile draw reads the table, each range carries its source
+  and label, and a test checks the ranges and determinism. Owner: Core 4
+  (proposed, with the composition chain).
+  Prerequisites: GEN.472, GEN.457. Related: GEN.442, GEN.455, GEN.457,
+  GEN.472, GEN.474.
+
+- [ ] **GEN.496 The photolysis lifetime table: species lifetimes at 1 AU for the quiet Sun, the active-Sun factors and the species-specific stellar-spectrum ratios**
+  Body composition research lane check of Boss's second research note
+  (2:11 AM EDT; checked 2:43 AM EDT as the lane reported; section 15 and
+  parts G1 to G4 of docs/design/body-composition-research.md), filed by
+  the TODO thread. G-2 (part G1). The note's lifetimes are one value per
+  species (NH3 2.5e4 s); the lane read and recomputed them: NH3 about
+  6.7e3 s (5.4e3 to 7.7e3), quiet-Sun values, the active Sun shortening
+  H2O by 1.7 and CO2 by 2.35, and the scaling with the star's
+  ultraviolet is species-specific and not one scalar (for a cool star CO
+  falls by 3.5e-4, CH4 by about 80 and NH3 barely). Do: a table of the
+  species' photolysis lifetime at 1 AU for the quiet Sun, with the
+  active-Sun factors and the species-specific stellar-spectrum ratios,
+  as constants of the species table (GEN.410, not stored per body), read
+  by the coma and exosphere draws (GEN.455), the photochemical lifetimes
+  of the atmosphere (GEN.413 and GEN.409) and the trace-gas rows. Done:
+  a test checks each lifetime against the part's computed value and that
+  no module holds a lifetime constant of its own. Owner: Core 4
+  (proposed, with the composition chain).
+  Prerequisites: GEN.410. Related: GEN.410, GEN.455, GEN.413, GEN.472.
+
+- [ ] **GEN.497 The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve**
+  Body composition research lane check of Boss's second research note
+  (2:11 AM EDT; checked 2:43 AM EDT as the lane reported; section 15 and
+  parts G1 to G4 of docs/design/body-composition-research.md), filed by
+  the TODO thread. G-3 (part G4, extends part F item F1 and GEN.470).
+  The Fray and Schmitt cold end is up to about 15 times too high for CO
+  near 25 K, and its CO2 set 1 is 7 percent off at 125 K and 41 percent
+  at 100 K; the laboratory papers are Blakley 2024 (Planet. Space Sci.
+  244, 105863; O2 and NH3 only) and Grundy 2024 (N2, CO, CH4), and a
+  2026 Grundy preprint multiplies all five by 1.19 +/- 0.03; the note's
+  9.2 kJ/mol is a 9.2 percent enthalpy excess (about 10.1 kJ/mol); the
+  note's Jager and Span range (0 to 800 K, 12 GPa) belongs to Trusler
+  2011, so use Span and Wagner equation 3.12 for solid CO2 (842.65 Pa at
+  150 K and 103971 Pa at 195 K as test targets); H2 freezes below 13.96
+  K (Tc 33.145 to 33.18 K, HD Tc 35.908 K). The transcribed N2, CO and
+  CH4 polynomials agree to 0.5 percent with the Fray and Schmitt curves
+  in the Grundy 2024 data package (READ and COMPUTED); the constants C
+  and D2 to D4 for N2, CO and CH4 are curve-fit reconstructions, valid
+  only inside the fitted range. Do: for N2, CO, CH4, O2 and NH3 take the
+  cold end from the corrected tables of part G4 and CO2 from Span and
+  Wagner, with the 1.19 correction as a switch until the 2026 preprint
+  is read, and extend the p_sat function and its test of GEN.470 (triple
+  points plus the correction). Done: the test checks each cold-end curve
+  against the part's table within its stated error and the CO2 targets
+  above, and out-of-range calls are flagged. Owner: Core 4 (proposed,
+  with the composition chain).
+  Prerequisites: GEN.470. Related: GEN.470, GEN.452, GEN.410, GEN.427.
+
+- [ ] **GEN.498 One oxygen-fugacity scale for the generator: the reference fixed, delta-IW stored on it, and the buffers converted**
+  Body composition research lane check of Boss's second research note
+  (2:11 AM EDT; checked 2:43 AM EDT as the lane reported; section 15 and
+  parts G1 to G4 of docs/design/body-composition-research.md), filed by
+  the TODO thread. G-4 (part G3, extends part F item F2). Sossi 2020
+  puts Earth's magma ocean at delta-IW +0.5 on its own scale; the same
+  gas ratios are delta-IW 0.0 on the Hirschmann 2021 scale, so the
+  generator must fix one reference. QFM is IW + 3.1 to 3.6 (1 bar, 2200
+  to 1500 K) and +3.4 to 4.0 (1 GPa); the CO2 > CO crossover is IW + 1.0
+  to 1.4, so the +2 boundary the note calls QFM is right but is not QFM.
+  No per-planet delta-IW distribution is published: part G3 F8 gives a
+  labelled parametrisation built from Doyle 2019, Deng 2020, Guimond
+  2023 and the Rubie to Siebert range, with the stored quantities it
+  needs. Do: fix the Hirschmann 2021 scale as the one reference, store
+  delta-IW on it (DB.69), convert the Sossi and Frost buffers, and keep
+  +0.5 as a Sossi-scale calibration target only. Done: a test checks
+  that the CO2/CO and H2O/H2 ratios reproduce Sossi's equation 4 on the
+  stored scale, and that no constant is on another scale. Owner: Core 4
+  (proposed, with the composition chain).
+  Prerequisites: GEN.437. Related: GEN.451, DB.69, GEN.422, GEN.456.
+
+- [ ] **GEN.499 The lava-world vapour species and mean molar mass from temperature and composition, replacing the heavy-oxide range of 40 to 60 g/mol**
+  Body composition research lane check of Boss's second research note
+  (2:11 AM EDT; checked 2:43 AM EDT as the lane reported; section 15 and
+  parts G1 to G4 of docs/design/body-composition-research.md), filed by
+  the TODO thread. G-5 (part G3, extends part F item F3). The note says
+  Na and K dominate to 2200 K and the mean molar mass is 40 to 60 g/mol;
+  the lane computed that Na dominates to 2700 to 2800 K and the mean
+  molar mass is about 25 near 2000 K and 33 near 3000 K. Do: use
+  VapoRock-type chemical-potential vapour equilibria over the melt
+  (LavAtmos is arXiv:2210.10463, van Buchem, Miguel, Zilinskas and van
+  Westrenen, 9 oxides, GPL-3.0; VapoRock is AGPL-3.0; both are tools to
+  read, not code to copy into the repository) to give the vapour species
+  and the mean molar mass from the temperature and the surface
+  composition, as the data of the lava rows of GEN.456. Done: a test
+  checks the species list and the mean molar mass against part G3's
+  computed values within its stated error at 2000 K and 3000 K. Owner:
+  Core 4 (proposed, with the composition chain).
+  Prerequisites: GEN.410, GEN.427. Related: GEN.456, GEN.451, GEN.441,
+  GEN.478.
+
+- [ ] **GEN.500 The licence audit: the licence column filled for every data source, and the permission list for NIST, JPL, Leiden, Bremen and Karkoschka**
+  Body composition research lane check of Boss's second research note
+  (2:11 AM EDT; checked 2:43 AM EDT as the lane reported; section 15 and
+  parts G1 to G4 of docs/design/body-composition-research.md), filed by
+  the TODO thread. G-6 (part G4, extends part F item F5). The note's
+  claim that NIST, PubChem and USGS data are public domain is wrong for
+  NIST SRD (copyrighted, permission needed) and unproven for PubChem and
+  USGS; JPL 19-5 is 'protected by copyright, US government purpose use
+  rights' and not public domain; only the 2013 Mainz snapshot states CC
+  BY 4.0 (cite Keller-Rudek 2013); Leiden, Bremen and Karkoschka state
+  none. Do: fill the licence column of the tables (GEN.410, GEN.427,
+  GEN.438) from the full table of part G4, list the permissions to ask
+  for (NIST, JPL, Leiden, Bremen, Karkoschka), and for each source
+  without a stated licence derive the table again from the primary
+  measurements or keep the data out of the repository. Done: every row
+  of every table names its licence, the loader (GEN.472) refuses a row
+  without one, and the permission list is a document in docs/design.
+  Owner: Core 4 (proposed, with the composition chain).
+  Prerequisites: none. Related: GEN.472, GEN.410, GEN.427, GEN.438.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -12845,7 +13136,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   snow line) and species lists in a child table `body_composition`; the
   revision follows the DB.65 and DB.67 ones in the queue (renumber at
   merge).
-  Prerequisites: GEN.429, GEN.458, GEN.459, GEN.460. Related: DB.67,
+  Prerequisites: GEN.429, GEN.458, GEN.459, GEN.460, GEN.498. Related:
+  DB.67,
   DB.68.
   Part F of the Body composition research lane
   (docs/design/body-composition-parts/F-boss-note-check.md; 2026-10-17,
@@ -12863,6 +13155,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `asteroid_belt_composition` and the planet composition text; the lane
   proposes it for the design to settle, so DB.69 and DB.70 are designed
   as one mixture storage and not two.
+  Checked by the Body composition research lane against Boss's second
+  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
+  of docs/design/body-composition-research.md; the earlier 'awaiting
+  verification' note on this item is superseded for the body-related
+  claims): the stored mantle oxidation state is delta-IW on the one
+  reference scale of GEN.498 (Hirschmann 2021), with the stored
+  quantities part G3 F8 lists.
 
 - [ ] **DB.70 Planets, moons and small bodies store the surface and small-body composition shares**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):

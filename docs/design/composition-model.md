@@ -54,9 +54,13 @@ Research, designs and tables are building blocks with no behaviour change and si
 | Where | Item | What |
 |---|---|---|
 | 8.1 phase 2 | GEN.472 | One gated possibility-table format and loader: every composition category is a table of possibilities with a class gate and a weight |
+| 8.1 phase 2 | GEN.500 | The licence audit: the licence column filled for every data source, and the permission list |
 | 8.1 phase 2 | GEN.438 | One table of the elements and their isotopes: atomic data and the radioactive isotopes' half-lives and decay energies |
 | 8.1 phase 2 | GEN.410 | One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention |
 | 8.1 phase 2 | GEN.427 | One table of the bulk materials with their equation-of-state constants and the source of each |
+| 8.1 phase 2 | GEN.498 | One oxygen-fugacity scale for the generator (Hirschmann 2021), delta-IW stored on it |
+| 8.1 phase 2 | GEN.497 | The cold-end vapour pressures: laboratory-corrected N2, CO, CH4, O2, NH3 and Span and Wagner CO2 |
+| 8.1 phase 2 | GEN.496 | The photolysis lifetime table: species lifetimes at 1 AU, active-Sun factors, stellar-spectrum ratios |
 | 8.1 phase 2 | GEN.470 | One saturation-pressure function p_sat(species, T) for the gases and ices (Fray and Schmitt polynomials, water by Feistel and Wagner) |
 | 8.1 phase 2 | GEN.439 | The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers |
 
