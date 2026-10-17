@@ -15,7 +15,9 @@ position and changes when the object moves into another cube. MySQL computes it 
 index `(cell_key, x, y, z)` answers a sphere without opening a row. This module holds the same function in Python
 (`cell_key`, `cell_keys`) so the two can be tested against each other.
 
-A position outside the box has a NULL key and is found by the query's `cell_key IS NULL` branch.
+A position outside the box has a NULL key and is found by the query's `cell_key IS NULL` branch. A position just inside
+the box edge whose rounded cube number would be `2 ** BITS` (the last double below `REACH_PC`) is put in the last cube,
+`LAST_CELL`, so the key never wraps to the opposite edge (DB.65).
 """
 
 import math
@@ -29,6 +31,8 @@ CELL_PC = 0.25
 BITS = 21
 """int: Bits per axis; `2 * REACH_PC / CELL_PC` is `2 ** BITS`."""
 KEY_BITS = 3 * BITS
+LAST_CELL = (1 << BITS) - 1
+"""int: The highest cube number; a coordinate whose floored number rounds up past it is held here."""
 
 SPREAD_STEPS = (
     (32, 0x1F00000000FFFF),
@@ -51,7 +55,7 @@ def cell_index(coordinate_pc):
     """The cube number of one coordinate (parsecs), 0 to `2 ** BITS - 1`, or None outside the box."""
     if not abs(coordinate_pc) < REACH_PC:
         return None
-    return int(math.floor((coordinate_pc + REACH_PC) / CELL_PC))
+    return min(int(math.floor((coordinate_pc + REACH_PC) / CELL_PC)), LAST_CELL)
 
 
 def cell_key(x_pc, y_pc, z_pc):
@@ -75,6 +79,7 @@ def cell_keys(points):
     points = np.asarray(points, dtype=np.float64).reshape(-1, 3)
     valid = np.all(np.abs(points) < REACH_PC, axis=1)
     cells = np.floor((np.where(valid[:, None], points, 0.0) + REACH_PC) / CELL_PC).astype(np.uint64)
+    cells = np.minimum(cells, np.uint64(LAST_CELL))
     keys = np.zeros(len(points), dtype=np.uint64)
     for axis, lift in enumerate((2, 1, 0)):
         value = cells[:, axis]
@@ -123,7 +128,7 @@ def sql_cell_key(x, y, z):
     `y` and `z`, NULL outside the box. It is what a `GENERATED ALWAYS AS (...) STORED` column holds.
     """
     reach = f"{int(REACH_PC)}"
-    axes = [_spread_sql(f"CAST(FLOOR((({c}) + {reach}) / {CELL_PC}) AS UNSIGNED)") for c in (x, y, z)]
+    axes = [_spread_sql(f"LEAST(CAST(FLOOR((({c}) + {reach}) / {CELL_PC}) AS UNSIGNED), {LAST_CELL})") for c in (x, y, z)]
     inside = " AND ".join(f"ABS({c}) < {reach}" for c in (x, y, z))
     return f"IF({inside}, ({axes[0]} << 2) | ({axes[1]} << 1) | {axes[2]}, NULL)"
 
