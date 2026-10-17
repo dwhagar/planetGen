@@ -117,4 +117,4 @@ Rules:
 | [#1213](https://github.com/dwhagar/planetGen/issues/1213) | closed | Stars Vanish in new 'Window' algorithm | MAP.187 |
 | [#1212](https://github.com/dwhagar/planetGen/issues/1212) | closed | Galactic Map Sector Boarders | MAP.202 |
 | [#1211](https://github.com/dwhagar/planetGen/issues/1211) | closed | View artifacts in Galactic View | MAP.187 |
-| [#1204](https://github.com/dwhagar/planetGen/issues/1204) | open | Nebulas and Globular Clusters | GEN.209, MAP.194, GEN.237, GEN.241, GEN.242, GEN.243, GEN.296, GEN.297, GEN.161, GEN.162, GEN.163, GEN.164, DB.61, GEN.528, GEN.320, GEN.321, GEN.325, GEN.326, GEN.359, MAP.222, MAP.223, MAP.224 |
+| [#1204](https://github.com/dwhagar/planetGen/issues/1204) | open | Nebulas and Globular Clusters | GEN.209, MAP.194, GEN.237, GEN.241, GEN.529, GEN.243, GEN.296, GEN.297, GEN.161, GEN.162, GEN.163, GEN.164, DB.61, GEN.528, GEN.320, GEN.321, GEN.325, GEN.326, GEN.359, MAP.222, MAP.223, MAP.224 |

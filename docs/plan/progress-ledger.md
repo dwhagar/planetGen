@@ -758,3 +758,4 @@ Baseline: PR #1817.
 | NAV.45 | 8.1 | Region query |
 | GEN.319 | 8.1 | Nebula and young stars |
 | MAP.217 | 8.3 | Movement on the maps |
+| GEN.242 | 8.1 | Nebula and young stars |
