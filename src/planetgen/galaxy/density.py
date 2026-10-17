@@ -137,6 +137,17 @@ def _height_ratios(structure):
     return galaxyStructure.population_height_ratios(structure)
 
 
+def central_black_hole_mass_solar(shape):
+    """The mass, solar masses, of the black hole at the centre of the galaxy `shape` describes (GEN.402): the mass in
+    its bulge, or in its stars without a classical bulge, with the galaxy's own draw about the relation."""
+    return galaxyStructure.black_hole_mass_solar(shape.structure, bulge_to_total(shape))
+
+
+def _disk_mass(amplitude, scale_length_pc, scale_height_pc):
+    """The mass, in the model's units, of an exponential disk of central density `amplitude`."""
+    return amplitude * 2.0 * math.pi * scale_length_pc ** 2 * 4.0 * scale_height_pc
+
+
 def bulge_to_total(shape):
     """The bulge's mass over the bulge's and the thin and thick disks', in the model's units (the share
     `shape_draw.bulge_amplitude_for` solves the bulge's amplitude from)."""
@@ -178,13 +189,21 @@ def model_terms(shape):
     scale_y = structure.bar_axis_ratio_y * shape.bulge_scale_radius_pc
     scale_z = structure.bar_axis_ratio_z * shape.bulge_scale_radius_pc
     bulge_mass = shape.bulge_amplitude * shape.bulge_scale_radius_pc * scale_y * scale_z * BULGE_UNIT_INTEGRAL
-    cluster_mass = max(shape.nuclear_amplitude, 0.0) * tuning.NUCLEAR_CLUSTER_BULGE_RATIO * bulge_mass
+    thick_amplitude = thick_disk_amplitude(shape)
+    bulge_share = bulge_mass / (bulge_mass + _disk_mass(shape.arm_level, length, shape.disk_scale_height_pc)
+                                + _disk_mass(thick_amplitude, thick_length, thick_height))
+    # The cluster is a ratio to the model's own bulge, so a toy galaxy gets a proportionate centre: the ratio of the
+    # drawn cluster to the bulge the galaxy's stars make, in the model's units (which hold
+    # `MODEL_SYSTEMS_PER_STELLAR_MASS` systems of `MEAN_SYSTEM_MASS_SOLAR` a solar mass of stars).
+    model_per_solar = galaxyStructure.MODEL_SYSTEMS_PER_STELLAR_MASS * galaxyStructure.MEAN_SYSTEM_MASS_SOLAR
+    cluster_ratio = structure.nuclear_cluster_mass_solar / (model_per_solar * bulge_share * structure.stellar_mass_solar)
+    cluster_mass = max(shape.nuclear_amplitude, 0.0) * cluster_ratio * bulge_mass
     cluster_scale = tuning.NUCLEAR_CLUSTER_SCALE_RATIO * shape.bulge_scale_radius_pc
     disc_mass = cluster_mass * tuning.NUCLEAR_DISC_CLUSTER_MASS_RATIO
     disc_length = tuning.NUCLEAR_DISC_LENGTH_RATIO * shape.bulge_scale_radius_pc
     disc_height = tuning.NUCLEAR_DISC_HEIGHT_RATIO * shape.bulge_scale_radius_pc
     return {
-        "thick_disk_amplitude": thick_disk_amplitude(shape),
+        "thick_disk_amplitude": thick_amplitude,
         "thick_disk_scale_length_pc": thick_length,
         "thick_disk_scale_height_pc": thick_height,
         "bulge_scale_y_pc": scale_y,
