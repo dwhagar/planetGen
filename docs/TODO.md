@@ -2458,6 +2458,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and that satellite and halo stars go first; the rule is written in
   docs/design/zoom-star-visibility.md. Owner: Bug Hunt (Boss, 7:38 PM
   EDT).
+  Checked with Core 2 (2026-10-17, 7:43 PM EDT as the lane reported):
+  MAP.250 is only the tier order. Inside each tier a full list keeps the
+  top N by the brightness key and drops the rest wherever they lie, so
+  the uneven truncation this item describes is still there after MAP.250
+  and MAP.251 stays as filed, not narrowed. Bug Hunt is designing it
+  while it waits for the MAP.250 merge (7:45 PM EDT as the lane
+  reported).
   Prerequisites: MAP.250. Related: MAP.249, MAP.250.
 
 - [ ] **MAP.252 Viewing only the filled sectors does not dim the phenomena (bug)**
@@ -2476,6 +2483,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   unfilled sector checks the unfilled one is dimmed and the filled one
   is not, and the same on the Sector Map if it has the view. Owner: Bug
   Hunt (Boss, 7:38 PM EDT).
+  Cause found and coded (Bug Hunt, 2026-10-17, 7:45 PM EDT as the lane
+  reported; branch bughunt-dim, commit b59d4102, not gated or pushed
+  yet): `galaxymap3d.js` set `starUncharted` to 0 for every phenomenon
+  (`star.generated || star.phenomenon || star.charted ? 0 : 1`), so the
+  shader never dimmed them; the control is the Menu entry "Charted only"
+  (`data-action="charted-only"`, MAP.111, `setChartedOnly` in
+  `galaxymap3d.js`). The fix: scattered tile points now carry `charted`
+  (built_at set) from `query.galaxy_scattered_points_in_box`, and the
+  map dims the unbuilt ones (a new `isUncharted()` in `starpoint.js`,
+  with node and python tests). It goes in its own PR after #2124 merges.
   Prerequisites: none. Related: MAP.250.
 
 
@@ -17122,6 +17139,12 @@ clears each one.
   a reproduction). Fails on main: not run on main. Frequency: now 3
   loaded gate runs for the breadcrumb test (4:10 PM, 5:13 PM, 7:08 PM
   EDT).
+  Sighting (Core 1, 2026-10-17, 7:40 PM EDT as the lane reported):
+  `test_galaxy_breadcrumb_always_matches_the_view_its_url_names` failed
+  in the full browser phase of GEN.532/533's gate 2 (build a725802e,
+  5:54 to 7:37 PM EDT) and passed alone on the retry (99.28 s on gw1,
+  load 9.9). Fails on main: not tried. Frequency: now 4 loaded gate runs
+  for this test (4:10 PM, 5:13 PM, 7:08 PM and about 7:30 PM EDT).
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
@@ -18797,6 +18820,18 @@ clears each one.
   reads the camera before it has settled, and fix the cause in the test
   or the page. Done: the cause is on this item and the test passes 30 of
   30 runs. Owner: Core 2 (owns the test, MAP.245).
+  Failure text (Blocker 1, 2026-10-17, 7:41 PM EDT as the lane
+  reported): `assert [0.0312965870..., -0.0312965870..., 0] ==
+  approx([0.0, 0.0, 0.0])`, case (5, -4); once in 8 alone runs on a
+  branch that cannot touch the test and once inside a changed gate under
+  load 9; 0 of 8 alone runs on main. Cause found (Core 2, 2026-10-17,
+  7:43 PM EDT as the lane reported): the test reads the star's screen
+  spot right after `galaxyCentreOn` (a camera flight), so under load the
+  spot is stale when the anchor is asked and the anchor falls back to
+  the focus-plane point (0.031 away). Fix coded in Core 2's branch
+  map247 (the test waits until the spot holds still for 3 reads, and the
+  same helper is applied to the system-disc test); it goes in the
+  MAP.247 PR and resolves this item when merged.
   Prerequisites: none. Related: MAP.245, TEST.126.
 
 
