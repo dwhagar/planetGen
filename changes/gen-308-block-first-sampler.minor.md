@@ -1,0 +1,4 @@
+**Headline:** The bright-star backfill gains an exact block-first sampler, tested alone and not yet wired into the backfill.
+
+### Added
+- **A block-first draw for the backfill (GEN.308).** `bright_stars.block_candidates` draws a block's stars as one Poisson count from the block's density bound and keeps each candidate with the chance of its own cell, which gives every cell a Poisson count of its own mean and leaves no cell's chance altered. It is keyed by the seed, the block and the luminosity band alone, so the same stars come out whatever region, order or split of workers reaches the block. `block_bound` gives the bound from the band's density at its centre line (the halo with its own share), and tests check that every cell's rate is at most its bound, that the counts match Poisson in half-decade strata of 3,000 blocks each down to the lowest rates, and that a real block of the galaxy keeps each cell at its own rate. The backfill does not use it yet (GEN.309).

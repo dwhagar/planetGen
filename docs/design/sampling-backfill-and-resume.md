@@ -18,6 +18,8 @@ Informs: GEN.40, GEN.41, GEN.42, GEN.43, GEN.96, GEN.97, GEN.99, GEN.102, PERF.1
 
 Status: research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation
 
+Built (GEN.308): the block-first draw of section 2 is `bright_stars.block_candidates`, with `block_bound`, `cell_band_rate` and `candidate_stream`; the block is a band's 256 wedges (`BLOCK_WEDGES`), its bound has the halo's own share added to the other populations' largest, and the count is `util/poisson.py`'s exact `poisson_count`. It is not wired into the backfill yet (GEN.309).
+
 Evidence tags: [C] computed in this research and re-runnable (scripts named
 under Sources), [S] read from the repository or a downloaded package, [R]
 recalled and unconfirmed. The research environment could read only
