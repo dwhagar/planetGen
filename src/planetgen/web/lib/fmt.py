@@ -89,9 +89,13 @@ def format_members(member_count, system_mass_solar):
     What a scatter row with company shows in a table or a map label (UX.114): "3 members, 2.4 solar masses". A
     single object (no members stored) is an en dash.
     """
-    if not member_count:
+    try:
+        count = int(member_count)
+    except (TypeError, ValueError, OverflowError):
         return "\u2013"
-    return f"{member_count} member{'' if member_count == 1 else 's'}, {format_mass_solar(system_mass_solar)}"
+    if count <= 0:
+        return "\u2013"
+    return f"{format_number(count)} member{'' if count == 1 else 's'}, {format_mass_solar(system_mass_solar)}"
 
 
 _LADDERS_BY_QUANTITY = {ladder.quantity: ladder for ladder in _ladders.LADDERS}
