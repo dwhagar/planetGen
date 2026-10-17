@@ -6361,6 +6361,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   relay, 2026-10-17, 12:47 AM EDT). Alembic chains by down_revision: if
   this merges before the others, take the next free number at merge and
   tell Core 1.
+  Finding (Core 3, 2026-10-17, 2:10 AM EDT as the lane reported, running
+  its GEN.324 tests): the migration runner (`alembic_runner`) requires
+  contiguous revision ids, so a file numbered 0110 with head 0104 raises
+  "migration revision '0110' should be '0105'"; a reserved number cannot
+  be used until every lower number exists. The revision numbers listed
+  here are therefore an order of merge and not reservations: each
+  migration takes the next free number when it merges, and its author
+  tells the owners of the migrations still waiting (Core 3 for GEN.324,
+  Core 1 for the DB.65, DB.69, DB.67, DB.70 and DB.68 queue).
   Prerequisites: GEN.322. Related: GEN.240.
 
 - [ ] **GEN.325 Planet cull in dense components by the survival formula and the metallicity factor**
@@ -12415,6 +12424,15 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Revision numbers after 0104 (2026-10-17, 12:47 AM EDT): 0105 DB.65,
   0106 DB.69, 0107 DB.67, 0108 DB.70, 0109 DB.68, 0110 GEN.324's
   bright_stars population CHECK (Core 3).
+  Finding (Core 3, 2026-10-17, 2:10 AM EDT as the lane reported, running
+  its GEN.324 tests): the migration runner (`alembic_runner`) requires
+  contiguous revision ids, so a file numbered 0110 with head 0104 raises
+  "migration revision '0110' should be '0105'"; a reserved number cannot
+  be used until every lower number exists. The revision numbers listed
+  here are therefore an order of merge and not reservations: each
+  migration takes the next free number when it merges, and its author
+  tells the owners of the migrations still waiting (Core 3 for GEN.324,
+  Core 1 for the DB.65, DB.69, DB.67, DB.70 and DB.68 queue).
   Prerequisites: none. Related: GEN.129.
 
 - [ ] **DB.56 The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings**
