@@ -37,7 +37,7 @@ Checked against the checkout on 2026-10-09 (revisions 0061 to 0065 exist):
 - MySQL DDL is not transactional (`MySQLImpl.transactional_ddl = False` [S: Alembic source]); a revision that stops half way stays half applied. The DB.8 schema check treats that as a normal failure mode.
 - `db/models.py` is generated from `schema.sql` (`scripts/generate_db_models.py`) for `compare_metadata`; `tests/test_db_models.py` keeps it honest. Migration fixtures are `src/tests/fixtures/old_schemas/schema_v61` to `v64`.
 - `schema.sql` has 71 foreign keys, enforced; only `cli/reset.py` (line 173) sets `foreign_key_checks=0`, so orphans appear only after such loads. The control database has its own version (`CONTROL_SCHEMA_VERSION = 10`), not Alembic.
-- Absent: a `check-db` or `repair-db` command, a checksum column, a parity file, and any database dump step (`cli/render_parity.py` mentions `mysqldump` only in a docstring).
+- Absent: a `check-db` or `repair-db` command, a checksum column, a parity file, and any database dump step.
 
 ## 4. How MariaDB behaves when a page is damaged
 

@@ -77,8 +77,8 @@ def test_strings_the_code_shows_have_no_todo_code():
     assert not found, "TODO codes in strings the code shows:\n" + "\n".join(found)
 
 
-COMMAND_LINE_PROGRAMS = ("generate", "query", "lockouts", "config", "worker", "orbits", "migrate", "reset", "dedupe",
-                         "benchmark", "version_history")
+COMMAND_LINE_PROGRAMS = ("generate", "query", "lockouts", "lift_lockout", "forget_devices", "reset_two_factor", "config", "worker", "orbits",
+                         "migrate", "reset", "benchmark", "version_history")
 
 
 @pytest.mark.parametrize("program", COMMAND_LINE_PROGRAMS)

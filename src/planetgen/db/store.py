@@ -2164,9 +2164,8 @@ def reserve_sector_name(conn, candidate_name, sector_id):
         conn (Connection): Part of the same transaction as the caller's
             own sector INSERT.
         candidate_name (str): The freshly generated name to reserve.
-        sector_id (int): The new (or, for `planetgen.cli.dedupe`, existing)
-            `sectors.id` -- recorded as the base name's first holder when
-            it is one.
+        sector_id (int): The new `sectors.id` -- recorded as the base
+            name's first holder when it is one.
 
     Returns:
         tuple: `(final_name, base_name)` -- `final_name` is what the
