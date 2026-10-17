@@ -262,3 +262,17 @@ test("zooming about an anchor keeps the anchor where it is on the screen (MAP.22
   assert.deepEqual(MC.targetAboutAnchor(target, anchor, 1), target, "a step of 1 moves nothing");
   assert.deepEqual(MC.targetAboutAnchor(anchor, anchor, 0.3), anchor, "an anchor at the center keeps it");
 });
+
+test("MAP.247: the column point is the first place the density along a ray adds up to the threshold", () => {
+  // Uniform density 2: a column of 10 is reached after 5 length units.
+  const uniform = MC.columnDensityPoint([0, 0, 0], [0, 0, 1], () => 2, 10, 100, 200);
+  assert.ok(Math.abs(uniform[2] - 5) < 1e-9, uniform);
+  assert.deepEqual([uniform[0], uniform[1]], [0, 0]);
+  // Empty space and then a dense slab from 20 to 30: the point is inside it, where its density adds up the rest.
+  const slab = MC.columnDensityPoint([1, 0, 0], [0, 1, 0], (x, y) => (y >= 20 && y < 30 ? 4 : 0), 8, 100, 1000);
+  assert.ok(Math.abs(slab[1] - 22) < 0.2, slab);
+  // A column that never passes the threshold, no density at all, and a bad reach give nothing.
+  assert.equal(MC.columnDensityPoint([0, 0, 0], [0, 0, 1], () => 0.01, 10, 100), null);
+  assert.equal(MC.columnDensityPoint([0, 0, 0], [0, 0, 1], () => NaN, 10, 100), null);
+  assert.equal(MC.columnDensityPoint([0, 0, 0], [0, 0, 1], () => 1, 10, 0), null);
+});
