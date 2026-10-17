@@ -13,6 +13,7 @@ import random
 
 import pytest
 
+from planetgen.util import detmath
 from planetgen.galaxy.nav_graph import _Points, build_knn_adjacency, shortest_path
 from planetgen.galaxy.navigation import fold_travel_times, warp_travel_times
 
@@ -20,7 +21,7 @@ from planetgen.galaxy.navigation import fold_travel_times, warp_travel_times
 def _brute_knn(positions, origin_id, k):
     """`origin_id`'s `k` nearest `(distance, id)` pairs, by checking every point."""
     origin = positions[origin_id]
-    return sorted((math.dist(origin, point), system_id)
+    return sorted((detmath.dist(origin, point), system_id)
                   for system_id, point in positions.items() if system_id != origin_id)[:k]
 
 
@@ -81,7 +82,7 @@ def test_query_points_outside_the_tree_match_brute_force():
     root = _Points(list(positions.items()))
     for _ in range(50):
         origin = (rng.uniform(-40, 40), rng.uniform(-40, 40), rng.uniform(-40, 40))
-        expected = sorted((math.dist(origin, point), system_id) for system_id, point in positions.items())[:6]
+        expected = sorted((detmath.dist(origin, point), system_id) for system_id, point in positions.items())[:6]
         assert root.nearest(origin, 6, exclude_id=None) == expected
 
 
@@ -96,10 +97,10 @@ def test_duplicate_coordinates_link_at_distance_zero():
     assert graph["b"]["a"] == graph["b"]["c"] == 0.0
     # "far" still links to its nearest (any of the three copies).
     assert len(graph["far"]) == 2
-    assert all(distance == pytest.approx(math.dist((1, 2, 3), (9, 9, 9))) for distance in graph["far"].values())
+    assert all(distance == pytest.approx(detmath.dist((1, 2, 3), (9, 9, 9))) for distance in graph["far"].values())
     path, distance = shortest_path(graph, "a", "far")
     assert path[0] == "a" and path[-1] == "far"
-    assert distance == pytest.approx(math.dist((1, 2, 3), (9, 9, 9)))
+    assert distance == pytest.approx(detmath.dist((1, 2, 3), (9, 9, 9)))
 
 
 def test_many_duplicates_give_the_brute_force_distances():
@@ -126,7 +127,7 @@ def test_k_at_or_above_n_links_every_pair(k):
     positions = {"a": (0, 0, 0), "b": (1, 0, 0), "c": (0, 2, 0), "d": (0, 0, 3), "e": (4, 4, 4)}
     graph = build_knn_adjacency(positions, k)
     for system_id, point in positions.items():
-        assert graph[system_id] == {other: pytest.approx(math.dist(point, p))
+        assert graph[system_id] == {other: pytest.approx(detmath.dist(point, p))
                                     for other, p in positions.items() if other != system_id}
 
 
@@ -218,7 +219,7 @@ def test_join_islands_links_the_closest_pair_of_two_islands():
     assert len(connected_components(graph)) == 1
     added = [(a, b) for a in graph for b in graph[a] if b not in before[a] and a[0] == 0]
     assert len(added) == 1
-    best = min((math.dist(positions[a], positions[b]), a, b)
+    best = min((detmath.dist(positions[a], positions[b]), a, b)
                for a in positions if a[0] == 0 for b in positions if b[0] == 1)
     assert added[0] == (best[1], best[2])
     assert graph[best[1]][best[2]] == best[0] == graph[best[2]][best[1]]
