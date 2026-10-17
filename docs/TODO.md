@@ -7179,10 +7179,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   EDT, in the Core 1 thread): (1) the first family's stellar mass range
   is 3e9 to 2e11 solar; (2) every derived law draws its natural scatter
   from the seed (a log-normal about the median); (3) Boss allows
-  arxiv.org for one verifying thread (waiting on him to add it to the
-  environment's allowed domains). Core 1's draft table is
+  arxiv.org for one verifying thread (Boss added the domain at 9:44 PM
+  EDT; a verifying thread started reading the cited papers at 9:45 PM
+  EDT). Core 1's draft table is
   /mnt/project-files/reports/gen368-laws-table-2026-10-17.md (rows 1 to
-  14, nothing yet verified against a paper; research requests in
+  14, not yet verified against a paper; research requests in
   5.13.6). Fixed content found beyond this item's first list (draft
   table 5.13.4), all to be replaced or listed as a stay-constant by the
   same table: the five different Sun radii (removed with the home
