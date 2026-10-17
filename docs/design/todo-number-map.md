@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.136 |
 | MAP | MAP.245 |
 | NAV | NAV.63 |
-| GEN | GEN.502 |
+| GEN | GEN.503 |
 | PERF | PERF.111 |
 | DB | DB.72 |
 | API | API.31 |
@@ -1058,7 +1058,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.404 | The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position | none | open |
 | GEN.405 | Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values | none | open |
 | GEN.406 | Research the population ages and velocity dispersions by component, the thick disk scaling and the stellar halo fraction so they become laws | none | open |
-| GEN.407 | Correct the horizontal-branch and red giant tables to the checked sources: the RGB time law, the evolutionary flux, the HB colour row, the extreme HB luminosity and the tip | none | open |
+| GEN.407 | Correct the horizontal-branch and red giant tables to the checked sources: the RGB time law, the evolutionary flux, the HB colour row, the extreme HB luminosity and the tip | none | done, PR #1985 |
 | GEN.408 | Research: verify the atmosphere sources and say what is missing | none | done, PR #1951 |
 | GEN.409 | The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model | none | open |
 | GEN.410 | One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention | none | open |
@@ -1153,6 +1153,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.499 | The lava-world vapour species and mean molar mass from temperature and composition, replacing the heavy-oxide range of 40 to 60 g/mol | none | open |
 | GEN.500 | The licence audit: the licence column filled for every data source, and the permission list for NIST, JPL, Leiden, Bremen and Karkoschka | none | open |
 | GEN.501 | Source the activity factor of the NH3 photolysis rate from the Huebner and Mukherjee rate tables | none | open |
+| GEN.502 | The giant branch finishes the stellar tables check: the red giant time law as a function of core mass, the tip by metallicity and the branch duration against the observed horizontal-branch ratio | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |

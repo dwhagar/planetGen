@@ -5948,7 +5948,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.244,
   GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.298, UX.116,
   TEST.159, TEST.160, GEN.447, GEN.448, GEN.449, GEN.450, TEST.196,
-  GEN.463, GEN.467, GEN.469.
+  GEN.463, GEN.467, GEN.469, GEN.502.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -8051,47 +8051,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   laws. A verifying thread can read arXiv (Boss allowed it, 9:44 PM
   EDT).
   Prerequisites: GEN.368. Related: GEN.369, GEN.401, GEN.403, GEN.405.
-
-- [ ] **GEN.407 Correct the horizontal-branch and red giant tables to the checked sources: the RGB time law, the evolutionary flux, the HB colour row, the extreme HB luminosity and the tip**
-  Findings of the stellar tables check thread (read-only; Boss tapped
-  "Thread checks" at 10:04 PM EDT; report
-  /mnt/project-files/reports/stellar-evolution-tables-check-2026-10-17.md)
-  on the values Core 3 recalled for GEN.286 and GEN.287 (merged #1932):
-  five do not match the published sources. (1) The red giant branch time
-  law L^-0.9 is too steep: a published core-mass-luminosity fit (arXiv
-  2503.17772 equation 1) gives a local slope of -0.84 at the base
-  flattening to -0.56 at the tip, so giants above 500 solar luminosities
-  are undercounted about 2 times. (2) The evolutionary flux 2.2e-11 is
-  not in the literature: Buzzoni 1989 through Renzini 1997 gives 1.7
-  plus or minus 0.4 e-11. (3) The HB colour row at [Fe/H] -1.5 is about
-  0.25 redder in HB type than the 57 cluster mean (Salaris et al. 2004
-  Table 2) and the code names no metallicity scale. (4) The extreme HB
-  luminosity of 40 to 60 solar conflicts with the design note's own 10
-  to 40, and extreme HB stars skip the AGB. (5) The tip of 2,500 solar
-  luminosities is 1,650 to 1,780 for Z = 1e-4 (Serenelli 2017 Table 2).
-  Matches: R = 1.4 (halo mean 1.44 plus or minus 0.06), the colour rows
-  at -2.2 and -0.7, the temperature boundaries. Not verifiable: the RR
-  Lyrae and extreme shares, the 0.1 dex per Gy age shift, the AGB
-  lifetime. Done: each of the five values follows its source (the law as
-  a calculated function of core mass or metallicity, not a set
-  constant), the metallicity scale of the colour table is named, the
-  design note realistic-galactic-core.md 5.3 states the checked values
-  and marks the three unverifiable ones, the halo luminosity tier tests
-  keep their coverage, and the generator epoch rule applies because
-  stored scatter rows change (older galaxies need `planetgen plan
-  --redo-scatters mass luminosity`). Core 3 keeps its values flagged
-  until this lands. Owner: Core 3 proposed.
-  Prerequisites: none. Related: GEN.286, GEN.287, GEN.322, GEN.396,
-  GEN.259.
-  Epoch (Core 3, as the coordinator reported at 11:42 PM EDT): the
-  constants of this item ship in the small PR that takes generator epoch
-  4 together with GEN.286/287's note; GEN.322 takes epoch 5.
-  Boss decided (2026-10-17, 1:22 AM EDT, card "Replace both"): the
-  neutron-star radius range and the fixed 10 Gyr main-sequence lifetime
-  are replaced by values derived from sourced relations; filed as
-  GEN.463 and GEN.467 in this thread, each a generator epoch change
-  joined to the one rescatter of 8.1 (GEN.301 waits for them), owner
-  Core 3 proposed. GEN.407's own constants keep epoch 4.
 
 - [ ] **GEN.409 The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -12049,6 +12008,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (research; Boss or a read-only research lane).
   Prerequisites: none. Related: GEN.496, GEN.455, GEN.500, GEN.410.
 
+- [ ] **GEN.502 The giant branch finishes the stellar tables check: the red giant time law as a function of core mass, the tip by metallicity and the branch duration against the observed horizontal-branch ratio**
+  What GEN.407 (merged #1985, generator epoch 4, as the lane reported)
+  left out of its own Done list, filed by the TODO thread from the PR's
+  text and diff. (1) The red giant branch time law is one fitted
+  exponent, 0.78 (`GIANT_BRANCH_TIME_SLOPE`), not a calculated function
+  of core mass or metallicity; the checked core-mass-luminosity fit of
+  arXiv 2503.17772 has a slope that flattens from -0.83 at the base to
+  -0.56 at the tip, and the one exponent matches its share above 50,
+  100, 500 and 1,000 solar luminosities only within 15 percent. (2) The
+  tip stays one value, 2,500 solar luminosities, until the giant knows
+  its [Fe/H]: it is 1,650 to 1,780 at Z = 1e-4 (Serenelli 2017) and 15
+  to 50 percent higher for an [Fe/H] -2 halo star. (3) The model's red
+  giant branch (0.1 of the main-sequence lifetime, 1.1 Gy) is longer
+  than the observed one: the ratio of horizontal-branch stars to red
+  giants brighter than the branch is 0.85 against the observed 1.44 +/-
+  0.06 (41 halo clusters, Salaris et al. 2004), and the test was
+  loosened to 0.8 to 2.0 with a comment. The unverified shares (RR Lyrae
+  and extreme, the -0.1 row, the 0.1 dex per Gy age shift, the AGB
+  lifetime) stay flagged [R] and on Boss's research list. Do: the time
+  law and the tip are calculated from the core mass and [Fe/H] with the
+  sources named, the red giant branch duration follows its source so
+  that the horizontal-branch ratio test returns to the observed range
+  without a loosened bound, the stored scatter rows change so this is a
+  generator epoch change joined to the one rescatter. Done: the three
+  values follow their sources, the ratio test asserts the observed
+  range, the epoch rule and `planetgen plan --redo-scatters mass
+  luminosity` apply, and the design note realistic-galactic-core.md 5.3
+  states the checked values. Owner: Core 3 (proposed, the stellar tables
+  work of GEN.407).
+  Prerequisites: none. Related: GEN.407, GEN.396, GEN.322, GEN.301,
+  GEN.463, GEN.467.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.20 Short-term caching through the work queue and API**
@@ -15930,6 +15921,16 @@ clears each one.
   found (a shared table or fixture another database test writes, or a
   real ordering bug in the nebula membership write), the test passes in
   the full parallel run, with no quarantine. Owner: Bug Hunt (proposed).
+  Investigation record (Bug Hunt, 3:13 AM EDT as the lane reported):
+  REPRODUCED solo and idle, 1 failure in 40 runs (2:58 to 3:02 AM EDT;
+  assert None == 1, 2.5 percent), so the earlier reading as a
+  full-parallel-run race is wrong. Cause: the test places the big nebula
+  so the system point is one of its random interior points, and the
+  small nebula's centre then lies outside it when the only interior
+  point was the grid fallback near its surface (about 1 draw in 40).
+  Fix: `_placed_nebula(holds_ly=6)` redraws until the 27 points around
+  the system point are inside; 80 of 80 solo runs passed (3:03 to 3:12
+  AM EDT). Retires on Bug Hunt's merge.
   Prerequisites: none. Related: TEST.213, TEST.194, TEST.208.
 
 - [ ] **TEST.217 `test_every_column_is_written` found a NULL in every row of `moons.evolutionary_speed` in the full parallel gate, and passes alone (bug)**
@@ -15949,6 +15950,25 @@ clears each one.
   first. Done: the cause is found, the test passes in the full parallel
   run, and the round trip does not depend on which other tests ran, with
   no quarantine. Owner: Bug Hunt (proposed).
+  Investigation record (2026-10-17): fails on main, and not only in the
+  full gate. Core 2 (3:2x AM EDT as the lane reported, on a worktree of
+  current main with NAV.60, no PERF.97): passes alone every time, fails
+  in the same process after `tests/test_workers.py
+  tests/test_update_guard_work.py tests/test_api_jobs.py` (2 of 2 runs
+  of that order; once in the PERF.97 gate, not in the NAV.60 gate);
+  reproducer `cd src && python -m pytest tests/test_workers.py
+  tests/test_update_guard_work.py tests/test_api_jobs.py
+  tests/test_db_column_round_trip.py -q`, idle box, 148 s. Core 3 saw
+  the same failure in its GEN.407 gate (1:53 AM EDT start, 15,540
+  passed, 1 failed; passes alone 4 of 4). TODO thread reproduced it on
+  main a5acb516 (run 3:13 to 3:16 AM EDT, box idle, load 0.17): 66 passed, 1
+  failed, 203.86 s, the same assertion. Cause (Bug Hunt, 3:13 AM EDT as
+  the lane reported): `moons.evolutionary_speed` is None on every
+  lifeless moon (life.py:216, GEN.206), and the test galaxy's draws
+  shift with every generator change (GEN.103), so whether any moon has
+  life depends on the draw; the column joins the CHANCE list beside
+  life_chemical. Fixed on Bug Hunt's branch (passes, 51 s at 3:08 AM
+  EDT); retires on its merge.
   Prerequisites: none. Related: TEST.213, TEST.208.
 
 ## USR: User accounts
