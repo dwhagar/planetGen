@@ -12730,32 +12730,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.56, PERF.58.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
-- [ ] **PERF.97 Work queue step 3: the mass scatter end to end on the new queue**
-  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
-  docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
-  the only place a run lives; each scatter its own queue item run in
-  order; counters plus an event stream for progress; cancel in about 0.5
-  s; the MySQL job tree retired); Redis required for every run including
-  one worker; workers on demand with an idle timeout and no always-on
-  service; one Redis instance; no Redis password while it binds
-  loopback; stage timing into the existing MySQL stage tables from the
-  completing unit; the event stream is the live log, written to the jobs
-  directory at run end with the last 20 kept. Each step leaves main
-  working, one PR, Foundations lane 1. Section 5.1 and 5.11 step 3. One
-  stage on the new spine, the mass scatter: static chunks (units per
-  stage capped near 4,000), JSON arguments, the done-set barrier (SCARD
-  equals the unit count, SET NX on an advanced flag so one unit
-  advances), the run's seed independent of worker count, planetgen
-  galaxy following the events, and --workers 1 using the same path. Each
-  scatter layer set is its own queue item run in order (Boss,
-  2026-10-14). Done when: a galaxy fill whose mass scatter runs this way
-  gives the same galaxy for the same seed at any worker count and the
-  old path still runs the other stages.
-  Owner: Core 2 (Boss, 2026-10-16, 3:00 PM EDT: the old Core queue runs
-  after the new top 5 work, routed by area): PERF.97 right after the 8.1
-  phase 1 top 5, PERF.98 to PERF.100 after the infinite zoom tree.
-  Prerequisite: none (PERF.96 done, PR #1553). Related: PERF.86.
-
 - [ ] **PERF.98 Work queue step 4: the remaining stages and the sector and backfill units on the new queue**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
   docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
@@ -12891,6 +12865,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   same seed at any worker count; stage rows land in MySQL as today; a
   hard-killed horse fails the run at once; no unit has `job_timeout` -1;
   one test per mode.
+  Built-on note (Core 2, 2026-10-17, PERF.97 merged as #1999, about 5:20
+  AM EDT as the lane reported): the massive-star scatter runs as static
+  units on the Redis run record (payload_for is shared by the old and
+  the new queue; same stars at 1 and 4 workers and as the old queue).
+  The far-shell and component tasks of the scatter run as units too, and
+  a component unit reads its component from the database, so the other
+  scatters in this item take the same payload and unit shape.
   Prerequisites: PERF.97. Related: PERF.98.
 
 - [ ] **PERF.107 The sector units and the stages around them: start, neighborhood, sectors, link, population and settle**
