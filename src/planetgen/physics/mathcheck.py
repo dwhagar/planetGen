@@ -56,6 +56,7 @@ from planetgen.physics import constants as pc, kepler, stellar_evolution
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.physics import planets
+from planetgen.util import detmath
 
 SEED = 20261001
 """int: The seed every distribution check starts from (each check adds its
@@ -490,7 +491,7 @@ def _kepler_orbit_conservation():
             (x0, y0), (x1, y1) = position(t - dt), position(t + dt)
             x, y = position(t)
             vx, vy = (x1 - x0) / (2 * dt), (y1 - y0) / (2 * dt)
-            r = math.hypot(x, y)
+            r = detmath.hypot(x, y)
             worst = max(worst,
                         _rel_err((vx * vx + vy * vy) / 2 - mu / r, energy),
                         _rel_err(x * vy - y * vx, momentum))

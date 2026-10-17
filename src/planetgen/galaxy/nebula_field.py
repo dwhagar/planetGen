@@ -38,6 +38,7 @@ from planetgen.generation.phenomena.nebula import Nebula, NEBULA_CLASS_LETTERS
 from planetgen.galaxy.sector import _sample_poisson_count
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
+from planetgen.util import detmath
 
 FIELD_FAMILY = "dark"
 """str: The nebula family the field places (classes M-Q). Emission and
@@ -247,7 +248,7 @@ def cloud_object_id(galaxy_seed, shape, nebula, center_pc, edge_pc, births=None)
                         return objectUid.pack(*address, objectUid.SERIAL_FIELD, rank)
                     # A centroid is inside its cloud's bounding sphere, so a cloud further from the sector than its
                     # radius plus the sector's size cannot be born here (and costs no centroid).
-                    if math.dist(cloud_center, sector_center) > ly_to_pc(cloud.radius_ly) + sector_size:
+                    if detmath.dist(cloud_center, sector_center) > ly_to_pc(cloud.radius_ly) + sector_size:
                         continue
                     if birth_of(other, n, cloud, cloud_center) == address:
                         rank += 1
@@ -270,10 +271,10 @@ def clouds_reaching(galaxy_seed, shape, center_pc, reach_pc):
             for k in range(low[2], high[2] + 1):
                 index = (i, j, k)
                 nearest = tuple(min(max(c, n * edge), (n + 1) * edge) for c, n in zip(center_pc, index))
-                if math.dist(nearest, center_pc) > span:
+                if detmath.dist(nearest, center_pc) > span:
                     continue
                 for nebula, cloud_center in cell_clouds(galaxy_seed, shape, index):
-                    if math.dist(cloud_center, center_pc) <= ly_to_pc(nebula.radius_ly) + reach_pc:
+                    if detmath.dist(cloud_center, center_pc) <= ly_to_pc(nebula.radius_ly) + reach_pc:
                         found.append((nebula, cloud_center))
     return found
 

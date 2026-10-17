@@ -25,6 +25,7 @@ from planetgen import tuning
 from planetgen.galaxy import nebula_field, seed as galaxySeed
 from planetgen.galaxy.sector import _sample_poisson_count
 from planetgen.util import draw
+from planetgen.util import detmath
 
 FALLBACK_SEED = nebula_field.FALLBACK_SEED
 """bytes: The field's seed for a galaxy planned before it had one."""
@@ -52,7 +53,7 @@ class Superbubble:
 
     def depth(self, point_pc):
         """How far `point_pc` is from the centre as a share of the radius: under 1 inside."""
-        return math.dist(self.center_pc, point_pc) / self.radius_pc
+        return detmath.dist(self.center_pc, point_pc) / self.radius_pc
 
 
 def _mean_cross_section_pc2():
@@ -105,7 +106,7 @@ def bubbles_reaching(galaxy_seed, shape, point_pc, reach_pc=0.0):
     for i in range(low[0], high[0] + 1):
         for j in range(low[1], high[1] + 1):
             for bubble in cell_bubbles(galaxy_seed, shape, (i, j)):
-                if math.dist(bubble.center_pc, point_pc) <= bubble.radius_pc + reach_pc:
+                if detmath.dist(bubble.center_pc, point_pc) <= bubble.radius_pc + reach_pc:
                     found.append(bubble)
     return found
 
@@ -131,6 +132,6 @@ def all_bubbles(galaxy_seed, shape, radius_pc, half_height_pc=None):
         for j in range(-reach, reach + 1):
             for bubble in cell_bubbles(galaxy_seed, shape, (i, j)):
                 x, y, z = bubble.center_pc
-                if math.hypot(x, y) <= radius_pc and (half_height_pc is None or abs(z) <= half_height_pc):
+                if detmath.hypot(x, y) <= radius_pc and (half_height_pc is None or abs(z) <= half_height_pc):
                     found.append(bubble)
     return found
