@@ -6356,6 +6356,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Redo scope (rescatter thread finding, 2026-10-16): `--redo-scatters`
   redoes rows only; satellites and clusters (`galaxy_components`) come
   only from a full `plan`. DOC.62 documents it.
+  Finding (Core 3, 2026-10-17, relayed by the coordinator at 12:47 AM
+  EDT): measured about 9.1 million black-hole rows beyond the outline,
+  not 2.4 million (1.9 million beyond 15 kpc and 7 million in the inner
+  shells above and below the disk). The Done figure stays until Boss
+  answers the coordinator's card on accepting it; then it is corrected
+  here and in GEN.240's text.
   Prerequisites: GEN.322. Related: GEN.240.
 
 - [ ] **GEN.324 A component pass: clusters, the Clouds and Sagittarius place their stars, and the fill adds the component's density to lambda**
@@ -6372,6 +6378,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Migration revision 0110 is reserved for this item's bright_stars
+  population CHECK ('satellite'), after the queue 0105 (DB.65), 0106
+  (DB.69), 0107 (DB.67), 0108 (DB.70) and 0109 (DB.68) (coordinator
+  relay, 2026-10-17, 12:47 AM EDT). Alembic chains by down_revision: if
+  this merges before the others, take the next free number at merge and
+  tell Core 1.
   Prerequisites: GEN.322. Related: GEN.240.
 
 - [ ] **GEN.325 Planet cull in dense components by the survival formula and the metallicity factor**
@@ -10302,6 +10314,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   orbit tree; the rest of the DB.53 chain remains. The next revision is
   0105 (DB.65), then DB.69, DB.67, DB.70 and DB.68 in the order they
   merge.
+  Revision numbers after 0104 (2026-10-17, 12:47 AM EDT): 0105 DB.65,
+  0106 DB.69, 0107 DB.67, 0108 DB.70, 0109 DB.68, 0110 GEN.324's
+  bright_stars population CHECK (Core 3).
   Prerequisites: none. Related: GEN.129.
 
 - [ ] **DB.56 The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings**
