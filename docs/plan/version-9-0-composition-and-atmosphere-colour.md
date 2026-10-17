@@ -77,6 +77,7 @@ The colour shown in the descriptions, on the maps in place of the planet colour,
 | GEN.492 | Source the ground radioisotope abundances by host and the potassium depletion by body class (AR13) | GEN.478 | Atmosphere lane research need R13 (rows o2, o3, o4, o6); replaces the seeded bracket of the DESIGN rows. |
 | GEN.493 | Source the initial-rotation distribution and the saturation time against stellar mass for the host-star UV regime (AR14) | GEN.478 | Atmosphere lane research need R14 (rows p6); replaces the seeded bracket of the DESIGN rows. |
 | GEN.494 | Source the brown-dwarf type against temperature and the T/Y boundary near 500 to 700 K (AR15) | GEN.478 | Atmosphere lane research need R15 (rows g1, g4); replaces the seeded bracket of the DESIGN rows. |
+| GEN.501 | Source the activity factor of the NH3 photolysis rate from the Huebner and Mukherjee rate tables |  | Body lane reconciliation: NH3 lifetime 6.7e3 s quiet Sun, 5.6e3 s quiet/active mean; activity factor unknown. |
 
 ## Phase 4: The proofs and the headline
 

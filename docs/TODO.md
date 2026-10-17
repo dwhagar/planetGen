@@ -10372,8 +10372,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Checked against Boss's 2:11 AM EDT note by the Atmosphere research
   lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
   10A to 10D of atmosphere-composition.md): NH3 photolysis lifetime
-  about 5.6e3 s by this lane (the Body lane read 6.7e3 s; GEN.496
-  reconciles the two); comet CO2 ratios confirmed, other comet ranges
+  about 5.6e3 s by this lane is a quiet-and-active mean; the quiet Sun is about 6.7e3 s (GEN.496 stores the quiet-Sun rate and an activity factor); comet CO2 ratios confirmed, other comet ranges
   per finding 27.
 
 - [ ] **GEN.456 Lava worlds and hot rocky planets draw a vapour atmosphere over the magma from the surface composition and temperature: sodium, potassium, silicon monoxide, magnesium, iron and the oxides**
@@ -11917,11 +11916,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed, with the composition chain).
   Checked against Boss's 2:11 AM EDT note by the Atmosphere research
   lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
-  10A to 10D of atmosphere-composition.md): the Atmosphere lane reads
-  the NH3 photolysis lifetime as about 5.6e3 s, the Body lane as 6.7e3
-  s: the table must carry the source and cross-section set of each
-  figure and reconcile them.
-  Prerequisites: GEN.410. Related: GEN.410, GEN.455, GEN.413, GEN.472.
+  10A to 10D of atmosphere-composition.md): reconciled by the Body composition lane (3:00 AM EDT as the lane reported; section 15.1 of body-composition-research.md): not a conflict. 6.7e3 s (6.5e3 computed from Heays 2017 cross sections times the quiet solar field; Biver 2007 gives 6700 s) is the quiet Sun; 5.6e3 s (k = 1.8e-4 per s) is a mean of quiet and active Sun (Huebner 1992 and Huebner and Mukherjee 2015, as quoted by Drozdovskaya 2023); published range 5.4e3 to 7.7e3 s. The table stores the quiet-Sun rate and an activity factor per species, not one number; the NH3 activity factor is unknown until the Huebner and Mukherjee NH3 rates are read (the new research item).
+  The NH3 activity factor is the research item GEN.501.
+  Prerequisites: GEN.410. Related: GEN.410, GEN.455, GEN.413, GEN.472,
+  GEN.501.
 
 - [ ] **GEN.497 The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve**
   Body composition research lane check of Boss's second research note
@@ -12017,6 +12015,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and Mukherjee, NMSU and Bremen no licence found; Mainz CC BY 4.0;
   Leiden cite on use.
   Prerequisites: none. Related: GEN.472, GEN.410, GEN.427, GEN.438.
+
+- [ ] **GEN.501 Source the activity factor of the NH3 photolysis rate from the Huebner and Mukherjee rate tables**
+  Body composition research lane reconciliation of the NH3 photolysis
+  lifetime (3:00 AM EDT as the lane reported; section 15.1 of
+  docs/design/body-composition-research.md), filed by the TODO thread at
+  the coordinator's relay. The lifetime is 6.7e3 s for the quiet Sun and
+  5.6e3 s as a quiet-and-active mean (published range 5.4e3 to 7.7e3 s),
+  so the generator keeps a quiet-Sun rate and an activity factor
+  (GEN.496). The NH3 activity factor is not known: the lane did not read
+  the Huebner and Mukherjee 2015 NH3 rates. Do: read the quiet-Sun and
+  active-Sun NH3 photolysis rates in Huebner and Mukherjee 2015 (and
+  Huebner 1992), cross-check them against the Heays 2017 cross sections
+  times the solar field, and record the activity factor with its source,
+  label and licence (GEN.500 audits the licence of the tables). Done:
+  the NH3 activity factor of the lifetime table (GEN.496) is a sourced
+  value or a flagged seeded bracket, and the research is dated and
+  labelled READ or NOT REACHED on the goal issue. Owner: unowned
+  (research; Boss or a read-only research lane).
+  Prerequisites: none. Related: GEN.496, GEN.455, GEN.500, GEN.410.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
