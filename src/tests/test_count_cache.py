@@ -129,3 +129,38 @@ def test_a_statement_that_hits_the_time_limit_is_named_in_the_activity_log(mysql
         conn.close()
     assert events and events[0][0][:2] == ("DB", "statement_timeout")
     assert "SLEEP(5)" in events[0][1]["sql"] and float(events[0][1]["seconds"]) < 4
+
+
+def test_a_scatter_or_a_fill_of_scattered_phenomena_moves_the_stored_phenomena_count(counting, mysql_config):
+    """UX.110: the content stamp follows sectors and systems only, so a stored phenomena count kept its old figure
+    after a scatter, a fill that built scattered phenomena or a saved phenomenon -- the overview showed it for hours."""
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.phenomena.nebula import Nebula
+
+    def phenomena():
+        conn = query.open_readonly(mysql_config)
+        try:
+            return query.count_phenomena(conn)
+        finally:
+            conn.close()
+
+    nebula = Nebula(SystemConfig())
+    nebula.name = "Alpha Cloud"
+    store.save_phenomenon(nebula, SystemConfig(), "nebula", config=mysql_config)
+    assert phenomena() == 1
+    conn = store.get_connection(mysql_config)
+    try:
+        store.insert_phenomenon_scatter(conn, [(0, 0, slot, "neutron-star", None, slot, 0, 0, None, None, None,
+                                                slot + 1, None, None) for slot in range(5)])
+        store.record_phenomenon_scatter_classes(conn, {("neutron-star", ""): 5})
+        conn.commit()
+        assert _until(lambda: phenomena() == 6)
+        store.mark_phenomena_built(conn, [conn.execute("SELECT MIN(id) AS i FROM phenomenon_scatter").fetchone()["i"]])
+        conn.commit()
+    finally:
+        conn.close()
+    assert _until(lambda: phenomena() == 5)
+    other = Nebula(SystemConfig())
+    other.name = "Zeta Cloud"
+    store.save_phenomenon(other, SystemConfig(), "nebula", config=mysql_config)
+    assert _until(lambda: phenomena() == 6)

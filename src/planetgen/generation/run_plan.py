@@ -1413,13 +1413,14 @@ def scatter_phenomena(args):
         stages.enter("phenomena")
         counts = {}
         e_value = skeleton.expected_system_count_at_density_1
-        rows = [(shell, high, phenomenon_scatter.shell_expected(skeleton.shape, shell, high, skeleton.edge_pc,
-                                                                 e_value, min_mass_solar)
-                 + brightStars.BAND_WEIGHT_STARS * (2 * high + 1))
-                for shell, high in extents]
+        expected = [phenomenon_scatter.shell_expected(skeleton.shape, shell, high, skeleton.edge_pc, e_value,
+                                                      min_mass_solar) for shell, high in extents]
+        rows = [(shell, high, shell_rows + brightStars.BAND_WEIGHT_STARS * (2 * high + 1))
+                for (shell, high), shell_rows in zip(extents, expected)]
         tasks = dict(enumerate(shell_chunks(rows, run_common._worker_count(args))))
         weights = {key: sum(row[2] for row in chunk) for key, chunk in tasks.items()}
-        log.normal(f"Phenomena: about {round(sum(weights.values())):,} to place in {len(extents):,} shells "
+        # The rows expected, not the bar's weight (that adds a cost per band, GEN.397).
+        log.normal(f"Phenomena: about {round(sum(expected)):,} to place in {len(extents):,} shells "
                    f"(neutron stars and black holes from {min_mass_solar:g} solar masses).")
         if filled:
             log.normal(f"Leaving out the {len(filled):,} sectors already filled.")

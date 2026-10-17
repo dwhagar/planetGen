@@ -259,9 +259,9 @@ def _estimated_rows(conn, table):
     return int(row["n"] or 0) if row else 0
 
 
-def _counted(conn, key, compute, fallback):
-    """`countcache.cached` under the galaxy's content stamp (PERF.64)."""
-    return countcache.cached(conn, key, compute, fallback, galaxy_content_stamp)
+def _counted(conn, key, compute, fallback, stamp=None):
+    """`countcache.cached` under the galaxy's content stamp (PERF.64), or the `stamp` given."""
+    return countcache.cached(conn, key, compute, fallback, stamp or galaxy_content_stamp)
 
 
 def count_sectors(conn, quadrants=()):
@@ -2235,6 +2235,23 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
     return items
 
 
+def _phenomena_stamp(conn):
+    """
+    The stamp the stored Phenomena counts are kept under (UX.110): the galaxy's content stamp plus what the
+    phenomena themselves hold. The content stamp moves with sectors and systems only, so a scatter (the stored class
+    totals), a sector fill that builds scattered phenomena, or a standalone phenomenon saved or edited left the
+    stored count at its old figure for hours (`countcache.MAX_AGE_SECONDS`). One primary-key and one `modified_at`
+    index read per phenomenon table, and the class totals.
+    """
+    reads = ", ".join(
+        f"(SELECT CONCAT(COALESCE(MAX(id), 0), '/', COALESCE(MAX(modified_at), '')) FROM {table}) AS t{n}"
+        for n, (table, *_rest) in enumerate(_PHENOMENON_TABLES))
+    row = conn.execute(f"SELECT {reads}, (SELECT COALESCE(SUM(placed), 0) FROM phenomenon_scatter_classes) AS placed, "
+                       "(SELECT COALESCE(SUM(built), 0) FROM phenomenon_scatter_classes) AS built").fetchone()
+    token = "|".join(str(row[key]) for key in row.keys())
+    return galaxy_content_stamp(conn) + hashlib.sha256(token.encode("utf-8")).hexdigest()[:16]
+
+
 def count_phenomena(conn, types=(), descriptors=(), placed=None):
     """
     Returns the number of exotic phenomena across every type in
@@ -2262,7 +2279,8 @@ def count_phenomena(conn, types=(), descriptors=(), placed=None):
                           f"LIMIT ?) c", list(params) + [COUNT_FALLBACK_CAP]).fetchone()["n"]
         return _capped(built + sum(entry["unbuilt"] for entry in _scattered_classes(c, types, descriptors, placed)))
 
-    return _counted(conn, ["count_phenomena", list(types), list(descriptors), placed], exact, estimate)
+    return _counted(conn, ["count_phenomena", list(types), list(descriptors), placed], exact, estimate,
+                    _phenomena_stamp)
 
 
 def phenomena_facets(conn, types=(), descriptors=(), placed=None):
@@ -2292,7 +2310,7 @@ def phenomena_facets(conn, types=(), descriptors=(), placed=None):
         return facets
 
     return _counted(conn, ["phenomena_facets", list(types), list(descriptors), placed], exact,
-                    lambda c: {"type": [], "descriptor": []})
+                    lambda c: {"type": [], "descriptor": []}, _phenomena_stamp)
 
 
 _PHENOMENON_TYPE_TO_TABLE = {

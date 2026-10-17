@@ -15,6 +15,7 @@ Every run ends with its job row finished, no task row left `running` and
 the lease free, whatever stopped it.
 """
 
+import json
 import os
 import signal
 import subprocess
@@ -41,6 +42,10 @@ def _square(payload):
 def _slow_square(payload):
     time.sleep(0.2)
     return payload * payload
+
+
+def _sleep_long(payload):
+    time.sleep(600)
 
 
 def _die_on_two(payload):
@@ -303,6 +308,89 @@ def test_a_cancelled_parallel_run_ends_cancelled_and_frees_the_lease(control_con
     states = {row["state"] for row in _rows(control_config, "SELECT state FROM work_tasks WHERE job_id = ?",
                                              (queue.job_id,))}
     assert states <= {"done", "cancelled"}
+
+
+_STOPPED_RUN = """
+import json, sys
+from planetgen.db.store import MySQLConfig
+from planetgen.queue import work
+from tests.test_work_queue_failures import _sleep_long
+
+with work.WorkQueue("Stopped run", workers=2, control_config=MySQLConfig(**json.loads(sys.argv[1]))) as queue:
+    print(queue.job_id, flush=True)
+    for n in range(4):
+        queue.submit("sleep", f"n{n}", _sleep_long, n)
+    queue.drain()
+"""
+
+
+def _descendants(pid):
+    """The pids of every process below `pid` (workers and their work horses), from /proc."""
+    parents = {}
+    for entry in os.listdir("/proc"):
+        if entry.isdigit():
+            try:
+                with open(f"/proc/{entry}/stat") as handle:
+                    parents[int(entry)] = int(handle.read().rsplit(")", 1)[1].split()[1])
+            except (OSError, ValueError, IndexError):
+                continue
+    found, queue = set(), [pid]
+    while queue:
+        parent = queue.pop()
+        for child, ppid in parents.items():
+            if ppid == parent and child not in found:
+                found.add(child)
+                queue.append(child)
+    return found
+
+
+def _alive(pid):
+    """Whether `pid` still runs (a zombie is dead)."""
+    try:
+        with open(f"/proc/{pid}/stat") as handle:
+            return handle.read().rsplit(")", 1)[1].split()[0] != "Z"
+    except OSError:
+        return False
+
+
+def test_a_sigterm_stops_the_workers_busy_with_a_long_task_and_leaves_no_process(control_config):
+    """OPS.59: the run's workers were left running their task (and the run waiting for them) after a SIGTERM."""
+    kwargs = {"host": control_config.host, "port": control_config.port, "user": control_config.user,
+              "password": control_config.password, "database": control_config.database}
+    env = dict(os.environ, PLANETGEN_CONTROL_DATABASE=control_config.database)
+    env.pop(workQueue.PARENT_ENV_VAR, None)
+    run = subprocess.Popen([sys.executable, "-c", _STOPPED_RUN, json.dumps(kwargs)], cwd=os.path.join(REPO, "src"),
+                           env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True,
+                           preexec_fn=lambda: signal.signal(signal.SIGINT, signal.SIG_DFL))
+    try:
+        job_id = run.stdout.readline().decode().strip()
+        deadline = time.time() + 120
+        while len(_rows(control_config, "SELECT id FROM work_tasks WHERE job_id = ? AND state = 'running'",
+                        (job_id,))) < 2:
+            assert run.poll() is None, run.stderr.read().decode(errors="replace")[-2000:]
+            assert time.time() < deadline, "no task started running"
+            time.sleep(0.1)
+        while len(_descendants(run.pid)) < 4:   # two workers, and a work horse each
+            assert time.time() < deadline, "the workers did not start their tasks"
+            time.sleep(0.1)
+        below = _descendants(run.pid)
+        os.kill(run.pid, signal.SIGTERM)
+        assert run.wait(timeout=60) == 128 + signal.SIGTERM
+        for _ in range(100):
+            if not any(_alive(pid) for pid in below):
+                break
+            time.sleep(0.1)
+        assert not [pid for pid in below if _alive(pid)], "a worker or work horse outlived the run"
+    finally:
+        if run.poll() is None:
+            os.killpg(run.pid, signal.SIGKILL)
+            run.wait()
+        for pid in _descendants(run.pid):
+            try:
+                os.kill(pid, signal.SIGKILL)
+            except OSError:
+                pass
+    _ended_cleanly(control_config, job_id, "cancelled")
 
 
 GALAXY_SHELL = 5
