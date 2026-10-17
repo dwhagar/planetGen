@@ -154,7 +154,9 @@ connectivity to that specific schema rather than the default one.
   ID>` starts the page after that system in the name sort and ignores
   `offset`, so page 40,000 costs what page 1 does (an unknown ID is a 400);
   a bad `sort`, `order`, `binary` or `placement` is a 400.
-- `GET /api/uncharted-systems?sort=<luminosity|temperature|type|sector|age>&order=asc|desc&limit=<n>&offset=<n>` —
+- `GET /api/uncharted-systems?sort=<luminosity|temperature|type|sector|age>&order=asc|desc&limit=<n>&offset=<n>&after=<star id>` —
+  (`after` starts the page after that star in the sort and ignores `offset`, PERF.75; equal sort values are ordered by id in the
+  sort's own direction, so the luminosity and sector sorts walk their index with no sort; a non-number is a 400)
   the stars the brightness scatter placed that have no system yet (UX.87:
   `bright_stars` rows with a NULL `star_system_id`, so both the mass-limit
   and luminosity passes count). Each item has `id`, `designation`,
@@ -464,7 +466,8 @@ connectivity to that specific schema rather than the default one.
   `../src/planetgen/web/lib/tilecache.py` (the web layer's disk cache) calls it
   about once a minute and deletes only the listed tiles, and passes the
   list on to the map's browser cache.
-- `GET /api/phenomena?limit=<n>&offset=<n>` — every exotic phenomenon,
+- `GET /api/phenomena?limit=<n>&offset=<n>&after=<scatter id>` — every exotic phenomenon (`after`, the `scatter_id` of a scattered
+  row, starts the page after it in the tail of unbuilt scattered phenomena and ignores `offset`, PERF.75; a non-number is a 400),
   across every sector and regardless of galaxy placement (unlike
   `/api/galaxy/phenomena`, which only returns the galaxy-placed subset) —
   paginated the same way `/api/sectors`/`/api/systems` are (`items`,

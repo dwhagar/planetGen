@@ -1199,15 +1199,23 @@ def uncharted_systems():
     position in the sector). Query parameters: `sort` (`luminosity` -- the
     default -- `temperature`, `type`, `sector` or `age`) with `order`
     (`asc` or `desc`; `desc` for luminosity when omitted, else `asc`), `limit`
-    and `offset`. `total` counts every star waiting.
+    and `offset`. `after=<star id>` starts the page after that star in the sort instead of skipping `offset`
+    rows (PERF.75). `total` counts every star waiting.
     """
     limit, offset = _paginate(request.args)
     sort, descending = _parse_sort(request.args, UNCHARTED_SYSTEM_SORTS)
     if "order" not in request.args:
         descending = sort == "luminosity"
+    after = None
+    if request.args.get("after"):
+        try:
+            after = int(request.args["after"])
+        except ValueError:
+            raise ApiError(f"after must be a star id, got {request.args['after']!r}")
     db = get_db()
     return jsonify({
-        "items": list_uncharted_systems(db, limit=limit, offset=offset, sort=sort, descending=descending),
+        "items": list_uncharted_systems(db, limit=limit, offset=offset, sort=sort, descending=descending,
+                                        after=after),
         "total": count_uncharted_systems(db), "limit": limit, "offset": offset,
     })
 
@@ -1289,6 +1297,8 @@ def phenomena():
     and `placed` (`yes` or `no`); and `facets=1` to add the option counts
     for the type and descriptor filter menus (`db.query.phenomena_facets`).
     `total` counts the rows that pass the filters (`total_capped`: it stopped at 10,000, PERF.69).
+    `after=<scatter id>` (the `scatter_id` of a scattered row) starts the page after that row in the tail of
+    unbuilt scattered phenomena instead of skipping `offset` rows (PERF.75).
     """
     limit, offset = _paginate(request.args)
     sort, descending = _parse_sort(request.args, PHENOMENON_SORTS)
@@ -1297,10 +1307,17 @@ def phenomena():
         "descriptors": [v for v in request.args.getlist("descriptor") if v],
         "placed": _parse_yes_no(request.args.get("placed"), "placed"),
     }
+    after = None
+    if request.args.get("after"):
+        try:
+            after = int(request.args["after"])
+        except ValueError:
+            raise ApiError(f"after must be a scatter id, got {request.args['after']!r}")
     db = get_db()
     total = count_phenomena(db, **filters)
     body = {
-        "items": list_phenomena(db, limit=limit, offset=offset, sort=sort, descending=descending, **filters),
+        "items": list_phenomena(db, limit=limit, offset=offset, sort=sort, descending=descending, after=after,
+                                **filters),
         "total": total,
         "total_capped": is_capped(total),
         "limit": limit,
