@@ -7803,9 +7803,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the doc; the scatter is a log-normal drawn through
   `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
   compatibility shim: the old constant goes in the same change. A change
-  that alters the generator output follows the epoch rule.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
+  that alters the generator output follows the epoch rule. Owner: Core 1
+  (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 1 of 43). This replaces any earlier owner line on this item.
   Research landed (GEN.406 retired, 2026-10-17, about 10:42 AM EDT;
@@ -7822,62 +7821,61 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   defaults, both carried and flagged in the note's conflicts 5 and 6;
   (3) the tuning.py scale heights (50/300, 150/300, 1) and dispersions
   (15, 25, 50) cannot both hold if height goes as dispersion squared:
-  take both from one law (note Q5 and Q3).
-  Fills (2026-10-17, gap-filling plan, docs/design/gap-filling-plan.md):
-  the values this item cannot source from a read paper are filled by the
-  plan's section 5 (derived D, bracket B, theory prior T, or labelled
-  placeholder P) and registered in one stand-in registry (plan section
-  6: fill id, kind, evidence label, source state, form, assumptions,
-  validity range, knobs, target id, falsifier test, replaced-by research
-  item, sources, licence, epoch). A lead such as Gemini may only widen a
-  bracket, and on a contradiction the verified source wins. A stand-in
-  replaced later changes stored output and rides the pending epoch.
-  Galaxy gaps for this item: GR1, GR10, GX5, GR14 (accreted halo
-  integral of plan 4.2, group X3, with the slope test against 0.79), GR3
-  bound and GR4 rule (X2). Order X1, X2, X3.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
+  take both from one law (note Q5 and Q3). Fills (2026-10-17,
+  gap-filling plan, docs/design/gap-filling-plan.md): the values this
+  item cannot source from a read paper are filled by the plan's section
+  5 (derived D, bracket B, theory prior T, or labelled placeholder P)
+  and registered in one stand-in registry (plan section 6: fill id,
+  kind, evidence label, source state, form, assumptions, validity range,
+  knobs, target id, falsifier test, replaced-by research item, sources,
+  licence, epoch). A lead such as Gemini may only widen a bracket, and
+  on a contradiction the verified source wins. A stand-in replaced later
+  changes stored output and rides the pending epoch. Galaxy gaps for
+  this item: GR1, GR10, GX5, GR14 (accreted halo integral of plan 4.2,
+  group X3, with the slope test against 0.79), GR3 bound and GR4 rule
+  (X2). Order X1, X2, X3. Decided (Boss, 2026-10-17, between 11:19 AM
+  and 11:23 AM EDT, card answers relayed in words by the coordinator;
   docs/design/gap-filling-plan.md section 8): GX2 arm pitch against
   bulge fraction: the sign is a 50/50 mixture and both sources stay
   (Hart 2017, Yu and Ho 2018). GR5 (Courteau 2007 scatter) and GR3 rank
   2 (Comeron 2011, 2012, 2014 tables): ship the plan's fills; a short
   read-only VizieR search runs first, and a result replaces the fill
-  after this item merges.
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
+  after this item merges. Papers list (2026-10-17, filed by the TODO
+  thread; docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for
+  the papers he can download himself, the coordinator posted the list at
   11:32 AM EDT as it reported): Aumer and Binney 2009 (arXiv:0905.2512,
   GR4) is readable by a thread; the Courteau and Comeron VizieR search
-  runs first (decision 6).
-  VizieR search result (2026-10-17, finished 11:39 AM EDT as the
-  coordinator reported; docs/design/vizier-courteau-comeron.md): GR5
-  stays at the plan's fill (log-normal 0.09 dex, bracket 0.06 to 0.12;
-  the raw scatter of two source samples is 0.104 to 0.123 dex, so 0.10
-  to 0.11 would match them, and the true scatter about the Courteau
-  relation is smaller and unknown; the table is not reachable). GR3 rank
-  2 becomes the Comeron 2018 fit, J/A+A/610/A5: log10(M_thick/M_thin) =
-  2.113 - 1.086 log10(Vc), scatter 0.27 dex (the plan had 0.2), median
-  height ratio 4.2 (the plan had 2.5) and median length ratio 1.46. 39
-  percent of the 124 real galaxies exceed the plan's hot-component
-  bound, so the bound test applies to the mean relation or carries a
-  margin of 0.13 dex. The replacement is a new stand-in version after
-  this item merges (Core 1's gate ends about 12:20 PM EDT).
-  Gemini batch 1 check (2026-10-17, finished 11:49 AM EDT as the lane
-  clock reported; docs/design/gemini-batch1-check.md): R2 tables:
-  Illustris-1 median ex situ fraction 0.026 at M* 1e9, 0.060 at 1e10,
-  0.12 at 4.7e10, 0.19 at 1e11, 0.34 at 2e11, 0.54 at 4.7e11, 0.72 at
-  1e12 (the low end of the simulations); outer-component light fraction
-  of the SDSS stacks, high concentration 0.33 at 10.1, 0.53 at 10.9,
-  0.70 at 11.2, low concentration 0.025, 0.18, 0.24 (log M* 10.0 to 11.4
-  only); the crossover of 0.5 is at log M* 11.61, not 1.5e11. R5:
-  Courteau scatter 0.097 dex about the paper's own line (by class:
-  ellipticals 0.050, S0 to Sab 0.081, Sb to Sbc 0.095, Sc to Scd 0.076,
-  lenticulars 0.133). Thick-to-thin conflicts OPEN, awaiting Boss's
-  cards (not covered by his 11:19 AM EDT card 2): height ratio 2.5
-  (Yoachim) against a median 4.24 (Comeron 2018), mass ratio against Vc
-  0.53 (Vc/100)^-2.3 against 0.87 (Vc/100)^-1.09; the Comeron heights
-  and outer lengths against M* are
-  in the check note.
+  runs first (decision 6). VizieR search result (2026-10-17, finished
+  11:39 AM EDT as the coordinator reported;
+  docs/design/vizier-courteau-comeron.md): GR5 stays at the plan's fill
+  (log-normal 0.09 dex, bracket 0.06 to 0.12; the raw scatter of two
+  source samples is 0.104 to 0.123 dex, so 0.10 to 0.11 would match
+  them, and the true scatter about the Courteau relation is smaller and
+  unknown; the table is not reachable). GR3 rank 2 becomes the Comeron
+  2018 fit, J/A+A/610/A5: log10(M_thick/M_thin) = 2.113 - 1.086
+  log10(Vc), scatter 0.27 dex (the plan had 0.2), median height ratio
+  4.2 (the plan had 2.5) and median length ratio 1.46. 39 percent of the
+  124 real galaxies exceed the plan's hot-component bound, so the bound
+  test applies to the mean relation or carries a margin of 0.13 dex. The
+  replacement is a new stand-in version after this item merges (Core 1's
+  gate ends about 12:20 PM EDT). Gemini batch 1 check (2026-10-17,
+  finished 11:49 AM EDT as the lane clock reported;
+  docs/design/gemini-batch1-check.md): R2 tables: Illustris-1 median ex
+  situ fraction 0.026 at M* 1e9, 0.060 at 1e10, 0.12 at 4.7e10, 0.19 at
+  1e11, 0.34 at 2e11, 0.54 at 4.7e11, 0.72 at 1e12 (the low end of the
+  simulations); outer-component light fraction of the SDSS stacks, high
+  concentration 0.33 at 10.1, 0.53 at 10.9, 0.70 at 11.2, low
+  concentration 0.025, 0.18, 0.24 (log M* 10.0 to 11.4 only); the
+  crossover of 0.5 is at log M* 11.61, not 1.5e11. R5: Courteau scatter
+  0.097 dex about the paper's own line (by class: ellipticals 0.050, S0
+  to Sab 0.081, Sb to Sbc 0.095, Sc to Scd 0.076, lenticulars 0.133).
+  Thick-to-thin conflicts DECIDED, widen and keep both (Boss's cards,
+  tapped 12:02 PM EDT (read from the session log and relayed in words by
+  the coordinator)): the height ratio is drawn from 2.5 (Yoachim) to 4.2
+  (Comeron 2018, median 4.24), both trends kept, so the Comeron fit is
+  not only a second-ranked fill; the mass ratio against Vc is widened
+  between 0.53 (Vc/100)^-2.3 and 0.87 (Vc/100)^-1.09, both kept; the
+  Comeron heights and outer lengths against M* are in the check note.
   Prerequisites: none. Related: GEN.378, GEN.382, GEN.366, GEN.134.
 
 - [ ] **GEN.402 The central black hole mass and the nuclear cluster follow the bulge: the M-bulge and M-sigma relations replace the fixed ranges**
@@ -7973,15 +7971,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   named in the code and the doc; the scatter is a log-normal drawn
   through `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
   compatibility shim: the old constant goes in the same change. A change
-  that alters the generator output follows the epoch rule.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): take a family specific frequency factor as an input from
-  the start (1 for the first family), so GEN.387 (9.4) multiplies this
-  law and does not define a second count. Boss approved this halo-mass
-  law in GEN.368's table (2026-10-16, 10:11 PM EDT); GEN.164's older
-  S_N-by-morphology count is superseded by it.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
+  that alters the generator output follows the epoch rule. Consolidation
+  sweep (Boss, 2026-10-16, 11:58 PM EDT; applied 2026-10-17): take a
+  family specific frequency factor as an input from the start (1 for the
+  first family), so GEN.387 (9.4) multiplies this law and does not
+  define a second count. Boss approved this halo-mass law in GEN.368's
+  table (2026-10-16, 10:11 PM EDT); GEN.164's older S_N-by-morphology
+  count is superseded by it. Owner: Core 1 (Boss's lanes to 8.1,
+  2026-10-17, 10:06 AM EDT; lane assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 3 of 43). This replaces any earlier owner line on this item.
   Research landed (GEN.406 retired, 2026-10-17, about 10:42 AM EDT;
@@ -7993,19 +7990,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   times difference at Milky Way mass) carries a proposed default; the
   cluster system's join between the dwarf and the massive range is an
   unsourced placeholder (requests R7 to R9 on GEN.531). The halo mass
-  law above 1e11 is a placeholder (R14).
-  Fills (2026-10-17, gap-filling plan, docs/design/gap-filling-plan.md):
-  the values this item cannot source from a read paper are filled by the
-  plan's section 5 (derived D, bracket B, theory prior T, or labelled
-  placeholder P) and registered in one stand-in registry (plan section
-  6: fill id, kind, evidence label, source state, form, assumptions,
-  validity range, knobs, target id, falsifier test, replaced-by research
-  item, sources, licence, epoch). A lead such as Gemini may only widen a
-  bracket, and on a contradiction the verified source wins. A stand-in
-  replaced later changes stored output and rides the pending epoch.
-  Galaxy gaps for this item: GR7, GR8, GR9b, GR11 (group X4), GR10 age
-  against halo mass and GX1 (X2, X3); the cluster radius GR9a is
-  answered (Jordan 2005).
+  law above 1e11 is a placeholder (R14). Fills (2026-10-17, gap-filling
+  plan, docs/design/gap-filling-plan.md): the values this item cannot
+  source from a read paper are filled by the plan's section 5 (derived
+  D, bracket B, theory prior T, or labelled placeholder P) and
+  registered in one stand-in registry (plan section 6: fill id, kind,
+  evidence label, source state, form, assumptions, validity range,
+  knobs, target id, falsifier test, replaced-by research item, sources,
+  licence, epoch). A lead such as Gemini may only widen a bracket, and
+  on a contradiction the verified source wins. A stand-in replaced later
+  changes stored output and rides the pending epoch. Galaxy gaps for
+  this item: GR7, GR8, GR9b, GR11 (group X4), GR10 age against halo mass
+  and GX1 (X2, X3); the cluster radius GR9a is answered (Jordan 2005).
   Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
   answers relayed in words by the coordinator;
   docs/design/gap-filling-plan.md section 8): GX4 and the cluster-count
@@ -8013,22 +8009,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dex factor applies with the group probability, no environment concept
   added now. GR7 (blue against red radius ratio): log-uniform from 1.0
   to the largest printed ratio, 1.5 until the ratios are read; both
-  sources stay.
-  Gemini batch 1 check (2026-10-17, finished 11:49 AM EDT as the lane
-  clock reported; docs/design/gemini-batch1-check.md): halo formation
-  redshift z50 against halo mass (analytic mean, Correa 2015): 1.27,
-  1.15, 1.02, 0.88, 0.74, 0.60, 0.47, 0.35 at log M 8 to 15, slope about
-  -0.14 per dex (Gemini's 1.20 - 0.35 log(M/1e12) is contradicted except
-  at 1e14); a simulation fit (Cooper and Cole 2010) is still open (R10).
-  Cluster system radius against the galaxy's: about 3.5 times (Hudson
-  and Robison 2018, Forbes 2018) against about 6 times (Kartha 2016,
-  twelve galaxies), OPEN, awaiting Boss's card (not covered by his 11:19
-  AM EDT card 2, which covered only the blue to red radius ratio). The
-  blue
-  to red radius ratio (R7) stays open: the 1.20 ± 0.08 of Gemini is in
-  none of the papers read. Cluster half-light radius (R9): 2.7 ± 0.35 pc
-  after correction, red about 17 percent smaller than blue, invariant to
-  about 10 percent over a factor of about 350 in host luminosity.
+  sources stay. Gemini batch 1 check (2026-10-17, finished 11:49 AM EDT
+  as the lane clock reported; docs/design/gemini-batch1-check.md): halo
+  formation redshift z50 against halo mass (analytic mean, Correa 2015):
+  1.27, 1.15, 1.02, 0.88, 0.74, 0.60, 0.47, 0.35 at log M 8 to 15, slope
+  about -0.14 per dex (Gemini's 1.20 - 0.35 log(M/1e12) is contradicted
+  except at 1e14); a simulation fit (Cooper and Cole 2010) is still open
+  (R10). Cluster system radius against the galaxy's: about 3.5 times
+  (Hudson and Robison 2018, Forbes 2018) against about 6 times (Kartha
+  2016, twelve galaxies), DECIDED, widen and keep both (Boss's cards,
+  tapped 12:02 PM EDT (read from the session log and relayed in words by
+  the coordinator)): the ratio is drawn from about 3.5 to about 6 times
+  the galaxy's radius, both sources kept. The blue to red radius ratio
+  (R7) stays open: the 1.20 ± 0.08 of Gemini is in none of the papers
+  read. Cluster half-light radius (R9): 2.7 ± 0.35 pc after correction,
+  red about 17 percent smaller than blue, invariant to about 10 percent
+  over a factor of about 350 in host luminosity.
   Prerequisites: none. Related: GEN.297, GEN.366, GEN.387.
 
 - [ ] **GEN.404 The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position**
@@ -13378,28 +13374,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are labelled and the laws build on them. Owner: Boss (a research list;
   a read-only research thread reads each source on request).
   Prerequisites: none. Related: GEN.401, GEN.403, GEN.405, GEN.369,
-  GEN.386, GEN.447, GEN.297, GEN.280.
-  Boss (2026-10-17, 10:44 AM EDT, typed in the project chat; relayed by
-  the coordinator): some things are simply not known. He is sending a
-  Gemini agent to search for these fifteen items and has asked it to
-  include theories and speculation; its results will arrive here and are
-  checked claim by claim like any source (verified wins on a
-  contradiction, the usability rule of 3:02 AM EDT stands). A new
-  read-only thread, "Gap-filling plan (2026-10-17)", plans how the
-  generator fills the gaps itself with approximations and theories; its
-  report is /mnt/project-files/reports/gap-filling-plan-2026-10-17.md
-  and the TODO thread files it when the coordinator says it is done.
-  Until a request is answered, the stand-in or placeholder in the build
-  item is labelled as such (source marker stand-in or placeholder, with
-  this item as its replacement research) so it can be replaced without a
-  search through the code.
-  Gemini batch 1 (2026-10-17, arrived at 10:52 AM EDT as the coordinator
-  reported; Boss pasted it into the "Gap-filling plan (2026-10-17)"
-  thread): galactic structural scaling laws, kinematics, assembly
-  histories and ex situ halo fractions. It is unverified input: no claim
-  in it replaces a placeholder until it is checked claim by claim
-  against the paper (verified wins on a contradiction). The gap-filling
-  thread will say how large the verification job is.
+  GEN.386, GEN.447, GEN.297, GEN.280. Boss (2026-10-17, 10:44 AM EDT,
+  typed in the project chat; relayed by the coordinator): some things
+  are simply not known. He is sending a Gemini agent to search for these
+  fifteen items and has asked it to include theories and speculation;
+  its results will arrive here and are checked claim by claim like any
+  source (verified wins on a contradiction, the usability rule of 3:02
+  AM EDT stands). A new read-only thread, "Gap-filling plan
+  (2026-10-17)", plans how the generator fills the gaps itself with
+  approximations and theories; its report is
+  /mnt/project-files/reports/gap-filling-plan-2026-10-17.md and the TODO
+  thread files it when the coordinator says it is done. Until a request
+  is answered, the stand-in or placeholder in the build item is labelled
+  as such (source marker stand-in or placeholder, with this item as its
+  replacement research) so it can be replaced without a search through
+  the code. Gemini batch 1 (2026-10-17, arrived at 10:52 AM EDT as the
+  coordinator reported; Boss pasted it into the "Gap-filling plan
+  (2026-10-17)" thread): galactic structural scaling laws, kinematics,
+  assembly histories and ex situ halo fractions. It is unverified input:
+  no claim in it replaces a placeholder until it is checked claim by
+  claim against the paper (verified wins on a contradiction). The
+  gap-filling thread will say how large the verification job is.
   Gap-filling plan filed (2026-10-17, about 11:16 AM EDT;
   docs/design/gap-filling-plan.md), sizing and answers. Gemini batch 1
   holds about 110 distinct claims, about 45 checkable; the plan checked
@@ -13425,43 +13420,41 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   downloaded line lists and star catalogues (HITRAN, ExoMol, Brewer
   2016, Hypatia); 5 papers behind refused publishers; 6 the Courteau
   2007 64-galaxy table and the Comeron fit equations; 7 external-galaxy
-  thick-disc histories (Pinna 2019 and similar).
-  Boss (11:17 AM EDT, card tap "One checking thread" as the coordinator
-  reported) chose a single read-only thread to check the other checkable
-  claims of Gemini batch 1; "Gemini batch 1 check (2026-10-17)" started
-  at 11:19 AM EDT as the coordinator reported and writes
+  thick-disc histories (Pinna 2019 and similar). Boss (11:17 AM EDT,
+  card tap "One checking thread" as the coordinator reported) chose a
+  single read-only thread to check the other checkable claims of Gemini
+  batch 1; "Gemini batch 1 check (2026-10-17)" started at 11:19 AM EDT
+  as the coordinator reported and writes
   /mnt/project-files/reports/gemini-batch1-check-2026-10-17.md. The
   recommendation in the previous note is taken. Until it reports, every
-  Gemini claim stays unverified.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/gap-filling-plan.md section 8): all seven open points of
-  the gap-filling plan. 1 Environment (GX4, GR11 scatter, AT.j): drawn
-  from the halo mass, no new environment concept now, the 0.3 dex
-  cluster-count factor applies with the group probability. 2 Verified
-  against verified (GX2, GX3, GR7): widen and keep both, neither
-  dropped: GX2 sign 50/50, GX3 uniform 0.48 to 1.36, GR7 log-uniform
-  from 1.0 to the largest printed ratio (1.5 until read). 3 Placeholders
-  BC11, AT.b5, AT.n7 ship as labelled placeholders (BC11 uniform 0 to 1
-  loss fraction, the draw is the fill; the others log-uniform). 4
-  Licences (HITRAN, ExoMol, Brewer 2016, Hypatia): downloaded at build
-  time, no derived tables stored; builds need the network, so the design
-  states how tests run offline and group X9 is gated on that design
-  (plan 6.5). 5 Boss fetches the papers behind refused publishers
-  himself; the stand-ins stay meanwhile and the items that need the
-  originals wait for his files. 6 Courteau 2007 (GR5) and Comeron 2011,
-  2012, 2014 (GR3): ship the fills and run the quick VizieR search first
-  (a short read-only thread; GEN.401 carries both gaps and GEN.402
-  carries GR5, so a result lands as a replacement after GEN.401 merges).
-  7 Thick-disc start in other galaxies (GR6): the halo formation epoch
-  plus a 0 to 1 Gyr delay, a labelled placeholder until S0 histories are
-  found.
-  Papers for Boss's own research list (decision 5; titles from the
-  Crossref record unless marked; stand-ins stay until a thread reads the
-  file): BC3 Stixrude and Lithgow-Bertelloni 2024, "Thermodynamics of
-  mantle minerals III: the role of iron", GJI 237, 1699, doi
-  10.1093/gji/ggae126 (base paper: 2005, "Thermodynamics of mantle
-  minerals I. Physical properties"); BC4 Palme and O'Neill 2014,
+  Gemini claim stays unverified. Decided (Boss, 2026-10-17, between
+  11:19 AM and 11:23 AM EDT, card answers relayed in words by the
+  coordinator; docs/design/gap-filling-plan.md section 8): all seven
+  open points of the gap-filling plan. 1 Environment (GX4, GR11 scatter,
+  AT.j): drawn from the halo mass, no new environment concept now, the
+  0.3 dex cluster-count factor applies with the group probability. 2
+  Verified against verified (GX2, GX3, GR7): widen and keep both,
+  neither dropped: GX2 sign 50/50, GX3 uniform 0.48 to 1.36, GR7
+  log-uniform from 1.0 to the largest printed ratio (1.5 until read). 3
+  Placeholders BC11, AT.b5, AT.n7 ship as labelled placeholders (BC11
+  uniform 0 to 1 loss fraction, the draw is the fill; the others
+  log-uniform). 4 Licences (HITRAN, ExoMol, Brewer 2016, Hypatia):
+  downloaded at build time, no derived tables stored; builds need the
+  network, so the design states how tests run offline and group X9 is
+  gated on that design (plan 6.5). 5 Boss fetches the papers behind
+  refused publishers himself; the stand-ins stay meanwhile and the items
+  that need the originals wait for his files. 6 Courteau 2007 (GR5) and
+  Comeron 2011, 2012, 2014 (GR3): ship the fills and run the quick
+  VizieR search first (a short read-only thread; GEN.401 carries both
+  gaps and GEN.402 carries GR5, so a result lands as a replacement after
+  GEN.401 merges). 7 Thick-disc start in other galaxies (GR6): the halo
+  formation epoch plus a 0 to 1 Gyr delay, a labelled placeholder until
+  S0 histories are found. Papers for Boss's own research list (decision
+  5; titles from the Crossref record unless marked; stand-ins stay until
+  a thread reads the file): BC3 Stixrude and Lithgow-Bertelloni 2024,
+  "Thermodynamics of mantle minerals III: the role of iron", GJI 237,
+  1699, doi 10.1093/gji/ggae126 (base paper: 2005, "Thermodynamics of
+  mantle minerals I. Physical properties"); BC4 Palme and O'Neill 2014,
   "Cosmochemical Estimates of Mantle Composition", Treatise on
   Geochemistry 2nd ed., doi 10.1016/b978-0-08-095975-7.00201-1, and
   Rudnick and Gao 2014, "Composition of the Continental Crust", doi
@@ -13487,10 +13480,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Aqueous Sulfuric Acid System to 350 K", JPCRD, doi 10.1063/1.555899;
   AD8 JPL Publication 19-5, "Chemical Kinetics and Photochemical Data
   for Use in Atmospheric Studies, Evaluation No. 19" (title from memory,
-  not found in Crossref).
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
+  not found in Crossref). Papers list (2026-10-17, filed by the TODO
+  thread; docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for
+  the papers he can download himself, the coordinator posted the list at
   11:32 AM EDT as it reported): Boss fetches the nine papers of section
   A (Stixrude and Lithgow-Bertelloni, Palme and O'Neill, Rudnick and
   Gao, Fray and Schmitt, Tabazadeh, Zeleznik, JPL 19-5, ICRP 103, King)
@@ -13513,56 +13505,53 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Bierson and Nimmo 2019 (PMC7058130) and Sossi 2020 (already read). The
   VizieR table search for GR5 and GR3 started at 11:29 AM EDT as the
   coordinator reported (reports file
-  vizier-courteau-comeron-2026-10-17.md).
-  VizieR search result (2026-10-17, finished 11:39 AM EDT as the
-  coordinator reported; docs/design/vizier-courteau-comeron.md): R5
-  (Courteau 2007 scatter) is not answerable from VizieR: the data table
-  is not there, the authors' file is refused, and the paper is ApJ 655,
-  L21 (astro-ph/0610721; its samples are 154, 24, 54 and 11 galaxies,
-  there is no "64"). The raw scatter of log10(Vc/sigma0) of two source
-  samples is 0.104 to 0.123 dex (Prugniel, Maubon and Simien 2001
-  J/A+A/366/68; Pizzella 2005), inside or at the top of the plan's 0.06
-  to 0.12 bracket, so the fill stays. R3 (thick-disc formulas) is
-  answered by the Comeron, Salo and Knapen 2018 table J/A+A/610/A5
-  (arXiv:1709.00457): log10(M_thick/M_thin) = 2.113 - 1.086 log10(Vc),
-  scatter 0.27 dex, median height ratio 4.2, median length ratio 1.46.
-  Corrections: A&A 562, A121 is the ARRAKIS ring atlas, the 2014
-  thick-disc paper is A&A 571, A58 (arXiv:1409.0466); the Comeron 2011
-  and 2012 tables are not on VizieR (superseded by 2018).
-  Gemini batch 1 check (2026-10-17, finished 11:49 AM EDT as the lane
-  clock reported; docs/design/gemini-batch1-check.md): 51 claims
-  checked: 10 agree, 17 partly, 16 contradicted by a read source, 4
-  unsupported, 4 misattributed (the theory section of the paste was not
-  screened). Answered by a usable table: R2 (digitised Rodriguez-Gomez
-  2016 Fig 3, D'Souza 2014 Figs 13(b) and 16(b), Benitez-Llambay and
-  Frenk 2020 Figs 10 and 11), R5 (Courteau scatter 0.097 dex about the
-  paper's own line, 79 markers digitised from its Fig 2; this supersedes
-  the raw 0.104 to 0.123 of the VizieR note as the centre candidate
-  inside the plan's 0.06 to 0.12 bracket), R12 (the z_re table with
-  Busha's spread of 6.3 to 11.6), R13 (Munoz 2018 ultra-faint sizes: 15
-  objects, 27.7 to 234 pc, geometric mean 58 pc, sigma 0.29 dex, r_h
-  rises with brightness) and parts of R3 (Comeron 2018 fit), R6 (Pinna
-  2019, Sattler 2024, Comeron 2021), R10 (Correa 2015 analytic z50).
-  Still open for Boss's list: R1, R4 beyond the Milky Way, R7, R8, R14,
-  and parts of R6 (the oldest thick-disc ages), R9 (cluster ages), R10
-  (a simulation fit), R11 (the dwarf relation's scatter). Corrections
-  carried on the items: the occupation centre is 10^9.33 Msun/h with
-  width 0.21 dex (Gemini's 10^8.6 is the no-reionization limit); the 1.9
-  stellar-to-halo slope is Garrison-Kimmel 2014 (1.92), not
-  UniverseMachine; halo formation z50 is 1.02 at 1e10 (not 1.9); the
-  age-velocity normalisations are 21.1 and 39.4 km/s (not 38.5 and
-  62.0); the nuclear cluster slope is 0.48 (Neumayer), not 0.65; the
-  cluster half-light radius invariance holds over a factor of about 350
-  in host luminosity, not 10^5. Three conflicts between two verified
-  sources are OPEN, awaiting Boss (his 11:19 AM EDT card 2, widen and
-  keep both, covered only arm pitch against bulge fraction, the nuclear
-  cluster mass slope and the blue to red cluster radius ratio; the
-  coordinator posted a card for each of these three at about 11:56 AM
-  EDT as it reported): thick-to-thin height ratio 2.5 (Yoachim and
-  Dalcanton) against a median 4.24 (Comeron 2018); thick-to-thin mass
-  ratio against Vc, 0.53 (Vc/100)^-2.3 against 0.87 (Vc/100)^-1.09;
-  cluster system radius about 3.5 (Hudson and Robison, Forbes) against
-  about 6 (Kartha 2016) times the galaxy's.
+  vizier-courteau-comeron-2026-10-17.md). VizieR search result
+  (2026-10-17, finished 11:39 AM EDT as the coordinator reported;
+  docs/design/vizier-courteau-comeron.md): R5 (Courteau 2007 scatter) is
+  not answerable from VizieR: the data table is not there, the authors'
+  file is refused, and the paper is ApJ 655, L21 (astro-ph/0610721; its
+  samples are 154, 24, 54 and 11 galaxies, there is no "64"). The raw
+  scatter of log10(Vc/sigma0) of two source samples is 0.104 to 0.123
+  dex (Prugniel, Maubon and Simien 2001 J/A+A/366/68; Pizzella 2005),
+  inside or at the top of the plan's 0.06 to 0.12 bracket, so the fill
+  stays. R3 (thick-disc formulas) is answered by the Comeron, Salo and
+  Knapen 2018 table J/A+A/610/A5 (arXiv:1709.00457):
+  log10(M_thick/M_thin) = 2.113 - 1.086 log10(Vc), scatter 0.27 dex,
+  median height ratio 4.2, median length ratio 1.46. Corrections: A&A
+  562, A121 is the ARRAKIS ring atlas, the 2014 thick-disc paper is A&A
+  571, A58 (arXiv:1409.0466); the Comeron 2011 and 2012 tables are not
+  on VizieR (superseded by 2018). Gemini batch 1 check (2026-10-17,
+  finished 11:49 AM EDT as the lane clock reported;
+  docs/design/gemini-batch1-check.md): 51 claims checked: 10 agree, 17
+  partly, 16 contradicted by a read source, 4 unsupported, 4
+  misattributed (the theory section of the paste was not screened).
+  Answered by a usable table: R2 (digitised Rodriguez-Gomez 2016 Fig 3,
+  D'Souza 2014 Figs 13(b) and 16(b), Benitez-Llambay and Frenk 2020 Figs
+  10 and 11), R5 (Courteau scatter 0.097 dex about the paper's own line,
+  79 markers digitised from its Fig 2; this supersedes the raw 0.104 to
+  0.123 of the VizieR note as the centre candidate inside the plan's
+  0.06 to 0.12 bracket), R12 (the z_re table with Busha's spread of 6.3
+  to 11.6), R13 (Munoz 2018 ultra-faint sizes: 15 objects, 27.7 to 234
+  pc, geometric mean 58 pc, sigma 0.29 dex, r_h rises with brightness)
+  and parts of R3 (Comeron 2018 fit), R6 (Pinna 2019, Sattler 2024,
+  Comeron 2021), R10 (Correa 2015 analytic z50). Still open for Boss's
+  list: R1, R4 beyond the Milky Way, R7, R8, R14, and parts of R6 (the
+  oldest thick-disc ages), R9 (cluster ages), R10 (a simulation fit),
+  R11 (the dwarf relation's scatter). Corrections carried on the items:
+  the occupation centre is 10^9.33 Msun/h with width 0.21 dex (Gemini's
+  10^8.6 is the no-reionization limit); the 1.9 stellar-to-halo slope is
+  Garrison-Kimmel 2014 (1.92), not UniverseMachine; halo formation z50
+  is 1.02 at 1e10 (not 1.9); the age-velocity normalisations are 21.1
+  and 39.4 km/s (not 38.5 and 62.0); the nuclear cluster slope is 0.48
+  (Neumayer), not 0.65; the cluster half-light radius invariance holds
+  over a factor of about 350 in host luminosity, not 10^5. Three
+  conflicts between two verified sources are DECIDED, widen and keep
+  both (Boss's cards, tapped 12:02 PM EDT (read from the session log and
+  relayed in words by the coordinator)): thick-to-thin height ratio 2.5
+  (Yoachim and Dalcanton) against a median 4.24 (Comeron 2018);
+  thick-to-thin mass ratio against Vc, 0.53 (Vc/100)^-2.3 against 0.87
+  (Vc/100)^-1.09; cluster system radius about 3.5 (Hudson and Robison,
+  Forbes) against about 6 (Kartha 2016) times the galaxy's.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -16674,8 +16663,7 @@ clears each one.
   on the census harness (the new first item of the Whole-sphere audits
   thread); TEST.161, TEST.162 and TEST.164 add their checks to it, not
   counters of their own.
-  Prerequisites: GEN.282, GEN.321,
-  TEST.186.
+  Prerequisites: GEN.282, GEN.321.
   Finding (2026-10-17, 9:55 AM EDT, the read-only study "8.1 completion
   estimate"
   (/mnt/project-files/reports/8-1-completion-estimate-2026-10-17.md,
@@ -16708,7 +16696,7 @@ clears each one.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 45 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: TEST.186. Related: TEST.159.
+  Prerequisites: none. Related: TEST.159.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **TEST.162 Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors**
@@ -16741,7 +16729,7 @@ clears each one.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 46 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.315, TEST.186. Related: TEST.160, TEST.161.
+  Prerequisites: GEN.315. Related: TEST.160, TEST.161.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **TEST.164 Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay**
@@ -16764,7 +16752,7 @@ clears each one.
   theoretical probabilities (observed are best, theoretical are good
   too)".
   Prerequisites: GEN.269, GEN.270, GEN.271, GEN.272, GEN.275, GEN.327,
-  GEN.329, TEST.186. Related: TEST.162, DOC.50, TEST.160.
+  GEN.329. Related: TEST.162, DOC.50, TEST.160.
   The type-count, gate, N-tail, interaction and group-decay checks as
   census checks on the harness (2026-10-16 review).
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
@@ -17147,7 +17135,7 @@ clears each one.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 49 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.243, TEST.186. Related: TEST.159.
+  Prerequisites: GEN.243. Related: TEST.159.
 
 - [ ] **TEST.185 Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius**
   Split from TEST.159 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -17169,41 +17157,7 @@ clears each one.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 50 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.321, TEST.186. Related: TEST.159.
-
-- [ ] **TEST.186 Census audit harness: fill seeded sectors per region class, count by kind and stage, compare to expectation within k Poisson sigma, print one report**
-  Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
-  item for smaller chunks and shared work, 1:33 PM EDT: shared
-  foundations). TEST.160 builds the harness as a module
-  (`src/tests/audit/census.py`): a fixed set of seeded sectors per
-  region class, counts by stage and kind, `within_sigma(observed,
-  expected, k=4)`, the 'expected 20 or more appears at least once' rule,
-  and the report writer (the admin report of TEST.160). TEST.159,
-  TEST.161, TEST.162 and TEST.164 add their checks to it; their own Done
-  lines already say 'the representation audit report includes them'.
-  Done: the module and TEST.160's audit on it; the other four add
-  checks, not counters.
-  Prerequisites: none. Related: TEST.159, TEST.160, TEST.161, TEST.162,
-  TEST.164.
-  Finding (2026-10-17, 9:55 AM EDT, the read-only study "8.1 completion
-  estimate"
-  (/mnt/project-files/reports/8-1-completion-estimate-2026-10-17.md,
-  relayed at about 9:55 AM EDT by the coordinator's clock)): the owner
-  is the Quality lane, which has been idle since 12:40 AM EDT on Oct 16
-  with its queue handed back to TODO, so no lane runs this closing test;
-  it gates GEN.301 (directly or through the census harness TEST.186). A
-  test lane must be started or the item given to a running lane before
-  the headline can close.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 44 of 54). This replaces any earlier owner line on this item.
-  Owner: Blocker 1 (the code lane "Blocker 1 (2026-10-17)", started by
-  Boss at 10:27 AM EDT, typed in the project chat: "Start Blocker thread
-  1, I want you to put GEN.472 and TEST.186 please, then it will go idle
-  until I need it again"; relayed by the coordinator). No lane had
-  started it. This replaces any earlier owner line on this item. No
-  prerequisite.
+  Prerequisites: GEN.321. Related: TEST.159.
 
 - [ ] **TEST.187 Browser-test failure reports are buried in the werkzeug request log: set that logger to WARNING in the test server**
   Found by a lane (2026-10-16), filed by the TODO thread. When a browser
@@ -17330,7 +17284,7 @@ clears each one.
   expected to pass at the edge. The test lands only with a green run (no
   skip, no quarantine). The 3.2 prevalence cap (GEN.373) was dropped by Boss
   (2026-10-17, 10:07 AM EDT) and does not gate this test.
-  Prerequisites: TEST.186. Related: GEN.103, TEST.186,
+  Prerequisites: none. Related: GEN.103, TEST.186,
   TEST.161, TEST.164.
   Finding (Core 4, 2026-10-17, 10:16 AM EDT as the lane reported, from
   building GEN.448; relayed by the coordinator): the G-dwarf
@@ -17461,7 +17415,7 @@ clears each one.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 40 of 43). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.394, GEN.395, TEST.186. Related: GEN.391, TEST.204.
+  Prerequisites: GEN.394, GEN.395. Related: GEN.391, TEST.204.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
 
 - [ ] **TEST.208 `scripts/test.py --resume` reuses an earlier pass across builds when none of that test's own dependencies changed**
@@ -17516,7 +17470,7 @@ clears each one.
   passes on a generated galaxy and fails when any one rule is broken (a
   test that breaks each rule in turn).
   Prerequisites: GEN.411, GEN.412, GEN.413, GEN.414, GEN.415, DB.67,
-  DB.68, GEN.422, GEN.423, GEN.424, TEST.186. Related: GEN.415, DB.68.
+  DB.68, GEN.422, GEN.423, GEN.424. Related: GEN.415, DB.68.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): one shared fixture: a generated galaxy holding every
   planet, moon and star class, built as a census check on TEST.186's
@@ -17548,7 +17502,7 @@ clears each one.
   materials. Done: it passes on a generated galaxy and fails when any
   one rule is broken (a test that breaks each rule in turn).
   Prerequisites: GEN.428, GEN.429, GEN.430, DB.69, GEN.441, GEN.442,
-  DB.70, TEST.186, GEN.458, GEN.459, GEN.460, GEN.461, GEN.462, GEN.466.
+  DB.70, GEN.458, GEN.459, GEN.460, GEN.461, GEN.462, GEN.466.
   Related: TEST.209.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): one shared fixture: a generated galaxy holding every
@@ -17631,7 +17585,7 @@ clears each one.
   radiation gives; habitability reads the same numbers; and the text
   quotes them. Done: it passes on a generated galaxy and fails when any
   rule is broken (a test that breaks each in turn).
-  Prerequisites: GEN.443, GEN.444, GEN.445, GEN.446, TEST.186. Related:
+  Prerequisites: GEN.443, GEN.444, GEN.445, GEN.446. Related:
   TEST.209,
   TEST.210, TEST.211.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
@@ -17694,6 +17648,14 @@ clears each one.
   reran alone, FAILED ALONE (154.81 s on gw1, load 8.9), and it fails
   alone on main too. It has now failed alone four times at load 8.9 to
   9.6. Fails on main: yes, under load. Bug Hunt owns it.
+  Sighting (Blocker 1, 2026-10-17, in its TEST.186 gate as the
+  coordinator relayed it at 12:18 PM EDT by the coordinator's clock,
+  load about 11): failed again with `assert shares[-1] == 1.0 +/-
+  1.0e-06`, got 0.9991066412536515 (fade shares [0, 0.022, 0.173, 0.453,
+  0.792, 0.9991]), the first symptom (the disc share short of 1). It
+  passes alone on rerun. Fails on main: not checked. Frequency: 1 of 1
+  gates run under load 11. Reproducer: run the test with the CPU busy,
+  or the full changed gate on a loaded machine. Bug Hunt owns it.
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
@@ -17871,6 +17833,27 @@ clears each one.
   `neutron-star`; a test places a magnetar and no neutron star and
   passes; no quarantine. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.213.
+
+- [ ] **TEST.221 test_a_runaway_system_moves_beyond_the_rotation_curve_and_its_stars_and_bodies_share_it raises StopIteration when the first system's only planet entry is an asteroid belt (bug)**
+  Found by Core 5 (2026-10-17, 12:10 PM EDT as the lane reported; it
+  failed once in its 11:16 AM EDT gate and passed 40 of 40 alone),
+  relayed by the coordinator, filed by the TODO thread.
+  `src/tests/test_system_velocity.py::test_a_runaway_system_moves_beyond_the_rotation_curve_and_its_stars_and_bodies_share_it`
+  raised `StopIteration` at line 90, `planet = next(p for p in
+  system.planets if getattr(p, "spatial", None))`. Cause (Core 5, and
+  the TODO thread read the test): `_runaway_system` stops at the first
+  system with a non-empty planets list, but a system whose only entry is
+  an AsteroidBelt has no body with `.spatial`, and the run stream is
+  unseeded, so the test fails whenever the draw gives such a system
+  first. Fails on main: yes (same on pristine f32b2d7). Frequency: about
+  0.3 percent of runs (2 of 600 setups). Reproducer: loop
+  `_runaway_system(speed_kms=400.0, direction=(0, 0, 1))` then
+  `_sector(...)` and count the systems where no planet has `spatial`.
+  Done: `_runaway_system` stops only at a system with a planet that is
+  not an AsteroidBelt (one line), a test pins that a belt-only system is
+  skipped, no quarantine. Owner: Core 5 (it carries the one-line fix in
+  its next PR unless another lane owns it; Bug Hunt otherwise).
+  Prerequisites: none. Related: TEST.220.
 
 ## USR: User accounts
 
