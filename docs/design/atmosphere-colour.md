@@ -273,7 +273,7 @@ Solar System rows (Earth, Venus, Titan, Mars, Jupiter) live in test files only; 
 | Acid vapour pressure of H2SO4-H2O | Kulmala-Laaksonen form times Zeleznik activity (stand-in) | Ayers 1980 |
 | N2, O2, Ar, Kr, Xe in comets | seeded log range from the gated rows | none in Mumma and Charnley |
 | Mantle redox rows (AT.a1, a2) | stand-ins | Hirschmann 2012, Gaillard 2021/2022 |
-| Bremen ozone licence; Huggins fit | coarse bins | GEN.500 |
+| Bremen ozone cross sections; Huggins fit | coarse bins | fetched at build time (no licence gate, Boss 2:35 PM EDT) |
 | Kozakis host T_eff; F-star ozone | bracket of section 9 | Kozakis Table 1 |
 | Infrared depth from line absorbers | grey tau0 of part 03 5.4 | correlated-k grids |
 | Wind, cloud efficiency, cover, r_eff | u*/u*_t LU[0.3, 3]; cover [0.1, 1]; r_eff 1 to 20 micron | none in the notes |
@@ -323,9 +323,9 @@ Nothing here is approved. Rulings wanted, with a recommendation each:
 7. **Giant colour (24).** Derive from optical columns and test against the Cahoy table. Recommend derive; interpolating the published grid is the fallback if band strengths stay unavailable.
 8. **Thick-air switch at tau(550) 0.3 (25).** Recommend yes (verified basis).
 9. **Dust and haze stand-ins (21, 22).** Accept the flagged ranges, and accept the Wolff spectrum digitized from Figures 12 to 14 as a labelled stand-in until a table is read. Recommend yes.
-10. **Cool stars (26).** BT-Settl chromaticity below 4500 K, pending the licence. Recommend yes.
+10. **Cool stars (26).** BT-Settl chromaticity below 4500 K; no licence gate (Boss, 2:35 PM EDT), the licence column keeps `open`. Recommend yes.
 11. **Epoch grouping (29).** One bump for 8.4 phase 2, one for phase 3. Recommend yes.
-12. **Research order (30).** Recommend: Bogaard 1978 (six open Rayleigh gases), giant band strengths, Tomasko 2008 and Doose 2016, a printed Mars dust table, then the Bremen licence.
+12. **Research order (30).** Recommend: Bogaard 1978 (six open Rayleigh gases), giant band strengths, Tomasko 2008 and Doose 2016, a printed Mars dust table, then the Bremen ozone data (fetched at build time, no licence gate).
 13. **Rayleigh centre and range (18).** Refractivity centre for N2, O2, Ar, CO2 with a one-sided draw down to the Sneep and Ubachs value; He 2021 centre for CH4, N2O. Recommend yes; the alternative, centring on the measured values, lowers Earth-like tau by about 4 percent and fails the 2 percent test against the published 0.09721.
 14. **Third conflict rule.** The reading in section 17 (the widest value or range either source allows, never outside both) is the one recorded in composition-model.md section 4a item 12, and Boss confirmed it at 1:12 PM EDT (Decided); nothing to approve.
 15. **Item numbers.** Ask the TODO thread to reconcile the GEN numbers of the master chain with those of the gap plan before the build items are written. Recommend yes.

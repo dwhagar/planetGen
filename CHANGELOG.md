@@ -2,6 +2,70 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1740] - 2026-10-17
+
+**Headline:** A cell inside a Magellanic Cloud can now hold molecular clouds, nebulae, supernova remnants and magnetars, and the pre-placed planetary nebulae follow the old stars.
+
+### Added
+- **A satellite's gas (GEN.528).** A satellite's young stars (GEN.526) count in the molecular gas tracer the way the disk's do, with no spiral-arm contrast, so a cell in the Large or Small Cloud has a gas fraction (about a third at the Large Cloud's centre, nine tenths at the Small Cloud's) and so molecular clouds, emission and reflection nebulae and supernova remnants in its profile; the dwarf spheroidals, with no young stars, have none.
+- A satellite's component pass places supernova remnants, each kept with the gas fraction at its radius, and magnetars in proportion to its young stars.
+
+### Changed
+- The pre-placed planetary nebulae (the shell scatter, the reach and the progress estimate) are weighted by the share of the stars that are not young against the solar circle's, as a sector's are; the disk's difference is under 4%. A satellite's planetary nebulae take the same factor from its own young share.
+- A galaxy scattered before this needs `planetgen plan --redo-scatters phenomena` (generator epoch 13).
+
+generation-output: changed
+
+## [8.0.1739] - 2026-10-17
+
+**Headline:** The two stars of a wide pair now carry the same velocity when a sector is generated and when it is loaded back from the database.
+
+### Changed
+- **Every star of a system takes the system's velocity (GEN.527).** `place_system` used to give each star the rotation curve's tangent at its own place, plus what the system has beyond the curve. A wide pair's two stars sit far enough apart for the tangent to differ by 0.01 to 0.08 m/s, but the database stores one velocity per system, so a loaded pair came back with both stars on the system's vector and differed from the generated pair by that much (the cause of the occasional failure of `test_a_saved_runaway_system_loads_back_with_the_velocity_it_had`). Both paths now give each star the one system vector.
+- The saved-system test is back to a relative bound of 1e-6, and a new test places wide pairs, clears the stars' own speeds as a load does, places them again from the stored vector, and requires identical star velocities.
+
+TODO items resolved: GEN.527. Added: none.
+
+## [8.0.1738] - 2026-10-17
+
+**Headline:** The atmosphere colour note no longer waits on a licence check, following Boss's removal of GEN.500.
+
+### Changed
+- **Two lines of the atmosphere colour note named a licence gate.** The cool-star chromaticity ruling and the research order in `docs/design/atmosphere-colour.md` now say there is no licence gate and the licence column keeps `open`.
+
+TODO items resolved: none. Added: none.
+
+## [8.0.1737] - 2026-10-17
+
+**Headline:** The scatter layers draw their random numbers in bulk, with the same numbers and the same stream state as before.
+
+### Changed
+- **Bulk random draws for the scatter layers (PERF.91).** `Stream.random_array` and `Stream.randbits_list` hand a stream's state to NumPy's `MT19937`, which is the same generator with the same 53-bit float, draw a batch in C and hand the state back, from 1,000 draws on. The phenomenon scatter, the far-reach scatter and the component pass use them for their per-object uniforms and seeds (12 times faster on batches of 60,000), and a test proves same seed, same floats, same bits and the same final state, so no galaxy changes and nothing is reseeded.
+
+## [8.0.1736] - 2026-10-17
+
+**Headline:** A fill of tens of thousands of sectors or more is estimated from a sample and generated from a stream, and a web request is refused a ball of more than 2 million sectors.
+
+### Changed
+- **Large estimates come from a sample (PERF.36).** A run of more than 20,000 sectors (a shell, a span, a course or a radial fill) works its size and time out from 200 sectors spread evenly through it and scales them up; the line says "worked out from 200 sampled sectors". Smaller runs are worked out from every sector as before.
+- **A large fill is no longer held in memory (PERF.36).** Its sectors are counted in a first pass and resolved one by one as the work queue takes them, instead of being listed first.
+- **A web request cannot list a huge ball (PERF.36).** The sector page's neighborhood action answers `413`, and the Generate page's radial estimate stops, when the radius holds more than 2 million sectors; the command line is not limited.
+
+## [8.0.1735] - 2026-10-17
+
+**Headline:** The bright-star backfill gains an exact block-first sampler, tested alone and not yet wired into the backfill.
+
+### Added
+- **A block-first draw for the backfill (GEN.308).** `bright_stars.block_candidates` draws a block's stars as one Poisson count from the block's density bound and keeps each candidate with the chance of its own cell, which gives every cell a Poisson count of its own mean and leaves no cell's chance altered. It is keyed by the seed, the block and the luminosity band alone, so the same stars come out whatever region, order or split of workers reaches the block. `block_bound` gives the bound from the band's density at its centre line (the halo with its own share), and tests check that every cell's rate is at most its bound, that the counts match Poisson in half-decade strata of 3,000 blocks each down to the lowest rates, and that a real block of the galaxy keeps each cell at its own rate. The backfill does not use it yet (GEN.309).
+
+## [8.0.1734] - 2026-10-17
+
+**Headline:** Two test fixes: the runaway-velocity test no longer fails now and then, and the plan tests draw a naming key instead of logging that they cannot.
+
+### Changed
+- **The runaway-velocity test picks a system with a body that moves (TEST.191 and a flaky test).** Its setup stopped at the first system with any planet, but a system whose only entry is an asteroid belt has no body with a velocity, so the test failed about once in 300 runs. It now waits for a system with a body that is not a belt.
+- **The plan tests have a control database to draw the naming key into (TEST.191).** The real-plan tests no longer log "No naming key drawn: the control database can't be opened"; the control schema is set up in the test database, and a test checks the key is stored. The other half of the item, stray files in the jobs directory's `galaxy-settings` folder, went with ADM.50, which removed that folder.
+
 ## [8.0.1733] - 2026-10-17
 
 **Headline:** A page request that is slow to build now queues one job that stores the answer in the page cache, with a status route and a progress estimate, instead of holding a web thread.

@@ -20,7 +20,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.galaxy import density, remnant_distribution
+from planetgen.galaxy import density, profile, remnant_distribution
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.generation import bright_stars, object_first, phenomenon_scatter
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS
@@ -97,6 +97,8 @@ def _weights(kind, subtype, x, y, z, shape):
                   * remnant_distribution.radial_factor_array(kind, np.hypot(x, y)))
     if kind in phenomenon_scatter.GAS_WEIGHTED_KINDS:
         weight = weight * phenomenon_scatter._gas_weight(x, y, z, shape)
+    if kind == phenomenon_scatter.OLD_STAR_KIND:
+        weight = weight * profile.planetary_nebula_factor_array(x, y, z, shape)
     return weight
 
 
