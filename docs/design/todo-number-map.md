@@ -16,9 +16,9 @@ release is stamped.
 | UX | UX.136 |
 | MAP | MAP.245 |
 | NAV | NAV.63 |
-| GEN | GEN.452 |
+| GEN | GEN.457 |
 | PERF | PERF.111 |
-| DB | DB.71 |
+| DB | DB.72 |
 | API | API.31 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
@@ -585,6 +585,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.68 | Planets and moons store the ozone column and the haze, dust and cloud optical depths | none | open |
 | DB.69 | Planets and moons store the composition fractions | none | open |
 | DB.70 | Planets, moons and small bodies store the surface and small-body composition shares | none | open |
+| DB.71 | Planets and moons store the partial pressures of the added gases, not only the ten stored today | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -1081,7 +1082,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.428 | Planets and moons draw their bulk composition fractions instead of carrying a fixed text | none | open |
 | GEN.429 | Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation | none | open |
 | GEN.430 | The planet and moon descriptions state the composition from the stored fractions | none | open |
-| GEN.431 | Research: what is in the atmospheres of every kind of world, and the numbers each compound needs | none | open |
+| GEN.431 | Research: what is in the atmospheres of every kind of world, and the numbers each compound needs | none | done, PR #1970 |
 | GEN.432 | Research: what rocky, icy and giant bodies and their small relatives are made of, and the numbers each material needs | none | open |
 | GEN.433 | Research: what stars and stellar remnants are made of, and the numbers each needs | none | open |
 | GEN.434 | Research: radiation through atmospheres and at the ground, and the numbers it needs | none | open |
@@ -1102,6 +1103,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.449 | The companion table for mid and early B stars is raised to the observed frequencies | none | open |
 | GEN.450 | The star-formation profile's radial slope: reconcile the Schmidt index with the observed gradient, with the choice named | none | open |
 | GEN.451 | The mantle redox mean follows the meteorite building blocks: a young rocky planet starts reduced, not at the modern Earth's 3.5 above the iron-wuestite buffer | none | open |
+| GEN.452 | The condensation table is replaced by the checked saturation curves: the hydrogen sulphide row is a copy of the sulphur dioxide row, and carbon dioxide, sulphur dioxide and the cold gases are 2 to 20 K off (bug) | none | open |
+| GEN.453 | The radiation constants are corrected: the dipole cutoff scales with moment over radius squared, the dose curve against the column and the field factor follow the measured and simulated tables (bug) | none | open |
+| GEN.454 | Giant planets, ice giants and brown dwarfs draw their atmosphere mixture from the equilibrium chemistry sequence: by temperature, pressure, metallicity and quench | none | open |
+| GEN.455 | Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates | none | open |
+| GEN.456 | Lava worlds and hot rocky planets draw a vapour atmosphere over the magma from the surface composition and temperature: sodium, potassium, silicon monoxide, magnesium, iron and the oxides | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |

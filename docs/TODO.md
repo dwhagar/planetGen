@@ -8091,11 +8091,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   20 to 30). What the sources could not give is Boss's to research (the
   list is section 7 of the report); the design marks each such input as
   open and names the seeded range used meanwhile.
-  Prerequisites: GEN.431. Related: GEN.410, GEN.411, GEN.412, GEN.413,
+  Prerequisites: none. Related: GEN.410, GEN.411, GEN.412, GEN.413,
   GEN.414, GEN.416, GEN.417, GEN.418.
   Now an 8.1 design (Boss, 11:58 PM EDT: the building blocks of the
   composition headline go down to 8.1): it follows the atmosphere survey
   GEN.431 and feeds the composition model GEN.437.
+  Merged research (2026-10-17, TODO thread, from the Atmosphere research
+  lane's draft): docs/design/atmosphere-composition.md (master) and its
+  seven parts in docs/design/atmosphere-composition-parts/. The checked
+  design reads it: part 01 for the table and the checked saturation
+  curves (GEN.452), part 02 for the optics, part 03 for the greenhouse
+  inverse (the stored multiplier is (T_s / T_e)^4 - 1, so Earth 0.625,
+  Venus 99.6 and Titan 0.69 are reproduced as computed test values, and
+  the infrared optical depth from line absorbers needs correlated-k
+  grids that are not reachable, so it stays a parametrisation until
+  sourced), part 04 for ozone and escape, part 05 for the mixtures by
+  class, part 06 for the condensates and part 07 for the radiation.
+  Every input the sources could not give is marked open with a seeded
+  range (section 6 of the master is Boss's research list). The master's
+  finding 5 (the mean molar mass of the mixture replaces
+  `atm_molar_density` in the scale height and in tau0) belongs to
+  GEN.423.
 
 - [ ] **GEN.410 One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8132,11 +8148,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   every number has a source.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
   Prerequisites: GEN.409, GEN.437, GEN.438. Related: GEN.208, GEN.85,
-  GEN.355, GEN.411,
-  GEN.415.
+  GEN.355, GEN.411, GEN.415, DB.71.
   Now an 8.1 data table (Boss, 11:58 PM EDT): it adds no behaviour until
   the generation chain of 8.4 reads it; its molar masses come from the
   element table GEN.438 and the design is GEN.437's.
+  Merged research (2026-10-17): part 01 holds 72 gases and volatile
+  compounds (formula, CAS, molar mass, flags, photolysis threshold,
+  triple and critical points, heat capacity, gamma, latent heats,
+  saturation curves with errors, Henry constants for 35, viscosity,
+  real-gas Z); part 02 the Rayleigh cross sections of 28 gases (13
+  verified, 15 from one polarizability formula good to -9 to +6 percent)
+  with the depolarization spreads (N2 0.020 to 0.031, H2/N2 ratio 0.202
+  to 0.217) and the corrected CH4 refractivity (the older coded form is
+  about 30 percent above the measured value; He 2021 gives the
+  replacement; the water-vapour refractivity has no known reference
+  temperature, so use the generic polarizability route). The added
+  species the descriptions and class mixes already name are listed in
+  part 05 section 13 (He, Ne, Kr, Xe, NH3, NH4SH, HCN, C2H6, C2H2, OCS,
+  HCl, HF, N2O, NO2, O3, Na, K, SiO, Mg, Fe, TiO, VO, PH3); storage of
+  their partials is DB.71. The 72 molar masses were recomputed by the
+  lane (70 agree to 0.01 g/mol; 3He and Rn are isotope masses). Each
+  item's checked design samples a few rows of the vapour-pressure,
+  optical-constant and Mie tables against the cited file before coding
+  them. Fields: docs/design/atmosphere-composition.md section 4.
+  Related: DB.71.
 
 - [ ] **GEN.411 The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8165,10 +8200,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   density, scale height and greenhouse from the mix, the balance gas).
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
   Prerequisites: GEN.410, GEN.429. Related: GEN.85, GEN.355, GEN.223,
-  DB.67.
+  DB.67, DB.71.
   The surface gravity it reads is derived from the bulk composition by
   GEN.429 (Boss, 11:49 PM EDT: the composition drives mass, density and
   gravity), so this item follows it.
+  Merged research (2026-10-17): the mean molar mass, scale height and
+  real-gas Z of a mixture are in part 01 sections 10 and 11; the
+  species-by-class distributions to draw the partials from are part 05;
+  the added species need storage (DB.71).
 
 - [ ] **GEN.412 Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8221,6 +8260,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   because the licence of the Malicet/Brion, Serdyuchenko and Burkholder
   files was not found (Boss to settle). The Earth figure is a test value,
   279 to 300 Dobson units, not a constant. Prerequisites: GEN.411.
+  Merged research (2026-10-17): part 04 section 3 gives the ozone column
+  against oxygen and host star (the Kozakis fit stays, valid only for
+  0.01 to 150 percent of the present level), the Chapman layer depth and
+  peak pressure against O2, the abiotic O2 and O3 channels and the
+  shielding by other gases on anoxic worlds; part 02 gives the cross
+  sections.
   Related: GEN.87, GEN.189, DB.68.
 
 - [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
@@ -8248,6 +8293,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   methane and nitrogen world under UV has haze; a test pins each rule
   with a physical range, nothing is fixed per class.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
+  Merged research (2026-10-17): part 06 holds the condensation fits, the
+  cloud-base rule, the optical table for 47 materials (density,
+  refractive index, single-scattering albedo, colour slope from Mie
+  runs), the haze yields and sizes (part 04 for the yields) and dust
+  lofting and settling by pressure and gravity. Flagged: the Mg2SiO4
+  saturation constant printed in a standard source is likely a misprint
+  (4.88 printed, 14.88 fits), the SiO2 constant is labelled made up in
+  its own code, and the FeS optical row looks suspect (master finding
+  6); the design checks these before coding the table. The Mars dust and
+  Titan haze optical spectra are open (master section 6 item 4), so part
+  06's flagged parametrisation stands in with a seeded range.
   Prerequisites: GEN.411, GEN.412. Related: GEN.413, DB.68, GEN.418.
 
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
@@ -8303,6 +8359,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   exponent near -4.08 across the visible; doubling the pressure doubles tau; a
   pure hydrogen air scatters 0.20 as much per molecule as
   nitrogen (helium 0.013, carbon dioxide 2.5); no NaN for any generated class.
+  Merged research (2026-10-17): part 02 has the Rayleigh cross sections
+  and their errors (the CO2 value at 532 nm is 13.3e-27 cm2, measured in
+  He 2021, the earlier snippet 12.4e-27 is dropped), the air mass and
+  Chapman function and the blackbody chromaticity for GEN.416; the Earth
+  tau_R test value 0.0969 is computed, the originals (Bucholtz 1995
+  Table 3, Penndorf 1957, Hulburt 1953, Bogaard 1978) were not reached
+  and stay on Boss's list.
   Prerequisites: GEN.410, GEN.411. Related: GEN.418, VIEW.14.
 
 - [ ] **GEN.418 Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce**
@@ -8405,8 +8468,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   freeze-out the pressure, the mix and the temperature satisfy the
   formula together; a test says so for every class.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Prerequisites: GEN.411, GEN.412. Related: GEN.411, GEN.412, GEN.423,
-  TEST.209.
+  Prerequisites: GEN.411, GEN.412, GEN.452. Related: GEN.411, GEN.412,
+  GEN.423, TEST.209, GEN.452.
+  Merged research (2026-10-17): the freeze-out ordering reads the
+  checked saturation curves of part 01 section 7 and part 06 (GEN.452
+  replaces the two-point table first).
 
 - [ ] **GEN.423 Atmosphere density, scale height and the greenhouse multiplier follow from the mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -8428,6 +8494,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
   Prerequisites: GEN.410, GEN.411, GEN.412. Related: GEN.411, GEN.422,
   TEST.209.
+  Merged research (2026-10-17): part 03 gives the greenhouse multiplier
+  in the repo's own variable, (T_s / T_e)^4 - 1, and its inverse for the
+  albedo and the infrared optical depth tau0 (worked for Earth, Venus
+  and Titan as test sets), the mean molar mass of the mixture for the
+  scale height, and the split between what can be code and what needs
+  full radiative transfer. The infrared optical depth of CO2, H2O and
+  CH4 stays a parametrisation until the correlated-k grids are sourced
+  (master section 6 item 5).
 
 - [ ] **GEN.424 The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -8648,61 +8722,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.428, GEN.429, GEN.221. Related: GEN.415, GEN.218,
   GEN.208.
 
-- [ ] **GEN.431 Research: what is in the atmospheres of every kind of world, and the numbers each compound needs**
-  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
-  "atmosphere composition and planet/moon/star/everything composition is
-  going to be the joint headline of v9.0 ... we need to know the
-  compounds, minerals, and such make up both atmospheres and stellar
-  bodies of all sorts, what is there and all the stats needed to include
-  it in our calculations. The idea is that every body will have figures
-  on its composition based on actual science and not made up where we
-  can avoid it. I'm perfectly ok with drawing the density and other
-  figures we draw now and then filling in compositions that fit that
-  designation. That is perfectly fine, or we can pick the most basics
-  and build either way works." Plan note:
-  docs/design/composition-model.md. Lane writes its design-document
-  sections to /mnt/project-files/design-drafts/ and reports; the TODO
-  thread merges them into docs/design. A read-only research thread:
-  reads papers (export.arxiv.org PDFs and, since Boss widened the
-  network at 12:02 AM EDT, the other hosts), marks every source read,
-  second-hand or not found, and says what Boss must research. Survey
-  every gas, compound, condensate and aerosol that matters in the air of
-  any world: rocky and ocean worlds, Venus-like, Mars-like and
-  Titan-like worlds, hot and lava worlds, sub-Neptunes, gas and ice
-  giants, brown dwarfs, comet comae and the thin exospheres of airless
-  bodies; how each forms and survives (outgassing, photochemistry,
-  escape, condensation, biology); and per compound the stats a
-  calculation needs: molar mass, abundance ranges by world kind,
-  condensation and freezing curves, the infrared bands that make a
-  greenhouse, the ultraviolet cross sections, Rayleigh refractivity and
-  King factor, solubility and chemistry links (what makes ozone, haze,
-  sulphur clouds), and toxicity thresholds. Start from
-  docs/design/atmosphere-sources-check.md (GEN.408, done) and re-check
-  its four unreached sources (Peck and Huang 1977, Burkholder and
-  Talukdar 1994, Serdyuchenko 2014, Chandrasekhar 1960) now that the
-  network is open. Done: the draft lists every compound with every
-  number and its source, and what is still unfound. The lane named
-  Atmosphere research (2026-10-17) holds this item.
-  Owner: the Atmosphere research lane (the coordinator started it at
-  Boss's 11:58 PM EDT ask, "Atmosphere research (2026-10-17)").
-  Network (Boss, 2026-10-17, about 12:02 AM EDT): access is widened;
-  arxiv.org itself is reachable, so the four sources the first check
-  could not reach (Peck and Huang 1977, Burkholder and Talukdar 1994,
-  Serdyuchenko 2014, Chandrasekhar 1960) are re-read and the second-hand
-  ones upgraded, in this lane's draft. SCvH 1995 was read from the ADS
-  scan (articles.adsabs.harvard.edu), Lodders 2003 and journal pages
-  behind a bot check were not.
-  Part 5 landed (Atmosphere research lane, 2026-10-17, 12:26 AM EDT as
-  the lane reported): mixing ratios by class, about 139 rows read from
-  papers and 45 computed
-  (design-drafts/atmosphere-parts/05-mixing-ratios-by-class.md). Its
-  finding is filed as GEN.451; its gaps (ice sublimation curves for N2,
-  CO, CH4 and CO2, per-comet abundance tables, magma-ocean redox papers)
-  are on the research list of atmosphere-colour.md section 4. The other
-  six parts are still running; the assembled draft merges into
-  docs/design when it arrives.
-  Prerequisites: none. Related: GEN.409, GEN.410, GEN.434, GEN.437.
-
 - [ ] **GEN.432 Research: what rocky, icy and giant bodies and their small relatives are made of, and the numbers each material needs**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -8892,10 +8911,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `physics/radiation.py`). Done: the note carries the decisions, a
   worked example (an Earth-like, a thin-air, a thick-CO2 and an airless
   world) and the test targets.
-  Prerequisites: GEN.431, GEN.432, GEN.434. Related: GEN.443, GEN.444,
+  Prerequisites: GEN.432, GEN.434. Related: GEN.443, GEN.444,
   GEN.445, GEN.423, GEN.256.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
+  Merged research (2026-10-17): the Atmosphere research lane's parts 02,
+  03, 04 and 07 are the evidence base
+  (docs/design/atmosphere-composition.md): the surface dose recipe and
+  the code status of each part are part 07 section 4; the corrections of
+  the existing constants are GEN.453; the real UV index (the CIE
+  erythemal action spectrum, which the repo's `uv_index` is not, and the
+  Setlow DNA spectrum) is part 02 section 2.6. Open: the SEP spectra of
+  Tylka and Dietrich 2009 and Xapsos 2000, the radon exhalation and the
+  trapped belts are not reached (master section 6 item 7).
 
 - [ ] **GEN.437 The composition model: how the element, compound, material and body tables link, and what is stored against derived**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9141,10 +9169,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stated tolerance, the Moon and Mars the measured values, an airless
   ice moon almost no radiogenic dose; a test fails when a proxy comes
   back.
-  Prerequisites: GEN.443, GEN.441, GEN.438. Related: GEN.445, GEN.256,
-  GEN.317, GEN.87.
+  Prerequisites: GEN.443, GEN.441, GEN.438, GEN.453. Related: GEN.445,
+  GEN.256, GEN.317, GEN.87, GEN.453.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
+  Merged research (2026-10-17): part 07 sections 2.9 and 2.10 give the
+  radioisotope decay data and abundances (K, U, Th, Rb, Al-26, Fe-60),
+  the ground gamma dose conversion from K, U and Th and the radon
+  exhalation, which replace the constant ground and radon terms; the
+  ground abundances scale with the host star's composition (GEN.439);
+  the dose limits are part 07 section 2.13.
 
 - [ ] **GEN.445 Habitability, toxicity and the UV index read the derived radiation instead of the proxies**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9169,6 +9203,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   model says.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
+  Merged research (2026-10-17): the repo's `uv_index` (the blackbody 200
+  to 300 nm fraction against the Sun times the flux ratio times an ozone
+  factor) is not the CIE index; part 02 section 2.6 gives the CIE
+  erythemal formula (S = 1 for 250 to 298 nm, 10^(0.094 (298 - lambda))
+  to 328 nm, 10^(0.015 (140 - lambda)) to 400 nm; UVI = 40 m2/W times
+  the weighted irradiance) and the Setlow DNA spectrum, so the index and
+  the biological doses become derived quantities. Part 02 section 2.7
+  shows the UV index falls as ozone column^-1.08.
   Prerequisites: GEN.444. Related: GEN.443, GEN.413, GEN.208.
 
 - [ ] **GEN.446 The descriptions state the composition of stars, surfaces and small bodies, and the radiation at the surface**
@@ -9327,8 +9369,170 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only. Generator epoch bump; it joins the one rescatter of 8.4's
   stored-value changes. Owner: Core 4 (the 8.4 atmosphere chain,
   proposed).
-  Prerequisites: GEN.431, GEN.410. Related: GEN.409, GEN.411, GEN.422,
+  Prerequisites: GEN.410. Related: GEN.409, GEN.411, GEN.422,
   GEN.428.
+  Merged research (2026-10-17): part 05 holds the outgassed rocky-planet
+  atmospheres by mantle redox, the magma-ocean stage (near the
+  iron-wuestite buffer to one above) and white-dwarf debris (about one
+  below); the redox papers (Sossi 2020, Gaillard 2014 and 2021,
+  Hirschmann 2012) are not reached and on Boss's list (master section 6
+  item 2).
+
+- [ ] **GEN.452 The condensation table is replaced by the checked saturation curves: the hydrogen sulphide row is a copy of the sulphur dioxide row, and carbon dioxide, sulphur dioxide and the cold gases are 2 to 20 K off (bug)**
+  Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
+  1:00 AM EDT as the lane reported; merged as
+  docs/design/atmosphere-composition.md section 3), filed by the TODO
+  thread. `CONDENSATION_K` in `physics/atmosphere.py` holds two
+  Clausius-Clapeyron points per gas (100 kPa and 0.001 kPa) and the
+  freeze-out of GEN.422 reads it. Part 01 section 7.5 compares each row
+  with the checked curves: `CONDENSATION_K["h2s"] =
+  CONDENSATION_K["so2"]` (line 84) is a copy, and hydrogen sulphide
+  boils near 213 K at 100 kPa, 20 to 50 K below the sulphur dioxide row;
+  the carbon dioxide row is 0.6 to 7 K warm (worst at low pressure), the
+  sulphur dioxide row 2 to 16 K cold, nitrogen, carbon monoxide, argon,
+  oxygen and methane 0.7 to 5 K cold, water 3 to 6 K warm between 100 Pa
+  and 10 kPa. Only hydrogen, nitrogen, carbon monoxide, argon, oxygen,
+  methane and ethane stay acceptable (each with its own curve for the
+  pressure range it is used at). Ammonia, ammonium hydrosulphide,
+  hydrogen cyanide, ethane and sulphuric acid have no row. Do: replace
+  the two-point rows with the checked saturation curves of the gas table
+  (GEN.410; the checked replacement of part 01 section 7 gives
+  temperatures at seven pressures for 14 entries, the cold sublimation
+  curves of Fray and Schmitt 2009 come from a supplementary table with
+  two typos and exceed the laboratory curves by up to 6 times below 40
+  K, so the design uses the laboratory curves there and marks the
+  range), each with its validity range and the source of every constant,
+  and no fallback to the old rows (no shim). Changes stored values (the
+  freeze-out), so it ships with a generator epoch bump and joins the one
+  rescatter of 8.4. Done: a test checks every gas of the table against
+  the cited curve at the seven pressures to a stated tolerance, the
+  hydrogen sulphide row is its own curve, GEN.422 reads the new curves,
+  and the old table and the copy line are gone. Owner: Core 4 (the 8.4
+  atmosphere chain, proposed).
+  Prerequisites: GEN.409, GEN.410. Related: GEN.409, GEN.410, GEN.422,
+  GEN.451, GEN.414, GEN.434.
+
+- [ ] **GEN.453 The radiation constants are corrected: the dipole cutoff scales with moment over radius squared, the dose curve against the column and the field factor follow the measured and simulated tables (bug)**
+  Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
+  1:00 AM EDT as the lane reported; merged as
+  docs/design/atmosphere-composition.md section 3), filed by the TODO
+  thread. `physics/radiation.py` against the evidence of part 07 section
+  2.1: the cutoff rigidity scales with `(R_E / R_p) ** 3` (line 139)
+  where the Stoermer cutoff scales with the dipole moment over the
+  distance squared (the vertical cutoff is about 14.3 GV for Earth's
+  moment, so `EARTH_CUTOFF_GV = 14.9` is 4 percent high, acceptable);
+  the galactic cosmic ray dose curve `GCR_POINTS` is sound at the Moon
+  (about 500 mSv/yr) and at 22.5 g/cm2 of air (about 255 mSv/yr, range
+  128 to 420) but 1.5 to 2.7 times below proton-primary shower
+  simulations at 100 g/cm2 (up to 5 times without a field); the flat
+  magnetic floor 0.6 is right only near sea level (the ratio of an
+  Earth-strength field to none is 0.31 at 100 g/cm2, 0.37 at 200, 0.51
+  at 500, 0.61 at 700 and 0.52 at 1036), so the factor depends on the
+  column; the range law `R = 0.0022 E^1.77` holds below 300 MeV but is 5
+  times too long at 10 GeV; the Europa 5.4 Sv/day figure in
+  docs/design/activity-magnetism-radiation-hydrosphere.md has no primary
+  source (a depth-dependent number, not a surface constant) and the Mars
+  0.64 mSv/day figure in the same file is only a search snippet (Guo
+  2015 gives the measured value, read). Do: use M / r^2 for the cutoff;
+  replace the dose-against-column curve and the field factor with the
+  read tables of part 07 (Atri 2013, Griessmeier 2016, Guo 2015, Zhang
+  2020) with a seeded solar-modulation spread of 0.5 to 1.64; use the
+  PSTAR table of part 07 for the proton range above 300 MeV; mark the
+  Europa and Mars figures in the design file as unsourced or replace
+  them with the read values; no old constants kept (no shim). Changes
+  stored doses, so it ships with a generator epoch bump. Done: a test
+  checks the cutoff exponent against the Stoermer form, the dose curve
+  against the read points (Moon, 22.5 g/cm2, and the 100 to 1036 g/cm2
+  simulation values) within the stated spread, and the field factor at
+  the five columns above. Owner: Core 4 (proposed, with the radiation
+  chain). Where the radiation design (GEN.436) settles other formulas,
+  this item follows it; GEN.444 replaces the rest of the proxies.
+  Prerequisites: GEN.436. Related: GEN.436, GEN.444, GEN.443, GEN.445,
+  GEN.256, GEN.434.
+
+- [ ] **GEN.454 Giant planets, ice giants and brown dwarfs draw their atmosphere mixture from the equilibrium chemistry sequence: by temperature, pressure, metallicity and quench**
+  Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
+  1:00 AM EDT as the lane reported; merged as
+  docs/design/atmosphere-composition.md section 3), filed by the TODO
+  thread. Part 05 (mixing ratios by class) gives the solar element
+  budget, the mass-metallicity draw rule for envelopes, the giant and
+  brown-dwarf chemistry sequences by temperature, pressure, metallicity
+  and quench, and hot-Jupiter thermochemistry; part 02 section 2 gives
+  the alkali and metal-oxide bands of the hot classes. Today the giants
+  take the class mixes of the old tables, which do not follow the
+  element budget (the new gas table of GEN.410 adds helium, neon,
+  ammonia, hydrogen cyanide, ethane, acetylene, sodium, potassium,
+  titanium and vanadium oxide, iron hydride and phosphine, which the
+  giants need). Do: draw each giant's and brown dwarf's mixture from its
+  stored mass, equilibrium temperature, internal heat and [Fe/H] with
+  the sequence of part 05 (carbon as methane or carbon monoxide by
+  temperature and pressure, nitrogen as ammonia or molecular nitrogen,
+  water, the alkali metals and oxides in the hot classes, quench levels
+  as a seeded range), every compound named in the gas table and no fixed
+  per-class percentages; the result feeds the giant colour (GEN.419).
+  Where the science is missing (line lists and pressure-broadened wings
+  of TiO, VO, FeH, CrH; Miguel 2011 tables) the item marks the input
+  open and uses a seeded range. Changes stored values, so it ships with
+  a generator epoch bump. Done: a test per class (cool giant, ice giant,
+  warm giant, hot Jupiter, T and L dwarf) checks the element budget
+  (hydrogen, helium and the metals sum to the drawn metallicity), the
+  dominant carbon and nitrogen carriers by temperature, and determinism.
+  Owner: Core 4 (proposed).
+  Prerequisites: GEN.410, GEN.411. Related: GEN.409, GEN.410, GEN.411,
+  GEN.419, GEN.451.
+
+- [ ] **GEN.455 Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates**
+  Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
+  1:00 AM EDT as the lane reported; merged as
+  docs/design/atmosphere-composition.md section 3), filed by the TODO
+  thread. Parts 04 section 5 and 05 give the sources and losses of thin
+  exospheres (sputtering, impact vaporisation, thermal release,
+  photon-stimulated desorption), the sodium and potassium data, the
+  exospheric columns of airless bodies and the comet coma abundances and
+  production rates (Mumma and Charnley 2011, Bockelee-Morvan 2004, Dello
+  Russo 2016, A'Hearn 2012 and Combi and Meech rates are on the research
+  list, section 6 item 10). Today an airless body has no atmosphere data
+  at all and a comet carries no abundance table. Do: from the stored
+  surface composition (GEN.441, GEN.442), surface temperature and the
+  star's wind and XUV, draw the exosphere's species and column for
+  airless bodies and the coma's species and production rate against
+  distance for comets; species from the gas table, no fixed list per
+  class; where a per-comet abundance table is missing the draw uses the
+  seeded range of part 05. Stored values: the shares go in the
+  surface-composition columns of DB.70 or a table the design chooses.
+  Changes stored values, so it ships with a generator epoch bump. Done:
+  a test checks the species against the source composition, the column
+  against the source and loss rates of part 04 within the stated spread,
+  and that a body with an atmosphere of any pressure never gets an
+  exosphere. Owner: Core 4 (proposed).
+  Prerequisites: GEN.441, GEN.442, GEN.410. Related: GEN.409, GEN.410,
+  GEN.441, GEN.442, DB.70, GEN.446.
+
+- [ ] **GEN.456 Lava worlds and hot rocky planets draw a vapour atmosphere over the magma from the surface composition and temperature: sodium, potassium, silicon monoxide, magnesium, iron and the oxides**
+  Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
+  1:00 AM EDT as the lane reported; merged as
+  docs/design/atmosphere-composition.md section 3), filed by the TODO
+  thread. Parts 05 and 06 give the vapour pressures of the species over
+  a silicate melt (sodium, potassium, SiO, Mg, Fe, TiO, VO, and the
+  oxygen they leave behind; Schaefer, Lodders and Fegley 2012; LavAtmos,
+  arXiv:2210.10463), the condensation temperatures of oxides, silicates,
+  iron, sulfides and salts, and the optical table of the condensates.
+  Today a hot rocky planet gets one of the class mixes. Do: for a rocky
+  body hot enough to hold a melt (the design of GEN.409 sets the
+  temperature test from the stored surface temperature and the surface
+  composition of GEN.441), draw the vapour mixture from the equilibrium
+  over the melt and the condensates that form on the cool side, with the
+  species from the gas table (GEN.410) and no fixed percentages; the
+  colour and cloud items read it (GEN.414, GEN.418). Where the
+  vapour-pressure tables are not reached (section 6 item 8) the item
+  marks the input open and uses a seeded range. Changes stored values,
+  so it ships with a generator epoch bump. Done: a test checks the
+  mixture's partial pressures against the cited vapour pressures at
+  three melt temperatures within the stated spread, that the partials
+  sum to the surface pressure, and determinism. Owner: Core 4
+  (proposed).
+  Prerequisites: GEN.441, GEN.410, GEN.411, GEN.414. Related: GEN.409,
+  GEN.410, GEN.411, GEN.414, GEN.418, GEN.441.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -10522,6 +10726,31 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
   Prerequisites: GEN.441, GEN.442. Related: DB.69, DB.67, DB.68.
+
+- [ ] **DB.71 Planets and moons store the partial pressures of the added gases, not only the ten stored today**
+  Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
+  1:00 AM EDT as the lane reported; merged as
+  docs/design/atmosphere-composition.md section 3), filed by the TODO
+  thread. Finding 10: the stored partials (O2, CO2, CO, N2, Ar, H2, H2O,
+  CH4, H2S, SO2) miss He, Ne, Kr, Xe, NH3, NH4SH, HCN, C2H6, C2H2, OCS,
+  HCl, HF, N2O, NO2, O3, Na, K, SiO, Mg, Fe, TiO, VO and PH3, which the
+  class mixes and the descriptions already name or the physics needs
+  (the species-by-class table of part 05 section 13 lists each with the
+  class that needs it). GEN.411 splits the pressure into partials,
+  GEN.413 adds ozone and the items GEN.452, GEN.454 and the lava and
+  exosphere items draw more species, so every drawn partial needs a
+  place to live. Do: the design (GEN.409) chooses between more columns
+  and a per-planet table keyed by the gas table's species; store the
+  partial pressure of every species of the table that the planet or moon
+  holds, read the mean molar mass and the molar density from it, and
+  keep the ten old columns only if the design says so (no shim). Alembic
+  revision after the DB.67 one; the migration fills the new species with
+  the drawn values from GEN.411 for existing rows (or zero). Done: a
+  migration test upgrades and downgrades, the partials of every stored
+  row sum to the pressure, and a species outside the table cannot be
+  stored. Owner: Core 4 (proposed, with the atmosphere chain).
+  Prerequisites: GEN.411, GEN.410, DB.67. Related: DB.67, DB.68,
+  GEN.411, GEN.413, GEN.415.
 
 ## API: The JSON API
 
