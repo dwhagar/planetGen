@@ -17,6 +17,10 @@ three in step.
 Usage:
     python3 -I examples/apache/deploy-paths.py <repo-dir>
     python3 -I examples/apache/deploy-paths.py --move-old-jobs <jobs-dir>
+    python3 -I examples/apache/deploy-paths.py --remove-galaxy-settings <jobs-dir>
+
+The third form (ADM.50) deletes the `galaxy-settings` folder of creation-settings files that
+older versions kept inside the jobs directory; the galaxy's record lives in the database now.
 
 The second form (OPS.19) moves Generate jobs from the old default,
 `OLD_JOBS_DIR`, into `<jobs-dir>` when that is the new default, and says
@@ -37,6 +41,8 @@ OLD_JOBS_DIR = "/var/lib/planetgen/jobs"
 """The jobs default before OPS.19: `/var/lib/planetgen` differs from the
 checkout's `/var/lib/planetGen` only by case, so a default install had
 two folders."""
+OLD_SETTINGS_DIR_NAME = "galaxy-settings"
+"""The folder of creation-settings files inside the jobs directory before ADM.50."""
 LOCK_NAME = "active"
 """The running job's lock in the jobs directory
 (`planetgen.web.jobs.LOCK_NAME`): its first line is the job's id."""
@@ -145,7 +151,29 @@ def move_old_jobs(new_dir, old_dir=OLD_JOBS_DIR):
     return lines
 
 
+def remove_galaxy_settings(jobs_dir):
+    """
+    Deletes the `galaxy-settings` folder inside `jobs_dir` (ADM.50: the files are gone, the
+    galaxy's record is in the database). A link is removed as a link, never followed.
+
+    Returns:
+        list[str]: What it did (empty when there was no such folder).
+    """
+    path = os.path.join(jobs_dir, OLD_SETTINGS_DIR_NAME)
+    if os.path.islink(path):
+        os.remove(path)
+    elif os.path.isdir(path):
+        shutil.rmtree(path)
+    else:
+        return []
+    return [f"Removed the old {path} (the galaxy's settings are kept in the database now)."]
+
+
 def main(argv):
+    if len(argv) == 3 and argv[1] == "--remove-galaxy-settings":
+        for line in remove_galaxy_settings(argv[2]):
+            print(line)
+        return 0
     if len(argv) == 3 and argv[1] == "--move-old-jobs":
         for line in move_old_jobs(argv[2]):
             print(line)

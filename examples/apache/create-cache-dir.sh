@@ -84,6 +84,8 @@ fi
 # checkout's folder only by case), move into the new one first.
 if [[ -z "${1:-}" ]]; then
     (cd / && "$PYTHON" -I "$APACHE_DIR/deploy-paths.py" --move-old-jobs "$JOBS_DIR")
+    # ADM.50: the galaxy settings files are gone; delete the folder older versions left here.
+    (cd / && "$PYTHON" -I "$APACHE_DIR/deploy-paths.py" --remove-galaxy-settings "$JOBS_DIR")
     mkdir -p "$JOBS_DIR"
     chown "$APACHE_USER:$APACHE_GROUP" "$JOBS_DIR"
     chmod 750 "$JOBS_DIR"

@@ -1337,7 +1337,7 @@ def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
         body = client.get("/api/galaxy/shape").get_json()
         assert body["shape"] is None and body["shells"] is None
         assert body["bright_stars"] == {"scattered": False, "min_luminosity_sol": None, "seed": None,
-                                        "default_min_luminosity_sol": 9000.0}
+                                        "default_min_luminosity_sol": 9000.0, "limits": None}
         with conn:
             conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
                          " bulge_scale_radius_pc, bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,"
@@ -1358,8 +1358,12 @@ def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
     assert [row["shell"] for row in shells["rows"]] == [2, 1, 0] and not shells["sampled"]
     assert shells["rows"][2]["inner_pc"] == 0.0 and shells["rows"][2]["outer_pc"] == 2.0
     assert shells["rows"][0]["bands"] == 3
+    limits = body["bright_stars"].pop("limits")
     assert body["bright_stars"] == {"scattered": True, "min_luminosity_sol": 500.0, "seed": 1234,
                                     "default_min_luminosity_sol": 9000.0}
+    # UX.116: the settings stored with the plan; the core follows the galaxy-wide floor until it is set.
+    assert limits["core_follows"] is True and limits["core_min_luminosity_sol"] == pytest.approx(550.0)
+    assert limits["halo_min_luminosity_sol"] == 500.0
 
 
 def test_galaxy_bright_stars_in_one_cell(client, mysql_config):

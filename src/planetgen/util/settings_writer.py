@@ -475,6 +475,63 @@ def save(changes, actor, role="admin", audit=None, expect_hash=None, action="con
 
 
 # ---------------------------------------------------------------------
+# Export and import (ADM.85)
+# ---------------------------------------------------------------------
+
+def export_document(role="admin"):
+    """
+    The settings an export holds: the options set in config.json that `role` may change, without any secret and
+    without any command-line-only option, as nested JSON in the file's own layout, plus `config_version`. Options
+    left at their default are not in the file and so not in the export.
+
+    Raises:
+        SettingsWriteError: config.json is damaged. A missing file is an export of nothing set.
+    """
+    data = read_bytes(config_path())
+    document = {} if data is None else _parse(data, config_path())
+    out = {"config_version": document.get("config_version", settings.CONFIG_VERSION if data is None else 1)}
+    for option, (_info, meta) in _fields().items():
+        if meta["x-secret"] or not allowed(meta, role)[0]:
+            continue
+        found, value = _get(document, option)
+        if found:
+            _put(out, option, value)
+    return out
+
+
+def import_changes(document, role="admin"):
+    """
+    The `changes` (`{option: value}`, for `plan` and `save`) an imported export asks for. The document must be a
+    JSON object in the file's layout; keys the model doesn't know are kept as changes so `plan` names them as
+    errors, and nothing here decides whether a role may set an option (`plan` does, option by option).
+
+    Returns:
+        tuple: `(changes, errors)`; `errors` is `{"": message}` for a document that can't be read at all (not an
+            object, or from a newer release), else empty.
+    """
+    if not isinstance(document, dict):
+        return {}, {"": f"An export is a JSON object, not {type(document).__name__}."}
+    try:
+        document = settings.migrate(dict(document))
+    except settings.SettingsError as exc:
+        return {}, {"": str(exc)}
+    document.pop("config_version", None)
+    leaves = set(_fields())
+    changes = {}
+
+    def walk(prefix, node):
+        for key, value in node.items():
+            path = f"{prefix}{key}"
+            if path not in leaves and isinstance(value, dict) and any(o.startswith(path + ".") for o in leaves):
+                walk(path + ".", value)
+            else:
+                changes[path] = value
+
+    walk("", document)
+    return changes, {}
+
+
+# ---------------------------------------------------------------------
 # Restoring
 # ---------------------------------------------------------------------
 

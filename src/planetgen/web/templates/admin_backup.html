@@ -1,0 +1,70 @@
+{#- planetgen/web/templates/admin_backup.html -- one backup archive and the settings diff (ADM.85). -#}
+{% extends "base.html" %}
+{% block content %}
+{%- if message %}<p class="hint" role="status">{{ message }}</p>{% endif %}
+{%- if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+{%- set archive = data.archive %}
+<section class="panel" aria-labelledby="archive-heading">
+  <h2 id="archive-heading">Archive</h2>
+  <p>Taken {{ utc_time(archive.taken_at) }}{% if archive.taken_by %} by {{ archive.taken_by }}{% endif %}{% if archive.reason %}, because: {{ archive.reason }}{% endif %}. {{ num(archive.size / 1024, ',.1f') }} KB{% if archive.version %}, made by planetGen {{ archive.version }}{% endif %}.</p>
+  {%- if data.verified %}
+  <p class="hint">Checked: every file in it matches its recorded hash.</p>
+  {%- else %}
+  <p class="error" role="alert">This archive is damaged and cannot be restored: {{ data.problems | join('; ') }}</p>
+  {%- endif %}
+  <p class="inline-links"><a href="{{ page_url('admin_backups') }}">Back to the archives</a>
+    {%- if data.can_download %} · <a href="/api/admin/backups/{{ archive.name }}/download">Download</a>{% endif %}</p>
+</section>
+{%- if data.verified %}
+<section class="panel" aria-labelledby="diff-heading">
+  <h2 id="diff-heading">What restoring the settings would change</h2>
+  {%- if diff.errors %}
+  <ul class="error settings-errors">
+    {%- for path, text in diff.errors.items() %}
+    <li>{% if path %}{{ path }}: {% endif %}{{ text }}</li>
+    {%- endfor %}
+  </ul>
+  <p>The settings in this archive can not be restored as they are.</p>
+  {%- elif not archive.parts | selectattr('name', 'equalto', 'settings') | list %}
+  <p class="hint">This archive holds no settings.</p>
+  {%- elif not rows %}
+  <p class="hint">The settings in this archive are the same as today's.</p>
+  {%- else %}
+  <div class="table-scroll" tabindex="0">
+  <table class="settings-diff">
+    <caption class="sr-only">Settings a restore would change</caption>
+    <thead><tr><th scope="col">Setting</th><th scope="col">Today</th><th scope="col">After restoring</th></tr></thead>
+    <tbody>
+      {%- for row in rows %}
+      <tr>
+        <th scope="row">{{ row.title }}<br><code class="setting-path">{{ row.path }}</code></th>
+        <td><code>{{ row.old_text if row.old_text != '' else '(empty)' }}</code></td>
+        <td><code>{% if row.reset %}default: {% endif %}{{ row.new_text if row.new_text != '' else '(empty)' }}</code>{% if row.restart %} <span class="setting-tag">needs a restart</span>{% endif %}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+  </div>
+  {%- if restart %}<p>These take effect after the web server is restarted: {{ restart | join(', ') }}.</p>{% endif %}
+  {%- if shadowed %}<p class="error" role="status">An environment variable overrides {% for title, var in shadowed.items() %}{{ title }} ({{ var }}){% if not loop.last %}, {% endif %}{% endfor %}.</p>{% endif %}
+  {%- endif %}
+  <p class="hint">From the web only the options an admin may change are put back; the database password, the secret key and the other server-only options stay as they are in today's file. A secret is shown as (changed), never its text.</p>
+</section>
+<section class="panel" aria-labelledby="restore-heading">
+  <h2 id="restore-heading">Restore</h2>
+  <form method="post" action="{{ page_url('admin_backup_restore', archive=archive.name) }}" class="settings-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="expect_hash" value="{{ data.file_hash }}">
+    <fieldset>
+      <legend>Parts to restore</legend>
+      {%- for part in archive.parts %}
+      <p><label><input type="checkbox" name="part" value="{{ part.name }}"{% if part.known %} checked{% else %} disabled{% endif %}> {{ part.label }}</label>
+        {%- if not part.known %} <span class="hint">This version of planetGen can't restore this part; it stays in the archive.</span>{% endif %}</p>
+      {%- endfor %}
+    </fieldset>
+    <p class="hint">Restoring first makes a backup of what it replaces, so it can be undone from this page. Each changed option and the restore itself are written to the audit log.</p>
+    <p class="settings-actions"><button type="submit" class="btn btn-danger">Restore the ticked parts</button></p>
+  </form>
+</section>
+{%- endif %}
+{% endblock %}

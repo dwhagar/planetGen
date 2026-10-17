@@ -1,0 +1,70 @@
+{#- planetgen/web/templates/admin_backups.html -- /admin/settings/backups (ADM.85). -#}
+{% extends "base.html" %}
+{% block content %}
+{%- if message %}<p class="hint" role="status">{{ message }}</p>{% endif %}
+{%- if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+{%- if import_errors %}
+<ul class="error settings-errors">
+  {%- for title, text in import_errors %}
+  <li>{{ title }}: {{ text }}</li>
+  {%- endfor %}
+</ul>
+{%- endif %}
+{%- if data %}
+{%- if data.problem %}
+<p class="error" role="alert">Backups can be listed but not made: {{ data.problem }}</p>
+{%- endif %}
+<section class="panel" aria-labelledby="backup-now-heading">
+  <h2 id="backup-now-heading">Back up now</h2>
+  <p class="inline-links">One archive of {% for part in data.parts %}{{ part.label | lower }}{% if not loop.last %}, {% endif %}{% endfor %}. A backup of the settings is also made just before every settings save, restore or import. The newest {{ data.kept }} archives are kept (<a href="{{ page_url('admin_settings', _anchor='setting-settings-backups_kept') }}">change how many</a>).</p>
+  <form method="post" action="{{ page_url('admin_backups') }}" class="settings-confirm">
+    {{ csrf_field() }}
+    <button type="submit" class="btn"{% if data.problem %} disabled{% endif %}>Back up now</button>
+  </form>
+</section>
+<section class="panel" aria-labelledby="archives-heading">
+  <h2 id="archives-heading">Archives</h2>
+  {%- if not data.archives %}
+  <p class="hint">No backup has been made yet.</p>
+  {%- else %}
+  <div class="table-scroll" tabindex="0">
+  <table class="backup-list">
+    <caption class="sr-only">Backup archives, newest first</caption>
+    <thead><tr><th scope="col">Taken</th><th scope="col">By</th><th scope="col">Why</th><th scope="col">Holds</th><th scope="col">Size</th><th scope="col">Actions</th></tr></thead>
+    <tbody>
+      {%- for archive in data.archives %}
+      <tr>
+        <th scope="row">{{ utc_time(archive.taken_at) }}<br><code class="setting-path">{{ archive.name }}</code></th>
+        <td>{{ archive.taken_by or '(unknown)' }}</td>
+        <td>{{ archive.reason or '(unknown)' }}</td>
+        <td>{% if not archive.readable %}<span class="error">Can't be read</span>{% else %}{% for part in archive.parts %}{{ part.label }} ({{ num(part.size / 1024, ',.1f') }} KB){% if not loop.last %}, {% endif %}{% endfor %}{% if not archive.complete %} <span class="setting-tag">not every part</span>{% endif %}{% endif %}</td>
+        <td>{{ num(archive.size / 1024, ',.1f') }} KB</td>
+        <td><a href="{{ page_url('admin_backup', archive=archive.name) }}">Compare and restore</a>
+          {%- if data.can_download %} · <a href="/api/admin/backups/{{ archive.name }}/download">Download</a>{% else %} · <span class="hint">Download is for the Owner</span>{% endif %}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+  </div>
+  {%- endif %}
+  {%- if not data.can_download %}
+  <p class="hint inline-links">An archive holds every secret in config.json, so only the Owner can download one (from version 8.2). On the server they are in the state folder's backups folder, readable by the web server's user only.</p>
+  {%- endif %}
+</section>
+<section class="panel" aria-labelledby="exchange-heading">
+  <h2 id="exchange-heading">Export and import settings</h2>
+  <p>The export is the options set in config.json that an admin may change, as a JSON file. It never holds a secret or an option that can only be changed on the server. Importing a file sets the options it names, checked the way an edit is (a value that does not fit changes nothing), and shows the differences before it saves.</p>
+  <p><a class="btn btn-secondary" href="{{ page_url('admin_settings_export') }}">Export the settings</a></p>
+  <form method="post" action="{{ page_url('admin_settings_import') }}" enctype="multipart/form-data" class="search-form">
+    {{ csrf_field() }}
+    <div class="search-field">
+      <label for="import-file">Settings file to import</label>
+      <input type="file" id="import-file" name="file" accept=".json,application/json" required>
+    </div>
+    <button type="submit" class="btn">Check the file</button>
+  </form>
+</section>
+{%- else %}
+<section class="panel"><p>The backups could not be loaded.</p></section>
+{%- endif %}
+{% endblock %}

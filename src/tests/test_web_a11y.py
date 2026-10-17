@@ -401,6 +401,7 @@ def sample_params(site_app, sample_job, sample_job_tree):
         "phenomenon_id": phenomenon["id"],
         "scatter_id": scatter_id,  # web.uncharted_phenomenon
         "quadrant": "I",
+        "shell": 40, "band": 0, "wedge": 3,  # web.sector_at: a cell nothing was generated in
         "page": 1,
         "job_id": sample_job,
         "name": "index",  # web.old_page: /index.py, an old CGI URL
@@ -410,6 +411,9 @@ def sample_params(site_app, sample_job, sample_job_tree):
         "polity_id": items("/api/polities")[0]["id"],
         "node_id": sample_job_tree,  # web.admin_queue_tree
         "action": "queue-pause",  # web.admin_queue_confirm
+        # web.admin_backup: no backup exists here, so it only redirects and is skipped; the real page is
+        # checked in test_web_settings_browser.py.
+        "archive": "20200101T000000Z.tar.bz2",
     }
 
 
