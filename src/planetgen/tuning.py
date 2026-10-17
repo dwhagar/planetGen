@@ -163,7 +163,7 @@ HOLMAN_WIEGERT_P_TYPE_ECCENTRICITY_RANGE = (0.0, 0.7)
 # configurations symmetric with each other.
 WIDE_BINARY_DEFAULT_CHANCE = 0.5
 
-# S-type binary separation is sampled log-uniformly between these bounds
+# S-type binary separation is sampled log-uniformly from this lower bound
 # (see binary.WideBinaryPair.generate) rather than with plain
 # random.uniform -- real wide-binary separations are observed roughly
 # log-uniform/log-normal over several decades (Duquennoy & Mayor 1991;
@@ -171,14 +171,16 @@ WIDE_BINARY_DEFAULT_CHANCE = 0.5
 # density in the single largest order of magnitude (the same reasoning
 # `physics.planets.generate_moons` already applies to moon spacing). The lower
 # bound sits comfortably above the close/P-type BinaryStarProxy separation
-# range (0.05-0.25 AU) so the two configurations' separations never overlap;
-# the upper bound keeps generated pairs within the separation regime that
-# typically survives Galactic tidal shear and passing-star perturbations
-# over a stellar lifetime (real wide pairs increasingly disrupt beyond
-# roughly 0.1-0.2 pc, ~20,000-41,000 AU -- Jiang & Tremaine 2010), without
-# this generator needing to model that disruption process directly.
+# range (0.05-0.25 AU) so the two configurations' separations never overlap.
+# The upper bound is not a constant: a pair survives only inside the
+# widest axis its place allows (GEN.103, `generation.place_terms.
+# wide_axis_limit_au`: passing stars and the galactic tide, from the place's
+# density, velocity dispersion and the pair's age), and a place that allows
+# none under this lower bound keeps no wide pair.
 WIDE_BINARY_SEPARATION_MIN_AU = 50.0
-WIDE_BINARY_SEPARATION_MAX_AU = 10000.0
+WIDE_BINARY_SEPARATION_CEILING_AU = 1.0e6
+"""float: Only where a place's density is zero is the survival limit infinite; no pair is a pair past a few parsecs
+(the Jacobi radius at the halo's density is under 10 pc), and this keeps the log-uniform draw finite."""
 
 # Cap on the sampled binary orbital eccentricity for an S-type pair (see
 # binary.WideBinaryPair.generate's thermal-distribution sampling).
@@ -428,7 +430,7 @@ SPECTRAL_PROBABILITIES_NORMAL = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G'
 # massive O stars are very nearly certain to. Keyed by spectral letter
 # (`Star.type[0]`) the same way SPECTRAL_PROBABILITIES_NORMAL above is,
 # and used the same way when `SystemConfig.BINARY_SYSTEM` is left at its
-# default `None` -- see `StarSystem._should_generate_binary`. Anchor
+# default `None` -- see `StarSystem._companion`. Anchor
 # points, in solar-mass order:
 #   M: 0.26  -- Duchene & Kraus 2013 (Annual Review of Astronomy and
 #               Astrophysics 51:269-310), low-mass-star multiplicity
@@ -478,31 +480,76 @@ STAR_FORMATION_AGE_RANGE_GY = (0.0, 10.0)
 # Post-main-sequence phases, as multiples of the main-sequence lifetime
 # (SOLAR_MS_LIFESPAN_GY * M^MS_LIFESPAN_MASS_EXPONENT above): subgiant up
 # to 1.1, giant or supergiant up to 1.2, then a remnant. Real post-MS
-# phases take roughly 10-20% of the main-sequence time.
+# phases take roughly 10-20% of the main-sequence time. A star lighter than
+# HELIUM_FLASH_MASS_SOL burns helium in its core after the red giant branch
+# (the horizontal branch) and then climbs the asymptotic giant branch before
+# it becomes a white dwarf (GEN.286): HORIZONTAL_BRANCH_MS_FRACTION and
+# AGB_MS_FRACTION are added to GIANT_PHASE_END_MS_FRACTION for it.
 SUBGIANT_PHASE_END_MS_FRACTION = 1.1
 GIANT_PHASE_END_MS_FRACTION = 1.2
+HELIUM_FLASH_MASS_SOL = 2.2
+HORIZONTAL_BRANCH_MS_FRACTION = 0.010
+AGB_MS_FRACTION = 0.002
 
 # Stars at or above this initial mass end as supergiants and then neutron
 # stars or black holes (core collapse); below it, as giants and white dwarfs.
 SUPERGIANT_MIN_MASS_SOL = 8.0
 # Giants at or above this initial mass are bright giants (II), not III.
 BRIGHT_GIANT_MIN_MASS_SOL = 4.0
-# Giant-branch luminosity (log-uniform, Lsun) and temperature (K) ranges.
-GIANT_LUMINOSITY_RANGE_SOL = (50.0, 1000.0)
-BRIGHT_GIANT_LUMINOSITY_RANGE_SOL = (1000.0, 10000.0)
-# A low-mass giant spends a short last stretch of its giant phase above
-# GIANT_LUMINOSITY_RANGE_SOL's top: the upper red giant branch up to its tip
-# near 2500 Lsun (M_bol ~ -3.7; Salaris & Cassisi 2005) and the bright end
-# of the asymptotic giant branch, together a few percent of the phase. That
-# share is drawn log-uniform over GIANT_TIP_LUMINOSITY_RANGE_SOL. Without it
-# no old disk or bulge star reached the 1000 Lsun bright-star threshold, so
-# bright stars stayed in the young thin disk near the plane (GEN.79).
-GIANT_TIP_LUMINOSITY_RANGE_SOL = (1000.0, 2500.0)
-GIANT_TIP_FRACTION = 0.02
+# Giant-branch luminosities (Lsun) and temperatures (K). A giant lighter than
+# BRIGHT_GIANT_MIN_MASS_SOL is on the red giant branch: it rises from the
+# base (SUBGIANT_MAX_BRIGHTENING times the star's main-sequence luminosity,
+# where its subgiant phase ended) to the tip, and the time it spends at each
+# luminosity falls as L^-GIANT_BRANCH_TIME_SLOPE per unit of ln L (GEN.287).
+# That is the real luminosity function, and it follows from the physics: the
+# helium core grows by the hydrogen shell burning at the star's luminosity, so
+# dt = (X Q / L) dMc, and the luminosity climbs as a power Mc^p of the core
+# mass (p about 10 for the low-mass cores of an old population), which gives
+# dt/dlnL proportional to L^(1/p - 1), slope 0.9 [R, Refsdal and Weigert 1970;
+# Salaris and Cassisi 2005; recalled, unconfirmed]. The tip is where the core
+# helium ignites (near 2,500 Lsun, M_bol about -3.7; Salaris and Cassisi 2005).
+# Log-uniform spreading over 50 to 1,000 Lsun, which this replaces, put every
+# giant above 50 Lsun and overstated the bright ones many times against real
+# counts: the real branch spends most of its time near its base (its
+# observed ratio of horizontal-branch stars to red giants brighter than the
+# horizontal branch is about 1.4 [R, Salaris et al. 2004]).
+GIANT_BRANCH_TIP_LUMINOSITY_SOL = 2500.0
+GIANT_BRANCH_TIME_SLOPE = 0.9
+BRIGHT_GIANT_LUMINOSITY_RANGE_SOL = (1000.0, 10000.0)  # log-uniform
 GIANT_TEMPERATURE_RANGE_K = (3500.0, 5000.0)
-# A subgiant brightens to about twice its main-sequence luminosity and
-# cools toward the base of the giant branch while crossing.
-SUBGIANT_MAX_BRIGHTENING = 2.0
+# The horizontal branch (core helium burning): one luminosity range, whatever
+# the colour; the colour (temperature) is drawn from [Fe/H] and age
+# (HORIZONTAL_BRANCH_COLOURS below). Red clump and red horizontal-branch stars
+# are the metal-rich, RR Lyrae the middle, blue horizontal-branch the
+# metal-poor and extreme horizontal-branch (hot subdwarfs) a few percent of
+# old stars (docs/design/realistic-galactic-core.md 5.3) [R, recalled, unconfirmed:
+# Lee, Demarque and Zinn 1994; Catelan 2009].
+HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL = (40.0, 60.0)
+HORIZONTAL_BRANCH_COLOUR_TEMPERATURE_RANGE_K = {
+    "red": (4600.0, 5300.0), "rr-lyrae": (5900.0, 7400.0),
+    "blue": (7500.0, 20000.0), "extreme": (20000.0, 35000.0),
+}
+# Colour shares (blue, RR Lyrae, red, extreme) at [Fe/H] anchors, linear
+# between them and held beyond the ends: nearly all blue at -2.2, a mix at
+# -1.5 (the intermediate halo), nearly all red above -0.5.
+HORIZONTAL_BRANCH_COLOURS = (
+    (-2.2, (0.82, 0.07, 0.02, 0.09)),
+    (-1.5, (0.43, 0.25, 0.25, 0.07)),
+    (-0.7, (0.06, 0.06, 0.86, 0.02)),
+    (-0.1, (0.0, 0.0, 0.98, 0.02)),
+)
+# The second parameter: a younger population has a redder branch, as if its
+# [Fe/H] were higher by this many dex for each Gy it is younger than the
+# reference age.
+HORIZONTAL_BRANCH_AGE_SHIFT_DEX_PER_GY = 0.1
+HORIZONTAL_BRANCH_REFERENCE_AGE_GY = 12.0
+# The asymptotic giant branch: the same time-at-luminosity law, between these.
+AGB_LUMINOSITY_RANGE_SOL = (100.0, 2500.0)
+# A subgiant brightens to about three and a half times its main-sequence luminosity (the
+# zero-age relation under-counts the turn-off star's own brightening, and the base
+# of the red giant branch of an old 0.85 solar mass star is near 2 to 3 Lsun)
+# and cools toward the base of the giant branch while crossing.
+SUBGIANT_MAX_BRIGHTENING = 3.5
 SUBGIANT_END_TEMPERATURE_K = 5000.0
 # Massive stars evolve at nearly constant luminosity; about a third of
 # observed supergiants are red (K/M), the rest blue or white (O/B/A).
@@ -889,6 +936,27 @@ below it, by Knuth's method (PERF.60)."""
 # Binary mass ratio q = M2/M1, uniform (Moe & Di Stefano 2017, ApJS 230:15,
 # find it close to flat); the secondary shares the primary's age.
 BINARY_MASS_RATIO_RANGE = (0.1, 1.0)
+
+# The chance of a companion inside 10 AU against the star's own [Fe/H] (GEN.103; Boss, 2026-10-16, 6:12 to 6:15 PM
+# EDT: one pooled trend, every star mass). Moe, Kratter & Badenes 2019, ApJ 875:61 (arXiv 1808.02116), for solar-type
+# primaries (0.6 to 1.5 Msun, periods under 10^4 d): 53 +-12% at [Fe/H] -3.0, 40 +-6% at -1.0, 24 +-4% at -0.2 and
+# 10 +-3% at +0.5. `generation.place_terms.close_companion_factor` reads the straight line through them, held flat
+# past the ends, as `F(fe_h) / F(0)` on the odds of the generator's own close share (Boss, 2026-10-16: the odds, not the chance). The errors are reference values for the check
+# (TEST.196), not inputs.
+CLOSE_BINARY_FRACTION_BY_FE_H = {-3.0: 0.53, -1.0: 0.40, -0.2: 0.24, 0.5: 0.10}
+
+# The semi-major axis at which half of the pairs of age t survive passing stars is
+# `ENCOUNTER_LIMIT_COEFFICIENT * (M1 + M2) * sigma / (G * rho_2 * t)` (Bahcall, Hut & Tremaine 1985, ApJ 290:15, as
+# Jiang & Tremaine 2010, MNRAS 401:977 restate it, arXiv 0907.2952). The coefficient is that source's; what it folds
+# in (the Coulomb logarithm, the encounter integral) was not checked.
+ENCOUNTER_LIMIT_COEFFICIENT = 0.002
+
+# A system drawn with no galaxy placement (a single system from the command line) has no cell to read a density and
+# a dispersion from; it takes the Sun's neighbourhood, the way `constants.GALACTIC_CENTER_DISTANCE_LY` stands for its
+# distance from the centre. Recalled round values (Jiang & Tremaine 2010: 0.1 Msun/pc^3 in mass, a field dispersion
+# of 30 km/s), to verify.
+SOLAR_NEIGHBOURHOOD_MASS_DENSITY_SOLAR_PC3 = 0.1
+SOLAR_NEIGHBOURHOOD_DISPERSION_KMS = 30.0
 
 # --- Planet Classification Data ---
 
@@ -2644,6 +2712,10 @@ doesn't depend on whether the comet is bound to a star.
 # separate, wider range reflects that real difference rather than reusing
 # the interstellar range as-is.
 BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM = (0.5, 20.0)
+COMET_NUCLEUS_DENSITY_KG_M3 = 533.0
+"""float: Bulk density of a comet nucleus, kg/m^3 -- 67P/Churyumov-Gerasimenko, measured by Rosetta (Paetzold et al.
+2016, 533 +/- 6), the one nucleus whose mass and volume are both known. A nucleus's mass is this times its sphere's
+volume (`physics/bulk_mass.comet_nucleus_mass_kg`)."""
 
 # Perihelion distance range, in AU, for a star-bound comet -- wide enough
 # to cover both a sungrazer-like close pass and an outer-system comet that

@@ -10,6 +10,49 @@
   "settings": {
     "backups_kept": 20
   },
+  "site": {
+    "tagline": "",
+    "language": "en"
+  },
+  "web": {
+    "title_template": "{title} - {site_name}",
+    "theme_color_light": "#f6f7fb",
+    "theme_color_dark": "#14151e",
+    "assets_dir": ""
+  },
+  "icons": {
+    "favicon_svg": "",
+    "favicon_png": "",
+    "apple_touch_icon": "",
+    "manifest_enabled": false
+  },
+  "seo": {
+    "indexing": "top_pages",
+    "detail_pages": "noindex",
+    "description": "",
+    "keywords": [],
+    "json_ld": true,
+    "robots_extra": "",
+    "robots_override": "",
+    "block_ai_crawlers": false,
+    "sitemap_enabled": true,
+    "sitemap_max_urls": 50000,
+    "sitemap_cache_hours": 24,
+    "security_txt": "",
+    "humans_txt": "",
+    "privacy_note": ""
+  },
+  "og": {
+    "enabled": true,
+    "site_name": "",
+    "image_alt": "",
+    "default_image": "",
+    "twitter_card": "summary_large_image",
+    "twitter_site": "",
+    "generated_cards": false,
+    "card_cache_mb": 100.0,
+    "card_cache_dir": ""
+  },
   "mysql": {
     "host": "127.0.0.1",
     "port": 3306,

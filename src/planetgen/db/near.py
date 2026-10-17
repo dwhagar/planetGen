@@ -37,6 +37,7 @@ from planetgen.db.store import get_galaxy_shape
 from planetgen.galaxy import objectref as object_ref
 from planetgen.galaxy.spherical import enumerate_sectors_within_radius, local_to_galaxy_pc
 from planetgen.physics.units import ly_to_pc, mpc_to_pc
+from planetgen.util import detmath
 
 MAX_DISTANCE_PC = 50.0
 """float: The largest distance a search takes (Boss, NAV.43: about 8,000
@@ -157,7 +158,7 @@ def _systems_in_reach(conn, center, distance, margin):
         point = local_to_galaxy_pc(
             (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]),
             (mpc_to_pc(row["position_x_mpc"]), mpc_to_pc(row["position_y_mpc"]), mpc_to_pc(row["position_z_mpc"])))
-        away = math.dist(center, point)
+        away = detmath.dist(center, point)
         if away <= distance:
             found[row["id"]] = {"name": row["name"], "sector_id": row["sector_id"], "sector_name": row["sector_name"],
                                 "point": point, "distance": away}
@@ -255,7 +256,7 @@ def _facilities(conn, center, distance, margin, systems):
          center[2] - reach, center[2] + reach)).fetchall()
     for row in rows:
         point = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
-        away = math.dist(center, point)
+        away = detmath.dist(center, point)
         if away <= distance:
             parent = ({"ref": _ref("sector", row["sector_id"]), "kind": "sector", "name": row["sector_name"]}
                       if row["sector_id"] is not None else None)
@@ -274,7 +275,7 @@ def _phenomena(conn, center, distance, kinds):
         if row["type"] not in kinds:
             continue
         point = (row["x"], row["y"], row["z"])
-        away = math.dist(center, point)
+        away = detmath.dist(center, point)
         if away <= distance:
             found.append((away, row["type"], row["id"], row["name"], None, point))
     return found

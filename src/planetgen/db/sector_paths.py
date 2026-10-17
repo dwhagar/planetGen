@@ -23,7 +23,7 @@ in, and generated data must not.
 Point masses are the stars of each star system (summed per system), black
 holes and neutron stars. The stored velocity of a star system is its
 galactic velocity (`star_systems.velocity_*_kms`, v61); a rogue planet or
-comet follows the galaxy's rotation at its own `galactic_orbital_speed_kms`.
+comet moves at its stored vector.
 """
 
 import concurrent.futures
@@ -31,7 +31,6 @@ import multiprocessing
 
 from planetgen.db import point_columns
 from planetgen.galaxy import spherical as geometry
-from planetgen.galaxy.system_position import galactic_velocity_ms
 from planetgen.physics import constants
 from planetgen.physics import sector_path as sp
 
@@ -107,12 +106,13 @@ def _bodies(conn, sector_id, center):
                        tuple(row[f"velocity_{axis}_kms"] * 1000.0 for axis in "xyz")))
     for table in ("rogue_planets", "interstellar_comets"):
         for row in conn.execute(
-            f"SELECT id, center_x_pc, center_y_pc, center_z_pc, galactic_orbital_speed_kms FROM {table}"
+            f"SELECT id, center_x_pc, center_y_pc, center_z_pc, velocity_x_kms, velocity_y_kms, velocity_z_kms"
+            f" FROM {table}"
             f" WHERE sector_id = ? AND center_x_pc IS NOT NULL", (sector_id,)
         ).fetchall():
             point = tuple(row[f"center_{axis}_pc"] for axis in "xyz")
             bodies.append((table, row["id"], tuple(c * _PC for c in point),
-                           galactic_velocity_ms(point, row["galactic_orbital_speed_kms"])))
+                           tuple(row[f"velocity_{axis}_kms"] * 1000.0 for axis in "xyz")))
     return bodies
 
 

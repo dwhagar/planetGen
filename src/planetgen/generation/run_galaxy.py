@@ -47,6 +47,7 @@ from planetgen.generation import run_population
 from planetgen.generation import run_sector
 from planetgen.generation import stages, steps
 from planetgen.util import draw
+from planetgen.util import detmath
 
 
 LARGE_RUN_WARNING_THRESHOLD = 2000
@@ -1039,6 +1040,30 @@ def require_math_check():
             f"Run 'planetgen check-math' for details.")
 
 
+def estimate_cell(density, systems, config=None):
+    """
+    The size and time of filling one cell (UX.113), from the server's own stored speeds and sizes
+    (`generationStats.estimate`; the defaults before any run is recorded). Reads, writes nothing, and does not check the
+    disk: the Generate page's estimate does that when a run is asked for.
+
+    Args:
+        density (float): The cell's `relative_density` (picks the speed bucket).
+        systems (float): The systems the fill makes (`CellResolution.resolved_systems`).
+        config (MySQLConfig, optional): The galaxy's database.
+
+    Returns:
+        dict: `systems`, `stars`, `bytes`, `seconds` and `measured` (whether the speed is this server's own).
+    """
+    config = config or store.DEFAULT_MYSQL_CONFIG
+    try:
+        result = run_common.generationStats.estimate([(density, systems)], run_common._stats_for_config(config),
+                                                     config.database, workers=1)
+    finally:
+        run_common._RUN_STATS.clear()
+    return {"systems": round(result.systems), "stars": round(result.stars), "bytes": result.bytes,
+            "seconds": round(result.seconds, 1), "measured": result.measured}
+
+
 def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, estimate_only=False):
     """
     Non-CLI counterpart to `run_local_neighborhood` -- for the admin web
@@ -1203,7 +1228,7 @@ def _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken, dra
             continue
         position_pc = sector_position_pc(*address, edge_pc)
         if many and (
-                any(math.dist(position_pc, other) < 2 * radius_pc for other in taken)
+                any(detmath.dist(position_pc, other) < 2 * radius_pc for other in taken)
                 or not _whole_neighborhood_inside(batch_density.bounds, position_pc, radius_pc, edge_pc)):
             continue
         if args.avoid_filled_space:

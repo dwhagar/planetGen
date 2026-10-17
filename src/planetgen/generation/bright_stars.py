@@ -70,7 +70,7 @@ from planetgen.galaxy.spherical import (
     wedge_longitude_bounds,
 )
 from planetgen.galaxy.sector import _sample_poisson_count
-from planetgen.generation import object_first
+from planetgen.generation import object_first, place_terms
 from planetgen.generation.star_population import (
     bright_band_fraction, mass_band_fraction, pick_population, placed_star_fraction, sample_bright_stars,
     sample_mass_band_stars,
@@ -230,12 +230,15 @@ def _finite_or_none(value):
     return value if value is None or math.isfinite(value) else None
 
 
-def star_fe_h(population, point, seed):
+def star_fe_h(population, point, seed, params=None):
     """A bright star's [Fe/H] (GEN.158): drawn from its population and its distance from the galactic centre (its
     stored point, whole milliparsecs), on a stream of its own seed so no scatter draw moves. `None` for a cluster
-    or satellite star, which carries its component's value (GEN.159, GEN.237)."""
+    or satellite star, which carries its component's value (GEN.159, GEN.237). A horizontal-branch star keeps the
+    [Fe/H] its colour was drawn from (`params["metallicity_fe_h"]`, GEN.286)."""
     if population in ("cluster", "satellite"):
         return None
+    if params is not None and params.get("metallicity_fe_h") is not None:
+        return params["metallicity_fe_h"]
     distance_ly = pc_to_ly(math.sqrt(sum((value / MPC_PER_PC) ** 2 for value in point)))
     return metallicity.sample_fe_h(population, distance_ly, draw.Stream(f"metallicity:bright:{seed}"))
 
@@ -250,7 +253,7 @@ def _row(shell_index, band_index, wedge, point, population, params, rng):
         population, params["type"], params["yerkes_class"], params["mass_kg"],
         params["radius_km"], params["temperature_k"], params["luminosity_w"],
         params["age_gy"], _finite_or_none(params["lifespan_gy"]), params["initial_mass_sol"],
-        _finite_or_none(params["phase_end_age_gy"]), seed, star_fe_h(population, point, seed),
+        _finite_or_none(params["phase_end_age_gy"]), seed, star_fe_h(population, point, seed, params),
     )
 
 
@@ -786,6 +789,11 @@ class FillContext:
         self.phenomenon_rows = list(phenomenon_rows or ())
         self.below_cut = below_cut
 
+    @functools.cached_property
+    def place_terms(self):
+        """The profile's density and velocity dispersion for the pair draws (GEN.103, `place_terms.from_profile`)."""
+        return place_terms.from_profile(self.profile)
+
     @property
     def capped(self):
         """Whether the cell expects more systems than the cell star ceiling (GEN.281): it is built from its
@@ -810,6 +818,7 @@ class FillContext:
         """Gives one of the sector's own (dim) systems its population and,
         after a scatter, the luminosity cap."""
         system_config.POPULATION = pick_population(self.densities, rng)
+        system_config.PLACE_TERMS = self.place_terms
         if system_config.POPULATION in ("cluster", "satellite"):
             system_config.FE_H_PEAKS = self.profile.populations[system_config.POPULATION].fe_h
         if self.min_luminosity_sol is not None:

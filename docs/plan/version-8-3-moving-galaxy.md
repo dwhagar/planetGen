@@ -24,13 +24,10 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 | GEN.375 | Field kernel subtracts a local origin before its loop in `physics/sector_path.py` |  | GEN.372 audit. |
 | DB.65 | Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates |  | GEN.372 audit; small, needs a revision. |
 | GEN.374 | Orbit phase formulas reduce first, and the JavaScript Kepler solver uses tolerance 1e-12: Python, SQL and JavaScript agree |  | GEN.372 audit. |
-| DB.55 | One additive migration for the 8.3 schema: point columns for every kind, heaviest object per sector, asteroid-field provenance |  | Split from GEN.294. Core 1 owns migrations. |
-| GEN.336 | Compact and free objects hold a velocity vector and a mass: stars, black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants | DB.55 | Split from GEN.294. |
-| GEN.337 | Epoch, vector and mass for the rest: belts, quasars, comets, facilities, scatter points and members | DB.55, GEN.336 | Split from GEN.294. |
-| GEN.294 | Every object in the galaxy is held as one SpatialPosition3D with its position, point mass and movement vector stored as columns | DB.55, GEN.336, GEN.337, GEN.372 | Boss 2026-10-15 11:12 PM EDT. |
+| GEN.294 | Every object in the galaxy is held as one SpatialPosition3D with its position, point mass and movement vector stored as columns | GEN.372 | Boss 2026-10-15 11:12 PM EDT. |
 | GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) |  | Research follow-up to GEN.108 (built). |
-| GEN.289 | Planets and moons kept as the universal point-in-space object, with point mass and movement vector stored, so perturbations have somewhere to land | DB.55 |  |
-| GEN.142 | Peculiar velocity for rogue planets and asteroid fields | GEN.336 | Research: prerequisite of GEN.110. |
+| GEN.289 | Planets and moons kept as the universal point-in-space object, with point mass and movement vector stored, so perturbations have somewhere to land |  |  |
+| GEN.142 | Peculiar velocity for rogue planets and asteroid fields |  | Research: prerequisite of GEN.110. |
 
 ### Nightly maintenance
 
@@ -82,7 +79,7 @@ N-body influence, collisions, encounters and the Quantity class.
 | DB.56 | The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings |  | Split from GEN.143. Core 1 owns migrations. |
 | GEN.197 | Orbital event record: the `record_event` writer and the object-ID rules for ejection, capture, merger and split | DB.56 |  |
 | GEN.345 | Collision outcomes as a pure function: regime table, giant merger, fusion check, conservation |  | Split from GEN.110. |
-| GEN.346 | Applying a collision to the galaxy: new asteroid field, merged giant, merger-remnant star, retired bodies, events | GEN.345, GEN.334, GEN.341, GEN.142, DB.56, GEN.197, DB.55 | Split from GEN.110. |
+| GEN.346 | Applying a collision to the galaxy: new asteroid field, merged giant, merger-remnant star, retired bodies, events | GEN.345, GEN.334, GEN.341, GEN.142, DB.56, GEN.197 | Split from GEN.110. |
 | GEN.110 | Rogue planet collisions: asteroid fields, merged giants and new stars | GEN.345, GEN.346 |  |
 | GEN.290 | An encounter search that cannot miss a pass at large steps (100 years per second) | GEN.289, GEN.341, GEN.343, GEN.334 |  |
 | GEN.291 | A bound planet becomes a rogue planet when an encounter unbinds it: the unbind and capture test and the event log | GEN.289, GEN.290, GEN.343, GEN.346, GEN.197 |  |
@@ -92,7 +89,7 @@ N-body influence, collisions, encounters and the Quantity class.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.299 | The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders | GEN.294, GEN.135 | Boss 2026-10-16, 11:35 AM EDT; like SpatialPosition3D. |
+| GEN.299 | The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders | GEN.294 | Boss 2026-10-16, 11:35 AM EDT; like SpatialPosition3D. |
 | GEN.348 | Describer, CLI query lines and class page ranges take Quantity | GEN.299 | Split from GEN.300. |
 | UX.128 | Map side panels and other browser call sites take Quantity | GEN.299, UX.107 | Split from GEN.300. |
 | GEN.349 | API output and stored-column readers take Quantity; the grep test fails on a hand-written conversion factor; the old helpers are removed | GEN.348, UX.128 | Split from GEN.300. |

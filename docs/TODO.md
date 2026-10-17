@@ -49,6 +49,14 @@ that default.
   tables, columns and layouts as the work needs, with one migration or a
   fresh galaxy.
 
+### Investigation log
+
+- Every test or investigation on an item gets a dated comment on its goal issue, whether it fixes, fails or cannot reproduce (Boss, 2026-10-16,
+  11:48 PM EDT: "I want to keep issues having a running history of what we do and why"). A bug that could not be reproduced, or that needs
+  more information, is flagged so in the item (a "Status" line) and in a comment headed with the item ID and the words "Could not reproduce"
+  or "Needs information", giving the date and time in EDT, what was run (the number of runs, the load, the inputs), the result, and the
+  failure text needed next time. The comment is the history; the item says only the latest status.
+
 ### Links
 
 - This file is the only place that links an item to its design document,
@@ -138,8 +146,8 @@ item has no row there.
 | 8.7 | [version-8-7-console-and-help.md](plan/version-8-7-console-and-help.md) | The pilot's console and built-in help |
 | 8.8 | [version-8-8-deep-sky.md](plan/version-8-8-deep-sky.md) | The deep sky |
 | 8.9 | [version-8-9-generate-anywhere.md](plan/version-8-9-generate-anywhere.md) | Generate anywhere |
-| 9.0 | [version-9-0-view-from-a-planet.md](plan/version-9-0-view-from-a-planet.md) | The view from a planet |
-| 9.1 | [version-9-1-gravity-map.md](plan/version-9-1-gravity-map.md) | The gravity map |
+| 9.0 | [version-9-0-composition-and-atmosphere-colour.md](plan/version-9-0-composition-and-atmosphere-colour.md) | Composition and atmosphere colour |
+| 9.1 | [version-9-1-view-from-a-planet.md](plan/version-9-1-view-from-a-planet.md) | The view from a planet, with the gravity map |
 | 9.2 | [version-9-2-politics-and-territories.md](plan/version-9-2-politics-and-territories.md) | Politics and territories |
 | 9.3 | [version-9-3-ships-and-stations.md](plan/version-9-3-ships-and-stations.md) | Ships and stations |
 | 9.4 | [version-9-4-galaxy-types.md](plan/version-9-4-galaxy-types.md) | Galaxy types |
@@ -164,10 +172,16 @@ Headline features (Boss, 2026-10-16, 1:07 PM EDT): 8.1 infinite zoom
 (MAP.146) and the new generate scatters (GEN.301), 8.2 user accounts with
 sign-up by an email invitation only an admin can send (USR.1), 8.3 the
 orbital update system (GEN.105), 8.5 courses that bend around gravity wells
-(NAV.59), 8.6 edit everything (ADM.57), 9.1 the gravity map (MAP.167),
+(NAV.59), 8.6 edit everything (ADM.57), 9.1 the view from a planet (VIEW.18),
+with the gravity map (MAP.167) as the second feature,
 10.0 roles and permissions with user edit requests and moderators
-(USR.25, Boss 1:43 PM EDT). 9.0 has no chosen headline yet (the view from
-a planet is proposed); multiple galaxies is a possible future feature. A
+(USR.25, Boss 1:43 PM EDT). 9.0 composition and the atmosphere colour (GEN.421, Boss,
+11:25 PM EDT: the seminal feature of 9.0; 11:58 PM EDT: composition of every
+body, star and atmosphere is its joint headline, with the radiation derived
+from it, and the building blocks go down to 8.1; everything planned for 9.0 before
+split between 8.9, the backups chain and the sky data, and 9.1, the view
+from a planet, 11:26 PM EDT); multiple galaxies is a possible future
+feature. A
 headline feature carries a `Headline: VERSION (name).` line in its item;
 `scripts/build_todo_docs.py` reads it and shows, in every plan page, each
 headline with all the open items it needs in build order. Every release in
@@ -594,37 +608,10 @@ with `clamp()`.
   table in the union or double counting). Owner: Database
   (count and cache). Queued behind the Spherical Sector Coordinates stop
   (Boss, 2026-10-15 06:39Z).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none.
-
-- [ ] **UX.113 The sector page shows the profile of any address in the reach, and heavy cells and far neighbourhoods warn before they run**
-  Step 8 of the whole-sphere train. An uncharted address shows its
-  profile computed from the address alone: expected systems, the
-  population mix, the dark-matter density and mass in the cell, the
-  ambient medium (disk ISM, hot halo, intergalactic) with its density
-  and gas mass, and the expected counts per kind, like the interstellar
-  debris count already shown. An asked, empty sector shows the same with
-  "no objects". A heavy cell (a globular cluster core cell is 14 minutes
-  to 2.5 hours) is a queued job with an ETA and a warning, never a
-  blocking request, and a neighbourhood request out in the halo shows
-  its expected system count and cost line before it runs. Units go
-  through the ladders and no TODO codes appear in the text. Done: any
-  address inside the reach opens a page that says what is expected there
-  and why, nothing is stored by opening it, and the warnings show before
-  a heavy request starts. Owner: Interface; the numbers come from Core's
-  profile (GEN.235) through API.27.
-  Built-on note (Core 1, 2026-10-16, 3:17 AM EDT, GEN.235 merged as
-  #1784): call galaxy.profile.sector_profile(address, skeleton) for the
-  profile and GalaxyBounds.describe_miss for the "outside the outline"
-  line.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report, queue position 3).
-  Prerequisite: API.27. Related: GEN.237.
-  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **UX.114 Scatter-row pages list the stored members and the map shows a system mass**
   Step 8 (design note 11 item 8). The sector and bright-star pages list
@@ -665,7 +652,7 @@ with `clamp()`.
   audit starts, so it checks the finished pages. Queued, not started:
   Interface and Quality stay idle until the sphere and generation stages
   finish (Boss, 12:27 AM EDT) unless Boss says earlier.
-  Prerequisites: GEN.240, NAV.61, API.27, UX.113, NAV.45.
+  Prerequisites: GEN.240, NAV.61, NAV.45.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
 
 - [ ] **UX.118 Slow pages show a progress bar while their data loads: the search page and the phenomena list pages**
@@ -865,6 +852,7 @@ with `clamp()`.
   a galaxy with no pass. Fails on main: yes. Frequency: always on a
   galaxy before the first population pass. Reproducer: start a fresh
   galaxy and request both URLs.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none.
 
 - [ ] **UX.134 Generate page: the galaxy type shows what the seed drew and can be pinned**
@@ -2079,6 +2067,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   request; hovering one names it and gives its radius and centre; it is
   a picker layer so a click selects it. Needs the registry (MAP.217).
   The key text itself is MAP.234. Owner: Core 2.
+  Superbubble density, Decided (Boss, 2026-10-16, 9:38 PM EDT): once the
+  stars follow the bubbles (GEN.391 to GEN.395), the drawn layer is an
+  explanation and debug overlay, not how bubbles are shown. Keep this
+  layer, off by default; MAP.236 stays at lower priority.
   Prerequisites: MAP.217. Related: MAP.234, MAP.217, GEN.254.
 
 - [ ] **MAP.236 Superbubbles need clearer bounds and slightly more transparency on the Galaxy Map**
@@ -2097,6 +2089,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the fill alpha is lower than 0.14. The key entry and toggle are
   MAP.234 and MAP.235; this item changes only the look.
   Owner: Core 2 (the Galaxy Map; proposed, Core 2 reads the plan).
+  Superbubble density, Decided (Boss, 2026-10-16, 9:38 PM EDT): the layer
+  becomes an optional overlay, off by default, once the bubbles shape the
+  stars (GEN.391); this item stays, at lower priority, for when the
+  overlay is on.
   Prerequisites: none. Related: MAP.234, MAP.235, GEN.254.
 
 - [ ] **MAP.237 The Galaxy Map's "Charted only" view is invisible again: charted space cannot be told from the rest (bug)**
@@ -2221,6 +2217,72 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shows its outline from UX.135 beside the family's name.
   Prerequisites: GEN.389, UX.135. Related: MAP.232, MAP.234, MAP.235.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **MAP.243 The Galaxy Map cannot select or enter anything in the halo: the halo's scatter objects are not pickable at galaxy scale and a zoom toward one stops without opening a view (bug)**
+  Boss (2026-10-16, 9:21 PM EDT): "Bug in the galactic map I cannot
+  select or zoom into sectors in the halo region of the map ... I cannot
+  say zoom in to see the space around a black hole scattered out in the
+  halo region, there's no way to select and zooming in tops out without
+  transitioning." Boss asked that an existing later item not be changed
+  if one covers it; none does (checked 2026-10-16, 9:30 PM EDT by a
+  read-only code survey, nothing run in a browser): MAP.207 only draws
+  satellites, clusters and wanderers as points beyond the outline and
+  says nothing of selecting or entering (8.8); MAP.219 makes stored
+  black holes pickable markers, with no enter step (8.8); MAP.225 zooms
+  toward a picked object but only helps if the object is pickable;
+  GEN.322 is stars only; MAP.210 is star selection inside a sector.
+  Causes found: (1) Blocks, and so every zoom hand-off, exist only
+  inside the outline: `galaxyBlocks` and `windowView`
+  (`galaxystages.js:126-157`) keep a block only if the outline holds it,
+  the outline (`galaxyOutline`, `galaxyprisms.js:936-954`) reaches only
+  the shells whose density passes `sector_min_density`, and
+  `S.sectorStage` returns null outside it (`galaxystages.js:274-277`),
+  so the wheel's hand-off `zoomAcross` (`galaxystageview.js:2163-2205`)
+  finds nothing to open and the zoom stops at its floor. (2) At the
+  whole-galaxy stage only blocks are pickable: the `phenomena` and
+  `clouds` layers are enabled only inside a window (`inContainer`,
+  `galaxystageview.js:2935`), so a black hole is drawn but cannot be
+  clicked until a window is open, and outside the outline there is no
+  window. (3) Tiles deliver scatter rows by position with no sector row
+  (`galaxy_scattered_points_in_box`, `db/query.py:4452-4500`) but the
+  scatter itself stays inside the outline today (`scatter_shell` per
+  outline shell; `hypervelocity_rows` drops landings outside it) and
+  coarse tiles list only the top three classes. (4) Tiles cannot address
+  beyond 32.8 kpc (`TILE_ROOT_EDGE_PC`, MAP.239). (5) The server already
+  opens any address in the reach (`/api/galaxy/uncharted`,
+  `/sector/at/<s>/<b>/<w>` with its profile panel, API.27 and UX.113),
+  but the map's "Show on Galaxy Map" for a halo address ends in "Sector
+  ... is outside the galaxy" (`galaxystageview.js:2636`). What Boss sees
+  before this ships: the halo's objects drawn as points with no
+  selection, the wheel stopping short of any halo cell, and a profile
+  page that cannot be shown on the map. Done: from the whole-galaxy view
+  a click or a wheel run onto an object in the halo (a black hole
+  scattered there) selects it and shows its details; the camera flies to
+  it and a further zoom opens the view of its cell, as an uncharted cell
+  with its profile when nothing is stored (the entering gate is the
+  reach of 262 kpc, not the outline); "Show on Galaxy Map" works for any
+  address in the reach; tiles carry the halo's scatter rows beyond the
+  outline once GEN.322 and GEN.323 produce them; a browser test on a
+  seeded galaxy with a halo black hole selects it, zooms into it and
+  ends in the cell's view with its neighbourhood shown. Owner: Core 2
+  proposed (the map lane that owns the infinite zoom tree and MAP.239),
+  after the tree; the Interface lane may take it with UX.115 if that
+  lane starts first.
+  Prerequisites: GEN.323, MAP.225, MAP.239, NAV.60. Related: MAP.207,
+  MAP.219, MAP.210, UX.115, GEN.322, API.27.
+
+- [ ] **MAP.244 The maps and pages use the atmosphere colour where they showed the planet colour**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): "Sky color should definitely
+  replace the planet color and such, if that's what you mean." Replace
+  the temperature-based glow of a planet on the System Map
+  (`glowColorForTemp` in the map script) and any other stand-in for a
+  planet's colour with its atmosphere colour, with the airless bodies
+  keeping a neutral rock colour from the stored surface words. Done: a
+  planet with air is drawn in its atmosphere colour on the System Map
+  and the planet page, in both themes, and the old three-colour gesture
+  is gone (no shim).
+  Prerequisites: GEN.420. Related: GEN.420.
 
 ## NAV: Navigation and courses
 
@@ -2631,6 +2693,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   NAV.61, TEST.165.
   Owner: Core 2 (Boss, 2026-10-16, 3:00 PM EDT: the region query goes to
   Core 2), after the infinite zoom tree and its labels.
+  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
+  the coordinator): it follows GEN.276 in Core 2's queue, after the
+  GEN.135 gate and GEN.306. Owner: Core 2.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
 - [ ] **NAV.61 Nearest-first by a radius ladder, and a dense-core guard with an early-stop count**
@@ -2963,7 +3028,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     address, the directive digest and the attempt number
     (`generation/directives.py` seeds attempt a >= 1 from the
     directives' digest).
-    Prerequisites: GEN.306, GEN.307, TEST.181.
+    Prerequisites: GEN.307, TEST.181.
 
   - [ ] **OPS.15 Each update says whether it changes generated output**
     The second half of Boss's update "sweep". Done: after OPS.13's row
@@ -3070,8 +3135,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     diffs. The epoch item owns the `golden_update` tool and the
     `--check-pr` rule. Needs the deterministic math helpers first. Once
     GEN.42 lands, include one block-first backfill in the golden galaxy.
+    Generator epoch (Core 2, #1927, 2026-10-16, 9:42 PM EDT): GEN.135
+    made the generator epoch 2 (nebula shapes and the last bits of
+    positions differ); the epoch and golden-files rule is waived until
+    this item is built.
+    Generator epoch 3 (GEN.306, #1942, 11:28 PM EDT as the lane
+    reported): population streams are keyed on the homeworld's unique
+    ID; the golden files still do not exist, so the epoch and its note
+    went in together, as for epoch 2.
+    Epoch plan (Core 3, as the coordinator reported at 11:42 PM EDT):
+    the horizontal branch change (GEN.286, GEN.287, #1932) shipped
+    without an epoch entry (the golden files do not exist yet, so the PR
+    rule did not fail). A small PR carrying GEN.286/287's note and the
+    GEN.407 constants takes generator epoch 4 with the
+    `generation-output: changed` line; GEN.322 (which adds rows) takes
+    epoch 5.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-    Prerequisites: GEN.304, OPS.57, GEN.57, GEN.135.
+    Prerequisites: GEN.304, OPS.57, GEN.57.
 
   - [ ] **API.17 Remote generation reproduces what the server would make**
     Done: a remote run (API.12's download, API.13's generation without a
@@ -3214,70 +3294,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     rules at generation, and Nebula volume backfill step 3).
     Prerequisites: GEN.357, GEN.358.
     Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
-
-- [ ] **GEN.103 Research where each star type and phenomenon belongs in the galaxy's structure**
-  Boss (2026-10-07 11:47Z): "Research and add tiered structure
-  information about where stars of different types would be in the
-  galactic structure, what kinds of phenomena have similar restrictions,
-  etc." Done: a design note (thin and thick disk, bulge, bar, halo,
-  arms; ages and metallicity; where O and B stars, white dwarfs,
-  remnants, clusters and nebulae sit) and the rules added to the density
-  and type draws.
-  Research (2026-10-09, anomalies.md): adopt the population table in
-  "Placement by population" (young disk, thin disk, bulge and thick
-  disk, halo) and the young-star weight for `phenomenon_scatter`; add
-  the population-dependent multiplicity rules of
-  multistar-and-compact-systems.md 6.6 (metallicity-dependent
-  close-binary fraction, massive multiples in young regions, a wide-pair
-  survival cap shrinking in dense regions).
-  Rewrite to the remainder (2026-10-16 review): the populations and
-  per-kind factors are built (GEN.234, GEN.236); what is left is the
-  population-dependent rules for the type draws. Fold into GEN.269 or
-  close once GEN.270 to GEN.275 land.
-  Research supplied (Boss, 2026-10-16, 5:55 PM EDT, in the project
-  chat): the two constants Core 4 could not look up, the close-binary
-  fraction against [Fe/H] and the encounter-disruption limit for wide
-  pairs with the Jacobi radius as the outer limit. Sources named by Boss:
-  Badenes 2018, Moe, Kratter and Badenes 2019, El-Badry and Rix 2018,
-  El-Badry, Rix and Heintz 2021, Kratter and Lodato 2016, Bate 2018,
-  Heggie 1975, Bahcall, Hut and Tremaine 1985, Jiang and Tremaine 2010,
-  Stegmann 2024. The reference list is unverified and Core 4 checks it.
-  Filed as derivation rules of the type draw, not fixed values, in
-  docs/design/multistar-and-compact-systems.md section 6.6: the close
-  share follows the cell's [Fe/H] and the wide-pair limit is computed
-  from the cell's density, dispersion, age and tidal field.
-  Boss answered the GEN.103 cards (2026-10-16, 6:12 to 6:15 PM EDT):
-  (1) the close-binary trend is the pooled one, read at the star's own
-  [Fe/H]; (2) the metallicity effect applies to every star mass, with a
-  built-in check that the numbers act as expected (filed as TEST.196); (3)
-  wide pairs have no metallicity dependence; (4) the encounter limit is
-  a sharp cut at a_1/2; (5) the fixed 10,000 AU wide-pair cap is
-  replaced by the derived limit. The last card, whether the metallicity
-  effect fades above about 2 solar masses, was answered "all masses":
-  no fade, and the check is the safeguard.
-  Design note landed (Core 4, 2026-10-16, 7:16 PM EDT, #1891):
-  docs/design/placement-by-population.md. The build follows in its own PR
-  and covers 3.1 (close pairs by [Fe/H], every mass) and 3.3 (the derived
-  wide-pair limit). Section 3.2, massive multiples sitting in young
-  regions through `prevalence`, is NOT in that PR: it is GEN.373, with the
-  multi-star items (GEN.269, GEN.270 to GEN.275), and its cap on the rise
-  is the open constant (a design default, not a value from a source).
-  GEN.103 closes when the 3.1 and 3.3 build merges. The metallicity
-  effect applies to every mass, so the numbers need a ceiling that is not
-  a per-mass value: Core 4's recommendation (2026-10-16, 7:25 PM EDT): no new
-  constant; apply the pooled [Fe/H] factor F/F(0) to the odds p/(1-p) of
-  a close companion, not to the chance p, for every mass. It cannot pass
-  1, and a star already likely to have a companion rises less. Core 4's
-  check values: G dwarf 0.43, 0.36, 0.25, 0.12 at [Fe/H] -3.0, -1.0,
-  -0.2, +0.5 against Moe, Kratter and Badenes 53+-12, 40+-6, 24+-4,
-  10+-3% (all within 1 sigma); an O star at [Fe/H] -0.7 goes 0.45 to 0.58
-  (+29%) against the "no change within about 30%" read for O and early-B
-  stars in the Large Cloud and stays under Sana's 0.69+-0.09 (plain
-  scaling gives 0.77). Boss chose the odds form on a card (2026-10-16, 7:19 PM EDT): Decided,
-  the metallicity factor applies to the odds p/(1-p) of a close
-  companion, for every mass. Core 4 builds it.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report, queue position 5).
 
 - [ ] **GEN.105 Orbital updates**
   Boss (2026-10-03 and 2026-10-07) asked for an orbital update that
@@ -3811,28 +3827,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   after Core 3 merges GEN.283 and GEN.333 (tuning.py and the profile)).
   Prerequisites: none. Related: GEN.133 (done).
 
-- [ ] **GEN.135 Deterministic math helpers for every stored float, with a lint and frozen constants**
-  Python 3.9 gives different sectors from Python 3.10 to 3.13 on all 30
-  probe sectors (the research measured it); with `sqrt(x*x+y*y)` in
-  place of `math.hypot` all five interpreters agree. Done:
-  `planetgen/util/detmath.py` with `hypot(*c)`, `dist(a, b)` and `fsum`;
-  `math.hypot`, `math.dist` and float `sum()` replaced at about 25
-  stored-value sites in `galaxy/`, `population/`, `physics/` and `db/`
-  (`geometry.sector_address_at` already does it); the AST scan in
-  `test_reproducible_draws.py` extended to reject the old calls; the
-  astropy-derived constants in `physics/constants.py` frozen as literals
-  (`HYDROGEN_ATOM_MASS_KG` differs by 1.35e-9 between astropy 6.1.7 and
-  8.0.1) with a test that the astropy values equal them; `@` (BLAS)
-  removed from `galaxy/nebula_shape.py` (lines 107, 163) and
-  `physics/sector_path.py` (line 232). It changes stored values, so it
-  ships with a generator epoch bump (the Python 3.9 CI leg that blocked
-  TEST.77 is gone, OPS.42 merged in #1291). Related: GEN.66 follow-up on pinning astropy's constant
-  sets.
-  The epoch counter it bumps is built by the first child of OPS.28;
-  GEN.135 needs it so the order is not a circle.
-  Prerequisites: OPS.56.
-  Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-
 - [ ] **GEN.136 Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests**
   GEN.58 as built hashes floats exactly; the research recommends
   rounding to 9 significant digits (generation-determinism.md section
@@ -3966,9 +3960,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   radius (2026-10-16 review).
   NO FIXED CONTENT (2026-10-16, 8:43 PM EDT): 8.128 kpc and 8.2 kpc are
   the Milky Way's values. The one named value for the test radius stays
-  as the reference for the Milky Way plausibility test only; the Sun's
-  position in a generated galaxy is the derived home position of GEN.368,
-  not a constant.
+  as the reference for the Milky Way plausibility test only.
+  Decided (Boss, 2026-10-16, 9:43 PM EDT, "Confirmed drop 'home'"): the
+  galaxy stores no home or Sun position, so there is no derived home
+  position either; the value that places the Sun in the density model is
+  not a galaxy constant, and each use of a Sun radius becomes a
+  per-position calculation from the galaxy's own model (GEN.368's build
+  finds the uses).
   Prerequisites: none.
   Design: [docs/design/galactic-potential.md](design/galactic-potential.md)
 
@@ -4739,6 +4737,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Superbubble density (2026-10-16, 9:27 PM EDT): a bubble's own OB
+  association is this item's component; the bubble field (GEN.391)
+  carries only the shell enhancement and the interior suppression, so
+  the association is not counted twice. GEN.391 states the split.
   Prerequisites: GEN.241, GEN.321. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -4913,7 +4915,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/later-phenomena-scatter-rules.md (section 8)): reads
   scatter rows through the stage C region query; it needs the magnetar
   rows (GEN.278) to see the 10 pc flag before the fill.
-  Prerequisite: GEN.243. Related: GEN.113.
+  Prerequisite: GEN.243. Related: GEN.113, GEN.436, GEN.444.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.257 A Fermi-bubble overlay on the Galaxy Map**
@@ -5372,6 +5374,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   outside-the-box edge cases (2026-10-16 review).
   Owner: Core 2 (Boss, 2026-10-16, 3:00 PM EDT: the region query goes to
   Core 2), after the infinite zoom tree and its labels.
+  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
+  the coordinator): this item and NAV.60 go ahead of the rest of Core
+  2's queue. Core 2's order: the GEN.135 gate, GEN.306, then GEN.276 and
+  NAV.60. Owner: Core 2.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
 - [ ] **GEN.282 Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec)**
@@ -5385,6 +5391,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   where the profile puts them.
   Owns the Central Molecular Zone and the nuclear disc's young share
   (2026-10-16 review); GEN.134 does not build them.
+  Superbubble density (2026-10-16, 9:27 PM EDT): the core's young terms
+  stay this item's; GEN.391 checks that a bubble reaching the core does
+  not double them.
   Prerequisites: GEN.244. Related: GEN.280, GEN.246.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -5422,55 +5431,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before 8.1 closes).
   Prerequisites: GEN.338. Related: GEN.280 (built), GEN.198.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
-
-- [ ] **GEN.286 Horizontal-branch and AGB phases in the stellar evolution model**
-  Boss (2026-10-16, 1:12 AM EDT): "why not build the model of
-  horizontal-branch stars into the mix?" The stellar evolution model
-  (src/planetgen/physics/stellar_evolution.py) has no horizontal-branch
-  phase, which makes the halo scatter counts low. Plan: section 5.3 of
-  docs/design/realistic-galactic-core.md (merged, #1735). Done:
-  evolve_star gains core helium-burning phases (red clump or red
-  horizontal branch, RR Lyrae, blue horizontal branch, extreme
-  horizontal branch: 10 to 60 solar luminosities, 4,600 to 35,000 K, 0.1
-  Gyr) and AGB phases (100 to 2,500 solar luminosities, 0.02 Gyr) for
-  stars under 2.2 solar masses between the giant phase and the white
-  dwarf; the colour is drawn from [Fe/H] and age; star_population's
-  _bright_windows, _bright_table and mass-band tables mirror the new
-  phases; Yerkes III with the type text, no column, no migration.
-  Measured: halo scatter rows at 100, 500 and 1000 floors are 12
-  million, 3.8 million and 310,000 now; the horizontal branch adds none,
-  the AGB adds 2.6%, 4% and 28%. [Fe/H] comes from GEN.158 (Core 2) or,
-  until it lands, from interim population defaults (halo -1.6 and -2.2,
-  disc and bulge -0.1). Boss (2026-10-15 10:06 PM EDT): the
-  horizontal-branch stars are to be fully part of the generation of a
-  sector, the fill as well as the scatter, in the proper proportions,
-  with the giant-branch spread of GEN.287 built in the same pipeline;
-  "go ahead and build the fix into
-  your pipe". Acceptance test (Core 3's figures): sampled old, halo and
-  bulge populations put about 0.8 to 1.2% of their stars on the
-  horizontal branch, the colour shares follow [Fe/H] (-2.2, -1.5, -0.1),
-  halo, bulge and globular-cluster cells all show them, and scatter plus
-  fill still sum to the untiered expected total. Owner Core 3 (Boss,
-  1:12 AM EDT). Goal issue #1677.
-  Prerequisites: none. Related: GEN.158, GEN.283, GEN.234, GEN.237,
-  GEN.159, GEN.160, GEN.236.
-  Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
-
-- [ ] **GEN.287 The stellar evolution model spreads giant-branch stars evenly in log luminosity, which probably overstates the bright giants by about a factor of two against real halo counts (bug)**
-  Finding from Core 3 (2026-10-16, 1:14 AM EDT, kind: model accuracy,
-  written in its galactic core note
-  docs/design/realistic-galactic-core.md, no fix planned there): the
-  giant-branch stars of the stellar evolution model are spread evenly in
-  log luminosity, which probably overstates the bright giants by about a
-  factor of two compared with real halo counts. Boss wants densities and
-  star counts to match real observations. Done: the giant-branch
-  luminosity distribution follows the time spent at each luminosity (the
-  real luminosity function) and the halo giant counts are checked
-  against published halo counts; built together with GEN.286 in the same
-  pipeline, not queued separately (Boss, 2026-10-15 10:06 PM EDT: "go
-  ahead and build the fix into your pipe"). Owner Core 3, goal issue
-  #1677.
-  Prerequisites: none. Related: GEN.286, GEN.283.
 
 - [ ] **GEN.289 Planets and moons kept as the universal point-in-space object, with point mass and movement vector stored, so perturbations have somewhere to land**
   Finding (orbital-encounters research, 2026-10-15, kind: gap in
@@ -5732,7 +5692,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   owns every revision. Placed in Phase 2 before GEN.109,
   because the influence set sums the point mass of every object kind. No
   lane has it yet (Boss, 11:07 PM EDT: hand to TODO, nothing built).
-  Prerequisites: DB.55, GEN.336, GEN.337, GEN.372. Related: GEN.74,
+  Prerequisites: GEN.372. Related: GEN.74,
   GEN.109, GEN.223, GEN.289,
   GEN.290.
   Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
@@ -5872,6 +5832,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Superbubble density (2026-10-16, 9:27 PM EDT): GEN.391 to GEN.395
+  shape the young and intermediate star density by the bubble; the
+  remnant reading of the bubble interior stays this item's, and GEN.391
+  checks that neither counts the other twice.
   Prerequisites: none. Related: GEN.254, GEN.151, GEN.256.
 
 - [ ] **GEN.299 The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders**
@@ -5912,7 +5876,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   SpatialPosition3D reading its mass and length through it, a property
   test that every kind round-trips through every rung and that the
   Python and JavaScript copies agree, and the design note updated.
-  Prerequisites: GEN.294, GEN.135. Related: GEN.74, GEN.109, UX.107,
+  Prerequisites: GEN.294. Related: GEN.74, GEN.109, UX.107,
   UX.108.
   Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
 
@@ -5957,8 +5921,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
   Prerequisites: GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.244,
-  GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.286, GEN.287,
-  GEN.298, UX.116, TEST.159, TEST.160.
+  GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.298, UX.116,
+  TEST.159, TEST.160, GEN.447, GEN.448, GEN.449, GEN.450.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -6031,21 +5995,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sector is added; the digests do not depend on save order or worker
   count.
   Prerequisites: GEN.304, DB.49. Related: GEN.136.
-
-- [ ] **GEN.306 Population seeds keyed on the object, not on row ids**
-  Split from GEN.57 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). `population/model.py` draws a
-  species' form from `Stream(species_id * 7919)`, a planet's life from
-  `Stream(planet_id)` and its technology from
-  `Stream(f"tech:{homeworld_planet_id}")`; row ids come from per-worker
-  id blocks, so the population changes with the worker count and the
-  fill order. Key every one of these streams on the object's unique ID
-  (uid) or the sector address plus the object's index. Changes stored
-  values, so it ships with a generator epoch bump (OPS.28 child a).
-  Done: the same galaxy gets the same species, ages and technology
-  indices at 1 and 4 workers and in two fill orders; a test says so; no
-  stream is seeded from a database id.
-  Prerequisites: OPS.56. Related: GEN.57.
 
 - [ ] **GEN.307 The object-ID collision number keyed on the lower address**
   Split from GEN.57 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -6233,7 +6182,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.314. Related: GEN.130.
+  Prerequisites: GEN.314. Related: GEN.130, GEN.436, GEN.444.
 
 - [ ] **GEN.318 White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk**
   Split from GEN.130 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6333,6 +6282,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Existing galaxies (Core 3 report, #1932, 2026-10-16, 10:00 PM EDT):
+  GEN.286 and GEN.287 change the stored scatter rows (the halo scatter
+  rows at the 500 luminosity floor fall from about 3.8 million to about
+  190,000), so a galaxy scattered earlier needs `planetgen plan
+  --redo-scatters mass luminosity` (as after GEN.333).
+  Redo scope (rescatter thread finding, 2026-10-16): `--redo-scatters`
+  redoes rows only; satellites and clusters (`galaxy_components`) are
+  drawn only by a full `plan`. DOC.62 puts the line in docs/cli.md.
   Prerequisites: GEN.237. Related: GEN.240.
 
 - [ ] **GEN.323 The phenomena pass runs on the object-first sampler**
@@ -6349,6 +6306,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Redo scope (rescatter thread finding, 2026-10-16): `--redo-scatters`
+  redoes rows only; satellites and clusters (`galaxy_components`) come
+  only from a full `plan`. DOC.62 documents it.
   Prerequisites: GEN.322. Related: GEN.240.
 
 - [ ] **GEN.324 A component pass: clusters, the Clouds and Sagittarius place their stars, and the fill adds the component's density to lambda**
@@ -6525,39 +6485,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   black-hole test (2026-10-16 review).
   Prerequisites: none. Related: GEN.110, GEN.290.
 
-- [ ] **GEN.336 Compact and free objects hold a velocity vector and a mass: stars, black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants**
-  Split from GEN.294 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). These eight tables keep only the
-  scalar `galactic_orbital_speed_kms`. Done: generation writes the
-  vector and the mass (a field's or nebula's bulk mass, or a stated zero
-  that the gravity sum skips by rule); each table reads back into one
-  SpatialPosition3D through child a; rogue planets also carry
-  sector-relative offsets so collision tests difference small numbers
-  (absolute doubles are good to about 14 km at 8 kpc); the scalar column
-  is removed from the table, its model, the store, describe, edits,
-  sector_paths and the generators in the same PR (a small drop revision
-  from Core 1, no compatibility layer); the tables leave the allow-list.
-  Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
-  top 5 blockers, starting right after GEN.237 merges; estimates from
-  Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
-  Migration revision (Core 1, 2026-10-16, 6:13 PM EDT, renumbered 6:22
-  PM EDT after DB.54 merged as 0101): 0103, after 0102 (DB.55).
-  Prerequisites: DB.55. Related: GEN.294.
-
-- [ ] **GEN.337 Epoch, vector and mass for the rest: belts, quasars, comets, facilities, scatter points and members**
-  Split from GEN.294 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Belts and the quasar keep no
-  epoch or vector; comets, facilities, scatter points and members keep
-  no mass (members also no epoch). Done: each stores an epoch, a vector
-  (a stated zero for a body that does not move, such as the quasar) and
-  a mass (its own, the mass of what a facility sits on, or a stated
-  zero), reads back through child a's definition, the allow-list is
-  empty and the coverage test now fails for any table missing a part.
-  Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
-  top 5 blockers, starting right after GEN.237 merges; estimates from
-  Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
-  Prerequisites: DB.55, GEN.336. Related: GEN.294.
-
 - [ ] **GEN.338 The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests**
   Split from GEN.115 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). One function of position returns
@@ -6609,6 +6536,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   component of zero mass is legal and tested (a galaxy without a disk,
   an elliptical, needs no change in the potential); GEN.379 and DB.66
   sit just before this item in the thread.
+  GEN.368's approved table (Boss, 10:11 PM EDT), row 12: the rotation
+  curve and the enclosed mass are calculated from this potential (v
+  squared = G M(<r) / r), not set, and `MILKY_WAY_MASS` goes as the
+  central mass of every Hill sphere (GEN.400); the baryonic Tully-Fisher
+  relation is a cross-check only.
   Prerequisites: GEN.144, GEN.369, GEN.379. Related: GEN.115.
 
 - [ ] **GEN.339 Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded**
@@ -6999,6 +6931,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   real rows are kept only as reference data for the plausibility test of
   GEN.369, with no Milky Way option (Boss, 2026-10-16, 4:11 PM EDT), so
   this check matters only for that test and waits on GEN.369.
+  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
+  the coordinator): Core 1 does it last of its four (order: GEN.368,
+  GEN.369, GEN.371, GEN.366). Owner: Core 1.
   Prerequisites: GEN.369.
 
 - [ ] **GEN.367 The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae**
@@ -7024,8 +6959,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   distribution, masses a satellite mass function), the globular cluster
   count and law, the galaxy shape (disk scale length and height, bulge
   share, arm count, halo mass), the central black hole mass and the
-  nuclear cluster from their mass relations, the home position, and the
-  rotation curve and enclosed mass. Each row gives its law, its
+  nuclear cluster from their mass relations, and the rotation curve and
+  enclosed mass. Each row gives its law, its
   parameters, the sources named, and the source it comes from; there is
   no Milky Way option (Boss, 2026-10-16, 4:11 PM EDT), so the real
   values appear only as reference data for plausibility tests.
@@ -7116,6 +7051,56 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   build is not redone for 9.4.
   Prerequisites: none. Related: GEN.237, GEN.369, GEN.297, GEN.370,
   GEN.378.
+  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
+  the coordinator): this item and its Core 1 chain go ahead of the rest
+  of Core 1's queue. Core 1's order: its current stack, the GEN.372
+  audit, TEST.193 and TEST.195, then GEN.368, GEN.369, GEN.371 and
+  GEN.366. Owner: Core 1. It blocks 65 items now, the galaxy types chain
+  (GEN.378) among them.
+  Decided (Boss, 2026-10-16, 9:43 PM EDT, in the Core 1 thread:
+  "Confirmed drop 'home', we will choose viewing based on where sectors
+  are generated."): the galaxy stores no home or Sun position, so the
+  "home position" row of the table (row 11) is removed. The Sun-radius
+  uses (the density calibration, the metallicity zero point, the rates
+  at the Sun and the fallback distance) become per-position calculations
+  from the galaxy's own model, and the map starts where sectors are
+  generated (as MAP.190 does). USR.11, a user's own home field, is a
+  different thing and stays. GEN.388 (the home position by family, 9.4)
+  is dropped.
+  Boss decisions reported by Core 1 (Boss, 2026-10-16, 9:40 to 9:43 PM
+  EDT, in the Core 1 thread): (1) the first family's stellar mass range
+  is 3e9 to 2e11 solar; (2) every derived law draws its natural scatter
+  from the seed (a log-normal about the median); (3) Boss allows
+  arxiv.org for one verifying thread (Boss added the domain at 9:44 PM
+  EDT; a verifying thread started reading the cited papers at 9:45 PM
+  EDT). Core 1's draft table is
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md (rows 1 to
+  14, not yet verified against a paper; research requests in
+  5.13.6). Fixed content found beyond this item's first list (draft
+  table 5.13.4), all to be replaced or listed as a stay-constant by the
+  same table: the five different Sun radii (removed with the home
+  position), the supernova, GRB and AGN rates (`physics/activity.py`),
+  the dark matter, hot halo and ambient density values (`profile.py`,
+  `tuning.py:859-871`), the population ages, dispersions, arm contrast
+  and scale heights (`tuning.py:608-614,800`), the metallicity gradient,
+  the phenomenon densities, the nebula and superbubble field values, the
+  hypervelocity reference radius, the fixed halo fraction, the 8000 and
+  1000 in `clusters.py:92`, the two local stellar densities, and
+  `MILKY_WAY_STELLAR_LUMINOSITY_W` (becomes the galaxy's own luminosity
+  from its mass-to-light ratio). Section 5.13.5 of the draft still says
+  the draw returns "the home position"; Core 1 removes it.
+  Table approved (Boss, 2026-10-16, 10:11 PM EDT, as Core 1 reported):
+  size source Shen et al. 2003; the halo mass by the approximation
+  (GEN.399 in 8.2 researches the halo mass function and compares); no
+  home position; every derived law draws its natural scatter from the
+  seed; the first family covers 3e9 to 2e11 solar. Paper check:
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md. Core 1's
+  docs PR (section 5.13 of
+  docs/design/intergalactic-and-halo-contents.md) is to follow its stack
+  gate; this item retires when that PR merges. The build items are
+  GEN.400 to GEN.406 (8.1 phase 5, thread "Galaxy laws build"); GEN.369
+  reads row 10 and GEN.338 reads row 12 (the rotation curve and the
+  enclosed mass are calculated from the potential, not set).
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.369 Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option**
@@ -7187,6 +7172,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   numbers are used where we can. Things are derived everywhere we can or
   calculated everywhere we can. If needed you should ask me to do
   research if there are pieces missing that you can't look up yourself."
+  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
+  the coordinator): Core 1 builds it right after GEN.368 (order:
+  GEN.368, GEN.369, GEN.371, GEN.366). Owner: Core 1.
+  GEN.368's approved table (Boss, 10:11 PM EDT): row 10 gives the
+  satellite laws (subhalo mass function slope 1.9, Einasto placement,
+  the stellar mass from the halo mass with a reionization cutoff, [Fe/H]
+  from the mass-metallicity relation); the reionization cutoff and the
+  size-luminosity fit are open research (GEN.406).
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
@@ -7252,6 +7245,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   numbers are used where we can. Things are derived everywhere we can or
   calculated everywhere we can. If needed you should ask me to do
   research if there are pieces missing that you can't look up yourself."
+  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
+  the coordinator): Core 1 does it right after GEN.369 (order: GEN.368,
+  GEN.369, GEN.371, GEN.366). Owner: Core 1.
   Prerequisites: GEN.368. Related: GEN.368, GEN.369, GEN.324, GEN.237.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -7413,6 +7409,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   writes GEN.368's table), after GEN.368.
   Prerequisites: GEN.368. Related: GEN.369, GEN.297, GEN.234, GEN.134,
   GEN.338, GEN.390.
+  Decided (Boss, 2026-10-16, 9:43 PM EDT, in the Core 1 thread:
+  "Confirmed drop 'home', we will choose viewing based on where sectors
+  are generated."): the family design stores no home or Sun position;
+  GEN.388 is dropped and the design lists no home row. Per-position
+  calculations replace every Sun-radius use.
+  The first family's stellar mass range is 3e9 to 2e11 solar and every
+  derived law draws its natural scatter from the seed (Boss, 2026-10-16,
+  9:40 to 9:43 PM EDT, reported by Core 1); GEN.368's draft table
+  (/mnt/project-files/reports/gen368-laws-table-2026-10-17.md, 5.13.1
+  chain, rows 1 to 10) is the spiral family's start, and the family
+  table here extends it.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.379 The density model as a list of components, each with an amplitude that may be 0, and a mass for each component**
@@ -7436,6 +7443,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxies only check the result.
   Prerequisites: GEN.378, DB.66. Related: GEN.338, GEN.381, GEN.234,
   GEN.280.
+  Superbubble density (2026-10-16, 9:27 PM EDT): the bubble factor is
+  one call site in `galaxy/density_modulation.py` (GEN.393) that
+  multiplies each population's density after the component sum; this
+  rewrite keeps that one call and does not move the factor into the
+  components.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.380 The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass**
@@ -7455,6 +7467,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   no family or mass appears as a default. No fixed content (Boss, 4:11
   and 4:14 PM EDT): no named galaxy, preset or hand-set value; reference
   galaxies only check the result.
+  Mass limits: the first family's range is 3e9 to 2e11 solar stellar
+  mass (Boss, 2026-10-16, 9:40 PM EDT, reported by Core 1); GEN.378
+  states the other families' ranges.
   Prerequisites: GEN.378, GEN.379. Related: GEN.368, GEN.369, GEN.381.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
@@ -7602,26 +7617,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.280.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
-- [ ] **GEN.388 The home position by family: one rule of the shape, with the spiral rule as the disk case**
-  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
-  generation based on known galaxy types, as a chain of required items
-  counted back from 9.4. Today the home object sits near 3.15 disk scale
-  lengths at the inter-arm minimum (`GALAXY_SUN_RADIUS_PC`; GEN.144
-  gives one distance and GEN.368 plans its draw). A family needs its own
-  rule: a disk family places the home at a radius drawn from the
-  stellar-mass-weighted distribution of disk stars, a few scale lengths
-  out and off the arm crest; a spheroid family places it at a drawn
-  fraction of the effective radius in any direction; the rule is one
-  function of the shape and stays inside the reach. Done: the function
-  is tested for each family on a small galaxy (the radius distribution,
-  off the arm crest for the disk case, inside the reach); the sector
-  page, the maps and the frames read the stored home and need no change;
-  same seed same position. No fixed content (Boss, 4:11 and 4:14 PM
-  EDT): no named galaxy, preset or hand-set value; reference galaxies
-  only check the result.
-  Prerequisites: GEN.144, GEN.382, GEN.383. Related: GEN.368, GEN.384.
-  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
-
 - [ ] **GEN.389 Galaxy creation draws the family from the seed and stores it, with the family in the log, the API and the version check**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
   generation based on known galaxy types, as a chain of required items
@@ -7641,7 +7636,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   later note. No fixed content (Boss, 4:11 and 4:14 PM EDT): no named
   galaxy, preset or hand-set value; reference galaxies only check the
   result.
-  Prerequisites: GEN.384, GEN.386, GEN.387, GEN.388, GEN.385, GEN.382,
+  Prerequisites: GEN.384, GEN.386, GEN.387, GEN.385, GEN.382,
   GEN.383, DB.66. Related: API.28, GEN.369, GEN.297, GEN.301.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
@@ -7659,6 +7654,1702 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: UX.134, MAP.242, TEST.204, DOC.59. Related: GEN.301,
   GEN.9.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **GEN.391 Superbubbles shape the stars: the design of the bubble field as a density modulation, with its bounds and touch points checked**
+  Boss (2026-10-16, 9:27 PM EDT): instead of drawing the bubbles, store
+  the regions and let them adjust the star density function for the
+  space they occupy, so a sector builds following the bubbles without
+  drawing them. This is the design step. Done:
+  docs/design/superbubble-density.md, which starts as the plan filed
+  with this item, becomes the checked design: the factor each population
+  takes inside and on the shell of a bubble (young and intermediate
+  only, no change to old stars, clusters or satellites unless Boss
+  decides otherwise) with every strength, shell thickness and radius law
+  taken from the papers and checked against them, and a research request
+  to Boss for any that cannot be found; the smooth form m_p(d) in depth
+  d = |x - c| / R, overlaps multiplying; the certified maximum that
+  `band_majorants` and the bright-star pass multiply into their bounds
+  (a boost raises the bound, a suppression needs nothing); the cell mean
+  that gives a sector's expected count and the rejection step that
+  places stars inside the cell; the thinning the phenomena pass applies
+  per position; the bubble-free density read that breaks the recursion
+  between the bubbles' own placement (`nebula_field.gas_factor` reads
+  the young density) and the modulation, and the import order that keeps
+  `density.py` free of a module-level import of `superbubble_field`; the
+  single call site (`galaxy/density_modulation.py`) that GEN.379's
+  component list keeps; the seed handle on the shape that carries it
+  like `ComponentField`, which also fixes `run_galaxy.py:152` and `:688`
+  not passing the galaxy seed; how the profile, the sector page and the
+  region query show the effect; no double count with GEN.244's OB
+  associations and GEN.298's remnants; and the fate of the drawn layer
+  (MAP.235 and MAP.236). Nothing in the chain is built before Boss reads
+  the table of effects. No fixed content (Boss, 4:11 and 4:14 PM EDT):
+  the bubbles stay derived from the seed; every strength is a calculated
+  or drawn law with its source named. Owner: Core 3 proposed (it edits
+  object_first.py, density.py and profile.py for the scatters now); Core
+  4 informed (GEN.134 edits density.py).
+  Prerequisites: none. Related: GEN.254, GEN.298, GEN.244, GEN.282,
+  GEN.379, DB.38, ADM.94, MAP.235, MAP.236.
+  Decided (Boss, 2026-10-16, 9:38 and 9:39 PM EDT): a bubble changes the
+  young and intermediate star density only (old stars, halo, bulge,
+  clusters and satellites unchanged); the drawn layer stays as an
+  optional overlay, off by default; the chain stays in 8.1. The checked
+  design sets the strengths, not these choices.
+  Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
+
+- [ ] **GEN.392 A bubble field handle on the galaxy shape: seed-carried bubbles with a box cut, a certified maximum factor and a bubble-free density read**
+  Boss (2026-10-16, 9:27 PM EDT): instead of drawing the bubbles, store
+  the regions and let them adjust the star density function for the
+  space they occupy, so a sector builds following the bubbles without
+  drawing them. `galaxy/superbubble_field.py` gains
+  `bubbles_in_box(handle, lo, hi)` (the bubbles that reach a cell, a
+  band or a wedge, from the cached 250 pc columns), `factor_at(handle,
+  population, x)`, `factor_cell_mean(handle, population, cell)` (a short
+  sub-sampled quadrature) and `factor_max(handle, population, box)` (the
+  certified bound over a box, the product of 1 + A of the bubbles that
+  reach it). A `BubbleField` handle carries the galaxy seed on the shape
+  the way `ComponentField` does (attached by `shape._replace` where
+  components are attached today, hashed by identity). The bubbles' own
+  placement reads a bubble-free density so that
+  `nebula_field.gas_factor` and the modulation never recurse. Done: the
+  same seed gives the same factors on every call and every worker; the
+  cell mean matches a fine grid within 1e-3; the maximum bounds a random
+  sample of 10^6 points; a shape without the handle gives a factor of
+  exactly 1; no import cycle. No fixed content (Boss, 4:11 and 4:14 PM
+  EDT): the bubbles stay derived from the seed; every strength is a
+  calculated or drawn law with its source named.
+  Prerequisites: GEN.391. Related: GEN.254, GEN.393.
+  Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
+
+- [ ] **GEN.393 The density terms apply the bubble factors at one call site per form, with a golden test that no bubble means identical density**
+  Boss (2026-10-16, 9:27 PM EDT): instead of drawing the bubbles, store
+  the regions and let them adjust the star density function for the
+  space they occupy, so a sector builds following the bubbles without
+  drawing them. A new `galaxy/density_modulation.py` holds the one
+  function that multiplies a population's density by its bubble factor.
+  `population_densities`, `population_densities_array` and
+  `total_density_array` in `galaxy/density.py` call it once each;
+  `relative_density` follows `total_density_array`; the term sums
+  themselves are not edited, so GEN.379's rewrite into components keeps
+  the call. Callers that build a density from a shape (profile,
+  run_sector, run_plan, bright_stars, phenomenon_scatter,
+  scatter_limits, nebula_field, viewport, skeleton) read it through the
+  shape's handle and need no argument; `run_galaxy.py` passes the seed
+  it did not pass. Done: a golden test over a grid shows a galaxy with
+  no bubble in reach gives the same density as before (relative error
+  under 1e-12) in all four forms; the four forms agree with each other
+  with bubbles present; young and intermediate change and old, bulge,
+  halo and components do not; the array form is no slower than today's
+  on the sector gate (within 5 percent). No fixed content (Boss, 4:11
+  and 4:14 PM EDT): the bubbles stay derived from the seed; every
+  strength is a calculated or drawn law with its source named.
+  Prerequisites: GEN.392, GEN.319. Related: GEN.379, GEN.134, GEN.322.
+  Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
+
+- [ ] **GEN.394 The scatter bounds and the phenomena pass respect the bubble factor: a certified bound in band_majorants and per-position thinning**
+  Boss (2026-10-16, 9:27 PM EDT): instead of drawing the bubbles, store
+  the regions and let them adjust the star density function for the
+  space they occupy, so a sector builds following the bubbles without
+  drawing them. `band_majorants` in `generation/object_first.py`
+  multiplies each band's bound by max(1, the certified maximum of the
+  factor over the band) for the populations a bubble touches, and
+  `bright_stars._spots` multiplies its wanted density by the exact
+  factor at the point, so its `wanted <= bound` check still holds. The
+  phenomena pass (`generation/phenomenon_scatter.py`), which has no
+  certified bound and uses bin-centre values with positions uniform in
+  the wedge, thins every candidate by factor(x) / factor_max so a rim
+  collects more and an interior fewer within one wedge. Done: the
+  bright-star check passes over a galaxy with large bubbles and the
+  boost never exceeds the bound; a scatter run with no bubble in reach
+  gives the identical rows as before; the phenomena counts over a bubble
+  match the expected integral within k Poisson sigma; same seed same
+  rows. No fixed content (Boss, 4:11 and 4:14 PM EDT): the bubbles stay
+  derived from the seed; every strength is a calculated or drawn law
+  with its source named.
+  Prerequisites: GEN.393, GEN.322, GEN.323. Related: GEN.240, GEN.301.
+  Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
+
+- [ ] **GEN.395 Sector build follows the bubbles: the fill count from the cell mean, star positions weighted by the factor, shown in the profile and the region query**
+  Boss (2026-10-16, 9:27 PM EDT): instead of drawing the bubbles, store
+  the regions and let them adjust the star density function for the
+  space they occupy, so a sector builds following the bubbles without
+  drawing them. A sector that a bubble cuts through gets the expected
+  count from the cell mean of the factor (GEN.392), not the centre
+  value, and places each young and intermediate star by rejection
+  against the cell's maximum so the stars crowd toward the side the
+  factor favors and away from the cavity; old stars stay uniform.
+  `profile_at` and the sector page report the factor beside the gas it
+  already reports from the bubble, and the region query (NAV.60) counts
+  the same way, so a count agrees with what a fill would build.
+  Overrides of a whole sector (DB.38) multiply on top. Done: a sector
+  straddling a rim holds more young stars on the rim side and fewer
+  inside, by the stated factor over many seeds; old stars stay uniform;
+  the same seed gives the same sector; the region query count matches
+  the fill count within Poisson error; a sector far from any bubble is
+  identical to before. No fixed content (Boss, 4:11 and 4:14 PM EDT):
+  the bubbles stay derived from the seed; every strength is a calculated
+  or drawn law with its source named.
+  Decided (Boss, 2026-10-16, 9:38 and 9:39 PM EDT): only the young and
+  intermediate populations follow the bubbles; old stars stay uniform.
+  Prerequisites: GEN.393, NAV.60. Related: DB.38, ADM.94, GEN.298.
+  Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
+
+- [ ] **GEN.396 Revisit the Yerkes class III luminosity range: 50 to 1000 solar luminosities sits above many dim red giants**
+  Core 3's finding on GEN.286 and GEN.287 (merged #1932, 2026-10-16,
+  10:00 PM EDT): `constants.YERKES_LUMINOSITY_RANGES` gives class III 50
+  to 1,000 solar luminosities, but the red giant branch now starts near
+  3 solar luminosities (the law of GEN.287), so classification by that
+  range mislabels many dim giants. Done: the class III range, and the
+  neighbouring classes if they overlap it, follow from the evolved
+  star's own luminosity and mass (calculated, not set); a test
+  classifies stars along a 1 to 2 solar mass red giant branch at several
+  metallicities and gets class III for the giants; the classref tests
+  keep their coverage; no hand-set range stays. The generator epoch rule
+  applies if the class of any generated star changes. Not Core 3's: it
+  left the table alone.
+  Prerequisites: none. Related: GEN.286, GEN.287, GEN.259.
+
+- [ ] **GEN.397 `planetgen plan` stage 2 prints the progress weight as the number of phenomena to place (bug)**
+  Rescatter read-only thread (Boss asked 2026-10-16, 9:35 PM EDT;
+  measured 9:37 to 10:07 PM EDT on a 4-core box, main 8.0.1617, default
+  galaxy, seed 0123456789abcdef0123456789abcdef; note
+  /mnt/project-files/reports/rescatter-worth-it-2026-10-16.md). Stage 2
+  prints "Phenomena: about 186,763,602 to place in 3,764 shells". That
+  figure is the progress weight (shell_expected plus BAND_WEIGHT_STARS =
+  5 per band, `run_plan.py` near line 1415); the real expected rows are
+  about 75.5 million (the sum of `phenomenon_scatter.shell_expected`,
+  within 0.1 percent of the rows placed on the chunks checked). Fails on
+  main, every run, default settings. Reproducer: `planetgen plan` on a
+  fresh database and read the first stage-2 line. Done: the line states
+  the expected rows and the progress weight is not shown as a count; a
+  test pins the wording to the sum of `shell_expected`.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
+  Prerequisites: none. Related: GEN.240, GEN.323.
+
+- [ ] **GEN.398 The massive-star and bright-star passes place more stars than their log lines expect: 70 and 12 percent over (bug)**
+  Rescatter read-only thread (Boss asked 2026-10-16, 9:35 PM EDT;
+  measured 9:37 to 10:07 PM EDT on a 4-core box, main 8.0.1617, default
+  galaxy, seed 0123456789abcdef0123456789abcdef; note
+  /mnt/project-files/reports/rescatter-worth-it-2026-10-16.md). The
+  massive-star pass logged "about 156,808 stars expected" and placed
+  265,909 (70 percent over; the per-chunk "added N stars" lines sum to
+  265,909); the bright-star pass logged "about 693,089" and placed
+  778,980 (12 percent over). scatter-queue-feasibility.md had the
+  sampler within 1.5 sigma of expected at 8 solar masses. It may be only
+  the coarse WEIGHT_BAND_SAMPLES estimate behind the log line, or the
+  sampler after GEN.333 and GEN.280. Fails on main, every run.
+  Reproducer: `planetgen plan --redo-scatters mass luminosity` on a
+  planned galaxy and compare the two log lines. Done: the cause is named
+  (estimate or sampler); if the sampler is wrong the placed count
+  matches the integral of the density within k Poisson sigma over a
+  small galaxy test, and if only the estimate is coarse the log line
+  uses the better estimate; the test stays.
+  Prerequisites: none. Related: GEN.322, GEN.333, GEN.280, GEN.321.
+
+- [ ] **GEN.399 Research the halo mass function and compare it with the halo mass approximation GEN.368 uses**
+  Boss (2026-10-16, 10:11 PM EDT, in the Core 1 thread): on the GEN.368
+  halo mass card he picked "Approximate" for now, and wants an item in
+  8.2 to research and find the halo mass function and compare it with
+  the approximation. Done: a research note in docs/design (named in
+  GEN.368's table once built) that names the halo mass function the
+  literature gives for the galaxy's stellar mass (the stellar-to-halo
+  relation with its scatter, and the halo mass function behind it, with
+  every source checked against the paper), states the approximation
+  GEN.368 actually built (Core 1 reports which), and compares them over
+  the stellar mass range of the first family (3e9 to 2e11 solar): a
+  table of halo mass against stellar mass for both, the largest
+  difference, and whether the approximation stays inside the scatter. If
+  the difference is larger than the scatter, a follow-up item replaces
+  the approximation with the researched function; if not, the note says
+  the approximation stands. A comparison test keeps the two within the
+  stated bound. No fixed content (Boss, 4:11 and 4:14 PM EDT): no named
+  galaxy sets any number.
+  Method (Core 1's suggestion, 2026-10-16, 10:12 PM EDT): read a halo
+  mass function source in the paper (for example Tinker et al. 2008 or
+  Sheth and Tormen 1999), build the exact conditional P(Mh | M*) as the
+  halo mass function times the log-normal in M* about the Moster median
+  with 0.15 dex scatter, and compare it with GEN.368's approximation
+  (the median inverse with an effective Mh scatter of 0.15 dex divided
+  by the slope). Done adds: a test and a note showing the typical halo
+  mass and the scatter difference per stellar mass, and a switch to the
+  exact conditional if the difference matters. Needs GEN.368's build
+  (GEN.400).
+  Prerequisites: GEN.368, GEN.400. Related: GEN.368, GEN.378, GEN.380.
+
+- [ ] **GEN.400 The galaxy's mass chain: stellar mass from the Schechter function, the halo mass by the approximation, the virial radius and the concentration**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Rows 1 to
+  3. A pure function `draw_mass_chain(seed)` takes the stellar mass from
+  the double Schechter function inside the first family's range, the
+  halo mass from the stellar-to-halo relation inverted numerically with
+  the approximation GEN.399 later checks (median inverse with an
+  effective halo mass scatter), the virial radius from the Bryan and
+  Norman overdensity and the NFW concentration with its scatter. It
+  replaces `HALO_MASS_SOLAR`, `HALO_SYSTEM_FRACTION` and
+  `MILKY_WAY_MASS` as the central mass of every Hill sphere (binary.py,
+  star.py, keepout.py). Done: the same seed gives the same chain; a
+  histogram over 10,000 seeds matches the Schechter function within
+  sampling error; every draw stays in the range; the worked table of the
+  draft (5e10 gives a halo near 2e12 solar) is reproduced within its
+  scatter; the old constants are gone and their tests check the law. No
+  fixed content (Boss, 4:11 and 4:14 PM EDT): no Milky Way preset or
+  option; the real values are only plausibility targets (GEN.366). Each
+  law is written with its source named in the code and the doc; the
+  scatter is a log-normal drawn through `unit_seed(galaxy_seed, ...)`
+  and the one random wrapper. No compatibility shim: the old constant
+  goes in the same change. A change that alters the generator output
+  follows the epoch rule.
+  Prerequisites: GEN.368. Related: GEN.399, GEN.378, GEN.380, GEN.369.
+
+- [ ] **GEN.401 The shape of the stars from the stellar mass: disk length and height, thick disk, bulge, bar and arms replace the generate defaults**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Rows 4 to
+  6 and 5.13.5. `draw_galaxy(seed, family)` runs the mass chain and
+  returns the shape; `build_galaxy_shape` calls it and the plan and
+  Generate defaults become "drawn from the seed". The disk scale length
+  follows Shen et al. 2003 (the van der Wel relation only cross-checks
+  the scatter); the height follows the thickness law; the thick disk
+  keeps a stated ratio to the thin disk with a research request in the
+  note; bulge-to-total, bulge size, bar fraction, bar length, arm count
+  and pitch angle follow the table, and the arm-direction conflict
+  between the sources is decided here and written in the doc. The old
+  numbers (scale length 2,600 pc, height 300 pc, bulge 3.11, COBE bar
+  1,580 pc) go. GEN.378 extends this to every family, so the function
+  takes a family argument and the spiral family is its first. Done: the
+  shape of a draw has every parameter inside its stated range; the laws
+  over many seeds follow the stated trends (size with mass, bulge share
+  with stage, bar fraction); the same seed gives the same shape; the
+  `generate` command, the web page and the stored shape read the drawn
+  values. No fixed content (Boss, 4:11 and 4:14 PM EDT): no Milky Way
+  preset or option; the real values are only plausibility targets
+  (GEN.366). Each law is written with its source named in the code and
+  the doc; the scatter is a log-normal drawn through
+  `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
+  compatibility shim: the old constant goes in the same change. A change
+  that alters the generator output follows the epoch rule.
+  Prerequisites: GEN.400. Related: GEN.378, GEN.382, GEN.366, GEN.134.
+
+- [ ] **GEN.402 The central black hole mass and the nuclear cluster follow the bulge: the M-bulge and M-sigma relations replace the fixed ranges**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Rows 7
+  and 8. The black hole mass comes from the bulge mass (Kormendy and Ho
+  2013, with its scatter) or, without a classical bulge, from the
+  stellar mass; its velocity dispersion from the M-sigma relation; the
+  active or quiescent split stays a draw from the Eddington ratio
+  ranges; the hole stays exactly on the origin (Boss, 7:27 PM EDT). The
+  nuclear cluster mass follows the stellar mass by a power law with
+  nucleation falling away above the mass the table gives; the Georgiev
+  against Neumayer slope conflict is decided here and written in the
+  doc. Replaces `BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR`, the 100 km/s
+  dispersion, the quasar mass range and the nuclear ratios
+  (`tuning.py:745-755, 1988, 1999, 2886`). Done: the black hole mass
+  tracks the bulge mass with the stated scatter over many seeds; the
+  dispersion follows M-sigma; a galaxy without a bulge draws a small
+  hole or none by the stated fraction; the old constants are gone; same
+  seed same galaxy. No fixed content (Boss, 4:11 and 4:14 PM EDT): no
+  Milky Way preset or option; the real values are only plausibility
+  targets (GEN.366). Each law is written with its source named in the
+  code and the doc; the scatter is a log-normal drawn through
+  `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
+  compatibility shim: the old constant goes in the same change. A change
+  that alters the generator output follows the epoch rule.
+  Prerequisites: GEN.401. Related: GEN.280, GEN.387, GEN.368.
+
+- [ ] **GEN.403 The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Row 9.
+  The cluster system mass is a fraction of the halo mass with its
+  scatter (the eta source is chosen between the two papers in the doc),
+  the count is that mass over the mean cluster mass, the mass function
+  stays log-normal about its peak, and GEN.297's calibration against the
+  Harris file still gives each cluster's law. Replaces
+  `CLUSTER_COUNT_MILKY_WAY` and the hard-coded 8000 and 1000 in
+  `clusters.py:92`. The cluster radial profile is still open in the
+  table and stays a stated research request. Done: the count over many
+  seeds follows the system mass with the stated scatter; a Milky Way
+  mass halo gives a count inside the observed range; the old constants
+  are gone; same seed same clusters. No fixed content (Boss, 4:11 and
+  4:14 PM EDT): no Milky Way preset or option; the real values are only
+  plausibility targets (GEN.366). Each law is written with its source
+  named in the code and the doc; the scatter is a log-normal drawn
+  through `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
+  compatibility shim: the old constant goes in the same change. A change
+  that alters the generator output follows the epoch rule.
+  Prerequisites: GEN.400. Related: GEN.297, GEN.366, GEN.387.
+
+- [ ] **GEN.404 The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Row 11
+  (Boss, 9:43 PM EDT, "Confirmed drop 'home'"): the galaxy stores no
+  home or Sun position. The five Sun radii (`GALAXY_SUN_RADIUS_PC`
+  8,200, `SUN_GALACTIC_RADIUS_PC` 8,000, `GALACTIC_CENTER_DISTANCE_LY`,
+  the hypervelocity radius, the cluster radius) go; the density
+  calibration comes from the galaxy's mass, the metallicity zero point
+  from the central metallicity (GEN.405), the rates quoted at the Sun
+  per object (GEN.405) and the fallback distance of a sector with no
+  placement from the sector's real place. The map starts where sectors
+  are generated (MAP.190 already does). GEN.144's Milky Way test radius
+  stays as a test reference only. Done: no code or doc reads a Sun
+  radius as galaxy content (a grep test, the reference radius excepted);
+  the density and the sector profile agree with the old model at the
+  test radius within the derived scatter; the tests that pinned the
+  Milky Way values check the law. No fixed content (Boss, 4:11 and 4:14
+  PM EDT): no Milky Way preset or option; the real values are only
+  plausibility targets (GEN.366). Each law is written with its source
+  named in the code and the doc; the scatter is a log-normal drawn
+  through `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
+  compatibility shim: the old constant goes in the same change. A change
+  that alters the generator output follows the epoch rule.
+  Prerequisites: GEN.400, GEN.401. Related: GEN.144, GEN.405, MAP.190,
+  USR.11.
+  Owner (coordinator, 2026-10-16, 10:16 PM EDT): Core 4 proposed (it
+  owns the metallicity and star-density work in GEN.103 and GEN.134); it
+  starts after GEN.368 and GEN.400 merge, so Core 4's current queue does
+  not change.
+
+- [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Rows 13
+  and 14. The central metallicity and the gradient come from the stellar
+  mass by the mass-metallicity relation (the numbers are an open
+  research request in the table: Gallazzi 2005 and the star-forming main
+  sequence have no numbers read yet), the halo metallicity from the same
+  relation less an offset; each rate (supernova, gamma-ray burst, active
+  nucleus, the phenomenon densities of `tuning.py:3007-3055`, the nebula
+  and superbubble field values, the two local stellar densities 0.0985
+  and 0.14 per cubic parsec) is a per-star or per-mass rate times the
+  local density of the right population from the density model,
+  normalised to the stellar mass, with the star-formation history from
+  the main sequence; `MILKY_WAY_STELLAR_LUMINOSITY_W` becomes the
+  galaxy's own luminosity from a mass-to-light ratio. Done: no value
+  quoted at the Sun remains; the rates at a position follow the local
+  density; the research requests are answered in the doc before the
+  numbers are built, or the item stays blocked on them. No fixed content
+  (Boss, 4:11 and 4:14 PM EDT): no Milky Way preset or option; the real
+  values are only plausibility targets (GEN.366). Each law is written
+  with its source named in the code and the doc; the scatter is a
+  log-normal drawn through `unit_seed(galaxy_seed, ...)` and the one
+  random wrapper. No compatibility shim: the old constant goes in the
+  same change. A change that alters the generator output follows the
+  epoch rule.
+  Owner (coordinator, 2026-10-16, 10:16 PM EDT): Core 4 proposed (it
+  owns the metallicity and star-density work in GEN.103 and GEN.134); it
+  starts after GEN.368 and GEN.400 merge, so Core 4's current queue does
+  not change.
+  Prerequisites: GEN.404. Related: GEN.319, GEN.320, GEN.134, GEN.254.
+
+- [ ] **GEN.406 Research the population ages and velocity dispersions by component, the thick disk scaling and the stellar halo fraction so they become laws**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Open
+  points 5 and 8 of the table: the population age ranges and dispersions
+  (`tuning.py:608-614, 800`) are hand-set with no source; the thick
+  disk's size ratio to the thin disk and a stellar halo mass fraction
+  against the stellar mass are missing (Harmsen et al. 2017 gives 2 to
+  14 percent for six Milky Way mass discs only; the fixed 1.5e9 anchor
+  stays until a law is found); the reionization cutoff mass and a
+  satellite size-luminosity fit (row 10) and the cluster radial profile
+  and the halo metallicity offset (rows 9 and 13) are also open. Done: a
+  research note in docs/design with each source read in the paper, its
+  range and scatter, and a request to Boss for any that cannot be found;
+  then the numbers go into GEN.401, GEN.403, GEN.405 and GEN.369 as
+  laws. A verifying thread can read arXiv (Boss allowed it, 9:44 PM
+  EDT).
+  Prerequisites: GEN.368. Related: GEN.369, GEN.401, GEN.403, GEN.405.
+
+- [ ] **GEN.407 Correct the horizontal-branch and red giant tables to the checked sources: the RGB time law, the evolutionary flux, the HB colour row, the extreme HB luminosity and the tip**
+  Findings of the stellar tables check thread (read-only; Boss tapped
+  "Thread checks" at 10:04 PM EDT; report
+  /mnt/project-files/reports/stellar-evolution-tables-check-2026-10-17.md)
+  on the values Core 3 recalled for GEN.286 and GEN.287 (merged #1932):
+  five do not match the published sources. (1) The red giant branch time
+  law L^-0.9 is too steep: a published core-mass-luminosity fit (arXiv
+  2503.17772 equation 1) gives a local slope of -0.84 at the base
+  flattening to -0.56 at the tip, so giants above 500 solar luminosities
+  are undercounted about 2 times. (2) The evolutionary flux 2.2e-11 is
+  not in the literature: Buzzoni 1989 through Renzini 1997 gives 1.7
+  plus or minus 0.4 e-11. (3) The HB colour row at [Fe/H] -1.5 is about
+  0.25 redder in HB type than the 57 cluster mean (Salaris et al. 2004
+  Table 2) and the code names no metallicity scale. (4) The extreme HB
+  luminosity of 40 to 60 solar conflicts with the design note's own 10
+  to 40, and extreme HB stars skip the AGB. (5) The tip of 2,500 solar
+  luminosities is 1,650 to 1,780 for Z = 1e-4 (Serenelli 2017 Table 2).
+  Matches: R = 1.4 (halo mean 1.44 plus or minus 0.06), the colour rows
+  at -2.2 and -0.7, the temperature boundaries. Not verifiable: the RR
+  Lyrae and extreme shares, the 0.1 dex per Gy age shift, the AGB
+  lifetime. Done: each of the five values follows its source (the law as
+  a calculated function of core mass or metallicity, not a set
+  constant), the metallicity scale of the colour table is named, the
+  design note realistic-galactic-core.md 5.3 states the checked values
+  and marks the three unverifiable ones, the halo luminosity tier tests
+  keep their coverage, and the generator epoch rule applies because
+  stored scatter rows change (older galaxies need `planetgen plan
+  --redo-scatters mass luminosity`). Core 3 keeps its values flagged
+  until this lands. Owner: Core 3 proposed.
+  Prerequisites: none. Related: GEN.286, GEN.287, GEN.322, GEN.396,
+  GEN.259.
+  Epoch (Core 3, as the coordinator reported at 11:42 PM EDT): the
+  constants of this item ship in the small PR that takes generator epoch
+  4 together with GEN.286/287's note; GEN.322 takes epoch 5.
+
+- [ ] **GEN.409 The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): turn
+  docs/design/atmosphere-colour.md (the plan note) into the checked
+  design, with the sources check of 2026-10-17 (GEN.408, done;
+  docs/design/atmosphere-sources-check.md). It settles: the gas and compound
+  table's columns; which values are stored (albedo, greenhouse
+  multiplier, molar density, ozone, aerosol optical depths) and which
+  are derived; how the albedo and greenhouse values are worked back from
+  stored temperature and pressure for old rows, and the class-range draw
+  where that fails; the ozone model; the haze, dust and cloud draws and
+  derivations; the reference level of a gas or ice giant; the colour
+  model and the thick-air limit; the migration revisions. Rule: nothing
+  fixed per class and nothing copied from the Solar System; every input
+  is a stored physical quantity or a seeded draw. Done: the note carries
+  the decisions, a worked example and the test targets (Earth air gives
+  tau 0.097 at 550 nm and a blue sky, a red dwarf world and a thin CO2
+  world give what the physics says), and Boss approves it.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
+  Sources check (GEN.408, 2026-10-17; 19 sources: 3 read, 10 second-hand,
+  4 not reached, 2 citation only): the design carries its 9 corrections
+  (Betremieux and Kaltenegger is 2015; the Sneep and Ubachs CO2 typo; the
+  coded CO formula is half the measured value; Burkholder and Talukdar is
+  the Chappuis band only, 410 to 760 nm; Serdyuchenko has eleven
+  temperatures from about 193 to 293 K; Sudarsky class III starts above
+  about 350 K and class IV is 900 to 1500 K; H2 is 0.20 and He 0.013 of
+  N2; Meadows 2018 is the colour from space; Venus cloud depth is about
+  20 to 30). What the sources could not give is Boss's to research (the
+  list is section 7 of the report); the design marks each such input as
+  open and names the seeded range used meanwhile.
+  Prerequisites: GEN.431. Related: GEN.410, GEN.411, GEN.412, GEN.413,
+  GEN.414, GEN.416, GEN.417, GEN.418.
+  Now an 8.1 design (Boss, 11:58 PM EDT: the building blocks of the
+  composition headline go down to 8.1): it follows the atmosphere survey
+  GEN.431 and feeds the composition model GEN.437.
+
+- [ ] **GEN.410 One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): "atmospheric composition will
+  probably need a table of gasses that might be in atmospheres, not sure
+  if there is an existing library but if needed define constants in the
+  program. These aren't just atomic or diatomic gasses though we need to
+  track all the possible compounds that would matter, also everything
+  that a planet description says might be in the planet atmosphere
+  because we're going to have to make it all match and be consistent."
+  Build one constants module (formula, name, molar mass, Rayleigh
+  refractivity and King factor, condensation and freezing curve,
+  greenhouse strength, absorption flags, and the source of each number)
+  for every gas and compound that can occur, starting from the ten
+  stored partials (O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S, SO2) and
+  adding helium, ammonia, ozone, sulphur dioxide and trioxide, sulphuric
+  acid vapour, hydrogen cyanide, ethane, neon, sodium and the rest the
+  audit finds. The audit lists every gas or compound named in the
+  describer, in `docs/design/Atmospheric Toxicity.md`, in the planet
+  class text labels (`tuning.PLANET_CLASSES`), in the habitability and
+  toxicity code and in the docs, and each appears in the table or is
+  dropped from the text. Sources check (GEN.408, section 2 of the
+  report): the table stores, per gas, the reference temperature its
+  refractivity formula was fitted at (N2, Ar, CO2, CO, CH4 at 288.15 K;
+  O2 at 273.15 K), because the wrong one is 1.1 percent off for O2 and
+  about 8 percent for codes that mix conventions; CO uses the Allen/Cox
+  form (n - 1 = 32.7e-5 (1 + 8.1e-3/lambda^2) at 273.15 K), not the
+  coded Sneep and Ubachs form; H2 and He use the cross-section laws of
+  Dalgarno and Williams and of Kurucz/Dalgarno; the CH4 value is 15
+  percent high in the Sneep and Ubachs formalism; water vapour uses the
+  vapour depolarization 2.99e-4, not the liquid's 0.17; H2S, SO2 and the
+  King factor of NH3 are not found and stay marked open. Done: a test
+  fails when a gas named anywhere in the code is missing from the table;
+  every number has a source.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
+  Prerequisites: GEN.409, GEN.437, GEN.438. Related: GEN.208, GEN.85,
+  GEN.355, GEN.411,
+  GEN.415.
+  Now an 8.1 data table (Boss, 11:58 PM EDT): it adds no behaviour until
+  the generation chain of 8.4 reads it; its molar masses come from the
+  element table GEN.438 and the design is GEN.437's.
+
+- [ ] **GEN.411 The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): "since we're doing an atmosphere
+  mix analysis for habitability we should be able to break the atm molar
+  density into the component gasses partial pressures and at that time
+  calculate the atm molar density so that they match. Then we can use
+  that to know exactly what atmosphere the light is interacting with."
+  Today `atm_molar_density` is an independent random draw
+  (`physics/planets.py`) that does not match the partials GEN.85 draws
+  afterwards. Do: split the density into per-gas partial pressures in
+  the one step and derive the molar density, the mean molecular weight
+  and the scale height from the stored partials (not the other way);
+  remove the independent draw and the old field (no shim); planets and
+  moons both. Changes stored values, so it ships with a generator epoch
+  bump. Done: for every generated planet and moon the partial pressures
+  sum to the surface pressure, the molar density equals pressure over R
+  T, and a test says so.
+  Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
+  10:29 PM EDT; code read on main, line numbers as that thread gave
+  them; report
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md if
+  written): the drawn molar density (planets.py 526) is off from the mix
+  by more than 10 percent for classes A, B, E, G, H, L and Q; GEN.422,
+  GEN.423 and GEN.424 carry the related fixes (the recalculation redraw,
+  density, scale height and greenhouse from the mix, the balance gas).
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
+  Prerequisites: GEN.410, GEN.429. Related: GEN.85, GEN.355, GEN.223,
+  DB.67.
+  The surface gravity it reads is derived from the bulk composition by
+  GEN.429 (Boss, 11:49 PM EDT: the composition drives mass, density and
+  gravity), so this item follows it.
+
+- [ ] **GEN.412 Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): "let's definitely build the
+  database entries and data storage to store the albedo and greenhouse
+  values used, that's easy." `calculate_atmospheric_conditions` draws
+  the albedo from the class range and the greenhouse multiplier at
+  random and keeps only the temperature they gave
+  (`physics/planets.py`). Do: keep both numbers on the planet and moon
+  objects, give the temperature formula an inverse (solve for the
+  greenhouse multiplier from the albedo, the stored temperature and the
+  stored pressure, or the reverse), and let the migration of DB.67 use
+  it. Done: a test checks that the stored temperature equals the formula
+  applied to the stored albedo and greenhouse multiplier for every
+  class, and that the inverse returns the drawn values to a stated
+  tolerance; where the inverse has no solution it says so and the
+  migration draws from the class range, seeded.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
+  Prerequisites: GEN.409. Related: DB.67, GEN.85, GEN.355.
+
+- [ ] **GEN.413 Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): "Build the ozone figures into the
+  system, using real world research, let me know if you need web access
+  or for me to research. If we don't have it, build it to generate it."
+  Today only a proxy exists (`physics/radiation.py` `ozone_ratio` from
+  the O2 partial) and activity events that strip it (GEN.189). Do: put
+  ozone in the gas table and compute its column and partial pressure
+  from the oxygen, the star's UV at the planet and the photochemical
+  balance (Chapman, with the real cross sections of the sources check) so it joins
+  the mixture and the other gases keep summing to the pressure; the
+  ozone-loss events of GEN.189 reduce it. Where the research is missing,
+  the item says what Boss should look up and builds a generator from the
+  oxygen and UV instead. Done: Earth's oxygen and the Sun's UV give an
+  ozone column near the measured 300 Dobson units within a stated
+  tolerance, a world with no oxygen has none, and the habitability UV
+  index reads the same number.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
+  Sources check (GEN.408, section 4 of the report): the column does not
+  follow a power of the oxygen (the Chapman balance gives a local density
+  of the square-root form, the column flattens or peaks for hot stars), so
+  use the checked polynomial fit of Kozakis et al. 2022 (Table 3: column
+  from the log of the oxygen mixing ratio, one row each for G0V, the Sun,
+  K2V, K5V and M5V, valid for 0.01 to 150 percent of today's oxygen,
+  clamped outside), interpolate between the hosts in T_eff, and draw a
+  seeded spread of about 30 percent (the models differ by a factor of
+  about 2 at low oxygen). The ozone is a Beer-Lambert absorber of the
+  Chappuis band (410 to 760 nm) along the sun path, with the Hartley band
+  kept for the UV index; the cross sections ship as a small fitted table,
+  because the licence of the Malicet/Brion, Serdyuchenko and Burkholder
+  files was not found (Boss to settle). The Earth figure is a test value,
+  279 to 300 Dobson units, not a constant. Prerequisites: GEN.411.
+  Related: GEN.87, GEN.189, DB.68.
+
+- [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): "I also want you to build into
+  the calculations haze, dust, etc, so add reasonable draws or
+  derivations for these." Nothing is stored today. Do: derive cloud from
+  the water vapour pressure against its saturation pressure at the
+  surface temperature (`vapour_pressure_kpa`) and from the albedo of
+  GEN.412; dust from pressure, gravity and dryness (low ocean fraction);
+  photochemical haze from methane plus nitrogen plus UV; and draw the
+  remaining scatter inside the physical range, seeded. Store optical
+  depth at 550 nm for each kind and an absorption slope (iron-oxide dust
+  and organic haze absorb blue) so Mars, Venus and Titan come out as
+  they are without being named. Sources check (GEN.408, section 5 of the
+  report): dust is nearly grey (Angstrom exponent near 0, radius 1 to 2
+  micron, optical depth 0.5 to 1 typical, 1 to 1.5 for local storms,
+  about 7 to 11 percent less at 440 than 880 nm); haze extinction goes as
+  lambda^-1 to lambda^-2.3, steeper aloft; cloud depth for a Venus-like
+  deck is about 20 to 30 and an Earth cloud about 10 (grey); the dust's
+  colour (single scattering albedo), the haze's absolute depth and the
+  condensation curves of ammonia, water and methane are open and are
+  Boss's to research. Done: a clear Earth-like world with
+  oceans has cloud and little dust, a dry thin-air world has dust, a
+  methane and nitrogen world under UV has haze; a test pins each rule
+  with a physical range, nothing is fixed per class.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
+  Prerequisites: GEN.411, GEN.412. Related: GEN.413, DB.68, GEN.418.
+
+- [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): "By the end I want all of the
+  values to be consistent across the board." Rewrite the atmosphere
+  wording of the description layer (`describe/build.py`
+  `_atmosphere_composition` and the class text labels) so every gas or
+  compound it names is read from the stored mixture and the table of
+  GEN.410, with the ozone, haze, dust and cloud of the other items; a
+  text never names a gas the planet does not hold. Done: a test
+  generates planets of every class and checks that each compound named
+  in the text is in the stored mixture above a stated threshold, and
+  that the text, the composition table and the molar density agree.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
+  Prerequisites: GEN.410, GEN.411, GEN.413. Related: GEN.208, GEN.218,
+  TEST.209.
+
+- [ ] **GEN.416 Blackbody colour of a star: Planck to the CIE curves to sRGB, as the first part of the photometry library**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): The star's light colour is a
+  blackbody at the star's temperature weighted by the CIE curves (the
+  Wyman, Sloan and Shirley 2013 fit already validated in
+  `docs/design/sky-view.md`), encoded to sRGB, in
+  `planetgen/physics/photometry.py`. This is only the colour part of
+  VIEW.11; the apparent magnitude, bolometric correction and extinction
+  law stay there and extend this module. Done: 5,772 K gives a
+  white-yellow, 3,300 K an orange-cream and 10,000 K a blue-white within
+  a stated tolerance of the published colours, and the module has no
+  database access.
+  Prerequisites: none. Related: VIEW.11, GEN.417.
+
+- [ ] **GEN.417 Rayleigh optical depth of the mixture: per-gas cross sections from the table and the air column from pressure and gravity**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): `planetgen/physics/sky.py`:
+  tau(lambda) = N_col times the sum of the mole fractions times each
+  gas's cross section, N_col = P / (m_bar g), the standard cross section
+  24 pi^3 / (lambda^4 N_s^2) times ((n^2 - 1)/(n^2 + 2))^2 times the
+  King factor, with n and the King factor from the table of GEN.410 and
+  the mole fractions from the stored mixture (GEN.411). Test values from
+  the sources check, section 3: tau at 350, 443, 550, 670, 865 nm for one
+  bar of Earth air is 0.62, 0.23, 0.10, 0.043, 0.015, and the air mass of
+  Kasten and Young is an Earth fit only (other worlds use the Chapman
+  function). Done: Earth's
+  air column gives tau 0.0969 at 550 nm (computed in the sources check,
+  tolerance 2 percent; Bucholtz 1995 itself was not reached) and the
+  exponent near -4.08 across the visible; doubling the pressure doubles tau; a
+  pure hydrogen air scatters 0.20 as much per molecule as
+  nitrogen (helium 0.013, carbon dioxide 2.5); no NaN for any generated class.
+  Prerequisites: GEN.410, GEN.411. Related: GEN.418.
+
+- [ ] **GEN.418 Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): "sky color and atmosphere color
+  are the same I believe, so let's word it as atmosphere color" and the
+  colour is the absolute one, not adapted to the star (Boss's card,
+  10:24 PM EDT as the coordinator reported). Compute the clear-sky
+  colour at noon from the star's light (GEN.416), the Rayleigh depth
+  (GEN.417), the Chappuis absorption of the stored ozone, the stored
+  cloud, dust and haze (Mie extinction plus the absorption slope), the
+  ground's bounce from the stored albedo, and a thick-air limit for tau
+  above about 0.5 where single scattering over-saturates (white sky,
+  reddened sun, no sun disc at very large tau). Returns the hex colour
+  and a short word. Done: Earth gives a pale blue under the Sun, a thin
+  clear CO2 world and a dusty one differ, a 1 MPa nitrogen world is
+  white-cyan with an orange sun, a 9 MPa CO2 world is white;
+  deterministic and free of NaN for every class; the label says when
+  aerosols dominate the answer.
+  Prerequisites: GEN.416, GEN.417, GEN.413, GEN.414, DB.67, DB.68,
+  GEN.441.
+  The ground's bounce reads the surface composition of GEN.441 (the
+  ground's colour and reflectance) where it is stored.
+  Related: GEN.419, GEN.420.
+
+- [ ] **GEN.419 Atmosphere colour of gas and ice giants, read at a reference level in the cloud tops**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): gas giants are in the first
+  version (Boss's card, 10:24 PM EDT as the coordinator reported). A
+  giant has no surface, so the colour is that of the light seen from a
+  chosen reference pressure level (the cloud top or a fixed bar, the
+  design GEN.409 settles), through the Rayleigh depth of the hydrogen
+  and helium above it, the methane absorption that tints ice giants
+  blue-green, and the stored cloud and haze depths. Sources check
+  (GEN.408, section 5): the class comes from T_eff by the Sudarsky table
+  (I below about 150 K, II about 250 K, III above about 350 K, IV 900 to
+  1500 K, V above about 1500 K), the B, V, R, I colour from the nearest
+  model of Cahoy, Marley and Fortney 2010 (Table 6) interpolated in
+  distance and metallicity, with no colour fixed per class letter; the
+  methane band strengths of Karkoschka 1994 and of Karkoschka and Tomasko
+  are missing and are Boss's to research. Done: a hydrogen and
+  helium giant, a methane-rich ice giant and a cloud-covered giant each
+  give a colour that follows the stored composition and the reference
+  level, with no per-class colour and no NaN.
+  Prerequisites: GEN.418. Related: GEN.409, GEN.420.
+
+- [ ] **GEN.420 The descriptions show the atmosphere colour: a swatch and a word in the planet and moon facts, in every output**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): A new "Atmosphere colour" row in
+  `describe/build.py` (`_planet_facts`) with a hex swatch and the colour
+  word, for every body with air and for giants, through a new inline
+  item in the Document model and its text, markdown, wikitext and web
+  renderers, the JSON of `GET /api/systems/<id>/description` and the
+  checks of `describe/model.py`. Done: the row is present for a body
+  with air and absent for an airless one; every output shows the word,
+  the web page shows the chip; the existing description parity tests
+  pass.
+  Prerequisites: GEN.418, GEN.419. Related: GEN.208, GEN.218, MAP.244,
+  DOC.64.
+
+- [ ] **GEN.421 Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it**
+  Boss (2026-10-16, 11:25 PM EDT): "We just found our seminal feature
+  for 9.0 folks, everything else gets bumped, this is the 9.0 feature."
+  Boss (11:58 PM EDT): atmosphere composition and the composition of
+  planets, moons, stars and everything is the joint headline of 9.0,
+  together with the atmosphere colour; atmospheric radiation and surface
+  radiation follow from what is in the air and the ground. This item is
+  done when its items are: the research, designs and data tables of 8.1
+  (GEN.431 to GEN.440), the generation and storage of 8.4 phases 1 to 4
+  (GEN.409 to GEN.415 where they are not in 8.1, GEN.441, GEN.442, DB.67
+  to DB.70, TEST.209, TEST.210, DOC.63, DOC.65), the colour model
+  (GEN.416 to GEN.419), the radiation (GEN.443 to GEN.445) and what
+  shows it (GEN.420, GEN.446, MAP.244, DOC.64), proved by TEST.211,
+  TEST.212 and DOC.66.
+  Headline: 9.0 (composition and atmosphere colour: what every body,
+  star and atmosphere is made of, from real science, and the colour of
+  the air and the radiation that follow). A major version needs Boss's
+  word.
+  Prerequisites: GEN.420, MAP.244, DOC.64, GEN.446, TEST.209, TEST.210,
+  TEST.211, TEST.212, DOC.66. Related: GEN.416,
+  GEN.417, GEN.418, GEN.419, DOC.63.
+
+- [ ] **GEN.422 Stop the recalculation redraw and order the steps so pressure, mixture and temperature agree after the cold-side freeze-out**
+  Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
+  10:29 PM EDT; code read on main, line numbers as that thread gave
+  them; report
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md if
+  written): after orbit validation the planet is recalculated and the
+  albedo (`physics/planets.py` 657-658), the greenhouse multiplier, the
+  mantle redox and the mix are drawn again, so the values the first pass
+  used are lost; and the freeze-out lowers the pressure after the
+  temperature is set (`physics/atmosphere.py` 243-245), so the
+  temperature, the pressure and the mix disagree. Do: keep the first
+  draws (they are stored by GEN.412), and run the steps in one order
+  (mix, pressure with the freeze-out, density, scale height, greenhouse,
+  temperature) as a fixed point that stops within a stated tolerance.
+  Changes stored values, so it ships with the generator epoch bump of
+  GEN.411. Done: a planet recalculated after orbit validation keeps its
+  drawn albedo, greenhouse multiplier, redox and mix; after the
+  freeze-out the pressure, the mix and the temperature satisfy the
+  formula together; a test says so for every class.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
+  Prerequisites: GEN.411, GEN.412. Related: GEN.411, GEN.412, GEN.423,
+  TEST.209.
+
+- [ ] **GEN.423 Atmosphere density, scale height and the greenhouse multiplier follow from the mixture**
+  Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
+  10:29 PM EDT; code read on main, line numbers as that thread gave
+  them; report
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md if
+  written): the mix takes the total pressure from the surface pressure,
+  but the drawn `atm_molar_density` (`physics/planets.py` 526, off by
+  more than 10 percent from the mix for classes A, B, E, G, H, L and Q),
+  the atmosphere density (523, 692-694), the scale height (671-677) and
+  the greenhouse multiplier (710-714) never see the mix. Do: compute the
+  atmosphere density and the scale height from the mean molecular weight
+  of the stored partials, and the greenhouse multiplier from the table's
+  greenhouse strength of each gas and their partial pressures (CO2, CH4,
+  H2O and the rest from GEN.410), so a change of mixture changes all of
+  them. Done: every generated planet has density, scale height and
+  greenhouse multiplier that follow from its stored mixture, a test
+  changes the mix and the values move as the formulas say.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
+  Prerequisites: GEN.410, GEN.411, GEN.412. Related: GEN.411, GEN.422,
+  TEST.209.
+
+- [ ] **GEN.424 The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture**
+  Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
+  10:29 PM EDT; code read on main, line numbers as that thread gave
+  them; report
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md if
+  written): `habitability_world.py` 244 recomputes a mean molar mass but
+  never writes it back, and it uses 28 g/mol for every balance gas,
+  which is wrong for helium (4 g/mol) and for the rest of the table. Do:
+  name the balance gas in the mixture (helium, neon, ammonia and so on
+  from GEN.410), give each its molar mass, store the mean molar mass
+  with the mixture and let the habitability code read it. Done: a
+  helium-rich atmosphere has a mean molar mass near 2 to 4 g/mol, not
+  28; habitability, the scale height and the molar density all read the
+  same stored number; a test says so.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
+  Prerequisites: GEN.410, GEN.411. Related: GEN.411, GEN.423, TEST.209.
+
+- [ ] **GEN.426 The bulk composition design: the fractions, the equation of state, the draws and the derived density, mass and gravity**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. Write docs/design/bulk-composition.md
+  and have Boss approve it. It settles: the set of bulk fractions (metal
+  core, silicate mantle, water and the ices, rock-forming volatiles, the
+  hydrogen and helium envelope, and the compounds the descriptions
+  name); which are drawn from physics (the core fraction from the star's
+  iron, magnesium and silicon abundance, the water fraction from where
+  the body formed against the snow line, the envelope fraction from mass
+  and age) and which are plain seeded draws inside the physical range;
+  the mass-radius and equation-of-state model that turns the fractions
+  and the mass into radius, density and gravity (an analytic fit or a
+  tabulated model, with its error); what a planet class means once
+  composition drives it (a range of fractions, not a fixed value); how
+  moons and small bodies use the same model; the migration (the stored
+  fractions of old rows are worked back from the stored density, mass
+  and radius) and the generator epoch. Rule: nothing fixed per class and
+  nothing copied from the Solar System; the Solar System bodies are test
+  targets. Done: the note carries the decisions, a worked example per
+  kind of body and the test targets.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.432. Related: GEN.409, GEN.427, GEN.428,
+  GEN.429.
+  Now an 8.1 design (Boss, 11:58 PM EDT): it follows the body survey
+  GEN.432 as well as GEN.425, covers surface and small-body composition
+  (GEN.441, GEN.442) and feeds the composition model GEN.437. Boss:
+  drawing the density first and filling in a fitting composition is as
+  acceptable as deriving the density from the composition; the design
+  picks one per kind of body.
+  Sources check (GEN.425, 2026-10-17,
+  docs/design/bulk-composition-sources-check.md; 12 sources, 8 verified,
+  3 verified with a limit, 1 assembled; 9 corrections): the design fixes
+  the radius reference level once (1 bar is the common one, the sources
+  use 0 pressure, 1 bar, 20 mbar and 1 mbar); decides whether the
+  structure is integrated per body, tabulated once on a grid in mass,
+  core fraction, water fraction and envelope fraction, or a closed form
+  with a stated error (the closed forms disagree by 3 to 4 percent in
+  radius and 10 to 12 percent in density, so it names the source it
+  follows and why); uses the newer water equation of state (Fortney's
+  warm ice is 12 percent larger than Zeng 2016's); and states that Zeng
+  2016's fit is calibrated on Earth's interior, so it is a check, not a
+  source of constants. Boss's list of what the sources could not give is
+  section 5 of the report.
+
+- [ ] **GEN.427 One table of the bulk materials with their equation-of-state constants and the source of each**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. A constants module for iron and its
+  alloys, the silicates, water in its ice phases and as liquid, the
+  other ices (methane, ammonia, carbon dioxide), hydrogen and helium,
+  each with density and the equation-of-state constants of the chosen
+  model (GEN.426) and the source of every number; the compounds are the
+  same ones as the gas table of GEN.410 where they overlap. Done: a test
+  fails when a material named in a description or in the class tables is
+  missing from it; every number has a source.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Now an 8.1 data table (Boss, 11:58 PM EDT): it adds no behaviour until
+  GEN.428 reads it; the design is GEN.437's and the molar masses come
+  from GEN.438.
+  Sources check (GEN.425): the report's section 3.1 lists the constants
+  to take (Seager 2007 Table 1: epsilon iron 8.30, 156.2, 6.08 Vinet;
+  alpha iron for small bodies; MgSiO3 perovskite and enstatite;
+  (Mg,Fe)SiO3; MgO with the 177 or 161.4 GPa choice cited; FeS; ice VII
+  with two parameter sets that are not interchangeable; graphite and
+  SiC), the validity ranges (BM only to about 2.8e13 Pa,
+  Thomas-Fermi-Dirac above) and what is missing: the low-pressure ices
+  (Ih, III, V, VI), methane, ammonia and carbon dioxide ice densities,
+  porosity, and olivine and enstatite bulk densities for small bodies,
+  which are Boss's to research (GEN.432 surveys them).
+  Prerequisites: GEN.426, GEN.437, GEN.438. Related: GEN.410, GEN.428.
+
+- [ ] **GEN.428 Planets and moons draw their bulk composition fractions instead of carrying a fixed text**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. Replace the fixed `composition`
+  string of each class with drawn fractions that sum to one: the core
+  fraction from the host star's abundances, the water and ice fraction
+  from the formation distance, the envelope from mass and age, the rest
+  seeded inside the range of the design (GEN.426), for planets and moons
+  alike. The class sets a range, never a value. Changes stored values,
+  so it ships with a generator epoch bump. Done: every generated body
+  has fractions that sum to one and stay inside their physical ranges,
+  the same galaxy gives the same fractions at any worker count, a test
+  says so.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  The host star's iron, magnesium and silicon come from the derived star
+  composition (GEN.440). Boss (11:58 PM EDT): drawing the density and
+  then filling in a fitting composition is acceptable; the design
+  GEN.426 says which per kind of body.
+  Sources check (GEN.425): the core mass fraction follows from the
+  star's Fe/Si and Mg/Si (mass ratios; all iron in the core, Mg and Si
+  as oxides: CMF = (Fe/Si) / ((Fe/Si) + silicate mass per gram of Si);
+  the Lodders-2003 Sun gives 0.320 against Earth's 0.325; the stellar
+  range gives about 0.2 to 0.47), so the draw needs the host's Fe, Mg,
+  Si, O and C abundances, not only [Fe/H]; GEN.440 derives them from the
+  stored [Fe/H], age and population (the relations GEN.433 finds, for
+  example Bensby 2005 and Adibekyan 2012, with scatter). The water
+  fraction beyond the snow line is an ice to rock mass ratio of 1 +/-
+  0.5 (all ices; 0.35 +/- 0.25 with refractory organics), the snow line
+  sits at 2.7 AU times the square root of the luminosity (the 170 K
+  blackbody value, derived in the report) with a drawn scatter of about
+  0.2 dex (Mulders 2015), and water inside the line has no source (the
+  existing `water_mass_fraction` draw needs a rule). The bias of 'all
+  iron in the core' (FeO in the mantle, light elements in the core, ten
+  percent or more) is stated or a draw is researched.
+  Prerequisites: GEN.427, GEN.440. Related: GEN.429, DB.69, GEN.430.
+
+- [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. Replace the uniform per-class density
+  draw (`PLANET_DENSITY`, the class density ranges) and the separate
+  giant path with one derivation: the mass (or radius) is drawn from the
+  physics of the body's kind, the fractions of GEN.428 and the equation
+  of state of GEN.427 give the radius and the density, and the surface
+  gravity follows from them. The atmosphere chain reads this gravity.
+  Done: for every class the density and gravity follow from the stored
+  fractions and mass; a body of Earth's fractions and mass comes out
+  near Earth's density and gravity (a test target, not a preset);
+  changing a fraction moves the density as the model says; a test says
+  so. Ships with the generator epoch bump of GEN.428.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Sources check (GEN.425, section 3.2): by mass, small bodies below
+  about 0.01 Earth masses take the volume-additive density 1 / sum(w_i /
+  rho0_i) (a derivation, no paper, porosity ignored); solid planets from
+  0.01 to about 100 Earth masses integrate the two- or three-layer
+  structure with the GEN.427 constants (it reproduces Zeng 2016's table
+  to 1 to 4 percent), or interpolate a grid built once with them; the
+  closed forms (Zeng 2016, Fortney 2007, Zeng 2019, Seager) are checks
+  and fallbacks; the envelope comes from the Lopez and Fortney 2014
+  tables (radius at 20 mbar, corrected by the scale-height term to the
+  chosen level); above 20 Earth masses with an envelope the Fortney 2007
+  giant tables apply and the existing giant relation (GEN.34) is not
+  touched. The honest uncertainty from the literature is 3 to 4 percent
+  in radius.
+  Prerequisites: GEN.428. Related: GEN.411, GEN.423, DB.69.
+
+- [ ] **GEN.430 The planet and moon descriptions state the composition from the stored fractions**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. The description layer writes the
+  composition sentence from the stored fractions and the materials table
+  (for example the metal, rock, water and gas shares) instead of the
+  class text, and never names a material the body does not hold. Done: a
+  test generates bodies of every class and checks that every material
+  named in the text is in the stored fractions above a stated share and
+  that the shares quoted equal the stored ones.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.428, GEN.429. Related: GEN.415, GEN.218, GEN.208.
+
+- [ ] **GEN.431 Research: what is in the atmospheres of every kind of world, and the numbers each compound needs**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Lane writes its design-document
+  sections to /mnt/project-files/design-drafts/ and reports; the TODO
+  thread merges them into docs/design. A read-only research thread:
+  reads papers (export.arxiv.org PDFs and, since Boss widened the
+  network at 12:02 AM EDT, the other hosts), marks every source read,
+  second-hand or not found, and says what Boss must research. Survey
+  every gas, compound, condensate and aerosol that matters in the air of
+  any world: rocky and ocean worlds, Venus-like, Mars-like and
+  Titan-like worlds, hot and lava worlds, sub-Neptunes, gas and ice
+  giants, brown dwarfs, comet comae and the thin exospheres of airless
+  bodies; how each forms and survives (outgassing, photochemistry,
+  escape, condensation, biology); and per compound the stats a
+  calculation needs: molar mass, abundance ranges by world kind,
+  condensation and freezing curves, the infrared bands that make a
+  greenhouse, the ultraviolet cross sections, Rayleigh refractivity and
+  King factor, solubility and chemistry links (what makes ozone, haze,
+  sulphur clouds), and toxicity thresholds. Start from
+  docs/design/atmosphere-sources-check.md (GEN.408, done) and re-check
+  its four unreached sources (Peck and Huang 1977, Burkholder and
+  Talukdar 1994, Serdyuchenko 2014, Chandrasekhar 1960) now that the
+  network is open. Done: the draft lists every compound with every
+  number and its source, and what is still unfound. The lane named
+  Atmosphere research (2026-10-17) holds this item.
+  Owner: the Atmosphere research lane (the coordinator started it at
+  Boss's 11:58 PM EDT ask, "Atmosphere research (2026-10-17)").
+  Network (Boss, 2026-10-17, about 12:02 AM EDT): access is widened;
+  arxiv.org itself is reachable, so the four sources the first check
+  could not reach (Peck and Huang 1977, Burkholder and Talukdar 1994,
+  Serdyuchenko 2014, Chandrasekhar 1960) are re-read and the second-hand
+  ones upgraded, in this lane's draft. SCvH 1995 was read from the ADS
+  scan (articles.adsabs.harvard.edu), Lodders 2003 and journal pages
+  behind a bot check were not.
+  Prerequisites: none. Related: GEN.409, GEN.410, GEN.434, GEN.437.
+
+- [ ] **GEN.432 Research: what rocky, icy and giant bodies and their small relatives are made of, and the numbers each material needs**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Lane writes its design-document
+  sections to /mnt/project-files/design-drafts/ and reports; the TODO
+  thread merges them into docs/design. A read-only research thread:
+  reads papers (export.arxiv.org PDFs and, since Boss widened the
+  network at 12:02 AM EDT, the other hosts), marks every source read,
+  second-hand or not found, and says what Boss must research. Survey
+  what planets, moons, dwarf planets, asteroids, comets, rings and giant
+  planets are made of: the metals and alloys, silicates and minerals
+  (olivine, pyroxene, feldspar, oxides, sulphides, carbonates, clays),
+  carbon compounds, the ices and clathrates (water in its phases,
+  ammonia, methane, carbon dioxide, nitrogen, carbon monoxide), salts,
+  oceans and the hydrogen and helium envelopes; the taxonomic classes of
+  small bodies; how composition follows formation distance, the snow
+  line, the star's abundances, differentiation, impacts and weathering;
+  the surface (crust, regolith, ice cover) against the bulk; and per
+  material the stats a calculation needs: density and the
+  equation-of-state constants, melting, boiling and phase curves, heat
+  capacity and conductivity, radiogenic content (potassium, uranium,
+  thorium), the reflectance spectrum and albedo, and the mass
+  attenuation for radiation. Includes the checks of GEN.425 (mass-radius
+  and equation-of-state sources). Done: the draft lists every material
+  with every number and its source, the observed ranges to test against
+  (not presets), and what is still unfound. The lane named Body
+  composition research (2026-10-17) holds this item.
+  Prerequisites: none. Related: GEN.425, GEN.426, GEN.427, GEN.433,
+  GEN.434.
+  Owner: the Body composition research lane (the coordinator started it
+  at Boss's 11:58 PM EDT ask, "Body composition research (2026-10-17)").
+  Sources check (GEN.425): the low-pressure ices (Ih, III, V, VI),
+  methane, ammonia and carbon dioxide ice densities, porosity of small
+  bodies, olivine and enstatite bulk densities and the water delivered
+  inside the snow line are not in any source read; Chaplin 2012 and
+  Choukroun and Grasset 2007 are the sources Zeng and Sasselov 2013
+  name.
+
+- [ ] **GEN.433 Research: what stars and stellar remnants are made of, and the numbers each needs**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Lane writes its design-document
+  sections to /mnt/project-files/design-drafts/ and reports; the TODO
+  thread merges them into docs/design. A read-only research thread:
+  reads papers (export.arxiv.org PDFs and, since Boss widened the
+  network at 12:02 AM EDT, the other hosts), marks every source read,
+  second-hand or not found, and says what Boss must research. Survey the
+  composition of stars of every kind and age: mass fractions X, Y and Z
+  and the element abundances by population (the [Fe/H] and [alpha/Fe]
+  trends with age and galactic position, the helium enrichment), how the
+  surface abundance changes with evolution (dredge-ups, mass loss,
+  Wolf-Rayet stars), brown dwarfs, white dwarfs (carbon, oxygen, helium,
+  hydrogen layers), neutron stars (crust and core) and black holes
+  (none); and per kind the stats a calculation needs: what the
+  abundances change (opacity, luminosity, lifetime, radius, colour), the
+  relations to cite and the data to calibrate against. Rule (Boss,
+  10-16, 4:11 PM EDT): nothing is copied from the Sun or the Milky Way;
+  the Sun is a test target. Done: the draft lists the relations and
+  numbers with their sources and what is unfound. The lane named Body
+  composition research (2026-10-17) holds this item after GEN.432.
+  Prerequisites: none. Related: GEN.435, GEN.439, GEN.440, GEN.368,
+  GEN.405.
+  Owner: the Body composition research lane, after GEN.432.
+  Sources check (GEN.425): the survey must supply the trends of Mg, Si,
+  O and C against [Fe/H] (Santos 2015 points to Bensby 2005 and
+  Adibekyan 2012, not read), a cited solar abundance set (Lodders 2003,
+  Asplund 2009), and the iron oxidation and light-element question.
+
+- [ ] **GEN.434 Research: radiation through atmospheres and at the ground, and the numbers it needs**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Lane writes its design-document
+  sections to /mnt/project-files/design-drafts/ and reports; the TODO
+  thread merges them into docs/design. A read-only research thread:
+  reads papers (export.arxiv.org PDFs and, since Boss widened the
+  network at 12:02 AM EDT, the other hosts), marks every source read,
+  second-hand or not found, and says what Boss must research. Survey how
+  an atmosphere changes the star's radiation and the radiation field of
+  space on the way down, and what the ground adds: band-resolved
+  absorption and scattering by compound (the ultraviolet, visible and
+  infrared, the greenhouse bands and the radiative balance of a column,
+  line-by-line against band-model and correlated-k methods), the
+  shielding of galactic cosmic rays and stellar particles by a column of
+  any composition (mass stopping power and attenuation length), the
+  polar-cap and magnetic cutoff, radiogenic dose from the ground's
+  potassium, uranium and thorium and the radon that follows, the
+  reflectance of ground and ice by band, and the thresholds of harm.
+  Start from docs/design/activity-magnetism-radiation-hydrosphere.md and
+  docs/design/Naturally Occuring Ionizing Radiation.md. Done: the draft
+  lists every relation and number with its source and what is unfound.
+  Unowned: any read-only thread.
+  Prerequisites: none. Related: GEN.431, GEN.432, GEN.436, GEN.256,
+  GEN.317.
+  Owner: the two research lanes above (the coordinator, 12:17 AM EDT).
+  Covered by the two research lanes (the coordinator, 2026-10-17, 12:17
+  AM EDT): the Atmosphere research lane has a part on radiation
+  shielding and ground sources, the Body composition lane one on ground,
+  radiogenic heat and shielding, both in
+  /mnt/project-files/design-drafts/; no separate thread unless Boss
+  asks.
+
+- [ ] **GEN.435 The stellar composition design: the abundance relations, what is stored and what is derived, and the remnants**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Write
+  docs/design/stellar-composition.md and have Boss approve it. It
+  settles: the composition of a star as mass fractions X, Y and Z and
+  the main elements, derived from the stored [Fe/H], the age and the
+  population (the relations of GEN.433, not one star's values); what is
+  derived on demand and what, if anything, is stored (the 75 million
+  stars rule out new columns unless a value cannot be derived); how the
+  abundances change what the star is (opacity, luminosity, lifetime,
+  colour) and whether the existing tables of GEN.407 change; brown
+  dwarfs, white dwarfs, neutron stars and black holes; how a star's
+  iron, magnesium and silicon set the rocky planets' core fraction
+  (GEN.428); how stars in a cluster and a multi-star system share it
+  (GEN.269). Done: the note carries the decisions, a worked example per
+  kind of star and the test targets (the Sun's composition is a target,
+  not a preset).
+  Owner: Core 4 (Boss tapped Core 4, 2026-10-17, 12:13 AM EDT, a card,
+  for the star composition items together with the other composition
+  design and table items).
+  Prerequisites: GEN.433. Related: GEN.439, GEN.440, GEN.407, GEN.269.
+
+- [ ] **GEN.436 The radiation design: atmospheric transmission and greenhouse by band, shielding by column, and the ground's own dose**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Write docs/design/radiation-model.md
+  and have Boss approve it. It settles: the bands (ultraviolet, visible,
+  near and thermal infrared, ionising), how an atmosphere's transmission
+  by band follows from the stored mixture, the aerosols and the cloud;
+  how the greenhouse effect follows from the infrared opacity of the
+  gases instead of the stored per-gas strengths (and how the stored
+  multiplier of GEN.412 is checked against it); how the shielding of
+  cosmic rays and stellar particles follows from the column and its
+  composition; the ground's radiogenic dose from the ground composition
+  and the star's abundances, and the radon that follows; the surface
+  ultraviolet from the transmission and the ground's reflectance; which
+  values are derived and which stored; and which existing proxies it
+  replaces (`ozone_ratio`, the `a_rad` draw, the band fractions of
+  `physics/radiation.py`). Done: the note carries the decisions, a
+  worked example (an Earth-like, a thin-air, a thick-CO2 and an airless
+  world) and the test targets.
+  Prerequisites: GEN.431, GEN.432, GEN.434. Related: GEN.443, GEN.444,
+  GEN.445, GEN.423, GEN.256.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
+
+- [ ] **GEN.437 The composition model: how the element, compound, material and body tables link, and what is stored against derived**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Write the master note
+  docs/design/composition-model.md (it starts as the plan note of this
+  directive) into the checked design that joins the atmosphere design
+  (GEN.409), the bulk design (GEN.426), the stellar design (GEN.435) and
+  the radiation design (GEN.436): one chain from the element table to
+  the compounds and materials, to the stars, bodies and atmospheres, to
+  the derived values (density, gravity, colour, radiation); one set of
+  units and one source field per number; where a drawn figure (density,
+  temperature) comes first and a composition is then filled in to fit
+  it, and where the composition is the cause (Boss: either works; the
+  design picks the simplest that is consistent per kind of body and says
+  so); the generator epochs and migrations; and how every item that
+  follows reads it. Done: the note carries the decisions and Boss
+  approves it.
+  Prerequisites: GEN.409, GEN.426, GEN.435, GEN.436. Related: GEN.438,
+  GEN.410, GEN.427, GEN.439.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
+
+- [ ] **GEN.438 One table of the elements and their isotopes: atomic data and the radioactive isotopes' half-lives and decay energies**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. A constants module for the elements
+  that matter (atomic number, symbol, molar mass, and the stable and
+  long-lived radioactive isotopes with their half-lives, decay energies
+  and decay chains: potassium-40, thorium-232, uranium-235 and -238,
+  aluminium-26 and the rest the research lists), the one table the gas,
+  materials and stellar tables take their molar masses from, and the
+  ground's radiogenic heat and dose read. Atomic physics only; no
+  abundance pattern lives here. Done: a test checks the molar mass of
+  every compound in the gas and materials tables against the sum of its
+  elements; every number has a source.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.437. Related: GEN.410, GEN.427, GEN.439, GEN.444.
+
+- [ ] **GEN.439 The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. A constants-and-functions module
+  with the relations the design (GEN.435) chose: the mass fractions X, Y
+  and Z and the main element abundances as functions of [Fe/H],
+  [alpha/Fe] and age, the evolutionary changes at the surface, and the
+  layer structure of white dwarfs, neutron stars and brown dwarfs, each
+  with its source. No database access; nothing copied from one star.
+  Done: a test checks that the fractions sum to one, that they follow
+  [Fe/H] monotonically where the sources say so, and that the Sun's
+  measured composition is reproduced at its [Fe/H] and age inside a
+  stated tolerance (a target, not a preset).
+  Owner: Core 4 (Boss tapped Core 4, 2026-10-17, 12:13 AM EDT, a card,
+  for the star composition items together with the other composition
+  design and table items).
+  Prerequisites: GEN.435, GEN.437, GEN.438. Related: GEN.440, GEN.428.
+
+- [ ] **GEN.440 Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. A function in the physics layer
+  (`physics/stellar_composition.py`) that returns the composition of any
+  star from the values already stored (GEN.158's [Fe/H], the age, the
+  population and the kind), with no new column and no change to stored
+  values, and that the planet draws (GEN.428, the host's iron, magnesium
+  and silicon), the description layer and the radiation model read.
+  Done: the same star gives the same composition at any worker count; a
+  test sweeps every kind of star in a generated galaxy and finds
+  fractions that sum to one and match GEN.439's relations.
+  Owner: Core 4 (Boss tapped Core 4, 2026-10-17, 12:13 AM EDT, a card,
+  for the star composition items together with the other composition
+  design and table items).
+  Sources check (GEN.425): it returns the abundances the planet draws
+  need, not only X, Y and Z: the iron, magnesium, silicon, oxygen and
+  carbon ratios (Fe/Si, Mg/Si, C/O) with the scatter of the relations
+  against [Fe/H], from a cited solar abundance set (the check typed
+  Asplund-style values from memory; Lodders 2003 and Asplund 2009 were
+  not read).
+  Prerequisites: GEN.439. Related: GEN.428, GEN.446, GEN.158.
+
+- [ ] **GEN.441 Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Planets and moons get a surface
+  composition as shares (silicate and metal-rich crust, regolith, the
+  ices that are stable at the surface temperature and pressure, the
+  ocean and its salts, organic and sulphur deposits), derived from the
+  bulk fractions of GEN.428 and the materials table of GEN.427 together
+  with the surface temperature and the stored atmosphere (an ice that
+  cannot survive the temperature is absent; weathering follows the air
+  and the water). The design (GEN.426, GEN.437) settles the order of the
+  steps against the albedo and temperature of GEN.412 and GEN.422, since
+  the ground's colour is part of the albedo. Changes stored values, so
+  it ships with a generator epoch bump. Done: every body's surface
+  shares sum to one, agree with its bulk fractions and its temperature,
+  and the ground's albedo and radiogenic content can be read from them;
+  a test says so for every class.
+  Prerequisites: GEN.428, GEN.429. Related: DB.70, GEN.444, GEN.418,
+  GEN.412.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
+
+- [ ] **GEN.442 Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. The small bodies of a system
+  (asteroid belts and fields, comets, rings, dwarf planets) draw a
+  composition from where they formed against the snow line and the
+  star's abundances (rocky and metal-rich inside, carbonaceous beyond,
+  icy and volatile-rich far out, with the taxonomic classes the research
+  lists), through the same materials table and bulk model as planets
+  (GEN.427, GEN.428), instead of the fixed class texts. Changes stored
+  values, so it ships with a generator epoch bump. Done: a belt, a comet
+  and a ring each have shares that sum to one and move with the
+  formation distance in the physical direction; the same system gives
+  the same shares at any worker count; a test says so.
+  Finding (Core 1, 2026-10-17, 12:04 AM EDT, from #1952): belts and
+  asteroid fields have no mass model (the mass is stated as zero, NAV.62
+  already notes it), so the design says how a small body's mass follows
+  from its composition and size.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.428, GEN.429. Related: DB.70, GEN.360, GEN.441.
+
+- [ ] **GEN.443 Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. From the stored mixture (GEN.411),
+  the ozone and the aerosol depths (GEN.413, GEN.414) and the gas
+  table's band data, compute the atmosphere's absorption and scattering
+  by band (ultraviolet, visible, near and thermal infrared), the
+  fraction of the star's light that reaches the ground in each, and the
+  greenhouse effect from the infrared opacity of the gases; the stored
+  greenhouse multiplier of GEN.412 is checked against it and the simple
+  per-gas strengths of GEN.423 are replaced where the design (GEN.436)
+  says so. Pure functions of stored values, no new column. Done: Earth's
+  air gives the measured greenhouse warming and surface ultraviolet
+  within a stated tolerance, a thin dry world gives almost none, a thick
+  CO2 world a runaway-like value; doubling a gas moves its bands as the
+  physics says; no NaN for any class.
+  Prerequisites: GEN.417, GEN.413, GEN.414, GEN.436. Related: GEN.444,
+  GEN.445, GEN.423, GEN.412, GEN.418.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
+
+- [ ] **GEN.444 Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Replace the proxies of
+  `physics/radiation.py` with values derived from composition: the
+  cosmic-ray and stellar-particle shielding from the column and its
+  composition (not the one air attenuation length), the surface
+  ultraviolet from the band transmission of GEN.443 and the ground's
+  reflectance, the radiogenic dose and the radon from the ground's
+  potassium, uranium and thorium (GEN.441 and the star's abundances,
+  GEN.438's isotopes) instead of the log-uniform `a_rad` draw, plus the
+  existing magnetic cutoff and the galactic hazard of GEN.256. Changes
+  stored values (the dose columns), so it ships with a generator epoch
+  bump and a migration of the dose for old rows. Done: Earth's
+  composition gives the measured 2.4 mSv per year at sea level within a
+  stated tolerance, the Moon and Mars the measured values, an airless
+  ice moon almost no radiogenic dose; a test fails when a proxy comes
+  back.
+  Prerequisites: GEN.443, GEN.441, GEN.438. Related: GEN.445, GEN.256,
+  GEN.317, GEN.87.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
+
+- [ ] **GEN.445 Habitability, toxicity and the UV index read the derived radiation instead of the proxies**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. The radiation rung of the
+  habitability score, the shelter rung, the UV index and the toxicity
+  limits read the band transmission, the surface dose and the greenhouse
+  of GEN.443 and GEN.444, and the ozone of GEN.413, so a change of
+  composition moves them together (`physics/habitability.py` and
+  `habitability_explain.py`). Done: the habitability explanation names
+  the composition terms behind each radiation value, and a test shows
+  that changing a gas or the ground's potassium moves the score as the
+  model says.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.444. Related: GEN.443, GEN.413, GEN.208.
+
+- [ ] **GEN.446 The descriptions state the composition of stars, surfaces and small bodies, and the radiation at the surface**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. The description layer writes, from
+  the stored and derived values only: the star's composition (mass
+  fractions and the main elements), a body's surface and small-body
+  composition, and the surface radiation (the dose, the ultraviolet and
+  the atmosphere's transmission with the terms behind them), in every
+  output (text, markdown, wikitext, JSON and the web page), never naming
+  a material the body does not hold. Done: a test generates stars and
+  bodies of every kind and checks that every material named is in the
+  stored or derived composition above a stated share and that the quoted
+  figures equal them.
+  Prerequisites: GEN.440, GEN.441, GEN.442, GEN.444, GEN.445. Related:
+  GEN.430, GEN.415, GEN.420, GEN.208.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
+
+- [ ] **GEN.447 The wide-pair encounter limit uses the relative-velocity dispersion and the mass-weighted perturber mass**
+  Follow-up from the Core 4 citation re-check of GEN.103 and GEN.134
+  (2026-10-17, 12:45 AM EDT as the lane reported). The sharp cut at
+  a_1/2 (Jiang and Tremaine 2010: a_1/2 = 3.1e4 AU for sigma 50 km/s,
+  rho_2 0.03, 10 Gyr) reads sigma as the population's own dispersion,
+  but the paper's sigma is the dispersion of the relative velocity
+  (about the square root of 2 larger), and rho_2 uses the mass-weighted
+  perturber mass <M^2>/<M>, not the 0.4 solar mass used. The two
+  simplifications go opposite ways (about -30 percent and plus). Done:
+  the limit is computed from the galaxy's own velocity dispersion by
+  component (GEN.406) and its own mass function, with the
+  relative-velocity factor and the mass-weighted mean written out; the
+  two corrections are named in the code and the note; a test compares
+  the limit for the Sun's neighbourhood values (a test value, not an
+  input) with the paper's 3.1e4 AU. Owner: Core 4, with the multi-star
+  items.
+  Epoch and rescatter (2026-10-17, Boss 12:21 AM EDT: fix all of the
+  re-check's findings, with the 8.1 scatter changes so one rescatter
+  serves them): the item changes stored values, so it bumps the
+  generator epoch with the rule of OPS.56 and joins the one full
+  rescatter that follows the other scatter changes; GEN.301 waits for
+  it. The tables live in generation/multistar.py and tuning.py, not in
+  Core 3's sampler (GEN.322, GEN.323), so the two lanes do not collide;
+  ask Core 3 before touching its files. Core 4 takes GEN.373, GEN.447,
+  GEN.448 and GEN.449 as one run of PRs, so TEST.196 checks the finished
+  tables.
+  Prerequisites: none. Related: GEN.103, GEN.373, GEN.406, GEN.269.
+
+- [ ] **GEN.448 Massive stars get binaries between 0.25 and 50 AU, so the metallicity trend reaches the separations where it was measured**
+  Follow-up from the Core 4 citation re-check of GEN.103 and GEN.134
+  (2026-10-17, 12:45 AM EDT as the lane reported). The generator has no
+  binaries between 0.25 and 50 AU, although massive stars peak near 10
+  AU (Moe and Di Stefano 2017; Sana 2012), so the metallicity trend (a <
+  10 AU) is applied only to the 0.05 to 0.25 AU class. Done: the
+  separation classes cover the whole range with the pooled Moe trend at
+  each star's own [Fe/H] in the odds form of GEN.103, the mass
+  dependence of the peak is drawn, the class counts stay reproducible
+  (GEN.56), and TEST.196 compares the fractions by primary mass and
+  [Fe/H] bin against the published ranges. Owner: Core 4, with the
+  multi-star items.
+  Epoch and rescatter (2026-10-17, Boss 12:21 AM EDT: fix all of the
+  re-check's findings, with the 8.1 scatter changes so one rescatter
+  serves them): the item changes stored values, so it bumps the
+  generator epoch with the rule of OPS.56 and joins the one full
+  rescatter that follows the other scatter changes; GEN.301 waits for
+  it. The tables live in generation/multistar.py and tuning.py, not in
+  Core 3's sampler (GEN.322, GEN.323), so the two lanes do not collide;
+  ask Core 3 before touching its files. Core 4 takes GEN.373, GEN.447,
+  GEN.448 and GEN.449 as one run of PRs, so TEST.196 checks the finished
+  tables.
+  Prerequisites: none. Related: GEN.103, GEN.269, GEN.270, TEST.196.
+
+- [ ] **GEN.449 The companion table for mid and early B stars is raised to the observed frequencies**
+  Follow-up from the Core 4 citation re-check of GEN.103 and GEN.134
+  (2026-10-17, 12:45 AM EDT as the lane reported). The has-a-companion
+  table matches Moe and Di Stefano 2017 Table 13 for G, A and O stars
+  (0.44, 0.55 and 0.90 against 40, 59 and 94 percent) but is 10 to 20
+  points low for mid and early B stars (0.65 against 76 and 84 percent).
+  The same table also gives the close-binary frequency by mass bin
+  (0.15, 0.37, 0.63, 0.8, 1.0), the single-star fractions (0.60, 0.41,
+  0.24, 0.16, 0.06) and 35 +-10 percent of mid-B stars with a companion
+  (q above 0.1, P under 400 d), and the solar-type companion frequency
+  is 0.50 +-0.04. Done: `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`
+  and the star-count table are rederived from those figures, with the
+  table named in the constants; TEST.196 checks the bins. Owner: Core 4,
+  with the multi-star items.
+  Epoch and rescatter (2026-10-17, Boss 12:21 AM EDT: fix all of the
+  re-check's findings, with the 8.1 scatter changes so one rescatter
+  serves them): the item changes stored values, so it bumps the
+  generator epoch with the rule of OPS.56 and joins the one full
+  rescatter that follows the other scatter changes; GEN.301 waits for
+  it. The tables live in generation/multistar.py and tuning.py, not in
+  Core 3's sampler (GEN.322, GEN.323), so the two lanes do not collide;
+  ask Core 3 before touching its files. Core 4 takes GEN.373, GEN.447,
+  GEN.448 and GEN.449 as one run of PRs, so TEST.196 checks the finished
+  tables.
+  Prerequisites: none. Related: GEN.103, GEN.269, TEST.196.
+
+- [ ] **GEN.450 The star-formation profile's radial slope: reconcile the Schmidt index with the observed gradient, with the choice named**
+  Follow-up from the Core 4 citation re-check of GEN.134 (2026-10-17,
+  12:45 AM EDT as the lane reported), filed for Boss (2026-10-17, 12:21
+  AM EDT: fix all of the re-check's findings). The Milky Way's own
+  Schmidt index of 1.12 to 1.2 gives a star-formation gradient of about
+  -0.19 dex per kpc beyond the peak, while the observed -0.28 dex per
+  kpc needs an index of about 1.65 (Kennicutt 1998 gives 1.4 +-0.15).
+  GEN.134 derives the profile from the galaxy's own gas profile and a
+  Schmidt law, so the gradient it produces depends on this choice, and
+  the observed figure stays a test target, never an input (NO FIXED
+  CONTENT). Done: the sources for each way of closing the gap are
+  checked first (a Schmidt index that rises at low gas density, a gas
+  disc more extended or steeper than the stars, the Herschel scale
+  length of 1.55 kpc against the stellar 2.6 kpc, the outer-disc
+  threshold of Kennicutt), the one the science supports is built in the
+  profile with the others named in the note, and the generated gradient
+  is compared with the observed one in the star-type share test. If the
+  sources do not settle it, Boss decides on a card. Owner: Core 4 (it
+  owns GEN.134 and density.py).
+  Epoch and rescatter (2026-10-17, Boss 12:21 AM EDT: fix all of the
+  re-check's findings, with the 8.1 scatter changes so one rescatter
+  serves them): the item changes stored values, so it bumps the
+  generator epoch with the rule of OPS.56 and joins the one full
+  rescatter that follows the other scatter changes; GEN.301 waits for
+  it. The profile code (density.py, tuning.py) is Core 4's GEN.134 work
+  and not Core 3's sampler (GEN.322, GEN.323); ask Core 3 before
+  touching its files.
+  Prerequisites: GEN.134. Related: GEN.134, GEN.405, GEN.386, TEST.186.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -8365,7 +10056,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   density edits of MAP.119 and ADM.57. MAP.119's block and slab case is
   a region too. Core 1 owns the migration number. Done: the migration,
   models and an idempotent upgrade with a round-trip test.
-  Prerequisites: none. Related: MAP.119, ADM.57.
+  Prerequisites: none. Related: MAP.119, ADM.57, GEN.391.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
 - [ ] **DB.39 Edit request support tables (migration only): request comments and notification records**
@@ -8390,7 +10081,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   have to build a way to use that data so build that out and let's make
   this targetted for v9.0 so incorporate the chain for these (restore /
   repair using backups) with that due date. Settings page is v8.1".
-  Target 9.0 (the backups and repair chain, umbrella ADM.91); the
+  Target 8.9 (the backups and repair chain, umbrella ADM.91); the
   settings page and the settings backups stay in 8.1 (ADM.83 to ADM.85).
   All backup pieces are parts of one `.tar.bz2` archive (ADM.87);
   retention is `settings.backups_kept` (default 20, 1 to 200). DB.9
@@ -8411,7 +10102,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Boss (2:00 PM EDT): "we also have to build a way to use that data so
   build that out and let's make this targetted for v9.0 so incorporate
   the chain for these (restore / repair using backups) with that due
-  date. Settings page is v8.1". Target 9.0 (the backups and repair
+  date. Settings page is v8.1". Target 8.9 (the backups and repair
   chain, umbrella ADM.91); the settings page and the settings backups
   stay in 8.1 (ADM.83 to ADM.85). All backup pieces are parts of one
   `.tar.bz2` archive (ADM.87); retention is `settings.backups_kept`
@@ -8431,7 +10122,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Boss (2:00 PM EDT): "we also have to build a way to use that data so
   build that out and let's make this targetted for v9.0 so incorporate
   the chain for these (restore / repair using backups) with that due
-  date. Settings page is v8.1". Target 9.0 (the backups and repair
+  date. Settings page is v8.1". Target 8.9 (the backups and repair
   chain, umbrella ADM.91); the settings page and the settings backups
   stay in 8.1 (ADM.83 to ADM.85). All backup pieces are parts of one
   `.tar.bz2` archive (ADM.87); retention is `settings.backups_kept`
@@ -8634,35 +10325,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   GEN.294 chain).
   Migration revision (Core 1, 2026-10-16, 6:13 PM EDT): 0104, after
   0103 (GEN.336).
+  Status (Core 1, #1952, merged 2026-10-17, 12:04 AM EDT as the lane
+  reported): the first slice is on main, migration 0104 creates
+  orbit_nodes with the star and planet columns for a built system's
+  orbit tree; the rest of the DB.53 chain remains. The next revision is
+  0105 (DB.65), then DB.69, DB.67, DB.70 and DB.68 in the order they
+  merge.
   Prerequisites: none. Related: GEN.129.
-
-- [ ] **DB.55 One additive migration for the 8.3 schema: point columns for every kind, heaviest object per sector, asteroid-field provenance**
-  Split from GEN.294 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Core 1 owns every revision, and
-  four items of 8.3 each asked for columns on the same tables (GEN.294,
-  GEN.142's velocities, GEN.110's mass_kg and origin on asteroid_fields,
-  GEN.109's per-sector heaviest object). One revision, the next free
-  after 0098, adds them nullable and backfilled: x, y, z
-  (sector-relative, with the cell key where a table lacks it), vx, vy,
-  vz, mass_kg, epoch_unix and next_update_due wherever missing for black
-  holes, neutron stars, rogue planets, interstellar comets, asteroid
-  fields, belts, nebulae, remnants, quasars, comets, facilities and
-  scatter points and members (the vector backfilled from the scalar
-  speed as a tangential vector of the same speed, the mass by the stated
-  rule); `sectors.max_mass_kg` and `max_mass_id`;
-  `asteroid_fields.formed_at` and `origin_event_id`; the planet and moon
-  state columns GEN.289 needs (parent_type, parent_id, dynamical_state,
-  vector, mass_kg). The scalar speed columns and the circular phase
-  columns are dropped by the code items that stop reading them, each
-  with its own small revision from Core 1. Why: no other lane then edits
-  Alembic, and no two items add the same column. Done: the revision
-  applies on a galaxy at the previous head and on an empty one,
-  downgrades as the other revisions do, and the schema docs list the new
-  columns.
-  Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
-  top 5 blockers, starting right after GEN.237 merges; estimates from
-  Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
-  Prerequisites: none. Related: GEN.294.
 
 - [ ] **DB.56 The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings**
   Split from GEN.143 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -8808,6 +10477,91 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   schema is not a constraint.
   Prerequisites: GEN.378. Related: GEN.379, GEN.389.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **DB.67 Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): "for the migration we'll have to
+  generate reasonable ones from the planet class or see if we can work
+  the formula back to get the 2 values from the temp and pressure." Add
+  the columns (albedo, greenhouse multiplier, molar density) to
+  `planets` and `moons`; the migration fills old rows by the inverse of
+  GEN.412 where the temperature and pressure allow, and otherwise by a
+  seeded draw inside the class range, and recomputes the molar density
+  from the stored partials (GEN.411). The revision number comes after
+  the 0102 to 0105 stack of the current build (the schema is not a
+  constraint, and Boss wipes and rebuilds). Done: the migration runs on
+  a database of the previous revision and every row has the three
+  values; a test checks the values agree with the stored temperature and
+  pressure.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
+  Prerequisites: GEN.411, GEN.412, GEN.422, GEN.423, GEN.424. Related:
+  DB.65, DB.68, GEN.412.
+
+- [ ] **DB.68 Planets and moons store the ozone column and the haze, dust and cloud optical depths**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): The columns that hold the values
+  of GEN.413 and GEN.414 (ozone column, cloud, dust and haze optical
+  depth at 550 nm and the absorption slope) on `planets` and `moons`,
+  filled for old rows by the same derivations (a migration only, in the
+  revision after DB.67). Done: every row has the values; a test checks
+  them against the stored mixture.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
+  Prerequisites: GEN.413, GEN.414, DB.67. Related: DB.67.
+
+- [ ] **DB.69 Planets and moons store the composition fractions**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. The columns that hold the fractions
+  of GEN.428 on `planets` and `moons`, and a migration that fills old
+  rows by working the fractions back from the stored density, mass,
+  radius and class (the inverse of GEN.429, the closest fractions that
+  reproduce the stored density, drawn seeded inside the class range
+  where the inverse has many answers). Revisions are taken in the order the items merge: DB.69 comes first, then DB.67, DB.70 and DB.68 (Core 1's next revision is 0105).
+  Done: the migration runs on a database of the previous revision and
+  every row has fractions that sum to one and reproduce its density
+  within a stated tolerance.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Sources check (GEN.425): the stored fractions include the envelope
+  fraction and the water fraction, and the radius level of GEN.426 is
+  recorded in the data model; the inverse that fills old rows works from
+  the stored density, mass, radius and class and takes the same 3 to 4
+  percent radius spread as its tolerance.
+  Prerequisites: GEN.429. Related: DB.67, DB.68.
+
+- [ ] **DB.70 Planets, moons and small bodies store the surface and small-body composition shares**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. The columns that hold the surface
+  shares of GEN.441 and the small bodies' shares of GEN.442, and a
+  migration that fills old rows by working the shares back from the
+  stored bulk fractions, temperature and pressure (the closest shares
+  that agree with them, seeded inside the range where the inverse has
+  many answers). Revisions are taken in the order the items merge: DB.69
+  first, then DB.67, DB.70, DB.68. Done: the migration runs on a
+  database of the previous revision and every row has shares that sum to
+  one and agree with its stored values within a stated tolerance.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.441, GEN.442. Related: DB.69, DB.67, DB.68.
 
 ## API: The JSON API
 
@@ -9168,29 +10922,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the only user, so no 3 route is kept). Not a bug.
   Prerequisites: none. Related: API.4.
 
-- [ ] **API.27 A read-only profile lookup for any address in the reach, so an uncharted sector can be previewed**
-  Step 8 of the whole-sphere train. A route returns the profile of an
-  address (expected systems, mix, gas, dark matter, kind factors)
-  computed from the address alone, with nothing stored and no sector row
-  needed, for the sector page (UX.113), the neighbourhood cost line and
-  any client. It follows the API standards (error bodies, versioning,
-  the per-key log of API.15). Done: the route answers in microseconds
-  for any address inside the reach, refuses one beyond it with the
-  grid's own message, is documented in docs/api.md and has tests. Owner:
-  Interface asks Core for the profile function (GEN.235). Decided (Boss,
-  2026-10-15): the research note's recommendation stands: reach 262 kpc
-  (65,535 shells), 96-bit object IDs, one rule set everywhere with
-  per-sector parameters, nothing generated unless asked, and an asked
-  sector always generated and saved.
-  Built-on note (Core 1, 2026-10-16, 3:17 AM EDT, GEN.235 merged as
-  #1784): call galaxy.profile.sector_profile(address, skeleton) for the
-  profile and GalaxyBounds.describe_miss for the "outside the outline"
-  line.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report, queue position 2).
-  Prerequisite: GEN.235. Related: UX.113, API.15.
-  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
-
 - [ ] **API.28 Recipe schema and runner: a recipe fixes, ranges or randomises any aspect, and a library turns it into objects**
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
   has complete control; the world adjusts to what the admin wants, after
@@ -9329,87 +11060,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   operation; ADM.72 adds the element form and the moons following on the
   same operation.
   Prerequisites: GEN.109, ADM.92, ADM.58, ADM.65, ADM.66.
-
-- [ ] **ADM.43 A full configuration page under Admin**
-  Boss (GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515), 2026-10-08 00:39Z): "A page under admin is
-  needed to configure everything EXCEPT for the database information.
-  All other settings should be accessed and changeable from there."
-  Moved from 8.2 to 8.1 phase 1 (Boss, 2026-10-16, 1:43 PM EDT: "that
-  needs to get bumped up because we're starting to desperately need
-  that"), and broken into ADM.83 (the validated writer with backups and
-  audit rows), ADM.84 (the page, the diff before save and the restart
-  banner) and ADM.85 (backups, restore, import and export). Done when
-  those three are: an Admin page generated from ADM.42's model lists
-  every option with its help text, edits and validates it, saves the
-  user's own `config.json`, and says which changes need a restart. The
-  Owner tier (the
-  recent-password prompt) is ADM.86 in 8.2, because it needs the Owner
-  account of USR.2.
-  Research (2026-10-09, settings-seo-and-accounts.md): re-scope to three
-  tiers (admin, Owner, read-only host-level). `jobs.python`, `jobs.dir`,
-  log paths, `secret_key`, `proxy_fix`, `admin_cookie_insecure`,
-  `redis.url` and `api_base_url` are read-only in the browser: they are
-  code-execution or request-forgery paths. Add: a diff before save,
-  timestamped backups with restore, audit rows, per-field errors, a
-  pending-restart banner from a startup snapshot, import and export, a
-  recent-password prompt for the Owner tier. `set-permissions.sh` and
-  the installers need no settings folder: the one file is `config.json`,
-  already owned by the web user.
-  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default): show
-  everything, edit in the browser only
-  for the admin and Owner tiers.
-  Read side built with ADM.42 (PR #912): `config.json` and a
-  `settings.json` overlay are read (the overlay goes with ADM.96),
-  nothing writes either yet; options marked `x-editable` false are
-  command line only; `x-min_role` owner marks Owner-tier options;
-  `util/appconfig.py` is gone (log paths are in `util/logpaths.py`);
-  `docs/config.md` has a generated table (`python -m planetgen.cli.config
-  docs`).
-  Backups (Boss, 2026-10-16, 1:59 and 2:00 PM EDT) are part of this
-  page: ADM.87 is the one archive mechanism (one bz2 tarball per backup;
-  layout fixed for the settings, control and parity parts) and ADM.85 is
-  the screen. Boss (2:00 PM EDT): the control database and parity parts,
-  their restores and the repair from backups are targeted for 9.0
-  (umbrella ADM.91); the settings page and the settings backups stay in
-  8.1.
-  One file (Boss, 2:25 and 2:26 PM EDT): all configuration lives in the
-  user's own copy of `config.json.example`, named `config.json`; the
-  settings chain edits only that copy, never the example, and updates
-  never overwrite it (ADM.96). Secrets in it can be replaced but never
-  read back, and diffs, audit rows, logs and exports show "(changed)".
-  Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
-  2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
-  it goes idle).
-  Prerequisites: ADM.85.
-
-- [ ] **ADM.44 Web, Open Graph and SEO settings**
-  Boss (GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743), 2026-10-09 02:55Z): "Add config options to
-  set up icons, open graph fields for discord and other link previews,
-  SEO fields for description and keywords, and web documents for things
-  like robots.txt and such." Done: the settings page gains site icons,
-  Open Graph and link-preview fields, a description and keywords, and
-  editable robots.txt and similar documents, all served by the site.
-  Research (2026-10-09, settings-seo-and-accounts.md): replace the
-  "description and keywords" wording with the settings table of A8
-  (Google ignores meta keywords; keep the field). `web.base_url`
-  validation is a prerequisite; add the indexing matrix, a generated
-  robots.txt with extra and override, a sitemap index capped at 50,000
-  URLs per file, security.txt and humans.txt, the Open Graph and Twitter
-  tag block, upload of icons and the default OG image, and the pluggable
-  card renderer (`render_card(kind, object_id) -> bytes`,
-  `og.generated_cards` off by default). It does not depend on VIEW.3.
-  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default):
-  generated system and sector pages
-  are `noindex,follow`, top pages only in the sitemap, switchable with
-  `seo.detail_pages`.
-  Moved from 8.2 to 8.1 phase 1 with ADM.43, in the same thread right
-  after it (Boss, 2026-10-16, 1:43 PM EDT).
-  Its options are stored in the user's `config.json`, the one
-  configuration file (ADM.96).
-  Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
-  2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
-  it goes idle).
-  Prerequisites: ADM.43.
 
 - [ ] **ADM.52 A star system editor: plan a system as a 2D diagram or from the command line**
   GitHub issue [#1228](https://github.com/dwhagar/planetGen/issues/1228)
@@ -9915,7 +11565,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   have to build a way to use that data so build that out and let's make
   this targetted for v9.0 so incorporate the chain for these (restore /
   repair using backups) with that due date. Settings page is v8.1".
-  Target 9.0 (the backups and repair chain, umbrella ADM.91); the
+  Target 8.9 (the backups and repair chain, umbrella ADM.91); the
   settings page and the settings backups stay in 8.1 (ADM.83 to ADM.85).
   All backup pieces are parts of one `.tar.bz2` archive (ADM.87);
   retention is `settings.backups_kept` (default 20, 1 to 200). The
@@ -9937,7 +11587,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Boss (2:00 PM EDT): "we also have to build a way to use that data so
   build that out and let's make this targetted for v9.0 so incorporate
   the chain for these (restore / repair using backups) with that due
-  date. Settings page is v8.1". Target 9.0 (the backups and repair
+  date. Settings page is v8.1". Target 8.9 (the backups and repair
   chain, umbrella ADM.91); the settings page and the settings backups
   stay in 8.1 (ADM.83 to ADM.85). All backup pieces are parts of one
   `.tar.bz2` archive (ADM.87); retention is `settings.backups_kept`
@@ -9963,7 +11613,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Boss (2:00 PM EDT): "we also have to build a way to use that data so
   build that out and let's make this targetted for v9.0 so incorporate
   the chain for these (restore / repair using backups) with that due
-  date. Settings page is v8.1". Target 9.0 (the backups and repair
+  date. Settings page is v8.1". Target 8.9 (the backups and repair
   chain, umbrella ADM.91); the settings page and the settings backups
   stay in 8.1 (ADM.83 to ADM.85). All backup pieces are parts of one
   `.tar.bz2` archive (ADM.87); retention is `settings.backups_kept`
@@ -9980,14 +11630,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   from an archive and shows a passing check.
   Prerequisites: DB.42, ADM.89, DB.41. Related: ADM.85, DB.8, ADM.91.
 
-- [ ] **ADM.91 Backups and repair, target 9.0: one bz2 archive of the settings, the control database and the parity data, and the ways to use it (restore the control database, restore parity, repair the galaxy, the repair page)**
+- [ ] **ADM.91 Backups and repair, target 8.9: one bz2 archive of the settings, the control database and the parity data, and the ways to use it (restore the control database, restore parity, repair the galaxy, the repair page)**
   Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
   control DB and backups of the parity data for DB repair." and "All
   those should be bz2 tarballed together." Boss (2:00 PM EDT): "we also
   have to build a way to use that data so build that out and let's make
   this targetted for v9.0 so incorporate the chain for these (restore /
   repair using backups) with that due date. Settings page is v8.1".
-  Target 9.0 (the backups and repair chain, umbrella ADM.91); the
+  Target 8.9 (the backups and repair chain, umbrella ADM.91); the
   settings page and the settings backups stay in 8.1 (ADM.83 to ADM.85).
   All backup pieces are parts of one `.tar.bz2` archive (ADM.87);
   retention is `settings.backups_kept` (default 20, 1 to 200). Umbrella
@@ -9995,7 +11645,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the settings part are in 8.1 (ADM.87, with ADM.83 to ADM.85); the
   control database and parity parts, their restores, the repair from an
   archive, the repair page, the end-to-end test and the guide are in
-  9.0.
+  8.9 (moved from 9.0, Boss, 2026-10-16, 11:26 PM EDT).
   Prerequisites: ADM.88, ADM.89, DB.40, DB.41, DB.42, ADM.90, TEST.180,
   DOC.56, OPS.55. Related: ADM.43, ADM.87, DB.9.
 
@@ -10128,11 +11778,16 @@ clears each one.
   on the same code that timed out alone at 4:20 PM EDT, so it is not
   deterministic; GEN.232 merged in #1660, so Quality re-checks it in the
   next full run.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce. 6 solo runs of the test, 8 to 19 s each, all passed.
+  GEN.232 cured the 900 s path this item was filed for. Needed next
+  time: 5 clean full runs are still needed before it can close; the
+  failing run's captured traceback, the number of tests running at the
+  time (the load), and the elapsed time if it fails again. Running log:
+  the comments on issue #1694.
   Prerequisites: none.
 
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
@@ -10150,11 +11805,14 @@ clears each one.
   open for the first recurrence (with the captured seed): the test pins
   the star type, so a different stored type may be a real pin bug in the
   product, not test luck. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce. 86,000 systems with the primary forced to K2V were
+  generated and the primary was K2V every time. Needed next time: The
+  failing assertion text and the seed of the failing run. Running log:
+  the comments on issue #1694.
   Prerequisites: none. Related: TEST.111, TEST.71.
 
 - [ ] **TEST.126 The heavy WebGL browser-map tests time out when four workers run them together (bug)**
@@ -10215,11 +11873,15 @@ clears each one.
   playwright error) and ::test_nav_ends_picked_from_bookmarks_on_every_page
   failed once and pass alone, not checked on main. Same family; the
   rebuild's captured traceback and serial re-run tell load from real.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): fixed on main,
+  not confirmed. Bug Hunt found the browser wait ceiling of 120 s
+  (`browser_waits`) already on main and no failure since; no run of the
+  test is recorded for this item. Needed next time: It closes unless a
+  traceback shows up; if it fails again, the captured traceback and the
+  load. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
@@ -10237,11 +11899,9 @@ clears each one.
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
   the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.111, TEST.116.
 
 - [ ] **TEST.128 test_spatial_position_db and test_web_db_fields fail under a parallel run on one MySQL (bug)**
@@ -10262,11 +11922,14 @@ clears each one.
   with PERF.89): tests/test_work_queue_admin.py::
   test_a_paused_queue_node_stands_by_until_resumed[2] failed once and
   passes alone: the same parallel-run family on the shared database.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Sighting (Core 1's gate for #1952, 2026-10-16, about 11:59 PM EDT as
+  the lane reported; scripts/test.py changed, 83 min 56 s, 18,528
+  passed, 1 failed): the same
+  test_a_paused_queue_node_stands_by_until_resumed[2] failed once under
+  the gate and passed alone 3 of 3 (8 s each); no traceback was saved.
   Prerequisites: none. Related: TEST.111, TEST.123.
 
 - [ ] **TEST.129 Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug)**
@@ -10292,11 +11955,9 @@ clears each one.
   (2026-10-14, #1313, suite green): the stored last-updated time is
   compared the way MySQL 8.4 rounds it. Retire this item once the
   scheduled MySQL 8.4 CI run on main is green.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.116, TEST.126.
 
 - [ ] **TEST.130 test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug)**
@@ -10319,11 +11980,9 @@ clears each one.
   not reproducible; the test now builds comets by construction so it
   exercises the comet path every time. Stays open until the cause is
   found or five clean full runs pass.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.123, GEN.122.
 
 - [ ] **TEST.131 Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve**
@@ -10354,11 +12013,9 @@ clears each one.
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
   the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.126, TEST.127, TEST.128.
 
 - [ ] **TEST.135 Big-galaxy query-budget test for the nebula reads**
@@ -10391,11 +12048,9 @@ clears each one.
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
   the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.111, TEST.128, TEST.132 (done, PR #1578).
 
 - [ ] **TEST.138 test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug)**
@@ -10417,11 +12072,15 @@ clears each one.
   under load; same family, same fix.
   Same family and fix as TEST.126 (`tests/browser_waits.py`): close with
   it, reopen only on a captured traceback (2026-10-16 review).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): fixed on main,
+  not confirmed. Bug Hunt found the browser wait ceiling of 120 s
+  (`browser_waits`) already on main and no failure since; no run of the
+  test is recorded for this item. Needed next time: It closes unless a
+  traceback shows up; if it fails again, the captured traceback and the
+  load. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.126, TEST.128, TEST.137.
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
@@ -10441,11 +12100,9 @@ clears each one.
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
   the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.128, TEST.137, TEST.138.
 
 - [ ] **TEST.141 test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug)**
@@ -10462,11 +12119,13 @@ clears each one.
   traceback and re-runs it alone, stage 3 gives each worker its own
   database; closed after 5 clean full runs after stage 3, or fixed from
   the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce. 24 runs of the test under load all passed. Needed next
+  time: The failing parametrisation, the text of the failure and the
+  load at the time. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.128, TEST.132 (done, PR #1578), TEST.134.
 
 - [ ] **TEST.144 test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug)**
@@ -10484,11 +12143,15 @@ clears each one.
   Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
   Same family and fix as TEST.126 (`tests/browser_waits.py`): close with
   it (2026-10-16 review).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): fixed on main,
+  not confirmed. Bug Hunt found the browser wait ceiling of 120 s
+  (`browser_waits`) already on main and no failure since; no run of the
+  test is recorded for this item. Needed next time: It closes unless a
+  traceback shows up; if it fails again, the captured traceback and the
+  load. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.126, TEST.138.
 
 - [ ] **TEST.148 Investigate resuming a test run where it left off when the build is the same**
@@ -10517,6 +12180,9 @@ clears each one.
   the cloud environment cannot be resumed; the browser phase has to be
   rerun alone with `scripts/test.py browser`. Decide whether the build
   id should keep the package list.
+  Boss (2026-10-16, 10:37 PM EDT) wants the reuse to carry across builds
+  when a test's own dependencies are unchanged; filed as TEST.208. The
+  same-build-only rule above is what TEST.208 widens.
   Prerequisites: none. Related: TEST.139 (done, PR #1605).
 
 - [ ] **TEST.155 Wording and index agree: property test**
@@ -10702,11 +12368,16 @@ clears each one.
   check whether it still hangs). Done: the cause is found and the test
   is made reliable without skipping or loosening it, or the product bug
   it hides is fixed. Owner: Quality (2026-10-15).
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce. 6 solo runs of the test, 8 to 19 s each, all passed.
+  GEN.232 cured the 900 s timeout path. Needed next time: 5 clean full
+  runs are still needed before it can close; the failing run's captured
+  traceback, the number of tests running at the time (the load), and the
+  elapsed time if it fails again. Running log: the comments on issue
+  #1694.
   Prerequisites: none. Related: TEST.111, GEN.232.
 
 - [ ] **TEST.168 Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs**
@@ -10765,11 +12436,9 @@ clears each one.
   Scope after the 2026-10-16 review: only the
   `test_math_check::test_whole_run_is_fast` timing test (a relative
   budget); the breadcrumb folding test joins the TEST.126 family.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.111, TEST.138, TEST.163, TEST.167.
 
 - [ ] **TEST.171 test_gen_resume::test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards failed once under gate load with no scattered system (0 > 0) and passes alone (bug)**
@@ -10785,11 +12454,15 @@ clears each one.
   proves, and the same gate shows it green. Owner: unassigned.
   Owns pinning the random galaxy seed in the shared `_seed_galaxy` test
   helper (2026-10-16 review); TEST.173 shares the helper.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce, pinned anyway by Bug Hunt. The test did not fail again. Bug
+  Hunt pinned the failing path with a test in its branch regardless.
+  Needed next time: If it fails again: the text of the failure and
+  whether the pinned test failed with it. The item stays open until Bug
+  Hunt's PR merges. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.170, TEST.111.
 
 - [ ] **TEST.172 test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug)**
@@ -10807,11 +12480,9 @@ clears each one.
   entered, or the click really does nothing on an empty rim block) and
   the test or the page is fixed without loosening what the test proves.
   Owner: unassigned.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Second sighting (Core 3, 2026-10-16, 8:34 PM EDT, GEN.333 gate: full
   `changed`, 118 minutes, load 16): failed again under load and passed
   alone (call 28 s on a loaded worker); the same gate failed
@@ -10838,11 +12509,15 @@ clears each one.
   unassigned.
   No separate seed fix (2026-10-16 review): check that its nearest
   backfill cell draws a star under the seed TEST.171 pins.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce, pinned anyway by Bug Hunt. The test did not fail again. Bug
+  Hunt pinned the failing path with a test in its branch regardless.
+  Needed next time: If it fails again: the text of the failure and
+  whether the pinned test failed with it. The item stays open until Bug
+  Hunt's PR merges. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.132, TEST.171, TEST.172.
 
 - [ ] **TEST.174 test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug)**
@@ -10864,11 +12539,9 @@ clears each one.
   Scope after the 2026-10-16 review: capture the failure text on the
   next sighting; the phone-light sighting (an aborted `/galaxy/tiles`
   request) is a page-stat flake of the TEST.126 family.
-  Owner: Core 1, in its bug phase after the global top chain (Boss,
-  2026-10-16, 2:43 PM EDT: "Core 1 will start working on bugs after";
-  order set at 3:00 PM EDT: non-test bugs, then the database-version
-  test failures, then the failures that hit full runs, then the one-off
-  load flakes). Fix the cause; no skipping or quarantine.
+  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
+  "most important first, favoring anything that blocks something"; it
+  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.170, TEST.172.
 
 - [ ] **TEST.175 Edit everything end to end: the headline scenarios with approval and undo**
@@ -10941,7 +12614,7 @@ clears each one.
   Boss (2:00 PM EDT): "we also have to build a way to use that data so
   build that out and let's make this targetted for v9.0 so incorporate
   the chain for these (restore / repair using backups) with that due
-  date. Settings page is v8.1". Target 9.0 (the backups and repair
+  date. Settings page is v8.1". Target 8.9 (the backups and repair
   chain, umbrella ADM.91); the settings page and the settings backups
   stay in 8.1 (ADM.83 to ADM.85). All backup pieces are parts of one
   `.tar.bz2` archive (ADM.87); retention is `settings.backups_kept`
@@ -10967,7 +12640,7 @@ clears each one.
   content). Why: this is the proof GEN.57 states, and TEST.77's tier B
   stands on it. Done: the test runs in the `changed` gate and fails when
   a or b is reverted.
-  Prerequisites: GEN.306, GEN.307. Related: GEN.57.
+  Prerequisites: GEN.307. Related: GEN.57.
 
 - [ ] **TEST.182 Put one block-first backfill into the golden galaxy**
   Split from GEN.42 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -11058,6 +12731,7 @@ clears each one.
   on main: yes, when that test runs. Frequency: every run of the test.
   Reproducer: run the migrate test, then `cat
   /var/lib/planetGen/state/maintenance.json`.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none.
 
 - [ ] **TEST.190 A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug)**
@@ -11071,6 +12745,13 @@ clears each one.
   run in seconds. Fails on main: yes. Frequency: whenever a session
   fixture fails. Reproducer: make the server fixture raise after its
   start and time the run.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce as described. pytest already fails the tests that depend on
+  a failed session fixture at once, so the 900 s wait this item
+  describes did not appear. Needed next time: The run log that shows
+  dependents waiting their full timeout, and the fixture that failed
+  first. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.167.
 
 - [ ] **TEST.191 The plan tests write real settings JSON into `/var/lib/planetGen/jobs/galaxy-settings` and log "No naming key drawn ... Unknown database": give them a temporary directory and a test database**
@@ -11136,6 +12817,12 @@ clears each one.
   unknown. Frequency: 1 of 1 run under load. Reproducer: none beyond the
   full browser phase; try the file with two browser workers and a busy
   machine.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce. The test passed in repeated runs on an idle machine. Needed
+  next time: The failure text of a loaded run (the captured traceback
+  and the browser console) and the load at the time. Running log: the
+  comments on issue #1694.
   Prerequisites: none.
 
 - [ ] **TEST.195 `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` timed out at 30 s fetching `/sector/<id>/galaxy` inside a full gate run and passed alone (bug)**
@@ -11185,7 +12872,7 @@ clears each one.
   expected to pass at the edge. The test lands only with a green run (no
   skip, no quarantine). The 3.2 prevalence cap is GEN.373 and does not
   gate this test.
-  Prerequisites: GEN.103, TEST.186. Related: GEN.103, TEST.186,
+  Prerequisites: TEST.186. Related: GEN.103, TEST.186,
   TEST.161, TEST.164.
 
 - [ ] **TEST.197 `test_page_is_accessible_and_fits[web.sector-phone-light]` failed under load and passed alone: find the cause and make it robust (bug)**
@@ -11198,6 +12885,7 @@ clears each one.
   and not a fixed time, and it passes under the same load, with no
   quarantine. Fails on main: not checked. Frequency: once. Reproducer:
   none beyond the full suite at load about 9.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none.
 
 - [ ] **TEST.198 `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug)**
@@ -11210,6 +12898,14 @@ clears each one.
   condition it needs, and it passes under the same load, with no
   quarantine. Fails on main: not checked. Frequency: once. Reproducer:
   none beyond the full suite at load about 9.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce. The test passed in repeated runs on an idle machine. The
+  `/galaxy/tiles` net::ERR text this item quotes matches the
+  request-error handler of the accessibility test, so it may have come
+  from another test's page. Needed next time: The full run's traceback
+  naming the failing test and the load at the time. Running log: the
+  comments on issue #1694.
   Prerequisites: none.
 
 - [ ] **TEST.199 `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on main for a far-tail case: the halo subtraction loses precision, 2.4e-9 against a 1e-9 tolerance (bug)**
@@ -11237,7 +12933,8 @@ clears each one.
   (the precision audit). Related: TEST.192 (an earlier fuzz bound).
   Second sighting (Settings lane, 2026-10-16, 4:57 PM EDT, reported again at 8:45 PM EDT
   from its ADM.85 full run): the same test failed in that run too.
-  Owner: Core 1 (proposed: its bug phase and GEN.372).
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT); the
+  GEN.372 audit stays with Core 1.
   Prerequisites: none. Related: GEN.372, TEST.192, GEN.301.
 
 - [ ] **TEST.200 The nightly local offset limit is documented and pinned by `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point`**
@@ -11280,7 +12977,7 @@ clears each one.
   condition it needs, it passes under the same load, and no quarantine.
   Likely the same family as TEST.197 (a timing assumption under load)
   and the browser hangs of TEST.193 and TEST.195, so Core 1 reads them
-  together. Owner: Core 1, bug phase.
+  together. Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none. Related: TEST.172, TEST.197, TEST.193, TEST.195.
 
 - [ ] **TEST.203 `test_one_worker_leaves_the_runs_own_random_stream_alone` failed once under heavy load with WorkerDied "the task's job ended canceled" and passes alone (bug)**
@@ -11295,8 +12992,8 @@ clears each one.
   by a worker restart under load, or the test races the worker), the
   test waits on the condition it needs or the job is not cancelled, it
   passes under the same load, and no quarantine. Likely related to the
-  load flakes of TEST.197 and TEST.202. Owner: Core 1, bug phase
-  (one-off load flakes).
+  load flakes of TEST.197 and TEST.202. Owner: Bug Hunt (proposed,
+  Boss's lane started 10:20 PM EDT).
   Prerequisites: none. Related: TEST.197, TEST.202, TEST.193.
 
 - [ ] **TEST.204 Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges**
@@ -11311,6 +13008,139 @@ clears each one.
   lists the parameter and the mass bin, like TEST.196.
   Prerequisites: GEN.389. Related: TEST.196, GEN.378, GEN.366.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **TEST.206 Superbubble density tests: rim excess, interior depletion, old stars unchanged, scatter against fill and determinism**
+  Boss (2026-10-16, 9:27 PM EDT): instead of drawing the bubbles, store
+  the regions and let them adjust the star density function for the
+  space they occupy, so a sector builds following the bubbles without
+  drawing them. Statistical tests on a small galaxy with one large
+  bubble: the young count in the shell exceeds and the interior falls
+  below a bubble-free control by the factor the design states, within k
+  Poisson sigma; old, bulge and halo counts are equal to the control;
+  the bright-star scatter and the sector fill agree on the same cell;
+  the same seed gives the same rows twice; the phenomena counts follow
+  the factor. Uses TEST.186's census harness.
+  Decided (Boss, 2026-10-16, 9:38 and 9:39 PM EDT): old, bulge, halo,
+  cluster and satellite counts must equal the bubble-free control.
+  Prerequisites: GEN.394, GEN.395, TEST.186. Related: GEN.391, TEST.204.
+  Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
+
+- [ ] **TEST.208 `scripts/test.py --resume` reuses an earlier pass across builds when none of that test's own dependencies changed**
+  Boss (2026-10-16, 10:37 PM EDT, project chat): "are we using resumable
+  tests when things get canceled? That's what they were built for so if
+  the code hasn't changed you can expect the same answer from a test."
+  Core 1 reported (10:40 PM EDT, as the lane reported) that `--resume`
+  (TEST.148 to TEST.152) works only for the identical build id, which
+  hashes the whole checkout, so any merge of main after a cancelled gate
+  starts from zero and costs hours. The tool already records which files
+  each test depends on (the dependency map `scripts/depmap.py` behind
+  `changed`). Do: keep a per-test record of the pass together with a
+  fingerprint of that test's own dependencies (the files the dependency
+  map lists for it, its fixtures, the installed packages, the database
+  and Redis servers and the day), and let `--resume` skip a test whose
+  earlier pass has the same fingerprint, even when the build id differs.
+  A changed dependency file, fixture, package, server or day reruns that
+  test; a change to the environment (packages, servers, day, test
+  command) reruns all. Default taken (the TEST.148 decision stands): the
+  reuse is explicit, behind `--resume`, never automatic and not part of
+  the merge gate; the last line says how many tests were reused and from
+  which run. Done: a cancelled or restarted gate after a merge of main
+  reruns only the tests whose dependencies changed; tests prove that a
+  changed dependency file forces a rerun, an unchanged one is reused,
+  and a changed package, server or day forces all; docs/testing.md and
+  the usage text say so. Fails on main: not a failure, a missing
+  feature. Reproducer: start `scripts/test.py changed`, cancel it, merge
+  main, run it again with `--resume` and see it refuse or start from
+  zero.
+  Owner: Bug Hunt (proposed, as the coordinator suggested; any lane).
+  Prerequisites: none. Related: TEST.148, TEST.150, TEST.151, TEST.152,
+  TEST.139.
+
+- [ ] **TEST.209 One consistency sweep over every planet and moon class: composition, density, temperature, ozone, aerosols and text all agree**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): The proof of "all of the values
+  consistent across the board". Generate planets and moons of every
+  class and check: partial pressures sum to the pressure; molar density,
+  mean molecular weight and scale height follow from them; the
+  temperature equals the formula on the stored albedo and greenhouse
+  multiplier; ozone follows the oxygen and UV; the aerosol depths follow
+  their rules; every gas in a description is in the table and the
+  mixture. Runs in the `changed` gate for the files involved. Done: it
+  passes on a generated galaxy and fails when any one rule is broken (a
+  test that breaks each rule in turn).
+  Prerequisites: GEN.411, GEN.412, GEN.413, GEN.414, GEN.415, DB.67,
+  DB.68, GEN.422, GEN.423, GEN.424. Related: GEN.415, DB.68.
+
+- [ ] **TEST.210 A bulk composition sweep over every class: fractions, density, mass, radius and gravity agree**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. Generate planets and moons of every
+  class and check: the fractions sum to one and stay in range; the
+  density equals the model's density for the fractions and mass; the
+  gravity equals G M over the radius squared; the stored values agree
+  with the fractions after the migration; the text names only stored
+  materials. Done: it passes on a generated galaxy and fails when any
+  one rule is broken (a test that breaks each rule in turn).
+  Prerequisites: GEN.428, GEN.429, GEN.430, DB.69, GEN.441, GEN.442,
+  DB.70. Related: TEST.209.
+
+- [ ] **TEST.211 A star composition sweep: every kind of star, remnant and brown dwarf, fractions, trends and determinism**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Generate a galaxy and check, for
+  stars of every kind: the fractions sum to one and stay in range; they
+  follow [Fe/H] and age as the relations say; remnants have their
+  layers; the result is the same at one and at four workers; no star
+  lacks a composition. Done: it passes on a generated galaxy and fails
+  when any rule is broken (a test that breaks each in turn).
+  Owner: Core 4 (Boss tapped Core 4, 2026-10-17, 12:13 AM EDT, a card,
+  for the star composition items together with the other composition
+  design and table items).
+  Prerequisites: GEN.440. Related: TEST.210, GEN.439.
+
+- [ ] **TEST.212 A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Generate planets and moons of every
+  class and check: the band transmissions are between 0 and 1 and follow
+  the mixture; the greenhouse follows the infrared opacity; the dose
+  follows the column, the cutoff and the ground's composition; the
+  stored temperature agrees with the albedo and greenhouse that the
+  radiation gives; habitability reads the same numbers; and the text
+  quotes them. Done: it passes on a generated galaxy and fails when any
+  rule is broken (a test that breaks each in turn).
+  Prerequisites: GEN.443, GEN.444, GEN.445, GEN.446. Related: TEST.209,
+  TEST.210, TEST.211.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
 
 ## USR: User accounts
 
@@ -11613,6 +13443,10 @@ clears each one.
   Scope after the review (2026-10-16 review): the home field on the
   account and the override of the default; the default (the largest
   group) comes from the charted-regions library (MAP.190).
+  Decided (Boss, 2026-10-16, 9:43 PM EDT, in the Core 1 thread:
+  "Confirmed drop 'home', we will choose viewing based on where sectors
+  are generated."): the galaxy has no home position; this item (a user's
+  own home field) is unchanged and is the only home.
   Prerequisites: MAP.189, MAP.190. Related: MAP.189, MAP.190, USR.8.
 
 - [ ] **USR.12 Permission catalogue and one `can()` check: user, moderator, admin and Owner as data**
@@ -11981,7 +13815,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
 
 - [ ] **OPS.55 Nightly full backup: a backup step in the daily maintenance run that takes every part into one archive, with a schedule setting and a nightly retention setting**
   Boss (2026-10-16, 2:06 PM EDT): "Yes plese." to a nightly full backup
-  from the daily maintenance run. Target 9.0 (the backups and repair
+  from the daily maintenance run. Target 8.9 (the backups and repair
   chain, umbrella ADM.91). The maintenance logic of OPS.16 (`--if-due`,
   `--only STEP`, lock, log, exit codes) gets a `backup` step that calls
   `planetgen.backup.take` of ADM.87 with every registered part
@@ -12021,7 +13855,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   function and a test that it is stable across two runs and two hash
   seeds, and that changing one canned draw changes exactly one case's
   digest.
-  Prerequisites: GEN.135, GEN.304. Related: OPS.28.
+  Prerequisites: GEN.304. Related: OPS.28.
 
 - [ ] **OPS.58 The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment**
   Split from OPS.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -12039,6 +13873,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   warning. Done: the migration with an old-schema fixture, the row, the
   record, the check, and tests for an unchanged update, a changed lock
   file and an epoch difference.
+  Rescatter thread finding (2026-10-16): a scatter made before the epoch
+  2 merge (#1927, 9:42 PM EDT) is unlabelled: `generation_runs` carries
+  `planetgen_version` and outcome per run (a redo run is dated), but the
+  galaxy keeps no mark of which epoch or build each scatter pass was
+  made at, so nothing can say a galaxy is epoch 1. This item's record
+  should carry the epoch per pass.
   Prerequisites: OPS.57. Related: OPS.28.
 
 - [ ] **OPS.59 `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug)**
@@ -12051,6 +13891,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   process is left. Fails on main: yes. Frequency: every SIGTERM during a
   run. Reproducer: start the command, `kill -TERM` it, then `ps` for the
   child.
+  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none.
 
 ## DOC: Documentation
@@ -12416,7 +14257,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Boss (2:00 PM EDT): "we also have to build a way to use that data so
   build that out and let's make this targetted for v9.0 so incorporate
   the chain for these (restore / repair using backups) with that due
-  date. Settings page is v8.1". Target 9.0 (the backups and repair
+  date. Settings page is v8.1". Target 8.9 (the backups and repair
   chain, umbrella ADM.91); the settings page and the settings backups
   stay in 8.1 (ADM.83 to ADM.85). All backup pieces are parts of one
   `.tar.bz2` archive (ADM.87); retention is `settings.backups_kept`
@@ -12472,6 +14313,111 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   components, name the families, and point at the one note.
   Prerequisites: GEN.389. Related: DOC.13, DOC.48.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **DOC.60 Settings note: read sections A2 and A6 of the settings and accounts design against the built one-file settings and fix what is stale**
+  The Settings lane reported (2026-10-16) that parts of
+  docs/design/settings-seo-and-accounts.md still describe the two-file
+  design that the one config.json replaced (#1857). Done: sections A2
+  and A6 and their tables say one `config.json`, the load order model
+  default, `config.json`, `PLANETGEN_*` environment, explicit argument,
+  and the backup and rollback text names the single copy; `base_url` is
+  stated as a top-level Owner option (it stayed one); nothing else in
+  the note changes.
+  Prerequisites: none. Related: ADM.44, ADM.96, ADM.84.
+
+- [ ] **DOC.61 Docs: how the bubbles shape the stars, the setting values and what the drawn layer now is**
+  Boss (2026-10-16, 9:27 PM EDT): instead of drawing the bubbles, store
+  the regions and let them adjust the star density function for the
+  space they occupy, so a sector builds following the bubbles without
+  drawing them. The galaxy generation note, the density model note and
+  the Galaxy Map help state that bubbles change the young and
+  intermediate stars (and say how strongly and where), the sector page
+  shows the factor, the design note moves to built, and the drawn layer
+  is described as the optional overlay it is. Docs only.
+  Prerequisites: GEN.395. Related: GEN.391, DOC.52.
+  Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
+
+- [ ] **DOC.62 Docs: the generation cost figures and the redo scope are stale (the phenomena cut, rows, bytes and time; `--redo-scatters` leaves satellites and clusters alone)**
+  Rescatter read-only thread (Boss asked 2026-10-16, 9:35 PM EDT;
+  measured 9:37 to 10:07 PM EDT on a 4-core box, main 8.0.1617, default
+  galaxy, seed 0123456789abcdef0123456789abcdef; note
+  /mnt/project-files/reports/rescatter-worth-it-2026-10-16.md).
+  generation-performance-study.md says 161 GB and 2.6 hours for the
+  phenomena scatter at the default scale and
+  phenomenon-scatter-mass-cut.md recommends 20 solar masses (about 2.7e5
+  rows). The built default is a 14 solar mass cut: about 75.5 million
+  rows, 231 bytes a row with two indexes (about 17.5 GB while writing,
+  about 21 GB with the two indexes rebuilt), about 46 minutes of writes
+  at 4 workers (about 23,500 rows a second) plus the unmeasured index
+  builds, nebula field and epoch stamp; the star passes took 1,222.8 s
+  for 1,044,932 rows and under 1 GB. Also docs/cli.md next to the
+  `--redo-scatters` text: it redoes rows only; satellites and clusters
+  (`galaxy_components`) are drawn only by a full `plan`, so a galaxy
+  planned before GEN.159 and GEN.237 has an empty component table until
+  a full plan. Done: the two design notes and cli.md carry the measured
+  table and the one-line scope; nothing else changes.
+  Prerequisites: none. Related: GEN.240, GEN.322, GEN.323.
+
+- [ ] **DOC.63 Docs: the atmosphere data model, the gas table and how the values agree**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): The data model and physics pages
+  describe the new columns, the gas table, the mixture rule, ozone,
+  aerosols and the consistency sweep, with the sources of every number.
+  Done: the pages name each stored value and where it comes from.
+  Prerequisites: TEST.209. Related: DB.67, DB.68.
+
+- [ ] **DOC.64 Docs: the atmosphere colour, its method and its sources**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): The API page, the description
+  document page and the physics pages explain the atmosphere colour, the
+  method (Rayleigh from the mixture, ozone, aerosols, the thick-air
+  limit, the reference level of a giant), what the colour does not
+  include (sunsets, twilight and the day strip, which belong to the view
+  from a planet) and the sources. Done: each page says so.
+  Prerequisites: GEN.420, MAP.244. Related: DOC.63.
+
+- [ ] **DOC.65 Docs: bulk composition, the materials table and how density, mass and gravity follow**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. The data model and physics pages
+  describe the fractions, the materials table, the mass-radius model,
+  the migration and the sweep, with the sources of every number. Done:
+  the pages name each stored value and where it comes from.
+  Prerequisites: TEST.210. Related: DOC.63, DB.69.
+
+- [ ] **DOC.66 Docs: the composition model of stars, bodies and atmospheres, the radiation it derives and the sources of every number**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. The data model and physics pages
+  describe the element, gas, materials and stellar tables, the stored
+  and derived composition of stars, surfaces and small bodies, the
+  atmospheric and surface radiation, the migrations and the sweeps, with
+  the sources of every number and the research lanes' notes merged.
+  Done: the pages name each value, where it comes from and which check
+  covers it.
+  Prerequisites: TEST.212, TEST.211, DOC.63, DOC.65. Related: DOC.64,
+  DB.70.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
 
 ## VIEW: The view from a planet
 
@@ -12585,6 +14531,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     whole-sky PNG (a, needs only children a, b and c of VIEW.2), the
     constellation table (b, Core 1, in phase 1), the constellations (c)
     and the overlay (d).
+    Settings lane (2026-10-16): the card renderers register through
+    `planetgen.web.seo_pages.register_card_renderer("system" or
+    "sector", fn)` and turn on the setting `og.generated_cards`; any new
+    web page VIEW.3 adds must be classified in `planetgen/web/seo.py`.
     Prerequisites: VIEW.15, DB.64, VIEW.16, VIEW.17.
 
   - [ ] **VIEW.4 Constellation names in the name generator**
@@ -12674,7 +14624,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   tests against the numbers of sky-view.md (Sun -0.07, A_B/A_V 1.3226,
   Sun B-V to 5,778 K), and the HYG calibration test of VIEW.10 run
   against it.
-  Prerequisites: VIEW.1, VIEW.9. Related: VIEW.2.
+  The blackbody colour is GEN.416 in 9.0 (Boss, 2026-10-16, 11:24 PM
+  EDT, the atmosphere colour chain); this item extends that module with
+  the magnitude, bolometric correction and extinction law.
+  Prerequisites: VIEW.1, VIEW.9, GEN.416. Related: VIEW.2.
 
 - [ ] **VIEW.12 Sky catalogue: the stars an observer sees, with direction, brightness and light-time**
   Split from VIEW.2 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -12748,6 +14701,19 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   card, and a browser test that toggles the figures and finds a named
   constellation.
   Prerequisites: VIEW.15, VIEW.16. Related: VIEW.3.
+
+- [ ] **VIEW.18 Headline of 9.1: the view from a planet, with its starmap, its picture and its constellations**
+  Boss (2026-10-16, 11:42 PM EDT, card "View from a planet"): the view
+  from a planet is the headline of 9.1 and the gravity map is the second
+  feature. This item is done when its items are: the starmap seen from a
+  planet (VIEW.2) and the picture of the view with constellations
+  (VIEW.3), which carry the sky catalogue, the photometry library, the
+  galactic band, the horizon and the constellations beneath them, on the
+  sky data and research of 8.9 and the atmosphere colour of 9.0.
+  Headline: 9.1 (the view from a planet: the sky from any planet or
+  moon, with real constellations, rendered as a picture). A hand version
+  bump needs Boss's word.
+  Prerequisites: VIEW.2, VIEW.3. Related: VIEW.1, MAP.167, GEN.421.
 
 ## POP: Population and politics
 
