@@ -878,6 +878,37 @@ def test_wheel_zoom_and_turning_share_one_centre_and_a_shift_click_chooses_it(pa
     assert _camera(page)["target"] == pytest.approx(moved["target"], abs=1e-6)
 
 
+def test_the_header_and_every_crumb_follow_the_cell_the_camera_is_in(page, map_site):
+    """MAP.227: the breadcrumb and the line under it come from where the view's middle is, not from the stage the
+    map was opened at: moving the center into the next sector names that sector, and a crumb above it flies out."""
+    from planetgen.galaxy.spherical import sector_position_pc
+    from tests.map_site_support import EDGE_PC
+
+    _open_galaxy(page, map_site, f"?sector={PRIME_CODE}")
+    where = page.locator("#galaxymap3d-where")
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-where') && !document.querySelector('#galaxymap3d-where').hidden")
+    first = where.inner_text()
+    crumbs = _crumbs(page)
+    assert first.startswith("In Sector ") and crumbs[0] == "Galaxy" and crumbs[-1].startswith("Sector "), (first, crumbs)
+
+    point = sector_position_pc(1, 0, 2, EDGE_PC)
+    page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyCentreOn(...p)", list(point))
+    page.wait_for_function("(was) => document.querySelector('#galaxymap3d-where').textContent !== was", arg=first)
+    _settle(page)
+    moved = where.inner_text()
+    assert moved.startswith("In Sector ") and moved != first
+    after = _crumbs(page)
+    assert after[:-1] == crumbs[:-1] or len(after) == len(crumbs), (crumbs, after)
+    assert after[-1] != crumbs[-1] and after[-1].split(" (")[0] == "Sector " + moved[len("In Sector "):], (moved, after)
+
+    # The first crumb flies out to the whole galaxy.
+    page.locator("#galaxymap3d-steps summary").click()
+    page.locator("#galaxymap3d-steps [data-steps-panel] li", has_text="Galaxy").first.click()
+    page.wait_for_function("() => document.querySelectorAll('#galaxymap3d-steps [data-steps-panel] li').length <= 2")
+    _settle(page)
+    assert _crumbs(page) == ["Galaxy"], _crumbs(page)
+
+
 def test_on_map_zoom_slider_and_direction_star(page, map_site):
     """MAP.200: a zoom slider and a direction star on the map. The slider and
     the wheel move together; the arrows move the center (the readout and the

@@ -810,6 +810,7 @@ export function createStageView(host) {
       target: view.target.slice(), dist: view.dist, quaternion: view.quat.toArray(),
       focusRadius: entered ? entered.halfEdge : 0, inside: containerCenter(eye),
     });
+    refreshWhere();
   }
 
   // Animates the camera from `from` to `to` along van Wijk and Nuij's
@@ -2508,6 +2509,32 @@ export function createStageView(host) {
     els.notice.hidden = !text;
   }
 
+  // MAP.227: the stage the camera is in, worked out from where the view's middle is: the breadcrumb is the trail
+  // of containers of the cell holding it (galaxy, blocks, sector), so panning to a neighbouring cell changes it and
+  // "Sector X" in the header names the sector it is in, with no stored state of its own. An opened sector or
+  // system keeps the stage it was opened from.
+  function cameraStage() {
+    if (!view || entered || enteredSystem || !stage.win) return stage;
+    return S.stageAtPoint(stage, view.target, getOutline(), edgePc);
+  }
+
+  let whereKey = "";
+
+  // Redraws the breadcrumb and the header line when the view's middle has moved into another cell or sector.
+  function refreshWhere() {
+    if (!active || !view || !resolved) return;
+    const sector = entered || enteredSystem ? null : S.sectorAtPoint(view.target, getOutline(), edgePc);
+    const win = cameraStage().win;
+    const key = (win ? win.centre.m + ":" + S.blockLabel(win.centre) : "galaxy") + "|" + (sector ? S.blockLabel(sector) : "");
+    if (key === whereKey) return;
+    whereKey = key;
+    if (els.where) {
+      els.where.textContent = sector ? "In Sector " + S.blockLabel(sector) : "";
+      els.where.hidden = !sector;
+    }
+    renderCrumbs();
+  }
+
   // The breadcrumb's ☆ (MAP.23, design doc section 8.2): saves the
   // selected sector, else the stage's own URL, in bookmarks.js.
   let bookmarkButton = null;
@@ -2528,7 +2555,7 @@ export function createStageView(host) {
         sectorId: sector ? sector.id : null,
       };
     }
-    const labels = S.crumbs(stage, getOutline(), edgePc).map(function (crumb) { return crumb.label; });
+    const labels = S.crumbs(cameraStage(), getOutline(), edgePc).map(function (crumb) { return crumb.label; });
     return { kind: "stage", value: location.pathname + displayQuery(S.stageQuery(stage)), name: labels.join(" › ") };
   }
 
@@ -2548,7 +2575,7 @@ export function createStageView(host) {
   })();
 
   function crumbSteps() {
-    const items = S.crumbs(stage, getOutline(), edgePc);
+    const items = S.crumbs(cameraStage(), getOutline(), edgePc);
     if (homeStep) items.unshift({ label: homeStep.label, href: homeStep.href, last: false });
     if (selectedSector && !isSelectedCentre()) {
       const uncharted = entered && entered.uncharted && !pinned;
@@ -2745,6 +2772,10 @@ export function createStageView(host) {
     if (on === active) return;
     active = on;
     [els.crumbs, els.address].forEach(function (el) { if (el) el.hidden = !on; });
+    if (!on) {
+      whereKey = "";
+      if (els.where) els.where.hidden = true;
+    }
     if (homeStep) {
       els.pageCrumb.hidden = on;
       if (on) els.pageCrumb.parentNode.insertBefore(els.crumbs, els.pageCrumb);

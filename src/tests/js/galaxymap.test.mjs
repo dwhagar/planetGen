@@ -71,11 +71,11 @@ function open(href, options) {
   const viewport = h("div", { class: "starmap-viewport" }, [canvasEl, tooltip]);
   viewport.rect = canvasEl.rect;
   const els = {
-    crumbs: h("nav"), tooltip: tooltip, notice: h("p", { hidden: true }),
+    crumbs: h("nav"), where: h("p", { hidden: true }), tooltip: tooltip, notice: h("p", { hidden: true }),
     address: h("form", {}, [h("input", { type: "search" })]), matches: h("div", { hidden: true }),
     controls: h("div", { id: "galaxymap3d-controls" }, controlButtons()),
   };
-  document.body.append(h("div", { "data-bookmark-db": "planetgen" }), viewport, els.crumbs, els.notice,
+  document.body.append(h("div", { "data-bookmark-db": "planetgen" }), viewport, els.crumbs, els.where, els.notice,
     els.address, els.matches, els.controls);
   const calls = { cameras: [], fetches: [], blockInfo: [], placed: [], cells: [], hints: [], sizes: [], clips: [], locates: [], scenes: [], infos: [], hidden: [], pages: [], uncharted: [] };
   const server = options.server || (() => ({ children: [], sectors: [] }));
@@ -1016,4 +1016,27 @@ test("a stage URL names the system opened in place (MAP.125)", () => {
   assert.equal(S.parseStageQuery("?sector=" + CODE + "&open=1").system, null);
   assert.equal(S.parseStageQuery("?sector=" + CODE + "&open=1&system=702&object=planet:12").object, "planet:12");
   assert.equal(S.parseStageQuery("?sector=" + CODE + "&open=1&system=702&object=nope").object, null);
+});
+
+test("the breadcrumb and the header name the cell the camera's middle is in (MAP.227)", async () => {
+  const d = { shell: 400, band: 0, wedge: 1000 };
+  const m = await start("http://localhost/galaxy?sector=" + S.sectorDesignation(d.shell, d.band, d.wedge));
+  const outline = S.galaxyOutline(F.edgePc, F.shape, F.galaxyRadius);
+  const stage = m.view.stage();
+  const here = P.sectorPositionPc(d.shell, d.band, d.wedge, F.edgePc);
+  assert.equal(S.sectorAtPoint(here, outline, F.edgePc).wedge, d.wedge);
+  assert.equal(S.stageAtPoint(stage, here, outline, F.edgePc), stage, "in its own cell the stage stands");
+  assert.equal(m.els.where.textContent, "In Sector " + S.blockLabel(d));
+  assert.equal(m.els.where.hidden, false);
+
+  const next = { shell: d.shell, band: d.band, wedge: d.wedge + 1 };
+  const there = P.sectorPositionPc(next.shell, next.band, next.wedge, F.edgePc);
+  const moved = S.stageAtPoint(stage, there, outline, F.edgePc);
+  assert.deepEqual(moved.win.centre, { m: 1, ...next }, "the cell the middle moved to");
+  m.host.canvasEl.galaxyCentreOn(there[0], there[1], there[2]);
+  await arrive(m);
+  assert.equal(m.els.where.textContent, "In Sector " + S.blockLabel(next));
+  const crumbs = crumbLabels(m);
+  assert.equal(crumbs[crumbs.length - 1], "Sector " + S.blockLabel(next) + " (1)", "the trail ends at the cell it is in");
+  assert.deepEqual(m.view.stage(), stage, "the data stage is the one it was opened at");
 });

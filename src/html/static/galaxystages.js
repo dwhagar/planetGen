@@ -553,6 +553,25 @@ export function crumbs(stage, outline, edgePc) {
   });
 }
 
+// MAP.227: the stage the camera is in. A stage is a window round one cell; the camera's middle may have moved to
+// another cell of the same size, and the trail of containers is that cell's, worked out from the position (the
+// cells are closed form) and not from the stage the view was opened at. The stage itself when the middle is still
+// in its cell, or the cell it moved to lies outside the galaxy.
+export function stageAtPoint(stage, point, outline, edgePc) {
+  if (!stage.win) return stage;
+  const centre = stage.win.centre;
+  const cell = cellAt(centre.m, point[0], point[1], point[2], edgePc);
+  if (sameBlock(cell, centre)) return stage;
+  const next = windowStage(cell, stage.win.g);
+  return resolveStage(next, outline, edgePc).problem ? stage : next;
+}
+
+// The sector holding `point` as {shell, band, wedge}, or null when the galaxy has none there (outside its outline).
+export function sectorAtPoint(point, outline, edgePc) {
+  const at = sectorAddressAt(point[0], point[1], point[2], edgePc);
+  return sectorInOutline(at.shell, at.band, at.wedge, outline) ? at : null;
+}
+
 // Degrees counterclockwise from +X, as the longitude labels read.
 export function bearingRange(bounds) {
   const deg = function (rad) { return (((rad * 180) / Math.PI) % 360 + 360) % 360; };

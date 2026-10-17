@@ -4430,3 +4430,8 @@ p.hint a {
   margin: 0 0 1rem;
   color: var(--text-muted, inherit);
 }
+
+/* MAP.227: the sector the camera is in, under the breadcrumb. */
+.galaxy-where {
+  margin: 0 0 0.25rem;
+}

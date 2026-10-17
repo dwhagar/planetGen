@@ -379,8 +379,9 @@ ADDRESS_BLOCK = """<form class="galaxy-address" id="galaxymap3d-address" role="s
 """The Go-to form (the stage view's address bar)."""
 
 CRUMBS_BLOCK = """<nav class="crumbs galaxy-crumbs" id="galaxymap3d-crumbs" aria-label="Map position" hidden></nav>
+<p class="hint galaxy-where" id="galaxymap3d-where" aria-live="polite" hidden></p>
 """
-"""The breadcrumb the stage view fills."""
+"""The breadcrumb the stage view fills, and the line saying which sector the camera is in (MAP.227)."""
 
 ZOOM_BUTTONS = """  <button type="button" class="starmap-btn" data-action="zoom-out" aria-label="Zoom out">&minus;</button>
   <button type="button" class="starmap-btn" data-action="zoom-in" aria-label="Zoom in">+</button>
