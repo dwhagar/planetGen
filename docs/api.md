@@ -228,9 +228,12 @@ connectivity to that specific schema rather than the default one.
   planets, moons, belts, comets, facilities and the standalone phenomena,
   nearest first, each with `ref`, `kind`, `id`, `name`, `parent` and
   `distance_pc`. Optional `kinds` (comma-separated), `limit` (50, at most
-  200) and `offset`. The answer also carries `total`, `by_kind`, and how
-  many of the sectors the sphere reaches are not generated yet
-  (`sectors_in_range` / `sectors_generated`); the search never generates.
+  200) and `offset`. The answer also carries `total`, `by_kind`, and
+  `not_generated` (`{kind: count}`, with `not_generated_total`): the
+  pre-placed bright stars (`bright_star`) and scatter objects in the sphere
+  that are not built yet, counted and never listed; the search never
+  generates and never reads the sectors (NAV.60: it reads each table by its
+  cell key).
 - `GET /api/objects/<ref>` — one object by its reference (NAV.7), the one
   form every kind shares: `<kind>:<id>` with kind `sector`, `system`, `star`,
   `planet`, `moon`, `belt`, `comet` or a phenomenon type (`nebula`,
