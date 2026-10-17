@@ -30,6 +30,9 @@ A note's own status line, at its top, is the authority; this page only points at
 | [galaxy-coordinate-system.md](galaxy-coordinate-system.md) | The spherical shell, band and wedge sector grid | built (schema v91); the cylinder it replaced is in [archive/](archive/galaxy-coordinate-system-cylinder.md) |
 | [galaxy-types.md](galaxy-types.md) | The 9.4 headline: one family per known galaxy type (spiral, lenticular, elliptical, irregular, dwarf), drawn from the seed through scaling relations, and the chain that leads to it | plan |
 | [superbubble-density.md](superbubble-density.md) | Superbubbles shape the stars: the seeded bubble field becomes a density modulation on the young and intermediate populations, with bounds, sector counts and positions, and the chain that builds it | plan |
+| [atmosphere-colour.md](atmosphere-colour.md) | Atmosphere colour, the 9.0 feature: one gas and compound table, the mixture that sets the molar density, stored albedo and greenhouse values, ozone, haze, dust and cloud, then the absolute colour of the air, with the chain that builds it | plan |
+| [sky-colour-analysis.md](sky-colour-analysis.md) | The read-only study behind the atmosphere colour: what exists, the method, the effort and how well each source was checked | study |
+| [atmosphere-sources-check.md](atmosphere-sources-check.md) | The check of the real-world sources behind the atmosphere colour chain: what was read, what is second-hand, what Boss must research | study |
 | [spherical-sector-coordinates.md](spherical-sector-coordinates.md) | The plan for spherical shells, bands and wedges | plan, built (the switch merged to main on 2026-10-15, #1607; the Galaxy Map ladder is MAP.205 and MAP.206) |
 | [spherical-shell-sectors.md](spherical-shell-sectors.md) | What spherical-shell sectors would mean (the question behind the plan) | research |
 | [spherical-ladder-meridians.md](spherical-ladder-meridians.md) | Meridians for the spherical block ladder | research |
@@ -102,7 +105,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [drilldown-region-sizes.md](drilldown-region-sizes.md) | Step sizes and region shapes for the drill-down | built (MAP.151) |
 | [edit-everything.md](edit-everything.md) | The 8.6 headline: every admin change is a plan the admin approves; aspects, locks, regions, the rearranger | plan |
 | [roles-and-requests.md](roles-and-requests.md) | The 10.0 headline: user, moderator and admin roles; edit requests are change plans that the role above approves | plan |
-| [backups-and-repair.md](backups-and-repair.md) | One bz2 archive of the settings, the control database and the parity data, and restore and repair from it (settings 8.1, chain 9.0) | plan |
+| [backups-and-repair.md](backups-and-repair.md) | One bz2 archive of the settings, the control database and the parity data, and restore and repair from it (settings 8.1, chain 8.9) | plan |
 | [fly-through-view-distance.md](fly-through-view-distance.md) | The fly-through map: view distance, near field, free camera | partly built |
 | [zoom-star-visibility.md](zoom-star-visibility.md) | Smoother star visibility while zooming | research (superseded in part by MAP.152) |
 | [galaxy-map-wire-format.md](galaxy-map-wire-format.md) | What the browser downloads for the map | built |
