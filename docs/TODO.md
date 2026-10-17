@@ -2425,6 +2425,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: MAP.154, MAP.158, MAP.195, MAP.243,
   MAP.248, GEN.537, PERF.129, PERF.130, PERF.131, PERF.132, PERF.133,
   PERF.134.
+  Amendment (Boss, 2026-10-17, 7:45 PM and 7:46 PM EDT, relayed by the
+  coordinator): this item's tier order (satellite galaxies, then halo,
+  then the rest) is steps 1 and 2 of the full order; the rest of the
+  order (two ramps, small phenomena to large by mass and small dim stars
+  to large bright stars, with distance removing the farther ones sooner)
+  now comes from MAP.251, which builds on this item. See MAP.251.
   Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
 
 - [ ] **MAP.251 When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug)**
@@ -2465,6 +2471,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and MAP.251 stays as filed, not narrowed. Bug Hunt is designing it
   while it waits for the MAP.250 merge (7:45 PM EDT as the lane
   reported).
+  Amendment, Decided (Boss, 2026-10-17, 7:45 PM EDT and 7:46 PM EDT,
+  typed in the project chat, relayed by the coordinator): "amendment so
+  MAP.251 and MAP.252, dim order: Satellite Galaxies, Halo. The
+  following 2 should happen at the same [time]: Small phenomena (by mass
+  excluding nebulae) <-> Large phenomena (by mass excluding nebulae);
+  Small dim stars to Large bright stars." And: "Then also incorporated
+  is distance, the farther away it is the faster it should be removed."
+  So the dim and drop order, first to last, is (1) satellite-galaxy
+  stars, (2) halo stars, then (3) two ramps that run at the same time:
+  phenomena from small to large by mass (nebulae are left out of the
+  mass ranking), and stars from small dim ones to large bright ones; the
+  most massive and the brightest go last. Distance from the viewer is
+  part of it: the farther an object is, the sooner it is removed.
+  Default for Bug Hunt's design (stands unless Boss overrules): distance
+  moves each object's place on its ramp earlier the farther it is (the
+  ramp position is the object's rank by mass or brightness shifted
+  toward the front by its distance), within the satellite and halo tiers
+  first; nebulae are not ranked by mass, so they are cut with the
+  phenomena ramp by their visible size until Boss says otherwise.
+  MAP.251 thins evenly in space inside this order (a cut removes the
+  same fraction in every region), and the order above decides who goes
+  first within each region.
   Prerequisites: MAP.250. Related: MAP.249, MAP.250.
 
 - [ ] **MAP.252 Viewing only the filled sectors does not dim the phenomena (bug)**
@@ -2493,6 +2521,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (built_at set) from `query.galaxy_scattered_points_in_box`, and the
   map dims the unbuilt ones (a new `isUncharted()` in `starpoint.js`,
   with node and python tests). It goes in its own PR after #2124 merges.
+  Amendment, Decided (Boss, 2026-10-17, 7:45 PM EDT and 7:46 PM EDT,
+  typed in the project chat, relayed by the coordinator): "amendment so
+  MAP.251 and MAP.252, dim order: Satellite Galaxies, Halo. The
+  following 2 should happen at the same [time]: Small phenomena (by mass
+  excluding nebulae) <-> Large phenomena (by mass excluding nebulae);
+  Small dim stars to Large bright stars." And: "Then also incorporated
+  is distance, the farther away it is the faster it should be removed."
+  So the dim and drop order, first to last, is (1) satellite-galaxy
+  stars, (2) halo stars, then (3) two ramps that run at the same time:
+  phenomena from small to large by mass (nebulae are left out of the
+  mass ranking), and stars from small dim ones to large bright ones; the
+  most massive and the brightest go last. Distance from the viewer is
+  part of it: the farther an object is, the sooner it is removed.
+  Default for Bug Hunt's design (stands unless Boss overrules): distance
+  moves each object's place on its ramp earlier the farther it is (the
+  ramp position is the object's rank by mass or brightness shifted
+  toward the front by its distance), within the satellite and halo tiers
+  first; nebulae are not ranked by mass, so they are cut with the
+  phenomena ramp by their visible size until Boss says otherwise. For
+  MAP.252 the same order is the dim order: the objects that go first
+  when dropping are the ones that dim first when the view shows charted
+  sectors only, so the dimming and the dropping read one ranking.
   Prerequisites: none. Related: MAP.250.
 
 
