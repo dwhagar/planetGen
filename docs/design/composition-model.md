@@ -55,6 +55,7 @@ Research, designs and tables are building blocks with no behaviour change and si
 | 8.1 phase 2 | GEN.438 | One table of the elements and their isotopes: atomic data and the radioactive isotopes' half-lives and decay energies |
 | 8.1 phase 2 | GEN.410 | One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention |
 | 8.1 phase 2 | GEN.427 | One table of the bulk materials with their equation-of-state constants and the source of each |
+| 8.1 phase 2 | GEN.470 | One saturation-pressure function p_sat(species, T) for the gases and ices (Fray and Schmitt polynomials, water by Feistel and Wagner) |
 | 8.1 phase 2 | GEN.439 | The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers |
 
 **Star composition (derived, no column)**
@@ -84,6 +85,7 @@ Research, designs and tables are building blocks with no behaviour change and si
 | 8.4 phase 2 | GEN.442 | Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line |
 | 8.4 phase 2 | GEN.466 | Moons draw their origin type, ice fraction and composition |
 | 8.4 phase 3 | GEN.462 | Ground albedo by band, handed to the atmosphere colour once |
+| 8.4 phase 3 | GEN.471 | Clathrate hydrates and eutectic brines for icy crusts and ocean moons |
 | 8.4 phase 3 | DB.70 | Planets, moons and small bodies store the surface and small-body composition shares |
 | 8.4 phase 2 | GEN.455 | Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind |
 
