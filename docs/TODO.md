@@ -13854,6 +13854,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that concern neither (the disc, bulge and core scatters) read neither;
   either switch can be on without the other. The design settles which
   scatter kind reads which switch.
+  Decided (Boss, 2026-10-17, card tapped 4:56 PM EDT, "Migrate in 8.5",
+  relayed by the coordinator): a galaxy created in 8.1 keeps its halo
+  and satellite content, and the 8.5 migration sets that galaxy's halo
+  and satellite galaxy switches to on if it holds that content (each
+  switch on its own); only a galaxy created after 8.5 defaults both off.
+  No change to 8.1. Point (4) of this design is therefore settled.
 
 
 - [ ] **GEN.538 The plan configuration is the single source of the plan's boundaries, scatter reach and valid sector addresses: scatter and sector generation read it and never decide them**
@@ -13903,6 +13909,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that concern neither (the disc, bulge and core scatters) read neither;
   either switch can be on without the other. Done also: a test per
   scatter kind that it reads only its own switch.
+  Decided (Boss, 2026-10-17, card tapped 4:56 PM EDT, "Migrate in 8.5",
+  relayed by the coordinator): a galaxy created in 8.1 keeps its halo
+  and satellite content, and the 8.5 migration sets that galaxy's halo
+  and satellite galaxy switches to on if it holds that content (each
+  switch on its own); only a galaxy created after 8.5 defaults both off.
+  No change to 8.1.
 
 - [ ] **GEN.539 The halo command: its own command that switches the halo on or off in the plan configuration (default off) and sets how far the halo reaches**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
@@ -18906,6 +18918,12 @@ clears each one.
   (proposed).
   Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.538, GEN.539,
   GEN.540, TEST.159, TEST.160, TEST.185.
+  Decided (Boss, 2026-10-17, card tapped 4:56 PM EDT, "Migrate in 8.5",
+  relayed by the coordinator): a galaxy created in 8.1 keeps its halo
+  and satellite content, and the 8.5 migration sets that galaxy's halo
+  and satellite galaxy switches to on if it holds that content (each
+  switch on its own); only a galaxy created after 8.5 defaults both off.
+  No change to 8.1.
 
 
 ## USR: User accounts
