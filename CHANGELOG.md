@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1696] - 2026-10-17
+
+**Headline:** The "what is within N pc" pages are merged and retired.
+
+### Changed
+
+- NAV.45 (#2001) is retired: systems, sectors and scatter objects link to what is within 10 pc; NAV.61 and MAP.243 are the remaining prerequisites of the item that waited on it.
+- TEST.213 gets a second sighting (the disc fade measured 0.884 in the NAV.45 gate), and TEST.216 a note that it did not recur in two gates.
+
+TODO items resolved: NAV.45 / Added: none
+
 ## [8.0.1695] - 2026-10-17
 
 **Headline:** Selecting a sector, system, planet, moon or phenomenon on a map now offers "What's within 10 pc", which opens the What's nearby page with that place filled in.
