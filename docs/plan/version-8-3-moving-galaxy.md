@@ -39,9 +39,8 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.217 | Map layer interface: one registry the Galaxy stage view, the Sector Map and the System Map share for a toggled layer (menu entry, modes, URL key, legend, picker layer, fade rule) |  | Foundation found in the review. |
-| MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt | MAP.217 |  |
-| MAP.235 | Superbubbles as a registered Galaxy Map layer: a toggle, a hover name and radius, and a key row | MAP.217 | Split from the Galaxy Map key item. |
+| MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt |  |  |
+| MAP.235 | Superbubbles as a registered Galaxy Map layer: a toggle, a hover name and radius, and a key row |  | Split from the Galaxy Map key item. |
 
 ### Galactic gravity
 
@@ -123,5 +122,5 @@ The event records, the long-step rules and the gravity field evaluator the cours
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | DB.57 | The update records what it moved: a replace-each-run table of previous and new positions | GEN.294, GEN.212, GEN.340 | Split from MAP.192. Core 1 owns migrations. |
-| MAP.216 | Admin page of the objects that moved in the last update, with the movement vector and a map ghost of the old position | DB.57, MAP.217 | Split from MAP.192. |
+| MAP.216 | Admin page of the objects that moved in the last update, with the movement vector and a map ghost of the old position | DB.57 | Split from MAP.192. |
 | MAP.192 | See the objects whose positions changed in the last orbital update | DB.57, MAP.216 |  |

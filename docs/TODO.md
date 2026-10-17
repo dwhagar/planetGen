@@ -1263,7 +1263,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Scope after the review (2026-10-16 review): the gravity layer's data
   and drawing (zones, three modes, Lagrange points); its Menu entry, URL
   key and legend come from the layer registry.
-  Prerequisites: API.24, MAP.125, MAP.217. Related: MAP.167, MAP.131.
+  Prerequisites: API.24, MAP.125. Related: MAP.167, MAP.131.
 
 - [ ] **MAP.169 The System Map gravity layer: the orbital plane as a heat map with Lagrange points and Hill spheres**
   Done: the System Map has the same Gravity layer on the system's
@@ -1273,14 +1273,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Scope after the review (2026-10-16 review): the System Map's gravity
   data and Hill spheres only; it is the same registered layer on a
   second map.
-  Prerequisites: MAP.168, MAP.217, GEN.289. Related: MAP.167, GEN.109.
+  Prerequisites: MAP.168, GEN.289. Related: MAP.167, GEN.109.
 
 - [ ] **MAP.170 The Galaxy Map gravity layer: the galaxy potential and region aggregates, coarse and optional**
   Later (phase 3+): a coarse gravity layer on the Galaxy Map drawn from
   the galaxy's smooth potential (GEN.115) and the per-region mass
   aggregates (MAP.151), so the spiral arms, bulge and halo show as
   wells; only if the cost study (PERF.72) says it is cheap enough.
-  Prerequisites: MAP.168, MAP.217. Related: MAP.167.
+  Prerequisites: MAP.168. Related: MAP.167.
 
 - [ ] **MAP.171 The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit")**
   Boss (2026-10-10 21:38Z): "inject into the phenomena part of that, use
@@ -1626,7 +1626,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the disk finds the Magellanic Clouds where the data puts them, and
   nothing is drawn for the empty halo cells. Owner: Interface. Nebulae hosted by pre-placed stars show through the nebula
   items (MAP.172 to MAP.181) from their scatter rows (GEN.241).
-  Prerequisites: GEN.238, MAP.217.
+  Prerequisites: GEN.238.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **MAP.209 Opening a sector from the Galaxy Map flashes one view, reloads into another, and leaves the details panel empty (bug)**
@@ -1701,7 +1701,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Unchanged in scope; it passes a GEN.302 region and shows the count,
   and the outline of the sectors in view comes from Span (2026-10-16
   review).
-  Prerequisites: GEN.302, MAP.217. Related: ADM.57, NAV.45.
+  Prerequisites: GEN.302. Related: ADM.57, NAV.45.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
 - [ ] **MAP.213 Scene, maps and the JavaScript twin for trees: per-node zoom, log-radial overview and positions_at in JavaScript**
@@ -1756,30 +1756,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Scope after the review (2026-10-16 review): the admin page of moved
   objects and the ghost data; the "show ghosts" toggle is a registered
   layer.
-  Prerequisites: DB.57, MAP.217. Related: MAP.192.
-
-- [ ] **MAP.217 Map layer interface: one registry the Galaxy stage view, the Sector Map and the System Map share for a toggled layer (menu entry, modes, URL key, legend, picker layer, fade rule)**
-  Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
-  item for smaller chunks and shared work, 1:33 PM EDT: shared
-  foundations). Today every map wires its own layer controls (MAP.123's
-  kind toggles are written per map in galaxysector.js, sectorscene.js
-  and systemmap.js; mappick.js gives only the picker). Add
-  `static/maplayers.js`: a layer declares `{id, label, modes, urlKey,
-  legend, pickerLayer, fadedWithSectors, draw(scene)}`; the Menu, the
-  URL state, the legend block and the picker registration are produced
-  from the registry on all three maps, and a layer says whether it is
-  hidden by the blocker fade (MAP.149 `nearfield.js`; a course layer is
-  not, per MAP.121's note). Existing toggles move onto it only when
-  their map is touched, no sweep. Done: the module, one real layer
-  ported on each of the three maps (the existing per-kind toggle), the
-  URL round trip, and a browser test that a registered layer appears in
-  each Menu, keeps its URL key and draws its legend.
-  Prerequisites: none. Related: MAP.168, MAP.169, MAP.192, MAP.193,
-  MAP.212.
-  The label engine (map labels) registers as a layer kind when this
-  registry lands (2026-10-16).
-  Owner: Core 2 (Boss, 2026-10-16, 3:00 PM EDT: a global top blocker, 40
-  items wait on it), after the 8.1 phase 1 top 5.
+  Prerequisites: DB.57. Related: MAP.192.
 
 - [ ] **MAP.218 Galaxy Map density control: a readout for everyone, an editor for admins over any region, with preview, confirm and undo**
   Split from MAP.119 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -1896,6 +1873,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   toward the point under the cursor" double click is not built and
   belongs here. A second click within 350 ms and 8 px is now a double
   click, so clicking a selected object again to clear it needs a pause.
+  Core 2 note (2026-10-17, 7:17 AM EDT as the lane reported; the stack
+  of MAP.225, MAP.227 and MAP.228 is built and committed, one full gate
+  then three PRs in order): MAP.225's PR resolves only the wheel part
+  (zoom toward the point under the cursor). Not built there: the
+  column-density ray fallback, the clearance from the nearest pickable
+  thing and the half-way double click on empty space. When it merges,
+  the TODO thread splits those three into a new item and retires the
+  wheel part; until then this item stays open whole.
   Prerequisites: MAP.152. Related: MAP.146, MAP.199, MAP.125.
 
 - [ ] **MAP.227 The camera names its container: the header and the breadcrumb come from its position**
@@ -1912,6 +1897,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 2 (Boss, 2026-10-16, 2:43 PM EDT: after the 8.1 phase 1
   top 5, Core 2 takes the infinite zoom tree: MAP.146 and its subitems,
   then the label items).
+  Core 2 note (2026-10-17, 7:17 AM EDT as the lane reported): the
+  breadcrumb and the "In Sector ..." line follow the camera at the
+  stage's own size; they do not pick finer or coarser levels from the
+  distance.
   Prerequisites: MAP.226. Related: MAP.146, MAP.139.
 
 - [ ] **MAP.228 The camera in the address: the URL and bookmarks hold the camera's target, distance and orientation**
@@ -2348,7 +2337,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   draws one line through the route's stops with the ends named. Missing:
   the direct line drawn apart from the route, a fitted zoom, and any
   course inside a sector.
-  Prerequisites: NAV.21, NAV.22, NAV.23, MAP.217.
+  Prerequisites: NAV.21, NAV.22, NAV.23.
   Plan (2026-10-07): Boss (2026-10-07): "Plotted courses should appear
   on the galactic map and stay until cleared." See NAV.49.
 
@@ -2522,7 +2511,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Galaxy Map course (with NAV.20), with a legend entry; with
   `prefers-reduced-motion` it stays red without the pulse; it reads in
   both themes, and the route list also labels it in text so it isn't
-  shown by color alone. Prerequisites: UX.35, MAP.217.
+  shown by color alone. Prerequisites: UX.35.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
@@ -4825,7 +4814,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 3 (Boss, 2026-10-16 12:16 AM EDT, goal issue #1677;
   replaces any earlier owner named above). Core 1 still owns every
   migration revision: ask it before adding a table or column.
-  Prerequisites: GEN.233, MAP.217. Related: GEN.113.
+  Prerequisites: GEN.233. Related: GEN.113.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.258 Protostars embedded in giant molecular clouds**
@@ -14575,7 +14564,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   registered predicate, the marks, and a test that the plan engine
   refuses a change to a locked aspect (the regeneration, rearrangement
   and density items each test their own).
-  Prerequisites: DB.37, ADM.62, ADM.58, MAP.217. Related: ADM.57.
+  Prerequisites: DB.37, ADM.62, ADM.58. Related: ADM.57.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
 - [ ] **ADM.66 Plan approval screen: every operation with its before and after, approve, reject one, or cancel**
@@ -14604,7 +14593,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   changed, added and removed bodies marked, and the sector view with
   moved systems drawn from old to new position. Done: both views on the
   approval screen with a browser test.
-  Prerequisites: ADM.52, ADM.66, MAP.217. Related: ADM.57, ADM.52.
+  Prerequisites: ADM.52, ADM.66. Related: ADM.57, ADM.52.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
 - [ ] **ADM.68 Plan history: every plan with who asked, approved, applied and undid it, and an undo button**

@@ -56,7 +56,7 @@ The foundations every editor stands on: the change plan and its store, the unit 
 |---|---|---|---|
 | DB.38 | Region density overrides table (migration only) |  | Core 1 owns migrations |
 | GEN.302 | A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it |  | Reads by the cell key built in 8.1 |
-| MAP.212 | A region selection tool on the Galaxy Map and the Sector Map, for admin actions | GEN.302, MAP.217 |  |
+| MAP.212 | A region selection tool on the Galaxy Map and the Sector Map, for admin actions | GEN.302 |  |
 | DB.60 | Migration: record the density multiplier used on each filled sector (migration only) | DB.38 | Split from MAP.119. Core 1 owns migrations. |
 
 ## Phase 2: Interfaces: approval, locks, regen screens, density overrides
@@ -70,14 +70,14 @@ The screens and marks the editors use: the approval screen, the plan history, lo
 |---|---|---|---|
 | ADM.66 | Plan approval screen: every operation with its before and after, approve, reject one, or cancel | ADM.60 |  |
 | ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line | ADM.92, ADM.58, ADM.66, ADM.82, API.28 |  |
-| ADM.67 | Plan diagram: the system before and after as the 2D diagram, and the sector with moved stars marked | ADM.52, ADM.66, MAP.217 |  |
+| ADM.67 | Plan diagram: the system before and after as the 2D diagram, and the sector with moved stars marked | ADM.52, ADM.66 |  |
 | ADM.68 | Plan history: every plan with who asked, approved, applied and undid it, and an undo button | ADM.66, ADM.60 |  |
 
 ### Locks and regen screens
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.65 | Locks: keep marks that stay on an object or one of its aspects, shown on the pages and honoured by every plan | DB.37, ADM.62, ADM.58, MAP.217 |  |
+| ADM.65 | Locks: keep marks that stay on an object or one of its aspects, shown on the pages and honoured by every plan | DB.37, ADM.62, ADM.58 |  |
 | ADM.69 | Keep-or-regenerate matrix: the one screen component every regen screen uses | ADM.64, ADM.65 |  |
 | ADM.70 | Specification form: "regenerate to this specification" built from the aspect catalogue and the system generator options | ADM.62, ADM.69, API.28 | Reuses the system file of the system command |
 
