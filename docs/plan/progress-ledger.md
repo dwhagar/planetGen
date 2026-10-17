@@ -726,3 +726,5 @@ Baseline: PR #1817.
 | UX.113 | 8.1 | Region query |
 | ADM.43 | 8.1 | Settings page |
 | ADM.44 | 8.1 | Settings page |
+| GEN.135 | 8.1 | Reproducible galaxies |
+| TEST.205 | 8.1 | Bugs and flaky tests |
