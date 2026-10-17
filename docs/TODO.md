@@ -10455,6 +10455,10 @@ clears each one.
   `changed`, 118 minutes, load 16): failed again under load and passed
   alone (call 28 s on a loaded worker); the same gate failed
   `test_galaxy_map_drill_down_by_clicks` (filed as TEST.202).
+  Third sighting (Core 3, 2026-10-16, 8:46 PM EDT, UX.116 gate: full
+  `changed`): failed again under load and passed alone (clicking a block
+  "did nothing", state unchanged, call 27 s), so it has now failed in
+  both the GEN.333 and the UX.116 full runs.
   Prerequisites: none. Related: MAP.210, TEST.170, TEST.171.
 
 - [ ] **TEST.173 test_gen_bright_scatter_edges::test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star failed once under gate load with an empty ring in _nearest (bug)**
