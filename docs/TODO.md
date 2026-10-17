@@ -2254,7 +2254,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proposed (the map lane that owns the infinite zoom tree and MAP.239),
   after the tree; the Interface lane may take it with UX.115 if that
   lane starts first.
-  Prerequisites: GEN.323, MAP.225, MAP.239. Related: MAP.207,
+  Prerequisites: MAP.225, MAP.239. Related: MAP.207,
   MAP.219, MAP.210, UX.115, GEN.322, API.27.
 
 - [ ] **MAP.244 The maps and pages use the atmosphere colour where they showed the planet colour**
@@ -4035,7 +4035,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane queue); a line here that named Core 4 was the TODO thread's
   counting error, corrected 2026-10-16, 4:50 PM EDT.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
-  Prerequisites: GEN.324.
+  Prerequisites: none.
 
 - [ ] **GEN.162 Planet cull and blue stragglers in clusters**
   Research (2026-10-09, globular-clusters.md, PR #824; handoff in
@@ -4417,7 +4417,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.235, GEN.323. Related: GEN.223, GEN.240.
+  Prerequisites: GEN.235. Related: GEN.223, GEN.240.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.239 High-velocity clouds and the Magellanic Stream as placed gas clouds (later)**
@@ -4504,7 +4504,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   address columns and gain the point columns and cell key (DB.35); the
   scatter pass keeps its bands and order and the key is computed from
   whatever position it writes.
-  Prerequisites: GEN.322, GEN.323, GEN.324. Related: GEN.238, GEN.223.
+  Prerequisites: none. Related: GEN.238, GEN.223.
   Built-on note (Core 1, 2026-10-16, 12:03 PM EDT, GEN.236 merged as
   #1824, no migration): SectorProfile.kind_factors carries one factor
   per rare kind (supernova remnant = gas fraction; molecular cloud =
@@ -4526,6 +4526,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Its three subitems are merged: GEN.322 (#1991, epoch 5), GEN.323
+  (#1992, epoch 6) and GEN.324 (#1993, epoch 7), reported by Core 3 at
+  about 4:36, 4:45 and 4:55 AM EDT as the lane clock reported, after one
+  stack gate (3:13 to 4:29 AM EDT, 18,673 passed, 4 failed: three older
+  migration tests fixed in #1993 and TEST.217, fixed on main). The
+  umbrella stays open because the coordinator relayed that Core 3 starts
+  it next (4:55 AM EDT); its own Done list (the three passes cover the
+  reach with the same code, a pre-placed star is never drawn again at
+  fill, the yields match the design note's table) is for Core 3 to
+  confirm. Default-galaxy yields of GEN.324 are in the design note:
+  satellites 7.9e9 systems, clusters 1.7e8. A galaxy scattered before
+  this needs `planetgen plan --redo-scatters luminosity mass phenomena`.
+  Boss accepted the cap of 4 for GEN.323 at 12:52 AM EDT, so 9.1 million
+  black-hole rows beyond the outline stand (the Done figure of GEN.323).
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.241 Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds**
@@ -6262,103 +6276,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   line on this item.
   Prerequisites: GEN.320. Related: GEN.241.
 
-- [ ] **GEN.322 Band groups and the halo term: the bright-star and mass passes cover the 262 kpc reach**
-  Split from GEN.240 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). The two passes keep their
-  algorithm (one Poisson count per shell from a certified bound, bands
-  in proportion, accept by true density over bound) but take the halo
-  term in band_majorants, the new populations in fractions, and band
-  groups of 64 bands beyond the outline; rows carry their companions
-  with the primary and a row counts as 1 + p_placed. Done: the passes
-  cover the reach with the same code, inside the outline they yield
-  exactly the rows they yielded before, beyond 8 kpc under 10%
-  efficiency is lost, a pass to 262 kpc takes about 2 minutes, and a
-  pre-placed star is never drawn again at fill.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Existing galaxies (Core 3 report, #1932, 2026-10-16, 10:00 PM EDT):
-  GEN.286 and GEN.287 change the stored scatter rows (the halo scatter
-  rows at the 500 luminosity floor fall from about 3.8 million to about
-  190,000), so a galaxy scattered earlier needs `planetgen plan
-  --redo-scatters mass luminosity` (as after GEN.333).
-  Redo scope (rescatter thread finding, 2026-10-16): `--redo-scatters`
-  redoes rows only; satellites and clusters (`galaxy_components`) are
-  drawn only by a full `plan`. DOC.62 puts the line in docs/cli.md.
-  Epoch plan (Core 3, 3:11 AM EDT as the lane reported): generator epoch
-  5, bumped at its merge once the earlier epoch is stamped; GEN.322,
-  GEN.323 and GEN.324 share one stack gate on the GEN.324 tip (started
-  3:13 AM EDT, ends about 4:30 AM EDT as the lane reported).
-  Prerequisites: GEN.237. Related: GEN.240.
-
-- [ ] **GEN.323 The phenomena pass runs on the object-first sampler**
-  Split from GEN.240 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). The phenomena pass walks every
-  band of every shell (_band_rows), which cannot reach 262 kpc. Move it
-  to the same object-first sampler as a, with its rates, cut and
-  below-cut draw at sector time unchanged and the cell key written from
-  whatever position it writes. Done: the pass covers the reach, a seeded
-  galaxy inside the outline gets the same phenomenon rows as before (a
-  test compares), and about 9.1 million extra black-hole rows appear
-  beyond the outline at the defaults (1.9 million beyond 15 kpc and 7
-  million in the inner shells above and below the disk; Core 3 measured
-  it and Boss accepted it with the cap and the physical weights kept,
-  2026-10-17, 12:52 AM EDT).
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Redo scope (rescatter thread finding, 2026-10-16): `--redo-scatters`
-  redoes rows only; satellites and clusters (`galaxy_components`) come
-  only from a full `plan`. DOC.62 documents it.
-  Finding (Core 3, 2026-10-17, relayed by the coordinator at 12:47 AM
-  EDT): measured about 9.1 million black-hole rows beyond the outline,
-  not 2.4 million (1.9 million beyond 15 kpc and 7 million in the inner
-  shells above and below the disk). Boss accepted it (card "Accept",
-  2026-10-17, 12:52 AM EDT, as the coordinator relayed), so the Done
-  figure here and in GEN.240's text is now 9.1 million.
-  Epoch plan (Core 3, 3:11 AM EDT as the lane reported): generator epoch
-  6, bumped at its merge once the earlier epoch is stamped; GEN.322,
-  GEN.323 and GEN.324 share one stack gate on the GEN.324 tip (started
-  3:13 AM EDT, ends about 4:30 AM EDT as the lane reported).
-  Prerequisites: GEN.322. Related: GEN.240.
-
-- [ ] **GEN.324 A component pass: clusters, the Clouds and Sagittarius place their stars, and the fill adds the component's density to lambda**
-  Split from GEN.240 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Components get their own pass:
-  total star count from the mass, positions by inverse transform of the
-  profile table, each star kept or dropped by the same pass cut; the
-  sector fill adds the component's density to lambda so no pre-placed
-  star is counted twice. Done: at the defaults the pass places nothing
-  in clusters and old satellites and a few thousand stars in the Clouds,
-  no cluster star is counted twice, and the yields match the design
-  note's table.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Migration revision 0110 is reserved for this item's bright_stars
-  population CHECK ('satellite'), after the queue 0105 (DB.65), 0106
-  (DB.69), 0107 (DB.67), 0108 (DB.70) and 0109 (DB.68) (coordinator
-  relay, 2026-10-17, 12:47 AM EDT). Alembic chains by down_revision: if
-  this merges before the others, take the next free number at merge and
-  tell Core 1.
-  Finding (Core 3, 2026-10-17, 2:10 AM EDT as the lane reported, running
-  its GEN.324 tests): the migration runner (`alembic_runner`) requires
-  contiguous revision ids, so a file numbered 0110 with head 0104 raises
-  "migration revision '0110' should be '0105'"; a reserved number cannot
-  be used until every lower number exists. The revision numbers listed
-  here are therefore an order of merge and not reservations: each
-  migration takes the next free number when it merges, and its author
-  tells the owners of the migrations still waiting (Core 3 for GEN.324,
-  Core 1 for the DB.65, DB.69, DB.67, DB.70 and DB.68 queue).
-  Epoch plan (Core 3, 3:11 AM EDT as the lane reported): generator epoch
-  7, bumped at its merge once the earlier epoch is stamped; GEN.322,
-  GEN.323 and GEN.324 share one stack gate on the GEN.324 tip (started
-  3:13 AM EDT, ends about 4:30 AM EDT as the lane reported).
-  Prerequisites: GEN.322. Related: GEN.240.
-
 - [ ] **GEN.325 Planet cull in dense components by the survival formula and the metallicity factor**
   Split from GEN.162 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). Giant-planet probability is
@@ -7264,7 +7181,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Changed behaviour recorded with GEN.333: the brightest white dwarf is
   now 50 solar luminosities (it was 100), so the luminosity floors and
   caps may go as low as 50. Owner: Core 3.
-  Prerequisites: GEN.323. Related: GEN.333, GEN.283, UX.116, GEN.301.
+  Prerequisites: none. Related: GEN.333, GEN.283, UX.116, GEN.301.
 
 - [ ] **GEN.378 The galaxy type families: the checked design with its scaling relation table and the draw order**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
@@ -7663,7 +7580,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rows. No fixed content (Boss, 4:11 and 4:14 PM EDT): the bubbles stay
   derived from the seed; every strength is a calculated or drawn law
   with its source named.
-  Prerequisites: GEN.393, GEN.322, GEN.323. Related: GEN.240, GEN.301,
+  Prerequisites: GEN.393. Related: GEN.240, GEN.301,
   GEN.377.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
 
@@ -7961,6 +7878,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rates) and GEN.370 (central mass), so GEN.404 and GEN.405 no longer
   point at each other; GEN.406 (research) now comes first in the Galaxy
   laws build and GEN.405 waits for it.
+  Core 3 note (GEN.322 to GEN.324 merged): `band_majorants` is now
+  `band_majorants` plus `extent_majorants(shape, inner, z_near, z_far,
+  fractions, outer)`; GEN.322's plan test uses a luminosity floor of
+  2500 (30,000 gave only 284 stars at GEN.134's young share, none in the
+  high-extent shells beyond the outline).
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -13779,6 +13701,15 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Core 1 (needs a migration revision).
   Migration revision: 0105, after DB.53's 0104 (Core 1, 2026-10-16, 7:42 PM EDT;
   numbers are assigned at merge time against main).
+  Migration revision shift (Core 3, GEN.324 #1993 merged about 4:55 AM
+  EDT as the lane reported): GEN.324 took 0105_satellite_stars because
+  main's head was 0104 and alembic_runner requires contiguous ids
+  (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
+  DB.65 0106, DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
+  order they merge.  Migration tests that count the populations of
+  chk_bright_stars_population use bright_stars.POPULATIONS (changed in
+  test_migration_halo_populations, test_migration_nuclear_structures and
+  test_migration_orbit_nodes).
   Prerequisites: none. Related: GEN.372, DB.55.
 
 - [ ] **DB.66 The shape row carries the galaxy family and one column per density component, as a migration only**
@@ -13815,6 +13746,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
   Prerequisites: GEN.411, GEN.412, GEN.422, GEN.423, GEN.424. Related:
   DB.65, DB.68, GEN.412.
+  Migration revision shift (Core 3, GEN.324 #1993 merged about 4:55 AM
+  EDT as the lane reported): GEN.324 took 0105_satellite_stars because
+  main's head was 0104 and alembic_runner requires contiguous ids
+  (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
+  DB.65 0106, DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
+  order they merge.
 
 - [ ] **DB.68 Planets and moons store the ozone column and the haze, dust and cloud optical depths**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -13825,6 +13762,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   revision after DB.67). Done: every row has the values; a test checks
   them against the stored mixture.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
+  Migration revision shift (Core 3, GEN.324 #1993 merged about 4:55 AM
+  EDT as the lane reported): GEN.324 took 0105_satellite_stars because
+  main's head was 0104 and alembic_runner requires contiguous ids
+  (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
+  DB.65 0106, DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
+  order they merge.
   Prerequisites: GEN.413, GEN.414, DB.67. Related: DB.67.
 
 - [ ] **DB.69 Planets and moons store the composition fractions**
@@ -13892,6 +13835,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   claims): the stored mantle oxidation state is delta-IW on the one
   reference scale of GEN.498 (Hirschmann 2021), with the stored
   quantities part G3 F8 lists.
+  Migration revision shift (Core 3, GEN.324 #1993 merged about 4:55 AM
+  EDT as the lane reported): GEN.324 took 0105_satellite_stars because
+  main's head was 0104 and alembic_runner requires contiguous ids
+  (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
+  DB.65 0106, DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
+  order they merge.
 
 - [ ] **DB.70 Planets, moons and small bodies store the surface and small-body composition shares**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -13936,6 +13885,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   filed by the TODO thread: one mixture storage for every body replaces
   `asteroid_belt_composition` and the planet composition text (see
   DB.69); designed together with it.
+  Migration revision shift (Core 3, GEN.324 #1993 merged about 4:55 AM
+  EDT as the lane reported): GEN.324 took 0105_satellite_stars because
+  main's head was 0104 and alembic_runner requires contiguous ids
+  (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
+  DB.65 0106, DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
+  order they merge.
 
 - [ ] **DB.71 Planets and moons store the partial pressures of the added gases, not only the ten stored today**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
