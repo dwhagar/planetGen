@@ -416,7 +416,7 @@ def get_sector(db, sector_id):
 
 
 def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sort=None, descending=False,
-                binary=None, placement=None, octants=(), facets=False, after=None):
+                binary=None, placement=None, octants=(), facets=False, after=None, start=None):
     """
     Returns `GET /api/systems`'s full paginated envelope.
 
@@ -429,10 +429,12 @@ def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sor
             filters (UX.41).
         after: The system ID the previous page ended on (PERF.75); with the name sort the page starts after
             it and `offset` is ignored.
+        start: The jump-by-value box's text (PERF.75, the API's `from`): the list begins at the first name (name
+            sort) or sector (sector sort) from it on.
     """
     _require_db(db)
     params = [("db", db), ("star_type", star_type), ("sector_id", sector_id), ("limit", limit),
-              ("offset", offset), ("after", after), ("sort", sort), ("order", "desc" if descending else None),
+              ("offset", offset), ("after", after), ("from", start or None), ("sort", sort), ("order", "desc" if descending else None),
               ("binary", None if binary is None else ("yes" if binary else "no")), ("placement", placement)]
     params += [("octant", value) for value in octants] + [("facets", "1" if facets else None)]
     return _request("/systems", [(key, value) for key, value in params if value is not None])

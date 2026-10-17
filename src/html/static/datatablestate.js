@@ -9,7 +9,8 @@
 export var PAGE_SIZE = 50;
 
 // The query pairs for a state: `sort`/`order` (after the table's `prefix`,
-// for a page with several tables), one pair per chosen filter value.
+// for a page with several tables), `from` (the jump-by-value box's `start`, PERF.75) and one pair per chosen filter
+// value.
 // `defaultSort` leaves the sort out when it is the page's default (so the
 // address bar stays short).
 export function stateParams(state, defaultSort, prefix) {
@@ -20,6 +21,9 @@ export function stateParams(state, defaultSort, prefix) {
   }
   if (state.descending) {
     pairs.push([prefix + "order", "desc"]);
+  }
+  if (state.start) {
+    pairs.push([prefix + "from", state.start]);
   }
   Object.keys(state.filters || {}).forEach(function (param) {
     (state.filters[param] || []).forEach(function (value) {
