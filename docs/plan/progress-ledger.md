@@ -756,3 +756,4 @@ Baseline: PR #1817.
 | TEST.193 | 8.1 | Bugs and flaky tests |
 | PERF.97 | 8.1 | Queue, caches and performance |
 | NAV.45 | 8.1 | Region query |
+| GEN.319 | 8.1 | Nebula and young stars |
