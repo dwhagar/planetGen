@@ -21,7 +21,7 @@ from planetgen.queue import progress_rate, redisqueue, work as workQueue
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import clusters, satellites
-from planetgen.generation import phenomenon_scatter
+from planetgen.generation import phenomenon_reach, phenomenon_scatter
 from planetgen.generation import scatter_companions as scatterCompanions
 from planetgen.generation import star_population as starPopulation
 from planetgen.generation.star_labels import describe_types, star_label
@@ -1117,32 +1117,40 @@ def _log_phenomena_shells(shells, counts):
 
 
 def _scatter_phenomena_shells(args, bar, tasks, weights, task_done, mysql_config, skeleton, e_value, seed,
-                              min_mass_solar, filled):
+                              min_mass_solar, filled, far=None, reach=False):
     """The shells of the phenomenon scatter through the work queue, a task to a run of consecutive shells, the step
-    `bar` credited with each task's expected work as it finishes (UX.83, PERF.51). Returns the rows written with
-    members (GEN.262)."""
+    `bar` credited with each task's expected work as it finishes (UX.83, PERF.51). `far` is `(key, first, last)` of
+    the task that draws the faint shells far out together (GEN.323), whose chunk is that one entry; `reach` also draws
+    each shell's part beyond the outline. Returns the rows written with members (GEN.262)."""
     shells_done = [0]
     systems = [0]
-    total_shells = sum(len(chunk) for chunk in tasks.values())
+    far_key = None if far is None else far[0]
+    total_shells = sum(len(chunk) if key != far_key else far[2] - far[1] + 1 for key, chunk in tasks.items())
+
+    def shells_of(key):
+        """A task's shells as the `(shell, high, weight)` rows `_shell_names` reads."""
+        return [(shell, -1, 0.0) for shell in range(far[1], far[2] + 1)] if key == far_key else tasks[key]
 
     def done_with(key):
         def on_done(result, seconds, weight):
             task_counts = result["counts"]
             systems[0] += result.get("systems", 0)
             task_done(task_counts, result["write_seconds"], seconds, weight)
-            _log_phenomena_shells(tasks[key], task_counts)
-            shells_done[0] += len(tasks[key])
+            _log_phenomena_shells(shells_of(key), task_counts)
+            shells_done[0] += len(shells_of(key))
             bar.update(advance=weights[key],
                        description=f"Phenomena ({shells_done[0]:,} of {total_shells:,} shells)")
         return on_done
 
     with run_common._work_queue(args, "Phenomena") as queue:
         queue.submit_each("phenomena", [
-            (f"shell {_shell_names(chunk)}", {
-                "mysql_config": mysql_config, "shape": skeleton.shape, "shells": [(shell, high) for shell, high, _w in chunk],
+            (f"shell {_shell_names(shells_of(key))}", {
+                "mysql_config": mysql_config, "shape": skeleton.shape,
+                "shells": [] if key == far_key else [(shell, high) for shell, high, _w in chunk],
+                "far": (far[1], far[2]) if key == far_key else None, "reach": reach,
                 "edge_pc": skeleton.edge_pc, "expected": e_value, "seed": seed,
                 "min_mass_solar": min_mass_solar,
-                "skip": {address for address in filled if address[0] in {shell for shell, _h, _w in chunk}},
+                "skip": {address for address in filled if address[0] in {row[0] for row in shells_of(key)}},
             }, weights[key], done_with(key))
             for key, chunk in tasks.items()], _phenomenon_shells_task)
     return systems[0]
@@ -1456,13 +1464,41 @@ def scatter_phenomena(args):
         stages.enter("phenomena")
         counts = {}
         e_value = skeleton.expected_system_count_at_density_1
-        rows = [(shell, high, phenomenon_scatter.shell_expected(skeleton.shape, shell, high, skeleton.edge_pc,
-                                                                 e_value, min_mass_solar)
-                 + brightStars.BAND_WEIGHT_STARS * (2 * high + 1))
-                for shell, high in extents]
+        # GEN.323: the pass covers the grid's whole reach, as the stars' does (GEN.322): the outline's shells also draw
+        # their bands beyond it, the shells past the outline one by one while they hold objects to speak of, and the
+        # faint ones further out together, as one task.
+        outer_shell = max((shell for shell, _high in extents), default=0)
+        reach_on = program_constants.SCATTER_COVERS_REACH
+        reach_shell = getattr(skeleton, "reach_shell_index", None) if reach_on else None
+        reach_shell = outer_shell if reach_shell is None else max(reach_shell, outer_shell)
+        first_far, beyond_shells, estimates = reach_shell + 1, [], {}
+        if reach_on:
+            first_far, _means = phenomenon_reach.far_shells(
+                skeleton.shape, outer_shell + 1, reach_shell, skeleton.edge_pc, e_value, min_mass_solar)
+            beyond_shells = [(shell, -1) for shell in range(outer_shell + 1, first_far)]
+            estimates = phenomenon_reach.reach_estimates(
+                skeleton.shape, list(extents) + beyond_shells, skeleton.edge_pc, e_value, min_mass_solar)
+        rows = []
+        for shell, high in list(extents) + beyond_shells:
+            weight = 0.0
+            if high >= 0:
+                weight = (phenomenon_scatter.shell_expected(skeleton.shape, shell, high, skeleton.edge_pc, e_value,
+                                                           min_mass_solar)
+                          + brightStars.BAND_WEIGHT_STARS * (2 * high + 1))
+            if reach_on:
+                weight += estimates[shell][0] + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS * estimates[shell][1]
+            rows.append((shell, high, weight))
         tasks = dict(enumerate(shell_chunks(rows, run_common._worker_count(args))))
         weights = {key: sum(row[2] for row in chunk) for key, chunk in tasks.items()}
-        log.normal(f"Phenomena: about {round(sum(weights.values())):,} to place in {len(extents):,} shells "
+        far = None
+        if reach_on and first_far <= reach_shell:
+            far = (len(tasks), first_far, reach_shell)
+            far_weight = phenomenon_reach.far_expected(
+                skeleton.shape, first_far, reach_shell, skeleton.edge_pc, e_value, min_mass_solar)
+            tasks[far[0]] = [(first_far, reach_shell, far_weight)]
+            weights[far[0]] = far_weight + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS
+        shell_total = len(extents) + len(beyond_shells) + (0 if far is None else reach_shell - first_far + 1)
+        log.normal(f"Phenomena: about {round(sum(weights.values())):,} to place in {shell_total:,} shells "
                    f"(neutron stars and black holes from {min_mass_solar:g} solar masses).")
         if filled:
             log.normal(f"Leaving out the {len(filled):,} sectors already filled.")
@@ -1486,11 +1522,12 @@ def scatter_phenomena(args):
         with run_common._generation_progress() as progress:
             log.set_console(progress.console)
             try:
-                with steps.Step(f"Phenomena (0 of {len(extents):,} shells)", "phenomena",
+                with steps.Step(f"Phenomena (0 of {shell_total:,} shells)", "phenomena",
                                 max(sum(weights.values()), 1.0), args=args, progress=progress,
                                 workers=run_common._worker_count(args), percent=True, record=False) as bar:
                     companions = _scatter_phenomena_shells(args, bar, tasks, weights, task_done, mysql_config,
-                                                           skeleton, e_value, seed, min_mass_solar, filled)
+                                                           skeleton, e_value, seed, min_mass_solar, filled,
+                                                           far=far, reach=reach_on)
             finally:
                 log.reset_console()
         with run_common._generation_progress() as progress:
@@ -1556,8 +1593,10 @@ def scatter_phenomena(args):
 def _phenomenon_shells_task(payload):
     """
     A run of consecutive shells of the phenomenon scatter -- a work queue
-    task: draws each shell (`phenomenon_scatter.scatter_shell`) and writes its
-    rows with their members (`scatter_companions`), committing every 10,000.
+    task: draws each shell (`phenomenon_scatter.scatter_shell`, then its part beyond the outline with
+    `phenomenon_reach.scatter_shell` when the scatter covers the reach, GEN.323; or the faint shells far out
+    together, `phenomenon_reach.scatter_far`) and writes its rows with their members (`scatter_companions`),
+    committing every 10,000.
 
     Returns:
         dict: `counts` (rows written per kind) and `write_seconds` (the time spent writing them, the rest of the
@@ -1570,12 +1609,23 @@ def _phenomenon_shells_task(payload):
     try:
         epoch = scatterCompanions.default_epoch_unix(conn)
         batch = []
+        shape, edge_pc, expected = payload["shape"], payload["edge_pc"], payload["expected"]
+        seed, skip, min_mass = payload["seed"], payload["skip"], payload["min_mass_solar"]
+        runs = []
         for shell_index, high_band in payload["shells"]:
-            for row in phenomenon_scatter.scatter_shell(
-                payload["shape"], shell_index, high_band, payload["edge_pc"],
-                payload["expected"], payload["seed"], skip_addresses=payload["skip"],
-                min_mass_solar=payload["min_mass_solar"],
-            ):
+            runs.append(phenomenon_scatter.scatter_shell(
+                shape, shell_index, high_band, edge_pc, expected, seed, skip_addresses=skip, min_mass_solar=min_mass)
+                if high_band >= 0 else iter(()))
+            if payload.get("reach"):
+                runs.append(phenomenon_reach.scatter_shell(
+                    shape, shell_index, high_band, edge_pc, expected, seed, skip_addresses=skip,
+                    min_mass_solar=min_mass))
+        if payload.get("far"):
+            first_far, last_far = payload["far"]
+            runs.append(phenomenon_reach.scatter_far(
+                shape, first_far, last_far, edge_pc, expected, seed, skip_addresses=skip, min_mass_solar=min_mass))
+        for rows in runs:
+            for row in rows:
                 label = phenomenon_scatter.class_label(row[3], row[4])
                 counts[label] = counts.get(label, 0) + 1
                 batch.append(row)
