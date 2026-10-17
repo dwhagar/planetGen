@@ -122,6 +122,26 @@ export function pointOnFocusPlane(origin, direction, target, forward) {
   return [origin[0] + direction[0] * t, origin[1] + direction[1] * t, origin[2] + direction[2] * t];
 }
 
+// MAP.225: the zoom factor a wheel step may take toward a point `distance` away (the eye to the thing under the
+// cursor) without landing on it: a step in (under 1) moves the eye by no more than half of what lies between it
+// and `clearance` from the thing, so the approach is logarithmic and the camera never arrives by accident; a step
+// out (over 1) is not limited.
+export function limitApproach(factor, distance, clearance) {
+  if (!(factor < 1) || !(distance > 0)) return factor;
+  const room = Math.max(0, distance - Math.max(0, clearance || 0));
+  const requested = (1 - factor) * distance;
+  const step = Math.min(requested, 0.5 * room);
+  return 1 - step / distance;
+}
+
+// MAP.225: the new center of a view that zooms by `factor` (the distance becomes `factor` times what it was) with
+// `anchor` staying where it is on the screen: the center scales about the anchor, `anchor + factor * (center -
+// anchor)`, because the eye moves along the line to the anchor by the same factor and the view direction is kept.
+export function targetAboutAnchor(target, anchor, factor) {
+  return [anchor[0] + factor * (target[0] - anchor[0]), anchor[1] + factor * (target[1] - anchor[1]),
+    anchor[2] + factor * (target[2] - anchor[2])];
+}
+
 // The pointer half of the controller, as handlers for the canvas's
 // pointerdown, pointermove, pointerup (and pointercancel), pointerleave
 // and click events; with `options.attach` it adds them to `canvasEl`

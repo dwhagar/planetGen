@@ -214,3 +214,36 @@ test("the across gate lets one move through per gesture and the next only after 
   assert.equal(gate.tick(4150), false, "within the cooldown of the last move");
   assert.equal(gate.tick(5200), true, "quiet, and past the cooldown");
 });
+
+test("a wheel step in moves the eye by at most half the way to the thing under the pointer (MAP.225)", () => {
+  assert.equal(MC.limitApproach(0.8, 100, 2), 0.8, "a small step is taken whole");
+  const big = MC.limitApproach(0.1, 100, 2);
+  assert.ok(Math.abs(big - (1 - 49 / 100)) < 1e-12, `half of the room: ${big}`);
+  assert.equal(MC.limitApproach(0.1, 2, 2), 1, "already at the clearance: no step in");
+  assert.equal(MC.limitApproach(0.1, 1, 2), 1, "inside the clearance: no step in");
+  assert.equal(MC.limitApproach(1.5, 100, 2), 1.5, "a step out is not limited");
+  assert.equal(MC.limitApproach(0.5, 0, 2), 0.5, "no distance to go by");
+  // Repeated steps close in without ever arriving.
+  let distance = 100;
+  for (let n = 0; n < 60; n++) distance *= MC.limitApproach(0.01, distance, 2);
+  assert.ok(distance >= 2, `${distance} stays outside the clearance`);
+});
+
+test("zooming about an anchor keeps the anchor where it is on the screen (MAP.225)", () => {
+  const eye = [10, -4, 30];
+  const target = [0, 0, 0];
+  const anchor = [3, 2, 5];
+  const factor = 0.6;
+  const next = MC.targetAboutAnchor(target, anchor, factor);
+  // The eye moves along the line to the anchor by the same factor, so the anchor's offset from the eye along
+  // the view direction scales by `factor`, and so does its offset across it.
+  const forward = target.map((v, k) => v - eye[k]);
+  const length = Math.hypot(...forward);
+  const unit = forward.map((v) => v / length);
+  const newEye = next.map((v, k) => v - unit[k] * length * factor);
+  const before = anchor.map((v, k) => v - eye[k]);
+  const after = anchor.map((v, k) => v - newEye[k]);
+  for (let k = 0; k < 3; k++) assert.ok(Math.abs(after[k] - before[k] * factor) < 1e-9, `axis ${k}`);
+  assert.deepEqual(MC.targetAboutAnchor(target, anchor, 1), target, "a step of 1 moves nothing");
+  assert.deepEqual(MC.targetAboutAnchor(anchor, anchor, 0.3), anchor, "an anchor at the center keeps it");
+});

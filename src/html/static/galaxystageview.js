@@ -103,6 +103,8 @@ export const GALAXY_MIN_ZOOM = 0.5;
 // An opened system zooms from its fit down to a moon, nine orders closer.
 export const SYSTEM_MIN_ZOOM = 1e-9;
 const WHEEL_ZOOM_PER_PX = 0.0025;
+// MAP.225: how close to the thing under the pointer a wheel step in leaves the eye, as a share of the view's distance.
+const ZOOM_CLEARANCE = 0.02;
 // A wheel move from a stage to the next (MAP.125) takes one gesture: this
 // long before another can, and a star counts as the one zoomed on when it is
 // within this share of the view's distance from its middle.
@@ -2105,6 +2107,31 @@ export function createStageView(host) {
     applyView();
   }
 
+  // MAP.225: the wheel zooms toward the point under the pointer, which stays where it is on the screen: the
+  // picked star, remnant or cell, else the point of the focus plane under it (`anchorUnder`). A step in moves the
+  // eye by no more than half the way to that point (`MC.limitApproach`), so it is a logarithmic approach and the
+  // camera never lands on a star by accident. A view that cannot be moved (a locked one, a stage fitted whole), or
+  // a wheel with no pointer over the map, zooms about the middle as before.
+  function zoomTowardPointer(factor, event) {
+    if (!view || animation || !MC.canZoom(zoomPolicyFor(resolved))) return;
+    const anchor = event && isFree(resolved) && view.fit ? anchorUnder(event.clientX, event.clientY) : null;
+    if (!anchor) {
+      zoomBy(factor);
+      return;
+    }
+    const eye = camera.position;
+    const away = Math.hypot(anchor[0] - eye.x, anchor[1] - eye.y, anchor[2] - eye.z);
+    const asked = MC.limitApproach(factor, away, ZOOM_CLEARANCE * view.dist);
+    const before = view.dist;
+    view.zoom = MC.clampDistance(zoomPolicyFor(resolved), view.zoom * asked, 1);
+    reframe();
+    const taken = before > 0 ? view.dist / before : 1;
+    const target = MC.targetAboutAnchor(view.target, anchor, taken);
+    clampPan(target, view.fit.target, PAN_REACH * view.fit.dist * Math.tan(fovHalf()));
+    view.target = target;
+    applyView();
+  }
+
   // MAP.200: the zoom as a share of the policy's log range, 0 at the
   // farthest the view goes and 1 at the nearest.
   function zoomShare() {
@@ -2142,7 +2169,7 @@ export function createStageView(host) {
   function onWheel(event) {
     if (!MC.canZoom(zoomPolicyFor(resolved)) || !view) return false;
     const deltaPx = MC.wheelPixels(event, canvasEl.clientHeight, 200);
-    if (deltaPx && !zoomAcross(deltaPx, event)) zoomBy(Math.exp(deltaPx * WHEEL_ZOOM_PER_PX));
+    if (deltaPx && !zoomAcross(deltaPx, event)) zoomTowardPointer(Math.exp(deltaPx * WHEEL_ZOOM_PER_PX), event);
     return true;
   }
 
