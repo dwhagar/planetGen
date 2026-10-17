@@ -305,6 +305,8 @@ This is the shape of 5.1 made explicit. A command is a kind in the units registr
 
 Decided (Boss, 2026-10-17, 4:15 PM EDT): from the command line Boss runs `plan`, then `scatter`, and each scatter kind is its own command even where the root command is the same: a scatter command for only mass, only luminosity, only phenomena, only the nebula field, only the backfill, never one command that groups them. Each command has its own parameters, set by the UX when it runs the commands through the API and by Boss on the command line. When a new generate job is called, the wrapper only selects the commands that will run and never touches the others; they run in sequence; the progress bars are dynamic to the current context and show only what is going to run.
 
+Governing principle (Boss, 2026-10-17, 4:18 PM EDT): modular commands, each command does one and only one thing and does it exceptionally well. A scatter for mass does that and only that and never worries about anything but what it does. No command knows about another stage, about what ran before it or what runs after it, or about the order. The list of steps is built from what the user requested and handed to the wrapper, which handles the sequence, so the order lives only in the wrapper's step list, kept as data, and the sequence can be changed without touching any command.
+
 ## 6. Decisions for Boss
 
 Each has a default; the default is what a "yes" means.

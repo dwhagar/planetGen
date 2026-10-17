@@ -14056,6 +14056,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   luminosity, phenomena, nebula field, backfill and the rest) is its own
   command with its own parameters, never one command that groups
   scatters; see PERF.118.
+  Decided (Boss, 2026-10-17, 4:18 PM EDT): each command here does one
+  and only one thing and knows nothing of the other stages or the order;
+  the order lives only in the wrapper's step list (PERF.118).
   Prerequisites: PERF.118. Related: PERF.98.
 
 - [ ] **PERF.107 The sector units and the stages around them: start, neighborhood, sectors, link, population and settle**
@@ -14081,6 +14084,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   luminosity, phenomena, nebula field, backfill and the rest) is its own
   command with its own parameters, never one command that groups
   scatters; see PERF.118.
+  Decided (Boss, 2026-10-17, 4:18 PM EDT): each command here does one
+  and only one thing and knows nothing of the other stages or the order;
+  the order lives only in the wrapper's step list (PERF.118).
   Prerequisites: PERF.106. Related: PERF.98.
 
 - [ ] **PERF.108 The backfill as queue units: chunks of at least 10,000 cells, one enumeration (folds in PERF.18)**
@@ -14118,6 +14124,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   luminosity, phenomena, nebula field, backfill and the rest) is its own
   command with its own parameters, never one command that groups
   scatters; see PERF.118.
+  Decided (Boss, 2026-10-17, 4:18 PM EDT): each command here does one
+  and only one thing and knows nothing of the other stages or the order;
+  the order lives only in the wrapper's step list (PERF.118).
   Prerequisites: PERF.107. Related: PERF.98.
 
 - [ ] **PERF.111 `ResponseCache.put` without a database never trims the page cache: the cache grows past `max_entries`, and the thread test fails when its last put is one of those (bug)**
@@ -14323,6 +14332,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   going to run (the overall bar, the stage count and the estimate come
   from the selected commands alone). A grouped scatter command or a
   stage list that includes commands which will not run is wrong.
+  Decided (Boss, 2026-10-17, 4:18 PM EDT), the governing principle:
+  modular commands, each command does one and only one thing and does it
+  exceptionally well. A scatter for mass does that and only that and
+  never worries about anything but what it does: no command knows about
+  another stage, about what ran before it or what runs after it, or
+  about the order. The list of steps is built from what the user
+  requested and handed to the wrapper, which handles the sequence; the
+  order lives only in the wrapper's step list, kept as data, so the
+  sequence can be changed without touching any command. A command that
+  reaches into another stage's work, or a stage that must run in a fixed
+  place because a command assumes it, is wrong.
   Design: [docs/design/redis-and-the-work-queue.md](design/redis-and-the-work-queue.md)
 
 - [ ] **PERF.119 The Generate page, the API and the one-off sector and system commands start their runs through the wrapper**
@@ -14356,6 +14376,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from the selected commands alone). So each entry point sends its own
   parameters per command, and its progress shows only the commands
   selected.
+  Decided (Boss, 2026-10-17, 4:18 PM EDT): the governing principle of
+  PERF.118 holds for every start path: each entry point only builds the
+  list of steps from what the user requested and hands it to the
+  wrapper, which alone handles the sequence.
   Prerequisites: PERF.98, PERF.118. Related: PERF.99, PERF.118.
 
 ## DB: Database and schema
