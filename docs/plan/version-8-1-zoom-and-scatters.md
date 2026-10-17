@@ -125,10 +125,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.183 | A test that fails when a new output path formats its own lines | UX.122, UX.123 | Split from UX.102. |
 | UX.102 | One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere | UX.121, UX.122, UX.123, TEST.183 |  |
 
-### Settings page
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
 
 ### Generate page and directives
 
