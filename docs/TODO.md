@@ -6611,6 +6611,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   component of zero mass is legal and tested (a galaxy without a disk,
   an elliptical, needs no change in the potential); GEN.379 and DB.66
   sit just before this item in the thread.
+  GEN.368's approved table (Boss, 10:11 PM EDT), row 12: the rotation
+  curve and the enclosed mass are calculated from this potential (v
+  squared = G M(<r) / r), not set, and `MILKY_WAY_MASS` goes as the
+  central mass of every Hill sphere (GEN.400); the baryonic Tully-Fisher
+  relation is a cross-check only.
   Prerequisites: GEN.144, GEN.369, GEN.379. Related: GEN.115.
 
 - [ ] **GEN.339 Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded**
@@ -7159,6 +7164,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `MILKY_WAY_STELLAR_LUMINOSITY_W` (becomes the galaxy's own luminosity
   from its mass-to-light ratio). Section 5.13.5 of the draft still says
   the draw returns "the home position"; Core 1 removes it.
+  Table approved (Boss, 2026-10-16, 10:11 PM EDT, as Core 1 reported):
+  size source Shen et al. 2003; the halo mass by the approximation
+  (GEN.399 in 8.2 researches the halo mass function and compares); no
+  home position; every derived law draws its natural scatter from the
+  seed; the first family covers 3e9 to 2e11 solar. Paper check:
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md. Core 1's
+  docs PR (section 5.13 of
+  docs/design/intergalactic-and-halo-contents.md) is to follow its stack
+  gate; this item retires when that PR merges. The build items are
+  GEN.400 to GEN.406 (8.1 phase 5, thread "Galaxy laws build"); GEN.369
+  reads row 10 and GEN.338 reads row 12 (the rotation curve and the
+  enclosed mass are calculated from the potential, not set).
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.369 Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option**
@@ -7233,6 +7250,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
   the coordinator): Core 1 builds it right after GEN.368 (order:
   GEN.368, GEN.369, GEN.371, GEN.366). Owner: Core 1.
+  GEN.368's approved table (Boss, 10:11 PM EDT): row 10 gives the
+  satellite laws (subhalo mass function slope 1.9, Einasto placement,
+  the stellar mass from the halo mass with a reionization cutoff, [Fe/H]
+  from the mass-metallicity relation); the reionization cutoff and the
+  size-luminosity fit are open research (GEN.406).
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
@@ -7916,7 +7938,231 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the approximation stands. A comparison test keeps the two within the
   stated bound. No fixed content (Boss, 4:11 and 4:14 PM EDT): no named
   galaxy sets any number.
-  Prerequisites: GEN.368. Related: GEN.368, GEN.378, GEN.380.
+  Method (Core 1's suggestion, 2026-10-16, 10:12 PM EDT): read a halo
+  mass function source in the paper (for example Tinker et al. 2008 or
+  Sheth and Tormen 1999), build the exact conditional P(Mh | M*) as the
+  halo mass function times the log-normal in M* about the Moster median
+  with 0.15 dex scatter, and compare it with GEN.368's approximation
+  (the median inverse with an effective Mh scatter of 0.15 dex divided
+  by the slope). Done adds: a test and a note showing the typical halo
+  mass and the scatter difference per stellar mass, and a switch to the
+  exact conditional if the difference matters. Needs GEN.368's build
+  (GEN.400).
+  Prerequisites: GEN.368, GEN.400. Related: GEN.368, GEN.378, GEN.380.
+
+- [ ] **GEN.400 The galaxy's mass chain: stellar mass from the Schechter function, the halo mass by the approximation, the virial radius and the concentration**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Rows 1 to
+  3. A pure function `draw_mass_chain(seed)` takes the stellar mass from
+  the double Schechter function inside the first family's range, the
+  halo mass from the stellar-to-halo relation inverted numerically with
+  the approximation GEN.399 later checks (median inverse with an
+  effective halo mass scatter), the virial radius from the Bryan and
+  Norman overdensity and the NFW concentration with its scatter. It
+  replaces `HALO_MASS_SOLAR`, `HALO_SYSTEM_FRACTION` and
+  `MILKY_WAY_MASS` as the central mass of every Hill sphere (binary.py,
+  star.py, keepout.py). Done: the same seed gives the same chain; a
+  histogram over 10,000 seeds matches the Schechter function within
+  sampling error; every draw stays in the range; the worked table of the
+  draft (5e10 gives a halo near 2e12 solar) is reproduced within its
+  scatter; the old constants are gone and their tests check the law. No
+  fixed content (Boss, 4:11 and 4:14 PM EDT): no Milky Way preset or
+  option; the real values are only plausibility targets (GEN.366). Each
+  law is written with its source named in the code and the doc; the
+  scatter is a log-normal drawn through `unit_seed(galaxy_seed, ...)`
+  and the one random wrapper. No compatibility shim: the old constant
+  goes in the same change. A change that alters the generator output
+  follows the epoch rule.
+  Prerequisites: GEN.368. Related: GEN.399, GEN.378, GEN.380, GEN.369.
+
+- [ ] **GEN.401 The shape of the stars from the stellar mass: disk length and height, thick disk, bulge, bar and arms replace the generate defaults**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Rows 4 to
+  6 and 5.13.5. `draw_galaxy(seed, family)` runs the mass chain and
+  returns the shape; `build_galaxy_shape` calls it and the plan and
+  Generate defaults become "drawn from the seed". The disk scale length
+  follows Shen et al. 2003 (the van der Wel relation only cross-checks
+  the scatter); the height follows the thickness law; the thick disk
+  keeps a stated ratio to the thin disk with a research request in the
+  note; bulge-to-total, bulge size, bar fraction, bar length, arm count
+  and pitch angle follow the table, and the arm-direction conflict
+  between the sources is decided here and written in the doc. The old
+  numbers (scale length 2,600 pc, height 300 pc, bulge 3.11, COBE bar
+  1,580 pc) go. GEN.378 extends this to every family, so the function
+  takes a family argument and the spiral family is its first. Done: the
+  shape of a draw has every parameter inside its stated range; the laws
+  over many seeds follow the stated trends (size with mass, bulge share
+  with stage, bar fraction); the same seed gives the same shape; the
+  `generate` command, the web page and the stored shape read the drawn
+  values. No fixed content (Boss, 4:11 and 4:14 PM EDT): no Milky Way
+  preset or option; the real values are only plausibility targets
+  (GEN.366). Each law is written with its source named in the code and
+  the doc; the scatter is a log-normal drawn through
+  `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
+  compatibility shim: the old constant goes in the same change. A change
+  that alters the generator output follows the epoch rule.
+  Prerequisites: GEN.400. Related: GEN.378, GEN.382, GEN.366, GEN.134.
+
+- [ ] **GEN.402 The central black hole mass and the nuclear cluster follow the bulge: the M-bulge and M-sigma relations replace the fixed ranges**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Rows 7
+  and 8. The black hole mass comes from the bulge mass (Kormendy and Ho
+  2013, with its scatter) or, without a classical bulge, from the
+  stellar mass; its velocity dispersion from the M-sigma relation; the
+  active or quiescent split stays a draw from the Eddington ratio
+  ranges; the hole stays exactly on the origin (Boss, 7:27 PM EDT). The
+  nuclear cluster mass follows the stellar mass by a power law with
+  nucleation falling away above the mass the table gives; the Georgiev
+  against Neumayer slope conflict is decided here and written in the
+  doc. Replaces `BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR`, the 100 km/s
+  dispersion, the quasar mass range and the nuclear ratios
+  (`tuning.py:745-755, 1988, 1999, 2886`). Done: the black hole mass
+  tracks the bulge mass with the stated scatter over many seeds; the
+  dispersion follows M-sigma; a galaxy without a bulge draws a small
+  hole or none by the stated fraction; the old constants are gone; same
+  seed same galaxy. No fixed content (Boss, 4:11 and 4:14 PM EDT): no
+  Milky Way preset or option; the real values are only plausibility
+  targets (GEN.366). Each law is written with its source named in the
+  code and the doc; the scatter is a log-normal drawn through
+  `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
+  compatibility shim: the old constant goes in the same change. A change
+  that alters the generator output follows the epoch rule.
+  Prerequisites: GEN.401. Related: GEN.280, GEN.387, GEN.368.
+
+- [ ] **GEN.403 The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Row 9.
+  The cluster system mass is a fraction of the halo mass with its
+  scatter (the eta source is chosen between the two papers in the doc),
+  the count is that mass over the mean cluster mass, the mass function
+  stays log-normal about its peak, and GEN.297's calibration against the
+  Harris file still gives each cluster's law. Replaces
+  `CLUSTER_COUNT_MILKY_WAY` and the hard-coded 8000 and 1000 in
+  `clusters.py:92`. The cluster radial profile is still open in the
+  table and stays a stated research request. Done: the count over many
+  seeds follows the system mass with the stated scatter; a Milky Way
+  mass halo gives a count inside the observed range; the old constants
+  are gone; same seed same clusters. No fixed content (Boss, 4:11 and
+  4:14 PM EDT): no Milky Way preset or option; the real values are only
+  plausibility targets (GEN.366). Each law is written with its source
+  named in the code and the doc; the scatter is a log-normal drawn
+  through `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
+  compatibility shim: the old constant goes in the same change. A change
+  that alters the generator output follows the epoch rule.
+  Prerequisites: GEN.400. Related: GEN.297, GEN.366, GEN.387.
+
+- [ ] **GEN.404 The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Row 11
+  (Boss, 9:43 PM EDT, "Confirmed drop 'home'"): the galaxy stores no
+  home or Sun position. The five Sun radii (`GALAXY_SUN_RADIUS_PC`
+  8,200, `SUN_GALACTIC_RADIUS_PC` 8,000, `GALACTIC_CENTER_DISTANCE_LY`,
+  the hypervelocity radius, the cluster radius) go; the density
+  calibration comes from the galaxy's mass, the metallicity zero point
+  from the central metallicity (GEN.405), the rates quoted at the Sun
+  per object (GEN.405) and the fallback distance of a sector with no
+  placement from the sector's real place. The map starts where sectors
+  are generated (MAP.190 already does). GEN.144's Milky Way test radius
+  stays as a test reference only. Done: no code or doc reads a Sun
+  radius as galaxy content (a grep test, the reference radius excepted);
+  the density and the sector profile agree with the old model at the
+  test radius within the derived scatter; the tests that pinned the
+  Milky Way values check the law. No fixed content (Boss, 4:11 and 4:14
+  PM EDT): no Milky Way preset or option; the real values are only
+  plausibility targets (GEN.366). Each law is written with its source
+  named in the code and the doc; the scatter is a log-normal drawn
+  through `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
+  compatibility shim: the old constant goes in the same change. A change
+  that alters the generator output follows the epoch rule.
+  Prerequisites: GEN.400, GEN.401. Related: GEN.144, GEN.405, MAP.190,
+  USR.11.
+
+- [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Rows 13
+  and 14. The central metallicity and the gradient come from the stellar
+  mass by the mass-metallicity relation (the numbers are an open
+  research request in the table: Gallazzi 2005 and the star-forming main
+  sequence have no numbers read yet), the halo metallicity from the same
+  relation less an offset; each rate (supernova, gamma-ray burst, active
+  nucleus, the phenomenon densities of `tuning.py:3007-3055`, the nebula
+  and superbubble field values, the two local stellar densities 0.0985
+  and 0.14 per cubic parsec) is a per-star or per-mass rate times the
+  local density of the right population from the density model,
+  normalised to the stellar mass, with the star-formation history from
+  the main sequence; `MILKY_WAY_STELLAR_LUMINOSITY_W` becomes the
+  galaxy's own luminosity from a mass-to-light ratio. Done: no value
+  quoted at the Sun remains; the rates at a position follow the local
+  density; the research requests are answered in the doc before the
+  numbers are built, or the item stays blocked on them. No fixed content
+  (Boss, 4:11 and 4:14 PM EDT): no Milky Way preset or option; the real
+  values are only plausibility targets (GEN.366). Each law is written
+  with its source named in the code and the doc; the scatter is a
+  log-normal drawn through `unit_seed(galaxy_seed, ...)` and the one
+  random wrapper. No compatibility shim: the old constant goes in the
+  same change. A change that alters the generator output follows the
+  epoch rule.
+  Prerequisites: GEN.404. Related: GEN.319, GEN.320, GEN.134, GEN.254.
+
+- [ ] **GEN.406 Research the population ages and velocity dispersions by component, the thick disk scaling and the stellar halo fraction so they become laws**
+  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
+  source Shen et al. 2003, approximation for the halo mass, no home
+  position, every derived law draws its natural scatter from the seed,
+  the first family covers 3e9 to 2e11 solar stellar mass; paper check
+  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
+  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
+  1's docs PR merges; draft
+  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Open
+  points 5 and 8 of the table: the population age ranges and dispersions
+  (`tuning.py:608-614, 800`) are hand-set with no source; the thick
+  disk's size ratio to the thin disk and a stellar halo mass fraction
+  against the stellar mass are missing (Harmsen et al. 2017 gives 2 to
+  14 percent for six Milky Way mass discs only; the fixed 1.5e9 anchor
+  stays until a law is found); the reionization cutoff mass and a
+  satellite size-luminosity fit (row 10) and the cluster radial profile
+  and the halo metallicity offset (rows 9 and 13) are also open. Done: a
+  research note in docs/design with each source read in the paper, its
+  range and scatter, and a request to Boss for any that cannot be found;
+  then the numbers go into GEN.401, GEN.403, GEN.405 and GEN.369 as
+  laws. A verifying thread can read arXiv (Boss allowed it, 9:44 PM
+  EDT).
+  Prerequisites: GEN.368. Related: GEN.369, GEN.401, GEN.403, GEN.405.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
