@@ -157,7 +157,7 @@ def _uncharted_load(state, limit, offset, want_facets, after=None):
     can_generate = current_admin() is not None
     items = envelope["items"]
     return Result([_uncharted_row(star, can_generate) for star in items], envelope["total"], None,
-                  next=items[-1]["id"] if items else None)
+                  envelope.get("total_capped", False), items[-1]["id"] if items else None)
 
 
 UNCHARTED_SYSTEMS_TABLE = tables.register(Table(

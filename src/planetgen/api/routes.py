@@ -1201,7 +1201,8 @@ def uncharted_systems():
     default -- `temperature`, `type`, `sector` or `age`) with `order`
     (`asc` or `desc`; `desc` for luminosity when omitted, else `asc`), `limit`
     and `offset`. `after=<star id>` starts the page after that star in the sort instead of skipping `offset`
-    rows (PERF.75). `total` counts every star waiting.
+    rows (PERF.75). `total` counts every star waiting (`total_capped`: it stopped at 10,000 before the first stored
+    count was made, PERF.112).
     """
     limit, offset = _paginate(request.args)
     sort, descending = _parse_sort(request.args, UNCHARTED_SYSTEM_SORTS)
@@ -1214,10 +1215,11 @@ def uncharted_systems():
         except ValueError:
             raise ApiError(f"after must be a star id, got {request.args['after']!r}")
     db = get_db()
+    total = count_uncharted_systems(db)
     return jsonify({
         "items": list_uncharted_systems(db, limit=limit, offset=offset, sort=sort, descending=descending,
                                         after=after),
-        "total": count_uncharted_systems(db), "limit": limit, "offset": offset,
+        "total": total, "total_capped": is_capped(total), "limit": limit, "offset": offset,
     })
 
 

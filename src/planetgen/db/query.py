@@ -3979,9 +3979,24 @@ UNCHARTED_SYSTEM_SORTS = {
 
 
 def count_uncharted_systems(conn):
-    """How many scattered stars are not yet built into a system (UX.87):
-    the `bright_stars` rows with no `star_system_id`."""
-    return conn.execute("SELECT COUNT(*) AS n FROM bright_stars WHERE star_system_id IS NULL").fetchone()["n"]
+    """
+    How many scattered stars are not yet built into a system (UX.87): the `bright_stars` rows with no
+    `star_system_id`.
+
+    Returns:
+        int: The count. Kept by `countcache` (PERF.112): the scan of the whole scatter table is made once under a
+            galaxy content stamp and read from the stored answer after that (a star built into a system, a
+            rescatter and a reset each move the stamp, so the next read makes a new one in the background); a
+            capped count (`CappedCount`) before the first.
+    """
+    def exact(c):
+        return c.execute("SELECT COUNT(*) AS n FROM bright_stars WHERE star_system_id IS NULL").fetchone()["n"]
+
+    def estimate(c):
+        return _capped(c.execute("SELECT COUNT(*) AS n FROM (SELECT 1 FROM bright_stars WHERE star_system_id IS NULL "
+                                 "LIMIT ?) c", (COUNT_FALLBACK_CAP,)).fetchone()["n"])
+
+    return _counted(conn, ["count_uncharted_systems"], exact, estimate)
 
 
 def list_uncharted_systems(conn, limit=None, offset=None, sort="luminosity", descending=True, after=None):
