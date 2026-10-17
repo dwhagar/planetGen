@@ -35,7 +35,14 @@ import math
 import random as _stdlib_random
 import secrets
 
+import numpy as np
+from numpy.random import Generator, MT19937
+
 _TWO_PI = 2.0 * math.pi
+
+BULK_MIN = 1000
+"""int: The fewest draws `Stream.random_array` and `Stream.randbits_list` hand to NumPy: moving the generator's state
+there and back costs about as much as a thousand `random()` calls (PERF.91)."""
 
 
 class Stream:
@@ -130,6 +137,39 @@ class Stream:
             value = (value << 32) | int(self._random.random() * 4294967296.0)
             bits += 32
         return value >> (bits - k)
+
+    def random_array(self, count):
+        """
+        `count` floats in [0, 1) as an array: exactly the numbers `count` calls of `random()` give, and the stream
+        is left in exactly the state they leave it in (PERF.91). From `BULK_MIN` draws on the generator's state goes
+        to NumPy's `MT19937`, which is the same generator with the same 53-bit float, a batch is drawn in C and the
+        state comes back.
+        """
+        if count < BULK_MIN:
+            random = self._random.random
+            return np.fromiter((random() for _ in range(count)), dtype=float, count=count)
+        version, internal, gauss_next = self._random.getstate()
+        bit_generator = MT19937()
+        bit_generator.state = {"bit_generator": "MT19937",
+                               "state": {"key": np.array(internal[:624], dtype=np.uint32), "pos": internal[624]}}
+        values = Generator(bit_generator).random(count)
+        after = bit_generator.state["state"]
+        self._random.setstate((version, tuple(int(word) for word in after["key"]) + (int(after["pos"]),), gauss_next))
+        return values
+
+    def randbits_list(self, k, count):
+        """
+        `count` values of `getrandbits(k)` as a list, from the same draws and leaving the same state as `count`
+        calls of it (PERF.91): in bulk from `BULK_MIN` draws on, for `k` up to 64.
+        """
+        words = -(-k // 32)
+        if count * words < BULK_MIN or words > 2:
+            return [self.getrandbits(k) for _ in range(count)]
+        parts = (self.random_array(count * words).reshape(count, words) * 4294967296.0).astype(np.uint64)
+        values = parts[:, 0]
+        for column in range(1, words):
+            values = (values << np.uint64(32)) | parts[:, column]
+        return (values >> np.uint64(words * 32 - k)).tolist()
 
     def getstate(self):
         """The stream's state, for `setstate` (a save retried after a

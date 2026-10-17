@@ -115,7 +115,7 @@ def _group_rows(shape, groups, high_band, edge_pc, expected_at_density_1, rng, r
         candidates = poisson_count(total, rng) if total > 0.0 else 0
         for start in range(0, candidates, CHUNK):
             size = min(CHUNK, candidates - start)
-            uniform = phenomenon_scatter._uniforms(rng, 6 * size).reshape(6, size)
+            uniform = rng.random_array(6 * size).reshape(6, size)
             pick = np.minimum(np.searchsorted(cumulative, uniform[0] * total, side="right"), len(bound) - 1)
             radius = np.cbrt(cube_low[pick] + uniform[1] * (cube_high[pick] - cube_low[pick]))
             cos_colat = cos_low[pick] + uniform[2] * (cos_high[pick] - cos_low[pick])
@@ -130,7 +130,7 @@ def _group_rows(shape, groups, high_band, edge_pc, expected_at_density_1, rng, r
                                      f"{weight[worst]} > {bound[pick][worst]}")
             kept = np.nonzero(uniform[4] * bound[pick] < weight)[0]
             masses = phenomenon_scatter._masses(kind, subtype, min_mass_solar, uniform[5][kept])
-            seeds = [rng.getrandbits(63) for _ in range(len(kept))]
+            seeds = rng.randbits_list(63, len(kept))
             for position, index in enumerate(kept.tolist()):
                 point = mpc[:, index]
                 address = sector_address_at(tuple(float(value) / MPC_PER_PC for value in point), edge_pc)

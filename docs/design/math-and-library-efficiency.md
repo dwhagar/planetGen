@@ -141,6 +141,8 @@ scatter layers reach (`_uniforms`: 6 per object; `rng.getrandbits(63)` per objec
 draws are 0.3 s of 16 s, so this is a default-scale concern (hundreds of millions of rows), not a today concern.
 No reseed is needed, unlike the move to a different generator.
 
+Built (PERF.91): `draw.Stream.random_array` and `draw.Stream.randbits_list` (bulk from `draw.BULK_MIN` = 1,000 draws), used by the phenomenon scatter, the far-reach scatter and the component pass; `tests/test_draw_bulk.py` proves the same floats, bits and final state.
+
 ### 5. The orbital update's per-row Python
 
 `advance_galactic_positions` moves each due system with a chain of small functions per row (turn, rotate,
