@@ -25,6 +25,7 @@ from planetgen.admin import auth, throttle
 from planetgen.generation import stats as generationStats
 from planetgen.api import naming
 from planetgen.names import naming_key
+from planetgen.util import xfetch
 from planetgen._version import __version__
 
 from .authz import audit, require_admin
@@ -104,6 +105,36 @@ def _database_disk(conn, config):
             "free_bytes": None, "source": None, "note": disk.reason}
 
 
+DATABASE_FIGURES_SECONDS = 30
+"""int: How long the Stats page's figures about one database are kept when they were slow to make."""
+
+_DATABASE_FIGURES = xfetch.AgedCache(DATABASE_FIGURES_SECONDS)
+"""AgedCache: `_database_figures` per database name (PERF.110): kept only when the counts took half a second or
+more (a big galaxy), and then made again by one request just before they go stale, so a burst of admins does
+not all wait for them."""
+
+
+def _database_figures(conn, config, db_name):
+    """The `database` part of `GET /api/admin/stats` for a database that can be reached."""
+    version = adminStats.schema_version(conn)
+    tables = adminStats.table_stats(conn)
+    return {
+        "name": db_name,
+        "reachable": True,
+        "schema_version": version,
+        "schema_expected": _db.SCHEMA_VERSION,
+        "schema_current": version == _db.SCHEMA_VERSION,
+        "size_bytes": sum(t["data_bytes"] + t["index_bytes"] for t in tables),
+        "disk": _database_disk(conn, config),
+        "counts": adminStats.exact_counts(conn),
+        "bright_stars": adminStats.bright_star_counts(conn),
+        "sector_stats": adminStats.density_stats(conn),
+        "tables": tables,
+        "timestamps": adminStats.timestamp_stats(conn),
+        "name_collisions": adminStats.name_collision_summary(conn),
+    }
+
+
 @bp.route("/stats")
 @require_admin(fresh=True)
 def stats():
@@ -134,24 +165,9 @@ def stats():
         body["database"]["detail"] = str(exc)
         return jsonify(body)
 
-    version = adminStats.schema_version(conn)
-    tables = adminStats.table_stats(conn)
     body["mysql"] = adminStats.server_info(conn)
-    body["database"] = {
-        "name": db_name,
-        "reachable": True,
-        "schema_version": version,
-        "schema_expected": _db.SCHEMA_VERSION,
-        "schema_current": version == _db.SCHEMA_VERSION,
-        "size_bytes": sum(t["data_bytes"] + t["index_bytes"] for t in tables),
-        "disk": _database_disk(conn, _resolve_requested_db_config()),
-        "counts": adminStats.exact_counts(conn),
-        "bright_stars": adminStats.bright_star_counts(conn),
-        "sector_stats": adminStats.density_stats(conn),
-        "tables": tables,
-        "timestamps": adminStats.timestamp_stats(conn),
-        "name_collisions": adminStats.name_collision_summary(conn),
-    }
+    config = _resolve_requested_db_config()
+    body["database"] = _DATABASE_FIGURES.get_or_build(db_name, lambda: _database_figures(conn, config, db_name))
     body["query_ms"] = round((time.perf_counter() - started) * 1000, 1)
     return jsonify(body)
 

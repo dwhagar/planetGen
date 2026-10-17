@@ -331,6 +331,7 @@ Helpers every package can use.
 | [`serialization.py`](../../src/planetgen/util/serialization.py) | The allowlist `to_dict`/`from_dict` helpers the generator's classes share. |
 | [`settings.py`](../../src/planetgen/util/settings.py) | One Pydantic model, `Settings`, describes every `config.json` option: its type, default, help text, unit, whether it is a secret, whether changing it needs a restart, which environment variable overrides it and whether the web may edit it. |
 | [`stagemark.py`](../../src/planetgen/util/stagemark.py) | The one wording for "where a job is": `"Stage 4 of 12"` for one stage and `"Stages 4 to 12 of 12"` for a run of them. |
+| [`xfetch.py`](../../src/planetgen/util/xfetch.py) | Fetching a costly value shortly before it expires (PERF.110, XFetch): `xfetch_early` is the decision, `AgedCache` the in-process cache the admin Stats page's database figures use; the page cache uses the decision for its own costly entries. |
 
 #### src/planetgen/queue/
 
@@ -499,6 +500,7 @@ Shared page-building code.
 | [`classref.py`](../../src/planetgen/web/lib/classref.py) | The class reference catalog behind `/classes`, built once per process from the generator's own tables, never hand-copied. |
 | [`datatable.py`](../../src/planetgen/web/lib/datatable.py) | The site's shared data table (UX.41): sortable columns, faceted filters and a page of rows fed by the API, 50 at a time. |
 | [`facility_display.py`](../../src/planetgen/web/lib/facility_display.py) | How a facility's type, affiliation, ratings and field values read on a page (POP.10): the rating chips and the small text cells of the Facilities table. |
+| [`estimatecache.py`](../../src/planetgen/web/lib/estimatecache.py) | The Generate page's size-and-time estimate kept in Redis (PERF.109), served while the generator epoch, the galaxy's data version and the speed statistics are as they were; concurrent identical requests run it once. |
 | [`fmt.py`](../../src/planetgen/web/lib/fmt.py) | Escaping and formatting helpers (`esc`, distances, UTC times). |
 | [`habitability_ref.py`](../../src/planetgen/web/lib/habitability_ref.py) | The text of the habitability levels page (`/classes/habitability`, UX.90): the five equipment levels, the six PHI-6 domains with their Blue, Green, Yellow and Red thresholds, the compact-host rule and the chips a planet row shows. |
 | [`mdrender.py`](../../src/planetgen/web/lib/mdrender.py) | Renders the generator's narrow Markdown subset to HTML with the `markdown` package (UX.39); anything outside the subset stays plain text and is escaped. |

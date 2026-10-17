@@ -626,6 +626,25 @@ def estimate(sectors, stats, database, workers=1, kind="sector"):
     return result
 
 
+def fingerprint(conn):
+    """
+    A string that changes whenever a stored speed or size an estimate reads changes (PERF.109): the number of
+    buckets of this version and the newest time one was written, then the number of sizes and the newest time
+    one was measured. The Generate page's cached estimate (`web/lib/estimatecache.py`) is served only while it
+    stays the same.
+
+    Args:
+        conn (Connection): An open control database connection.
+
+    Raises:
+        Exception: The control schema is not there (older than v6).
+    """
+    buckets = conn.execute("SELECT COUNT(*) AS n, MAX(updated_at) AS newest FROM generation_stats"
+                           " WHERE version_key = ?", (current_version_key(),)).fetchone()
+    sizes = conn.execute("SELECT COUNT(*) AS n, MAX(measured_at) AS newest FROM generation_size").fetchone()
+    return f"{buckets['n']}@{buckets['newest']}/{sizes['n']}@{sizes['newest']}"
+
+
 def _stars_per_system(stats, kind):
     measured = [b for (k, _w, _i), b in stats.buckets.items() if k == kind and b.samples and b.stars_per_system]
     if not measured:
