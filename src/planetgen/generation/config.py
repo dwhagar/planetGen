@@ -51,6 +51,13 @@ class SystemConfig:
         profile's `type_ia_share`, GEN.319). None for the solar circle's, `tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE`.
         """
 
+        self.AMBIENT_DENSITY_CM3 = None
+        """
+        float or None: The density of the gas the sector's supernova remnants expand into where they sit in a
+        superbubble (the cavity's `ambient_density_cm3`, GEN.298): their size law reads it. None outside a bubble:
+        the remnant's own class density.
+        """
+
         self.HABITABLE_WORLD = None
         """
         bool or None: If True, the system generation will attempt to force the
