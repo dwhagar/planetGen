@@ -465,7 +465,7 @@ The five different Sun radii (row 11, removed with the home position); the super
 
 #### 5.13.5 The build that follows approval
 
-The shape-draw build is written once for every family (GEN.378 reads this table and extends it): a `draw_galaxy(seed, family)` that runs the chain in 5.13.1 and returns the shape, the halo, the home position and the component masses; `build_galaxy_shape` calls it; the plan and Generate defaults become "drawn from the seed", with the old numbers gone (no compatibility shim, per Boss). The new shape columns need a migration (DB.66, GEN.378); this item adds none.
+The shape-draw build is written once for every family (GEN.378 reads this table and extends it): a `draw_galaxy(seed, family)` that runs the chain in 5.13.1 and returns the shape, the halo and the component masses; `build_galaxy_shape` calls it; the plan and Generate defaults become "drawn from the seed", with the old numbers gone (no compatibility shim, per Boss). The new shape columns need a migration (DB.66, GEN.378); this item adds none.
 
 #### 5.13.6 Research requests for Boss
 
