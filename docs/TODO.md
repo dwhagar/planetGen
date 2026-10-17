@@ -18770,6 +18770,21 @@ clears each one.
   'passes alone' only means a different draw. Done: the cause is on this
   item, the test passes for the pinned draw and for 100 fresh draws, and
   nothing is quarantined. Owner: Bug Hunt.
+  Reproduced on main and narrowed (Core 3, 2026-10-17, 5:25 PM EDT as
+  the lane reported, its GEN.321 gate, relayed directly): the gate run
+  failed with 38,567 systems against a predicted 261,983. Forcing a
+  dense random start with `--min-start-density 1000` on clean
+  origin/main (3f14c273) failed 2 of 3 runs (shell 9, band -6: 3 against
+  690,692; shell 5, band 1: 31,972 against 571,426) and 1 stopped early.
+  18 normal runs plus 2 with density 5 and 50 (shell 8) on Core 3's
+  branch all passed in 15 to 430 s. Only starts in the dense core fail
+  (shells 5 to 9, and one at shell 54), about 1 gate in 3. Fails on
+  main: yes. Reproducer: add "--min-start-density", "1000" to the
+  `_run_cli` argv in the test and run it alone. The actual count is far
+  under a third of the plan in the core; the cause is not found, so the
+  cap question above (the cell or sector star ceiling against an
+  uncapped estimate) is the first thing to check, with the density-1000
+  start as the pinned case.
   Prerequisites: none. Related: TEST.213, GEN.76.
 
 - [ ] **TEST.226 Tests for the plan configuration and its two switches: the interior is identical with each combination, off generates nothing beyond the boundaries, addresses outside them are refused, the 8.1 sphere is the all-on case**
