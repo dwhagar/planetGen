@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1712] - 2026-10-17
+
+**Headline:** Core 4's findings from building the massive-star binaries are recorded on the items that check them.
+
+### Changed
+
+- GEN.448 and TEST.196 carry the G-dwarf close-companion level (0.13 against the pooled line's 0.20) and the O and B flatness ratios (1.32 and 1.43 against the 1.3 edge).
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1711] - 2026-10-17
 
 **Headline:** The part of GEN.320 that Core 3 did not wire, a pre-placed star's nebula on the maps and pages, is filed ahead of the 8.1 headline.
