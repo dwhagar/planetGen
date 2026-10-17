@@ -2,6 +2,27 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1725] - 2026-10-17
+
+**Headline:** The test suite has one census harness that fills seeded sectors per region class and checks the counts of each kind against their expectation.
+
+### Added
+- **The census audit harness (`src/tests/audit/census.py`).** It fills a fixed set of seeded sectors for each region class, counts what each fill made by stage and kind, tests each count against its expectation within four Poisson sigma, applies the rule that a kind expected 20 or more times appears at least once, flags a kind found where its gate expects none, and writes one report. The representation, fill-stage, multiplicity, catalogue-type and whole-sphere audits add their checks to it and keep no counters of their own.
+
+TODO items resolved: TEST.186. Added: none.
+
+## [8.0.1724] - 2026-10-17
+
+**Headline:** The illustrated architecture page is rebuilt from the current architecture document.
+
+### Changed
+- `docs/design/architecture.html` is rebuilt from `docs/design/architecture.md` as of 2026-10-17 (it was a 2026-10-07 snapshot from before the package move): the same sections (overview, every module, the five flows, data, deployment, packages), now with the code map as it stands (391 entries with their line counts, read from the files), the flows with their diagrams drawn in the page, the shell, band and wedge grid in place of rings, layers and slots, the 61 content and 18 control tables, the CI jobs as they run today, and a Packages section (the packages, how they depend on each other, the libraries) in place of the old "planned target". The README line that describes it carries the new date.
+
+### Added
+- Nothing in the code: the page is documentation only.
+
+TODO items resolved: DOC.47 / Added: none
+
 ## [8.0.1723] - 2026-10-17
 
 **Headline:** The Galaxy Map's address holds the camera, so a copied link, a bookmark and a reload open the view exactly where it was.
