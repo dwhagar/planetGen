@@ -1,7 +1,7 @@
 **Headline:** The Galaxy Map's breadcrumb and a new "In Sector …" line follow the cell the camera is in, not the stage the map was opened at.
 
 ### Changed
-- The breadcrumb is the trail of containers of the cell holding the view's middle (`stageAtPoint` in `galaxystages.js`, the cells are closed form), so moving the center into the next cell of the stage's size changes its last crumb; a crumb above it still flies out to that container. An opened sector or system keeps the stage it was opened from.
+- The breadcrumb is the trail of containers of the cell holding the view's middle (`stageAtPoint` in `galaxystages.js`, the cells are closed form), so moving the center into the next cell of the stage's size changes its last crumb; a crumb above it still flies out to that container. The trail follows the camera at the stage's own cell size only (a finer or coarser step is not derived from the distance); an opened sector or system shows the window round that sector, as a fresh load of its address does.
 - A label over the map's top-left corner (`galaxymap3d-where`) names the sector the view's middle is in (`sectorAtPoint`), updated as the camera moves.
 
 ### Added
