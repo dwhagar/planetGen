@@ -163,6 +163,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.194 | `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug) |  | Flaky test finding from the Settings lane, 5:47 PM EDT. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.213 | `test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star` failed in a loaded browser run: the wheel loop opened the system before the disc reached full share (bug) |  | Core 1 finding, 2026-10-17; any lane, Bug Hunt proposed. |
 | TEST.220 | test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter finds `neutron-star` inside `magnetar neutron-star` (bug) |  | Core 2 finding, 2026-10-17; Bug Hunt proposed. |
+| TEST.221 | test_a_runaway_system_moves_beyond_the_rotation_curve_and_its_stars_and_bodies_share_it raises StopIteration when the first system's only planet entry is an asteroid belt (bug) |  | Core 5 finding, 2026-10-17; Core 5 carries the fix. |
 | TEST.216 | `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed in the full parallel gate: the nested system's `inside_nebula_id` was None, and it passes alone (bug) |  | Core 4 finding (UX.114 gate, 2:44 AM EDT as the lane reported): fails only in the full parallel run, passes alone on main. |
 | PERF.111 | `ResponseCache.put` without a database never trims the page cache: the cache grows past `max_entries`, and the thread test fails when its last put is one of those (bug) |  | Core 2 finding in the MAP.217 gate: the db=None branch of ResponseCache.put has no eviction. |
 | TEST.219 | Browser pages still have 1 to 7 requests running 8 s after the server stops: find what keeps them busy and make it faster |  | Core 1 finding at #1997: browser pages still have requests running 8 s after the server stops. |
@@ -369,11 +370,10 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| TEST.186 | Census audit harness: fill seeded sectors per region class, count by kind and stage, compare to expectation within k Poisson sigma, print one report |  | Foundation found in the review. |
-| TEST.184 | Whole-sphere tests, nebula and Wolf-Rayet side: contents per class, the Wolf-Rayet count, tiling, determinism and the King solver | GEN.243, TEST.186 | Split from TEST.159. |
-| TEST.161 | Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table | TEST.186 | Phenomena catalogue, Boss 2026-10-15. Step 2 tests. Quality. |
-| TEST.162 | Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors | GEN.315, TEST.186 | Multi-star systems at scatter time, Boss 2026-10-15. Step 9. Quality. |
-| TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | GEN.269, GEN.270, GEN.271, GEN.272, GEN.275, GEN.327, GEN.329, TEST.186 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 20. Quality. |
+| TEST.184 | Whole-sphere tests, nebula and Wolf-Rayet side: contents per class, the Wolf-Rayet count, tiling, determinism and the King solver | GEN.243 | Split from TEST.159. |
+| TEST.161 | Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table |  | Phenomena catalogue, Boss 2026-10-15. Step 2 tests. Quality. |
+| TEST.162 | Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors | GEN.315 | Multi-star systems at scatter time, Boss 2026-10-15. Step 9. Quality. |
+| TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | GEN.269, GEN.270, GEN.271, GEN.272, GEN.275, GEN.327, GEN.329 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 20. Quality. |
 | TEST.165 | Re-measure the region query on a real generated galaxy, warm and cold |  | Spherical region query, stage C. Step 6. Quality. |
 
 ### Composition proofs
@@ -448,7 +448,7 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | GEN.393 | The density terms apply the bubble factors at one call site per form, with a golden test that no bubble means identical density | GEN.392 | Step 3 of the superbubble density chain; waits for Core 3's profile work so the files are not edited twice. |
 | GEN.394 | The scatter bounds and the phenomena pass respect the bubble factor: a certified bound in band_majorants and per-position thinning | GEN.393 | Step 4 of the superbubble density chain; Core 3 proposed. |
 | GEN.395 | Sector build follows the bubbles: the fill count from the cell mean, star positions weighted by the factor, shown in the profile and the region query | GEN.393 | Step 5 of the superbubble density chain; Core 3 proposed. |
-| TEST.206 | Superbubble density tests: rim excess, interior depletion, old stars unchanged, scatter against fill and determinism | GEN.394, GEN.395, TEST.186 | Step 6 of the superbubble density chain. |
+| TEST.206 | Superbubble density tests: rim excess, interior depletion, old stars unchanged, scatter against fill and determinism | GEN.394, GEN.395 | Step 6 of the superbubble density chain. |
 | DOC.61 | Docs: how the bubbles shape the stars, the setting values and what the drawn layer now is | GEN.395 | Superbubble density chain. |
 
 ### Galaxy laws build
@@ -470,8 +470,8 @@ The last audits and the headline: they test the component pass, the core and the
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| TEST.185 | Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius | GEN.321, TEST.186 | Split from TEST.159. |
+| TEST.185 | Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius | GEN.321 | Split from TEST.159. |
 | TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | TEST.184, TEST.185 | Whole-sphere build train, Boss 2026-10-15. Step 15. Quality. |
-| TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | GEN.282, GEN.321, TEST.186 | Phenomena catalogue, Boss 2026-10-15. Step 4. Quality. |
-| TEST.196 | Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged | TEST.186 | Core 4; Boss 6:15 PM EDT: expected-numbers check for GEN.103. |
+| TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | GEN.282, GEN.321 | Phenomena catalogue, Boss 2026-10-15. Step 4. Quality. |
+| TEST.196 | Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged |  | Core 4; Boss 6:15 PM EDT: expected-numbers check for GEN.103. |
 | GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.238, GEN.241, GEN.243, GEN.244, GEN.259, GEN.282, GEN.284, GEN.298, TEST.159, TEST.160, TEST.196, GEN.447, GEN.448, GEN.449, GEN.450, GEN.463, GEN.467, GEN.469, GEN.502, GEN.526, GEN.528, GEN.529, GEN.530 |  |

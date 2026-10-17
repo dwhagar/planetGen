@@ -767,3 +767,4 @@ Baseline: PR #1817.
 | MAP.227 | 8.1 | Fly-through map |
 | MAP.228 | 8.1 | Fly-through map |
 | DOC.47 | 8.1 | Docs |
+| TEST.186 | 8.1 | Whole-sphere audits |

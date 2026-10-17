@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.221 |
+| TEST | TEST.222 |
 | USR | USR.31 |
 | OPS | OPS.60 |
 | DOC | DOC.67 |
@@ -2163,7 +2163,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.183 | A test that fails when a new output path formats its own lines | none | open |
 | TEST.184 | Whole-sphere tests, nebula and Wolf-Rayet side: contents per class, the Wolf-Rayet count, tiling, determinism and the King solver | none | open |
 | TEST.185 | Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius | none | open |
-| TEST.186 | Census audit harness: fill seeded sectors per region class, count by kind and stage, compare to expectation within k Poisson sigma, print one report | none | open |
+| TEST.186 | Census audit harness: fill seeded sectors per region class, count by kind and stage, compare to expectation within k Poisson sigma, print one report | none | done, PR #2041 |
 | TEST.187 | Browser-test failure reports are buried in the werkzeug request log: set that logger to WARNING in the test server | none | open |
 | TEST.188 | The skimage marching-cubes call reads `.shape` in a way NumPy 2.5 deprecates: change the call and keep the warning out of the log | none | open |
 | TEST.189 | A test that runs `migrate` leaves maintenance mode on: restore `state/maintenance.json` in the fixture (bug) | none | open |
@@ -2198,6 +2198,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.218 | `test_first_control_connections_at_once` leaves 3 idle connections open on `planetgen_test_*` when its fixture ends: the test should close its own connections (bug) | none | open |
 | TEST.219 | Browser pages still have 1 to 7 requests running 8 s after the server stops: find what keeps them busy and make it faster | none | open |
 | TEST.220 | test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter finds `neutron-star` inside `magnetar neutron-star` (bug) | none | open |
+| TEST.221 | test_a_runaway_system_moves_beyond_the_rotation_curve_and_its_stars_and_bodies_share_it raises StopIteration when the first system's only planet entry is an asteroid belt (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
