@@ -221,6 +221,20 @@ nearest systems filled in like a generated one.
   containment and the stored nearest systems (`nearest_systems`).
   Which sector holds a moved point is `spherical.sector_address_at`; the
   object keeps its ID wherever it drifts (the ID names the birth sector).
+- **The cell key follows the position.** Every table that holds a point in
+  the galaxy frame (`star_systems`, the phenomenon tables, `facilities`,
+  `nebula_field`, `bright_stars`, `phenomenon_scatter`) has `cell_key`, a
+  stored generated column the database works out from the position
+  columns: the object's 0.25 pc cube over a box of plus or minus 262,144 pc
+  (the grid's reach), the three 21-bit cube numbers woven into one 63-bit
+  Morton number, NULL for a point outside the box. A covering index
+  `(cell_key, x, y, z)` lets a sphere be asked as a short list of key runs
+  (`galaxy/cellkey.py`: `cell_key`, `sphere_runs`), which is how "what is
+  nearby" reads (NAV.60). It is not the object ID: the ID is the permanent
+  birth address, the key is where the object is now and changes when it
+  moves into another cube (schema v93, DB.34, DB.35; see
+  [spherical-region-queries.md](spherical-region-queries.md) and the
+  [schema](../database-schema.md)).
 
 ## 6. Migrations that cleared or converted sectors
 

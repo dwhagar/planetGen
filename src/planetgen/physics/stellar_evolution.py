@@ -390,7 +390,11 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
         or an asymptotic giant (class III) also has `phase`
         (`"horizontal-branch"` or `"asymptotic-giant"`, a key of
         `PHASE_NAMES`), and a horizontal-branch star the `metallicity_fe_h`
-        its colour was drawn from.
+        its colour was drawn from. A star younger than its contraction time
+        (`pre_main_sequence.state`, GEN.242) is a `"protostar"` (under 0.5
+        Myr) or a `"PMS"` (pre-main-sequence) class, with `disk_class` ("0",
+        "I", "II" or "III") in place of a Yerkes numeral, and `phase_end_gy`
+        the age it reaches the main sequence.
     """
     pc = tuning
     t_ms = main_sequence_lifetime_gy(mass_sol)
@@ -405,7 +409,11 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
     t_eff_ms = effective_temperature_k(l_ms, main_sequence_radius_sol(mass_sol))
     state = {"mass_sol": mass_sol, "radius_km": None, "lifespan_gy": t_agb}
 
-    if age_gy < t_ms:
+    young = pre_main_sequence.state(mass_sol, age_gy * 1.0e9)
+    if young is not None:
+        # GEN.242: still contracting, a protostar (Class 0 and I) or a pre-main-sequence star.
+        state.update(young)
+    elif age_gy < t_ms:
         state.update(yerkes_class="V", luminosity_sol=l_ms, temperature_k=t_eff_ms, phase_end_gy=t_ms)
     elif massive and age_gy < t_giant:
         growth_low, growth_high = pc.SUPERGIANT_LUMINOSITY_GROWTH_RANGE
@@ -434,7 +442,7 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
     elif age_gy < t_horizontal:
         if fe_h is None:
             # A cluster or satellite star with no distribution of its own is drawn as the halo's.
-            origin = "halo" if population in ("cluster", "satellite") and not fe_h_peaks else population
+            origin = "halo" if population in ("cluster", "satellite", "satellite_young", "satellite_intermediate") and not fe_h_peaks else population
             fe_h = metallicity.sample_fe_h(origin, constants.GALACTIC_CENTER_DISTANCE_LY, rng, peaks=fe_h_peaks)
             state["metallicity_fe_h"] = fe_h
         colour = sample_horizontal_branch_colour(fe_h, age_gy, rng)
@@ -554,8 +562,16 @@ def star_params(initial_mass_sol, age_gy, state):
                                               * temperature ** 4)) / constants.KM_TO_M_FACTOR
     yerkes = state["yerkes_class"]
     color = constants.SPECTRAL_CLASS_COLORS[spectral_class]
+    if yerkes in pre_main_sequence.STAGE_CLASSES:
+        # No Yerkes numeral: a contracting star is named for its stage, and a protostar for its Class.
+        name = (f"Class {state['disk_class']} Protostar" if yerkes == pre_main_sequence.PROTOSTAR
+                else pre_main_sequence.CLASS_NAMES[yerkes])
+        star_type = f"{spectral_class}{subclass} {color} {name}"
+    else:
+        star_type = (f"{spectral_class}{subclass}{yerkes} {color} "
+                     f"{PHASE_NAMES.get(state.get('phase'), YERKES_CLASS_NAMES[yerkes])} Star")
     return {
-        "type": f"{spectral_class}{subclass}{yerkes} {color} {PHASE_NAMES.get(state.get('phase'), YERKES_CLASS_NAMES[yerkes])} Star",
+        "type": star_type,
         "yerkes_class": yerkes,
         "mass_kg": state["mass_sol"] * constants.SOLAR_MASS_TO_KG,
         "radius_km": radius_km,
@@ -567,3 +583,7 @@ def star_params(initial_mass_sol, age_gy, state):
         "phase_end_age_gy": state["phase_end_gy"],
         **({"metallicity_fe_h": state["metallicity_fe_h"]} if "metallicity_fe_h" in state else {}),
     }
+
+
+# Last, because `pre_main_sequence` reads the main-sequence relations above.
+from planetgen.physics import pre_main_sequence  # noqa: E402

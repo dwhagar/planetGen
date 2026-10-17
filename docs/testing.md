@@ -404,6 +404,14 @@ suite on Python 3.12 against MySQL 8.0, MySQL 8.4 and MariaDB 11.4, then the `ge
   in `PLANETGEN_JS_FIXTURES`. To run one by hand, from `src/`:
   `PLANETGEN_JS_FIXTURES="$(python -m tests.test_js_unit)" node --test tests/js/<name>.test.mjs`.
 
+- **Census audits** (`tests/audit/census.py`, TEST.186): the one harness for tests that fill seeded sectors in each
+  region class and compare what the fills made with an expectation. A `RegionCase` names a position in a galaxy shape;
+  `run_census` fills its seeded sectors (the seeds are fixed by the region name and the sector number, so every run
+  fills the same ones) and counts them by stage and kind from `sector.stage_counts`; `compare` tests each expected
+  count within four Poisson sigma, applies the rule that a kind expected 20 or more times appears at least once, flags a
+  kind found where its expectation is zero, and `format_report` prints the one report. An audit adds its expectations
+  and checks and keeps no counters of its own.
+
 A known bug that is not fixed yet is kept as a test marked
 `xfail(strict=True)` whose reason names the bug and a repro. When someone
 fixes it, the test starts passing, strict mode fails the run, and the

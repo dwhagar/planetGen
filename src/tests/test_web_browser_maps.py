@@ -254,11 +254,18 @@ def _crumbs(page):
 
 
 def _query(page):
-    return urlparse(page.url).query
+    """The address as the tests read it: its query without the camera it carries once the view is still
+    (MAP.228), led by "win=m.shell.band.wedge" naming the window on screen (the stage is no part of the address)."""
+    parts = [part for part in urlparse(page.url).query.split("&") if part and not part.startswith("cam=")]
+    win = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStage()")["win"]
+    if win and not any(part.startswith("sector=") for part in parts):
+        centre = win["centre"]
+        parts.insert(0, f"win={centre['m']}.{centre['shell']}.{centre['band']}.{centre['wedge']}")
+    return "&".join(parts)
 
 
 def _state(page):
-    return page.url, _crumbs(page)
+    return _query(page), _crumbs(page)
 
 
 def _wait_settled(page, before=None, timeout_s=90.0):
@@ -385,6 +392,11 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
         query = _query(page)
         assert query in queries[:at], f"Back went to {query!r}, not an earlier stage of {queries[:at]}"
         at = max(n for n in range(at) if queries[n] == query)
+        # The trail follows the camera (MAP.227): give a flight that a loaded run stalls time to land.
+        for _ in range(100):
+            if _crumbs(page) == steps[at][1]:
+                break
+            page.wait_for_timeout(100)
         assert _crumbs(page) == steps[at][1]
     before = _state(page)
     page.go_forward()
@@ -411,11 +423,17 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
     before = _state(page)
     page.click('#galaxymap3d-controls [data-action="up"]')
     _wait_settled(page, before)
-    assert _crumbs(page) == crumbs[:-1], "Up drops the last breadcrumb"
+    # The trail follows the camera (MAP.227): the window above is centred where the camera lands, so its steps need
+    # not be the ones the window below was inside, but there is one fewer.
+    assert len(_crumbs(page)) == len(crumbs) - 1 and _crumbs(page)[0] == crumbs[0], "Up drops the last breadcrumb"
 
-    # A stage's URL opens it directly.
-    deep_query, deep_crumbs = steps[-2]
-    _open_galaxy(page, base_url, "?" + deep_query)
+    # An address opens the view it was copied at directly (MAP.228): the camera is in it, the stage worked out.
+    page.wait_for_timeout(600)
+    deep_url, deep_crumbs = page.url, _crumbs(page)
+    assert "cam=" in deep_url, deep_url
+    _open(page, deep_url, "#galaxymap3d-canvas")
+    page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
+    _wait_settled(page)
     assert _crumbs(page) == deep_crumbs
 
     # A breadcrumb button goes back up; Reset goes home.
@@ -455,7 +473,7 @@ def test_galaxy_map_free_camera_from_a_window_down(page, base_url):
     middle = (box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
     first = _shot(page, canvas)
     scale = _scale_text(page)
-    stage = (page.url, _crumbs(page))
+    stage = (_query(page), _crumbs(page))
 
     page.mouse.move(*middle)
     page.mouse.down()
@@ -463,7 +481,7 @@ def test_galaxy_map_free_camera_from_a_window_down(page, base_url):
     page.mouse.up()
     turned = _shot(page, canvas)
     assert turned != first, "dragging didn't turn the view"
-    assert (page.url, _crumbs(page)) == stage, "a drag picks nothing"
+    assert (_query(page), _crumbs(page)) == stage, "a drag picks nothing"
 
     page.mouse.move(*middle)
     page.mouse.wheel(0, 400)
@@ -480,7 +498,7 @@ def test_galaxy_map_free_camera_from_a_window_down(page, base_url):
     reset_view.click()
     _wait_settled(page)
     assert _scale_text(page) == scale, "Reset view is back at the stage's own zoom"
-    assert (page.url, _crumbs(page)) == stage
+    assert (_query(page), _crumbs(page)) == stage
 
 
 @pytest.mark.viewport(1280, 900)
@@ -558,7 +576,7 @@ def _seed_bookmarks(page, entries):
 
 
 def _course_ends(page):
-    params = parse_qs(_query(page))
+    params = parse_qs(urlparse(page.url).query)
     return params.get("from", [None])[0], params.get("to", [None])[0]
 
 

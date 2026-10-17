@@ -41,7 +41,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.galaxy import density, nebula_field, remnant_distribution
+from planetgen.galaxy import density, nebula_field, profile, remnant_distribution
 from planetgen.galaxy import spherical
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.galaxy.sector import _sample_poisson_count
@@ -266,16 +266,16 @@ def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1,
                           skip_addresses or set(), min_mass_solar)
 
 
-def _uniforms(rng, count):
-    """`count` floats in [0, 1) from the stream, one `random()` call each."""
-    random = rng.random
-    return np.fromiter((random() for _ in range(count)), dtype=float, count=count)
-
-
 GAS_WEIGHTED_KINDS = ("supernova-remnant",)
 """tuple: The scatter kinds whose bin weight also carries the gas fraction (GEN.236): a remnant shines only where its
 shell meets gas, so none lies in the halo or a cluster. The sector profile's `kind_factors` holds the same factor for
 the fill."""
+
+
+OLD_STAR_KIND = "planetary-nebula"
+"""str: The scatter kind whose bin weight also carries the old stars' share against the solar circle's (GEN.528):
+a planetary nebula comes from a star that has had time to leave the asymptotic giant branch, so a place of mostly young
+stars makes fewer. The sector profile's `kind_factors` holds the same factor for the fill."""
 
 
 def _gas_weight(x, y, z, shape):
@@ -329,6 +329,8 @@ def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, rn
                 weights = base * factor[:, None]
                 if kind in GAS_WEIGHTED_KINDS:
                     weights = weights * _gas_weight(x_bins, y_bins, z_mid[:, None], shape)
+                if kind == OLD_STAR_KIND:
+                    weights = weights * profile.planetary_nebula_factor_array(x_bins, y_bins, z_mid[:, None], shape)
             cumulative = np.cumsum(weights, axis=1)
             top = cumulative[:, -1]
             # Rows are offset by 2 each, so one sorted array holds every band's cumulative shares.
@@ -341,7 +343,7 @@ def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, rn
         if not total:
             continue
         band_row = np.repeat(row_of_band, counts)
-        uniform = _uniforms(rng, 6 * total).reshape(6, total)
+        uniform = rng.random_array(6 * total).reshape(6, total)
         angle_bin = np.minimum(np.searchsorted(shares, 2.0 * band_row + uniform[0], side="right")
                                - band_row * bins, bins - 1)
         wedge_count = wedges[band_row]
@@ -358,7 +360,7 @@ def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, rn
         band_index = bands[band_row]
         kept = _stored_in_cells(mpc, shell_index, band_index, wedge, wedge_count, edge_pc)
         masses = _masses(kind, subtype, min_mass_solar, uniform[5])
-        seeds = [rng.getrandbits(63) for _ in range(total)]
+        seeds = rng.randbits_list(63, total)
         columns = [band_index.tolist(), wedge.tolist(), kept.tolist(), seeds, *mpc.tolist(),
                    masses.tolist() if masses is not None else [None] * total]
         for band, wedge_here, in_cell, seed, x, y, z, mass in zip(*columns):
@@ -460,7 +462,8 @@ def shell_expected(shape, shell_index, high_band, edge_pc, expected_at_density_1
 def _expectation_factor(shape, kind, subtype, plane, z):
     """What a class's rate per star is multiplied by at a band centre `plane` and `z` parsecs out (the progress bar's
     estimate of `_band_rows`): the remnant factors of a neutron star or black hole, the gas fraction of a supernova
-    remnant (GEN.236), the young population's share of the stars for a class that follows it (GEN.278)."""
+    remnant (GEN.236), the old stars' share of a planetary nebula (GEN.528), the young population's share of the stars
+    for a class that follows it (GEN.278)."""
     if registry.scatter_class_gate(kind, subtype) == "young stars":
         shares = density.population_densities((plane, 0.0, z), shape)
         total = sum(shares.values())
@@ -469,6 +472,8 @@ def _expectation_factor(shape, kind, subtype, plane, z):
               * remnant_distribution.radial_factor(kind, plane))
     if kind in GAS_WEIGHTED_KINDS:
         factor *= min(1.0, max(nebula_field.gas_factor((plane, 0.0, z), shape), 0.0))
+    if kind == OLD_STAR_KIND:
+        factor *= float(profile.planetary_nebula_factor_array(plane, 0.0, z, shape))
     return factor
 
 

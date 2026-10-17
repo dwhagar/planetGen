@@ -34,7 +34,7 @@ from flask import Blueprint, current_app, g, jsonify, request, url_for
 
 from planetgen.web.maps.systemscene import build_scene
 from planetgen.generation import run_galaxy
-from planetgen.queue import api_jobs
+from planetgen.queue import api_jobs, pagejobs
 from planetgen.util import draw
 
 from planetgen.db.shell_specs import galaxy_shell_specs
@@ -93,6 +93,7 @@ from planetgen.db.query import (
     system_detail as query_system_detail,
 )
 from planetgen.db import near as near_search
+from planetgen.db import stats as dbStats
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits
 from planetgen import tuning
@@ -1199,15 +1200,23 @@ def uncharted_systems():
     position in the sector). Query parameters: `sort` (`luminosity` -- the
     default -- `temperature`, `type`, `sector` or `age`) with `order`
     (`asc` or `desc`; `desc` for luminosity when omitted, else `asc`), `limit`
-    and `offset`. `total` counts every star waiting.
+    and `offset`. `after=<star id>` starts the page after that star in the sort instead of skipping `offset`
+    rows (PERF.75). `total` counts every star waiting.
     """
     limit, offset = _paginate(request.args)
     sort, descending = _parse_sort(request.args, UNCHARTED_SYSTEM_SORTS)
     if "order" not in request.args:
         descending = sort == "luminosity"
+    after = None
+    if request.args.get("after"):
+        try:
+            after = int(request.args["after"])
+        except ValueError:
+            raise ApiError(f"after must be a star id, got {request.args['after']!r}")
     db = get_db()
     return jsonify({
-        "items": list_uncharted_systems(db, limit=limit, offset=offset, sort=sort, descending=descending),
+        "items": list_uncharted_systems(db, limit=limit, offset=offset, sort=sort, descending=descending,
+                                        after=after),
         "total": count_uncharted_systems(db), "limit": limit, "offset": offset,
     })
 
@@ -1289,6 +1298,8 @@ def phenomena():
     and `placed` (`yes` or `no`); and `facets=1` to add the option counts
     for the type and descriptor filter menus (`db.query.phenomena_facets`).
     `total` counts the rows that pass the filters (`total_capped`: it stopped at 10,000, PERF.69).
+    `after=<scatter id>` (the `scatter_id` of a scattered row) starts the page after that row in the tail of
+    unbuilt scattered phenomena instead of skipping `offset` rows (PERF.75).
     """
     limit, offset = _paginate(request.args)
     sort, descending = _parse_sort(request.args, PHENOMENON_SORTS)
@@ -1297,10 +1308,17 @@ def phenomena():
         "descriptors": [v for v in request.args.getlist("descriptor") if v],
         "placed": _parse_yes_no(request.args.get("placed"), "placed"),
     }
+    after = None
+    if request.args.get("after"):
+        try:
+            after = int(request.args["after"])
+        except ValueError:
+            raise ApiError(f"after must be a scatter id, got {request.args['after']!r}")
     db = get_db()
     total = count_phenomena(db, **filters)
     body = {
-        "items": list_phenomena(db, limit=limit, offset=offset, sort=sort, descending=descending, **filters),
+        "items": list_phenomena(db, limit=limit, offset=offset, sort=sort, descending=descending, after=after,
+                                **filters),
         "total": total,
         "total_capped": is_capped(total),
         "limit": limit,
@@ -1620,7 +1638,8 @@ def generate_sector_neighborhood_route(sector_id):
     PERF.3: `"estimate_only": true` returns the counts and the size and
     time `estimate` without writing anything; a run the database disk
     can't hold (over a quarter of it, or under 5 GB left) is refused with
-    507 and nothing written."""
+    507 and nothing written; a radius holding more than 2 million sectors
+    (`run_common.WEB_ENUMERATION_LIMIT`, PERF.36) is refused with 413."""
     body = request_json()
     if body is None:
         body = {}
@@ -1642,6 +1661,8 @@ def generate_sector_neighborhood_route(sector_id):
         result = run_galaxy.generate_sector_neighborhood(
             sector_id, radius_ly=radius_ly, config=config, estimate_only=True,
         )
+    except run_galaxy.EnumerationTooLarge as exc:
+        raise ApiError(str(exc), status_code=413)
     except ValueError as exc:
         raise ApiError(str(exc), status_code=404)
     except RuntimeError as exc:
@@ -1715,6 +1736,48 @@ def job_status_route(job_id):
         raise ApiError(f"no such job: {job_id}", status_code=404)
     made = job.pop("made")
     job["made_url"] = url_for("web.galaxy", made=f"{made['since']},{made['until']}") if made else None
+    return jsonify(job)
+
+
+@bp.route("/table-estimates")
+def table_estimates_route():
+    """`GET /api/table-estimates` -- `{"tables": {name: rows}}`, the database's own estimate (from
+    `information_schema`, instant and within some tens of percent) of every table's row count. The web pages read it
+    once a minute to decide which requests are slow (PERF.105, `web/lib/slowpages.py`)."""
+    conn = get_db()
+    return jsonify({"tables": {row["name"]: row["approx_rows"] for row in dbStats.table_stats(conn)}})
+
+
+@bp.route("/page-jobs/<job_id>")
+def page_job_status_route(job_id):
+    """`GET /api/page-jobs/<id>` -- where the job building a slow page's answer stands (PERF.105): `state`
+    (`queued`, `running`, `succeeded`, `failed` or `cancelled`), `done` of `total` rows (an estimate: `estimated`
+    is true), `unit`, `eta_seconds`, `seconds`, `error`, `cancelling`, `cache_key` and `target`. Public, like the
+    pages it serves; it names only page jobs, never the admin's other jobs. 404 for an unknown or expired id
+    (a job is kept an hour); 503 without Redis."""
+    try:
+        job = pagejobs.status(job_id)
+    except pagejobs.NoQueue as exc:
+        raise ApiError(str(exc), status_code=503)
+    if job is None:
+        raise ApiError(f"no such page job: {job_id}", status_code=404)
+    return jsonify(job)
+
+
+@bp.route("/page-jobs/<job_id>/cancel", methods=["POST"])
+@limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
+def page_job_cancel_route(job_id):
+    """`POST /api/page-jobs/<id>/cancel` -- admin only: stops the job building a slow page's answer if it has not
+    started its query (a query already running finishes, and its answer is kept in the cache); answers `GET`'s body.
+    Every visitor waiting on the same request shares the job, so a visitor's own "Cancel" only stops that page
+    waiting (it stops polling) and the job goes on for the others. 404 and 503 as `GET`."""
+    try:
+        job = pagejobs.cancel(job_id)
+    except pagejobs.NoQueue as exc:
+        raise ApiError(str(exc), status_code=503)
+    if job is None:
+        raise ApiError(f"no such page job: {job_id}", status_code=404)
     return jsonify(job)
 
 

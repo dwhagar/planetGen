@@ -21,6 +21,8 @@ from planetgen.db import store
 from planetgen.queue import api_jobs, redisqueue, work, workers
 from tests.test_update_guard import FakeWork, begin, lines, say  # noqa: F401 -- fixtures
 
+pytestmark = pytest.mark.real_queue
+
 
 def sure_nothing_changed(fake=None):
     assert not maintenance.is_on() and updateguard.read_lock() is None

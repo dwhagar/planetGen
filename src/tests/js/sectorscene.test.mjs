@@ -119,7 +119,7 @@ test("an object left in an uncharted sector says so and has no page, bookmark or
   const star = { name: "B star (uncharted)", starType: "B", temp: "20000 K", uncharted: true };
   const cloud = { name: "Black hole (uncharted)", kind: "blackHoleQuiescent", typeLabel: "Black Hole (Stellar)",
     distanceText: "1 ly from sector center", key: "black_hole:s5", uncharted: true };
-  const nav = { active: () => false, actionsFor: () => [{ label: "Start here" }] };
+  const nav = { active: () => false, actionsFor: () => [{ label: "Start here" }], nearbyLinks: () => [] };
   [star, cloud].forEach((entry) => {
     const spec = SS.infoSpec(entry, {}, nav);
     assert.equal(spec.title, entry.name);
@@ -131,7 +131,7 @@ test("an object left in an uncharted sector says so and has no page, bookmark or
 });
 
 test("a charted star's info panel lists its metallicity when one is stored (GEN.158)", () => {
-  const nav = { active: () => false, actionsFor: () => [] };
+  const nav = { active: () => false, actionsFor: () => [], nearbyLinks: () => [] };
   const star = { name: "Sol", starType: "G2V", temp: "5772 K", metallicity: "−0.40 dex", quadrant: "I", location: "here",
     endpoint: "system:x", href: "/system/x" };
   const fields = (entry) => SS.infoSpec(entry, {}, nav).fields;
@@ -177,4 +177,20 @@ test("setFade scales every material from the value it was built with, and 0 hide
   materials.forEach((m, i) => assert.deepEqual(strength(m), before[i], "back as built"));
   sector.setFade(7);
   assert.equal(sector.fade(), 1, "held to 0..1");
+});
+
+test("a charted star, a phenomenon and a charted neighbor offer What's within, an uncharted object none (NAV.45)", () => {
+  const nav = { active: () => false, actionsFor: () => [],
+    nearbyLinks: (place) => [{ href: "/nearby?place=" + place, label: "What’s within 10 pc" }] };
+  const star = { name: "Sol", starType: "G2V", temp: "5772 K", endpoint: "system:12", href: "/system/12" };
+  const cloud = { name: "Veil", kind: "nebulaEmission", typeLabel: "Nebula", key: "nebula:3", href: "/phenomenon/nebula/3" };
+  const neighbor = { isNeighbor: true, exists: true, sectorId: 9, name: "Next", designation: "1·2·3", href: "/sector/9",
+    shellIndex: 1, bandIndex: 2, wedgeIndex: 3 };
+  const last = (spec) => spec.links[spec.links.length - 1];
+  assert.equal(last(SS.infoSpec(star, {}, nav)).href, "/nearby?place=system:12");
+  assert.equal(last(SS.infoSpec(cloud, {}, nav)).href, "/nearby?place=nebula:3");
+  assert.equal(last(SS.infoSpec(neighbor, {}, nav)).href, "/nearby?place=sector:9");
+  const waiting = { name: "B star (uncharted)", starType: "B", temp: "20000 K", uncharted: true };
+  assert.deepEqual(SS.infoSpec(waiting, {}, nav).links, []);
+  assert.deepEqual(SS.infoSpec({ ...neighbor, exists: false, sectorId: null }, {}, nav).links || [], []);
 });

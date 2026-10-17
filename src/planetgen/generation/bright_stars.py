@@ -56,8 +56,9 @@ import numpy as np
 from planetgen.physics import constants, metallicity
 from planetgen import tuning
 from planetgen.galaxy import scatter_limits as scatterLimits
-from planetgen.galaxy.component_field import KINDS_IN_THE_GATE
-from planetgen.galaxy.density import population_densities, population_densities_array
+from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
+from planetgen.galaxy import skeleton as galaxySkeleton
+from planetgen.galaxy.density import halo_density, population_densities, population_densities_array
 from planetgen.galaxy.spherical import (
     band_center_pc,
     band_colatitude_bounds,
@@ -157,7 +158,7 @@ def _densities(position_pc, shape):
     pre-places no component star (they are filled, GEN.161, or scattered by their own pass, GEN.240), which is what
     `_densities_at` and the band majorants already assume."""
     found = {population: max(density, 0.0) for population, density in population_densities(position_pc, shape).items()}
-    for kind in KINDS_IN_THE_GATE:
+    for kind in POPULATIONS_IN_THE_GATE:
         found[kind] = 0.0
     return found
 
@@ -235,7 +236,7 @@ def star_fe_h(population, point, seed, params=None):
     stored point, whole milliparsecs), on a stream of its own seed so no scatter draw moves. `None` for a cluster
     or satellite star, which carries its component's value (GEN.159, GEN.237). A horizontal-branch star keeps the
     [Fe/H] its colour was drawn from (`params["metallicity_fe_h"]`, GEN.286)."""
-    if population in ("cluster", "satellite"):
+    if population in POPULATIONS_IN_THE_GATE:
         return None
     if params is not None and params.get("metallicity_fe_h") is not None:
         return params["metallicity_fe_h"]
@@ -380,7 +381,7 @@ def shell_expected_stars(shape, shell_index, high_band, edge_pc, expected_at_den
         shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions, band_samples, angle_bins))
 
 
-def shell_weight(shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions):
+def shell_weight(shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions, beyond=None):
     """
     The work one shell of the scatter is expected to take, in stars: its
     expected stars (`shell_expected_stars`) plus `OBJECT_FIRST_BAND_WEIGHT_STARS`
@@ -388,11 +389,39 @@ def shell_weight(shape, shell_index, high_band, edge_pc, expected_at_density_1, 
     the near-empty shells at the edge of the disk no longer
     count as much as the dense ones in the middle (PERF.9).
 
+    With `beyond` (the shell's `reach_expected_stars`, or `reach_estimates`' entry), the part of the shell beyond the
+    outline counts too: its expected stars plus `OBJECT_FIRST_BAND_WEIGHT_STARS` per group bounded.
+
     Returns:
         tuple: `(weight, expected_stars)`.
     """
     expected = shell_expected_stars(shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions)
-    return expected + OBJECT_FIRST_BAND_WEIGHT_STARS * (2 * high_band + 1), expected
+    weight = expected + OBJECT_FIRST_BAND_WEIGHT_STARS * max(2 * high_band + 1, 0)
+    if beyond is not None:
+        stars, groups = beyond
+        expected += stars
+        weight += stars + OBJECT_FIRST_BAND_WEIGHT_STARS * groups
+    return weight, expected
+
+
+def _capacity(shape, address, fractions, expected_at_density_1, edge_pc):
+    """How many objects the sector at `address` may take (`object_first.sector_capacity`), from the density at its
+    centre and the `fractions` of its band's tier."""
+    shell_index, band_index, wedge = address
+    centre = _densities(sector_position_pc(shell_index, band_index, wedge, edge_pc), shape)
+    expected = (expected_at_density_1 * volume_ratio(shell_index, band_index, edge_pc)
+                * sum(centre[population] * fractions[population] for population in POPULATIONS))
+    return object_first.sector_capacity(expected)
+
+
+def _pick_population(rng, weights, wanted):
+    """The population of a kept candidate, in proportion to `weights` (which add up to `wanted`)."""
+    pick_weight = rng.random() * wanted
+    for population, weight in zip(POPULATIONS, weights):
+        pick_weight -= weight
+        if pick_weight < 0.0:
+            return population
+    return max(zip(POPULATIONS, weights), key=lambda item: item[1])[0]
 
 
 def _spots(shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions, rng, skip_addresses,
@@ -463,29 +492,275 @@ def _spots(shape, shell_index, high_band, edge_pc, expected_at_density_1, fracti
         if address in skip_addresses or not _stored_in_cell(point, shell_index, band_index, wedge, edge_pc):
             continue
         held = kept.get(address, 0)
-        if held:
-            centre = _densities(sector_position_pc(shell_index, band_index, wedge, edge_pc), shape)
-            expected = (expected_at_density_1 * volume_ratio(shell_index, band_index, edge_pc)
-                        * sum(centre[population] * here[population] for population in POPULATIONS))
-            if held >= object_first.sector_capacity(expected):
-                continue
+        if held and held >= _capacity(shape, address, here, expected_at_density_1, edge_pc):
+            continue
         kept[address] = held + 1
         taken += 1
-        pick_weight = rng.random() * wanted
-        for population, weight in zip(POPULATIONS, weights):
-            pick_weight -= weight
-            if pick_weight < 0.0:
-                break
-        else:
-            population = max(zip(POPULATIONS, weights), key=lambda item: item[1])[0]
-        yield band_index, wedge, point, population, tier_of_band[pick]
+        yield band_index, wedge, point, _pick_population(rng, weights, wanted), tier_of_band[pick]
     if on_candidates is not None:
         on_candidates(candidates, candidates, taken)
 
 
+def reach_bounds(shape, groups, by_tier, coarse=False):
+    """
+    An upper bound per group of `groups` (`object_first.ReachGroups`) on `sum_p density_p * fractions[p]` anywhere
+    in it (GEN.322): `object_first.extent_majorants` for the group's nearest point. `by_tier` is the `fractions` of
+    each tier (one for an untiered pass): a group takes the fractions of the tiers its nearest and farthest places
+    are judged to be in, the larger of each population's, since the tier changes along a group at most once and a
+    band's own tier is known only when a candidate lands in it. A `coarse` bound (for the far shells, which hold
+    almost nothing) skips the judging and takes the larger of each population's fractions over all the tiers.
+    """
+    if not len(groups):
+        return np.zeros(0)
+    if len(by_tier) == 1 or coarse:
+        merged = {population: max(item[population] for item in by_tier) for population in POPULATIONS}
+        return object_first.extent_majorants(shape, groups.inner, groups.z_near, groups.z_far, merged, groups.r_out)
+    near, far = groups.probes()
+    near_tier = scatterLimits.probe_densities(shape, *near)[1]
+    far_tier = scatterLimits.probe_densities(shape, *far)[1]
+    bounds = np.zeros(len(groups))
+    for pair in sorted(set(zip(near_tier.tolist(), far_tier.tolist()))):
+        merged = {population: max(by_tier[pair[0]][population], by_tier[pair[1]][population])
+                  for population in POPULATIONS}
+        if sum(merged.values()) <= 0.0:
+            continue
+        mask = (near_tier == pair[0]) & (far_tier == pair[1])
+        bounds[mask] = object_first.extent_majorants(
+            shape, groups.inner[mask], groups.z_near[mask], groups.z_far[mask], merged, groups.r_out[mask])
+    return bounds
+
+
+def _expected_in_groups(shape, groups, expected_at_density_1, fractions):
+    """About how many stars `groups` hold: the density at each group's middle times its volume, with the fractions of
+    the tier it is in."""
+    by_tier = fractions if isinstance(fractions, (list, tuple)) else [fractions]
+    if not len(groups) or sum(sum(item.values()) for item in by_tier) <= 0.0:
+        return 0.0
+    r_mid = (groups.r_in + groups.r_out) / 2.0
+    colat = (groups.colat_near + groups.colat_far) / 2.0
+    means, tiers = scatterLimits.probe_densities(shape, r_mid * np.sin(colat), r_mid * np.cos(colat))
+    if len(by_tier) == 1:
+        tiers = np.zeros(len(groups), dtype=int)
+    wanted = np.zeros(len(groups))
+    for tier, here in enumerate(by_tier):
+        wanted += np.where(tiers == tier, sum(means[population] * here[population] for population in POPULATIONS), 0.0)
+    return float(expected_at_density_1 * np.sum(groups.volume * wanted))
+
+
+def reach_expected_stars(shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions):
+    """
+    About how many stars a shell holds beyond the outline (`ReachGroups`), and how many groups that is:
+    `(stars, groups)`. What the progress bar and the expected-stars line read, so it is cheap, not exact.
+
+    Args:
+        fractions (dict or list): `band_fractions`, or the three of a `TieredPass`.
+    """
+    groups = object_first.ReachGroups.for_shell(shell_index, high_band, edge_pc)
+    return _expected_in_groups(shape, groups, expected_at_density_1, fractions), len(groups)
+
+
+REACH_ESTIMATE_STRIDE = 16
+"""int: `reach_estimates` works out every this many shells' beyond-outline stars and takes them for the ones between."""
+
+
+def reach_estimates(shape, shells, edge_pc, expected_at_density_1, fractions, stride=REACH_ESTIMATE_STRIDE):
+    """
+    `reach_expected_stars` for each of `shells` (`(shell, high_band)` pairs, consecutive shells), worked out on every
+    `stride`th one and taken for the ones between, since the estimate varies slowly with the shell.
+
+    Returns:
+        dict: `{shell: (stars, groups)}`.
+    """
+    found, last = {}, None
+    for index, (shell_index, high_band) in enumerate(shells):
+        if index % stride == 0 or last is None:
+            last = reach_expected_stars(shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions)
+        found[shell_index] = last
+    return found
+
+
+def far_expected_stars(shape, first_shell, last_shell, edge_pc, expected_at_density_1, fractions):
+    """About how many stars shells `first_shell .. last_shell` hold, drawn together (`scatter_far`)."""
+    if last_shell < first_shell:
+        return 0.0
+    return _expected_in_groups(shape, object_first.ReachGroups.far(first_shell, last_shell, edge_pc),
+                               expected_at_density_1, fractions)
+
+
+def far_shells(shape, first_shell, last_shell, edge_pc, expected_at_density_1, fractions):
+    """
+    Where the shells beyond the outline stop being worth bounding one by one (GEN.322): the coarse bound of each
+    run of shells `first_shell .. last_shell` (`ReachGroups.far_blocks`, the larger fractions of every tier) gives the
+    stars a shell of it can expect at most, and the shells from the first one after the last that can expect
+    `tuning.OBJECT_FIRST_FAR_MEAN` or more are drawn together (`scatter_far`).
+
+    Returns:
+        tuple: `(first_far_shell, means)`: the first shell of the far run (`last_shell + 1` if none is far enough
+            out, `first_shell` if every one is) and the coarse expected stars of each shell `first_shell ..
+            first_far_shell - 1`.
+    """
+    if last_shell < first_shell:
+        return first_shell, np.zeros(0)
+    by_tier = fractions if isinstance(fractions, (list, tuple)) else [fractions]
+    blocks = object_first.ReachGroups.far_blocks(first_shell, last_shell)
+    groups = object_first.ReachGroups.far(first_shell, last_shell, edge_pc)
+    weight = expected_at_density_1 * groups.volume * reach_bounds(shape, groups, by_tier, coarse=True)
+    half, pieces = len(weight) // 2, tuning.OBJECT_FIRST_FAR_PIECES
+    per_block = weight[:half].reshape(-1, pieces).sum(axis=1) + weight[half:].reshape(-1, pieces).sum(axis=1)
+    widths = np.array([end - start + 1 for start, end in blocks])
+    per_shell = per_block / widths
+    near = np.nonzero(per_shell >= tuning.OBJECT_FIRST_FAR_MEAN)[0]
+    first_far = first_shell if not len(near) else blocks[int(near[-1])][1] + 1
+    return first_far, np.repeat(per_shell, widths)[:first_far - first_shell]
+
+
+def _reach_spots(shape, groups, high_band, edge_pc, expected_at_density_1, by_tier, tier_of, rng, skip_addresses,
+                 check=False, on_candidates=None, coarse=False):
+    """
+    The stars of the regions beyond the galaxy's outline (`ReachGroups`), object first (GEN.322): the same
+    process as `_spots`, one Poisson count from the groups' bounds (`reach_bounds`), each candidate given a group in
+    proportion to `E * volume * bound`, a point uniform in the group, and kept with probability true density over
+    bound. The point's own address then decides its band, its tier (`tier_of(shell, band)`) and whether it is a
+    sector's first or later object. Nothing here draws from the stream `_spots` does, so a shell's stars inside
+    the outline are the same with or without it.
+
+    Args:
+        high_band (int): The highest band inside the outline of the groups' shell (`-1` for none): a point that
+            falls in the outline's own bands (the milliparsec rounding of a point on the edge) is dropped.
+        by_tier (list): `band_fractions` per tier, one for an untiered pass.
+        tier_of (callable or None): `tier_of(shell, band)` the tier index of a band, `None` for one tier.
+        rng: The stream of the regions' draws.
+        coarse (bool): Bound the groups with `reach_bounds`' coarse bound.
+
+    Yields:
+        tuple: `(shell, band_index, wedge, point, population, tier)`.
+    """
+    if sum(sum(item.values()) for item in by_tier) <= 0.0:
+        return
+    bounds = reach_bounds(shape, groups, by_tier, coarse=coarse)
+    cumulative = np.cumsum(expected_at_density_1 * groups.volume * bounds)
+    total_mean = float(cumulative[-1]) if len(cumulative) else 0.0
+    if not total_mean > 0.0:
+        return
+    bounds, cumulative = bounds.tolist(), cumulative.tolist()
+    cube_low, cube_high = (groups.r_in ** 3).tolist(), (groups.r_out ** 3).tolist()
+    cos_low, cos_high = groups.cos_low.tolist(), groups.cos_high.tolist()
+    shells_low, shells_high = groups.shell_low.tolist(), groups.shell_high.tolist()
+    candidates = poisson_count(total_mean, rng)
+    kept = {}
+    taken = 0
+    for done in range(candidates):
+        if on_candidates is not None and done % CANDIDATE_REPORT == 0:
+            on_candidates(done, candidates, taken)
+        pick = min(bisect.bisect_right(cumulative, rng.random() * total_mean), len(bounds) - 1)
+        radius = rng.uniform(cube_low[pick], cube_high[pick]) ** (1.0 / 3.0)
+        cos_colat = rng.uniform(cos_low[pick], cos_high[pick])
+        lon = rng.uniform(0.0, 2.0 * math.pi)
+        plane = radius * math.sqrt(max(0.0, 1.0 - cos_colat * cos_colat))
+        point = tuple(round(value * MPC_PER_PC) for value in (plane * math.cos(lon), plane * math.sin(lon),
+                                                                radius * cos_colat))
+        address = sector_address_at(tuple(value / MPC_PER_PC for value in point), edge_pc)
+        shell_index, band_index, wedge = address
+        if not shells_low[pick] <= shell_index <= shells_high[pick] or abs(band_index) <= high_band:
+            continue
+        tier = 0 if tier_of is None else tier_of(shell_index, band_index)
+        here = by_tier[tier]
+        densities = _densities(tuple(value / MPC_PER_PC for value in point), shape)
+        weights = [densities[population] * here[population] for population in POPULATIONS]
+        wanted = sum(weights)
+        if check and wanted > bounds[pick] * (1.0 + 1e-9):
+            raise AssertionError(f"majorant violated in group {pick} of shell {shell_index}: "
+                                 f"{wanted} > {bounds[pick]}")
+        if rng.random() * bounds[pick] >= wanted or address in skip_addresses:
+            continue
+        held = kept.get(address, 0)
+        if held and held >= _capacity(shape, address, here, expected_at_density_1, edge_pc):
+            continue
+        kept[address] = held + 1
+        taken += 1
+        yield shell_index, band_index, wedge, point, _pick_population(rng, weights, wanted), tier
+    if on_candidates is not None:
+        on_candidates(candidates, candidates, taken)
+
+
+def _draw_groups(shape, groups, high_band, edge_pc, expected_at_density_1, rng, skip_addresses, fractions, pass_bands,
+                 tiered, on_progress, base, check, coarse=False):
+    """The rows of regions beyond the outline (`ReachGroups`): their stars placed (`_reach_spots`), then each star's
+    type and luminosity drawn, from the one stream `rng`. `base` is the progress already reported, so `on_progress`
+    carries on from it."""
+    by_tier = fractions if tiered is not None else [fractions]
+    tier_of = None if tiered is None else tiered.limits.tier_at
+    placed = {(tier, population): [] for population in POPULATIONS for tier in range(len(pass_bands))}
+
+    def candidates_done(done, total, taken):
+        if on_progress is not None and total:
+            estimate = taken * total / done if done else float(total)
+            on_progress(base + taken / 2, base + max(estimate, float(taken)))
+
+    for shell_index, band_index, wedge, point, population, tier in _reach_spots(
+            shape, groups, high_band, edge_pc, expected_at_density_1, by_tier, tier_of, rng, skip_addresses,
+            check=check, on_candidates=candidates_done, coarse=coarse):
+        placed[(tier, population)].append((shell_index, band_index, wedge, point))
+    yield from draw_placed(placed, pass_bands, rng, on_progress, base)
+
+
+def draw_placed(placed, pass_bands, rng, on_progress=None, base=0.0):
+    """
+    The rows of stars already placed: each one's type and luminosity drawn from `rng`, population by population and
+    tier by tier (GEN.322, GEN.324).
+
+    Args:
+        placed (dict): `(tier, population) -> [(shell, band, wedge, point)]`, a key for every tier of `pass_bands` and
+            every population.
+        pass_bands (list): The `PassBand` of each tier.
+        base (float): The progress already reported, so `on_progress` carries on from it.
+    """
+    total_placed = sum(len(spots) for spots in placed.values())
+    drawn = 0
+    for population in POPULATIONS:
+        for tier, band in enumerate(pass_bands):
+            spots = placed[(tier, population)]
+            if not spots:
+                continue
+            stars = sample_bright_stars(len(spots), band.min_luminosity_sol, population, rng,
+                                        max_luminosity_sol=band.max_luminosity_sol, mass_range=band.mass_range)
+            for (shell_index, band_index, wedge, point), params in zip(spots, stars):
+                drawn += 1
+                if on_progress is not None:
+                    on_progress(base + (total_placed + drawn) / 2, base + total_placed)
+                yield _row(shell_index, band_index, wedge, point, population, params, rng)
+
+
+def pass_of(tiered, min_luminosity_sol, max_luminosity_sol, mass_range):
+    """`(fractions, pass_bands)` of a pass: the three tiers' `band_fractions` and bands for a `TieredPass`, else the
+    one pass's."""
+    if tiered is None:
+        return (band_fractions(min_luminosity_sol, max_luminosity_sol, mass_range),
+                [scatterLimits.PassBand(min_luminosity_sol, max_luminosity_sol, mass_range)])
+    return tier_fractions_of(tiered), list(tiered.bands)
+
+
+def scatter_far(shape, first_shell, last_shell, edge_pc, expected_at_density_1, min_luminosity_sol, seed,
+                skip_addresses=None, max_luminosity_sol=None, on_progress=None, mass_range=None, check=False,
+                tiered=None):
+    """
+    The stars of shells `first_shell .. last_shell`, all of them beyond the galaxy's outline and far enough out that
+    each holds almost nothing (`far_shells`), drawn together (GEN.322): one Poisson count from the coarse bounds of
+    all their groups (`ReachGroups.far`), from the stream `{seed}:objects:far:{first}`. Arguments as `scatter_shell`.
+
+    Yields:
+        tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order.
+    """
+    fractions, pass_bands = pass_of(tiered, min_luminosity_sol, max_luminosity_sol, mass_range)
+    groups = object_first.ReachGroups.far(first_shell, last_shell, edge_pc)
+    rng = draw.Stream(f"{seed}:objects:far:{first_shell}")
+    yield from _draw_groups(shape, groups, -1, edge_pc, expected_at_density_1, rng, skip_addresses or set(),
+                            fractions, pass_bands, tiered, on_progress, 0.0, check, coarse=True)
+
+
 def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1, min_luminosity_sol, seed,
                   skip_addresses=None, max_luminosity_sol=None, on_progress=None, mass_range=None, check=False,
-                  tiered=None):
+                  tiered=None, reach=False):
     """
     One shell of `scatter`: every bright star of shell `shell_index` in the
     bands `-high_band .. high_band`, placed object first (`_spots`, PERF.58).
@@ -504,6 +779,9 @@ def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1,
         tiered (galaxy.scatter_limits.TieredPass, optional): The pass by place (GEN.333): each band is drawn at
             its tier's limits and `min_luminosity_sol`, `max_luminosity_sol` and `mass_range` are not read. Without it
             one limit stands everywhere.
+        reach (bool): Also draw the part of the shell beyond the outline (bands past `high_band`, all of them when
+            `high_band` is `-1`) in groups of bands (`_reach_spots`, GEN.322). It has a stream of its own and is drawn
+            after the outline's stars, which are the same either way.
 
     Yields:
         tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order.
@@ -543,6 +821,11 @@ def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1,
                 if on_progress is not None:
                     on_progress((total_placed + drawn) / 2, total_placed)
                 yield _row(shell_index, band_index, wedge, point, population, params, rng)
+    if reach:
+        groups = object_first.ReachGroups.for_shell(shell_index, high_band, edge_pc)
+        yield from _draw_groups(shape, groups, high_band, edge_pc, expected_at_density_1,
+                                draw.Stream(f"{seed}:objects:reach:{shell_index}"), skip_addresses, fractions,
+                                pass_bands, tiered, on_progress, total_placed, check)
 
 
 def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol, seed,
@@ -604,6 +887,116 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
                             if _in_range(row, min_luminosity_sol, max_luminosity_sol):
                                 yield row
                             break
+
+
+BLOCK_WEDGES = 256
+"""int: The wedges of one band a block holds (GEN.308): a block is the cells `chunk * BLOCK_WEDGES` and up of a band, the
+last one short. The grid of blocks is fixed globally, so a region only chooses which blocks it reads."""
+
+BlockCandidate = collections.namedtuple("BlockCandidate", "wedge index u_population")
+"""A star `block_candidates` kept: the cell's wedge, its place in the block's draw (it keys the star's own stream,
+`candidate_stream`) and a uniform that picks its population in proportion to the cell's per-population rates."""
+
+
+def block_key(seed, shell_index, band_index, chunk, k):
+    """The name of the stream a block's band draws its candidates from: the seed, the block and the luminosity band."""
+    return f"{seed}:bf:{shell_index}:{band_index}:{chunk}:{k}"
+
+
+def candidate_stream(seed, shell_index, band_index, chunk, k, index):
+    """The stream the star of candidate `index` of a block draws its parameters and its point from, so it depends on
+    nothing but the seed, the block, the band and its place in the block's draw."""
+    return draw.Stream(f"{block_key(seed, shell_index, band_index, chunk, k)}:{index}")
+
+
+def block_bound(shape, shell_index, band_index, edge_pc, expected_at_density_1, shares):
+    """
+    The most stars one cell of a band can expect in a luminosity band (GEN.308): the cell's volume in edge cubes times
+    `expected_at_density_1` times the highest density any cell of the band can have, each part with the largest share
+    any population of it holds in the luminosity band.
+
+    Every cell centre of a band sits at the same cylindrical radius and height (`band_center_pc`), so the density
+    there bounds every cell: the disk and bulge at each term's maximum over the angle
+    (`galaxy.skeleton._bound_raw_density_at`, nuclear terms included) with the largest share of any population but
+    the halo, plus the halo, which depends on the radius and height alone, with the halo's own share. The clusters
+    and satellites are left out, as `_densities` leaves them out of the scatter.
+
+    Args:
+        shape (GalaxyShape): The galaxy's shape.
+        shell_index (int): The band's shell.
+        band_index (int): The band.
+        edge_pc (float): The sector edge.
+        expected_at_density_1 (float): Systems per sector at density 1.
+        shares (dict): Population to its share of the luminosity band (`bright_band_fraction`).
+    """
+    plane, z = band_center_pc(shell_index, band_index, edge_pc)
+    inner_share = max(share for population, share in shares.items() if population != "halo")
+    stellar = shape.k_norm * galaxySkeleton._bound_raw_density_at(shape, plane, z) * inner_share
+    halo = halo_density((plane, 0.0, z), shape) * shares["halo"]
+    return expected_at_density_1 * volume_ratio(shell_index, band_index, edge_pc) * (stellar + halo)
+
+
+def cell_band_rate(shape, address, edge_pc, expected_at_density_1, shares):
+    """
+    The stars a cell expects in a luminosity band, summed over the populations: what `backfill_cells` draws its Poisson
+    count with, `expected_at_density_1 * volume * density * share` at the cell's centre.
+
+    Args:
+        shape (GalaxyShape): The galaxy's shape.
+        address (tuple): `(shell, band, wedge)`.
+        edge_pc (float): The sector edge.
+        expected_at_density_1 (float): Systems per sector at density 1.
+        shares (dict): Population to its share of the luminosity band (`bright_band_fraction`).
+    """
+    shell_index, band_index, wedge = address
+    densities = _densities(sector_position_pc(shell_index, band_index, wedge, edge_pc), shape)
+    volume = volume_ratio(shell_index, band_index, edge_pc)
+    return sum(expected_at_density_1 * volume * densities[population] * shares[population] for population in POPULATIONS)
+
+
+def block_candidates(seed, shell_index, band_index, chunk, k, bound, rate_of):
+    """
+    The stars a luminosity band puts in one block of a band, drawn block first (GEN.308; docs/design/sampling-backfill-and-resume.md
+    section 2): one Poisson count from the block's `bound`, each candidate a uniform cell of the block kept with the
+    chance `rate / bound` of its own cell. Exact thinning of a Poisson process: a cell ends up with a Poisson count of
+    its own mean `rate`, independent of every other cell, so no cell's chance is altered; a block with no
+    candidates costs one stream and one count.
+
+    The draw is keyed by the seed, the block and the band alone (`block_key`), nothing sequential crosses a block, and
+    the block grid is global, so the same stars come out whatever region, order or split of workers reaches the block.
+
+    Args:
+        seed (int): The galaxy's bright-star seed.
+        shell_index (int): The block's shell.
+        band_index (int): The block's band.
+        chunk (int): Which block of the band: wedges `chunk * BLOCK_WEDGES` up.
+        k (int): The luminosity band (`canonical_bands`).
+        bound (float): A mean no cell of the block exceeds (`block_bound`).
+        rate_of (callable): `rate_of(wedge)` -> the stars the cell expects in the band (`cell_band_rate`); only the
+            candidates' cells are asked.
+
+    Returns:
+        list: The kept `BlockCandidate`s, in the order they were drawn.
+
+    Raises:
+        ValueError: A cell asked for expects more than `bound`: the bound is wrong and the draw would not be exact.
+    """
+    first = chunk * BLOCK_WEDGES
+    cells = min(BLOCK_WEDGES, wedge_count(shell_index, band_index) - first)
+    if cells <= 0 or not bound > 0.0:
+        return []
+    rng = draw.Stream(block_key(seed, shell_index, band_index, chunk, k))
+    kept = []
+    for index in range(poisson_count(bound * cells, rng)):
+        wedge = first + min(int(rng.random() * cells), cells - 1)
+        accept = rng.random()
+        u_population = rng.random()
+        rate = rate_of(wedge)
+        if rate > bound * (1.0 + 1e-9):
+            raise ValueError(f"cell {(shell_index, band_index, wedge)} expects {rate:g} stars, above its block's bound {bound:g}")
+        if accept * bound < rate:
+            kept.append(BlockCandidate(wedge, index, u_population))
+    return kept
 
 
 def mass_band_edges(mass_limit_sol, ring_masses=None):
@@ -819,7 +1212,7 @@ class FillContext:
         after a scatter, the luminosity cap."""
         system_config.POPULATION = pick_population(self.densities, rng)
         system_config.PLACE_TERMS = self.place_terms
-        if system_config.POPULATION in ("cluster", "satellite"):
+        if system_config.POPULATION in POPULATIONS_IN_THE_GATE:
             system_config.FE_H_PEAKS = self.profile.populations[system_config.POPULATION].fe_h
         if self.min_luminosity_sol is not None:
             system_config.MAX_STAR_LUMINOSITY_SOL = self.min_luminosity_sol

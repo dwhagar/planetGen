@@ -33,6 +33,7 @@ Needs numpy and scikit-image, both already dependencies.
 
 import hashlib
 import math
+import warnings
 
 import numpy as np
 
@@ -232,7 +233,13 @@ class NebulaShape:
         if values.max() < self.iso or values.min() >= self.iso:
             return np.zeros((0, 3)), np.zeros((0, 3), dtype=int)
         step = axis[1] - axis[0]
-        verts, faces, _normals, _values = marching_cubes(values, level=self.iso, spacing=(step, step, step))
+        with warnings.catch_warnings():
+            # TEST.188: scikit-image 0.26's own `faces.shape = -1, 3` (and `ar.shape = shape` in its lookup tables)
+            # trips NumPy 2.5's deprecation on every call; the assignment is inside skimage, not in this call. Only
+            # that message is dropped, only around this call; remove it when skimage reshapes instead.
+            warnings.filterwarnings("ignore", message="Setting the shape on a NumPy array has been deprecated",
+                                    category=DeprecationWarning)
+            verts, faces, _normals, _values = marching_cubes(values, level=self.iso, spacing=(step, step, step))
         verts = (verts - _GRID_HALF_WIDTH) / self.scale
         return verts, faces
 

@@ -13,6 +13,7 @@ from planetgen.galaxy import spherical
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.galaxy.system_position import galactic_velocity_ms, peculiar_velocity_ms, random_unit_vector
 from planetgen.generation import run_sector
+from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import constants
@@ -31,7 +32,7 @@ def _runaway_system(speed_kms=400.0, direction=(0.0, 0.0, 1.0)):
         cfg = SystemConfig()
         cfg.PLANETS = True
         system = StarSystem(system_config=cfg)
-        if system.planets:
+        if any(not isinstance(body, AsteroidBelt) for body in system.planets):   # a belt alone has no motion of its own
             break
     system.runaway_class = "hypervelocity"
     system.runaway_speed_kms = speed_kms
@@ -140,3 +141,30 @@ def test_the_galactic_orbit_update_turns_the_velocity_with_the_position(mysql_co
         conn.close()
 
 
+
+
+def test_every_star_of_a_wide_pair_takes_the_system_velocity_so_a_loaded_pair_matches_the_placed_one():
+    """GEN.527: a star used to take the rotation curve's tangent at its own place, which differs from the system's by up
+    to 0.08 m/s across a wide pair, so the pair loaded back from the system's one stored vector was off by that much."""
+    from planetgen.galaxy.system_position import place_system
+    sector_center_ly = tuple(c * constants.PARSEC_M / constants.LIGHTYEAR_M
+                             for c in spherical.sector_position_pc(*ADDRESS, EDGE_PC))
+    checked = 0
+    for _ in range(6000):
+        cfg = SystemConfig()
+        system = StarSystem(system_config=cfg)
+        if getattr(system, "binary_type", None) != "wide":
+            continue
+        position = (1.0, -0.5, 0.5)
+        velocity = place_system(system, sector_center_ly, position, EDGE_PC)
+        placed = [star.spatial.get_velocity_vector("galactic") for star in system.stars]
+        assert all(v == velocity for v in placed)
+        for star in system.stars:  # a loaded star has no speed of its own
+            star.galactic_orbital_speed_kms = None
+        system.star.galactic_orbital_speed_kms = None
+        place_system(system, sector_center_ly, position, EDGE_PC, velocity_ms=velocity)
+        assert [star.spatial.get_velocity_vector("galactic") for star in system.stars] == placed
+        checked += 1
+        if checked == 30:
+            return
+    pytest.fail(f"only {checked} wide pairs in 6000 systems")

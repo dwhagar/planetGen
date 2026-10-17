@@ -1808,7 +1808,7 @@ before any sector is filled. See "Bright-star pre-placement (v43)" above.
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | BIGINT UNSIGNED | PK | |
-| `shell_index`, `band_index`, `wedge_index` | INT / SMALLINT / INT | NOT NULL | The sector cell it falls in. Indexed together. |
+| `shell_index`, `band_index`, `wedge_index` | INT / INT / INT | NOT NULL | The sector cell it falls in. Indexed together. |
 | `position_x_mpc`, `position_y_mpc`, `position_z_mpc` | BIGINT | NOT NULL | Galaxy-frame position, milliparsecs. |
 | `population` | VARCHAR(12) | NOT NULL, CHECK IN ('young','intermediate','old','bulge','halo','cluster') | |
 | `star_type`, `yerkes_class` | VARCHAR | NOT NULL | As on `stars`. |
@@ -1835,7 +1835,7 @@ row per sector address a backfill reached or a fill generated. See
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
-| `shell_index`, `band_index`, `wedge_index` | INT / SMALLINT / INT | PK | The sector's grid address. |
+| `shell_index`, `band_index`, `wedge_index` | INT / INT / INT | PK | The sector's grid address. |
 | `bright_level_sol` | DOUBLE | NOT NULL, default -1 | How deep its bright stars go: -1 untouched (follows `galaxy_shape.bright_star_min_luminosity_sol`), a positive L_sun for a backfill's floor, 0 generated. Indexed. |
 | `level_before_fill_sol` | DOUBLE | nullable | The level a fill found, put back when the sector is deleted. |
 | `bright_mass_sol` | DOUBLE | nullable | Added in v79 (GEN.187). The initial mass, in solar masses, down to which a backfill placed every living star of the unfilled sector; NULL where none did, so the sector holds only the galaxy scatter's mass pass (stars born at or above `galaxy_shape.bright_star_mass_limit_sol`). A new plan scatter clears it. |
@@ -1960,7 +1960,7 @@ Added in v64 (GEN.100) and v77. `planetgen plan` places every black hole, neutro
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | BIGINT UNSIGNED | PK, AUTO_INCREMENT | |
-| `shell_index`, `band_index`, `wedge_index` | INT / SMALLINT / INT | NOT NULL | The sector cell the point is in. Indexed together (`idx_phenomenon_scatter_address`). |
+| `shell_index`, `band_index`, `wedge_index` | INT / INT / INT | NOT NULL | The sector cell the point is in. Indexed together (`idx_phenomenon_scatter_address`). |
 | `kind` | VARCHAR(24) | NOT NULL, CHECK | `black-hole`, `neutron-star`, `planetary-nebula`, `supernova-remnant`, `hypervelocity-star` or `quasar`. |
 | `subtype` | VARCHAR(16) | nullable | `supermassive` for the nucleus black hole, NULL for the rest (the object draws its own class from `seed`). |
 | `position_x_mpc`, `position_y_mpc`, `position_z_mpc` | BIGINT | NOT NULL | The point, in milliparsecs, galaxy frame. |
@@ -2130,9 +2130,25 @@ relationship.
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
 
+### v108 (DB.72): band numbers are INT in the scatter tables
+
+Migration 0108 widens `band_index` from SMALLINT to INT in `bright_stars`, `sector_stats` and `phenomenon_scatter`. A shell's bands run from `-(h + 1)` to `h + 1`, which passes SMALLINT's 32,767 at shell 20,861 and reaches 102,942 at shell 65,535, the outer shell of the 262 kpc reach, so the whole-sphere scatter stopped at 97 percent with "Out of range value for column 'band_index'". `sectors`, `galaxy_shell` and `galaxy_block_stats` were INT already. Each table is rebuilt in place (its address index with it) and no value is touched; a column that is already INT is skipped, so a stopped run can be started again. The version is detected from `bright_stars.band_index` being INT.
+
+### v107 (GEN.526): a satellite's young and intermediate stars
+
+Migration 0107 lets `bright_stars.population` take `satellite_young` and `satellite_intermediate`, the stars a satellite galaxy's star formation history puts in the last 0.1 Gy and in the 3 Gy before that (`galaxy/satellite_history.py`); `satellite` is now the rest, 3 Gy and older. The column widens to VARCHAR(24) for the longer name (an in-place change that copies no row) and no row is touched. The version is detected from the check constraint `chk_bright_stars_population` listing `satellite_young`.
+
+### v106 (DB.65): the cell key holds the last cube at the box edge
+
+Migration 0106 recomputes the generated `cell_key` of the 14 tables that hold one (`star_systems`, the phenomenon tables, `bright_stars`, `phenomenon_scatter`, `facilities`, `nebula_field`, `galaxy_components`, `asteroid_fields`) with `LEAST(cube number, 2097151)` on each axis. A coordinate just under the 262,144 pc reach whose rounded cube number came to 2^21 took the key of the opposite edge (the 21-bit field dropped the top bit); it now takes the last cube's. The version is detected from `LEAST` in `star_systems.cell_key`'s generation expression. Altering a stored generated column rebuilds the table and its covering index, so the migration runs once per table with a progress line.
+
+### v105 (GEN.324): satellite stars
+
+Migration 0105 lets `bright_stars.population` take `satellite`, the stars of a satellite galaxy (the Clouds, Sagittarius, the dwarfs) that the component pass places (`generation/component_pass.py`); a globular cluster's stars were already `cluster` (v94). Nothing else changes and no row is touched. The version is detected from the check constraint `chk_bright_stars_population` listing `satellite`.
+
 ### v104 (DB.53): the orbit tree of a built system
 
-Migration 0104 gives a built multi-star system the storage the scatter side already had, so the items of the multi-star train (GEN.242, GEN.264, GEN.269, GEN.273, GEN.274, GEN.275) need no revision of their own. `orbit_nodes` is keyed by `star_system_id` and `node_no` and has the columns of `scatter_nodes` by name and unit (`parent_node_no`, `slot`, `mass_solar`, `separation_km`, `eccentricity`, `inclination_deg`, `ascending_node_deg`, `arg_periapsis_deg`, `mean_anomaly_deg`, `epoch_unix`, `period_years`, `kind` of `close`, `wide`, `compact` or `group`, `interaction`, `flags`), so a fill copies a node column for column, and adds the disk descriptor (`disk_kind`, `disk_mass_solar`, `disk_inner_au`, `disk_outer_au`, all nullable; a disk holds no bodies of its own). A node is deleted with its system (foreign key, ON DELETE CASCADE). `stars` gets `parent_node_id` (the node a star sits in), the member columns of `scatter_members` (`state`, `flags`, `offset_x/y/z_au`, `velocity_x/y/z_kms`, `decay_age_yr`, `epoch_unix`) and the same disk descriptor; `planets` gets `host_node_id` (the node a circumbinary planet orbits, NULL for a planet of one star). A star is now a layout of `planetgen/db/point_columns.py` (system frame, offset in au, velocity in km/s, mass in kg, epoch, no clock of its own). A `close` or `wide` pair converts to one node (number 0, no parent) from its stored mutual orbit and the mass of its two stars, its stars take `parent_node_id` 0, and every star's offset is the stored binary position (zero for a single star); velocity and epoch stay NULL until the code that moves members fills them. Every step is skipped when done and the version is detected from `planets.host_node_id`.
+Migration 0104 gives a built multi-star system the storage the scatter side already had, so the items of the multi-star train (GEN.242, GEN.264, GEN.269, GEN.273, GEN.274, GEN.275) need no revision of their own. `orbit_nodes` is keyed by `star_system_id` and `node_no` and has the columns of `scatter_nodes` by name and unit (`parent_node_no`, `slot`, `mass_solar`, `separation_km`, `eccentricity`, `inclination_deg`, `ascending_node_deg`, `arg_periapsis_deg`, `mean_anomaly_deg`, `epoch_unix`, `period_years`, `kind` of `close`, `wide`, `compact` or `group`, `interaction`, `flags`), so a fill copies a node column for column, and adds the disk descriptor (`disk_kind`, `disk_mass_solar`, `disk_inner_au`, `disk_outer_au`, all nullable; a disk holds no bodies of its own). A node is deleted with its system (foreign key, ON DELETE CASCADE). `stars` gets `parent_node_id` (the node a star sits in), the member columns of `scatter_members` (`state`, `flags`, `offset_x/y/z_au`, `velocity_x/y/z_kms`, `decay_age_yr`, `epoch_unix`) and the same disk descriptor; `planets` gets `host_node_id` (the node a circumbinary planet orbits, NULL for a planet of one star). A star is now a layout of `planetgen/db/point_columns.py` (system frame, offset in au, velocity in km/s, mass in kg, epoch, no clock of its own). A `close` or `wide` pair converts to one node (number 0, no parent) from its stored mutual orbit and the mass of its two stars, its stars take `parent_node_id` 0, and every star's offset is the stored binary position (zero for a single star); velocity and epoch stay NULL until the code that moves members fills them. Every step is skipped when done and the version is detected from `planets.host_node_id`. GEN.242 fills the disk descriptor of `stars` for a protostar or pre-main-sequence star (`disk_kind` of `class-0`, `class-i` or `class-ii`, the mass in solar masses, the inner and outer edge in AU; NULL for every other star); `yerkes_class` is `protostar` or `PMS` for those stars.
 
 ### v103 (GEN.336): the movement vector replaces the scalar galactic speed
 

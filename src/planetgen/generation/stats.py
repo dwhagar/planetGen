@@ -551,6 +551,8 @@ class Estimate:
         disk (DiskSpace or None): The database's disk, when measurable.
         measured (bool): Whether the speed came from this server's own
             stored runs (otherwise defaults).
+        sampled (int): How many sectors the figures were worked out from
+            when the run is larger than `SAMPLE_ABOVE` (PERF.36), else 0.
     """
 
     sectors: int = 0
@@ -563,12 +565,14 @@ class Estimate:
     measured: bool = False
     refusal: str = field(default=None)
     disk_note: str = None
+    sampled: int = 0
 
     def as_dict(self):
         return {
             "sectors": self.sectors, "systems": round(self.systems), "stars": round(self.stars),
             "bytes": self.bytes, "seconds": round(self.seconds, 1), "workers": self.workers,
-            "measured": self.measured, "refused": self.refusal is not None, "refusal": self.refusal,
+            "measured": self.measured, "sampled": self.sampled, "refused": self.refusal is not None,
+            "refusal": self.refusal,
             "disk": None if self.disk is None else {
                 "path": self.disk.path, "mount": self.disk.mount, "where": self.disk.where(),
                 "total_bytes": self.disk.total_bytes, "free_bytes": self.disk.free_bytes,
@@ -582,7 +586,8 @@ class Estimate:
         text = (f"About {format_bytes(self.bytes)} and {format_duration(self.seconds)} for {self.sectors:,} "
                 f"sector{'s' if self.sectors != 1 else ''} (~{round(self.systems):,} star systems, "
                 f"~{round(self.stars):,} stars, {self.workers} worker{'s' if self.workers != 1 else ''}"
-                f"{'' if self.measured else ', speed not yet measured on this server'}).")
+                f"{'' if self.measured else ', speed not yet measured on this server'}"
+                f"{f', worked out from {self.sampled:,} sampled sectors' if self.sampled else ''}).")
         if self.disk is not None:
             text += (f" {format_bytes(self.disk.free_bytes)} free of {format_bytes(self.disk.total_bytes)} "
                      f"on {self.disk.where()}.")
@@ -596,7 +601,27 @@ MAX_SYSTEMS_PER_SECTOR = 1e9
 absurd or infinite `--density` fills its cube and stops well short)."""
 
 
-def estimate(sectors, stats, database, workers=1, kind="sector"):
+SAMPLE_ABOVE = 20_000
+"""int: A run of more sectors than this is estimated from `SAMPLE_SIZE` of them (PERF.36): resolving every sector
+only to add up its expected systems costs more than the figure is worth."""
+
+SAMPLE_SIZE = 200
+"""int: How many sectors an estimate over `SAMPLE_ABOVE` sectors is worked out from: spread evenly through the run,
+200 land within 1% of the full 7.455 million-system core."""
+
+
+def sample_positions(count, size=None):
+    """
+    The places (0-based, ascending) of `size` (`SAMPLE_SIZE`) sectors spread evenly through a run of `count` sectors:
+    the middle of each of `size` equal stretches. Every place when `count` is no larger than `size`.
+    """
+    size = size or SAMPLE_SIZE
+    if count <= size:
+        return list(range(count))
+    return [int((k + 0.5) * count / size) for k in range(size)]
+
+
+def estimate(sectors, stats, database, workers=1, kind="sector", total=None):
     """
     The size and time `sectors` will take, and whether it's refused.
 
@@ -607,23 +632,53 @@ def estimate(sectors, stats, database, workers=1, kind="sector"):
         database (str): The galaxy database's name (its size per system).
         workers (int): Worker processes the run will use.
         kind (str): Which speeds to use.
+        total (int or None): The size of the run when `sectors` holds only a sample of it
+            (`sample_positions`, PERF.36): the figures are scaled up from the sample, and `sampled` says how many it held.
 
     Returns:
         Estimate: `disk` and `refusal` still unset (`check_disk`).
     """
     result = Estimate(workers=max(1, int(workers or 1)))
     worker_seconds = 0.0
+    seen = 0
     stars_ratio = _stars_per_system(stats, kind)
     for density, expected in sectors:
         expected = min(max(float(expected or 0.0), 0.0), MAX_SYSTEMS_PER_SECTOR)
-        result.sectors += 1
+        seen += 1
         result.systems += expected
         worker_seconds += stats.seconds_per_system(kind, density, result.workers) * max(expected, 1.0)
+    if total is not None and seen and total != seen:
+        scale = total / seen
+        result.systems *= scale
+        worker_seconds *= scale
+        result.sampled = seen
+        result.sectors = int(total)
+    else:
+        result.sectors = seen
     result.stars = result.systems * stars_ratio
     result.bytes = int(math.ceil(round(result.systems * stats.bytes_per_system(database) * (1 + SIZE_MARGIN), 6)))
     result.seconds = worker_seconds / min(result.workers, max(result.sectors, 1))
     result.measured = any(b.samples for (k, _w, _i), b in stats.buckets.items() if k == kind)
     return result
+
+
+def fingerprint(conn):
+    """
+    A string that changes whenever a stored speed or size an estimate reads changes (PERF.109): the number of
+    buckets of this version and the newest time one was written, then the number of sizes and the newest time
+    one was measured. The Generate page's cached estimate (`web/lib/estimatecache.py`) is served only while it
+    stays the same.
+
+    Args:
+        conn (Connection): An open control database connection.
+
+    Raises:
+        Exception: The control schema is not there (older than v6).
+    """
+    buckets = conn.execute("SELECT COUNT(*) AS n, MAX(updated_at) AS newest FROM generation_stats"
+                           " WHERE version_key = ?", (current_version_key(),)).fetchone()
+    sizes = conn.execute("SELECT COUNT(*) AS n, MAX(measured_at) AS newest FROM generation_size").fetchone()
+    return f"{buckets['n']}@{buckets['newest']}/{sizes['n']}@{sizes['newest']}"
 
 
 def _stars_per_system(stats, kind):

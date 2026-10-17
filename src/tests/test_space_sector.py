@@ -20,6 +20,7 @@ import pytest
 from planetgen.util import draw
 from planetgen.physics import constants
 from planetgen import tuning as program_constants
+from planetgen.galaxy import mass_chain
 from planetgen.galaxy import sector as spaceSector_module
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import (
@@ -108,12 +109,16 @@ def test_random_placement_raises_when_sector_too_full():
         sector.add_system(other_system, min_separation_ly=1000.0)
 
 
-def test_hill_radius_ly_matches_real_solar_neighborhood_data():
+def test_hill_radius_ly_matches_real_solar_neighborhood_data(monkeypatch):
     """
     Validates hill_radius_ly against real astronomy: the Sun's own Hill
     sphere relative to the Milky Way is commonly cited (Oort cloud outer
-    boundary) at ~100,000-150,000 AU, i.e. ~1.6-2.4 ly.
+    boundary) at ~100,000-150,000 AU, i.e. ~1.6-2.4 ly. The generator draws
+    each galaxy's own virial mass (GEN.400), so the check sets a galaxy of
+    the Milky Way's mass (a test value, the plausibility target) as the
+    central mass.
     """
+    monkeypatch.setattr(mass_chain, "current_central_mass_kg", lambda: 1.15e12 * constants.SOLAR_MASS_TO_KG)
     sun_like, _ = make_system(star_type="G2V")
     assert 1.5 <= hill_radius_ly(sun_like) <= 2.5
 

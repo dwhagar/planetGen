@@ -24,7 +24,9 @@ REGION_LABELS = {
 }
 POPULATION_LABELS = {
     "young": "Young disk", "intermediate": "Intermediate disk", "old": "Old disk", "bulge": "Bulge", "halo": "Halo",
-    "cluster": "Cluster", "satellite": "Satellite", "nuclear_cluster": "Nuclear cluster", "nuclear_disc": "Nuclear disc",
+    "cluster": "Cluster", "satellite": "Old satellite stars", "nuclear_cluster": "Nuclear cluster",
+    "nuclear_disc": "Nuclear disc", "satellite_young": "Young satellite stars",
+    "satellite_intermediate": "Intermediate satellite stars",
 }
 ROTATION_LABELS = {"disk": "Follows the disk", "bar": "Follows the bar", "orbit": "Orbits the galaxy", "none": "No net motion"}
 AMBIENT_LABELS = {
@@ -58,7 +60,7 @@ def profile_view(profile, charted=False):
 
     Returns:
         dict: `region`, `expected_systems`, `density`, `rows` (one per population above `SHOWN_SHARE`, most of the
-            cell first: `label`, `share_percent`, `age`, `fe_h`, `dispersion`, `rotation`), `gas` (`cold_percent`,
+            cell first: `label`, `share_percent`, `age`, `fe_h`, `dispersion`, `rotation`), `type_ia_percent` (the share of the place's supernova remnants that are Type Ia), `gas` (`cold_percent`,
             `ambient`, `ambient_density_cm3`, `mass_solar`, `superbubble`), `dark_matter` (`density_solar_pc3`,
             `mass_solar`), `heavy` (`None`, or the warning's figures: `systems`, `time`, `size`, `measured`) and
             `unresolved`.
@@ -85,5 +87,6 @@ def profile_view(profile, charted=False):
                 "ambient_density_cm3": _sig(gas["ambient_density_cm3"]), "mass_solar": _sig(gas["mass_solar"]),
                 "superbubble": gas["superbubble"]},
         "dark_matter": {"density_solar_pc3": _sig(dark["density_solar_pc3"]), "mass_solar": _sig(dark["mass_solar"])},
+        "type_ia_percent": format_number(100.0 * profile.get("type_ia_share", 0.0)),
         "heavy": heavy, "unresolved": profile.get("unresolved"),
     }

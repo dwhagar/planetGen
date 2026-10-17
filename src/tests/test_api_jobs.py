@@ -14,6 +14,8 @@ import pytest
 from planetgen.queue import api_jobs
 from tests.test_api import admin_client, client, default_admin_client, first_admin_password  # noqa: F401
 
+pytestmark = pytest.mark.real_queue
+
 
 def _wait(job_id, timeout=60):
     deadline = time.monotonic() + timeout

@@ -8,7 +8,9 @@
 //   the NAV page with that end chosen;
 // - data-nav-take and data-nav-label: while a start or destination is
 //   being picked (`?pick=...`), the one button that returns to the NAV page
-//   with the course.
+//   with the course;
+// - data-nav-nearby, with no pick: "What's within N pc" (NAV.45), the What's
+//   nearby page with the body filled in (`data-nav-nearby-label` is the link's words).
 
 // The printed object ID (API.23: `0008000000-4000000-00D`), as `objectref.js` parses it; a plain number matches too.
 const REF = /^(star|planet|moon|belt|comet):[0-9A-Fa-f]+(-[0-9A-Fa-f]+){0,2}$/;
@@ -29,10 +31,20 @@ export function navActions(root, ref) {
   return actions;
 }
 
+// The "What's within N pc" link for the body `ref` as [{label, href}], none while a
+// course is being picked or for anything that is not a body.
+export function nearbyLinks(root, ref) {
+  if (!root || !REF.test(String(ref || ""))) return [];
+  const data = root.dataset;
+  if (!data.navNearby || data.navTake) return [];
+  return [{ label: data.navNearbyLabel || "What’s nearby", href: fill(data.navNearby, ref) }];
+}
+
 // Adds the buttons to `panel` as one row of links.
 export function appendNavActions(panel, root, ref) {
   const actions = navActions(root, ref);
-  if (!actions.length) return;
+  const nearby = nearbyLinks(root, ref);
+  if (!actions.length && !nearby.length) return;
   const row = document.createElement("p");
   row.className = "page-actions map-info-actions";
   actions.forEach(function (action) {
@@ -41,6 +53,13 @@ export function appendNavActions(panel, root, ref) {
     link.href = action.href;
     link.textContent = action.label;
     row.appendChild(link);
+  });
+  nearby.forEach(function (link) {
+    const anchor = document.createElement("a");
+    anchor.className = "btn btn-small btn-secondary";
+    anchor.href = link.href;
+    anchor.textContent = link.label;
+    row.appendChild(anchor);
   });
   panel.appendChild(row);
 }

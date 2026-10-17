@@ -789,6 +789,21 @@ tbody tr:last-child td {
   font-weight: 600;
 }
 
+/* UX.3: the notice every visitor sees while a background run changes the galaxy */
+.galaxy-banner {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--bg-subtle);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--tier-yellow);
+  border-radius: var(--radius);
+}
+
+.galaxy-banner[hidden] {
+  display: none;
+}
+
 /* The map panels: interactive 3D WebGL scenes (the Galaxy Map's, and the sector
    page's, which is the same engine locked to its sector) */
 .starmap-layout {
@@ -2439,6 +2454,47 @@ code {
   vertical-align: middle;
 }
 
+.map-layer-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  margin: 0.25rem 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.map-layer-legend[hidden] {
+  display: none;
+}
+/* On the Galaxy and Sector Maps the legend lines sit over the map's lower left. */
+.starmap-viewport > .map-layer-legend {
+  position: absolute;
+  left: 0.75rem;
+  bottom: 0.75rem;
+  max-width: 60%;
+  margin: 0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  pointer-events: none;
+}
+.map-layer-legend-swatch {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-right: 0.35rem;
+  vertical-align: -0.1rem;
+  border-radius: 2px;
+}
+.map-layer-legend-swatch.sysmap-legend-facility {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 0;
+}
+.sysmap-hide-facility .sysmap-facility,
+.sysmap-hide-facility .sysmap-facility-orbit {
+  display: none;
+}
+
 .sysmap-crumb {
   display: flex;
   flex-wrap: wrap;
@@ -2696,6 +2752,11 @@ code {
 
 .galaxy-kinds[hidden] {
   display: none;
+}
+
+/* MAP.217: the layer buttons sit in the Menu's flow as if they had no wrapper. */
+.galaxy-layers {
+  display: contents;
 }
 
 .galaxy-kinds-heading {
@@ -3467,6 +3528,33 @@ body.app {
   min-width: 0;
   height: 1rem;
   accent-color: var(--accent);
+}
+
+/* The loading state of a slow page (static/slowload.js, UX.118). */
+.slow-load .job-progress progress {
+  min-width: 10rem;
+}
+
+.slow-load .job-progress [data-slow-percent] {
+  min-width: 3ch;
+  font-variant-numeric: tabular-nums;
+}
+
+.slow-load-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.slow-load [hidden] {
+  display: none;
+}
+
+/* A bar with no value moves by itself; for a reader who asked for less motion the words say it instead. */
+@media (prefers-reduced-motion: reduce) {
+  .slow-load progress:not([value]) {
+    display: none;
+  }
 }
 
 .job-log {
@@ -4429,4 +4517,16 @@ p.hint a {
 .tagline {
   margin: 0 0 1rem;
   color: var(--text-muted, inherit);
+}
+
+/* MAP.227: the sector the camera is in, over the map's top-left corner. */
+.galaxy-where {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  font-size: 0.85rem;
+  pointer-events: none;
 }

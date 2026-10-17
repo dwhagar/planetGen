@@ -11,6 +11,7 @@ import re
 from flask import abort, flash, get_flashed_messages, redirect, request, url_for
 
 from planetgen.web.lib import apiclient
+from planetgen.web.lib.slowroute import slow_route
 from planetgen.web.lib.datatable import Column, Facet, Result, Table, plain
 from planetgen.web.lib.fmt import (
     format_density, format_distance_ly, format_luminosity_sol, format_members, format_number, format_mass_solar)
@@ -148,13 +149,15 @@ def _uncharted_row(star, can_generate):
     ]
 
 
-def _uncharted_load(state, limit, offset, want_facets):
+def _uncharted_load(state, limit, offset, want_facets, after=None):
     # Brightest first is the table's default, so its ascending order is the API's descending one.
     descending = state.descending if state.sort != "luminosity" else not state.descending
     envelope = apiclient.get_uncharted_systems(
-        db_name(), limit=limit, offset=offset, sort=state.sort, descending=descending)
+        db_name(), limit=limit, offset=offset, sort=state.sort, descending=descending, after=after)
     can_generate = current_admin() is not None
-    return Result([_uncharted_row(star, can_generate) for star in envelope["items"]], envelope["total"], None)
+    items = envelope["items"]
+    return Result([_uncharted_row(star, can_generate) for star in items], envelope["total"], None,
+                  next=items[-1]["id"] if items else None)
 
 
 UNCHARTED_SYSTEMS_TABLE = tables.register(Table(
@@ -163,7 +166,7 @@ UNCHARTED_SYSTEMS_TABLE = tables.register(Table(
      Column("temperature", "Temperature"), Column("age", "Age"), Column("sector", "Sector and cell"),
      Column("position", "Galaxy x, y, z", sortable=False), Column("local", "In the sector x, y, z", sortable=False),
      Column("members", "Members", sortable=False), Column("generate", "Generate", sortable=False)],
-    _uncharted_load, prefix="uncharted_", noun=("uncharted star", "uncharted stars"),
+    _uncharted_load, prefix="uncharted_", noun=("uncharted star", "uncharted stars"), keyset=True,
 ))
 
 
@@ -315,6 +318,8 @@ def generate_uncharted_system(bright_star_id):
 
 @bp.route("/search")
 @page_limit("search")
+@slow_route("Search", breadcrumbs=lambda: [crumb("Search")],
+            description="Search this charted galaxy by name, size and type.")
 def search():
     """
     Faceted search (was `search.py`): `?q=` searches every kind of name

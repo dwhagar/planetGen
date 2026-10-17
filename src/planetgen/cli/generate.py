@@ -46,7 +46,8 @@ from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen._version import VersionAction, version_banner
 from planetgen.galaxy import scatter_limits
-from planetgen.galaxy.density import arm_terms, build_galaxy_shape
+from planetgen.galaxy import shape_draw as shapeDraw
+from planetgen.galaxy.density import arm_terms
 from planetgen.galaxy.skeleton import DEFAULT_MAX_SHELL, DEFAULT_REACH_SHELL
 from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.generation import star_population
@@ -882,23 +883,25 @@ def add_plan_arguments(parser):
         parser (argparse.ArgumentParser): The parser to add options to.
     """
     shape_group = parser.add_argument_group("galaxy shape (galaxyDensity.GalaxyShape)")
-    shape_group.add_argument('--disk-scale-length-pc', type=finite_float, default=2600.0,
+    shape_group.add_argument('--disk-scale-length-pc', type=finite_float, default=None,
                              help="Thin disk exponential scale length, parsecs (the thick disk's is 0.77x). "
-                                  "Default: 2600 "
-                                  "(real Milky Way scale).")
-    shape_group.add_argument('--disk-scale-height-pc', type=finite_float, default=300.0,
+                                  "Default: drawn from the galaxy seed by the size-mass relation of the galaxy's "
+                                  "stellar mass (galaxy/shape_draw.py).")
+    shape_group.add_argument('--disk-scale-height-pc', type=finite_float, default=None,
                              help="Thin disk exponential scale height, parsecs (the thick disk's is 3x). "
-                                  "Default: 300 (real Milky Way).")
-    shape_group.add_argument('--bulge-scale-radius-pc', type=finite_float, default=1580.0,
+                                  "Default: drawn from the seed, the scale length over 7.3 with a 0.13 dex scatter.")
+    shape_group.add_argument('--bulge-scale-radius-pc', type=finite_float, default=None,
                              help="Bar bulge scale length along the bar, parsecs (0.39x across it, 0.27x "
-                                  "vertically). Default: 1580 (COBE/DIRBE fit, Dwek et al. 1995).")
-    shape_group.add_argument('--bulge-amplitude', type=finite_float, default=3.11,
+                                  "vertically). Default: drawn from the seed, a third of the bar's length.")
+    shape_group.add_argument('--bulge-amplitude', type=finite_float, default=None,
                              help="Bulge central density, relative to the thin disk's at the center. "
-                                  "Default: 3.11 (bulge 31%% of the stars, as in the Milky Way).")
-    shape_group.add_argument('--arm-count', type=int, default=2,
-                             help="Number of spiral arms. Default: 2 (grand-design).")
-    shape_group.add_argument('--pitch-angle-deg', type=finite_float, default=15.0,
-                             help="Spiral arm pitch angle, degrees. Default: 15.")
+                                  "Default: solved from a bulge-to-total ratio drawn from the seed.")
+    shape_group.add_argument('--arm-count', type=int, default=None,
+                             help="Number of spiral arms. Default: drawn from the seed (two arms in about two "
+                                  "thirds of spirals).")
+    shape_group.add_argument('--pitch-angle-deg', type=finite_float, default=None,
+                             help="Spiral arm pitch angle, degrees. Default: drawn from the seed, tighter for "
+                                  "heavier galaxies.")
     shape_group.add_argument('--arm-density', type=finite_float, default=1.4,
                              help="The thin disk's density on a spiral arm crest, in the disk's own units "
                                   "(the usual local disk is 1). At least --interarm-density. Default: 1.4.")
@@ -911,7 +914,7 @@ def add_plan_arguments(parser):
                                   "scaled to the bulge: 1 is the observed pair, 0 is none. Default: 1.")
     shape_group.add_argument('--calibration-radius-pc', type=finite_float, default=None,
                              help="In-plane radius the relative_density=1.0 calibration point sits at. "
-                                  "Defaults to build_galaxy_shape's own default (3.15x disk scale length, the Sun's radius).")
+                                  "Defaults to 3.15x the disk scale length.")
 
     parser.add_argument('--seed', type=_galaxy_seed_arg, default=None, metavar="HEX",
                         help="The galaxy's 128-bit seed, as 32 hex digits: the same seed makes the same galaxy "
@@ -1029,10 +1032,10 @@ def validate_plan_args(args, parser):
         parser (argparse.ArgumentParser): The parser to raise errors through.
     """
     try:
-        arm_amplitude, arm_level = arm_terms(args.arm_density, args.interarm_density)
+        arm_terms(args.arm_density, args.interarm_density)
     except ValueError as exc:
         parser.error(f"--arm-density and --interarm-density: {exc}.")
-    if args.nuclear_amplitude < 0 or args.bulge_amplitude < 0:
+    if args.nuclear_amplitude < 0 or (args.bulge_amplitude is not None and args.bulge_amplitude < 0):
         parser.error("--nuclear-amplitude and --bulge-amplitude must be 0 or more.")
     if args.workers is not None and args.workers < 0:
         parser.error("--workers must be 0 (automatic) or more.")
@@ -1054,29 +1057,18 @@ def validate_plan_args(args, parser):
     if args.max_shell < 1:
         parser.error("--max-shell must be a positive integer.")
     for option in ("disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc"):
-        if getattr(args, option) <= 0:
+        if getattr(args, option) is not None and getattr(args, option) <= 0:
             parser.error(f"--{option.replace('_', '-')} must be a positive number.")
-    if args.arm_count < 1:
+    if args.arm_count is not None and args.arm_count < 1:
         parser.error("--arm-count must be a positive integer.")
-    if not 0 < abs(args.pitch_angle_deg) <= 90:
+    if args.pitch_angle_deg is not None and not 0 < abs(args.pitch_angle_deg) <= 90:
         parser.error("--pitch-angle-deg must be non-zero and at most 90 degrees in magnitude.")
     if args.calibration_radius_pc is not None and args.calibration_radius_pc <= 0:
         parser.error("--calibration-radius-pc must be a positive number.")
     # Anything else that still can't be normalized (e.g. a calibration
     # radius so far out the density there underflows to zero).
     try:
-        shape = build_galaxy_shape(
-            disk_scale_length_pc=args.disk_scale_length_pc,
-            disk_scale_height_pc=args.disk_scale_height_pc,
-            bulge_scale_radius_pc=args.bulge_scale_radius_pc,
-            bulge_amplitude=args.bulge_amplitude,
-            arm_count=args.arm_count,
-            pitch_angle_rad=math.radians(args.pitch_angle_deg),
-            arm_amplitude=arm_amplitude,
-            arm_level=arm_level,
-            nuclear_amplitude=args.nuclear_amplitude,
-            calibration_radius_pc=args.calibration_radius_pc,
-        )
+        shape, _drawn = shapeDraw.plan_shape(args, args.seed)
     except (ArithmeticError, ValueError) as exc:
         parser.error(f"these galaxy shape parameters can't be normalized ({exc}).")
     if not (math.isfinite(shape.k_norm) and shape.k_norm > 0):
@@ -1385,28 +1377,6 @@ def build_parser():
     }
 
 
-def reject_lost_option_values(args, parser):
-    """
-    Python 3.9's argparse drops a lone `--` given as an option's value
-    (`--workers=--`) and stores an empty list instead of an error
-    (PERF.27; later versions fix it). Any single-value option holding a
-    list it didn't default to gets the usage error newer versions give.
-
-    Args:
-        args (argparse.Namespace): The parsed arguments.
-        parser (argparse.ArgumentParser): The command's own parser.
-
-    Raises:
-        SystemExit: Through `parser.error`, exit status 2.
-    """
-    for action in parser._actions:
-        if type(action) is not argparse._StoreAction or action.nargs is not None or not action.option_strings:
-            continue
-        value = getattr(args, action.dest, None)
-        if isinstance(value, list) and not isinstance(action.default, list):
-            parser.error(f"argument {'/'.join(action.option_strings)}: expected one argument")
-
-
 def process_args():
     """
     Parses command-line arguments for `planetgen`, then validates
@@ -1421,7 +1391,6 @@ def process_args():
     args = parser.parse_args()
     command_parser = command_parsers[args.command]
 
-    reject_lost_option_values(args, command_parser)
     validate_logging_args(args, command_parser)
 
     # --mysql-port's range (1 to 65535) is checked by its argparse type,

@@ -33,7 +33,9 @@ failed, when no MySQL test server is configured/reachable.
 
 import argparse
 import math
+import os
 import sys
+from unittest import mock
 
 import pymysql
 import pytest
@@ -1089,6 +1091,13 @@ def _fake_args_for_direct_generation(mysql_config):
 # generation, no bypass.
 # ---------------------------------------------------------------------------
 
+REFERENCE_SHAPE_ARGV = [
+    "--disk-scale-length-pc", "2600", "--disk-scale-height-pc", "300",
+    "--bulge-scale-radius-pc", "1580", "--bulge-amplitude", "3.11", "--arm-count", "2", "--pitch-angle-deg", "15",
+]
+"""list: The Milky Way's published shape as `planetgen plan` options. A plan draws its shape from the seed (GEN.401);
+a test whose counts were written for one galaxy's density pins this one."""
+
 _PLAN_SHAPE_ARGV = [
     "--disk-scale-length-pc", "40", "--disk-scale-height-pc", "12",
     "--bulge-scale-radius-pc", "10", "--bulge-amplitude", "2.0",
@@ -1117,7 +1126,24 @@ def _build_real_skeleton(mysql_config, extra_argv=()):
     generate_cli.add_plan_arguments(parser)
     args = parser.parse_args(_PLAN_SHAPE_ARGV + list(extra_argv) + _mysql_argv(mysql_config))
     generate_cli.validate_plan_args(args, parser)
-    return run_plan.build_skeleton(args)
+    # The plan draws the galaxy's naming key into the control database (GEN.70); the fixture's database holds the
+    # control schema too, so the draw works and no "control database can't be opened" line is logged (TEST.191).
+    with mock.patch.dict(os.environ, {_db.CONTROL_DB_ENV_VAR: mysql_config.database}):
+        _db.get_control_connection(mysql_config, ensure_schema=True).close()
+        return run_plan.build_skeleton(args)
+
+
+def test_a_real_plan_draws_the_galaxys_naming_key_into_the_control_database(mysql_config, capsys):
+    """TEST.191: the plan tests have a control database to draw into, so the naming path runs for real."""
+    _build_real_skeleton(mysql_config)
+    assert "No naming key drawn" not in capsys.readouterr().out
+    conn = _db.get_control_connection(mysql_config)
+    try:
+        rows = conn.execute("SELECT naming_key FROM galaxy_naming WHERE database_name = ?",
+                            (mysql_config.database,)).fetchall()
+    finally:
+        conn.close()
+    assert len(rows) == 1 and rows[0]["naming_key"]
 
 
 def _sector_system_counts(mysql_config, sector_ids):

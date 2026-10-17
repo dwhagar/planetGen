@@ -14,11 +14,17 @@
 // buttons are `actionsFor(endpoint, name)`. Plain data in, plain data out:
 // no DOM here but the banner's.
 
+const DEFAULT_NEARBY_PC = 10;
 const START_LABEL = "Start Here";
 const END_LABEL = "End Here";
 
 function labelOf(pick) {
   return pick === "from" ? START_LABEL : END_LABEL;
+}
+
+// A coordinate for a URL: two decimals, without trailing zeros.
+function roundPc(value) {
+  return String(Math.round(Number(value) * 100) / 100);
 }
 
 function encodeEndpoint(endpoint) {
@@ -28,13 +34,17 @@ function encodeEndpoint(endpoint) {
 // options: navUrl (the NAV page's URL), pick ("from", "to" or empty), other
 // (the end already chosen, an endpoint string such as "system:12", or empty),
 // otherName (its name, for the banner), cancelUrl (where Cancel goes for a
-// pick the NAV page began), onChange(state) (after every change).
+// pick the NAV page began), onChange(state) (after every change), nearbyUrl
+// (the What's nearby page's URL, for `nearbyLinks`; none gives no link),
+// nearbyDistance (parsecs the link asks for; default 10).
 export function createNavPick(options) {
   const navUrl = String(options.navUrl || "/nav");
   let pick = options.pick === "from" || options.pick === "to" ? options.pick : null;
   let other = pick && options.other ? String(options.other) : null;
   let otherName = other ? options.otherName || other : null;
   const cancelUrl = options.cancelUrl || null;
+  const nearbyUrl = options.nearbyUrl || null;
+  const nearbyPc = options.nearbyDistance > 0 ? options.nearbyDistance : DEFAULT_NEARBY_PC;
   let began = false; // the pick was begun on the map, so Cancel clears it in place
 
   function changed() {
@@ -92,6 +102,18 @@ export function createNavPick(options) {
       }
       if (other) return [{ label: labelOf(pick), href: courseUrl(endpoint), primary: true }];
       return [{ label: labelOf(pick), primary: true, onClick: function () { begin(pick, endpoint, name); } }];
+    },
+    // NAV.45: the "What's within N pc" link of an object's panel, to the What's nearby
+    // page with the place filled in. `place` is an object reference (`system:12`,
+    // `planet:...`, `sector:5`) or a galaxy-frame point `[x, y, z]` in parsecs. None
+    // while a course is being picked (NAV.30: nothing that would leave it), without
+    // the page's URL, or without a place.
+    nearbyLinks: function (place) {
+      if (!nearbyUrl || pick || !place) return [];
+      const text = Array.isArray(place) ? place.map(roundPc).join(",") : String(place);
+      const join = nearbyUrl.indexOf("?") < 0 ? "?" : "&";
+      const query = "place=" + encodeEndpoint(text).replace(/%2C/gi, ",") + "&distance=" + nearbyPc;
+      return [{ href: nearbyUrl + join + query, label: "What’s within " + nearbyPc + " pc" }];
     },
     // The banner's words: [lead, rest], e.g. ["Start: Sol. Choosing a destination:", " press ..."].
     bannerParts: function (what) {

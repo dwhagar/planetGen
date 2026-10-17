@@ -154,7 +154,7 @@ Verdict: **do first.**
 
 Numbers are placeholders; the TODO thread assigns IDs.
 
-1. **Keyset paging for the data tables.** `after=<sort key, id>` next to `offset=`; `datatable.js` pages forward by key and jumps by value; use the `OR` form, never a row constructor, and a test on MariaDB and MySQL for the plan. Measured 8.5 s to 2 ms at row 1,500,000.
+1. **Keyset paging for the data tables** (built for Systems by name, Uncharted stars in every sort and the Phenomena scattered tail, PERF.75; the Sectors table is left on `offset` because only generated sectors are stored, and the jump-by-value box is a second step). The id tie-break follows the sort's direction so a backward walk of the index serves a descending page with no sort. `after=<sort key, id>` next to `offset=`; `datatable.js` pages forward by key and jumps by value; use the `OR` form, never a row constructor, and a test on MariaDB and MySQL for the plan. Measured 8.5 s to 2 ms at row 1,500,000.
 2. **Stored per-sector system count.** Summary table refreshed in the background (0.8 s per 2,000,000 systems) and served by the Sectors list; covers the sorts by systems and density. 17 s to 1 ms.
 3. **Systems sort by Sector and Octant (refines PERF.70).** Index `(quadrant, name, id)` with an `ORDER BY` written to match; a stored sector-name sort column with `(sector_sort, name, id)`, filled in batches by a migration, kept in step on sector rename. 4.8 s to 0 s.
 4. **Scattered-points index for map tiles (feeds PERF.68).** `phenomenon_scatter (kind, subtype, mass_solar)`; a test that no tile piece examines more rows than its limit allows; a second look at the neutron-star and non-coarse path on a current galaxy. 31.7 s to 0.28 s on the scratch galaxy.

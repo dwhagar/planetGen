@@ -191,6 +191,7 @@ def test_galaxy_scene_data_points_at_new_urls(client, fake, app):
             "phenomenon", phenomenon_type="supernova_remnant", phenomenon_id=7)
         assert scene["systemUrl"].replace("{id}", "9") == page_url("system", system_id=9)
         assert scene["stagePath"] == url_for("web.galaxy_stage")
+        assert scene["nearbyUrl"] == url_for("web.nearby")  # NAV.45: "What's within 10 pc" on the map's panels
     assert scene["initial"]["stamp"] == STAMP
     assert scene["initial"]["tiles"]
     # Visitors get no Generate buttons.

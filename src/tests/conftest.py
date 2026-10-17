@@ -35,6 +35,7 @@ import uuid
 import pymysql
 import pytest
 
+from planetgen import tuning
 from planetgen.db import store as _db
 from planetgen.db.store import MySQLConfig
 
@@ -111,6 +112,9 @@ def pytest_configure(config):
     """Failure capture (TEST.139): with PLANETGEN_FAILURE_LOG set (scripts/test.py does), every failure's full report is kept."""
     failure_capture.register(config)
     browser_waits.install()  # a longer default wait for every browser context (TEST.126)
+
+
+dbpool.watch_checkouts()   # TEST.193: a database that cannot be dropped names the code that holds its connection
 
 
 def _test_server_kwargs():
@@ -300,13 +304,7 @@ def fresh_mysql_config(_mysql_server_available):
     finally:
         publicids.use(None)
         _db.close_pool(config)
-        admin_conn = pymysql.connect(**kwargs)
-        try:
-            with admin_conn.cursor() as cur:
-                cur.execute(f"DROP DATABASE IF EXISTS `{db_name}`")
-            admin_conn.commit()
-        finally:
-            admin_conn.close()
+        dbpool.drop_database(kwargs, db_name)
 
 
 @pytest.fixture(scope="session")
@@ -422,6 +420,16 @@ def _fast_password_hashing(request, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _toy_galaxies_scatter_inside_their_outline(monkeypatch):
+    """The star passes cover the grid's whole reach, 262 kpc by default (GEN.322), the bands beyond the outline
+    included. A test galaxy is a few dozen parsecs across with an outline written by hand, and its fixed-size halo
+    would fill the rest of the grid with stars, so a test draws inside the outline unless it asks for the reach
+    (`tuning.SCATTER_COVERS_REACH`, set True by the tests of GEN.322)."""
+    monkeypatch.setattr(tuning, "SCATTER_COVERS_REACH", False)
+    yield
+
+
+@pytest.fixture(autouse=True)
 def _settle_jobs_run_inline(monkeypatch):
     """A sector generated on the spot queues a settle job (GEN.126:
     `run_galaxy.queue_settle`), which starts a detached worker process. A
@@ -511,6 +519,55 @@ def _reset_login_backoff():
     memory_store.clear()
     yield
     memory_store.clear()
+
+
+@pytest.fixture(autouse=True)
+def _run_queue_inline(monkeypatch, request):
+    """
+    A stage on the new work queue (PERF.97, `planetgen/queue/units.py`) queues its units on Redis and has workers
+    run them. A test gets a queue and a key prefix of its own, so parallel tests (pytest-xdist) neither share the
+    machine's one active run nor take each other's units, and its `ensure_workers` runs the waiting units right
+    here, in this process, so a patch the test made reaches them and no worker process is left running when the
+    test's database goes. The workers read the MySQL server's credentials from the settings, so the environment
+    carries the test server's. Nothing is patched, and nothing is touched on Redis, without a Redis server.
+    A test that starts real workers or reads the shared queues' names is marked `real_queue` and gets none of this.
+    """
+    url = os.environ.get("PLANETGEN_REDIS_URL")
+    if not url or request.node.get_closest_marker("real_queue"):
+        yield
+        return
+    import uuid
+
+    import redis
+    import rq
+
+    from planetgen.queue import redisqueue, runrecord, workers
+
+    token = uuid.uuid4().hex[:12]
+    prefix = f"planetgen-test:{token}"
+    queue_name = f"planetgen-bulk-test-{token}"
+    used = []
+
+    def run_waiting_units(name, connection=None, url=None, mysql_host=None, count=None):
+        used.append(True)
+        connection = connection or redisqueue.connect(url)
+        rq.SimpleWorker([redisqueue.queue(name, connection)], connection=connection,
+                        serializer=redisqueue.JsonSerializer).work(burst=True, logging_level="WARNING")
+        return 0
+
+    monkeypatch.setattr(runrecord, "PREFIX", prefix)
+    monkeypatch.setattr(redisqueue, "BULK_QUEUE", queue_name)
+    monkeypatch.setattr(workers, "ensure_workers", run_waiting_units)
+    server = _test_server_kwargs()
+    for name, value in (("HOST", server["host"]), ("PORT", server["port"]), ("USER", server["user"]),
+                        ("PASSWORD", server["password"])):
+        monkeypatch.setenv(f"PLANETGEN_MYSQL_{name}", str(value))
+    yield
+    if used:
+        client = redis.Redis.from_url(url)
+        for key in list(client.scan_iter(match=f"{prefix}:*")) + list(client.scan_iter(match=f"rq:*{token}*")):
+            client.delete(key)
+        client.delete(f"rq:queue:{queue_name}")
 
 
 @pytest.fixture

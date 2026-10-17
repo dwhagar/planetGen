@@ -34,7 +34,7 @@ import numpy as np
 
 from planetgen import tuning
 from planetgen.galaxy import density as galaxyDensity
-from planetgen.galaxy.component_field import KINDS_IN_THE_GATE
+from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
 from planetgen.galaxy.spherical import band_center_pc, wedge_count
 
 CORE, BASELINE, HALO = 0, 1, 2
@@ -108,21 +108,51 @@ def _tiers_of_bands(shape, shell_index, bands, edge_pc):
             zs.append(z)
     found = galaxyDensity.population_densities_array(np.array(xs), np.array(ys), np.array(zs), shape)
     kept = {name: np.maximum(array, 0.0) for name, array in found.items()}
-    for kind in KINDS_IN_THE_GATE:
+    for kind in POPULATIONS_IN_THE_GATE:
         kept[kind] = np.zeros_like(kept[kind])
     offsets = np.concatenate(([0], np.cumsum(counts)[:-1]))
 
     def per_band(array):
         return np.add.reduceat(array, offsets)
 
-    total = per_band(sum(kept.values()))
-    nuclear = per_band(sum(kept[name] for name in _NUCLEAR))
-    halo = per_band(kept["halo"])
+    return _dominant_tiers({name: per_band(array) for name, array in kept.items()})
+
+
+def _dominant_tiers(summed):
+    """The tier index of each place from its populations' densities (`{population: array}`, a gate kind's counted
+    as none and a negative term as none): the nuclear terms' share, then the halo's, against `TIER_DOMINANCE_SHARE`."""
+    total = sum(array for name, array in summed.items() if name not in POPULATIONS_IN_THE_GATE)
+    nuclear = sum(summed[name] for name in _NUCLEAR)
+    halo = summed["halo"]
     wanted = tuning.TIER_DOMINANCE_SHARE * total
-    tiers = np.full(len(bands), BASELINE, dtype=np.int8)
+    tiers = np.full(np.shape(total), BASELINE, dtype=np.int8)
     tiers[(total > 0.0) & (halo >= wanted)] = HALO
     tiers[(total > 0.0) & (nuclear >= wanted)] = CORE
     return tiers
+
+
+REACH_AZIMUTH_BINS = 2
+"""int: Longitudes a group of bands beyond the outline is probed at (`probe_densities`): far from the disk the
+density is nearly round, and a group is bounded, not measured."""
+
+
+def probe_densities(shape, plane, z, azimuths=REACH_AZIMUTH_BINS):
+    """
+    The population densities at each of the places `(plane, z)` (arrays of cylindrical radius and height, parsecs),
+    each averaged over `azimuths` evenly spaced longitudes, and the tier those densities give the place
+    (`tier_indices`' rule): `(means, tiers)`, `means` `{population: array}` with a gate kind's and a negative term
+    counted as none. What a group of bands beyond the outline is bounded and weighed from (GEN.322).
+    """
+    plane, z = np.asarray(plane, dtype=float), np.asarray(z, dtype=float)
+    theta = (np.arange(azimuths) + 0.5) * 2.0 * math.pi / azimuths
+    found = galaxyDensity.population_densities_array(
+        (plane[:, None] * np.cos(theta)).ravel(), (plane[:, None] * np.sin(theta)).ravel(),
+        np.repeat(z, azimuths), shape)
+    means = {}
+    for name, array in found.items():
+        array = np.zeros_like(array) if name in POPULATIONS_IN_THE_GATE else np.maximum(array, 0.0)
+        means[name] = array.reshape(len(plane), azimuths).mean(axis=1)
+    return means, _dominant_tiers(means)
 
 
 @functools.lru_cache(maxsize=4096)
@@ -238,7 +268,7 @@ def tier_of_densities(densities):
     total = nuclear = halo = 0.0
     for found in densities:
         for name, value in found.items():
-            if name in KINDS_IN_THE_GATE:
+            if name in POPULATIONS_IN_THE_GATE:
                 continue
             value = max(value, 0.0)
             total += value
@@ -312,3 +342,26 @@ def band_pass(newer, older):
             bands.append(PassBand(new.min_luminosity_sol, old.min_luminosity_sol,
                                   None if new.mass_limit_sol is None else (None, new.mass_limit_sol)))
     return TieredPass(newer, tuple(bands))
+
+
+def tiered_to_json(tiered):
+    """A `TieredPass` as plain JSON (a unit on the work queue, PERF.97): the tier limits and the three bands; the
+    galaxy's shape is not in it, the unit reads that from the database (`tiered_from_json`). `None` for `None`."""
+    if tiered is None:
+        return None
+    tiers = None if tiered.limits.tiers is None else [[t.min_luminosity_sol, t.mass_limit_sol]
+                                                       for t in tiered.limits.tiers]
+    bands = [None if band is None else
+             [band.min_luminosity_sol, band.max_luminosity_sol,
+              None if band.mass_range is None else list(band.mass_range)] for band in tiered.bands]
+    return {"tiers": tiers, "bands": bands}
+
+
+def tiered_from_json(data, skeleton):
+    """The `TieredPass` `tiered_to_json` wrote, for the galaxy `skeleton` (its shape and sector edge)."""
+    if data is None:
+        return None
+    tiers = None if data["tiers"] is None else tuple(TierLimit(low, mass) for low, mass in data["tiers"])
+    bands = tuple(None if band is None else
+                  PassBand(band[0], band[1], None if band[2] is None else tuple(band[2])) for band in data["bands"])
+    return TieredPass(ScatterLimits(skeleton.shape, skeleton.edge_pc, tiers), bands)

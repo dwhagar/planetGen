@@ -154,7 +154,9 @@ connectivity to that specific schema rather than the default one.
   ID>` starts the page after that system in the name sort and ignores
   `offset`, so page 40,000 costs what page 1 does (an unknown ID is a 400);
   a bad `sort`, `order`, `binary` or `placement` is a 400.
-- `GET /api/uncharted-systems?sort=<luminosity|temperature|type|sector|age>&order=asc|desc&limit=<n>&offset=<n>` —
+- `GET /api/uncharted-systems?sort=<luminosity|temperature|type|sector|age>&order=asc|desc&limit=<n>&offset=<n>&after=<star id>` —
+  (`after` starts the page after that star in the sort and ignores `offset`, PERF.75; equal sort values are ordered by id in the
+  sort's own direction, so the luminosity and sector sorts walk their index with no sort; a non-number is a 400)
   the stars the brightness scatter placed that have no system yet (UX.87:
   `bright_stars` rows with a NULL `star_system_id`, so both the mass-limit
   and luminosity passes count). Each item has `id`, `designation`,
@@ -334,11 +336,11 @@ connectivity to that specific schema rather than the default one.
   stores nothing, so two calls give the same answer. The body has `shell_index`/`band_index`/`wedge_index`, `center_pc`,
   `edge_pc`, `volume_pc3`, `region` (`nuclear`, `bulge`, `disk`, `halo`, `cluster` or `satellite`), `density` and
   `expected_systems` (the mean of the cell's Poisson draw), `mix` (population -> density), `populations` (for each of
-  `young`, `intermediate`, `old`, `bulge`, `halo`, `cluster`, `satellite`, `nuclear_cluster`, `nuclear_disc`: `density`,
+  `young`, `intermediate`, `old`, `bulge`, `halo`, `cluster`, `satellite`, `nuclear_cluster`, `nuclear_disc`, `satellite_young`, `satellite_intermediate`: `density`,
   `share`, `age_gy` as `[youngest, oldest]`, `fe_h` as `[weight, mean, sigma]` peaks, `dispersion_kms`, `rotation`),
   `gas` (`cold_fraction`, `ambient`, `ambient_density_cm3`, `mass_solar`, and `superbubble`: `null` or the cavity's
   `radius_pc`, `ambient_density_cm3`, `temperature_k`, `center_pc`, `centre_distance_pc`), `dark_matter`
-  (`density_solar_pc3`, `mass_solar`), `kind_factors` (kind -> the factor the place applies to that kind's rate per star),
+  (`density_solar_pc3`, `mass_solar`), `kind_factors` (kind -> the factor the place applies to that kind's rate per star), `type_ia_share` (the share of the place's supernova remnants that are Type Ia; 1 where no young stars are),
   `sector_id` (the generated sector there, or `null`), `in_galaxy` (as in `/api/galaxy/cell`) and `unresolved` (as on a
   sector: what a cell above the cell star ceiling leaves unresolved, else `null`) and `estimate` (UX.113: what filling this one
   cell would make and take, from this server's stored speeds and sizes: `systems`, `stars`, `bytes`, `seconds`, and
@@ -464,7 +466,8 @@ connectivity to that specific schema rather than the default one.
   `../src/planetgen/web/lib/tilecache.py` (the web layer's disk cache) calls it
   about once a minute and deletes only the listed tiles, and passes the
   list on to the map's browser cache.
-- `GET /api/phenomena?limit=<n>&offset=<n>` — every exotic phenomenon,
+- `GET /api/phenomena?limit=<n>&offset=<n>&after=<scatter id>` — every exotic phenomenon (`after`, the `scatter_id` of a scattered
+  row, starts the page after it in the tail of unbuilt scattered phenomena and ignores `offset`, PERF.75; a non-number is a 400),
   across every sector and regardless of galaxy placement (unlike
   `/api/galaxy/phenomena`, which only returns the galaxy-placed subset) —
   paginated the same way `/api/sectors`/`/api/systems` are (`items`,
@@ -687,7 +690,8 @@ connectivity to that specific schema rather than the default one.
   `estimate` and queues nothing. Before anything is queued: `404` for an
   unknown or unplaced sector, `409` when the galaxy has never been planned
   (`planetgen plan`) or the math check failed, `507` when the database
-  disk can't hold the run. `503` when no Redis server answers. Every new
+  disk can't hold the run, `413` when the radius holds more than 2 million
+  sectors (a web request lists no more). `503` when no Redis server answers. Every new
   sector also gets the bright stars (100 L_sun and up) within 100 ly of it
   (GEN.23). A large radius (100 ly) covers thousands of candidate slots,
   so this can run for a long time. The sector page asks for its
@@ -1636,6 +1640,23 @@ means no Redis server answered.
   what the work returned once it succeeded; `error` is the last line of
   its error text once it failed. `404` for an unknown or expired id
   (results are kept for a day), `503` when no Redis server answers.
+
+### Slow page answers (PERF.105)
+
+A page whose answer is slow to build does not build it in the request: it queues one job that stores the answer in the
+page cache and polls these routes (design in [slow-page-answers.md](design/slow-page-answers.md)).
+
+- `GET /api/table-estimates?db=` — `{"tables": {name: rows}}`, the database's own estimate (from `information_schema`;
+  instant, within some tens of percent) of every table's row count. The pages read it about once a minute to tell which
+  requests are slow.
+- `GET /api/page-jobs/<id>` — `{"id", "state", "done", "total", "unit", "estimated", "eta_seconds", "seconds",
+  "cancelling", "error", "cache_key", "target"}`. `state` is `queued`, `running`, `succeeded`, `failed` or `cancelled`.
+  `done` of `total` are rows and an estimate (`estimated` is always `true`): the share of the expected time that has
+  passed, never past 95 % before `succeeded`; `eta_seconds` is the time left, `null` when it is past the expected time
+  or unknown. `cache_key` is where the finished answer is stored and `target` the request it builds. Public, like the
+  pages it serves, and only for page jobs. `404` for an unknown or expired id (kept an hour), `503` without Redis.
+- `POST /api/page-jobs/<id>/cancel` (admin) — stops the job if its query has not started, and answers the `GET` body. A
+  query already running finishes and its answer is kept. Every visitor waiting on the request shares the job.
 
 ## Rate limiting
 

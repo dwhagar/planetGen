@@ -20,7 +20,7 @@ from planetgen.generation.belt import format_composition_summary
 from planetgen.generation.comet import PERIOD_CLASS_LABELS
 from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.names.bodies import close_pair_label
-from planetgen.physics import atmosphere as atmosphere_physics, constants, habitability, protection
+from planetgen.physics import atmosphere as atmosphere_physics, constants, habitability, pre_main_sequence, protection
 
 HELIOSPHERE_COMPRESSION_NOTED = 0.95
 """float: A compressed heliosphere is mentioned when it is under this share of the open-space one."""
@@ -109,13 +109,25 @@ def _star_facts(star):
     if star.reflex_offset_x or star.reflex_offset_y or star.reflex_offset_z:
         offset = _offset_km(star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z)
         rows.append(fact("wobble", "Planetary Wobble", _km(offset), " from its nominal position, pulled by its own planets"))
+    if star.disk_kind:
+        rows.append(fact("disk", "Disk", _star_disk_text(star)))
     rows.append(fact("loc", "Location", star.name))
     return facts("Star", rows)
 
 
+def _star_disk_text(star):
+    return inline(star.disk_kind.replace("-", " ").capitalize(), " disk of ",
+                  _mass(star.disk_mass_solar * constants.SOLAR_MASS_TO_KG, solar=True), ", from ",
+                  _au(star.disk_inner_au), " to ", _au(star.disk_outer_au), ", with no bodies in it")
+
+
 def _star_age_sentence(star):
     age = _gy(star.age)
-    if star.lifespan == float("inf"):
+    if star.yerkes_class in pre_main_sequence.STAGE_CLASSES:
+        # GEN.242: still contracting.
+        sentence = inline("The star is approximately ", age, " old and is still contracting towards the main sequence, ",
+                          "with an expected lifespan of ", _gy(star.lifespan))
+    elif star.lifespan == float("inf"):
         sentence = inline("The star is approximately ", age,
                           " old and is now a white dwarf, which will cool for trillions of years")
     else:

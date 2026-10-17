@@ -2,6 +2,683 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1744] - 2026-10-17
+
+**Headline:** The Phenomena list and the Search page show a progress bar while a slow answer is being built, then swap the finished page in without a reload.
+
+### Changed
+- `/phenomena` and `/search` are marked slow with `@slow_route` (`web/lib/slowroute.py`). When the answer is being built by a queued job (PERF.105) the visitor gets the page's own frame with a panel in place of the content: a progress bar, one line of status ("About 30% (an estimate: 300 of 1,000 rows), about 5 s left."), and Stop waiting. The answer is `202`, `Cache-Control: no-store`, `X-Robots-Tag: noindex`.
+- `static/slowload.js` polls `GET /api/page-jobs/<id>` every second and draws the estimate in the site's own units. A job still queued leaves the bar without a value and says it is waiting; one past its expected time says it is still working. When the job has succeeded it fetches the same address again and swaps the finished content in without a page load (title updated, the page's own scripts loaded); a page that waits for a second answer (a search asks for several) carries on with that job.
+- A failed job shows its error and Try again, which asks for the page with `X-Slow-Retry: 1` so a new job replaces it; a job an administrator cancelled says so. Stop waiting only stops this page polling (the job is shared), and Check again picks it up.
+- The bar is a `<progress>` named by the panel heading, the status is a polite live region and the error an alert; the panel wraps at phone width; a bar with no value is hidden for a reader who asked for less motion and the words stand alone. Without JavaScript the page refreshes itself every five seconds.
+- A slow answer built in the request because the queue could not take it now says so at the top of the page.
+- The cost rule gained a middle step (`planetgen:slowpath:...`, `SLOW_PAGE_PATH_SECONDS`, ten minutes): a request not timed itself takes the slowest build of any request on its route lately, so a search for a new name does not queue a job just because the tables are big.
+- `docs/design/slow-page-answers.md`, `docs/html-interface.md` and the architecture document describe it.
+
+### Added
+- `tests/js/slowload.test.mjs` (10 tests), `tests/test_slow_route.py` (12), `tests/test_web_browser_slow_pages.py` (34 runs: loading, running, queued, failed with Try again, cancelled, stop and check again, a second job, no scripts, reduced motion, light and dark, desktop and phone width), and one more cost-rule test in `tests/test_slowpages.py`.
+- Follow-up for TODO: the table's own scrolling and sorting still fetch rows from a data route that is not marked slow (it builds in the request, as before); marking it needs `datatable.js` to wait on a job.
+
+TODO items resolved: UX.118 / Added: the data-route follow-up above (a new item for TODO to file)
+
+## [8.0.1743] - 2026-10-17
+
+**Headline:** Every page now warns visitors while a background run is changing the galaxy, with the time left to the next whole hour.
+
+### Added
+- **A banner on every page while the galaxy is being changed (UX.3).** Any visitor, signed in or not, sees "The galaxy is being changed by a background job" with an ETA in whole hours, rounded up and held steady (it falls as the estimate falls and rises only when even the low end of the estimate is longer). It reads the Redis run record of PERF.96, so a run started from the command line shows too; before a rate is known it says "a guess from earlier runs" or "working out how long it will take". A run with no sign of life, or on another database, shows nothing. Pages draw it when they are made and `/galaxy-status` refreshes it every 30 seconds.
+
+## [8.0.1742] - 2026-10-17
+
+**Headline:** The Uncharted stars and Phenomena tables page by key, so a page far down the list costs what the first page does.
+
+### Changed
+- **Uncharted stars page by key (PERF.75).** `GET /api/uncharted-systems` takes `after=<star id>` and the table passes the last star of each page on, so the brightest-first list and the sector sort walk their index to the page instead of skipping rows. Equal values are now ordered by id in the sort's own direction, which lets a descending page read the index backward with no sort.
+- **The Phenomena table pages the scattered tail by key.** `GET /api/phenomena` takes `after=<scatter id>`; a page that ends among the unbuilt scattered phenomena hands the next page its last id.
+- **The Systems name sort reads either way round from its index.** Systems with the same name are ordered by id in the sort's direction, so the descending name sort needs no sort of the table either.
+
+## [8.0.1741] - 2026-10-17
+
+**Headline:** The command line drops a workaround for a Python 3.9 argument-parsing bug that no supported Python has.
+
+### Changed
+- **`reject_lost_option_values` is gone from `planetgen/cli/generate.py` (DOC.24).** Python 3.9 turned `--workers=--` into an empty list; Python 3.12 and later keep the text and the option's own type check rejects it ("invalid int value"), which `tests/test_fuzz_cli.py` still covers for every such case.
+
+## [8.0.1740] - 2026-10-17
+
+**Headline:** A cell inside a Magellanic Cloud can now hold molecular clouds, nebulae, supernova remnants and magnetars, and the pre-placed planetary nebulae follow the old stars.
+
+### Added
+- **A satellite's gas (GEN.528).** A satellite's young stars (GEN.526) count in the molecular gas tracer the way the disk's do, with no spiral-arm contrast, so a cell in the Large or Small Cloud has a gas fraction (about a third at the Large Cloud's centre, nine tenths at the Small Cloud's) and so molecular clouds, emission and reflection nebulae and supernova remnants in its profile; the dwarf spheroidals, with no young stars, have none.
+- A satellite's component pass places supernova remnants, each kept with the gas fraction at its radius, and magnetars in proportion to its young stars.
+
+### Changed
+- The pre-placed planetary nebulae (the shell scatter, the reach and the progress estimate) are weighted by the share of the stars that are not young against the solar circle's, as a sector's are; the disk's difference is under 4%. A satellite's planetary nebulae take the same factor from its own young share.
+- A galaxy scattered before this needs `planetgen plan --redo-scatters phenomena` (generator epoch 13).
+
+generation-output: changed
+
+## [8.0.1739] - 2026-10-17
+
+**Headline:** The two stars of a wide pair now carry the same velocity when a sector is generated and when it is loaded back from the database.
+
+### Changed
+- **Every star of a system takes the system's velocity (GEN.527).** `place_system` used to give each star the rotation curve's tangent at its own place, plus what the system has beyond the curve. A wide pair's two stars sit far enough apart for the tangent to differ by 0.01 to 0.08 m/s, but the database stores one velocity per system, so a loaded pair came back with both stars on the system's vector and differed from the generated pair by that much (the cause of the occasional failure of `test_a_saved_runaway_system_loads_back_with_the_velocity_it_had`). Both paths now give each star the one system vector.
+- The saved-system test is back to a relative bound of 1e-6, and a new test places wide pairs, clears the stars' own speeds as a load does, places them again from the stored vector, and requires identical star velocities.
+
+TODO items resolved: GEN.527. Added: none.
+
+## [8.0.1738] - 2026-10-17
+
+**Headline:** The atmosphere colour note no longer waits on a licence check, following Boss's removal of GEN.500.
+
+### Changed
+- **Two lines of the atmosphere colour note named a licence gate.** The cool-star chromaticity ruling and the research order in `docs/design/atmosphere-colour.md` now say there is no licence gate and the licence column keeps `open`.
+
+TODO items resolved: none. Added: none.
+
+## [8.0.1737] - 2026-10-17
+
+**Headline:** The scatter layers draw their random numbers in bulk, with the same numbers and the same stream state as before.
+
+### Changed
+- **Bulk random draws for the scatter layers (PERF.91).** `Stream.random_array` and `Stream.randbits_list` hand a stream's state to NumPy's `MT19937`, which is the same generator with the same 53-bit float, draw a batch in C and hand the state back, from 1,000 draws on. The phenomenon scatter, the far-reach scatter and the component pass use them for their per-object uniforms and seeds (12 times faster on batches of 60,000), and a test proves same seed, same floats, same bits and the same final state, so no galaxy changes and nothing is reseeded.
+
+## [8.0.1736] - 2026-10-17
+
+**Headline:** A fill of tens of thousands of sectors or more is estimated from a sample and generated from a stream, and a web request is refused a ball of more than 2 million sectors.
+
+### Changed
+- **Large estimates come from a sample (PERF.36).** A run of more than 20,000 sectors (a shell, a span, a course or a radial fill) works its size and time out from 200 sectors spread evenly through it and scales them up; the line says "worked out from 200 sampled sectors". Smaller runs are worked out from every sector as before.
+- **A large fill is no longer held in memory (PERF.36).** Its sectors are counted in a first pass and resolved one by one as the work queue takes them, instead of being listed first.
+- **A web request cannot list a huge ball (PERF.36).** The sector page's neighborhood action answers `413`, and the Generate page's radial estimate stops, when the radius holds more than 2 million sectors; the command line is not limited.
+
+## [8.0.1735] - 2026-10-17
+
+**Headline:** The bright-star backfill gains an exact block-first sampler, tested alone and not yet wired into the backfill.
+
+### Added
+- **A block-first draw for the backfill (GEN.308).** `bright_stars.block_candidates` draws a block's stars as one Poisson count from the block's density bound and keeps each candidate with the chance of its own cell, which gives every cell a Poisson count of its own mean and leaves no cell's chance altered. It is keyed by the seed, the block and the luminosity band alone, so the same stars come out whatever region, order or split of workers reaches the block. `block_bound` gives the bound from the band's density at its centre line (the halo with its own share), and tests check that every cell's rate is at most its bound, that the counts match Poisson in half-decade strata of 3,000 blocks each down to the lowest rates, and that a real block of the galaxy keeps each cell at its own rate. The backfill does not use it yet (GEN.309).
+
+## [8.0.1734] - 2026-10-17
+
+**Headline:** Two test fixes: the runaway-velocity test no longer fails now and then, and the plan tests draw a naming key instead of logging that they cannot.
+
+### Changed
+- **The runaway-velocity test picks a system with a body that moves (TEST.191 and a flaky test).** Its setup stopped at the first system with any planet, but a system whose only entry is an asteroid belt has no body with a velocity, so the test failed about once in 300 runs. It now waits for a system with a body that is not a belt.
+- **The plan tests have a control database to draw the naming key into (TEST.191).** The real-plan tests no longer log "No naming key drawn: the control database can't be opened"; the control schema is set up in the test database, and a test checks the key is stored. The other half of the item, stray files in the jobs directory's `galaxy-settings` folder, went with ADM.50, which removed that folder.
+
+## [8.0.1733] - 2026-10-17
+
+**Headline:** A page request that is slow to build now queues one job that stores the answer in the page cache, with a status route and a progress estimate, instead of holding a web thread.
+
+### Changed
+- `apiclient` (`web/lib/apiclient.py`) can take a slow cache miss off the request. A page that opts in with `slowpages.allow_pending()` gets `slowpages.Pending`, carrying the job's status, for a request the cost rule calls slow; any other page, and the job itself, builds as before. The cost rule is in one place (`web/lib/slowpages.py`): a request is slow when its last timed build took more than `SLOW_PAGE_SECONDS` (3 s), or, never timed, when the tables its route reads in full hold more than `SLOW_PAGE_ROW_BUDGET` (2,000,000) rows by the database's estimate (both in `tuning.py`, with the rows per second and the times the jobs and timings are kept).
+- `planetgen/queue/pagejobs.py` queues the job (`build_answer`, on the interactive queue beside the cache warm-up's): it makes the request through the site's own app, so the answer is stored under the tags it read and an edit invalidates it like any cached answer. Two visitors asking for the same request, even in the same moment and in different web processes, share one job (`SET NX`); a finished job whose answer was invalidated is replaced; a failed or cancelled one is shown for 30 s, then replaced, or at once on retry. Its record, progress and the last build time live in Redis, all with a TTL.
+- The progress is an estimate and says so (`estimated: true`): the elapsed share of the expected time, never past 95 % before the answer is stored, with the time left. The answer is one query, so there is no step to count; PERF.99 splits the lists it can.
+- The job is a node of kind "Slow page answer" on the admin queue page with a result line. An admin cancels it there or with `POST /api/page-jobs/<id>/cancel`: a job not yet started is removed, one not yet at its query stops, a running query finishes and its answer stays cached. A visitor's own Cancel only stops that page waiting. `api_jobs.cancel` removes a queued job.
+- Without Redis, or while an update runs, the answer is built in the request as it is today, the log says why, and `slowpages.take_notice()` gives the page a sentence to show.
+- `docs/design/slow-page-answers.md` is the design; `docs/api.md` documents the routes; the architecture document lists the module.
+
+### Added
+- `GET /api/table-estimates` and `GET /api/page-jobs/<id>` (public), `POST /api/page-jobs/<id>/cancel` (admin); the API route snapshot is updated (additions only, no version change).
+- `tests/test_slowpages.py` (16 tests): the cost rule, one job per request across processes and threads, the answer stored and found by another process without an API call, an edit invalidating it, a failed job and its retry, the status route, the progress estimate, the cancels, the admin node, and the fallback with no queue or an update running.
+
+TODO items resolved: PERF.105 / Added: none
+
+## [8.0.1732] - 2026-10-17
+
+**Headline:** A whole-sphere galaxy scatter now runs to the last shell instead of stopping at 97 percent.
+
+### Fixed
+- **The massive-star scatter stopped at 97 percent with "Out of range value for column 'band_index'" (DB.72).** A shell's bands run from `-(h + 1)` to `h + 1`, which passes the 32,767 that a SMALLINT holds at shell 20,861 and reaches 102,942 at shell 65,535, the outer shell of the 262 kpc reach. `band_index` is now INT in `bright_stars`, `sector_stats` and `phenomenon_scatter` (migration 0108, schema v108; each table is rebuilt in place and no value changes). A test stores and reads back a row at the outermost shell's polar cap band in each table, and another refuses any column named for a band that is narrower than INT.
+
+TODO items resolved: DB.72. Added: none.
+
+## [8.0.1731] - 2026-10-17
+
+**Headline:** The composition design is written down as four checked notes plus the master joint, ready for Boss's approval.
+
+### Added
+- **Three new design notes.** `docs/design/bulk-composition.md` (GEN.426), `docs/design/stellar-composition.md` (GEN.435) and `docs/design/radiation-model.md` (GEN.436) set out the bulk fractions and equation of state, the composition of every star and remnant, and the radiation model, each with worked examples and a list of what Boss must approve.
+- **Master joint.** `docs/design/composition-model.md` section 7 (GEN.437) joins the four notes and the gated possibility-table loader: the chain as checked, the units, which way each kind of body is drawn, what is stored and when the generator epoch moves.
+
+### Changed
+- **The atmosphere colour note is now the checked design (GEN.409).** `docs/design/atmosphere-colour.md` is rewritten around the one gas and compound table, the mixture, stored albedo and greenhouse values, aerosols and cloud, and the colour model; the design index lists all four notes.
+
+TODO items resolved: GEN.409, GEN.426, GEN.435, GEN.436, GEN.437. Added: none.
+
+## [8.0.1730] - 2026-10-17
+
+**Headline:** Every composition table now loads through one gated possibility-table format, and a draw takes the rows that pass the body's class and conditions and picks one by normalised weight.
+
+### Added
+- **The gated possibility table and its loader (GEN.472).** A row names a possibility, the classes it supports, optional conditions on stored quantities, a weight (a number, `open`, or a function of the star and the formation distance), its source with the verification state, and its licence. A draw drops the rows that fail the gate or weigh zero, normalises the rest to 100 percent and picks one on the generator's own random stream. A class no row supports, or a table whose weights are all zero, is an error naming the class and the table, and a row without a source or a licence is refused when the table loads. Open weights share what the sourced weights leave equally and are listed with the stand-in rows in one report. Fractions inside a row are taken directly from a sourced kernel or drawn from a Dirichlet distribution where only a range is known, and every component must be a row of the one shared materials table.
+- **`draw.gamma` and `draw.dirichlet`**, built on the generator's own random wrapper like the other draws.
+
+TODO items resolved: GEN.472. Added: none.
+
+## [8.0.1729] - 2026-10-17
+
+**Headline:** A new galaxy now draws its size, thickness, bulge, bar and spiral arms from its seed instead of every galaxy being built to the Milky Way's measurements.
+
+### Changed
+- **The spiral shape is drawn (GEN.401).** `planetgen plan` and the Generate page leave `--disk-scale-length-pc`, `--disk-scale-height-pc`, `--bulge-scale-radius-pc`, `--bulge-amplitude`, `--arm-count` and `--pitch-angle-deg` blank by default; blank means drawn from the galaxy seed (`galaxy/shape_draw.py`). The disk length follows the size-mass relation of late-type galaxies from the seed's stellar mass (GEN.400), the height follows the length, the bulge's share and size follow the galaxy's stage, and the arm count and pitch angle follow the arm statistics. An option given still replaces its draw, and the bulge's density is solved for the disk used. The plan prints what it drew.
+- The old defaults (2,600 pc, 300 pc, 1,580 pc, 3.11, two arms at 15 degrees) are gone from the plan, the CLI and the page. They stay only as the reference shape the math check measures the model against.
+- Bar presence and the bar's axes and angle stay the model's constants until the shape columns of DB.66; the stage rule is a stand-in (design note 5.13.8).
+
+TODO items resolved: GEN.401. Added: none.
+
+## [8.0.1728] - 2026-10-17
+
+**Headline:** The Generate page answers a repeated size-and-time estimate from a cache, and costly cached answers are refreshed just before they expire.
+
+### Added
+- **The Generate page's estimate is cached (PERF.109).** The estimate (`--estimate-only`, up to two minutes for a large shell) is kept in Redis for five minutes under the job kind, its command line and the database, and served only while the generator epoch, the galaxy's data version and the recorded speed statistics are unchanged. Two admins asking for the same estimate at once run it once.
+- **XFetch for costly entries that expire by age (PERF.110).** An answer in the page cache that took half a second or more to fetch (the Search page's facets, for one) is fetched again by one reader shortly before it expires, so a burst of visitors does not all miss in the same second. The admin Stats page keeps its database figures for 30 seconds when they take half a second or more to count, and one request makes them again just before they go stale; a galaxy that counts quickly always shows live figures.
+
+### Changed
+- `singleflight.claim` and `singleflight.wait` take the length of the claim and of the wait, for builds that take longer than a tile.
+
+## [8.0.1727] - 2026-10-17
+
+**Headline:** The benchmark records the buffer pool, table sizes and worker start-up cost, and the test suite is quieter and uses the shell, band and wedge words.
+
+### Changed
+- **The PERF.31 benchmark records its setting (PERF.47).** A run now stores the InnoDB buffer pool size, the size of each table and how long a worker takes to start, and prints them in the setup lines, so two runs on different machines can be compared.
+- **A multi-row literal INSERT is built in one place (PERF.48).** The bright-stars and phenomenon-scatter inserts share one builder that splits a statement at a size limit; a numeric-only row no longer goes through the driver's escaping.
+- **Browser-test failures are no longer buried in the request log (TEST.187).** The test server's request log is set to WARNING.
+- **The marching-cubes call no longer floods the log with a NumPy 2.5 deprecation (TEST.188).** The warning comes from inside scikit-image, so the nebula mesh builder filters it around the call; remove the filter when scikit-image stops raising it.
+- **Tests that named ring, layer and slot now name shell, band and wedge (TEST.156).** The migration tests that describe the old schema keep the old words.
+
+## [8.0.1726] - 2026-10-17
+
+**Headline:** The Magellanic Clouds now hold young and massive stars, from a star formation history worked out for each satellite instead of a typed share.
+
+### Added
+- **A satellite's star formation history (GEN.526).** Each satellite galaxy's young and intermediate stars come from a history set by its stellar mass, size and mean stellar age: the rate rises or falls over 13 Gyr to give that mean age, the gas the present rate needs follows from the Schmidt-Kennicutt law, and a satellite whose gas is under the star formation threshold forms no stars now. The Large Cloud comes out at 1.4% young and 36% intermediate stars, with 0.36 solar masses a year and 4.4e8 solar masses of gas; the Small Cloud at 1.0% and 26%; Sagittarius, Fornax and the dwarf spheroidals form no stars now.
+- Two stellar populations, `satellite_young` and `satellite_intermediate`, beside `satellite` (which is now the stars of 3 to 13 Gyr). The sector profile lists all three, and `bright_stars.population` takes them (migration 0107, which also widens the column to 24 characters).
+
+### Changed
+- The Clouds place massive stars: at the default floor of 9,000 solar luminosities the Clouds hold about 3.8e4 bright stars (none before) and 1.8e4 stars above the mass cut. A galaxy scattered before this needs `planetgen plan --redo-scatters luminosity mass phenomena`.
+- A satellite place counts its young stars as young in the Type Ia share, the planetary nebula share and the molecular cloud share.
+
+generation-output: changed
+
+TODO items resolved: GEN.526. Added: none.
+
+## [8.0.1725] - 2026-10-17
+
+**Headline:** The test suite has one census harness that fills seeded sectors per region class and checks the counts of each kind against their expectation.
+
+### Added
+- **The census audit harness (`src/tests/audit/census.py`).** It fills a fixed set of seeded sectors for each region class, counts what each fill made by stage and kind, tests each count against its expectation within four Poisson sigma, applies the rule that a kind expected 20 or more times appears at least once, flags a kind found where its gate expects none, and writes one report. The representation, fill-stage, multiplicity, catalogue-type and whole-sphere audits add their checks to it and keep no counters of their own.
+
+TODO items resolved: TEST.186. Added: none.
+
+## [8.0.1724] - 2026-10-17
+
+**Headline:** The illustrated architecture page is rebuilt from the current architecture document.
+
+### Changed
+- `docs/design/architecture.html` is rebuilt from `docs/design/architecture.md` as of 2026-10-17 (it was a 2026-10-07 snapshot from before the package move): the same sections (overview, every module, the five flows, data, deployment, packages), now with the code map as it stands (391 entries with their line counts, read from the files), the flows with their diagrams drawn in the page, the shell, band and wedge grid in place of rings, layers and slots, the 61 content and 18 control tables, the CI jobs as they run today, and a Packages section (the packages, how they depend on each other, the libraries) in place of the old "planned target". The README line that describes it carries the new date.
+
+### Added
+- Nothing in the code: the page is documentation only.
+
+TODO items resolved: DOC.47 / Added: none
+
+## [8.0.1723] - 2026-10-17
+
+**Headline:** The Galaxy Map's address holds the camera, so a copied link, a bookmark and a reload open the view exactly where it was.
+
+### Changed
+- The address is `?cam=x,y,z,d,qx,qy,qz,qw` (the view's middle and distance in parsecs and its turn, ten significant digits). It is written in place once the view has been still for a moment, a hop to another stage adds a history entry, and the sector and display parts of the query (`sector=`, `open=`, `hide=`, `color=` and the rest) are left as they are. Opening one works the stage out from the camera (the finest window of 9 cells, centred on the cell holding the view's middle, that holds the view; the whole galaxy for a view of all of it) and puts the camera there. A history entry also keeps its stage, so Back, Forward and a reload return to it exactly.
+- Bookmarks of a view keep the camera.
+- The `?win=` and `&g=` tokens, and the `win=` that a sector link carried, are no longer read: those links open the galaxy.
+
+### Added
+- Tests: the camera query and its refusals (`test_galaxystages.py`), the address written in place and a link that opens the camera (`galaxymap.test.mjs`), and the browser tests of the stages now open a window through the page's own hook instead of `?win=`.
+
+TODO items resolved: MAP.228 / Added: none
+
+## [8.0.1722] - 2026-10-17
+
+**Headline:** The Galaxy Map's breadcrumb and a new "In Sector …" line follow the cell the camera is in, not the stage the map was opened at.
+
+### Changed
+- The breadcrumb is the trail of containers of the cell holding the view's middle (`stageAtPoint` in `galaxystages.js`, the cells are closed form), so moving the center into the next cell of the stage's size changes its last crumb; a crumb above it still flies out to that container. The trail follows the camera at the stage's own cell size only (a finer or coarser step is not derived from the distance); an opened sector or system shows the window round that sector, as a fresh load of its address does.
+- A label over the map's top-left corner (`galaxymap3d-where`) names the sector the view's middle is in (`sectorAtPoint`), updated as the camera moves.
+
+### Added
+- Tests: `stageAtPoint` and `sectorAtPoint` through the stage view in `galaxymap.test.mjs`, and a browser test that moves the center into the next sector and checks the line, every crumb and the crumb out to the galaxy.
+
+TODO items resolved: MAP.227 / Added: none
+
+## [8.0.1721] - 2026-10-17
+
+**Headline:** The wheel on the Galaxy and Sector Map zooms toward what is under the pointer, which stays under it.
+
+### Changed
+- The wheel zooms toward the star, remnant or cell under the pointer (else the point of the focus plane under it): the center moves toward it so it stays where it is on the screen. A step in moves the eye by at most half the way to it (`limitApproach`, `targetAboutAnchor` in `mapcontrol.js`), so repeated steps approach it without landing on it; a view that cannot be moved, or a wheel with no pointer over the map, zooms about the middle as before. The Shift-click, the zoom buttons and the slider are unchanged.
+
+### Added
+- Tests: `limitApproach` and `targetAboutAnchor` in `mapcontrol.test.mjs`, and a browser test that the star under the pointer stays under it while zooming in.
+
+TODO items resolved: none (MAP.225 stays open: the wheel is built; the column-density ray fallback, the clearance from the nearest pickable thing and the half-way double click are not) / Added: none
+
+## [8.0.1720] - 2026-10-17
+
+**Headline:** The cell key at the edge of its box is recorded as built (DB.65), with the migration head at 0106.
+
+### Changed
+
+- DB.65 is retired (merged as #2025, migration 0106, schema v106); the revision queue now reads DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110. TEST.213 carries a new sighting from DB.65's browser run.
+
+TODO items resolved: DB.65. / Added: none
+
+## [8.0.1719] - 2026-10-17
+
+**Headline:** The cell key no longer wraps for a position within 3e-11 parsecs of the 262 kpc box edge: it takes the last cube instead of the opposite edge's.
+
+### Changed
+- `cellkey.cell_index`, `cell_keys` and the SQL expression (`sql_cell_key`) hold the cube number at 2^21 - 1 (`cellkey.LAST_CELL`). Migration 0106 recomputes the generated `cell_key` of all 14 tables that have one (a table rebuild per table); `planetgen.cli.migrate` shows its progress.
+- `store.detect_schema_version` reads generated-column expressions to recognise v106.
+
+No generated object lies that close to the reach, so no stored value changes and the generator epoch stays.
+
+TODO items resolved: DB.65. Added: none.
+
+## [8.0.1718] - 2026-10-17
+
+**Headline:** The first Gemini research batch for the galaxy laws is recorded as unverified input on GEN.531.
+
+### Changed
+
+- GEN.531 notes that Gemini batch 1 (structural scaling laws, kinematics, assembly histories, ex situ halo fractions) arrived at 10:52 AM EDT and replaces no placeholder until each claim is checked against its source.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1717] - 2026-10-17
+
+**Headline:** The fifteen galaxy research requests (GEN.531) record that a Gemini search and a gap-filling plan are under way.
+
+### Changed
+
+- GEN.531 notes Boss's word (10:44 AM EDT): some things are not known; a Gemini agent searches the fifteen items with theories and speculation included, a read-only thread plans how the generator fills the gaps itself, and every stand-in is labelled so it can be replaced.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1716] - 2026-10-17
+
+**Headline:** The galaxy laws research (GEN.406) is filed as a design note with the sourced ranges for the stellar halo, ages, dispersions, thick disk, dwarfs and clusters.
+
+### Added
+
+- `docs/design/galaxy-laws-research.md`: the sourced laws and ranges, the conflicts between sources with proposed defaults, and fifteen open requests (GEN.531).
+
+### Changed
+
+- GEN.401, GEN.403, GEN.405 and GEN.369 carry the pointers and the flags (the 1.5e9 halo anchor is a Milky Way copy, the thick disk and the dispersion and height conflicts); GEN.409, GEN.426, GEN.435, GEN.436 and GEN.437 go to Blocker 1 and GEN.180 and GEN.229 to Core 5.
+
+TODO items resolved: GEN.406. / Added: GEN.531
+
+## [8.0.1715] - 2026-10-17
+
+**Headline:** Boss started the lane Blocker 1 for the composition loader (GEN.472) and the census harness (TEST.186).
+
+### Changed
+
+- GEN.472 and TEST.186 name Blocker 1 as owner (Boss, 10:27 AM EDT); GEN.472 notes that its prerequisite GEN.437 and the four design notes under it are still open with Core 4.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1714] - 2026-10-17
+
+**Headline:** Every open 8.1 item now names the lane that builds it, from Boss's Core 1 to Core 5 lanes.
+
+### Changed
+
+- Boss's lanes (10:06 AM EDT; Bug Hunt strictly bugs, Cores 1 to 5 each a distinct lane to 8.1 from the foundations forward) are recorded on GEN.301, and 154 items carry an Owner note with the lane and the position in its order; GEN.530's map and page reads are proposed to Core 2.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1713] - 2026-10-17
+
+**Headline:** The galaxy laws research of GEN.406 has its own research thread, chosen by Boss.
+
+### Changed
+
+- GEN.406 names the read-only research thread as its owner (Boss, 10:20 AM EDT), not Core 1; the lane assignment drops it from Core 1's queue.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1712] - 2026-10-17
+
+**Headline:** Core 4's findings from building the massive-star binaries are recorded on the items that check them.
+
+### Changed
+
+- GEN.448 and TEST.196 carry the G-dwarf close-companion level (0.13 against the pooled line's 0.20) and the O and B flatness ratios (1.32 and 1.43 against the 1.3 edge).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1711] - 2026-10-17
+
+**Headline:** The part of GEN.320 that Core 3 did not wire, a pre-placed star's nebula on the maps and pages, is filed ahead of the 8.1 headline.
+
+### Changed
+
+- GEN.530 is filed (a pre-placed star's hosted nebula shows from its scatter row) and gates GEN.301; TEST.184 carries Core 3's protostar yield finding.
+
+TODO items resolved: none / Added: GEN.530
+
+## [8.0.1710] - 2026-10-17
+
+**Headline:** The nebula stars of GEN.320 are recorded as built, and Boss's drop of the massive-multiples prevalence cap (GEN.373) is recorded.
+
+### Changed
+
+- GEN.320 is retired (merged as #2014, generator epoch 11 pending); GEN.243, GEN.258 and GEN.321 no longer wait on it.
+- GEN.373 is closed as dropped (Boss, 10:07 AM EDT, his card answer as Core 4 reported it): the `prevalence` cap is not built, and `docs/design/placement-by-population.md` says so.
+
+TODO items resolved: GEN.320 (GEN.373 dropped). / Added: none
+
+## [8.0.1709] - 2026-10-17
+
+**Headline:** Boss chose to split Core 3's 8.1 chain across two generation lanes; the decision is recorded on the headline item.
+
+### Changed
+
+- GEN.301 records Boss's decision (10:02 AM EDT, "Split Core 3"): a new generation lane takes the stellar tables and small items, Core 3 keeps the nebula and cluster line; no test lane was chosen.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1708] - 2026-10-17
+
+**Headline:** Bok globules and star-forming cores now hold their protostars, and a planetary nebula's central star has its close companion.
+
+### Added
+- **The stars a nebula needs (GEN.320).** A Bok globule holds one protostar in 30% of clouds and a star-forming core holds one to four (mean 2 before the cap), each drawn from the cloud's own seed. A cloud that reaches several sectors gives the same members to each, and each sector builds the ones inside its own cell, so none is made twice or left out. The members are ordinary young systems with a disk and the companions of a protostar.
+- **The close companion of a planetary nebula's central star.** One central star in five is a close binary (15 to 20% of central stars are, per the survey literature); the rest stay single.
+
+### Changed
+- A star's hosted-nebula roll (its chance, its class and its age) comes from a stream seeded by the star itself, so the same star gets the same nebula wherever it is made.
+
+generation-output: changed
+
+TODO items resolved: GEN.320. Added: none.
+
+## [8.0.1707] - 2026-10-17
+
+**Headline:** The 8.1 completion study's findings are recorded on the items they concern.
+
+### Changed
+
+- GEN.282 and GEN.298 (no live owner, on the longest path to GEN.301) and the five closing tests TEST.184, TEST.185, TEST.186, TEST.159 and TEST.160 (owned by the idle Quality lane) carry the finding, so the owner gap is visible on each item.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1706] - 2026-10-17
+
+**Headline:** The galaxy's mass chain is merged and retired: every galaxy draws its stellar mass, halo mass, virial radius and concentration from its seed.
+
+### Changed
+
+- GEN.400 (#2011, generator epoch 10) is retired: the stellar mass comes from the Schechter function, the halo mass, virial radius and concentration follow, and the Hill spheres read the virial mass; the fixed Milky Way mass is gone.
+- GEN.401, GEN.403 and GEN.399 no longer wait on it.
+- GEN.406 now carries the stellar halo constants (`HALO_MASS_SOLAR`, `HALO_SYSTEM_FRACTION`): they are the stellar halo, not the dark matter halo, so GEN.400 left them, and the laws table has no stellar halo law until GEN.406 researches one.
+
+TODO items resolved: GEN.400 / Added: none
+
+## [8.0.1705] - 2026-10-17
+
+**Headline:** Every galaxy now draws its own stellar mass, halo mass, virial radius and concentration from its seed, and the Hill spheres read that mass in place of the fixed Milky Way mass.
+
+### Changed
+- **The galaxy's mass chain (GEN.400).** `galaxy/mass_chain.py` draws the stellar mass from the double Schechter function (Baldry et al. 2012) inside 3e9 to 2e11 solar masses, the halo mass from the stellar-to-halo relation (Moster et al. 2013) by the approximation Boss chose, and the virial radius and NFW concentration (Dutton and Maccio 2014, 0.11 dex scatter), all from the galaxy seed: the same seed gives the same galaxy.
+- **No fixed Milky Way mass.** `MILKY_WAY_MASS` is removed. A star's, a pair's and a compact object's Hill sphere (the system perimeter and the keep-out radius) read the drawn galaxy's virial mass, so the perimeters differ with the galaxy. `keepout.galactic_hill_radius_km` and `compact_keep_out` take the central mass as an argument.
+- **Stays.** `HALO_MASS_SOLAR` and `HALO_SYSTEM_FRACTION` are the stellar halo (a fraction of the visible mass), not the dark matter halo; their law is GEN.406's research.
+
+generation-output: changed
+
+TODO items resolved: GEN.400. Added: none.
+
+## [8.0.1704] - 2026-10-17
+
+**Headline:** The pre-main-sequence state is merged and retired, and its inferred constants are filed for a sourced table.
+
+### Changed
+
+- GEN.242 (#2009, generator epoch 9) is retired: stars under 8 solar masses and under 10 Myr are protostars or pre-main-sequence stars with a disk descriptor, and the protostar's companion chance uses the Perseus fractions; GEN.320 no longer waits.
+- GEN.529 is filed for what it left: the Hayashi temperature, the birthline radius and the energy factor are inferred, not sourced, and the state stops at 10 Myr; it needs a Baraffe 2015 or Siess 2000 table and gates GEN.301.
+- TEST.174 gets another sighting (the sector accessibility flake in a second gate).
+
+TODO items resolved: GEN.242 / Added: GEN.529
+
+## [8.0.1703] - 2026-10-17
+
+**Headline:** Stars under 10 Myr are protostars and pre-main-sequence stars with a disk, instead of main-sequence stars that happen to be young.
+
+### Added
+- **The pre-main-sequence state (GEN.242).** A star under 8 solar masses and under 10 Myr is a Class 0 or I protostar (under 0.5 Myr) or a pre-main-sequence star, with luminosity, temperature and radius from a contraction track worked out from the energy it releases (a solar mass reaches the main sequence in about 40 Myr, 0.1 solar masses in about 0.9 Gyr). The star page names the stage ("Class I Protostar", "Pre-Main-Sequence Star") and says the star is still contracting.
+- **The disk descriptor.** A young star holds a Class 0, I or II disk (age under 0.15, 0.5 and 3 Myr; none after) of 0.01 to 0.3 of its mass, from the dust sublimation radius out to 10 to 300 AU, with no bodies in it. It is stored in `stars.disk_kind`, `disk_mass_solar`, `disk_inner_au` and `disk_outer_au` and shown on the star page.
+- **Companions of protostars.** A Class 0 protostar has a companion in 57% of systems and a Class I protostar in 23% (the Perseus survey), in place of the field's share by spectral class.
+
+### Changed
+- The companions of a young system (`multistar`) take their stage and radius from the same track; the old `31 Myr x m^-2.5` law is gone (it gave 10 Gyr at 0.1 solar masses).
+- A star of 8 solar masses or more is never a protostar: it is on the main sequence by the time it shows.
+- A young star counts as saturated in X-rays, and has no planets inside the engulfment radius of a giant.
+
+generation-output: changed
+
+TODO items resolved: GEN.242. Added: none.
+
+## [8.0.1702] - 2026-10-17
+
+**Headline:** The satellites' young and intermediate shares are decided: derived from each satellite's age history and gas, not a typed 1% and 9%.
+
+### Changed
+
+- GEN.526 records Boss's decision (7:54 AM EDT, "Derive from the law"); it no longer waits on GEN.369, which re-derives the shares when it calculates the satellites.
+- The design note's open question 5 and the Magellanic caveat say the stand-in is dropped; GEN.528 notes that its Magellanic-cell part waits only on GEN.526 merging.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1701] - 2026-10-17
+
+**Headline:** The map layer registry is merged and retired, which frees the layer items that waited on it.
+
+### Changed
+
+- MAP.217 (#2006) is retired: one registry that the Galaxy stage view, the Sector Map and the System Map share for a toggled layer; the items that listed it as a prerequisite no longer wait.
+- MAP.225 and MAP.227 carry Core 2's notes on what their coming PRs do not cover (the column-density ray fallback, clearance and the half-way double click; the trail at the stage's own size).
+
+TODO items resolved: MAP.217 / Added: none
+
+## [8.0.1700] - 2026-10-17
+
+**Headline:** The three maps share one layer registry, so a map's layers have one menu, one set of URL keys and one legend.
+
+### Changed
+- New `maplayers.js`: a layer (id, label, modes, group, default on or off, URL key for hiding and for showing, legend line, picker layer, availability, title) is registered once, and the registry gives the menu buttons, the `hide=`/`show=` URL keys, the legend block and the blocker fade for it. The Galaxy and Sector stage view registers its sector kinds as layers; the System Map uses it for its own (course, facilities and the rest); the 3D galaxy map has the legend block (`galaxymap3d-layer-legend`). A kind absent from a sector is left out of the menu but keeps its URL entry.
+
+### Added
+- Tests: the registry in `maplayers.test.mjs` (16), the System Map layer menu, and a browser test that a registered Sector Map layer has a menu button, a URL key and a legend line.
+
+TODO items resolved: MAP.217 / Added: none
+
+## [8.0.1699] - 2026-10-17
+
+**Headline:** A page cache that never trims its no-database entries is filed, with the reproducer checked on main.
+
+### Changed
+
+- PERF.111 is filed (bug, found by Core 2 in the MAP.217 gate): `ResponseCache.put` without a database skips the eviction loop, so the cache passes `max_entries`; the reproducer gives 6 entries for a bound of 3 on main.
+- TEST.213 gets a sighting with a second symptom (the system's scene never came in, under load 10); it passed in 124.68 s on an idle box.
+
+TODO items resolved: none / Added: PERF.111
+
+## [8.0.1698] - 2026-10-17
+
+**Headline:** The Type Ia and old-star shares as profile fields are merged and retired, and the two parts of the item that are not met are filed.
+
+### Changed
+
+- GEN.319 (#2003) is retired: the Type Ia share and the old-star share are profile fields and the kind factors read them.
+- GEN.528 is filed for the rest of it: a Magellanic cell showing every class (waits on GEN.526) and the scatter's planetary nebulae weighted by the old share (generator epoch 8 rides the next generation change).
+- TEST.174 gets another sighting: the a11y sector page under load aborts a tile fetch.
+
+TODO items resolved: GEN.319 / Added: GEN.528
+
+## [8.0.1697] - 2026-10-17
+
+**Headline:** A place's supernova remnants are Type Ia or core-collapse by who lives there, so a halo never shows a remnant with a pulsar in it.
+
+### Added
+- **The Type Ia share (GEN.319).** The sector profile (and `/api/galaxy/profile` and the profile page) carries `type_ia_share`: the share of the place's supernova remnants that are Type Ia, worked out from the odds at the solar circle (three core collapses to one Type Ia) and the place's share of young stars against its share of older ones. It is 1 where no young stars are (the halo, clusters, old satellites), and the fill and the scatter's remnants are built with it, so a halo or cluster remnant never keeps a neutron star or a black hole.
+
+### Changed
+- The planetary nebula factor of the sector profile is the share of stars that are not young against the solar circle's, capped at 1: 1 in every older place and within 3% of 1 in the disk.
+- A galaxy generated before this keeps its stored sectors; sectors generated after have remnants built with their place's share.
+
+generation-output: changed
+
+TODO items resolved: GEN.319. Added: none.
+
+## [8.0.1696] - 2026-10-17
+
+**Headline:** The "what is within N pc" pages are merged and retired.
+
+### Changed
+
+- NAV.45 (#2001) is retired: systems, sectors and scatter objects link to what is within 10 pc; NAV.61 and MAP.243 are the remaining prerequisites of the item that waited on it.
+- TEST.213 gets a second sighting (the disc fade measured 0.884 in the NAV.45 gate), and TEST.216 a note that it did not recur in two gates.
+
+TODO items resolved: NAV.45 / Added: none
+
+## [8.0.1695] - 2026-10-17
+
+**Headline:** Selecting a sector, system, planet, moon or phenomenon on a map now offers "What's within 10 pc", which opens the What's nearby page with that place filled in.
+
+### Added
+
+- A "What's within 10 pc" link in the info panel of the Galaxy Map (a generated sector, a sector cell by its middle, a black hole, neutron star, quasar or cloud) and the Sector Map (a system, a phenomenon, a charted neighbouring sector). It is also in the panel of a body (star, planet, moon, belt, comet) on the System Map in both views and in a system opened inside the Galaxy Map, and it is left out while a NAV course is being picked.
+- The link asks for 10 pc; the distance is changed on the page it opens.
+- A scattered object nothing has built yet has no record to ask from, so it gets no link.
+
+TODO items resolved: NAV.45 / Added: none
+
+## [8.0.1694] - 2026-10-17
+
+**Headline:** The massive-star scatter on the new work queue is merged and retired.
+
+### Changed
+
+- PERF.97 (#1999) is retired: the massive-star scatter runs as static units on the Redis run record, with the far-shell and component tasks as units too; PERF.106 carries Core 2's built-on note.
+
+TODO items resolved: PERF.97 / Added: none
+
+## [8.0.1693] - 2026-10-17
+
+**Headline:** The massive-star scatter runs on the new work queue: its units are queued on Redis, followed from the run's record, and give the same stars at any worker count.
+
+### Changed
+- **The massive-star pass of the scatter is the first stage on the Redis work queue (PERF.97, step 3 of PERF.86).** `planetgen galaxy` and `planetgen plan` start a run record in Redis for the stage, queue its units on the bulk queue as JSON (the database's name, host, port and user, the shells, their expected stars, the sectors to leave out, the floors and the seed; never a password), start up to `--workers` idle-timeout workers and follow the units' results and progress until the stage is done. One worker uses the same path as many. The units are cut from the work alone (about 512 runs of shells of equal expected work, never more than 4,000), so the same galaxy and seed give the same stars at any worker count and the same stars the old queue drew. A unit that fails ends the run with the unit and the error recorded; Ctrl+C cancels it and frees the machine. Redis is required for this stage. The luminosity pass, the phenomena, the sectors and the backfill still run on the old queue until PERF.98.
+
+## [8.0.1692] - 2026-10-17
+
+**Headline:** The browser-test teardown hang is retired, and two leftovers from its fix are filed.
+
+### Changed
+
+- TEST.193 (#1997) is retired: the test servers stop before the database is dropped, and the drop waits at most 10 s and names the holders. TEST.195, folded into it, is closed with the same status: the 30 s stall could not be reproduced in three runs, the fetch was removed from the tests, and no cause was found.
+- TEST.218 is filed (bug): `test_first_control_connections_at_once` leaves 3 idle connections for the drop warning to end; Bug Hunt proposed.
+- TEST.219 is filed (perf): browser pages still have 1 to 7 requests running 8 s after the server stops (test_web_generate_alignment 7, test_web_browser_controls 7); no owner proposed.
+- GEN.527 is filed (bug): the second star of a wide pair in a saved runaway system loads back 0.4 m/s of 57 km/s off since GEN.336 (about 1 run in 25); #1997 widened the test tolerance to 1e-4, so the cause is still open; Core 1 proposed.
+
+TODO items resolved: TEST.193 / Added: TEST.218, TEST.219, GEN.527
+
+## [8.0.1691] - 2026-10-17
+
+**Headline:** A browser test's database can no longer hang the test run for fifteen minutes when it is torn down.
+
+### Changed
+- **Test servers stop cleanly (TEST.193).** `tests/served.py` runs the web server of a browser test file and, when the file ends, waits up to 8 seconds for requests a page had already sent, so none still holds a database connection when the test database is dropped. The Galaxy Map's tile requests held one for 4 to 6 seconds under load.
+- **Dropping a test database is bounded (TEST.193).** `dbpool.drop_database` waits at most 10 seconds for a lock, ends the connections that hold the database, and names each in a warning with the code that took it, so a leak shows up in the run instead of as a 853 s wait. Test-only; nothing in the program changed.
+- **One fewer fetch under load (TEST.195).** The sector browser tests work out the sector's map designation in the test process instead of fetching the "Show on Galaxy Map" redirect, a request that timed out at 30 s while the page's own tile requests were running. The redirect itself is still tested in `test_web_sector_nav.py`.
+
+TODO items resolved: TEST.193 (cause found, fixed and bounded), TEST.195 (the fetch removed; the 30 s stall itself was never seen again, see the issue). Added: none.
+
+## [8.0.1690] - 2026-10-17
+
+**Headline:** The whole-sphere scatter umbrella is merged and retired, and the Clouds' missing massive stars are filed as a new item.
+
+### Changed
+
+- GEN.240 (#1994) is retired: its three subitems GEN.322, GEN.323 and GEN.324 and the design note's measured yield table are merged.
+- GEN.526 is filed from Core 3's finding: the built satellites have one old age range and no young share, so at the default floors the Clouds place no massive stars; the shares are to be derived from each satellite's history and gas.
+
+TODO items resolved: GEN.240 / Added: GEN.526
+
+## [8.0.1689] - 2026-10-17
+
+**Headline:** The whole-sphere scatter passes are merged and retired (band groups, the phenomena pass and the component pass), generator epochs 5 to 7.
+
+### Changed
+
+- GEN.322 (#1991, epoch 5), GEN.323 (#1992, epoch 6) and GEN.324 (#1993, epoch 7) are retired; the umbrella GEN.240 stays open for Core 3 to close, and GEN.161 and GEN.377 no longer wait.
+- The migration revision queue moves up one: GEN.324 took 0105_satellite_stars, so DB.65 is 0106, DB.69 0107, DB.67 0108, DB.70 0109 and DB.68 0110; GEN.404 carries Core 3's note on `extent_majorants`.
+
+TODO items resolved: GEN.322, GEN.323, GEN.324 / Added: none
+
+## [8.0.1688] - 2026-10-17
+
+**Headline:** The whole-sphere design note's yield table now holds the numbers the three built passes give at the defaults.
+
+### Changed
+- The table of what the passes place outside the disk (`docs/design/intergalactic-and-halo-contents.md`, section 5.4) is rebuilt from the built passes after the stellar tables check: 1.5 million bright stars at the halo tier's floor of 500 solar luminosities and none at 9,000, no mass-pass star (the satellites' stars are one old population), 11 million black-hole rows and 2,400 planetary nebulae. The Magellanic Clouds' young share, which the old table assumed, is left as a question.
+
+TODO items resolved: GEN.240. Added: none.
+
+## [8.0.1687] - 2026-10-17
+
+**Headline:** The globular clusters and the satellite galaxies now place their own bright and massive stars and their black holes, neutron stars and planetary nebulae.
+
+### Added
+- **The component pass (GEN.324).** A component's systems are its mass over the mean system mass; each pass draws one Poisson count from them times the share of its population the pass keeps, puts every candidate where the component's profile says (a radius with that share of the mass inside it, a direction uniform on the sphere), and keeps it by its tier's share. The same is done for the black holes, neutron stars and planetary nebulae by their rates per system. This is what a sector's fill already takes off the component's cells, so no pre-placed star is drawn twice. Each component has its own random stream.
+
+### Changed
+- `bright_stars.population` takes `satellite` (migration 0105); a galaxy scattered before this has no stars in its clusters or satellites: `planetgen plan --redo-scatters luminosity mass phenomena` draws them.
+
+generation-output: changed
+
+TODO items resolved: GEN.324. Added: none.
+
+## [8.0.1686] - 2026-10-17
+
+**Headline:** The black holes, neutron stars, planetary nebulae and supernova remnants now reach the whole grid, out to 262 kpc, so the halo has them beyond the galaxy's outline.
+
+### Added
+- **The phenomena scatter reaches past the outline (GEN.323).** Each class is placed object first over the groups of bands beyond the outline (the same groups as the bright stars', GEN.322), by its rate per star times the density of the stars there and its own factors (the thicker layer of the remnants, the gas of the supernova remnants, the young stars of the magnetars), and the faint shells far out are drawn together. The rows inside the outline are exactly the rows they were. At the defaults it adds about 9 million stellar-mass black holes, 23,000 intermediate-mass black holes and 1,600 planetary nebulae beyond the outline; a galaxy scattered before this has none: `planetgen plan --redo-scatters phenomena` draws them.
+
+generation-output: changed
+
+TODO items resolved: GEN.323. Added: none.
+
+## [8.0.1685] - 2026-10-17
+
+**Headline:** The bright-star and mass passes now reach the whole grid, out to 262 kpc, so the halo has its bright stars beyond the galaxy's outline.
+
+### Added
+- **The scatter reaches past the outline (GEN.322).** A shell's bands beyond the outline are drawn in groups of 64 bands, each bounded in one piece, and the faint shells far out (from about 50 kpc) are drawn together as one task, so a pass to the reach takes about a minute on one process, not hours. The stars inside the outline are exactly the rows they were. At the defaults it adds about 120,000 stars (halo giants down to the halo floor of 500 solar luminosities) beyond the outline. A galaxy scattered before this has none: `planetgen plan --redo-scatters mass luminosity` draws them.
+- `tuning.SCATTER_COVERS_REACH` switches it on (the tests turn it off outside the reach tests). `band_majorants` is split into `band_majorants` and `extent_majorants`, which takes any region's nearest point and outer radius, so GEN.134's star-formation factor is bounded over each group's radius range. On the default galaxy it places about 122,000 stars beyond the outline.
+- A galaxy scattered before this has no stars beyond the outline: `planetgen plan --redo-scatters mass luminosity` draws them.
+
+generation-output: changed
+
+TODO items resolved: GEN.322. Added: none.
+
 ## [8.0.1684] - 2026-10-17
 
 **Headline:** UX.114 is retired after its merge, and the round-trip column failure TEST.217 is closed by the same pull request.

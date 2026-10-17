@@ -24,6 +24,8 @@ GENERATED = {"unitladders.js"}
 ALLOWED = {
     # A ring, wedge or slot number is an address, never scientific (its own comment says so).
     ("galaxystages.js", "toLocaleString"),
+    # The camera in the address is a coordinate to ten digits, read back exactly, not a reading (MAP.228).
+    ("galaxystages.js", "toPrecision"),
 }
 """set: `(file, method)` pairs that are not measurements."""
 

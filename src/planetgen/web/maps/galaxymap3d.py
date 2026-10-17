@@ -382,6 +382,10 @@ CRUMBS_BLOCK = """<nav class="crumbs galaxy-crumbs" id="galaxymap3d-crumbs" aria
 """
 """The breadcrumb the stage view fills."""
 
+WHERE_BLOCK = """<div class="galaxy-where" id="galaxymap3d-where" aria-live="polite" hidden></div>
+"""
+"""MAP.227: which sector the camera is in, over the map's top-left corner (a line of its own would push the map down)."""
+
 ZOOM_BUTTONS = """  <button type="button" class="starmap-btn" data-action="zoom-out" aria-label="Zoom out">&minus;</button>
   <button type="button" class="starmap-btn" data-action="zoom-in" aria-label="Zoom in">+</button>
 """
@@ -435,7 +439,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                               locate_path="/galaxy/locate", course=None, made=None,
                               territory_path="/galaxy/territories", pick=None, nav_url=None, pinned=None,
                               nebula_shape_path="/galaxy/nebula/{id}/shape", uncharted_scene_url=None,
-                              uncharted_phenomenon_url=None, superbubbles=None):
+                              uncharted_phenomenon_url=None, superbubbles=None, nearby_url=None):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (always
@@ -521,6 +525,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         nav_url (str, optional): The NAV page's URL (`/nav`), for a
             the "Start Here" and "End Here" buttons (NAV.29), which with
             one end chosen open it; without it the panel shows none.
+        nearby_url (str, optional): The What's nearby page's URL (`/nearby`), for
+            the "What's within 10 pc" link of a sector, a cell, a system or a
+            phenomenon (NAV.45, `static/navpick.js` `nearbyLinks`); without it
+            the panel shows none.
         pinned (dict or None): A sector page's map (MAP.68): the one
             sector it is locked to, `{"shell", "band", "wedge", "center_pc"}`
             (`center_pc`: its centre in the galaxy frame). The panel then
@@ -561,6 +569,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "pickOther": pick["other"] if pick else None,
         "pickCancel": pick["cancel"] if pick else None,
         "navUrl": nav_url,
+        "nearbyUrl": nearby_url,
         "sectorUrl": sector_url,
         "unchartedSceneUrl": uncharted_scene_url,
         "unchartedPhenomenonUrl": uncharted_phenomenon_url,
@@ -656,8 +665,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
     )
 
     # MAP.131: what the blocks' fill shows, and the legend of the choice.
-    color_block = legend_block = ""
+    color_block = legend_block = where_block = ""
     if not pinned:
+        where_block = WHERE_BLOCK
         color_block = (
             '    <label class="galaxy-color-by">Color by <select id="galaxymap3d-color-by" data-color-by\n'
             '            title="What the blocks and sectors are colored by">\n'
@@ -717,10 +727,11 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <canvas id="galaxymap3d-canvas" class="starmap-canvas" tabindex="0" role="application"
      aria-label="Interactive Galaxy Map. Arrow keys move among the parts you can pick and Enter takes
      one; Escape or Backspace goes one step back out
-     and Home returns to the whole galaxy. Dragging, or Shift and the arrow keys, turns the view and the wheel zooms, both about the center marked in the middle of the map; Shift-click or right-click makes the point you click the new center, Alt and the arrow keys move it, and C centers the view on what is selected."></canvas>
+     and Home returns to the whole galaxy. Dragging, or Shift and the arrow keys, turns the view about the center marked in the middle of the map, and the wheel zooms toward what is under the pointer; Shift-click or right-click makes the point you click the new center, Alt and the arrow keys move it, and C centers the view on what is selected."></canvas>
 <div class="starmap-centre" id="galaxymap3d-centre" aria-hidden="true" title="The center the view turns and zooms about"></div>
 <div class="starmap-scale" id="galaxymap3d-scale" aria-live="polite"></div>
-{legend_block}
+{where_block}{legend_block}
+<div class="map-layer-legend" id="galaxymap3d-layer-legend" hidden></div>
 <div class="map-tooltip" id="galaxymap3d-tooltip" hidden></div>
 </div>
 </div>

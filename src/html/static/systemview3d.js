@@ -27,7 +27,7 @@ const { makeGlowMaterial } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const { createPointerControl, orbitByDrag, orbitByKey, panInScreenPlane, wheelPixels } = await import(`./mapcontrol.js${VERSION_QUERY}`);
 const { fitRendererToCanvas, watchResize } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { createPicker, createTooltip, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
-const { navActions } = await import(`./systemnav.js${VERSION_QUERY}`);
+const { navActions, nearbyLinks } = await import(`./systemnav.js${VERSION_QUERY}`);
 const { orbitPath, relativeAt, cometOrbitFields } = await import(`./orbitpositions.js${VERSION_QUERY}`);
 const { createLayout, layoutPositions, MODE_COMPRESSED } = await import(`./systemscale.js${VERSION_QUERY}`);
 const { formatBodyRadiusKm, formatDistanceKm, formatPeriodYears } = await import(`./unitladder.js${VERSION_QUERY}`);
@@ -421,6 +421,7 @@ export function createSystemView(options) {
       title: entry.name,
       fields: fields,
       nav: navActions(document.getElementById("sysmap-root"), entry.ref),
+      links: nearbyLinks(document.getElementById("sysmap-root"), entry.ref),
       buttons: [
         { label: "Fly to", onClick: function () { flyTo(entry.ref); } },
         { label: "Follow", onClick: function () { follow.ref = entry.ref; flyTo(entry.ref); } },

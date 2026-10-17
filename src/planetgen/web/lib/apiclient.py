@@ -35,7 +35,7 @@ import urllib.request
 from planetgen.util import log
 from planetgen.util.settings import get_settings
 
-from planetgen.web.lib import pagecache
+from planetgen.web.lib import pagecache, slowpages
 
 API_BASE_URL = get_settings().api_base_url
 """str: Base URL of the planetGen API's `/api` mount point. Defaults to
@@ -262,20 +262,46 @@ def _request(path, params=None):
         NotFoundError: On a 404 response.
         ApiError: On any other non-2xx response, or if the API can't be
             reached/returns an unparseable body.
+        slowpages.Pending: Only inside `slowpages.allow_pending()`: the answer is slow and a job is building it.
     """
     query = _build_query(params)
     target = f"{path}?{query}" if query else path
+    return _parse_json(_body_of(path, target, _cache_db(params)))
+
+
+def fetch_target(target):
+    """
+    Makes the cached GET `target` (a path under `/api` with its query) and returns its raw JSON body, never raising
+    `slowpages.Pending`: a slow request is built here, in the caller, which is how a page job (PERF.105) builds
+    the answer it stores in the page cache.
+    """
+    path, _, query = target.partition("?")
+    db = next((value for key, value in urllib.parse.parse_qsl(query) if key == "db"), None) or None
+    return _body_of(path, target, db, queueing=False)
+
+
+def _body_of(path, target, db, queueing=True):
+    """The raw JSON body of the GET `target`: from the response cache, else from the API (and stored, when it can
+    be). With a cache, a miss on a page that opted in (`slowpages.allow_pending`) that the cost rule calls slow
+    raises `slowpages.Pending` when `queueing`, instead of building it."""
     cache = _response_cache() if _response_cache is not None and pagecache.is_cacheable(path) else None
     if cache is None:
-        return _parse_json(_send("GET", target).body)
-    db = _cache_db(params)
+        return _send("GET", target).body
     body = cache.get(db, target)
     cache_stats["hits" if body is not None else "misses"] += 1
     if body is None:
+        if queueing and slowpages.pending_allowed():
+            pending = slowpages.pending_for(db, path, target)
+            if pending is not None:
+                raise pending
         token = cache.begin(db)
+        started = time.perf_counter()
         body = _send("GET", target).body
+        seconds = time.perf_counter() - started
         cache.put(db, target, body, token)
-    return _parse_json(body)
+        if db is not None:
+            slowpages.record_duration(db, target, seconds)
+    return body
 
 
 def _auth_request(method, path, json_body=None, cookie_header=None, timeout=_TIMEOUT_SECONDS):
@@ -412,12 +438,13 @@ def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sor
     return _request("/systems", [(key, value) for key, value in params if value is not None])
 
 
-def get_uncharted_systems(db, limit=None, offset=None, sort=None, descending=False):
+def get_uncharted_systems(db, limit=None, offset=None, sort=None, descending=False, after=None):
     """Returns `GET /api/uncharted-systems`'s envelope (UX.87): a page of
     the scattered stars no system was built around yet, with the `total`
-    waiting. `sort` is one of `db.query.UNCHARTED_SYSTEM_SORTS`."""
+    waiting. `sort` is one of `db.query.UNCHARTED_SYSTEM_SORTS`; `after` is the star id the previous page
+    ended on (PERF.75)."""
     _require_db(db)
-    params = [("db", db), ("limit", limit), ("offset", offset), ("sort", sort),
+    params = [("db", db), ("limit", limit), ("offset", offset), ("after", after), ("sort", sort),
               ("order", "desc" if descending else "asc" if sort else None)]
     return _request("/uncharted-systems", [(key, value) for key, value in params if value is not None])
 
@@ -454,6 +481,19 @@ def get_system_scene(db, system_id):
     see `planetgen.web.maps.systemscene`."""
     _require_db(db)
     return _request(f"/systems/{system_id}/scene", {"db": db})
+
+
+def get_table_estimates(db):
+    """
+    `GET /api/table-estimates` -- the database's own estimate of each table's row count, for the cost rule that
+    decides which page requests are slow (`slowpages`). Never cached: it is asked about once a minute.
+
+    Returns:
+        dict: Table name -> estimated rows.
+    """
+    _require_db(db)
+    query = _build_query({"db": db})
+    return _parse_json(_send("GET", f"/table-estimates?{query}").body)["tables"]
 
 
 def get_near(db, params):
@@ -740,14 +780,14 @@ def get_galaxy_changes(db, since=None):
     return _request("/galaxy/changes", {"db": db, "since": since})
 
 def get_phenomena(db, limit=None, offset=None, sort=None, descending=False, types=(), descriptors=(),
-                  placed=None, facets=False):
+                  placed=None, facets=False, after=None):
     """Returns `GET /api/phenomena`'s full paginated envelope
     (`items`/`total`/`limit`/`offset`, plus `facets` when asked) -- see
     `db.query.list_phenomena`'s docstring for the shape. `sort`, `types`,
     `descriptors` and `placed` (True/False) are the table's sort and
-    filters (UX.41)."""
+    filters (UX.41); `after` is the `scatter_id` the previous page ended on, inside the scattered tail (PERF.75)."""
     _require_db(db)
-    params = [("db", db), ("limit", limit), ("offset", offset), ("sort", sort),
+    params = [("db", db), ("limit", limit), ("offset", offset), ("after", after), ("sort", sort),
               ("order", "desc" if descending else None)]
     params += [("type", value) for value in types] + [("descriptor", value) for value in descriptors]
     params += [("placed", None if placed is None else ("yes" if placed else "no")),

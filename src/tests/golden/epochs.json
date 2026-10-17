@@ -19,6 +19,51 @@
       "epoch": 4,
       "first_release": "8.0.1679",
       "reason": "Stars leaving the main sequence follow the real phases and tables: a horizontal branch (35 to 50 solar luminosities, colour from [Fe/H] and age) and an asymptotic giant branch for stars under 2.2 solar masses, a red giant branch whose time per unit of ln L falls as L^-0.78 instead of an even spread, and the corrected horizontal-branch temperature ranges and colour shares, so a giant or horizontal-branch star's luminosity, temperature and type differ (GEN.286, GEN.287, GEN.407)."
+    },
+    {
+      "epoch": 5,
+      "first_release": "8.0.1685",
+      "reason": "The bright-star and mass passes cover the 262 kpc reach in groups of 64 bands, drawing stars beyond the outline from new streams (GEN.322)."
+    },
+    {
+      "epoch": 6,
+      "first_release": "8.0.1686",
+      "reason": "The phenomena pass covers the 262 kpc reach in groups of bands, drawing black holes, neutron stars, planetary nebulae, supernova remnants and magnetars beyond the outline from new streams (GEN.323)."
+    },
+    {
+      "epoch": 7,
+      "first_release": "8.0.1687",
+      "reason": "The clusters and the satellite galaxies place their own bright and massive stars and phenomena from their profiles, and bright stars take the satellite population (GEN.324)."
+    },
+    {
+      "epoch": 8,
+      "first_release": "8.0.1697",
+      "reason": "A sector's supernova remnants are Type Ia with the share of their place (the profile's type_ia_share) instead of the constant, and the planetary nebula factor follows the old-star share (GEN.319)."
+    },
+    {
+      "epoch": 9,
+      "first_release": "8.0.1703",
+      "reason": "A star younger than 10 Myr and under 8 solar masses is a protostar (Class 0 and I) or a pre-main-sequence star drawn from a derived contraction track with a disk descriptor, protostars take Perseus' companion share, and the companions of young systems follow the same track (GEN.242)."
+    },
+    {
+      "epoch": 10,
+      "first_release": "8.0.1705",
+      "reason": "Every Hill sphere (a star's, a pair's and a compact object's system perimeter and keep-out radius) reads the drawn galaxy's virial mass from its mass chain in place of the fixed Milky Way mass, so the stored perimeters differ per galaxy seed (GEN.400)."
+    },
+    {
+      "epoch": 11,
+      "first_release": "8.0.1708",
+      "reason": "A Bok globule holds a protostar in 30% of clouds and a star-forming core one to four, built by the sectors the cloud reaches; a planetary nebula's central star has a close companion in 20%; a star's hosted-nebula roll comes from its own seed (GEN.320)."
+    },
+    {
+      "epoch": 12,
+      "first_release": "8.0.1726",
+      "reason": "A satellite galaxy's stars are split by a history derived from its stellar mass, size and mean age into young, intermediate and old populations (the Magellanic Clouds now place massive stars), the satellite's old window is 3 to 13 Gy, and the satellite scatter rows change with it (GEN.526)."
+    },
+    {
+      "epoch": 13,
+      "first_release": "8.0.1740",
+      "reason": "A satellite galaxy's young stars give it gas, so the Magellanic Clouds hold molecular clouds, nebulae and supernova remnants and place magnetars and remnants in the component pass, a satellite's planetary nebulae follow its old-star share, and the shell scatter weighs planetary nebulae by the old stars' share against the solar circle's (GEN.528)."
     }
   ]
 }

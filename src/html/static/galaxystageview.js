@@ -58,6 +58,8 @@ const { createSelection } = await import(`./picker.js${VERSION_QUERY}`);
 const { createBreadcrumb } = await import(`./breadcrumb.js${VERSION_QUERY}`);
 const { createPicker, createTooltip } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createSectorStage, DEFAULT_HIDDEN_KINDS } = await import(`./galaxysector.js${VERSION_QUERY}`);
+const { createLayerRegistry } = await import(`./maplayers.js${VERSION_QUERY}`);
+const { KINDS } = await import(`./sectorscene.js${VERSION_QUERY}`);
 const { createSystemStage } = await import(`./galaxysystem.js${VERSION_QUERY}`);
 const NF = await import(`./nearfield.js${VERSION_QUERY}`);
 const GO = await import(`./gridopacity.js${VERSION_QUERY}`);
@@ -103,6 +105,8 @@ export const GALAXY_MIN_ZOOM = 0.5;
 // An opened system zooms from its fit down to a moon, nine orders closer.
 export const SYSTEM_MIN_ZOOM = 1e-9;
 const WHEEL_ZOOM_PER_PX = 0.0025;
+// MAP.225: how close to the thing under the pointer a wheel step in leaves the eye, as a share of the view's distance.
+const ZOOM_CLEARANCE = 0.02;
 // A wheel move from a stage to the next (MAP.125) takes one gesture: this
 // long before another can, and a star counts as the one zoomed on when it is
 // within this share of the view's distance from its middle.
@@ -810,6 +814,8 @@ export function createStageView(host) {
       target: view.target.slice(), dist: view.dist, quaternion: view.quat.toArray(),
       focusRadius: entered ? entered.halfEdge : 0, inside: containerCenter(eye),
     });
+    refreshWhere();
+    scheduleCameraAddress();
   }
 
   // Animates the camera from `from` to `to` along van Wijk and Nuij's
@@ -862,11 +868,7 @@ export function createStageView(host) {
   // the fill's color), as query parts; a bookmark of a view keeps them too.
   function displayParts() {
     const extra = [];
-    const hidden = sectorStage.hiddenKinds();
-    const hide = hidden.filter(function (kind) { return DEFAULT_HIDDEN_KINDS.indexOf(kind) < 0; });
-    const show = DEFAULT_HIDDEN_KINDS.filter(function (kind) { return hidden.indexOf(kind) < 0; });
-    if (hide.length) extra.push("hide=" + hide.join(","));
-    if (show.length) extra.push("show=" + show.join(","));
+    layers.writeUrl(new URLSearchParams()).forEach(function (value, name) { extra.push(name + "=" + value); });
     if (sectorStage.markedKinds().length) extra.push("mark=" + sectorStage.markedKinds().join(","));
     if (sectorStage.hiddenClasses().length) extra.push("stars=" + sectorStage.hiddenClasses().join(","));
     if (sectorStage.minLuminosity() > 0) extra.push("lum=" + sectorStage.minLuminosity());
@@ -895,20 +897,55 @@ export function createStageView(host) {
     if (host.colorChanged) host.colorChanged(colorBy);
   }
 
-  // The kinds a URL's `hide` names.
-  // Kinds that begin hidden (rogue planets, MAP.137) are named by `show` when shown.
-  function hiddenFromLocation() {
-    const params = new URLSearchParams(location.search);
-    const list = function (name) { return (params.get(name) || "").split(",").filter(Boolean); };
-    const shown = list("show");
-    return DEFAULT_HIDDEN_KINDS.filter(function (kind) { return shown.indexOf(kind) < 0; }).concat(list("hide"));
+  // MAP.217: the kinds of object the map shows are layers of the registry the maps share (maplayers.js): the
+  // Menu's buttons and the URL's `hide` (kinds turned off) and `show` (kinds that begin hidden, rogue planets,
+  // MAP.137, when turned on) come from it, and the sector stage follows what it says.
+  const layers = createLayerRegistry(pinned ? "sector" : "galaxy", { forgetUnknown: true });
+  let layersFollowing = false; // the registry is being brought up to the stage or the URL, so its changes are not echoed back
+  KINDS.forEach(function (pair) {
+    layers.register({
+      id: pair[0], label: pair[1], modes: ["galaxy", "sector"], group: "Show on the map", data: { kind: pair[0] },
+      defaultOn: DEFAULT_HIDDEN_KINDS.indexOf(pair[0]) < 0, urlKey: "hide", urlKeyOn: "show",
+      available: function () { return kindCount(pair[0]) > 0; },
+      title: function () { return "Show or hide the " + pair[1].toLowerCase() + " (" + kindCount(pair[0]) + ")"; },
+    });
+  });
+  layers.onChange(function (id, on) {
+    if (layersFollowing) return;
+    sectorStage.setKindHidden(id, !on);
+    writeHiddenToUrl();
+  });
+
+  function kindCount(kind) {
+    const found = sectorStage.kinds().find(function (entry) { return entry.kind === kind; });
+    return found ? found.count : 0;
+  }
+
+  // The registry follows the URL, then the stage follows the registry.
+  function takeLayersFromLocation() {
+    layersFollowing = true;
+    try {
+      layers.readUrl(location.search);
+    } finally {
+      layersFollowing = false;
+    }
+    sectorStage.setHiddenKinds(KINDS.map(function (pair) { return pair[0]; }).filter(function (kind) { return !layers.isOn(kind); }));
+  }
+
+  // The registry follows the stage (a selection showing its kind).
+  function takeLayersFromStage() {
+    layersFollowing = true;
+    try {
+      KINDS.forEach(function (pair) { layers.setOn(pair[0], !sectorStage.kindHidden(pair[0])); });
+    } finally {
+      layersFollowing = false;
+    }
   }
 
   // Shows or hides a kind of object on the open sector, and keeps the choice
   // in the URL (changed in place: it is no step of its own).
   function setKindHidden(kind, hidden) {
-    sectorStage.setKindHidden(kind, hidden);
-    writeHiddenToUrl();
+    layers.setOn(kind, !hidden);
   }
 
   // MAP.123: the star classes left off and the luminosity floor, from the URL.
@@ -938,13 +975,7 @@ export function createStageView(host) {
 
   function writeHiddenToUrl() {
     const params = new URLSearchParams(location.search);
-    const now = sectorStage.hiddenKinds();
-    const hide = now.filter(function (kind) { return DEFAULT_HIDDEN_KINDS.indexOf(kind) < 0; });
-    const show = DEFAULT_HIDDEN_KINDS.filter(function (kind) { return now.indexOf(kind) < 0; });
-    if (hide.length) params.set("hide", hide.join(","));
-    else params.delete("hide");
-    if (show.length) params.set("show", show.join(","));
-    else params.delete("show");
+    layers.writeUrl(params);
     const marked = sectorStage.markedKinds();
     if (marked.length) params.set("mark", marked.join(","));
     else params.delete("mark");
@@ -981,16 +1012,17 @@ export function createStageView(host) {
   // A kind shown or hidden by the sector stage itself (a selection of
   // something hidden shows its kind): the URL and the buttons follow.
   function kindsChanged() {
+    takeLayersFromStage();
     writeHiddenToUrl();
     if (host.kindsChanged) host.kindsChanged();
   }
 
   // A new entry in the browser history (the map's Back and Forward).
-  function pushEntry(query) {
+  function pushEntry(query, nextStage) {
     if (pinned) return;
     mapIndex += 1;
     maxIndex = mapIndex;
-    history.pushState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "", location.pathname + query + location.hash);
+    history.pushState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex, stage: nextStage }, "", location.pathname + query + location.hash);
   }
 
   // Goes to stage `next` (carried on through any choice of one). push:
@@ -1008,9 +1040,9 @@ export function createStageView(host) {
     if (entered) closeSector();
     if (!options.keepSector) selectedSector = null;
     const token = ++goToken;
-    const query = withKept(options.query || S.stageQuery(r.stage));
-    if (options.push !== false && (!S.sameStage(stage, r.stage) || query !== location.search)) {
-      pushEntry(query);
+    const query = withKept(options.query || cameraQueryFor(r, options.camera || cameraFor(r)));
+    if (options.push !== false && (!S.sameStage(stage, r.stage) || withoutCam(query) !== withoutCam(location.search))) {
+      pushEntry(query, r.stage);
     }
     stage = r.stage;
     resolved = r;
@@ -1046,6 +1078,9 @@ export function createStageView(host) {
     closeAmbient();
     const from = display && view ? viewNow() : null;
     const to = cameraFor(r);
+    // MAP.228: the camera the address asked for, taken up once the stage is in place.
+    const want = pendingCamera;
+    pendingCamera = null;
     const old = display;
     const incoming = buildDisplay(r);
     setWedgeClip(r);
@@ -1053,13 +1088,14 @@ export function createStageView(host) {
     display = incoming;
     if (!from) {
       view = settledView(to);
-      closeOnCharted(r, view);
+      if (want) viewAtCamera(r, want);
+      else closeOnCharted(r, view);
       applyView();
       afterArrival();
       return;
     }
     if (old) leaving.push(old);
-    flyCamera(from, to, function (t) {
+    flyCamera(from, want ? { target: want.target.slice(), dist: want.dist, quat: new THREE.Quaternion().fromArray(want.quat) } : to, function (t) {
       const ms = animation ? animation.duration : 0;
       const fadeStart = ms > 0 ? Math.max(0, 1 - FADE_IN_MS / ms) : 0;
       const f = fadeStart >= 1 ? 1 : Math.max(0, (t - fadeStart) / (1 - fadeStart));
@@ -1068,6 +1104,7 @@ export function createStageView(host) {
     }, function () {
       setDisplayFade(display, 1);
       view = settledView(to);
+      if (want) viewAtCamera(r, want);
       applyView();
       afterArrival();
     });
@@ -1106,6 +1143,7 @@ export function createStageView(host) {
   // Every frame: the running move, if any.
   function step(now) {
     if (!active) return;
+    if (camChangedAt && now - camChangedAt >= CAM_URL_DELAY_MS) writeCameraAddress();
     sectorStage.update();
     systemStage.update(Date.now());
     updateAmbient(now);
@@ -1149,8 +1187,8 @@ export function createStageView(host) {
 
   // Whether the selected sector is the one the window is centred on (the
   // window's own crumb names it).
-  function isSelectedCentre() {
-    const win = stage.win;
+  function isSelectedCentre(of) {
+    const win = (of || stage).win;
     return !!(selectedSector && win && win.centre.m === 1 && win.centre.shell === selectedSector.shell
       && win.centre.band === selectedSector.band && win.centre.wedge === selectedSector.wedge);
   }
@@ -1249,6 +1287,7 @@ export function createStageView(host) {
     THREE: THREE, scene: host.scene, camera: camera, canvasEl: canvasEl, picker: picker,
     accentColor: host.accentColor || "#4f5fe8",
     fetchScene: host.fetchSystemScene, showInfo: host.showInfo || function () {}, viewport: host.viewport || null,
+    navPick: host.navPick || null,
     flyTo: function (entry) { flyToBody(entry); },
     setMode: function (mode) { setSystemMode(mode); },
     deselected: function () { host.showHint(hintFor(resolved)); },
@@ -1960,14 +1999,10 @@ export function createStageView(host) {
     return sectorQuery(selectedSector, true);
   }
 
-  // The URL of a sector in the stage on screen: ?sector=<designation>, with &open=1 when it is open. A sector
-  // picked in a window that is not the one round it keeps that window (?win=...&sector=...), so a fresh load
-  // of the link shows the same steps; one picked in its own window needs only the designation.
+  // The URL of a sector in the stage on screen: ?sector=<designation>, with &open=1 when it is open. The camera
+  // (?cam=, MAP.228) is added by the address writer once the view is at rest.
   function sectorQuery(sector, open) {
-    const code = "sector=" + S.sectorDesignation(sector.shell, sector.band, sector.wedge) + (open ? "&open=1" : "");
-    const own = S.sectorStage(sector.shell, sector.band, sector.wedge, getOutline());
-    if (stage && stage.win && !(own && S.sameStage(own, stage))) return S.stageQuery(stage) + "&" + code;
-    return "?" + code;
+    return "?sector=" + S.sectorDesignation(sector.shell, sector.band, sector.wedge) + (open ? "&open=1" : "");
   }
 
   function closeSystem() {
@@ -2103,6 +2138,31 @@ export function createStageView(host) {
     applyView();
   }
 
+  // MAP.225: the wheel zooms toward the point under the pointer, which stays where it is on the screen: the
+  // picked star, remnant or cell, else the point of the focus plane under it (`anchorUnder`). A step in moves the
+  // eye by no more than half the way to that point (`MC.limitApproach`), so it is a logarithmic approach and the
+  // camera never lands on a star by accident. A view that cannot be moved (a locked one, a stage fitted whole), or
+  // a wheel with no pointer over the map, zooms about the middle as before.
+  function zoomTowardPointer(factor, event) {
+    if (!view || animation || !MC.canZoom(zoomPolicyFor(resolved))) return;
+    const anchor = event && isFree(resolved) && view.fit ? anchorUnder(event.clientX, event.clientY) : null;
+    if (!anchor) {
+      zoomBy(factor);
+      return;
+    }
+    const eye = camera.position;
+    const away = Math.hypot(anchor[0] - eye.x, anchor[1] - eye.y, anchor[2] - eye.z);
+    const asked = MC.limitApproach(factor, away, ZOOM_CLEARANCE * view.dist);
+    const before = view.dist;
+    view.zoom = MC.clampDistance(zoomPolicyFor(resolved), view.zoom * asked, 1);
+    reframe();
+    const taken = before > 0 ? view.dist / before : 1;
+    const target = MC.targetAboutAnchor(view.target, anchor, taken);
+    clampPan(target, view.fit.target, PAN_REACH * view.fit.dist * Math.tan(fovHalf()));
+    view.target = target;
+    applyView();
+  }
+
   // MAP.200: the zoom as a share of the policy's log range, 0 at the
   // farthest the view goes and 1 at the nearest.
   function zoomShare() {
@@ -2140,7 +2200,7 @@ export function createStageView(host) {
   function onWheel(event) {
     if (!MC.canZoom(zoomPolicyFor(resolved)) || !view) return false;
     const deltaPx = MC.wheelPixels(event, canvasEl.clientHeight, 200);
-    if (deltaPx && !zoomAcross(deltaPx, event)) zoomBy(Math.exp(deltaPx * WHEEL_ZOOM_PER_PX));
+    if (deltaPx && !zoomAcross(deltaPx, event)) zoomTowardPointer(Math.exp(deltaPx * WHEEL_ZOOM_PER_PX), event);
     return true;
   }
 
@@ -2305,6 +2365,15 @@ export function createStageView(host) {
       applyView();
     });
   }
+
+  // For the browser tests: the stage on screen.
+  canvasEl.galaxyStage = function () { return stage; };
+
+  // For the browser tests: opens the window of `g` cells round the cell {m, shell, band, wedge}, as the
+  // breadcrumb's crumbs and a click on a block do.
+  canvasEl.galaxyOpenWindow = function (cell, g) {
+    if (view && !animation) go(S.windowStage(cell, g || P.DEFAULT_WINDOW));
+  };
 
   // For the browser tests: moves the view's middle to a point of the map (parsecs).
   canvasEl.galaxyCentreOn = function (x, y, z) {
@@ -2507,6 +2576,137 @@ export function createStageView(host) {
     els.notice.hidden = !text;
   }
 
+  // --- The camera in the address (MAP.228) -------------------------------------
+
+  // The camera the address asked for, until the stage it names is on screen (flyTo takes it up).
+  let pendingCamera = null;
+  let camChangedAt = 0;
+  const CAM_URL_DELAY_MS = 350;
+  // A camera written to ten digits and read back is as far as this over or under the stage's own fit.
+  const STAGE_FIT_TOLERANCE = 1e-6;
+
+  // The view as {target, dist, quat: [x, y, z, w]}, or null.
+  function currentCamera() {
+    return view ? { target: view.target.slice(), dist: view.dist, quat: view.quat.toArray() } : null;
+  }
+
+  // The stage's own camera as the address holds it.
+  function asAddress(camera) {
+    return { target: camera.target.slice(), dist: camera.dist, quat: camera.quat.toArray ? camera.quat.toArray() : camera.quat.slice() };
+  }
+
+  // Whether `camera` is the stage's own: the galaxy's address then is none.
+  function isStageCamera(r, camera) {
+    const own = asAddress(cameraFor(r));
+    const near = function (a, b, scale) { return Math.abs(a - b) <= 1e-6 * scale; };
+    const dot = camera.quat.reduce(function (sum, value, k) { return sum + value * own.quat[k]; }, 0);
+    return near(camera.dist, own.dist, own.dist) && Math.abs(Math.abs(dot) - 1) < 1e-9
+      && camera.target.every(function (value, k) { return near(value, own.target[k], own.dist); });
+  }
+
+  // The query of an address to camera `camera` of stage `r`: "" for the whole galaxy at its own camera.
+  function cameraQueryFor(r, camera) {
+    const wanted = asAddress(camera);
+    if (isWholeGalaxy(r) && isStageCamera(r, wanted)) return "";
+    return "?" + S.cameraQuery(wanted);
+  }
+
+  function withoutCam(query) {
+    const params = new URLSearchParams(query || "");
+    params.delete("cam");
+    const text = params.toString();
+    return text ? "?" + text : "";
+  }
+
+  // The window stage that holds what a camera looks at: the finest level whose window, centred on the cell
+  // holding the camera's middle, is no smaller than the view (the distance is no more than its own fit), else the
+  // coarsest, and the whole galaxy when that is no smaller either. Null when the middle is outside the galaxy.
+  function stageForCamera(camera) {
+    const quat = new THREE.Quaternion().fromArray(camera.quat);
+    const levels = P.DRILL_LEVELS.slice().reverse();
+    const outline = getOutline();
+    let coarsest = null;
+    let coarsestFit = 0;
+    for (let n = 0; n < levels.length; n++) {
+      const cell = P.cellAt(levels[n], camera.target[0], camera.target[1], camera.target[2], edgePc);
+      const candidate = S.windowStage(cell, P.DEFAULT_WINDOW);
+      const r = S.resolveStage(candidate, outline, edgePc);
+      if (r.problem) continue;
+      const extent = S.extentOf(r.view.blocks);
+      const fit = centeredFit(fitPointsOf(r), extent.center, quat).dist;
+      if (fit * (1 + STAGE_FIT_TOLERANCE) >= camera.dist) return candidate;
+      coarsest = candidate;
+      coarsestFit = fit;
+    }
+    return coarsest && camera.dist <= MAX_ZOOM * coarsestFit ? coarsest : S.galaxyStage();
+  }
+
+  // Puts the view at `camera` within stage `r` (the view already at the stage's own camera): the middle kept
+  // within the pan's reach and the distance within the zoom's.
+  function viewAtCamera(r, camera) {
+    if (!view || !view.fit) return;
+    const quat = new THREE.Quaternion().fromArray(camera.quat);
+    const full = fitDistance(fitPointsOf(r), view.fit.target, quat);
+    if (!(full > 0)) return;
+    const target = camera.target.slice();
+    clampPan(target, view.fit.target, PAN_REACH * view.fit.dist * Math.tan(fovHalf()));
+    view.quat = quat;
+    view.target = target;
+    view.zoom = MC.clampDistance(zoomPolicyFor(r), camera.dist / full, 1);
+    view.dist = view.zoom * full;
+  }
+
+  // Writes the view's camera into the address in place (no history entry of its own) once it has been still for
+  // a moment (`step` checks); a stage hop makes its own entry (`go`). An opened sector or system keeps its own address.
+  function scheduleCameraAddress() {
+    if (pinned || !active) return;
+    camChangedAt = performance.now();
+  }
+
+  function writeCameraAddress() {
+    camChangedAt = 0;
+    if (!active || pinned || !view || animation || entered || enteredSystem || !resolved || !resolved.view) return;
+    const params = new URLSearchParams(location.search);
+    const query = cameraQueryFor(resolved, currentCamera());
+    if (query) params.set("cam", query.slice(5));
+    else params.delete("cam");
+    const text = params.toString().replace(/%2C/gi, ",").replace(/%3A/gi, ":");
+    const next = text ? "?" + text : "";
+    if (next !== location.search) history.replaceState(history.state, "", location.pathname + next + location.hash);
+  }
+
+  // MAP.227: the stage the camera is in, worked out from where the view's middle is: the breadcrumb is the trail
+  // of containers of the cell holding it (galaxy, blocks, sector), so panning to a neighbouring cell changes it and
+  // "Sector X" in the header names the sector it is in, with no stored state of its own. An opened sector or
+  // system is shown in the window round that sector.
+  function cameraStage() {
+    if (!view || !stage.win) return stage;
+    if (entered) {
+      // The address of an open sector names only the sector, so the trail is the one of the window round it, as a
+      // fresh load of that address shows.
+      return S.sectorStage(entered.sector.shell, entered.sector.band, entered.sector.wedge, getOutline()) || stage;
+    }
+    if (enteredSystem) return stage;
+    return S.stageAtPoint(stage, view.target, getOutline(), edgePc);
+  }
+
+  let whereKey = "";
+
+  // Redraws the breadcrumb and the header line when the view's middle has moved into another cell or sector.
+  function refreshWhere() {
+    if (!active || !view || !resolved) return;
+    const sector = entered || enteredSystem ? null : S.sectorAtPoint(view.target, getOutline(), edgePc);
+    const win = cameraStage().win;
+    const key = (win ? win.centre.m + ":" + S.blockLabel(win.centre) : "galaxy") + "|" + (sector ? S.blockLabel(sector) : "");
+    if (key === whereKey) return;
+    whereKey = key;
+    if (els.where) {
+      els.where.textContent = sector ? "In Sector " + S.blockLabel(sector) : "";
+      els.where.hidden = !sector;
+    }
+    renderCrumbs();
+  }
+
   // The breadcrumb's ☆ (MAP.23, design doc section 8.2): saves the
   // selected sector, else the stage's own URL, in bookmarks.js.
   let bookmarkButton = null;
@@ -2527,8 +2727,8 @@ export function createStageView(host) {
         sectorId: sector ? sector.id : null,
       };
     }
-    const labels = S.crumbs(stage, getOutline(), edgePc).map(function (crumb) { return crumb.label; });
-    return { kind: "stage", value: location.pathname + displayQuery(S.stageQuery(stage)), name: labels.join(" › ") };
+    const labels = S.crumbs(cameraStage(), getOutline(), edgePc).map(function (crumb) { return crumb.label; });
+    return { kind: "stage", value: location.pathname + displayQuery(resolved ? cameraQueryFor(resolved, currentCamera() || cameraFor(resolved)) : ""), name: labels.join(" › ") };
   }
 
   // The breadcrumb (MAP.93): one line at any width. When the steps don't
@@ -2547,9 +2747,10 @@ export function createStageView(host) {
   })();
 
   function crumbSteps() {
-    const items = S.crumbs(stage, getOutline(), edgePc);
+    const shown = cameraStage();
+    const items = S.crumbs(shown, getOutline(), edgePc);
     if (homeStep) items.unshift({ label: homeStep.label, href: homeStep.href, last: false });
-    if (selectedSector && !isSelectedCentre()) {
+    if (selectedSector && !isSelectedCentre(entered ? shown : stage)) {
       const uncharted = entered && entered.uncharted && !pinned;
       items.push({
         label: "Sector " + S.blockLabel(selectedSector)
@@ -2744,6 +2945,10 @@ export function createStageView(host) {
     if (on === active) return;
     active = on;
     [els.crumbs, els.address].forEach(function (el) { if (el) el.hidden = !on; });
+    if (!on) {
+      whereKey = "";
+      if (els.where) els.where.hidden = true;
+    }
     if (homeStep) {
       els.pageCrumb.hidden = on;
       if (on) els.pageCrumb.parentNode.insertBefore(els.crumbs, els.pageCrumb);
@@ -2780,21 +2985,25 @@ export function createStageView(host) {
       return { stage: next, sector: pinned, open: true, problem: null };
     }
     const parsed = S.parseStageQuery(location.search);
-    if (parsed.problem) return { stage: S.galaxyStage(), sector: null, problem: parsed.problem };
+    if (parsed.problem && !parsed.camera && !parsed.sector) return { stage: S.galaxyStage(), sector: null, problem: parsed.problem };
+    // The stage the camera asked for is the one whose window holds what it looks at (MAP.228); a history entry
+    // keeps the stage it was made at, so Back, Forward and a reload return to it exactly.
+    const kept = history.state && history.state.galaxyStage && history.state.stage && history.state.stage.win ? history.state.stage : null;
+    const asked = parsed.camera ? (kept && !S.resolveStage(kept, getOutline(), edgePc).problem ? kept : stageForCamera(parsed.camera)) : null;
     if (parsed.sector) {
       const s = parsed.sector;
-      const next = parsed.stage.win && !S.resolveStage(parsed.stage, getOutline(), edgePc).problem
-        ? parsed.stage : S.sectorStage(s.shell, s.band, s.wedge, getOutline());
+      const next = asked || S.sectorStage(s.shell, s.band, s.wedge, getOutline());
       if (!next) {
         return { stage: S.galaxyStage(), sector: null, problem: "Sector " + S.blockLabel(s) + " is outside the galaxy." };
       }
-      return { stage: next, sector: s, open: parsed.open, system: parsed.system, object: parsed.object, problem: null };
+      return { stage: next, camera: asked ? parsed.camera : null, sector: s, open: parsed.open, system: parsed.system, object: parsed.object, problem: null };
     }
-    let next = parsed.stage;
-    if (useCourse && !next.win && host.courseSectors && host.courseSectors.length) {
+    if (asked) return { stage: asked, camera: parsed.camera, sector: null, problem: null };
+    let next = S.galaxyStage();
+    if (useCourse && host.courseSectors && host.courseSectors.length) {
       next = S.courseStage(host.courseSectors, getOutline(), edgePc);
     }
-    return { stage: next, sector: null, problem: null };
+    return { stage: next, sector: null, problem: parsed.problem };
   }
 
   // Opens the stage the URL asks for (or the galaxy, with a notice).
@@ -2802,16 +3011,17 @@ export function createStageView(host) {
     const state = history.state && history.state.galaxyStage ? history.state : null;
     mapIndex = state && state.mapIndex != null ? state.mapIndex : 0;
     maxIndex = Math.max(mapIndex, state && state.maxIndex != null ? state.maxIndex : mapIndex);
-    if (!pinned) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "");
+    if (!pinned) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex, stage: state ? state.stage : undefined }, "");
     // The marks, star classes and floor first: taking the hidden kinds up rewrites the URL
     // from what is set so far, and would drop a `mark` that wasn't set yet.
     applyStarFiltersFromLocation();
-    sectorStage.setHiddenKinds(hiddenFromLocation());
+    takeLayersFromLocation();
     setColorFromLocation();
     const asked = stageFromLocation(true);
     let r = resolve(asked.stage);
     let problem = asked.problem || r.problem;
     if (r.problem) r = resolve(S.galaxyStage());
+    pendingCamera = r.problem ? null : asked.camera || null;
     selectedSector = asked.sector;
     pendingOpen = asked.open ? asked.sector : null;
     pendingSystem = asked.open && asked.system ? asked.system : null;
@@ -2830,11 +3040,11 @@ export function createStageView(host) {
     maxIndex = Math.max(maxIndex, mapIndex);
     // Remembered on this entry too, so a reload here still knows how far
     // Forward goes.
-    if (state) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "");
+    if (state) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex, stage: state.stage }, "");
     // The marks, star classes and floor first: taking the hidden kinds up rewrites the URL
     // from what is set so far, and would drop a `mark` that wasn't set yet.
     applyStarFiltersFromLocation();
-    sectorStage.setHiddenKinds(hiddenFromLocation());
+    takeLayersFromLocation();
     setColorFromLocation();
     const asked = stageFromLocation(false);
     if (asked.problem) {
@@ -2847,6 +3057,7 @@ export function createStageView(host) {
     pendingOpen = asked.open ? asked.sector : null;
     pendingSystem = asked.open && asked.system ? asked.system : null;
     pendingObject = pendingSystem ? asked.object : null;
+    pendingCamera = asked.camera || null;
     go(asked.stage, { push: false, keepSector: true });
   }
   window.addEventListener("popstate", onPopState);
@@ -2917,6 +3128,8 @@ export function createStageView(host) {
     kinds: sectorStage.kinds,
     kindHidden: sectorStage.kindHidden,
     setKindHidden: setKindHidden,
+    // MAP.217: the layer registry (the Menu draws its buttons from it).
+    layers: layers,
     kindMarked: sectorStage.kindMarked,
     setKindMarked: setKindMarked,
     // MAP.123: star classes and the luminosity floor.

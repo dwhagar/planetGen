@@ -10,6 +10,7 @@ import importlib
 import pytest
 
 from planetgen.db import store
+from planetgen.generation.bright_stars import POPULATIONS
 from tests.db_schema_support import load_old_schema
 from tests.test_migration_halo_populations import _insert_star
 
@@ -71,6 +72,6 @@ def test_a_migration_run_again_leaves_the_column_and_the_check(mysql_config):
         clause = conn.execute(
             "SELECT check_clause AS c FROM information_schema.check_constraints WHERE constraint_schema = DATABASE()"
             " AND constraint_name = 'chk_bright_stars_population'").fetchone()["c"]
-        assert clause.count("_utf8mb4") == len(migration.POPULATIONS)
+        assert clause.count("_utf8mb4") == len(POPULATIONS)    # the later migrations (satellite stars) add names
     finally:
         conn.close()

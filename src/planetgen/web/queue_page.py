@@ -44,6 +44,8 @@ KIND_LABELS = {
     "phenomenon": "Phenomenon",
     "warm": "Cache warm-up",
     "warm-line": "Warm-up result",
+    "slow-page": "Slow page answer",
+    "slow-page-line": "Slow page result",
 }
 
 STATUS_LABELS = {

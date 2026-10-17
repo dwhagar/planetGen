@@ -16,7 +16,7 @@ from planetgen import tuning
 from planetgen.galaxy import nebula_field, profile, superbubble_field
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1
-from planetgen.generation import phenomenon_scatter, run_sector
+from planetgen.generation import nebula_contents, phenomenon_scatter, run_sector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import metallicity
@@ -252,10 +252,17 @@ def test_the_hosted_nebula_chance_is_scaled_by_the_nebula_factor(monkeypatch):
     class Star:
         type = "O1V"
         age = 0.0005
+        temperature = 30000.0
+
+        def __init__(self, number):
+            self.mass = 2.0e31 * (1.0 + number * 1e-6)  # each star has its own roll (GEN.320: drawn from the star's own seed)
 
     class Entry:
+        made = 0
+
         def __init__(self):
-            self.star_system = types.SimpleNamespace(stars=[Star()], name="x")
+            Entry.made += 1
+            self.star_system = types.SimpleNamespace(stars=[Star(Entry.made)], name="x")
             self.position = (0.0, 0.0, 0.0)
 
     class Sector:
@@ -269,8 +276,8 @@ def test_the_hosted_nebula_chance_is_scaled_by_the_nebula_factor(monkeypatch):
             self.added += 1
             return nebula
 
-    monkeypatch.setattr(run_sector, "Nebula", lambda config, nebula_class=None, host=None, age_myr=None: types.SimpleNamespace(name="n"))
-    monkeypatch.setattr(run_sector, "choose_weighted_class", lambda classes, label: classes[0])
+    monkeypatch.setattr(nebula_contents, "Nebula", lambda config, nebula_class=None, host=None, age_myr=None: types.SimpleNamespace(name="n", nebula_class="C"))
+    monkeypatch.setattr(nebula_contents, "choose_weighted_class", lambda classes, label: classes[0])
     rates = {}
     for factor in (1.0, 0.4, 0.0):
         draw.set_run_seed(236)
@@ -392,3 +399,98 @@ def test_a_low_giant_keep_thins_the_giants_in_the_class_draw():
 def test_a_zone_with_only_giants_still_gets_one():
     giants = _giants()
     assert planetPhysics._choose_weighted_planet_class(giants, 0.0) in giants
+
+
+# --- The Type Ia share and the old share (GEN.319) --------------------------------------------------------------------
+
+
+def _populations(young_share):
+    """Population profiles that hold `young_share` of the stars as young and the rest as old."""
+    return {name: types.SimpleNamespace(
+        share=young_share if name == "young" else (1.0 - young_share if name == "old" else 0.0), fe_h=((1.0, 0.0, 0.1),))
+        for name in profile.POPULATIONS}
+
+
+def test_the_type_ia_share_is_the_solar_circles_chance_at_the_solar_circles_mix():
+    reference = profile._reference_young_share(SHAPE)
+    assert profile.type_ia_share_at(_populations(reference), SHAPE) == pytest.approx(
+        tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE)
+
+
+def test_the_type_ia_share_falls_as_the_young_share_rises_and_is_one_with_none():
+    reference = profile._reference_young_share(SHAPE)
+    shares = [profile.type_ia_share_at(_populations(reference * factor), SHAPE) for factor in (0.0, 0.25, 1.0, 3.0)]
+    assert shares[0] == 1.0
+    assert shares == sorted(shares, reverse=True) and shares[-1] > 0.0
+    assert profile.type_ia_share_at(_populations(1.0), SHAPE) == 0.0
+
+
+@pytest.mark.parametrize("position", [HALO, ABOVE_THE_DISK])
+def test_a_place_without_young_stars_has_only_type_ia_remnants(position):
+    here = _at(position)
+    assert here.populations["young"].share < 1e-3
+    assert here.type_ia_share > 0.99
+
+
+def test_the_galactic_centre_with_a_sliver_of_young_stars_is_nearly_all_type_ia():
+    assert _at((0.0, 0.0, 0.0)).type_ia_share > 0.8
+
+
+def test_the_disk_has_both_kinds_and_the_report_carries_the_share():
+    from planetgen.galaxy import profile_report
+    for position in (SUN, INNER_DISK):
+        here = _at(position)
+        assert 0.0 < here.type_ia_share < 1.0
+        assert profile_report.profile_report(here)["type_ia_share"] == here.type_ia_share
+    assert _at(SUN) == _at(SUN)
+
+
+def test_the_planetary_nebula_factor_is_one_in_the_disk_within_a_few_percent_and_in_every_older_place():
+    for position in (SUN, INNER_DISK, (5000.0, 5000.0, 0.0), (0.0, 12000.0, 0.0)):
+        assert 0.95 < _at(position).kind_factors["planetary-nebula"] <= 1.0
+    for position in (HALO, ABOVE_THE_DISK):
+        assert _at(position).kind_factors["planetary-nebula"] == 1.0
+    assert profile.kind_factors_at(_populations(0.9), 1.0, 1.0, SHAPE)["planetary-nebula"] < 0.12
+
+
+def test_the_disks_other_factors_are_what_they_were():
+    here = _at(SUN)
+    assert here.kind_factors["supernova-remnant"] == pytest.approx(here.gas.cold_fraction)
+    for kind in ("neutron-star", "black-hole", "brown-dwarf"):
+        assert here.kind_factors[kind] == 1.0
+
+
+def _remnants(share, count=300):
+    made = []
+    with draw.bound(f"type-ia-{share}"):
+        for _ in range(count):
+            config = SystemConfig()
+            config.TYPE_IA_SHARE = share
+            made.append(run_sector.SupernovaRemnant(config))
+    return made
+
+
+def test_a_remnant_is_type_ia_with_the_places_share():
+    assert {remnant.progenitor_type for remnant in _remnants(1.0)} == {"Type Ia"}
+    assert {remnant.progenitor_type for remnant in _remnants(0.0)} == {"core-collapse"}
+    solar = sum(remnant.progenitor_type == "Type Ia" for remnant in _remnants(None)) / 300
+    assert solar == pytest.approx(tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE, abs=0.08)
+    assert sum(remnant.progenitor_type == "Type Ia" for remnant in _remnants(0.8)) / 300 == pytest.approx(0.8, abs=0.08)
+
+
+def test_a_halo_remnant_has_no_neutron_star_or_black_hole():
+    assert all(remnant.compact_remnant is None for remnant in _remnants(_at(HALO).type_ia_share))
+
+
+def test_the_scattered_remnants_and_the_fill_take_the_places_share():
+    class Sector:
+        def add_phenomenon(self, phenomenon, kind, position=None):
+            return phenomenon
+
+    args = SimpleNamespace(markdown=False)
+    row = {"kind": "supernova-remnant", "subtype": None, "mass_solar": None}
+    for share, expected in ((1.0, "Type Ia"), (0.0, "core-collapse")):
+        with draw.bound(f"scattered-{share}"):
+            remnants = [run_sector._build_scattered(Sector(), args, row, (0.0, 0.0, 0.0), 1000.0, None, share)
+                        for _ in range(20)]
+        assert {remnant.progenitor_type for remnant in remnants} == {expected}

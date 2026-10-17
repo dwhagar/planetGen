@@ -43,7 +43,7 @@ def mean_fe_h(population, galactic_center_dist_ly):
     """The mean and scatter `(mean, sigma)` of [Fe/H] for a population at this distance from the centre."""
     if population == "halo":
         return halo_mean_fe_h(galactic_center_dist_ly), tuning.METALLICITY_HALO["sigma"]
-    if population in ("cluster", "satellite"):
+    if population in ("cluster", "satellite", "satellite_young", "satellite_intermediate"):
         raise ValueError(f"a {population} carries its own [Fe/H]; pass its peaks instead of sampling one")
     try:
         row = tuning.METALLICITY_BY_POPULATION[population]

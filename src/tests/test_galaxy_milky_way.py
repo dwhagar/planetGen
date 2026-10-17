@@ -5,7 +5,8 @@ GEN.118 The galaxy bulge was about 40 times too light, so edge-on views
 showed no bulge, and GEN.119 the density model had no thick disk
 (docs/TODO.md).
 
-`planetgen plan`'s default galaxy shape against the Milky Way's published
+The math check's reference shape (the Milky Way's, kept for the checks; `planetgen plan` draws its own, GEN.401)
+against the Milky Way's published
 structure: Bland-Hawthorn & Gerhard 2016 (ARA&A 54:529, "BHG16") for the
 masses, scale lengths and heights; Dwek et al. 1995 (ApJ 445:716) for the
 bulge's boxy shape, fitted to the COBE/DIRBE edge-on image; Wegg & Gerhard
@@ -14,29 +15,15 @@ for the stars' surface density at the Sun. Each tolerance is the published
 uncertainty, or the spread between the sources.
 """
 
-import argparse
 import math
 
 import pytest
 
 from planetgen import tuning
-from planetgen.cli.generate import add_plan_arguments
 from planetgen.galaxy import density
 from planetgen.physics import mathcheck
 
-
-def _default_shape():
-    args = argparse.ArgumentParser()
-    add_plan_arguments(args)
-    a = args.parse_args([])
-    amplitude, level = density.arm_terms(a.arm_density, a.interarm_density)
-    return density.build_galaxy_shape(
-        a.disk_scale_length_pc, a.disk_scale_height_pc, a.bulge_scale_radius_pc, a.bulge_amplitude,
-        a.arm_count, math.radians(a.pitch_angle_deg), amplitude, arm_level=level, nuclear_amplitude=a.nuclear_amplitude,
-    )
-
-
-SHAPE = _default_shape()
+SHAPE = mathcheck._reference_galaxy_shape()
 TERMS = density.model_terms(SHAPE)
 SOLAR_RADIUS_PC = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * SHAPE.disk_scale_length_pc
 
@@ -56,8 +43,10 @@ def _local_scale(profile, a, b):
     return (b - a) / math.log(profile(a) / profile(b))
 
 
-def test_the_math_check_uses_planetgen_plans_defaults():
-    assert mathcheck._default_galaxy_shape() == SHAPE
+def test_the_reference_shape_is_the_milky_ways_published_one():
+    assert (SHAPE.disk_scale_length_pc, SHAPE.disk_scale_height_pc, SHAPE.bulge_scale_radius_pc,
+            SHAPE.bulge_amplitude, SHAPE.arm_count) == (2600.0, 300.0, 1580.0, 3.11, 2)
+    assert math.degrees(SHAPE.pitch_angle_rad) == pytest.approx(15.0)
 
 
 def test_the_bulge_holds_a_milky_way_share_of_the_stars():

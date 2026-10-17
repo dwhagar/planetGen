@@ -749,3 +749,54 @@ Baseline: PR #1817.
 | GEN.407 | 8.1 | Bugs and flaky tests |
 | UX.114 | 8.1 | Region query |
 | TEST.217 | 8.1 | Bugs and flaky tests |
+| GEN.322 | 8.1 | Components and wanderers |
+| GEN.323 | 8.1 | Components and wanderers |
+| GEN.324 | 8.1 | Components and wanderers |
+| GEN.240 | 8.1 | Components and wanderers |
+| TEST.193 | 8.1 | Bugs and flaky tests |
+| PERF.97 | 8.1 | Queue, caches and performance |
+| NAV.45 | 8.1 | Region query |
+| GEN.319 | 8.1 | Nebula and young stars |
+| MAP.217 | 8.3 | Movement on the maps |
+| GEN.242 | 8.1 | Nebula and young stars |
+| GEN.400 | 8.1 | Galaxy laws build |
+| GEN.320 | 8.1 | Nebula and young stars |
+| GEN.406 | 8.1 | Galaxy laws build |
+| DB.65 | 8.3 | Positions as one object |
+| MAP.225 | 8.1 | Fly-through map |
+| MAP.227 | 8.1 | Fly-through map |
+| MAP.228 | 8.1 | Fly-through map |
+| DOC.47 | 8.1 | Docs |
+| TEST.186 | 8.1 | Whole-sphere audits |
+| GEN.526 | 8.1 | Components and wanderers |
+| PERF.109 | 8.1 | Queue, caches and performance |
+| PERF.110 | 8.1 | Queue, caches and performance |
+| PERF.47 | 8.1 | Queue, caches and performance |
+| PERF.48 | 8.1 | Queue, caches and performance |
+| TEST.156 | 8.1 | Bugs and flaky tests |
+| TEST.187 | 8.1 | Bugs and flaky tests |
+| TEST.188 | 8.1 | Bugs and flaky tests |
+| GEN.401 | 8.1 | Galaxy laws build |
+| GEN.472 | 8.1 | Composition tables |
+| GEN.409 | 8.1 | Composition research and design |
+| GEN.426 | 8.1 | Composition research and design |
+| GEN.435 | 8.1 | Composition research and design |
+| GEN.436 | 8.1 | Composition research and design |
+| GEN.437 | 8.1 | Composition research and design |
+| DB.72 | 8.1 | Bugs and flaky tests |
+| PERF.105 | 8.1 | Queue, caches and performance |
+| PERF.36 | 8.1 | Queue, caches and performance |
+| PERF.91 | 8.1 | Queue, caches and performance |
+| GEN.308 | 8.1 | Queue, caches and performance |
+| TEST.191 | 8.1 | Bugs and flaky tests |
+| TEST.221 | 8.1 | Bugs and flaky tests |
+| DOC.62 | 8.1 | Bugs and flaky tests |
+| DOC.53 | 8.1 | Docs |
+| DOC.60 | 8.1 | Docs |
+| GEN.527 | 8.1 | Components and wanderers |
+| GEN.528 | 8.1 | Components and wanderers |
+| DB.53 | 8.1 | Star-system storage |
+| GEN.294 | 8.3 | Positions as one object |
+| UX.3 | 8.1 | Generate page and directives |
+| DOC.24 | 8.1 | Docs |
+| UX.118 | 8.1 | Queue, caches and performance |

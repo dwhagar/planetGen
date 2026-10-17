@@ -12,6 +12,16 @@ evolutionary timelines and narrative text, asteroid belt components, and
 flavor text pools. See `physical_constants` for real physical/astronomical
 constants. Nothing in this module has side effects; it is imported wherever
 these values or tables are needed.
+
+Rules for a new constant (`tests/test_fuzz_utils_and_config.py` checks them, so
+a breach shows as a red test): a number is finite; a pair is written
+`(low, high)` and `low <= high`; a `_MIN`/`_MAX`, `_LOW`/`_HIGH` or
+`_INNER`/`_OUTER` pair of names is ordered the same way; and a scalar at the
+top level of the module is positive. A value that can be negative is kept in a
+dict or a list, not as a bare module constant; is named for what it is
+(`EXPONENT`, `ROUND_`, `_OFFSET`, `_DELTA`, `_SLOPE` and `_INTERCEPT` are the
+names the test lets through); or is stored as a positive "fall" (how far
+down, not minus how far) and subtracted where it is used.
 """
 
 from planetgen.generation.phenomena import registry as _phenomena_registry
@@ -655,6 +665,49 @@ LIFE_MIN_STAR_AGE_GY = 0.1
 GIANT_ENGULFMENT_RADIUS_FACTOR = 2.0
 WD_PROGENITOR_ENGULFMENT_AU = 1.5
 
+# The pre-main-sequence state (GEN.242, physics/pre_main_sequence.py). A star
+# below PRE_MAIN_SEQUENCE_MAX_MASS_SOL younger than its contraction time is a
+# protostar (Class 0 and I, under PROTOSTAR_MAX_AGE_YR) or a pre-main-sequence
+# star (Class II and III). The track is derived, not tabulated: a convective
+# star (polytrope n = 3/2) holds 3/7 G M^2 / R of energy and a radiative one
+# (n = 3) 3/4 G M^2 / R, it shrinks at the luminosity it radiates, and on its
+# Hayashi line (convective) the effective temperature stays put, so
+# R^-3 grows in step with time. The three numbers below are the inferred part
+# [I]: they were set from the published tracks as remembered (Baraffe et al.
+# 2015, arXiv:1503.04107, could be fetched but not its tables), and a TODO
+# finding asks for a sourced replacement. The state is drawn only under
+# PRE_MAIN_SEQUENCE_MAX_AGE_YR, the age limit of T Tauri and Herbig Ae/Be stars
+# and of planet formation (PLANET_MIN_STAR_AGE_GY): a red dwarf still shrinking
+# towards the main sequence at 100 Myr (the track takes 0.1 solar masses 860
+# Myr) is drawn on it, a known simplification that costs it up to a few times
+# its light.
+PRE_MAIN_SEQUENCE_MAX_MASS_SOL = 8.0
+PRE_MAIN_SEQUENCE_MAX_AGE_YR = 10.0e6
+PROTOSTAR_MAX_AGE_YR = 0.5e6
+HAYASHI_TEMPERATURE_1_SOL_K = 4300.0
+HAYASHI_TEMPERATURE_MASS_EXPONENT = 0.17
+BIRTHLINE_RADIUS_1_SOL_RSUN = 2.5
+BIRTHLINE_RADIUS_MASS_EXPONENT = 1.0 / 3.0
+CONVECTIVE_BINDING_COEFFICIENT = 3.0 / 7.0
+RADIATIVE_BINDING_COEFFICIENT = 3.0 / 4.0
+# Contraction alone, at the luminosity the star radiates, takes a solar-mass star to the main sequence in 12 Myr and
+# a 0.1 solar-mass star in 245 Myr, where the published tracks give about 40 Myr and 1 Gyr: deuterium burning and
+# the heat of the interior pay for part of the light. The time is stretched by this factor [I], set to that one
+# remembered anchor (1 solar mass, 40 Myr); the shape in mass is the derived one.
+PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR = 3.5
+# The disk (VANDAM and the TODO text, GEN.242): Class 0 under 0.15 Myr, I under
+# 0.5, II under 3, and none after; mass 0.01 to 0.3 of the star and outer
+# radius 10 to 300 AU, each log-uniform; the inner edge is where a blackbody
+# grain sublimates (DISK_DUST_SUBLIMATION_K).
+DISK_CLASS_AGES_YR = (("0", 0.15e6), ("I", 0.5e6), ("II", 3.0e6))
+DISK_MASS_FRACTION_RANGE = (0.01, 0.3)
+DISK_OUTER_RADIUS_RANGE_AU = (10.0, 300.0)
+DISK_DUST_SUBLIMATION_K = 1500.0
+# Companions of a protostar: the multiplicity fraction of Perseus' Class 0
+# (0.57) and Class I (0.23) protostars, Tobin et al. 2016 (ApJ 818:73,
+# arXiv:1601.00692, abstract read 2026-10-17).
+PROTOSTAR_MULTIPLICITY_BY_CLASS = {"0": 0.57, "I": 0.23}
+
 # Stellar populations by age (galaxy.density.population_densities,
 # star_population). Each has its own age range (uniform within it); the
 # three disk populations share the disk's star formation evenly in time,
@@ -668,14 +721,17 @@ WD_PROGENITOR_ENGULFMENT_AU = 1.5
 # ~150 pc (A to F dwarfs, Bovy 2017). The bulge is old
 # (8-12 Gy), and so is the thick disk, whose stars count as "old"
 # (`galaxy.density.population_densities`). The halo and the globular clusters are older still, 10 to 13 Gy
-# (GEN.234). A satellite galaxy's stars (GEN.237) run from 0.5 Gy to the age of the Universe: the Clouds still form
-# stars and the dwarf spheroidals do not, so this is the window of the lot, not of one. The nuclear
+# (GEN.234). A satellite galaxy's stars (GEN.237) are three populations, split by age like the disk's and by the same windows
+# (GEN.526): `satellite_young` and `satellite_intermediate` are the shares its star formation history puts in the last
+# 0.1 and 3 Gy (`galaxy.satellite_history`; 0 for a satellite that no longer forms stars and holds none in its
+# history's last 3 Gy), and `satellite` is the rest, 3 Gy to the age of the Universe. The nuclear
 # populations (GEN.280) are windows with the mean ages of the observed mixes (the cluster 80% 5 to 12 Gyr and 20%
 # 0.1 to 5, a mean of 7.3 Gyr; the disc 70% 8 to 12 and 30% 0 to 8, a mean of 8.2) [recalled, to verify].
 STELLAR_POPULATION_AGE_RANGES_GY = {
     "young": (0.0, 0.1), "intermediate": (0.1, 3.0), "old": (3.0, 10.0), "bulge": (8.0, 12.0),
-    "halo": (10.0, 13.0), "cluster": (10.0, 13.0), "satellite": (0.5, 13.0),
+    "halo": (10.0, 13.0), "cluster": (10.0, 13.0), "satellite": (3.0, 13.0),
     "nuclear_cluster": (3.0, 12.0), "nuclear_disc": (4.0, 12.0),
+    "satellite_young": (0.0, 0.1), "satellite_intermediate": (0.1, 3.0),
 }
 STELLAR_POPULATION_SCALE_HEIGHT_RATIO = {"young": 50 / 300, "intermediate": 150 / 300, "old": 1.0}
 STELLAR_POPULATION_ARM_AMPLITUDE = {"young": 0.9, "intermediate": 0.4, "old": 0.0}
@@ -891,11 +947,13 @@ local density, about 2.7 times what `HALO_SYSTEM_FRACTION` gives (0.185%). Not u
 STELLAR_POPULATION_DISPERSION_KMS = {
     "young": 15.0, "intermediate": 25.0, "old": 50.0, "bulge": 120.0, "halo": 120.0, "cluster": 8.0,
     "satellite": 25.0,       # the dwarfs' and Clouds' own 20 to 30 km/s (design note 5.3)
+    "satellite_young": 25.0, "satellite_intermediate": 25.0,       # the same satellite, so the same motion (GEN.526)
     "nuclear_cluster": 150.0, "nuclear_disc": 80.0,
 }
 STELLAR_POPULATION_ROTATION = {
     "young": "disk", "intermediate": "disk", "old": "disk", "bulge": "bar", "halo": "none", "cluster": "orbit",
-    "satellite": "orbit", "nuclear_cluster": "none", "nuclear_disc": "disk",
+    "satellite": "orbit", "satellite_young": "orbit", "satellite_intermediate": "orbit",
+    "nuclear_cluster": "none", "nuclear_disc": "disk",
 }
 # A cluster carries its own [Fe/H] (`physics.metallicity`); until the component table (GEN.237) gives each one
 # its own, the profile of a cluster cell shows the two peaks of the Milky Way's clusters (-1.5 and -0.5,
@@ -908,6 +966,22 @@ METALLICITY_CLUSTER_PEAKS = ((0.65, -1.5, 0.3), (0.35, -0.5, 0.3))
 # and dwarfs' middle (LMC about -0.4, SMC about -0.9, the dwarf spheroidals -1.0 to -2.1, recalled).
 COMPONENT_FE_H_SIGMA = {"cluster": 0.15, "satellite": 0.3}
 METALLICITY_SATELLITE_PEAKS = ((1.0, -1.2, 0.5),)
+
+# A satellite's star formation history (GEN.526, `galaxy.satellite_history`, docs/design/intergalactic-and-halo-contents.md
+# 5.5). Worked out from what its row holds (stellar mass, half-light radius, mean stellar age), with no value from the
+# Clouds' own histories (those are the test targets of `tests/test_satellite_history.py`, never inputs).
+SATELLITE_HISTORY_SPAN_GY = STELLAR_POPULATION_AGE_RANGES_GY["satellite"][1]
+"""float: How long ago a satellite's first stars formed, Gy: the top of the age window, which is the age of the
+Universe in this model. Its history runs from there to the present."""
+STAR_FORMATION_LAW_COEFFICIENT = 2.5e-4
+"""float: The Schmidt-Kennicutt law's coefficient: the star formation rate per area is this times the gas per area (solar
+masses per pc2) to `STAR_FORMATION_LAW_EXPONENT`, in solar masses per year per kpc2 (Kennicutt 1998, ApJ 498, 541, eq. 4:
+(2.5 +/- 0.7) e-4, read in arXiv astro-ph/9712213)."""
+SATELLITE_STAR_FORMATION_THRESHOLD_MSUN_PC2 = 3.0
+"""float: The gas surface density below which a satellite forms no stars, solar masses per pc2. Schaye (2004, ApJ 609,
+667, read in arXiv astro-ph/0205125) puts the empirical threshold at 3 to 10 and the point where the gas turns cold
+at about 10 (some H II regions form at 2 to 4); the lower end is taken [I], so a dwarf with a trace of gas still forms
+stars."""
 
 # How deep one dense cell is filled (GEN.281, docs/design/realistic-galactic-core.md 4.2). A cell that expects more
 # systems than the cell star ceiling fills only the stars at or above the fill luminosity cap; the rest is
@@ -972,6 +1046,27 @@ of these that its expected count rarely exceeds (`OBJECT_FIRST_TAIL`); an object
 
 OBJECT_FIRST_TAIL = 1.0e-4
 """float: The chance a sector's Poisson count may exceed its capacity (PERF.58)."""
+
+SCATTER_COVERS_REACH = True
+"""bool: The bright-star and mass passes draw the grid's whole reach (262 kpc by default), the bands beyond the outline
+included (GEN.322). Always true in a run; the tests turn it off, because a toy galaxy's fixed-size halo would fill the
+reach with stars."""
+
+OBJECT_FIRST_FAR_PIECES = 16
+"""int: Steps of colatitude each hemisphere of a far run of shells is cut into when the shells too faint to bound one
+by one are drawn together (`object_first.ReachGroups.far`, GEN.322)."""
+
+OBJECT_FIRST_FAR_STEPS = 128
+"""int: A far run of shells is as thick as 1/this of its distance from the centre (`ReachGroups.far_blocks`)."""
+
+OBJECT_FIRST_FAR_MEAN = 4.0
+"""float: A shell beyond the outline is drawn on its own, in groups of bands, while its coarse bound expects at least
+this many stars; the shells past the last such one are drawn together (GEN.322). A waste of this many candidates a shell
+costs about a hundred microseconds, so it is not set to keep the loss under 10%."""
+
+OBJECT_FIRST_GROUP_BANDS = 64
+"""int: Beyond the galaxy's outline the object-first scatter bounds the density over groups of this many bands (GEN.322),
+the group's bound being taken at its nearest point; a pass to the 262 kpc reach would otherwise bound 6.75e9 bands."""
 
 POISSON_REJECTION_MEAN = 10.0
 """float: From this mean up `util/poisson.py` draws a Poisson count by transformed rejection (constant time);
@@ -2501,6 +2596,18 @@ NEBULA_SEED_MASS_RANGE_SOL = {
 phenomenon mode makes), solar masses, from the IMF: one O or early-B star for
 class C, an O star for D and E, an early B star for G, a B or A star for F."""
 
+PLANETARY_NEBULA_COMPANION_CHANCE = 0.20
+"""float: The share of planetary nebulae whose central star has a close companion (the class table says one is
+"often" there; GEN.320)."""
+
+NEBULA_CLOUD_PROTOSTARS = {"P": {"chance": 0.30}, "Q": {"mean": 2.0}}
+"""dict: The protostars a field cloud holds (GEN.320): a Bok globule (P) one in `chance` of globules, a star-forming
+core (Q) a zero-truncated Poisson count of mean `mean` (one to four are the usual; the draw is capped at 4)."""
+NEBULA_CLOUD_PROTOSTAR_MAX = 4
+NEBULA_CLOUD_CLUMP_FRACTION = 1.0 / 3.0
+"""float: The protostars of a core are scattered about its centre with a Gaussian of this fraction of its radius
+[I: "clumped near the centre"], redrawn if one falls outside the cloud."""
+
 PLANETARY_NEBULA_CENTRAL_STAR_TYPES = ("O3VII", "O5VII", "O7VII", "O9VII", "B0VII")
 """tuple: The central star a planetary nebula is generated around (GEN.10):
 the exposed hot core of a dying 0.8-8 Msun star, 30,000 K and
@@ -3751,3 +3858,35 @@ ORBIT_UPDATE_ROW_CEILING = 10_000_000
 are due, the run moves this many (the oldest due of each table first, a share of it per table by how many are due),
 warns with the backlog and leaves the rest due for the next night. 0 moves everything that is due, however many.
 `planetgen.cli.orbits --row-ceiling` sets it for one run. A planetGen default."""
+
+# --- Slow page requests (PERF.105) -------------------------------------------------------------
+
+SLOW_PAGE_ROW_BUDGET = 2_000_000
+"""int: A page request that reads more rows than this is slow (`web/lib/slowpages.py`): the rows are the
+database's own estimate (`information_schema`) of the tables the route reads in full, and are used only until a
+build of that exact request has been timed. A planetGen default."""
+
+SLOW_PAGE_SECONDS = 3.0
+"""float: A page request whose last build took longer than this is slow, whatever its row estimate said. A
+measured time always beats the estimate. A planetGen default."""
+
+SLOW_PAGE_ROWS_PER_SECOND = 250_000
+"""int: How many rows a build reads per second, for the first estimate of how long a request will take, before one
+has been timed. A planetGen default."""
+
+SLOW_PAGE_PATH_SECONDS = 600
+"""int: How long the slowest recent build of a route (any request on it) counts for a request of that route that
+has not been timed itself (`slowpages.cost`). A planetGen default."""
+
+SLOW_PAGE_JOB_SECONDS = 3600
+"""int: How long a slow request's job (its id, progress and finished state) is kept in Redis. A planetGen default."""
+
+SLOW_PAGE_FAILED_SECONDS = 30
+"""int: How long a failed or cancelled job is shown to the visitors who ask for the same request, before the next
+one queues a new job. A planetGen default."""
+
+SLOW_PAGE_ESTIMATE_SECONDS = 60
+"""int: How long a web process keeps the table row estimates before it asks the API again. A planetGen default."""
+
+SLOW_PAGE_TIMING_SECONDS = 7 * 86400
+"""int: How long the build time of a request is remembered in Redis. A planetGen default."""

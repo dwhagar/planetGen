@@ -70,3 +70,32 @@ test("clearing ends the pick", () => {
   assert.equal(pick.query(), "");
   assert.equal(pick.bannerParts(), null);
 });
+
+test("an object offers What's within 10 pc, filled in with its place (NAV.45)", () => {
+  const pick = createNavPick({ navUrl: "/nav", nearbyUrl: "/nearby" });
+  assert.deepEqual(pick.nearbyLinks("system:12"), [
+    { href: "/nearby?place=system:12&distance=10", label: "What’s within 10 pc" },
+  ]);
+  assert.deepEqual(pick.nearbyLinks("sector:5")[0].href, "/nearby?place=sector:5&distance=10");
+  // A point is x,y,z in parsecs, kept short.
+  assert.equal(pick.nearbyLinks([1.234567, -2, 0.5])[0].href, "/nearby?place=1.23,-2,0.5&distance=10");
+  assert.equal(pick.nearbyLinks([-0.001, 0, 0])[0].href, "/nearby?place=0,0,0&distance=10");
+  assert.deepEqual(pick.nearbyLinks(null), []);
+});
+
+test("What's within takes its distance from the option and joins an existing query", () => {
+  const pick = createNavPick({ nearbyUrl: "/nearby?kinds=star", nearbyDistance: 25 });
+  const [link] = pick.nearbyLinks("planet:3");
+  assert.equal(link.href, "/nearby?kinds=star&place=planet:3&distance=25");
+  assert.equal(link.label, "What’s within 25 pc");
+});
+
+test("What's within is left out without the page's URL and while a course is being picked (NAV.30)", () => {
+  assert.deepEqual(createNavPick({ navUrl: "/nav" }).nearbyLinks("system:1"), []);
+  const picking = createNavPick({ navUrl: "/nav", nearbyUrl: "/nearby", pick: "to", other: "system:12" });
+  assert.deepEqual(picking.nearbyLinks("system:1"), []);
+  const begun = createNavPick({ navUrl: "/nav", nearbyUrl: "/nearby" });
+  assert.equal(begun.nearbyLinks("system:1").length, 1);
+  begun.actionsFor("system:1", "Sol")[0].onClick();
+  assert.deepEqual(begun.nearbyLinks("system:2"), [], "gone once a start is chosen on the map");
+});

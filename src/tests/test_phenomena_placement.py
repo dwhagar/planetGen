@@ -32,7 +32,7 @@ from planetgen.physics.units import ly_to_pc, mpc_to_pc, pc_to_ly
 
 def _place_sector(mysql_config, name, center_pc, edge_ly=11.5):
     """Persists an empty, galaxy-placed sector at an exact `center_pc` --
-    a plain synthetic placement (no real ring/layer/slot address),
+    a plain synthetic placement (no real shell/band/wedge address),
     which is all `compute_phenomenon_placement`/`phenomena_near_sector`
     need (they only ever read `sectors.center_x/y/z_pc`/`edge_mpc`, never
     the grid address)."""

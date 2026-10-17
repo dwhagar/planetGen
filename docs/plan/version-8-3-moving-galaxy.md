@@ -21,9 +21,7 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 | TEST.201 | `block_stats` totals do not depend on the order of the rows: a test |  | GEN.372 audit. |
 | TEST.200 | The nightly local offset limit is documented and pinned by `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point` |  | GEN.372 audit; Boss card. |
 | GEN.375 | Field kernel subtracts a local origin before its loop in `physics/sector_path.py` |  | GEN.372 audit. |
-| DB.65 | Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates |  | GEN.372 audit; small, needs a revision. |
 | GEN.374 | Orbit phase formulas reduce first, and the JavaScript Kepler solver uses tolerance 1e-12: Python, SQL and JavaScript agree |  | GEN.372 audit. |
-| GEN.294 | Every object in the galaxy is held as one SpatialPosition3D with its position, point mass and movement vector stored as columns |  | Boss 2026-10-15 11:12 PM EDT. |
 | GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) |  | Research follow-up to GEN.108 (built). |
 | GEN.289 | Planets and moons kept as the universal point-in-space object, with point mass and movement vector stored, so perturbations have somewhere to land |  |  |
 | GEN.142 | Peculiar velocity for rogue planets and asteroid fields |  | Research: prerequisite of GEN.110. |
@@ -39,9 +37,8 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.217 | Map layer interface: one registry the Galaxy stage view, the Sector Map and the System Map share for a toggled layer (menu entry, modes, URL key, legend, picker layer, fade rule) |  | Foundation found in the review. |
-| MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt | MAP.217 |  |
-| MAP.235 | Superbubbles as a registered Galaxy Map layer: a toggle, a hover name and radius, and a key row | MAP.217 | Split from the Galaxy Map key item. |
+| MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt |  |  |
+| MAP.235 | Superbubbles as a registered Galaxy Map layer: a toggle, a hover name and radius, and a key row |  | Split from the Galaxy Map key item. |
 
 ### Galactic gravity
 
@@ -52,7 +49,7 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 | GEN.379 | The density model as a list of components, each with an amplitude that may be 0, and a mass for each component | GEN.378, DB.66 | Step 3 of the galaxy types chain (9.4); GEN.338 reads its component masses. |
 | GEN.338 | The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests | GEN.144, GEN.369, GEN.379 | Split from GEN.115. |
 | GEN.285 | Nuclear mass components in the galactic potential for the orbital update | GEN.338 | Core 3; step 5 of the galactic core note; moved from 8.1 (no potential module until GEN.338); Boss 8:41 PM EDT: stays in 8.3. |
-| GEN.370 | Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug) | GEN.400, GEN.404 | Found by the TODO thread. |
+| GEN.370 | Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug) | GEN.404 | Found by the TODO thread. |
 
 ## Phase 2: The update itself
 
@@ -63,12 +60,12 @@ N-body influence, collisions, encounters and the Quantity class.
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.139 | Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built) |  | Research follow-up to GEN.106 (built). |
-| GEN.339 | Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded | GEN.338, GEN.294 | Split from GEN.115. |
-| GEN.340 | One star stepper: kick-drift-kick in the potential, a step per object, on arrays | GEN.338, GEN.294, GEN.139 | Split from GEN.115. |
+| GEN.339 | Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded | GEN.338 | Split from GEN.115. |
+| GEN.340 | One star stepper: kick-drift-kick in the potential, a step per object, on arrays | GEN.338, GEN.139 | Split from GEN.115. |
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | GEN.338, GEN.339, GEN.340 | Model from Boss's "Computational Astrodynamics.md" (2026-10-07): bulge, disk and halo potential. |
 | GEN.212 | Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update) | GEN.340 |  |
 | GEN.334 | Pair closest-approach library: sweep, pair windows, window cap and chunking |  | Foundation found in the review. |
-| GEN.341 | Influence-set search: every object inside the largest nearby Hill sphere, found by sector bounds, with cover lists and a brute-force check | GEN.294, GEN.289 | Split from GEN.109. |
+| GEN.341 | Influence-set search: every object inside the largest nearby Hill sphere, found by sector bounds, with cover lists and a brute-force check | GEN.289 | Split from GEN.109. |
 | GEN.342 | The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it | GEN.341, GEN.338, GEN.340 | Split from GEN.109. |
 | GEN.343 | The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter | GEN.342, GEN.289, GEN.140 | Split from GEN.109. |
 | GEN.344 | Hill-radius warnings by the gravitational criterion, to the debug and activity logs | GEN.341, GEN.342 | Split from GEN.109. |
@@ -86,7 +83,7 @@ N-body influence, collisions, encounters and the Quantity class.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.299 | The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders | GEN.294 | Boss 2026-10-16, 11:35 AM EDT; like SpatialPosition3D. |
+| GEN.299 | The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders |  | Boss 2026-10-16, 11:35 AM EDT; like SpatialPosition3D. |
 | GEN.348 | Describer, CLI query lines and class page ranges take Quantity | GEN.299 | Split from GEN.300. |
 | UX.128 | Map side panels and other browser call sites take Quantity | GEN.299, UX.107 | Split from GEN.300. |
 | GEN.349 | API output and stored-column readers take Quantity; the grep test fails on a hand-written conversion factor; the old helpers are removed | GEN.348, UX.128 | Split from GEN.300. |
@@ -110,7 +107,7 @@ The event records, the long-step rules and the gravity field evaluator the cours
 |---|---|---|---|
 | GEN.292 | Run the orbital update for a stated span in one go from the command line (elapsed years) | GEN.291 |  |
 | GEN.293 | Long-step rules for hypervelocity stars that leave the sector grid and for parabolic comets | GEN.290 |  |
-| GEN.295 | Nebulae as point groups whose shape follows the orbital update (design and research) | GEN.294, GEN.109, GEN.292 | Boss 2026-10-16 1:01 AM EDT. Design only, no lane. |
+| GEN.295 | Nebulae as point groups whose shape follows the orbital update (design and research) | GEN.109, GEN.292 | Boss 2026-10-16 1:01 AM EDT. Design only, no lane. |
 
 ### Gravity field evaluator
 
@@ -122,6 +119,6 @@ The event records, the long-step rules and the gravity field evaluator the cours
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.57 | The update records what it moved: a replace-each-run table of previous and new positions | GEN.294, GEN.212, GEN.340 | Split from MAP.192. Core 1 owns migrations. |
-| MAP.216 | Admin page of the objects that moved in the last update, with the movement vector and a map ghost of the old position | DB.57, MAP.217 | Split from MAP.192. |
+| DB.57 | The update records what it moved: a replace-each-run table of previous and new positions | GEN.212, GEN.340 | Split from MAP.192. Core 1 owns migrations. |
+| MAP.216 | Admin page of the objects that moved in the last update, with the movement vector and a map ghost of the old position | DB.57 | Split from MAP.192. |
 | MAP.192 | See the objects whose positions changed in the last orbital update | DB.57, MAP.216 |  |

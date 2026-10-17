@@ -34,7 +34,9 @@ data bumps the tags it touches:
   they age out, the one case where an answer can be older than the data (bounded by
   `max_age_seconds`).
 - **Age.** Nothing is served older than `max_age_seconds` from this process's copy, the backstop for
-  edits the stamp can't see (a rename of a single system from the command line, say).
+  edits the stamp can't see (a rename of a single system from the command line, say). An answer that was
+  costly to fetch (`XFETCH_MIN_SECONDS` and up) is fetched again shortly *before* it expires, so a burst of
+  visitors does not all miss in the same second (`xfetch_early`, PERF.110).
 
 Every failure fails open: if Redis or the stamp can't be read the call simply isn't cached.
 
@@ -48,8 +50,10 @@ Settings live under `page_cache` in `config.json` (`enabled`, `max_entries`, `ma
 (all in `planetgen.util.settings`).
 """
 
+import collections
 import hashlib
 import json
+import random
 import threading
 import time
 
@@ -59,16 +63,18 @@ import redis
 from planetgen.db import dataversion
 from planetgen.queue import redisclient
 from planetgen.util.settings import PageCache
+from planetgen.web.lib.xfetch import XFETCH_BETA, XFETCH_MIN_SECONDS, xfetch_early
 from planetgen.web.lib import pagetags
 
 DEFAULTS = PageCache().model_dump()
 """dict: The model's defaults (`settings.PageCache`), the settings a cache
 built without any uses."""
 
-UNCACHED_PREFIXES = ("/galaxy/changes", "/galaxy/tiles", "/galaxy/stage", "/galaxy/window", "/galaxy/stamp", "/auth", "/admin")
+UNCACHED_PREFIXES = ("/galaxy/changes", "/galaxy/tiles", "/galaxy/stage", "/galaxy/window", "/galaxy/stamp", "/auth", "/admin",
+                     "/table-estimates", "/page-jobs")
 """tuple: Paths never cached here: the stamp itself, the Galaxy Map's tile
-and stage data (`tilecache.py` keeps those on disk), and anything that
-depends on who is asking."""
+and stage data (`tilecache.py` keeps those on disk), anything that
+depends on who is asking, and the slow-page mechanism's own reads (PERF.105)."""
 
 MAX_BODY_FRACTION = 0.25
 """float: One body may use at most this share of `max_mb`, so a single
@@ -76,6 +82,10 @@ huge answer can't push everything else out."""
 
 SOCKET_SECONDS = 0.5
 """float: How long one Redis call may take before the answer goes uncached."""
+
+Entry = collections.namedtuple("Entry", "incarnation tags body stored_at cost")
+"""One cached answer: the Redis incarnation and the tag counters it was made under, its raw body, when this
+process stored it (the cache's clock) and how many seconds it took to fetch."""
 
 
 def is_cacheable(path):
@@ -107,9 +117,11 @@ class ResponseCache:
             call goes uncached.
         settings (dict): `settings.PageCache`'s fields as a dict.
         clock (callable): Seconds, monotonic; replaceable in tests.
+        rand (callable): `rand()` -> a float in [0, 1) for the early refresh (`xfetch_early`); replaceable in
+            tests.
     """
 
-    def __init__(self, changes_for, settings=None, clock=time.monotonic):
+    def __init__(self, changes_for, settings=None, clock=time.monotonic, rand=random.random):
         settings = dict(DEFAULTS, **(settings or {}))
         self._changes_for = changes_for
         self._max_entries = int(settings["max_entries"])
@@ -118,11 +130,13 @@ class ResponseCache:
         self._max_age = float(settings["max_age_seconds"])
         self._shared_seconds = int(float(settings["shared_seconds"]))
         self._clock = clock
+        self._rand = rand
         self._lock = threading.Lock()
-        # (db, target) -> (incarnation, {tag: counter}, body); the timer reads self._clock each time, so
-        # a test can swap the clock after construction.
+        # (db, target) -> Entry; the timer reads self._clock each time, so a test can swap the clock after
+        # construction.
         self._entries = cachetools.TTLCache(maxsize=max(self._max_bytes, 1), ttl=self._max_age,
-                                            timer=lambda: self._clock(), getsizeof=lambda entry: len(entry[2]))
+                                            timer=lambda: self._clock(), getsizeof=lambda entry: len(entry.body))
+        self._refreshing = {}  # (db, target) -> when its early refresh was claimed (PERF.110)
         self._stamps = {}  # db -> (stamp, checked_at, state, accepted_at, busy)
         self._generation = 0  # bumped by clear()
 
@@ -140,13 +154,14 @@ class ResponseCache:
             tuple or None: `None` when the versions can't be read (the answer then goes uncached).
         """
         generation = self._generation
+        began = self._clock()
         if db is None:
-            return generation, None, None
+            return generation, None, None, began
         try:
             incarnation, found = dataversion.versions(db, [dataversion.COUNT_FIELD])
         except dataversion.Unavailable:
             return None
-        return generation, incarnation, found[dataversion.COUNT_FIELD]
+        return generation, incarnation, found[dataversion.COUNT_FIELD], began
 
     def clear(self):
         """Drops this process's copies (a test, or a write nothing places)."""
@@ -154,6 +169,7 @@ class ResponseCache:
             self._generation += 1
             self._entries.clear()
             self._stamps.clear()
+            self._refreshing.clear()
 
     def _redis(self):
         return redisclient.client(timeout=SOCKET_SECONDS, retries=1)
@@ -215,12 +231,11 @@ class ResponseCache:
 
     def _valid(self, db, entry):
         """Whether `entry`'s tag counters still stand."""
-        incarnation, tagged, _body = entry
         try:
-            current_id, current = dataversion.versions(db, tagged)
+            current_id, current = dataversion.versions(db, entry.tags)
         except dataversion.Unavailable:
             return False
-        return current_id == incarnation and current == tagged
+        return current_id == entry.incarnation and current == entry.tags
 
     def get(self, db, target):
         """The cached body for `target` in `db`, or `None`."""
@@ -229,7 +244,7 @@ class ResponseCache:
         with self._lock:
             entry = self._entries.get((db, target))
         if db is None:
-            return None if entry is None else entry[2]
+            return None if entry is None else entry.body
         if entry is None:
             entry = self._recall(db, target)
             if entry is None:
@@ -238,18 +253,36 @@ class ResponseCache:
             with self._lock:
                 self._entries.pop((db, target), None)
             return None
-        return entry[2]
+        if self._refresh_early(db, target, entry):
+            return None  # this reader fetches it again; the others are still served the old copy
+        return entry.body
+
+    def _refresh_early(self, db, target, entry):
+        """PERF.110: whether this reader should fetch the costly `entry` again before it expires (XFetch).
+        One reader at a time wins the claim; it lapses when the refresh never arrives (the fetch failed)."""
+        if entry.cost < XFETCH_MIN_SECONDS:
+            return False
+        now = self._clock()
+        if not xfetch_early(now, entry.stored_at + self._max_age, entry.cost, XFETCH_BETA, self._rand):
+            return False
+        with self._lock:
+            claimed = self._refreshing.get((db, target))
+            if claimed is not None and now - claimed < 2 * entry.cost + 1:
+                return False
+            self._refreshing[(db, target)] = now
+        return True
 
     def _recall(self, db, target):
         """The copy Redis holds (made by another process or the warm-up), taken into this process."""
         try:
-            raw = self._redis().hmget(shared_key(db, target), "i", "v", "b")
+            raw = self._redis().hmget(shared_key(db, target), "i", "v", "b", "c")
         except (redis.RedisError, OSError):
             return None
         if raw[0] is None or raw[1] is None or raw[2] is None:
             return None
         try:
-            entry = (raw[0].decode("utf-8"), json.loads(raw[1]), raw[2].decode("utf-8"))
+            entry = Entry(raw[0].decode("utf-8"), json.loads(raw[1]), raw[2].decode("utf-8"), self._clock(),
+                          float(raw[3] or 0.0))
         except (ValueError, UnicodeDecodeError):
             return None
         with self._lock:
@@ -264,11 +297,13 @@ class ResponseCache:
         `begin` was called, or when the versions can't be read."""
         if len(body) > self._max_bytes * MAX_BODY_FRACTION or token is None:
             return
-        generation, incarnation, count = token
+        generation, incarnation, count, began = token
+        now = self._clock()
+        cost = max(now - began, 0.0)
         if db is None:
             with self._lock:
                 if generation == self._generation:
-                    self._entries[(db, target)] = ("", {}, body)
+                    self._entries[(db, target)] = Entry("", {}, body, now, cost)
             return
         tags = pagetags.read_tags(_path_of(target), body)
         try:
@@ -277,8 +312,9 @@ class ResponseCache:
             return
         if now_id != incarnation or found.pop(dataversion.COUNT_FIELD) != count:
             return  # data changed while the answer was fetched: it may be older than the data
-        entry = (now_id, found, body)
+        entry = Entry(now_id, found, body, now, cost)
         with self._lock:
+            self._refreshing.pop((db, target), None)
             if generation != self._generation or db not in self._stamps:
                 return
             self._entries[(db, target)] = entry
@@ -287,7 +323,7 @@ class ResponseCache:
         try:
             key = shared_key(db, target)
             pipe = self._redis().pipeline(transaction=False)
-            pipe.hset(key, mapping={"i": now_id, "v": json.dumps(found, sort_keys=True), "b": body})
+            pipe.hset(key, mapping={"i": now_id, "v": json.dumps(found, sort_keys=True), "b": body, "c": cost})
             pipe.expire(key, self._shared_seconds)
             pipe.execute()
         except (redis.RedisError, OSError):

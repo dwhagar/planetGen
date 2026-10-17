@@ -38,7 +38,8 @@ which are not generation draws (and call generators only through
 `draw`)."""
 
 ALLOWED = {
-    "util/draw.py": {"random", "secrets"},  # the one wrapper, and the run stream's first seed
+    "util/draw.py": {"random", "secrets", "numpy.random"},  # the one wrapper, the run stream's first seed, and the
+    # hand-over of the stream's state to NumPy's MT19937 for a bulk draw (PERF.91)
     "galaxy/seed.py": {"secrets"},  # a brand-new galaxy seed (`new_seed`)
 }
 """Modules allowed one of the forbidden imports, and which."""
@@ -61,13 +62,14 @@ def _problems(path, relative=None):
         if isinstance(node, ast.Import):
             for alias in node.names:
                 root = alias.name.split(".")[0]
-                if (root in FORBIDDEN_MODULES and root not in allowed) or alias.name.startswith("numpy.random"):
+                if (root in FORBIDDEN_MODULES and root not in allowed) or (
+                        alias.name.startswith("numpy.random") and "numpy.random" not in allowed):
                     found.append(f"{relative}:{node.lineno} imports {alias.name}")
         elif isinstance(node, ast.ImportFrom):
             module = node.module or ""
             root = module.split(".")[0]
             if node.level == 0 and ((root in FORBIDDEN_MODULES and root not in allowed)
-                                    or module.startswith("numpy.random")):
+                                    or (module.startswith("numpy.random") and "numpy.random" not in allowed)):
                 found.append(f"{relative}:{node.lineno} imports from {module}")
         elif isinstance(node, ast.Attribute):
             if node.attr in ("urandom", "SystemRandom", "uuid4", "token_bytes", "randbits") \
@@ -277,3 +279,12 @@ def test_a_sector_does_not_depend_on_hash_seed_or_locale():
     names = [locales[0], locales[-1]] if locales else ["C"]
     digests = {(seed, name): _probe(seed, name) for seed in (0, 1) for name in dict.fromkeys(names)}
     assert len(set(digests.values())) == 1, digests
+
+
+def test_gamma_and_dirichlet_are_pinned():
+    """The gamma draw (Marsaglia and Tsang) and the Dirichlet built on it, from `random()` and `gauss` alone: a change
+    here changes every drawn composition (GEN.472)."""
+    assert draw.Stream(12345).gamma(2.5) == pytest.approx(4.077514929171999, rel=1e-14)
+    assert draw.Stream(12345).gamma(0.5) == pytest.approx(0.42145988346233904, rel=1e-14)
+    assert draw.Stream(12345).dirichlet([0.5, 2.5, 7.0]) == pytest.approx(
+        [0.038555006928356686, 0.2464048638057911, 0.7150401292658523], rel=1e-14)

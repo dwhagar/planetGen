@@ -58,7 +58,7 @@ from planetgen.galaxy.spherical import (
     provisional_sector_designation, sector_cell_vertices_pc, sector_position_pc,
 )
 
-from planetgen.galaxy import keepout
+from planetgen.galaxy import keepout, mass_chain
 from planetgen.galaxy import objectref as object_ref
 from planetgen.galaxy import object_uid
 from planetgen.names import naming_key
@@ -423,22 +423,24 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
     if after is not None and limit is not None and sort == "name":
         previous = conn.execute("SELECT name FROM star_systems WHERE id = ?", (after,)).fetchone()
         if previous is not None:
-            comparison = "<" if descending else ">"
-            where_sql = _and_where(where_sql, f"(ss.name {comparison} ? OR (ss.name = ? AND ss.id > ?))")
-            params = params + [previous["name"], previous["name"], after]
+            condition, keyset_params = _keyset_condition(["ss.name"], [previous["name"]], descending, "ss.id", after)
+            where_sql = _and_where(where_sql, condition)
+            params = params + keyset_params
             offset = 0
     if (limit is not None and not join_sql and sector_id is None and in_sector is None
             and sort in _GROUP_WALK_SORTS):
         rows = _systems_by_group(conn, sort, descending, where_sql, params, limit, offset or 0)
         return _system_rows(conn, rows)
     nulls_last = f"{column} IS NULL, " if sort in ("sector", "octant") else ""
+    # The name sort's ties follow its direction, so one walk of the name index serves either way round (PERF.75).
+    tie_break = f"ss.id {direction}" if sort == "name" else "ss.name, ss.id"
     # DISTINCT only matters when the star join can repeat a system; without it the sort can stop at the page (PERF.64).
     distinct = "DISTINCT " if join_sql else ""
     query = f"""
         SELECT {distinct}ss.id, ss.name, ss.sector_id, ss.quadrant, ss.is_binary, ss.binary_configuration,
                ss.binary_type, sec.name AS sector_sort
         FROM star_systems ss LEFT JOIN sectors sec ON sec.id = ss.sector_id{join_sql}{where_sql}
-        ORDER BY {nulls_last}{column} {direction}, ss.name, ss.id
+        ORDER BY {nulls_last}{column} {direction}, {tie_break}
         """
 
     if limit is not None:
@@ -470,6 +472,39 @@ _GROUP_WALK_COLUMNS = ("ss.id, ss.name, ss.sector_id, ss.quadrant, ss.is_binary,
 def _and_where(where_sql, condition):
     """`where_sql` (empty or ` WHERE a AND b`) with `condition` added."""
     return f"{where_sql} AND {condition}" if where_sql else f" WHERE {condition}"
+
+
+def _keyset_condition(columns, values, descending, id_column, after_id):
+    """
+    The rows after one row in `ORDER BY <columns> <direction>, <id_column> <direction>` (a keyset page, PERF.75):
+    the rows whose sort key is past `values` (the row's own, in `columns` order) or equal to it with a past id.
+
+    The id sorts the same way as the columns, so one backward or forward walk of an index on the columns (which
+    holds the id as its last part) serves the page and the sort needs no filesort.
+
+    Written with `OR` and `AND`, never as a row constructor: `(a, b, id) > (?, ?, ?)` took 5.0 s on MariaDB 10.11
+    with no index range, the same condition spelled out 2 ms (docs/design/slow-reads-and-timeouts.md).
+
+    Args:
+        columns (list[str]): The sort columns, in order, all sorted the same way.
+        values (list): The row's value of each column.
+        descending (bool): Whether the columns and the id sort downward.
+        id_column (str): The unique tie-break column.
+        after_id (int): The row's id.
+
+    Returns:
+        tuple: `(condition_sql, params)`; the condition is parenthesised.
+    """
+    operator = "<" if descending else ">"
+    terms, params, equal, equal_params = [], [], [], []
+    for column, value in zip(columns, values):
+        terms.append("(" + " AND ".join([*equal, f"{column} {operator} ?"]) + ")")
+        params.extend([*equal_params, value])
+        equal.append(f"{column} = ?")
+        equal_params.append(value)
+    terms.append("(" + " AND ".join([*equal, f"{id_column} {operator} ?"]) + ")")
+    params.extend([*equal_params, after_id])
+    return "(" + " OR ".join(terms) + ")", params
 
 
 def _simple_groups(sort, descending):
@@ -2124,9 +2159,10 @@ def _scattered_classes(conn, types=(), descriptors=(), placed=None, ignore=()):
     return classes
 
 
-def _scattered_page(conn, classes, limit, offset):
+def _scattered_page(conn, classes, limit, offset, after=None):
     """`limit` unbuilt scatter rows from `offset` among the `classes`, in id order, shaped like the Phenomena rows
-    (`scattered` True, named "Uncharted <kind> <shell>.<band>.<wedge>")."""
+    (`scattered` True, named "Uncharted <kind> <shell>.<band>.<wedge>"). With `after` (a scatter row id) the page
+    starts after that row and `offset` is not used (PERF.75)."""
     if not classes:
         return []
     by_class = {(entry["kind"], entry["subtype"]): entry for entry in classes}
@@ -2134,8 +2170,11 @@ def _scattered_page(conn, classes, limit, offset):
     for entry in classes:
         clauses.append("(kind = ? AND COALESCE(subtype, '') = ?)")
         params.extend([entry["kind"], entry["subtype"]])
+    later = ""
+    if after is not None:
+        later, params, offset = "id > ? AND ", [after] + params, 0
     query = ("SELECT id, kind, COALESCE(subtype, '') AS subtype, shell_index, band_index, wedge_index,"
-             f" member_count, system_mass_solar FROM phenomenon_scatter WHERE built_at IS NULL AND ({' OR '.join(clauses)}) ORDER BY id")
+             f" member_count, system_mass_solar FROM phenomenon_scatter WHERE built_at IS NULL AND {later}({' OR '.join(clauses)}) ORDER BY id")
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
         params.extend([limit, offset or 0])
@@ -2165,7 +2204,7 @@ def _phenomena_where(types=(), descriptors=(), placed=None):
 
 
 def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False, types=(), descriptors=(),
-                   placed=None):
+                   placed=None, after=None):
     """
     Returns every exotic phenomenon (nebula/asteroid field/black hole/
     neutron star/supernova remnant/rogue planet/interstellar comet/quasar --
@@ -2186,6 +2225,9 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
         types (iterable[str]): Keep only these types (any of).
         descriptors (iterable[str]): Keep only these descriptors (any of).
         placed (bool, optional): Keep only placed or only unplaced ones.
+        after (int, optional): A scattered row's `scatter_id`: the page starts after it in the tail of unbuilt
+            scattered phenomena (they follow every built one, in id order), and the built ones and `offset` are
+            not read (a keyset page, PERF.75). Without `limit` it is not used.
 
     Excludes a `black_holes`/`neutron_stars` row with `star_id` set -- that
     shape is a normal star system's own compact-remnant star (already
@@ -2209,6 +2251,8 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
     """
     if sort not in PHENOMENON_SORTS:
         raise ValueError(f"unknown phenomenon sort {sort!r}")
+    if after is not None and limit is not None:
+        return _scattered_page(conn, _scattered_classes(conn, types, descriptors, placed), limit, 0, after=after)
     where, params = _phenomena_where(types, descriptors, placed)
     column = PHENOMENON_SORTS[sort]
     built_total = conn.execute(
@@ -2340,6 +2384,13 @@ def _sibling_refs(conn, kind, table, where, params, object_id):
     return refs, len(rows) > OBJECT_SIBLING_LIMIT
 
 
+def _central_mass_kg(conn):
+    """The mass, kg, the galaxy's tidal field acts as if centred at its middle: the virial mass of the mass chain the
+    stored galaxy seed draws (`mass_chain.central_mass_kg`)."""
+    row = conn.execute("SELECT galaxy_seed FROM galaxy_shape WHERE id = 1").fetchone()
+    return mass_chain.central_mass_kg(bytes(row["galaxy_seed"]) if row and row["galaxy_seed"] else None)
+
+
 def keep_out_radius(conn, kind, object_id):
     """
     The keep-out radius of one object (NAV.24, `planetgen.galaxy.keepout`).
@@ -2385,7 +2436,8 @@ def keep_out_radius(conn, kind, object_id):
         if body["galactic_radius_pc"] is None:
             return keepout.NO_KEEP_OUT  # never placed in the galaxy: nowhere to measure from
         return keepout.compact_keep_out(
-            body["mass_solar"] * constants.SOLAR_MASS_TO_KG, body["galactic_radius_pc"], body["radius_km"])
+            body["mass_solar"] * constants.SOLAR_MASS_TO_KG, body["galactic_radius_pc"], body["radius_km"],
+            _central_mass_kg(conn))
     if kind in ("quasar", "rogue_planet"):
         table = _PHENOMENON_TYPE_TO_TABLE[kind]
         body = row(table, "black_hole_mass_solar * " + str(constants.SOLAR_MASS_TO_KG)
@@ -2393,7 +2445,8 @@ def keep_out_radius(conn, kind, object_id):
                    if kind == "quasar" else "mass_kg, radius_km, galactic_radius_pc")
         if body["galactic_radius_pc"] is None:
             return keepout.NO_KEEP_OUT
-        return keepout.compact_keep_out(body["mass_kg"], body["galactic_radius_pc"], body["radius_km"])
+        return keepout.compact_keep_out(
+            body["mass_kg"], body["galactic_radius_pc"], body["radius_km"], _central_mass_kg(conn))
     if kind in ("nebula", "supernova_remnant", "asteroid_field"):
         row(_PHENOMENON_TYPE_TO_TABLE[kind], "id")
         return keepout.KeepOut(None, "none", keepout.PASS_THROUGH_NOTE)
@@ -3949,7 +4002,7 @@ def count_uncharted_systems(conn):
     return conn.execute("SELECT COUNT(*) AS n FROM bright_stars WHERE star_system_id IS NULL").fetchone()["n"]
 
 
-def list_uncharted_systems(conn, limit=None, offset=None, sort="luminosity", descending=True):
+def list_uncharted_systems(conn, limit=None, offset=None, sort="luminosity", descending=True, after=None):
     """
     The scattered stars no system was built around yet (UX.87), a page of
     them: each is an "uncharted" system that can be generated by itself.
@@ -3959,8 +4012,10 @@ def list_uncharted_systems(conn, limit=None, offset=None, sort="luminosity", des
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
         limit, offset (int, optional): The page (`offset` ignored without `limit`).
-        sort (str): A key of `UNCHARTED_SYSTEM_SORTS`; ties fall back to the id.
+        sort (str): A key of `UNCHARTED_SYSTEM_SORTS`; ties fall back to the id, in the same direction.
         descending (bool): Reverse the sort (brightest first by default).
+        after (int, optional): A star's id: the page starts after that star in this sort (a keyset page, PERF.75:
+            the rows before it are not read and `offset` is ignored). A star that is gone uses `offset`.
 
     Returns:
         list[dict]: One row per star: `id` (the `bright_stars` id), the
@@ -3976,14 +4031,22 @@ def list_uncharted_systems(conn, limit=None, offset=None, sort="luminosity", des
     if sort not in UNCHARTED_SYSTEM_SORTS:
         raise ValueError(f"unknown uncharted system sort {sort!r}")
     direction = "DESC" if descending else "ASC"
-    order = ", ".join(f"{column} {direction}" for column in UNCHARTED_SYSTEM_SORTS[sort].split(","))
+    columns = UNCHARTED_SYSTEM_SORTS[sort].split(",")
+    order = ", ".join(f"{column} {direction}" for column in columns)
+    where, params = "star_system_id IS NULL", []
+    if after is not None and limit is not None:
+        previous = conn.execute(f"SELECT {', '.join(columns)} FROM bright_stars WHERE id = ?", (after,)).fetchone()
+        if previous is not None:
+            condition, params = _keyset_condition(columns, [previous[column] for column in columns], descending,
+                                                  "id", after)
+            where += f" AND {condition}"
+            offset = 0
     query = (f"SELECT id, shell_index, band_index, wedge_index, position_x_mpc, position_y_mpc, position_z_mpc,"
              f" population, star_type, yerkes_class, mass_kg, radius_km, temperature_k, luminosity_w, age_gy,"
-             f" member_count, system_mass_solar FROM bright_stars WHERE star_system_id IS NULL ORDER BY {order}, id")
-    params = []
+             f" member_count, system_mass_solar FROM bright_stars WHERE {where} ORDER BY {order}, id {direction}")
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
-        params = [int(limit), int(offset or 0)]
+        params = params + [int(limit), int(offset or 0)]
     skeleton = get_galaxy_shape(conn)
     edge_pc = skeleton.edge_pc if skeleton else float(tuning.DEFAULT_SECTOR_EDGE_PC)
     return [_uncharted_item(row, edge_pc) for row in conn.execute(query, params).fetchall()]

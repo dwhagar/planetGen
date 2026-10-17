@@ -26,6 +26,7 @@ from planetgen.galaxy import objectref
 from planetgen.physics import constants as physical_constants
 from planetgen.physics.lensing import einstein_radius_against_galactic_centre_m
 from planetgen.web.lib import apiclient, facility_display
+from planetgen.web.lib.slowroute import slow_route
 from planetgen.web.lib.fmt import (
     distance_km_html, distance_ly_html, format_distance_km, format_members, format_number, linkify_nearest,
     nearest_systems_html, period_years_html, quantity_html, runaway_text, speed_kms_html,
@@ -54,7 +55,7 @@ from .helpers import (
     bookmark, crumb, current_admin, db_name, page_url, population_status, render_page, trusted_html,
 )
 from .nav_page import endpoint, nav_url
-from .nearby_page import nearby_url
+from .nearby_page import DEFAULT_DISTANCE_PC, nearby_url
 
 # ---------------------------------------------------------------------
 # /system/<id>
@@ -116,20 +117,26 @@ def pick_nav(kind, entity_id, args):
     return {"pick": back, "pickLabel": pick["label"]}, pick
 
 
-def body_nav(args):
+def body_nav(args, course=True):
     """
-    The NAV buttons a body's info panel on the System Map gets (NAV.50), as
-    URL templates with `{ref}` where the body's object reference goes
-    (`static/systemnav.js`): `take` and `label` while a NAV start or
-    destination is being picked (`?pick=from|to`), else `start` and `end`.
+    The links a body's info panel on the System Map gets, as URL templates
+    with `{ref}` where the body's object reference goes (`static/systemnav.js`):
+    the NAV buttons (NAV.50), `take` and `label` while a NAV start or
+    destination is being picked (`?pick=from|to`), else `start` and `end`,
+    and the "What's within N pc" link (`nearby`, `nearby-label`, NAV.45),
+    which a course being picked leaves out. `course=False` (a system with no
+    sector, which NAV cannot measure from) gives the nearby link alone.
     """
     from .sector_page import _pick_mode
 
     token = "__REF__"
-    pick = _pick_mode(args)
+    pick = _pick_mode(args) if course else None
+    nearby = {"nearby": nearby_url(token, DEFAULT_DISTANCE_PC).replace(token, "{ref}"),
+              "nearby-label": f"What’s within {DEFAULT_DISTANCE_PC} pc"}
     if pick is None:
-        return {"start": nav_url(origin=token).replace(token, "{ref}"),
-                "end": nav_url(destination=token).replace(token, "{ref}")}
+        nav = ({"start": nav_url(origin=token).replace(token, "{ref}"),
+                "end": nav_url(destination=token).replace(token, "{ref}")} if course else {})
+        return {**nav, **nearby}
     url = (nav_url(origin=token, destination=pick["other"]) if pick["pick"] == "from"
            else nav_url(origin=pick["other"], destination=token))
     return {"take": url.replace(token, "{ref}"), "label": pick["label"]}
@@ -306,7 +313,7 @@ def system(system_id):
         map_html = render_system_map_panel(detail, detail["stars"], detail["planets"], detail["belts"],
                                            facilities=facilities,
                                            scene_url=page_url("system_scene", system_id=system_id),
-                                           nav=body_nav(request.args) if detail["sector_id"] is not None else None)
+                                           nav=body_nav(request.args, course=detail["sector_id"] is not None))
     # NAV measures from a sector position, so a standalone system gets no
     # links; the NAV page itself works out whether cross-sector NAV applies.
     links, pick = pick_nav("system", system_id, request.args) if detail["sector_id"] is not None else (None, None)
@@ -455,12 +462,13 @@ def _title_case(value):
     return (value or "").replace("_", " ").replace("-", " ").capitalize()
 
 
-def _phenomena_load(state, limit, offset, want_facets):
-    """The Phenomena table's page of rows (`lib/datatable.Result`)."""
+def _phenomena_load(state, limit, offset, want_facets, after=None):
+    """The Phenomena table's page of rows (`lib/datatable.Result`); `next` is the last scattered row's id when the
+    page ends inside the scattered tail, which every page after it is read from by key (PERF.75)."""
     filters = {"types": state.filters["type"], "descriptors": state.filters["descriptor"]}
     envelope = apiclient.get_phenomena(
         db_name(), limit=limit, offset=offset, sort=state.sort, descending=state.descending,
-        facets=want_facets, **filters)
+        facets=want_facets, after=after, **filters)
     rows = [[
         {"text": row["name"], "href": page_url("uncharted_phenomenon", scatter_id=row["scatter_id"])}
         if row["scattered"] else
@@ -481,7 +489,9 @@ def _phenomena_load(state, limit, offset, want_facets):
             "descriptor": [{"value": option["value"], "label": _title_case(option["value"]),
                             "count": option["count"]} for option in envelope["facets"]["descriptor"]],
         }
-    return Result(rows, envelope["total"], facets, envelope.get("total_capped", False))
+    last = envelope["items"][-1] if envelope["items"] else None
+    return Result(rows, envelope["total"], facets, envelope.get("total_capped", False),
+                  last["scatter_id"] if last and last["scattered"] else None)
 
 
 PHENOMENA_TABLE = tables.register(Table(
@@ -491,11 +501,13 @@ PHENOMENA_TABLE = tables.register(Table(
      Column("members", "Members", sortable=False)],
     _phenomena_load,
     facets=[Facet("type", "Type"), Facet("descriptor", "Descriptor")],
-    noun=("phenomenon", "phenomena"),
+    noun=("phenomenon", "phenomena"), keyset=True,
 ))
 
 
 @bp.route("/phenomena")
+@slow_route("Phenomena", section="phenomena", breadcrumbs=lambda: [crumb("Phenomena")],
+            description="Every nebula, black hole, neutron star and other exotic phenomenon in this charted galaxy.")
 def phenomena():
     """Every exotic phenomenon, placed on the galaxy map or not, as a data
     table (UX.41): sort by any column, filter by type and descriptor, and

@@ -57,7 +57,7 @@
 {%- macro plan_inputs() -%}
 <div class="search-fields">
   {%- for name, flag, label, kind, default, minimum, maximum in plan_fields %}
-  {{ field(name, label, value=default, step="1" if kind is sameas int else "any", min=minimum) }}
+  {{ field(name, label, value="" if default is none else default, step="1" if kind is sameas int else "any", min=minimum, placeholder="drawn from the seed" if default is none else none) }}
   {%- endfor %}
 </div>
 {%- endmacro -%}
