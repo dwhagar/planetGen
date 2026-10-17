@@ -7,6 +7,7 @@ Rules:
 - One issue per goal. An item belongs to the issue that groups it; an item may appear in more than one row.
 - Issues Boss opened keep his text. The TODO lane adds a "TODO sync" comment that lists their items and does not edit his words.
 - Findings from any thread that belong to a goal (a failed test, a bug noticed in passing, an oddity) go to the TODO thread, which attaches them to the goal's issue as a comment headed `Finding (date, source, kind)` with the test or object, the failure text, whether it fails on main, how often, and a reproducer. An item with no goal yet gets a new issue.
+- Every test or investigation on an item gets a dated comment on its goal issue (fix, failure or could not reproduce), with the date and time in EDT, what was run, the result and what is needed next time; a bug that could not be reproduced or needs more information is flagged so (Boss, 2026-10-16, 11:48 PM EDT).
 - Issue labels: `goal` marks a goal issue; one label per TODO ID (for example `GEN.250`) lets the issue list filter to an item's issue. Bugs also carry `bug`.
 - An issue closes when every item in its row is done or dropped; the row stays so the reference page keeps its links.
 
