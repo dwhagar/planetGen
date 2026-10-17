@@ -13539,6 +13539,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   replacement of the 10 km/s young-population dispersion is its own item
   if the law is found. Owner: unowned (research; Boss or a read-only
   research lane). This is a Boss research item.
+  Stand-in in GEN.532 (Core 1, 2026-10-17, 5:55 PM EDT as the lane
+  reported): the first gate of GEN.532 showed the atomic-gas 10 km/s
+  made the young disc 0.40 of the old disc's height (nebula counts over
+  the ceiling: class M 22,804 against 20,000), so GEN.532 carries a
+  molecular birth-gas stand-in of 6.5 +/- 1 km/s (young disc 0.22 of the
+  old), labelled as replaced by this item. The reading to compare the
+  research against is the old atomic one (10 km/s, 0.40) and the
+  observed about 50 pc; the stand-in value itself has no source and is
+  entered in the stand-in registry as a placeholder.
   Prerequisites: none. Related: GEN.532, GEN.531.
 
 - [ ] **GEN.537 Design the plan configuration: the boundaries of the sector plan, how far scatters go, which sector addresses are valid, and the two switches halo and satellite galaxies (both default off)**
