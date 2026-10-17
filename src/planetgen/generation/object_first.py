@@ -114,8 +114,17 @@ def band_majorants(shape, shell, high_band, edge_pc, fractions):
     Returns:
         numpy.ndarray: One bound per band.
     """
-    terms = density.model_terms(shape)
     inner, z_near, z_far = band_geometry(shell, high_band, edge_pc)
+    return extent_majorants(shape, inner, z_near, z_far, fractions)
+
+
+def extent_majorants(shape, inner, z_near, z_far, fractions):
+    """
+    `band_majorants` for any extents (arrays): an upper bound on `sum_p density_p * fractions[p]` in a region
+    whose smallest cylindrical radius is `inner` and whose `|z|` runs from `z_near` to `z_far`. A band is one such
+    region and a group of bands (`reach_groups`) another, bounded at its nearest point.
+    """
+    terms = density.model_terms(shape)
     thin = np.exp(-inner / shape.disk_scale_length_pc) * _vertical(z_near, shape.disk_scale_height_pc)
     thick = (terms["thick_disk_amplitude"] * np.exp(-inner / terms["thick_disk_scale_length_pc"])
              * _vertical(z_near, terms["thick_disk_scale_height_pc"]))
@@ -127,8 +136,8 @@ def band_majorants(shape, shell, high_band, edge_pc, fractions):
     disk_share = _disk_share_bound(shape, z_near, z_far, fractions, inner, outer)
     k = shape.k_norm
     halo = density._halo(inner, z_near, density.halo_terms(shape))
-    # Both nuclear terms fall with the radius or the height alone, so the band's nearest point bounds them
-    # (`sqrt(inner^2 + z_near^2)` is no farther from the centre than any point of the band).
+    # Both nuclear terms fall with the radius or the height alone, so the region's nearest point bounds them
+    # (`sqrt(inner^2 + z_near^2)` is no farther from the centre than any point of the region).
     nuclear_cluster = density._nuclear_cluster_array(np.sqrt(inner ** 2 + z_near ** 2), terms)
     nuclear_disc = density._nuclear_disc_array(inner, z_near, terms)
     bound = (np.maximum(k * bulge, 0.0) * fractions["bulge"]
@@ -138,6 +147,109 @@ def band_majorants(shape, shell, high_band, edge_pc, fractions):
              + np.maximum(k * halo, 0.0) * fractions["halo"]
              + np.maximum(k * thin, 0.0) * arm * disk_share)
     return bound * (1.0 + 1e-12)
+
+
+class ReachGroups:
+    """
+    Regions of the sphere beyond the galaxy's outline, each bounded in one piece (GEN.322): a range of colatitude of
+    one shell, north or south, so the pass bounds a handful of regions instead of every band of a shell of 100,000.
+
+    `for_shell` cuts the part of one shell beyond the outline into groups of up to
+    `tuning.OBJECT_FIRST_GROUP_BANDS` bands: walking from the outline toward the pole, a group takes the next 64
+    bands, and the last also takes the polar cap. The first group starts exactly at the outline's last band edge, so
+    the groups and the bands inside the outline (`-high_band .. high_band`) tile the shell with no cell in both. A
+    shell the outline does not reach (`high_band` below 0) is cut from the equator, the equatorial band split between
+    the two halves. `far` cuts many whole shells at once into `pieces` equal steps of colatitude each, for the far
+    shells that hold almost nothing, so that a plan does not visit them one by one.
+
+    Attributes (numpy arrays, one entry per group, north groups first):
+        shell_low, shell_high (numpy.ndarray): The first and last shell the group spans (one for a group of bands).
+        r_in, r_out (numpy.ndarray): The group's inner and outer radius, parsecs.
+        inner, z_near, z_far (numpy.ndarray): The group's smallest cylindrical radius and its smallest and largest
+            `|z|`, parsecs: `band_geometry`'s for the group.
+        cos_low, cos_high (numpy.ndarray): The group's range of `cos(colatitude)`.
+        colat_near, colat_far (numpy.ndarray): The group's colatitude nearest the polar axis and nearest the outline (or the
+            equator), whichever side: north groups hold `colat_near <= colat < colat_far`, south groups the mirror.
+        volume (numpy.ndarray): The group's volume in edge cubes (the sum of its cells').
+    """
+
+    def __init__(self, shell_low, shell_high, r_in, r_out, hi, lo, edge_pc):
+        """The groups of colatitude `lo .. hi` (north, `hi` on the equator's side; arrays of one entry per group
+        with the shells they span and their radii alongside), and their south mirror images."""
+        north_inner = r_in * np.sin(lo)
+        north_near = r_in * np.cos(hi)
+        north_far = r_out * np.cos(lo)
+        volume = (r_out ** 3 - r_in ** 3) / 3.0 * (np.cos(lo) - np.cos(hi)) * 2.0 * math.pi / edge_pc ** 3
+        self.shell_low = np.concatenate((shell_low, shell_low))
+        self.shell_high = np.concatenate((shell_high, shell_high))
+        self.r_in = np.concatenate((r_in, r_in))
+        self.r_out = np.concatenate((r_out, r_out))
+        self.inner = np.concatenate((north_inner, north_inner))
+        self.z_near = np.concatenate((north_near, north_near))
+        self.z_far = np.concatenate((north_far, north_far))
+        self.cos_low = np.concatenate((np.cos(hi), -np.cos(lo)))
+        self.cos_high = np.concatenate((np.cos(lo), -np.cos(hi)))
+        self.volume = np.concatenate((volume, volume))
+        self.colat_near = np.concatenate((lo, np.pi - lo))
+        self.colat_far = np.concatenate((hi, np.pi - hi))
+
+    def __len__(self):
+        return len(self.volume)
+
+    @classmethod
+    def for_shell(cls, shell, high_band, edge_pc, pieces=None):
+        """The part of `shell` beyond an outline that reaches `high_band` (see the class), cut in groups of bands, or
+        (`pieces`) in that many equal steps of colatitude between the outline and the pole."""
+        hi = np.zeros(0)
+        if shell > 0:
+            layout = spherical.shell_layout(shell)
+            if high_band < layout.high_band + 1:
+                # `hi` is each group's colatitude on the outline's side: the outline's last band edge toward the pole
+                # (the equator for a shell it does not reach), then every 64th band edge on toward the pole.
+                first = layout.high_band - high_band if high_band >= 0 else layout.high_band
+                indices = np.arange(first, 0, -tuning.OBJECT_FIRST_GROUP_BANDS) if first > 0 else np.zeros(1, dtype=int)
+                hi = layout.cap_colatitude + indices * layout.band_step
+                if high_band < 0:
+                    hi = np.append(math.pi / 2, hi)
+                if pieces is not None:
+                    hi = hi[0] * (1.0 - np.arange(pieces) / pieces)
+        lo = np.append(hi[1:], 0.0) if len(hi) else hi
+        r_in, r_out = spherical.shell_bounds_pc(shell, edge_pc)
+        count = len(hi)
+        return cls(np.full(count, shell), np.full(count, shell), np.full(count, r_in), np.full(count, r_out), hi, lo,
+                   edge_pc)
+
+    @staticmethod
+    def far_blocks(first_shell, last_shell):
+        """The runs of shells `far` cuts `first_shell .. last_shell` into, as `(first, last)` pairs: each as many shells
+        as 1/`tuning.OBJECT_FIRST_FAR_STEPS` of its distance, so its density changes by about that much across it."""
+        blocks, start = [], first_shell
+        while start <= last_shell:
+            end = min(start + max(1, start // tuning.OBJECT_FIRST_FAR_STEPS) - 1, last_shell)
+            blocks.append((start, end))
+            start = end + 1
+        return blocks
+
+    @classmethod
+    def far(cls, first_shell, last_shell, edge_pc, pieces=tuning.OBJECT_FIRST_FAR_PIECES):
+        """Shells `first_shell .. last_shell` (all past the outline and at least 1), cut into runs of shells
+        (`far_blocks`) and each run into `pieces` equal steps of colatitude from the equator to the pole: a few
+        thousand regions for 60,000 shells, for the far shells that hold almost nothing, so that a plan does not
+        visit them one by one."""
+        blocks = np.array(cls.far_blocks(first_shell, last_shell), dtype=float).reshape(-1, 2)
+        steps = np.pi / 2 * (1.0 - np.arange(pieces) / pieces)
+        hi = np.tile(steps, len(blocks))
+        lo = np.tile(np.append(steps[1:], 0.0), len(blocks))
+        low, high = np.repeat(blocks[:, 0], pieces), np.repeat(blocks[:, 1], pieces)
+        return cls(low.astype(int), high.astype(int), (low - 0.5) * edge_pc, (high + 0.5) * edge_pc, hi, lo, edge_pc)
+
+    def probes(self):
+        """`(plane, z)` arrays of the two places each group is judged at, mid-shell on its two edges of colatitude:
+        `colat_near`'s then `colat_far`'s, one array each."""
+        r_mid = (self.r_in + self.r_out) / 2.0
+        near = (r_mid * np.sin(self.colat_near), r_mid * np.cos(self.colat_near))
+        far = (r_mid * np.sin(self.colat_far), r_mid * np.cos(self.colat_far))
+        return near, far
 
 
 def sector_capacity(expected_objects):
