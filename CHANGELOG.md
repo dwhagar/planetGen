@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1713] - 2026-10-17
+
+**Headline:** The galaxy laws research of GEN.406 has its own research thread, chosen by Boss.
+
+### Changed
+
+- GEN.406 names the read-only research thread as its owner (Boss, 10:20 AM EDT), not Core 1; the lane assignment drops it from Core 1's queue.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1712] - 2026-10-17
 
 **Headline:** Core 4's findings from building the massive-star binaries are recorded on the items that check them.
