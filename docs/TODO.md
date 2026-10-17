@@ -676,7 +676,23 @@ with `clamp()`.
   a retry. Done: the progress bar component, the search page and the
   phenomena list pages on it, and browser tests for the loading,
   finished, cancelled and failed states in light and dark.
-  Prerequisites: PERF.105. Related: PERF.104, UX.117, UX.3.
+  PERF.105 is merged (#2066, 2:05 PM EDT as Core 2 reported): the
+  mechanism only, no page uses it yet. Facts this item needs from Core
+  2: Pending.job has state, done, total, unit, estimated, eta_seconds,
+  seconds, cancelling, error, cache_key and target. Progress is an
+  ESTIMATE (elapsed share of expected time, capped at 95 percent,
+  estimated: true), so the bar text must say so; a real row count is
+  PERF.99. Retry is pagejobs.ensure(..., retry=True) (a failed or
+  cancelled job is shown 30 s, then replaced). Cancel on the API is
+  ADMIN ONLY (the API takes no anonymous write), so a visitor's Cancel
+  must mean 'stop waiting' and never cancels the shared job. The cost
+  rule: last timed build over 3 s, or never timed and the route's tables
+  over 2,000,000 rows (tuning.SLOW_PAGE_*). A route opts in with
+  allow_pending and must be in slowpages.PATH_TABLES (phenomena, search,
+  uncharted-systems and systems today). Endpoints: GET
+  /api/table-estimates, GET /api/page-jobs/<id>, POST
+  /api/page-jobs/<id>/cancel. Design: docs/design/slow-page-answers.md.
+  Prerequisites: none. Related: PERF.104, UX.117, UX.3.
 
 - [ ] **UX.119 An HTML renderer for the Document: facts, rating and composition tables, with unit spans, in both themes**
   Split from UX.105 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -14047,37 +14063,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   position 42 of 54). This replaces any earlier owner line on this item.
   Prerequisites: DB.29. Related: PERF.86, PERF.29, PERF.30, DOC.20.
 
-- [ ] **PERF.105 Slow page requests queue a job that builds the answer into Redis, with a status route (the mechanism)**
-  Boss (2026-10-16, 12:21 PM EDT, project chat): "when a page requests
-  something that's going to take a while (say listing all the black
-  holes in the phenomena page) it should add a task to get that
-  information to redis, have a progress bar in the search page so the
-  user knows it is loading, that is one of the main issues, give it to
-  Core 2's chain". Owner Core 2, in its queue after MAP.152 and MAP.146 (Boss, 12:23 PM EDT: MAP.152, then MAP.146, then this item). The mechanism. A
-  page route that expects a slow answer (a full list of one phenomenon
-  kind, a wide search, a large count) checks the tagged Redis page cache
-  that PERF.104 built; on a miss it does not build the answer inside the
-  request: it queues one RQ job that builds the answer, writes it to the
-  same cache under the same tags (so later edits invalidate it the way
-  PERF.104 already does), and returns at once with a job id. The job
-  reports progress as counters and events in Redis (PERF.86, Option A:
-  Redis is the only place a run lives), shows on /admin/queue beside the
-  PERF.104 "Cache warm-up" jobs, and can be cancelled. A status route
-  (JSON, polled by the page) returns state, the done and total counts
-  and the ETA, and the finished answer's cache key. A route is marked
-  slow by a cost rule in one place, not by a timer inside each page
-  (default: the request is slow when its query would read more than a
-  stated row budget, set in tuning, or when the cache miss took longer
-  than a stated number of seconds the last time); two visitors asking
-  the same thing share one job. If Redis is down the page falls back to
-  building the answer in the request, as it does today, and says so.
-  Done: the mechanism, the cost rule, the status route, the job on the
-  queue page, and tests (a slow request queues exactly one job, a repeat
-  request attaches to it, an edit invalidates the stored answer, Redis
-  down falls back).
-  Prerequisites: none. Related: PERF.86, PERF.99, PERF.104, PERF.75,
-  UX.3.
-
 - [ ] **PERF.106 The plan command on the run record, with stage timing, the killed-worker handler and job timeouts**
   Split from PERF.98 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). Move the stages of `planetgen
@@ -17784,6 +17769,14 @@ clears each one.
   fades_in` on main (about 2.5 minutes). Bug Hunt keeps ownership; the
   Done line needs the cause found (a fixed wait, a real race or an
   environment change) before any wait is lengthened.
+  Sighting (Core 2, 2026-10-17, about 1:55 and 1:58 PM EDT as the lane
+  reported, PERF.105 gate): fails alone on its branch (127 s, load 2.8)
+  AND alone on origin/main (119 s, idle): 'assert shares' empty, the
+  system's scene never came in. Fails on main: yes. Frequency: 2 of 2
+  idle runs by Core 2 (with Blocker 1's 2 of 2 alone runs: 4 of 4 alone
+  runs today after about 1:37 PM EDT). Reproducer: that one node id
+  alone. The symptom is now the empty-shares one in every idle run, not
+  the 0.75 or 0.88 share; Bug Hunt owns it.
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
