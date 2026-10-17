@@ -5913,7 +5913,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.238, GEN.241, GEN.243, GEN.244, GEN.259, GEN.280,
   GEN.282, GEN.283, GEN.284, GEN.298, UX.116, TEST.159, TEST.160,
   GEN.447, GEN.448, GEN.449, GEN.450, TEST.196, GEN.463, GEN.467,
-  GEN.469, GEN.502, GEN.528, GEN.529, GEN.530, DB.72.
+  GEN.469, GEN.502, GEN.528, GEN.529, GEN.530.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -5935,6 +5935,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   "second generation lane" of the 10:02 AM EDT choice. Every open 8.1
   item now carries its lane in an Owner note; the full order is
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md.
+  DB.72 (the band_index overflow, #2060, migration 0108, merged by Bug
+  Hunt at 1:56 PM EDT as the lane reported) is done: band_index is INT
+  in bright_stars, sector_stats and phenomenon_scatter. The schema
+  sweeps passed (59, 120 and 342 tests) but `scripts/test.py changed`
+  was not run on that branch, and Boss's 65,536-shell job
+  (job-20261017-162736-67d4) has not been rerun: the full job has to be
+  rerun to confirm no other overflow before the scatter is called safe
+  at that depth.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -8851,6 +8859,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator): AD1 is Boss's to research (Karkoschka and Tomasko 2010
   and related, paid); the labelled stand-in stays until he supplies the
   bands.
+  AD1 methane (1:55 PM EDT as the coordinator relayed): absorption comes
+  from the three-temperature band parameters (Oxford k-tables of
+  Karkoschka and Tomasko 2010) with the Voigt-Goody formula of Collins
+  2018, replacing the neighbouring-band stand-in for methane; PDS volume
+  gbat_0001 (Karkoschka 1994 and 1998) is the test value, and where the
+  two differ the 2010 tables win and the spread is the draw width.
+  Partly verified: the Oxford page says 'not yet fully verified' and
+  states no licence. Fetched at build time and not stored (the 0.24 MB
+  band-parameter extract; sha256 of each file in the data folder's
+  README; fall back to the labelled stand-in if the host does not
+  answer; tests run offline on a few rows). Never fit a planet's own
+  albedo (NO FIXED CONTENT): the PDS albedo columns are not copied.
+  Ammonia and water in the visible stay open stand-ins (ammonia: four
+  equivalent widths 0.05, 0.32, 0.62 and 0.81 nm for the 552, 645, 790
+  and 930 nm bands, read from a figure). Uranus methane bracket 1.4 to 4
+  percent (Karkoschka and Tomasko 2009: 1.4 to 3.2; the 4 is Voyager
+  Model F or Sromovsky 2011).
 
 - [ ] **GEN.423 Atmosphere density, scale height and the greenhouse multiplier follow from the mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -13620,6 +13645,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   no data to find: each stays a labelled stand-in at the widest bracket
   under the widest-range rule. GR7 stays widened with both kept (11:19
   AM EDT answer).
+  AD1 update (1:55 PM EDT as the coordinator relayed;
+  docs/design/ad1-methane-sources-check-2026-10-17.md, gap plan section
+  4.11): methane is filled from free data, partly verified: the Oxford
+  k-tables built from Karkoschka and Tomasko 2010 (3,689 wavelengths,
+  400 nm to 5.0 micron, 100, 198 and 296 K; Collins 2018 prints the
+  temperature formula) and the PDS volume gbat_0001 (Karkoschka 1994 and
+  1998, 300 to 1050 nm). Still open and Boss's research: ammonia in the
+  visible (four equivalent widths read from a figure), water in the
+  visible, methane 5.0 to 5.5 micron, and the 1e-5 floor below 450 nm.
+  The Oxford page says 'not yet fully verified' and states no licence.
 
 - [ ] **GEN.532 The galaxy shape's thick disk, scale heights and stellar halo come from the research laws instead of the tuning.py numbers (the GEN.401 follow-up)**
   Found by Core 1 while finishing GEN.401 (2026-10-17, 12:51 PM EDT as
@@ -15107,59 +15142,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   stored. Owner: Core 4 (proposed, with the atmosphere chain).
   Prerequisites: GEN.411, GEN.410, DB.67. Related: DB.67, DB.68,
   GEN.411, GEN.413, GEN.415.
-
-- [ ] **DB.72 The scatter tables hold band_index as SMALLINT, which overflows from shell 20,861 outward, so the whole-sphere scatter stops at 97 percent (bug)**
-  Found on Boss's server (2026-10-17, the failed job log he uploaded to
-  the project at 12:58 PM EDT, relayed by the coordinator at 12:59 PM
-  EDT): job-20261017-162736-67d4 (started at 12:27 PM EDT by the file
-  name), PlanetGen 8.0.1726, galaxy seed
-  DEF46BEFE3517B392133D37FBBB5CC8E, `plan --phenomenon-min-mass 14
-  --compact-min-mass star --halo-min-luminosity 500 ...` then `galaxy
-  --then-scatter --phenomenon-min-mass 14 --compact-min-mass star
-  --bright-star-min-luminosity 9000`. Stage 7 of 12 (Scatter the massive
-  stars, `run_plan.scatter_bright_stars`) stopped at 97 percent after
-  1,379 s: `planetgen.queue.units.RunStopped: unit 536 of stage 0
-  failed: DataError: (1264, "Out of range value for column 'band_index'
-  at row 1556")`. Cause, read from the code and computed by the TODO
-  thread: the scatter tables `bright_stars`, `sector_stats` and
-  `phenomenon_scatter` (`src/planetgen/db/schema.sql`, lines about 3321,
-  3390 and 3510) declare `band_index SMALLINT NOT NULL`, whose largest
-  value is 32,767, but a shell's bands run from -(h + 1) to h + 1 and
-  `spherical.band_range` gives +-5,910 at shell 3,763, +-15,708 at shell
-  10,000, +-31,415 at shell 20,000 and +-102,942 at shell 65,535. The
-  first shell whose bands exceed 32,767 is shell 20,861, so every
-  scatter row placed in a shell from 20,861 out to the 65,536-shell
-  reach overflows the column; the units are cut into runs of 64 shells,
-  heaviest first, so unit 536 (shells about 34,304 to 34,367, bands to
-  +-53,900) is one of the units in that region. The tests never reach
-  those shells. `sectors.band_index` and the galaxy_block_stats column
-  are INT and are not affected. Fails on main: yes by reading,
-  `schema.sql` on main still has SMALLINT in all three tables (the
-  running schema version is 107). Frequency: 1 of 1 whole-sphere runs.
-  Reproducer: insert a `bright_stars` row (and a `sector_stats` and a
-  `phenomenon_scatter` row) at shell 34,304 and band 53,000; or the
-  command line above. Do: widen `band_index` to INT in the three tables
-  with one migration (the next free revision at merge) and in
-  `schema.sql` and the fixtures, and read every other table and Python
-  array that holds a band index in the scatter path (the uid packing,
-  the unit results) for the same width; the early-alpha schema is not a
-  constraint. Done: a test stores and reads back a row at the largest
-  band of the outermost shell for each of the three tables, a
-  whole-sphere scatter run with the same command line passes the
-  outermost units, and no column named for a band is narrower than INT.
-  This blocks the one wiped rescatter and GEN.301. Owner: Bug Hunt
-  (Boss's order via the coordinator, 12:59 PM EDT).
-  In progress with Bug Hunt (1:03 PM EDT as the coordinator reported):
-  Bug Hunt confirmed the cause independently (SMALLINT band_index
-  overflows from shell 20,861, where the polar cap band reaches 32,768,
-  in bright_stars, sector_stats and phenomenon_scatter) and its fix,
-  three columns to INT in one migration with a test at the outermost
-  shell, goes out as its own PR ahead of its queue; it takes the next
-  free migration number at merge (head 0107). Boss's
-  job-20261017-162736-67d4 (PlanetGen 8.0.1726, started 12:27 PM EDT by
-  the file name) hit it; the finding the coordinator sent at 12:59 PM
-  EDT is this item, not a second bug.
-  Prerequisites: none. Related: GEN.301, DB.65.
 
 ## API: The JSON API
 
