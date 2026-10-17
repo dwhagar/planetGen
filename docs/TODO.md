@@ -11219,6 +11219,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   verification' note on this item is superseded for the body-related
   claims): (part G4) the licence column is mandatory for every row, and
   the loader refuses a row without one (the audit is GEN.500).
+  Boss's standing rule (3:02 AM EDT, section 4a item 10 of
+  composition-model.md): everything verified and partially verified is
+  usable as long as it is not contradictory, and the verified source
+  wins in a contradiction; the loader's source column carries the state
+  verified, partly verified (with its limit), open or stand-in, reports
+  the count per table, and the draw uses partly verified rows as
+  sourced-with-limit.
 
 - [ ] **GEN.473 Replace the asteroid taxon shares and the zone kernel, measured in the Solar System belt, by a derived or general distribution**
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
@@ -11486,6 +11493,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TEST.214, GEN.480, GEN.481, GEN.482, GEN.483, GEN.484, GEN.485,
   GEN.486, GEN.487, GEN.488, GEN.489, GEN.490, GEN.491, GEN.492,
   GEN.493, GEN.494.
+  Boss's standing rule (3:02 AM EDT, section 4a item 10 of
+  composition-model.md): everything verified and partially verified is
+  usable as long as it is not contradictory, and the verified source
+  wins in a contradiction; each of the 104 rows is marked with its
+  state; partly verified rows ship as sourced-with-limit unless a
+  verified source contradicts them, and only the rows with no usable
+  source stay open (the 48 of part 09, AR1 to AR15).
 
 - [ ] **GEN.479 The class atmosphere mixes contradict the checked chemistry: classes C, D and S have no mix, free oxygen sits in seven classes with no life rule, class L is 60 percent argon, E and F hold ammonia and methane at 340 to 400 K, N reads reducing and is oxidised, and I, J and T share one mix in every zone (bug)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
