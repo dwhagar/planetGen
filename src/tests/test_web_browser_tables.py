@@ -39,7 +39,7 @@ ROWS = [
 
 
 def _fake_phenomena(db, limit=None, offset=None, sort=None, descending=False, types=(), descriptors=(),
-                    placed=None, facets=False):
+                    placed=None, facets=False, after=None):
     """What `apiclient.get_phenomena` answers from `ROWS`."""
     rows = [row for row in ROWS if (not types or row["type"] in types)
             and (not descriptors or row["descriptor"] in descriptors)]

@@ -126,11 +126,12 @@ def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None, vel
     """
     Puts every body of `system` where it is in the galaxy.
 
-    Every star moves on the galaxy's rotation curve
+    The system moves on the galaxy's rotation curve
     (`galactic_velocity_ms`: its `galactic_orbital_speed_kms` along the
-    tangent at its place) plus the system's runaway motion
-    (`peculiar_velocity_ms`), and every body carries its primary's velocity
-    with the velocity it has relative to it.
+    tangent at its center) plus its runaway motion
+    (`peculiar_velocity_ms`); every star takes that one velocity, and every
+    body carries its primary's velocity with the velocity it has relative to
+    it.
 
     Args:
         system (StarSystem): The system (a stand-in without bodies is left
@@ -158,14 +159,15 @@ def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None, vel
     circular_velocity = galactic_velocity_ms(center_au, system_speed)
     system_velocity = tuple(velocity_ms) if velocity_ms is not None else _add(circular_velocity,
                                                                               peculiar_velocity_ms(system))
-    # What the system has beyond the rotation curve, every star shares.
-    extra = tuple(v - c for v, c in zip(system_velocity, circular_velocity))
+    # Every star of a system moves with the system: the pair's bulk motion is one vector (a wide pair's two stars sit
+    # up to a few hundredths of a parsec apart, where the rotation curve's tangent turns by about a millionth, 0.06 m/s
+    # of 200 km/s; a star taking the tangent at its own place instead would load back, from the one stored vector,
+    # differing by that much, GEN.527).
     star_centers, star_velocities = {}, {}
     for star, offset in _star_offsets_au(system):
         at = _add(center_au, offset)
         star_centers[id(star)] = at
-        speed = getattr(star, "galactic_orbital_speed_kms", None)
-        star_velocities[id(star)] = _add(galactic_velocity_ms(at, speed if speed is not None else system_speed), extra)
+        star_velocities[id(star)] = system_velocity
         mass = getattr(star, "mass", None)
         star.spatial = SpatialPosition3D(
             at, sector_au, is_star=True, length_unit_m=physical_constants.AU_M, sector_edge_pc=sector_edge_pc,

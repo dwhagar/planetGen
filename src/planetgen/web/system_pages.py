@@ -462,12 +462,13 @@ def _title_case(value):
     return (value or "").replace("_", " ").replace("-", " ").capitalize()
 
 
-def _phenomena_load(state, limit, offset, want_facets):
-    """The Phenomena table's page of rows (`lib/datatable.Result`)."""
+def _phenomena_load(state, limit, offset, want_facets, after=None):
+    """The Phenomena table's page of rows (`lib/datatable.Result`); `next` is the last scattered row's id when the
+    page ends inside the scattered tail, which every page after it is read from by key (PERF.75)."""
     filters = {"types": state.filters["type"], "descriptors": state.filters["descriptor"]}
     envelope = apiclient.get_phenomena(
         db_name(), limit=limit, offset=offset, sort=state.sort, descending=state.descending,
-        facets=want_facets, **filters)
+        facets=want_facets, after=after, **filters)
     rows = [[
         {"text": row["name"], "href": page_url("uncharted_phenomenon", scatter_id=row["scatter_id"])}
         if row["scattered"] else
@@ -488,7 +489,9 @@ def _phenomena_load(state, limit, offset, want_facets):
             "descriptor": [{"value": option["value"], "label": _title_case(option["value"]),
                             "count": option["count"]} for option in envelope["facets"]["descriptor"]],
         }
-    return Result(rows, envelope["total"], facets, envelope.get("total_capped", False))
+    last = envelope["items"][-1] if envelope["items"] else None
+    return Result(rows, envelope["total"], facets, envelope.get("total_capped", False),
+                  last["scatter_id"] if last and last["scattered"] else None)
 
 
 PHENOMENA_TABLE = tables.register(Table(
@@ -498,7 +501,7 @@ PHENOMENA_TABLE = tables.register(Table(
      Column("members", "Members", sortable=False)],
     _phenomena_load,
     facets=[Facet("type", "Type"), Facet("descriptor", "Descriptor")],
-    noun=("phenomenon", "phenomena"),
+    noun=("phenomenon", "phenomena"), keyset=True,
 ))
 
 

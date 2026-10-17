@@ -2,6 +2,62 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1743] - 2026-10-17
+
+**Headline:** Every page now warns visitors while a background run is changing the galaxy, with the time left to the next whole hour.
+
+### Added
+- **A banner on every page while the galaxy is being changed (UX.3).** Any visitor, signed in or not, sees "The galaxy is being changed by a background job" with an ETA in whole hours, rounded up and held steady (it falls as the estimate falls and rises only when even the low end of the estimate is longer). It reads the Redis run record of PERF.96, so a run started from the command line shows too; before a rate is known it says "a guess from earlier runs" or "working out how long it will take". A run with no sign of life, or on another database, shows nothing. Pages draw it when they are made and `/galaxy-status` refreshes it every 30 seconds.
+
+## [8.0.1742] - 2026-10-17
+
+**Headline:** The Uncharted stars and Phenomena tables page by key, so a page far down the list costs what the first page does.
+
+### Changed
+- **Uncharted stars page by key (PERF.75).** `GET /api/uncharted-systems` takes `after=<star id>` and the table passes the last star of each page on, so the brightest-first list and the sector sort walk their index to the page instead of skipping rows. Equal values are now ordered by id in the sort's own direction, which lets a descending page read the index backward with no sort.
+- **The Phenomena table pages the scattered tail by key.** `GET /api/phenomena` takes `after=<scatter id>`; a page that ends among the unbuilt scattered phenomena hands the next page its last id.
+- **The Systems name sort reads either way round from its index.** Systems with the same name are ordered by id in the sort's direction, so the descending name sort needs no sort of the table either.
+
+## [8.0.1741] - 2026-10-17
+
+**Headline:** The command line drops a workaround for a Python 3.9 argument-parsing bug that no supported Python has.
+
+### Changed
+- **`reject_lost_option_values` is gone from `planetgen/cli/generate.py` (DOC.24).** Python 3.9 turned `--workers=--` into an empty list; Python 3.12 and later keep the text and the option's own type check rejects it ("invalid int value"), which `tests/test_fuzz_cli.py` still covers for every such case.
+
+## [8.0.1740] - 2026-10-17
+
+**Headline:** A cell inside a Magellanic Cloud can now hold molecular clouds, nebulae, supernova remnants and magnetars, and the pre-placed planetary nebulae follow the old stars.
+
+### Added
+- **A satellite's gas (GEN.528).** A satellite's young stars (GEN.526) count in the molecular gas tracer the way the disk's do, with no spiral-arm contrast, so a cell in the Large or Small Cloud has a gas fraction (about a third at the Large Cloud's centre, nine tenths at the Small Cloud's) and so molecular clouds, emission and reflection nebulae and supernova remnants in its profile; the dwarf spheroidals, with no young stars, have none.
+- A satellite's component pass places supernova remnants, each kept with the gas fraction at its radius, and magnetars in proportion to its young stars.
+
+### Changed
+- The pre-placed planetary nebulae (the shell scatter, the reach and the progress estimate) are weighted by the share of the stars that are not young against the solar circle's, as a sector's are; the disk's difference is under 4%. A satellite's planetary nebulae take the same factor from its own young share.
+- A galaxy scattered before this needs `planetgen plan --redo-scatters phenomena` (generator epoch 13).
+
+generation-output: changed
+
+## [8.0.1739] - 2026-10-17
+
+**Headline:** The two stars of a wide pair now carry the same velocity when a sector is generated and when it is loaded back from the database.
+
+### Changed
+- **Every star of a system takes the system's velocity (GEN.527).** `place_system` used to give each star the rotation curve's tangent at its own place, plus what the system has beyond the curve. A wide pair's two stars sit far enough apart for the tangent to differ by 0.01 to 0.08 m/s, but the database stores one velocity per system, so a loaded pair came back with both stars on the system's vector and differed from the generated pair by that much (the cause of the occasional failure of `test_a_saved_runaway_system_loads_back_with_the_velocity_it_had`). Both paths now give each star the one system vector.
+- The saved-system test is back to a relative bound of 1e-6, and a new test places wide pairs, clears the stars' own speeds as a load does, places them again from the stored vector, and requires identical star velocities.
+
+TODO items resolved: GEN.527. Added: none.
+
+## [8.0.1738] - 2026-10-17
+
+**Headline:** The atmosphere colour note no longer waits on a licence check, following Boss's removal of GEN.500.
+
+### Changed
+- **Two lines of the atmosphere colour note named a licence gate.** The cool-star chromaticity ruling and the research order in `docs/design/atmosphere-colour.md` now say there is no licence gate and the licence column keeps `open`.
+
+TODO items resolved: none. Added: none.
+
 ## [8.0.1737] - 2026-10-17
 
 **Headline:** The scatter layers draw their random numbers in bulk, with the same numbers and the same stream state as before.

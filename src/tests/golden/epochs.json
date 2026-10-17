@@ -59,6 +59,11 @@
       "epoch": 12,
       "first_release": "8.0.1726",
       "reason": "A satellite galaxy's stars are split by a history derived from its stellar mass, size and mean age into young, intermediate and old populations (the Magellanic Clouds now place massive stars), the satellite's old window is 3 to 13 Gy, and the satellite scatter rows change with it (GEN.526)."
+    },
+    {
+      "epoch": 13,
+      "first_release": "8.0.1740",
+      "reason": "A satellite galaxy's young stars give it gas, so the Magellanic Clouds hold molecular clouds, nebulae and supernova remnants and place magnetars and remnants in the component pass, a satellite's planetary nebulae follow its old-star share, and the shell scatter weighs planetary nebulae by the old stars' share against the solar circle's (GEN.528)."
     }
   ]
 }
