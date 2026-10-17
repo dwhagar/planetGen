@@ -7075,6 +7075,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Galaxy gaps for this item: GR13 ultrafaint sizes, GR11 dwarf
   stellar-to-halo relation and its scatter, GR15 occupation width
   derived from the verified edges (plan 4.5).
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): GR11 scatter: the
+  environment is drawn from the halo mass and no environment concept is
+  added now; the dwarf scatter stays the uniform 0.19 to 0.5 dex
+  bracket.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
@@ -7431,6 +7437,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Galaxy gaps for this item: GR6 oldest thick disc and first-disc epoch
   (class B search, prior over the GR10 epoch), GX2, GX3 (group X5; Boss
   items 1 and 2 of plan section 8).
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): GR6 thick-disc start in
+  other galaxies: the halo formation epoch plus a 0 to 1 Gyr delay, a
+  labelled placeholder (kind P), replaced when S0 histories are found.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.387 Globular clusters, the nuclear cluster and the central black hole follow the family's spheroid and halo**
@@ -7812,6 +7823,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Galaxy gaps for this item: GR1, GR10, GX5, GR14 (accreted halo
   integral of plan 4.2, group X3, with the slope test against 0.79), GR3
   bound and GR4 rule (X2). Order X1, X2, X3.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): GX2 arm pitch against
+  bulge fraction: the sign is a 50/50 mixture and both sources stay
+  (Hart 2017, Yu and Ho 2018). GR5 (Courteau 2007 scatter) and GR3 rank
+  2 (Comeron 2011, 2012, 2014 tables): ship the plan's fills; a short
+  read-only VizieR search runs first, and a result replaces the fill
+  after this item merges.
   Prerequisites: none. Related: GEN.378, GEN.382, GEN.366, GEN.134.
 
 - [ ] **GEN.402 The central black hole mass and the nuclear cluster follow the bulge: the M-bulge and M-sigma relations replace the fixed ranges**
@@ -7864,6 +7883,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Galaxy gaps for this item: the reading jobs GR5, GR7, GR8, GR13 (group
   X4) and the priors GX2, GX3, GX4 (X5); each has a fill that ships
   without the answer.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): GX3 nuclear cluster slope:
+  uniform 0.48 to 1.36, both sources stay (Neumayer, Georgiev). GR5
+  (Courteau 2007 scatter): the fill ships and the VizieR search result
+  replaces it later.
   Prerequisites: GEN.401. Related: GEN.280, GEN.387, GEN.368.
 
 - [ ] **GEN.403 The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157**
@@ -7924,6 +7949,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Galaxy gaps for this item: GR7, GR8, GR9b, GR11 (group X4), GR10 age
   against halo mass and GX1 (X2, X3); the cluster radius GR9a is
   answered (Jordan 2005).
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): GX4 and the cluster-count
+  environment: the environment is drawn from the halo mass and the 0.3
+  dex factor applies with the group probability, no environment concept
+  added now. GR7 (blue against red radius ratio): log-uniform from 1.0
+  to the largest printed ratio, 1.5 until the ratios are read; both
+  sources stay.
   Prerequisites: none. Related: GEN.297, GEN.366, GEN.387.
 
 - [ ] **GEN.404 The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position**
@@ -8405,6 +8438,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   N 1 (JPL; the note's exponent gives -0.238); JPL 19-5 did not update
   the ClO reactions; no new PH3 cross sections; Harman 2015, Zahnle 2006
   and Hunten 1973 are not shown to be updated by new cross sections.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): AD3 correlated-k tables
+  (HITRAN, ExoMol). Data from HITRAN, ExoMol, Brewer 2016 or Hypatia is
+  downloaded at build time and no derived table is stored in the
+  repository, so builds need the network; the design states how tests
+  run offline (fixtures built by the test or a cache of earlier
+  downloads kept outside the repository, plan 6.5), and the data work of
+  group X9 waits on that design, not on the licence read.
   Related: GEN.87, GEN.189, DB.68.
 
 - [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
@@ -8488,6 +8530,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   finding 28 (dust effective radius and single-scattering albedo, haze
   threshold); the Mars dust albedo and Titan haze figures of the note
   are only partly confirmed.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): AD3 correlated-k tables
+  (HITRAN, ExoMol). Data from HITRAN, ExoMol, Brewer 2016 or Hypatia is
+  downloaded at build time and no derived table is stored in the
+  repository, so builds need the network; the design states how tests
+  run offline (fixtures built by the test or a cache of earlier
+  downloads kept outside the repository, plan 6.5), and the data work of
+  group X9 waits on that design, not on the licence read.
 
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8731,6 +8782,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   below about IW and carbonate above about IW+1; Na leads the vapour to
   about 2700 K, so no 2200 K switch and no 40 to 60 g/mol mean; keep the
   Miguel type edges; cold curves as in GEN.410.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): AD1 band strengths and AD4
+  Rayleigh factors; the AD4 originals (Bogaard 1978, Sneep and Ubachs
+  2005, Bates 1984, Bucholtz 1995) are on Boss's own list. Any table
+  this item downloads is fetched at build time and not stored, and tests
+  run offline (plan 6.5).
 
 - [ ] **GEN.423 Atmosphere density, scale height and the greenhouse multiplier follow from the mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -8788,6 +8846,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
   10A to 10D of atmosphere-composition.md): Parmentier and Guillot as in
   GEN.412 (equation 30, mu_* throughout, beta is the band fraction).
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): AD2 Mars dust and Titan
+  haze spectra. Any table this item downloads is fetched at build time
+  and not stored, and tests run offline (plan 6.5).
 
 - [ ] **GEN.424 The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -9127,6 +9190,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (asteroid, belt, field, comet, moon, planet, dwarf planet), each row
   gated by class; there are no separate component lists per kind. The
   bulk recipes draw their materials from the shared table of GEN.427.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): BC11 rogue-planet volatile
+  loss ships as a labelled placeholder: the loss fraction is drawn
+  uniform 0 to 1 and the draw is the fill, so there is no "retain all
+  volatiles" default (the plan's rank 1 text is rewritten). BC4
+  originals (Palme and O'Neill 2014, Rudnick and Gao 2014) are on Boss's
+  own list; the labelled scaling stays until his files are read.
 
 - [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -9353,6 +9424,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   moved it at 10:41 AM EDT). Blocker 1 builds it after TEST.186 because
   GEN.437 and GEN.472 wait on it. This replaces any earlier owner line
   on this item.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): AD5 particle spectra and
+  BC13 ICRP 103 (on Boss's own list; the secondary-source tissue factors
+  stay meanwhile). Any table this item downloads is fetched at build
+  time and not stored, and tests run offline (plan 6.5).
 
 - [ ] **GEN.437 The composition model: how the element, compound, material and body tables link, and what is stored against derived**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9495,6 +9572,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a source is `open`.
   Prerequisites: GEN.435, GEN.437, GEN.438, GEN.472. Related: GEN.440,
   GEN.428.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): BC2 star abundances
+  (Brewer 2016, Hypatia). Data from HITRAN, ExoMol, Brewer 2016 or
+  Hypatia is downloaded at build time and no derived table is stored in
+  the repository, so builds need the network; the design states how
+  tests run offline (fixtures built by the test or a cache of earlier
+  downloads kept outside the repository, plan 6.5), and the data work of
+  group X9 waits on that design, not on the licence read.
 
 - [ ] **GEN.440 Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9554,6 +9640,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   population, so the gate is the star's kind and the weight function is
   the star's own stored values; no new column, and the derived fractions
   are normalised after the draw.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): BC2 star abundances
+  (Brewer 2016, Hypatia). Data from HITRAN, ExoMol, Brewer 2016 or
+  Hypatia is downloaded at build time and no derived table is stored in
+  the repository, so builds need the network; the design states how
+  tests run offline (fixtures built by the test or a cache of earlier
+  downloads kept outside the repository, plan 6.5), and the data work of
+  group X9 waits on that design, not on the licence read.
 
 - [ ] **GEN.441 Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9709,6 +9804,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   table (GEN.495); class by dynamical type is a weak predictor (only CO
   separates, 28 percent of the variance), so the chemical classes of the
   note are not used.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): BC7 ice densities: Fray
+  and Schmitt 2009 and Bierson and Nimmo 2019 are on Boss's own list;
+  the bracket from NIST and PubChem stays meanwhile.
 
 - [ ] **GEN.443 Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9811,6 +9911,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Solar System values as test targets only), the metallicity trend of Th
   and U, the Band function for energetic-particle spectra and the Mars
   dose rates.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): AD5 particle spectra and
+  BC13 ICRP 103 (on Boss's own list; the secondary-source tissue factors
+  stay meanwhile). Any table this item downloads is fetched at build
+  time and not stored, and tests run offline (plan 6.5).
 
 - [ ] **GEN.445 Habitability, toxicity and the UV index read the derived radiation instead of the proxies**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -10516,6 +10622,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 30 of 54). This replaces any earlier owner line on this item.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): BC7 ice densities: Fray
+  and Schmitt 2009 and Bierson and Nimmo 2019 are on Boss's own list;
+  the bracket from NIST and PubChem stays meanwhile.
   Prerequisites: none. Related: GEN.426, GEN.442, GEN.466, GEN.437.
 
 - [ ] **GEN.458 Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes**
@@ -10822,6 +10933,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 20 of 54). This replaces any earlier owner line on this item.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): BC19 white-dwarf spectral
+  type against temperature (VizieR catalogues). Data from HITRAN,
+  ExoMol, Brewer 2016 or Hypatia is downloaded at build time and no
+  derived table is stored in the repository, so builds need the network;
+  the design states how tests run offline (fixtures built by the test or
+  a cache of earlier downloads kept outside the repository, plan 6.5),
+  and the data work of group X9 waits on that design, not on the licence
+  read.
 
 - [ ] **GEN.464 The disk solids law reads the star's metal mass fraction Z over Z0, not 10 to the power of [Fe/H], which is off by 1.7 to 3 times in metal-poor alpha-enhanced stars**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -11112,6 +11233,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 37 of 54). This replaces any earlier owner line on this item.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): BC12 vapour-pressure
+  windows: Fray and Schmitt 2009 is on Boss's own list; each fit stays
+  inside its stated window meanwhile.
 
 - [ ] **GEN.471 Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K**
   Part F of the Body composition research lane
@@ -11157,6 +11283,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   point Q1 271.60 K at 1.044 MPa is confirmed; the brine and H2SO4-H2O
   remarks carry no constants and stay unadopted until Tabazadeh 1997,
   Zeleznik 1991 and Ayers 1980 are read.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): AD7 vapour pressure:
+  Tabazadeh 1997 and Zeleznik 1991 are on Boss's own list; the nearest
+  reachable fits stay meanwhile.
 
 - [ ] **GEN.472 One gated possibility-table format and loader: every composition category is a table of possibilities with a class gate and a weight, drawn by the normalised weights of the rows that pass**
   Boss (2026-10-17, 1:40 AM EDT, typed in the project chat): "We have to
@@ -11689,6 +11820,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   distance (migrant probability logistic in mass, centre 6.1 Earth
   masses). Part 09 R2's source is wrong: Thiabaud 2014 (arXiv:1312.3085)
   is about refractories and mentions water five times.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): AT.b5 sub-percent water:
+  ships as a labelled placeholder, log-uniform.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.482 Source the magma-ocean fO2 prior against mass and the oxidation law of the later mantle (AR3)**
@@ -11814,6 +11949,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   kept only at Teq 2641 K and absent at 2210 to 2350 K while VO is kept
   at 2210 K; the Kzz draw LU[1e7, 1e11] is replaced by a Teq threshold
   (decision D5). Builders GEN.518 and GEN.519.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): AD6 hot-giant line lists
+  and vapour pressures (ExoMol). Data from HITRAN, ExoMol, Brewer 2016
+  or Hypatia is downloaded at build time and no derived table is stored
+  in the repository, so builds need the network; the design states how
+  tests run offline (fixtures built by the test or a cache of earlier
+  downloads kept outside the repository, plan 6.5), and the data work of
+  group X9 waits on that design, not on the licence read.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.486 Source the lava-world vapour regimes and the fraction of lava worlds that keep volatiles (AR7)**
@@ -11856,6 +12000,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   derivation with citations, the rows change from DESIGN to SOURCED or
   DERIVED, and TEST.214 lists fewer `open` rows. Owner: unowned
   (research; Boss or a read-only research lane).
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): AT.j2 to j4 Mars-, Titan-
+  and Pluto-like occurrence: an output of the escape and retention
+  physics, with the environment drawn from the halo mass and no
+  environment concept added now.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.488 Source the comet coma classes and their volatile ratios (AR9)**
@@ -11971,6 +12121,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   10^11.6 by Sing 2024 and 10^8.4 to 10^9.0 by Welbanks 2024); the
   aerosol amplitude samples are Fu 2017 (N=34), Estrela 2022 (N=62) and
   Brande 2024 (N=15). Builder GEN.519.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): AT.n7 haze yield: ships as
+  a labelled placeholder, log-uniform. AD7 originals (Tabazadeh and
+  Zeleznik) are on Boss's own list; the nearest reachable fits stay
+  meanwhile.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.492 Source the ground radioisotope abundances by host and the potassium depletion by body class (AR13)**
@@ -12107,6 +12263,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The NH3 activity factor is the research item GEN.501.
   Prerequisites: GEN.410. Related: GEN.410, GEN.455, GEN.413, GEN.472,
   GEN.501.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): AD8 photochemistry rates:
+  JPL Publication 19-5 is on Boss's own list; the NIST kinetics values
+  stay meanwhile.
 
 - [ ] **GEN.497 The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve**
   Body composition research lane check of Boss's second research note
@@ -12134,6 +12295,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against the part's table within its stated error and the CO2 targets
   above, and out-of-range calls are flagged. Owner: Core 4 (proposed,
   with the composition chain).
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): BC12 vapour-pressure
+  windows: Fray and Schmitt 2009 is on Boss's own list; each fit stays
+  inside its stated window meanwhile.
   Prerequisites: GEN.470. Related: GEN.470, GEN.452, GEN.410, GEN.427.
 
 - [ ] **GEN.498 One oxygen-fugacity scale for the generator: the reference fixed, delta-IW stored on it, and the buffers converted**
@@ -12181,6 +12347,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Core 4 (proposed, with the composition chain).
   Prerequisites: GEN.410, GEN.427. Related: GEN.456, GEN.451, GEN.441,
   GEN.478.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): AD6 hot-giant line lists
+  and vapour pressures (ExoMol). Data from HITRAN, ExoMol, Brewer 2016
+  or Hypatia is downloaded at build time and no derived table is stored
+  in the repository, so builds need the network; the design states how
+  tests run offline (fixtures built by the test or a cache of earlier
+  downloads kept outside the repository, plan 6.5), and the data work of
+  group X9 waits on that design, not on the licence read.
 
 - [ ] **GEN.500 The licence audit: the licence column filled for every data source, and the permission list for NIST, JPL, Leiden, Bremen and Karkoschka**
   Body composition research lane check of Boss's second research note
@@ -12227,6 +12402,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   value or a flagged seeded bracket, and the research is dated and
   labelled READ or NOT REACHED on the goal issue. Owner: unowned
   (research; Boss or a read-only research lane).
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): AD8 photochemistry rates:
+  JPL Publication 19-5 is on Boss's own list; the NIST kinetics values
+  stay meanwhile.
   Prerequisites: none. Related: GEN.496, GEN.455, GEN.500, GEN.410.
 
 - [ ] **GEN.502 The giant branch finishes the stellar tables check: the red giant time law as a function of core mass, the tip by metallicity and the branch duration against the observed horizontal-branch ratio**
@@ -12661,6 +12841,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   alone, and the part 09 row carries its state (Decided 3:02 AM EDT
   rule). A retune changes the table version and is a generator epoch
   bump. Owner: Core 4 (proposed, with the composition chain).
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): AT.n7 haze yield: ships as
+  a labelled placeholder, log-uniform.
   Prerequisites: GEN.503, GEN.506. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
@@ -13039,6 +13223,61 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/reports/gemini-batch1-check-2026-10-17.md. The
   recommendation in the previous note is taken. Until it reports, every
   Gemini claim stays unverified.
+  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
+  answers relayed in words by the coordinator;
+  docs/design/gap-filling-plan.md section 8): all seven open points of
+  the gap-filling plan. 1 Environment (GX4, GR11 scatter, AT.j): drawn
+  from the halo mass, no new environment concept now, the 0.3 dex
+  cluster-count factor applies with the group probability. 2 Verified
+  against verified (GX2, GX3, GR7): widen and keep both, neither
+  dropped: GX2 sign 50/50, GX3 uniform 0.48 to 1.36, GR7 log-uniform
+  from 1.0 to the largest printed ratio (1.5 until read). 3 Placeholders
+  BC11, AT.b5, AT.n7 ship as labelled placeholders (BC11 uniform 0 to 1
+  loss fraction, the draw is the fill; the others log-uniform). 4
+  Licences (HITRAN, ExoMol, Brewer 2016, Hypatia): downloaded at build
+  time, no derived tables stored; builds need the network, so the design
+  states how tests run offline and group X9 is gated on that design
+  (plan 6.5). 5 Boss fetches the papers behind refused publishers
+  himself; the stand-ins stay meanwhile and the items that need the
+  originals wait for his files. 6 Courteau 2007 (GR5) and Comeron 2011,
+  2012, 2014 (GR3): ship the fills and run the quick VizieR search first
+  (a short read-only thread; GEN.401 carries both gaps and GEN.402
+  carries GR5, so a result lands as a replacement after GEN.401 merges).
+  7 Thick-disc start in other galaxies (GR6): the halo formation epoch
+  plus a 0 to 1 Gyr delay, a labelled placeholder until S0 histories are
+  found.
+  Papers for Boss's own research list (decision 5; titles from the
+  Crossref record unless marked; stand-ins stay until a thread reads the
+  file): BC3 Stixrude and Lithgow-Bertelloni 2024, "Thermodynamics of
+  mantle minerals III: the role of iron", GJI 237, 1699, doi
+  10.1093/gji/ggae126 (base paper: 2005, "Thermodynamics of mantle
+  minerals I. Physical properties"); BC4 Palme and O'Neill 2014,
+  "Cosmochemical Estimates of Mantle Composition", Treatise on
+  Geochemistry 2nd ed., doi 10.1016/b978-0-08-095975-7.00201-1, and
+  Rudnick and Gao 2014, "Composition of the Continental Crust", doi
+  10.1016/b978-0-08-095975-7.00301-6; BC7 and BC12 Fray and Schmitt
+  2009, "Sublimation of ices of astrophysical interest: A bibliographic
+  review", Planetary and Space Science 57, 2053, doi
+  10.1016/j.pss.2009.09.011; BC7 Bierson and Nimmo 2019, "Using the
+  density of Kuiper Belt Objects to constrain their composition and
+  formation history", Icarus 326, 10, doi 10.1016/j.icarus.2019.01.027;
+  BC13 ICRP Publication 103, "The 2007 Recommendations of the
+  International Commission on Radiological Protection", Annals of the
+  ICRP 37 (2-4), 2007 (citation not confirmed in Crossref); AD4 Bogaard,
+  Buckingham and Pierens 1978, "Rayleigh scattering depolarization ratio
+  and molecular polarizability anisotropy for gases", J. Chem. Soc.
+  Faraday Trans. 2, doi 10.1039/f19787403008, with Sneep and Ubachs
+  2005, "Direct measurement of the Rayleigh scattering cross section in
+  various gases", JQSRT 92, 293, doi 10.1016/j.jqsrt.2004.07.025, Bates
+  1984, "Rayleigh scattering by air", Planetary and Space Science 32,
+  785, doi 10.1016/0032-0633(84)90102-8, and Bucholtz 1995 (title not
+  checked); AD7 Tabazadeh, Toon and Clegg 1997, "A new parameterization
+  of H2SO4/H2O aerosol composition: Atmospheric implications", GRL, doi
+  10.1029/97GL01879, and Zeleznik 1991, "Thermodynamic Properties of the
+  Aqueous Sulfuric Acid System to 350 K", JPCRD, doi 10.1063/1.555899;
+  AD8 JPL Publication 19-5, "Chemical Kinetics and Photochemical Data
+  for Use in Atmospheric Studies, Evaluation No. 19" (title from memory,
+  not found in Crossref).
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
