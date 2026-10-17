@@ -14,7 +14,9 @@ time while the temperature rises. The sum of the two is the Kelvin-Helmholtz tim
 note (which gives 10 Gyr at 0.1 solar masses, where models give about 1 Gyr, and had to be capped). Contraction does
 not pay for all the light, so `G M^2` is stretched by `tuning.PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR`.
 
-Inferred inputs (`tuning`, flagged [I]): the Hayashi temperature and its mass slope, and the birthline radius.
+Three inputs (`tuning`, GEN.529) are fitted to the published BHAC15 tracks (Baraffe et al. 2015, A&A 577, A42): the
+Hayashi temperature and its mass slope, the birthline radius and its slope, and the energy factor above. Past the
+table's 1.4 solar masses they are extended by the same power laws.
 """
 
 import math
@@ -35,12 +37,12 @@ YEAR_S = constants.SECONDS_PER_YEAR
 
 
 def hayashi_temperature_k(mass_sol):
-    """The effective temperature of a convective star of this mass on its Hayashi line (inferred, `tuning`)."""
+    """The effective temperature of a convective star of this mass on its Hayashi line (fitted to BHAC15, `tuning`)."""
     return tuning.HAYASHI_TEMPERATURE_1_SOL_K * mass_sol ** tuning.HAYASHI_TEMPERATURE_MASS_EXPONENT
 
 
 def birthline_radius_m(mass_sol):
-    """The radius a star has when its accretion ends and it starts to contract, metres (inferred, `tuning`)."""
+    """The radius a star has when its accretion ends and it starts to contract, metres (fitted to BHAC15, `tuning`)."""
     return (tuning.BIRTHLINE_RADIUS_1_SOL_RSUN * mass_sol ** tuning.BIRTHLINE_RADIUS_MASS_EXPONENT
             * constants.SOLAR_RADIUS_M)
 
@@ -83,12 +85,12 @@ def stage(mass_sol, age_yr):
     """
     `PROTOSTAR`, `PRE_MAIN_SEQUENCE` or None for a star of this initial mass at this age.
 
-    A star of `PRE_MAIN_SEQUENCE_MAX_MASS_SOL` or more is on the main sequence by the time it shows, so it has none,
-    and none is drawn at `PRE_MAIN_SEQUENCE_MAX_AGE_YR` or more. Under `PROTOSTAR_MAX_AGE_YR` (Class 0 and I) a star
-    still contracting is a protostar; after that, and until it has contracted to the main sequence, a
+    A star of `PRE_MAIN_SEQUENCE_MAX_MASS_SOL` or more is on the main sequence by the time it shows, so it has none.
+    Under `PROTOSTAR_MAX_AGE_YR` (Class 0 and I) a star still contracting is a protostar; after that, and until it
+    has contracted to the main sequence however long that takes (about a billion years at 0.1 solar masses), a
     pre-main-sequence star.
     """
-    if (mass_sol >= tuning.PRE_MAIN_SEQUENCE_MAX_MASS_SOL or age_yr >= tuning.PRE_MAIN_SEQUENCE_MAX_AGE_YR
+    if (mass_sol >= tuning.PRE_MAIN_SEQUENCE_MAX_MASS_SOL or age_yr >= tuning.PRE_MAIN_SEQUENCE_LONGEST_YR
             or age_yr >= contraction_time_yr(mass_sol)):
         return None
     return PROTOSTAR if age_yr < tuning.PROTOSTAR_MAX_AGE_YR else PRE_MAIN_SEQUENCE
@@ -119,7 +121,7 @@ def state(mass_sol, age_yr):
     Returns:
         dict: `yerkes_class` (`PROTOSTAR` or `PRE_MAIN_SEQUENCE`), `luminosity_sol`, `temperature_k`, `radius_km`
             (None: it follows from the first two, like every other star's), `phase_end_gy` (the age it leaves the
-            state: the contraction time, or `PRE_MAIN_SEQUENCE_MAX_AGE_YR` if that is sooner), and `disk_class` ("0",
+            state: the contraction time), and `disk_class` ("0",
             "I", "II" or "III").
     """
     which = stage(mass_sol, age_yr)
@@ -128,7 +130,7 @@ def state(mass_sol, age_yr):
     on_track = _track_state(mass_sol, age_yr)
     return {"yerkes_class": which, "luminosity_sol": on_track["luminosity_sol"],
             "temperature_k": on_track["temperature_k"], "radius_km": None,
-            "phase_end_gy": min(contraction_time_yr(mass_sol), tuning.PRE_MAIN_SEQUENCE_MAX_AGE_YR) / 1.0e9,
+            "phase_end_gy": contraction_time_yr(mass_sol) / 1.0e9,
             "disk_class": disk_class(age_yr)}
 
 

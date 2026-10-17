@@ -8,9 +8,10 @@ can draw with orbits in three dimensions.
 System Map (`systemmap.py`) is drawn in Python as SVG with log-scaled
 distances and no z, this keeps every number real: kilometres, the orbit
 elements the database stores, and the position each body had at `epoch`
-(the time `planetgen.cli.orbits` last advanced the phases). A client moves
-bodies to any other time from the elements (`period_years`, `phase_deg`);
-that is MAP.70.
+(the time `planetgen.cli.orbits` last advanced the orbits). A client moves
+bodies to any other time: a planet or moon from its state vector
+(`position_km`, `velocity_kms`, `epoch_unix`), a pair's second star from its
+elements (`period_years`, `phase_deg`); that is MAP.70.
 
 Every object carries a `ref` of the form `kind:id` (`star:3`, `planet:12`,
 `moon:40`, `belt:5`, `comet:8`) and an `orbit` naming what it goes round:
@@ -18,7 +19,9 @@ Every object carries a `ref` of the form `kind:id` (`star:3`, `planet:12`,
     {"around": ref or "barycenter", "distance_km", "period_years",
      "inclination_deg", "ascending_node_deg", "phase_deg"}
 
-for circular orbits (planets, moons, a binary pair), or for a comet the
+for a binary pair's circular orbit, the same without `phase_deg` and with
+`position_km`, `velocity_kms` and `epoch_unix` for a planet or moon (its
+state), or for a comet the
 Kepler elements (`kepler`: perihelion, eccentricity, argument of
 periapsis, mean anomaly). `position_km` is the object's position relative
 to what it goes round, as stored; the scene's frame has the system's
@@ -39,13 +42,17 @@ def _xyz(row, prefix="position_", suffix="_km"):
 
 
 def _orbit(row, around):
-    """A circular orbit's elements from a `planets`/`moons` row."""
+    """A planet's or moon's orbit from its `planets`/`moons` row (GEN.289): the elements the row keeps (the orbit's
+    semi-major axis, period and plane) and the state vector that is the body, in km and km/s relative to what it goes
+    round, with the epoch (Unix seconds, or None before the first orbit update) the state is true at. A client moves the
+    state with `kepler.universal_step` (`physics/body_state.py`, `static/orbitpositions.js`)."""
     return {
         "around": around,
         "distance_km": row["distance_km"], "period_years": row["period_years"],
         "inclination_deg": row["orbital_inclination_deg"],
         "ascending_node_deg": row["orbital_ascending_node_deg"],
-        "phase_deg": row["orbital_phase_deg"],
+        "position_km": _xyz(row), "velocity_kms": _xyz(row, "velocity_", "_kms"),
+        "epoch_unix": row.get("epoch_unix"),
     }
 
 

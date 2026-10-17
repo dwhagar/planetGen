@@ -24,7 +24,7 @@ import math
 import pytest
 
 from planetgen.db import store
-from planetgen.physics import constants
+from planetgen.physics import constants, neutron_star
 from planetgen import tuning
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.phenomena.compact_remnant import (BlackHole, CompactRemnant, NeutronStar, hawking_luminosity_w,
@@ -95,6 +95,13 @@ def test_black_hole_mass_class_matches_its_mass(monkeypatch):
     assert bh.mass_class == "stellar" and bh.type == "Stellar-Mass Black Hole"
 
 
+def test_a_galaxy_holds_hundreds_of_intermediate_mass_black_holes():
+    """GEN.259 (Boss, decision card, 2026-10-16): the Galaxy's 1e8 black holes (the central observed value of GEN.100)
+    give hundreds of intermediate-mass ones, as the handful of candidates suggest, not the 1e5 of a 0.1% share."""
+    black_holes = 1.0e8
+    assert 100.0 <= black_holes * tuning.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE <= 1000.0
+
+
 def test_supermassive_black_hole_sits_still_and_glows_faintly():
     bh = BlackHole(make_config(), mass_class="supermassive")
     low, high = tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR
@@ -137,7 +144,8 @@ def test_neutron_star_mass_radius_and_temperature_within_configured_ranges():
     for _ in range(TRIALS):
         ns = NeutronStar(make_config())
         assert tuning.NEUTRON_STAR_MASS_RANGE_SOLAR[0] <= ns.mass_solar <= tuning.NEUTRON_STAR_MASS_RANGE_SOLAR[1]
-        assert tuning.NEUTRON_STAR_RADIUS_RANGE_KM[0] <= ns.radius <= tuning.NEUTRON_STAR_RADIUS_RANGE_KM[1]
+        low, high = neutron_star.radius_limits_km(ns.mass_solar)
+        assert low - 1e-9 <= ns.radius <= high + 1e-9  # GEN.463: the band at its mass
         assert tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K[0] <= ns.surface_temperature_k <= tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K[1]
         assert ns.pulsar_type in ("young", "millisecond", "magnetar", "non-pulsing")
         assert ns.yerkes_class == "NS"

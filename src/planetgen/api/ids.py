@@ -297,6 +297,7 @@ KEY_KINDS = {
     "comet_id": "comet",
     "facility_id": "facility",
     "host_id": "host",
+    "parent_id": "parent",
     "neighbor_system_id": "system",
     "first_star_system_id": "system",
     "first_sector_id": "sector",
@@ -325,6 +326,8 @@ def _kind_of(kind, container, context):
         return context.get("phenomenon_type")
     if kind == "by-kind":
         return container.get("kind") if isinstance(container, dict) else None
+    if kind == "parent":
+        return container.get("parent_type") if isinstance(container, dict) else None
     if kind == "host":
         host_type = container.get("host_type") if isinstance(container, dict) else None
         return {"asteroid_belt": "belt", "space": "sector"}.get(host_type, host_type)

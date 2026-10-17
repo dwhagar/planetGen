@@ -92,8 +92,8 @@ def _save_moons(conn, system_id, star_id, planet):
     kept = []
     for index, moon in enumerate(planet.moons):
         if getattr(moon, "db_id", None) is not None:
-            _update_body(conn, "moons", moon, ("planet_id", "star_id", "orbital_index"),
-                         (planet.db_id, star_id, index))
+            _update_body(conn, "moons", moon, ("planet_id", "star_id", "orbital_index", "parent_id"),
+                         (planet.db_id, star_id, index, planet.db_id))
         else:
             moon.db_id = store.insert_moon(conn, moon, system_id, star_id, planet.db_id, index)
         kept.append(moon.db_id)
@@ -203,7 +203,8 @@ def save_system_edits(conn, system_id, system, stars=()):
                 for moon, row in zip(body.moons, rows):
                     moon.db_id = row["id"]
             else:
-                _update_body(conn, "planets", body, ("star_id", "orbital_index"), (star_id, index))
+                _update_body(conn, "planets", body, ("star_id", "orbital_index", "parent_type", "parent_id"),
+                             (star_id, index, *store.planet_parent(star_id, system_id)))
                 _save_moons(conn, system_id, star_id, body)
             kept_planets.append(body.db_id)
     _delete_missing(conn, "planets", "star_system_id", system_id, kept_planets)

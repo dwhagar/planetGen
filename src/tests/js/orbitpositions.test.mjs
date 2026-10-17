@@ -30,6 +30,20 @@ test("positionsAt matches the Python positions for every body at every time", ()
   }
 });
 
+test("universalStep matches kepler.universal_step for every size and sign of step", () => {
+  for (const c of F.orbitPositions.steps) {
+    const { position, velocity } = P.universalStep(c.position, c.velocity, c.mu, c.dt);
+    c.position_after.forEach((expected, axis) => {
+      assert.ok(Math.abs(position[axis] - expected) <= Math.max(1, Math.abs(expected) * 1e-9),
+        `position ${axis} after ${c.dt} s: ${position[axis]} vs ${expected}`);
+    });
+    c.velocity_after.forEach((expected, axis) => {
+      assert.ok(Math.abs(velocity[axis] - expected) <= Math.max(1e-6, Math.abs(expected) * 1e-9),
+        `velocity ${axis} after ${c.dt} s: ${velocity[axis]} vs ${expected}`);
+    });
+  }
+});
+
 test("a planet keeps its radius and returns after a period", () => {
   const { scene } = F.orbitPositions;
   const start = P.positionsAt(scene, 0)["planet:1"];

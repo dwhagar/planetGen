@@ -2,6 +2,74 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1754] - 2026-10-17
+
+**Headline:** The track of a young star now takes its numbers from published tables, and red dwarfs stay young stars for as long as the tables say.
+
+### Changed
+- **The pre-main-sequence track reads its constants from the BHAC15 tracks (GEN.529).** The Hayashi temperature (4357 K at one solar mass, rising as mass to the 0.1815), the birthline radius (3.19 solar radii at one solar mass, rising as mass to the 0.4335) and the energy factor (3.0, from 3.5) were remembered figures; they are now fitted to the Baraffe et al. 2015 tables (18 masses from 0.1 to 1.4 solar masses). The contraction time of a solar-mass star comes out at 37 Myr (the tables give 39), 0.5 solar masses at 92 Myr (146), 0.2 at 340 Myr (241) and 0.1 at 735 Myr (554); the fit is within 0.106 dex over all 18 masses and within 0.06 dex from 0.7 to 1.4 solar masses.
+- **The 10 Myr cap on the state is gone.** A star under 8 solar masses younger than its contraction time is a pre-main-sequence star at any age, so a red dwarf of 0.2 solar masses is still one at 100 Myr and a 0.1 solar-mass star up to 0.7 Gyr. About 3.6% of the disk's stars are drawn that way (1.1e-4 before). A system generated before this keeps the star it was drawn with.
+
+generation-output: changed
+
+TODO items resolved: GEN.529. Added: none.
+
+## [8.0.1753] - 2026-10-17
+
+**Headline:** A light star's red giant branch now follows the published core-mass-luminosity law, so its length, its top and how many giants are bright come from the star, and the horizontal branch lasts the same 100 Myr in every star.
+
+### Changed
+- **The red giant branch of a star lighter than 2.2 solar masses is the Hurley, Pols and Tout 2000 branch (GEN.502).** It started at a fixed 1.1 of the star's main-sequence lifetime, ended at a fixed 1.2, brightened by a fixed 3.5 times and ran to a fixed 2,500 solar luminosities at a fixed time slope. It now starts at the paper's time to the base of the branch, its base luminosity is the paper's equation 10, the helium core grows by the shell's burning with the luminosity a power of the core mass, and the branch ends at helium ignition (equation 49). For 0.95 solar masses the branch lasts 750 Myr from 2.5 to 2,700 solar luminosities (the median giant is 5.7), and the paper's Table 1 durations are reproduced (6.4% of the time to the base at one solar mass, 2.0% at two). At Z = 1e-4 the tip is 1,900 solar luminosities against the 1,650 to 1,780 of Serenelli et al. 2017 (`physics/giant_branch.py`). The scatter's tables, windows and bounds, the multi-star progenitor ages and the star's own phases all read the same functions, so a scattered star and a filled one agree. A heavier star, a bright giant, a supergiant and the asymptotic giant branch are unchanged.
+- **The horizontal branch lasts 100 Myr in every star** (`HORIZONTAL_BRANCH_DURATION_GY`), where it was 0.010 of the main-sequence lifetime (114 Myr at 0.95 solar masses and 250 Myr at 0.8). The ratio of its time to the red giant branch's time above it is 1.45 for 0.8 to 1.0 solar masses, against the 1.47 +- 0.025 of the 57 globular clusters of Salaris et al. 2004 (it was 1.8 at 0.95 and 2.8 at 0.85).
+
+generation-output: changed
+
+TODO items resolved: GEN.502. Added: none.
+
+## [8.0.1752] - 2026-10-17
+
+**Headline:** How long a star lives on the main sequence now comes from a published fit to stellar models, not a law anchored on the Sun.
+
+### Changed
+- **The main-sequence lifetime is the fit of Hurley, Pols and Tout 2000 (GEN.467).** It was `10 Gy * M^-2.5`; it is now the time to the base of the giant branch from their analytic formulae (equations 4 to 7, rms 1.9% against the detailed models), a function of mass and metallicity (`physics/ms_lifetime.py`). A solar mass lasts 10.2 Gy at the reference composition (the proto-solar Z of the composition scale, 0.0154), 5 solar masses 103 Myr (179 before), 20 solar masses 9.0 Myr (5.6), 150 solar masses 3.2 Myr (0.04) and 0.5 solar masses 124 Gy (57), so the massive stars live much longer than the old law gave and the red dwarfs about twice as long; the heaviest star still on the main sequence at 13.8 Gy is 0.93 solar masses (0.87 before). Metallicity is in the function (a poorer star lives shorter) and every caller passes a star of the reference composition until the composition is drawn first.
+- Everything that reads the lifetime follows: the age windows of giants and supergiants, which stars of a young cluster have collapsed, the companions' mass cap and the window for a compact companion, the planetary nebula's central star age and the scatter's phase windows. The mass whose lifetime is a given age comes from a bisection (`mass_for_lifetime_gy`), since the law is no longer a power.
+
+generation-output: changed
+
+TODO items resolved: GEN.467. Added: none.
+
+## [8.0.1751] - 2026-10-17
+
+**Headline:** A neutron star's radius now follows from its mass and the measured radius band, no longer a flat draw from 10 to 13 km.
+
+### Changed
+- **The neutron star radius is the band of Miller et al. 2021 (GEN.463).** It was drawn uniformly from 10 to 13 km, a floor the NICER and gravitational-wave radii do not support (they give 11.6 to 13.1 km). It is now the centre of the band at the star's mass, 12.45 km at 1.4 solar masses and 12.35 km at 2.08 (the line between the two, carried on to 1.1 and 2.2), plus a normal draw of the spread (0.65 and 0.75 km) clipped at two deviations, so the radius lies in 11.1 to 13.8 km at 1.4 solar masses and no star is under 10.8 km. The measured radii of PSR J0030+0451 (12.71 km) and PSR J0740+6620 (13.7 km) lie inside the band (`physics/neutron_star.py`).
+- A neutron star that is a companion in a multiple system takes the centre radius of its mass in place of a fixed 12 km, and the plausibility check reads the band at the star's mass. `NEUTRON_STAR_RADIUS_RANGE_KM` is gone.
+
+generation-output: changed
+
+TODO items resolved: GEN.463. Added: none.
+
+## [8.0.1750] - 2026-10-17
+
+**Headline:** A galaxy now holds hundreds of intermediate-mass black holes, not a hundred thousand.
+
+### Changed
+- **The share of black holes that are intermediate-mass is 3e-6, from 0.1% (GEN.259).** The Galaxy's 1e8 black holes gave about 1e5 of them, four orders above the handful of candidates and none confirmed in the field; Boss chose "hundreds, as the observations suggest" (decision card, 2026-10-16, 3:00 PM EDT). The Galaxy now holds about 300, carrying 0.35% of the black-hole mass instead of 53%, the scatter's intermediate-mass rows fall by the same factor, and a free-floating black hole is intermediate-mass in one draw of 330,000 (`BLACK_HOLE_INTERMEDIATE_MASS_CHANCE`).
+
+generation-output: changed
+
+TODO items resolved: GEN.259. Added: none.
+
+## [8.0.1749] - 2026-10-17
+
+**Headline:** A planet or moon is now its state vector, moved by Kepler's universal step, with no stored orbital phase.
+
+### Changed
+- **Planets and moons are stored as a point with a parent (GEN.289).** The nightly update steps each due body's position and velocity with `kepler.universal_step` (a compiled batch step, `physics/state_kernel.py`) from its own epoch, taking `mu` from the stored distance and period, and sets the next due time from the speed the new state has. `orbital_phase_deg` is gone from `planets` and `moons` (migration 0109, schema v109); the phase a page needs is read from the position. `insert_planet` and `insert_moon` now fill `parent_type` and `parent_id`, and the migration points a circumbinary planet at its system. The system scene API carries each body's `position_km`, `velocity_kms` and `epoch_unix` in place of `phase_deg`, and `orbitpositions.js` steps that state with a port of the same algorithm, so the browser and Python positions still agree. Tests hold the compiled step to the Python one, a quiet system to the cost of the old update, and the migration to a stopped run being started again.
+
+TODO items resolved: GEN.289. Added: none.
+
 ## [8.0.1748] - 2026-10-17
 
 **Headline:** The wheel zoom toward a star in an opened sector now ends at the star instead of sliding past it, never passes through a star on the way, and a double click on empty space flies half way toward the point under the pointer.

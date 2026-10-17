@@ -50,7 +50,7 @@ from dataclasses import dataclass
 from statistics import NormalDist
 
 from planetgen import tuning
-from planetgen.physics import constants, pre_main_sequence, roche, stability
+from planetgen.physics import constants, ms_lifetime, neutron_star, pre_main_sequence, roche, stability
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 
@@ -142,7 +142,6 @@ BROWN_DWARF_DESERT_KEEP = 0.01
 """A brown dwarf inside `BROWN_DWARF_DESERT_AU` of a star is kept in 1% of draws."""
 
 BROWN_DWARF_RADIUS_SOL = 0.1
-NEUTRON_STAR_RADIUS_KM = 12.0
 REMNANT_WINDOW_FRACTION = 1.0 / 3.0
 """float: A remnant companion of a living star exists only in the last third of the star's
 life, so the table value (a mean over all ages) is divided by this inside the window."""
@@ -430,19 +429,33 @@ def _remnant_leaf(kind, progenitor, mass, direct=False):
         radius = evolution.white_dwarf_radius_km(mass) * constants.KM_TO_M_FACTOR / constants.AU_M
         return _Leaf(kind, "VII", mass, progenitor, radius)
     if kind == "neutron-star":
-        return _Leaf(kind, None, mass, progenitor, NEUTRON_STAR_RADIUS_KM * constants.KM_TO_M_FACTOR / constants.AU_M)
+        return _Leaf(kind, None, mass, progenitor,
+                     neutron_star.radius_km(mass) * constants.KM_TO_M_FACTOR / constants.AU_M)
     return _Leaf(kind, None, mass, progenitor, _schwarzschild_au(mass), MEMBER_DIRECT_COLLAPSE if direct else 0)
 
 
 def _youngest_progenitor_sol(age_yr):
     """The lightest star whose giant phases have ended by this age (a star lighter than
-    `HELIUM_FLASH_MASS_SOL` also burns helium on the horizontal branch and climbs the asymptotic giant branch)."""
-    def mass(fraction):
-        return (tuning.SOLAR_MS_LIFESPAN_GY * fraction * 1.0e9 / age_yr) ** (1.0 / -tuning.MS_LIFESPAN_MASS_EXPONENT)
-    light = mass(evolution.remnant_age_fraction(0.0))
-    if light < tuning.HELIUM_FLASH_MASS_SOL:
-        return light
-    return max(mass(tuning.GIANT_PHASE_END_MS_FRACTION), tuning.HELIUM_FLASH_MASS_SOL)
+    `HELIUM_FLASH_MASS_SOL` also burns helium on the horizontal branch and climbs the asymptotic giant branch, and its
+    giant branch has the length of `giant_branch`, GEN.502)."""
+    age_gy = age_yr / 1.0e9
+    flash = tuning.HELIUM_FLASH_MASS_SOL
+
+    def life_gy(mass):
+        return ms_lifetime.lifetime_gy(mass) * evolution.remnant_age_fraction(mass)
+
+    if life_gy(flash * (1.0 - 1.0e-9)) <= age_gy:
+        low, high = ms_lifetime.MIN_MASS_SOL, flash
+        if life_gy(low) <= age_gy:
+            return low
+        for _ in range(50):
+            middle = math.sqrt(low * high)
+            if life_gy(middle) > age_gy:
+                low = middle
+            else:
+                high = middle
+        return high
+    return max(ms_lifetime.mass_for_lifetime_gy(age_gy / tuning.GIANT_PHASE_END_MS_FRACTION), flash)
 
 
 def _remnant(kind, age_yr, lowest, rng, limit_mass=None):
@@ -468,7 +481,7 @@ def _remnant(kind, age_yr, lowest, rng, limit_mass=None):
 def _alive_star_mass(low, high, age_yr, rng):
     """An IMF mass in `[low, high]` that is still on the main sequence at this age (the heaviest such mass
     caps the range)."""
-    cap = (tuning.SOLAR_MS_LIFESPAN_GY * 1.0e9 / age_yr) ** (1.0 / -tuning.MS_LIFESPAN_MASS_EXPONENT)
+    cap = ms_lifetime.mass_for_lifetime_gy(age_yr / 1.0e9)
     high = max(min(high, cap), low * 1.0001)
     return evolution.sample_imf_mass_sol(low, high, rng)
 

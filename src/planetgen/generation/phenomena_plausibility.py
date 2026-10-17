@@ -38,7 +38,7 @@ import math
 import statistics
 from collections import Counter, defaultdict
 
-from planetgen.physics import constants as pc
+from planetgen.physics import constants as pc, neutron_star
 from planetgen import tuning as prog_c
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar, hawking_luminosity_w
@@ -403,9 +403,9 @@ def check_hard_invariants(record):
         mass_lo, mass_hi = prog_c.NEUTRON_STAR_MASS_RANGE_SOLAR
         if not (mass_lo <= record["mass_solar"] <= mass_hi):
             issues.append(f"mass_solar={record['mass_solar']!r} outside {prog_c.NEUTRON_STAR_MASS_RANGE_SOLAR}")
-        radius_lo, radius_hi = prog_c.NEUTRON_STAR_RADIUS_RANGE_KM
-        if not (radius_lo <= record["radius_km"] <= radius_hi):
-            issues.append(f"radius_km={record['radius_km']!r} outside {prog_c.NEUTRON_STAR_RADIUS_RANGE_KM}")
+        radius_lo, radius_hi = neutron_star.radius_limits_km(record["mass_solar"])
+        if not (radius_lo - 1e-9 <= record["radius_km"] <= radius_hi + 1e-9):
+            issues.append(f"radius_km={record['radius_km']!r} outside {(radius_lo, radius_hi)} for its mass")
         temp_lo, temp_hi = prog_c.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K
         if not (temp_lo <= record["surface_temperature_k"] <= temp_hi):
             issues.append(

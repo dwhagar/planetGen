@@ -386,16 +386,18 @@ WHITE_DWARF_MAX_AGE_GY = 12.0
 # only present-day temperature, not a lifespan (see
 # get_star_evolutionary_profile in utils.py for the same issue on the
 # planet-life side). Instead, the star's own already-generated mass is run
-# through the standard mass-luminosity-based main-sequence lifetime scaling
-# (the same t = 10 Gy * (M/Msun)^-2.5 relation used to derive the
-# STAR_EVOLUTION table above, anchored to the Sun), then extended by the
-# standard rule-of-thumb that a star spends about 90% of its total lifetime
-# on the main sequence -- so the star must already be at least as old as
-# that main-sequence lifespan (it has to have finished that phase to be
-# observed as an evolved class), and at most its total (MS + post-MS)
-# lifespan.
-SOLAR_MS_LIFESPAN_GY = 10.0
-MS_LIFESPAN_MASS_EXPONENT = -2.5
+# through the main-sequence lifetime of physics/ms_lifetime.py (the fit of
+# Hurley, Pols and Tout 2000 to detailed models, GEN.467; the STAR_EVOLUTION
+# table above was derived from the older t = 10 Gy * (M/Msun)^-2.5 law),
+# then extended by the standard rule-of-thumb that a star spends about 90%
+# of its total lifetime on the main sequence -- so the star must already be
+# at least as old as that main-sequence lifespan (it has to have finished
+# that phase to be observed as an evolved class), and at most its total
+# (MS + post-MS) lifespan.
+# The heavy-element mass fraction the lifetime's [Fe/H] is measured from:
+# the proto-solar Z of the composition scale, Asplund 2021 (stellar-
+# composition.md D1). A solar mass lasts 10.2 Gy at it.
+MS_LIFETIME_REFERENCE_Z = 0.0154
 MS_LIFESPAN_FRACTION_OF_TOTAL = 0.9
 # Subdwarfs (Yerkes VI, e.g. real sdB/sdO stars) are excluded from the
 # mass-derived model above -- not just from its mass-sampling rejection
@@ -418,8 +420,8 @@ SUBDWARF_MIN_AGE_GY = 1.0
 SUBDWARF_MAX_AGE_GY = 13.5
 SUBDWARF_REMAINING_PHASE_MIN_GY = 0.05
 SUBDWARF_REMAINING_PHASE_MAX_GY = 0.3
-# A sub-solar-mass progenitor (roughly under ~0.88 Msun, per the
-# SOLAR_MS_LIFESPAN_GY/MS_LIFESPAN_MASS_EXPONENT formula above) already has
+# A sub-solar-mass progenitor (roughly under ~0.93 Msun, per the
+# ms_lifetime.py lifetime above) already has
 # a main-sequence lifespan longer than the universe itself -- it couldn't
 # possibly have evolved off the main sequence yet, so it must never be
 # accepted as an evolved-class star's progenitor mass in the first place
@@ -428,7 +430,7 @@ SUBDWARF_REMAINING_PHASE_MAX_GY = 0.3
 # SECTOR_MAX_PLACEMENT_ATTEMPTS caps SpaceSector's own reject-and-resample
 # loop: most classes' allowed mass range sits entirely clear of the cutoff
 # (so the very first draw is accepted) and only the class III (Giant) low
-# end (0.8-~0.88 Msun, out of an 0.8-8 Msun range) ever needs a resample,
+# end (0.8-~0.93 Msun, out of an 0.8-8 Msun range) ever needs a resample,
 # so 100 attempts leaves effectively zero chance of exhausting this for any
 # class it's actually applied to.
 EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS = 100
@@ -516,17 +518,26 @@ IMF_SLOPES = (1.3, 2.3)
 STAR_FORMATION_AGE_RANGE_GY = (0.0, 10.0)
 
 # Post-main-sequence phases, as multiples of the main-sequence lifetime
-# (SOLAR_MS_LIFESPAN_GY * M^MS_LIFESPAN_MASS_EXPONENT above): subgiant up
-# to 1.1, giant or supergiant up to 1.2, then a remnant. Real post-MS
-# phases take roughly 10-20% of the main-sequence time. A star lighter than
-# HELIUM_FLASH_MASS_SOL burns helium in its core after the red giant branch
-# (the horizontal branch) and then climbs the asymptotic giant branch before
-# it becomes a white dwarf (GEN.286): HORIZONTAL_BRANCH_MS_FRACTION and
-# AGB_MS_FRACTION are added to GIANT_PHASE_END_MS_FRACTION for it.
+# (physics/ms_lifetime.py, above). A star lighter than HELIUM_FLASH_MASS_SOL
+# burns helium in its core after the red giant branch (the horizontal branch)
+# and then climbs the asymptotic giant branch before it becomes a white dwarf
+# (GEN.286). For it the subgiant phase ends at, and the red giant branch ends
+# at, the times of physics/giant_branch.py (GEN.502, Hurley, Pols and Tout
+# 2000: 1.05 and 1.12 of the main-sequence lifetime at a solar mass, from the
+# core-mass-luminosity relation of the branch), and HORIZONTAL_BRANCH_DURATION_GY
+# and AGB_MS_FRACTION are added for it. A heavier star keeps the two figures
+# below, a subgiant phase up to 1.1 and a giant or supergiant phase up to 1.2,
+# then a remnant (real post-MS phases take roughly 10-20% of the
+# main-sequence time) [R]: its core helium burning is not modelled.
 SUBGIANT_PHASE_END_MS_FRACTION = 1.1
 GIANT_PHASE_END_MS_FRACTION = 1.2
 HELIUM_FLASH_MASS_SOL = 2.2
-HORIZONTAL_BRANCH_MS_FRACTION = 0.010
+# Core helium burning lasts the same 100 Myr in every star that ignites it in a
+# flash, since the degenerate core is about 0.5 solar masses whatever the star's
+# mass (Salaris et al. 2004, the 1.44 +- 0.06 horizontal-branch stars to each red
+# giant brighter than the branch in globular clusters, against the 69 Myr the
+# giant branch of physics/giant_branch.py spends there) [R].
+HORIZONTAL_BRANCH_DURATION_GY = 0.100
 AGB_MS_FRACTION = 0.002
 
 # Stars at or above this initial mass end as supergiants and then neutron
@@ -535,30 +546,28 @@ SUPERGIANT_MIN_MASS_SOL = 8.0
 # Giants at or above this initial mass are bright giants (II), not III.
 BRIGHT_GIANT_MIN_MASS_SOL = 4.0
 # Giant-branch luminosities (Lsun) and temperatures (K). A giant lighter than
-# BRIGHT_GIANT_MIN_MASS_SOL is on the red giant branch: it rises from the
-# base (SUBGIANT_MAX_BRIGHTENING times the star's main-sequence luminosity,
-# where its subgiant phase ended) to the tip, and the time it spends at each
-# luminosity falls as L^-GIANT_BRANCH_TIME_SLOPE per unit of ln L (GEN.287).
-# That is the real luminosity function, and it follows from the physics: the
-# helium core grows by the hydrogen shell burning at the star's luminosity, so
-# dt = (X Q / L) dMc, and the luminosity climbs as a power Mc^p of the core
-# mass, which gives dt/dlnL proportional to L^(1/p - 1) [R, Refsdal and Weigert
-# 1970; Salaris and Cassisi 2005; recalled, unconfirmed]. p is about 10 at the
-# base and about 5 at the tip, so the true slope flattens from -0.83 to -0.56
-# along the branch (the core-mass-luminosity fit of arXiv 2503.17772, eq. 1:
-# one data point [P]); one exponent, 0.78, reproduces that fit's share of the
-# branch spent above 50, 100, 500 and 1,000 Lsun (9.6, 5.5, 1.3 and 0.59%)
-# within 15% (stellar tables check, 2026-10-17); the first value, 0.9, undercounted
-# the giants above 500 Lsun by a factor of two. The tip is where the core
-# helium ignites: near 2,500 Lsun for a solar-metallicity star (Serenelli et al.
-# 2017, table 2: 2,410 to 2,450 at Z 0.004), 1,650 to 1,780 at Z 0.0001, so 15 to
-# 50% high for an [Fe/H] -2 halo star [P]; one tip, until the giant knows its [Fe/H].
-# Log-uniform spreading over 50 to 1,000 Lsun, which this replaces, put every
-# giant above 50 Lsun and overstated the bright ones many times against real
-# counts: the real branch spends most of its time near its base (its
-# observed ratio of horizontal-branch stars to red giants brighter than the
-# horizontal branch is 1.44 +- 0.06 for the 41 halo clusters of Salaris et
-# al. 2004, table 2, and 1.51 +- 0.05 for all 57 [P]).
+# HELIUM_FLASH_MASS_SOL is on the red giant branch of physics/giant_branch.py
+# (GEN.502): the helium core grows by the hydrogen shell burning at the star's
+# luminosity, dMc/dt = A_H L, and the luminosity climbs with the core mass as
+# L = min(B Mc^q, D Mc^p) (Hurley, Pols and Tout 2000, eq. 37, p = 6 and q = 3
+# at low mass), so the time at each luminosity, the branch's duration and its
+# tip (where the core helium ignites, about 2,700 Lsun at the reference
+# composition, 1,900 at Z 0.0001 against Serenelli et al. 2017's 1,650 to
+# 1,780) follow from the relation, the slope flattening from -0.83 to -0.67
+# along the branch [V]. It reproduces the paper's Table 1 durations
+# and the observed ratio of horizontal-branch stars to red giants brighter
+# than the horizontal branch, 1.44 +- 0.06 for the 41 halo clusters of Salaris
+# et al. 2004, table 2 (1.51 +- 0.05 for all 57) [P]. The shares of the branch
+# spent above 50, 100, 500 and 1,000 Lsun (8.7, 4.7, 1.0 and 0.42%) are 10 to
+# 30% under the 9.6, 5.5, 1.3 and 0.59% of the fit of arXiv 2503.17772
+# (eq. 1, one data point [P]), whose slope flattens further, to -0.56 at the tip.
+# The two figures below are what is left of the older single-exponent law
+# (GEN.287): the intermediate-mass giants, lighter than
+# BRIGHT_GIANT_MIN_MASS_SOL but not lighter than HELIUM_FLASH_MASS_SOL, rise from
+# SUBGIANT_MAX_BRIGHTENING times the main-sequence luminosity to the tip, the
+# time at each luminosity falling as L^-GIANT_BRANCH_TIME_SLOPE per unit of ln L,
+# and the asymptotic giant branch (AGB_LUMINOSITY_RANGE_SOL) takes the same slope
+# [R, recalled, unconfirmed: Refsdal and Weigert 1970; Salaris and Cassisi 2005].
 GIANT_BRANCH_TIP_LUMINOSITY_SOL = 2500.0
 GIANT_BRANCH_TIME_SLOPE = 0.78
 BRIGHT_GIANT_LUMINOSITY_RANGE_SOL = (1000.0, 10000.0)  # log-uniform
@@ -693,36 +702,50 @@ LIFE_MIN_STAR_AGE_GY = 0.1
 GIANT_ENGULFMENT_RADIUS_FACTOR = 2.0
 WD_PROGENITOR_ENGULFMENT_AU = 1.5
 
-# The pre-main-sequence state (GEN.242, physics/pre_main_sequence.py). A star
-# below PRE_MAIN_SEQUENCE_MAX_MASS_SOL younger than its contraction time is a
-# protostar (Class 0 and I, under PROTOSTAR_MAX_AGE_YR) or a pre-main-sequence
-# star (Class II and III). The track is derived, not tabulated: a convective
-# star (polytrope n = 3/2) holds 3/7 G M^2 / R of energy and a radiative one
-# (n = 3) 3/4 G M^2 / R, it shrinks at the luminosity it radiates, and on its
-# Hayashi line (convective) the effective temperature stays put, so
-# R^-3 grows in step with time. The three numbers below are the inferred part
-# [I]: they were set from the published tracks as remembered (Baraffe et al.
-# 2015, arXiv:1503.04107, could be fetched but not its tables), and a TODO
-# finding asks for a sourced replacement. The state is drawn only under
-# PRE_MAIN_SEQUENCE_MAX_AGE_YR, the age limit of T Tauri and Herbig Ae/Be stars
-# and of planet formation (PLANET_MIN_STAR_AGE_GY): a red dwarf still shrinking
-# towards the main sequence at 100 Myr (the track takes 0.1 solar masses 860
-# Myr) is drawn on it, a known simplification that costs it up to a few times
-# its light.
+# The pre-main-sequence state (GEN.242, GEN.529, physics/pre_main_sequence.py).
+# A star below PRE_MAIN_SEQUENCE_MAX_MASS_SOL younger than its contraction time
+# is a protostar (Class 0 and I, under PROTOSTAR_MAX_AGE_YR) or a
+# pre-main-sequence star (Class II and III), however old that time is: the
+# track takes 0.1 solar masses about a billion years, and a red dwarf still
+# shrinking at 100 Myr keeps its pre-main-sequence class. The track is
+# derived: a convective star (polytrope n = 3/2) holds 3/7 G M^2 / R of
+# energy and a radiative one (n = 3) 3/4 G M^2 / R, it shrinks at the
+# luminosity it radiates, and on its Hayashi line (convective) the effective
+# temperature stays put, so R^-3 grows in step with time. Three numbers are
+# read from the published tracks, not recalled (GEN.529): Baraffe, Homeier,
+# Allard and Chabrier 2015 (A&A 577, A42, arXiv:1503.04107, the BHAC15 tracks
+# table at perso.ens-lyon.fr/isabelle.baraffe/BHAC15dir, solar metallicity,
+# 0.1 to 1.4 solar masses, from 0.5 Myr) [V]. The Hayashi temperature is the
+# effective temperature at 1 Myr, 4357 K at one solar mass and rising as
+# m^0.1815 (18 masses, rms 0.004 dex); the birthline radius is the radius at
+# the table's first age, 3.19 solar radii at one solar mass and rising as
+# m^0.4335 (rms 0.03 dex); both are extended past 1.4 solar masses by their
+# power law. The energy factor is the one number the table fixes only through
+# its end: contraction alone, at the luminosity the star radiates, is too
+# quick, and deuterium burning and the heat of the interior pay for part of
+# the light, so the time is stretched by 3.0, the value at which the model
+# reaches the main sequence at the age the table's radius settles to within
+# 2% of its minimum, rms 0.106 dex over the 18 masses (0.7 to 1.4 solar masses
+# within 0.06 dex, 0.1 to 0.2 up to 0.21 dex too slow). The model ends on the
+# generator's own main sequence (`stellar_evolution`), which is 0.05 to 0.28
+# dex brighter than the table's 1 Gyr star below 1.2 solar masses (the table
+# is solar-composition at 1 Gyr, the generator's relation is anchored on the
+# Sun), so a state against the table is that much too bright at the end of the
+# contraction. At 1 to 10 Myr the luminosity is within 0.25 dex of the table up
+# to 0.3 solar masses and up to 0.35 dex too bright from 0.5 to 1.4, where the
+# derived Hayashi phase falls more slowly than the table's.
 PRE_MAIN_SEQUENCE_MAX_MASS_SOL = 8.0
-PRE_MAIN_SEQUENCE_MAX_AGE_YR = 10.0e6
+# No star contracts longer than this: the track takes the lightest star (0.08 solar masses) 0.94 Gyr. A shortcut for
+# the old stars, which are nearly all of them; the test checks it against the track.
+PRE_MAIN_SEQUENCE_LONGEST_YR = 1.0e9
 PROTOSTAR_MAX_AGE_YR = 0.5e6
-HAYASHI_TEMPERATURE_1_SOL_K = 4300.0
-HAYASHI_TEMPERATURE_MASS_EXPONENT = 0.17
-BIRTHLINE_RADIUS_1_SOL_RSUN = 2.5
-BIRTHLINE_RADIUS_MASS_EXPONENT = 1.0 / 3.0
+HAYASHI_TEMPERATURE_1_SOL_K = 4357.0
+HAYASHI_TEMPERATURE_MASS_EXPONENT = 0.1815
+BIRTHLINE_RADIUS_1_SOL_RSUN = 3.187
+BIRTHLINE_RADIUS_MASS_EXPONENT = 0.4335
 CONVECTIVE_BINDING_COEFFICIENT = 3.0 / 7.0
 RADIATIVE_BINDING_COEFFICIENT = 3.0 / 4.0
-# Contraction alone, at the luminosity the star radiates, takes a solar-mass star to the main sequence in 12 Myr and
-# a 0.1 solar-mass star in 245 Myr, where the published tracks give about 40 Myr and 1 Gyr: deuterium burning and
-# the heat of the interior pay for part of the light. The time is stretched by this factor [I], set to that one
-# remembered anchor (1 solar mass, 40 Myr); the shape in mass is the derived one.
-PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR = 3.5
+PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR = 3.0
 # The disk (VANDAM and the TODO text, GEN.242): Class 0 under 0.15 Myr, I under
 # 0.5, II under 3, and none after; mass 0.01 to 0.3 of the star and outer
 # radius 10 to 300 AU, each log-uniform; the inner edge is where a blackbody
@@ -2210,11 +2233,14 @@ HABITABLE_FLAVOR = [ # Flavor text for any habitable world.
 # instead draws an intermediate-mass black hole (IMBH), log-uniform over
 # ~1e2-1e5 Msun -- the range between stellar and supermassive black
 # holes (Greene, Strader & Ho 2020, ARA&A 58:257). Boss (2026-09-30)
-# wants them "a smattering (rare)": retuned 2026-10-09 from 2% to 0.1%
-# (about 1e5 in a Milky Way-sized galaxy; the observed candidates number a handful).
+# wants them "a smattering (rare)": retuned 2026-10-09 from 2% to 0.1%, which
+# gave about 1e5 in a Milky Way-sized galaxy against the handful of observed
+# candidates, and on 2026-10-16 (Boss, decision card, GEN.259) to 3e-6, so that
+# a Milky Way-sized galaxy, with about 1e8 black holes, holds about 300 of them
+# ("hundreds, as the observations suggest") [R].
 BLACK_HOLE_MASS_RANGE_SOLAR = (5.0, 20.0)
 BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR = (1e2, 1e5)
-BLACK_HOLE_INTERMEDIATE_MASS_CHANCE = 0.001
+BLACK_HOLE_INTERMEDIATE_MASS_CHANCE = 3.0e-6
 
 # A quiescent supermassive black hole sits at the center of every galaxy
 # whose nucleus isn't an active quasar (generate.add_galactic_nucleus).
@@ -2276,11 +2302,14 @@ GALAXY_DISK_SCALE_LENGTH_PC = 2600.0
 # Freire 2016, ARA&A 54:401, compiling radio pulsar timing masses).
 NEUTRON_STAR_MASS_RANGE_SOLAR = (1.1, 2.2)
 
-# Neutron star radius range in km, from NICER x-ray pulse-profile
-# modeling of PSR J0030+0451 and PSR J0740+6620 (Miller et al. 2019,
-# ApJL 887:L24; Miller et al. 2021, ApJL 918:L28), which converged on
-# radii clustering near 11-13 km across the measured mass range.
-NEUTRON_STAR_RADIUS_RANGE_KM = (10.0, 13.0)
+# Neutron star radius (GEN.463, physics/neutron_star.py): the centre and the
+# spread, km, at two masses, from Miller et al. 2021 (ApJL 918:L28,
+# arXiv:2105.06979): R(1.4 Msun) = 12.45 +- 0.65 and R(2.08 Msun) = 12.35 +-
+# 0.75, the full range of the 68% intervals over three equation-of-state
+# frameworks; a star draws a normal deviation about the line between them,
+# clipped at NEUTRON_STAR_RADIUS_CLIP_SIGMA deviations (the 95% band).
+NEUTRON_STAR_RADIUS_ANCHORS = ((1.4, 12.45, 0.65), (2.08, 12.35, 0.75))
+NEUTRON_STAR_RADIUS_CLIP_SIGMA = 2.0
 
 # Pulsar spin period, in milliseconds, split into the two real observed
 # populations (Lorimer 2008, "Binary and Millisecond Pulsars", Living
@@ -3430,8 +3459,8 @@ or above it; a sector draws the rest when it is filled (GEN.168). An
 object's tidal sphere (1.44 pc per cube root of a solar mass) reaches one
 4 pc sector edge at about 21 solar masses, so below the cut an object's
 pull stays within its own and the neighbouring sectors. 20 first (only the
-intermediate-mass black holes scattered: about 2.7e5 rows instead of
-1.17e9); 8 on 2026-10-10 (Boss, the bottom preset)."""
+intermediate-mass black holes scattered: about 2.7e5 rows at a 0.1%
+share, about 800 at the 3e-6 of GEN.259, instead of 1.17e9); 8 on 2026-10-10 (Boss, the bottom preset)."""
 
 
 def phenomenon_rate_per_star(kind):
