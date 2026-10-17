@@ -13238,31 +13238,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
-- [ ] **GEN.527 The second star of a wide pair in a saved runaway system loads back 0.4 m/s off the system's velocity: find the cause instead of loosening the test (bug)**
-  Found by Core 1 (2026-10-17, 5:19 AM EDT as the lane reported, #1997),
-  relayed by the coordinator, filed by the TODO thread.
-  `src/tests/test_system_velocity.py::test_a_saved_runaway_system_loads_back_with_the_velocity_it_had`
-  failed 1 time in about 25 runs (a random system, only with a wide
-  pair): since GEN.336 the second star of a wide pair takes the system's
-  rotation speed, which is 0.4 m/s of 57 km/s off (7.5e-6 relative
-  against a tolerance of 1e-6). Before the stack it failed 0 of 100.
-  #1997 widened the test's tolerance to 1e-4 (0 of 120 failures), which
-  hides the difference rather than explaining it. Do: find why the
-  second star's velocity is not the saved system velocity plus its
-  orbital motion (the rotation speed taken for the second star, an order
-  of operations in the load path, or float rounding in the orbit
-  conversion) and fix the cause so the tolerance can return to 1e-6, or
-  state in the test why 1e-4 is the right bound with the cause named.
-  Done: a loaded wide pair's stars carry the velocity the saved system
-  had to the stated tolerance, the test holds its original bound (or a
-  bound whose reason is written in the test) over 200 random systems,
-  and the cause is recorded on this item. Fails on main: yes (flaky,
-  about 1 in 25). Reproducer: `python -m pytest -q
-  src/tests/test_system_velocity.py --count 100` or a loop of the test
-  until it fails. Owner: Core 1 (proposed, its point-model stack changed
-  GEN.336's path).
-  Prerequisites: none. Related: GEN.336, TEST.193.
-
 - [ ] **GEN.528 The rest of GEN.319: a Magellanic cell shows every class, and the scatter's planetary nebulae are weighted by the old share**
   Residual of GEN.319 (merged #2003, 6:22 AM EDT as Core 3 reported),
   filed by the TODO thread from Core 3's report. GEN.319 made the Type
@@ -17715,6 +17690,19 @@ clears each one.
   runs. Reproducer: python -m pytest
   src/tests/test_web_browser_sector_reach.py -k fades_in (about 2
   minutes). Bug Hunt owns it.
+  Sighting and finding (Core 1, 2026-10-17, 2:47 to 2:48 PM EDT as the
+  lane reported, GEN.527 gate and later runs): it FAILS ALONE ON CURRENT
+  MAIN at low load: origin/main 7f17820b run alone at 2:47 PM EDT failed
+  with 'the system's scene never came in', assert [] (about 2 minutes
+  per run); it also failed alone twice at load 2.4 on Core 1's branch,
+  in the DB.65 gate (it passed alone then, load 10.1) and in the GEN.527
+  gate (failed alone, load 9.1). The same test PASSED alone on an older
+  checkout, Release 8.0.1646, at 2:45 PM EDT. So it looks like a
+  regression between 8.0.1646 and 7f17820b, not a load flake. Fails on
+  main: yes. Frequency: 10 of 10 alone runs on main since about 1:37 PM
+  EDT (seven earlier plus Core 1's). Reproducer: PYTHONPATH=src python3
+  -m pytest src/tests/test_web_browser_sector_reach.py -k disc_fades_in.
+  Bug Hunt has been asked to bisect it (coordinator, 2:48 PM EDT).
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
@@ -17891,6 +17879,13 @@ clears each one.
   line's own fields), so `magnetar neutron-star` no longer satisfies
   `neutron-star`; a test places a magnetar and no neutron star and
   passes; no quarantine. Owner: Bug Hunt (proposed).
+  Sighting (Core 1, 2026-10-17, 2:48 PM EDT as the lane reported, its
+  GEN.527 gate): failed once in the gate with 'AssertionError:
+  neutron-star' at the same loop (the draw had a magnetar and no plain
+  neutron star); it passes alone on Core 1's branch (4.7 s). Fails on
+  main: not checked. Frequency: now 2 of 2 gate runs seen (Core 2's and
+  Core 1's). Core 1's fix idea matches the Done line: match the label
+  after a count (a digit, a space, then the label).
   Prerequisites: none. Related: TEST.213.
 
 - [ ] **TEST.222 Remove the NumPy 2.5 deprecation filter around the skimage marching-cubes call once scikit-image stops raising it**
