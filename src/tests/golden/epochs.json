@@ -59,6 +59,12 @@
       "epoch": 12,
       "first_release": "8.0.1726",
       "reason": "A satellite galaxy's stars are split by a history derived from its stellar mass, size and mean age into young, intermediate and old populations (the Magellanic Clouds now place massive stars), the satellite's old window is 3 to 13 Gy, and the satellite scatter rows change with it (GEN.526)."
+    },
+    {
+      "epoch": 13,
+      "first_release": null,
+      "pending": true,
+      "reason": "A star younger than its contraction time and under 8 solar masses is a pre-main-sequence star at any age (the 10 Myr cap is gone, so red dwarfs stay on the track up to 0.7 Gyr), and the track reads its Hayashi temperature, birthline radius and energy factor from the BHAC15 tables (GEN.529)."
     }
   ]
 }
