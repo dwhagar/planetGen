@@ -1181,7 +1181,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.524 | Tuned draw builder B16: halogens and trace gases | none | open |
 | GEN.525 | Tuned draw builder B17: the design-flag registry | none | open |
 | GEN.526 | Satellites with gas get young and intermediate populations derived from their age history and gas, so the Clouds hold massive stars | none | done, PR #2043 |
-| GEN.527 | The second star of a wide pair in a saved runaway system loads back 0.4 m/s off the system's velocity: find the cause instead of loosening the test (bug) | none | open |
+| GEN.527 | The second star of a wide pair in a saved runaway system loads back 0.4 m/s off the system's velocity: find the cause instead of loosening the test (bug) | none | done, PR #2075 |
 | GEN.528 | The rest of GEN.319: a Magellanic cell shows every class, and the scatter's planetary nebulae are weighted by the old share | none | open |
 | GEN.529 | The pre-main-sequence track takes its Hayashi temperature, birthline radius and energy factor from a sourced table, and the state reaches stars still contracting after 10 Myr | none | open |
 | GEN.530 | A pre-placed star's hosted nebula shows from its scatter row on the maps and pages | none | open |

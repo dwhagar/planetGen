@@ -793,3 +793,4 @@ Baseline: PR #1817.
 | DOC.62 | 8.1 | Bugs and flaky tests |
 | DOC.53 | 8.1 | Docs |
 | DOC.60 | 8.1 | Docs |
+| GEN.527 | 8.1 | Components and wanderers |
