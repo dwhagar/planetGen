@@ -354,7 +354,7 @@ A row is CONFIRMED only when a source that was read gives the figure or one insi
 
 | Topic | Note says | Found | Label | Part |
 |---|---|---|---|---|
-| NH3 photolysis lifetime at 1 AU | 2.5e4 s | about 6.7e3 s (5.4e3 to 7.7e3) | READ + COMPUTED | G1 |
+| NH3 photolysis lifetime at 1 AU | 2.5e4 s | quiet Sun about 6.5e3 to 6.7e3 s (Heays 2017 rate 1.5e-4 per s; Biver 2007); a quiet-and-active average of 1.8e-4 per s gives 5.6e3 s (atmosphere lane GEN.496, from Drozdovskaya 2023); literature range 5.4e3 to 7.7e3. Both lanes read the same data; the two figures differ by 1.2 because one is the quiet Sun and one is a quiet/active mean. Store the quiet-Sun rate plus an activity factor | READ + COMPUTED | G1 |
 | NH3 sub-mm line | 1.15 mm | none; ground rotational line 572.498 GHz (0.524 mm), inversion lines about 1.3 cm | READ | G1 |
 | Comet ranges | CO 0.5 to 30, CO2 2 to 20, HCN 0.05 to 0.5 percent | CO 0.3 to 26 (0.15 for 103P), CO2 2 to 30, HCN from 0.03 | READ | G1 |
 | Lifetimes | one value per species | quiet-Sun values; active Sun shortens H2O by 1.7 and CO2 by 2.35; "scale by stellar UV" is species-specific, not one scalar (cool-star CO falls by 3.5e-4, CH4 by about 80, NH3 barely) | COMPUTED | G1 |
