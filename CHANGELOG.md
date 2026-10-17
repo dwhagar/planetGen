@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1711] - 2026-10-17
+
+**Headline:** The part of GEN.320 that Core 3 did not wire, a pre-placed star's nebula on the maps and pages, is filed ahead of the 8.1 headline.
+
+### Changed
+
+- GEN.530 is filed (a pre-placed star's hosted nebula shows from its scatter row) and gates GEN.301; TEST.184 carries Core 3's protostar yield finding.
+
+TODO items resolved: none / Added: GEN.530
+
 ## [8.0.1710] - 2026-10-17
 
 **Headline:** The nebula stars of GEN.320 are recorded as built, and Boss's drop of the massive-multiples prevalence cap (GEN.373) is recorded.
