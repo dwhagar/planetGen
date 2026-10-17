@@ -17,6 +17,7 @@ docs/design/reproducible-galaxies.md, section 5).
 
 import ast
 import locale
+import math
 import os
 import pathlib
 import subprocess
@@ -100,6 +101,81 @@ def test_the_scan_catches_a_forbidden_source(tmp_path):
     assert any("imports random" in p for p in problems)
     assert any(".urandom" in p for p in problems)
     assert any("clock" in p for p in problems)
+
+
+# --- Maths that depends on the Python or the BLAS library (GEN.135) ---------------
+
+NOT_DETERMINISTIC_EXEMPT = ("web/", "db/migrations/")
+"""Where `math.hypot` and `math.dist` are allowed: drawing code, where the last bit does not matter, and migration
+revisions, which are never edited once they have run."""
+
+
+def _maths_problems(path, relative):
+    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+    found = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Attribute) and node.attr in ("hypot", "dist") \
+                and isinstance(node.value, ast.Name) and node.value.id == "math":
+            found.append(f"{relative}:{node.lineno} uses math.{node.attr} (use planetgen.util.detmath.{node.attr})")
+        elif isinstance(node, ast.ImportFrom) and node.module == "math" and node.level == 0 \
+                and any(alias.name in ("hypot", "dist") for alias in node.names):
+            found.append(f"{relative}:{node.lineno} imports hypot or dist from math (use planetgen.util.detmath)")
+        elif isinstance(node, ast.BinOp) and isinstance(node.op, ast.MatMult) \
+                or isinstance(node, ast.AugAssign) and isinstance(node.op, ast.MatMult):
+            found.append(f"{relative}:{node.lineno} uses @, which runs through BLAS (use planetgen.util.detmath.matmul)")
+        elif isinstance(node, ast.Attribute) and node.attr in ("dot", "matmul", "vdot", "inner", "tensordot") \
+                and isinstance(node.value, ast.Name) and node.value.id in ("np", "numpy"):
+            found.append(f"{relative}:{node.lineno} uses numpy.{node.attr}, which runs through BLAS")
+    return found
+
+
+def test_no_version_or_library_dependent_maths_in_the_package():
+    problems = []
+    for path in sorted(PACKAGE.rglob("*.py")):
+        relative = path.relative_to(PACKAGE).as_posix()
+        if relative.startswith(NOT_DETERMINISTIC_EXEMPT) or relative == "util/detmath.py":
+            continue
+        problems.extend(_maths_problems(path, relative))
+    assert not problems, "\n".join(problems)
+
+
+def test_the_maths_scan_catches_what_it_is_for(tmp_path):
+    bad = tmp_path / "probe.py"
+    bad.write_text("import math\nimport numpy as np\nfrom math import hypot\n"
+                   "a = math.hypot(1.0, 2.0)\nb = math.dist((0, 0), (1, 1))\nc = m @ n\nd = np.dot(m, n)\n",
+                   encoding="utf-8")
+    problems = _maths_problems(bad, "galaxy/probe.py")
+    assert len(problems) == 5, problems
+    ok = tmp_path / "fine.py"
+    ok.write_text("import math\nx = math.sqrt(2.0) + math.fsum([1.0])\n", encoding="utf-8")
+    assert _maths_problems(ok, "galaxy/fine.py") == []
+
+
+def test_the_helpers_are_the_plain_formulas():
+    from planetgen.util import detmath
+    assert detmath.hypot(3.0, 4.0) == 5.0
+    assert detmath.hypot(0.1, 0.2, 0.3) == math.sqrt(0.1 * 0.1 + 0.2 * 0.2 + 0.3 * 0.3)
+    assert detmath.hypot(1.0, 2.0, 3.0, 4.0) == math.sqrt(((1.0 + 4.0) + 9.0) + 16.0)
+    assert detmath.hypot() == 0.0
+    assert detmath.dist((1.0, 2.0, 3.0), (4.0, 6.0, 3.0)) == 5.0
+    assert detmath.dist((1.0, 2.0), (4.0, 6.0)) == 5.0
+    assert detmath.dist((1.0,), (4.0,)) == 3.0
+    assert detmath.dist((1.0, 2.0, 3.0, 4.0), (1.0, 2.0, 3.0, 8.0)) == 4.0
+    with pytest.raises(ValueError):
+        detmath.dist((1.0, 2.0), (1.0, 2.0, 3.0))
+    assert detmath.fsum([0.1] * 10) == 1.0
+
+
+def test_matmul_is_the_left_to_right_sum_of_products():
+    import numpy as np
+    from planetgen.util import detmath
+    a = np.array([[0.1, 0.2, 0.3], [1.5, -2.5, 3.5]])
+    b = np.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0]])
+    expected = np.array([[(0.1 * 1.0 + 0.2 * 3.0) + 0.3 * 5.0, (0.1 * 2.0 + 0.2 * 4.0) + 0.3 * 6.0],
+                         [(1.5 * 1.0 + -2.5 * 3.0) + 3.5 * 5.0, (1.5 * 2.0 + -2.5 * 4.0) + 3.5 * 6.0]])
+    assert (detmath.matmul(a, b) == expected).all()
+    assert detmath.matmul(np.array([1.0, 2.0, 3.0]), np.eye(3)).tolist() == [1.0, 2.0, 3.0]
+    assert np.allclose(detmath.matmul(a, b), a @ b)
 
 
 # --- The helpers' recipes ------------------------------------------------------

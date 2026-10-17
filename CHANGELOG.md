@@ -2,6 +2,573 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1634] - 2026-10-17
+
+**Headline:** TEST.208 is filed: `scripts/test.py --resume` should reuse a test's earlier pass across builds when none of its own dependencies changed.
+
+### Added
+- TEST.208 (8.1 phase 1, goal issue #1694): a per-test dependency fingerprint so a cancelled gate after a merge of main reruns only the tests the merge affects; a changed package, server or day still reruns everything. TEST.148 carries a note that it widens.
+
+TODO items resolved: none / Added: TEST.208
+
+## [8.0.1633] - 2026-10-17
+
+**Headline:** The Bug Hunt lane is recorded as the proposed owner of the open Phase 1 bugs.
+
+### Changed
+- 31 bug items (the eight that had no owner, and the bug phase Core 1 had not started) now name Bug Hunt as proposed owner in TODO.md and the 8.1 plan notes; Core 1 keeps TEST.193, TEST.195, DB.33, DB.29 and GEN.229.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1632] - 2026-10-17
+
+**Headline:** TEST.207 is withdrawn from the plan: the accessibility fixture errors it described were already fixed.
+
+### Changed
+- TEST.207 (the `page_targets` fixture errors from `web.admin_backup`) was filed from a stale checkout; #1921 had already fixed it (`NO_SAMPLE_OBJECT`) and the tests pass on main, so it leaves the TODO list and the issue group without counting as progress.
+
+TODO items resolved: TEST.207 (withdrawn, fixed before filed) / Added: none
+
+## [8.0.1631] - 2026-10-17
+
+**Headline:** The plan files the corrections the stellar tables check found for the horizontal-branch and red giant values.
+
+### Added
+- GEN.407: five values recalled for GEN.286 and GEN.287 do not match the published sources (the red giant time law, the evolutionary flux, the HB colour row, the extreme HB luminosity and the tip); grouped under #1666, Core 3 proposed.
+
+### Changed
+- TEST.207 names Core 2 as the proposed owner, after GEN.306 and ahead of GEN.276.
+
+TODO items resolved: none / Added: GEN.407
+
+## [8.0.1630] - 2026-10-17
+
+**Headline:** The plan files the accessibility fixture failure that has been red on main since the backups screen and records the owners of the Sun radius removal.
+
+### Added
+- TEST.207 (bug): the `page_targets` fixture of the web accessibility tests errors 24 tests because `web.admin_backup` answers 302 and 404 with the sample database (Core 1's finding; grouped under #1694).
+
+### Changed
+- GEN.404 and GEN.405 note Core 4 as the proposed owner, after GEN.368 and GEN.400 merge.
+
+TODO items resolved: none / Added: TEST.207
+
+## [8.0.1629] - 2026-10-17
+
+**Headline:** The plan has the build chain for GEN.368's approved laws that replace the Milky Way's fixed values.
+
+### Added
+- GEN.400 to GEN.406 (8.1 phase 5, thread "Galaxy laws build"): the mass chain, the shape of the stars, the black hole and nuclear cluster, the cluster count, the removal of the Sun radii, metallicity and rates by position, and a research item for the open sources; grouped under #1673.
+
+### Changed
+- GEN.368 notes that Boss approved its table (10:11 PM EDT); GEN.369, GEN.338 and GEN.399 note how the table meets them.
+
+TODO items resolved: none / Added: GEN.400, GEN.401, GEN.402, GEN.403, GEN.404, GEN.405, GEN.406
+
+## [8.0.1628] - 2026-10-17
+
+**Headline:** The plan has an 8.2 item to research the halo mass function and compare it with the halo mass approximation.
+
+### Added
+- The new GEN item (research and compare the halo mass function with GEN.368's approximation) sits in 8.2 phase 2 and needs GEN.368; it is grouped under goal issue #1673.
+
+TODO items resolved: none / Added: GEN.399
+
+## [8.0.1627] - 2026-10-17
+
+**Headline:** The plan files the rescatter measurements: a wrong progress line, a star-count mismatch and stale generation cost notes.
+
+### Added
+- GEN.397 (bug): the stage-2 line of `plan` prints the progress weight as the number of phenomena. GEN.398 (bug): the massive-star and bright-star passes place 70 and 12 percent more than their log lines expect. DOC.62: the generation cost figures and the `--redo-scatters` scope are stale in the docs.
+
+### Changed
+- OPS.58, GEN.322 and GEN.323 note that scatter passes carry no epoch mark and that `--redo-scatters` redoes rows only.
+
+TODO items resolved: none / Added: GEN.397, GEN.398, DOC.62
+
+## [8.0.1626] - 2026-10-17
+
+**Headline:** The stellar evolution fixes for horizontal-branch and giant stars are done, and the old Yerkes class III range is filed.
+
+### Changed
+- GEN.286 and GEN.287 (horizontal branch, asymptotic giant branch and the red giant luminosity law, #1932) leave the TODO list; GEN.322 notes that earlier galaxies need `planetgen plan --redo-scatters mass luminosity` because the halo rows at the 500 floor fall from about 3.8 million to about 190,000.
+
+### Added
+- GEN.396: revisit the Yerkes class III luminosity range, which sits above many dim red giants.
+
+TODO items resolved: GEN.286, GEN.287 / Added: GEN.396
+
+## [8.0.1625] - 2026-10-17
+
+**Headline:** Old stars now have a horizontal branch and an asymptotic giant branch, and their red giant branch spends its time at each luminosity as a real one does, so the bright-giant counts match real ones.
+
+### Added
+- **A horizontal branch and an asymptotic giant branch (GEN.286).** A star lighter than 2.2 solar masses burns helium in its core for about a hundredth of its main-sequence life as a class III star of 40 to 60 solar luminosities, then climbs the asymptotic giant branch for a five-hundredth of it, before it becomes a white dwarf. The horizontal-branch colour (red clump, RR Lyrae, blue or extreme, by [Fe/H] and age) sets its temperature, and the star keeps the [Fe/H] its colour was drawn from. They show in the scatter at a floor of 50 to 60 solar luminosities and in every sector fill (halo, bulge, clusters), with "Horizontal Branch Giant" or "Asymptotic Giant" in the type text. The pre-placement tables and the mass bands mirror the new phases.
+
+### Changed
+- **The red giant branch runs from its base to its tip with the real luminosity function (GEN.287).** The time a giant spends per unit of ln L falls as L^-0.9, from its base (about 3 solar luminosities for an old turn-off star) to 2,500, instead of an even spread over 50 to 1,000 with a 2% tip. Most giants are now dim K giants and the bright ones are far fewer: the halo scatter at a floor of 500 solar luminosities stores about 190,000 rows, not 3.8 million, and its counts agree with the evolutionary flux of an old population. A galaxy scattered before this has too many bright giants: `planetgen plan --redo-scatters mass luminosity` draws them again.
+- **A star that ends its giant phases becomes a white dwarf later, by 1.2% of its main-sequence life** (the horizontal branch and the asymptotic giant branch lie between), and a subgiant brightens to 3.5 times its main-sequence luminosity, not twice.
+
+TODO items resolved: GEN.286, GEN.287. Added: none.
+
+## [8.0.1624] - 2026-10-17
+
+**Headline:** The goal issues are consolidated into fewer chains and the old single-item issues are closed into them.
+
+### Changed
+- `docs/plan/issue-groups.md`: the single-test failure issues, the old feature requests and the small follow-up issues move into the goal issue that covers their topic (test failures, the Galaxy Map, descriptions, edit everything, the Redis queue, performance, install and update, phenomena, multi-star systems, docs); the issues that are done or duplicated are marked closed.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1623] - 2026-10-17
+
+**Headline:** The GEN.368 note now says the arxiv.org access for the verifying thread is in place.
+
+### Changed
+- GEN.368 no longer says the arxiv.org allowance waits on Boss: the domain was added and a verifying thread is reading the cited papers.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1622] - 2026-10-17
+
+**Headline:** The plan records Boss's mass range, scatter and source decisions for the random-galaxy laws and the extra fixed content the survey found.
+
+### Changed
+- GEN.368, GEN.378 and GEN.380 note the first family's stellar mass range (3e9 to 2e11 solar), that every derived law draws its natural scatter from the seed, the arxiv.org allowance for one verifying thread, and the fixed values the draft table found beyond the item's first list.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1621] - 2026-10-17
+
+**Headline:** The plan records that the galaxy keeps no home position, and retires the deterministic-math item.
+
+### Changed
+- GEN.135 (deterministic distances, radii and rotations through `planetgen.util.detmath`, generator epoch 2) and TEST.205 (the reserved-word scanner reads `ALGORITHM=` and `LOCK=` inside `ALTER TABLE` as options) are done in #1927 and leave the TODO list; TEST.77 notes that the epoch and golden-files rule is waived until it is built.
+- Boss decided the galaxy stores no home or Sun position (GEN.368 row 11 goes; the Sun-radius uses become per-position calculations; the map starts where sectors are generated); GEN.388 is dropped, and the 9.4 plan, the roadmap and the galaxy types note lose their home position step.
+
+TODO items resolved: GEN.135, TEST.205 / Added: none (GEN.388 dropped)
+
+## [8.0.1620] - 2026-10-17
+
+**Headline:** Distances, radii and rotations no longer depend on the Python release or the BLAS library, so a seed gives the same galaxy everywhere.
+
+### Changed
+- New `planetgen.util.detmath` (`hypot`, `dist`, `fsum`, `matmul`): square roots of squares added left to right, the exactly rounded sum, and a matrix product without BLAS. `math.hypot`, `math.dist` and `@` at about 70 call sites in `galaxy/`, `generation/`, `physics/`, `population/`, `db/` and `api/` now use them. `test_reproducible_draws.py` fails on `math.hypot`, `math.dist`, `@` and `numpy.dot` in the package outside `web/` (drawing code) and the migrations.
+- Many stored positions and radii differ in the last bit, and each nebula's shape differs a little; this is generator epoch 2.
+
+generation-output: changed
+
+- The epoch rule needs the golden files, the epoch and the note's line together only once a golden file is checked in; until the golden test lands, the epoch and the note go together alone.
+
+### Fixed
+- TEST.205: the SQL portability lint no longer reads `ALGORITHM=INPLACE, LOCK=NONE` in an ALTER TABLE as a column named `lock` (broken on main since DB.18).
+
+TODO items resolved: GEN.135, TEST.205 / Added: none
+
+## [8.0.1619] - 2026-10-17
+
+**Headline:** Boss's three choices for the superbubble density plan are recorded: young stars only, the drawn layer kept as an optional overlay, and the chain stays in 8.1.
+
+### Changed
+- `docs/design/superbubble-density.md` section 7 now lists the decisions, and the notes on GEN.391, GEN.395, TEST.206, MAP.235 and MAP.236 state them.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1618] - 2026-10-17
+
+**Headline:** The plan now has a chain that lets the superbubbles shape where stars form, instead of only drawing them.
+
+### Added
+- **Superbubble density plan** (`docs/design/superbubble-density.md`): a bubble stays derived from the seed and changes the young and intermediate star density (a shell excess, an interior deficit) through one call site, with the scatter bounds, the sector count and positions, and the region query following it. Items GEN.391 (design), GEN.392 to GEN.395, TEST.206 and DOC.61 sit in 8.1 phases 3 and 5; DOC.60 (settings note) is a small docs item.
+
+### Changed
+- The TODO notes on MAP.235, MAP.236, GEN.379, GEN.298, GEN.244 and GEN.282 and the settings lane's VIEW.3 note record how they meet the chain.
+
+TODO items resolved: none / Added: DOC.60, GEN.391, GEN.392, GEN.393, GEN.394, GEN.395, TEST.206, DOC.61
+
+## [8.0.1617] - 2026-10-17
+
+**Headline:** ADM.43 and ADM.44 (the configuration page and the web, link preview and SEO settings) leave the TODO list.
+
+### Changed
+- ADM.43 and ADM.44 retired on the Settings lane's merge (#1921). The settings goal keeps ADM.86 (8.2, needs the Owner account) and GEN.303 (8.1 phase 5, Core 3).
+
+TODO items resolved: ADM.43, ADM.44 / Added: none
+
+## [8.0.1616] - 2026-10-17
+
+**Headline:** The Admin Settings page now controls how the site presents itself to search engines, browsers and link previews: indexing, robots.txt, sitemaps, icons, the preview picture and the site's tagline.
+
+### Changed
+- New settings sections `site` (tagline, language), `web` (title template, theme colours), `icons`, `seo` and `og`, all applied to the next page view with no restart (`docs/config.md`, "Web, link previews and search engines"). Every page's `<head>` now has the page language, a canonical link built from `base_url` (never the request's Host header; none while it is still the localhost default), a robots meta tag, theme colours, the icons and, on the public pages, Open Graph and Twitter tags. The home page carries a schema.org WebSite block.
+- Search engines are told what to index: by default the home page, classes, species, polities, galaxy and lists; the generated system, sector and phenomenon pages stay out until `seo.detail_pages` or `seo.indexing = all` says otherwise. The data and tool routes answer `X-Robots-Tag: noindex`, the admin, login and account pages `noindex, nofollow`; a test fails for any page nobody classified.
+- New `/robots.txt` (generated from the routes, with options to block AI crawlers, add lines or replace the file), `/sitemap.xml` with `/sitemap-pages.xml` and, when the generated pages may be indexed, `/sitemap-systems-<n>.xml` and `/sitemap-sectors-<n>.xml`, `/.well-known/security.txt`, `/humans.txt` and `/site.webmanifest`.
+- New Images screen at `/admin/settings/images` (and `GET /api/admin/images`, `POST` and `DELETE /api/admin/images/<kind>`): upload the site icon (SVG), a PNG or ICO icon, the home-screen icon and the link-preview picture. Each picture is checked when it is uploaded, stored under a name made from its content and served at `/site-assets/<name>`; the change is saved through the settings writer, so it is backed up and audited. A built-in 1200 by 630 preview picture is used until one is uploaded.
+- `/og/<system|sector>/<id>.png` is ready for per-object preview cards (renderer hook, disk cache with a size limit); until a card drawer is installed it sends visitors to the default picture.
+- `base_url` is now checked (an absolute http or https address with no query, fragment or password; a trailing slash is added).
+- The robots.txt and similar text options are multi-line boxes on the settings page.
+
+## [8.0.1615] - 2026-10-17
+
+**Headline:** Boss's halo bug (nothing in the halo can be selected or entered on the Galaxy Map) is filed with its causes and a slot.
+
+### Added
+- MAP.243 (bug): the Galaxy Map cannot select or enter anything in the halo; no existing item covers selecting and entering (MAP.207 and MAP.219 only draw and pick markers, in 8.8). Slotted in 8.1 phase 5 with the interface update, Core 2 proposed after the infinite zoom tree.
+
+TODO items resolved: none / Added: MAP.243
+
+## [8.0.1614] - 2026-10-17
+
+**Headline:** API.27 and UX.113 (the read-only Sector Profile lookup and the profile panel on the sector page) leave the TODO list.
+
+### Changed
+- API.27 and UX.113 retired on Core 4's merge (#1919); UX.115 no longer waits on them.
+
+TODO items resolved: API.27, UX.113 / Added: none
+
+## [8.0.1613] - 2026-10-17
+
+**Headline:** Any address in the galaxy now has a page showing what the galaxy's shape says it holds.
+
+### Added
+- The sector page has a Profile panel: the region, the expected systems, the stellar populations with their share, age, [Fe/H], velocity dispersion and motion, the gas and any superbubble, and the dark matter, from `GET /api/galaxy/profile`.
+- `/sector/at/<shell>/<band>/<wedge>` shows the same panel for any cell of the grid: a charted cell redirects to its sector, an uncharted one shows its place, the stars and phenomena waiting in it and the Profile.
+- A heavy cell warns before it is run: when it expects more systems than the cell star ceiling, or its fill is expected to take two minutes or more on one worker, the page says so with the size and time (`estimate` in the profile answer, from the server's own stored speeds).
+
+TODO items resolved: UX.113 / Added: none
+
+## [8.0.1612] - 2026-10-17
+
+**Headline:** The API can show the profile of any sector in the galaxy, charted or not.
+
+### Added
+- `GET /api/galaxy/profile` returns the Sector Profile (region, density, expected systems, the mix of populations with their ages, [Fe/H] and velocity dispersion, gas, superbubble, dark matter and the rate factors per kind) of any cell by address or by point, read only and computed from the stored galaxy shape and the address alone, so an uncharted sector can be previewed.
+
+TODO items resolved: API.27 / Added: none
+
+## [8.0.1611] - 2026-10-17
+
+**Headline:** A failing portability test on main (the DB.18 helpers use LOCK) is on the TODO list for Core 2.
+
+### Added
+- TEST.205 (bug): `test_no_reserved_word_is_an_unquoted_identifier` fails on main since DB.18 (#1901); Core 1's finding, owner Core 2.
+
+TODO items resolved: none / Added: TEST.205
+
+## [8.0.1610] - 2026-10-17
+
+**Headline:** GEN.368 and GEN.276 with NAV.60 go next in their lanes' queues (Boss, "Both next").
+
+### Changed
+- GEN.368 (Core 1: stack, GEN.372 audit, TEST.193 and TEST.195, then GEN.368, GEN.369, GEN.371, GEN.366) and GEN.276 with NAV.60 (Core 2: GEN.135 gate, GEN.306, then GEN.276 and NAV.60) record Boss's 9:16 PM EDT decision and an owner line each.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1609] - 2026-10-17
+
+**Headline:** Each galaxy type in 9.4 gets a simple vector outline so the user sees roughly what the model looks like.
+
+### Added
+- UX.135: one hand-drawn static SVG outline per galaxy family (spiral, barred spiral, lenticular, elliptical, irregular, dwarf spheroid) in the icon library, shown on the Generate page and in the Galaxy Map key (UX.134 and MAP.242 now need it).
+
+TODO items resolved: none / Added: UX.135
+
+## [8.0.1608] - 2026-10-17
+
+**Headline:** A new 9.4 plan for galaxy types: spiral, lenticular, elliptical, irregular and dwarf families drawn from the seed, as a chain of 18 required items.
+
+### Added
+- The 9.4 version page (galaxy types), the plan note docs/design/galaxy-types.md and the release roadmap entry; the old "Hubble-sequence generator" suggestion becomes this headline.
+- Items GEN.378 to GEN.390, DB.66, UX.134, MAP.242, TEST.204 and DOC.59, and the goal issue #1914. GEN.378 (the checked design, 8.1), DB.66 and GEN.379 (the family key and the component density model, 8.3) are the foundations counted back from 9.4.
+
+### Changed
+- GEN.338 needs GEN.379 and keeps a zero-mass component legal; GEN.368 notes that its shape row is the spiral family's row of the wider draw.
+
+TODO items resolved: none / Added: GEN.378, GEN.379, GEN.380, GEN.381, GEN.382, GEN.383, GEN.384, GEN.385, GEN.386, GEN.387, GEN.388, GEN.389, GEN.390, DB.66, UX.134, MAP.242, TEST.204, DOC.59
+
+## [8.0.1607] - 2026-10-17
+
+**Headline:** The forward-to-current browser test flake has a third sighting on the TODO list.
+
+### Changed
+- TEST.172 records Core 3's UX.116 gate failure (under load, passes alone), the third sighting.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1606] - 2026-10-17
+
+**Headline:** UX.116 (limit sliders on the Generate page) leaves the TODO list.
+
+### Changed
+- UX.116 retired on Core 3's merge (#1911): scatter and fill limits are sliders with core, halo and dense-cell segments and a Reset.
+
+TODO items resolved: UX.116 / Added: none
+
+## [8.0.1605] - 2026-10-17
+
+**Headline:** ADM.85 (the backups screen, restore, and settings export and import) leaves the TODO list.
+
+### Added
+- TEST.203 (bug): `test_one_worker_leaves_the_runs_own_random_stream_alone` failed once under heavy load with a cancelled job and passes alone (Settings lane).
+
+### Changed
+- ADM.85 retired on the Settings lane's merge (#1905); TEST.199 records a second sighting.
+
+TODO items resolved: ADM.85 / Added: TEST.203
+
+## [8.0.1604] - 2026-10-17
+
+**Headline:** Every scatter and fill limit on the Generate page is a slider with a number box at its end, in segments for the core, the halo and the crowded cells.
+
+### Changed
+- **The luminosity floor is a slider, not a dropdown (UX.116).** The galaxy-wide mass limit and luminosity floor, on Plan, New galaxy and Redo scatters, are sliders that move a number box at their end; the box shows the value and takes a typed one. The luminosity floor keeps its presets as the slider's stops and now takes any number between them.
+
+### Added
+- **Three segments under the galaxy-wide limits on Plan and New galaxy.** *Core*: its luminosity floor and mass limit, which follow the galaxy-wide ones (110% of them) until one is set, with a warning if the floor goes below the galaxy-wide one. *Halo and intergalactic space*: its luminosity floor (default 500, from 50). *Dense cells*: the cell star ceiling (default 5,000, with what a full cell costs in time and storage) and the fill luminosity cap (default 100). Each segment has a Reset to the defaults. They set `planetgen plan --core-min-luminosity`, `--core-mass-limit`, `--halo-min-luminosity`, `--cell-star-ceiling` and `--fill-luminosity-cap`, and a number outside a slider's range is refused with the field named.
+
+TODO items resolved: UX.116. Added: none.
+
+## [8.0.1603] - 2026-10-17
+
+**Headline:** The Admin Settings page now has a backups screen: see every backup, make one, compare it with today's settings and restore all or part of it, and export or import the settings that an admin may change.
+
+### Changed
+- New page `/admin/settings/backups` (linked from Settings): every backup archive newest first with who made it, why, which parts it holds and its size, and Back up now. Opening an archive checks it against its recorded hashes, compares its settings with today's `config.json` (the old and new value of each option a restore would change, a secret shown as `(changed)`, a backup that no longer fits the settings model refused with the reason) and restores the whole archive or only the parts ticked. A restore first backs up what it replaces, writes an audit row per changed option and per restore, and from the web puts back only the options an admin may change, so it can never swap the database password or the secret key.
+- Downloading an archive is for the Owner only (it holds every secret in `config.json`); an admin sees why it is not offered.
+- New Export and Import on the same screen: the export is the options set in `config.json` that an admin may change, without secrets or server-only options; an import is checked exactly like an edit (type, range, who may change each option, unknown keys), shows the review diff and saves with a backup and an audit row (`config.import`). One bad value changes nothing.
+- New API routes `GET` and `POST /api/admin/backups`, `GET /api/admin/backups/<name>`, `POST .../restore`, `GET .../download`, `GET /api/admin/settings/export` and `POST /api/admin/settings/import` (`docs/api.md`).
+- The pending-restart banner on the admin pages and the intro links on the settings pages now underline their links, as the accessibility check requires.
+
+## [8.0.1602] - 2026-10-17
+
+**Headline:** The galactic potential items (GEN.338, GEN.115, GEN.144) are rewritten so the potential is derived from the generated galaxy, with the Milky Way's numbers only as reference values.
+
+### Changed
+- GEN.338 derives the bulge, disk and halo masses and scales from the generated galaxy (the halo from GEN.369) and checks the curve's shape and consistency, not 229.3 km/s; it is also the one source for the cluster rotation, the star-orbit curve and the Hill-sphere mass. It now needs GEN.369.
+- GEN.115 and GEN.144 record that the constant 229.3 km/s and the 8.128 and 8.2 kpc radii are Milky Way reference values, and the Sun's position is the derived home position of GEN.368.
+- GEN.369 lists satellite velocity as a derived output that arrives with GEN.339 (8.3).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1601] - 2026-10-17
+
+**Headline:** Boss decided that the galactic potential module and the nuclear mass components stay in 8.3.
+
+### Changed
+- GEN.285, GEN.338 and GEN.144 are recorded as Decided to stay in 8.3 (Boss, 2026-10-16, 8:41 PM EDT, card "Keep in 8.3"), with Core 3 proposed as owner when 8.3 starts.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1600] - 2026-10-17
+
+**Headline:** GEN.134 (star populations by galactic radius) is recorded as built derived, with the Milky Way figures only as test targets.
+
+### Changed
+- GEN.134 and `docs/design/star-types-by-galactic-radius.md` say the profile, the B share and the bulge's young tail are derived from the galaxy's own shape and history (Boss's NO FIXED CONTENT ruling), and that Core 4 takes it first and researches the inner-disc dip (Boss, 2026-10-16, 8:40 PM EDT).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1599] - 2026-10-17
+
+**Headline:** GEN.285 (nuclear mass in the galactic potential) moves to 8.3 behind GEN.338, which builds the potential module it needs.
+
+### Changed
+- GEN.285 needs GEN.338 (the galactic potential module, unbuilt) and moves from 8.1 to 8.3; it no longer gates the 8.1 headline (GEN.301). Core 3 is proposed as owner of GEN.144, GEN.338 and GEN.285 when 8.3 starts.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1598] - 2026-10-17
+
+**Headline:** GEN.333 and GEN.283 (scatter limits by place for stars) leave the TODO list, and the same limits for the neutron star and black hole scatter become GEN.377.
+
+### Added
+- GEN.377: the neutron star and black hole scatter below the cut takes the core and halo tiers, not one global mass cut (Core 3).
+- TEST.202 (bug): `test_galaxy_map_drill_down_by_clicks` failed under load and passed alone.
+
+### Changed
+- GEN.333 and GEN.283 retired on Core 3's merge (#1904). TEST.172 records a second sighting. The brightest white dwarf is 50 solar luminosities (it was 100).
+
+TODO items resolved: GEN.333, GEN.283 / Added: GEN.377, TEST.202
+
+## [8.0.1597] - 2026-10-17
+
+**Headline:** The star scatter draws its line by place: the galactic core, the halo and everywhere else each have their own luminosity floor and mass limit.
+
+### Changed
+- **A band takes the core, baseline or halo tier from the term that dominates its density (GEN.333).** The nuclear cluster and disc make a band core, the halo makes it halo, everything else is baseline. The core draws at its own floor and mass limit (the baseline's times 1.1 until set: 9,900 and 15.4 at the defaults), the halo at its own floor (default 500) and the baseline's mass limit. The mass and luminosity passes, the marks that keep a sector from the luminosity pass, the single-pass redo, the staged `--bright-stars-down-to` band, a sector's backfill and mass backfill, the fill and the cell resolution all read the limits of the band they work in. A galaxy scattered before this has the wrong rows in the core and halo: `planetgen plan --redo-scatters mass luminosity` draws them again.
+- **The brightest white dwarf is 50 solar luminosities, not 100 (GEN.333).** The luminosity range of a white dwarf tops out at 50, so a scatter floor or a fill cap can go down to 50 and `--halo-min-luminosity 50` works. A white dwarf younger than a few hundred thousand years is a little dimmer than before.
+- **The sector page and `/sectors/<id>` name the band's tier and the limits it was scattered at.**
+
+TODO items resolved: GEN.333. Added: none.
+
+## [8.0.1596] - 2026-10-17
+
+**Headline:** The browser-test hangs (TEST.193 and TEST.195) have an owner: Core 1, ahead of its bug phase.
+
+### Changed
+- TEST.193 and TEST.195 name Core 1 as owner (Boss, 2026-10-16, 8:23 PM EDT, "Core 1 next"), starting right after its stack and the GEN.372 audit merge.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1595] - 2026-10-17
+
+**Headline:** DB.18 (migration helpers for slow DDL) leaves the TODO list, and the browser-test hangs that hit every full gate this evening are recorded as a repeating failure.
+
+### Changed
+- DB.18 retired on Core 2's merge (#1901).
+- TEST.193 and TEST.195 record Core 2's sighting (8:12 PM EDT): three browser tests hung about 15 minutes in setup or teardown in every full gate this evening, failing on main too.
+- DB.65 records its migration revision, 0105.
+
+TODO items resolved: DB.18 / Added: none
+
+## [8.0.1594] - 2026-10-17
+
+**Headline:** Migrations have helpers for slow changes on big tables, so the server refuses instead of silently copying.
+
+### Added
+- `planetgen/db/migrations/helpers.py`: `add_column_instant`, `drop_column_instant`, `add_index_online`, `drop_index_online`, `batched_update` (pages by key, a commit per page, progress on the migration's bar), the `exists_*` checks, `lock_wait_timeout`, and a check that refuses to start behind a long-open transaction. Each names its `ALGORITHM`, and each skips work already done so a stopped revision can be run again.
+
+## [8.0.1593] - 2026-10-16
+
+**Headline:** Boss's star-glow note is on the list: stars should glow brighter instead of growing bigger, with colour following the star's properties.
+
+### Added
+- MAP.241 (bug): stars on the Galaxy Map and the Sector Map keep a small, near-equal size while luminosity raises the glow and temperature sets the colour (Boss, 2026-10-16, 7:43 PM EDT).
+
+TODO items resolved: none / Added: MAP.241
+
+## [8.0.1592] - 2026-10-16
+
+**Headline:** The precision audit's follow-up work is on the list: eight items for the tile root, camera-relative buffers, orbit phases, the cell key, two kernels and two tests.
+
+### Added
+- MAP.239: the map tile root rises to the 262 kpc reach. MAP.240: browser buffers hold camera-relative coordinates (Boss, 2026-10-16, 7:36 to 7:38 PM EDT).
+- GEN.374 (orbit phase formulas reduce first, JavaScript Kepler tolerance 1e-12), DB.65 (cell key clamp), GEN.375 (field kernel local origin), GEN.376 (region haversine).
+- TEST.200 (the nightly local offset limit, documented and pinned), TEST.201 (`block_stats` totals independent of row order).
+
+### Changed
+- GEN.372 records the audit's verdict (64-bit is enough) and Boss's four decisions; GEN.109 notes that compensated sums wait for it.
+
+TODO items resolved: none (GEN.372 resolves when the audit merges) / Added: MAP.239, MAP.240, GEN.374, DB.65, GEN.375, GEN.376, TEST.200, TEST.201
+
+## [8.0.1591] - 2026-10-16
+
+**Headline:** A far-tail precision failure in the galaxy density fuzz test is on the list as TEST.199 and attached to the precision audit.
+
+### Added
+- TEST.199 (bug): `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on main when the halo is subtracted from a much larger sum (found by Core 2).
+
+### Changed
+- GEN.372 lists TEST.199 as its first attached precision finding.
+
+TODO items resolved: none / Added: TEST.199
+
+## [8.0.1590] - 2026-10-16
+
+**Headline:** ADM.50 (remove the galaxy settings files) leaves the TODO list, and the central black hole is recorded as staying exactly on the origin.
+
+### Changed
+- ADM.50 retired on Core 2's merge (#1896); the item that needed it no longer lists it.
+- GEN.368 records Boss's answer (2026-10-16, 7:27 PM EDT): the central black hole stays exactly on the origin with no seeded offset; its mass is to be derived from the bulge (M-bulge or M-sigma with scatter), the design gap the read-only thread found.
+
+TODO items resolved: ADM.50 / Added: none
+
+## [8.0.1589] - 2026-10-16
+
+**Headline:** The galaxy settings files are gone; the galaxy keeps one internal record of how it was made.
+
+### Changed
+- `planetgen plan` no longer writes a JSON settings file, and the Stats page and `GET /api/admin/galaxy-settings[/<name>]` no longer offer one. The mismatch warning compares the running release, Python, platform and version key with the record that `galaxy_shape` already holds, and still names the sectors made by another version.
+- `update.sh` deletes the old `galaxy-settings` folder from the jobs directory once.
+
+## [8.0.1588] - 2026-10-16
+
+**Headline:** Boss's three Galaxy Map notes of 2026-10-16 are on the list: clearer superbubble bounds, the invisible Charted only view, and colour-and-opacity highlighting for charted regions.
+
+### Added
+- MAP.236: superbubbles get clearer bounds and slightly more transparency (Boss, 7:24 PM EDT).
+- MAP.237 (bug): the Galaxy Map's Charted only view is invisible again.
+- MAP.238: charted regions are highlighted by colour and opacity, with no outlined blocks (after MAP.237).
+
+### Changed
+- UX.48 says the region highlight is a fill, not an outline.
+
+TODO items resolved: none / Added: MAP.236, MAP.237, MAP.238
+
+## [8.0.1587] - 2026-10-16
+
+**Headline:** The TODO list now has a Galaxy Map key item (the green superbubble shapes have no legend), and GEN.103 records the odds form as decided.
+
+### Added
+- MAP.234: a Key section in the Galaxy Map help dialog and an on-map key naming everything the map draws (Boss, 2026-10-16, 7:16 PM EDT).
+- MAP.235: superbubbles as a registered Galaxy Map layer with a toggle, hover name and radius, after MAP.217.
+
+### Changed
+- GEN.103 and the multi-star design note record Boss's choice (2026-10-16, 7:19 PM EDT): the metallicity factor is applied to the odds of a close companion, for every mass.
+
+TODO items resolved: none / Added: MAP.234, MAP.235
+
+## [8.0.1586] - 2026-10-16
+
+**Headline:** The massive-multiples rule of GEN.103 is now its own item, GEN.373, and the TODO list records Core 4's odds form for the metallicity effect.
+
+### Added
+- GEN.373: massive multiples sit in young regions, `prevalence` from the cell's young share with a derived cap (split from GEN.103 section 3.2).
+
+### Changed
+- GEN.103 in `docs/TODO.md` records the odds form (the [Fe/H] factor applied to the odds of a close companion), its check values and the point where Boss's word is needed; it closes with the 3.1 and 3.3 build.
+- TEST.196 notes the massive-star bins are expected to pass with that form.
+
+TODO items resolved: none / Added: GEN.373
+
+## [8.0.1585] - 2026-10-16
+
+**Headline:** The TODO list records that the GEN.103 placement note is on main and that its massive-multiples rule stays open.
+
+### Changed
+- GEN.103 in `docs/TODO.md` records the placement-by-population note (#1891), the split of the build (3.1 and 3.3 now, 3.2 with the multi-star items) and the open `prevalence` cap.
+- TEST.196 records that TEST.186 is not on main and that the massive-star bins wait for the cap decision.
+
+TODO items resolved: none (GEN.102 was retired earlier) / Added: none
+
+## [8.0.1584] - 2026-10-16
+
+**Headline:** The void-fill question (GEN.102) is answered again for the spherical grid, with a census of the sparse cells and the space beyond the outline.
+
+### Added
+
+- New `docs/design/void-fill-census.md`: the count of sparse cells on today's grid (13% of the outline's cells hold under one expected system and 0.8% of its systems), the time and storage of filling them, the 1.2 x 10^15 cells beyond the outline that hold 5.2 x 10^9 systems between them, and the recommendation (no pre-fill; the halo comes from regions, not cells). The census scripts are in the project files.
+
+TODO items resolved: GEN.102 / Added: none
+
+## [8.0.1583] - 2026-10-16
+
+**Headline:** The placement of each star type and phenomenon by population (GEN.103) is written down: what is built, and the three rules for the type draws that are not.
+
+### Added
+
+- New `docs/design/placement-by-population.md`: a table of where every kind in the registry is placed and by what, and three population-dependent rules for the star-count and pairing draws (close pairs against [Fe/H], massive multiples in young regions, a wide-pair limit from the local density), each as a function of the sector profile, with their constants, taken from Boss's 2026-10-16 research and checked against the sources.
+
+TODO items resolved: none (GEN.103's build is the multi-star items) / Added: none
+
+## [8.0.1582] - 2026-10-16
+
+**Headline:** The numeric precision audit (GEN.372) has an owner: Core 1, with Core 2 reading the camera and render rows.
+
+### Changed
+- GEN.372 in `docs/TODO.md` and the 8.3 plan page now name Core 1 as owner (Boss chose it on 2026-10-16, 6:59 PM EDT).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1581] - 2026-10-16
+
+**Headline:** The plan now has one item that collects every numeric precision question at galactic scale.
+
+### Added
+- **GEN.372, the numeric precision audit (Boss, 6:54 PM EDT).** One written audit of every float coordinate and sum the galaxy stores, computes or draws: how far each gets from its origin, where the first error shows, and whether float64 plus a coarse integer address and a local offset is enough or a wider sum is needed. It also settles three disagreeing spacing figures in the notes. It sits first in the 8.3 "Positions as one object" thread, GEN.294 waits on it, and any lane that meets a precision bug sends it to the TODO thread to attach there. Proposed owner Core 1; goal issue #1669.
+
+TODO items resolved: none / Added: GEN.372
+
 ## [8.0.1580] - 2026-10-16
 
 **Headline:** The TODO list retires the three scatter-limit settings columns, which Core 3 built.

@@ -25,7 +25,7 @@ from planetgen.generation import phenomenon_scatter
 from planetgen.generation import scatter_companions as scatterCompanions
 from planetgen.generation import star_population as starPopulation
 from planetgen.generation.star_labels import describe_types, star_label
-from planetgen.galaxy import component_field as componentField, nebula_field as nebulaField, seed as galaxySeed, settings_file
+from planetgen.galaxy import component_field as componentField, nebula_field as nebulaField, seed as galaxySeed
 from planetgen.names import naming_key
 from planetgen.physics import constants
 from planetgen import tuning as program_constants
@@ -52,16 +52,26 @@ def _outline(conn):
     return [(shell, high) for shell, high, _cells in store.get_galaxy_shells(conn)]
 
 
-def _scatter_level_and_seed(conn, skeleton):
-    """The galaxy scatter's level (`None` before any scatter) and the seed
+def _scatter_limits_and_seed(conn, skeleton):
+    """The galaxy scatter's limits by place (`store.scatter_limits_of`; none before any scatter) and the seed
     every sector's own draws use: the scatter's, else the galaxy seed's
     (GEN.39), else 0 for a galaxy planned before v51."""
+    limits = store.scatter_limits_of(conn, skeleton)
     settings = store.bright_star_scatter_settings(conn)
     if settings is not None:
-        return settings
+        return limits, settings[1]
     if skeleton.galaxy_seed is None:
-        return None, 0
-    return None, galaxySeed.short_seed(skeleton.galaxy_seed, "bright-stars", "scatter")
+        return limits, 0
+    return limits, galaxySeed.short_seed(skeleton.galaxy_seed, "bright-stars", "scatter")
+
+
+def _limits_text(limits):
+    """One line naming the limits by place a scatter runs at (the core, baseline and halo tiers)."""
+    parts = []
+    for name, found in zip(scatter_limits.TIER_NAMES, limits.tiers):
+        mass = "no mass pass" if found.mass_limit_sol is None else f"{found.mass_limit_sol:g} solar masses"
+        parts.append(f"{name} {found.min_luminosity_sol:g} L_sun and {mass}")
+    return "Scatter limits by place: " + "; ".join(parts) + "."
 
 
 def _effective_level(level, galaxy_level):
@@ -79,16 +89,17 @@ def _needs_band(level, galaxy_level, floor):
     return current is None or current > floor
 
 
-def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ceiling_cap=None, counts=None,
+def _draw_sector_bands(conn, skeleton, addresses, floors, limits, seed, ceiling_cap=None, counts=None,
                        on_sector=None, shells=None):
     """
     Draws each of `addresses` down to its floor (`floors`, a dict or one
-    number) from the level it holds, `BACKFILL_CHUNK_SECTORS` at a time:
+    number) from the level it holds (else its band's scatter level, `limits`, a
+    `galaxy.scatter_limits.ScatterLimits`: GEN.333), `BACKFILL_CHUNK_SECTORS` at a time:
     locks the chunk's `sector_stats` rows, rechecks each level under the
     lock (another run may have got there first, or filled it), wipes the
     stray stars of a sector with no level at all (a failed run, GEN.44),
     writes the stars and the new levels, and commits. `ceiling_cap` caps
-    the ceiling (a band run never draws above the galaxy's old level).
+    the ceiling (a band run never draws above the galaxy's old level; a dict gives each address its own).
     `counts`, when given, adds up the stars written per population.
     `on_sector`, when given, is called once per address visited (a
     progress bar's tick, PERF.28). `shells`, when given, adds up the stars
@@ -100,9 +111,6 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
     """
     sectors = stars = 0
     e_value = skeleton.expected_system_count_at_density_1
-    # GEN.185: a galaxy whose mass pass placed every heavy star draws the lighter ones here
-    # (GEN.187: a sector a mass backfill took lower holds every star from its own mass up).
-    mass_limit = store.bright_star_mass_limit(conn)
     for start in range(0, len(addresses), BACKFILL_CHUNK_SECTORS):
         chunk = addresses[start:start + BACKFILL_CHUNK_SECTORS]
         entries = []
@@ -116,6 +124,7 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
         for address in chunk:
             floor = floors if isinstance(floors, (int, float)) else floors[address]
             level = locked.get(address)
+            galaxy_level = limits.level_at(address[0], address[1])
             if address in filled or not _needs_band(level, galaxy_level, floor):
                 if on_sector is not None:
                     on_sector()
@@ -128,8 +137,12 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
                 # so it is wiped and drawn again whole.
                 store.delete_unbuilt_bright_stars(conn, address)
             if ceiling_cap is not None:
-                ceiling = ceiling_cap if ceiling is None else min(ceiling, ceiling_cap)
+                cap = ceiling_cap if isinstance(ceiling_cap, (int, float)) else ceiling_cap[address]
+                ceiling = cap if ceiling is None else min(ceiling, cap)
             held = held_masses.get(address)
+            # GEN.185: a galaxy whose mass pass placed every heavy star draws the lighter ones here
+            # (GEN.187: a sector a mass backfill took lower holds every star from its own mass up).
+            mass_limit = limits.mass_limit_at(address[0], address[1])
             mass_cap = mass_limit if held is None else held if mass_limit is None else min(held, mass_limit)
             rows.extend(brightStars.backfill_cells(skeleton.shape, [address], skeleton.edge_pc, e_value, floor,
                                                    ceiling, seed,
@@ -151,7 +164,7 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
     return sectors, stars
 
 
-def _draw_sector_masses(conn, skeleton, targets, galaxy_level, mass_limit, seed, on_sector=None, shells=None):
+def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, shells=None):
     """
     The mass backfill's draw (GEN.187): takes each sector of `targets` (a
     dict, `(shell, band, wedge)` -> the lightest initial mass to place,
@@ -164,7 +177,7 @@ def _draw_sector_masses(conn, skeleton, targets, galaxy_level, mass_limit, seed,
     commits.
 
     A sector holds its stars from `held` up: its own backfill's mass, else
-    the galaxy's mass limit (`None`: none placed by mass). The stars drawn
+    its band's mass limit (`limits`, GEN.333; `None`: none placed by mass). The stars drawn
     are those born in [target, held) that are dimmer than the sector's
     luminosity level (`_effective_level`): the brighter ones were placed
     already. A sector at or below its target, or filled, is skipped.
@@ -174,7 +187,7 @@ def _draw_sector_masses(conn, skeleton, targets, galaxy_level, mass_limit, seed,
     """
     sectors = stars = 0
     e_value = skeleton.expected_system_count_at_density_1
-    edges = brightStars.mass_band_edges(mass_limit)
+    edges = brightStars.mass_band_edges([found.mass_limit_sol for found in limits.tiers or ()])
     addresses = sorted(targets)
     for start in range(0, len(addresses), BACKFILL_CHUNK_SECTORS):
         chunk = addresses[start:start + BACKFILL_CHUNK_SECTORS]
@@ -189,7 +202,8 @@ def _draw_sector_masses(conn, skeleton, targets, galaxy_level, mass_limit, seed,
         for address in chunk:
             target = targets[address]
             level = locked.get(address)
-            held = masses.get(address, mass_limit)
+            galaxy_level = limits.level_at(address[0], address[1])
+            held = masses.get(address, limits.mass_limit_at(address[0], address[1]))
             if address in filled or level == 0 or (held is not None and held <= target):
                 if on_sector is not None:
                     on_sector()
@@ -337,8 +351,7 @@ def build_skeleton(args):
     else:
         source = "drawn at random"
     log.normal(f"Galaxy seed {galaxySeed.format_seed(galaxy_seed)} ({source}).")
-    key = _draw_naming_key(mysql_config, galaxy_seed, new_seed=stored_seed != galaxy_seed)
-    _write_settings_file(args, galaxy_seed, key, edge_pc, outer_shell_index, e_value, shape)
+    _draw_naming_key(mysql_config, galaxy_seed, new_seed=stored_seed != galaxy_seed)
 
     return {
         "outer_shell_index": outer_shell_index,
@@ -371,26 +384,6 @@ def _draw_naming_key(mysql_config, galaxy_seed, new_seed):
         conn.close()
     log.normal(f"Naming key {key}.")
     return key
-
-
-def _write_settings_file(args, galaxy_seed, naming_key_value, edge_pc, outer_shell_index, e_value, shape):
-    """
-    ADM.18: the creation settings, seed, version and word lists as a JSON
-    file for the Admin dashboard (`galaxy/settings_file.py`). A plan that
-    changes nothing writes nothing; one that changes a setting keeps the old
-    file as a dated backup. A file that can't be written only warns: the
-    plan itself is done.
-    """
-    try:
-        document = settings_file.build(
-            vars(args), galaxy_seed, naming_key=naming_key_value,
-            shape={"edge_pc": edge_pc, "outer_shell_index": outer_shell_index,
-                   "expected_system_count_at_density_1": e_value, "k_norm": shape.k_norm})
-        entry = settings_file.write(document, galaxy_seed)
-    except Exception as exc:  # noqa: BLE001 -- no writable folder, or no word lists installed
-        log.normal(f"Warning: the settings file was not written: {exc}")
-        return
-    log.normal(f"Settings file {entry['path']}.")
 
 
 def scatter_bright_stars(args, passes=("mass", "luminosity")):
@@ -451,10 +444,15 @@ def scatter_bright_stars(args, passes=("mass", "luminosity")):
             store.clear_bright_stars(conn)
         elif passes == {"luminosity"}:
             mass_limit = stored_limit
-            store.clear_bright_star_pass(conn, "luminosity", stored_limit)
+            store.clear_bright_star_pass(conn, "luminosity", scatter_limits.ScatterLimits.of(
+                skeleton, stored_settings[0], stored_limit))
         else:
             min_luminosity_sol = float(stored_settings[0])
-            store.clear_bright_star_pass(conn, "mass", stored_limit)
+            store.clear_bright_star_pass(conn, "mass", scatter_limits.ScatterLimits.of(
+                skeleton, min_luminosity_sol, stored_limit))
+        # GEN.333: the baseline floor and mass limit, and the core's and halo's settings, give each band its tier's.
+        limits = scatter_limits.ScatterLimits.of(skeleton, min_luminosity_sol, mass_limit)
+        log.normal(_limits_text(limits))
 
         t0 = time.perf_counter()
         counts = {population: 0 for population in brightStars.POPULATIONS}
@@ -463,19 +461,19 @@ def scatter_bright_stars(args, passes=("mass", "luminosity")):
             stages.enter("mass")
             counts = _scatter_shells(args, mysql_config, skeleton, extents, filled,
                                      starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL, mass_seed, "Massive stars",
-                                     mass_range=(mass_limit, None), stats_kind="scatter-mass",
-                                     task_kind="mass-stars", on_run_record=True)
+                                     stats_kind="scatter-mass", task_kind="mass-stars",
+                                     tiered=scatter_limits.mass_pass(limits, starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL),
+                                     on_run_record=True)
             massive = sum(counts.values())
         else:
             stages.skip("mass", "not chosen to be redone")
         if "luminosity" in passes:
-            marked = store.bright_star_marked_addresses(conn, mass_limit,
-                                                        min_luminosity_sol * constants.SOLAR_LUMINOSITY)
-            log.normal(f"{len(marked):,} sectors hold a star born at {mass_limit:g} solar masses or more and at "
-                       f"least {min_luminosity_sol:g} L_sun bright; the luminosity pass skips them.")
+            marked = store.bright_star_marked_addresses(conn, limits)
+            log.normal(f"{len(marked):,} sectors hold a star born at their band's mass limit or more and at "
+                       "least its luminosity floor bright; the luminosity pass skips them.")
             stages.enter("luminosity")
             light = _scatter_shells(args, mysql_config, skeleton, extents, set(filled) | marked, min_luminosity_sol,
-                                    seed, "Bright stars", mass_range=(None, mass_limit))
+                                    seed, "Bright stars", tiered=scatter_limits.luminosity_pass(limits))
             for population, count in light.items():
                 counts[population] += count
         else:
@@ -740,6 +738,7 @@ def _scatter_shells_on_run_record(args, mysql_config, label, tasks, weights, exp
                                                                      for shell, _high, _weight in chunk))),
             **settings,
             "mass_range": None if settings["mass_range"] is None else list(settings["mass_range"]),
+            "tiered": scatter_limits.tiered_to_json(settings["tiered"]),
         }
         unit_list.append((args_json, weights[key]))
     if sorted(tasks) != list(range(len(tasks))):
@@ -789,7 +788,7 @@ def _log_shell_range(label, shells, types):
 
 def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosity_sol, seed, label,
                     max_luminosity_sol=None, mass_range=None, stats_kind="scatter-bright", task_kind="bright-stars",
-                    on_run_record=False):
+                    tiered=None, on_run_record=False):
     """
     Draws and writes the bright stars of every shell through the work
     queue, a task per run of consecutive shells (`shell_chunks`), with a
@@ -797,7 +796,8 @@ def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosit
     below `max_luminosity_sol` too (one band of a staged scatter), and born
     in `mass_range` (initial solar masses `(low, high)`, an end `None` for no
     limit; GEN.185). Cells in `filled` (the sectors already filled, and the
-    ones the mass pass marked) are left out.
+    ones the mass pass marked) are left out. `tiered` (a `scatter_limits.TieredPass`, GEN.333) draws each band at its
+    tier's limits instead, and `min_luminosity_sol`, `max_luminosity_sol` and `mass_range` are then not read.
 
     The bar counts each task's expected work (PERF.9,
     `brightStars.shell_weight`, worked out first in a second or two),
@@ -817,7 +817,13 @@ def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosit
     counts = {population: 0 for population in brightStars.POPULATIONS}
     drew = set()
     systems = [0]
-    fractions = brightStars.band_fractions(min_luminosity_sol, max_luminosity_sol, mass_range)
+    if tiered is None:
+        fractions = brightStars.band_fractions(min_luminosity_sol, max_luminosity_sol, mass_range)
+        band_share = sum(fractions.values())
+    else:
+        fractions = brightStars.tier_fractions_of(tiered)
+        shares = [sum(item.values()) for item in fractions]
+        band_share = shares[scatter_limits.BASELINE] or max(shares)
     e_value = skeleton.expected_system_count_at_density_1
     skip_by_shell = collections.defaultdict(set)
     for address in filled:
@@ -834,7 +840,6 @@ def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosit
     sizes = {key: len(chunk) for key, chunk in tasks.items()}
     names = {key: _shell_names(chunk) for key, chunk in tasks.items()}
     log.normal(f"{label}: about {round(sum(expected.values())):,} stars expected in {len(extents):,} shells.")
-    band_share = sum(fractions.values())
     with run_common._generation_progress() as progress:
         log.set_console(progress.console)
         bar, finished = None, False
@@ -874,7 +879,7 @@ def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosit
                     _scatter_shells_on_run_record(
                         args, mysql_config, label, tasks, weights, expected, skip_by_shell, tracker, on_done_for,
                         workers, {"min_luminosity_sol": min_luminosity_sol, "max_luminosity_sol": max_luminosity_sol,
-                                  "seed": seed, "mass_range": mass_range})
+                                  "seed": seed, "mass_range": mass_range, "tiered": tiered})
                 finally:
                     run_common._finish_stats(args)
             else:
@@ -898,7 +903,7 @@ def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosit
                                 "min_luminosity_sol": min_luminosity_sol, "max_luminosity_sol": max_luminosity_sol,
                                 "seed": seed, "skip": set().union(*(skip_by_shell.get(shell, set())
                                                                     for shell, _high, _weight in chunk)),
-                                "mass_range": mass_range, "channel": channel,
+                                "mass_range": mass_range, "tiered": tiered, "channel": channel,
                             }, weights[key], on_done_for(key))
                             for key, chunk in tasks.items()], _scatter_shells_task)
                 finally:
@@ -953,6 +958,11 @@ def add_bright_star_band(args):
                        f"'planetgen plan --bright-stars-only --bright-star-min-luminosity {target:g}' instead.")
             return None
         current, first_seed = float(settings[0]), settings[1]
+        # GEN.333: each tier's floor moves with the baseline unless it was set, so each band goes from its tier's new
+        # floor up to its old one, and a tier whose floor does not fall adds nothing.
+        older = scatter_limits.ScatterLimits.of(skeleton, current, mass_limit)
+        newer = scatter_limits.ScatterLimits.of(skeleton, target, mass_limit)
+        tiered = scatter_limits.band_pass(newer, older)
         if target >= current:
             log.normal(f"Nothing to add: every star of {current:g} L_sun or more is already placed, "
                        f"and {target:g} is not below that.")
@@ -967,7 +977,7 @@ def add_bright_star_band(args):
         # GEN.32: a band run that stopped part way left the band in the
         # shells it finished; this run draws the whole band again, so it
         # starts from none of it.
-        stale = store.delete_unfinished_band(conn, current * constants.SOLAR_LUMINOSITY, skip)
+        stale = store.delete_unfinished_band(conn, older, skip)
         conn.commit()
         if stale:
             log.normal(f"Removed {stale:,} bright stars an unfinished earlier run left below {current:g} L_sun.")
@@ -978,8 +988,10 @@ def add_bright_star_band(args):
         t0 = time.perf_counter()
         counts = _scatter_shells(args, mysql_config, skeleton, extents, skip, target, seed,
                                  f"Bright stars {target:g}-{current:g} L_sun", max_luminosity_sol=current,
-                                 mass_range=mass_range)
-        topped = sorted(address for address, level in own.items() if address not in filled and level > target)
+                                 mass_range=mass_range, tiered=tiered)
+        floors = {address: newer.level_at(address[0], address[1]) for address in own}
+        topped = sorted(address for address, level in own.items() if address not in filled and level > floors[address]
+                        and floors[address] < older.level_at(address[0], address[1]))
         if topped:
             # Its own bar and ETA, like the backfill's (ADM.26): the web
             # page shows the progress file, and this phase can take minutes.
@@ -989,9 +1001,10 @@ def add_bright_star_band(args):
                     with steps.Step("Topping up backfilled sectors", "topup", len(topped), args=args,
                                     progress=progress) as bar:
                         topped_shells = {}
-                        _sectors, stars = _draw_sector_bands(conn, skeleton, topped, target, current, first_seed,
-                                                             ceiling_cap=current, counts=counts, shells=topped_shells,
-                                                             on_sector=bar.advance)
+                        _sectors, stars = _draw_sector_bands(
+                            conn, skeleton, topped, floors, older, first_seed,
+                            ceiling_cap={address: older.level_at(address[0], address[1]) for address in topped},
+                            counts=counts, shells=topped_shells, on_sector=bar.advance)
                 finally:
                     log.reset_console()
             log_shells("Topping up backfilled sectors", topped_shells)
@@ -1051,7 +1064,8 @@ def scatter_shells_unit(unit_args, report):
         "edge_pc": skeleton.edge_pc, "expected": skeleton.expected_system_count_at_density_1,
         "min_luminosity_sol": unit_args["min_luminosity_sol"], "max_luminosity_sol": unit_args.get("max_luminosity_sol"),
         "seed": unit_args["seed"], "skip": {tuple(address) for address in unit_args["skip"]},
-        "mass_range": None if mass_range is None else tuple(mass_range), "channel": _ReportChannel(report),
+        "mass_range": None if mass_range is None else tuple(mass_range),
+        "tiered": scatter_limits.tiered_from_json(unit_args.get("tiered"), skeleton), "channel": _ReportChannel(report),
     })
     result["seconds"] = time.monotonic() - started
     return result
@@ -1101,7 +1115,7 @@ def _scatter_shells_task(payload):
                 payload["shape"], shell_index, high_band, payload["edge_pc"],
                 payload["expected"], payload["min_luminosity_sol"], payload["seed"], skip_addresses=payload["skip"],
                 max_luminosity_sol=payload.get("max_luminosity_sol"), on_progress=report,
-                mass_range=payload.get("mass_range"),
+                mass_range=payload.get("mass_range"), tiered=payload.get("tiered"),
             ):
                 counts[row[6]] += 1
                 types[star_label(row[7], row[8])] += 1

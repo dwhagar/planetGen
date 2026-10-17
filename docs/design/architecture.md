@@ -253,7 +253,6 @@ The galaxy: sector grid, density, outline, seeds, object IDs, navigation. The se
 | [`remnant_distribution.py`](../../src/planetgen/galaxy/remnant_distribution.py) | Where neutron stars and black holes are, against where stars are (GEN.132). |
 | [`sector.py`](../../src/planetgen/galaxy/sector.py) | `SpaceSector` and `SectorSystemEntry` classes, which store a named collection of star systems laid out in three-dimensional space. |
 | [`seed.py`](../../src/planetgen/galaxy/seed.py) | The galaxy's 128-bit seed and the seeds derived from it (GEN.39; see docs/design/reproducible-galaxies.md, section 3). |
-| [`settings_file.py`](../../src/planetgen/galaxy/settings_file.py) | The galaxy's creation settings as a JSON file (ADM.18; docs/design/reproducible-galaxies.md, section 7). |
 | [`skeleton.py`](../../src/planetgen/galaxy/skeleton.py) | Finds, for a given `galaxyDensity.GalaxyShape`, the one structural fact worth precomputing about the whole galaxy: which cells of the spherical sector grid (`galaxy/spherical.py`) can hold any content, and how far out each shell reaches. |
 | [`span.py`](../../src/planetgen/galaxy/span.py) | A span of the galaxy's sector grid (ADM.29): a range of shells, a range of bands and, inside one shell and band, an arc of wedges -- the shape the Generate page's and `planetgen galaxy`'s span fills describe. |
 | [`spherical.py`](../../src/planetgen/galaxy/spherical.py) | Every galaxy-placed sector is one cell of a grid of spherical shells centred on the galactic origin (`docs/design/spherical-sector-coordinates.md`, the plan; Boss, 2026-10-15). |
@@ -321,6 +320,7 @@ Helpers every package can use.
 | [`__init__.py`](../../src/planetgen/util/__init__.py) | Shared helpers every planetgen package can use. |
 | [`checks.py`](../../src/planetgen/util/checks.py) | `finite_domain`, the decorator that gives a numeric physics helper one contract: it returns finite numbers or raises `ValueError`. |
 | [`generator_epoch.py`](../../src/planetgen/util/generator_epoch.py) | The generator epoch (OPS.56): the integer a PR bumps when it changes what a seed generates, read from `src/tests/golden/epochs.json`. |
+| [`detmath.py`](../../src/planetgen/util/detmath.py) | Maths that gives the same bits on every Python and machine (GEN.135): `hypot`, `dist`, `fsum` and a BLAS-free `matmul`, in place of `math.hypot`, `math.dist` and `@`. |
 | [`draw.py`](../../src/planetgen/util/draw.py) | Every random draw generation makes goes through here (GEN.56; see docs/design/reproducible-galaxies.md, section 5). |
 | [`format.py`](../../src/planetgen/util/format.py) | The text every number, distance, speed, duration, temperature, pressure and age is shown in, for the generator's wikitext and Markdown and for the web pages. |
 | [`ladders.py`](../../src/planetgen/util/ladders.py) | The data behind every measurement the site shows (UX.23): for each quantity a ladder of units, smallest first, and the rule for which one a value is shown in. |
@@ -359,6 +359,7 @@ The content database: writing, reading, migrating and checking it. `schema.sql` 
 |---|---|
 | [`__init__.py`](../../src/planetgen/db/__init__.py) | The content database (MySQL): writing, reading, migrating and checking it. |
 | [`alembic_runner.py`](../../src/planetgen/db/alembic_runner.py) | Runs the Alembic revisions in `planetgen/db/migrations/` against a planetGen content database (DB.11). |
+| [`migrations/helpers.py`](../../src/planetgen/db/migrations/helpers.py) | What a revision uses on a big table: instant columns, online indexes, updates in committed pages with progress, and the existence checks (DB.18). |
 | [`check.py`](../../src/planetgen/db/check.py) | `planetgen check-db` (and the Admin dashboard's "Check the database" button, which runs it as a job) looks for damage in a galaxy database and changes nothing. |
 | [`corridor.py`](../../src/planetgen/db/corridor.py) | The objects near a straight segment of the galaxy, for routing and course steering. |
 | [`countcache.py`](../../src/planetgen/db/countcache.py) | Counts and filter-menu totals that are too big to take inside a web request (PERF.64). |

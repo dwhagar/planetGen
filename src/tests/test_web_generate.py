@@ -26,7 +26,7 @@ from planetgen.api.config import Config
 
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.queue import progress_file, redisqueue  # noqa: E402
-from planetgen.web import csrf, generate_page, jobs  # noqa: E402
+from planetgen.web import csrf, generate_page, jobs, limit_sliders  # noqa: E402
 
 DB = "planetgen_generate_test"
 PY = sys.executable
@@ -666,8 +666,10 @@ def test_page_offers_the_scatter_threshold(site, client):
     html = client.get("/admin/generate").get_data(as_text=True)
     assert html.count('name="bright_min_luminosity"') == 3  # New galaxy, Plan, Rebuild
     assert generate_page.BRIGHT_THRESHOLD_LABEL in html
-    assert '<option value="9000" selected>9,000 (default)</option>' in html  # GEN.184
-    assert '<option value="2500">2,500</option>' in html and '<option value="4000000">4.00 × 10⁶</option>' in html
+    # GEN.184, UX.116: a slider over the presets with a number box at its end, which shows the default.
+    assert re.search(r'<input type="number" class="range-value" id="plan-mass-limit-floor-box" name="bright_min_luminosity" '
+                     r'value="9000"[^>]*min="2500\.0" max="4000000\.0"', html)
+    assert 'data-stops="[2500.0,' in html and '4000000.0]"' in html
     assert generate_page.BACKFILL_TEXT in html
 
 
@@ -1322,21 +1324,76 @@ def test_random_start_argv_carries_the_neighborhood_count():
 def test_the_plan_forms_offer_the_mass_limit_slider(site, client):
     html = client.get("/admin/generate").get_data(as_text=True)
     for slider in ("new-galaxy-mass-limit", "plan-mass-limit"):
-        assert re.search(rf'<input type="range" id="{slider}" name="phenomenon_min_mass"[^>]*min="8" max="20" step="2"'
-                         r'[^>]*value="14"', html, re.S)
+        # The range holds an index into the seven presets (8 to 20), 14 being the fourth, and the box is the field.
+        assert re.search(rf'<input type="range" id="{slider}"[^>]*min="0" max="6" step="1"[^>]*value="3"', html, re.S)
+        assert re.search(rf'<input type="number" class="range-value" id="{slider}-box" name="phenomenon_min_mass" '
+                         r'value="14"', html)
     assert html.count('name="phenomenon_min_mass"') == 3    # Plan, New galaxy and Redo scatters
-    assert re.search(r'<script type="module" src="/static/generateranges.js\?v=[^"]+"></script>', html)
+    assert re.search(r'<script type="module" src="/static/limitsliders.js\?v=[^"]+"></script>', html)
 
 
 def test_the_mass_slider_and_luminosity_dropdown_sit_together_in_both_forms(site, client):
     """GEN.188: one container holds the mass limit slider and the luminosity floor dropdown, in Plan and in New galaxy."""
     html = client.get("/admin/generate").get_data(as_text=True)
-    pairs = re.findall(r'<div class="search-fields scatter-limits">(.*?)</div>\s*(?:<div|</fieldset|<div class="search-actions)',
-                       html, re.S)
+    pairs = re.findall(r'<div class="search-fields scatter-limits">(.*?)<div class="scatter-segments">', html, re.S)
     assert len(pairs) == 2
     for pair in pairs:
         assert 'name="phenomenon_min_mass"' in pair and 'name="bright_min_luminosity"' in pair
-    assert 'option value="9000" selected>9,000 (default)' in html
+
+
+def test_the_plan_forms_offer_the_core_halo_and_dense_cell_segments(site, client):
+    """UX.116: three segments under the galaxy-wide limits, in Plan and New galaxy and not in Redo scatters."""
+    html = client.get("/admin/generate").get_data(as_text=True)
+    segments = [part[:20000] for part in html.split('<div class="scatter-segments">')[1:]]
+    assert len(segments) == 2
+    for segment in segments:
+        for legend in ("Core", "Halo and intergalactic space", "Dense cells"):
+            assert f"<legend>{legend}</legend>" in segment
+        for name, value in (("core_min_luminosity", "9900"), ("core_mass_limit", "15.4"), ("halo_min_luminosity", "500"),
+                            ("cell_star_ceiling", "5000"), ("fill_luminosity_cap", "100")):
+            assert re.search(rf'name="{name}"\s+value="{value}"', segment), name
+        assert re.search(r'name="core_follow" value="1" data-core-follow checked', segment)
+        assert segment.count("data-limit-reset=") == 3
+    for name in ("core_min_luminosity", "halo_min_luminosity", "cell_star_ceiling", "fill_luminosity_cap"):
+        assert html.count(f'name="{name}"') == 2            # not in the Redo scatters form
+
+
+def test_the_core_limits_start_at_the_defaults_times_the_core_factor(site, client):
+    html = client.get("/admin/generate").get_data(as_text=True)
+    assert 'data-follows="plan-mass-limit-floor-box" data-follow-factor="1.1"' in html
+    assert 'data-follows="plan-mass-limit-box" data-follow-factor="1.1"' in html
+
+
+def test_the_limit_options_reach_the_plan(site, client, no_spawn):
+    assert _post(client, action="plan", halo_min_luminosity="80", cell_star_ceiling="20000",
+                 fill_luminosity_cap="300").status_code == 303
+    (job,) = no_spawn
+    plan = _work_steps(job)[0]
+    assert _argv(plan) == ["plan", "--halo-min-luminosity", "80", "--cell-star-ceiling", "20000",
+                           "--fill-luminosity-cap", "300", "--no-bright-stars"]
+
+
+def test_the_core_limits_follow_the_galaxy_wide_ones_while_that_box_is_ticked(site, client, no_spawn):
+    assert _post(client, action="plan", core_follow="1", core_min_luminosity="20000",
+                 core_mass_limit="20").status_code == 303
+    assert _argv(_work_steps(no_spawn[0])[0]) == ["plan", "--no-bright-stars"]
+
+
+def test_the_core_limits_reach_the_plan_once_they_are_set(site, client, no_spawn):
+    assert _post(client, action="plan", core_min_luminosity="20000", core_mass_limit="20.2").status_code == 303
+    assert _argv(_work_steps(no_spawn[0])[0]) == [
+        "plan", "--core-min-luminosity", "20000", "--core-mass-limit", "20.2", "--no-bright-stars"]
+
+
+@pytest.mark.parametrize("field, value", [
+    ("core_min_luminosity", "10"), ("core_min_luminosity", "5000000"), ("core_mass_limit", "7"),
+    ("core_mass_limit", "25"), ("halo_min_luminosity", "49"), ("halo_min_luminosity", "4000001"),
+    ("cell_star_ceiling", "0"), ("fill_luminosity_cap", "49"), ("cell_star_ceiling", "abc")])
+def test_the_limits_must_be_numbers_inside_their_sliders(site, client, no_spawn, field, value):
+    resp = _post(client, action="plan", **{field: value})
+    assert resp.status_code == 400
+    assert no_spawn == []
+    assert limit_sliders.SLIDERS[field].label in resp.get_data(as_text=True)
 
 
 def test_the_mass_limit_reaches_the_plan_and_the_scatter(site, client, no_spawn):

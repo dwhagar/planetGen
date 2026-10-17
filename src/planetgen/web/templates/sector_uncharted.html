@@ -1,0 +1,29 @@
+{#- The page of a cell nothing was generated in (web/sector_page.py, UX.113). -#}
+{% extends "base.html" %}
+{% from "partials/profile.html" import profile_panel with context %}
+{% block subhead %}
+<div class="page-subhead">
+<p class="badges">
+  <span class="badge">Uncharted</span>
+  <span class="badge">Edge {{ edge_text }}</span>
+  {%- if star_count %}
+  <span class="badge">{{ star_count }} waiting bright star{{ "" if star_count == 1 else "s" }}</span>
+  {%- endif %}
+  {%- if scattered_count %}
+  <span class="badge">{{ scattered_count }} waiting {{ "phenomenon" if scattered_count == 1 else "phenomena" }}</span>
+  {%- endif %}
+</p>
+<div class="page-actions nav-row">
+  <a class="btn btn-small btn-secondary" href="{{ page_url('galaxy', sector=designation) }}">Show on Galaxy Map</a>
+</div>
+</div>
+{% endblock %}
+{% block content %}
+<p class="hint">Nothing has been generated at shell {{ address[0] }}, band {{ address[1] }}, wedge {{ address[2] }}. The profile below is worked out from the galaxy's shape and does not store anything; asking for the sector makes it by the same rules.
+{%- if can_generate %} Generate it from the <a href="{{ url_for('web.generate') }}">Generate page</a> with the Address mode.{% endif %}</p>
+{%- if profile %}
+{{ profile_panel(profile) }}
+{%- else %}
+<p class="hint">No profile is available: the galaxy has not been planned.</p>
+{%- endif %}
+{% endblock %}

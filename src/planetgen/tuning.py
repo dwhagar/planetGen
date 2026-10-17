@@ -478,31 +478,76 @@ STAR_FORMATION_AGE_RANGE_GY = (0.0, 10.0)
 # Post-main-sequence phases, as multiples of the main-sequence lifetime
 # (SOLAR_MS_LIFESPAN_GY * M^MS_LIFESPAN_MASS_EXPONENT above): subgiant up
 # to 1.1, giant or supergiant up to 1.2, then a remnant. Real post-MS
-# phases take roughly 10-20% of the main-sequence time.
+# phases take roughly 10-20% of the main-sequence time. A star lighter than
+# HELIUM_FLASH_MASS_SOL burns helium in its core after the red giant branch
+# (the horizontal branch) and then climbs the asymptotic giant branch before
+# it becomes a white dwarf (GEN.286): HORIZONTAL_BRANCH_MS_FRACTION and
+# AGB_MS_FRACTION are added to GIANT_PHASE_END_MS_FRACTION for it.
 SUBGIANT_PHASE_END_MS_FRACTION = 1.1
 GIANT_PHASE_END_MS_FRACTION = 1.2
+HELIUM_FLASH_MASS_SOL = 2.2
+HORIZONTAL_BRANCH_MS_FRACTION = 0.010
+AGB_MS_FRACTION = 0.002
 
 # Stars at or above this initial mass end as supergiants and then neutron
 # stars or black holes (core collapse); below it, as giants and white dwarfs.
 SUPERGIANT_MIN_MASS_SOL = 8.0
 # Giants at or above this initial mass are bright giants (II), not III.
 BRIGHT_GIANT_MIN_MASS_SOL = 4.0
-# Giant-branch luminosity (log-uniform, Lsun) and temperature (K) ranges.
-GIANT_LUMINOSITY_RANGE_SOL = (50.0, 1000.0)
-BRIGHT_GIANT_LUMINOSITY_RANGE_SOL = (1000.0, 10000.0)
-# A low-mass giant spends a short last stretch of its giant phase above
-# GIANT_LUMINOSITY_RANGE_SOL's top: the upper red giant branch up to its tip
-# near 2500 Lsun (M_bol ~ -3.7; Salaris & Cassisi 2005) and the bright end
-# of the asymptotic giant branch, together a few percent of the phase. That
-# share is drawn log-uniform over GIANT_TIP_LUMINOSITY_RANGE_SOL. Without it
-# no old disk or bulge star reached the 1000 Lsun bright-star threshold, so
-# bright stars stayed in the young thin disk near the plane (GEN.79).
-GIANT_TIP_LUMINOSITY_RANGE_SOL = (1000.0, 2500.0)
-GIANT_TIP_FRACTION = 0.02
+# Giant-branch luminosities (Lsun) and temperatures (K). A giant lighter than
+# BRIGHT_GIANT_MIN_MASS_SOL is on the red giant branch: it rises from the
+# base (SUBGIANT_MAX_BRIGHTENING times the star's main-sequence luminosity,
+# where its subgiant phase ended) to the tip, and the time it spends at each
+# luminosity falls as L^-GIANT_BRANCH_TIME_SLOPE per unit of ln L (GEN.287).
+# That is the real luminosity function, and it follows from the physics: the
+# helium core grows by the hydrogen shell burning at the star's luminosity, so
+# dt = (X Q / L) dMc, and the luminosity climbs as a power Mc^p of the core
+# mass (p about 10 for the low-mass cores of an old population), which gives
+# dt/dlnL proportional to L^(1/p - 1), slope 0.9 [R, Refsdal and Weigert 1970;
+# Salaris and Cassisi 2005; recalled, unconfirmed]. The tip is where the core
+# helium ignites (near 2,500 Lsun, M_bol about -3.7; Salaris and Cassisi 2005).
+# Log-uniform spreading over 50 to 1,000 Lsun, which this replaces, put every
+# giant above 50 Lsun and overstated the bright ones many times against real
+# counts: the real branch spends most of its time near its base (its
+# observed ratio of horizontal-branch stars to red giants brighter than the
+# horizontal branch is about 1.4 [R, Salaris et al. 2004]).
+GIANT_BRANCH_TIP_LUMINOSITY_SOL = 2500.0
+GIANT_BRANCH_TIME_SLOPE = 0.9
+BRIGHT_GIANT_LUMINOSITY_RANGE_SOL = (1000.0, 10000.0)  # log-uniform
 GIANT_TEMPERATURE_RANGE_K = (3500.0, 5000.0)
-# A subgiant brightens to about twice its main-sequence luminosity and
-# cools toward the base of the giant branch while crossing.
-SUBGIANT_MAX_BRIGHTENING = 2.0
+# The horizontal branch (core helium burning): one luminosity range, whatever
+# the colour; the colour (temperature) is drawn from [Fe/H] and age
+# (HORIZONTAL_BRANCH_COLOURS below). Red clump and red horizontal-branch stars
+# are the metal-rich, RR Lyrae the middle, blue horizontal-branch the
+# metal-poor and extreme horizontal-branch (hot subdwarfs) a few percent of
+# old stars (docs/design/realistic-galactic-core.md 5.3) [R, recalled, unconfirmed:
+# Lee, Demarque and Zinn 1994; Catelan 2009].
+HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL = (40.0, 60.0)
+HORIZONTAL_BRANCH_COLOUR_TEMPERATURE_RANGE_K = {
+    "red": (4600.0, 5300.0), "rr-lyrae": (5900.0, 7400.0),
+    "blue": (7500.0, 20000.0), "extreme": (20000.0, 35000.0),
+}
+# Colour shares (blue, RR Lyrae, red, extreme) at [Fe/H] anchors, linear
+# between them and held beyond the ends: nearly all blue at -2.2, a mix at
+# -1.5 (the intermediate halo), nearly all red above -0.5.
+HORIZONTAL_BRANCH_COLOURS = (
+    (-2.2, (0.82, 0.07, 0.02, 0.09)),
+    (-1.5, (0.43, 0.25, 0.25, 0.07)),
+    (-0.7, (0.06, 0.06, 0.86, 0.02)),
+    (-0.1, (0.0, 0.0, 0.98, 0.02)),
+)
+# The second parameter: a younger population has a redder branch, as if its
+# [Fe/H] were higher by this many dex for each Gy it is younger than the
+# reference age.
+HORIZONTAL_BRANCH_AGE_SHIFT_DEX_PER_GY = 0.1
+HORIZONTAL_BRANCH_REFERENCE_AGE_GY = 12.0
+# The asymptotic giant branch: the same time-at-luminosity law, between these.
+AGB_LUMINOSITY_RANGE_SOL = (100.0, 2500.0)
+# A subgiant brightens to about three and a half times its main-sequence luminosity (the
+# zero-age relation under-counts the turn-off star's own brightening, and the base
+# of the red giant branch of an old 0.85 solar mass star is near 2 to 3 Lsun)
+# and cools toward the base of the giant branch while crossing.
+SUBGIANT_MAX_BRIGHTENING = 3.5
 SUBGIANT_END_TEMPERATURE_K = 5000.0
 # Massive stars evolve at nearly constant luminosity; about a third of
 # observed supergiants are red (K/M), the rest blue or white (O/B/A).
@@ -562,7 +607,7 @@ WD_IFMR_INTERCEPT_SOL = 0.394
 WD_MASS_RANGE_SOL = (0.5, 1.35)
 WD_COOLING_L0_SOL = 1.0e-3
 WD_COOLING_EXPONENT = -1.4
-WD_LUMINOSITY_RANGE_SOL = (1.0e-5, 100.0)
+WD_LUMINOSITY_RANGE_SOL = (1.0e-5, 50.0)
 WD_MIN_COOLING_AGE_GY = 1.0e-4
 
 # `+large_star` draws from the same model with the IMF truncated below
@@ -826,10 +871,19 @@ METALLICITY_SATELLITE_PEAKS = ((1.0, -1.2, 0.5),)
 CELL_STAR_CEILING = 5_000.0
 """float: The default cell star ceiling, systems a cell expects before it is filled only down to the cap (14
 minutes of generation, 2.4 GB, at the measured 16.4 ms and 48 KiB a system)."""
+CELL_SECONDS_PER_SYSTEM = 0.02
+"""float: What generating one system of a crowded cell takes, seconds (measured with the galactic core's cells, GEN.364:
+about 20 ms), for the estimate beside the cell star ceiling on the Generate page."""
+CELL_BYTES_PER_SYSTEM = 48 * 1024
+"""int: What one generated system takes in the database, bytes (GEN.281's measurement, 48 KiB)."""
 FILL_LUMINOSITY_CAP_SOL = 100.0
 """float: The default fill luminosity cap, solar luminosities: the dimmest star a cell above the ceiling resolves.
 The lowest a cap can be is the brightest white dwarf (`WD_LUMINOSITY_RANGE_SOL`), the dimmest threshold the star
 model takes."""
+TIER_DOMINANCE_SHARE = 0.5
+"""float: The share of a band's density a term must reach for the band to take that term's tier
+(`galaxy.scatter_limits`): the nuclear terms for the core tier, the halo for the halo tier (GEN.333)."""
+
 CORE_TIER_FACTOR = 1.10
 """float: How much higher than the baseline the core's scatter limits default (docs/design/realistic-galactic-core.md
 5.1, Boss): the core luminosity floor and mass limit follow the galaxy's baseline times this until they are set."""

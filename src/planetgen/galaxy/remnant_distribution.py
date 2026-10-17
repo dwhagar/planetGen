@@ -25,6 +25,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
+from planetgen.util import detmath
 
 
 def _sech2_profile(z_pc, scale_pc):
@@ -80,7 +81,7 @@ def radial_factor(kind, radius_pc):
 
 def placement_factor(kind, point_pc, thin_height_pc):
     """Both factors for a galaxy-frame point `(x, y, z)` in parsecs."""
-    radius = math.hypot(point_pc[0], point_pc[1])
+    radius = detmath.hypot(point_pc[0], point_pc[1])
     return vertical_factor(kind, point_pc[2], thin_height_pc) * radial_factor(kind, radius)
 
 

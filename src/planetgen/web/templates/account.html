@@ -99,4 +99,10 @@
   {%- endif %}
 </section>
 {%- endif %}
+{%- if privacy_note %}
+<section class="panel" aria-labelledby="privacy-note-heading">
+  <h2 id="privacy-note-heading">What the site keeps</h2>
+  <p class="pre-line">{{ privacy_note }}</p>
+</section>
+{%- endif %}
 {% endblock %}

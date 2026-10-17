@@ -27,6 +27,7 @@ which `run_galaxy` logs once per run.
 """
 
 import math
+from planetgen.util import detmath
 
 BLOCK_EDGES = 4
 """int: Voxels to a block side."""
@@ -133,7 +134,7 @@ def step_statistics(ordered, edge_pc):
     steps = max(len(ordered) - 1, 0)
     lengths = []
     for before, after in zip(ordered, ordered[1:]):
-        length = math.dist(before[3:6], after[3:6]) / edge_pc
+        length = detmath.dist(before[3:6], after[3:6]) / edge_pc
         if length > JUMP_EDGES:
             lengths.append(length)
     return steps, len(lengths), (sum(lengths) / len(lengths) if lengths else 0.0), max(lengths, default=0.0)

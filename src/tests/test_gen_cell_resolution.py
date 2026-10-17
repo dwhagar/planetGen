@@ -109,7 +109,7 @@ def test_the_plan_options_default_to_none_and_are_checked(capsys):
     args = _plan_args("--cell-star-ceiling", "20000", "--fill-luminosity-cap", "300")
     assert (args.cell_star_ceiling, args.fill_luminosity_cap) == (20000.0, 300.0)
     for argv, message in ((["--cell-star-ceiling", "0"], "--cell-star-ceiling must be at least 1"),
-                          (["--fill-luminosity-cap", "99"], "--fill-luminosity-cap"),
+                          (["--fill-luminosity-cap", "49"], "--fill-luminosity-cap"),
                           (["--fill-luminosity-cap", "nan"], "must be a finite number")):
         with pytest.raises(SystemExit):
             _plan_args(*argv)
