@@ -2427,6 +2427,57 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.134.
   Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
 
+- [ ] **MAP.251 When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug)**
+  Boss (2026-10-17, 7:38 PM EDT, typed in the project chat, relayed by
+  the coordinator): "BUG: The system needs to choose what stars or
+  objects to drop evenly across the viewing space rather than just
+  truncating off the data, always most massive / brightest within the
+  galaxy go last, halo and satellite galaxies go first." Today a budget
+  that is exceeded truncates its ranked list, so the dropped stars come
+  from one region (the tail of the ordering) and leave holes. The rule:
+  when a budget cuts, the removed stars are spread evenly over the
+  visible volume (for example a thinning by a fixed per-star random
+  number inside each rank tier, the hash thinning of
+  docs/design/zoom-star-visibility.md, so a cut thins every region by
+  the same fraction and the nested lists stay subsets); the order of
+  what goes last is the most massive and brightest stars of the galaxy;
+  what goes first is, per MAP.250 (Decided, Boss 6:57 PM EDT),
+  satellite-galaxy stars, then halo stars, then everything else. This is
+  the thinning rule inside each tier that MAP.250 puts in front of the
+  luminosity key, so it edits the same star-budget code as MAP.250 (Core
+  2, coded on branch map250) and as MAP.249 (the galaxy map lag): Bug
+  Hunt builds on MAP.250 once it merges and does not edit the budget
+  code before. Applies to every place that spends a star or object
+  budget (the tile lists, the nested lists, the 70,000-star view cap,
+  the stage views, the Sector Map, the phenomena lists). Done: one
+  function holds the order and the even thinning, every budget reads it
+  and none keeps its own; a test fills a budget-limited view with stars
+  over a wide area and checks the dropped stars are spread over every
+  region by about the same fraction, that no more massive or brighter
+  star is dropped while a less massive one of the same tier is shown,
+  and that satellite and halo stars go first; the rule is written in
+  docs/design/zoom-star-visibility.md. Owner: Bug Hunt (Boss, 7:38 PM
+  EDT).
+  Prerequisites: MAP.250. Related: MAP.249, MAP.250.
+
+- [ ] **MAP.252 Viewing only the filled sectors does not dim the phenomena (bug)**
+  Boss (2026-10-17, 7:38 PM EDT, typed in the project chat, relayed by
+  the coordinator): "BUG: When trying to view only filled sectors,
+  phenomena don't dim." With the view set to show only filled sectors,
+  the stars and sectors that are not filled dim, but the phenomena
+  (nebulae, clusters, remnants) in unfilled space stay at full
+  brightness. Fails on main: reported by Boss on his own server, not yet
+  reproduced by the TODO thread. Frequency: every time, as reported.
+  Reproducer: on the Galaxy Map choose the filled-sectors-only view and
+  look at a phenomenon in an unfilled sector. Do: find the control and
+  the place that dims stars, make the phenomena read the same filled
+  state (the same dim factor and the same rule as the stars), and test
+  it. Done: a browser test with a phenomenon in a filled and in an
+  unfilled sector checks the unfilled one is dimmed and the filled one
+  is not, and the same on the Sector Map if it has the view. Owner: Bug
+  Hunt (Boss, 7:38 PM EDT).
+  Prerequisites: none. Related: MAP.250.
+
 
 ## NAV: Navigation and courses
 
@@ -3833,7 +3884,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.311, GEN.312, MAP.213, GEN.313, GEN.314.
+  Prerequisites: GEN.311, GEN.312, MAP.213, GEN.313.
 
 - [ ] **GEN.130 Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes**
   Boss (GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778)): "We need to add exotic star systems that
@@ -6067,35 +6118,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   line on this item.
   Prerequisites: GEN.311. Related: GEN.129.
 
-- [ ] **GEN.314 Planet zones in a hierarchy and flux sums: S-type and P-type windows per node (Holman-Wiegert) and the flux a planet receives from every member**
-  Split from GEN.129 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). A planet's stable orbits in a
-  tree: an S-type limit around each star (the sibling subtree as a point
-  mass, lower limit the engulfment floor), a P-type window around each
-  pair node (lower limit Holman-Wiegert, upper limit the S-type limit of
-  the pair against its own sibling), all capped at the disk size, plus
-  the summed flux of every member for the habitability inputs (design
-  multistar-and-compact-systems.md 5.6 and 6.5). A pure function over an
-  OrbitNode tree (physics/, numpy only), using the existing
-  holman_wiegert functions of physics/orbits.py. This is the one place
-  the zones are worked out; GEN.264:a, GEN.130 and GEN.275:b call it.
-  Done: the windows for N=2 equal today's circumbinary and wide-pair
-  limits, the table of 5.6 (S-type windows above 0.3 AU: 77% at N=2
-  falling to 13% at N=7) is reproduced on a seeded draw, and a planet's
-  flux sums over all members.
-  The zone function is shared: GEN.264 stage C, GEN.130 (pulsar and
-  white-dwarf rows) and GEN.275 (circumbinary planets) call it and
-  compute no zones of their own.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Owner: Blocker 1 (Boss, 2026-10-17, 3:47 PM EDT, card answer relayed
-  in words by the coordinator: GEN.314 goes to Blocker 1 after GEN.289;
-  Core 3 confirmed it was never started and dropped it from its queue).
-  This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: GEN.129.
-
 - [ ] **GEN.315 A fill builds a system from its stored members and nodes; the system pass keeps only planets, moons, belts and disks**
   Split from GEN.264 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). StarSystem(member_tree=...) skips
@@ -6114,7 +6136,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.311, GEN.314. Related: GEN.264.
+  Prerequisites: GEN.311. Related: GEN.264.
 
 - [ ] **GEN.316 Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired**
   Split from GEN.264 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6151,7 +6173,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.314. Related: GEN.130, GEN.436, GEN.444.
+  Prerequisites: none. Related: GEN.130, GEN.436, GEN.444.
 
 - [ ] **GEN.318 White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk**
   Split from GEN.130 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6170,7 +6192,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.314. Related: GEN.130.
+  Prerequisites: none. Related: GEN.130.
 
 - [ ] **GEN.321 Emission regions D and E: the ionizing members of a young cluster in a Plummer sphere, cut by sector cube**
   Split from GEN.241 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6338,7 +6360,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.314, GEN.315. Related: GEN.275.
+  Prerequisites: GEN.315. Related: GEN.275.
 
 - [ ] **GEN.334 Pair closest-approach library: sweep, pair windows, window cap and chunking**
   Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
@@ -13657,6 +13679,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed).
   Prerequisites: none. Related: GEN.133, GEN.134.
 
+- [ ] **GEN.543 Define "usable" for a P-type window so the design table's pair-node row (34% falling to 18%) can be reproduced**
+  Open question from GEN.314 (Blocker 1, merged #2125, 2026-10-17;
+  reported 7:38 PM EDT through the coordinator):
+  `docs/design/multistar-and-compact-systems.md` 5.6 gives "Pair nodes
+  with a usable P-type window" as 34%, 35%, 28%, 23%, 20%, 18% for N = 2
+  to 7, but does not define "usable" past the window being there.
+  GEN.314's width test (window wider than 0.3 AU) gives 45%, 48%, 43%,
+  37%, 35%, 30%, above the table. The S-type row is reproduced within 7
+  points. Default (stands as Decided unless Boss says otherwise): try
+  two candidate definitions on the same seeded draw of the generator's
+  trees, (a) width above 0.3 AU and an outer edge at least twice the
+  inner edge, (b) width above 0.3 AU and the window overlaps the host's
+  habitable zone, and keep the one that lands the table's row within 7
+  points at every N; if neither does, keep the measured numbers, label
+  the table's row as the earlier estimate and say so on the design page.
+  Nothing waits on it. Done: the definition is written next to the
+  table, a test pins the share, and the table's row is either reproduced
+  or relabelled. Owner: Blocker 1 (proposed, after PERF.118, GEN.438 to
+  GEN.440).
+  Prerequisites: none. Related: GEN.314, GEN.264.
+
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -18711,6 +18754,50 @@ clears each one.
   is on this item and the browser phase shows no multi-minute stall in a
   gate. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.126, TEST.171, TEST.172, TEST.227.
+
+- [ ] **TEST.230 test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing fails in about 10 of 12 runs since the stellar bundle merged (bug)**
+  Found by Core 5 (2026-10-17, 7:34 PM EDT as the lane reported, 1 of 1
+  runs on main 2473bf2), bisected and reproduced by the TODO thread
+  (7:34 to 7:38 PM EDT).
+  `src/tests/test_sector_gen.py::test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing`
+  fails at `assert nebula.hosts.startswith("O5V x1")` (line 168): the
+  test places one O5V, one G2V and one M3V, but the nebula's hosts read
+  `O5V x2, B1V x3, B2V x3, B3V x2, B5V x1` on a re-run, and `O5V x4, O7V
+  x6, O9V x7, B0V x9, B1V x19, B2V x15, B3V x18, B5V x8` in Core 5's
+  run: the nebula now hosts a whole cluster of O and B stars, not the
+  one O star the test placed. The result is random per run: 12 of 12
+  passes at 62bca47c and at 6a54b8c1~1 (the parent of the stellar
+  bundle, #2112), 10 failures in 12 runs at 6a54b8c1 (#2112, GEN.529,
+  GEN.467, GEN.463, GEN.502, GEN.259), and 1 failure in 3 runs on main
+  a43963f8. So the bundle changed what the test's nebula draws; whether
+  the test or the generator is wrong is not yet known (the bundle
+  changed the star population and the lifetimes, and the `hosts` text
+  counts every star a cloud lights). Fails on main: yes, intermittently.
+  Frequency: about 1 run in 3 to 5 in 6 depending on the seed.
+  Reproducer: `PYTHONPATH=src python3 -m pytest -n0
+  src/tests/test_sector_gen.py::test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing`
+  repeated 12 times. Do: find where the extra hosts come from (the
+  test's sector holds three stars, so a cluster must be drawn by the
+  phenomena pass) and fix the cause in the generator or the test's
+  setup, with no loosening of the assert. Done: the cause is on this
+  item and the test passes 30 of 30 runs. Owner: Core 5 (proposed, its
+  #2112 changed the behaviour).
+  Prerequisites: none. Related: GEN.529, GEN.467.
+
+- [ ] **TEST.231 test_the_wheel_anchors_on_the_star_under_the_pointer_not_the_mesh_behind_it failed alone once in 8 runs (bug)**
+  Found by Blocker 1 (2026-10-17, about 7:38 PM EDT, relayed by the
+  coordinator), filed by the TODO thread.
+  `src/tests/test_web_browser_sector_reach.py::test_the_wheel_anchors_on_the_star_under_the_pointer_not_the_mesh_behind_it`
+  (MAP.245's test) failed `assert the wheel anchor is (0, 0, 0)`, got
+  0.031 on two axes, once in 8 runs on Blocker 1's branch, 0 of 8 on
+  main, and 4 passes after. Fails on main: not in 8 runs. Frequency: 1
+  of 8 runs on one branch. Reproducer: run the test alone 8 times. A
+  rare flake: a small anchor offset is a numeric tolerance or a frame
+  that was not settled, not a missing wait. Do: find whether the anchor
+  reads the camera before it has settled, and fix the cause in the test
+  or the page. Done: the cause is on this item and the test passes 30 of
+  30 runs. Owner: Core 2 (owns the test, MAP.245).
+  Prerequisites: none. Related: MAP.245, TEST.126.
 
 
 ## USR: User accounts
