@@ -38,7 +38,7 @@ TOP = frozenset({
     "web.species", "web.species_page", "web.polities", "web.polity_page",
 })
 LISTS = frozenset({"web.sectors", "web.systems", "web.phenomena"})
-DETAIL = frozenset({"web.system", "web.sector", "web.phenomenon", "web.uncharted_phenomenon"})
+DETAIL = frozenset({"web.system", "web.sector", "web.sector_at", "web.phenomenon", "web.uncharted_phenomenon"})
 OTHER_PUBLIC_UTILITY = frozenset({
     "web.search", "web.nav", "web.nav_chart", "web.nearby", "web.table_data", "web.object_page",
     "web.galaxy_locate", "web.galaxy_nebula_shape", "web.galaxy_nebula_surroundings", "web.galaxy_stage", "web.galaxy_territories",
