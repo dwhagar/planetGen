@@ -31,6 +31,8 @@ Scripts, data and logs behind every number marked COMPUTED or DATA: `/mnt/projec
 
 **Standing rule applied everywhere** (Boss, 3:02 AM EDT): verified and partly verified material is usable unless contradicted; a verified source wins; speculation never beats a verified figure; every theory-based value says so.
 
+**General rules, Decided.** Boss's general rules (typed in the project chat at 12:39 PM EDT on 2026-10-17, relayed by the coordinator): when in doubt, verified wins; when two verified sources are in doubt, the newest wins; when two sources are both in question, the one that takes the most permission wins (Boss's words are 'most permission take wins'; the coordinator read this as the most permissive, widest value, and Boss has not confirmed that reading, so it is applied only as the widest bracket until he does). Boss answered a card at 12:40 PM EDT (relayed in words): his six earlier 'widen and keep both' answers stand (arm pitch against bulge fraction, nuclear cluster mass slope, blue to red cluster radius ratio, thick-to-thin height ratio, thick-to-thin mass ratio against Vc, cluster system radius), and the newest-wins rule applies to every conflict that comes after them.
+
 **Ids.** GR1 to GR15 are R1 to R15 of GEN.531 (galaxy; "GR" avoids a clash with the atmosphere research items AR1 to AR15 = GEN.480 to GEN.494 and the body items R1 to R5 = GEN.473 to GEN.476). GX1 to GX5 are galaxy gaps the research found that are not among the 15. BC1 to BC19 are body composition gaps. AT.x are atmosphere rows by their tunable-gaps id (for example AT.a1); AD1 to AD8 are atmosphere data and input gaps from section 6 of the atmosphere master. Mass and time conventions: 200c masses with h = 0.671 inside the generator; the papers use other definitions, so each fill that crosses a definition says so.
 
 ## 2. Every open gap in one table
@@ -400,7 +402,8 @@ Constants keep the style of `tuning.py`: a docstring with the source and the lab
 
 | Case | Rule |
 |---|---|
-| Verified against verified | neither wins; mixture or widened bracket; both stay in the record (GX2, GX3, GR11 scatter are examples) |
+| Verified against verified | for the six cases Boss answered before 12:40 PM EDT, neither wins: widened bracket or mixture, both stay in the record (GX2, GX3, GR7 and the three thick-disc and cluster-radius conflicts of 7.2a); for every conflict found after that, the newest source wins (Boss, 12:39 PM EDT) and the older stays in the record |
+| Two sources both in question | the one that takes the most permission wins (Boss, 12:39 PM EDT); applied as the widest bracket until Boss confirms what 'permission' means |
 | Verified against Gemini or any LEAD | verified wins; the LEAD is logged as contradicted with the verified figure beside it |
 | Partly verified against LEAD | partly verified wins unless the LEAD points to a primary source that is then read |
 | LEAD with no contradiction | usable only to widen a bracket; stays "open" |
