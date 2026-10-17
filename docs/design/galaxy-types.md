@@ -31,7 +31,7 @@ Each row is an item in TODO.md; a row sits in the earliest version that can hold
 | 1 | GEN.378 the checked design: families, the scaling relation table with sources, the draw order, Boss's research requests | 8.1 phase 5 | needs only GEN.368's table; the shape-draw build that follows GEN.368 reads it, so it is not built twice |
 | 2 | DB.66 the shape row carries the family key and the component amplitudes (migration only) | 8.3 phase 1 | one migration beside the other galactic-gravity work; Core 1 owns the numbering |
 | 3 | GEN.379 the density model as a list of components, each with an amplitude that may be 0, and `component_masses` | 8.3 phase 1 | the potential (GEN.338) reads each component's mass from it, so it comes first; today's spiral reproduces today's density |
-| 4 | GEN.380 the type draw; GEN.381 the Sérsic spheroid component | 9.4 phase 1 | nothing calls them before the families exist |
+| 4 | GEN.380 the type draw; GEN.381 the Sérsic spheroid component; UX.135 one hand-drawn vector outline per family | 9.4 phase 1 | nothing calls them before the families exist; the outlines can be drawn any time after GEN.378 fixes the family list |
 | 5 | GEN.382 spiral, GEN.383 elliptical, GEN.385 irregular and dwarf | 9.4 phase 2 | three independent threads |
 | 6 | GEN.384 lenticular; GEN.386 populations; GEN.387 clusters, nuclear cluster and black hole; GEN.388 home position | 9.4 phase 3 | they read the families |
 | 7 | GEN.389 creation draws the family and stores it | 9.4 phase 4 | needs every family |
@@ -65,4 +65,5 @@ These are the relations the design looks up. The names are from memory and are n
 - Barred or unbarred is a draw inside the spiral family, not a family of its own.
 - A satellite galaxy is made of the dwarf families (GEN.369 already draws profile by mass); a Plummer dwarf spheroid and an exponential dwarf irregular are the same objects the satellite laws draw.
 - The root draw is the stellar mass; the halo mass follows from it by the stellar-to-halo relation, and GEN.368's table is read from that root.
+- Each family has a simple hand-drawn static SVG outline in the icon library (UX.135, Boss, 2026-10-16, 9:00 PM EDT), shown beside the family's name on the Generate page and in the Galaxy Map key, so the user sees roughly what the model looks like. Static, kept in the repo, no generation step, works on the offline page.
 - Interacting and merging galaxies are not part of it (idea S9.4-a in the roadmap).

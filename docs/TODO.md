@@ -878,7 +878,35 @@ with `clamp()`.
   a browser test pins each family and sees it in the stored shape; auto
   shows the drawn one; the field macro (UX.125) and the help text name
   every option; the limit sliders of UX.116 are unchanged.
-  Prerequisites: GEN.389. Related: UX.116, UX.125, DOC.13.
+  Outlines (Boss, 2026-10-16, 9:00 PM EDT): the pin list and the
+  drawn-family read-out show each family's outline from UX.135 beside
+  its name, so the user sees roughly what the model looks like before
+  creating the galaxy.
+  Prerequisites: GEN.389, UX.135. Related: UX.116, UX.125, DOC.13.
+  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **UX.135 One simple vector outline per galaxy family in the icon library: spiral, barred spiral, lenticular, elliptical, irregular and dwarf spheroid**
+  Boss (2026-10-16, 9:00 PM EDT, for 9.4): each galaxy type should have
+  an image of that model as a simple vector outline, so the user knows
+  approximately what it should look like. Default (stands as Decided
+  unless Boss says otherwise): one hand-drawn static SVG per family key
+  GEN.378 lists (today: spiral, barred spiral, lenticular, elliptical,
+  irregular, dwarf spheroid), kept in the repo with the other
+  icon-library shapes, so it works on the offline page and needs no
+  generation step. Each is a plain outline, one stroke weight, no fill
+  or a light fill, drawn in the view that tells the family apart: the
+  arms and bar face-on for the spirals, the smooth lens for the
+  lenticular, the ellipse for the elliptical, the ragged body for the
+  irregular, the faint round blob for the dwarf spheroid; the stroke
+  uses the current text colour so both themes work. Done: the outlines
+  are in the icon library, one per family key; a test fails when a
+  family has no outline or an outline has a script, an external
+  reference, no viewBox or more than 4 KB; a screenshot test shows each
+  on both themes; the Generate page (UX.134) and the Galaxy Map key
+  (MAP.242) use them. Boss sees the drawings in the PR. The art can be
+  drawn any time after GEN.378 fixes the family list; the outlines are
+  not a copy of any named galaxy.
+  Prerequisites: GEN.378. Related: UX.134, MAP.242, UX.101, GEN.378.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -2189,7 +2217,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.232 name only the features the family has. Done: browser tests on
   a small galaxy of each family show the right layers, with no arm layer
   on an elliptical and the family's name in the key.
-  Prerequisites: GEN.389. Related: MAP.232, MAP.234, MAP.235.
+  Outlines (Boss, 2026-10-16, 9:00 PM EDT): the key row for the family
+  shows its outline from UX.135 beside the family's name.
+  Prerequisites: GEN.389, UX.135. Related: MAP.232, MAP.234, MAP.235.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 ## NAV: Navigation and courses
