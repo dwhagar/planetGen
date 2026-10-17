@@ -2054,6 +2054,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   request; hovering one names it and gives its radius and centre; it is
   a picker layer so a click selects it. Needs the registry (MAP.217).
   The key text itself is MAP.234. Owner: Core 2.
+  Superbubble density (Boss, 2026-10-16, 9:27 PM EDT): once the stars
+  follow the bubbles (GEN.391 to GEN.395), the drawn layer is an
+  explanation and debug overlay, not how bubbles are shown. Open
+  default, a Boss card follows: keep this layer, off by default; MAP.236
+  keeps its place for when the layer is on. Nothing changes in this item
+  until Boss decides.
   Prerequisites: MAP.217. Related: MAP.234, MAP.217, GEN.254.
 
 - [ ] **MAP.236 Superbubbles need clearer bounds and slightly more transparency on the Galaxy Map**
@@ -2072,6 +2078,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the fill alpha is lower than 0.14. The key entry and toggle are
   MAP.234 and MAP.235; this item changes only the look.
   Owner: Core 2 (the Galaxy Map; proposed, Core 2 reads the plan).
+  Superbubble density (Boss, 2026-10-16, 9:27 PM EDT): the layer becomes
+  an optional overlay once the bubbles shape the stars (GEN.391); this
+  item stands, lower priority, until Boss decides the layer's fate.
   Prerequisites: none. Related: MAP.234, MAP.235, GEN.254.
 
 - [ ] **MAP.237 The Galaxy Map's "Charted only" view is invisible again: charted space cannot be told from the rest (bug)**
@@ -4770,6 +4779,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Superbubble density (2026-10-16, 9:27 PM EDT): a bubble's own OB
+  association is this item's component; the bubble field (GEN.391)
+  carries only the shell enhancement and the interior suppression, so
+  the association is not counted twice. GEN.391 states the split.
   Prerequisites: GEN.241, GEN.321. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -5420,6 +5433,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   where the profile puts them.
   Owns the Central Molecular Zone and the nuclear disc's young share
   (2026-10-16 review); GEN.134 does not build them.
+  Superbubble density (2026-10-16, 9:27 PM EDT): the core's young terms
+  stay this item's; GEN.391 checks that a bubble reaching the core does
+  not double them.
   Prerequisites: GEN.244. Related: GEN.280, GEN.246.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -5907,6 +5923,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Superbubble density (2026-10-16, 9:27 PM EDT): GEN.391 to GEN.395
+  shape the young and intermediate star density by the bubble; the
+  remnant reading of the bubble interior stays this item's, and GEN.391
+  checks that neither counts the other twice.
   Prerequisites: none. Related: GEN.254, GEN.151, GEN.256.
 
 - [ ] **GEN.299 The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders**
@@ -7486,6 +7506,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxies only check the result.
   Prerequisites: GEN.378, DB.66. Related: GEN.338, GEN.381, GEN.234,
   GEN.280.
+  Superbubble density (2026-10-16, 9:27 PM EDT): the bubble factor is
+  one call site in `galaxy/density_modulation.py` (GEN.393) that
+  multiplies each population's density after the component sum; this
+  rewrite keeps that one call and does not move the factor into the
+  components.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.380 The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass**
@@ -7709,6 +7734,138 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: UX.134, MAP.242, TEST.204, DOC.59. Related: GEN.301,
   GEN.9.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **GEN.391 Superbubbles shape the stars: the design of the bubble field as a density modulation, with its bounds and touch points checked**
+  Boss (2026-10-16, 9:27 PM EDT): instead of drawing the bubbles, store
+  the regions and let them adjust the star density function for the
+  space they occupy, so a sector builds following the bubbles without
+  drawing them. This is the design step. Done:
+  docs/design/superbubble-density.md, which starts as the plan filed
+  with this item, becomes the checked design: the factor each population
+  takes inside and on the shell of a bubble (young and intermediate
+  only, no change to old stars, clusters or satellites unless Boss
+  decides otherwise) with every strength, shell thickness and radius law
+  taken from the papers and checked against them, and a research request
+  to Boss for any that cannot be found; the smooth form m_p(d) in depth
+  d = |x - c| / R, overlaps multiplying; the certified maximum that
+  `band_majorants` and the bright-star pass multiply into their bounds
+  (a boost raises the bound, a suppression needs nothing); the cell mean
+  that gives a sector's expected count and the rejection step that
+  places stars inside the cell; the thinning the phenomena pass applies
+  per position; the bubble-free density read that breaks the recursion
+  between the bubbles' own placement (`nebula_field.gas_factor` reads
+  the young density) and the modulation, and the import order that keeps
+  `density.py` free of a module-level import of `superbubble_field`; the
+  single call site (`galaxy/density_modulation.py`) that GEN.379's
+  component list keeps; the seed handle on the shape that carries it
+  like `ComponentField`, which also fixes `run_galaxy.py:152` and `:688`
+  not passing the galaxy seed; how the profile, the sector page and the
+  region query show the effect; no double count with GEN.244's OB
+  associations and GEN.298's remnants; and the fate of the drawn layer
+  (MAP.235 and MAP.236). Nothing in the chain is built before Boss reads
+  the table of effects. No fixed content (Boss, 4:11 and 4:14 PM EDT):
+  the bubbles stay derived from the seed; every strength is a calculated
+  or drawn law with its source named. Owner: Core 3 proposed (it edits
+  object_first.py, density.py and profile.py for the scatters now); Core
+  4 informed (GEN.134 edits density.py).
+  Prerequisites: none. Related: GEN.254, GEN.298, GEN.244, GEN.282,
+  GEN.379, DB.38, ADM.94, MAP.235, MAP.236.
+  Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
+
+- [ ] **GEN.392 A bubble field handle on the galaxy shape: seed-carried bubbles with a box cut, a certified maximum factor and a bubble-free density read**
+  Boss (2026-10-16, 9:27 PM EDT): instead of drawing the bubbles, store
+  the regions and let them adjust the star density function for the
+  space they occupy, so a sector builds following the bubbles without
+  drawing them. `galaxy/superbubble_field.py` gains
+  `bubbles_in_box(handle, lo, hi)` (the bubbles that reach a cell, a
+  band or a wedge, from the cached 250 pc columns), `factor_at(handle,
+  population, x)`, `factor_cell_mean(handle, population, cell)` (a short
+  sub-sampled quadrature) and `factor_max(handle, population, box)` (the
+  certified bound over a box, the product of 1 + A of the bubbles that
+  reach it). A `BubbleField` handle carries the galaxy seed on the shape
+  the way `ComponentField` does (attached by `shape._replace` where
+  components are attached today, hashed by identity). The bubbles' own
+  placement reads a bubble-free density so that
+  `nebula_field.gas_factor` and the modulation never recurse. Done: the
+  same seed gives the same factors on every call and every worker; the
+  cell mean matches a fine grid within 1e-3; the maximum bounds a random
+  sample of 10^6 points; a shape without the handle gives a factor of
+  exactly 1; no import cycle. No fixed content (Boss, 4:11 and 4:14 PM
+  EDT): the bubbles stay derived from the seed; every strength is a
+  calculated or drawn law with its source named.
+  Prerequisites: GEN.391. Related: GEN.254, GEN.393.
+  Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
+
+- [ ] **GEN.393 The density terms apply the bubble factors at one call site per form, with a golden test that no bubble means identical density**
+  Boss (2026-10-16, 9:27 PM EDT): instead of drawing the bubbles, store
+  the regions and let them adjust the star density function for the
+  space they occupy, so a sector builds following the bubbles without
+  drawing them. A new `galaxy/density_modulation.py` holds the one
+  function that multiplies a population's density by its bubble factor.
+  `population_densities`, `population_densities_array` and
+  `total_density_array` in `galaxy/density.py` call it once each;
+  `relative_density` follows `total_density_array`; the term sums
+  themselves are not edited, so GEN.379's rewrite into components keeps
+  the call. Callers that build a density from a shape (profile,
+  run_sector, run_plan, bright_stars, phenomenon_scatter,
+  scatter_limits, nebula_field, viewport, skeleton) read it through the
+  shape's handle and need no argument; `run_galaxy.py` passes the seed
+  it did not pass. Done: a golden test over a grid shows a galaxy with
+  no bubble in reach gives the same density as before (relative error
+  under 1e-12) in all four forms; the four forms agree with each other
+  with bubbles present; young and intermediate change and old, bulge,
+  halo and components do not; the array form is no slower than today's
+  on the sector gate (within 5 percent). No fixed content (Boss, 4:11
+  and 4:14 PM EDT): the bubbles stay derived from the seed; every
+  strength is a calculated or drawn law with its source named.
+  Prerequisites: GEN.392, GEN.319. Related: GEN.379, GEN.134, GEN.322.
+  Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
+
+- [ ] **GEN.394 The scatter bounds and the phenomena pass respect the bubble factor: a certified bound in band_majorants and per-position thinning**
+  Boss (2026-10-16, 9:27 PM EDT): instead of drawing the bubbles, store
+  the regions and let them adjust the star density function for the
+  space they occupy, so a sector builds following the bubbles without
+  drawing them. `band_majorants` in `generation/object_first.py`
+  multiplies each band's bound by max(1, the certified maximum of the
+  factor over the band) for the populations a bubble touches, and
+  `bright_stars._spots` multiplies its wanted density by the exact
+  factor at the point, so its `wanted <= bound` check still holds. The
+  phenomena pass (`generation/phenomenon_scatter.py`), which has no
+  certified bound and uses bin-centre values with positions uniform in
+  the wedge, thins every candidate by factor(x) / factor_max so a rim
+  collects more and an interior fewer within one wedge. Done: the
+  bright-star check passes over a galaxy with large bubbles and the
+  boost never exceeds the bound; a scatter run with no bubble in reach
+  gives the identical rows as before; the phenomena counts over a bubble
+  match the expected integral within k Poisson sigma; same seed same
+  rows. No fixed content (Boss, 4:11 and 4:14 PM EDT): the bubbles stay
+  derived from the seed; every strength is a calculated or drawn law
+  with its source named.
+  Prerequisites: GEN.393, GEN.322, GEN.323. Related: GEN.240, GEN.301.
+  Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
+
+- [ ] **GEN.395 Sector build follows the bubbles: the fill count from the cell mean, star positions weighted by the factor, shown in the profile and the region query**
+  Boss (2026-10-16, 9:27 PM EDT): instead of drawing the bubbles, store
+  the regions and let them adjust the star density function for the
+  space they occupy, so a sector builds following the bubbles without
+  drawing them. A sector that a bubble cuts through gets the expected
+  count from the cell mean of the factor (GEN.392), not the centre
+  value, and places each young and intermediate star by rejection
+  against the cell's maximum so the stars crowd toward the side the
+  factor favors and away from the cavity; old stars stay uniform.
+  `profile_at` and the sector page report the factor beside the gas it
+  already reports from the bubble, and the region query (NAV.60) counts
+  the same way, so a count agrees with what a fill would build.
+  Overrides of a whole sector (DB.38) multiply on top. Done: a sector
+  straddling a rim holds more young stars on the rim side and fewer
+  inside, by the stated factor over many seeds; old stars stay uniform;
+  the same seed gives the same sector; the region query count matches
+  the fill count within Poisson error; a sector far from any bubble is
+  identical to before. No fixed content (Boss, 4:11 and 4:14 PM EDT):
+  the bubbles stay derived from the seed; every strength is a calculated
+  or drawn law with its source named.
+  Prerequisites: GEN.393, NAV.60. Related: DB.38, ADM.94, GEN.298.
+  Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -8415,7 +8572,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   density edits of MAP.119 and ADM.57. MAP.119's block and slab case is
   a region too. Core 1 owns the migration number. Done: the migration,
   models and an idempotent upgrade with a round-trip test.
-  Prerequisites: none. Related: MAP.119, ADM.57.
+  Prerequisites: none. Related: MAP.119, ADM.57, GEN.391.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
 - [ ] **DB.39 Edit request support tables (migration only): request comments and notification records**
@@ -11278,6 +11435,20 @@ clears each one.
   confirms with Core 2.
   Prerequisites: none. Related: TEST.203, DB.9.
 
+- [ ] **TEST.206 Superbubble density tests: rim excess, interior depletion, old stars unchanged, scatter against fill and determinism**
+  Boss (2026-10-16, 9:27 PM EDT): instead of drawing the bubbles, store
+  the regions and let them adjust the star density function for the
+  space they occupy, so a sector builds following the bubbles without
+  drawing them. Statistical tests on a small galaxy with one large
+  bubble: the young count in the shell exceeds and the interior falls
+  below a bubble-free control by the factor the design states, within k
+  Poisson sigma; old, bulge and halo counts are equal to the control;
+  the bright-star scatter and the sector fill agree on the same cell;
+  the same seed gives the same rows twice; the phenomena counts follow
+  the factor. Uses TEST.186's census harness.
+  Prerequisites: GEN.394, GEN.395, TEST.186. Related: GEN.391, TEST.204.
+  Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -12439,6 +12610,29 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: GEN.389. Related: DOC.13, DOC.48.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
+- [ ] **DOC.60 Settings note: read sections A2 and A6 of the settings and accounts design against the built one-file settings and fix what is stale**
+  The Settings lane reported (2026-10-16) that parts of
+  docs/design/settings-seo-and-accounts.md still describe the two-file
+  design that the one config.json replaced (#1857). Done: sections A2
+  and A6 and their tables say one `config.json`, the load order model
+  default, `config.json`, `PLANETGEN_*` environment, explicit argument,
+  and the backup and rollback text names the single copy; `base_url` is
+  stated as a top-level Owner option (it stayed one); nothing else in
+  the note changes.
+  Prerequisites: none. Related: ADM.44, ADM.96, ADM.84.
+
+- [ ] **DOC.61 Docs: how the bubbles shape the stars, the setting values and what the drawn layer now is**
+  Boss (2026-10-16, 9:27 PM EDT): instead of drawing the bubbles, store
+  the regions and let them adjust the star density function for the
+  space they occupy, so a sector builds following the bubbles without
+  drawing them. The galaxy generation note, the density model note and
+  the Galaxy Map help state that bubbles change the young and
+  intermediate stars (and say how strongly and where), the sector page
+  shows the factor, the design note moves to built, and the drawn layer
+  is described as the optional overlay it is. Docs only.
+  Prerequisites: GEN.395. Related: GEN.391, DOC.52.
+  Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
+
 ## VIEW: The view from a planet
 
 - [ ] **VIEW.1 View from a planet**
@@ -12551,6 +12745,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     whole-sky PNG (a, needs only children a, b and c of VIEW.2), the
     constellation table (b, Core 1, in phase 1), the constellations (c)
     and the overlay (d).
+    Settings lane (2026-10-16): the card renderers register through
+    `planetgen.web.seo_pages.register_card_renderer("system" or
+    "sector", fn)` and turn on the setting `og.generated_cards`; any new
+    web page VIEW.3 adds must be classified in `planetgen/web/seo.py`.
     Prerequisites: VIEW.15, DB.64, VIEW.16, VIEW.17.
 
   - [ ] **VIEW.4 Constellation names in the name generator**
