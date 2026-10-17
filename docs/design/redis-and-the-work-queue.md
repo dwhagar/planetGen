@@ -307,6 +307,8 @@ Decided (Boss, 2026-10-17, 4:15 PM EDT): from the command line Boss runs `plan`,
 
 Governing principle (Boss, 2026-10-17, 4:18 PM EDT): modular commands, each command does one and only one thing and does it exceptionally well. A scatter for mass does that and only that and never worries about anything but what it does. No command knows about another stage, about what ran before it or what runs after it, or about the order. The list of steps is built from what the user requested and handed to the wrapper, which handles the sequence, so the order lives only in the wrapper's step list, kept as data, and the sequence can be changed without touching any command.
 
+Scope (Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so we can build whatever sequences we want"): the principle holds for every command and entry point, not only the generate stages. The inventory, with what each command does today and the item that reshapes it, is [command-inventory.md](command-inventory.md); the umbrella is PERF.120.
+
 ## 6. Decisions for Boss
 
 Each has a default; the default is what a "yes" means.
