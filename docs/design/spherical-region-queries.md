@@ -233,6 +233,8 @@ runs = sphere_runs(center, r, budget=256)
 
 The routine of section 3 (about 1.5 ms in numpy for 256 runs; 0.9 ms at r = 1, 1.9 ms at r = 50 [M]). It uses only integers and numpy. It belongs in `planetgen/galaxy` next to `spherical.py`, with the constants read from the galaxy's plan, and it must not import numba (the web app never does). A pure-Python version should stay under 5 ms [E, not written].
 
+**Built (GEN.276):** `planetgen.galaxy.cellkey.sphere_runs(center, r, budget=256, reach_pc=REACH_PC)`: numpy and integers only, about 2 to 15 ms for 20 to 220 runs (r = 0.3 to 50 pc at the Sun) on the build machine, runs ascending and merged, tested against `cell_keys` on random points inside spheres and on their surfaces.
+
 A budget of 256 is the flat part of the curve: 64 gives 1.3 to 2 times the candidates, 1,024 doubles the planning for 10% fewer candidates [M, `b1024` rows in the logs]. Gap-merging (accepting runs separated by a few empty cubes) was not needed.
 
 ### 6.4 The statement

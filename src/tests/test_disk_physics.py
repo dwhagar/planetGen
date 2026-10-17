@@ -32,7 +32,7 @@ from planetgen.physics.formation import (
 def _make_config(star_type, **overrides):
     """
     `BINARY_SYSTEM` defaults to False: none of this module's tests are
-    about binary generation, but `StarSystem._should_generate_binary`
+    about binary generation, but `StarSystem._companion`
     rolls real chance whenever it's left at its own default (None), and a
     second star (whether merged P-type or an independent S-type
     secondary) would otherwise unpredictably add its own object count on

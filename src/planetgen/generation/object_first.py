@@ -28,6 +28,7 @@ import numpy as np
 
 from planetgen import tuning
 from planetgen.galaxy import density, spherical
+from planetgen.galaxy import star_formation as starFormation
 
 
 def _sech_squared(x):
@@ -41,16 +42,20 @@ def _vertical(z, scale_height_pc):
     return _sech_squared(z / (2.0 * scale_height_pc))
 
 
-def _disk_share_bound(shape, z_near, z_far, fractions):
+def _disk_share_bound(shape, z_near, z_far, fractions, rho_near, rho_far):
     """
     An upper bound on `sum(share_p * fraction_p)` over the three thin-disk
     populations in a band's cells, wherever in them (`z_near` and `z_far`
-    are arrays: the nearest and farthest `|z|` of each band). A population's weight is its
+    are arrays: the nearest and farthest `|z|` of each band, `rho_near` and `rho_far` the nearest and farthest
+    cylindrical radius). A population's weight is its
     share of disk star formation, times its vertical profile (between the
-    band's near and far edge: the profile falls with `|z|`) and its arm
-    contrast (between `1 - A` and `1 + A`). The sum is a linear fraction of
-    the weights, so over the box of their ranges it peaks at a corner.
+    band's near and far edge: the profile falls with `|z|`), its arm
+    contrast (between `1 - A` and `1 + A`) and, for the young and intermediate, the recent star-formation factor
+    (GEN.134), whose true smallest and largest values over the radius range are taken
+    (`star_formation.recent_factor_range`: it is not monotone, so the ends are not enough). The sum is a linear
+    fraction of the weights, so over the box of their ranges it peaks at a corner.
     """
+    recent_low, recent_high = starFormation.recent_factor_range(rho_near, rho_far, shape)
     ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
     span = tuning.STAR_FORMATION_AGE_RANGE_GY[1] - tuning.STAR_FORMATION_AGE_RANGE_GY[0]
     ranges, f = [], []
@@ -60,6 +65,8 @@ def _disk_share_bound(shape, z_near, z_far, fractions):
         arm = abs(tuning.STELLAR_POPULATION_ARM_AMPLITUDE[name])
         low = share * _vertical(z_far, height) / height * max(1.0 - arm, 0.0)
         high = share * _vertical(z_near, height) / height * (1.0 + arm)
+        if name in starFormation.RECENT_POPULATIONS:
+            low, high = low * recent_low, high * recent_high
         ranges.append((low, high))
         f.append(fractions[name])
     # Far off the plane every profile underflows and the old disk takes it all (`population_densities`).
@@ -116,7 +123,8 @@ def band_majorants(shape, shell, high_band, edge_pc, fractions):
     up = z_near / terms["bulge_scale_z_pc"]
     bulge = shape.bulge_amplitude * np.exp(-0.5 * np.sqrt(along ** 4 + up ** 4))
     arm = shape.arm_level * (1.0 + abs(shape.arm_amplitude))
-    disk_share = _disk_share_bound(shape, z_near, z_far, fractions)
+    outer = spherical.shell_bounds_pc(shell, edge_pc)[1]
+    disk_share = _disk_share_bound(shape, z_near, z_far, fractions, inner, outer)
     k = shape.k_norm
     halo = density._halo(inner, z_near, density.halo_terms(shape))
     # Both nuclear terms fall with the radius or the height alone, so the band's nearest point bounds them

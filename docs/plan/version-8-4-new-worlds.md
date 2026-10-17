@@ -8,9 +8,92 @@ Version: 8.4
 
 ## Goal
 
-The planet class refactor around the habitability index (classes R to Z), nebula conditions on planets, asteroid fields as object systems and the habitability symbols on the pages. Proposed by the TODO thread; not yet approved by Boss.
+Phases 1 to 4 hold the generation and storage half of the composition of every body and of the atmosphere colour: the bulk composition that drives mass, density and gravity, the surface and small-body composition, the one atmosphere mixture, the stored albedo and greenhouse values, ozone, haze, dust and cloud, and the consistency proofs (Boss, 2026-10-16, 11:25 PM EDT, 11:49 PM EDT and 11:58 PM EDT). Their research, designs and data tables are in 8.1; the headline that completes them is 9.0. Phase 5: the planet class refactor around the habitability index (classes R to Z), nebula conditions on planets, asteroid fields as object systems and the habitability symbols on the pages. Proposed by the TODO thread; not yet approved by Boss.
 
-## Phase 1: New worlds
+## Phase 1: Bulk composition and the albedo records
+
+The composition fractions that drive density, mass and gravity, stored and described, and the recording of the albedo and greenhouse values. The research, the designs and the data tables they read (the gas, materials, element and stellar tables) are in 8.1 phases 1 and 2 (Boss, 2026-10-16, 11:58 PM EDT: the building blocks of the composition headline go down to 8.1).
+
+### Bulk composition
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.428 | Planets and moons draw their bulk composition fractions instead of carrying a fixed text | GEN.427, GEN.440 | Boss 11:49 PM EDT; generator epoch bump. Core 4 proposed. |
+| GEN.429 | Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation | GEN.428 | Boss 11:49 PM EDT; the atmosphere chain reads this gravity. Core 4 proposed. |
+| DB.69 | Planets and moons store the composition fractions | GEN.429 | Boss 11:49 PM EDT; migration revision after DB.67. Core 4 proposed. |
+| GEN.430 | The planet and moon descriptions state the composition from the stored fractions | GEN.428, GEN.429, GEN.221 | Boss 11:49 PM EDT; the description side. Core 4 proposed. |
+
+### Albedo and greenhouse records
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.412 | Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give | GEN.409 | Boss 11:24 PM EDT; the inverse feeds the migration. Core 4 proposed (Boss, 11:41 PM EDT). |
+
+## Phase 2: Surfaces, small bodies and one mixture
+
+The ground's composition and the small bodies' composition from the bulk model, and the atmosphere's molar density derived from its partial pressures with the values that follow from it.
+
+### Surface and small bodies
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.441 | Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air | GEN.428, GEN.429 | Boss 11:58 PM EDT; the ground's composition; generator epoch bump. |
+| GEN.442 | Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line | GEN.428, GEN.429 | Boss 11:58 PM EDT; small bodies; generator epoch bump. |
+| GEN.455 | Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates | GEN.441, GEN.442, GEN.410 | Atmosphere research lane new work 6 (parts 04 section 5 and 05); generator epoch bump. Core 4 proposed. |
+
+### Mixture and stored values
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.411 | The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree | GEN.410, GEN.429 | Boss 11:24 PM EDT; generator epoch bump. Core 4 proposed (Boss, 11:41 PM EDT). |
+| GEN.452 | The condensation table is replaced by the checked saturation curves: the hydrogen sulphide row is a copy of the sulphur dioxide row, and carbon dioxide, sulphur dioxide and the cold gases are 2 to 20 K off (bug) | GEN.409, GEN.410 | Atmosphere research lane finding 1 (part 01 section 7); generator epoch bump. Core 4 proposed. |
+| GEN.451 | The mantle redox mean follows the meteorite building blocks: a young rocky planet starts reduced, not at the modern Earth's 3.5 above the iron-wuestite buffer | GEN.410 | Atmosphere research lane finding, part 5, 2026-10-17; generator epoch bump. Core 4 proposed. |
+| GEN.454 | Giant planets, ice giants and brown dwarfs draw their atmosphere mixture from the equilibrium chemistry sequence: by temperature, pressure, metallicity and quench | GEN.410, GEN.411 | Atmosphere research lane new work 5 (part 05 sections 8 and 9); generator epoch bump. Core 4 proposed. |
+| GEN.422 | Stop the recalculation redraw and order the steps so pressure, mixture and temperature agree after the cold-side freeze-out | GEN.411, GEN.412, GEN.452 | Composition thread finding; Boss 11:24 PM EDT chain. Core 4 proposed (Boss, 11:41 PM EDT). |
+| GEN.423 | Atmosphere density, scale height and the greenhouse multiplier follow from the mixture | GEN.410, GEN.411, GEN.412 | Composition thread finding; Boss 11:24 PM EDT chain. Core 4 proposed (Boss, 11:41 PM EDT). |
+| GEN.424 | The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture | GEN.410, GEN.411 | Composition thread finding; Boss 11:24 PM EDT chain. Core 4 proposed (Boss, 11:41 PM EDT). |
+| DB.67 | Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with | GEN.411, GEN.412, GEN.422, GEN.423, GEN.424 | Boss 11:24 PM EDT; migration revision after Core 1's 0102 to 0105 stack. Core 4 proposed (Boss, 11:41 PM EDT). |
+| DB.71 | Planets and moons store the partial pressures of the added gases, not only the ten stored today | GEN.411, GEN.410, DB.67 | Atmosphere research lane finding 10 (part 05 section 13); migration revision after DB.67. Core 4 proposed. |
+
+## Phase 3: Ozone, haze, dust and cloud, and the stored shares
+
+The ozone figures and the scatterers that the colour needs, each its own thread, and the columns for the surface and small-body shares.
+
+### Ozone
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.413 | Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance | GEN.411 | Boss 11:24 PM EDT; real research, generated where missing. Core 4 proposed (Boss, 11:41 PM EDT). |
+
+### Haze, dust and cloud
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.414 | Haze, dust and cloud: derived or drawn optical depths for every planet and moon | GEN.411, GEN.412 | Boss 11:24 PM EDT; draws and derivations, nothing fixed per class. Core 4 proposed (Boss, 11:41 PM EDT). |
+| GEN.456 | Lava worlds and hot rocky planets draw a vapour atmosphere over the magma from the surface composition and temperature: sodium, potassium, silicon monoxide, magnesium, iron and the oxides | GEN.441, GEN.410, GEN.411, GEN.414 | Atmosphere research lane new work 8 (parts 05 and 06); generator epoch bump. Core 4 proposed. |
+
+### Stored surface composition
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| DB.70 | Planets, moons and small bodies store the surface and small-body composition shares | GEN.441, GEN.442 | Boss 11:58 PM EDT; migration revision, in merge order. |
+
+## Phase 4: Stored scatterers, the text and the proofs
+
+The columns for ozone and the aerosols, the atmosphere text written from the mixture, the consistency sweeps and the docs.
+
+### Consistency
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| DB.68 | Planets and moons store the ozone column and the haze, dust and cloud optical depths | GEN.413, GEN.414, DB.67 | Boss 11:24 PM EDT; migration only. Core 4 proposed (Boss, 11:41 PM EDT). |
+| GEN.415 | Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture | GEN.410, GEN.411, GEN.413, GEN.221 | Boss 11:24 PM EDT; the description side of consistency. Core 4 proposed (Boss, 11:41 PM EDT). |
+| TEST.209 | One consistency sweep over every planet and moon class: composition, density, temperature, ozone, aerosols and text all agree | GEN.411, GEN.412, GEN.413, GEN.414, GEN.415, DB.67, DB.68, GEN.422, GEN.423, GEN.424, TEST.186 | Boss 11:24 PM EDT; the proof. |
+| TEST.210 | A bulk composition sweep over every class: fractions, density, mass, radius and gravity agree | GEN.428, GEN.429, GEN.430, DB.69, GEN.441, GEN.442, DB.70, TEST.186 | Boss 11:49 PM EDT; the proof. |
+| DOC.63 | Docs: the atmosphere data model, the gas table and how the values agree | TEST.209 | Boss 11:24 PM EDT; docs only. |
+| DOC.65 | Docs: bulk composition, the materials table and how density, mass and gravity follow | TEST.210 | Boss 11:49 PM EDT; docs only. |
+
+## Phase 5: New worlds
 
 Planet classes, nebula conditions, asteroid fields and habitability on the pages.
 
@@ -20,19 +103,19 @@ Planet classes, nebula conditions, asteroid fields and habitability on the pages
 |---|---|---|---|
 | GEN.33 | One class per PR, each with its tests |  | Moved to phase 2 under GEN.90, after the habitability score. One class per PR (R and S first). Built on fixed physics so new classes aren't tuned to wrong masses, moons or zones. |
 | GEN.146 | Teff-dependent habitable zone from the Kopparapu table |  | Research: in GEN.91's dependency chain. |
-| GEN.355 | Atmosphere retention module with its test table | GEN.33 | Split from GEN.91. |
+| GEN.355 | Atmosphere retention module with its test table | GEN.33, GEN.410 | Split from GEN.91. |
 | GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | GEN.33, GEN.146 | Under GEN.90. Same reconcile/zone code as phase 0's physics fixes. |
-| GEN.350 | Class R, sub-Neptune, with the envelope-survival rule, the Hycean flag and the retirement of class T | GEN.33, GEN.355, GEN.146 | Split from GEN.28. |
-| GEN.351 | Class U, icy world | GEN.33 | Split from GEN.28. |
-| GEN.352 | Classes W and X, subsurface ocean bodies | GEN.33 | Split from GEN.28. |
-| GEN.353 | Class Y, Titan-like world | GEN.355, GEN.146 | Split from GEN.28. |
+| GEN.350 | Class R, sub-Neptune, with the envelope-survival rule, the Hycean flag and the retirement of class T | GEN.33, GEN.355, GEN.146, GEN.428, GEN.411 | Split from GEN.28. |
+| GEN.351 | Class U, icy world | GEN.33, GEN.428, GEN.411 | Split from GEN.28. |
+| GEN.352 | Classes W and X, subsurface ocean bodies | GEN.33, GEN.428, GEN.411 | Split from GEN.28. |
+| GEN.353 | Class Y, Titan-like world | GEN.355, GEN.146, GEN.428, GEN.411 | Split from GEN.28. |
 | GEN.92 | Life and its highest stage follow the habitability score | GEN.350, GEN.351, GEN.352, GEN.353 |  |
-| GEN.354 | Class Z, lifeless temperate world | GEN.92, GEN.146 | Split from GEN.28. |
+| GEN.354 | Class Z, lifeless temperate world | GEN.92, GEN.146, GEN.428, GEN.411 | Split from GEN.28. |
 | GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | GEN.350, GEN.351, GEN.352, GEN.353, GEN.354 | Under GEN.90; class Z is Boss's Earth-size world that never had life (2026-10-03). Class S landed with GEN.38 (PR #415); the other six classes here. Closes with GEN.33's PRs; PLANET_CLASSES in program_constants.py. |
-| GEN.356 | Class N re-scoped as the hot, lifeless world; its life chemical and hidden timeline removed | GEN.355, GEN.92 | Split from GEN.91. |
+| GEN.356 | Class N re-scoped as the hot, lifeless world; its life chemical and hidden timeline removed | GEN.355, GEN.92, GEN.428, GEN.411 | Split from GEN.91. |
 | GEN.91 | Classes like S and V in the hot and cold zones | GEN.355, GEN.356 |  |
 | GEN.145 | Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30 | GEN.355, GEN.92 | Research follow-up to class S (built). |
-| GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | GEN.28, GEN.27, GEN.91, GEN.92, GEN.146 | Under GEN.90: the refactor is the sweep. Bug, but by definition a sweep after the new classes; it can't go earlier. Includes rocky rogues of 10-16 Earth masses (up to 17,600 km) that get S as nearest fit (PR #415). |
+| GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | GEN.28, GEN.27, GEN.91, GEN.92, GEN.146, TEST.209, TEST.210 | Under GEN.90: the refactor is the sweep. Bug, but by definition a sweep after the new classes; it can't go earlier. Includes rocky rogues of 10-16 Earth masses (up to 17,600 km) that get S as nearest fit (PR #415). |
 | GEN.90 | Refactor the planet classes around the habitability index | GEN.33, GEN.28, GEN.27, GEN.29, GEN.91, GEN.92 | Parent; takes GEN.33, GEN.28, GEN.27 and GEN.29 as its subitems. |
 
 ### Nebula conditions on planets
@@ -48,7 +131,6 @@ Planet classes, nebula conditions, asteroid fields and habitability on the pages
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | MAP.143 | Color sectors by their number of habitable locations |  | GitHub issue [#717](https://github.com/dwhagar/planetGen/issues/717). |
-| UX.32 | Planet rows show the class only, without the type and moon labels |  | Same rows as UX.105 (absorbed UX.30); one thread. |
 | UX.101 | The PHI-6 symbols as vector shapes in the icon library, both themes, coloured by rating |  |  |
 | UX.100 | Planet and moon lists show habitability as symbols, not notes | UX.101 |  |
 

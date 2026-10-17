@@ -266,9 +266,10 @@ def test_mutual_hill_radius_units_agree_and_are_symmetric(m1, m2, d1, d2, big):
 
 
 def test_wide_binary_samplers_stay_in_range():
-    lo, hi = tuning.WIDE_BINARY_SEPARATION_MIN_AU, tuning.WIDE_BINARY_SEPARATION_MAX_AU
+    lo, hi = tuning.WIDE_BINARY_SEPARATION_MIN_AU, 10_000.0
     for _ in range(scaled(60) * 20):
-        assert lo <= wide_binary.sample_wide_binary_separation_au() <= hi
+        assert lo <= wide_binary.sample_wide_binary_separation_au(hi) <= hi
+        assert wide_binary.sample_wide_binary_separation_au(lo / 2) == pytest.approx(lo)
         assert 0 <= wide_binary.sample_wide_binary_eccentricity() <= tuning.WIDE_BINARY_ECCENTRICITY_MAX
 
 

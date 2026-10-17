@@ -53,6 +53,11 @@ _EMPTY_TABLE_ROWS = {
         "INSERT INTO scatter_nodes (source, source_id, node_no, mass_solar, separation_km, eccentricity, inclination_deg,"
         " ascending_node_deg, arg_periapsis_deg, mean_anomaly_deg, epoch_unix, period_years, kind)"
         " VALUES (1, 1, 1, 2, 1e8, 0, 0, 0, 0, 0, 0, 1, 'close')"),
+    # DB.53: the migration builds these; the generator writes them in the chain that follows.
+    "orbit_nodes": (
+        "INSERT INTO orbit_nodes (star_system_id, node_no, mass_solar, separation_km, eccentricity, inclination_deg,"
+        " ascending_node_deg, arg_periapsis_deg, mean_anomaly_deg, epoch_unix, period_years, kind)"
+        " VALUES (1, 1, 2, 1e8, 0, 0, 0, 0, 0, 0, 1, 'close')"),
     "phenomenon_scatter": (
         "INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, position_x_mpc,"
         " position_y_mpc, position_z_mpc, seed) VALUES (0, 0, 0, 'neutron-star', 0, 0, 0, 1)"),
