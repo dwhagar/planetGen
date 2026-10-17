@@ -54,7 +54,6 @@ Research, designs and tables are building blocks with no behaviour change and si
 | Where | Item | What |
 |---|---|---|
 | 8.1 phase 2 | GEN.472 | One gated possibility-table format and loader: every composition category is a table of possibilities with a class gate and a weight |
-| 8.1 phase 2 | GEN.500 | The licence audit: the licence column filled for every data source, and the permission list |
 | 8.1 phase 2 | GEN.438 | One table of the elements and their isotopes: atomic data and the radioactive isotopes' half-lives and decay energies |
 | 8.1 phase 2 | GEN.410 | One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention |
 | 8.1 phase 2 | GEN.427 | One table of the bulk materials with their equation-of-state constants and the source of each |
@@ -234,7 +233,7 @@ Boss (typed in the project chat): for each composition there is a list of possib
 
 From the bulk composition sources check (section 5 of [bulk-composition-sources-check.md](bulk-composition-sources-check.md)): the low-pressure ice and silicate densities for small bodies and moons; the stellar Mg, Si, O and C against [Fe/H] (the project stores only [Fe/H]); a cited solar abundance set (Lodders 2003, Asplund 2009); the water inside the snow line; iron oxidation and the light elements in the core; the SCvH or CMS19 tables if any lane integrates an envelope itself.
 
-The research list of the Tunable gaps investigation ([tunable-gaps.md](tunable-gaps.md) section 6) adds the exact papers and data for the six rows that need a named source (a1, a2, b4, b5, n7, k7: GEN.480, GEN.481, GEN.482, GEN.488, GEN.491): Putirka and Xu 2021 Table A1, the NGPPS formation-stage tables, Deng 2020 Fig. 3 data, Hirschmann 2021 full text and Dello Russo 2016, and the nine further lists of that section, with the licences to confirm (GEN.500).
+The research list of the Tunable gaps investigation ([tunable-gaps.md](tunable-gaps.md) section 6) adds the exact papers and data for the six rows that need a named source (a1, a2, b4, b5, n7, k7: GEN.480, GEN.481, GEN.482, GEN.488, GEN.491): Putirka and Xu 2021 Table A1, the NGPPS formation-stage tables, Deng 2020 Fig. 3 data, Hirschmann 2021 full text and Dello Russo 2016, and the nine further lists of that section, (no licence gate, Boss 2:35 PM EDT).
 
 ## 6. Open points for the designs
 
@@ -270,7 +269,7 @@ The master note joins the four checked designs and the loader. This section is t
 
 - Storage is SI: kg, m, s, K, Pa, mol; kg/mol for molar mass (the `atm_molar_density` column keeps its name and unit, decided in the atmosphere note), and the units the existing columns already use stay. Doses are effective dose in mSv per year.
 - A solid or a star is described by **mass fractions** (X, Y, Z for a star; component fractions of the shared materials table for a body); a gas by **partial pressures** (the mole fractions follow). Conversion between them uses the element table's molar masses and nothing else.
-- Every number that comes from outside the repository sits in a table row or a named constant that carries its **source, its licence and its verification state** (`verified`, `partly verified` with the limit the check named, `open` with the seeded range used meanwhile, or `stand-in` with its replacing item). A number in a note has the same marks. The loader refuses a table row without them.
+- Every number that comes from outside the repository sits in a table row or a named constant that carries its **source, its licence and its verification state** (`verified`, `partly verified` with the limit the check named, `open` with the seeded range used meanwhile, or `stand-in` with its replacing item). A number in a note has the same marks. The loader refuses a table row without them; the licence is a record, not a gate: write `open` where none is found. Boss ruled at 2:35 PM EDT (GEN.500 removed) that every paper and dataset he acquired was obtained legally and is usable: the raw papers and downloaded datasets stay out of the public repository and are never redistributed or sold, the research results and derived values are fine to publish, and the program stays free forever.
 - Where sources disagree the rules of section 4a item 12 decide, and each design note lists every case with the rule applied.
 
 ### 7.3 Drawn first, or the composition is the cause

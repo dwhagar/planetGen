@@ -62,6 +62,11 @@
     },
     {
       "epoch": 13,
+      "first_release": "8.0.1740",
+      "reason": "A satellite galaxy's young stars give it gas, so the Magellanic Clouds hold molecular clouds, nebulae and supernova remnants and place magnetars and remnants in the component pass, a satellite's planetary nebulae follow its old-star share, and the shell scatter weighs planetary nebulae by the old stars' share against the solar circle's (GEN.528)."
+    },
+    {
+      "epoch": 14,
       "first_release": null,
       "pending": true,
       "reason": "A star younger than its contraction time and under 8 solar masses is a pre-main-sequence star at any age (the 10 Myr cap is gone) on the BHAC15 track (GEN.529), a star lives its main sequence by the Hurley, Pols and Tout lifetime (GEN.467), a neutron star's radius follows its mass in the Miller et al. band (GEN.463), and a star lighter than 2.2 solar masses has the Hurley giant branch and a 100 Myr horizontal branch (GEN.502), so the ages, phases and luminosities of stars and the scatter rows change."
