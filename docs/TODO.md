@@ -7969,6 +7969,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   read. Cluster half-light radius (R9): 2.7 ± 0.35 pc after correction,
   red about 17 percent smaller than blue, invariant to about 10 percent
   over a factor of about 350 in host luminosity.
+  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
+  for this line; labelled stand-in at the widest bracket under the
+  widest-range rule, replaced when a measurement exists. GR7, the radius
+  ratio of the blue to the red cluster system, stays widened with both
+  papers kept (11:19 AM EDT answer).
   Prerequisites: none. Related: GEN.297, GEN.366, GEN.387.
 
 - [ ] **GEN.404 The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position**
@@ -8880,6 +8885,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (1.1427e3 reproduces Table 2), Eq. 17 and Eq. 23 as in report section
   4, Bates F_K 1.047 at 0.500 micron should be 1.049, Bucholtz Table 4
   subarctic winter 0.55 micron 9.761e-2 is a misprint.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): AD1: the free line lists do not reach the visible (HITEMP
+  methane stops at 746 nm, ExoMol and HITRAN are the same), Karkoschka
+  and Tomasko 2010 and Karkoschka 1994 are paid, and fitting the giants'
+  own albedo is not allowed (NO FIXED CONTENT): the stand-in
+  (neighbouring-band strengths, 10 percent, flagged) stays and no free
+  route is known. AD4: the SO2 and H2S cross sections come from
+  polarizability and anisotropy through the King factor, sigma = 128
+  pi^5 / (3 wavelength^4) alpha^2 (1 + 2 gamma^2 / (9 alpha^2)) (algebra
+  checked in the report); Bogaard 1978 becomes a check, not a
+  dependency. Measured errors win over the generic 5 to 9 percent (2.5
+  to 4 percent Ar and N2, 7 CO2, 10 to 18 CO, CH4, N2O).
+  Boss, 1:23 PM EDT (typed in the project chat, relayed by the
+  coordinator): AD1 is Boss's to research (Karkoschka and Tomasko 2010
+  and related, paid); the labelled stand-in stays until he supplies the
+  bands.
 
 - [ ] **GEN.423 Atmosphere density, scale height and the greenhouse multiplier follow from the mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -9355,6 +9377,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (the verified source wins) the item uses 83.4 and 21.8 ppb labelled
   'Palme and O'Neill 2003, first edition' until the 2014 edition is
   read; label correction for the lane that owns the parts file.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): BC4: the 2014 Palme and O'Neill values, if the 2014 edition is
+  read, make two verified editions disagree and the newest (2014) wins;
+  until then the 2003 edition values, labelled so, stand.
+  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
+  for this line; labelled stand-in at the widest bracket under the
+  widest-range rule, replaced when a measurement exists. BC11 (volatile
+  stripping at ejection, uniform 0 to 1 loss fraction) and BC18 (core
+  light elements, Dirichlet over S, Si, O, H).
 
 - [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -9610,6 +9642,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   labelled stand-in until the full report is uploaded. They do hold
   Q(L): 1 below 10 keV/micron, 0.32 L - 2.2 for 10 to 100, 300/sqrt(L)
   above 100, and about 5 percent per Sv.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): BC13 and AD5: effective-dose weights and limits are readable
+  from the free IAEA GSR Part 3 (read in the report): w_R 1 for photons,
+  electrons and muons, 2 for protons and charged pions, 20 for alpha
+  particles and heavy ions; w_T 0.12 (red marrow, colon, lung, stomach,
+  breast, remainder), 0.08 gonads, 0.04 (bladder, oesophagus, liver,
+  thyroid), 0.01 (bone surface, brain, salivary glands, skin); limits 20
+  mSv per year averaged over five years, 50 mSv in any one year. Only
+  the neutron weighting function is missing. Name which Badhwar and
+  O'Neill paper the code follows (Adv. Space Res. 14, 749, 1994 or 17,
+  7, 1996). Earth's vertical cutoff by the Stoermer scaling is about
+  14.3 GV against 14.9 in the code; the Gale column is 21 g/cm^2 against
+  16.4.
 
 - [ ] **GEN.437 The composition model: how the element, compound, material and body tables link, and what is stored against derived**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -10386,6 +10432,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it. The profile code (density.py, tuning.py) is Core 4's GEN.134 work
   and not Core 3's sampler (GEN.322, GEN.323); ask Core 3 before
   touching its files.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): Nearest law: the same Kennicutt-Schmidt law (index 1.4 +- 0.15,
+  verified); the gap to the observed -0.28 dex per kpc closes by an
+  index rising at low gas density, a gas disc more extended than the
+  stars, or an outer-disc threshold: the choice must be named. Rule V.
   Prerequisites: none. Related: GEN.134, GEN.405, GEN.386, TEST.186.
 
 - [ ] **GEN.451 The mantle redox mean follows the meteorite building blocks: a young rocky planet starts reduced, not at the modern Earth's 3.5 above the iron-wuestite buffer**
@@ -10483,6 +10535,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are schematic; no per-planet delta-IW distribution is published, and
   part G3 F8 gives a labelled parametrisation (Doyle 2019, Deng 2020,
   Guimond 2023, the Rubie to Siebert range).
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): AT.a1, a2 mantle redox: the iron-wuestite identity delta IW = 2
+  log10(a_FeO / a_Fe), with the white-dwarf zero point -1.25 +- 0.10;
+  the calibration is Hirschmann 2021 and the introduction is Frost 1991:
+  do NOT cite the buffer to O'Neill and Eggins 2002, which is about
+  activity coefficients of FeO, NiO, CoO and Mo oxides. The white-dwarf
+  (core formation) scale differs from the surface magma-ocean scale and
+  needs a conversion test.
 
 - [ ] **GEN.452 The condensation table is replaced by the checked saturation curves: the hydrogen sulphide row is a copy of the sulphur dioxide row, and carbon dioxide, sulphur dioxide and the cold gases are 2 to 20 K off (bug)**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -10610,6 +10671,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   3e-6 Gy per year; Europa needs a depth profile (the note's figure has
   no primary source); Mars RAD numbers 0.21 mGy/day and 0.64 mSv/day are
   confirmed.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): BC13 and AD5: effective-dose weights and limits are readable
+  from the free IAEA GSR Part 3 (read in the report): w_R 1 for photons,
+  electrons and muons, 2 for protons and charged pions, 20 for alpha
+  particles and heavy ions; w_T 0.12 (red marrow, colon, lung, stomach,
+  breast, remainder), 0.08 gonads, 0.04 (bladder, oesophagus, liver,
+  thyroid), 0.01 (bone surface, brain, salivary glands, skin); limits 20
+  mSv per year averaged over five years, 50 mSv in any one year. Only
+  the neutron weighting function is missing. Name which Badhwar and
+  O'Neill paper the code follows (Adv. Space Res. 14, 749, 1994 or 17,
+  7, 1996). Earth's vertical cutoff by the Stoermer scaling is about
+  14.3 GV against 14.9 in the code; the Gale column is 21 g/cm^2 against
+  16.4.
 
 - [ ] **GEN.454 Giant planets, ice giants and brown dwarfs draw their atmosphere mixture from the equilibrium chemistry sequence: by temperature, pressure, metallicity and quench**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -10917,6 +10992,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   which would make porosity grow, and the file carries the note 'error
   in equation 2b': check against Besserer 2013 or the published version
   before coding it. Fray and Schmitt (paid) is still missing.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): BC6 moons: Sasaki 2010 (ice line 20 R_J (M_p/M_J)^(2/3) (tau/5
+  Myr)^(-1/3)) and Cilibrasi 2018 (85 percent icy, Galilean-like in 20
+  percent) disagree on the ice fraction: two verified sources, the
+  newest wins (Cilibrasi 2018), the 0.5 to 0.85 bracket stays where
+  either is in doubt. T19 Kuiper Belt rock fraction: rising with size
+  against a constant 70 percent with porosity; the dates were not
+  recorded, so the draw stays.
+  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
+  for this line; labelled stand-in at the widest bracket under the
+  widest-range rule, replaced when a measurement exists. T15, the
+  cometary organic fraction (no probability exists; N(0.60, 0.15)
+  clipped to [0, 1] is the lane's proposal).
   Prerequisites: none. Related: GEN.426, GEN.442, GEN.466, GEN.437.
 
 - [ ] **GEN.458 Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes**
@@ -11116,6 +11205,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   M_J^-0.45 (arXiv:1511.07854, the note had the wrong id) with scatter
   x1.82, valid from 20 Earth masses; do not add 'more heat at low
   metallicity'.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): BC5: heavy-element mass M_Z = (57.9 +- 7.03) M^(0.61 +- 0.08)
+  (Thorngren 2016, read) and Chachan 2025 (147 giants, 1.4 to 1.6
+  times lower between 0.3 and 3 Jupiter masses) are two verified fits
+  that disagree: the newest wins (Chachan 2025), Thorngren stays in
+  the record, and the union stays the bracket where either is in doubt.
 
 - [ ] **GEN.461 The hydrosphere reads the stored water mass fraction: the compressed water-layer depth, the base pressure, the high-pressure ice and the liquidus are recomputed, and the class label follows from the water share (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -11236,6 +11332,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
   downloads this item makes at build time send the standard User-Agent
   of API.31 (one function builds it).
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): Nearest law: Tolman-Oppenheimer-Volkoff with a cold-matter
+  equation of state gives R(M); constraints from GW170817 tidal
+  deformability and the PSR J0030 and J0740 radii; a TOV integrator is
+  about 20 lines; CompOSE tables are reachable. Quality good, rule V.
 
 - [ ] **GEN.464 The disk solids law reads the star's metal mass fraction Z over Z0, not 10 to the power of [Fe/H], which is off by 1.7 to 3 times in metal-poor alpha-enhanced stars**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -11351,6 +11453,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stand-ins, each with its own research item that replaces it with a
   derived or general distribution. Here the mixture proportions follow
   those two rules.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): BC6 moons: Sasaki 2010 (ice line 20 R_J (M_p/M_J)^(2/3) (tau/5
+  Myr)^(-1/3)) and Cilibrasi 2018 (85 percent icy, Galilean-like in 20
+  percent) disagree on the ice fraction: two verified sources, the
+  newest wins (Cilibrasi 2018), the 0.5 to 0.85 bracket stays where
+  either is in doubt. T19 Kuiper Belt rock fraction: rising with size
+  against a constant 70 percent with porosity; the dates were not
+  recorded, so the draw stays.
+  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
+  for this line; labelled stand-in at the widest bracket under the
+  widest-range rule, replaced when a measurement exists. BC6, moon
+  composition against distance and origin: no confirmed exomoon.
 
 - [ ] **GEN.467 The main-sequence lifetime is derived from sourced stellar relations instead of the fixed 10 Gyr for one solar mass and a power law of -2.5 (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -11381,6 +11496,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 21 of 54). This replaces any earlier owner line on this item.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): Nearest law: fuel consumption, lifetime = hydrogen fraction
+  burned x mass x X x 0.007 c^2 / mean luminosity (0.007 from the
+  recalled atomic masses of H-1 and He-4: check against NIST atomic
+  weights), or the analytic t_MS(M, Z) of Hurley, Pols and Tout 2000,
+  checked against a MIST track. Rule V.
   Prerequisites: GEN.407. Related: GEN.407, GEN.463, GEN.396, GEN.301.
 
 - [ ] **GEN.468 Settle the water share beyond the snow line: the Marboeuf-derived 0.14 to 0.39 of the solids against the convention of about 0.5**
@@ -11417,6 +11539,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   11:32 AM EDT as it reported): Lodders 2003 (Astrophys. J. 591, 1220,
   doi 10.1086/375492) has a free IOP PDF; a thread retries it for the
   condensation temperatures (BC1).
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): BC1: Lodders 2003 (condensation temperatures) is behind a
+  captcha from the build container, so a person has to fetch it; nothing
+  is blocked, the oxygen-budget water share reproduces 0.14 to 0.39
+  (all-methane limit 0.54), and the ice forms near 150 K by
+  Clausius-Clapeyron at nebular pressure. The keep-the-switch decision
+  stands.
   Prerequisites: none. Related: GEN.426, GEN.428, GEN.458, GEN.465.
 
 - [ ] **GEN.469 The disk's star-formation history from the gas law: the local B-star share is 0.2 percent against the observed 0.04 percent**
@@ -11447,6 +11577,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (about 9 percent more magnetars per young star in a full scatter).
   Prerequisites: none. Related: GEN.134, GEN.450, GEN.405, GEN.386,
   GEN.301, TEST.186.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): Nearest law: Kennicutt-Schmidt with gas continuity (inflow
+  minus star formation), inflow from the halo accretion history or from
+  TNG; the B-star share is the stars younger than a few hundred Myr over
+  all stars times the IMF's B fraction. The inflow is the missing input.
+  Quality fair, rule V; the observed share stays a test.
 
 - [ ] **GEN.470 One saturation-pressure function p_sat(species, T) for the gases and ices: the Fray and Schmitt polynomials, water by Feistel and Wagner, and its tests**
   Part F of the Body composition research lane
@@ -11760,9 +11897,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-17, relayed by the coordinator): when in doubt, verified wins;
   when two verified sources are in doubt, the newest wins; when two
   sources are both in question, the one that takes the most permission
-  wins (his words 'most permission take wins'; the coordinator read it
-  as the most permissive, widest value, which Boss has not confirmed, so
-  apply it only as the widest bracket until he does). At 12:40 PM EDT,
+  wins (his words 'most permission take wins'; Boss confirmed by card at
+  1:12 PM EDT, relayed in words, that it means the widest range of the
+  two sources: Decided). At 12:40 PM EDT,
   by card (relayed in words), his six earlier 'widen and keep both'
   answers stand; the newest-wins rule applies to every conflict after
   them. The loader's source-conflict handling follows this: a verified
@@ -11834,6 +11971,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   gated by class; there are no separate component lists per kind. The
   derived taxon and component kernel therefore draws from the shared
   materials table of GEN.427.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): BC14 belt composition: one belt only (taxon mix against
+  distance, DC13 Table 6), no extrasolar ensemble: rule M, the widest.
+  Zoning boundary at the star's snow line, width 0.3 in log AU
+  (placeholder).
 
 - [ ] **GEN.474 Replace the Earth rock-type library, measured on Earth, by ground types derived from the bulk composition and the melting of the mantle**
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
@@ -11989,6 +12132,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   filed by the TODO thread: the belt text keeps its four lines through
   the same thresholded writer, and its stored shares are the one mixture
   storage of DB.69 and DB.70.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): BC14 belt composition: one belt only (taxon mix against
+  distance, DC13 Table 6), no extrasolar ensemble: rule M, the widest.
+  Zoning boundary at the star's snow line, width 0.3 in log AU
+  (placeholder).
 
 - [ ] **GEN.478 The atmosphere possibility tables: the 16 categories and 104 rows of part 09, loaded through the gated table loader, with every row that has no sourced weight flagged and drawn from its bracket**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -12133,6 +12282,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spectra); decision D1 default: keep the formation model as a switch
   with the NGPPS logistic as the MODEL default and the flagged bracket 0
   to 0.87 (builder GEN.510).
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): AT.b4: Rogers 2025 (water-rich share at most 3 percent) and
+  Chakrabarty 2026 (59 percent) are not opened, so both are in question:
+  the widest applies, 0 to 0.87 as today. If both are read, the 2026
+  paper wins as the newest. The migration-delivery logistic of
+  Emsenhuber 2021 (centre 6.1 Earth masses, slope 6.3 per dex) is the
+  nearest law.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.481 Source the volatile delivery against formation distance: the water mass fraction by a_form and the snow-line law over time (AR2)**
@@ -12173,6 +12330,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   answers relayed in words by the coordinator;
   docs/design/gap-filling-plan.md section 8): AT.b5 sub-percent water:
   ships as a labelled placeholder, log-uniform.
+  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
+  for this line; labelled stand-in at the widest bracket under the
+  widest-range rule, replaced when a measurement exists. AT.b5, the
+  sub-percent water fraction.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.482 Source the magma-ocean fO2 prior against mass and the oxidation law of the later mantle (AR3)**
@@ -12223,6 +12384,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Figure 2 by a factor of 6 to 9) give no mass law and no later-mantle
   oxidation law. The stand-ins stay. Hirschmann 2012 and Gaillard 2021
   and 2022 are not uploaded.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): AT.a1, a2 mantle redox: the iron-wuestite identity delta IW = 2
+  log10(a_FeO / a_Fe), with the white-dwarf zero point -1.25 +- 0.10;
+  the calibration is Hirschmann 2021 and the introduction is Frost 1991:
+  do NOT cite the buffer to O'Neill and Eggins 2002, which is about
+  activity coefficients of FeO, NiO, CoO and Mo oxides. The white-dwarf
+  (core formation) scale differs from the surface magma-ocean scale and
+  needs a conversion test.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.483 Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4)**
@@ -12427,6 +12597,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   percent is not supported by this review (the paper wins). Three
   infrared taxonomy classes: organics-normal, enriched, depleted.
   Figure-read ranges are approximate.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): AT.k7: N2, O2, Ar, Kr, Xe come from 67P alone, SO2 0.2 percent
+  of water in Hale-Bopp, NH3 about 1.5 percent (the 3.6 percent bound is
+  unsupported); one comet: rule M, the widest. Gas trapped in amorphous
+  ice by deposition temperature is the nearest law.
+  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
+  for this line; labelled stand-in at the widest bracket under the
+  widest-range rule, replaced when a measurement exists. AT.k7, the
+  single-comet species (67P alone for N2, O2, Ar, Kr and Xe).
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.489 Source the white-dwarf and pulsar planet options (AR10)**
@@ -12482,6 +12662,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bulk silicate Earth; rows m3, m4, m11 are design flags (no exoplanet
   N2O, PH3, NO2 or CH3Cl measurement exists). Builders GEN.524 and
   GEN.525.
+  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
+  for this line; labelled stand-in at the widest bracket under the
+  widest-range rule, replaced when a measurement exists. AT.m3, m4 and
+  m11, the N2O, PH3, NO2 and CH3Cl presence: no detection on any
+  exoplanet; flagged bracket, default off, never tuned.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.491 Source the cloud and haze windows and yields (AR12)**
@@ -12542,6 +12727,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   12 should read ln x_j and Eq. 11 lacks a minus sign. No paper here
   prints the acid vapour pressure: it needs Ayers 1980 (paid) or the
   Kulmala-Laaksonen form already in the files; the stand-in stays.
+  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
+  for this line; labelled stand-in at the widest bracket under the
+  widest-range rule, replaced when a measurement exists. AT.n7, the haze
+  yield (laboratory rates span 250 times).
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.492 Source the ground radioisotope abundances by host and the potassium depletion by body class (AR13)**
@@ -12599,6 +12788,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dependent (0.16 Gyr for 0.5 to 0.6 solar masses, 0.6 +/- 0.3 for 0.2
   to 0.3, 2.3 +/- 1.3 for 0.1 to 0.2; arXiv:1111.0031, 2205.02331) and
   p6 becomes a percentile draw (arXiv:2009.07695). Builder GEN.523.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): Nearest law: activity constant below saturation and falling as
+  Rossby^-2.2 beyond (Wright 2011), spin-down t^-1/2, rotation tracks of
+  Johnstone 2021. Saturation times (0.16 Gyr at 0.5 to 0.6 solar masses,
+  0.6 +- 0.3 at 0.2 to 0.3, 2.3 +- 1.3 at 0.1 to 0.2) are one author's
+  pair: never mix Rossby saturation values of different authors. Rule V.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.494 Source the brown-dwarf type against temperature and the T/Y boundary near 500 to 700 K (AR15)**
@@ -12629,6 +12825,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/tunable-gaps.md): the 500 to 700 K range is T8 to T9; Y0
   is 371 to 510 K (Kirkpatrick 2021 Table 13; Beiler 2024); g1 to g5 are
   one Teff map and rows g1 and g4 are derivations. Builder GEN.517.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): Nearest law: spectral type is a monotone function of Teff with
+  scatter; Kirkpatrick 2021 Table 13 (RMS 134, 79, 79 K; Y0 at 371 to
+  510 K) wins over 'T/Y gap 500 to 700 K', which is T8 to T9. Rule V.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.495 The comet population table: species ranges and log-normal scatters replace the draw centred on one comet, with a carbon-chain-depleted flag**
@@ -12671,6 +12872,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   percent is not supported by this review (the paper wins). Three
   infrared taxonomy classes: organics-normal, enriched, depleted.
   Figure-read ranges are approximate.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): AT.k7: N2, O2, Ar, Kr, Xe come from 67P alone, SO2 0.2 percent
+  of water in Hale-Bopp, NH3 about 1.5 percent (the 3.6 percent bound is
+  unsupported); one comet: rule M, the widest. Gas trapped in amorphous
+  ice by deposition temperature is the nearest law.
 
 - [ ] **GEN.496 The photolysis lifetime table: species lifetimes at 1 AU for the quiet Sun, the active-Sun factors and the species-specific stellar-spectrum ratios**
   Body composition research lane check of Boss's second research note
@@ -12930,6 +13137,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 22 of 54). This replaces any earlier owner line on this item.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): Nearest law: core-mass-luminosity relation of shell burning
+  with fuel consumption; tip from helium ignition (Serenelli 2017: 1,650
+  to 1,780 Lsun at Z = 1e-4); fit of Rees and Izzard 2025 (slope -0.83 at the base
+  to -0.56 at the tip). The evolutionary flux is 1.7 +- 0.4e-11 per
+  solar luminosity per year (Buzzoni 1997, read: V and N agree), never
+  the 2.2e-11 of earlier notes; the paper filed as 'Renzini 1997' is
+  Buzzoni 1997.
 
 - [ ] **GEN.503 The shared tuning harness: a target table, a simulate-and-compare function and a loader that refuses a tunable row without a target**
   Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
@@ -12963,9 +13179,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-17, relayed by the coordinator): when in doubt, verified wins;
   when two verified sources are in doubt, the newest wins; when two
   sources are both in question, the one that takes the most permission
-  wins (his words 'most permission take wins'; the coordinator read it
-  as the most permissive, widest value, which Boss has not confirmed, so
-  apply it only as the widest bracket until he does). At 12:40 PM EDT,
+  wins (his words 'most permission take wins'; Boss confirmed by card at
+  1:12 PM EDT, relayed in words, that it means the widest range of the
+  two sources: Decided). At 12:40 PM EDT,
   by card (relayed in words), his six earlier 'widen and keep both'
   answers stand; the newest-wins rule applies to every conflict after
   them. The stand-in registry's conflict rule is the one in the gap plan
@@ -13163,6 +13379,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   alone, and the part 09 row carries its state (Decided 3:02 AM EDT
   rule). A retune changes the table version and is a generator epoch
   bump. Owner: Core 4 (proposed, with the composition chain).
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): BC8: the planet-minus-star Fe/Mg slope 0.94 (+1.02/-1.07) is
+  Plotnykov, Valencia and Ross 2026 (preprint arXiv:2511.17717), not the 2020 paper; of the two
+  verified papers by the same group the newest wins.
   Prerequisites: GEN.503, GEN.505. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
@@ -13577,6 +13798,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 23 of 54). This replaces any earlier owner line on this item.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): The Hayashi temperature, birthline radius and energy factor are
+  recalled ([I]); the 12 Myr derived time against the 40 Myr anchor
+  shows the factor is wrong. Fix by a table lookup (Baraffe 2015 CDS
+  tables, Siess 2000 server, MIST pre-main-sequence tracks); the energy
+  factors are 3/7 (polytrope n = 3/2) and 3/4 (n = 3). Rule V.
   Prerequisites: none. Related: GEN.242, GEN.407, GEN.502, GEN.258.
 
 - [ ] **GEN.530 A pre-placed star's hosted nebula shows from its scatter row on the maps and pages**
@@ -13848,13 +14076,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-17, relayed by the coordinator): when in doubt, verified wins;
   when two verified sources are in doubt, the newest wins; when two
   sources are both in question, the one that takes the most permission
-  wins (his words 'most permission take wins'; the coordinator read it
-  as the most permissive, widest value, which Boss has not confirmed, so
-  apply it only as the widest bracket until he does). At 12:40 PM EDT,
+  wins (his words 'most permission take wins'; Boss confirmed by card at
+  1:12 PM EDT, relayed in words, that it means the widest range of the
+  two sources: Decided). At 12:40 PM EDT,
   by card (relayed in words), his six earlier 'widen and keep both'
   answers stand; the newest-wins rule applies to every conflict after
   them. Recorded in the gap plan section 6.4 and 6, composition-model.md
   section 4a item 12 and atmosphere-composition.md section 11.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): 64 open lines by area with the nearest law, the free tool and
+  the stand-in quality; twelve laws cover most rows. Boss confirmed at
+  1:12 PM EDT by card that 'most permission take wins' means the widest
+  range of the two sources (Decided). The one outcome it changes today
+  is the halo scatter: where both sources are in doubt the Dragonfly
+  1.01 dex applies, not Harmsen's 0.33 dex (R1). No free source exists
+  for the visible methane and ammonia bands (AD1). Lodders 2003 is
+  behind a captcha (nothing blocked). BC13 weights and limits are free
+  from IAEA GSR Part 3, and the SO2 and H2S Rayleigh numbers can be
+  computed, so Bogaard 1978 leaves the fetch list.
+  Boss, 1:23 PM EDT (typed in the project chat, relayed by the
+  coordinator): AD1 (the visible methane and ammonia absorption of the
+  giants, GEN.422) he will research himself (Karkoschka and Tomasko 2010
+  and the related papers, B5 and B6 of papers-to-fetch.md); the stand-in
+  stays until then. The lines where math cannot help (GR7, BC6, BC11,
+  BC18, AT.b5, AT.n7, AT.m3, m4 and m11, AT.k7, T15) he reads as having
+  no data to find: each stays a labelled stand-in at the widest bracket
+  under the widest-range rule. GR7 stays widened with both kept (11:19
+  AM EDT answer).
 
 - [ ] **GEN.532 The galaxy shape's thick disk, scale heights and stellar halo come from the research laws instead of the tuning.py numbers (the GEN.401 follow-up)**
   Found by Core 1 while finishing GEN.401 (2026-10-17, 12:51 PM EDT as
@@ -13901,6 +14150,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   not stored in a column, so nothing in 8.1 needs DB.66; the DB.66
   wording in the GEN.401 note and docstring should read 'stored by
   DB.66', not a dependency.
+  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
+  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
+  4.11): Rule outcomes for this item: halo scatter draw width 1.01 dex
+  (Dragonfly, the widest of two sources both in question; Boss 1:12 PM
+  EDT), Harmsen 0.33 dex stays in the record; thick-to-thin length ratio
+  against Vc by Comeron 2018 (newer than Yoachim and Dalcanton 2006, two verified
+  sources: newest wins), not one of the six widen-and-keep answers.
+  Citations: the pitch-angle paper is Yu and Ho 2019 (ApJ 871, 194), and
+  'Hart 2017' is MNRAS 472, 2263
+  (arXiv:1708.04628, arm shares and pitch angles; Core 1 checked it at
+  1:19 PM EDT as the lane reported), not MNRAS 468, 1850 (star formation
+  against arm number). It holds no bulge result: the bulge share cites
+  Graham and Worley 2008 and Erwin 2005 for the bar.
   Prerequisites: none. Related: GEN.401, GEN.402, GEN.531.
 
 - [ ] **GEN.533 The galaxy shape draws bar presence, axis ratios and angle from the seed, rebuilt each time and not stored in a column**
@@ -15371,6 +15633,16 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   outermost units, and no column named for a band is narrower than INT.
   This blocks the one wiped rescatter and GEN.301. Owner: Bug Hunt
   (Boss's order via the coordinator, 12:59 PM EDT).
+  In progress with Bug Hunt (1:03 PM EDT as the coordinator reported):
+  Bug Hunt confirmed the cause independently (SMALLINT band_index
+  overflows from shell 20,861, where the polar cap band reaches 32,768,
+  in bright_stars, sector_stats and phenomenon_scatter) and its fix,
+  three columns to INT in one migration with a test at the outermost
+  shell, goes out as its own PR ahead of its queue; it takes the next
+  free migration number at merge (head 0107). Boss's
+  job-20261017-162736-67d4 (PlanetGen 8.0.1726, started 12:27 PM EDT by
+  the file name) hit it; the finding the coordinator sent at 12:59 PM
+  EDT is this item, not a second bug.
   Prerequisites: none. Related: GEN.301, DB.65.
 
 ## API: The JSON API
