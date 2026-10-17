@@ -12885,6 +12885,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a read-only research thread reads each source on request).
   Prerequisites: none. Related: GEN.401, GEN.403, GEN.405, GEN.369,
   GEN.386, GEN.447, GEN.297, GEN.280.
+  Boss (2026-10-17, 10:44 AM EDT, typed in the project chat; relayed by
+  the coordinator): some things are simply not known. He is sending a
+  Gemini agent to search for these fifteen items and has asked it to
+  include theories and speculation; its results will arrive here and are
+  checked claim by claim like any source (verified wins on a
+  contradiction, the usability rule of 3:02 AM EDT stands). A new
+  read-only thread, "Gap-filling plan (2026-10-17)", plans how the
+  generator fills the gaps itself with approximations and theories; its
+  report is /mnt/project-files/reports/gap-filling-plan-2026-10-17.md
+  and the TODO thread files it when the coordinator says it is done.
+  Until a request is answered, the stand-in or placeholder in the build
+  item is labelled as such (source marker stand-in or placeholder, with
+  this item as its replacement research) so it can be replaced without a
+  search through the code.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
