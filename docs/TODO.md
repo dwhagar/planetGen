@@ -2856,6 +2856,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     reference page) plus a helper that samples N systems per zone, so
     each class PR adds a table row and not a hand-written test; the
     research PR order becomes the order of the children of GEN.28.
+  Atmosphere lane part 09 (conflicts 1, 2, 9 and 12 of section 5; 2:00
+  AM EDT as the lane reported): PlanetClasses has 20 classes (A B C D E
+  F G H I J K L M N O P Q S T V); R and W were removed (tuning.py near
+  line 1601) and U, X, Y, Z are absent; I (15,000 to 50,000 km, 2.4 to
+  7.8 R_E) and T (15,000 to 55,000 km) cover the same sizes, the
+  sub-Neptune regime (1.6 to 3.2 R_E) is only the low end of I, and V
+  (10,000 to 15,000 km, 1.6 to 2.4 R_E) straddles the radius valley
+  while the repo calls it rocky (the design doc's rocky test is R <=
+  1.12 M^0.27); brown dwarfs have no class letter (planet_class is NULL
+  and the rogue-eligible letters are C D I J S T), so their type comes
+  from Teff (part 09 category g); HABITABLE_PLANET_CLASSES (E F G H K L
+  M O P Q V) is a life flag and not an atmosphere regime; moons draw any
+  letter except Q, S, V, so a Titan-like moon has no letter before Y.
+  The atmosphere recipes of GEN.478 use regimes and conditions, not
+  letters, so these items are free to change the letters.
 
 - [ ] **GEN.29 Sweep every planet class for sense once the new ones are in (bug)**
   Boss (2026-10-01 15:26Z): "do a full sweep of planet classes to make
@@ -3259,6 +3274,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Decided (Boss, 2026-10-10 18:44Z, defaults approved; default yes):
     dose above 0.1 Sv/yr forces
     equipment tier 3 and above 1 Sv/yr tier 4.
+  Atmosphere lane part 09 (conflicts 1, 2, 9 and 12 of section 5; 2:00
+  AM EDT as the lane reported): PlanetClasses has 20 classes (A B C D E
+  F G H I J K L M N O P Q S T V); R and W were removed (tuning.py near
+  line 1601) and U, X, Y, Z are absent; I (15,000 to 50,000 km, 2.4 to
+  7.8 R_E) and T (15,000 to 55,000 km) cover the same sizes, the
+  sub-Neptune regime (1.6 to 3.2 R_E) is only the low end of I, and V
+  (10,000 to 15,000 km, 1.6 to 2.4 R_E) straddles the radius valley
+  while the repo calls it rocky (the design doc's rocky test is R <=
+  1.12 M^0.27); brown dwarfs have no class letter (planet_class is NULL
+  and the rogue-eligible letters are C D I J S T), so their type comes
+  from Teff (part 09 category g); HABITABLE_PLANET_CLASSES (E F G H K L
+  M O P Q V) is a life flag and not an atmosphere regime; moons draw any
+  letter except Q, S, V, so a Titan-like moon has no letter before Y.
+  The atmosphere recipes of GEN.478 use regimes and conditions, not
+  letters, so these items are free to change the letters.
     Prerequisites: GEN.350, GEN.351, GEN.352, GEN.353.
     Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
@@ -8186,6 +8216,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class's possible gases are the rows that pass its gate; the weights of
   the atmosphere recipes that draw from it are in GEN.411 and GEN.454 to
   GEN.456. Every number keeps its source.
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. (1) Cold curves: the 'sign inversions' Boss's note
+  names are unsupported (two copies of the Lisse 2021 table agree); the
+  real error is model error below about 50 K, so the table uses the
+  composite: Wagner liquid above the triple point, Fray and Schmitt
+  above about 50 K, and the Grundy 2024 and Blakley 2025 laboratory fits
+  below (Fray and Schmitt is 1.4 to 2.3 times high for alpha-N2 at 25 to
+  33 K, 6 times for alpha-CO at 31 K and 1.9 times for CH4 at 30 K); the
+  original Fray and Schmitt table with its validity limits stays on
+  Boss's list. (2) Rayleigh: the reference density is per gas (288.15 K
+  for N2, Ar, CO2, CO and CH4; 273.15 K for O2), not the 2.68678e19 of
+  the note for all, which biases sigma by 5.5 percent; the claim that
+  the SO2 and H2S King factors exceed 1.20 is contradicted by its own
+  formula (needs rho 0.105; rho 0.04 gives 1.07). (3) Licences: Mainz is
+  settled (cite Keller-Rudek 2013, Zenodo copy CC BY 4.0); Heays 2017 is
+  the Leiden photodissociation database and not LAMDA (that is Schoier
+  2005); Bremen states no licence; the terms of Huebner 2015 and JPL
+  19-5 were not reached. (4) Ammonia: the 'Coles 2018' of the note is
+  Coles, Yurchenko and Tennyson 2019 (MNRAS 490, 4638) and the claim
+  that it resolved anomalies near 500 mbar is unsupported.
   Related: DB.71.
 
 - [ ] **GEN.411 The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree**
@@ -8214,7 +8266,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.423 and GEN.424 carry the related fixes (the recalculation redraw,
   density, scale height and greenhouse from the mix, the balance gas).
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Prerequisites: GEN.410, GEN.429. Related: GEN.85, GEN.355, GEN.223,
+  Prerequisites: GEN.410, GEN.429, GEN.478. Related: GEN.85, GEN.355,
+  GEN.223,
   DB.67, DB.71.
   The surface gravity it reads is derived from the bulk composition by
   GEN.429 (Boss, 11:49 PM EDT: the composition drives mass, density and
@@ -8245,6 +8298,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stand-ins, each with its own research item that replaces it with a
   derived or general distribution. Here the mixture proportions follow
   those two rules.
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. Its recipes are the rows of the atmosphere tables
+  of GEN.478 (part 09 categories c, d, j and m).
 
 - [ ] **GEN.412 Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8269,6 +8327,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   albedo and greenhouse multiplier the drawn recipe (GEN.411) and the
   ground (GEN.462) give; the only new rule is that it reads the row the
   loader drew and never a fixed per-class value.
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. Parmentier and Guillot 2014: the equation in
+  Boss's note is not the published one; the semi-grey form (eq. 30) and
+  the picket-fence form (eq. 98, coefficients A to E from a0 to a3 and
+  b0 to b3) were read from the arXiv LaTeX source and the coefficient
+  code was tested in the grey limit; the open point is the opacity link
+  (kappa_R and gamma_v from the mixture), and the Parmentier 2015
+  opacity tables (arXiv:1311.6322) still have to be extracted.
   Prerequisites: GEN.409. Related: DB.67, GEN.85, GEN.355.
 
 - [ ] **GEN.413 Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance**
@@ -8302,13 +8370,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   kept for the UV index; the cross sections ship as a small fitted table,
   because the licence of the Malicet/Brion, Serdyuchenko and Burkholder
   files was not found (Boss to settle). The Earth figure is a test value,
-  279 to 300 Dobson units, not a constant. Prerequisites: GEN.411.
+  279 to 300 Dobson units, not a constant. Prerequisites: GEN.411,
+  GEN.478.
   Merged research (2026-10-17): part 04 section 3 gives the ozone column
   against oxygen and host star (the Kozakis fit stays, valid only for
   0.01 to 150 percent of the present level), the Chapman layer depth and
   peak pressure against O2, the abiotic O2 and O3 channels and the
   shielding by other gases on anoxic worlds; part 02 gives the cross
   sections.
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. Ozone reads the host-star UV regime of part 09
+  category p and the trace-gas rows of m through GEN.478.
   Related: GEN.87, GEN.189, DB.68.
 
 - [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
@@ -8363,7 +8437,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to 0.95 near 670 nm under 'volcanic SO2 aerosol' with Lemmon 2004 and
   Tomasko 1999 is misattributed; those are Mars dust papers and give no
   SO2 aerosol optics (a Mars dust gap of the atmosphere sources check).
-  Prerequisites: GEN.411, GEN.412. Related: GEN.413, DB.68, GEN.418.
+  Prerequisites: GEN.411, GEN.412, GEN.478. Related: GEN.413, DB.68,
+  GEN.418.
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. Mars dust: the single-scattering albedo 0.92 to
+  0.95 is the solar-band mean and not the 670 nm value (about 0.975,
+  second-hand), and it hides a UV drop; use red and near-infrared 0.93
+  to 0.975, solar mean 0.89 to 0.94 and UV band 0.67 to 0.74, with the
+  imaginary index 0.013 at 0.30 micrometre falling to about 1e-3 at 0.7
+  to 0.8 (a digitised figure); the iron(III) attribution is in no text
+  read. Titan haze: the absolute extinction laws are confirmed (above 80
+  km 1.012e7 lambda^-2.339, 30 to 80 km 2.029e4 lambda^-1.409, below 30
+  km 6.27e2 lambda^-0.9706, lambda in nm; total optical depth 9.6 at 500
+  nm; from the DISR team slides); the 40 percent forward-scattering
+  underprediction has no source; aggregates of about 3000 to 4000
+  monomers fit, not equivalent spheres. The cloud, haze and dust rows
+  are category n of part 09 (GEN.478).
 
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8440,6 +8531,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane's part 02 carries the verified depolarization spreads, which the
   design compares with these. Awaiting verification; not a verified
   input, and every number stays labelled by what the lane read.
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. Rayleigh references: the reference density is per
+  gas (288.15 K for N2, Ar, CO2, CO and CH4; 273.15 K for O2) and no
+  coefficient of Boss's note is adopted; the SO2 and H2S King factors
+  above 1.20 are contradicted (the Bogaard 1978 depolarizations are on
+  Boss's research list).
   Prerequisites: GEN.410, GEN.411. Related: GEN.418, VIEW.14.
 
 - [ ] **GEN.418 Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce**
@@ -8494,6 +8593,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   visible tails of NH3, SO2 and NO2 (master section 6 item 3 of
   docs/design/atmosphere-composition.md). Awaiting verification; not a
   verified input, and every number stays labelled by what the lane read.
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. Giant colour reads the giant rows of part 09 and
+  the Parmentier and Guillot formulas (GEN.423); the 'Coles 2018'
+  ammonia source of Boss's note is Coles, Yurchenko and Tennyson 2019,
+  and its claim to resolve anomalies near 500 mbar is unsupported
+  (chi-squared per point 1.93 to 1.60 and 2.06 to 1.76; the NH3 cloud
+  sits at 0.55 to 0.57 bar).
   Prerequisites: GEN.418. Related: GEN.409, GEN.420.
 
 - [ ] **GEN.420 The descriptions show the atmosphere colour: a swatch and a word in the planet and moon facts, in every output**
@@ -8557,6 +8665,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Merged research (2026-10-17): the freeze-out ordering reads the
   checked saturation curves of part 01 section 7 and part 06 (GEN.452
   replaces the two-point table first).
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. The redox prior is mass dependent (Sossi 2020 read
+  in full: Fe3+/sum Fe 0.037 +/- 0.005 gives IW+0.5 at 1 Earth mass;
+  about IW-2 for small bodies whose redox is set at core formation,
+  oxidising later), and the dissolved fractions are about 99 percent of
+  the water, about 35 percent of the CO2 and about 0 percent of the N2
+  in the melt; the repo's REDOX_EARTH_DELTA_IW of 3.5 is the later
+  mantle only (rows a1 and a2 of part 09, category a). The cold curves
+  are the composite of GEN.410.
 
 - [ ] **GEN.423 Atmosphere density, scale height and the greenhouse multiplier follow from the mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -8595,6 +8714,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   or HITEMP are needed; the same open point as master section 6 item 5
   of docs/design/atmosphere-composition.md. Awaiting verification; not a
   verified input, and every number stays labelled by what the lane read.
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. Parmentier and Guillot 2014: the equation in
+  Boss's note is not the published one; the semi-grey form (eq. 30) and
+  the picket-fence form (eq. 98, coefficients A to E from a0 to a3 and
+  b0 to b3) were read from the arXiv LaTeX source and the coefficient
+  code was tested in the grey limit; the open point is the opacity link
+  (kappa_R and gamma_v from the mixture), and the Parmentier 2015
+  opacity tables (arXiv:1311.6322) still have to be extracted.
 
 - [ ] **GEN.424 The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -9118,6 +9247,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tissue), and the neutron weighting runs from 2.5 to about 20.7 (peak
   near 1 MeV), not 5 to 20; ICRP 103 itself was not read, so the dose
   conversion needs it (Boss's research list).
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. Radiation weights: the ICRP 103 wR and wT of the
+  note are confirmed (wT sums to 1.00), but 'subsurface dose dominated
+  by secondary neutrons' holds only for the dose equivalent (50 percent
+  at the surface to over 80 percent below 50 cm on Mars); the
+  absorbed-dose share is 2 to 9 percent.
 
 - [ ] **GEN.437 The composition model: how the element, compound, material and body tables link, and what is stored against derived**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9502,7 +9639,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stated tolerance, the Moon and Mars the measured values, an airless
   ice moon almost no radiogenic dose; a test fails when a proxy comes
   back.
-  Prerequisites: GEN.443, GEN.441, GEN.438, GEN.453, GEN.459. Related:
+  Prerequisites: GEN.443, GEN.441, GEN.438, GEN.453, GEN.459, GEN.478.
+  Related:
   GEN.445,
   GEN.256, GEN.317, GEN.87, GEN.453.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
@@ -9519,6 +9657,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dose per ppm of potassium, thorium and uranium and the air-equivalent
   column rule replace `a_rad` and the flat ground term; it reads the
   concentrations of the radiogenic module GEN.459.
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. The ground radioisotope rows are category o of
+  part 09 (GEN.478); the radiation weight check is on GEN.436.
 
 - [ ] **GEN.445 Habitability, toxicity and the UV index read the derived radiation instead of the proxies**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9715,7 +9858,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only. Generator epoch bump; it joins the one rescatter of 8.4's
   stored-value changes. Owner: Core 4 (the 8.4 atmosphere chain,
   proposed).
-  Prerequisites: GEN.410, GEN.428. Related: GEN.409, GEN.411, GEN.422,
+  Prerequisites: GEN.410, GEN.428, GEN.478. Related: GEN.409, GEN.411,
+  GEN.422,
   GEN.428.
   Merged research (2026-10-17): part 05 holds the outgassed rocky-planet
   atmospheres by mantle redox, the magma-ocean stage (near the
@@ -9757,6 +9901,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only and the draw range a parametrisation. How fO2 varies between
   planets (Gaillard 2014 and 2021, Hirschmann 2012) is not in anything
   read and is Boss's research.
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. The redox prior of finding 12: IW+0.5 near 1 Earth
+  mass, about IW-2 for small bodies, then oxidising later (rows a1 and
+  a2 of part 09 category a, GEN.478); the repo's REDOX_EARTH_DELTA_IW of
+  3.5 is the later mantle only; dissolved fractions about 99 percent of
+  the water, about 35 percent of the CO2, about 0 percent of the N2.
 
 - [ ] **GEN.452 The condensation table is replaced by the checked saturation curves: the hydrogen sulphide row is a copy of the sulphur dioxide row, and carbon dioxide, sulphur dioxide and the cold gases are 2 to 20 K off (bug)**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -9815,6 +9967,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stays on Boss's list); no sign inversion was found in the table, only
   typesetting errors in the text layer; the two-parameter Prialnik fits
   are off by 6 to 30 times for CO in the cold. The function is GEN.470.
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. The cold curves are the composite of GEN.410
+  (Wagner liquid, Fray and Schmitt above about 50 K, Grundy 2024 and
+  Blakley 2025 laboratory fits below); the sign inversions of Boss's
+  note are unsupported.
 
 - [ ] **GEN.453 The radiation constants are corrected: the dipole cutoff scales with moment over radius squared, the dose curve against the column and the field factor follow the measured and simulated tables (bug)**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -9882,7 +10041,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (hydrogen, helium and the metals sum to the drawn metallicity), the
   dominant carbon and nitrogen carriers by temperature, and determinism.
   Owner: Core 4 (proposed).
-  Prerequisites: GEN.410, GEN.411, GEN.460, GEN.472. Related: GEN.409,
+  Prerequisites: GEN.410, GEN.411, GEN.460, GEN.472, GEN.478. Related:
+  GEN.409,
   GEN.410,
   GEN.411,
   GEN.419, GEN.451.
@@ -9904,6 +10064,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stand-ins, each with its own research item that replaces it with a
   derived or general distribution. Here the mixture proportions follow
   those two rules.
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. The giant, brown-dwarf and hot-Jupiter rows are
+  categories f, g and h of part 09 (GEN.478); the lane's C/O recipe
+  correction (13.9 percent of giants above C/O 0.8 where about 2 to 5
+  percent was intended, so the core is truncated at 0.8 and an explicit
+  tail is added) and the uncovered brown-dwarf range of 500 to 700 K
+  (row g4 added) are in it. The Parmentier and Guillot formulas are as
+  noted on GEN.423.
 
 - [ ] **GEN.455 Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -9929,7 +10099,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against the source and loss rates of part 04 within the stated spread,
   and that a body with an atmosphere of any pressure never gets an
   exosphere. Owner: Core 4 (proposed).
-  Prerequisites: GEN.441, GEN.442, GEN.410, GEN.472. Related: GEN.409,
+  Prerequisites: GEN.441, GEN.442, GEN.410, GEN.472, GEN.478. Related:
+  GEN.409,
   GEN.410,
   GEN.441, GEN.442, DB.70, GEN.446.
   Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
@@ -9951,6 +10122,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test TEST.214): the exosphere and coma recipes are gated rows by body
   kind (airless rocky, comet, icy moon), with the weights from the
   surface composition (GEN.441) and the star's wind.
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. Comet coma ratios (row k of part 09): CO 0.3 to 26
+  percent of water (median 3.3), CO2 2 to 30 (median 12), CH4 0.15 to
+  2.7, NH3 0.1 to 3.6 (the note's 0.2 to 1.0 is contradicted), Q(H2O)
+  5.1e26 to 1.41e31 per second in the SWAN sample.
 
 - [ ] **GEN.456 Lava worlds and hot rocky planets draw a vapour atmosphere over the magma from the surface composition and temperature: sodium, potassium, silicon monoxide, magnesium, iron and the oxides**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -9975,7 +10153,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   three melt temperatures within the stated spread, that the partials
   sum to the surface pressure, and determinism. Owner: Core 4
   (proposed).
-  Prerequisites: GEN.441, GEN.410, GEN.411, GEN.414, GEN.451, GEN.472.
+  Prerequisites: GEN.441, GEN.410, GEN.411, GEN.414, GEN.451, GEN.472,
+  GEN.478.
   Related:
   GEN.409,
   GEN.410, GEN.411, GEN.414, GEN.418, GEN.441.
@@ -10528,6 +10707,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4 (proposed, with the composition chain).
   Prerequisites: GEN.410, GEN.427. Related: GEN.410, GEN.427, GEN.452,
   GEN.422, GEN.442, GEN.461.
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. The cold curves are the composite of GEN.410
+  (Wagner liquid, Fray and Schmitt above about 50 K, Grundy 2024 and
+  Blakley 2025 laboratory fits below); the sign inversions of Boss's
+  note are unsupported.
 
 - [ ] **GEN.471 Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K**
   Part F of the Body composition research lane
@@ -10866,6 +11052,410 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   filed by the TODO thread: the belt text keeps its four lines through
   the same thresholded writer, and its stored shares are the one mixture
   storage of DB.69 and DB.70.
+
+- [ ] **GEN.478 The atmosphere possibility tables: the 16 categories and 104 rows of part 09, loaded through the gated table loader, with every row that has no sourced weight flagged and drawn from its bracket**
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. Boss's gated-table requirement (1:40 AM EDT;
+  format and loader GEN.472) restated by the lane for every atmosphere
+  recipe of parts 05, 06 and 07 plus escape and UV from part 04, in
+  docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md:
+  16 categories (a mantle redox, b volatile inventory and water fraction
+  by snow line, c outgassed regime, d retention regime, e sub-Neptune
+  envelope, f giants, g brown dwarfs, h hot Jupiters, i lava worlds, j
+  frost and evolved atmospheres, k comets and KBOs, l white-dwarf and
+  pulsar planets, m trace gases, n clouds, hazes and dust, o ground
+  radioisotopes, p host-star UV regime) and 104 rows, 8 SOURCED, 48
+  DERIVED (computed from a formula given in the row) and 48 DESIGN (no
+  sourced weight: the physical bracket is in the row and the generator
+  draws a seeded value inside it meanwhile, nothing fixed, and the
+  loader reports them as `open` rows). The rows have the columns id,
+  option, gate, weight, weight source with verification label, status
+  and notes; weights may be functions of mass, temperature, pressure,
+  redox, insolation, the host star and a_form over the snow line;
+  level-2 tables draw after their parent row (joint probability = parent
+  times conditional); if the weights sum to zero the table's named
+  fallback row (bare, airless, absent) wins, which is the
+  explicit-fallback exception to the loader's no-silent-fallback rule
+  and is stored in the table; the draw order is the host star, then the
+  16 tables, the last four reading earlier draws; the continuous
+  quantities (redox, metallicity, C/O) are given as a parametric draw
+  and as a binned table. Do: write the rows as the data files of the
+  loader (the one source of the recipes of GEN.411, GEN.413, GEN.414,
+  GEN.451 and GEN.454 to GEN.456), keep the part's labels and gates, and
+  bring the two corrections of the part (the C/O recipe that put 13.9
+  percent of giants above C/O 0.8 where about 2 to 5 percent was
+  intended, and the lava-world boundary difference of 63 K, not 130 K).
+  Boss's ruling of 1:44 AM EDT applies: a row built from a measured
+  Solar System body is a flagged `stand-in` and the shoreline constants
+  (fitted to 13 Solar System bodies; the cited paper is only a snippet)
+  are one. Changes stored values, so it ships with a generator epoch
+  bump. Done: every row of the 16 tables loads, TEST.214 passes on them,
+  the `open` rows are listed with their AR number (GEN.480 to GEN.494),
+  and a draw is deterministic at any worker count. Owner: Core 4
+  (proposed, with the composition chain).
+  Prerequisites: GEN.472, GEN.410. Related: GEN.472, GEN.410, GEN.411,
+  GEN.413, GEN.414, GEN.451, GEN.454, GEN.455, GEN.456, GEN.479,
+  TEST.214, GEN.480, GEN.481, GEN.482, GEN.483, GEN.484, GEN.485,
+  GEN.486, GEN.487, GEN.488, GEN.489, GEN.490, GEN.491, GEN.492,
+  GEN.493, GEN.494.
+
+- [ ] **GEN.479 The class atmosphere mixes contradict the checked chemistry: classes C, D and S have no mix, free oxygen sits in seven classes with no life rule, class L is 60 percent argon, E and F hold ammonia and methane at 340 to 400 K, N reads reducing and is oxidised, and I, J and T share one mix in every zone (bug)**
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. Conflicts 3 to 8 of part 09 section 5, checked
+  against src/planetgen/physics/atmosphere.py `CLASS_MIXES` on main at
+  2:05 AM EDT (this thread's clock): (1) C, D and S have no key (their
+  `atmosphere` is None in every zone), so a pressure would fall back to
+  DEFAULT_MIX (N2 0.78, O2 0.2); the keys are A B E F G H I J K L M N O
+  P Q T V. (2) Free O2 is 0.10 in G, 0.25 in H, 0.30 in L, 0.22 in O and
+  P, 0.15 in Q and 0.08 in V with no abiotic or life rule: abiotic O2
+  needs water loss around M or K stars, and PLANET_CLASS_MAX_LIFE_STAGE
+  caps G at photosynthesis but nothing ties O2 to the life stage. (3) L
+  is Ar 0.60, far above the radiogenic budget (Earth: Ar 0.93 percent
+  with about 43 percent of the 40Ar degassed). (4) E (H2O 0.55, CH4
+  0.25, NH3 balance) and F (CO2 0.60, CH4 0.20, NH3 balance) put NH3 and
+  CH4 in 340 to 400 K air, where photolysis removes them. (5) N's text
+  says a dense reducing mix of CO2 and sulfides but its mix is oxidised
+  (CO2 0.965, SO2 1.5e-4, H2S 1e-4); sulfur is H2S only below dIW about
+  +2.5. (6) I and J have one mix, CH4 3e-3, H2O 1e-3, H2S 1e-4 (T: CH4
+  0.02), in every zone, where CH4 holds carbon only below about 500 K, J
+  in zone h is a hot Jupiter (CO) and H2O and H2S are cloud-depleted in
+  cold giants. (7) The repo's mean redox dIW 3.5 + 2 log10 M is the
+  later mantle; the magma-ocean value is +0.5 at 1 Earth mass (GEN.451).
+  Do: replace `CLASS_MIXES` by the recipe tables of GEN.478 (the redox
+  row selects the outgassed mix, the retention row the regime, a life
+  stage rule decides free O2), so no class has a fixed mix. Changes
+  stored values, so it ships with a generator epoch bump. Done: no class
+  mix constant is left, every class (and the classes of GEN.28 and
+  GEN.90 when they land) draws a mixture, a test asserts that C, D and S
+  draw a tenuous or absent atmosphere by the retention table, that free
+  O2 without a life stage needs the abiotic rows, and that no class
+  draws a mix that photolysis removes at its temperature. Owner: Core 4
+  (proposed, with the composition chain).
+  Prerequisites: GEN.478, GEN.411. Related: GEN.478, GEN.411, GEN.451,
+  GEN.454, GEN.28, GEN.90, GEN.424.
+
+- [ ] **GEN.480 Source the occurrence weights of bare rock, hydrogen-helium envelope and water-rich worlds and of the envelope metal fraction, by radius, mass and insolation (AR1)**
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. AR1 (the lane's R1, renamed here because the body
+  lane's R1 to R5 are GEN.473 to GEN.476 and TEST.215) of section 4 of
+  docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md,
+  rows b4, e3, e4, e5 of the weighted atmosphere tables:
+  Occurrence-weighted distribution of bare rock, H/He envelope and
+  water-rich worlds and of the envelope metal fraction by radius, mass
+  and insolation: radius-valley occurrence (Fulton 2017), Owen and Wu
+  2017 (read in part 04), mass-radius population fits and JWST
+  sub-Neptune retrievals. Until it lands those rows are `DESIGN` rows:
+  the generator draws a seeded value inside the bracket the row gives
+  and the loader lists them as `open` (GEN.472); nothing is fixed. Every
+  source is opened and read before a number is taken from it. Done: a
+  note gives the sourced weights or the derivation with citations, the
+  rows change from DESIGN to SOURCED or DERIVED, and TEST.214 lists
+  fewer `open` rows. Owner: unowned (research; Boss or a read-only
+  research lane).
+  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+
+- [ ] **GEN.481 Source the volatile delivery against formation distance: the water mass fraction by a_form and the snow-line law over time (AR2)**
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. AR2 (the lane's R2, renamed here because the body
+  lane's R1 to R5 are GEN.473 to GEN.476 and TEST.215) of section 4 of
+  docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md,
+  rows b1 to b6 of the weighted atmosphere tables: Volatile delivery
+  versus formation distance: population-synthesis tables of water mass
+  fraction against a_form (Thiabaud 2014 arXiv:1312.3085 data; the 2015
+  paper arXiv:1507.01343 body unread), the nebula water partial pressure
+  and T_snow versus time (which sets the snow-line law), and the mapping
+  to Ortenzi's Dry, Low and High classes. It meets GEN.458 (the snow
+  line) and GEN.468 (the water share). Until it lands those rows are
+  `DESIGN` rows: the generator draws a seeded value inside the bracket
+  the row gives and the loader lists them as `open` (GEN.472); nothing
+  is fixed. Every source is opened and read before a number is taken
+  from it. Done: a note gives the sourced weights or the derivation with
+  citations, the rows change from DESIGN to SOURCED or DERIVED, and
+  TEST.214 lists fewer `open` rows. Owner: unowned (research; Boss or a
+  read-only research lane).
+  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+
+- [ ] **GEN.482 Source the magma-ocean fO2 prior against mass and the oxidation law of the later mantle (AR3)**
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. AR3 (the lane's R3, renamed here because the body
+  lane's R1 to R5 are GEN.473 to GEN.476 and TEST.215) of section 4 of
+  docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md,
+  rows a1, a2, a3 of the weighted atmosphere tables: Magma-ocean fO2
+  prior against mass and the later-mantle oxidation law: the Sossi 2020
+  data (part 08), Gaillard 2014 and 2021, Hirschmann 2012 (graphite and
+  carbon solubility), the degassed 40Ar fraction by tectonic regime and
+  the redox of small-body building blocks. It meets GEN.451. Until it
+  lands those rows are `DESIGN` rows: the generator draws a seeded value
+  inside the bracket the row gives and the loader lists them as `open`
+  (GEN.472); nothing is fixed. Every source is opened and read before a
+  number is taken from it. Done: a note gives the sourced weights or the
+  derivation with citations, the rows change from DESIGN to SOURCED or
+  DERIVED, and TEST.214 lists fewer `open` rows. Owner: unowned
+  (research; Boss or a read-only research lane).
+  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+
+- [ ] **GEN.483 Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4)**
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. AR4 (the lane's R4, renamed here because the body
+  lane's R1 to R5 are GEN.473 to GEN.476 and TEST.215) of section 4 of
+  docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md,
+  rows d6 of the weighted atmosphere tables: Cosmic-shoreline constants
+  and pressure caps by regime: Zahnle and Catling 2017 arXiv:1702.03386
+  (fetch from export.arxiv.org), Meni-Gallardo and Palle 2025 and the
+  XUV histories (Johnstone 2021, part 04). The project's K window and r
+  thresholds are fitted to 13 Solar System bodies and the cited paper is
+  only a snippet, so table d is derived from a calibration and the
+  constants are a flagged `stand-in` until this lands. Until it lands
+  those rows are `DESIGN` rows: the generator draws a seeded value
+  inside the bracket the row gives and the loader lists them as `open`
+  (GEN.472); nothing is fixed. Every source is opened and read before a
+  number is taken from it. Done: a note gives the sourced weights or the
+  derivation with citations, the rows change from DESIGN to SOURCED or
+  DERIVED, and TEST.214 lists fewer `open` rows. Owner: unowned
+  (research; Boss or a read-only research lane).
+  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+
+- [ ] **GEN.484 Source the giant planets' C/O distribution and the fraction of carbon-rich hosts (AR5)**
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. AR5 (the lane's R5, renamed here because the body
+  lane's R1 to R5 are GEN.473 to GEN.476 and TEST.215) of section 4 of
+  docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md,
+  rows f7 of the weighted atmosphere tables: Giant-planet C/O and the
+  carbon-rich host fraction: Brewer and Fischer 2016 arXiv:1608.06286
+  (the PDF is downloaded, the body unread), the sample selection of
+  Delgado Mena 2010, the Welbanks 2019 retrieval spread and the
+  Thorngren 2016 scatter of Zpl/Zstar. Until it lands those rows are
+  `DESIGN` rows: the generator draws a seeded value inside the bracket
+  the row gives and the loader lists them as `open` (GEN.472); nothing
+  is fixed. Every source is opened and read before a number is taken
+  from it. Done: a note gives the sourced weights or the derivation with
+  citations, the rows change from DESIGN to SOURCED or DERIVED, and
+  TEST.214 lists fewer `open` rows. Owner: unowned (research; Boss or a
+  read-only research lane).
+  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+
+- [ ] **GEN.485 Source the hot-Jupiter thermochemistry above 2200 K, a Kzz distribution and the edges of the 1500 K and 2200 K regimes (AR6)**
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. AR6 (the lane's R6, renamed here because the body
+  lane's R1 to R5 are GEN.473 to GEN.476 and TEST.215) of section 4 of
+  docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md,
+  rows h2, h3, h4 of the weighted atmosphere tables: Hot-Jupiter
+  thermochemistry above 2200 K (FastChem or GGchem tables), Venot 2012
+  arXiv:1208.0560 body, a Kzz distribution and the edges of the 1500 and
+  2200 K regimes. Until it lands those rows are `DESIGN` rows: the
+  generator draws a seeded value inside the bracket the row gives and
+  the loader lists them as `open` (GEN.472); nothing is fixed. Every
+  source is opened and read before a number is taken from it. Done: a
+  note gives the sourced weights or the derivation with citations, the
+  rows change from DESIGN to SOURCED or DERIVED, and TEST.214 lists
+  fewer `open` rows. Owner: unowned (research; Boss or a read-only
+  research lane).
+  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+
+- [ ] **GEN.486 Source the lava-world vapour regimes and the fraction of lava worlds that keep volatiles (AR7)**
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. AR7 (the lane's R7, renamed here because the body
+  lane's R1 to R5 are GEN.473 to GEN.476 and TEST.215) of section 4 of
+  docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md,
+  rows i6 of the weighted atmosphere tables: Lava-world vapour: the
+  Miguel 2011 numeric Type I to V tables, Schaefer and Fegley 2009
+  arXiv:0906.1204, LavAtmos arXiv:2210.10463, and the fraction of lava
+  worlds that keep volatiles (JWST 55 Cnc e and other targets). It meets
+  GEN.456. Until it lands those rows are `DESIGN` rows: the generator
+  draws a seeded value inside the bracket the row gives and the loader
+  lists them as `open` (GEN.472); nothing is fixed. Every source is
+  opened and read before a number is taken from it. Done: a note gives
+  the sourced weights or the derivation with citations, the rows change
+  from DESIGN to SOURCED or DERIVED, and TEST.214 lists fewer `open`
+  rows. Owner: unowned (research; Boss or a read-only research lane).
+  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+
+- [ ] **GEN.487 Source the evolved and frost atmospheres: cold vapour pressures, the habitable-zone coefficients, the occurrence of Titan-, Pluto- and Venus-like bodies and the abiotic O2 frequency (AR8)**
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. AR8 (the lane's R8, renamed here because the body
+  lane's R1 to R5 are GEN.473 to GEN.476 and TEST.215) of section 4 of
+  docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md,
+  rows j1 to j5 of the weighted atmosphere tables: Evolved and frost
+  atmospheres: Fray and Schmitt 2009 and Grundy 2024 vapour pressures
+  (N2, CO, CH4, CO2), the Kopparapu c and d coefficients and the 5 and
+  0.1 Earth-mass sets, the occurrence of Titan-, Pluto- and Venus-like
+  bodies, and the abiotic-O2 frequency (Luger and Barnes 2015
+  arXiv:1411.7412, body unread). It meets GEN.470. Until it lands those
+  rows are `DESIGN` rows: the generator draws a seeded value inside the
+  bracket the row gives and the loader lists them as `open` (GEN.472);
+  nothing is fixed. Every source is opened and read before a number is
+  taken from it. Done: a note gives the sourced weights or the
+  derivation with citations, the rows change from DESIGN to SOURCED or
+  DERIVED, and TEST.214 lists fewer `open` rows. Owner: unowned
+  (research; Boss or a read-only research lane).
+  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+
+- [ ] **GEN.488 Source the comet coma classes and their volatile ratios (AR9)**
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. AR9 (the lane's R9, renamed here because the body
+  lane's R1 to R5 are GEN.473 to GEN.476 and TEST.215) of section 4 of
+  docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md,
+  rows k1 to k5, k7 of the weighted atmosphere tables: Comet coma
+  classes and ratios: the Harrington Pinto 2022 full per-comet table
+  (the class fractions in the part are a snippet), Mumma and Charnley
+  2011, Bockelee-Morvan 2004, Dello Russo 2016, A'Hearn 2012 and a
+  second comet with O2, noble gases and N2. It meets GEN.455. Until it
+  lands those rows are `DESIGN` rows: the generator draws a seeded value
+  inside the bracket the row gives and the loader lists them as `open`
+  (GEN.472); nothing is fixed. Every source is opened and read before a
+  number is taken from it. Done: a note gives the sourced weights or the
+  derivation with citations, the rows change from DESIGN to SOURCED or
+  DERIVED, and TEST.214 lists fewer `open` rows. Owner: unowned
+  (research; Boss or a read-only research lane).
+  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+
+- [ ] **GEN.489 Source the white-dwarf and pulsar planet options (AR10)**
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. AR10 (the lane's R10, renamed here because the
+  body lane's R1 to R5 are GEN.473 to GEN.476 and TEST.215) of section 4
+  of
+  docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md,
+  rows a4, l1, l2, l3 of the weighted atmosphere tables: White-dwarf and
+  pulsar planets: the Veras 2016 body (arXiv:1601.05419), polluted
+  white-dwarf debris compositions beyond the six of Doyle, and the
+  atmospheres of pulsar planets (none found). Until it lands those rows
+  are `DESIGN` rows: the generator draws a seeded value inside the
+  bracket the row gives and the loader lists them as `open` (GEN.472);
+  nothing is fixed. Every source is opened and read before a number is
+  taken from it. Done: a note gives the sourced weights or the
+  derivation with citations, the rows change from DESIGN to SOURCED or
+  DERIVED, and TEST.214 lists fewer `open` rows. Owner: unowned
+  (research; Boss or a read-only research lane).
+  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+
+- [ ] **GEN.490 Source the trace-gas presence weights (AR11)**
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. AR11 (the lane's R11, renamed here because the
+  body lane's R1 to R5 are GEN.473 to GEN.476 and TEST.215) of section 4
+  of
+  docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md,
+  rows m2 to m6, m11 of the weighted atmosphere tables: Trace gases:
+  Harman 2018 (ApJ 866, 56) NOx and N2O, the Domagal-Goldman 2014
+  numeric abiotic O3, Bains 2021 PH3, the other Schaefer 2012
+  inventories (HCl and HF by composition) and lightning yields. Until it
+  lands those rows are `DESIGN` rows: the generator draws a seeded value
+  inside the bracket the row gives and the loader lists them as `open`
+  (GEN.472); nothing is fixed. Every source is opened and read before a
+  number is taken from it. Done: a note gives the sourced weights or the
+  derivation with citations, the rows change from DESIGN to SOURCED or
+  DERIVED, and TEST.214 lists fewer `open` rows. Owner: unowned
+  (research; Boss or a read-only research lane).
+  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+
+- [ ] **GEN.491 Source the cloud and haze windows and yields (AR12)**
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. AR12 (the lane's R12, renamed here because the
+  body lane's R1 to R5 are GEN.473 to GEN.476 and TEST.215) of section 4
+  of
+  docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md,
+  rows n6, n7 of the weighted atmosphere tables: Clouds and hazes: the
+  width of the 950 K crossover (Gao 2020), the haze yield against
+  temperature and C/O (Horst 2018), the H2SO4-H2O vapour curve, and the
+  perchlorate and carbonate decomposition equilibria. It meets GEN.414.
+  Until it lands those rows are `DESIGN` rows: the generator draws a
+  seeded value inside the bracket the row gives and the loader lists
+  them as `open` (GEN.472); nothing is fixed. Every source is opened and
+  read before a number is taken from it. Done: a note gives the sourced
+  weights or the derivation with citations, the rows change from DESIGN
+  to SOURCED or DERIVED, and TEST.214 lists fewer `open` rows. Owner:
+  unowned (research; Boss or a read-only research lane).
+  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+
+- [ ] **GEN.492 Source the ground radioisotope abundances by host and the potassium depletion by body class (AR13)**
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. AR13 (the lane's R13, renamed here because the
+  body lane's R1 to R5 are GEN.473 to GEN.476 and TEST.215) of section 4
+  of
+  docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md,
+  rows o2, o3, o4, o6 of the weighted atmosphere tables: Radioisotopes:
+  Th, U and K against [Fe/H] and the Galactic population (the Frebel and
+  Hill cosmochronometers), K volatile depletion by body class, White and
+  Klein 2014 oceanic crust and the 26Al abundance spread between
+  systems. It meets GEN.459, GEN.444 and GEN.476. Until it lands those
+  rows are `DESIGN` rows: the generator draws a seeded value inside the
+  bracket the row gives and the loader lists them as `open` (GEN.472);
+  nothing is fixed. Every source is opened and read before a number is
+  taken from it. Done: a note gives the sourced weights or the
+  derivation with citations, the rows change from DESIGN to SOURCED or
+  DERIVED, and TEST.214 lists fewer `open` rows. Owner: unowned
+  (research; Boss or a read-only research lane).
+  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+
+- [ ] **GEN.493 Source the initial-rotation distribution and the saturation time against stellar mass for the host-star UV regime (AR14)**
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. AR14 (the lane's R14, renamed here because the
+  body lane's R1 to R5 are GEN.473 to GEN.476 and TEST.215) of section 4
+  of
+  docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md,
+  rows p6 of the weighted atmosphere tables: The initial-rotation
+  distribution to weight the Tu 2015 tracks and tau_sat against stellar
+  mass for M dwarfs (MUSCLES-type samples). It meets GEN.413. Until it
+  lands those rows are `DESIGN` rows: the generator draws a seeded value
+  inside the bracket the row gives and the loader lists them as `open`
+  (GEN.472); nothing is fixed. Every source is opened and read before a
+  number is taken from it. Done: a note gives the sourced weights or the
+  derivation with citations, the rows change from DESIGN to SOURCED or
+  DERIVED, and TEST.214 lists fewer `open` rows. Owner: unowned
+  (research; Boss or a read-only research lane).
+  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
+
+- [ ] **GEN.494 Source the brown-dwarf type against temperature and the T/Y boundary near 500 to 700 K (AR15)**
+  Atmosphere research lane, update of about 2:00 AM EDT as the lane
+  reported (findings 11 to 20 and section 3b of
+  docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
+  by the TODO thread. AR15 (the lane's R15, renamed here because the
+  body lane's R1 to R5 are GEN.473 to GEN.476 and TEST.215) of section 4
+  of
+  docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md,
+  rows g1, g4 of the weighted atmosphere tables: The brown-dwarf
+  type-Teff relation and the T/Y boundary near 500 to 700 K from an
+  observational compilation, and the hot young end above 2200 K. It
+  meets GEN.454. Until it lands those rows are `DESIGN` rows: the
+  generator draws a seeded value inside the bracket the row gives and
+  the loader lists them as `open` (GEN.472); nothing is fixed. Every
+  source is opened and read before a number is taken from it. Done: a
+  note gives the sourced weights or the derivation with citations, the
+  rows change from DESIGN to SOURCED or DERIVED, and TEST.214 lists
+  fewer `open` rows. Owner: unowned (research; Boss or a read-only
+  research lane).
+  Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
