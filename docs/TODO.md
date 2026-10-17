@@ -17059,6 +17059,26 @@ clears each one.
   being rerun alone. Fails on main: not checked. Frequency: one more
   loaded gate run for the menu-overlap family folded into this item.
   Reproducer: run the browser phase while other lanes' gates run.
+  Sighting with captured failure text (Bug Hunt, 2026-10-17, 7:19 PM EDT
+  as the lane reported, filed by the TODO thread; gate 586fdaa6 = main
+  62bca47c merged with the Bug Hunt branch, browser phase, 2 workers,
+  finished 7:15 PM EDT; none of the three test files is touched by that
+  branch; each passes alone on the gate's own rerun; the earlier build
+  4632033c at 5:51 PM EDT did not show them): (1)
+  `test_open_map_menus_hold_no_overlap[web.sector-390]` at 6:53 PM EDT,
+  load 7.9: AssertionError "/sector/1000000000 at 390 px: ['Menu /
+  59x16']" (a menu overlaps a control at 390 px); alone it passes in 7.5
+  s. (2) `test_galaxy_breadcrumb_always_matches_the_view_its_url_names`
+  at 7:08 PM EDT, load 8.0: after Escape in a sector the live trail ends
+  'Sector 1·0·2 (1)' while a fresh load of the same URL shows 'Sector
+  1·0·1 (1)' plus one more item (the MAP.106 invariant, line 2199);
+  alone it passes in 59 s. This is the same diff at index 6 that Core 2
+  captured at 5:13 PM EDT, in two different gates, so it looks like a
+  real trail race in the MAP.227/MAP.228 camera-follows-trail change and
+  not a load timeout (inferred from the identical text, not yet shown by
+  a reproduction). Fails on main: not run on main. Frequency: now 3
+  loaded gate runs for the breadcrumb test (4:10 PM, 5:13 PM, 7:08 PM
+  EDT).
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
@@ -17646,6 +17666,16 @@ clears each one.
   6:41 PM EDT): it passed alone on the rerun in 10.3 s at load 7.8. The
   same test passed in Core 3's earlier gate at 4:35 PM EDT. No solo
   reproducer; it needs another lane's gate running beside it.
+  Sighting with captured failure text (Bug Hunt, 2026-10-17, 7:19 PM EDT
+  as the lane reported, gate 586fdaa6, 6:58 PM EDT, load 11.1):
+  `test_galaxy_map_drill_down_by_clicks` failed after the 2nd Back: the
+  trail shows 'Block 59·1·130 (27)' where the walk recorded 'Block
+  59·1·129 (27)' (`assert _crumbs(page) == steps[at][1]`, line 400,
+  after the 10 s wait loop); alone it passes in 46 s. A wrong block
+  number is not a wait that ran out, so like the breadcrumb test under
+  TEST.126 it may be the MAP.227/MAP.228 trail race (inferred).
+  Frequency: now 6 loaded gate runs seen for this test. Bug Hunt is
+  rerunning the three tests with `--resume`.
   Prerequisites: none. Related: MAP.210, TEST.170, TEST.171.
 
 - [ ] **TEST.174 test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug)**
