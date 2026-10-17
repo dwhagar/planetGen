@@ -884,6 +884,17 @@ with `clamp()`.
   themes and at phone width. Owner: Core 2 (proposed).
   Prerequisites: none. Related: PERF.105, UX.118.
 
+- [ ] **UX.137 The Generate page, the settings and the command line set the halo and intergalactic switch, and say what it is**
+  Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
+  intergalactic generation to be a switch that defaults to off, put that
+  in for 8.5 please, we'll get it working first." Done: the Generate
+  page and the settings page show the switch (one control, default off)
+  with a one-line plain explanation, the command line and the API set it
+  through the same stored setting, turning it on offers the commands
+  that will run (the step list, with its estimate), and turning it off
+  says that nothing is deleted. Owner: Core 2 (proposed).
+  Prerequisites: GEN.538. Related: GEN.538, UX.116.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -2361,6 +2372,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   between the stars of a dense region and ends where the column passes
   the threshold, not at the focus depth. Owner: Core 2 (proposed).
   Prerequisites: MAP.245. Related: MAP.225, MAP.245.
+
+- [ ] **MAP.248 The maps and pages follow the halo and intergalactic switch: nothing is drawn, picked or offered beyond the outline when it is off**
+  Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
+  intergalactic generation to be a switch that defaults to off, put that
+  in for 8.5 please, we'll get it working first." Done: with the switch
+  off the Galaxy Map draws no satellites, clusters, wanderers or halo
+  scatter beyond the outline and offers no halo layer toggle, "Show on
+  Galaxy Map" and the uncharted address pages for an address beyond the
+  outline say the halo and intergalactic generation is off (not "outside
+  the galaxy"), the tiles carry nothing beyond the outline, and the pick
+  and the zoom hand-off of MAP.243 are not offered where nothing exists;
+  with it on everything of MAP.207, MAP.243 and MAP.239 works as built
+  in 8.1; a browser test per state. Owner: Core 2 (proposed).
+  Prerequisites: GEN.538, MAP.243. Related: GEN.538, MAP.207, MAP.243,
+  MAP.239.
 
 ## NAV: Navigation and courses
 
@@ -5899,6 +5925,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (job-20261017-162736-67d4) has not been rerun: the full job has to be
   rerun to confirm no other overflow before the scatter is called safe
   at that depth.
+  Note (Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
+  intergalactic generation to be a switch that defaults to off, put that
+  in for 8.5 please, we'll get it working first"): this headline stays
+  as written, the halo and intergalactic generation always on, because
+  8.1 gets it working first; 8.5 makes it a switch that defaults to off
+  (GEN.537 design, GEN.538, MAP.248, UX.137, TEST.226, goal #2095). The
+  whole-sphere audits of 8.1 (TEST.159, TEST.160, TEST.185) will run
+  with the switch on once it exists.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -13733,6 +13767,56 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   research lane). This is a Boss research item.
   Prerequisites: none. Related: GEN.532, GEN.531.
 
+- [ ] **GEN.537 Design the halo and intergalactic switch: what it covers, where it is stored, what off means and what turns on later**
+  Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
+  intergalactic generation to be a switch that defaults to off, put that
+  in for 8.5 please, we'll get it working first." Version 8.1 builds the
+  halo and intergalactic generation first, always on (GEN.301: the three
+  scatters fill the whole sphere to the 262 kpc reach, with the
+  satellites, clusters and wanderers as components); 8.5 makes it a
+  switch that defaults to off. Done: a design note (docs/design) that
+  settles, with Boss by card: (1) what the switch covers (the scatters
+  beyond the disc outline, the satellite, cluster and wanderer
+  components placed there, the halo luminosity floor tier, and the
+  intergalactic profile cells; the 262 kpc reach and the 96-bit IDs stay
+  either way, because they are addressing, not content); (2) where it is
+  stored: proposed as one galaxy setting stored beside the seed, default
+  off for a galaxy created after 8.5, and for a galaxy that already
+  holds halo or intergalactic content the 8.5 migration sets it from
+  what the galaxy holds (a migration step, not a compatibility shim);
+  (3) what off means: nothing is generated or stored beyond the outline,
+  the interior is the same stars for the same seed whether the switch is
+  on or off (a test), and an address beyond the outline answers "outside
+  the generated galaxy" with the reason; (4) what turning it on later
+  does: the halo and intergalactic commands run for the missing part
+  only, no interior regeneration; turning it off later stops generating
+  and hides, and deleting what exists is the separate admin delete; (5)
+  the one-command rule (PERF.118, PERF.120): the switch decides which
+  commands the wrapper's step list contains, so off means the halo and
+  intergalactic commands are never selected and never touched. Owner:
+  the design thread (coordinator to assign); Boss approves the choices
+  by card.
+  Prerequisites: none. Related: GEN.301, PERF.118, PERF.121, MAP.243,
+  MAP.207.
+
+- [ ] **GEN.538 The halo and intergalactic switch: a stored galaxy setting, default off, that decides whether the halo and intergalactic commands are in the step list**
+  Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
+  intergalactic generation to be a switch that defaults to off, put that
+  in for 8.5 please, we'll get it working first." Done: the design note
+  of the switch item (GEN.537) is built: the setting is stored and read
+  in one place (and migrated from what an existing galaxy holds); the
+  scatter commands for the halo and the intergalactic cells, the
+  satellite, cluster and wanderer components beyond the outline and the
+  halo floor tier are each their own command (PERF.121, PERF.120), and
+  the wrapper includes them in the step list only when the setting is
+  on; with it off nothing beyond the outline is generated or stored and
+  the interior is the same stars for the same seed; the Generate page,
+  the API and the command line set it (UX.137); tests run both states.
+  Owner: Core 1 or Core 3 (proposed, whichever holds the halo scatter
+  code after 8.1).
+  Prerequisites: GEN.537, GEN.301, PERF.121. Related: GEN.301, GEN.537,
+  PERF.121.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.20 Short-term caching through the work queue and API**
@@ -14566,6 +14650,217 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stage itself. Owner: Core 5 (proposed; the PERF.118 chain).
   Prerequisites: PERF.123. Related: PERF.31, PERF.118, PERF.120.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
+
+- [ ] **PERF.129 Robust tile caching: the first zoom levels built ahead, tiles stored compressed, built proactively around every visit, kept until the data changes**
+  Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
+  caching, so that we build out not only the initial galactic view but
+  all the normal zoom levels for that view that we can compress and
+  serve up to the client immediately on request. Basically I want to
+  build out tiles for the first several zoom levels and then I want to
+  build it so that system is proactive and when the user visits and zoom
+  level it builds and caches all the surrounding tiles and the next zoom
+  levels. Then it keeps them until the data changes." What exists (read
+  from main, 2026-10-17): `web/lib/tilecache.py` keeps packed tiles on
+  disk (`<cache dir>/<db>/<generation>/<tile>.bin`, the PGT1 format of
+  `tilepack.py`), answers `/galaxy/tiles` by joining stored bytes, and
+  keeps stage and window payloads the same way; freshness is the content
+  stamp plus `GET /api/galaxy/changes` (the `modified_at` columns, so
+  only the changed tiles are deleted, and a change that cannot be pinned
+  to tiles starts a new generation); `prune` deletes the least recently
+  written files above `tile_cache.max_mb`; the browser keeps its own
+  copy in IndexedDB (MAP.158); `web/warmup.py` warms only the opening
+  view's tiles and the galaxy stage; Apache compresses each response at
+  send time; the admin health block shows where the cache lives and its
+  size. Goal (done when its subitems are): the Galaxy Map answers any
+  tile of the first several zoom levels at once from a stored compressed
+  copy; a visit to any zoom level builds and caches the surrounding
+  tiles and the next level's tiles before they are asked for; every
+  stored tile stays until the data under it changes; and an admin can
+  see and clear the cache. Subitems: PERF.130 (build the first levels
+  ahead), PERF.131 (store and serve compressed), PERF.132 (proactive
+  neighbours and next levels on a visit), PERF.133 (keep until the data
+  changes), PERF.134 (admin: see and clear). It touches PERF.41 (the
+  TILE_FORMAT stamp: a format change must drop the stored tiles once),
+  MAP.239 (the tile root rises to the reach, which changes every level's
+  geometry, so the build waits for it), MAP.195 (finer tiles leave out
+  what a coarser tile sent, which changes what a tile holds), PERF.127
+  (warm_map: the tile build is one of its families, each its own
+  command, PERF.120), and the plan commands (a regenerated galaxy
+  changes tile content, so the build is a step the wrapper lists after
+  the generation commands, never a part of one). Owner: Core 2
+  (proposed; the map and cache lane).
+  Prerequisites: PERF.130, PERF.131, PERF.132, PERF.133, PERF.134.
+  Related: PERF.41, PERF.104, PERF.120, PERF.127, MAP.158, MAP.159,
+  MAP.195, MAP.239.
+
+- [ ] **PERF.130 Build the first several zoom levels of the Galaxy Map ahead of the first visitor: the opening view and every level down to a chosen depth**
+  Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
+  caching, so that we build out not only the initial galactic view but
+  all the normal zoom levels for that view that we can compress and
+  serve up to the client immediately on request. Basically I want to
+  build out tiles for the first several zoom levels and then I want to
+  build it so that system is proactive and when the user visits and zoom
+  level it builds and caches all the surrounding tiles and the next zoom
+  levels. Then it keeps them until the data changes." What exists (read
+  from main, 2026-10-17): `web/lib/tilecache.py` keeps packed tiles on
+  disk (`<cache dir>/<db>/<generation>/<tile>.bin`, the PGT1 format of
+  `tilepack.py`), answers `/galaxy/tiles` by joining stored bytes, and
+  keeps stage and window payloads the same way; freshness is the content
+  stamp plus `GET /api/galaxy/changes` (the `modified_at` columns, so
+  only the changed tiles are deleted, and a change that cannot be pinned
+  to tiles starts a new generation); `prune` deletes the least recently
+  written files above `tile_cache.max_mb`; the browser keeps its own
+  copy in IndexedDB (MAP.158); `web/warmup.py` warms only the opening
+  view's tiles and the galaxy stage; Apache compresses each response at
+  send time; the admin health block shows where the cache lives and its
+  size. Done: a command (its own command, one job, PERF.118 and
+  PERF.120) builds every tile and stage view of the first N levels of
+  the tile octree (`TILE_ROOT_EDGE_PC` down; N a named setting, default
+  chosen from the measured count and size on a real galaxy and written
+  in the PR) into the cache; it runs as a step the wrapper lists after
+  the generation commands and after an update (the family of PERF.127),
+  as chunks of tiles on the queue (PERF.118) and not in the web process,
+  with progress bars of what it will build; a second run builds nothing
+  that is current; a browser test opens the map at each built level and
+  finds every tile a cache hit. Owner: Core 2 (proposed).
+  Prerequisites: PERF.118, PERF.127, MAP.239. Related: PERF.129,
+  PERF.127, PERF.104, MAP.239.
+
+- [ ] **PERF.131 Store the tiles compressed and serve the stored bytes with their encoding, so a request does no compression**
+  Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
+  caching, so that we build out not only the initial galactic view but
+  all the normal zoom levels for that view that we can compress and
+  serve up to the client immediately on request. Basically I want to
+  build out tiles for the first several zoom levels and then I want to
+  build it so that system is proactive and when the user visits and zoom
+  level it builds and caches all the surrounding tiles and the next zoom
+  levels. Then it keeps them until the data changes." What exists (read
+  from main, 2026-10-17): `web/lib/tilecache.py` keeps packed tiles on
+  disk (`<cache dir>/<db>/<generation>/<tile>.bin`, the PGT1 format of
+  `tilepack.py`), answers `/galaxy/tiles` by joining stored bytes, and
+  keeps stage and window payloads the same way; freshness is the content
+  stamp plus `GET /api/galaxy/changes` (the `modified_at` columns, so
+  only the changed tiles are deleted, and a change that cannot be pinned
+  to tiles starts a new generation); `prune` deletes the least recently
+  written files above `tile_cache.max_mb`; the browser keeps its own
+  copy in IndexedDB (MAP.158); `web/warmup.py` warms only the opening
+  view's tiles and the galaxy stage; Apache compresses each response at
+  send time; the admin health block shows where the cache lives and its
+  size. Today the stored packed tile is joined per request and Apache
+  compresses the response (`mod_brotli`, else `mod_deflate`), and
+  joining several gzip members in one body was tried and dropped because
+  Chromium decodes only the first member (the docstring of
+  tilecache.py). Done: each tile is stored once packed and once
+  compressed (brotli, with gzip for a client that does not accept it,
+  chosen by measuring the size and the decode cost on a real galaxy and
+  written in the PR), a request for one or more tiles is answered from
+  the stored compressed bytes with `Content-Encoding` and no
+  recompression (tiles that cannot be concatenated stay separate
+  responses or a length-prefixed body of compressed members that the
+  browser unpacks, whichever the measurement favours), the disk size of
+  the cache is reported for both forms, and the response is the same
+  data as today for the same tiles (a test). Owner: Core 2 (proposed).
+  Prerequisites: PERF.118. Related: PERF.129, MAP.159, MAP.158.
+
+- [ ] **PERF.132 Build proactively on a visit: the surrounding tiles and the next zoom levels are built and cached in the background**
+  Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
+  caching, so that we build out not only the initial galactic view but
+  all the normal zoom levels for that view that we can compress and
+  serve up to the client immediately on request. Basically I want to
+  build out tiles for the first several zoom levels and then I want to
+  build it so that system is proactive and when the user visits and zoom
+  level it builds and caches all the surrounding tiles and the next zoom
+  levels. Then it keeps them until the data changes." What exists (read
+  from main, 2026-10-17): `web/lib/tilecache.py` keeps packed tiles on
+  disk (`<cache dir>/<db>/<generation>/<tile>.bin`, the PGT1 format of
+  `tilepack.py`), answers `/galaxy/tiles` by joining stored bytes, and
+  keeps stage and window payloads the same way; freshness is the content
+  stamp plus `GET /api/galaxy/changes` (the `modified_at` columns, so
+  only the changed tiles are deleted, and a change that cannot be pinned
+  to tiles starts a new generation); `prune` deletes the least recently
+  written files above `tile_cache.max_mb`; the browser keeps its own
+  copy in IndexedDB (MAP.158); `web/warmup.py` warms only the opening
+  view's tiles and the galaxy stage; Apache compresses each response at
+  send time; the admin health block shows where the cache lives and its
+  size. Done: when a visitor asks for a tile, the stages and windows
+  around that view, the neighbouring tiles at the same level and the
+  tiles of the next level inside it are queued as low-priority
+  background units (the bulk queue, never ahead of an interactive job,
+  PERF.118), de-duplicated against the cache and against units already
+  queued, capped per visit and per minute by named settings, and dropped
+  when the cache is full or the queue is busy; a visit to an already
+  built area queues nothing; a test visits a level and finds the
+  neighbours and the next level in the cache afterwards, and a second
+  visitor to the same area causes no new build. Owner: Core 2
+  (proposed).
+  Prerequisites: PERF.118, PERF.130, PERF.131. Related: PERF.129,
+  PERF.130, PERF.131.
+
+- [ ] **PERF.133 Keep every tile until the data changes: invalidate by what changed, rebuild what a change touched, and never evict a valid tile for size**
+  Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
+  caching, so that we build out not only the initial galactic view but
+  all the normal zoom levels for that view that we can compress and
+  serve up to the client immediately on request. Basically I want to
+  build out tiles for the first several zoom levels and then I want to
+  build it so that system is proactive and when the user visits and zoom
+  level it builds and caches all the surrounding tiles and the next zoom
+  levels. Then it keeps them until the data changes." What exists (read
+  from main, 2026-10-17): `web/lib/tilecache.py` keeps packed tiles on
+  disk (`<cache dir>/<db>/<generation>/<tile>.bin`, the PGT1 format of
+  `tilepack.py`), answers `/galaxy/tiles` by joining stored bytes, and
+  keeps stage and window payloads the same way; freshness is the content
+  stamp plus `GET /api/galaxy/changes` (the `modified_at` columns, so
+  only the changed tiles are deleted, and a change that cannot be pinned
+  to tiles starts a new generation); `prune` deletes the least recently
+  written files above `tile_cache.max_mb`; the browser keeps its own
+  copy in IndexedDB (MAP.158); `web/warmup.py` warms only the opening
+  view's tiles and the galaxy stage; Apache compresses each response at
+  send time; the admin health block shows where the cache lives and its
+  size. Done: a stored tile is kept until the data under it changes, as
+  the content stamp and the `modified_at` check already decide; a change
+  rebuilds the tiles it touched (the changed tiles and their coarser
+  parents, in the background at once rather than on the next visit);
+  `prune` no longer deletes a valid tile because of age, so
+  `tile_cache.max_mb` is sized from the measured size of the built
+  levels plus the visited ones and the admin page says when the cache is
+  over it instead of evicting; a new tile format or a new generator
+  epoch (PERF.41) drops the stored tiles once and starts a new
+  generation; the generation and stamp logic keeps working for stage and
+  window payloads; tests for a change inside one sector (only its tiles
+  and parents rebuilt), a re-planned galaxy (a new generation) and a
+  full cache (nothing valid deleted). Owner: Core 2 (proposed).
+  Prerequisites: PERF.130. Related: PERF.129, PERF.41, PERF.104.
+
+- [ ] **PERF.134 The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions**
+  Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
+  caching, so that we build out not only the initial galactic view but
+  all the normal zoom levels for that view that we can compress and
+  serve up to the client immediately on request. Basically I want to
+  build out tiles for the first several zoom levels and then I want to
+  build it so that system is proactive and when the user visits and zoom
+  level it builds and caches all the surrounding tiles and the next zoom
+  levels. Then it keeps them until the data changes." What exists (read
+  from main, 2026-10-17): `web/lib/tilecache.py` keeps packed tiles on
+  disk (`<cache dir>/<db>/<generation>/<tile>.bin`, the PGT1 format of
+  `tilepack.py`), answers `/galaxy/tiles` by joining stored bytes, and
+  keeps stage and window payloads the same way; freshness is the content
+  stamp plus `GET /api/galaxy/changes` (the `modified_at` columns, so
+  only the changed tiles are deleted, and a change that cannot be pinned
+  to tiles starts a new generation); `prune` deletes the least recently
+  written files above `tile_cache.max_mb`; the browser keeps its own
+  copy in IndexedDB (MAP.158); `web/warmup.py` warms only the opening
+  view's tiles and the galaxy stage; Apache compresses each response at
+  send time; the admin health block shows where the cache lives and its
+  size. Done: the admin page lists, per database, the tiles per zoom
+  level (built ahead and built on a visit), the bytes in each stored
+  form, the hit rate since the last restart, the waiting and running
+  background builds, and the cache's age by generation; an admin can
+  clear the whole cache, one level or one database, and start the build
+  of the first levels now, each through the command of PERF.130 and with
+  the confirmation the other admin actions use; the actions are in the
+  admin log; a test per action. Owner: Core 2 (proposed).
+  Prerequisites: PERF.130, PERF.133. Related: PERF.129, PERF.130,
+  PERF.133.
 
 ## DB: Database and schema
 
@@ -18444,6 +18739,20 @@ clears each one.
   item, the test passes for the pinned draw and for 100 fresh draws, and
   nothing is quarantined. Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.213, GEN.76.
+
+- [ ] **TEST.226 Tests for the halo and intergalactic switch: the interior is identical with it on and off, off generates nothing beyond the outline, on gives the 8.1 sphere**
+  Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
+  intergalactic generation to be a switch that defaults to off, put that
+  in for 8.5 please, we'll get it working first." Done: a test that
+  generates the same seed with the switch on and off and compares the
+  interior sectors, bright stars and phenomena inside the outline row
+  for row; a test that with it off no row exists beyond the outline and
+  no halo or intergalactic command was selected; the whole-sphere audits
+  (TEST.159, TEST.160, TEST.185) run with the switch on and say so; a
+  migration test that an existing galaxy with halo content reads as on
+  and one without reads as off. Owner: Quality (proposed).
+  Prerequisites: GEN.538. Related: GEN.538, TEST.159, TEST.160,
+  TEST.185.
 
 ## USR: User accounts
 
