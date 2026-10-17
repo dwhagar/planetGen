@@ -745,3 +745,5 @@ Baseline: PR #1817.
 | GEN.433 | 8.1 | Composition research and design |
 | GEN.434 | 8.1 | Composition research and design |
 | GEN.134 | 8.1 | Components and wanderers |
+| NAV.60 | 8.1 | Region query |
+| GEN.407 | 8.1 | Bugs and flaky tests |

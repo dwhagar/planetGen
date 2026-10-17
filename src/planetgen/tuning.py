@@ -504,17 +504,25 @@ BRIGHT_GIANT_MIN_MASS_SOL = 4.0
 # That is the real luminosity function, and it follows from the physics: the
 # helium core grows by the hydrogen shell burning at the star's luminosity, so
 # dt = (X Q / L) dMc, and the luminosity climbs as a power Mc^p of the core
-# mass (p about 10 for the low-mass cores of an old population), which gives
-# dt/dlnL proportional to L^(1/p - 1), slope 0.9 [R, Refsdal and Weigert 1970;
-# Salaris and Cassisi 2005; recalled, unconfirmed]. The tip is where the core
-# helium ignites (near 2,500 Lsun, M_bol about -3.7; Salaris and Cassisi 2005).
+# mass, which gives dt/dlnL proportional to L^(1/p - 1) [R, Refsdal and Weigert
+# 1970; Salaris and Cassisi 2005; recalled, unconfirmed]. p is about 10 at the
+# base and about 5 at the tip, so the true slope flattens from -0.83 to -0.56
+# along the branch (the core-mass-luminosity fit of arXiv 2503.17772, eq. 1:
+# one data point [P]); one exponent, 0.78, reproduces that fit's share of the
+# branch spent above 50, 100, 500 and 1,000 Lsun (9.6, 5.5, 1.3 and 0.59%)
+# within 15% (stellar tables check, 2026-10-17); the first value, 0.9, undercounted
+# the giants above 500 Lsun by a factor of two. The tip is where the core
+# helium ignites: near 2,500 Lsun for a solar-metallicity star (Serenelli et al.
+# 2017, table 2: 2,410 to 2,450 at Z 0.004), 1,650 to 1,780 at Z 0.0001, so 15 to
+# 50% high for an [Fe/H] -2 halo star [P]; one tip, until the giant knows its [Fe/H].
 # Log-uniform spreading over 50 to 1,000 Lsun, which this replaces, put every
 # giant above 50 Lsun and overstated the bright ones many times against real
 # counts: the real branch spends most of its time near its base (its
 # observed ratio of horizontal-branch stars to red giants brighter than the
-# horizontal branch is about 1.4 [R, Salaris et al. 2004]).
+# horizontal branch is 1.44 +- 0.06 for the 41 halo clusters of Salaris et
+# al. 2004, table 2, and 1.51 +- 0.05 for all 57 [P]).
 GIANT_BRANCH_TIP_LUMINOSITY_SOL = 2500.0
-GIANT_BRANCH_TIME_SLOPE = 0.9
+GIANT_BRANCH_TIME_SLOPE = 0.78
 BRIGHT_GIANT_LUMINOSITY_RANGE_SOL = (1000.0, 10000.0)  # log-uniform
 GIANT_TEMPERATURE_RANGE_K = (3500.0, 5000.0)
 # The horizontal branch (core helium burning): one luminosity range, whatever
@@ -523,24 +531,36 @@ GIANT_TEMPERATURE_RANGE_K = (3500.0, 5000.0)
 # are the metal-rich, RR Lyrae the middle, blue horizontal-branch the
 # metal-poor and extreme horizontal-branch (hot subdwarfs) a few percent of
 # old stars (docs/design/realistic-galactic-core.md 5.3) [R, recalled, unconfirmed:
-# Lee, Demarque and Zinn 1994; Catelan 2009].
-HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL = (40.0, 60.0)
+# Lee, Demarque and Zinn 1994; Catelan 2009]. The luminosity is the RR Lyrae
+# level, 36 to 47 Lsun (M_V 0.56 to 0.80 at [Fe/H] -1.6, Catelan 2009; Gould and
+# Popowski 1998) and the red clump's 30 to 40 [P, stellar tables check]; a hot
+# subdwarf is dimmer, 10 to 40 Lsun, and skips the AGB, which is not modelled
+# (a few percent of old stars). The strip is 6,100 to 7,500 K (blue edge 7,400
+# to 7,600 K, red edge 6,100 to 6,250 K); red horizontal-branch stars fill the
+# 4,600 to 6,100 K below it; 20,000 K is the usual extreme boundary [P].
+HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL = (35.0, 50.0)
 HORIZONTAL_BRANCH_COLOUR_TEMPERATURE_RANGE_K = {
-    "red": (4600.0, 5300.0), "rr-lyrae": (5900.0, 7400.0),
+    "red": (4600.0, 6100.0), "rr-lyrae": (6100.0, 7500.0),
     "blue": (7500.0, 20000.0), "extreme": (20000.0, 35000.0),
 }
 # Colour shares (blue, RR Lyrae, red, extreme) at [Fe/H] anchors, linear
 # between them and held beyond the ends: nearly all blue at -2.2, a mix at
-# -1.5 (the intermediate halo), nearly all red above -0.5.
+# -1.5 (the intermediate halo), nearly all red above -0.5. The anchors are on
+# the Zinn and West (1984) scale, the one the 57 globular clusters of Salaris et
+# al. 2004, table 2, are listed on: their mean HB type, (blue - red) / all, is
+# +0.75 at -2.2, +0.50 at -1.5 and -0.92 at -0.7 (the Carretta and Gratton 1997
+# scale, 0.2 dex higher at -1.5, gives +0.72 there). The RR Lyrae and extreme
+# shares and the -0.1 row are unverified [R].
 HORIZONTAL_BRANCH_COLOURS = (
     (-2.2, (0.82, 0.07, 0.02, 0.09)),
-    (-1.5, (0.43, 0.25, 0.25, 0.07)),
+    (-1.5, (0.55, 0.25, 0.13, 0.07)),
     (-0.7, (0.06, 0.06, 0.86, 0.02)),
     (-0.1, (0.0, 0.0, 0.98, 0.02)),
 )
 # The second parameter: a younger population has a redder branch, as if its
 # [Fe/H] were higher by this many dex for each Gy it is younger than the
-# reference age.
+# reference age. No published figure was found; the papers imply 0.12 to 0.23
+# dex per Gy indirectly (Lee et al. 1999, 2001; Catelan 2009) [R].
 HORIZONTAL_BRANCH_AGE_SHIFT_DEX_PER_GY = 0.1
 HORIZONTAL_BRANCH_REFERENCE_AGE_GY = 12.0
 # The asymptotic giant branch: the same time-at-luminosity law, between these.
