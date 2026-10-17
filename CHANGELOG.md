@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1694] - 2026-10-17
+
+**Headline:** The massive-star scatter on the new work queue is merged and retired.
+
+### Changed
+
+- PERF.97 (#1999) is retired: the massive-star scatter runs as static units on the Redis run record, with the far-shell and component tasks as units too; PERF.106 carries Core 2's built-on note.
+
+TODO items resolved: PERF.97 / Added: none
+
 ## [8.0.1693] - 2026-10-17
 
 **Headline:** The massive-star scatter runs on the new work queue: its units are queued on Redis, followed from the run's record, and give the same stars at any worker count.
