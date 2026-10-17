@@ -18,7 +18,7 @@
     {
       "epoch": 4,
       "first_release": "8.0.1679",
-      "reason": "Stars leaving the main sequence follow the real phases and tables: a horizontal branch (35 to 50 solar luminosities, colour from [Fe/H] and age) and an asymptotic giant branch for stars under 2.2 solar masses, a red giant branch whose time per unit of ln L falls as L^-0.78 instead of an even spread, and the corrected horizontal-branch temperature ranges and colour shares, so a giant or horizontal-branch star's luminosity, temperature and type differ (GEN.286, GEN.287, GEN.407)."
+      "reason": "Stars leaving the main sequence follow the real phases and tables: a horizontal branch (35 to 50 solar luminosities, colour from [Fe/H] and age) and an asymptotic giant branch for stars under 2.2 solar masses, a red giant branch whose time per unit of ln L falls as L^-0.78 instead of an even spread, and the corrected horizontal-branch temperature ranges and colour shares, so a giant or horizontal-branch star's luminosity, temperature and type differ (GEN.286, GEN.287, GEN.407). GEN.103's close-pair and wide-pair rules and GEN.134's star-formation factor were merged before this epoch without a bump of their own (#1953, #1971); releases 8.0.1636 to 8.0.1678 carry them under epoch 3."
     },
     {
       "epoch": 5,
@@ -64,6 +64,12 @@
       "epoch": 13,
       "first_release": "8.0.1740",
       "reason": "A satellite galaxy's young stars give it gas, so the Magellanic Clouds hold molecular clouds, nebulae and supernova remnants and place magnetars and remnants in the component pass, a satellite's planetary nebulae follow its old-star share, and the shell scatter weighs planetary nebulae by the old stars' share against the solar circle's (GEN.528)."
+    },
+    {
+      "epoch": 14,
+      "first_release": null,
+      "pending": true,
+      "reason": "The widest axis a wide pair keeps follows the relative-velocity dispersion (root 2 times a population's own) and the mass-weighted mean mass of the stars and remnants that pass it, from the generator's own mass function, so the widest axis a wide pair keeps is about 2.5 times narrower than before in every place (GEN.447)."
     }
   ]
 }

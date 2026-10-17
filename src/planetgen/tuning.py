@@ -1086,14 +1086,16 @@ CLOSE_BINARY_FRACTION_BY_FE_H = {-3.0: 0.53, -1.0: 0.40, -0.2: 0.24, 0.5: 0.10}
 
 # The semi-major axis at which half of the pairs of age t survive passing stars is
 # `ENCOUNTER_LIMIT_COEFFICIENT * (M1 + M2) * sigma / (G * rho_2 * t)` (Bahcall, Hut & Tremaine 1985, ApJ 290:15, as
-# Jiang & Tremaine 2010, MNRAS 401:977 restate it, arXiv 0907.2952). The coefficient is that source's; what it folds
-# in (the Coulomb logarithm, the encounter integral) was not checked.
+# Jiang & Tremaine 2010, MNRAS 401:977 restate it in their equation (1), arXiv 0907.2952), with sigma the dispersion of
+# the relative velocity (root 2 times a population's one-dimensional dispersion) and rho_2 the second moment of the
+# perturbers' mass function (GEN.447, `generation.place_terms`). The coefficient reproduces their worked 3.1e4 AU.
 ENCOUNTER_LIMIT_COEFFICIENT = 0.002
 
 # A system drawn with no galaxy placement (a single system from the command line) has no cell to read a density and
 # a dispersion from; it takes the Sun's neighbourhood, the way `constants.GALACTIC_CENTER_DISTANCE_LY` stands for its
-# distance from the centre. Recalled round values (Jiang & Tremaine 2010: 0.1 Msun/pc^3 in mass, a field dispersion
-# of 30 km/s), to verify.
+# distance from the centre. Recalled round values (a mass density of 0.1 Msun/pc^3 and a field dispersion of
+# 30 km/s; Jiang & Tremaine 2010 use 0.045 Msun/pc^3 for the observed stars and 29 km/s, their equation 47 and section 5),
+# to verify.
 SOLAR_NEIGHBOURHOOD_MASS_DENSITY_SOLAR_PC3 = 0.1
 SOLAR_NEIGHBOURHOOD_DISPERSION_KMS = 30.0
 
