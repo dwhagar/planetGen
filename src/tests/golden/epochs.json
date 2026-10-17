@@ -67,8 +67,7 @@
     },
     {
       "epoch": 14,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1745",
       "reason": "The widest axis a wide pair keeps follows the relative-velocity dispersion (root 2 times a population's own) and the mass-weighted mean mass of the stars and remnants that pass it, from the generator's own mass function, so the widest axis a wide pair keeps is about 2.5 times narrower than before in every place (GEN.447)."
     }
   ]
