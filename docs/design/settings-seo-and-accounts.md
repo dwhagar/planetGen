@@ -35,7 +35,7 @@ pydantic-settings adds python-dotenv and its environment-name mapping does not f
 
 ### A2. The model, and which file holds what
 
-Nested `BaseModel` sections with `extra="forbid"` when validating a form or import and `extra="ignore"` plus one logged warning when loading (an older server must not crash on a newer file): `config_version`, `site`, `web`, `seo`, `og`, `icons`, `security`, `smtp`, `limits`, `logging`, `ratelimit`, `cache`, `jobs`, `wiki`, `redis`, `proxy_fix`, and `mysql` and `control_database` (never editable).
+Nested `BaseModel` sections with `extra="forbid"` when validating a form or import and `extra="ignore"` plus one logged warning when loading (an older server must not crash on a newer file): the sections `settings` (the backups), `site`, `web`, `icons`, `seo`, `og`, `mysql`, `redis`, `ratelimit`, `proxy_fix`, `tile_cache`, `page_cache`, `jobs` and `wiki`, and these options at the top level of the file: `config_version`, `site_name`, `base_url` (an Owner option; it stayed at the top level and is not in `web`), `api_base_url`, `debug`, `log_file`, `log_dir`, `log_rotation`, `control_database`, `login_allowlist`, `admin_cookie_insecure` and `secret_key`. `mysql` and `control_database` are never editable. The SMTP section (USR.3) is not built yet.
 
 Field metadata goes in `json_schema_extra` under `x-` keys, declared through one helper; the keys survive `model_json_schema()` and `Field(ge=, le=, min_length=, pattern=)` become `minimum`, `maximum` and so on [C].
 
@@ -103,7 +103,7 @@ Secrets in scope: SMTP password, wiki token and password, `secret_key`, MySQL pa
 
 Save pipeline [C: 20 saves in 0.6 s with fsyncs, mode 0640 kept, backups pruned]:
 
-1. Parse the form to a nested dict, merge it onto the current web-layer values, validate the whole model; if invalid, re-render and change nothing.
+1. Parse the form to a nested dict, merge it onto the values now in `config.json`, validate the whole model; if invalid, re-render and change nothing.
 2. Show a diff (secrets as `changed`); require confirmation for restart-flagged and Owner-tier fields.
 3. Take a settings backup archive of the current `config.json` through ADM.87 (retention `settings.backups_kept`).
 4. Write a temp file in the same directory, copy mode and owner, `fsync`, `os.replace` (atomic on POSIX), `fsync` the directory.
@@ -117,7 +117,7 @@ Versioning: top-level `"config_version": 1` (today's file has none; missing mean
 
 Audit: `admin_audit_log` (`action="config.update"`, `target="config:tile_cache.max_mb"`, `detail` JSON `{old,new}`, secrets as `"(changed)"`) and the activity log's `DB` category, as other admin writes do; also `config.restore`, `config.import`, `smtp.test`. The 90-day pruning of failed-login rows does not apply to these.
 
-Import and export: export downloads the effective web-layer settings with secrets removed. Import runs the migration chain, validates, shows the diff and follows the save pipeline; keys the importer may not edit are rejected with a message. Also write `config.schema.json` from `model_json_schema()` (3.7 ms [C]).
+Import and export: export downloads the effective settings of the options a web admin may change, with secrets removed. Import runs the migration chain, validates, shows the diff and follows the save pipeline; keys the importer may not edit are rejected with a message. Also write `config.schema.json` from `model_json_schema()` (3.7 ms [C]).
 
 ### A7. Generated docs and the drift tests
 

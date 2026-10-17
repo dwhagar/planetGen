@@ -266,12 +266,6 @@ def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1,
                           skip_addresses or set(), min_mass_solar)
 
 
-def _uniforms(rng, count):
-    """`count` floats in [0, 1) from the stream, one `random()` call each."""
-    random = rng.random
-    return np.fromiter((random() for _ in range(count)), dtype=float, count=count)
-
-
 GAS_WEIGHTED_KINDS = ("supernova-remnant",)
 """tuple: The scatter kinds whose bin weight also carries the gas fraction (GEN.236): a remnant shines only where its
 shell meets gas, so none lies in the halo or a cluster. The sector profile's `kind_factors` holds the same factor for
@@ -341,7 +335,7 @@ def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, rn
         if not total:
             continue
         band_row = np.repeat(row_of_band, counts)
-        uniform = _uniforms(rng, 6 * total).reshape(6, total)
+        uniform = rng.random_array(6 * total).reshape(6, total)
         angle_bin = np.minimum(np.searchsorted(shares, 2.0 * band_row + uniform[0], side="right")
                                - band_row * bins, bins - 1)
         wedge_count = wedges[band_row]
@@ -358,7 +352,7 @@ def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, rn
         band_index = bands[band_row]
         kept = _stored_in_cells(mpc, shell_index, band_index, wedge, wedge_count, edge_pc)
         masses = _masses(kind, subtype, min_mass_solar, uniform[5])
-        seeds = [rng.getrandbits(63) for _ in range(total)]
+        seeds = rng.randbits_list(63, total)
         columns = [band_index.tolist(), wedge.tolist(), kept.tolist(), seeds, *mpc.tolist(),
                    masses.tolist() if masses is not None else [None] * total]
         for band, wedge_here, in_cell, seed, x, y, z, mass in zip(*columns):

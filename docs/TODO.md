@@ -676,7 +676,23 @@ with `clamp()`.
   a retry. Done: the progress bar component, the search page and the
   phenomena list pages on it, and browser tests for the loading,
   finished, cancelled and failed states in light and dark.
-  Prerequisites: PERF.105. Related: PERF.104, UX.117, UX.3.
+  PERF.105 is merged (#2066, 2:05 PM EDT as Core 2 reported): the
+  mechanism only, no page uses it yet. Facts this item needs from Core
+  2: Pending.job has state, done, total, unit, estimated, eta_seconds,
+  seconds, cancelling, error, cache_key and target. Progress is an
+  ESTIMATE (elapsed share of expected time, capped at 95 percent,
+  estimated: true), so the bar text must say so; a real row count is
+  PERF.99. Retry is pagejobs.ensure(..., retry=True) (a failed or
+  cancelled job is shown 30 s, then replaced). Cancel on the API is
+  ADMIN ONLY (the API takes no anonymous write), so a visitor's Cancel
+  must mean 'stop waiting' and never cancels the shared job. The cost
+  rule: last timed build over 3 s, or never timed and the route's tables
+  over 2,000,000 rows (tuning.SLOW_PAGE_*). A route opts in with
+  allow_pending and must be in slowpages.PATH_TABLES (phenomena, search,
+  uncharted-systems and systems today). Endpoints: GET
+  /api/table-estimates, GET /api/page-jobs/<id>, POST
+  /api/page-jobs/<id>/cancel. Design: docs/design/slow-page-answers.md.
+  Prerequisites: none. Related: PERF.104, UX.117, UX.3.
 
 - [ ] **UX.119 An HTML renderer for the Document: facts, rating and composition tables, with unit spans, in both themes**
   Split from UX.105 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -2994,7 +3010,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 33 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.308, GEN.309, TEST.182.
+  Prerequisites: GEN.309, TEST.182.
 
 - [ ] **GEN.55 Same seed, same data: a sector's contents depend only on the seed, the version and its address (internal)**
   Boss (2026-10-02 01:40Z): "Ok use a 128 bit value and store the seed in
@@ -6046,26 +6062,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   position 15 of 43). This replaces any earlier owner line on this item.
   Prerequisites: OPS.56. Related: GEN.57.
 
-- [ ] **GEN.308 A block-first sampler for the backfill: a Poisson candidate count from the block's density bound, then thinning**
-  Split from GEN.42 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). In `generation/bright_stars.py`, a
-  function that draws a block's candidates as one Poisson count from the
-  block's density bound and thins each to its own cell's rate, exact (no
-  cell's probability altered; `MIN_RELATIVE_DENSITY` keeps every cell
-  above zero), keyed so each cell's result depends only on the seed, the
-  address and the mass band (GEN.39). Not wired to the backfill yet.
-  Why: this is the part GEN.40 and PERF.35 depend on and it is testable
-  alone. Done: the function and its tests: an assertion that every
-  cell's rate is at most its block bound; the stratified multiplicity
-  chi-square (half-decade strata of lambda, 3,000 or more replicates)
-  run on the real draw; GEN.43's floor test as the lowest-lambda strata;
-  the bound uses the `detmath` helpers.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 9 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: GEN.42.
-
 - [ ] **GEN.309 The backfill picks the draw path per block and gives the same stars wherever it lands**
   Split from GEN.42 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). In the backfill driver, choose per
@@ -6081,7 +6077,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 32 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.308, PERF.108. Related: GEN.42.
+  Prerequisites: PERF.108. Related: GEN.42.
 
 - [ ] **GEN.310 Fill a whole block of the shell ladder: planetgen generate --block and the queue job**
   Split from GEN.231 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -9093,10 +9089,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   approval; Boss has not approved it: docs/design/bulk-composition.md
   ends with a 'For Boss to approve' list with a recommendation per item;
   a ruling that differs changes this item.
-  Open Boss decision (bulk-composition.md approve item 10, the epoch;
-  Blocker 1 handoff): the data-table
-  epoch scope is open between this item's text and composition-model.md
-  section 3; the note follows section 3 and asks Boss to confirm.
+  Decided (Boss, 2:10 PM EDT, card "Data table, no bump", relayed in
+  words; bulk-composition.md approve item 10, composition-model.md
+  section 3): this item is a table in 8.1 phase 2 and bumps nothing; the
+  one epoch bump is GEN.428 to GEN.430 plus DB.69 in 8.4 phase 1.
 
 - [ ] **GEN.428 Planets and moons draw their bulk composition fractions instead of carrying a fixed text**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -9255,12 +9251,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   widest-range rule, replaced when a measurement exists. BC11 (volatile
   stripping at ejection, uniform 0 to 1 loss fraction) and BC18 (core
   light elements, Dirichlet over S, Si, O, H).
-  Open Boss decision (bulk-composition.md approve item 7, Decision 28;
-  Blocker 1, 2026-10-17): a planet's mass without a drawn radius. The
-  note's recommendation is the existing class mass ranges as a flagged
-  stand-in at first, then the isolation mass at the formation distance
-  once GEN.509 can tune it; this is the one place the design still leans
-  on class ranges, so it needs Boss's choice, not only approval.
+  Decided (Boss, 2:10 PM EDT, card "Staged", relayed in words; bulk-
+  composition.md approve item 7, Decision 28): a planet's mass without a
+  drawn radius is staged: the existing class mass ranges first as a
+  flagged stand-in, then the isolation mass
+  (formation.isolation_mass_kg) when GEN.509 can tune it.
 
 - [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -10679,13 +10674,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   widest-range rule, replaced when a measurement exists. T15, the
   cometary organic fraction (no probability exists; N(0.60, 0.15)
   clipped to [0, 1] is the lane's proposal).
-  Open Boss decision (bulk-composition.md approve item 6, Decisions 25
-  and 26; Blocker 1, 2026-10-17): the compaction hand-over. The paper's
-  law is recommended; the 1e20 kg hand-over leaves a porosity jump, so
-  Boss chooses between moving it and coding viscous compaction after the
-  Eq. 3 sign check; a Galilean-class solver test is needed before the
-  1e20 kg to 0.1 Earth mass range is called validated. Needs Boss's
-  choice, not only approval.
+  Decided (Boss, 2:10 PM EDT, card "Move the hand-over", relayed in
+  words; bulk-composition.md approve item 6, Decisions 25 and 26): the
+  paper's compaction law stays and the 1e20 kg hand-over is shifted
+  until the porosity jump (0.86 to 1.55 g/cm3) disappears; a Galilean-
+  class solver test comes before the 1e20 kg to 0.1 Earth mass range is
+  called validated; viscous compaction can replace the hand-over later
+  once the Eq. 3 sign check passes.
   Prerequisites: none. Related: GEN.426, GEN.442, GEN.466, GEN.437.
 
 - [ ] **GEN.458 Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes**
@@ -13799,34 +13794,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.309.
   Design: [docs/design/sampling-backfill-and-resume.md](design/sampling-backfill-and-resume.md)
 
-- [ ] **PERF.36 Memory and request guard: list at most about 50,000 candidate cells, stream the rest, and refuse enumerations above about 2 million cells in a web request**
-  Stream the enumeration instead of materialising it; refuse to
-  enumerate more than about 2 million cells in a web request. Add
-  sampling-based estimation above about 20,000 sectors to the PERF.3
-  estimate (200 samples land within 1% of the full 7.455 million-system
-  core); the span and core modes need it.
-  Decided (Boss, 2026-10-16, 3:00 PM EDT, decision card): both caps
-  stand, the title's 50,000 for a listed set of candidate cells and the
-  text's 2 million for what a web request may enumerate; they guard two
-  different things.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 3 of 54). This replaces any earlier owner line on this item.
-  Sighting (Boss's failed whole-sphere run, job-20261017-162736-67d4 on
-  PlanetGen 8.0.1726, started 12:27 PM EDT by the file name): stage 4
-  printed 'Estimate for a random start ... About 223 GB and 4 m 33 s for
-  113 sectors (~6,836 star systems, ~8,886 stars, 5 workers)' and
-  'WARNING: Refused: this would take about 223 GB, more than a quarter
-  of the database disk (106 GB) ... Going ahead (--strict stops here
-  instead)', and then ran: the guard warns and does not stop unless
-  `--strict` is given. Whether the 223 GB figure includes the scatter
-  that `--then-scatter` follows with, or is wrong for 113 sectors, is
-  not established; check it when the guard is built. The same run
-  stopped later on DB.72.
-  Prerequisites: none.
-  Design: [docs/design/fill-order-curves-and-core.md](design/fill-order-curves-and-core.md)
-
 - [ ] **PERF.41 Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional)**
   A `TILE_FORMAT` constant in the stamp base in place of `__version__`,
   with a golden test that fails when the tile or page structure changes
@@ -13885,6 +13852,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 7 of 54). This replaces any earlier owner line on this item.
+  Core 5's next gate (2026-10-17, relayed by the coordinator at 2:25 PM
+  EDT) carries part 1: keyset paging for the Uncharted stars table, the
+  Phenomena scattered tail, and the Systems name sort either way round.
+  Still open after part 1: the jump-by-value box. The Sectors table is
+  dropped from this item (TODO thread's default; Boss can overrule): it
+  stores only generated sectors, so a deep OFFSET stays cheap and keyset
+  paging buys nothing there.
   Prerequisites: none. Related: PERF.64, PERF.70, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
@@ -13930,23 +13904,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 28 of 54). This replaces any earlier owner line on this item.
-
-- [ ] **PERF.91 Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws)**
-  Math Research (2026-10-14;
-  docs/design/math-and-library-efficiency.md). State is handed between
-  `random.Random` and NumPy's MT19937 so draws and generator state are
-  identical: no galaxy changes and no reseed. Only the default-scale
-  scatter reaches batches this large (0.3 s of 16 s at benchmark scale),
-  so this is low priority until the default-scale scatter is the
-  bottleneck. Done: the scatter layers draw in bulk, a test proves same
-  seed, same draws, same final state. Owner: Foundations lane 1, last of
-  the math items.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 8 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: GEN.56, PERF.58.
-  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 - [ ] **PERF.98 Work queue step 4: the remaining stages and the sector and backfill units on the new queue**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
@@ -14046,37 +14003,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 42 of 54). This replaces any earlier owner line on this item.
   Prerequisites: DB.29. Related: PERF.86, PERF.29, PERF.30, DOC.20.
-
-- [ ] **PERF.105 Slow page requests queue a job that builds the answer into Redis, with a status route (the mechanism)**
-  Boss (2026-10-16, 12:21 PM EDT, project chat): "when a page requests
-  something that's going to take a while (say listing all the black
-  holes in the phenomena page) it should add a task to get that
-  information to redis, have a progress bar in the search page so the
-  user knows it is loading, that is one of the main issues, give it to
-  Core 2's chain". Owner Core 2, in its queue after MAP.152 and MAP.146 (Boss, 12:23 PM EDT: MAP.152, then MAP.146, then this item). The mechanism. A
-  page route that expects a slow answer (a full list of one phenomenon
-  kind, a wide search, a large count) checks the tagged Redis page cache
-  that PERF.104 built; on a miss it does not build the answer inside the
-  request: it queues one RQ job that builds the answer, writes it to the
-  same cache under the same tags (so later edits invalidate it the way
-  PERF.104 already does), and returns at once with a job id. The job
-  reports progress as counters and events in Redis (PERF.86, Option A:
-  Redis is the only place a run lives), shows on /admin/queue beside the
-  PERF.104 "Cache warm-up" jobs, and can be cancelled. A status route
-  (JSON, polled by the page) returns state, the done and total counts
-  and the ETA, and the finished answer's cache key. A route is marked
-  slow by a cost rule in one place, not by a timer inside each page
-  (default: the request is slow when its query would read more than a
-  stated row budget, set in tuning, or when the cache miss took longer
-  than a stated number of seconds the last time); two visitors asking
-  the same thing share one job. If Redis is down the page falls back to
-  building the answer in the request, as it does today, and says so.
-  Done: the mechanism, the cost rule, the status route, the job on the
-  queue page, and tests (a slow request queues exactly one job, a repeat
-  request attaches to it, an edit invalidates the stored answer, Redis
-  down falls back).
-  Prerequisites: none. Related: PERF.86, PERF.99, PERF.104, PERF.75,
-  UX.3.
 
 - [ ] **PERF.106 The plan command on the run record, with stage timing, the killed-worker handler and job timeouts**
   Split from PERF.98 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -17328,27 +17254,6 @@ clears each one.
   first. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.111.
 
-- [ ] **TEST.191 The plan tests write real settings JSON into `/var/lib/planetGen/jobs/galaxy-settings` and log "No naming key drawn ... Unknown database": give them a temporary directory and a test database**
-  Found by a lane (2026-10-16), filed by the TODO thread. The `plan`
-  tests write galaxy settings files into the real jobs directory on the
-  machine and log "No naming key drawn ... Unknown database", so a
-  developer machine collects stray files and the naming path runs
-  against no database. Done: the plan tests use a temporary jobs
-  directory and the test database, the log line is gone, and a test
-  asserts the real directory is untouched. Fails on main: no failure, a
-  side effect on every run. Frequency: every run. Reproducer: run the
-  plan tests and list the jobs directory.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 12 of 54). This replaces any earlier owner line on this item.
-  Core 5 (reported 12:50 PM EDT as the lane clock read, relayed by the
-  coordinator): the jobs-directory half is stale after ADM.50; the real
-  noise was 'Unknown database pgtest_control_' from three real-plan
-  tests, and the fix is in Core 5's next PR (PERF.36, GEN.308, PERF.91,
-  TEST.191, DOC.53, DOC.60, DOC.62, DOC.51).
-  Prerequisites: none.
-
 - [ ] **TEST.194 `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug)**
   Found by the Settings lane (2026-10-16, 5:47 PM EDT), filed by the
   TODO thread.
@@ -17784,6 +17689,21 @@ clears each one.
   fades_in` on main (about 2.5 minutes). Bug Hunt keeps ownership; the
   Done line needs the cause found (a fixed wait, a real race or an
   environment change) before any wait is lengthened.
+  Sighting (Core 2, 2026-10-17, about 1:55 and 1:58 PM EDT as the lane
+  reported, PERF.105 gate): fails alone on its branch (127 s, load 2.8)
+  AND alone on origin/main (119 s, idle): 'assert shares' empty, the
+  system's scene never came in. Fails on main: yes. Frequency: 2 of 2
+  idle runs by Core 2 (with Blocker 1's 2 of 2 alone runs: 4 of 4 alone
+  runs today after about 1:37 PM EDT). Reproducer: that one node id
+  alone. The symptom is now the empty-shares one in every idle run, not
+  the 0.75 or 0.88 share; Bug Hunt owns it.
+  Sighting (Core 5, 2026-10-17, about 2:20 PM EDT as the lane reported,
+  #2070 gate, relayed by the coordinator): fails alone on untouched main
+  8863d26 (147 s) and on Core 5's build (117 s), 'the system's scene
+  never came in', assert [], idle box. Fails on main: yes. Frequency: 6
+  of 6 alone runs since about 1:37 PM EDT (Blocker 1 two, Core 2 two,
+  Core 5 two). Reproducer: that one node id alone. Bug Hunt owns it and
+  has it next.
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
@@ -17962,31 +17882,6 @@ clears each one.
   passes; no quarantine. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.213.
 
-- [ ] **TEST.221 test_a_runaway_system_moves_beyond_the_rotation_curve_and_its_stars_and_bodies_share_it raises StopIteration when the first system's only planet entry is an asteroid belt (bug)**
-  Found by Core 5 (2026-10-17, 12:10 PM EDT as the lane reported; it
-  failed once in its 11:16 AM EDT gate and passed 40 of 40 alone),
-  relayed by the coordinator, filed by the TODO thread.
-  `src/tests/test_system_velocity.py::test_a_runaway_system_moves_beyond_the_rotation_curve_and_its_stars_and_bodies_share_it`
-  raised `StopIteration` at line 90, `planet = next(p for p in
-  system.planets if getattr(p, "spatial", None))`. Cause (Core 5, and
-  the TODO thread read the test): `_runaway_system` stops at the first
-  system with a non-empty planets list, but a system whose only entry is
-  an AsteroidBelt has no body with `.spatial`, and the run stream is
-  unseeded, so the test fails whenever the draw gives such a system
-  first. Fails on main: yes (same on pristine f32b2d7). Frequency: about
-  0.3 percent of runs (2 of 600 setups). Reproducer: loop
-  `_runaway_system(speed_kms=400.0, direction=(0, 0, 1))` then
-  `_sector(...)` and count the systems where no planet has `spatial`.
-  Done: `_runaway_system` stops only at a system with a planet that is
-  not an AsteroidBelt (one line), a test pins that a belt-only system is
-  skipped, no quarantine. Owner: Core 5 (it carries the one-line fix in
-  its next PR unless another lane owns it; Bug Hunt otherwise).
-  Core 5 (reported 12:50 PM EDT as the lane clock read, relayed by the
-  coordinator): the fix is in Core 5's next PR (PERF.36, GEN.308,
-  PERF.91, TEST.191, DOC.53, DOC.60, DOC.62, DOC.51); do not assign it
-  elsewhere.
-  Prerequisites: none. Related: TEST.220.
-
 - [ ] **TEST.222 Remove the NumPy 2.5 deprecation filter around the skimage marching-cubes call once scikit-image stops raising it**
   Found by Core 5 while fixing TEST.188 (2026-10-17, 12:50 PM EDT as the
   lane reported; merged #2050), filed by the TODO thread. The NumPy 2.5
@@ -18026,6 +17921,21 @@ clears each one.
   (load 10.4 and 10.7, 15.73 s and 16.36 s on gw1); none relates to Core
   1's diffs, which touched no map or camera code.
   Prerequisites: none. Related: TEST.213, TEST.194.
+
+- [ ] **TEST.224 `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed once in a full gate: the nested system's inside_nebula_id was None (bug)**
+  Found by Core 5 (2026-10-17, about 2:20 PM EDT as the lane reported,
+  #2070 gate), relayed by the coordinator, filed by the TODO thread.
+  `src/tests/test_db_persistence.py::test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins`
+  failed once in the gate with `assert None == 1` at line 1259 (the
+  nested system's `inside_nebula_id` was None, expected 1); it passes
+  alone in 0.34 s. Fails on main: not seen. Frequency: 1 of 1 full
+  gates. Reproducer: the full gate under load; alone it passes. Do: find
+  whether the test depends on a draw or on test order (a shared nebula
+  id, an unseeded stream, a stale row), and make it deterministic with
+  no quarantine. Done: the cause is named, the test passes in the full
+  gate on 3 runs, and a test pins the condition it depended on. Owner:
+  Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.208, TEST.213.
 
 ## USR: User accounts
 
@@ -18954,8 +18864,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   know about. Done: the sweep is run again on main, anything new is
   fixed in the same pass, README's headline feature list and the release
   headline are checked, and the result is recorded here.
-  Prerequisites: DOC.19, DOC.20, DOC.24, DOC.48, DOC.50, DOC.51,
-  DOC.52, DOC.53. Related: DOC.4.
+  Prerequisites: DOC.19, DOC.20, DOC.24, DOC.48, DOC.50, DOC.51, DOC.52.
+  Related: DOC.4.
   Runs last: re-run the sweep when the other 8.1 DOC items are done
   (2026-10-16 review).
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
@@ -19094,7 +19004,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   position 48 of 48). This replaces any earlier owner line on this item.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
-- [ ] **DOC.51 Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder**
+- [ ] **DOC.51 Docs: the API reference states the cap and the ladder (the cell key docs and the region note are done)**
   Step 8 (design note section 9 item 8). `galaxy-coordinate-system.md`
   and `database-schema.md` describe the cell key, the column, the index
   and the guard; `spherical-region-queries.md` moves to "built" when
@@ -19112,7 +19022,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Core 5 (reported 12:50 PM EDT as the lane clock read, relayed by the
   coordinator): the API cap and ladder sentence waits for NAV.61; the
   rest of the item ships in Core 5's next PR.
-  Prerequisites: none. Related: NAV.61, TEST.165.
+  Done in #2070 (Core 5, 2:24 PM EDT as the lane reported; relayed by
+  the coordinator): the cell key in the coordinate system and schema
+  docs and the region note moved to built. Left: the API reference
+  states the cap and the ladder, which waits for NAV.61 (the
+  nearest-first radius ladder), so NAV.61 is now a prerequisite.
+  Prerequisites: NAV.61. Related: NAV.61, TEST.165.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
 - [ ] **DOC.52 A docs index page: links to every HTML page under docs/, each with a description of what it contains**
@@ -19138,21 +19053,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 53 of 54). This replaces any earlier owner line on this item.
   Prerequisites: none.
-
-- [ ] **DOC.53 The tuning module header names the rule for a new signed constant: the fuzz tests accept only a dict or a positive "fall"**
-  Finding from Core 2 (2026-10-16, 9:17 PM EDT, kind: documentation
-  gap): the tuning fuzz tests reject negative top-level constants and
-  unordered pairs, so a new signed constant must be a dict or a positive
-  "fall". Done: one or two lines in the header of
-  src/planetgen/tuning.py (and the tuning notes in docs if there are
-  any) say so, so the next lane that adds a signed constant does not
-  find out from a red test. Owner: any Core lane, with the next tuning
-  change.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 14 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: DOC.52.
 
 - [ ] **DOC.54 Admin help: how to edit, regenerate, lock, approve and undo**
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
@@ -19241,21 +19141,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: GEN.389. Related: DOC.13, DOC.48.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
-- [ ] **DOC.60 Settings note: read sections A2 and A6 of the settings and accounts design against the built one-file settings and fix what is stale**
-  The Settings lane reported (2026-10-16) that parts of
-  docs/design/settings-seo-and-accounts.md still describe the two-file
-  design that the one config.json replaced (#1857). Done: sections A2
-  and A6 and their tables say one `config.json`, the load order model
-  default, `config.json`, `PLANETGEN_*` environment, explicit argument,
-  and the backup and rollback text names the single copy; `base_url` is
-  stated as a top-level Owner option (it stayed one); nothing else in
-  the note changes.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 18 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: ADM.44, ADM.96, ADM.84.
-
 - [ ] **DOC.61 Docs: how the bubbles shape the stars, the setting values and what the drawn layer now is**
   Boss (2026-10-16, 9:27 PM EDT): instead of drawing the bubbles, store
   the regions and let them adjust the star density function for the
@@ -19271,31 +19156,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   position 41 of 43). This replaces any earlier owner line on this item.
   Prerequisites: GEN.395. Related: GEN.391, DOC.52.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
-
-- [ ] **DOC.62 Docs: the generation cost figures and the redo scope are stale (the phenomena cut, rows, bytes and time; `--redo-scatters` leaves satellites and clusters alone)**
-  Rescatter read-only thread (Boss asked 2026-10-16, 9:35 PM EDT;
-  measured 9:37 to 10:07 PM EDT on a 4-core box, main 8.0.1617, default
-  galaxy, seed 0123456789abcdef0123456789abcdef; note
-  /mnt/project-files/reports/rescatter-worth-it-2026-10-16.md).
-  generation-performance-study.md says 161 GB and 2.6 hours for the
-  phenomena scatter at the default scale and
-  phenomenon-scatter-mass-cut.md recommends 20 solar masses (about 2.7e5
-  rows). The built default is a 14 solar mass cut: about 75.5 million
-  rows, 231 bytes a row with two indexes (about 17.5 GB while writing,
-  about 21 GB with the two indexes rebuilt), about 46 minutes of writes
-  at 4 workers (about 23,500 rows a second) plus the unmeasured index
-  builds, nebula field and epoch stamp; the star passes took 1,222.8 s
-  for 1,044,932 rows and under 1 GB. Also docs/cli.md next to the
-  `--redo-scatters` text: it redoes rows only; satellites and clusters
-  (`galaxy_components`) are drawn only by a full `plan`, so a galaxy
-  planned before GEN.159 and GEN.237 has an empty component table until
-  a full plan. Done: the two design notes and cli.md carry the measured
-  table and the one-line scope; nothing else changes.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 16 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: GEN.240, GEN.322, GEN.323.
 
 - [ ] **DOC.63 Docs: the atmosphere data model, the gas table and how the values agree**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:

@@ -13,6 +13,7 @@ from planetgen.galaxy import spherical
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.galaxy.system_position import galactic_velocity_ms, peculiar_velocity_ms, random_unit_vector
 from planetgen.generation import run_sector
+from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import constants
@@ -31,7 +32,7 @@ def _runaway_system(speed_kms=400.0, direction=(0.0, 0.0, 1.0)):
         cfg = SystemConfig()
         cfg.PLANETS = True
         system = StarSystem(system_config=cfg)
-        if system.planets:
+        if any(not isinstance(body, AsteroidBelt) for body in system.planets):   # a belt alone has no motion of its own
             break
     system.runaway_class = "hypervelocity"
     system.runaway_speed_kms = speed_kms

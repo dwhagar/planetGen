@@ -422,14 +422,20 @@ def _ask(progress, question):
             progress.start()
 
 
-def _estimate_sectors(args, sector_args_list):
+WEB_ENUMERATION_LIMIT = 2_000_000
+"""int: The most cells a web request may enumerate (PERF.36): the Generate page's radial estimate and the
+neighbourhood action of the sector page refuse a ball of more. The command line has no such limit; it streams."""
+
+
+def _estimate_sectors(args, sector_args_list, total=None):
     """The `generationStats.Estimate` for filling these sectors, with the
-    database disk checked."""
+    database disk checked. With `total`, `sector_args_list` is a sample (`generationStats.sample_positions`) of a
+    run of that many sectors and the figures are scaled up from it (PERF.36)."""
     config = store.mysql_config_from_args(args)
     stats = _generation_stats(args)
     result = generationStats.estimate(
         [(_sector_density(sector_args), _expected_systems(sector_args)) for sector_args in sector_args_list],
-        stats, config.database, workers=_worker_count(args),
+        stats, config.database, workers=_worker_count(args), total=total,
     )
     try:
         conn = store.get_connection(config)
@@ -444,7 +450,7 @@ def _estimate_sectors(args, sector_args_list):
     return result
 
 
-def _check_estimate(args, sector_args_list, what, progress=None):
+def _check_estimate(args, sector_args_list, what, progress=None, total=None):
     """
     PERF.3: before a bulk run writes anything, estimates its size (+10%)
     and time and shows them; refuses it when it would take more than a
@@ -452,7 +458,8 @@ def _check_estimate(args, sector_args_list, what, progress=None):
     terminal, asks before filling more than one sector (`--yes` skips the
     question, never the refusal). Off a terminal (the Generate page's
     jobs, scripts) it shows the estimate and goes on: the page asked
-    first. Once per run (`args._estimate_checked`).
+    first. Once per run (`args._estimate_checked`). With `total`, `sector_args_list` is a sample of a run of
+    that many sectors (PERF.36).
 
     Raises:
         _EstimateOnly: Under `--estimate-only`.
@@ -460,7 +467,7 @@ def _check_estimate(args, sector_args_list, what, progress=None):
     """
     if getattr(args, "_estimate_checked", False):
         return
-    result = _estimate_sectors(args, sector_args_list)
+    result = _estimate_sectors(args, sector_args_list, total)
     if getattr(args, "estimate_only", False):
         raise _EstimateOnly(what, result)
     args._estimate_checked = True

@@ -57,6 +57,18 @@ and unconfirmed; [B] Boss's words.
 5. **I cannot map "10 hours for the bright stars" to one phase without his log.** The numbers
    that could produce it are below ("Where ten hours could come from").
 
+**Update (DOC.62, measured 2026-10-16, 9:37 to 10:07 PM EDT): the figures below are the older estimates.** The built default is a 14 solar mass phenomena cut, not 20 and not no cut, so the default scatter is about 75.5 million rows, not 1.17e9 rows and 161 GB or 2.7e5 rows. Measured 9:37 to 10:07 PM EDT on 2026-10-16 on a 4-core box (1 GB InnoDB buffer pool, MySQL 8, Python 3.13, main at 8.0.1617, default galaxy shape, seed 0123456789abcdef0123456789abcdef; the read-only investigation is in /mnt/project-files/reports/rescatter-worth-it-2026-10-16.md; another server will differ):
+
+| Stage | Result | Time | Disk | How known |
+|---|---|---|---|---|
+| Skeleton, 157 clusters, 11 satellites | 3,764 shells, about 2.2e11 candidate sectors | 3 s | negligible | measured |
+| Phenomena (black holes, neutron stars, nebulae, remnants, from 14 solar masses) | about 75.5 million rows, 231 bytes a row with two indexes | about 46 minutes of writes at 4 workers (12.1 million rows in 8.6 minutes, about 23,500 rows a second, peaks 35,000) | about 17.5 GB while writing, about 21 GB with the two indexes rebuilt | measured |
+| Phenomena tail: two index builds, nebula field (about 700,000 clouds), epoch stamp | not reached | 20 to 40 minutes | included above | estimate, not measured |
+| Massive stars | 265,909 rows | about 8.5 minutes | under 1 GB for all star rows with members | measured |
+| Bright stars | 778,980 rows (388,624 of them halo, at the 500 solar luminosity halo floor) | about 12 minutes | | measured; both star passes together took 1,222.8 s for 1,044,932 rows |
+
+A full rescatter (a plain `planetgen plan`) on that box takes about 1.5 to 2 hours and about 22 GB; the two star passes alone are 20.4 minutes and under 1 GB.
+
 **Correction (same day).** The default-scale phenomenon count above (1.06e9 rows, 146 GB) came from
 `phenomenon_scatter.layer_expected`, which runs 10% low; 64 times the 18.24M rows actually drawn is
 1.17e9 rows and 161 GB. [phenomenon-scatter-mass-cut.md](phenomenon-scatter-mass-cut.md) has the corrected

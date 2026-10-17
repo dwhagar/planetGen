@@ -16,6 +16,18 @@ Status: built, 2026-10-09 (GEN.166 to GEN.168, schema v71); extended 2026-10-10 
 
 Update (Boss, 2026-10-10 03:01Z): the cut becomes a user setting with preset values between 8 and 20 solar masses (GEN.183; the default became 8 on 2026-10-10, GEN.188), the bright-star luminosity floor becomes a preset from 2500 to 4,000,000 L_sun with a default of 5,000 (GEN.184, changed by GEN.188), and the scatter runs in five passes (GEN.185). The fixed 20 solar mass cut and the 1000 L_sun default below are superseded as defaults.
 
+**Update (DOC.62, measured 2026-10-16, 9:37 to 10:07 PM EDT): the figures below are the older estimates.** The built default is a 14 solar mass phenomena cut, not 20 and not no cut, so the default scatter is about 75.5 million rows, not 1.17e9 rows and 161 GB or 2.7e5 rows. Measured 9:37 to 10:07 PM EDT on 2026-10-16 on a 4-core box (1 GB InnoDB buffer pool, MySQL 8, Python 3.13, main at 8.0.1617, default galaxy shape, seed 0123456789abcdef0123456789abcdef; the read-only investigation is in /mnt/project-files/reports/rescatter-worth-it-2026-10-16.md; another server will differ):
+
+| Stage | Result | Time | Disk | How known |
+|---|---|---|---|---|
+| Skeleton, 157 clusters, 11 satellites | 3,764 shells, about 2.2e11 candidate sectors | 3 s | negligible | measured |
+| Phenomena (black holes, neutron stars, nebulae, remnants, from 14 solar masses) | about 75.5 million rows, 231 bytes a row with two indexes | about 46 minutes of writes at 4 workers (12.1 million rows in 8.6 minutes, about 23,500 rows a second, peaks 35,000) | about 17.5 GB while writing, about 21 GB with the two indexes rebuilt | measured |
+| Phenomena tail: two index builds, nebula field (about 700,000 clouds), epoch stamp | not reached | 20 to 40 minutes | included above | estimate, not measured |
+| Massive stars | 265,909 rows | about 8.5 minutes | under 1 GB for all star rows with members | measured |
+| Bright stars | 778,980 rows (388,624 of them halo, at the 500 solar luminosity halo floor) | about 12 minutes | | measured; both star passes together took 1,222.8 s for 1,044,932 rows |
+
+A full rescatter (a plain `planetgen plan`) on that box takes about 1.5 to 2 hours and about 22 GB; the two star passes alone are 20.4 minutes and under 1 GB.
+
 **Update (Boss, 2026-10-10 07:49Z):** the defaults are now 14 solar masses (middle of the 8 to 20 presets) and a 9,000 solar luminosity floor (both are presets); the 8 and 5,000 mentioned below were the defaults before this change.
 
 **Update (Boss, 2026-10-10 04:38Z):** the mass limit default is now 8 solar masses (it was 20), the lowest preset. The mass slider and the luminosity floor dropdown sit next to each other on the Generate page and also appear in the New galaxy section. This replaces "default 20" wherever it appears below (GEN.183, GEN.184; see GEN.188).

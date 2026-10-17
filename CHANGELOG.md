@@ -2,6 +2,37 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1737] - 2026-10-17
+
+**Headline:** The scatter layers draw their random numbers in bulk, with the same numbers and the same stream state as before.
+
+### Changed
+- **Bulk random draws for the scatter layers (PERF.91).** `Stream.random_array` and `Stream.randbits_list` hand a stream's state to NumPy's `MT19937`, which is the same generator with the same 53-bit float, draw a batch in C and hand the state back, from 1,000 draws on. The phenomenon scatter, the far-reach scatter and the component pass use them for their per-object uniforms and seeds (12 times faster on batches of 60,000), and a test proves same seed, same floats, same bits and the same final state, so no galaxy changes and nothing is reseeded.
+
+## [8.0.1736] - 2026-10-17
+
+**Headline:** A fill of tens of thousands of sectors or more is estimated from a sample and generated from a stream, and a web request is refused a ball of more than 2 million sectors.
+
+### Changed
+- **Large estimates come from a sample (PERF.36).** A run of more than 20,000 sectors (a shell, a span, a course or a radial fill) works its size and time out from 200 sectors spread evenly through it and scales them up; the line says "worked out from 200 sampled sectors". Smaller runs are worked out from every sector as before.
+- **A large fill is no longer held in memory (PERF.36).** Its sectors are counted in a first pass and resolved one by one as the work queue takes them, instead of being listed first.
+- **A web request cannot list a huge ball (PERF.36).** The sector page's neighborhood action answers `413`, and the Generate page's radial estimate stops, when the radius holds more than 2 million sectors; the command line is not limited.
+
+## [8.0.1735] - 2026-10-17
+
+**Headline:** The bright-star backfill gains an exact block-first sampler, tested alone and not yet wired into the backfill.
+
+### Added
+- **A block-first draw for the backfill (GEN.308).** `bright_stars.block_candidates` draws a block's stars as one Poisson count from the block's density bound and keeps each candidate with the chance of its own cell, which gives every cell a Poisson count of its own mean and leaves no cell's chance altered. It is keyed by the seed, the block and the luminosity band alone, so the same stars come out whatever region, order or split of workers reaches the block. `block_bound` gives the bound from the band's density at its centre line (the halo with its own share), and tests check that every cell's rate is at most its bound, that the counts match Poisson in half-decade strata of 3,000 blocks each down to the lowest rates, and that a real block of the galaxy keeps each cell at its own rate. The backfill does not use it yet (GEN.309).
+
+## [8.0.1734] - 2026-10-17
+
+**Headline:** Two test fixes: the runaway-velocity test no longer fails now and then, and the plan tests draw a naming key instead of logging that they cannot.
+
+### Changed
+- **The runaway-velocity test picks a system with a body that moves (TEST.191 and a flaky test).** Its setup stopped at the first system with any planet, but a system whose only entry is an asteroid belt has no body with a velocity, so the test failed about once in 300 runs. It now waits for a system with a body that is not a belt.
+- **The plan tests have a control database to draw the naming key into (TEST.191).** The real-plan tests no longer log "No naming key drawn: the control database can't be opened"; the control schema is set up in the test database, and a test checks the key is stored. The other half of the item, stray files in the jobs directory's `galaxy-settings` folder, went with ADM.50, which removed that folder.
+
 ## [8.0.1733] - 2026-10-17
 
 **Headline:** A page request that is slow to build now queues one job that stores the answer in the page cache, with a status route and a progress estimate, instead of holding a web thread.

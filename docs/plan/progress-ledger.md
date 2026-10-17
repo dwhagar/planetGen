@@ -784,3 +784,12 @@ Baseline: PR #1817.
 | GEN.436 | 8.1 | Composition research and design |
 | GEN.437 | 8.1 | Composition research and design |
 | DB.72 | 8.1 | Bugs and flaky tests |
+| PERF.105 | 8.1 | Queue, caches and performance |
+| PERF.36 | 8.1 | Queue, caches and performance |
+| PERF.91 | 8.1 | Queue, caches and performance |
+| GEN.308 | 8.1 | Queue, caches and performance |
+| TEST.191 | 8.1 | Bugs and flaky tests |
+| TEST.221 | 8.1 | Bugs and flaky tests |
+| DOC.62 | 8.1 | Bugs and flaky tests |
+| DOC.53 | 8.1 | Docs |
+| DOC.60 | 8.1 | Docs |
