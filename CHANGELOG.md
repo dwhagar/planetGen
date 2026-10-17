@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1709] - 2026-10-17
+
+**Headline:** Boss chose to split Core 3's 8.1 chain across two generation lanes; the decision is recorded on the headline item.
+
+### Changed
+
+- GEN.301 records Boss's decision (10:02 AM EDT, "Split Core 3"): a new generation lane takes the stellar tables and small items, Core 3 keeps the nebula and cluster line; no test lane was chosen.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1708] - 2026-10-17
 
 **Headline:** Bok globules and star-forming cores now hold their protostars, and a planetary nebula's central star has its close companion.
