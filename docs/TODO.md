@@ -9269,7 +9269,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Blocker 1 (Boss, 2026-10-17, 6:01 PM EDT, typed in the project
   chat: "I want Blocker 1 to set itself up with PERF.118, GEN.438, and
   GEN.440", after GEN.314 merges; it was proposed for Core 4 and never
-  started there).
+  started there; Core 4 confirmed at about 6:10 PM EDT, as the lane reported, that it has not started it).
   Part F of the Body composition research lane
   (docs/design/body-composition-parts/F-boss-note-check.md; 2026-10-17,
   1:28 AM EDT as the lane reported; checks Boss's research note of 1:22
@@ -9339,9 +9339,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   [Fe/H] monotonically where the sources say so, and that the Sun's
   measured composition is reproduced at its [Fe/H] and age inside a
   stated tolerance (a target, not a preset).
-  Owner: Core 4 (Boss tapped Core 4, 2026-10-17, 12:13 AM EDT, a card,
-  for the star composition items together with the other composition
-  design and table items).
+  Owner: Blocker 1 (it is the middle of the chain Boss gave Blocker 1,
+  GEN.438, GEN.439, GEN.440, 2026-10-17, 6:01 PM EDT, typed in the
+  project chat: "Unless it's already started elsewhere blocker can grab
+  whatever items it needs to complete those 3 once the current
+  finishes"; Core 4 confirmed at about 6:10 PM EDT, as the lane
+  reported, that it has not started it; it was Boss's card tap for Core
+  4 of 12:13 AM EDT), after GEN.314 and after GEN.438.
   Merged research (2026-10-17, TODO thread, from the Body composition
   research lane: docs/design/body-composition-research.md and its five
   parts in docs/design/body-composition-parts/). Part A holds the [X/Fe]
@@ -9410,7 +9414,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   needs to complete those 3 once the current finishes"; it replaces
   Boss's card tap for Core 4 of 12:13 AM EDT). The chain is GEN.438, then
   GEN.439, then this item; GEN.439 moves to Blocker 1 too unless Core 4
-  has started it.
+  has started it. Core 4 confirmed at about 6:10 PM EDT, as the lane reported, that it has not started GEN.438, GEN.439 or GEN.440.
   Sources check (GEN.425): it returns the abundances the planet draws
   need, not only X, Y and Z: the iron, magnesium, silicon, oxygen and
   carbon ratios (Fe/Si, Mg/Si, C/O) with the scatter of the relations
@@ -14357,7 +14361,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   up with PERF.118, GEN.438, and GEN.440", after GEN.314 merges; it was
   Core 5's, which had only read it). Core 5 keeps the stage items
   PERF.106 to PERF.108 and PERF.98 and builds them on this wrapper once
-  it has merged.
+  it has merged. Core 5 confirmed at about 6:10 PM EDT, as the lane reported, that nothing exists for PERF.118 or its chain.
   Prerequisites: none. Related: PERF.86, PERF.97, PERF.98, PERF.106,
   PERF.107, PERF.108.
   Decided (Boss, 2026-10-17, 4:15 PM EDT): from the command line Boss
