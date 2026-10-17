@@ -54,7 +54,7 @@ def test_a_v103_database_gets_the_table_and_the_columns(mysql_config):
         assert _names("orbit_nodes") == _columns(conn, "orbit_nodes")
         assert {name for name, _ in MIGRATION.STAR_COLUMNS} <= _columns(conn, "stars")
         assert "host_node_id" in _columns(conn, "planets")
-        assert store.detect_schema_version(conn) == 104
+        assert store.detect_schema_version(conn) == store.SCHEMA_VERSION
     finally:
         conn.close()
 

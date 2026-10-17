@@ -13,12 +13,11 @@ Runs against `test_web_a11y.py`'s small generated database like
 `test_web_browser_maps.py`; skipped without Playwright, Chromium or MySQL.
 """
 
-import re
-
 import pytest
 
 sync_api = pytest.importorskip("playwright.sync_api")
 
+from planetgen.web.sector_page import sector_designation  # noqa: E402
 from tests.test_web_browser_maps import (  # noqa: E402,F401 -- fixtures
     GL_ARGS,
     VIEWPORT,
@@ -86,10 +85,11 @@ def _sector(site_app, sector_id):
     return detail
 
 
-def _designation(page, base_url, sector_id):
-    """The designation the Galaxy Map names the sector by (the redirect of its "Show on Galaxy Map" link)."""
-    response = page.request.get(f"{base_url}/sector/{sector_id}/galaxy", max_redirects=0)
-    return re.search(r"sector=([0-9A-F]+)", response.headers["location"]).group(1)
+def _designation(detail):
+    """The designation the Galaxy Map names the sector by, worked out in the test process from the sector's detail.
+    It used to be read from the redirect of the "Show on Galaxy Map" link, a request that waited behind the page's
+    own tile requests and timed out at 30 s under load (TEST.195); that redirect is tested in test_web_sector_nav."""
+    return sector_designation(detail)
 
 
 def _star_spots(page, base_url, sector_id, detail):
@@ -131,7 +131,7 @@ def test_opening_a_sector_is_one_continuous_view_with_a_filled_panel(moving_page
     page = moving_page
     sector_id = sample_params["sector_id"]
     detail = _sector(site_app, sector_id)
-    code = _designation(page, base_url, sector_id)
+    code = _designation(detail)
     page.goto(f"{base_url}/galaxy?sector={code}", wait_until="load")
     page.wait_for_selector(CANVAS, state="attached")
     _ready(page)
@@ -160,7 +160,7 @@ def test_a_star_in_an_opened_sector_is_selectable(moving_page, base_url, sample_
     page = moving_page
     sector_id = sample_params["sector_id"]
     detail = _sector(site_app, sector_id)
-    code = _designation(page, base_url, sector_id)
+    code = _designation(detail)
     page.goto(f"{base_url}/galaxy?sector={code}&open=1", wait_until="load")
     page.wait_for_selector(CANVAS, state="attached")
     _ready(page)

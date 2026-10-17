@@ -973,6 +973,27 @@ of these that its expected count rarely exceeds (`OBJECT_FIRST_TAIL`); an object
 OBJECT_FIRST_TAIL = 1.0e-4
 """float: The chance a sector's Poisson count may exceed its capacity (PERF.58)."""
 
+SCATTER_COVERS_REACH = True
+"""bool: The bright-star and mass passes draw the grid's whole reach (262 kpc by default), the bands beyond the outline
+included (GEN.322). Always true in a run; the tests turn it off, because a toy galaxy's fixed-size halo would fill the
+reach with stars."""
+
+OBJECT_FIRST_FAR_PIECES = 16
+"""int: Steps of colatitude each hemisphere of a far run of shells is cut into when the shells too faint to bound one
+by one are drawn together (`object_first.ReachGroups.far`, GEN.322)."""
+
+OBJECT_FIRST_FAR_STEPS = 128
+"""int: A far run of shells is as thick as 1/this of its distance from the centre (`ReachGroups.far_blocks`)."""
+
+OBJECT_FIRST_FAR_MEAN = 4.0
+"""float: A shell beyond the outline is drawn on its own, in groups of bands, while its coarse bound expects at least
+this many stars; the shells past the last such one are drawn together (GEN.322). A waste of this many candidates a shell
+costs about a hundred microseconds, so it is not set to keep the loss under 10%."""
+
+OBJECT_FIRST_GROUP_BANDS = 64
+"""int: Beyond the galaxy's outline the object-first scatter bounds the density over groups of this many bands (GEN.322),
+the group's bound being taken at its nearest point; a pass to the 262 kpc reach would otherwise bound 6.75e9 bands."""
+
 POISSON_REJECTION_MEAN = 10.0
 """float: From this mean up `util/poisson.py` draws a Poisson count by transformed rejection (constant time);
 below it, by Knuth's method (PERF.60)."""

@@ -2,6 +2,140 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1694] - 2026-10-17
+
+**Headline:** The massive-star scatter on the new work queue is merged and retired.
+
+### Changed
+
+- PERF.97 (#1999) is retired: the massive-star scatter runs as static units on the Redis run record, with the far-shell and component tasks as units too; PERF.106 carries Core 2's built-on note.
+
+TODO items resolved: PERF.97 / Added: none
+
+## [8.0.1693] - 2026-10-17
+
+**Headline:** The massive-star scatter runs on the new work queue: its units are queued on Redis, followed from the run's record, and give the same stars at any worker count.
+
+### Changed
+- **The massive-star pass of the scatter is the first stage on the Redis work queue (PERF.97, step 3 of PERF.86).** `planetgen galaxy` and `planetgen plan` start a run record in Redis for the stage, queue its units on the bulk queue as JSON (the database's name, host, port and user, the shells, their expected stars, the sectors to leave out, the floors and the seed; never a password), start up to `--workers` idle-timeout workers and follow the units' results and progress until the stage is done. One worker uses the same path as many. The units are cut from the work alone (about 512 runs of shells of equal expected work, never more than 4,000), so the same galaxy and seed give the same stars at any worker count and the same stars the old queue drew. A unit that fails ends the run with the unit and the error recorded; Ctrl+C cancels it and frees the machine. Redis is required for this stage. The luminosity pass, the phenomena, the sectors and the backfill still run on the old queue until PERF.98.
+
+## [8.0.1692] - 2026-10-17
+
+**Headline:** The browser-test teardown hang is retired, and two leftovers from its fix are filed.
+
+### Changed
+
+- TEST.193 (#1997) is retired: the test servers stop before the database is dropped, and the drop waits at most 10 s and names the holders. TEST.195, folded into it, is closed with the same status: the 30 s stall could not be reproduced in three runs, the fetch was removed from the tests, and no cause was found.
+- TEST.218 is filed (bug): `test_first_control_connections_at_once` leaves 3 idle connections for the drop warning to end; Bug Hunt proposed.
+- TEST.219 is filed (perf): browser pages still have 1 to 7 requests running 8 s after the server stops (test_web_generate_alignment 7, test_web_browser_controls 7); no owner proposed.
+- GEN.527 is filed (bug): the second star of a wide pair in a saved runaway system loads back 0.4 m/s of 57 km/s off since GEN.336 (about 1 run in 25); #1997 widened the test tolerance to 1e-4, so the cause is still open; Core 1 proposed.
+
+TODO items resolved: TEST.193 / Added: TEST.218, TEST.219, GEN.527
+
+## [8.0.1691] - 2026-10-17
+
+**Headline:** A browser test's database can no longer hang the test run for fifteen minutes when it is torn down.
+
+### Changed
+- **Test servers stop cleanly (TEST.193).** `tests/served.py` runs the web server of a browser test file and, when the file ends, waits up to 8 seconds for requests a page had already sent, so none still holds a database connection when the test database is dropped. The Galaxy Map's tile requests held one for 4 to 6 seconds under load.
+- **Dropping a test database is bounded (TEST.193).** `dbpool.drop_database` waits at most 10 seconds for a lock, ends the connections that hold the database, and names each in a warning with the code that took it, so a leak shows up in the run instead of as a 853 s wait. Test-only; nothing in the program changed.
+- **One fewer fetch under load (TEST.195).** The sector browser tests work out the sector's map designation in the test process instead of fetching the "Show on Galaxy Map" redirect, a request that timed out at 30 s while the page's own tile requests were running. The redirect itself is still tested in `test_web_sector_nav.py`.
+
+TODO items resolved: TEST.193 (cause found, fixed and bounded), TEST.195 (the fetch removed; the 30 s stall itself was never seen again, see the issue). Added: none.
+
+## [8.0.1690] - 2026-10-17
+
+**Headline:** The whole-sphere scatter umbrella is merged and retired, and the Clouds' missing massive stars are filed as a new item.
+
+### Changed
+
+- GEN.240 (#1994) is retired: its three subitems GEN.322, GEN.323 and GEN.324 and the design note's measured yield table are merged.
+- GEN.526 is filed from Core 3's finding: the built satellites have one old age range and no young share, so at the default floors the Clouds place no massive stars; the shares are to be derived from each satellite's history and gas.
+
+TODO items resolved: GEN.240 / Added: GEN.526
+
+## [8.0.1689] - 2026-10-17
+
+**Headline:** The whole-sphere scatter passes are merged and retired (band groups, the phenomena pass and the component pass), generator epochs 5 to 7.
+
+### Changed
+
+- GEN.322 (#1991, epoch 5), GEN.323 (#1992, epoch 6) and GEN.324 (#1993, epoch 7) are retired; the umbrella GEN.240 stays open for Core 3 to close, and GEN.161 and GEN.377 no longer wait.
+- The migration revision queue moves up one: GEN.324 took 0105_satellite_stars, so DB.65 is 0106, DB.69 0107, DB.67 0108, DB.70 0109 and DB.68 0110; GEN.404 carries Core 3's note on `extent_majorants`.
+
+TODO items resolved: GEN.322, GEN.323, GEN.324 / Added: none
+
+## [8.0.1688] - 2026-10-17
+
+**Headline:** The whole-sphere design note's yield table now holds the numbers the three built passes give at the defaults.
+
+### Changed
+- The table of what the passes place outside the disk (`docs/design/intergalactic-and-halo-contents.md`, section 5.4) is rebuilt from the built passes after the stellar tables check: 1.5 million bright stars at the halo tier's floor of 500 solar luminosities and none at 9,000, no mass-pass star (the satellites' stars are one old population), 11 million black-hole rows and 2,400 planetary nebulae. The Magellanic Clouds' young share, which the old table assumed, is left as a question.
+
+TODO items resolved: GEN.240. Added: none.
+
+## [8.0.1687] - 2026-10-17
+
+**Headline:** The globular clusters and the satellite galaxies now place their own bright and massive stars and their black holes, neutron stars and planetary nebulae.
+
+### Added
+- **The component pass (GEN.324).** A component's systems are its mass over the mean system mass; each pass draws one Poisson count from them times the share of its population the pass keeps, puts every candidate where the component's profile says (a radius with that share of the mass inside it, a direction uniform on the sphere), and keeps it by its tier's share. The same is done for the black holes, neutron stars and planetary nebulae by their rates per system. This is what a sector's fill already takes off the component's cells, so no pre-placed star is drawn twice. Each component has its own random stream.
+
+### Changed
+- `bright_stars.population` takes `satellite` (migration 0105); a galaxy scattered before this has no stars in its clusters or satellites: `planetgen plan --redo-scatters luminosity mass phenomena` draws them.
+
+generation-output: changed
+
+TODO items resolved: GEN.324. Added: none.
+
+## [8.0.1686] - 2026-10-17
+
+**Headline:** The black holes, neutron stars, planetary nebulae and supernova remnants now reach the whole grid, out to 262 kpc, so the halo has them beyond the galaxy's outline.
+
+### Added
+- **The phenomena scatter reaches past the outline (GEN.323).** Each class is placed object first over the groups of bands beyond the outline (the same groups as the bright stars', GEN.322), by its rate per star times the density of the stars there and its own factors (the thicker layer of the remnants, the gas of the supernova remnants, the young stars of the magnetars), and the faint shells far out are drawn together. The rows inside the outline are exactly the rows they were. At the defaults it adds about 9 million stellar-mass black holes, 23,000 intermediate-mass black holes and 1,600 planetary nebulae beyond the outline; a galaxy scattered before this has none: `planetgen plan --redo-scatters phenomena` draws them.
+
+generation-output: changed
+
+TODO items resolved: GEN.323. Added: none.
+
+## [8.0.1685] - 2026-10-17
+
+**Headline:** The bright-star and mass passes now reach the whole grid, out to 262 kpc, so the halo has its bright stars beyond the galaxy's outline.
+
+### Added
+- **The scatter reaches past the outline (GEN.322).** A shell's bands beyond the outline are drawn in groups of 64 bands, each bounded in one piece, and the faint shells far out (from about 50 kpc) are drawn together as one task, so a pass to the reach takes about a minute on one process, not hours. The stars inside the outline are exactly the rows they were. At the defaults it adds about 120,000 stars (halo giants down to the halo floor of 500 solar luminosities) beyond the outline. A galaxy scattered before this has none: `planetgen plan --redo-scatters mass luminosity` draws them.
+- `tuning.SCATTER_COVERS_REACH` switches it on (the tests turn it off outside the reach tests). `band_majorants` is split into `band_majorants` and `extent_majorants`, which takes any region's nearest point and outer radius, so GEN.134's star-formation factor is bounded over each group's radius range. On the default galaxy it places about 122,000 stars beyond the outline.
+- A galaxy scattered before this has no stars beyond the outline: `planetgen plan --redo-scatters mass luminosity` draws them.
+
+generation-output: changed
+
+TODO items resolved: GEN.322. Added: none.
+
+## [8.0.1684] - 2026-10-17
+
+**Headline:** UX.114 is retired after its merge, and the round-trip column failure TEST.217 is closed by the same pull request.
+
+### Changed
+
+- UX.114 (members and orbits of an uncharted scatter row, #1989) is retired.
+- TEST.217 is retired: #1989 put `moons.evolutionary_speed` on the list of columns that are NULL unless the moon bears life, and the failing order (`test_workers`, `test_update_guard_work`, `test_api_jobs`, `test_db_column_round_trip`) passes on main with it (67 passed). TEST.216 records that it did not recur in the second UX.114 gate.
+
+TODO items resolved: UX.114, TEST.217 / Added: none
+
+## [8.0.1683] - 2026-10-17
+
+**Headline:** A star or phenomenon the scatter drew with company now shows its members and its total mass before its sector is generated.
+
+### Added
+
+- New page `/systems/uncharted/<id>`: an uncharted star's data, its members (kind and mass) and the orbits that bind them (separation, period, eccentricity). A star already built into a system sends the visitor to the system.
+- New `GET /api/uncharted-systems/<id>` with the star, its `system_id` and its `members` and `nodes`.
+- A Members column in the Uncharted stars table and the Phenomena table ("3 members, 2.4 solar masses", a dash for a single object), a members and orbits list on the uncharted phenomenon page, and a label on the Galaxy Map and in an unfilled neighbour's panel for a star with company.
+- `member_count` and `system_mass_solar` on the scatter rows the uncharted-systems, phenomena, bright-star and uncharted-cell routes return.
+
+TODO items resolved: UX.114 / Added: none
+
 ## [8.0.1682] - 2026-10-17
 
 **Headline:** The Tunable gaps investigation is merged and its findings filed: a shared tuning harness, five selection models and seventeen builder groups for the unsourced composition weights.

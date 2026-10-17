@@ -108,8 +108,11 @@ def test_a_saved_runaway_system_loads_back_with_the_velocity_it_had(mysql_config
     after = loaded.entries[0]
     assert after.spatial.get_velocity_vector("galactic") == pytest.approx(before, rel=1e-6, abs=1e-3)
     for star, original in zip(after.star_system.stars, sector.entries[0].star_system.stars):
+        # A wide pair's second star used to carry the rotation speed worked out at its own place; since GEN.336 a star
+        # has no speed of its own and takes the system's movement vector, so it differs by the rotation curve's change
+        # across the pair (up to about 1e-5 of the speed, 0.4 m/s of 57 km/s). Single stars and close pairs are exact.
         assert star.spatial.get_velocity_vector("galactic") == pytest.approx(
-            original.spatial.get_velocity_vector("galactic"), rel=1e-6, abs=1e-3)
+            original.spatial.get_velocity_vector("galactic"), rel=1e-4, abs=1e-3)
 
 
 def test_the_galactic_orbit_update_turns_the_velocity_with_the_position(mysql_config):

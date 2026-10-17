@@ -10,6 +10,7 @@ import importlib
 import pytest
 
 from planetgen.db import store
+from planetgen.generation.bright_stars import POPULATIONS
 from tests.db_schema_support import load_old_schema
 
 pytestmark = pytest.mark.fresh_database
@@ -55,4 +56,4 @@ def test_the_check_names_exactly_the_six_populations(mysql_config):
     finally:
         conn.close()
     assert all(name in clause for name in migration.POPULATIONS)
-    assert clause.count("_utf8mb4") == len(migration.POPULATIONS)
+    assert clause.count("_utf8mb4") == len(POPULATIONS)    # the later migrations (satellite stars) add names

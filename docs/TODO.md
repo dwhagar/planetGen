@@ -604,36 +604,6 @@ with `clamp()`.
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none.
 
-- [ ] **UX.114 Scatter-row pages list the stored members and the map shows a system mass**
-  Step 8 (design note 11 item 8). The sector and bright-star pages list
-  the stored members of an unbuilt scatter row and the Galaxy Map shows
-  the system mass; a `Members` column in the Phenomena table. Done: an
-  unbuilt row with companions shows them and its total mass on its page
-  and in the table. Owner: Interface (2026-10-15); asks Core for any
-  schema change. Boss (2026-10-15 5:51 PM EDT): stellar companions of
-  stars and star-like objects, including neutron star and black hole
-  pairs, are generated at scatter time because they matter for gravity;
-  planets, moons and belts stay at sector fill. Defaults taken
-  (reversible): compact pairs promoted to the scatter, black hole
-  companion fraction 1.25%, cap 12 stars (7 before the 6:08 PM EDT
-  catalogue), hierarchical trees only, a row's members deleted when its
-  sector builds it, pair rates from the middle of the evidence.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report, queue position 6).
-  Core 2's NAV.60 (#1977, 2:12 AM EDT as the lane reported) replaced the
-  answer fields `sectors_in_range` and `sectors_generated` by
-  `not_generated` and `not_generated_total` (the API docs and the CLI
-  are updated); this item's pages read the new fields.
-  Gate 1 (Core 4, build 07b08de92ff11081, started 1:18 AM EDT, FAIL in
-  78 min 4 s: 18,654 passed, 12 failed, 104 skipped, as the lane
-  reported at 2:44 AM EDT): ten failures were this item's own and are
-  fixed in its branch (the new route had no test value, no SEO class and
-  an underline on a badge link; `format_members` printed 'nan members'
-  for a non-finite count, caught by a new sweep test); two are not this
-  item's and are filed as TEST.216 and TEST.217. Gate 2 started 2:42 AM
-  EDT (build 49bf9a8656ac115e), expected to end about 4:00 AM EDT.
-  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
-
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
   update on everything once this is done so all the controls work
@@ -655,7 +625,7 @@ with `clamp()`.
   audit starts, so it checks the finished pages. Queued, not started:
   Interface and Quality stay idle until the sphere and generation stages
   finish (Boss, 12:27 AM EDT) unless Boss says earlier.
-  Prerequisites: GEN.240, NAV.61, NAV.45, MAP.243.
+  Prerequisites: NAV.61, NAV.45, MAP.243.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
 
 - [ ] **UX.118 Slow pages show a progress bar while their data loads: the search page and the phenomena list pages**
@@ -2284,7 +2254,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proposed (the map lane that owns the infinite zoom tree and MAP.239),
   after the tree; the Interface lane may take it with UX.115 if that
   lane starts first.
-  Prerequisites: GEN.323, MAP.225, MAP.239. Related: MAP.207,
+  Prerequisites: MAP.225, MAP.239. Related: MAP.207,
   MAP.219, MAP.210, UX.115, GEN.322, API.27.
 
 - [ ] **MAP.244 The maps and pages use the atmosphere colour where they showed the planet colour**
@@ -4065,7 +4035,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane queue); a line here that named Core 4 was the TODO thread's
   counting error, corrected 2026-10-16, 4:50 PM EDT.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
-  Prerequisites: GEN.324.
+  Prerequisites: none.
 
 - [ ] **GEN.162 Planet cull and blue stragglers in clusters**
   Research (2026-10-09, globular-clusters.md, PR #824; handoff in
@@ -4447,7 +4417,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.235, GEN.323. Related: GEN.223, GEN.240.
+  Prerequisites: GEN.235. Related: GEN.223, GEN.240.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.239 High-velocity clouds and the Magellanic Stream as placed gas clouds (later)**
@@ -4459,103 +4429,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   clouds exist as placed gas objects and the Stream is a chain of them.
   Later, after the components. Owner: Core (2026-10-15).
   Prerequisite: GEN.237. Related: GEN.202, GEN.241.
-  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
-
-- [ ] **GEN.240 The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass**
-  Step 6 of the whole-sphere train. The bright-star and mass passes keep
-  their algorithm (one Poisson count per shell from a certified bound,
-  bands in proportion, accept by true density over bound;
-  `object_first.py`) but take the halo term in `band_majorants`, the new
-  populations in `fractions`, and band groups of 64 bands beyond the
-  outline: to 262 kpc that is about 2 minutes a pass instead of 2.25
-  hours, with under 10% efficiency loss beyond 8 kpc. The phenomena pass
-  walks every band of every shell today (`_band_rows`), which cannot
-  reach 262 kpc; it moves to the same object-first sampler, with its
-  rates, cut and below-cut draw at sector time unchanged. Components
-  (clusters, Clouds, Sagittarius) get their own pass: total star count
-  from the mass, positions by inverse transform of the profile table,
-  each star kept or dropped by the same pass cut, and the sector fill
-  adds the component's density to `lambda` so no pre-placed star is
-  counted twice. At the defaults the passes place nothing in the halo,
-  clusters or old satellites, a few thousand stars in the Clouds, and
-  about 9.1 million extra black-hole rows beyond the outline (Core 3's
-  measurement, accepted by Boss 2026-10-17, 12:52 AM EDT; the earlier
-  estimate was 2.4 million, 4% on top of the disk's scatter). Done: the
-  three passes cover the reach with the
-  same code, a pre-placed star is never drawn again at fill, and the
-  yields match the design note's table. Owner: Core (2026-10-15), after
-  GEN.232 (the cap on path integration for fast bodies); the wanderers
-  are GEN.238. Decided (Boss, 2026-10-15): the research note's
-  recommendation stands: reach 262 kpc (65,535 shells), 96-bit object
-  IDs, one rule set everywhere with per-sector parameters, nothing
-  generated unless asked, and an asked sector always generated and
-  saved.
-  Decided (Boss, 2026-10-15 5:27 PM EDT): the scatter from the origin
-  keeps the banded, layered approach it has now, because the bands of a
-  shell have fixed slices (Boss's recollection; Core checks it against
-  `object_first.py` and the band and wedge counts of `spherical.py`
-  before relying on it, and reports if it is wrong). The band groups of
-  this item stay inside that structure. Decided (Boss, 2026-10-15 5:27
-  PM EDT): early alpha, so the current database schema is not a
-  constraint. Redesign tables, columns and layouts as the work needs,
-  with one migration or a fresh galaxy; nothing is kept for the sake of
-  production data. Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and
-  backscatters get no systems, planets or moons, so bright stars,
-  massive stars, neutron stars, black holes and the other scattered
-  objects are bare rows; planets and moons are made only when a sector
-  is being filled with everything; a sector fill must represent every
-  kind of object, and when a fill meets a phenomenon that can have a
-  system (or makes one that can) it generates that system if the
-  real-world probabilities give it one; nebulae need stars and
-  phenomena, not planets. For this item: the three scatters write bare
-  rows and never build a system; the system is built when the sector
-  fills.
-  Decided (Boss, 2026-10-15 5:51 PM EDT), refining the 5:39 PM rule:
-  scatters still carry no planets or moons, but the stellar companions
-  of stars and star-like objects (stars, former stars, protostars,
-  neutron stars, black holes), including neutron star pairs, black hole
-  and neutron star pairs, black hole pairs and stars with neutron star
-  or black hole companions, are generated at scatter time, because such
-  systems matter for gravity; planets and moons still come only at
-  sector fill. Multi-star research is under way (docs to follow; the
-  coordinator relays its items). For this item: each scatter row carries
-  its stellar companions (their masses and orbit), but never planets or
-  moons; the band groups and the object-first sampler must place the
-  companions with the primary so a pair is one gravitational source.
-  Reworded (Boss, 2026-10-15 5:51 PM EDT;
-  docs/design/multi-star-systems.md): companions of stars and star-like
-  objects are generated at scatter time, planets, moons and belts at
-  sector fill; a scatter row is a system with a barycentre, a total mass
-  and stored members. Each scatter row's members are drawn in the
-  scatter passes (GEN.262), the band groups and the object-first sampler
-  must treat a row as one system (`1 + p_placed` bookkeeping), and the
-  whole-sphere passes take the same member columns (GEN.260).
-  Region query (stage C): scatter rows keep their (shell, band, wedge)
-  address columns and gain the point columns and cell key (DB.35); the
-  scatter pass keeps its bands and order and the key is computed from
-  whatever position it writes.
-  Prerequisites: GEN.322, GEN.323, GEN.324. Related: GEN.238, GEN.223.
-  Built-on note (Core 1, 2026-10-16, 12:03 PM EDT, GEN.236 merged as
-  #1824, no migration): SectorProfile.kind_factors carries one factor
-  per rare kind (supernova remnant = gas fraction; molecular cloud =
-  cold gas times the young share against the solar circle's; hosted
-  nebulae = cold gas alone; rogue planet and comet = planet occurrence
-  at the place's [Fe/H]; bound remnants, planetary nebulae and brown
-  dwarfs = 1; no magnetar factor, GEN.278 gates it); the fill and the
-  scatters apply them; metal-poor stars cap their object count at
-  ceil(16 x occurrence) below [Fe/H] -0.5 and thin gas giants.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: GEN.322, GEN.323, GEN.324. The item itself says
-  'the three scatters' and lists three deliverables: band groups and the
-  halo term for the bright-star and mass passes (about 2 minutes a pass
-  instead of 2.25 hours), moving the phenomena pass off its walk of
-  every band (_band_rows) onto the object-first sampler, and a new
-  component pass.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.241 Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds**
@@ -5945,10 +5818,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.244,
+  Prerequisites: GEN.238, GEN.241, GEN.242, GEN.243, GEN.244,
   GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.298, UX.116,
   TEST.159, TEST.160, GEN.447, GEN.448, GEN.449, GEN.450, TEST.196,
-  GEN.463, GEN.467, GEN.469, GEN.502.
+  GEN.463, GEN.467, GEN.469, GEN.502, GEN.526.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -6291,103 +6164,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
   Prerequisites: GEN.320. Related: GEN.241.
-
-- [ ] **GEN.322 Band groups and the halo term: the bright-star and mass passes cover the 262 kpc reach**
-  Split from GEN.240 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). The two passes keep their
-  algorithm (one Poisson count per shell from a certified bound, bands
-  in proportion, accept by true density over bound) but take the halo
-  term in band_majorants, the new populations in fractions, and band
-  groups of 64 bands beyond the outline; rows carry their companions
-  with the primary and a row counts as 1 + p_placed. Done: the passes
-  cover the reach with the same code, inside the outline they yield
-  exactly the rows they yielded before, beyond 8 kpc under 10%
-  efficiency is lost, a pass to 262 kpc takes about 2 minutes, and a
-  pre-placed star is never drawn again at fill.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Existing galaxies (Core 3 report, #1932, 2026-10-16, 10:00 PM EDT):
-  GEN.286 and GEN.287 change the stored scatter rows (the halo scatter
-  rows at the 500 luminosity floor fall from about 3.8 million to about
-  190,000), so a galaxy scattered earlier needs `planetgen plan
-  --redo-scatters mass luminosity` (as after GEN.333).
-  Redo scope (rescatter thread finding, 2026-10-16): `--redo-scatters`
-  redoes rows only; satellites and clusters (`galaxy_components`) are
-  drawn only by a full `plan`. DOC.62 puts the line in docs/cli.md.
-  Epoch plan (Core 3, 3:11 AM EDT as the lane reported): generator epoch
-  5, bumped at its merge once the earlier epoch is stamped; GEN.322,
-  GEN.323 and GEN.324 share one stack gate on the GEN.324 tip (started
-  3:13 AM EDT, ends about 4:30 AM EDT as the lane reported).
-  Prerequisites: GEN.237. Related: GEN.240.
-
-- [ ] **GEN.323 The phenomena pass runs on the object-first sampler**
-  Split from GEN.240 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). The phenomena pass walks every
-  band of every shell (_band_rows), which cannot reach 262 kpc. Move it
-  to the same object-first sampler as a, with its rates, cut and
-  below-cut draw at sector time unchanged and the cell key written from
-  whatever position it writes. Done: the pass covers the reach, a seeded
-  galaxy inside the outline gets the same phenomenon rows as before (a
-  test compares), and about 9.1 million extra black-hole rows appear
-  beyond the outline at the defaults (1.9 million beyond 15 kpc and 7
-  million in the inner shells above and below the disk; Core 3 measured
-  it and Boss accepted it with the cap and the physical weights kept,
-  2026-10-17, 12:52 AM EDT).
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Redo scope (rescatter thread finding, 2026-10-16): `--redo-scatters`
-  redoes rows only; satellites and clusters (`galaxy_components`) come
-  only from a full `plan`. DOC.62 documents it.
-  Finding (Core 3, 2026-10-17, relayed by the coordinator at 12:47 AM
-  EDT): measured about 9.1 million black-hole rows beyond the outline,
-  not 2.4 million (1.9 million beyond 15 kpc and 7 million in the inner
-  shells above and below the disk). Boss accepted it (card "Accept",
-  2026-10-17, 12:52 AM EDT, as the coordinator relayed), so the Done
-  figure here and in GEN.240's text is now 9.1 million.
-  Epoch plan (Core 3, 3:11 AM EDT as the lane reported): generator epoch
-  6, bumped at its merge once the earlier epoch is stamped; GEN.322,
-  GEN.323 and GEN.324 share one stack gate on the GEN.324 tip (started
-  3:13 AM EDT, ends about 4:30 AM EDT as the lane reported).
-  Prerequisites: GEN.322. Related: GEN.240.
-
-- [ ] **GEN.324 A component pass: clusters, the Clouds and Sagittarius place their stars, and the fill adds the component's density to lambda**
-  Split from GEN.240 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Components get their own pass:
-  total star count from the mass, positions by inverse transform of the
-  profile table, each star kept or dropped by the same pass cut; the
-  sector fill adds the component's density to lambda so no pre-placed
-  star is counted twice. Done: at the defaults the pass places nothing
-  in clusters and old satellites and a few thousand stars in the Clouds,
-  no cluster star is counted twice, and the yields match the design
-  note's table.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Migration revision 0110 is reserved for this item's bright_stars
-  population CHECK ('satellite'), after the queue 0105 (DB.65), 0106
-  (DB.69), 0107 (DB.67), 0108 (DB.70) and 0109 (DB.68) (coordinator
-  relay, 2026-10-17, 12:47 AM EDT). Alembic chains by down_revision: if
-  this merges before the others, take the next free number at merge and
-  tell Core 1.
-  Finding (Core 3, 2026-10-17, 2:10 AM EDT as the lane reported, running
-  its GEN.324 tests): the migration runner (`alembic_runner`) requires
-  contiguous revision ids, so a file numbered 0110 with head 0104 raises
-  "migration revision '0110' should be '0105'"; a reserved number cannot
-  be used until every lower number exists. The revision numbers listed
-  here are therefore an order of merge and not reservations: each
-  migration takes the next free number when it merges, and its author
-  tells the owners of the migrations still waiting (Core 3 for GEN.324,
-  Core 1 for the DB.65, DB.69, DB.67, DB.70 and DB.68 queue).
-  Epoch plan (Core 3, 3:11 AM EDT as the lane reported): generator epoch
-  7, bumped at its merge once the earlier epoch is stamped; GEN.322,
-  GEN.323 and GEN.324 share one stack gate on the GEN.324 tip (started
-  3:13 AM EDT, ends about 4:30 AM EDT as the lane reported).
-  Prerequisites: GEN.322. Related: GEN.240.
 
 - [ ] **GEN.325 Planet cull in dense components by the survival formula and the metallicity factor**
   Split from GEN.162 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -7294,7 +7070,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Changed behaviour recorded with GEN.333: the brightest white dwarf is
   now 50 solar luminosities (it was 100), so the luminosity floors and
   caps may go as low as 50. Owner: Core 3.
-  Prerequisites: GEN.323. Related: GEN.333, GEN.283, UX.116, GEN.301.
+  Prerequisites: none. Related: GEN.333, GEN.283, UX.116, GEN.301.
 
 - [ ] **GEN.378 The galaxy type families: the checked design with its scaling relation table and the draw order**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
@@ -7693,7 +7469,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rows. No fixed content (Boss, 4:11 and 4:14 PM EDT): the bubbles stay
   derived from the seed; every strength is a calculated or drawn law
   with its source named.
-  Prerequisites: GEN.393, GEN.322, GEN.323. Related: GEN.240, GEN.301,
+  Prerequisites: GEN.393. Related: GEN.240, GEN.301,
   GEN.377.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
 
@@ -7991,6 +7767,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rates) and GEN.370 (central mass), so GEN.404 and GEN.405 no longer
   point at each other; GEN.406 (research) now comes first in the Galaxy
   laws build and GEN.405 waits for it.
+  Core 3 note (GEN.322 to GEN.324 merged): `band_majorants` is now
+  `band_majorants` plus `extent_majorants(shape, inner, z_near, z_far,
+  fractions, outer)`; GEN.322's plan test uses a luminosity floor of
+  2500 (30,000 gave only 284 stars at GEN.134's young share, none in the
+  high-extent shells beyond the outline).
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -12710,6 +12491,63 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
+- [ ] **GEN.526 Satellites with gas get young and intermediate populations derived from their age history and gas, so the Clouds hold massive stars**
+  Found by Core 3 while measuring GEN.240's yields (merged #1994), filed
+  by the TODO thread. The satellite population built by GEN.324 gives
+  every satellite one old age range and no young share, so at the
+  default floors the Large and Small Magellanic Clouds place 0 stars in
+  the mass pass and no bright star at the 9,000 solar luminosity floor;
+  about 1e6 bright stars appear only at the halo tier's floor of 500
+  (Core 3's rebuilt yields: 1.5e6 in all, halo 3.2e5, LMC 9.4e5, SMC
+  2.0e5, Sagittarius 3.8e4, clusters 1.4e4; black-hole rows 1.1e7;
+  planetary nebulae 2.4e3). The design note's default
+  (`docs/design/intergalactic-and-halo-contents.md`, open question 5,
+  Magellanic mix: 1% young and 9% intermediate until a better source is
+  found) was never built, and the NO FIXED CONTENT rule asks for a
+  derived share anyway. Do: each satellite's young and intermediate
+  shares are derived from its star formation history and gas mass (the
+  satellite's age range, its gas fraction and the same star formation
+  law the disk and the halo use), not from a fixed 1% and 9%; a
+  satellite with no gas keeps none; the stored scatter rows change, so
+  this is a generator epoch change joined to the one rescatter. Done:
+  the Clouds place massive stars in the mass pass and bright stars at
+  the default floor, the shares are calculated with the source named
+  (research first if the satellite history is not in the design notes;
+  lanes verify citations before relying on them), the design note's
+  yield table and open question 5 are updated with the measured values,
+  and `planetgen plan --redo-scatters luminosity mass phenomena`
+  applies. Decision for Boss (relay as a card): derive the shares from
+  age and gas as above, or keep the stated 1% and 9% as a labelled
+  stand-in until the research is done. Owner: Core 3 (proposed, the
+  GEN.324 and GEN.240 work).
+  Prerequisites: GEN.369. Related: GEN.324, GEN.240, GEN.369, GEN.366,
+  GEN.319.
+
+- [ ] **GEN.527 The second star of a wide pair in a saved runaway system loads back 0.4 m/s off the system's velocity: find the cause instead of loosening the test (bug)**
+  Found by Core 1 (2026-10-17, 5:19 AM EDT as the lane reported, #1997),
+  relayed by the coordinator, filed by the TODO thread.
+  `src/tests/test_system_velocity.py::test_a_saved_runaway_system_loads_back_with_the_velocity_it_had`
+  failed 1 time in about 25 runs (a random system, only with a wide
+  pair): since GEN.336 the second star of a wide pair takes the system's
+  rotation speed, which is 0.4 m/s of 57 km/s off (7.5e-6 relative
+  against a tolerance of 1e-6). Before the stack it failed 0 of 100.
+  #1997 widened the test's tolerance to 1e-4 (0 of 120 failures), which
+  hides the difference rather than explaining it. Do: find why the
+  second star's velocity is not the saved system velocity plus its
+  orbital motion (the rotation speed taken for the second star, an order
+  of operations in the load path, or float rounding in the orbit
+  conversion) and fix the cause so the tolerance can return to 1e-6, or
+  state in the test why 1e-4 is the right bound with the cause named.
+  Done: a loaded wide pair's stars carry the velocity the saved system
+  had to the stated tolerance, the test holds its original bound (or a
+  bound whose reason is written in the test) over 200 random systems,
+  and the cause is recorded on this item. Fails on main: yes (flaky,
+  about 1 in 25). Reproducer: `python -m pytest -q
+  src/tests/test_system_velocity.py --count 100` or a loop of the test
+  until it fails. Owner: Core 1 (proposed, its point-model stack changed
+  GEN.336's path).
+  Prerequisites: none. Related: GEN.336, TEST.193.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.20 Short-term caching through the work queue and API**
@@ -12892,32 +12730,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.56, PERF.58.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
-- [ ] **PERF.97 Work queue step 3: the mass scatter end to end on the new queue**
-  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
-  docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
-  the only place a run lives; each scatter its own queue item run in
-  order; counters plus an event stream for progress; cancel in about 0.5
-  s; the MySQL job tree retired); Redis required for every run including
-  one worker; workers on demand with an idle timeout and no always-on
-  service; one Redis instance; no Redis password while it binds
-  loopback; stage timing into the existing MySQL stage tables from the
-  completing unit; the event stream is the live log, written to the jobs
-  directory at run end with the last 20 kept. Each step leaves main
-  working, one PR, Foundations lane 1. Section 5.1 and 5.11 step 3. One
-  stage on the new spine, the mass scatter: static chunks (units per
-  stage capped near 4,000), JSON arguments, the done-set barrier (SCARD
-  equals the unit count, SET NX on an advanced flag so one unit
-  advances), the run's seed independent of worker count, planetgen
-  galaxy following the events, and --workers 1 using the same path. Each
-  scatter layer set is its own queue item run in order (Boss,
-  2026-10-14). Done when: a galaxy fill whose mass scatter runs this way
-  gives the same galaxy for the same seed at any worker count and the
-  old path still runs the other stages.
-  Owner: Core 2 (Boss, 2026-10-16, 3:00 PM EDT: the old Core queue runs
-  after the new top 5 work, routed by area): PERF.97 right after the 8.1
-  phase 1 top 5, PERF.98 to PERF.100 after the infinite zoom tree.
-  Prerequisite: none (PERF.96 done, PR #1553). Related: PERF.86.
-
 - [ ] **PERF.98 Work queue step 4: the remaining stages and the sector and backfill units on the new queue**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
   docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
@@ -13053,6 +12865,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   same seed at any worker count; stage rows land in MySQL as today; a
   hard-killed horse fails the run at once; no unit has `job_timeout` -1;
   one test per mode.
+  Built-on note (Core 2, 2026-10-17, PERF.97 merged as #1999, about 5:20
+  AM EDT as the lane reported): the massive-star scatter runs as static
+  units on the Redis run record (payload_for is shared by the old and
+  the new queue; same stars at 1 and 4 workers and as the old queue).
+  The far-shell and component tasks of the scatter run as units too, and
+  a component unit reads its component from the database, so the other
+  scatters in this item take the same payload and unit shape.
   Prerequisites: PERF.97. Related: PERF.98.
 
 - [ ] **PERF.107 The sector units and the stages around them: start, neighborhood, sectors, link, population and settle**
@@ -13809,6 +13628,15 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Core 1 (needs a migration revision).
   Migration revision: 0105, after DB.53's 0104 (Core 1, 2026-10-16, 7:42 PM EDT;
   numbers are assigned at merge time against main).
+  Migration revision shift (Core 3, GEN.324 #1993 merged about 4:55 AM
+  EDT as the lane reported): GEN.324 took 0105_satellite_stars because
+  main's head was 0104 and alembic_runner requires contiguous ids
+  (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
+  DB.65 0106, DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
+  order they merge.  Migration tests that count the populations of
+  chk_bright_stars_population use bright_stars.POPULATIONS (changed in
+  test_migration_halo_populations, test_migration_nuclear_structures and
+  test_migration_orbit_nodes).
   Prerequisites: none. Related: GEN.372, DB.55.
 
 - [ ] **DB.66 The shape row carries the galaxy family and one column per density component, as a migration only**
@@ -13845,6 +13673,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
   Prerequisites: GEN.411, GEN.412, GEN.422, GEN.423, GEN.424. Related:
   DB.65, DB.68, GEN.412.
+  Migration revision shift (Core 3, GEN.324 #1993 merged about 4:55 AM
+  EDT as the lane reported): GEN.324 took 0105_satellite_stars because
+  main's head was 0104 and alembic_runner requires contiguous ids
+  (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
+  DB.65 0106, DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
+  order they merge.
 
 - [ ] **DB.68 Planets and moons store the ozone column and the haze, dust and cloud optical depths**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -13855,6 +13689,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   revision after DB.67). Done: every row has the values; a test checks
   them against the stored mixture.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
+  Migration revision shift (Core 3, GEN.324 #1993 merged about 4:55 AM
+  EDT as the lane reported): GEN.324 took 0105_satellite_stars because
+  main's head was 0104 and alembic_runner requires contiguous ids
+  (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
+  DB.65 0106, DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
+  order they merge.
   Prerequisites: GEN.413, GEN.414, DB.67. Related: DB.67.
 
 - [ ] **DB.69 Planets and moons store the composition fractions**
@@ -13922,6 +13762,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   claims): the stored mantle oxidation state is delta-IW on the one
   reference scale of GEN.498 (Hirschmann 2021), with the stored
   quantities part G3 F8 lists.
+  Migration revision shift (Core 3, GEN.324 #1993 merged about 4:55 AM
+  EDT as the lane reported): GEN.324 took 0105_satellite_stars because
+  main's head was 0104 and alembic_runner requires contiguous ids
+  (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
+  DB.65 0106, DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
+  order they merge.
 
 - [ ] **DB.70 Planets, moons and small bodies store the surface and small-body composition shares**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -13966,6 +13812,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   filed by the TODO thread: one mixture storage for every body replaces
   `asteroid_belt_composition` and the planet composition text (see
   DB.69); designed together with it.
+  Migration revision shift (Core 3, GEN.324 #1993 merged about 4:55 AM
+  EDT as the lane reported): GEN.324 took 0105_satellite_stars because
+  main's head was 0104 and alembic_runner requires contiguous ids
+  (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
+  DB.65 0106, DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
+  order they merge.
 
 - [ ] **DB.71 Planets and moons store the partial pressures of the added gases, not only the ten stored today**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -15591,7 +15443,7 @@ clears each one.
   on the census harness (the new first item of the Whole-sphere audits
   thread); TEST.161, TEST.162 and TEST.164 add their checks to it, not
   counters of their own.
-  Prerequisites: GEN.240, GEN.282, GEN.321,
+  Prerequisites: GEN.282, GEN.321,
   TEST.186.
   Related: TEST.159.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
@@ -15993,7 +15845,7 @@ clears each one.
   region holds its members inside its radius; the pre-placed share of
   every population; no double count of a cluster star between the passes
   and the fill. Done: each test exists and runs in the normal suite.
-  Prerequisites: GEN.240, GEN.321, TEST.186. Related: TEST.159.
+  Prerequisites: GEN.321, TEST.186. Related: TEST.159.
 
 - [ ] **TEST.186 Census audit harness: fill seeded sectors per region class, count by kind and stage, compare to expectation within k Poisson sigma, print one report**
   Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
@@ -16077,75 +15929,6 @@ clears each one.
   asserts the real directory is untouched. Fails on main: no failure, a
   side effect on every run. Frequency: every run. Reproducer: run the
   plan tests and list the jobs directory.
-  Prerequisites: none.
-
-- [ ] **TEST.193 A module fixture's `DROP DATABASE IF EXISTS` blocks for 853 s on a metadata lock that another connection holds, so a browser test hangs in teardown (bug)**
-  Found by Core 2 (2026-10-16, 5:04 PM EDT), filed by the TODO thread.
-  In the gate for PERF.88,
-  `src/tests/test_web_browser_sector_reach.py::test_no_scene_is_loaded_while_the_camera_is_far`
-  hung in teardown: the module fixture `site_db`
-  (`src/tests/test_web_a11y.py:275`) ran `DROP DATABASE IF EXISTS` and
-  waited 853 s on a metadata lock, in the gate's first run and again in
-  its retry. A connection left open by something (the same kind of lock
-  as the interstellar_comets one Boss hit on a migration) holds the
-  lock. Done: the fixture closes or kills the connections that hold the
-  database before the drop, or fails at once with the name of the holder
-  instead of waiting; the teardown never waits more than a few seconds;
-  and a test shows a held connection no longer stalls it. Fails on main:
-  not checked, the PERF.88 diff touches no test fixture. Frequency: once
-  in 3 gates. Reproducer: none; the same file passed alone (7 of 7)
-  right after. Related to TEST.190 (a failing session fixture makes
-  dependents wait their full timeout).
-  Core 2 reproduced it twice in a row (2026-10-16, 5:52 PM EDT, the
-  OPS.56 gate and its rerun alone): the holder is an idle connection
-  (state Sleep, database `planetgen_a11y_*`, the same MySQL) that stays
-  open while `DROP DATABASE planetgen_a11y_*` waits 853 s; the PERF.88
-  gate hit the same shape. Reproducer: run `scripts/test.py changed`
-  with the browser tests selected and read `show full processlist` in
-  mysql during the teardown.
-  Sighting (Core 2, 2026-10-16, 8:12 PM EDT, DB.18 gate: scripts/test.py
-  changed, 468 passed, 1 failed, 2 errors): three browser tests hung
-  about 15 minutes in setup or teardown:
-  test_web_browser_sector_open::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel,
-  test_web_browser_sector_reach::test_no_scene_is_loaded_while_the_camera_is_far
-  and test_web_browser_units::test_the_server_text_is_the_automatic_text
-  (passes alone). Fails on main: yes (the same two failed in the OPS.56
-  gate). Frequency: every full gate this evening, so it is no longer rare
-  and costs each lane about 15 minutes a gate; one root cause is likely.
-  Owner: Core 1 (Boss, 2026-10-16, 8:23 PM EDT, card "Core 1 next"): starts right after
-  its current stack and the GEN.372 audit merge, ahead of its bug phase.
-  TEST.193 and TEST.195 are likely one root cause, so Core 1 takes both together.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): TEST.195 folded in. Second symptom:
-  `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel`
-  timed out at 30 s fetching `/sector/<id>/galaxy` in a full gate run
-  with 2 browser workers (Core 2, 2026-10-16, 5:52 PM EDT) and passed
-  alone; the same sighting as the 8:12 PM EDT DB.18 gate. Likely one
-  root cause with the setup or teardown hang (Core 1 takes both); if the
-  metadata-lock fix does not stop this symptom, it is split back out.
-  Agreed by Bug Hunt (2026-10-17, 12:33 AM EDT as the lane reported).
-  Investigation record (Core 1, 2026-10-17, 12:59 AM EDT as the lane
-  reported): reproduced twice (12:32 and 12:38 AM EDT) with `pytest -m
-  browser -n 2` on test_web_browser_sector_open, _sector_reach and
-  _units, load average 5 to 8 from other lanes. The holder was a server
-  request thread of `/api/galaxy/tiles` (`galaxy_tiles_route`) still
-  running when the module fixture `site_db` dropped `planetgen_a11y_*`
-  (connection state 'Creating tmp table'; pooled checkouts held 4 to 6 s
-  under load; peak simultaneous checkouts 3, so the pool is not
-  exhausted; every tile piece is fast, at most 0.1 s, the request just
-  loops over many tiles). The old drop waited on that connection's lock
-  with no limit (853 s seen in gates). Fix (commit on claude/test193,
-  its gate started 12:56 AM EDT and widens to everything because
-  conftest.py and dbpool.py change): `tests/served.py` waits up to 8 s
-  for running requests at server stop, and `dbpool.drop_database` waits
-  at most 10 s and kills and names the holders. TEST.195's 30 s stall
-  could NOT be reproduced (three runs at 12:32, 12:38 and 12:49 AM EDT,
-  12 and 157 tests passing); the `/sector/<id>/galaxy` fetch is a
-  trivial redirect, so a stall there means the server thread was
-  starved. Core 1 removed that fetch from the tests (the designation is
-  computed in-process; the redirect stays tested in
-  test_web_sector_nav), so for TEST.195 the status is: fetch removed,
-  stall unreproduced, not cause found.
   Prerequisites: none.
 
 - [ ] **TEST.194 `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug)**
@@ -16601,45 +16384,51 @@ clears each one.
   Fix: `_placed_nebula(holds_ly=6)` redraws until the 27 points around
   the system point are inside; 80 of 80 solo runs passed (3:03 to 3:12
   AM EDT). Retires on Bug Hunt's merge.
+  Occurrence record (Core 4, UX.114 PR #1989, merged 4:01 AM EDT as the
+  lane reported): it did not recur in the second UX.114 gate (build
+  49bf9a8656ac115e, 2:42 to 3:58 AM EDT, 18,849 passed, 1 failed, the
+  round-trip column of TEST.217), consistent with a 1 in 40 draw. Bug
+  Hunt's `_placed_nebula(holds_ly=6)` fix is still the open fix.
   Prerequisites: none. Related: TEST.213, TEST.194, TEST.208.
 
-- [ ] **TEST.217 `test_every_column_is_written` found a NULL in every row of `moons.evolutionary_speed` in the full parallel gate, and passes alone (bug)**
-  Found by Core 4 (2026-10-17, 2:44 AM EDT as the lane reported, in the
-  full gate of UX.114: build 07b08de92ff11081 started 1:18 AM EDT, FAIL
-  in 78 min 4 s with 18,654 passed, 12 failed and 104 skipped; the other
-  ten failures were UX.114's own and are fixed in its branch), filed by
-  the TODO thread. Kind: test. Test:
-  `src/tests/test_db_column_round_trip.py::test_every_column_is_written`.
-  Failure: `NULL in every row (never written?): [('moons',
-  'evolutionary_speed')]`. Fails on main: no (it passes alone on main
-  and on the branch, the same 42 s run). Frequency: 1 of 1 full gate
-  runs. Reproducer: the full run only; it looks like a test that writes
-  `moons` rows ran alongside or ahead of the round trip, or the
-  round-trip test's own moon rows lose the column. Not reproduced in
-  isolation, so it is flagged as needing the full-run reproduction
-  first. Done: the cause is found, the test passes in the full parallel
-  run, and the round trip does not depend on which other tests ran, with
-  no quarantine. Owner: Bug Hunt (proposed).
-  Investigation record (2026-10-17): fails on main, and not only in the
-  full gate. Core 2 (3:2x AM EDT as the lane reported, on a worktree of
-  current main with NAV.60, no PERF.97): passes alone every time, fails
-  in the same process after `tests/test_workers.py
-  tests/test_update_guard_work.py tests/test_api_jobs.py` (2 of 2 runs
-  of that order; once in the PERF.97 gate, not in the NAV.60 gate);
-  reproducer `cd src && python -m pytest tests/test_workers.py
-  tests/test_update_guard_work.py tests/test_api_jobs.py
-  tests/test_db_column_round_trip.py -q`, idle box, 148 s. Core 3 saw
-  the same failure in its GEN.407 gate (1:53 AM EDT start, 15,540
-  passed, 1 failed; passes alone 4 of 4). TODO thread reproduced it on
-  main a5acb516 (run 3:13 to 3:16 AM EDT, box idle, load 0.17): 66 passed, 1
-  failed, 203.86 s, the same assertion. Cause (Bug Hunt, 3:13 AM EDT as
-  the lane reported): `moons.evolutionary_speed` is None on every
-  lifeless moon (life.py:216, GEN.206), and the test galaxy's draws
-  shift with every generator change (GEN.103), so whether any moon has
-  life depends on the draw; the column joins the CHANCE list beside
-  life_chemical. Fixed on Bug Hunt's branch (passes, 51 s at 3:08 AM
-  EDT); retires on its merge.
-  Prerequisites: none. Related: TEST.213, TEST.208.
+- [ ] **TEST.218 `test_first_control_connections_at_once` leaves 3 idle connections open on `planetgen_test_*` when its fixture ends: the test should close its own connections (bug)**
+  Found by Core 1 (2026-10-17, 5:19 AM EDT as the lane reported, #1997
+  gate), filed by the TODO thread.
+  `src/tests/test_db_schema_race.py::test_first_control_connections_at_once`
+  leaves 3 idle connections (state Sleep, not from a pool) on
+  `planetgen_test_*` when its fixture ends; the new drop warning of
+  TEST.193 names them and ends them, so nothing hangs, but the test
+  should close its own connections. Do: the test closes the connections
+  it opens (in a finally or a fixture finalizer), and the drop warning
+  no longer names it in a full run. Done: a full run of the file prints
+  no drop warning for it, and a test asserts no connection of the test's
+  own stays open at the fixture's end. Fails on main: yes (after #1997).
+  Frequency: every full run (the warning is in the gate log).
+  Reproducer: `python -m pytest -q src/tests/test_db_schema_race.py` and
+  read the drop warning. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.193, TEST.208.
+
+- [ ] **TEST.219 Browser pages still have 1 to 7 requests running 8 s after the server stops: find what keeps them busy and make it faster**
+  Found by Core 1 (2026-10-17, 5:19 AM EDT as the lane reported, #1997
+  gate), filed by the TODO thread. The new TEST.193 warnings list
+  browser test files whose pages still had 1 to 7 requests running 8 s
+  after the server stopped: test_web_generate_alignment 7,
+  test_web_browser_controls 7, others 1 to 2. A request that is still
+  running 8 s after its page closed is worth a look by whoever owns the
+  Generate and map pages; kind perf under load (load average 6 to 8 from
+  other lanes), not blocking, and the same shape as the
+  `/api/galaxy/tiles` request Core 1 found holding the lock behind
+  TEST.193 (every tile piece at most 0.1 s, the request loops over many
+  tiles). Do: find which routes the leftover requests are (the warning
+  names the files, not the routes), time them alone and under load, and
+  either stop the work when the client has gone or make the loop
+  cheaper. Done: the warnings no longer list those files in a full run,
+  or each remaining request is named with the reason it runs long. Fails
+  on main: yes. Frequency: every full run. Reproducer: run
+  `scripts/test.py changed` with the browser files selected and read the
+  TEST.193 warnings. Owner: none proposed (a Generate and map page
+  owner).
+  Prerequisites: none. Related: TEST.193, TEST.195, PERF.88.
 
 ## USR: User accounts
 
