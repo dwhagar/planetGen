@@ -49,6 +49,12 @@
       "epoch": 10,
       "first_release": "8.0.1705",
       "reason": "Every Hill sphere (a star's, a pair's and a compact object's system perimeter and keep-out radius) reads the drawn galaxy's virial mass from its mass chain in place of the fixed Milky Way mass, so the stored perimeters differ per galaxy seed (GEN.400)."
+    },
+    {
+      "epoch": 11,
+      "first_release": null,
+      "pending": true,
+      "reason": "A Bok globule holds a protostar in 30% of clouds and a star-forming core one to four, built by the sectors the cloud reaches; a planetary nebula's central star has a close companion in 20%; a star's hosted-nebula roll comes from its own seed (GEN.320)."
     }
   ]
 }
