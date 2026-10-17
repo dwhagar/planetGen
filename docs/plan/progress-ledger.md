@@ -783,3 +783,4 @@ Baseline: PR #1817.
 | GEN.435 | 8.1 | Composition research and design |
 | GEN.436 | 8.1 | Composition research and design |
 | GEN.437 | 8.1 | Composition research and design |
+| DB.72 | 8.1 | Bugs and flaky tests |
