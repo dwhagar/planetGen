@@ -639,16 +639,27 @@ test("the wheel past the end of a window's zoom goes on into the block under the
   assert.equal(m.view.stage().win.centre.m, 27);
 });
 
-test("the wheel zooms about the view's one center, wherever the pointer is (MAP.199)", async () => {
+test("the wheel zooms toward the point under the pointer, which stays under it (MAP.225)", async () => {
   const m = await freeStage();
+  const screenOf = (point) => {
+    const ndc = new THREE.Vector3(point[0], point[1], point[2]).project(m.camera);
+    return [ndc.x, ndc.y];
+  };
   for (const [x, y] of [[560, 210], [260, 380]]) {
     const before = lastCamera(m);
+    const anchor = m.view.anchorUnder(x, y);
+    assert.ok(anchor, "something is under the pointer");
+    const where = screenOf(anchor);
     m.view.onWheel(new FakeEvent("wheel", { deltaY: -120, clientX: x, clientY: y }));
     const after = lastCamera(m);
     assert.ok(after.dist < before.dist, "closer");
-    assert.deepEqual(after.target, before.target, "the center stays put");
+    assert.notDeepEqual(after.target, before.target, "the center moved toward the pointer");
+    const now = screenOf(anchor);
+    assert.ok(Math.abs(now[0] - where[0]) < 1e-6 && Math.abs(now[1] - where[1]) < 1e-6, "the point stays where it is on the screen");
     m.view.onWheel(new FakeEvent("wheel", { deltaY: 120, clientX: x, clientY: y }));
-    assert.deepEqual(lastCamera(m).target, before.target, "and zooming out");
+    const back = lastCamera(m);
+    const off = Math.hypot(back.target[0] - before.target[0], back.target[1] - before.target[1], back.target[2] - before.target[2]);
+    assert.ok(off < 1e-6 * before.dist, "zooming out about it brings the center back: " + off);
   }
 });
 
