@@ -584,6 +584,22 @@ class SettingsChanges(Body):
     expect_hash: Optional[StrictStr] = None
 
 
+class BackupRestore(Body):
+    """`POST /api/admin/backups/<name>/restore`: the parts to restore (all when `null`) and the settings file's
+    `file_hash` the page was drawn from."""
+
+    parts: Optional[List[StrictStr]] = None
+    expect_hash: Optional[StrictStr] = None
+
+
+class SettingsImport(Body):
+    """`POST /api/admin/settings/import`: an export's `settings` object, checked only with `check_only`."""
+
+    document: Dict[StrictStr, Any]
+    expect_hash: Optional[StrictStr] = None
+    check_only: StrictBool = False
+
+
 class NamingKeyChange(Body):
     """`POST /api/admin/naming-key`: a key, or `draw`."""
 

@@ -160,6 +160,28 @@ restores the whole archive or only the parts named; a part this build has no
 provider for is skipped and reported, and the archive keeps it. The galaxy database is
 not in an archive: it is regenerated from its seed or repaired from parity.
 
+### The backups screen, export and import
+
+`/admin/settings/backups` (ADM.85; a link on the settings page) is the one screen for
+archives. It lists them newest first (when, who, why, which parts and how big), and
+**Back up now** makes one of every part. **Compare and restore** opens an archive: it
+is checked against its hashes, the settings part is compared with today's
+`config.json` (every option a restore would change, a secret as `(changed)`, a backup
+that no longer fits the model refused with the reason), and the parts ticked are
+restored: the whole archive, or one part. The restore makes a safety archive of what
+it replaces first, writes a `config.restore` audit row per changed option and a
+`backup.restore` row, and from the web puts back only the options an admin may change.
+**Download** is the Owner's, from 8.2 (an archive holds every secret); until then
+archives are read on the server.
+
+**Export** downloads the options set in `config.json` that an admin may change, as
+JSON in the file's own layout with `config_version`: never a secret and never a
+command-line-only option. **Import** takes such a file and checks it exactly as an
+edit is checked (each option's role, type and range; unknown keys and keys an admin
+may not set are errors; a file from a newer release is refused), shows the review
+diff, and saves it as `config.import` with a backup first. It sets the options the
+file names and leaves every other option as it is; one bad value changes nothing.
+
 ## Options
 
 The table is generated from the settings model (`src/planetgen/util/settings.py`, ADM.42); change an option there and run `python3 -m planetgen.cli.config docs`. Next to each option: its type, default, whether a change applies at once or after a restart, who may change it from the web ("command line only" means on the server only) and the environment variable that overrides it.

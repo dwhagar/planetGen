@@ -176,7 +176,9 @@ def _form_page(view, submitted=None, errors=None, message=None, error=None, stat
     return response
 
 
-def _review_page(view, plan, changes, expect_hash):
+def _review_page(view, plan, hidden, confirm_url=None, heading="These changes will be saved",
+                 button="Save these changes", back_url=None):
+    """The diff before a save. `hidden` is the `(name, value)` fields the confirming form posts to `confirm_url`."""
     titles = _titles(view)
     rows = [dict(change, title=titles.get(change["path"], change["path"]), old_text=_show(change["old"]),
                  new_text=_show(change["new"])) for change in plan["changes"]]
@@ -186,7 +188,8 @@ def _review_page(view, plan, changes, expect_hash):
         description="The changes a save would make to config.json.",
         rows=rows, shadowed={titles.get(path, path): var for path, var in plan["shadowed"].items()},
         restart=[titles.get(path, path) for path in plan["restart"]],
-        changes_json=json.dumps(changes, sort_keys=True), expect_hash=expect_hash,
+        hidden=hidden, confirm_url=confirm_url or url_for("web.admin_settings"), heading=heading, button=button,
+        back_url=back_url or url_for("web.admin_settings"),
     )
 
 
@@ -244,7 +247,8 @@ def admin_settings():
                           error="Nothing was saved: fix the settings marked below.")
     if not plan["changes"]:
         return _form_page(view, submitted=submitted, message="Nothing to change: every value is as it was.")
-    return _review_page(view, plan, changes, view["file_hash"])
+    return _review_page(view, plan, [("action", "save"), ("expect_hash", view["file_hash"]),
+                                     ("changes", json.dumps(changes, sort_keys=True))])
 
 
 def _save(cookie_header, view):

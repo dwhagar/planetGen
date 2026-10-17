@@ -816,6 +816,29 @@ forced credential change. They back the admin stats page
   since `expect_hash` or one that can't be written is a 409. One
   `config.update` audit row per changed option. The Owner's and the command
   line's options are refused with their reason until accounts (8.2).
+- `GET /api/admin/backups` — the backup archives (ADM.85): `{"problem",
+  "archives": [{"name", "taken_at", "taken_by", "reason", "version", "size",
+  "complete", "readable", "parts": [{"name", "label", "size", "files",
+  "known"}]}], "kept", "parts": [{"name", "label"}], "can_download",
+  "file_hash"}`. `POST /api/admin/backups` (`{}`) makes one now, of every
+  part (`backup.take` audit row; 409 when the folder can't be written).
+  `GET /api/admin/backups/<name>` is one archive with `verified`,
+  `problems` and `diff`: what restoring its settings part would change
+  (the shape of the settings plan; secrets as `(changed)`; `errors` when the
+  backup no longer fits the model). `POST /api/admin/backups/<name>/restore`
+  `{"parts": ["settings"] or null for all, "expect_hash": "..."}` restores
+  after verifying, taking a safety archive first (`safety` in the answer),
+  with a `config.restore` row per changed option and a `backup.restore` row;
+  a part this build can't restore is in `skipped`. 409 for a damaged archive,
+  a backup that doesn't fit, or a settings file changed since `expect_hash`.
+  `GET /api/admin/backups/<name>/download` is the archive file and is the
+  Owner's (403 for an admin until accounts, 8.2).
+  `GET /api/admin/settings/export` — the options set in config.json that an
+  admin may change, as the file's own JSON, without secrets or
+  command-line-only options. `POST /api/admin/settings/import`
+  `{"document": {...}, "expect_hash", "check_only"}` checks an export like an
+  edit (the settings plan's answer; `request` holds the changes) and, unless
+  `check_only`, saves it as `config.import`.
 - `GET /api/admin/lockouts` — every address and username locked right
   now: `{"items": [{"scope", "subject", "retry_after", "locked_until",
   "level"}], "proxy_warning"}`. `proxy_warning` is true when the site
