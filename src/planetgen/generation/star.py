@@ -243,6 +243,7 @@ class Star(LazySaladName):
     below it so the star's class stays true. None otherwise."""
 
     _model_age_lifespan = None
+    _model_fe_h = None
 
     reflex_offset_x = reflex_offset_y = reflex_offset_z = 0.0
     """
@@ -938,6 +939,9 @@ class Star(LazySaladName):
         # GEN.158: [Fe/H], from its own stream so no older draw moves.
         self.metallicity_fe_h = kwargs.get('metallicity_fe_h')
         if self.metallicity_fe_h is None:
+            # A horizontal-branch star's [Fe/H] was drawn with its colour (GEN.286).
+            self.metallicity_fe_h = self._model_fe_h
+        if self.metallicity_fe_h is None:
             self.metallicity_fe_h = metallicity.sample_fe_h(
                 getattr(self.system_config, "POPULATION", None),
                 constants.GALACTIC_CENTER_DISTANCE_LY if self.galactic_center_dist_ly is None
@@ -1084,11 +1088,13 @@ class Star(LazySaladName):
         any star at least that bright.
         """
         age_bias = self.system_config.AGE
+        population = getattr(self.system_config, "POPULATION", None)
+        fe_h_peaks = getattr(self.system_config, "FE_H_PEAKS", None)
         state = None
         if initial_mass_sol is not None:
             initial_mass_sol = max(initial_mass_sol, tuning.IMF_BREAKS_SOL[0])
             age = age_gy if age_gy is not None else sample_star_age_gy(age_bias)
-            state = evolve_star(initial_mass_sol, age)
+            state = evolve_star(initial_mass_sol, age, population=population, fe_h_peaks=fe_h_peaks)
             # A companion of a specified-type primary takes a fraction of
             # that star's present mass, which can be heavy enough to have
             # collapsed already at the pair's age. Lighten it until it is
@@ -1096,7 +1102,7 @@ class Star(LazySaladName):
             # one age (GEN.53).
             while state is None and initial_mass_sol > tuning.IMF_BREAKS_SOL[0]:
                 initial_mass_sol = max(initial_mass_sol * 0.8, tuning.IMF_BREAKS_SOL[0])
-                state = evolve_star(initial_mass_sol, age)
+                state = evolve_star(initial_mass_sol, age, population=population, fe_h_peaks=fe_h_peaks)
         if state is None:
             # No companion given.
             habitable_host = self.system_config.HABITABLE_WORLD is True or self.system_config.INTELLIGENT_LIFE is True
@@ -1105,8 +1111,8 @@ class Star(LazySaladName):
             try:
                 initial_mass_sol, age, state = sample_living_star(
                     age_bias, self.system_config.LARGE_STAR, habitable_host=habitable_host,
-                    population=getattr(self.system_config, "POPULATION", None),
-                    max_luminosity_sol=max_luminosity_sol, max_mass_sol=max_mass_sol)
+                    population=population, max_luminosity_sol=max_luminosity_sol, max_mass_sol=max_mass_sol,
+                    fe_h_peaks=fe_h_peaks)
             except ValueError:
                 if not (self.system_config.LARGE_STAR and (max_luminosity_sol is not None
                                                            or max_mass_sol is not None)):
@@ -1118,8 +1124,8 @@ class Star(LazySaladName):
                 log.choice("Large star", "dropped", "none within the sector's star limits")
                 initial_mass_sol, age, state = sample_living_star(
                     age_bias, None, habitable_host=habitable_host,
-                    population=getattr(self.system_config, "POPULATION", None),
-                    max_luminosity_sol=max_luminosity_sol, max_mass_sol=max_mass_sol)
+                    population=population, max_luminosity_sol=max_luminosity_sol, max_mass_sol=max_mass_sol,
+                    fe_h_peaks=fe_h_peaks)
 
         self._apply_params(star_params(initial_mass_sol, age, state))
         log.choice("Star", self.type, f"population model: initial mass {initial_mass_sol:.3g} Msun, "
@@ -1137,6 +1143,7 @@ class Star(LazySaladName):
         self.initial_mass_sol = params["initial_mass_sol"]
         self.phase_end_age_gy = params["phase_end_age_gy"]
         self._model_age_lifespan = (params["age_gy"], params["lifespan_gy"])
+        self._model_fe_h = params.get("metallicity_fe_h")
 
     @classmethod
     def from_params(cls, params, system_config, name=None, **kwargs):
