@@ -145,11 +145,14 @@ class SupernovaRemnant(LazySaladName):
         self._init_salad_name(name)  # drawn on first read (PERF.43)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
-        is_type_ia = draw.random() < tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE
+        type_ia_chance = getattr(system_config, "TYPE_IA_SHARE", None)
+        if type_ia_chance is None:
+            type_ia_chance = tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE
+        is_type_ia = draw.random() < type_ia_chance
         self.progenitor_type = "Type Ia" if is_type_ia else "core-collapse"
         log.choice("Supernova progenitor type", self.progenitor_type,
-                   f"roll against SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE "
-                   f"({tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE})")
+                   f"roll against the Type Ia share of the place ({type_ia_chance:.3f}; the solar circle's is "
+                   f"SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE, {tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE})")
 
         (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
          self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \

@@ -34,6 +34,12 @@
       "epoch": 7,
       "first_release": "8.0.1687",
       "reason": "The clusters and the satellite galaxies place their own bright and massive stars and phenomena from their profiles, and bright stars take the satellite population (GEN.324)."
+    },
+    {
+      "epoch": 8,
+      "first_release": null,
+      "pending": true,
+      "reason": "A sector's supernova remnants are Type Ia with the share of their place (the profile's type_ia_share) instead of the constant, and the planetary nebula factor follows the old-star share (GEN.319)."
     }
   ]
 }

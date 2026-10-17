@@ -338,7 +338,7 @@ connectivity to that specific schema rather than the default one.
   `share`, `age_gy` as `[youngest, oldest]`, `fe_h` as `[weight, mean, sigma]` peaks, `dispersion_kms`, `rotation`),
   `gas` (`cold_fraction`, `ambient`, `ambient_density_cm3`, `mass_solar`, and `superbubble`: `null` or the cavity's
   `radius_pc`, `ambient_density_cm3`, `temperature_k`, `center_pc`, `centre_distance_pc`), `dark_matter`
-  (`density_solar_pc3`, `mass_solar`), `kind_factors` (kind -> the factor the place applies to that kind's rate per star),
+  (`density_solar_pc3`, `mass_solar`), `kind_factors` (kind -> the factor the place applies to that kind's rate per star), `type_ia_share` (the share of the place's supernova remnants that are Type Ia; 1 where no young stars are),
   `sector_id` (the generated sector there, or `null`), `in_galaxy` (as in `/api/galaxy/cell`) and `unresolved` (as on a
   sector: what a cell above the cell star ceiling leaves unresolved, else `null`) and `estimate` (UX.113: what filling this one
   cell would make and take, from this server's stored speeds and sizes: `systems`, `stars`, `bytes`, `seconds`, and
