@@ -4,7 +4,7 @@ Part 01 of the v9.0 atmosphere and composition notes (research worker output; th
 
 ## 0. Provenance and which domains worked
 
-Worked: export.arxiv.org PDFs (2009.02277 Lisse et al. 2021, 2309.05078 Grundy et al. 2024, astro-ph/0511136 Visscher et al. 2006, 2410.11138 Lodders and Fegley 2024, 1312.3750 Gao et al. 2014; 1104.2131, 2103.15978 and 2209.03513 were fetched but supply no number here); pypi.org and files.pythonhosted.org wheels (chemicals 1.5.2, thermo 0.6.1, periodictable 2.1.0, cantera data files nasa_gas.yaml and nasa_condensed.yaml); webbook.nist.gov (species pages and the fluid server: saturation tables, 1e-4 MPa isotherms, Z points); exomol.com partition-function files (*.pf); ntrs.nasa.gov (Blakley et al. 2025, equilibrium vapour pressures of NH3 and O2 ices). Refused or not reached: ScienceDirect (Fray and Schmitt 2009), NIST SRD 156, journals. Downloaded files were read as data only; Python reading them ran under -I.
+Worked: export.arxiv.org PDFs (2009.02277 Lisse et al. 2021, 2309.05078 Grundy et al. 2024, astro-ph/0511136 Visscher et al. 2006, 2410.11138 Lodders and Fegley 2024, 1312.3750 Gao et al. 2014; 1104.2131, 2103.15978 and 2209.03513 were fetched but supply no number here); pypi.org and files.pythonhosted.org wheels (chemicals 1.5.2, thermo 0.6.1, periodictable 2.1.0, cantera data files nasa_gas.yaml and nasa_condensed.yaml); webbook.nist.gov (species pages and the fluid server: saturation tables, 1e-4 MPa isotherms, Z points); exomol.com partition-function files (*.pf); ntrs.nasa.gov (Blakley et al. 2024 (PSS 244, 105863, arXiv:2403.09917; NASA NTRS record dated 2025), equilibrium vapour pressures of NH3 and O2 ices). Refused or not reached: ScienceDirect (Fray and Schmitt 2009), NIST SRD 156, journals. Downloaded files were read as data only; Python reading them ran under -I.
 
 Cp tags: J JANAF 1998 (chemicals), N NASA-7 (cantera), S Shomate, f NIST fluid at 1e-4 MPa, x NASA-7 extrapolated below its 200 K range (unreliable), C computed 5R/2, P Poling polynomial. Phase-point tags: h heos_constants (EOS values), e NIST EOS table, n NIST WebBook median, y Yaws, c CRC; "sub" marks a sublimation point at 101325 Pa. Row counts by label are in section 15.
 
@@ -429,15 +429,15 @@ ln(P/bar) = A0 + A1/T + ... + A6/T^6, transcribed from SOM Table 2 of Lisse et a
 
 ### 7.3 T10: laboratory curves versus F and S at low temperature
 
-ln(p/bar) = A - B/T + C ln T + D2 T + D3 T^2 + D4 T^3 from Grundy et al. 2024 (arXiv:2309.05078 Table 2: alpha-N2, beta-N2, alpha-CO, beta-CO, CH4 I) and Blakley et al. 2025 (NTRS 20250005811 Table 1: NH3, beta-O2), READ. Script check against the Grundy reference pressures at T0: alpha-N2 at 27 K 0.79e-9 bar (listed 0.76), alpha-CO at 31 K 1.66e-9 (1.64), CH4 I at 37 K 0.48e-9 (0.43), so the transcribed coefficients reproduce Grundy's Table 1 reference pressures within 11%. F and S exceeds the lab curves by up to 1.4 to 2.3 (alpha-N2, 25 to 33 K), 1.9 (CH4, 30 K), 4 (beta-O2, 24 K) and 6 (alpha-CO, 31 K); they agree near 60 K (CO) and 70 K (CH4), and within 12% at 40 K (O2). Prefer the lab curves for bodies colder than 40 K.
+ln(p/bar) = A - B/T + C ln T + D2 T + D3 T^2 + D4 T^3 from Grundy et al. 2024 (arXiv:2309.05078 Table 2: alpha-N2, beta-N2, alpha-CO, beta-CO, CH4 I) and Blakley et al. 2024 (PSS 244, 105863, arXiv:2403.09917; NASA NTRS record dated 2025) (NTRS 20250005811 Table 1: NH3, beta-O2), READ. Script check against the Grundy reference pressures at T0: alpha-N2 at 27 K 0.79e-9 bar (listed 0.76), alpha-CO at 31 K 1.66e-9 (1.64), CH4 I at 37 K 0.48e-9 (0.43), so the transcribed coefficients reproduce Grundy's Table 1 reference pressures within 11%. F and S exceeds the lab curves by up to 1.4 to 2.3 (alpha-N2, 25 to 33 K), 1.9 (CH4, 30 K), 4 (beta-O2, 24 K) and 6 (alpha-CO, 31 K); they agree near 60 K (CO) and 70 K (CH4), and within 12% at 40 K (O2). Prefer the lab curves for bodies colder than 40 K.
 
 | Curve | Ratio lab / F and S | Status |
 |---|---|---|
 | alpha-N2 lab/F&S (Grundy 2024) | 25 K: 0.72; 27 K: 0.61; 30 K: 0.51; 33 K: 0.43 | READ |
 | alpha-CO lab/F&S (Grundy 2024) | 31 K: 0.17; 40 K: 0.38; 50 K: 0.70; 60 K: 1.02 | READ |
 | CH4 I lab/F&S (Grundy 2024) | 30 K: 0.52; 37 K: 0.65; 50 K: 0.83; 70 K: 1.01 | READ |
-| beta-O2 lab/F&S (Blakley 2025) | 24 K: 0.24; 30 K: 0.46; 40 K: 0.88 | READ |
-| NH3 lab/F&S (Blakley 2025) | 100 K: 0.68; 150 K: 0.92; 195.49 K: 1.05 | READ |
+| beta-O2 lab/F&S (Blakley 2024) | 24 K: 0.24; 30 K: 0.46; 40 K: 0.88 | READ |
+| NH3 lab/F&S (Blakley 2024) | 100 K: 0.68; 150 K: 0.92; 195.49 K: 1.05 | READ |
 
 ### 7.4 New entries: NH3, H2S, NH4SH, HCN, C2H6, H2SO4
 

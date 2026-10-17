@@ -2,6 +2,105 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1682] - 2026-10-17
+
+**Headline:** The Tunable gaps investigation is merged and its findings filed: a shared tuning harness, five selection models and seventeen builder groups for the unsourced composition weights.
+
+### Changed
+
+- `docs/design/tunable-gaps.md` and the six worker reports in `docs/design/tunable-gaps-sources/` hold the result: of the 48 atmosphere rows with no sourced weight 5 are tunable draws, 14 tunable to a few constraints, 17 are derivations, 6 need a named source and 6 are design flags.
+- GEN.503 (the harness), GEN.504 to GEN.508 (the Kepler, mass-radius, JWST, comet and white-dwarf selection models) and GEN.509 to GEN.525 (builder groups B1 to B17) are filed in 9.0 phase 3; notes on GEN.472, GEN.478, GEN.480 to GEN.485, GEN.488, GEN.490 to GEN.494, GEN.498 and GEN.500 carry the bracket corrections, the named sources and the licences.
+- The six defaults of the report are Decided (composition-model.md section 4a item 11); the retention design note is corrected (Meni-Gallardo and Palle slope 5.77, no "under 0.1 bar" for TRAPPIST-1 b and c).
+
+TODO items resolved: none / Added: GEN.503 to GEN.525
+
+## [8.0.1681] - 2026-10-17
+
+**Headline:** The atmosphere lane's NH3 lifetime check and corrections are merged, and Boss's usability rule is in the atmosphere note.
+
+### Changed
+
+- `docs/design/atmosphere-composition.md` and its parts are synced with the lane: the NH3 photolysis lifetime is settled (default 1.5e-4 per s, range 1.3e-4 to 1.8e-4, activity factor 1.05 to 1.10; new part 10E), the cold-ice paper is Blakley 2024, and section 11 applies Boss's 3:02 AM EDT usability rule to the labels of the parts.
+- GEN.496, GEN.455 and GEN.501 carry the settled figures; GEN.470 carries the Span and Wagner CO2 equation and the 2026 back-condensation correction as lane-read; GEN.322 to GEN.324 carry Core 3's epoch plan (5, 6, 7).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1680] - 2026-10-17
+
+**Headline:** GEN.407 is retired after its merge, what it left out is filed as GEN.502, and the two gate test failures carry their investigation records.
+
+### Changed
+
+- GEN.407 (stellar tables check, #1985, generator epoch 4) is retired; GEN.502 holds what its PR did not build (the red giant time law as a function of core mass, the tip by metallicity, the branch duration against the observed horizontal-branch ratio) and GEN.301 waits for it.
+- TEST.217 now records that it fails on main in an order-dependent run and its cause; TEST.216 records its reproduction and cause.
+
+TODO items resolved: GEN.407 / Added: GEN.502
+
+## [8.0.1679] - 2026-10-17
+
+**Headline:** The giant-branch slope, horizontal-branch levels and colour table now match what the papers say, after a check of the stellar evolution tables.
+
+### Changed
+- **Red giant branch.** The time per unit of ln L now falls as L^-0.78, not L^-0.9: the old slope undercounted giants above 500 solar luminosities by a factor of two against the core-mass-luminosity fit. The halo scatter at a floor of 500 stores about 320,000 rows (it was 190,000), and 130,000 at 1,000 (it was 75,000). Both still agree with the evolutionary flux of an old population (now 1.7e-11 stars per year per solar luminosity, Buzzoni 1989).
+- **Horizontal branch.** Luminosity 35 to 50 solar luminosities (it was 40 to 60), so the branch is never in a scatter (floors are 50 and up); temperature ranges red 4,600 to 6,100 K, RR Lyrae 6,100 to 7,500 K; the [Fe/H] -1.5 colour row is 55% blue, 25% RR Lyrae, 13% red, 7% extreme.
+- A galaxy scattered before this has the old giant counts: `planetgen plan --redo-scatters mass luminosity` draws them again.
+
+generation-output: changed
+
+TODO items resolved: GEN.407. Added: none.
+
+## [8.0.1678] - 2026-10-17
+
+**Headline:** Boss's rule that verified and partly verified research is usable, and the verified source wins in a contradiction, is recorded for the composition tables.
+
+### Changed
+
+- `docs/design/composition-model.md` section 4a item 10 records the rule and section 4b gives the source column its verification states (verified, partly verified with its limit, open, stand-in); GEN.472 and GEN.478 carry the rule.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1677] - 2026-10-17
+
+**Headline:** The NH3 photolysis lifetime figures of the two research lanes are reconciled, and the activity factor becomes a research item.
+
+### Changed
+
+- The 5.6e3 s (quiet and active Sun mean) and 6.7e3 s (quiet Sun) figures are not a conflict; GEN.496 stores the quiet-Sun rate plus an activity factor per species, and GEN.455, `docs/design/atmosphere-composition.md` and section 15.1 of `docs/design/body-composition-research.md` say so.
+- New GEN.501 asks for the NH3 activity factor from the Huebner and Mukherjee rate tables.
+
+TODO items resolved: none / Added: GEN.501
+
+## [8.0.1676] - 2026-10-17
+
+**Headline:** The atmosphere research lane's check of Boss's second research note is merged into the design notes, and the affected items carry what changed.
+
+### Changed
+
+- `docs/design/atmosphere-composition.md` has findings 21 to 30, section 3c (148 sub-claims: 39 confirmed, 57 partly, 30 contradicted, 15 unsupported, 7 not reached), the second-note check as section 10 and the updated list of what Boss must research; the four detail parts 10A to 10D are in `docs/design/atmosphere-composition-parts/` and listed in `docs/design/README.md`.
+- 18 items (GEN.410, 412, 413, 414, 417, 422, 423, 443, 453, 455, 456, 459, 460, 470, 471, 496, 500) carry the corrections: cold-ice lab fits only inside their windows, no Rayleigh coefficient from the note, the published Band form with Atwell 2015 parameters, Mars and Titan figures, neutron share 2 to 7 percent, the Troe form, Venus K/U, the Thorngren fit and the licence corrections. The earlier "awaiting verification" wording on the notes of the second note is replaced.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1675] - 2026-10-17
+
+**Headline:** The Body composition lane's check of Boss's second research note is merged and six small items are filed.
+
+### Changed
+
+The lane checked 100 body-related claims of Boss's 2:11 AM EDT note (35 confirmed, 47 partly, 9 contradicted, 9 unverifiable) and its report is merged as section 15 and parts G1 to G4 of `docs/design/body-composition-research.md`. Filed: the comet population table (GEN.495), the photolysis lifetime table (GEN.496), the cold-end vapour pressures (GEN.497), one oxygen-fugacity scale (GEN.498), the lava-world vapour mean molar mass (GEN.499) and the licence audit (GEN.500). Corrections are noted on GEN.410, 427, 438, 442, 451, 452, 455, 456, 457, 459, 460, 464, 470, 471, 472 and DB.69.
+
+TODO items resolved: none / Added: GEN.495, GEN.496, GEN.497, GEN.498, GEN.499, GEN.500
+
+## [8.0.1674] - 2026-10-17
+
+**Headline:** Two test failures from the UX.114 gate are filed as bugs.
+
+### Changed
+
+Core 4's full gate of UX.114 failed twelve tests; ten were its own and are fixed in its branch, and two are not: `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` and `test_every_column_is_written` (the `moons.evolutionary_speed` column), both of which pass alone on main and failed only in the full parallel run. They are filed under the test-failures goal for the Bug Hunt.
+
+TODO items resolved: none / Added: TEST.216, TEST.217
+
 ## [8.0.1673] - 2026-10-17
 
 **Headline:** NAV.60 retired: what is nearby reads by the cell key.

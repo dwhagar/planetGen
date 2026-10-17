@@ -1,6 +1,6 @@
 # Body composition: research findings and the composition design (draft for the 9.0 headline)
 
-**Status (2026-10-17):** research result of GEN.432 and GEN.433 (the Body composition research lane), merged here by the TODO thread so that every lane has it in the repository. It feeds the designs GEN.426 (bulk), GEN.435 (stars), GEN.436 (radiation) and GEN.457 (small bodies and moons), the tables GEN.427, GEN.438 and GEN.439, and the generation chain of [composition-model.md](composition-model.md). Times in it are as the lane's clock reported. Section 15 says where the TODO thread placed each finding and cluster. The five decisions of section 5 are taken (Boss's card taps of 1:21 to 1:24 AM EDT, as the coordinator relayed them).
+**Status (2026-10-17):** research result of GEN.432 and GEN.433 (the Body composition research lane), merged here by the TODO thread so that every lane has it in the repository. It feeds the designs GEN.426 (bulk), GEN.435 (stars), GEN.436 (radiation) and GEN.457 (small bodies and moons), the tables GEN.427, GEN.438 and GEN.439, and the generation chain of [composition-model.md](composition-model.md). Times in it are as the lane's clock reported. Section 16 says where the TODO thread placed each finding and cluster. The five decisions of section 5 are taken (Boss's card taps of 1:21 to 1:24 AM EDT, as the coordinator relayed them).
 
 Draft of 2026-10-17 (written between 12:00 AM and 1:10 AM EDT as the lane clock reported; lane clocks drift). Research only; the TODO thread merged it into the repository. Requested by Boss (2026-10-16, 11:58 PM EDT): composition of planets, moons, stars and everything else becomes a joint headline of the atmosphere-colour release; every body gets composition figures based on actual science, not made up where it can be avoided; drawing density and other bulk figures first and filling in a fitting composition is fine, and so is building up from the most basic.
 
@@ -18,6 +18,7 @@ This is the **synthesis**. Five detailed parts (A to E) and a sixth check part (
 Built on the GEN.425 source check (`/mnt/project-files/reports/bulk-composition-sources-check-2026-10-17.md`, called G425 below), which already verified Seager 2007, Zeng and Sasselov 2013, Zeng 2016 and 2019, Fortney 2007, Lopez and Fortney 2014, Thiabaud 2015, Santos 2015 and Dorn 2015; the parts cite its sections and do not repeat that work. All five parts agree with G425 where they overlap (differences are listed in section 7).
 
 Reach: the first hours ran on a narrow proxy (arXiv, PyPI, raw GitHub); Boss widened it at about 12:02 AM EDT, after which the parts redid their NOT REACHED items. Still refused at the end: ADS, Science, Oxford Academic, ScienceDirect, A&A, Annual Reviews, Europe PMC, and the IOP and Elsevier full texts that sit behind bot checks. Labels used everywhere: READ (primary text read), 2ND-HAND (read in a citing paper or open-source code), COMPUTED (re-derived with Python from stated inputs), SNIPPET, RECALLED, NOT REACHED.
+
 
 
 
@@ -118,6 +119,7 @@ All read from the repo main of 2026-10-17 by the parts. Each is a failure the re
 | F8 | `SNOW_LINE_AU_AT_1_LSUN = 2.7` | It is the 170 K blackbody value (derivation in G425 2.12); real snow lines move by a factor of 2 to 3 (about 0.2 dex), so a fixed value per star is a simplification | design | C 2.1, D 2.4 |
 | F9 | Thorngren citation | arXiv:1511.07442 in notes is not Thorngren et al. 2016; the paper is arXiv:1511.07854 | docs | C 2.6 |
 | F10 | `validation.py` re-run | Recalculation after orbit validation redraws albedo, greenhouse and the mix (trace 2026-10-17); relevant here because composition must not be redrawn either | design | trace |
+| F11 | `generate_asteroid_composition`, `ASTEROID_COMPONENTS` | Belt composition is four names drawn uniformly from an 84-name list mixing elements, major minerals, rare minerals and aromatic hydrocarbons, independent of the star, distance or snow line; belt density is a separate uniform draw (details in 14.5) | large | D 2.3 to 2.5, R1 |
 
 ## 7. Differences found between sources, and the call made
 
@@ -334,7 +336,76 @@ Boss's point: anything an asteroid field or belt can be made of, a planet or moo
 
 Work items: one components-table loader and name mapping (cluster 2), one mixture storage for all bodies (cluster 1, replacing `asteroid_belt_composition` and the planet composition text), one gate evaluator with the condition predicates (cluster 7), one thresholded text writer (cluster 12); the stand-ins of 14.4 apply to the vocabulary's first weights.
 
-## 15. Where the TODO thread placed the findings and the clusters
+## 15. Boss's second research note, body claims (2:11 AM EDT): checked
+
+Four read-only checks, one per topic, each with a verdict table, the figures to keep and an unreachable list: [G1 comets](body-composition-parts/G1-comets.md), [G2 radiogenic ratios and Thorngren](body-composition-parts/G2-radiogenic-thorngren.md), [G3 magma ocean and lava worlds](body-composition-parts/G3-magma-ocean-lava.md), [G4 ices, brines and licences](body-composition-parts/G4-ices-brines-licences.md). Scripts and tables: `parts/G-files/`. The atmosphere lane has the remaining sections of the note (optics, haze, particles, photochemistry).
+
+| Check | Rows | Confirmed | Partly | Contradicted | Unverifiable |
+|---|---|---|---|---|---|
+| G1 comets | 31 | 17 | 9 | 2 | 3 |
+| G2 radiogenic, Thorngren | 17 | 3 | 12 | 1 | 1 |
+| G3 magma ocean, lava | 26 | 5 | 16 | 3 | 2 |
+| G4 ices, brines, licences | 26 | 10 | 10 | 3 | 3 |
+| **Total** | **100** | **35** | **47** | **9** | **9** |
+
+A row is CONFIRMED only when a source that was read gives the figure or one inside the claimed range. The note's `[cite: n]` tags point to nothing, so it is a pointer list, not a source.
+
+### 15.1 Corrections to the note that change the design
+
+| Topic | Note says | Found | Label | Part |
+|---|---|---|---|---|
+| NH3 photolysis lifetime at 1 AU | 2.5e4 s | quiet Sun about 6.5e3 to 6.7e3 s (Heays 2017 rate 1.5e-4 per s; Biver 2007); a quiet-and-active average of 1.8e-4 per s gives 5.6e3 s (atmosphere lane GEN.496, from Drozdovskaya 2023); literature range 5.4e3 to 7.7e3. Both lanes read the same data; the two figures differ by 1.2 because one is the quiet Sun and one is a quiet/active mean. Store the quiet-Sun rate plus an activity factor | READ + COMPUTED | G1 |
+| NH3 sub-mm line | 1.15 mm | none; ground rotational line 572.498 GHz (0.524 mm), inversion lines about 1.3 cm | READ | G1 |
+| Comet ranges | CO 0.5 to 30, CO2 2 to 20, HCN 0.05 to 0.5 percent | CO 0.3 to 26 (0.15 for 103P), CO2 2 to 30, HCN from 0.03 | READ | G1 |
+| Lifetimes | one value per species | quiet-Sun values; active Sun shortens H2O by 1.7 and CO2 by 2.35; "scale by stellar UV" is species-specific, not one scalar (cool-star CO falls by 3.5e-4, CH4 by about 80, NH3 barely) | COMPUTED | G1 |
+| Comet class | dynamical class replaced by chemistry | class is a weak predictor: only CO separates (28 percent of variance, p = 0.035); continuous log-normals plus a carbon-chain-depleted flag is the parametrisation | READ + PARAMETRISATION | G1 |
+| Venus K/U | 10 to 13, "Earth-like, confirmed by Venera" | not supported: Venera 8 and Vega give K/U 5.9 to 15 (x10^3), Th/U 2.3 to 3.0, errors 40 to 130 percent | 2ND-HAND | G2 |
+| Mercury Th/U | 3.5 to 4.0 | 2.4 +/- 0.9 (K 1150, Th 220 ppb, U 90 ppb; abstract only) | SNIPPET + COMPUTED | G2 |
+| Earth and Moon ratios | MORB Th/U 3.7 to 4.0; Moon K/U 2.5 to 3.0 | MORB Th/U about 3.0 (part E keeps 3.04), K/U 12.7e3; Moon K/U about 2.3e3 | 2ND-HAND | G2 |
+| Stellar Th, U | metal-poor stars have higher [Th/Fe], [U/Fe] | Th/Fe rises as [Fe/H] falls only inside +/- 0.1 dex of solar (slope -0.338 +/- 0.049); U is not measured in disc stars | READ | G2 |
+| Thorngren 2016 | Z_p/Z_star exponent 0.45 to 0.55, "atmospheric" metallicity | exponent -0.45 +/- 0.09, prefactor 9.7; Z is the bulk heavy-element fraction (upper limit on atmosphere Z); sample starts near 19 Earth masses | READ | G2 |
+| Mass-Z law | (part C) 57.9 (M/MJ)^0.61, 0.26 dex | confirmed twice; own re-fit 55.6 (M/MJ)^0.60 with 0.32 dex raw rms | READ + COMPUTED | G2 |
+| QFM against IW | Delta-IW +2 equals QFM | QFM is IW + 3.1 to 3.6 (1 bar, 2200 to 1500 K) and +3.4 to 4.0 (1 GPa); CO2 > CO crossover is IW + 1.0 to 1.4, so the "+2" boundary is right but is not QFM | COMPUTED | G3 |
+| Carbon in reduced melt | experiments Delta-IW -1.4 to -4.7, CH4 | the cited papers are models; -4.7 appears only in N2 experiments; reduced melts hold mainly CO, CH4 needs water; gas CH4 is minor above 2000 K | 2ND-HAND | G3 |
+| Solubility laws | linear in NBO/T, exp(-Delta-IW) | exponential in NBO/O (Iacono-Marziano 2012), mass action gives 10^(-0.5 Delta-IW); the note's forms are schematic | 2ND-HAND | G3 |
+| Lava-world vapour | Na and K dominate to 2200 K; mean mass 40 to 60 g/mol | Na dominates to 2700 to 2800 K; mean molar mass about 25 near 2000 K and 33 near 3000 K | COMPUTED | G3 |
+| Sossi 2020 scale | Earth at IW + 0.5 | the same gas ratios are Delta-IW 0.0 on the Hirschmann 2021 scale; the IW reference must be fixed in the generator, +0.5 is a Sossi-scale calibration target only | COMPUTED | G3 |
+| Cold-ice vapour pressure | Blakley 2024, Grundy 2024, factor 1.6, "9.2 kJ/mol" | Blakley 2024 (O2, NH3 only), Grundy 2024 (N2, CO, CH4); a 2026 Grundy preprint multiplies all five by 1.19 +/- 0.03; 9.2 percent is the enthalpy excess (about 10.1 kJ/mol), not 9.2 kJ/mol | READ | G4 |
+| CO2 solid EoS | Jager and Span: 0 to 800 K, 12 GPa | that range belongs to Trusler 2011; use Span and Wagner eq. 3.12 for sublimation (842.65 Pa at 150 K, 103971 Pa at 195 K, test targets) | READ | G4 |
+| H2 | non-condensable above 10 K | H2 freezes below 13.96 K; Tc 33.145 to 33.18 K; HD Tc 35.908 K | READ | G4 |
+| CO2 hydrate Q1 | 271.60 K, 1.044 +/- 0.002 MPa | 271.60 K and 1.044 MPa is Semenov 2023 with +/- 0.021 MPa; Q2 283.13 K, 4.494 MPa | READ | G4 |
+| Licences | NIST, JPL 19-5 free | NIST SRD is copyrighted (permission needed); JPL 19-5 is "protected by copyright, US government purpose use rights"; only the 2013 Mainz snapshot states CC BY 4.0; Leiden, Bremen, Karkoschka state none | READ | G4 |
+
+### 15.2 What changes in this draft and in parts A to F
+
+1. **Part D 3.4.2, comet volatile draw:** replace "log-normal around 67P, sigma 0.5 dex" by the comet-population table of G1 (CH3OH population geometric mean about 1.9 percent against 0.21 at 67P; CH4 0.68 against 0.34; real scatter 0.22 to 0.37 dex, CO 0.64 dex). 67P stays as a test target. Interstellar-object CO/H2O range widens (3I/ATLAS 1.65). Table T16 takes the G1 ranges.
+2. **Part F item F1 (vapour pressures):** for N2, CO, CH4, O2 and NH3 take the cold end from the QCM-corrected tables of G4 (F&S is up to about 15 times too high for CO near 25 K); CO2 from Span and Wagner eq. 3.12 (F&S set 1 is 7 percent off at 125 K and 41 percent at 100 K). The part F transcription of N2-1, CO-1 and CH4-1 agrees to 0.5 percent with the F&S curves in the Grundy 2024 data package (relabel READ + COMPUTED). Constants C and D2 to D4 for N2, CO and CH4 are curve-fit reconstructions (COMPUTED, valid only inside the fitted range).
+3. **Part F item F2 (magma-ocean redox):** the generator fixes one IW scale (the Hirschmann 2021 one) and stores Delta-IW on it; Sossi's +0.5 for Earth is on his own scale. There is no published per-planet Delta-IW distribution; G3 F8 gives a labelled PARAMETRISATION built from Doyle 2019, Deng 2020, Guimond 2023 and the Rubie to Siebert range, and the stored quantities needed.
+4. **Part F item F3 (lava planets):** use VapoRock-type chemical-potential vapour equilibria; species and the 25 to 33 g/mol mean mass from G3 replace the note's range. LavAtmos is arXiv:2210.10463 (van Buchem, Miguel, Zilinskas, van Westrenen; 9 oxides, GPL-3.0); VapoRock is AGPL-3.0. Both are tools to read, not code to copy into the repo.
+5. **Part F item F5 (licences):** the claim that NIST, PubChem and USGS data are public domain is wrong for NIST SRD and unproven for PubChem and USGS. The licence column is mandatory: derived tables from NIST SRD, JPL 19-5, Leiden, Bremen and Karkoschka need permission or a re-derivation from the primary measurements. The full table is in G4.
+6. **Part E 3.3 (radiogenic draw):** keep x_Th sigma 0.22 dex as an upper bound (solar-twin scatter 0.05, pooled Th/Mg 0.10, Eu 0.16); add a mean shift with [Fe/H] (Th/Fe slope -0.34 dex per dex, Eu/alpha -0.16 to -0.23). `d_K` log-uniform 0.03 to 1 stays (observed bodies lie at 0.03 to 0.28). Keep part E's N-MORB Th/U 3.04. K/U and Th/U by reservoir are calibration targets with the scatters of G2, not presets.
+7. **Part C 2.6 (giants):** M_Z law unchanged; state that Z is bulk, not atmospheric; atmosphere Z is f Z_p with f about 0.2 for Jupiter and Saturn (Thorngren and Fortney 2019); add the raw 0.32 dex rms next to the 0.26 dex intrinsic figure; the core-mass placeholder (log-uniform 5 to 20 Earth masses) is supported by Chachan 2025 (14.7 Earth masses).
+
+### 15.3 New or changed work items
+
+| Title | Scope | Attaches to | Size |
+|---|---|---|---|
+| G-1 Comet population table | Species ranges and log-normal scatters (G1) replace the 67P-centred draw; carbon-chain-depleted flag | cluster for D | small |
+| G-2 Photolysis lifetime table | Species lifetimes at 1 AU for the quiet Sun, active-Sun factors, species-specific stellar-spectrum ratios; constants of the species table, not stored per body | species table | small |
+| G-3 Cold-end vapour pressure | QCM-corrected N2, CO, CH4, O2, NH3 and Span and Wagner CO2; extends F1 and its test (triple points plus the 1.19 correction as a switch) | F1, cluster 2 | small |
+| G-4 One IW scale | Fix the reference (Hirschmann 2021), store Delta-IW, convert Sossi and Frost buffers; test: CO2/CO and H2O/H2 ratios reproduce Sossi Eq. 4 | F2 | small |
+| G-5 Vapour mean mass | Lava-world vapour species and mean molar mass from T and composition | F3 | medium |
+| G-6 Licence audit | Licence column filled from G4; permission list for NIST, JPL, Leiden, Bremen, Karkoschka | F5 | small |
+
+### 15.4 Still unreachable (Boss must research), ranked
+
+1. Fray and Schmitt 2009 and Grundy 2024 main text with its constants C to D4 (G4); Jager and Span 2012 full text.
+2. Hirschmann 2016 Table 2 and Eguchi and Dasgupta 2018 (carbon solubility constants), Armstrong 2015 and Ardia 2013 originals, Duncan 2017 (G3).
+3. Venera 8, 9, 10 originals (Surkov), Peplowski 2011 full text, Hypatia download, Frank 2014, Delgado Mena 2019 (G2).
+4. Dello Russo 2016, Mumma and Charnley 2011, Bockelee-Morvan and Biver 2017, Huebner and Mukherjee 2015 (G1; the lifetime values come second-hand).
+5. Gough 2011 and Nuding 2014 (deliquescence relative humidity); the JPL copyright page (G4).
+
+## 16. Where the TODO thread placed the findings and the clusters
 
 Findings of section 6: F1 and F2 (radiogenic heat 37 to 50 percent high, the ground dose independent of the heat) are GEN.459 (8.4 phase 1); F3 (class D density) is a requirement and test target of GEN.428, GEN.429 and TEST.210; F4 (hydrosphere depth) is GEN.461 (8.4 phase 2); F5 (neutron-star radius floor, lifetime) are GEN.463 and GEN.467 (8.1 phase 1, with the stellar tables of GEN.407, Core 3 proposed); F6 is GEN.464 (solids law, 8.1 phase 3) and a note on GEN.405 (gradient); F7 (giant radius law) is GEN.460 (8.4 phase 1); F8 (snow line) is GEN.458 (8.4 phase 1); F9 (the Thorngren citation) is not in the repository; F10 is GEN.422.
 
@@ -342,4 +413,4 @@ Clusters of section 10: 1 schema is DB.69 and DB.70; 2 materials table is GEN.42
 
 Part F and section 13 (Boss's research note, checked by the lane at 1:28 AM EDT): F1 (the vapour-pressure function with its test) is GEN.470 (8.1 phase 2, with the tables) and GEN.452 reads it; F2 (the magma-ocean redox state per rocky planet) is folded into GEN.451 with the stored field in DB.69; F3 (lava-planet vaporisation) is GEN.456, which now follows GEN.451; F4 (clathrates and brines) is GEN.471 (8.4 phase 3); F5 (the licence column) is a requirement of GEN.427, GEN.410 and GEN.438. The three gap rows (Fray and Schmitt 2009 itself, Sossi 2020 beyond Earth with Gaillard and Hirschmann, ICRP 103) are on Boss's research list (section 8 rows 11 to 13). The supporting script and images of part F (`F-files/`) stay in /mnt/project-files/design-drafts/parts/ and are not committed.
 
-Section 14 (the weighted possibility tables, Boss, 1:40 AM EDT) is GEN.472 (the one gated format and loader) and TEST.214 (the sum test over every registered table), recorded in [composition-model.md](composition-model.md) section 4b. Its two decisions (Boss, 1:43 AM EDT, "Weights, Dirichlet where unsure", and 1:44 AM EDT, "Stand-in only") are in the same note, and the five stand-in replacements R1 to R5 of section 14.4 are GEN.473 (R1, the belt composition derived), GEN.474 (R2, rock types derived from the bulk oxides), GEN.475 (R3, meteorite groups as outputs), GEN.476 (R4, Al-26 and Fe-60 from the formation environment) and TEST.215 (R5, the calibration rows fenced into tests). The T1 to T23 inventory of section 14.2 is the list of tables GEN.472's loader receives, with the gate and weight of each. The asteroid belt and field code of section 14.5 (finding F11, tables E1 to E4) is GEN.477, with E3's field families folded into GEN.473; its stored shares are DB.70. Section 14.6 (one component vocabulary for every body) is the shared table of GEN.427 with its loader and name mapping, the one mixture storage of DB.69 and DB.70, the gate evaluator with the condition predicates in GEN.472, and the one thresholded text writer of GEN.430 and GEN.446 (the notes on those items).
+Section 14 (the weighted possibility tables, Boss, 1:40 AM EDT) is GEN.472 (the one gated format and loader) and TEST.214 (the sum test over every registered table), recorded in [composition-model.md](composition-model.md) section 4b. Its two decisions (Boss, 1:43 AM EDT, "Weights, Dirichlet where unsure", and 1:44 AM EDT, "Stand-in only") are in the same note, and the five stand-in replacements R1 to R5 of section 14.4 are GEN.473 (R1, the belt composition derived), GEN.474 (R2, rock types derived from the bulk oxides), GEN.475 (R3, meteorite groups as outputs), GEN.476 (R4, Al-26 and Fe-60 from the formation environment) and TEST.215 (R5, the calibration rows fenced into tests). The T1 to T23 inventory of section 14.2 is the list of tables GEN.472's loader receives, with the gate and weight of each. The asteroid belt and field code of section 14.5 (finding F11, tables E1 to E4) is GEN.477, with E3's field families folded into GEN.473; its stored shares are DB.70. Section 14.6 (one component vocabulary for every body) is the shared table of GEN.427 with its loader and name mapping, the one mixture storage of DB.69 and DB.70, the gate evaluator with the condition predicates in GEN.472, and the one thresholded text writer of GEN.430 and GEN.446 (the notes on those items). Section 15 (the check of Boss's second note, 100 claims) is recorded on GEN.451, GEN.456, GEN.459, GEN.460, GEN.470 and the licence column of GEN.410, GEN.427 and GEN.438, with six new small items: G-1 is GEN.495 (the comet population table), G-2 is GEN.496 (the photolysis lifetime table), G-3 is GEN.497 (the cold-end vapour pressures), G-4 is GEN.498 (one IW scale), G-5 is GEN.499 (the lava-world vapour mean mass) and G-6 is GEN.500 (the licence audit).

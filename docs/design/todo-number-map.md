@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.136 |
 | MAP | MAP.245 |
 | NAV | NAV.63 |
-| GEN | GEN.495 |
+| GEN | GEN.526 |
 | PERF | PERF.111 |
 | DB | DB.72 |
 | API | API.31 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.216 |
+| TEST | TEST.218 |
 | USR | USR.31 |
 | OPS | OPS.60 |
 | DOC | DOC.67 |
@@ -1058,7 +1058,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.404 | The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position | none | open |
 | GEN.405 | Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values | none | open |
 | GEN.406 | Research the population ages and velocity dispersions by component, the thick disk scaling and the stellar halo fraction so they become laws | none | open |
-| GEN.407 | Correct the horizontal-branch and red giant tables to the checked sources: the RGB time law, the evolutionary flux, the HB colour row, the extreme HB luminosity and the tip | none | open |
+| GEN.407 | Correct the horizontal-branch and red giant tables to the checked sources: the RGB time law, the evolutionary flux, the HB colour row, the extreme HB luminosity and the tip | none | done, PR #1985 |
 | GEN.408 | Research: verify the atmosphere sources and say what is missing | none | done, PR #1951 |
 | GEN.409 | The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model | none | open |
 | GEN.410 | One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention | none | open |
@@ -1146,6 +1146,37 @@ Parents marked "new parent" had no old number of their own.
 | GEN.492 | Source the ground radioisotope abundances by host and the potassium depletion by body class (AR13) | none | open |
 | GEN.493 | Source the initial-rotation distribution and the saturation time against stellar mass for the host-star UV regime (AR14) | none | open |
 | GEN.494 | Source the brown-dwarf type against temperature and the T/Y boundary near 500 to 700 K (AR15) | none | open |
+| GEN.495 | The comet population table: species ranges and log-normal scatters replace the draw centred on one comet, with a carbon-chain-depleted flag | none | open |
+| GEN.496 | The photolysis lifetime table: species lifetimes at 1 AU for the quiet Sun, the active-Sun factors and the species-specific stellar-spectrum ratios | none | open |
+| GEN.497 | The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve | none | open |
+| GEN.498 | One oxygen-fugacity scale for the generator: the reference fixed, delta-IW stored on it, and the buffers converted | none | open |
+| GEN.499 | The lava-world vapour species and mean molar mass from temperature and composition, replacing the heavy-oxide range of 40 to 60 g/mol | none | open |
+| GEN.500 | The licence audit: the licence column filled for every data source, and the permission list for NIST, JPL, Leiden, Bremen and Karkoschka | none | open |
+| GEN.501 | Source the activity factor of the NH3 photolysis rate from the Huebner and Mukherjee rate tables | none | open |
+| GEN.502 | The giant branch finishes the stellar tables check: the red giant time law as a function of core mass, the tip by metallicity and the branch duration against the observed horizontal-branch ratio | none | open |
+| GEN.503 | The shared tuning harness: a target table, a simulate-and-compare function and a loader that refuses a tunable row without a target | none | open |
+| GEN.504 | The Kepler transit-plus-recovery selection model | none | open |
+| GEN.505 | The mass-radius sample selection model | none | open |
+| GEN.506 | The JWST atmosphere target-selection model | none | open |
+| GEN.507 | The comet admission model by heliocentric distance | none | open |
+| GEN.508 | The white-dwarf pollution detection and settling model | none | open |
+| GEN.509 | Tuned draw builder B1: the radius valley and the envelope | none | open |
+| GEN.510 | Tuned draw builder B2: delivery and water worlds | none | open |
+| GEN.511 | Tuned draw builder B3: retention and lava worlds | none | open |
+| GEN.512 | Tuned draw builder B4: the iron branch | none | open |
+| GEN.513 | Tuned draw builder B5: redox and white-dwarf debris | none | open |
+| GEN.514 | Tuned draw builder B6: radioisotopes | none | open |
+| GEN.515 | Tuned draw builder B7: ground and petrology | none | open |
+| GEN.516 | Tuned draw builder B8: giant planets | none | open |
+| GEN.517 | Tuned draw builder B9: brown dwarfs | none | open |
+| GEN.518 | Tuned draw builder B10: the chemistry module | none | open |
+| GEN.519 | Tuned draw builder B11: aerosol amplitude | none | open |
+| GEN.520 | Tuned draw builder B12: the comet sampler | none | open |
+| GEN.521 | Tuned draw builder B13: belts | none | open |
+| GEN.522 | Tuned draw builder B14: moons and Kuiper belt objects | none | open |
+| GEN.523 | Tuned draw builder B15: host-star activity | none | open |
+| GEN.524 | Tuned draw builder B16: halogens and trace gases | none | open |
+| GEN.525 | Tuned draw builder B17: the design-flag registry | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2153,6 +2184,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.213 | `test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star` failed in a loaded browser run: the wheel loop opened the system before the disc reached full share (bug) | none | open |
 | TEST.214 | Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence | none | open |
 | TEST.215 | The Solar System calibration rows live in test files only: a flag fences them and a test fails when a generator table reads one | none | open |
+| TEST.216 | `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed in the full parallel gate: the nested system's `inside_nebula_id` was None, and it passes alone (bug) | none | open |
+| TEST.217 | `test_every_column_is_written` found a NULL in every row of `moons.evolutionary_speed` in the full parallel gate, and passes alone (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
