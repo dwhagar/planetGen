@@ -5754,7 +5754,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   owns every revision. Placed in Phase 2 before GEN.109,
   because the influence set sums the point mass of every object kind. No
   lane has it yet (Boss, 11:07 PM EDT: hand to TODO, nothing built).
-  Prerequisites: DB.55, GEN.336, GEN.337, GEN.372. Related: GEN.74,
+  Prerequisites: GEN.372. Related: GEN.74,
   GEN.109, GEN.223, GEN.289,
   GEN.290.
   Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
@@ -6546,39 +6546,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to switch to the perturbed pass, the cost estimate and the seeded
   black-hole test (2026-10-16 review).
   Prerequisites: none. Related: GEN.110, GEN.290.
-
-- [ ] **GEN.336 Compact and free objects hold a velocity vector and a mass: stars, black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants**
-  Split from GEN.294 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). These eight tables keep only the
-  scalar `galactic_orbital_speed_kms`. Done: generation writes the
-  vector and the mass (a field's or nebula's bulk mass, or a stated zero
-  that the gravity sum skips by rule); each table reads back into one
-  SpatialPosition3D through child a; rogue planets also carry
-  sector-relative offsets so collision tests difference small numbers
-  (absolute doubles are good to about 14 km at 8 kpc); the scalar column
-  is removed from the table, its model, the store, describe, edits,
-  sector_paths and the generators in the same PR (a small drop revision
-  from Core 1, no compatibility layer); the tables leave the allow-list.
-  Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
-  top 5 blockers, starting right after GEN.237 merges; estimates from
-  Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
-  Migration revision (Core 1, 2026-10-16, 6:13 PM EDT, renumbered 6:22
-  PM EDT after DB.54 merged as 0101): 0103, after 0102 (DB.55).
-  Prerequisites: DB.55. Related: GEN.294.
-
-- [ ] **GEN.337 Epoch, vector and mass for the rest: belts, quasars, comets, facilities, scatter points and members**
-  Split from GEN.294 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Belts and the quasar keep no
-  epoch or vector; comets, facilities, scatter points and members keep
-  no mass (members also no epoch). Done: each stores an epoch, a vector
-  (a stated zero for a body that does not move, such as the quasar) and
-  a mass (its own, the mass of what a facility sits on, or a stated
-  zero), reads back through child a's definition, the allow-list is
-  empty and the coverage test now fails for any table missing a part.
-  Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
-  top 5 blockers, starting right after GEN.237 merges; estimates from
-  Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
-  Prerequisites: DB.55, GEN.336. Related: GEN.294.
 
 - [ ] **GEN.338 The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests**
   Split from GEN.115 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -9732,35 +9699,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   GEN.294 chain).
   Migration revision (Core 1, 2026-10-16, 6:13 PM EDT): 0104, after
   0103 (GEN.336).
+  Status (Core 1, #1952, merged 2026-10-17, 12:04 AM EDT as the lane
+  reported): the first slice is on main, migration 0104 creates
+  orbit_nodes with the star and planet columns for a built system's
+  orbit tree; the rest of the DB.53 chain remains. The next revision is
+  0105 (DB.65), then DB.69, DB.67, DB.70 and DB.68 in the order they
+  merge.
   Prerequisites: none. Related: GEN.129.
-
-- [ ] **DB.55 One additive migration for the 8.3 schema: point columns for every kind, heaviest object per sector, asteroid-field provenance**
-  Split from GEN.294 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Core 1 owns every revision, and
-  four items of 8.3 each asked for columns on the same tables (GEN.294,
-  GEN.142's velocities, GEN.110's mass_kg and origin on asteroid_fields,
-  GEN.109's per-sector heaviest object). One revision, the next free
-  after 0098, adds them nullable and backfilled: x, y, z
-  (sector-relative, with the cell key where a table lacks it), vx, vy,
-  vz, mass_kg, epoch_unix and next_update_due wherever missing for black
-  holes, neutron stars, rogue planets, interstellar comets, asteroid
-  fields, belts, nebulae, remnants, quasars, comets, facilities and
-  scatter points and members (the vector backfilled from the scalar
-  speed as a tangential vector of the same speed, the mass by the stated
-  rule); `sectors.max_mass_kg` and `max_mass_id`;
-  `asteroid_fields.formed_at` and `origin_event_id`; the planet and moon
-  state columns GEN.289 needs (parent_type, parent_id, dynamical_state,
-  vector, mass_kg). The scalar speed columns and the circular phase
-  columns are dropped by the code items that stop reading them, each
-  with its own small revision from Core 1. Why: no other lane then edits
-  Alembic, and no two items add the same column. Done: the revision
-  applies on a galaxy at the previous head and on an empty one,
-  downgrades as the other revisions do, and the schema docs list the new
-  columns.
-  Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
-  top 5 blockers, starting right after GEN.237 merges; estimates from
-  Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
-  Prerequisites: none. Related: GEN.294.
 
 - [ ] **DB.56 The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings**
   Split from GEN.143 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -11324,6 +11269,11 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Sighting (Core 1's gate for #1952, 2026-10-16, about 11:59 PM EDT as
+  the lane reported; scripts/test.py changed, 83 min 56 s, 18,528
+  passed, 1 failed): the same
+  test_a_paused_queue_node_stands_by_until_resumed[2] failed once under
+  the gate and passed alone 3 of 3 (8 s each); no traceback was saved.
   Prerequisites: none. Related: TEST.111, TEST.123.
 
 - [ ] **TEST.129 Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug)**
