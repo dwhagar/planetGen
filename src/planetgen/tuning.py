@@ -826,6 +826,11 @@ METALLICITY_SATELLITE_PEAKS = ((1.0, -1.2, 0.5),)
 CELL_STAR_CEILING = 5_000.0
 """float: The default cell star ceiling, systems a cell expects before it is filled only down to the cap (14
 minutes of generation, 2.4 GB, at the measured 16.4 ms and 48 KiB a system)."""
+CELL_SECONDS_PER_SYSTEM = 0.02
+"""float: What generating one system of a crowded cell takes, seconds (measured with the galactic core's cells, GEN.364:
+about 20 ms), for the estimate beside the cell star ceiling on the Generate page."""
+CELL_BYTES_PER_SYSTEM = 48 * 1024
+"""int: What one generated system takes in the database, bytes (GEN.281's measurement, 48 KiB)."""
 FILL_LUMINOSITY_CAP_SOL = 100.0
 """float: The default fill luminosity cap, solar luminosities: the dimmest star a cell above the ceiling resolves.
 The lowest a cap can be is the brightest white dwarf (`WD_LUMINOSITY_RANGE_SOL`), the dimmest threshold the star
