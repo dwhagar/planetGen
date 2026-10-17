@@ -10,7 +10,7 @@ systems for the Milky Way) in place of GEN.78's flat 0.1% floor. It is half the 
 fifth to 340,000th of it at 20 to 262 kpc, and it changes no cell's chance of a star inside the outline.
 
 GEN.79: old disk and bulge giants reach the 1000 Lsun bright-star threshold
-(their short bright tip, `tuning.GIANT_TIP_FRACTION`), so a galaxy with a
+(the top of their branch, `tuning.GIANT_BRANCH_TIP_LUMINOSITY_SOL`), so a galaxy with a
 large bulge gets bright stars far above the plane (more than 485 pc).
 """
 

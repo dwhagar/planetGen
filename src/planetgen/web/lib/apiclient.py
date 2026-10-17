@@ -1023,6 +1023,26 @@ def admin_settings_save(cookie_header, changes, expect_hash=None):
     return body
 
 
+def admin_images(cookie_header):
+    """`GET /api/admin/images` -- each upload kind with the stored file in use (ADM.44)."""
+    body, _set_cookie_headers = _auth_request("GET", "/admin/images", cookie_header=cookie_header)
+    return body
+
+
+def admin_image_upload(cookie_header, kind, data_base64):
+    """`POST /api/admin/images/<kind>` -- stores the picture (base64 text) and saves the setting that names it;
+    a picture that can't be used raises `ApiError` (422) with the reason (ADM.44)."""
+    body, _set_cookie_headers = _auth_request("POST", f"/admin/images/{kind}", cookie_header=cookie_header,
+                                              json_body={"data": data_base64})
+    return body
+
+
+def admin_image_remove(cookie_header, kind):
+    """`DELETE /api/admin/images/<kind>` -- the built-in picture (or no icon) applies again (ADM.44)."""
+    body, _set_cookie_headers = _auth_request("DELETE", f"/admin/images/{kind}", cookie_header=cookie_header)
+    return body
+
+
 def admin_backups(cookie_header):
     """`GET /api/admin/backups` -- the backup archives, newest first, with their parts (ADM.85)."""
     body, _set_cookie_headers = _auth_request("GET", "/admin/backups", cookie_header=cookie_header)

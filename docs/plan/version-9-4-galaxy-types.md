@@ -54,7 +54,7 @@ Three independent families.
 |---|---|---|---|
 | GEN.385 | The irregular and dwarf families: a clumpy exponential or Sérsic body with young stars, and an old dwarf spheroid | GEN.369, GEN.380, GEN.381 | Step 5 of the galaxy types chain; reuses the satellite laws of GEN.369. |
 
-## Phase 3: Lenticular, populations, clusters and the home position
+## Phase 3: Lenticular, populations, clusters and the nucleus
 
 What reads the families.
 
@@ -76,11 +76,6 @@ What reads the families.
 |---|---|---|---|
 | GEN.387 | Globular clusters, the nuclear cluster and the central black hole follow the family's spheroid and halo | GEN.382, GEN.383, GEN.297, GEN.368 | Step 6 of the galaxy types chain. |
 
-### Home position
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| GEN.388 | The home position by family: one rule of the shape, with the spiral rule as the disk case | GEN.144, GEN.382, GEN.383 | Step 6 of the galaxy types chain. |
 
 ## Phase 4: Creation
 
@@ -90,7 +85,7 @@ The seed draws the family and the galaxy stores it.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.389 | Galaxy creation draws the family from the seed and stores it, with the family in the log, the API and the version check | GEN.384, GEN.386, GEN.387, GEN.388, GEN.385, GEN.382, GEN.383, DB.66 | Step 7 of the galaxy types chain. |
+| GEN.389 | Galaxy creation draws the family from the seed and stores it, with the family in the log, the API and the version check | GEN.384, GEN.386, GEN.387, GEN.385, GEN.382, GEN.383, DB.66 | Step 7 of the galaxy types chain. |
 
 ## Phase 5: Pages, tests and docs
 

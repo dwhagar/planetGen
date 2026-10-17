@@ -24,6 +24,8 @@
   {%- elif option.kind == 'list' %}
   <textarea id="opt-{{ key }}" name="opt.{{ option.path }}" rows="3" aria-describedby="{{ described }}"{% if option.error %} aria-invalid="true"{% endif %}>{{ option.shown }}</textarea>
   <span class="hint">One per line.</span>
+  {%- elif option.multiline %}
+  <textarea id="opt-{{ key }}" name="opt.{{ option.path }}" rows="6" aria-describedby="{{ described }}"{% if option.error %} aria-invalid="true"{% endif %}>{{ option.shown }}</textarea>
   {%- elif option.secret %}
   <input type="password" id="opt-{{ key }}" name="opt.{{ option.path }}" value="" autocomplete="new-password" placeholder="{{ 'Set; type to replace' if option.is_set else 'Empty; type to set' }}" aria-describedby="{{ described }}"{% if option.error %} aria-invalid="true"{% endif %}>
   {%- elif option.kind in ('int', 'float') %}
@@ -54,6 +56,7 @@
       {%- if 'le' in option.limits %} at most {{ option.limits.le }}{% endif -%}
       {%- if 'lt' in option.limits %} less than {{ option.limits.lt }}{% endif -%}
       {%- if 'min_length' in option.limits %} at least {{ option.limits.min_length }} characters{% endif -%}
+      {%- if 'max_length' in option.limits %} at most {{ option.limits.max_length }} characters{% endif -%}
     </span>
     {%- endif %}
     {%- if option.source == 'environment' %} <span class="setting-tag">overridden by {{ option.env }}{% if not option.secret %}, in use: {{ option.effective_text if option.effective_text != '' else '(empty)' }}{% endif %}</span>
@@ -101,7 +104,7 @@
     </ul>
   </nav>
 </section>
-<p class="inline-links"><a href="{{ page_url('admin_backups') }}">Backups, restore, export and import</a></p>
+<p class="inline-links"><a href="{{ page_url('admin_backups') }}">Backups, restore, export and import</a> · <a href="{{ page_url('admin_images') }}">Images (icons and link preview picture)</a></p>
 <form method="post" action="{{ url_for('web.admin_settings') }}" class="settings-form" autocomplete="off">
   {{ csrf_field() }}
   <input type="hidden" name="action" value="review">

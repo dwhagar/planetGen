@@ -44,6 +44,7 @@ import math
 
 import numpy as np
 from scipy.spatial import cKDTree
+from planetgen.util import detmath
 
 
 def _distance(a, b):
@@ -58,7 +59,7 @@ def _distance(a, b):
     Returns:
         float: The distance between them.
     """
-    return math.dist(a, b)
+    return detmath.dist(a, b)
 
 
 class _Points:
@@ -80,7 +81,7 @@ class _Points:
         exact.
 
         Returns:
-            list[tuple]: Up to `k` `(distance, id)` pairs, nearest first; `distance` is `math.dist`.
+            list[tuple]: Up to `k` `(distance, id)` pairs, nearest first; `distance` is `detmath.dist`.
         """
         count = min(k + (exclude_id is not None), len(self.ids))
         if count < 1:
@@ -91,7 +92,7 @@ class _Points:
             own = next((index for index in found if self.ids[index] == exclude_id), None)
             found.remove(own if own is not None else found[-1])
         found = found[:k]
-        return sorted(((math.dist(origin, self.array[index]), self.ids[index]) for index in found),
+        return sorted(((detmath.dist(origin, self.array[index]), self.ids[index]) for index in found),
                       key=lambda entry: entry[0])
 
 

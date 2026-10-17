@@ -65,6 +65,7 @@ import math
 from planetgen.galaxy import spherical
 from planetgen.physics import constants as physical_constants
 from planetgen.physics import state_vectors
+from planetgen.util import detmath
 
 FRAMES = ("galactic", "sector", "system")
 """tuple: The frames a position is kept in."""
@@ -113,7 +114,7 @@ def _finite(values, what):
 
 def cartesian_to_cylindrical(x, y, z):
     """(x, y, z) -> (r, theta, z); theta is 0 on the axis."""
-    return (math.hypot(x, y), math.atan2(y, x), z)
+    return (detmath.hypot(x, y), math.atan2(y, x), z)
 
 
 def cartesian_to_spherical(x, y, z):
