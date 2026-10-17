@@ -1906,11 +1906,11 @@ def test_galaxy_map_fetches_the_finest_tiles_around_a_sector_it_shows(page, map_
     page.wait_for_timeout(2500)
     requests = [[int(key.split("/")[0]) for key in parse_qs(urlparse(url).query)["tiles"][0].split(",")]
                 for url in urls]
-    # The finest tiles (12) around the sector are asked for first, and only
-    # then (the rest of the view is the distance cut, which stops at 11).
-    assert requests[0][0] == 12, requests
-    assert any(11 in levels for levels in requests), requests
-    assert not any(12 in levels for levels in requests[1:]), requests
+    # The finest tiles around the sector are asked for first, and only then
+    # (the rest of the view is the distance cut, which stops one level short).
+    assert requests[0][0] == TILE_MAX_LEVEL, requests
+    assert any(0 < min(levels) < TILE_MAX_LEVEL - 1 for levels in requests), requests
+    assert not any(TILE_MAX_LEVEL in levels for levels in requests[1:]), requests
 
 
 def _point_colored_spots(page, selector, limit=80):
