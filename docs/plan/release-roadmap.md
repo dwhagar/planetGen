@@ -2,7 +2,7 @@
 
 Boss (2026-10-16, 1:07 PM EDT) turned the tiers into a version map: one version per release, starting at 8.1, which is the Phase 1 we are building today, and a version can have several phases when it holds too much for one. A version is only a PROPOSAL where its Status line says so; the headlines Boss named are used as given.
 
-Fourteen versions from 8.1 to 10.0, then a "later" list for features that belong to no version yet. Each has one headline (8.1 has two), its phases, the open items it holds, what it needs, how much of it is finished and a list of ideas that are not filed yet. Boss named 8.1 (infinite zoom, and the new generate scatters with accurate galactic generation and scattering including the halo), 8.2 (accounts with email invitations sent by an admin only), 8.5 (courses that bend around gravity wells), 8.6 (edit everything) and 10.0 (roles and permissions: user edit requests, moderators and admins). Politics and territories come before ships and stations, and many galaxies is a possible future feature, not a headline.
+Fifteen versions from 8.1 to 10.0, then a "later" list for features that belong to no version yet. Each has one headline (8.1 has two), its phases, the open items it holds, what it needs, how much of it is finished and a list of ideas that are not filed yet. Boss named 8.1 (infinite zoom, and the new generate scatters with accurate galactic generation and scattering including the halo), 8.2 (accounts with email invitations sent by an admin only), 8.5 (courses that bend around gravity wells), 8.6 (edit everything) 9.4 (galaxy types: different galactic models for generation, based on known galaxy types) and 10.0 (roles and permissions: user edit requests, moderators and admins). Politics and territories come before ships and stations, and many galaxies is a possible future feature, not a headline.
 
 ## How to read this
 
@@ -191,6 +191,19 @@ Suggested:
 - S9.3-c: Fog of war: each user sees only what they have charted or their ships have visited.
 - S9.3-d: Station docking and a ship log that writes itself from the course.
 
+## Release 9.4: Galaxy types
+Status: Boss named it (8:48 PM EDT); items filed
+Headline: Galaxy types: the seed draws a galaxy of a known type (spiral, lenticular, elliptical, irregular or dwarf), every shape number calculated from published scaling relations
+Today: (new)
+Change: New headline (Boss, 8:48 PM EDT: "different galactic models for generation based on known galaxy types", broken into a chain of required items and counted back from 9.4), filed as 18 items in 6 phases with the plan in docs/design/galaxy-types.md. A galaxy type is a parameter family, never a copy of a named galaxy (no fixed content, Boss 4:11 and 4:14 PM EDT): the seed draws the stellar mass, then the family from the mass-dependent type fractions, then each number from a scaling relation. It reuses the shape, the density model, the potential, the halo, the satellites and the scatters. The old "Hubble-sequence generator" suggestion (SL-b) is this headline. 9.4 is Boss's own number and needs no .major note.
+Needs: three steps of the chain come earlier so the families only fill in the shape: GEN.378 (the checked design and its scaling relation table, after GEN.368) in 8.1, then DB.66 (the family key and component columns, a migration) and GEN.379 (the density model as a list of components, which the potential GEN.338 reads) in 8.3. Then, in 9.4: the type draw and the Sérsic spheroid (phase 1); the spiral, elliptical and irregular and dwarf families (phase 2); the lenticular family, populations, clusters with the nucleus and the home position (phase 3); creation (phase 4); the Generate page, the Galaxy Map, the plausibility tests and the docs (phase 5); the headline (phase 6). It also reads GEN.368, GEN.369, GEN.297, GEN.134, GEN.319 and GEN.144.
+Lanes: not assigned; GEN.378 is proposed for Core 1 (it writes GEN.368's table), and the rest sits after 8.3.
+Suggested:
+- S9.4-a: Interacting and merging galaxies: a tidal tail or a merger remnant as a family variant.
+- S9.4-b: Satellite galaxies drawn from the same families as the main galaxy, so a satellite's stars follow its family's laws.
+- S9.4-c: Active nuclei by family: a quasar or jet drawn from the black hole mass and the gas supply.
+- S9.4-d: A family comparison page: draw many seeds and plot each family's mass-size and mass-metallicity points against the published relations.
+
 ## Release 10.0: Roles and permissions
 Status: Boss named it (1:43 PM EDT); items filed
 Headline: Roles and permissions: users submit edit requests, moderators approve user requests and admins approve moderator requests
@@ -214,7 +227,6 @@ Change: Boss, 1:07 PM EDT: multiple galaxies is a possible future feature, not a
 Needs: GEN.9 (the plan for more than one galaxy in the database) first; GEN.157 (a verified table of about 25 real galaxies) before MAP.145 and NAV.57; GEN.164 needs GEN.9. The infinite zoom of 8.1 would extend past the galaxy edge.
 Suggested:
 - SL-a: Intergalactic flight: the zoom of 8.1 continues out to a galaxy group, with the cosmic web as a faint background.
-- SL-b: A Hubble-sequence generator: elliptical, spiral and irregular galaxies from one set of rules.
 - SL-c: A galaxy picker: several generated galaxies in one database, each with its seed, and a way to compare them.
 - SL-d: A long-timescale merger preview such as the Milky Way and Andromeda, run as a stated-span orbital update.
 - SL-e: Lookback time and travel-time readouts for objects in other galaxies.
