@@ -6,7 +6,7 @@ Short names. master = docs/design/atmosphere-composition.md. Part NN = docs/desi
 
 Verification states (CM 4b, Decided 3:02 AM EDT): **verified** (read in the source, data, or computed by a lane), **partly verified** (second-hand or a PARTLY verdict, with its limit named), **open** (no source; a seeded bracket meanwhile), **stand-in** (a measured Solar System shape used until a derived law replaces it). Every number here cites a source or comes from the code in section 12; no value is fixed per class or copied from a Solar System body as a preset.
 
-Conflict rules (Boss, 12:39 PM EDT, Decided): when in doubt verified wins; when two verified sources are in doubt the newest wins; when two sources are both in question, 'most permission take wins'. The third rule is read as the most permissive value, meaning the widest value or range, as composition-model.md section 4a item 12 records it. Each place this note settles a disagreement carries 'Rule applied: verified / newest / most permissive', and section 15 lists them all.
+Conflict rules (Boss, 12:39 PM EDT, Decided): when in doubt verified wins; when two verified sources are in doubt the newest wins; when two sources are both in question, 'most permission take wins'. The third rule means the widest value or range of the two sources: Boss confirmed this at 1:12 PM EDT (Decided), as composition-model.md section 4a item 12 records it. Each place this note settles a disagreement carries 'Rule applied: verified / newest / most permissive', and section 15 lists them all.
 
 ## 1. Decisions
 
@@ -335,7 +335,7 @@ for k, w in W.items():
 
 ## 15. Source conflicts and the rule that decided each
 
-Rules (Boss, 12:39 PM EDT): V = verified wins; N = newest wins between two verified sources in doubt; M = most permissive (the widest value or range) when both are in question. M is 'most permission take wins', read as the widest range (composition-model.md section 4a item 12).
+Rules (Boss, 12:39 PM EDT): V = verified wins; N = newest wins between two verified sources in doubt; M = most permissive (the widest value or range) when both are in question. M is 'most permission take wins', which Boss confirmed at 1:12 PM EDT means the widest range (Decided; composition-model.md section 4a item 12).
 
 | Conflict | Sources | Settled as | Rule |
 |---|---|---|---|
@@ -378,5 +378,5 @@ Each item is a decision I took as default or left open; I recommend the answer i
 10. **R18 belts**: omit trapped-belt dose and flag it. Approve.
 11. **R15 K depletion** (log-uniform 0.03 to 1) and the U/Th placeholder dex. Approve as placeholders, replaced by GEN.459 sourcing.
 12. **R19 ordering**: GEN.453 first, then GEN.443 and GEN.444 together with the epoch bump. Approve.
-13. **Conflict rule M**: I read 'most permission take wins' as the most permissive value, meaning the widest value or range (section 15). Please confirm or correct; it decided or shaped six rows there.
+13. **Conflict rule M**: Decided by Boss at 1:12 PM EDT: 'most permission take wins' means the widest range of the two sources (section 15 lists the six rows it decided or shaped). Nothing to approve.
 14. **Ground reference**: use the Palme and O'Neill 2003 edition values (labelled) for the primitive mantle and Rudnick and Gao for the crust, and hold the 2014 values until the edition arrives. Approve.

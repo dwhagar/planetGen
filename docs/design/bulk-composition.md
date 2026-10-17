@@ -165,7 +165,7 @@ Draws: rock fraction 0.55 by mass; silicate 3500 and ice 920 kg/m3, surface poro
 | Galilean densities 3.53, 3.01, 1.94, 1.83 g/cm3; ice order Io, Europa, Ganymede, Callisto | 0.3 (Ganymede needs the solver); order exact | D 4 |
 
 ## 11. Source conflicts and the rule that decided each
-Rules (Boss, 12:39 PM EDT): 1 verified wins; 2 two verified sources in doubt, the newest wins; 3 both in question, "most permission take wins", read as the most permissive (widest) value or range, which is how composition-model.md section 4a item 12 records it.
+Rules (Boss, 12:39 PM EDT): 1 verified wins; 2 two verified sources in doubt, the newest wins; 3 both in question, "most permission take wins", which Boss confirmed at 1:12 PM EDT means the widest value or range (Decided; composition-model.md section 4a item 12).
 
 | # | Conflict | Taken | Rule |
 |---|---|---|---|
@@ -207,4 +207,4 @@ Decided items are not repeated. Each ruling has a recommendation.
 9. **Decisions 14, 15, 19 (seeded ranges for the iron branch, FeO, delivered water).** Approve as flagged ranges until GEN.510 and the harness replace them.
 10. **The epoch.** One bump for GEN.428 to GEN.430 and DB.69 together in 8.4 phase 1, with the GEN.472 table versions (section 8).
 11. **Decisions 32 to 35 (reference tables; redox, ice-giant and comet stand-ins).** Approve: 32 and 35 follow the papers; 33 and 34 stay open.
-12. **The conflict rules (section 11).** The widest-range reading is the one recorded in composition-model.md section 4a item 12; the third rule decided only rows 4, 5 (scatter) and 14.
+12. **The conflict rules (section 11).** The widest-range reading is Decided (Boss, 1:12 PM EDT) and recorded in composition-model.md section 4a item 12; the third rule decided only rows 4, 5 (scatter) and 14.

@@ -778,3 +778,8 @@ Baseline: PR #1817.
 | TEST.188 | 8.1 | Bugs and flaky tests |
 | GEN.401 | 8.1 | Galaxy laws build |
 | GEN.472 | 8.1 | Composition tables |
+| GEN.409 | 8.1 | Composition research and design |
+| GEN.426 | 8.1 | Composition research and design |
+| GEN.435 | 8.1 | Composition research and design |
+| GEN.436 | 8.1 | Composition research and design |
+| GEN.437 | 8.1 | Composition research and design |
