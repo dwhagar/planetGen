@@ -2,10 +2,9 @@
 
 """
 GEN.335: the stored point of an object is defined once (`db/point_columns.py`). Every table that holds an object is on
-exactly one list: a layout with all four parts (a point, a mass, a movement vector and an epoch), or the allow-list of
-tables still to convert, or the few that hold no object. A table on the allow-list must really lack what it says it
-lacks, so GEN.336 and GEN.337 cannot leave an entry behind, and a new kind of object cannot ship without a point, a
-mass and a vector.
+exactly one list: a layout with all four parts (a point, a mass, a movement vector and an epoch), or the few that hold no
+object. A new kind of object cannot ship without
+a point, a mass, a vector and an epoch.
 """
 
 import math
@@ -15,7 +14,7 @@ import pytest
 from planetgen.db import models, point_columns
 from planetgen.physics import constants
 
-LAYOUTS, ALLOW_LIST, NOT_BODIES = point_columns.LAYOUTS, point_columns.ALLOW_LIST, point_columns.NOT_BODIES
+LAYOUTS, NOT_BODIES = point_columns.LAYOUTS, point_columns.NOT_BODIES
 TABLES = models.metadata.tables
 
 
@@ -29,10 +28,10 @@ def _holds_an_object(table):
 
 
 def test_every_table_holding_an_object_is_on_exactly_one_list():
-    lists = (set(LAYOUTS), set(ALLOW_LIST), set(NOT_BODIES))
+    lists = (set(LAYOUTS), set(NOT_BODIES))
     assert sum(len(found) for found in lists) == len(set().union(*lists)), "a table is on two lists"
     unlisted = sorted(name for name in TABLES if _holds_an_object(name) and not any(name in found for found in lists))
-    assert not unlisted, (f"{unlisted} hold an object or a point and are on none of LAYOUTS, ALLOW_LIST or NOT_BODIES "
+    assert not unlisted, (f"{unlisted} hold an object or a point and are on neither LAYOUTS nor NOT_BODIES "
                           f"of db/point_columns.py: give each a point, a mass, a movement vector and an epoch")
     missing = sorted(name for found in lists for name in found if name not in TABLES)
     assert not missing, f"{missing} are listed but are not tables"
@@ -48,19 +47,6 @@ def test_a_layout_names_columns_the_table_has_and_covers_every_part(table):
         assert {key, column} <= set(_columns(source))
         parts.add("mass")
     assert parts == set(point_columns.PARTS)
-
-
-@pytest.mark.parametrize("table", sorted(ALLOW_LIST))
-def test_an_allow_list_entry_names_exactly_the_parts_its_table_lacks(table):
-    declared, owner, _note = ALLOW_LIST[table]
-    lacks = tuple(part for part in point_columns.PARTS if part not in point_columns.detected_parts(_columns(table)))
-    assert declared, f"{table} holds every part: take it off the allow-list"
-    assert lacks == tuple(declared), (f"{table} lacks {lacks} but the allow-list says {declared}: "
-                                      f"the entry of {owner} is out of date")
-
-
-def test_the_allow_list_names_only_the_items_that_remove_it():
-    assert {owner for _parts, owner, _note in ALLOW_LIST.values()} <= {point_columns.FREE_OBJECTS, point_columns.OTHER_OBJECTS}
 
 
 def test_a_table_with_a_point_but_no_mass_no_vector_or_no_epoch_is_seen_to_lack_them():
