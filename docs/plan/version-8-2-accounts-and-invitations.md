@@ -60,4 +60,4 @@ Account bookmarks, user API keys, the one-off system page, the home field and th
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.399 | Research the halo mass function and compare it with the halo mass approximation GEN.368 uses | GEN.400 | Boss 10:11 PM EDT; research and comparison; Core 1 proposed (it writes GEN.368). |
+| GEN.399 | Research the halo mass function and compare it with the halo mass approximation GEN.368 uses |  | Boss 10:11 PM EDT; research and comparison; Core 1 proposed (it writes GEN.368). |
