@@ -23,7 +23,7 @@ One chain from the element to the body to the derived value:
 
 ## 3. Where each item sits
 
-Research, designs and tables are building blocks with no behaviour change and sit in 8.1. Generation and storage change stored values (generator epoch bumps and migrations) and sit in 8.4, where the planet work already is. The radiation, the colour and what shows them are the 9.0 features. A default the TODO thread chose and Boss can reverse: the epoch-changing generation chain stays in 8.4, and does not join the 8.1 stamp.
+Research, designs and tables are building blocks with no behaviour change and sit in 8.1. Generation and storage change stored values (generator epoch bumps and migrations) and sit in 8.4, where the planet work already is. The radiation, the colour and what shows them are the 9.0 features. Decided (Boss, 2026-10-17, 12:13 AM EDT, a card): the value-changing generation chain (composition fractions, the mixture, the albedo records, ozone and aerosols, the migrations and epoch bumps) stays in 8.4 and does not join the 8.1 stamp. Boss also tapped Core 4 as the owner of the star composition items (GEN.435, GEN.439, GEN.440, TEST.211) together with the other composition design and table items.
 
 **Research (read-only lanes, drafts to /mnt/project-files/design-drafts/)**
 
@@ -33,7 +33,7 @@ Research, designs and tables are building blocks with no behaviour change and si
 | 8.1 phase 1 | GEN.432 | Research: what rocky, icy and giant bodies and their small relatives are made of, and the numbers each material needs |
 | 8.1 phase 1 | GEN.433 | Research: what stars and stellar remnants are made of, and the numbers each needs |
 | 8.1 phase 1 | GEN.434 | Research: radiation through atmospheres and at the ground, and the numbers it needs |
-| 8.1 phase 1 | GEN.425 | Research: verify the mass-radius and equation-of-state sources and say what is missing |
+| done | GEN.425 | Research: verify the mass-radius and equation-of-state sources and say what is missing ([bulk-composition-sources-check.md](bulk-composition-sources-check.md)) |
 
 **Designs (docs/design)**
 
@@ -134,12 +134,16 @@ Research, designs and tables are building blocks with no behaviour change and si
 ## 4. The research lanes
 
 - **Atmosphere research (2026-10-17):** GEN.431, with the re-check of the four sources the first check could not reach.
-- **Body composition research (2026-10-17):** GEN.432 (planets, moons, small bodies, giants), then GEN.433 (stars and remnants). GEN.425 (mass-radius and equation-of-state sources) is part of the same work.
-- **Radiation research:** GEN.434, unowned (any read-only thread).
+- **Body composition research (2026-10-17):** GEN.432 (planets, moons, small bodies, giants), then GEN.433 (stars and remnants). GEN.425 (mass-radius and equation-of-state sources) is done, see the sources check.
+- **Radiation research:** GEN.434 is covered by the two lanes above (the coordinator, 12:17 AM EDT); no separate thread unless Boss asks.
 
 Each lane writes its draft to /mnt/project-files/design-drafts/ and reports; the TODO thread merges it into the design documents (atmosphere-composition and body-composition sections, stellar-composition.md, radiation-model.md, bulk-composition.md and atmosphere-colour.md) in a PR, with a dated comment on the goal issue. On 2026-10-17 at 12:02 AM EDT Boss widened the environment's network access, so the sources the first check could not reach can be re-read.
 
-## 5. Open points for the designs
+## 5. What Boss may research for the bodies
+
+From the bulk composition sources check (section 5 of [bulk-composition-sources-check.md](bulk-composition-sources-check.md)): the low-pressure ice and silicate densities for small bodies and moons; the stellar Mg, Si, O and C against [Fe/H] (the project stores only [Fe/H]); a cited solar abundance set (Lodders 2003, Asplund 2009); the water inside the snow line; iron oxidation and the light elements in the core; the SCvH or CMS19 tables if any lane integrates an envelope itself.
+
+## 6. Open points for the designs
 
 - Which kinds of body draw the density first and fill in the composition, and which derive the density from the composition (GEN.426).
 - Whether a star's composition changes the luminosity, lifetime and colour tables of GEN.407 (GEN.435).

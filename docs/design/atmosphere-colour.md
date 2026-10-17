@@ -77,7 +77,7 @@ What it changed in the plan:
 7. Bucholtz 1995 Table 3, and the originals of Peck and Huang 1977, Kasting and Donahue 1980, Segura 2003, Hulburt 1953, an Angstrom-exponent review.
 8. Widening the proxy (Project settings, environment network): doi.org, ADS, Science, Copernicus (AMT, ACP), Optica, ScienceDirect, NTRS and the Mainz and Bremen data hosts.
 
-Until an item is researched, its design entry names the seeded range used meanwhile (rule: nothing fixed per class).
+Until an item is researched, its design entry names the seeded range used meanwhile (rule: nothing fixed per class). Boss widened the network at about 12:02 AM EDT on 2026-10-17: arxiv.org itself is reachable now and the Atmosphere research lane (GEN.431) re-reads the four sources the check could not reach.
 
 ## 5. Bulk composition: the cause of mass, density and gravity
 
@@ -85,7 +85,7 @@ Boss (2026-10-16, 11:49 PM EDT) asked whether the system stores a body's composi
 
 | Where | Item | What |
 |---|---|---|
-| 8.1 phase 1 | GEN.425 | Verify the mass-radius and equation-of-state sources |
+| done | GEN.425 | Verify the mass-radius and equation-of-state sources ([bulk-composition-sources-check.md](bulk-composition-sources-check.md)) |
 | 8.1 phase 1 | GEN.426 | The checked design (docs/design/bulk-composition.md) |
 | 8.1 phase 2 | GEN.427 | The bulk materials table with equation-of-state constants |
 | 8.4 phase 1 | GEN.428 | Composition fractions drawn, replacing the fixed text (generator epoch) |
@@ -95,4 +95,4 @@ Boss (2026-10-16, 11:49 PM EDT) asked whether the system stores a body's composi
 | 8.4 phase 4 | TEST.210 | Bulk composition sweep over every class |
 | 8.4 phase 4 | DOC.65 | Docs |
 
-Research needed (GEN.425 checks them; only the sources it cannot reach may need Boss): mass-radius relations for solid planets (Seager 2007, Zeng and Sasselov 2013, Zeng, Sasselov and Jacobsen 2016, Zeng 2019), envelopes (Lopez and Fortney 2014, Fortney, Marley and Barnes 2007), equations of state (Vinet or Birch-Murnaghan constants, Saumon, Chabrier and van Horn 1995 for hydrogen and helium), the link from the star's Fe, Mg and Si to the core fraction (Dorn 2015, Thiabaud 2015, Santos 2015) and the water fraction against the snow line. All are recalled, not yet verified.
+Research needed (GEN.425 checked them, done 2026-10-17, see [bulk-composition-sources-check.md](bulk-composition-sources-check.md); only the sources it cannot reach may need Boss): mass-radius relations for solid planets (Seager 2007, Zeng and Sasselov 2013, Zeng, Sasselov and Jacobsen 2016, Zeng 2019), envelopes (Lopez and Fortney 2014, Fortney, Marley and Barnes 2007), equations of state (Vinet or Birch-Murnaghan constants, Saumon, Chabrier and van Horn 1995 for hydrogen and helium), the link from the star's Fe, Mg and Si to the core fraction (Dorn 2015, Thiabaud 2015, Santos 2015) and the water fraction against the snow line. All are recalled, not yet verified.

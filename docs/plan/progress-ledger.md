@@ -736,3 +736,4 @@ Baseline: PR #1817.
 | GEN.336 | 8.3 | Positions as one object |
 | GEN.337 | 8.3 | Positions as one object |
 | GEN.103 | 8.1 | Components and wanderers |
+| GEN.425 | 8.1 | Composition research and design |
