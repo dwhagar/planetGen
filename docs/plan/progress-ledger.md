@@ -732,3 +732,8 @@ Baseline: PR #1817.
 | GEN.287 | 8.1 | Galactic core and halo |
 | GEN.306 | 8.1 | Reproducible galaxies |
 | GEN.408 | 8.4 | Atmosphere sources and design |
+| DB.55 | 8.3 | Positions as one object |
+| GEN.336 | 8.3 | Positions as one object |
+| GEN.337 | 8.3 | Positions as one object |
+| GEN.103 | 8.1 | Components and wanderers |
+| GEN.425 | 8.1 | Composition research and design |

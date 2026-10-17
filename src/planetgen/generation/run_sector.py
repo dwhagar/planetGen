@@ -548,6 +548,7 @@ def _add_preplaced_systems(sector, args, fill, galactic_center_dist_ly):
     for row in fill.bright_rows:
         cfg = run_system.build_system_config(args)
         cfg.POPULATION = row["population"]
+        cfg.PLACE_TERMS = fill.place_terms
         with draw.bound(row["seed"]):
             system = StarSystem(system_config=cfg, galactic_center_dist_ly=galactic_center_dist_ly,
                                 primary_star_params=brightStars.star_params(row))

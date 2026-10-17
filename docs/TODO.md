@@ -146,7 +146,7 @@ item has no row there.
 | 8.7 | [version-8-7-console-and-help.md](plan/version-8-7-console-and-help.md) | The pilot's console and built-in help |
 | 8.8 | [version-8-8-deep-sky.md](plan/version-8-8-deep-sky.md) | The deep sky |
 | 8.9 | [version-8-9-generate-anywhere.md](plan/version-8-9-generate-anywhere.md) | Generate anywhere |
-| 9.0 | [version-9-0-atmosphere-colour.md](plan/version-9-0-atmosphere-colour.md) | Atmosphere colour |
+| 9.0 | [version-9-0-composition-and-atmosphere-colour.md](plan/version-9-0-composition-and-atmosphere-colour.md) | Composition and atmosphere colour |
 | 9.1 | [version-9-1-view-from-a-planet.md](plan/version-9-1-view-from-a-planet.md) | The view from a planet, with the gravity map |
 | 9.2 | [version-9-2-politics-and-territories.md](plan/version-9-2-politics-and-territories.md) | Politics and territories |
 | 9.3 | [version-9-3-ships-and-stations.md](plan/version-9-3-ships-and-stations.md) | Ships and stations |
@@ -175,8 +175,10 @@ orbital update system (GEN.105), 8.5 courses that bend around gravity wells
 (NAV.59), 8.6 edit everything (ADM.57), 9.1 the view from a planet (VIEW.18),
 with the gravity map (MAP.167) as the second feature,
 10.0 roles and permissions with user edit requests and moderators
-(USR.25, Boss 1:43 PM EDT). 9.0 the atmosphere colour (GEN.421, Boss,
-11:25 PM EDT: the seminal feature of 9.0; everything planned for 9.0 before
+(USR.25, Boss 1:43 PM EDT). 9.0 composition and the atmosphere colour (GEN.421, Boss,
+11:25 PM EDT: the seminal feature of 9.0; 11:58 PM EDT: composition of every
+body, star and atmosphere is its joint headline, with the radiation derived
+from it, and the building blocks go down to 8.1; everything planned for 9.0 before
 split between 8.9, the backups chain and the sky data, and 9.1, the view
 from a planet, 11:26 PM EDT); multiple galaxies is a possible future
 feature. A
@@ -3293,70 +3295,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Prerequisites: GEN.357, GEN.358.
     Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
-- [ ] **GEN.103 Research where each star type and phenomenon belongs in the galaxy's structure**
-  Boss (2026-10-07 11:47Z): "Research and add tiered structure
-  information about where stars of different types would be in the
-  galactic structure, what kinds of phenomena have similar restrictions,
-  etc." Done: a design note (thin and thick disk, bulge, bar, halo,
-  arms; ages and metallicity; where O and B stars, white dwarfs,
-  remnants, clusters and nebulae sit) and the rules added to the density
-  and type draws.
-  Research (2026-10-09, anomalies.md): adopt the population table in
-  "Placement by population" (young disk, thin disk, bulge and thick
-  disk, halo) and the young-star weight for `phenomenon_scatter`; add
-  the population-dependent multiplicity rules of
-  multistar-and-compact-systems.md 6.6 (metallicity-dependent
-  close-binary fraction, massive multiples in young regions, a wide-pair
-  survival cap shrinking in dense regions).
-  Rewrite to the remainder (2026-10-16 review): the populations and
-  per-kind factors are built (GEN.234, GEN.236); what is left is the
-  population-dependent rules for the type draws. Fold into GEN.269 or
-  close once GEN.270 to GEN.275 land.
-  Research supplied (Boss, 2026-10-16, 5:55 PM EDT, in the project
-  chat): the two constants Core 4 could not look up, the close-binary
-  fraction against [Fe/H] and the encounter-disruption limit for wide
-  pairs with the Jacobi radius as the outer limit. Sources named by Boss:
-  Badenes 2018, Moe, Kratter and Badenes 2019, El-Badry and Rix 2018,
-  El-Badry, Rix and Heintz 2021, Kratter and Lodato 2016, Bate 2018,
-  Heggie 1975, Bahcall, Hut and Tremaine 1985, Jiang and Tremaine 2010,
-  Stegmann 2024. The reference list is unverified and Core 4 checks it.
-  Filed as derivation rules of the type draw, not fixed values, in
-  docs/design/multistar-and-compact-systems.md section 6.6: the close
-  share follows the cell's [Fe/H] and the wide-pair limit is computed
-  from the cell's density, dispersion, age and tidal field.
-  Boss answered the GEN.103 cards (2026-10-16, 6:12 to 6:15 PM EDT):
-  (1) the close-binary trend is the pooled one, read at the star's own
-  [Fe/H]; (2) the metallicity effect applies to every star mass, with a
-  built-in check that the numbers act as expected (filed as TEST.196); (3)
-  wide pairs have no metallicity dependence; (4) the encounter limit is
-  a sharp cut at a_1/2; (5) the fixed 10,000 AU wide-pair cap is
-  replaced by the derived limit. The last card, whether the metallicity
-  effect fades above about 2 solar masses, was answered "all masses":
-  no fade, and the check is the safeguard.
-  Design note landed (Core 4, 2026-10-16, 7:16 PM EDT, #1891):
-  docs/design/placement-by-population.md. The build follows in its own PR
-  and covers 3.1 (close pairs by [Fe/H], every mass) and 3.3 (the derived
-  wide-pair limit). Section 3.2, massive multiples sitting in young
-  regions through `prevalence`, is NOT in that PR: it is GEN.373, with the
-  multi-star items (GEN.269, GEN.270 to GEN.275), and its cap on the rise
-  is the open constant (a design default, not a value from a source).
-  GEN.103 closes when the 3.1 and 3.3 build merges. The metallicity
-  effect applies to every mass, so the numbers need a ceiling that is not
-  a per-mass value: Core 4's recommendation (2026-10-16, 7:25 PM EDT): no new
-  constant; apply the pooled [Fe/H] factor F/F(0) to the odds p/(1-p) of
-  a close companion, not to the chance p, for every mass. It cannot pass
-  1, and a star already likely to have a companion rises less. Core 4's
-  check values: G dwarf 0.43, 0.36, 0.25, 0.12 at [Fe/H] -3.0, -1.0,
-  -0.2, +0.5 against Moe, Kratter and Badenes 53+-12, 40+-6, 24+-4,
-  10+-3% (all within 1 sigma); an O star at [Fe/H] -0.7 goes 0.45 to 0.58
-  (+29%) against the "no change within about 30%" read for O and early-B
-  stars in the Large Cloud and stays under Sana's 0.69+-0.09 (plain
-  scaling gives 0.77). Boss chose the odds form on a card (2026-10-16, 7:19 PM EDT): Decided,
-  the metallicity factor applies to the odds p/(1-p) of a close
-  companion, for every mass. Core 4 builds it.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report, queue position 5).
-
 - [ ] **GEN.105 Orbital updates**
   Boss (2026-10-03 and 2026-10-07) asked for an orbital update that
   moves only what has visibly moved, counts what changed, and lets
@@ -4977,7 +4915,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/later-phenomena-scatter-rules.md (section 8)): reads
   scatter rows through the stage C region query; it needs the magnetar
   rows (GEN.278) to see the 10 pc flag before the fill.
-  Prerequisite: GEN.243. Related: GEN.113.
+  Prerequisite: GEN.243. Related: GEN.113, GEN.436, GEN.444.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.257 A Fermi-bubble overlay on the Galaxy Map**
@@ -5754,7 +5692,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   owns every revision. Placed in Phase 2 before GEN.109,
   because the influence set sums the point mass of every object kind. No
   lane has it yet (Boss, 11:07 PM EDT: hand to TODO, nothing built).
-  Prerequisites: DB.55, GEN.336, GEN.337, GEN.372. Related: GEN.74,
+  Prerequisites: GEN.372. Related: GEN.74,
   GEN.109, GEN.223, GEN.289,
   GEN.290.
   Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
@@ -5984,7 +5922,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and scattering, including the halo).
   Prerequisites: GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.244,
   GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.298, UX.116,
-  TEST.159, TEST.160.
+  TEST.159, TEST.160, GEN.447, GEN.448, GEN.449, GEN.450.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -6244,7 +6182,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.314. Related: GEN.130.
+  Prerequisites: GEN.314. Related: GEN.130, GEN.436, GEN.444.
 
 - [ ] **GEN.318 White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk**
   Split from GEN.130 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6546,39 +6484,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to switch to the perturbed pass, the cost estimate and the seeded
   black-hole test (2026-10-16 review).
   Prerequisites: none. Related: GEN.110, GEN.290.
-
-- [ ] **GEN.336 Compact and free objects hold a velocity vector and a mass: stars, black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants**
-  Split from GEN.294 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). These eight tables keep only the
-  scalar `galactic_orbital_speed_kms`. Done: generation writes the
-  vector and the mass (a field's or nebula's bulk mass, or a stated zero
-  that the gravity sum skips by rule); each table reads back into one
-  SpatialPosition3D through child a; rogue planets also carry
-  sector-relative offsets so collision tests difference small numbers
-  (absolute doubles are good to about 14 km at 8 kpc); the scalar column
-  is removed from the table, its model, the store, describe, edits,
-  sector_paths and the generators in the same PR (a small drop revision
-  from Core 1, no compatibility layer); the tables leave the allow-list.
-  Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
-  top 5 blockers, starting right after GEN.237 merges; estimates from
-  Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
-  Migration revision (Core 1, 2026-10-16, 6:13 PM EDT, renumbered 6:22
-  PM EDT after DB.54 merged as 0101): 0103, after 0102 (DB.55).
-  Prerequisites: DB.55. Related: GEN.294.
-
-- [ ] **GEN.337 Epoch, vector and mass for the rest: belts, quasars, comets, facilities, scatter points and members**
-  Split from GEN.294 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Belts and the quasar keep no
-  epoch or vector; comets, facilities, scatter points and members keep
-  no mass (members also no epoch). Done: each stores an epoch, a vector
-  (a stated zero for a body that does not move, such as the quasar) and
-  a mass (its own, the mass of what a facility sits on, or a stated
-  zero), reads back through child a's definition, the allow-list is
-  empty and the coverage test now fails for any table missing a part.
-  Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
-  top 5 blockers, starting right after GEN.237 merges; estimates from
-  Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
-  Prerequisites: DB.55, GEN.336. Related: GEN.294.
 
 - [ ] **GEN.338 The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests**
   Split from GEN.115 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -8246,7 +8151,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the decisions, a worked example and the test targets (Earth air gives
   tau 0.097 at 550 nm and a blue sky, a red dwarf world and a thin CO2
   world give what the physics says), and Boss approves it.
-  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
   Sources check (GEN.408, 2026-10-17; 19 sources: 3 read, 10 second-hand,
   4 not reached, 2 citation only): the design carries its 9 corrections
   (Betremieux and Kaltenegger is 2015; the Sneep and Ubachs CO2 typo; the
@@ -8258,8 +8163,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   20 to 30). What the sources could not give is Boss's to research (the
   list is section 7 of the report); the design marks each such input as
   open and names the seeded range used meanwhile.
-  Prerequisites: none. Related: GEN.410, GEN.411, GEN.412, GEN.413,
+  Prerequisites: GEN.431. Related: GEN.410, GEN.411, GEN.412, GEN.413,
   GEN.414, GEN.416, GEN.417, GEN.418.
+  Now an 8.1 design (Boss, 11:58 PM EDT: the building blocks of the
+  composition headline go down to 8.1): it follows the atmosphere survey
+  GEN.431 and feeds the composition model GEN.437.
 
 - [ ] **GEN.410 One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8294,9 +8202,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   King factor of NH3 are not found and stay marked open. Done: a test
   fails when a gas named anywhere in the code is missing from the table;
   every number has a source.
-  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
-  Prerequisites: GEN.409. Related: GEN.208, GEN.85, GEN.355, GEN.411,
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
+  Prerequisites: GEN.409, GEN.437, GEN.438. Related: GEN.208, GEN.85,
+  GEN.355, GEN.411,
   GEN.415.
+  Now an 8.1 data table (Boss, 11:58 PM EDT): it adds no behaviour until
+  the generation chain of 8.4 reads it; its molar masses come from the
+  element table GEN.438 and the design is GEN.437's.
 
 - [ ] **GEN.411 The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8323,7 +8235,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by more than 10 percent for classes A, B, E, G, H, L and Q; GEN.422,
   GEN.423 and GEN.424 carry the related fixes (the recalculation redraw,
   density, scale height and greenhouse from the mix, the balance gas).
-  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
   Prerequisites: GEN.410, GEN.429. Related: GEN.85, GEN.355, GEN.223,
   DB.67.
   The surface gravity it reads is derived from the bulk composition by
@@ -8346,7 +8258,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class, and that the inverse returns the drawn values to a stated
   tolerance; where the inverse has no solution it says so and the
   migration draws from the class range, seeded.
-  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
   Prerequisites: GEN.409. Related: DB.67, GEN.85, GEN.355.
 
 - [ ] **GEN.413 Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance**
@@ -8366,7 +8278,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ozone column near the measured 300 Dobson units within a stated
   tolerance, a world with no oxygen has none, and the habitability UV
   index reads the same number.
-  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
   Sources check (GEN.408, section 4 of the report): the column does not
   follow a power of the oxygen (the Chapman balance gives a local density
   of the square-root form, the column flattens or peaks for hot stars), so
@@ -8407,7 +8319,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   oceans has cloud and little dust, a dry thin-air world has dust, a
   methane and nitrogen world under UV has haze; a test pins each rule
   with a physical range, nothing is fixed per class.
-  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
   Prerequisites: GEN.411, GEN.412. Related: GEN.413, DB.68, GEN.418.
 
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
@@ -8422,7 +8334,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generates planets of every class and checks that each compound named
   in the text is in the stored mixture above a stated threshold, and
   that the text, the composition table and the molar density agree.
-  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
   Prerequisites: GEN.410, GEN.411, GEN.413. Related: GEN.208, GEN.218,
   TEST.209.
 
@@ -8476,7 +8388,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   white-cyan with an orange sun, a 9 MPa CO2 world is white;
   deterministic and free of NaN for every class; the label says when
   aerosols dominate the answer.
-  Prerequisites: GEN.416, GEN.417, GEN.413, GEN.414, DB.67, DB.68.
+  Prerequisites: GEN.416, GEN.417, GEN.413, GEN.414, DB.67, DB.68,
+  GEN.441.
+  The ground's bounce reads the surface composition of GEN.441 (the
+  ground's colour and reflectance) where it is stored.
   Related: GEN.419, GEN.420.
 
 - [ ] **GEN.419 Atmosphere colour of gas and ice giants, read at a reference level in the cloud tops**
@@ -8514,16 +8429,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.418, GEN.419. Related: GEN.208, GEN.218, MAP.244,
   DOC.64.
 
-- [ ] **GEN.421 Headline of 9.0: the atmosphere colour of every world, from its real atmosphere, with every stored value consistent**
+- [ ] **GEN.421 Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it**
   Boss (2026-10-16, 11:25 PM EDT): "We just found our seminal feature
   for 9.0 folks, everything else gets bumped, this is the 9.0 feature."
-  This item is done when its items are: the foundations of 8.4 phases
-  1 to 5 (GEN.409 to GEN.415, DB.67, DB.68, TEST.209, DOC.63), the colour model
-  (GEN.416 to GEN.419) and what shows it (GEN.420, MAP.244, DOC.64).
-  Headline: 9.0 (atmosphere colour: the colour of the air of any world,
-  from its real atmosphere, with every stored value consistent). A major
-  version needs Boss's word.
-  Prerequisites: GEN.420, MAP.244, DOC.64, TEST.209. Related: GEN.416,
+  Boss (11:58 PM EDT): atmosphere composition and the composition of
+  planets, moons, stars and everything is the joint headline of 9.0,
+  together with the atmosphere colour; atmospheric radiation and surface
+  radiation follow from what is in the air and the ground. This item is
+  done when its items are: the research, designs and data tables of 8.1
+  (GEN.431 to GEN.440), the generation and storage of 8.4 phases 1 to 4
+  (GEN.409 to GEN.415 where they are not in 8.1, GEN.441, GEN.442, DB.67
+  to DB.70, TEST.209, TEST.210, DOC.63, DOC.65), the colour model
+  (GEN.416 to GEN.419), the radiation (GEN.443 to GEN.445) and what
+  shows it (GEN.420, GEN.446, MAP.244, DOC.64), proved by TEST.211,
+  TEST.212 and DOC.66.
+  Headline: 9.0 (composition and atmosphere colour: what every body,
+  star and atmosphere is made of, from real science, and the colour of
+  the air and the radiation that follow). A major version needs Boss's
+  word.
+  Prerequisites: GEN.420, MAP.244, DOC.64, GEN.446, TEST.209, TEST.210,
+  TEST.211, TEST.212, DOC.66. Related: GEN.416,
   GEN.417, GEN.418, GEN.419, DOC.63.
 
 - [ ] **GEN.422 Stop the recalculation redraw and order the steps so pressure, mixture and temperature agree after the cold-side freeze-out**
@@ -8545,7 +8470,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   drawn albedo, greenhouse multiplier, redox and mix; after the
   freeze-out the pressure, the mix and the temperature satisfy the
   formula together; a test says so for every class.
-  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
   Prerequisites: GEN.411, GEN.412. Related: GEN.411, GEN.412, GEN.423,
   TEST.209.
 
@@ -8566,7 +8491,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   them. Done: every generated planet has density, scale height and
   greenhouse multiplier that follow from its stored mixture, a test
   changes the mix and the values move as the formulas say.
-  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
   Prerequisites: GEN.410, GEN.411, GEN.412. Related: GEN.411, GEN.422,
   TEST.209.
 
@@ -8584,45 +8509,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   helium-rich atmosphere has a mean molar mass near 2 to 4 g/mol, not
   28; habitability, the scale height and the molar density all read the
   same stored number; a test says so.
-  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
   Prerequisites: GEN.410, GEN.411. Related: GEN.411, GEN.423, TEST.209.
-
-- [ ] **GEN.425 Research: verify the mass-radius and equation-of-state sources and say what is missing**
-  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
-  stores the composition of a body and that composition drives the mass
-  calculations and density calculations for gravity and such?" Answer
-  (read-only trace,
-  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
-  main at 8.0.1635): no. `planet.composition` is one fixed text string
-  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
-  fractions exist; the bulk density is a uniform draw per class (500:
-  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
-  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
-  radius and density (528) and the gravity from those; giants take mass
-  and radius from a mass-radius relation (534-557). The chain below
-  makes the composition the cause. Before anything is built, check the
-  real-world sources, in a read-only thread that reads the papers
-  (ar5iv.labs.arxiv.org serves arXiv papers) and writes
-  /mnt/project-files/reports/bulk-composition-sources-check-(date).md,
-  each source marked verified (read), second-hand or not found. To
-  check: (1) mass-radius relations for solid planets with the iron,
-  silicate and water fractions as inputs (Seager et al. 2007, Zeng and
-  Sasselov 2013, Zeng, Sasselov and Jacobsen 2016, Zeng et al. 2019);
-  (2) envelopes: the hydrogen and helium mass fraction against radius
-  and age (Lopez and Fortney 2014) and giant planet radii (Fortney,
-  Marley and Barnes 2007); (3) equations of state: the Vinet or
-  Birch-Murnaghan constants for iron, silicates and the ice phases, and
-  the hydrogen and helium tables (Saumon, Chabrier and van Horn 1995);
-  (4) how the iron, magnesium and silicon abundances of the star set a
-  rocky planet's core fraction (Dorn et al. 2015, Unterborn and Panero,
-  Thiabaud et al. 2015, Santos et al. 2015); (5) the water fraction
-  against formation distance and the snow line, and the compositions of
-  moons; (6) observed ranges as test targets, not presets (Earth, Mars,
-  Venus, the Galilean moons, Titan, Neptune, Kepler-planet densities).
-  Done: the report lists every relation and constant the materials
-  table, the draws and the density derivation need, with its source, and
-  what is still unfound; Boss researches the unfound ones on request.
-  Prerequisites: none. Related: GEN.426, GEN.427.
 
 - [ ] **GEN.426 The bulk composition design: the fractions, the equation of state, the draws and the derived density, mass and gravity**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -8656,7 +8544,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   targets. Done: the note carries the decisions, a worked example per
   kind of body and the test targets.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
-  Prerequisites: GEN.425. Related: GEN.409, GEN.427, GEN.428, GEN.429.
+  Prerequisites: GEN.432. Related: GEN.409, GEN.427, GEN.428,
+  GEN.429.
+  Now an 8.1 design (Boss, 11:58 PM EDT): it follows the body survey
+  GEN.432 as well as GEN.425, covers surface and small-body composition
+  (GEN.441, GEN.442) and feeds the composition model GEN.437. Boss:
+  drawing the density first and filling in a fitting composition is as
+  acceptable as deriving the density from the composition; the design
+  picks one per kind of body.
+  Sources check (GEN.425, 2026-10-17,
+  docs/design/bulk-composition-sources-check.md; 12 sources, 8 verified,
+  3 verified with a limit, 1 assembled; 9 corrections): the design fixes
+  the radius reference level once (1 bar is the common one, the sources
+  use 0 pressure, 1 bar, 20 mbar and 1 mbar); decides whether the
+  structure is integrated per body, tabulated once on a grid in mass,
+  core fraction, water fraction and envelope fraction, or a closed form
+  with a stated error (the closed forms disagree by 3 to 4 percent in
+  radius and 10 to 12 percent in density, so it names the source it
+  follows and why); uses the newer water equation of state (Fortney's
+  warm ice is 12 percent larger than Zeng 2016's); and states that Zeng
+  2016's fit is calibrated on Earth's interior, so it is a check, not a
+  source of constants. Boss's list of what the sources could not give is
+  section 5 of the report.
 
 - [ ] **GEN.427 One table of the bulk materials with their equation-of-state constants and the source of each**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -8680,7 +8589,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fails when a material named in a description or in the class tables is
   missing from it; every number has a source.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
-  Prerequisites: GEN.426. Related: GEN.410, GEN.428.
+  Now an 8.1 data table (Boss, 11:58 PM EDT): it adds no behaviour until
+  GEN.428 reads it; the design is GEN.437's and the molar masses come
+  from GEN.438.
+  Sources check (GEN.425): the report's section 3.1 lists the constants
+  to take (Seager 2007 Table 1: epsilon iron 8.30, 156.2, 6.08 Vinet;
+  alpha iron for small bodies; MgSiO3 perovskite and enstatite;
+  (Mg,Fe)SiO3; MgO with the 177 or 161.4 GPa choice cited; FeS; ice VII
+  with two parameter sets that are not interchangeable; graphite and
+  SiC), the validity ranges (BM only to about 2.8e13 Pa,
+  Thomas-Fermi-Dirac above) and what is missing: the low-pressure ices
+  (Ih, III, V, VI), methane, ammonia and carbon dioxide ice densities,
+  porosity, and olivine and enstatite bulk densities for small bodies,
+  which are Boss's to research (GEN.432 surveys them).
+  Prerequisites: GEN.426, GEN.437, GEN.438. Related: GEN.410, GEN.428.
 
 - [ ] **GEN.428 Planets and moons draw their bulk composition fractions instead of carrying a fixed text**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -8706,7 +8628,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the same galaxy gives the same fractions at any worker count, a test
   says so.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
-  Prerequisites: GEN.427. Related: GEN.429, DB.69, GEN.430.
+  The host star's iron, magnesium and silicon come from the derived star
+  composition (GEN.440). Boss (11:58 PM EDT): drawing the density and
+  then filling in a fitting composition is acceptable; the design
+  GEN.426 says which per kind of body.
+  Sources check (GEN.425): the core mass fraction follows from the
+  star's Fe/Si and Mg/Si (mass ratios; all iron in the core, Mg and Si
+  as oxides: CMF = (Fe/Si) / ((Fe/Si) + silicate mass per gram of Si);
+  the Lodders-2003 Sun gives 0.320 against Earth's 0.325; the stellar
+  range gives about 0.2 to 0.47), so the draw needs the host's Fe, Mg,
+  Si, O and C abundances, not only [Fe/H]; GEN.440 derives them from the
+  stored [Fe/H], age and population (the relations GEN.433 finds, for
+  example Bensby 2005 and Adibekyan 2012, with scatter). The water
+  fraction beyond the snow line is an ice to rock mass ratio of 1 +/-
+  0.5 (all ices; 0.35 +/- 0.25 with refractory organics), the snow line
+  sits at 2.7 AU times the square root of the luminosity (the 170 K
+  blackbody value, derived in the report) with a drawn scatter of about
+  0.2 dex (Mulders 2015), and water inside the line has no source (the
+  existing `water_mass_fraction` draw needs a rule). The bias of 'all
+  iron in the core' (FeO in the mantle, light elements in the core, ten
+  percent or more) is stated or a draw is researched.
+  Prerequisites: GEN.427, GEN.440. Related: GEN.429, DB.69, GEN.430.
 
 - [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -8733,6 +8675,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changing a fraction moves the density as the model says; a test says
   so. Ships with the generator epoch bump of GEN.428.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Sources check (GEN.425, section 3.2): by mass, small bodies below
+  about 0.01 Earth masses take the volume-additive density 1 / sum(w_i /
+  rho0_i) (a derivation, no paper, porosity ignored); solid planets from
+  0.01 to about 100 Earth masses integrate the two- or three-layer
+  structure with the GEN.427 constants (it reproduces Zeng 2016's table
+  to 1 to 4 percent), or interpolate a grid built once with them; the
+  closed forms (Zeng 2016, Fortney 2007, Zeng 2019, Seager) are checks
+  and fallbacks; the envelope comes from the Lopez and Fortney 2014
+  tables (radius at 20 mbar, corrected by the scale-height term to the
+  chosen level); above 20 Earth masses with an envelope the Fortney 2007
+  giant tables apply and the existing giant relation (GEN.34) is not
+  touched. The honest uncertainty from the literature is 3 to 4 percent
+  in radius.
   Prerequisites: GEN.428. Related: GEN.411, GEN.423, DB.69.
 
 - [ ] **GEN.430 The planet and moon descriptions state the composition from the stored fractions**
@@ -8757,6 +8712,644 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that the shares quoted equal the stored ones.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
   Prerequisites: GEN.428, GEN.429. Related: GEN.415, GEN.218, GEN.208.
+
+- [ ] **GEN.431 Research: what is in the atmospheres of every kind of world, and the numbers each compound needs**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Lane writes its design-document
+  sections to /mnt/project-files/design-drafts/ and reports; the TODO
+  thread merges them into docs/design. A read-only research thread:
+  reads papers (export.arxiv.org PDFs and, since Boss widened the
+  network at 12:02 AM EDT, the other hosts), marks every source read,
+  second-hand or not found, and says what Boss must research. Survey
+  every gas, compound, condensate and aerosol that matters in the air of
+  any world: rocky and ocean worlds, Venus-like, Mars-like and
+  Titan-like worlds, hot and lava worlds, sub-Neptunes, gas and ice
+  giants, brown dwarfs, comet comae and the thin exospheres of airless
+  bodies; how each forms and survives (outgassing, photochemistry,
+  escape, condensation, biology); and per compound the stats a
+  calculation needs: molar mass, abundance ranges by world kind,
+  condensation and freezing curves, the infrared bands that make a
+  greenhouse, the ultraviolet cross sections, Rayleigh refractivity and
+  King factor, solubility and chemistry links (what makes ozone, haze,
+  sulphur clouds), and toxicity thresholds. Start from
+  docs/design/atmosphere-sources-check.md (GEN.408, done) and re-check
+  its four unreached sources (Peck and Huang 1977, Burkholder and
+  Talukdar 1994, Serdyuchenko 2014, Chandrasekhar 1960) now that the
+  network is open. Done: the draft lists every compound with every
+  number and its source, and what is still unfound. The lane named
+  Atmosphere research (2026-10-17) holds this item.
+  Owner: the Atmosphere research lane (the coordinator started it at
+  Boss's 11:58 PM EDT ask, "Atmosphere research (2026-10-17)").
+  Network (Boss, 2026-10-17, about 12:02 AM EDT): access is widened;
+  arxiv.org itself is reachable, so the four sources the first check
+  could not reach (Peck and Huang 1977, Burkholder and Talukdar 1994,
+  Serdyuchenko 2014, Chandrasekhar 1960) are re-read and the second-hand
+  ones upgraded, in this lane's draft. SCvH 1995 was read from the ADS
+  scan (articles.adsabs.harvard.edu), Lodders 2003 and journal pages
+  behind a bot check were not.
+  Prerequisites: none. Related: GEN.409, GEN.410, GEN.434, GEN.437.
+
+- [ ] **GEN.432 Research: what rocky, icy and giant bodies and their small relatives are made of, and the numbers each material needs**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Lane writes its design-document
+  sections to /mnt/project-files/design-drafts/ and reports; the TODO
+  thread merges them into docs/design. A read-only research thread:
+  reads papers (export.arxiv.org PDFs and, since Boss widened the
+  network at 12:02 AM EDT, the other hosts), marks every source read,
+  second-hand or not found, and says what Boss must research. Survey
+  what planets, moons, dwarf planets, asteroids, comets, rings and giant
+  planets are made of: the metals and alloys, silicates and minerals
+  (olivine, pyroxene, feldspar, oxides, sulphides, carbonates, clays),
+  carbon compounds, the ices and clathrates (water in its phases,
+  ammonia, methane, carbon dioxide, nitrogen, carbon monoxide), salts,
+  oceans and the hydrogen and helium envelopes; the taxonomic classes of
+  small bodies; how composition follows formation distance, the snow
+  line, the star's abundances, differentiation, impacts and weathering;
+  the surface (crust, regolith, ice cover) against the bulk; and per
+  material the stats a calculation needs: density and the
+  equation-of-state constants, melting, boiling and phase curves, heat
+  capacity and conductivity, radiogenic content (potassium, uranium,
+  thorium), the reflectance spectrum and albedo, and the mass
+  attenuation for radiation. Includes the checks of GEN.425 (mass-radius
+  and equation-of-state sources). Done: the draft lists every material
+  with every number and its source, the observed ranges to test against
+  (not presets), and what is still unfound. The lane named Body
+  composition research (2026-10-17) holds this item.
+  Prerequisites: none. Related: GEN.425, GEN.426, GEN.427, GEN.433,
+  GEN.434.
+  Owner: the Body composition research lane (the coordinator started it
+  at Boss's 11:58 PM EDT ask, "Body composition research (2026-10-17)").
+  Sources check (GEN.425): the low-pressure ices (Ih, III, V, VI),
+  methane, ammonia and carbon dioxide ice densities, porosity of small
+  bodies, olivine and enstatite bulk densities and the water delivered
+  inside the snow line are not in any source read; Chaplin 2012 and
+  Choukroun and Grasset 2007 are the sources Zeng and Sasselov 2013
+  name.
+
+- [ ] **GEN.433 Research: what stars and stellar remnants are made of, and the numbers each needs**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Lane writes its design-document
+  sections to /mnt/project-files/design-drafts/ and reports; the TODO
+  thread merges them into docs/design. A read-only research thread:
+  reads papers (export.arxiv.org PDFs and, since Boss widened the
+  network at 12:02 AM EDT, the other hosts), marks every source read,
+  second-hand or not found, and says what Boss must research. Survey the
+  composition of stars of every kind and age: mass fractions X, Y and Z
+  and the element abundances by population (the [Fe/H] and [alpha/Fe]
+  trends with age and galactic position, the helium enrichment), how the
+  surface abundance changes with evolution (dredge-ups, mass loss,
+  Wolf-Rayet stars), brown dwarfs, white dwarfs (carbon, oxygen, helium,
+  hydrogen layers), neutron stars (crust and core) and black holes
+  (none); and per kind the stats a calculation needs: what the
+  abundances change (opacity, luminosity, lifetime, radius, colour), the
+  relations to cite and the data to calibrate against. Rule (Boss,
+  10-16, 4:11 PM EDT): nothing is copied from the Sun or the Milky Way;
+  the Sun is a test target. Done: the draft lists the relations and
+  numbers with their sources and what is unfound. The lane named Body
+  composition research (2026-10-17) holds this item after GEN.432.
+  Prerequisites: none. Related: GEN.435, GEN.439, GEN.440, GEN.368,
+  GEN.405.
+  Owner: the Body composition research lane, after GEN.432.
+  Sources check (GEN.425): the survey must supply the trends of Mg, Si,
+  O and C against [Fe/H] (Santos 2015 points to Bensby 2005 and
+  Adibekyan 2012, not read), a cited solar abundance set (Lodders 2003,
+  Asplund 2009), and the iron oxidation and light-element question.
+
+- [ ] **GEN.434 Research: radiation through atmospheres and at the ground, and the numbers it needs**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Lane writes its design-document
+  sections to /mnt/project-files/design-drafts/ and reports; the TODO
+  thread merges them into docs/design. A read-only research thread:
+  reads papers (export.arxiv.org PDFs and, since Boss widened the
+  network at 12:02 AM EDT, the other hosts), marks every source read,
+  second-hand or not found, and says what Boss must research. Survey how
+  an atmosphere changes the star's radiation and the radiation field of
+  space on the way down, and what the ground adds: band-resolved
+  absorption and scattering by compound (the ultraviolet, visible and
+  infrared, the greenhouse bands and the radiative balance of a column,
+  line-by-line against band-model and correlated-k methods), the
+  shielding of galactic cosmic rays and stellar particles by a column of
+  any composition (mass stopping power and attenuation length), the
+  polar-cap and magnetic cutoff, radiogenic dose from the ground's
+  potassium, uranium and thorium and the radon that follows, the
+  reflectance of ground and ice by band, and the thresholds of harm.
+  Start from docs/design/activity-magnetism-radiation-hydrosphere.md and
+  docs/design/Naturally Occuring Ionizing Radiation.md. Done: the draft
+  lists every relation and number with its source and what is unfound.
+  Unowned: any read-only thread.
+  Prerequisites: none. Related: GEN.431, GEN.432, GEN.436, GEN.256,
+  GEN.317.
+  Owner: the two research lanes above (the coordinator, 12:17 AM EDT).
+  Covered by the two research lanes (the coordinator, 2026-10-17, 12:17
+  AM EDT): the Atmosphere research lane has a part on radiation
+  shielding and ground sources, the Body composition lane one on ground,
+  radiogenic heat and shielding, both in
+  /mnt/project-files/design-drafts/; no separate thread unless Boss
+  asks.
+
+- [ ] **GEN.435 The stellar composition design: the abundance relations, what is stored and what is derived, and the remnants**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Write
+  docs/design/stellar-composition.md and have Boss approve it. It
+  settles: the composition of a star as mass fractions X, Y and Z and
+  the main elements, derived from the stored [Fe/H], the age and the
+  population (the relations of GEN.433, not one star's values); what is
+  derived on demand and what, if anything, is stored (the 75 million
+  stars rule out new columns unless a value cannot be derived); how the
+  abundances change what the star is (opacity, luminosity, lifetime,
+  colour) and whether the existing tables of GEN.407 change; brown
+  dwarfs, white dwarfs, neutron stars and black holes; how a star's
+  iron, magnesium and silicon set the rocky planets' core fraction
+  (GEN.428); how stars in a cluster and a multi-star system share it
+  (GEN.269). Done: the note carries the decisions, a worked example per
+  kind of star and the test targets (the Sun's composition is a target,
+  not a preset).
+  Owner: Core 4 (Boss tapped Core 4, 2026-10-17, 12:13 AM EDT, a card,
+  for the star composition items together with the other composition
+  design and table items).
+  Prerequisites: GEN.433. Related: GEN.439, GEN.440, GEN.407, GEN.269.
+
+- [ ] **GEN.436 The radiation design: atmospheric transmission and greenhouse by band, shielding by column, and the ground's own dose**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Write docs/design/radiation-model.md
+  and have Boss approve it. It settles: the bands (ultraviolet, visible,
+  near and thermal infrared, ionising), how an atmosphere's transmission
+  by band follows from the stored mixture, the aerosols and the cloud;
+  how the greenhouse effect follows from the infrared opacity of the
+  gases instead of the stored per-gas strengths (and how the stored
+  multiplier of GEN.412 is checked against it); how the shielding of
+  cosmic rays and stellar particles follows from the column and its
+  composition; the ground's radiogenic dose from the ground composition
+  and the star's abundances, and the radon that follows; the surface
+  ultraviolet from the transmission and the ground's reflectance; which
+  values are derived and which stored; and which existing proxies it
+  replaces (`ozone_ratio`, the `a_rad` draw, the band fractions of
+  `physics/radiation.py`). Done: the note carries the decisions, a
+  worked example (an Earth-like, a thin-air, a thick-CO2 and an airless
+  world) and the test targets.
+  Prerequisites: GEN.431, GEN.432, GEN.434. Related: GEN.443, GEN.444,
+  GEN.445, GEN.423, GEN.256.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
+
+- [ ] **GEN.437 The composition model: how the element, compound, material and body tables link, and what is stored against derived**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Write the master note
+  docs/design/composition-model.md (it starts as the plan note of this
+  directive) into the checked design that joins the atmosphere design
+  (GEN.409), the bulk design (GEN.426), the stellar design (GEN.435) and
+  the radiation design (GEN.436): one chain from the element table to
+  the compounds and materials, to the stars, bodies and atmospheres, to
+  the derived values (density, gravity, colour, radiation); one set of
+  units and one source field per number; where a drawn figure (density,
+  temperature) comes first and a composition is then filled in to fit
+  it, and where the composition is the cause (Boss: either works; the
+  design picks the simplest that is consistent per kind of body and says
+  so); the generator epochs and migrations; and how every item that
+  follows reads it. Done: the note carries the decisions and Boss
+  approves it.
+  Prerequisites: GEN.409, GEN.426, GEN.435, GEN.436. Related: GEN.438,
+  GEN.410, GEN.427, GEN.439.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
+
+- [ ] **GEN.438 One table of the elements and their isotopes: atomic data and the radioactive isotopes' half-lives and decay energies**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. A constants module for the elements
+  that matter (atomic number, symbol, molar mass, and the stable and
+  long-lived radioactive isotopes with their half-lives, decay energies
+  and decay chains: potassium-40, thorium-232, uranium-235 and -238,
+  aluminium-26 and the rest the research lists), the one table the gas,
+  materials and stellar tables take their molar masses from, and the
+  ground's radiogenic heat and dose read. Atomic physics only; no
+  abundance pattern lives here. Done: a test checks the molar mass of
+  every compound in the gas and materials tables against the sum of its
+  elements; every number has a source.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.437. Related: GEN.410, GEN.427, GEN.439, GEN.444.
+
+- [ ] **GEN.439 The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. A constants-and-functions module
+  with the relations the design (GEN.435) chose: the mass fractions X, Y
+  and Z and the main element abundances as functions of [Fe/H],
+  [alpha/Fe] and age, the evolutionary changes at the surface, and the
+  layer structure of white dwarfs, neutron stars and brown dwarfs, each
+  with its source. No database access; nothing copied from one star.
+  Done: a test checks that the fractions sum to one, that they follow
+  [Fe/H] monotonically where the sources say so, and that the Sun's
+  measured composition is reproduced at its [Fe/H] and age inside a
+  stated tolerance (a target, not a preset).
+  Owner: Core 4 (Boss tapped Core 4, 2026-10-17, 12:13 AM EDT, a card,
+  for the star composition items together with the other composition
+  design and table items).
+  Prerequisites: GEN.435, GEN.437, GEN.438. Related: GEN.440, GEN.428.
+
+- [ ] **GEN.440 Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. A function in the physics layer
+  (`physics/stellar_composition.py`) that returns the composition of any
+  star from the values already stored (GEN.158's [Fe/H], the age, the
+  population and the kind), with no new column and no change to stored
+  values, and that the planet draws (GEN.428, the host's iron, magnesium
+  and silicon), the description layer and the radiation model read.
+  Done: the same star gives the same composition at any worker count; a
+  test sweeps every kind of star in a generated galaxy and finds
+  fractions that sum to one and match GEN.439's relations.
+  Owner: Core 4 (Boss tapped Core 4, 2026-10-17, 12:13 AM EDT, a card,
+  for the star composition items together with the other composition
+  design and table items).
+  Sources check (GEN.425): it returns the abundances the planet draws
+  need, not only X, Y and Z: the iron, magnesium, silicon, oxygen and
+  carbon ratios (Fe/Si, Mg/Si, C/O) with the scatter of the relations
+  against [Fe/H], from a cited solar abundance set (the check typed
+  Asplund-style values from memory; Lodders 2003 and Asplund 2009 were
+  not read).
+  Prerequisites: GEN.439. Related: GEN.428, GEN.446, GEN.158.
+
+- [ ] **GEN.441 Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Planets and moons get a surface
+  composition as shares (silicate and metal-rich crust, regolith, the
+  ices that are stable at the surface temperature and pressure, the
+  ocean and its salts, organic and sulphur deposits), derived from the
+  bulk fractions of GEN.428 and the materials table of GEN.427 together
+  with the surface temperature and the stored atmosphere (an ice that
+  cannot survive the temperature is absent; weathering follows the air
+  and the water). The design (GEN.426, GEN.437) settles the order of the
+  steps against the albedo and temperature of GEN.412 and GEN.422, since
+  the ground's colour is part of the albedo. Changes stored values, so
+  it ships with a generator epoch bump. Done: every body's surface
+  shares sum to one, agree with its bulk fractions and its temperature,
+  and the ground's albedo and radiogenic content can be read from them;
+  a test says so for every class.
+  Prerequisites: GEN.428, GEN.429. Related: DB.70, GEN.444, GEN.418,
+  GEN.412.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
+
+- [ ] **GEN.442 Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. The small bodies of a system
+  (asteroid belts and fields, comets, rings, dwarf planets) draw a
+  composition from where they formed against the snow line and the
+  star's abundances (rocky and metal-rich inside, carbonaceous beyond,
+  icy and volatile-rich far out, with the taxonomic classes the research
+  lists), through the same materials table and bulk model as planets
+  (GEN.427, GEN.428), instead of the fixed class texts. Changes stored
+  values, so it ships with a generator epoch bump. Done: a belt, a comet
+  and a ring each have shares that sum to one and move with the
+  formation distance in the physical direction; the same system gives
+  the same shares at any worker count; a test says so.
+  Finding (Core 1, 2026-10-17, 12:04 AM EDT, from #1952): belts and
+  asteroid fields have no mass model (the mass is stated as zero, NAV.62
+  already notes it), so the design says how a small body's mass follows
+  from its composition and size.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.428, GEN.429. Related: DB.70, GEN.360, GEN.441.
+
+- [ ] **GEN.443 Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. From the stored mixture (GEN.411),
+  the ozone and the aerosol depths (GEN.413, GEN.414) and the gas
+  table's band data, compute the atmosphere's absorption and scattering
+  by band (ultraviolet, visible, near and thermal infrared), the
+  fraction of the star's light that reaches the ground in each, and the
+  greenhouse effect from the infrared opacity of the gases; the stored
+  greenhouse multiplier of GEN.412 is checked against it and the simple
+  per-gas strengths of GEN.423 are replaced where the design (GEN.436)
+  says so. Pure functions of stored values, no new column. Done: Earth's
+  air gives the measured greenhouse warming and surface ultraviolet
+  within a stated tolerance, a thin dry world gives almost none, a thick
+  CO2 world a runaway-like value; doubling a gas moves its bands as the
+  physics says; no NaN for any class.
+  Prerequisites: GEN.417, GEN.413, GEN.414, GEN.436. Related: GEN.444,
+  GEN.445, GEN.423, GEN.412, GEN.418.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
+
+- [ ] **GEN.444 Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Replace the proxies of
+  `physics/radiation.py` with values derived from composition: the
+  cosmic-ray and stellar-particle shielding from the column and its
+  composition (not the one air attenuation length), the surface
+  ultraviolet from the band transmission of GEN.443 and the ground's
+  reflectance, the radiogenic dose and the radon from the ground's
+  potassium, uranium and thorium (GEN.441 and the star's abundances,
+  GEN.438's isotopes) instead of the log-uniform `a_rad` draw, plus the
+  existing magnetic cutoff and the galactic hazard of GEN.256. Changes
+  stored values (the dose columns), so it ships with a generator epoch
+  bump and a migration of the dose for old rows. Done: Earth's
+  composition gives the measured 2.4 mSv per year at sea level within a
+  stated tolerance, the Moon and Mars the measured values, an airless
+  ice moon almost no radiogenic dose; a test fails when a proxy comes
+  back.
+  Prerequisites: GEN.443, GEN.441, GEN.438. Related: GEN.445, GEN.256,
+  GEN.317, GEN.87.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
+
+- [ ] **GEN.445 Habitability, toxicity and the UV index read the derived radiation instead of the proxies**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. The radiation rung of the
+  habitability score, the shelter rung, the UV index and the toxicity
+  limits read the band transmission, the surface dose and the greenhouse
+  of GEN.443 and GEN.444, and the ozone of GEN.413, so a change of
+  composition moves them together (`physics/habitability.py` and
+  `habitability_explain.py`). Done: the habitability explanation names
+  the composition terms behind each radiation value, and a test shows
+  that changing a gas or the ground's potassium moves the score as the
+  model says.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.444. Related: GEN.443, GEN.413, GEN.208.
+
+- [ ] **GEN.446 The descriptions state the composition of stars, surfaces and small bodies, and the radiation at the surface**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. The description layer writes, from
+  the stored and derived values only: the star's composition (mass
+  fractions and the main elements), a body's surface and small-body
+  composition, and the surface radiation (the dose, the ultraviolet and
+  the atmosphere's transmission with the terms behind them), in every
+  output (text, markdown, wikitext, JSON and the web page), never naming
+  a material the body does not hold. Done: a test generates stars and
+  bodies of every kind and checks that every material named is in the
+  stored or derived composition above a stated share and that the quoted
+  figures equal them.
+  Prerequisites: GEN.440, GEN.441, GEN.442, GEN.444, GEN.445. Related:
+  GEN.430, GEN.415, GEN.420, GEN.208.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
+
+- [ ] **GEN.447 The wide-pair encounter limit uses the relative-velocity dispersion and the mass-weighted perturber mass**
+  Follow-up from the Core 4 citation re-check of GEN.103 and GEN.134
+  (2026-10-17, 12:45 AM EDT as the lane reported). The sharp cut at
+  a_1/2 (Jiang and Tremaine 2010: a_1/2 = 3.1e4 AU for sigma 50 km/s,
+  rho_2 0.03, 10 Gyr) reads sigma as the population's own dispersion,
+  but the paper's sigma is the dispersion of the relative velocity
+  (about the square root of 2 larger), and rho_2 uses the mass-weighted
+  perturber mass <M^2>/<M>, not the 0.4 solar mass used. The two
+  simplifications go opposite ways (about -30 percent and plus). Done:
+  the limit is computed from the galaxy's own velocity dispersion by
+  component (GEN.406) and its own mass function, with the
+  relative-velocity factor and the mass-weighted mean written out; the
+  two corrections are named in the code and the note; a test compares
+  the limit for the Sun's neighbourhood values (a test value, not an
+  input) with the paper's 3.1e4 AU. Owner: Core 4, with the multi-star
+  items.
+  Epoch and rescatter (2026-10-17, Boss 12:21 AM EDT: fix all of the
+  re-check's findings, with the 8.1 scatter changes so one rescatter
+  serves them): the item changes stored values, so it bumps the
+  generator epoch with the rule of OPS.56 and joins the one full
+  rescatter that follows the other scatter changes; GEN.301 waits for
+  it. The tables live in generation/multistar.py and tuning.py, not in
+  Core 3's sampler (GEN.322, GEN.323), so the two lanes do not collide;
+  ask Core 3 before touching its files. Core 4 takes GEN.373, GEN.447,
+  GEN.448 and GEN.449 as one run of PRs, so TEST.196 checks the finished
+  tables.
+  Prerequisites: none. Related: GEN.103, GEN.373, GEN.406, GEN.269.
+
+- [ ] **GEN.448 Massive stars get binaries between 0.25 and 50 AU, so the metallicity trend reaches the separations where it was measured**
+  Follow-up from the Core 4 citation re-check of GEN.103 and GEN.134
+  (2026-10-17, 12:45 AM EDT as the lane reported). The generator has no
+  binaries between 0.25 and 50 AU, although massive stars peak near 10
+  AU (Moe and Di Stefano 2017; Sana 2012), so the metallicity trend (a <
+  10 AU) is applied only to the 0.05 to 0.25 AU class. Done: the
+  separation classes cover the whole range with the pooled Moe trend at
+  each star's own [Fe/H] in the odds form of GEN.103, the mass
+  dependence of the peak is drawn, the class counts stay reproducible
+  (GEN.56), and TEST.196 compares the fractions by primary mass and
+  [Fe/H] bin against the published ranges. Owner: Core 4, with the
+  multi-star items.
+  Epoch and rescatter (2026-10-17, Boss 12:21 AM EDT: fix all of the
+  re-check's findings, with the 8.1 scatter changes so one rescatter
+  serves them): the item changes stored values, so it bumps the
+  generator epoch with the rule of OPS.56 and joins the one full
+  rescatter that follows the other scatter changes; GEN.301 waits for
+  it. The tables live in generation/multistar.py and tuning.py, not in
+  Core 3's sampler (GEN.322, GEN.323), so the two lanes do not collide;
+  ask Core 3 before touching its files. Core 4 takes GEN.373, GEN.447,
+  GEN.448 and GEN.449 as one run of PRs, so TEST.196 checks the finished
+  tables.
+  Prerequisites: none. Related: GEN.103, GEN.269, GEN.270, TEST.196.
+
+- [ ] **GEN.449 The companion table for mid and early B stars is raised to the observed frequencies**
+  Follow-up from the Core 4 citation re-check of GEN.103 and GEN.134
+  (2026-10-17, 12:45 AM EDT as the lane reported). The has-a-companion
+  table matches Moe and Di Stefano 2017 Table 13 for G, A and O stars
+  (0.44, 0.55 and 0.90 against 40, 59 and 94 percent) but is 10 to 20
+  points low for mid and early B stars (0.65 against 76 and 84 percent).
+  The same table also gives the close-binary frequency by mass bin
+  (0.15, 0.37, 0.63, 0.8, 1.0), the single-star fractions (0.60, 0.41,
+  0.24, 0.16, 0.06) and 35 +-10 percent of mid-B stars with a companion
+  (q above 0.1, P under 400 d), and the solar-type companion frequency
+  is 0.50 +-0.04. Done: `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`
+  and the star-count table are rederived from those figures, with the
+  table named in the constants; TEST.196 checks the bins. Owner: Core 4,
+  with the multi-star items.
+  Epoch and rescatter (2026-10-17, Boss 12:21 AM EDT: fix all of the
+  re-check's findings, with the 8.1 scatter changes so one rescatter
+  serves them): the item changes stored values, so it bumps the
+  generator epoch with the rule of OPS.56 and joins the one full
+  rescatter that follows the other scatter changes; GEN.301 waits for
+  it. The tables live in generation/multistar.py and tuning.py, not in
+  Core 3's sampler (GEN.322, GEN.323), so the two lanes do not collide;
+  ask Core 3 before touching its files. Core 4 takes GEN.373, GEN.447,
+  GEN.448 and GEN.449 as one run of PRs, so TEST.196 checks the finished
+  tables.
+  Prerequisites: none. Related: GEN.103, GEN.269, TEST.196.
+
+- [ ] **GEN.450 The star-formation profile's radial slope: reconcile the Schmidt index with the observed gradient, with the choice named**
+  Follow-up from the Core 4 citation re-check of GEN.134 (2026-10-17,
+  12:45 AM EDT as the lane reported), filed for Boss (2026-10-17, 12:21
+  AM EDT: fix all of the re-check's findings). The Milky Way's own
+  Schmidt index of 1.12 to 1.2 gives a star-formation gradient of about
+  -0.19 dex per kpc beyond the peak, while the observed -0.28 dex per
+  kpc needs an index of about 1.65 (Kennicutt 1998 gives 1.4 +-0.15).
+  GEN.134 derives the profile from the galaxy's own gas profile and a
+  Schmidt law, so the gradient it produces depends on this choice, and
+  the observed figure stays a test target, never an input (NO FIXED
+  CONTENT). Done: the sources for each way of closing the gap are
+  checked first (a Schmidt index that rises at low gas density, a gas
+  disc more extended or steeper than the stars, the Herschel scale
+  length of 1.55 kpc against the stellar 2.6 kpc, the outer-disc
+  threshold of Kennicutt), the one the science supports is built in the
+  profile with the others named in the note, and the generated gradient
+  is compared with the observed one in the star-type share test. If the
+  sources do not settle it, Boss decides on a card. Owner: Core 4 (it
+  owns GEN.134 and density.py).
+  Epoch and rescatter (2026-10-17, Boss 12:21 AM EDT: fix all of the
+  re-check's findings, with the 8.1 scatter changes so one rescatter
+  serves them): the item changes stored values, so it bumps the
+  generator epoch with the rule of OPS.56 and joins the one full
+  rescatter that follows the other scatter changes; GEN.301 waits for
+  it. The profile code (density.py, tuning.py) is Core 4's GEN.134 work
+  and not Core 3's sampler (GEN.322, GEN.323); ask Core 3 before
+  touching its files.
+  Prerequisites: GEN.134. Related: GEN.134, GEN.405, GEN.386, TEST.186.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -9732,35 +10325,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   GEN.294 chain).
   Migration revision (Core 1, 2026-10-16, 6:13 PM EDT): 0104, after
   0103 (GEN.336).
+  Status (Core 1, #1952, merged 2026-10-17, 12:04 AM EDT as the lane
+  reported): the first slice is on main, migration 0104 creates
+  orbit_nodes with the star and planet columns for a built system's
+  orbit tree; the rest of the DB.53 chain remains. The next revision is
+  0105 (DB.65), then DB.69, DB.67, DB.70 and DB.68 in the order they
+  merge.
   Prerequisites: none. Related: GEN.129.
-
-- [ ] **DB.55 One additive migration for the 8.3 schema: point columns for every kind, heaviest object per sector, asteroid-field provenance**
-  Split from GEN.294 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Core 1 owns every revision, and
-  four items of 8.3 each asked for columns on the same tables (GEN.294,
-  GEN.142's velocities, GEN.110's mass_kg and origin on asteroid_fields,
-  GEN.109's per-sector heaviest object). One revision, the next free
-  after 0098, adds them nullable and backfilled: x, y, z
-  (sector-relative, with the cell key where a table lacks it), vx, vy,
-  vz, mass_kg, epoch_unix and next_update_due wherever missing for black
-  holes, neutron stars, rogue planets, interstellar comets, asteroid
-  fields, belts, nebulae, remnants, quasars, comets, facilities and
-  scatter points and members (the vector backfilled from the scalar
-  speed as a tangential vector of the same speed, the mass by the stated
-  rule); `sectors.max_mass_kg` and `max_mass_id`;
-  `asteroid_fields.formed_at` and `origin_event_id`; the planet and moon
-  state columns GEN.289 needs (parent_type, parent_id, dynamical_state,
-  vector, mass_kg). The scalar speed columns and the circular phase
-  columns are dropped by the code items that stop reading them, each
-  with its own small revision from Core 1. Why: no other lane then edits
-  Alembic, and no two items add the same column. Done: the revision
-  applies on a galaxy at the previous head and on an empty one,
-  downgrades as the other revisions do, and the schema docs list the new
-  columns.
-  Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
-  top 5 blockers, starting right after GEN.237 merges; estimates from
-  Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
-  Prerequisites: none. Related: GEN.294.
 
 - [ ] **DB.56 The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings**
   Split from GEN.143 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -9922,7 +10493,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   a database of the previous revision and every row has the three
   values; a test checks the values agree with the stored temperature and
   pressure.
-  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
   Prerequisites: GEN.411, GEN.412, GEN.422, GEN.423, GEN.424. Related:
   DB.65, DB.68, GEN.412.
 
@@ -9934,7 +10505,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   filled for old rows by the same derivations (a migration only, in the
   revision after DB.67). Done: every row has the values; a test checks
   them against the stored mixture.
-  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
   Prerequisites: GEN.413, GEN.414, DB.67. Related: DB.67.
 
 - [ ] **DB.69 Planets and moons store the composition fractions**
@@ -9955,12 +10526,42 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   rows by working the fractions back from the stored density, mass,
   radius and class (the inverse of GEN.429, the closest fractions that
   reproduce the stored density, drawn seeded inside the class range
-  where the inverse has many answers). The revision comes after DB.67's.
+  where the inverse has many answers). Revisions are taken in the order the items merge: DB.69 comes first, then DB.67, DB.70 and DB.68 (Core 1's next revision is 0105).
   Done: the migration runs on a database of the previous revision and
   every row has fractions that sum to one and reproduce its density
   within a stated tolerance.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Sources check (GEN.425): the stored fractions include the envelope
+  fraction and the water fraction, and the radius level of GEN.426 is
+  recorded in the data model; the inverse that fills old rows works from
+  the stored density, mass, radius and class and takes the same 3 to 4
+  percent radius spread as its tolerance.
   Prerequisites: GEN.429. Related: DB.67, DB.68.
+
+- [ ] **DB.70 Planets, moons and small bodies store the surface and small-body composition shares**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. The columns that hold the surface
+  shares of GEN.441 and the small bodies' shares of GEN.442, and a
+  migration that fills old rows by working the shares back from the
+  stored bulk fractions, temperature and pressure (the closest shares
+  that agree with them, seeded inside the range where the inverse has
+  many answers). Revisions are taken in the order the items merge: DB.69
+  first, then DB.67, DB.70, DB.68. Done: the migration runs on a
+  database of the previous revision and every row has shares that sum to
+  one and agree with its stored values within a stated tolerance.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.441, GEN.442. Related: DB.69, DB.67, DB.68.
 
 ## API: The JSON API
 
@@ -11324,6 +11925,11 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Sighting (Core 1's gate for #1952, 2026-10-16, about 11:59 PM EDT as
+  the lane reported; scripts/test.py changed, 83 min 56 s, 18,528
+  passed, 1 failed): the same
+  test_a_paused_queue_node_stands_by_until_resumed[2] failed once under
+  the gate and passed alone 3 of 3 (8 s each); no traceback was saved.
   Prerequisites: none. Related: TEST.111, TEST.123.
 
 - [ ] **TEST.129 Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug)**
@@ -12266,7 +12872,7 @@ clears each one.
   expected to pass at the edge. The test lands only with a green run (no
   skip, no quarantine). The 3.2 prevalence cap is GEN.373 and does not
   gate this test.
-  Prerequisites: GEN.103, TEST.186. Related: GEN.103, TEST.186,
+  Prerequisites: TEST.186. Related: GEN.103, TEST.186,
   TEST.161, TEST.164.
 
 - [ ] **TEST.197 `test_page_is_accessible_and_fits[web.sector-phone-light]` failed under load and passed alone: find the cause and make it robust (bug)**
@@ -12485,7 +13091,56 @@ clears each one.
   with the fractions after the migration; the text names only stored
   materials. Done: it passes on a generated galaxy and fails when any
   one rule is broken (a test that breaks each rule in turn).
-  Prerequisites: GEN.428, GEN.429, GEN.430, DB.69. Related: TEST.209.
+  Prerequisites: GEN.428, GEN.429, GEN.430, DB.69, GEN.441, GEN.442,
+  DB.70. Related: TEST.209.
+
+- [ ] **TEST.211 A star composition sweep: every kind of star, remnant and brown dwarf, fractions, trends and determinism**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Generate a galaxy and check, for
+  stars of every kind: the fractions sum to one and stay in range; they
+  follow [Fe/H] and age as the relations say; remnants have their
+  layers; the result is the same at one and at four workers; no star
+  lacks a composition. Done: it passes on a generated galaxy and fails
+  when any rule is broken (a test that breaks each in turn).
+  Owner: Core 4 (Boss tapped Core 4, 2026-10-17, 12:13 AM EDT, a card,
+  for the star composition items together with the other composition
+  design and table items).
+  Prerequisites: GEN.440. Related: TEST.210, GEN.439.
+
+- [ ] **TEST.212 A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. Generate planets and moons of every
+  class and check: the band transmissions are between 0 and 1 and follow
+  the mixture; the greenhouse follows the infrared opacity; the dose
+  follows the column, the cutoff and the ground's composition; the
+  stored temperature agrees with the albedo and greenhouse that the
+  radiation gives; habitability reads the same numbers; and the text
+  quotes them. Done: it passes on a generated galaxy and fails when any
+  rule is broken (a test that breaks each in turn).
+  Prerequisites: GEN.443, GEN.444, GEN.445, GEN.446. Related: TEST.209,
+  TEST.210, TEST.211.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
 
 ## USR: User accounts
 
@@ -13739,6 +14394,30 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the migration and the sweep, with the sources of every number. Done:
   the pages name each stored value and where it comes from.
   Prerequisites: TEST.210. Related: DOC.63, DB.69.
+
+- [ ] **DOC.66 Docs: the composition model of stars, bodies and atmospheres, the radiation it derives and the sources of every number**
+  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
+  "atmosphere composition and planet/moon/star/everything composition is
+  going to be the joint headline of v9.0 ... we need to know the
+  compounds, minerals, and such make up both atmospheres and stellar
+  bodies of all sorts, what is there and all the stats needed to include
+  it in our calculations. The idea is that every body will have figures
+  on its composition based on actual science and not made up where we
+  can avoid it. I'm perfectly ok with drawing the density and other
+  figures we draw now and then filling in compositions that fit that
+  designation. That is perfectly fine, or we can pick the most basics
+  and build either way works." Plan note:
+  docs/design/composition-model.md. The data model and physics pages
+  describe the element, gas, materials and stellar tables, the stored
+  and derived composition of stars, surfaces and small bodies, the
+  atmospheric and surface radiation, the migrations and the sweeps, with
+  the sources of every number and the research lanes' notes merged.
+  Done: the pages name each value, where it comes from and which check
+  covers it.
+  Prerequisites: TEST.212, TEST.211, DOC.63, DOC.65. Related: DOC.64,
+  DB.70.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation
+  code as the atmosphere items Boss gave it; to be confirmed).
 
 ## VIEW: The view from a planet
 
