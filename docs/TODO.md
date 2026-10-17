@@ -5733,10 +5733,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.238, GEN.241, GEN.243, GEN.244, GEN.259,
-  GEN.280, GEN.282, GEN.283, GEN.284, GEN.298, UX.116, TEST.159,
-  TEST.160, GEN.447, GEN.448, GEN.449, GEN.450, TEST.196, GEN.463,
-  GEN.467, GEN.469, GEN.502, GEN.526, GEN.528, GEN.529.
+  Prerequisites: GEN.238, GEN.241, GEN.243, GEN.244, GEN.259, GEN.280,
+  GEN.282, GEN.283, GEN.284, GEN.298, UX.116, TEST.159, TEST.160,
+  GEN.447, GEN.448, GEN.449, GEN.450, TEST.196, GEN.463, GEN.467,
+  GEN.469, GEN.502, GEN.526, GEN.528, GEN.529, GEN.530.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -12439,6 +12439,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   author).
   Prerequisites: none. Related: GEN.242, GEN.407, GEN.502, GEN.258.
 
+- [ ] **GEN.530 A pre-placed star's hosted nebula shows from its scatter row on the maps and pages**
+  Residual of GEN.320 (merged #2014, 10:07 AM EDT as Core 3 reported;
+  found by Core 3 and filed by the TODO thread). GEN.320 rolls a star's
+  hosted nebula from the star's own seed and added the helper
+  `hosted_nebula_of`, so a scatter row can say it before any sector is
+  filled (folds MAP.182's intent), but nothing reads that helper from a
+  row: the maps and pages do not show the hosted nebula of a pre-placed
+  star until its sector has been built. Do: the Galaxy Map, the sector
+  view and the star pages read `hosted_nebula_of` for a scatter row, so
+  a pre-placed O or B star shows the same nebula before and after its
+  sector is built. Done: a test shows the nebula of a pre-placed star
+  from its row equals the one the built sector holds, and a map tile or
+  page lists it without a fill. It belongs before GEN.301 (Core 3, 10:07
+  AM EDT). Owner: Core 3 (proposed, GEN.320's author; the map and page
+  reads may go to Core 2 if Core 3 prefers).
+  Prerequisites: none. Related: GEN.320, GEN.241, MAP.182.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.20 Short-term caching through the work queue and API**
@@ -15798,6 +15815,12 @@ clears each one.
   it gates GEN.301 (directly or through the census harness TEST.186). A
   test lane must be started or the item given to a running lane before
   the headline can close.
+  Finding (Core 3, 2026-10-17, 10:07 AM EDT, GEN.320): the protostar
+  yield is 30% per Bok globule and about 2.4 per star-forming core
+  before the cap; the galaxy-wide total against the 1.4e6 expected (open
+  question 8 of docs/design/phenomena-catalogue-and-fill.md) is not
+  measured, because it needs the cloud counts from a fill. This test (or
+  TEST.186's census) measures it.
   Prerequisites: GEN.243, TEST.186. Related: TEST.159.
 
 - [ ] **TEST.185 Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius**
