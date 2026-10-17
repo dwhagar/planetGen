@@ -177,6 +177,7 @@ Each lane writes its draft to /mnt/project-files/design-drafts/ and reports; the
 6. 1:43 AM EDT, "Weights, Dirichlet where unsure": the proportions of a drawn possibility use the table weights directly where a sourced kernel exists, and a Dirichlet draw around those weights, with the concentration from the known spread, where only a range is known (GEN.472, section 4b).
 7. 1:44 AM EDT, "Stand-in only": measured Solar System shapes (the asteroid taxon shares and zone kernel, the Earth rock-type library, and the other content taken from measured Solar System objects) enter a table only as flagged temporary stand-ins, each with a research item that replaces it with a derived or general distribution (GEN.473 to GEN.476, TEST.215, section 4b).
 8. 1:47 AM EDT, Boss's design point (typed in the body composition thread): anything an asteroid field or belt can be made of, a planet or moon can be made of too, so the materials and components are one shared table gated by class, and no object kind has a list of its own (GEN.427, GEN.472, GEN.477).
+9. 1:51 AM EDT, "Yes" on "Are table weights the odds of picking a possibility, fractions normalised separately?": the weights of the gated rows are the odds of picking a possibility, the fractions or partial pressures inside the drawn row are normalised separately by the item that owns them, and both sums are tested (GEN.472, TEST.214).
 
 ## 4b. The gated possibility table (Boss, 2026-10-17, 1:40 AM EDT)
 

@@ -10643,6 +10643,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Th), so this item includes the one gate evaluator with the condition
   predicates; the predicates are preferred to class letters because the
   classes are being reworked.
+  Decided (Boss, 2026-10-17, 1:51 AM EDT, a card, as the coordinator
+  relayed it): the table weights are the odds of picking a possibility,
+  the fractions inside the drawn row are normalised separately, and both
+  sums are tested.
 
 - [ ] **GEN.473 Replace the asteroid taxon shares and the zone kernel, measured in the Solar System belt, by a derived or general distribution**
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
@@ -14686,6 +14690,10 @@ clears each one.
   names a replacement item that exists in the plan, the stand-in report
   is listed and does not grow without a note, and the Dirichlet-drawn
   fractions of a seeded sample add up to one.
+  Decided (Boss, 2026-10-17, 1:51 AM EDT, a card, as the coordinator
+  relayed it): the table weights are the odds of picking a possibility,
+  the fractions inside the drawn row are normalised separately, and both
+  sums are tested.
 
 - [ ] **TEST.215 The Solar System calibration rows live in test files only: a flag fences them and a test fails when a generator table reads one**
   Body composition research lane, section 14.4 of
