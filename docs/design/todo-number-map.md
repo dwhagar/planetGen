@@ -14,15 +14,15 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.136 |
-| MAP | MAP.245 |
+| MAP | MAP.246 |
 | NAV | NAV.63 |
 | GEN | GEN.532 |
 | PERF | PERF.112 |
 | DB | DB.72 |
-| API | API.31 |
+| API | API.32 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.220 |
+| TEST | TEST.221 |
 | USR | USR.31 |
 | OPS | OPS.60 |
 | DOC | DOC.67 |
@@ -515,6 +515,7 @@ Parents marked "new parent" had no old number of their own.
 | API.28 | Recipe schema and runner: a recipe fixes, ranges or randomises any aspect, and a library turns it into objects | none | open |
 | API.29 | Upload spool and unit states: received batches on disk, units assembled at seal, finalize as a queue job | none | open |
 | API.30 | generate.py --remote: the client driver for sector and galaxy runs | none | open |
+| API.31 | Every outgoing web request sends a standard User-Agent with the software, its version and the API version | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
@@ -1407,10 +1408,10 @@ Parents marked "new parent" had no old number of their own.
 | MAP.222 | Nebula zoom window: choosing a nebula on the Galaxy Map flies into a view of that nebula alone | none | open |
 | MAP.223 | Globular cluster zoom window: choosing a cluster flies into a view of its own stars | none | open |
 | MAP.224 | Cluster pages and the Galaxy Map use the parent link | none | open |
-| MAP.225 | The wheel zooms toward the point under the cursor, with clearance | none | open |
+| MAP.225 | The wheel zooms toward the point under the cursor, with clearance | none | done, PR #2031 |
 | MAP.226 | Double-click flight on the Galaxy Map: fly to the thing clicked, or half way toward empty space | none | done, PR #1859 |
-| MAP.227 | The camera names its container: the header and the breadcrumb come from its position | none | open |
-| MAP.228 | The camera in the address: the URL and bookmarks hold the camera's target, distance and orientation | none | open |
+| MAP.227 | The camera names its container: the header and the breadcrumb come from its position | none | done, PR #2032 |
+| MAP.228 | The camera in the address: the URL and bookmarks hold the camera's target, distance and orientation | none | done, PR #2032 |
 | MAP.229 | Map label engine: names placed by priority, with no overlaps, shown and hidden by zoom | none | open |
 | MAP.230 | Names of stars, systems and sectors on the Galaxy Map | none | open |
 | MAP.231 | The Sector Map and the System Map use the label engine | none | open |
@@ -1427,6 +1428,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.242 | The Galaxy Map and its key draw what the family has: arms and bar only where they exist, a spheroid shell, a lens or a clumpy body | none | open |
 | MAP.243 | The Galaxy Map cannot select or enter anything in the halo: the halo's scatter objects are not pickable at galaxy scale and a zoom toward one stops without opening a view (bug) | none | open |
 | MAP.244 | The maps and pages use the atmosphere colour where they showed the planet colour | none | open |
+| MAP.245 | The wheel zoom's remaining parts: the column-density ray fallback, the clearance from the nearest pickable thing and the half-way double click | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2195,6 +2197,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.217 | `test_every_column_is_written` found a NULL in every row of `moons.evolutionary_speed` in the full parallel gate, and passes alone (bug) | none | done, PR #1989 |
 | TEST.218 | `test_first_control_connections_at_once` leaves 3 idle connections open on `planetgen_test_*` when its fixture ends: the test should close its own connections (bug) | none | open |
 | TEST.219 | Browser pages still have 1 to 7 requests running 8 s after the server stops: find what keeps them busy and make it faster | none | open |
+| TEST.220 | test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter finds `neutron-star` inside `magnetar neutron-star` (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

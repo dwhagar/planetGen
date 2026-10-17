@@ -1025,7 +1025,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 34 of 53). This replaces any earlier owner line on this item.
-  Prerequisites: MAP.227, MAP.228.
+  MAP.228 merged (#2032): the address holds the camera, so region
+  stepping reads and writes the camera address, not the old window
+  address.
+  Prerequisites: none.
 
 - [ ] **MAP.122 A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star**
   Boss (2026-10-07 11:47Z): "Button in Galaxy display to allow selecting
@@ -1255,8 +1258,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.151's tile keys; MAP.154, the nested lists, merged in #1303), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148
   and MAP.150, done in #1382); this umbrella closes last.
   Headline: 8.1 (infinite zoom: the fly-through Galaxy Map).
-  Prerequisites: MAP.153, MAP.155, MAP.157, MAP.159, MAP.225,
-  MAP.226, MAP.227, MAP.228. Related:
+  Prerequisites: MAP.153, MAP.155, MAP.157, MAP.159, MAP.226, MAP.245.
+  Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
   NAV.14.
@@ -1276,6 +1279,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 2 (Boss, 2026-10-16, 2:43 PM EDT: after the 8.1 phase 1
   top 5, Core 2 takes the infinite zoom tree: MAP.146 and its subitems,
   then the label items).
+  Built (Core 2, 2026-10-17, 11:33 AM EDT as the lane reported; wheel
+  zoom toward the pointer #2031, MAP.227 and MAP.228 #2032): the wheel
+  zooms toward the point under the cursor; the header and the breadcrumb
+  ("In Sector ...") follow the camera's own cell; the address holds the
+  camera (`?cam=...`); old `?win=` links open the galaxy, no shim. Open:
+  MAP.245 (the column-density ray fallback, the clearance and the
+  half-way double click), which this umbrella now waits on in place of
+  MAP.225.
 
 - [ ] **MAP.156 View one layer or a range of layers top-down from the galaxy view, as a secondary option**
   Boss (2026-10-09 23:17Z): "I should be able to from the galaxy view
@@ -1974,79 +1985,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before and after its first sector is filled.
   Prerequisites: GEN.359. Related: GEN.209.
 
-- [ ] **MAP.225 The wheel zooms toward the point under the cursor, with clearance**
-  Found 2026-10-16 (Boss, 2:29 PM EDT: "Do we need to add the lacking
-  items to the TODO?", after Core 2 reported what MAP.146 still lacks
-  once MAP.152 merged): this piece was only in the Done line of MAP.146
-  and in fly-through-view-distance.md section 4.3, with no item of its
-  own. Boss (2026-10-09 22:24Z): "have them based on the center of where
-  the cursor is clicked. So that we always are drilling down exactly
-  where the user wants." Today the wheel zooms about the shared centre
-  and Shift-click chooses it (MAP.199). Done: the wheel changes the
-  distance by `exp(-0.0025 * deltaY)` toward the point under the cursor,
-  which stays fixed on screen; that point is, in order, the picked star,
-  remnant or cell under the cursor, else the first sample along the
-  cursor ray where the integrated column density passes a threshold,
-  else the point at the current focus depth; each step moves by
-  `min(requested, 0.5 * (d_nearest - d_clear))`, so the speed is
-  logarithmic in the distance to the nearest pickable thing and the
-  camera never lands on a star or inside a wall by accident. Shift-click
-  stays as "turn about this point". A browser test zooms toward a chosen
-  star and checks it stays under the cursor.
-  Owner: Core 2 (Boss, 2026-10-16, 2:43 PM EDT: after the 8.1 phase 1
-  top 5, Core 2 takes the infinite zoom tree: MAP.146 and its subitems,
-  then the label items).
-  From Core 2 (2026-10-16, 4:03 PM EDT, MAP.226 merged as #1859): a
-  double click on empty space or a block stays two clicks; the "half way
-  toward the point under the cursor" double click is not built and
-  belongs here. A second click within 350 ms and 8 px is now a double
-  click, so clicking a selected object again to clear it needs a pause.
-  Core 2 note (2026-10-17, 7:17 AM EDT as the lane reported; the stack
-  of MAP.225, MAP.227 and MAP.228 is built and committed, one full gate
-  then three PRs in order): MAP.225's PR resolves only the wheel part
-  (zoom toward the point under the cursor). Not built there: the
-  column-density ray fallback, the clearance from the nearest pickable
-  thing and the half-way double click on empty space. When it merges,
-  the TODO thread splits those three into a new item and retires the
-  wheel part; until then this item stays open whole.
-  Prerequisites: MAP.152. Related: MAP.146, MAP.199, MAP.125.
-
-- [ ] **MAP.227 The camera names its container: the header and the breadcrumb come from its position**
-  Found 2026-10-16 (Boss, 2:29 PM EDT: "Do we need to add the lacking
-  items to the TODO?", after Core 2 reported what MAP.146 still lacks
-  once MAP.152 merged): this piece was only in the Done line of MAP.146
-  and in fly-through-view-distance.md section 4.3, with no item of its
-  own. Done: "I am in sector X" is worked out from the camera position
-  (`geometry.sector_address_at` is closed form) and shown in the header,
-  and the breadcrumb becomes a trail of containers (galaxy, region,
-  block, sector, system) derived from the position, not from stored
-  state; clicking a crumb flies out to that container. A browser test
-  flies into a sector and checks the header and every crumb.
-  Owner: Core 2 (Boss, 2026-10-16, 2:43 PM EDT: after the 8.1 phase 1
-  top 5, Core 2 takes the infinite zoom tree: MAP.146 and its subitems,
-  then the label items).
-  Core 2 note (2026-10-17, 7:17 AM EDT as the lane reported): the
-  breadcrumb and the "In Sector ..." line follow the camera at the
-  stage's own size; they do not pick finer or coarser levels from the
-  distance.
-  Prerequisites: MAP.226. Related: MAP.146, MAP.139.
-
-- [ ] **MAP.228 The camera in the address: the URL and bookmarks hold the camera's target, distance and orientation**
-  Found 2026-10-16 (Boss, 2:29 PM EDT: "Do we need to add the lacking
-  items to the TODO?", after Core 2 reported what MAP.146 still lacks
-  once MAP.152 merged): this piece was only in the Done line of MAP.146
-  and in fly-through-view-distance.md section 4.3, with no item of its
-  own. Done: the Galaxy Map URL carries the camera (target, distance,
-  orientation) and opening it puts the camera there; bookmarks and the
-  charted-region bookmarks (UX.45, UX.48) store the same value; old
-  block URLs and stage tokens stop working (no backward compatibility,
-  Boss's rule). A browser test copies the address, reloads and checks
-  the camera is where it was.
-  Owner: Core 2 (Boss, 2026-10-16, 2:43 PM EDT: after the 8.1 phase 1
-  top 5, Core 2 takes the infinite zoom tree: MAP.146 and its subitems,
-  then the label items).
-  Prerequisites: MAP.225. Related: MAP.146, UX.45, UX.48, MAP.189.
-
 - [ ] **MAP.229 Map label engine: names placed by priority, with no overlaps, shown and hidden by zoom**
   Boss (2026-10-16, 2:30 PM EDT): "Oh do we have map labels anywhere in
   our TODO lineup?" Checked the open and finished items, the design
@@ -2371,7 +2309,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proposed (the map lane that owns the infinite zoom tree and MAP.239),
   after the tree; the Interface lane may take it with UX.115 if that
   lane starts first.
-  Prerequisites: MAP.225, MAP.239. Related: MAP.207,
+  Prerequisites: MAP.239. Related: MAP.207,
   MAP.219, MAP.210, UX.115, GEN.322, API.27.
 
 - [ ] **MAP.244 The maps and pages use the atmosphere colour where they showed the planet colour**
@@ -2386,6 +2324,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the planet page, in both themes, and the old three-colour gesture
   is gone (no shim).
   Prerequisites: GEN.420. Related: GEN.420.
+
+- [ ] **MAP.245 The wheel zoom's remaining parts: the column-density ray fallback, the clearance from the nearest pickable thing and the half-way double click**
+  Split from MAP.225 by the TODO thread (2026-10-17, after Core 2's
+  report of #2031 at 11:33 AM EDT as the lane reported): MAP.225's PR
+  built only the wheel part (zoom toward the point under the cursor, the
+  point staying fixed on screen; retired with #2031). Not built, and
+  kept here: the point under the cursor is, in order, the picked star,
+  remnant or cell, else the first sample along the cursor ray where the
+  integrated column density passes a threshold (the column-density ray
+  fallback), else the point at the current focus depth; each step moves
+  by `min(requested, 0.5 * (d_nearest - d_clear))`, so the speed is
+  logarithmic in the distance to the nearest pickable thing and the
+  camera never lands on a star or inside a wall by accident (the
+  clearance); and the "half way toward the point under the cursor"
+  double click on empty space (from Core 2, 2026-10-16, 4:03 PM EDT,
+  MAP.226 merged as #1859: a double click on empty space or a block
+  stays two clicks until this is built; a second click within 350 ms and
+  8 px is a double click). Boss (2026-10-09 22:24Z): "have them based on
+  the center of where the cursor is clicked. So that we always are
+  drilling down exactly where the user wants." Done: the wheel and the
+  double click use the picked object, then the column-density ray, then
+  the focus depth; a step never moves closer than the clearance to the
+  nearest pickable thing; a double click on empty space flies half way
+  toward the point under the cursor; a browser test zooms toward empty
+  space and checks the camera stops at the clearance and never inside a
+  star or wall.
+  Owner: Core 2 (the infinite zoom tree; behind DOC.47, PERF.105 and
+  UX.118, among the maps).
+  Prerequisites: none. Related: MAP.225, MAP.146, MAP.199, MAP.226.
 
 ## NAV: Navigation and courses
 
@@ -7081,6 +7048,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   environment is drawn from the halo mass and no environment concept is
   added now; the dwarf scatter stays the uniform 0.19 to 0.5 dex
   bracket.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): Graus 2019 (arXiv:1808.03654, an
+  inference of which paper is meant) and the FIRE age-gradient paper
+  (arXiv:1901.05487) are readable by a thread for the occupation width
+  (GR15), class B to class A.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
@@ -7442,6 +7416,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/gap-filling-plan.md section 8): GR6 thick-disc start in
   other galaxies: the halo formation epoch plus a 0 to 1 Gyr delay, a
   labelled placeholder (kind P), replaced when S0 histories are found.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): Haywood 2013 (arXiv:1305.4663), Bensby
+  2014 (arXiv:1309.2631) and Pinna 2019a and b (arXiv:1901.04310,
+  1904.01260) are readable by a thread, so the thick-disc start (GR6)
+  moves from class B to class A; the labelled placeholder stays until
+  they are read.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.387 Globular clusters, the nuclear cluster and the central black hole follow the family's spheroid and halo**
@@ -7831,6 +7813,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2 (Comeron 2011, 2012, 2014 tables): ship the plan's fills; a short
   read-only VizieR search runs first, and a result replaces the fill
   after this item merges.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): Aumer and Binney 2009 (arXiv:0905.2512,
+  GR4) is readable by a thread; the Courteau and Comeron VizieR search
+  runs first (decision 6).
   Prerequisites: none. Related: GEN.378, GEN.382, GEN.366, GEN.134.
 
 - [ ] **GEN.402 The central black hole mass and the nuclear cluster follow the bulge: the M-bulge and M-sigma relations replace the fixed ranges**
@@ -8447,6 +8435,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   run offline (fixtures built by the test or a cache of earlier
   downloads kept outside the repository, plan 6.5), and the data work of
   group X9 waits on that design, not on the licence read.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AD3: Myhre et al. 1998 (greenhouse
+  forcing law, GRL 25, 2715) is on list B.
+  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
+  downloads this item makes at build time send the standard User-Agent
+  of API.31 (one function builds it).
   Related: GEN.87, GEN.189, DB.68.
 
 - [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
@@ -8539,6 +8535,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   run offline (fixtures built by the test or a cache of earlier
   downloads kept outside the repository, plan 6.5), and the data work of
   group X9 waits on that design, not on the licence read.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AD3: Myhre et al. 1998 (greenhouse
+  forcing law, GRL 25, 2715) is on list B.
+  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
+  downloads this item makes at build time send the standard User-Agent
+  of API.31 (one function builds it).
 
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8789,6 +8793,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2005, Bates 1984, Bucholtz 1995) are on Boss's own list. Any table
   this item downloads is fetched at build time and not stored, and tests
   run offline (plan 6.5).
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): For AD4 the numbers are in Bogaard et
+  al. 1978 with King 1923 the origin of the factor (Boss fetches both,
+  with Sneep and Ubachs 2005, Bates 1984 and Bucholtz 1995 on the list);
+  AD1 is Karkoschka 1994 and Karkoschka and Tomasko 2010 (list B).
 
 - [ ] **GEN.423 Atmosphere density, scale height and the greenhouse multiplier follow from the mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -8851,6 +8862,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/gap-filling-plan.md section 8): AD2 Mars dust and Titan
   haze spectra. Any table this item downloads is fetched at build time
   and not stored, and tests run offline (plan 6.5).
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AD2 originals: Tomasko et al. 2008
+  (Titan haze) and Wolff et al. 2009 (Mars dust), list B.
 
 - [ ] **GEN.424 The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -9198,6 +9214,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   volatiles" default (the plan's rank 1 text is rewritten). BC4
   originals (Palme and O'Neill 2014, Rudnick and Gao 2014) are on Boss's
   own list; the labelled scaling stays until his files are read.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): Boss fetches Palme and O'Neill 2014 and
+  Rudnick and Gao 2014 (the 2014 second editions, Treatise on
+  Geochemistry); Lodders 2003 (BC1) has a free IOP PDF a thread can
+  retry.
 
 - [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -9430,6 +9453,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   BC13 ICRP 103 (on Boss's own list; the secondary-source tissue factors
   stay meanwhile). Any table this item downloads is fetched at build
   time and not stored, and tests run offline (plan 6.5).
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): BC13: the ICRP 103 free extract stops
+  before the wR and wT tables (section 4, pages 61 to 78); Hassler et
+  al. 2014 (Mars dose) is on list B.
 
 - [ ] **GEN.437 The composition model: how the element, compound, material and body tables link, and what is stored against derived**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9581,6 +9610,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests run offline (fixtures built by the test or a cache of earlier
   downloads kept outside the repository, plan 6.5), and the data work of
   group X9 waits on that design, not on the licence read.
+  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
+  downloads this item makes at build time send the standard User-Agent
+  of API.31 (one function builds it).
 
 - [ ] **GEN.440 Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9649,6 +9681,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests run offline (fixtures built by the test or a cache of earlier
   downloads kept outside the repository, plan 6.5), and the data work of
   group X9 waits on that design, not on the licence read.
+  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
+  downloads this item makes at build time send the standard User-Agent
+  of API.31 (one function builds it).
 
 - [ ] **GEN.441 Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9809,6 +9844,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/gap-filling-plan.md section 8): BC7 ice densities: Fray
   and Schmitt 2009 and Bierson and Nimmo 2019 are on Boss's own list;
   the bracket from NIST and PubChem stays meanwhile.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): Fray and Schmitt 2009 is on Boss's list;
+  Bierson and Nimmo 2019 has a free PubMed Central copy (PMC7058130) a
+  thread can fetch.
 
 - [ ] **GEN.443 Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9917,6 +9958,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   BC13 ICRP 103 (on Boss's own list; the secondary-source tissue factors
   stay meanwhile). Any table this item downloads is fetched at build
   time and not stored, and tests run offline (plan 6.5).
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): BC13: the ICRP 103 free extract stops
+  before the wR and wT tables (section 4, pages 61 to 78); Hassler et
+  al. 2014 (Mars dose) is on list B.
 
 - [ ] **GEN.445 Habitability, toxicity and the UV index read the derived radiation instead of the proxies**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -10037,6 +10084,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   group X2) is the gap GEN.301's own prerequisite line reaches through
   this item; it has one closure target (the Milky Way, Sharma and Hayden
   2020 Table 2) and is not yet tested on a second galaxy.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): Aumer and Binney 2009 (arXiv:0905.2512)
+  is a research-thread read for the age-velocity normalisation (GR4), no
+  need for Boss.
   Prerequisites: none. Related: GEN.103, GEN.373, GEN.406, GEN.269.
 
 - [ ] **GEN.448 Massive stars get binaries between 0.25 and 50 AU, so the metallicity trend reaches the separations where it was measured**
@@ -10627,6 +10680,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/gap-filling-plan.md section 8): BC7 ice densities: Fray
   and Schmitt 2009 and Bierson and Nimmo 2019 are on Boss's own list;
   the bracket from NIST and PubChem stays meanwhile.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): Fray and Schmitt 2009 is on Boss's list;
+  Bierson and Nimmo 2019 has a free PubMed Central copy (PMC7058130) a
+  thread can fetch.
   Prerequisites: none. Related: GEN.426, GEN.442, GEN.466, GEN.437.
 
 - [ ] **GEN.458 Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes**
@@ -10943,6 +11002,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a cache of earlier downloads kept outside the repository, plan 6.5),
   and the data work of group X9 waits on that design, not on the licence
   read.
+  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
+  downloads this item makes at build time send the standard User-Agent
+  of API.31 (one function builds it).
 
 - [ ] **GEN.464 The disk solids law reads the star's metal mass fraction Z over Z0, not 10 to the power of [Fe/H], which is off by 1.7 to 3 times in metal-poor alpha-enhanced stars**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -11118,6 +11180,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 29 of 54). This replaces any earlier owner line on this item.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): Lodders 2003 (Astrophys. J. 591, 1220,
+  doi 10.1086/375492) has a free IOP PDF; a thread retries it for the
+  condensation temperatures (BC1).
   Prerequisites: none. Related: GEN.426, GEN.428, GEN.458, GEN.465.
 
 - [ ] **GEN.469 The disk's star-formation history from the gas law: the local B-star share is 0.2 percent against the observed 0.04 percent**
@@ -11288,6 +11356,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/gap-filling-plan.md section 8): AD7 vapour pressure:
   Tabazadeh 1997 and Zeleznik 1991 are on Boss's own list; the nearest
   reachable fits stay meanwhile.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AD7: Tabazadeh, Toon, Clegg and Hamill
+  1997 is bronze open access at Wiley, Zeleznik 1991 and Ayers et al.
+  1980 are closed (Boss fetches).
 
 - [ ] **GEN.472 One gated possibility-table format and loader: every composition category is a table of possibilities with a class gate and a weight, drawn by the normalised weights of the rows that pass**
   Boss (2026-10-17, 1:40 AM EDT, typed in the project chat): "We have to
@@ -11856,6 +11930,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and Guimond 0.3 to 0.4 dex); source needs Deng 2020 Fig. 3 data,
   Hirschmann 2021 full text, a primary Na and K condensation-temperature
   source.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AT.a1 and a2: Hirschmann 2012 and
+  Gaillard and Scaillet 2014 and Gaillard et al. 2022 are on list B;
+  Sossi 2020 is already read.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.483 Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4)**
@@ -11958,6 +12038,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests run offline (fixtures built by the test or a cache of earlier
   downloads kept outside the repository, plan 6.5), and the data work of
   group X9 waits on that design, not on the licence read.
+  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
+  downloads this item makes at build time send the standard User-Agent
+  of API.31 (one function builds it).
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.486 Source the lava-world vapour regimes and the fraction of lava worlds that keep volatiles (AR7)**
@@ -12039,6 +12122,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (10.9 percent, 0.51 dex) and N=16 (2.5 percent, 0.65 dex) in the
   Robinson 2024 database (CC BY 4.0); row k7 (N2, O2 and the noble gases
   from 67P alone) needs a named source. Builder GEN.520, decision D6.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AT.k7: Mumma and Charnley 2011 (Annu.
+  Rev. Astron. Astrophys. 49, 471) is on list B.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.489 Source the white-dwarf and pulsar planet options (AR10)**
@@ -12127,6 +12215,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a labelled placeholder, log-uniform. AD7 originals (Tabazadeh and
   Zeleznik) are on Boss's own list; the nearest reachable fits stay
   meanwhile.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AD7: Tabazadeh 1997 is bronze open
+  access at Wiley, Zeleznik 1991 is closed (Boss fetches).
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.492 Source the ground radioisotope abundances by host and the potassium depletion by body class (AR13)**
@@ -12238,6 +12331,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed, with the composition chain).
   Prerequisites: GEN.472, GEN.457. Related: GEN.442, GEN.455, GEN.457,
   GEN.472, GEN.474.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AT.k7: Mumma and Charnley 2011 (Annu.
+  Rev. Astron. Astrophys. 49, 471) is on list B.
 
 - [ ] **GEN.496 The photolysis lifetime table: species lifetimes at 1 AU for the quiet Sun, the active-Sun factors and the species-specific stellar-spectrum ratios**
   Body composition research lane check of Boss's second research note
@@ -12268,6 +12366,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/gap-filling-plan.md section 8): AD8 photochemistry rates:
   JPL Publication 19-5 is on Boss's own list; the NIST kinetics values
   stay meanwhile.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AD8: JPL Publication 19-5 (Burkholder et
+  al. 2020) is on Boss's list.
 
 - [ ] **GEN.497 The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve**
   Body composition research lane check of Boss's second research note
@@ -12326,6 +12429,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the core-formation scale and rows a1 and a2 are the surface
   magma-ocean scale; add the conversion test between them to this item's
   tests.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AT.a1 and a2: Hirschmann 2012 and
+  Gaillard and Scaillet 2014 and Gaillard et al. 2022 are on list B;
+  Sossi 2020 is already read.
   Prerequisites: GEN.437. Related: GEN.451, DB.69, GEN.422, GEN.456.
 
 - [ ] **GEN.499 The lava-world vapour species and mean molar mass from temperature and composition, replacing the heavy-oxide range of 40 to 60 g/mol**
@@ -12356,6 +12465,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests run offline (fixtures built by the test or a cache of earlier
   downloads kept outside the repository, plan 6.5), and the data work of
   group X9 waits on that design, not on the licence read.
+  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
+  downloads this item makes at build time send the standard User-Agent
+  of API.31 (one function builds it).
 
 - [ ] **GEN.500 The licence audit: the licence column filled for every data source, and the permission list for NIST, JPL, Leiden, Bremen and Karkoschka**
   Body composition research lane check of Boss's second research note
@@ -12407,6 +12519,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/gap-filling-plan.md section 8): AD8 photochemistry rates:
   JPL Publication 19-5 is on Boss's own list; the NIST kinetics values
   stay meanwhile.
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): AD8: JPL Publication 19-5 (Burkholder et
+  al. 2020) is on Boss's list.
   Prerequisites: none. Related: GEN.496, GEN.455, GEN.500, GEN.410.
 
 - [ ] **GEN.502 The giant branch finishes the stellar tables check: the red giant time law as a function of core mass, the tip by metallicity and the branch duration against the observed horizontal-branch ratio**
@@ -13278,6 +13395,32 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   AD8 JPL Publication 19-5, "Chemical Kinetics and Photochemical Data
   for Use in Atmospheric Studies, Evaluation No. 19" (title from memory,
   not found in Crossref).
+  Papers list (2026-10-17, filed by the TODO thread;
+  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
+  papers he can download himself, the coordinator posted the list at
+  11:32 AM EDT as it reported): Boss fetches the nine papers of section
+  A (Stixrude and Lithgow-Bertelloni, Palme and O'Neill, Rudnick and
+  Gao, Fray and Schmitt, Tabazadeh, Zeleznik, JPL 19-5, ICRP 103, King)
+  and the rest of section B if he wants; the full list with Crossref
+  DOIs and free-copy links replaces the paper list of the earlier note.
+  Corrections to that note: Stixrude and Lithgow-Bertelloni has Part I
+  (GJI 162, 610, 2005, bronze open access) and Part II (GJI 184, 1180,
+  2011); Palme and O'Neill and Rudnick and Gao have 2014 second editions
+  (prefer them); the AD4 numbers are in Bogaard et al. 1978 (J. Chem.
+  Soc., Faraday Trans. 1, not Trans. 2) with King 1923 the origin of the
+  factor, so the item names both; Tabazadeh has four authors (Tabazadeh,
+  Toon, Clegg and Hamill, GRL 24, 1931); JPL 19-5 is Burkholder et al.
+  2020; the ICRP 103 free extract stops before the wR and wT tables
+  (section 4, pages 61 to 78). Not for Boss: these are on arXiv, so a
+  research thread reads them and R4, R6 and R15 move from class B to
+  class A: Aumer and Binney 2009 (0905.2512), Haywood 2013 (1305.4663),
+  Bensby 2014 (1309.2631), Pinna 2019a and b (1901.04310, 1904.01260),
+  Graus 2019 (1808.03654, an inference) and Graus's FIRE age-gradient
+  paper (1901.05487). Free copies exist for Lodders 2003 (IOP, BC1),
+  Bierson and Nimmo 2019 (PMC7058130) and Sossi 2020 (already read). The
+  VizieR table search for GR5 and GR3 started at 11:29 AM EDT as the
+  coordinator reported (reports file
+  vizier-courteau-comeron-2026-10-17.md).
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -15143,6 +15286,40 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   server fills the same sectors a local run does, survives a killed
   client and a restarted server, and a refused unit is reported.
   Prerequisites: API.5, API.12, API.13, API.14, API.8. Related: API.3.
+
+- [ ] **API.31 Every outgoing web request sends a standard User-Agent with the software, its version and the API version**
+  Boss (2026-10-17, 11:33 AM EDT, typed in the project chat): "all web
+  requests should have a browser UA string saying the software, its
+  version number, and the API version being used that fits industry
+  standards." Read as (default taken, the coordinator's reading): every
+  outgoing HTTP request the software makes sends a `User-Agent` in the
+  RFC 9110 form of product tokens with a comment, for example
+  `PlanetGen/8.0.1721 (+https://github.com/dwhagar/planetGen)
+  PlanetGen-API/1.4`, the first token the release from
+  `planetgen/_version.py`, the comment the project URL, the last token
+  the API version from `planetgen/api/version.py`. One function builds
+  the string (the only place that spells it), so a test checks the
+  format and that it follows both versions when they change; the
+  outgoing callers are `web/lib/apiclient.py`, `wiki/mediawiki.py`,
+  `wiki/wikijs.py`, the CLI tools that fetch, any later API client (the
+  remote generate client of API.30) and the data downloads at build time
+  of the gap-filling plan (GEN.439, GEN.440, GEN.463, GEN.413, GEN.414,
+  GEN.485, GEN.499 and the atmosphere data of group X9), which must use
+  it. Requests the browser's own front end makes cannot set
+  `User-Agent`, so the page JavaScript that calls the API sends the
+  existing API version header (`API_VERSION_HEADER`,
+  `X-PlanetGen-API-Version`) with the same API version instead, and the
+  server keeps logging both (API.15). Done: one function builds the user
+  agent from the two versions; every outgoing request path above uses
+  it; the front end's API calls carry the API version header; a test
+  pins the format (valid product tokens, release, URL comment, API
+  version), that no outgoing path builds its own string, and that a
+  version bump changes it; the API docs and the data-download design
+  (docs/design/gap-filling-plan.md 6.5) name it.
+  Owner: Core 2, proposed (the interface housekeeping line beside API.15
+  and API.26; not asked yet, the coordinator tells Core 2 when it
+  reaches the item).
+  Prerequisites: none. Related: API.5, API.15, API.30.
 
 ## ADM: Admin tools
 
@@ -17361,6 +17538,14 @@ clears each one.
   Frequency: 1 of 1 full browser runs under load. Reproducer: run
   `scripts/test.py browser` while another gate is running (load above
   8). Bug Hunt owns it.
+  Sighting (Core 2, 2026-10-17, 11:35 AM EDT as the lane reported, its
+  MAP.225, MAP.227 and MAP.228 gate 9:36 to 11:18 AM EDT, load about 9.6
+  from other gates): failed again with "the system's scene never came
+  in", assert [], the second symptom. Core 2 reran it alone at 137.74 s
+  on gw0 at load 9.6 and it failed alone on main as well, so it fails
+  whenever the box is loaded, not only inside a gate. Fails on main:
+  yes, under load. Frequency: 1 of 1 gate runs, plus the alone rerun.
+  Bug Hunt owns it.
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
@@ -17509,6 +17694,35 @@ clears each one.
   Owner: Bug Hunt (bugs only, Boss, 2026-10-17, 10:06 AM EDT). This
   replaces any earlier owner line on this item.
   Prerequisites: none. Related: TEST.193, TEST.195, PERF.88.
+
+- [ ] **TEST.220 test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter finds `neutron-star` inside `magnetar neutron-star` (bug)**
+  Found by Core 2 (2026-10-17, 11:35 AM EDT as the lane reported, its
+  MAP.225, MAP.227 and MAP.228 gate 9:36 to 11:18 AM EDT), filed by the
+  TODO thread.
+  `src/tests/test_phenomenon_scatter.py::test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter`
+  failed in the full gate: `AssertionError: neutron-star`, from `assert
+  (' neutron-star' in 'Placed 9,958 phenomena in 1.1s: 3,465 stellar
+  black-hole, 1 planetary-nebula, 9 intermediate black-hole, 1 magnetar
+  neutron-star, 6,481 hypervelocity-star, 1 supermassive black-hole; 43
+  of them have companions.') ==
+  bool(summary['counts'].get('neutron-star'))`. Cause read by the TODO
+  thread from the test (line 201 of the file): the check `(f" {label}"
+  in final) == bool(summary["counts"].get(label))` looks for the label
+  as a substring, and the label `neutron-star` is a substring of
+  `magnetar neutron-star`, so a run that places a magnetar but no plain
+  neutron star reports True against a count of None. Fails on main: no
+  (Core 2 ran it in a clean worktree at origin/main 0690c541: it passed,
+  7 of 7 alone, and the whole 77-test file passed on both, 294 s and 301
+  s); it failed once inside the full gate, load about 4 to 9, on the
+  gate's base, so it depends on the draw that run made. Frequency: 1 of
+  1 gate run. Reproducer: none found idle; force a plan run whose draw
+  has a magnetar and no plain neutron star (for example a run with the
+  neutron-star count zeroed). Done: the check matches whole labels (the
+  label bounded by a separator, or the counts read from the summary
+  line's own fields), so `magnetar neutron-star` no longer satisfies
+  `neutron-star`; a test places a magnetar and no neutron star and
+  passes; no quarantine. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.213.
 
 ## USR: User accounts
 
