@@ -76,7 +76,7 @@ Rule (Boss, 6:12 to 6:15 PM EDT, decided): the close-companion chance follows on
 form, not the chance), and nothing else moves:
 
 - Built in GEN.448 (it was two rolls, "has a companion" then a coin flip between close and wide): the chance of a companion,
-  `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS[class]` (O 0.90, B 0.65, A 0.55, F 0.47, G 0.44, K 0.40, M 0.26), is shared between
+  `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS[class]` (O 0.90, early B 0.84, mid B 0.76, B 0.65, A 0.55, F 0.47, G 0.44, K 0.40, M 0.26; GEN.449), is shared between
   the close range (0.05 to 0.25 AU), the inner range (0.25 to 10 AU) and the outer range (10 AU and out) by Moe and Di Stefano's
   companions per decade of period (`generation/companion_classes.py`; [multistar-and-compact-systems.md](multistar-and-compact-systems.md) 4).
   The points describe companions inside 10 AU, so the close and inner ranges together are `p_in0 = P_binary(class) * (their share)` (G 0.126, O 0.41 before the place's cut), and the outer range is `p_out`.

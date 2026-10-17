@@ -75,6 +75,12 @@
       "first_release": null,
       "pending": true,
       "reason": "A star's companion chance is shared between close (0.05 to 0.25 AU), inner (0.25 to 10 AU) and outer (10 AU and out) pairs by the companions per decade of period of Moe and Di Stefano's Table 13, wide pairs start at 0.25 AU and draw their axis from the same lines, and the metallicity trend moves the close and inner odds together, so which stars have a companion, of what kind and how far differ (GEN.448)."
+    },
+    {
+      "epoch": 16,
+      "first_release": null,
+      "pending": true,
+      "reason": "Mid-B stars (5 to 9 solar masses at birth) have a companion with chance 0.76 and early-B stars (9 to 16) 0.84, against 0.65 for every B star, and their star counts follow Moe and Di Stefano's Table 13 single, binary and multiple fractions, so which massive stars have companions, and how many, differ (GEN.449)."
     }
   ]
 }

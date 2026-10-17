@@ -25,7 +25,7 @@ from planetgen.names.bodies import CLOSE_PAIR_LETTERS, generate_star_word, name_
 from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
-from planetgen.generation import companion_classes, life as planetLife, place_terms, prevalence, validation
+from planetgen.generation import companion_classes, life as planetLife, multistar, place_terms, prevalence, validation
 from planetgen.physics import constants, insolation, magnetism, metallicity, pre_main_sequence
 from planetgen import tuning
 from planetgen.util import draw
@@ -669,7 +669,9 @@ class StarSystem:
         if config.BINARY_SYSTEM is False:
             return None, None, None
         letter = self.primary_star.type[0] if self.primary_star.type else 'G'
-        field_chance = tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS.get(letter, 0.44)
+        primary_mass = place_terms.born_mass_solar(self.primary_star)
+        field_chance = tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS.get(
+            multistar.companion_class(primary_mass, letter), 0.44)
         # GEN.242: a protostar has the multiplicity of Perseus' Class 0 and Class I protostars, not the field's.
         initial_mass = getattr(self.primary_star, "initial_mass_sol", None)
         protostar_chance = (None if initial_mass is None or self.primary_star.age is None else
@@ -677,7 +679,6 @@ class StarSystem:
         chance = prevalence.scaled_chance(config, "binary_system",
                                            field_chance if protostar_chance is None else protostar_chance)
         fe_h = getattr(self.primary_star, "metallicity_fe_h", None)
-        primary_mass = place_terms.born_mass_solar(self.primary_star)
         terms = getattr(config, "PLACE_TERMS", None) or place_terms.SOLAR_NEIGHBOURHOOD
         limit = place_terms.wide_axis_limit_au(
             terms, primary_mass * (1.0 + companion_classes.mean_mass_ratio()), self.primary_star.age)
