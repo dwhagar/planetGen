@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1714] - 2026-10-17
+
+**Headline:** Every open 8.1 item now names the lane that builds it, from Boss's Core 1 to Core 5 lanes.
+
+### Changed
+
+- Boss's lanes (10:06 AM EDT; Bug Hunt strictly bugs, Cores 1 to 5 each a distinct lane to 8.1 from the foundations forward) are recorded on GEN.301, and 154 items carry an Owner note with the lane and the position in its order; GEN.530's map and page reads are proposed to Core 2.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1713] - 2026-10-17
 
 **Headline:** The galaxy laws research of GEN.406 has its own research thread, chosen by Boss.
