@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1619] - 2026-10-17
+
+**Headline:** Boss's three choices for the superbubble density plan are recorded: young stars only, the drawn layer kept as an optional overlay, and the chain stays in 8.1.
+
+### Changed
+- `docs/design/superbubble-density.md` section 7 now lists the decisions, and the notes on GEN.391, GEN.395, TEST.206, MAP.235 and MAP.236 state them.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1618] - 2026-10-17
 
 **Headline:** The plan now has a chain that lets the superbubbles shape where stars form, instead of only drawing them.
