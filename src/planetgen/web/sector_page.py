@@ -579,6 +579,7 @@ def _sector_map_html(detail, pick, admin):
         phenomenon_url=phenomenon_url_template(),
         system_url=system_url_template(),
         nav_url=page_url("nav"),
+        nearby_url=page_url("nearby"),
         pinned={"shell": address[0], "band": address[1], "wedge": address[2], "center_pc": center},
     )
 

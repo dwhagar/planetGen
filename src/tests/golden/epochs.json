@@ -37,6 +37,11 @@
     },
     {
       "epoch": 8,
+      "first_release": "8.0.1697",
+      "reason": "A sector's supernova remnants are Type Ia with the share of their place (the profile's type_ia_share) instead of the constant, and the planetary nebula factor follows the old-star share (GEN.319)."
+    },
+    {
+      "epoch": 9,
       "first_release": null,
       "pending": true,
       "reason": "Every Hill sphere (a star's, a pair's and a compact object's system perimeter and keep-out radius) reads the drawn galaxy's virial mass from its mass chain in place of the fixed Milky Way mass, so the stored perimeters differ per galaxy seed (GEN.400)."

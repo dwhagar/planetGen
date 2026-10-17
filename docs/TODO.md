@@ -625,7 +625,7 @@ with `clamp()`.
   audit starts, so it checks the finished pages. Queued, not started:
   Interface and Quality stay idle until the sphere and generation stages
   finish (Boss, 12:27 AM EDT) unless Boss says earlier.
-  Prerequisites: NAV.61, NAV.45, MAP.243.
+  Prerequisites: NAV.61, MAP.243.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
 
 - [ ] **UX.118 Slow pages show a progress bar while their data loads: the search page and the phenomena list pages**
@@ -2531,35 +2531,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   may have been filled in the meantime; a hop that is now known shows
   as ordinary, and the course says what changed. Prerequisite: NAV.17.
   Design: [docs/design/course-routing.md](design/course-routing.md)
-
-- [ ] **NAV.45 "What's within N pc" from the Galaxy Map and Sector Map**
-  Boss (2026-10-02 04:39Z, with NAV.43): "Add TODO items for I want the
-  ability to select a location and ask the sytem what stuff (of any
-  kind) is within some distance in parsecs." Done: on the Galaxy Map and
-  the Sector Map, a selected sector, system, phenomenon or picked point
-  gets a "What's within N pc" action on the shared control panel that
-  opens the "What's nearby" page (NAV.44, done) with that place filled in. Optional (default left out
-  unless Boss asks): the map draws the search sphere and highlights the
-  objects inside it. It uses MAP.65's shared control panel and NAV.15's picking of
-  any object on the maps. GitHub issue [#677](https://github.com/dwhagar/planetGen/issues/677) (Boss, 2026-10-08 22:24Z): "Add search options so that when I select a star from anywhere I can take it directly to the search tab to search for items / objects within x distance of that point. Should work for stars, phenomena, even planets and moons." So the action is offered for any pickable object, down to planets and moons (NAV.15), and the result lists every kind.
-  Research (2026-10-09, course-routing.md): page 1 comes from shells and
-  totals are capped ("300+"); show the "not generated yet" counts.
-  NAV.43 (built) filters by exact distance after asking for `radius +
-  one edge`, with a keyset cursor `(distance, kind, id)`; it should also
-  count the pre-placed bright stars, black holes and neutron stars of
-  unfilled cells. Decided (Boss, 2026-10-10 18:44Z, defaults approved;
-  default yes): list those as
-  "not generated yet" rows.
-  Region query (stage C, research #1659): the nearby page reads by the
-  cell key through NAV.60 and the radius ladder and early-stop count of
-  NAV.61, so it stays fast in the dense core and shows "300+" from the
-  capped count.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report, queue position 7).
-  Core 2's NAV.60 (#1977, 2:12 AM EDT as the lane reported) replaced the
-  answer fields `sectors_in_range` and `sectors_generated` by
-  `not_generated` and `not_generated_total` (the API docs and the CLI
-  are updated); this item's pages read the new fields.
 
 - [ ] **NAV.49 Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared**
   Boss (2026-10-07 11:47Z): "Then you can go find another location
@@ -4497,7 +4468,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/multi-star-systems.md sections 13 to 16): the young
   non-hierarchical groups and trapezia of section 13.1 are built by
   GEN.273 on this item's cores.
-  Prerequisites: GEN.319, GEN.320, GEN.321. Related: MAP.172, GEN.150,
+  Prerequisites: GEN.320, GEN.321. Related: MAP.172, GEN.150,
   GEN.202, GEN.99. Built-on note (Core 1, 2026-10-16, 8:41 AM EDT,
   GEN.251 merged as #1815): the stage F required stars (the stars a
   nebula needs as real systems) are not built by GEN.251; fill stages
@@ -5818,10 +5789,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.238, GEN.241, GEN.242, GEN.243, GEN.244,
-  GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.298, UX.116,
-  TEST.159, TEST.160, GEN.447, GEN.448, GEN.449, GEN.450, TEST.196,
-  GEN.463, GEN.467, GEN.469, GEN.502, GEN.526.
+  Prerequisites: GEN.238, GEN.241, GEN.242, GEN.243, GEN.244, GEN.259,
+  GEN.280, GEN.282, GEN.283, GEN.284, GEN.298, UX.116, TEST.159,
+  TEST.160, GEN.447, GEN.448, GEN.449, GEN.450, TEST.196, GEN.463,
+  GEN.467, GEN.469, GEN.502, GEN.526, GEN.528.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -6101,25 +6072,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
   Prerequisites: DB.53, GEN.314. Related: GEN.130.
-
-- [ ] **GEN.319 Nebula rates read the profile: young and old shares, the cell's gas and the Type Ia share as profile fields**
-  Split from GEN.241 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). The class rates of the nebula
-  field and the scatter must follow the place: emission, reflection,
-  Wolf-Rayet and core-collapse remnants scale with the young share of
-  the profile's mix, planetary nebulae and Type Ia remnants with the old
-  share, molecular clouds and protostars with `gas`; the Type Ia remnant
-  share becomes a profile field (1 where there is no young population);
-  nebula_field reads the cell's gas, not the disk position alone. Done:
-  an asked halo cell never shows an H II region or a pulsar-bearing
-  remnant, a Magellanic cell can show every class, and the rates of the
-  Milky Way default are unchanged inside the disk (a test compares
-  them).
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Prerequisites: none. Related: GEN.241.
 
 - [ ] **GEN.320 build_nebula_with_contents: every hosted nebula gets its stars as real systems inside its bounds (classes C, G, F, planetary, remnants, P and Q)**
   Split from GEN.241 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -7284,7 +7236,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   calculated or drawn law with its source named. No fixed content (Boss,
   4:11 and 4:14 PM EDT): no named galaxy, preset or hand-set value;
   reference galaxies only check the result.
-  Prerequisites: GEN.382, GEN.383, GEN.385, GEN.319, GEN.405,
+  Prerequisites: GEN.382, GEN.383, GEN.385, GEN.405,
   GEN.406. Related:
   GEN.385, GEN.320.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
@@ -7446,7 +7398,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   on the sector gate (within 5 percent). No fixed content (Boss, 4:11
   and 4:14 PM EDT): the bubbles stay derived from the seed; every
   strength is a calculated or drawn law with its source named.
-  Prerequisites: GEN.392, GEN.319. Related: GEN.379, GEN.134, GEN.322.
+  Prerequisites: GEN.392. Related: GEN.379, GEN.134, GEN.322.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
 
 - [ ] **GEN.394 The scatter bounds and the phenomena pass respect the bubble factor: a certified bound in band_majorants and per-position thinning**
@@ -12548,6 +12500,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.336's path).
   Prerequisites: none. Related: GEN.336, TEST.193.
 
+- [ ] **GEN.528 The rest of GEN.319: a Magellanic cell shows every class, and the scatter's planetary nebulae are weighted by the old share**
+  Residual of GEN.319 (merged #2003, 6:22 AM EDT as Core 3 reported),
+  filed by the TODO thread from Core 3's report. GEN.319 made the Type
+  Ia share and the old-star share profile fields and had the profile's
+  kind factors read them; two parts of its Done list are not met. (1) A
+  Magellanic cell can show every class: it cannot until the satellites
+  have young and intermediate populations (GEN.526, waiting on Boss's
+  card), so the Clouds still lack the young-star classes. (2) The
+  scatter's planetary nebulae are not yet weighted by the old share (the
+  profile's factor is), so the stored scatter rows still use the old
+  rate; that changes stored values, so it is a generator epoch change
+  (epoch 8 is pending and rides the next generation change) joined to
+  the one rescatter. Do: after GEN.526, check a cell inside the LMC and
+  the SMC for every class of nebula and remnant the profile allows, and
+  weight the planetary-nebula scatter by the old share the way the
+  profile's factor does. Done: an asked Magellanic cell can show every
+  class, the planetary nebula scatter's yield follows the old share (a
+  test compares a high-old-share cell with a low one), and the epoch
+  rule and `planetgen plan --redo-scatters phenomena` apply. Owner: Core
+  3 (proposed, GEN.319's author).
+  Prerequisites: GEN.526. Related: GEN.319, GEN.526, GEN.324, GEN.322.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.20 Short-term caching through the work queue and API**
@@ -12730,32 +12704,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.56, PERF.58.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
-- [ ] **PERF.97 Work queue step 3: the mass scatter end to end on the new queue**
-  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
-  docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
-  the only place a run lives; each scatter its own queue item run in
-  order; counters plus an event stream for progress; cancel in about 0.5
-  s; the MySQL job tree retired); Redis required for every run including
-  one worker; workers on demand with an idle timeout and no always-on
-  service; one Redis instance; no Redis password while it binds
-  loopback; stage timing into the existing MySQL stage tables from the
-  completing unit; the event stream is the live log, written to the jobs
-  directory at run end with the last 20 kept. Each step leaves main
-  working, one PR, Foundations lane 1. Section 5.1 and 5.11 step 3. One
-  stage on the new spine, the mass scatter: static chunks (units per
-  stage capped near 4,000), JSON arguments, the done-set barrier (SCARD
-  equals the unit count, SET NX on an advanced flag so one unit
-  advances), the run's seed independent of worker count, planetgen
-  galaxy following the events, and --workers 1 using the same path. Each
-  scatter layer set is its own queue item run in order (Boss,
-  2026-10-14). Done when: a galaxy fill whose mass scatter runs this way
-  gives the same galaxy for the same seed at any worker count and the
-  old path still runs the other stages.
-  Owner: Core 2 (Boss, 2026-10-16, 3:00 PM EDT: the old Core queue runs
-  after the new top 5 work, routed by area): PERF.97 right after the 8.1
-  phase 1 top 5, PERF.98 to PERF.100 after the infinite zoom tree.
-  Prerequisite: none (PERF.96 done, PR #1553). Related: PERF.86.
-
 - [ ] **PERF.98 Work queue step 4: the remaining stages and the sector and backfill units on the new queue**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
   docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
@@ -12891,6 +12839,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   same seed at any worker count; stage rows land in MySQL as today; a
   hard-killed horse fails the run at once; no unit has `job_timeout` -1;
   one test per mode.
+  Built-on note (Core 2, 2026-10-17, PERF.97 merged as #1999, about 5:20
+  AM EDT as the lane reported): the massive-star scatter runs as static
+  units on the Redis run record (payload_for is shared by the old and
+  the new queue; same stars at 1 and 4 workers and as the old queue).
+  The far-shell and component tasks of the scatter run as units too, and
+  a component unit reads its component from the database, so the other
+  scatters in this item take the same payload and unit shape.
   Prerequisites: PERF.97. Related: PERF.98.
 
 - [ ] **PERF.107 The sector units and the stages around them: start, neighborhood, sectors, link, population and settle**
@@ -12957,6 +12912,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   aggregates on it, and a test that under 50 concurrent readers at the
   expiry time one recompute happens before it and none after.
   Prerequisites: none. Related: PERF.20.
+
+- [ ] **PERF.111 `ResponseCache.put` without a database never trims the page cache: the cache grows past `max_entries`, and the thread test fails when its last put is one of those (bug)**
+  Found by Core 2 (2026-10-17, 6:31 AM EDT as the lane reported, MAP.217
+  gate unit phase), filed by the TODO thread, who read the code.
+  `src/planetgen/web/lib/pagecache.py` `ResponseCache.put`: the `db is
+  None` branch stores the entry and returns without the `while
+  len(self._entries) > self._max_entries: popitem()` that the keyed
+  branch (and `_recall`) have, so entries of the no-database kind are
+  never evicted. Test:
+  `src/tests/test_caches_threads.py::test_page_cache_fills_reads_and_clears_from_many_threads`
+  failed with `assert 51 <= 50`. Fails on main: yes (deterministic).
+  Frequency: 1 of 1 in the MAP.217 gate unit phase (1 failed, 18,311
+  passed, 3,793 s); it passes alone 3 of 3 because it fails only when
+  the last put of the run is a db=None one. Reproducer, no threads:
+  `cache = pagecache.ResponseCache(lambda db, since: {"stamp": "s",
+  "state": None}, dict(pagecache.DEFAULTS, max_entries=3,
+  stamp_seconds=0))`, then 6 times `cache.put(None, f"/x/{n}", "body",
+  cache.begin(None))`: `len(cache)` is 6, should be 3. Do: the same trim
+  loop in the db-None branch (inside the lock, after the store), and a
+  deterministic test of the reproducer above next to the thread test.
+  Done: the reproducer gives 3, the thread test passes whatever the last
+  put is, and a test asserts the bound for db=None puts alone. Owner:
+  Core 2 (proposed; it offered to carry the three lines in its next PR,
+  which is the cheapest route).
+  Checked by the TODO thread (2026-10-17, 6:28 AM EDT, main with #2004):
+  the reproducer above gives len(cache) 6 with max_entries 3, so the
+  finding stands.
+  Prerequisites: none. Related: PERF.104, TEST.54.
 
 ## DB: Database and schema
 
@@ -15725,6 +15708,17 @@ clears each one.
   prefetch test in `test_web_browser_fixture_maps.py`) stays a separate
   item until a failure text shows the same cause. Agreed by Bug Hunt
   (2026-10-17, 12:33 AM EDT as the lane reported).
+  Sighting (Core 3, 2026-10-17, 6:22 AM EDT as the lane reported,
+  GEN.319 gate, load average 8.9):
+  test_page_is_accessible_and_fits[web.sector-phone-light] failed with
+  "/sector/1000000000 at phone/light: request failed:
+  .../galaxy/tiles?tiles=... (net::ERR_ABORTED)"; the gate's own re-run
+  passed in 11.75 s and two runs alone passed (about 50 s each). Fails
+  on main: not checked. Frequency: 1 of 1 gate run. Cause as the lane
+  reads it: all four cores busy, the page is torn down while a tile
+  fetch is in flight, and the test counts an aborted request as a
+  failure. TEST.219 (requests still running 8 s after the server stops)
+  is the same kind of leftover.
   Prerequisites: none. Related: TEST.170, TEST.172.
 
 - [ ] **TEST.175 Edit everything end to end: the headline scenarios with approval and undo**
@@ -16310,6 +16304,20 @@ clears each one.
   condition it needs (the disc share) and not a fixed time, and it
   passes under the same load, with no quarantine. Owner: Bug Hunt
   (proposed).
+  Sighting (Core 4, 2026-10-17, 5:34 AM EDT as the lane reported, NAV.45
+  gate, build 036c9e8a685b0559, started 4:01 AM EDT): the same test
+  failed in the full gate with `assert 0.8843703345212668 == 1.0 +/-
+  1.0e-06`; it passed 3 of 3 alone on the NAV.45
+  branch (113 to 120 s each, idle box). Fails on main: not seen.
+  Frequency: now 1 of 1 more full gates (NAV.45 gate); with the 12:49 AM
+  EDT run, a loaded run only.
+  Sighting (Core 2, 2026-10-17, 6:31 AM EDT as the lane reported,
+  MAP.217 gate, work stashed, 336 s run, load 10): a different symptom,
+  "the system's scene never came in", assert [] (the shares list was
+  empty, not a share below 1). Checked idle by the TODO thread (6:28 AM
+  EDT, main with #2004, load 0.1): passed in 124.68 s. So it fails only
+  under load; the two symptoms (the disc share short of 1, the scene
+  never loading) both point to waits that are too short under load.
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
@@ -16408,6 +16416,10 @@ clears each one.
   49bf9a8656ac115e, 2:42 to 3:58 AM EDT, 18,849 passed, 1 failed, the
   round-trip column of TEST.217), consistent with a 1 in 40 draw. Bug
   Hunt's `_placed_nebula(holds_ly=6)` fix is still the open fix.
+  Sighting (Core 4, 2026-10-17, 5:34 AM EDT as the lane reported): the
+  nebula persistence failure did not recur in UX.114's gate 2 (2:42 to
+  3:58 AM EDT) or in the NAV.45 gate (4:01 to 5:21 AM EDT, 18866 passed,
+  1 failed, the disc-fade test of TEST.213).
   Prerequisites: none. Related: TEST.213, TEST.194, TEST.208.
 
 - [ ] **TEST.218 `test_first_control_connections_at_once` leaves 3 idle connections open on `planetgen_test_*` when its fixture ends: the test should close its own connections (bug)**
