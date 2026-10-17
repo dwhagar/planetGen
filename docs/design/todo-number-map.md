@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.227 |
+| TEST | TEST.228 |
 | USR | USR.31 |
 | OPS | OPS.62 |
 | DOC | DOC.68 |
@@ -2248,6 +2248,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.224 | `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed once in a full gate: the nested system's inside_nebula_id was None (bug) | none | open |
 | TEST.225 | `test_random_start_neighborhood_matches_the_real_skeleton_plan` generated 18,210 systems against a predicted 83,346.6 in one gate run (bug) | none | open |
 | TEST.226 | Tests for the plan configuration and its two switches: the interior is identical with each combination, off generates nothing beyond the boundaries, addresses outside them are refused, the 8.1 sphere is the all-on case | none | open |
+| TEST.227 | test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone] failed in a loaded browser run and passes alone (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
