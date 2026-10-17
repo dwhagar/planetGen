@@ -58,7 +58,7 @@ Sources reached: sbpy 0.6.0 (PyPI sdist, file sbpy/activity/gas/data/__init__.py
 | HCN | 7.0e4 | C94 6.7e4; Leiden solar 1.26e5; HM15 rate 1.31 to 3.24e-5 /s (SNIPPET) | DATA; COMPUTED | CONFIRMED |
 | CH4 | 1.2e5 | Leiden solar (dissociation 4.83e-6 /s; ionisation adds 3.5e-7) 2.07e5 (A+ class, 20 percent). No tabulated Huebner value reached | COMPUTED | UNSUPPORTED (factor 1.7 from the only value reached; Huebner/Crovisier value NOT REACHED) |
 | C2H6 | 1.0e5 | Leiden solar 1.67e5 (dissociation 5.99e-6 /s, A+). Huebner value NOT REACHED | COMPUTED | UNSUPPORTED (factor 1.7) |
-| NH3 | 2.5e4 | k = 1.8e-4 /s, "average rate for a quiet and an active Sun from Huebner et al. (1992) and HM15", giving 5.6e3 s; Heays 2017 gives 1.5e-4 /s (6.7e3 s); Leiden solar COMPUTED 1.538e-4 /s, 6.5e3 s | READ 2307.11486; COMPUTED | CONTRADICTED (note about 4 times too long) |
+| NH3 | 2.5e4 | k = 1.8e-4 /s, "average rate for a quiet and an active Sun from Huebner et al. (1992) and HM15", giving 5.6e3 s; Heays 2017 gives 1.5e-4 /s (6.7e3 s); Leiden solar COMPUTED 1.538e-4 /s, 6.5e3 s | **Superseded by part 10E:** recommended 1.5e-4 /s (6.7e3 s), range 1.3e-4 to 1.8e-4 /s; the Leiden Solar column is NOT limited to 91.2-200 nm for NH3 (it uses a 67-420 nm solar file and the cross section to 226 nm), so the statement above that it covers only 91.2 to 200 nm is wrong for this species | READ 2307.11486; COMPUTED | CONTRADICTED (note about 4 times too long) |
 
 Leiden-derived values run 1.3 to 2.5 times longer than HM15 for H2O, CO2 and HCN because the table covers 91.2 to 200 nm only; use them as order-of-magnitude fallbacks (spread about a factor 2). Other values read: C94 CH3OH 7.7e4 s, H2CO 5.0e3 s; HM15 CN 3.15e5 (quiet) and 1.35e5 s (active), from H92 in sbpy.
 

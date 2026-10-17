@@ -370,7 +370,7 @@ A row is CONFIRMED only when a source that was read gives the figure or one insi
 | Solubility laws | linear in NBO/T, exp(-Delta-IW) | exponential in NBO/O (Iacono-Marziano 2012), mass action gives 10^(-0.5 Delta-IW); the note's forms are schematic | 2ND-HAND | G3 |
 | Lava-world vapour | Na and K dominate to 2200 K; mean mass 40 to 60 g/mol | Na dominates to 2700 to 2800 K; mean molar mass about 25 near 2000 K and 33 near 3000 K | COMPUTED | G3 |
 | Sossi 2020 scale | Earth at IW + 0.5 | the same gas ratios are Delta-IW 0.0 on the Hirschmann 2021 scale; the IW reference must be fixed in the generator, +0.5 is a Sossi-scale calibration target only | COMPUTED | G3 |
-| Cold-ice vapour pressure | Blakley 2025, Grundy 2024, factor 1.6, "9.2 kJ/mol" | Blakley 2024 (O2, NH3 only), Grundy 2024 (N2, CO, CH4); a 2026 Grundy preprint multiplies all five by 1.19 +/- 0.03; 9.2 percent is the enthalpy excess (about 10.1 kJ/mol), not 9.2 kJ/mol | READ | G4 |
+| Cold-ice vapour pressure | Blakley 2024, Grundy 2024, factor 1.6, "9.2 kJ/mol" | Blakley 2024 (O2, NH3 only), Grundy 2024 (N2, CO, CH4); a 2026 Grundy preprint multiplies all five by 1.19 +/- 0.03; 9.2 percent is the enthalpy excess (about 10.1 kJ/mol), not 9.2 kJ/mol | READ | G4 |
 | CO2 solid EoS | Jager and Span: 0 to 800 K, 12 GPa | that range belongs to Trusler 2011; use Span and Wagner eq. 3.12 for sublimation (842.65 Pa at 150 K, 103971 Pa at 195 K, test targets) | READ | G4 |
 | H2 | non-condensable above 10 K | H2 freezes below 13.96 K; Tc 33.145 to 33.18 K; HD Tc 35.908 K | READ | G4 |
 | CO2 hydrate Q1 | 271.60 K, 1.044 +/- 0.002 MPa | 271.60 K and 1.044 MPa is Semenov 2023 with +/- 0.021 MPa; Q2 283.13 K, 4.494 MPa | READ | G4 |
