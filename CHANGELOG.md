@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1607] - 2026-10-17
+
+**Headline:** The forward-to-current browser test flake has a third sighting on the TODO list.
+
+### Changed
+- TEST.172 records Core 3's UX.116 gate failure (under load, passes alone), the third sighting.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1606] - 2026-10-17
 
 **Headline:** UX.116 (limit sliders on the Generate page) leaves the TODO list.
