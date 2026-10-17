@@ -45,10 +45,15 @@ def _client():
     return redisqueue.connect(redisqueue.redis_url(), timeout=SOCKET_SECONDS, retries=0)
 
 
-def claim(names):
+def claim(names, seconds=LOCK_SECONDS):
     """
     Claims the builds `names` (strings naming a tile or stage of one
     generation).
+
+    Args:
+        names (list[str]): What is about to be built.
+        seconds (int): How long a claim lives if its owner dies without releasing it; a build that takes
+            longer than the default says so (the Generate page's estimate, PERF.109).
 
     Returns:
         tuple: `(owned, held)`: the names this caller must build, and the
@@ -61,7 +66,7 @@ def claim(names):
     try:
         pipe = _client().pipeline(transaction=False)
         for name in names:
-            pipe.set(_PREFIX + name, "1", nx=True, ex=LOCK_SECONDS)
+            pipe.set(_PREFIX + name, "1", nx=True, ex=int(seconds))
         results = pipe.execute()
     except (redis.RedisError, OSError):
         return names, []
@@ -81,7 +86,7 @@ def release(names):
         pass  # the claim expires on its own
 
 
-def wait(names, read):
+def wait(names, read, seconds=WAIT_SECONDS):
     """
     Waits for other callers' builds of `names`.
 
@@ -89,14 +94,15 @@ def wait(names, read):
         names (list[str]): Claimed by others (`claim`'s `held`).
         read (callable): `read(name)` -> the finished build, or `None`
             when it isn't there yet.
+        seconds (float): The longest to wait.
 
     Returns:
         dict: `{name: build}` for each name that turned up within
-            `WAIT_SECONDS`; the rest are the caller's to build.
+            `seconds`; the rest are the caller's to build.
     """
     found = {}
     pending = list(names)
-    deadline = time.monotonic() + WAIT_SECONDS
+    deadline = time.monotonic() + seconds
     while pending:
         for name in list(pending):
             value = read(name)

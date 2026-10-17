@@ -415,3 +415,25 @@ def test_a_sector_that_made_nothing_is_not_recorded(monkeypatch):
     run_common._record_sector(None, {"density": 1.0, "systems": 3, "stars": 4}, 0.9)
     (bucket,) = stats.buckets.values()
     assert bucket.samples == 1 and bucket.seconds_per_task == 0.9 and bucket.systems_per_task == 3
+
+
+def test_the_fingerprint_changes_when_a_speed_or_a_size_is_stored(control_config):
+    """PERF.109: the Generate page's cached estimate is dropped when its inputs change."""
+    def fingerprint():
+        conn = store.get_control_connection(control_config)  # one per read: a connection keeps its snapshot
+        try:
+            return generationStats.fingerprint(conn)
+        finally:
+            conn.close()
+
+    before = fingerprint()
+    assert fingerprint() == before
+    stats = GenerationStats(control_config)
+    stats.record("sector", 1.0, seconds=2.0, systems=10, stars=13)
+    stats.flush()
+    after_bucket = fingerprint()
+    assert after_bucket != before
+    stats.sizes["fingerprint_db"] = {"bytes_per_system": 5000.0, "systems": 10, "total_bytes": 50000}
+    stats._dirty_sizes.add("fingerprint_db")
+    stats.flush()
+    assert fingerprint() != after_bucket
