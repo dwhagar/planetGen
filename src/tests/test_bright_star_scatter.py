@@ -141,9 +141,16 @@ def _plan_args(mysql_config, *extra):
     return args
 
 
+GALAXY_SEED = bytes.fromhex("c4ca4238a0b923820dcc509a6f75849b")
+"""bytes: The galaxy seed every test that seeds this galaxy draws from. A random one could leave the first wedges of a
+shell with no bright star, and a test that needs a scattered star or a nearest cell with stars then failed on that
+draw alone (TEST.171, TEST.173)."""
+
+
 def _seed_galaxy(mysql_config):
     store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=8,
-                          expected_system_count_at_density_1=E_VALUE, config=mysql_config, cell_star_ceiling=1e12)
+                          expected_system_count_at_density_1=E_VALUE, config=mysql_config, cell_star_ceiling=1e12,
+                          galaxy_seed=GALAXY_SEED)
     store.replace_galaxy_shells(EXTENTS, config=mysql_config)
 
 

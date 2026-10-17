@@ -8,6 +8,7 @@ tests that the gate itself can tell a broken function from a working one.
 """
 
 import math
+import time
 
 import pytest
 
@@ -40,8 +41,12 @@ def test_every_group_is_present():
 
 
 def test_whole_run_is_fast():
+    # The process's CPU time, not the clock: on a loaded machine the clock also counts the time the process waited
+    # for a core, which the run does not control (TEST.170).
+    started = time.process_time()
     results = mathCheck.run_all()
-    assert sum(r.seconds for r in results) < 5.0, mathCheck.format_report(results, verbose=True)
+    cpu_seconds = time.process_time() - started
+    assert cpu_seconds < 5.0, f"{cpu_seconds:.2f} s of CPU\n" + mathCheck.format_report(results, verbose=True)
 
 
 def test_run_leaves_global_random_alone():
