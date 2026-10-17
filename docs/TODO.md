@@ -19220,6 +19220,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   wrote DOC.47 but is on the wheel zoom chain, the 8.1 headline. Not on
   the headline path: it can wait behind Core 5's stellar bundle unless
   Boss promotes it.
+  Decided (Boss, 2026-10-17, 12:26 PM EDT, card tapped "Core 5, after
+  stellar", relayed in words by the coordinator): Core 5 owns it, queued
+  behind its stellar bundle (GEN.463, 467, 502, 529) and GEN.259, 238,
+  298; the owner line above is no longer only proposed.
   Prerequisites: none. Related: DOC.47, DOC.52, DOC.18.
 
 ## VIEW: The view from a planet
