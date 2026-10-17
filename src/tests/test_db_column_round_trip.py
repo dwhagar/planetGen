@@ -95,7 +95,6 @@ NULL_IN_THIS_GALAXY = {
     **{("quasars", column): CHANCE for column in ("epoch_unix", "next_update_due")},
     **{("asteroid_fields", column): "formed by an event, which has no table yet (GEN.110, DB.56)"
        for column in ("formed_at", "origin_event_id")},
-    **{(table, "parent_id"): "set once the generator writes the parent link (GEN.289)" for table in ("planets", "moons")},
     **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
     **{("stars", column): "a member of a built multi-star system, filled by the DB.53 chain" for column in (
         "decay_age_yr", "disk_inner_au", "disk_kind", "disk_mass_solar", "disk_outer_au", "epoch_unix", "flags",
