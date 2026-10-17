@@ -8136,7 +8136,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fails when a gas named anywhere in the code is missing from the table;
   every number has a source.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Prerequisites: GEN.438, GEN.500. Related:
+  Prerequisites: GEN.438. Related:
   GEN.208,
   GEN.85,
   GEN.355, GEN.411, GEN.415, DB.71.
@@ -8176,7 +8176,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reads (NIST, PubChem and USGS public domain; published compilations
   with a citation) states its source and licence, and the loader refuses
   a row without one; the licence question of the cross-section files
-  (Mainz, Serdyuchenko, Heays 2017, Huebner 2015) is open (master
+  (Mainz, Serdyuchenko, Heays 2017, Huebner 2015) is closed (Boss, 2:35 PM
+  EDT: every acquired paper and dataset is usable; was master
   section 6 item 13 of docs/design/atmosphere-composition.md).
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
   docs/design/composition-model.md; format and loader GEN.472, the sum
@@ -8225,7 +8226,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   states CC BY 4.0, Leiden, Bremen and Karkoschka state none; derived
   tables from NIST SRD, JPL 19-5, Leiden, Bremen and Karkoschka need
   permission or a re-derivation from the primary measurements; the audit
-  is GEN.500, and the photolysis lifetimes are constants of this table
+  (GEN.500) was removed by Boss (2:35 PM EDT), and the photolysis lifetimes are constants of this table
   (GEN.496).
   Checked against Boss's 2:11 AM EDT note by the Atmosphere research
   lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
@@ -8242,6 +8243,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   approval; Boss has not approved it: docs/design/atmosphere-colour.md
   ends with a 'For Boss to approve' list with a recommendation per item;
   a ruling that differs changes this item.
+  Decided (Boss, 2026-10-17, 2:35 PM EDT, typed in the project chat,
+  GEN.500 removed): every paper and dataset Boss acquired was obtained
+  legally and is usable, so no licence audit gates this table and no
+  permission list is needed. The raw papers and downloaded datasets stay
+  out of the public repository and are never redistributed or sold; the
+  research results and the values derived from them are fine to publish,
+  and the program stays free forever. The source and licence column
+  stays as a record; write 'open' where none is found (the loader of
+  GEN.472 already accepts that).
   Related: DB.71.
 
 - [ ] **GEN.411 The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree**
@@ -9032,7 +9042,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reads (NIST, PubChem and USGS public domain; published compilations
   with a citation) states its source and licence, and the loader refuses
   a row without one; the licence question of the cross-section files
-  (Mainz, Serdyuchenko, Heays 2017, Huebner 2015) is open (master
+  (Mainz, Serdyuchenko, Heays 2017, Huebner 2015) is closed (Boss, 2:35 PM
+  EDT: every acquired paper and dataset is usable; was master
   section 6 item 13 of docs/design/atmosphere-composition.md).
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
   docs/design/composition-model.md; format and loader GEN.472, the sum
@@ -9041,7 +9052,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   phase, the envelopes) with the source and licence column of the F5
   rule, so the bulk recipes of GEN.428 and the taxon rows of GEN.457
   draw only among the materials a class can hold.
-  Prerequisites: GEN.438, GEN.500. Related:
+  Prerequisites: GEN.438. Related:
   GEN.410,
   GEN.428.
   Boss (2026-10-17, 1:47 AM EDT, typed in the body composition thread):
@@ -9083,8 +9094,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   verification' note on this item is superseded for the body-related
   claims): (part G4) licences: NIST SRD is copyrighted, JPL 19-5 is not
   public domain, only the 2013 Mainz snapshot states CC BY 4.0, Leiden,
-  Bremen and Karkoschka state none; the licence column is mandatory and
-  the audit is GEN.500.
+  Bremen and Karkoschka state none; the licence column is mandatory (it
+  takes 'open' where none is found) and the audit (GEN.500) was removed by
+  Boss (2:35 PM EDT).
   Design note merged as #2063 (Blocker 1, 2026-10-17) and awaiting Boss
   approval; Boss has not approved it: docs/design/bulk-composition.md
   ends with a 'For Boss to approve' list with a recommendation per item;
@@ -9093,6 +9105,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   words; bulk-composition.md approve item 10, composition-model.md
   section 3): this item is a table in 8.1 phase 2 and bumps nothing; the
   one epoch bump is GEN.428 to GEN.430 plus DB.69 in 8.4 phase 1.
+  Decided (Boss, 2026-10-17, 2:35 PM EDT, typed in the project chat,
+  GEN.500 removed): every paper and dataset Boss acquired was obtained
+  legally and is usable, so no licence audit gates this table and no
+  permission list is needed. The raw papers and downloaded datasets stay
+  out of the public repository and are never redistributed or sold; the
+  research results and the values derived from them are fine to publish,
+  and the program stays free forever. The source and licence column
+  stays as a record; write 'open' where none is found (the loader of
+  GEN.472 already accepts that).
 
 - [ ] **GEN.428 Planets and moons draw their bulk composition fractions instead of carrying a fixed text**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -9375,7 +9396,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reads (NIST, PubChem and USGS public domain; published compilations
   with a citation) states its source and licence, and the loader refuses
   a row without one; the licence question of the cross-section files
-  (Mainz, Serdyuchenko, Heays 2017, Huebner 2015) is open (master
+  (Mainz, Serdyuchenko, Heays 2017, Huebner 2015) is closed (Boss, 2:35 PM
+  EDT: every acquired paper and dataset is usable; was master
   section 6 item 13 of docs/design/atmosphere-composition.md).
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
   docs/design/composition-model.md; format and loader GEN.472, the sum
@@ -9389,7 +9411,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Body composition research lanes to verify; summary in section 10 of
   docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the dataset licence table
   (see GEN.410) for the licence column.
-  Prerequisites: GEN.500. Related: GEN.410, GEN.427, GEN.439,
+  Prerequisites: none. Related: GEN.410, GEN.427, GEN.439,
   GEN.444.
   Checked by the Body composition research lane against Boss's second
   note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
@@ -9397,12 +9419,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   verification' note on this item is superseded for the body-related
   claims): (part G4) licences: NIST SRD is copyrighted, JPL 19-5 is not
   public domain, only the 2013 Mainz snapshot states CC BY 4.0, Leiden,
-  Bremen and Karkoschka state none; the licence column is mandatory and
-  the audit is GEN.500.
+  Bremen and Karkoschka state none; the licence column is mandatory (it
+  takes 'open' where none is found) and the audit (GEN.500) was removed by
+  Boss (2:35 PM EDT).
   Design note merged as #2063 (Blocker 1, 2026-10-17) and awaiting Boss
   approval; Boss has not approved it: docs/design/composition-model.md
   section 7 ends with a 'For Boss to approve' list with a recommendation
   per item; a ruling that differs changes this item.
+  Decided (Boss, 2026-10-17, 2:35 PM EDT, typed in the project chat,
+  GEN.500 removed): every paper and dataset Boss acquired was obtained
+  legally and is usable, so no licence audit gates this table and no
+  permission list is needed. The raw papers and downloaded datasets stay
+  out of the public repository and are never redistributed or sold; the
+  research results and the values derived from them are fine to publish,
+  and the program stays free forever. The source and licence column
+  stays as a record; write 'open' where none is found (the loader of
+  GEN.472 already accepts that).
 
 - [ ] **GEN.439 The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -12574,38 +12606,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   downloads this item makes at build time send the standard User-Agent
   of API.31 (one function builds it).
 
-- [ ] **GEN.500 The licence audit: the licence column filled for every data source, and the permission list for NIST, JPL, Leiden, Bremen and Karkoschka**
-  Body composition research lane check of Boss's second research note
-  (2:11 AM EDT; checked 2:43 AM EDT as the lane reported; section 15 and
-  parts G1 to G4 of docs/design/body-composition-research.md), filed by
-  the TODO thread. G-6 (part G4, extends part F item F5). The note's
-  claim that NIST, PubChem and USGS data are public domain is wrong for
-  NIST SRD (copyrighted, permission needed) and unproven for PubChem and
-  USGS; JPL 19-5 is 'protected by copyright, US government purpose use
-  rights' and not public domain; only the 2013 Mainz snapshot states CC
-  BY 4.0 (cite Keller-Rudek 2013); Leiden, Bremen and Karkoschka state
-  none. Do: fill the licence column of the tables (GEN.410, GEN.427,
-  GEN.438) from the full table of part G4, list the permissions to ask
-  for (NIST, JPL, Leiden, Bremen, Karkoschka), and for each source
-  without a stated licence derive the table again from the primary
-  measurements or keep the data out of the repository. Done: every row
-  of every table names its licence, the loader (GEN.472) refuses a row
-  without one, and the permission list is a document in docs/design.
-  Owner: Core 4 (proposed, with the composition chain).
-  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
-  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
-  10A to 10D of atmosphere-composition.md): licence findings of the
-  Atmosphere lane (finding 29): JPL 19-5 is not public domain; Huebner
-  and Mukherjee, NMSU and Bremen no licence found; Mainz CC BY 4.0;
-  Leiden cite on use.
-  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
-  docs/design/tunable-gaps.md): licences with none stated that need
-  confirming before derived tables are distributed: Hypatia (copyright
-  notice, no licence), the NGPPS Zenodo record (open, no licence field),
-  the LExACoM CSV, Zenodo 17986129 (Paragas texture data), the CKS and
-  DR25 tables; the Robinson 2024 database is CC BY 4.0.
-  Prerequisites: none. Related: GEN.472, GEN.410, GEN.427, GEN.438.
-
 - [ ] **GEN.501 Source the activity factor of the NH3 photolysis rate from the Huebner and Mukherjee rate tables**
   Body composition research lane reconciliation of the NH3 photolysis
   lifetime (3:00 AM EDT as the lane reported; section 15.1 of
@@ -12614,7 +12614,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   active-Sun NH3 photolysis rates in Huebner and Mukherjee 2015 (and
   Huebner 1992), cross-check them against the Heays 2017 cross sections
   times the solar field, and record the activity factor with its source,
-  label and licence (GEN.500 audits the licence of the tables). Done:
+  label and licence (no licence audit now, Boss 2:35 PM EDT). Done:
   the NH3 activity factor of the lifetime table (GEN.496) is a sourced
   value or a flagged seeded bracket, and the research is dated and
   labelled READ or NOT REACHED on the goal issue. Owner: unowned
@@ -12636,7 +12636,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   was not uploaded and the Curchod and Orr-Ewing 2024 review has no rate
   numbers; it prints 2019 for the evaluation the plan calls 2020, so
   check the year on the item's citation.
-  Prerequisites: none. Related: GEN.496, GEN.455, GEN.500, GEN.410.
+  Prerequisites: none. Related: GEN.496, GEN.455, GEN.410.
 
 - [ ] **GEN.502 The giant branch finishes the stellar tables check: the red giant time law as a function of core mass, the tip by metallicity and the branch duration against the observed horizontal-branch ratio**
   What GEN.407 (merged #1985, generator epoch 4, as the lane reported)
