@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1650] - 2026-10-17
+
+**Headline:** The bulk composition sources check is done and its constants, method order and corrections are folded into the bulk composition items.
+
+### Added
+- docs/design/bulk-composition-sources-check.md: the result of GEN.425, 12 sources with what was read, the constants for the materials table, the method order for the density and what Boss must research.
+
+### Changed
+- GEN.426 to GEN.429, DB.69, GEN.432, GEN.433 and GEN.440 carry the findings (the radius level, the core fraction from the star's Fe/Si and Mg/Si, the snow line, the star abundances the draws need); the star composition items go to Core 4 (Boss, 12:13 AM EDT) and the generation chain stays in 8.4.
+
+TODO items resolved: GEN.425 / Added: none
+
 ## [8.0.1649] - 2026-10-17
 
 **Headline:** Composition of every body, star and atmosphere joins the atmosphere colour as the 9.0 headline, with its building blocks planned in 8.1.
