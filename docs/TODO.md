@@ -624,6 +624,14 @@ with `clamp()`.
   answer fields `sectors_in_range` and `sectors_generated` by
   `not_generated` and `not_generated_total` (the API docs and the CLI
   are updated); this item's pages read the new fields.
+  Gate 1 (Core 4, build 07b08de92ff11081, started 1:18 AM EDT, FAIL in
+  78 min 4 s: 18,654 passed, 12 failed, 104 skipped, as the lane
+  reported at 2:44 AM EDT): ten failures were this item's own and are
+  fixed in its branch (the new route had no test value, no SEO class and
+  an underline on a badge link; `format_members` printed 'nan members'
+  for a non-finite count, caught by a new sweep test); two are not this
+  item's and are filed as TEST.216 and TEST.217. Gate 2 started 2:42 AM
+  EDT (build 49bf9a8656ac115e), expected to end about 4:00 AM EDT.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
@@ -15505,6 +15513,45 @@ clears each one.
   (research; Boss or a read-only research lane).
   Prerequisites: GEN.472, TEST.211. Related: TEST.214, TEST.211,
   GEN.472.
+
+- [ ] **TEST.216 `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed in the full parallel gate: the nested system's `inside_nebula_id` was None, and it passes alone (bug)**
+  Found by Core 4 (2026-10-17, 2:44 AM EDT as the lane reported, in the
+  full gate of UX.114: build 07b08de92ff11081 started 1:18 AM EDT, FAIL
+  in 78 min 4 s with 18,654 passed, 12 failed and 104 skipped; the other
+  ten failures were UX.114's own and are fixed in its branch), filed by
+  the TODO thread. Kind: test. Test:
+  `src/tests/test_db_persistence.py::test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins`.
+  Failure: line 1259 `assert nested["inside_nebula_id"] == big` gave
+  `assert None == 1`. Fails on main: no (it passes alone on origin/main
+  8ff6f33 and alone on the UX.114 branch, 42 s, idle). Frequency: 1 of 1
+  full gate runs; it passed in the earlier GEN.134 gate of 12:04 AM EDT.
+  Reproducer: only under the full parallel run (4 workers and browsers);
+  the test it may collide with is unknown, likely a shared-table race
+  with another database test. Not reproduced in isolation, so it is
+  flagged as needing the full-run reproduction first. Done: the cause is
+  found (a shared table or fixture another database test writes, or a
+  real ordering bug in the nebula membership write), the test passes in
+  the full parallel run, with no quarantine. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.213, TEST.194, TEST.208.
+
+- [ ] **TEST.217 `test_every_column_is_written` found a NULL in every row of `moons.evolutionary_speed` in the full parallel gate, and passes alone (bug)**
+  Found by Core 4 (2026-10-17, 2:44 AM EDT as the lane reported, in the
+  full gate of UX.114: build 07b08de92ff11081 started 1:18 AM EDT, FAIL
+  in 78 min 4 s with 18,654 passed, 12 failed and 104 skipped; the other
+  ten failures were UX.114's own and are fixed in its branch), filed by
+  the TODO thread. Kind: test. Test:
+  `src/tests/test_db_column_round_trip.py::test_every_column_is_written`.
+  Failure: `NULL in every row (never written?): [('moons',
+  'evolutionary_speed')]`. Fails on main: no (it passes alone on main
+  and on the branch, the same 42 s run). Frequency: 1 of 1 full gate
+  runs. Reproducer: the full run only; it looks like a test that writes
+  `moons` rows ran alongside or ahead of the round trip, or the
+  round-trip test's own moon rows lose the column. Not reproduced in
+  isolation, so it is flagged as needing the full-run reproduction
+  first. Done: the cause is found, the test passes in the full parallel
+  run, and the round trip does not depend on which other tests ran, with
+  no quarantine. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.213, TEST.208.
 
 ## USR: User accounts
 
