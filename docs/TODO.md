@@ -5913,7 +5913,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.238, GEN.241, GEN.243, GEN.244, GEN.259, GEN.280,
   GEN.282, GEN.283, GEN.284, GEN.298, UX.116, TEST.159, TEST.160,
   GEN.447, GEN.448, GEN.449, GEN.450, TEST.196, GEN.463, GEN.467,
-  GEN.469, GEN.502, GEN.528, GEN.529, GEN.530.
+  GEN.469, GEN.502, GEN.528, GEN.529, GEN.530, DB.72.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -14000,6 +14000,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 3 of 54). This replaces any earlier owner line on this item.
+  Sighting (Boss's failed whole-sphere run, job-20261017-162736-67d4 on
+  PlanetGen 8.0.1726, started 12:27 PM EDT by the file name): stage 4
+  printed 'Estimate for a random start ... About 223 GB and 4 m 33 s for
+  113 sectors (~6,836 star systems, ~8,886 stars, 5 workers)' and
+  'WARNING: Refused: this would take about 223 GB, more than a quarter
+  of the database disk (106 GB) ... Going ahead (--strict stops here
+  instead)', and then ran: the guard warns and does not stop unless
+  `--strict` is given. Whether the 223 GB figure includes the scatter
+  that `--then-scatter` follows with, or is wrong for 113 sectors, is
+  not established; check it when the guard is built. The same run
+  stopped later on DB.72.
   Prerequisites: none.
   Design: [docs/design/fill-order-curves-and-core.md](design/fill-order-curves-and-core.md)
 
@@ -15318,6 +15329,49 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   stored. Owner: Core 4 (proposed, with the atmosphere chain).
   Prerequisites: GEN.411, GEN.410, DB.67. Related: DB.67, DB.68,
   GEN.411, GEN.413, GEN.415.
+
+- [ ] **DB.72 The scatter tables hold band_index as SMALLINT, which overflows from shell 20,861 outward, so the whole-sphere scatter stops at 97 percent (bug)**
+  Found on Boss's server (2026-10-17, the failed job log he uploaded to
+  the project at 12:58 PM EDT, relayed by the coordinator at 12:59 PM
+  EDT): job-20261017-162736-67d4 (started at 12:27 PM EDT by the file
+  name), PlanetGen 8.0.1726, galaxy seed
+  DEF46BEFE3517B392133D37FBBB5CC8E, `plan --phenomenon-min-mass 14
+  --compact-min-mass star --halo-min-luminosity 500 ...` then `galaxy
+  --then-scatter --phenomenon-min-mass 14 --compact-min-mass star
+  --bright-star-min-luminosity 9000`. Stage 7 of 12 (Scatter the massive
+  stars, `run_plan.scatter_bright_stars`) stopped at 97 percent after
+  1,379 s: `planetgen.queue.units.RunStopped: unit 536 of stage 0
+  failed: DataError: (1264, "Out of range value for column 'band_index'
+  at row 1556")`. Cause, read from the code and computed by the TODO
+  thread: the scatter tables `bright_stars`, `sector_stats` and
+  `phenomenon_scatter` (`src/planetgen/db/schema.sql`, lines about 3321,
+  3390 and 3510) declare `band_index SMALLINT NOT NULL`, whose largest
+  value is 32,767, but a shell's bands run from -(h + 1) to h + 1 and
+  `spherical.band_range` gives +-5,910 at shell 3,763, +-15,708 at shell
+  10,000, +-31,415 at shell 20,000 and +-102,942 at shell 65,535. The
+  first shell whose bands exceed 32,767 is shell 20,861, so every
+  scatter row placed in a shell from 20,861 out to the 65,536-shell
+  reach overflows the column; the units are cut into runs of 64 shells,
+  heaviest first, so unit 536 (shells about 34,304 to 34,367, bands to
+  +-53,900) is one of the units in that region. The tests never reach
+  those shells. `sectors.band_index` and the galaxy_block_stats column
+  are INT and are not affected. Fails on main: yes by reading,
+  `schema.sql` on main still has SMALLINT in all three tables (the
+  running schema version is 107). Frequency: 1 of 1 whole-sphere runs.
+  Reproducer: insert a `bright_stars` row (and a `sector_stats` and a
+  `phenomenon_scatter` row) at shell 34,304 and band 53,000; or the
+  command line above. Do: widen `band_index` to INT in the three tables
+  with one migration (the next free revision at merge) and in
+  `schema.sql` and the fixtures, and read every other table and Python
+  array that holds a band index in the scatter path (the uid packing,
+  the unit results) for the same width; the early-alpha schema is not a
+  constraint. Done: a test stores and reads back a row at the largest
+  band of the outermost shell for each of the three tables, a
+  whole-sphere scatter run with the same command line passes the
+  outermost units, and no column named for a band is narrower than INT.
+  This blocks the one wiped rescatter and GEN.301. Owner: Bug Hunt
+  (Boss's order via the coordinator, 12:59 PM EDT).
+  Prerequisites: none. Related: GEN.301, DB.65.
 
 ## API: The JSON API
 
