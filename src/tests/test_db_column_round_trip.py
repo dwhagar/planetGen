@@ -23,12 +23,14 @@ BOOKKEEPING_TABLES = {
     "schema_migrations", "alembic_version", "generation_run_arguments", "phenomenon_scatter", "phenomenon_scatter_classes", "sector_system_counts", "nebula_field", "galaxy_components", "facility_types", "facility_type_fields", "facility_field_values", "galaxy_block_stats", "object_timing_stats", "object_timing_samples", "id_blocks", "id_counters", "system_name_registry", "sector_name_registry", "population_state",
     "orbit_simulation_state", "galaxy_column", "galaxy_layer", "sector_stats", "bright_stars",
     "nearest_systems", "sector_paths", "sector_path_knots", "scatter_members", "scatter_nodes",
+    "orbit_nodes",
 }
 """Tables no object loader reads row by row: migration and id bookkeeping,
 the name registries, generation progress, and the galaxy skeleton and
 bright-star scatter (read in bulk by the Galaxy Map's tile queries,
 covered by test_galaxymap3d.py/test_bright_star_scatter.py), the galaxy's components (read by `store.get_galaxy_components`, covered by test_migration_galaxy_components.py) and the saved
-sector paths (read by `db/sector_paths.py`, covered by test_sector_paths_db.py)."""
+sector paths (read by `db/sector_paths.py`, covered by test_sector_paths_db.py) and the orbit tree's nodes (DB.53: the
+migration builds them, the generator and the loaders follow in the DB.53 chain; covered by test_migration_orbit_nodes.py)."""
 
 CHANCE = "chance"
 """Reason for a column whose value in this galaxy depends on the draw."""
@@ -87,6 +89,19 @@ NULL_IN_THIS_GALAXY = {
         "type_id", "affiliation_polity_id", "affiliation_name", "rating_crime", "rating_housing",
         "rating_resources", "rating_maintenance", "rating_health", "ratings_source", "ratings_note",
         "ratings_set_at")},
+    # DB.55 and DB.53 added these; the code items that fill them follow (the chain of GEN.294).
+    **{("asteroid_belts", column): "a ring about its star: no motion or clock of its own (GEN.337)"
+       for column in ("epoch_unix", "next_update_due")},
+    **{("quasars", column): CHANCE for column in ("epoch_unix", "next_update_due")},
+    **{("asteroid_fields", column): "formed by an event, which has no table yet (GEN.110, DB.56)"
+       for column in ("formed_at", "origin_event_id")},
+    **{(table, "parent_id"): "set once the generator writes the parent link (GEN.289)" for table in ("planets", "moons")},
+    **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
+    **{("stars", column): "a member of a built multi-star system, filled by the DB.53 chain" for column in (
+        "decay_age_yr", "disk_inner_au", "disk_kind", "disk_mass_solar", "disk_outer_au", "epoch_unix", "flags",
+        "offset_x_au", "offset_y_au", "offset_z_au", "parent_node_id", "state", "velocity_x_kms", "velocity_y_kms",
+        "velocity_z_kms")},
+    ("planets", "host_node_id"): "a circumbinary planet, filled by the DB.53 chain",
 }
 """`(table, column)` allowed to be NULL in every row of the seeded galaxy,
 with why: each is set only by something this small galaxy doesn't
@@ -128,15 +143,20 @@ NEVER_READ = {
     **{(table, stamp): "row timestamps (the Galaxy Map's change feed reads modified_at in bulk)"
        for table in ("star_systems", "facilities") for stamp in ("created_at", "modified_at")},
     ("polities", "created_at"): "row timestamp", ("species", "created_at"): "row timestamp",
-    # DB.6: what made the galaxy and its runs, for a rebuild (OPS.12) and the update history (OPS.13).
-    **{("galaxy_shape", column): "what made the galaxy (DB.6)" for column in
-       ("version_key", "planetgen_version", "python_version", "platform")},
+    # DB.6: what made the galaxy and its runs, for a rebuild (OPS.12) and the update history (OPS.13). The
+    # galaxy's own record is read back by the version check (ADM.50), so it is not listed here.
     # PERF.11: galaxy-wide stats, read by `store.galaxy_density_ratio`, not by an object loader.
     ("galaxy_shape", "density_ratio_avg"): "density stats (PERF.11)",
     ("galaxy_shape", "density_ratio_samples"): "density stats (PERF.11)",
     **{("generation_runs", column): "run history (DB.6)" for column in
        ("id", "command", "run_seed", "galaxy_seed", "version_key", "planetgen_version",
         "python_version", "platform", "started_at", "finished_at", "outcome")},
+    # DB.55 and DB.53 columns nothing loads yet (the gravity sum, GEN.109 and the DB.53 chain read them).
+    ("facilities", "mass_kg"): "read by the gravity sum (GEN.294 chain)",
+    **{("sectors", column): "read by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
+    **{("stars", column): "read by the DB.53 chain" for column in (
+        "decay_age_yr", "disk_inner_au", "disk_kind", "disk_mass_solar", "disk_outer_au", "epoch_unix", "flags",
+        "offset_x_au", "offset_y_au", "offset_z_au", "parent_node_id", "state")},
 }
 """`(table, column)` the loaders and detail endpoints don't read, with why."""
 

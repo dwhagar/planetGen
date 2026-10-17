@@ -37,6 +37,7 @@ from planetgen.generation.evolution import life_stage_from_paragraphs
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.names.wordsalad import generate_phoneme_salad_name
 from planetgen.physics.units import ly_to_pc, pc_to_ly
+from planetgen.util import detmath
 
 _YEARS_PER_UNIT = {"Billion": 1e9, "Million": 1e6}
 
@@ -183,10 +184,21 @@ def reach_ly(age_years, cap_ly=None):
     return min(cap, tuning.TERRITORY_BASE_REACH_LY * math.sqrt(age_years / start))
 
 
-def government_for(species_id):
-    """The polity's form of government, stable for a species."""
+def object_key(uid):
+    """
+    The text a population stream is keyed on for a world: its unique ID in hex (GEN.306). Row ids come from the
+    id blocks of however many workers filled the galaxy, so a stream keyed on one would draw differently at 1 and
+    at 4 workers; the unique ID is given once at birth and is the same however the galaxy was filled.
+    """
+    if uid is None:
+        raise ValueError("a world with no unique ID cannot be given a stream of its own")
+    return bytes(uid).hex()
+
+
+def government_for(homeworld_uid):
+    """The polity's form of government, stable for a species: drawn from its homeworld's unique ID."""
     forms = tuning.GOVERNMENT_FORMS
-    return forms[draw.Stream(species_id * 7919).randrange(len(forms))]
+    return forms[draw.Stream(f"government:{object_key(homeworld_uid)}").randrange(len(forms))]
 
 
 def polity_name(species_name, government):
@@ -194,10 +206,10 @@ def polity_name(species_name, government):
     return f"{species_name} {government}"
 
 
-def polity_color(species_id):
-    """A map color for a polity (`#rrggbb`): golden-ratio hues so
-    neighbouring ids differ, saturated enough to read on both themes."""
-    hue = (species_id * 0.618033988749895) % 1.0
+def polity_color(homeworld_uid):
+    """A map color for a polity (`#rrggbb`): a hue drawn from its homeworld's unique ID, saturated enough to
+    read on both themes."""
+    hue = draw.Stream(f"polity-color:{object_key(homeworld_uid)}").random()
     red, green, blue = colorsys.hls_to_rgb(hue, 0.55, 0.7)
     return "#{:02x}{:02x}{:02x}".format(round(red * 255), round(green * 255), round(blue * 255))
 
@@ -226,7 +238,7 @@ def add_claims(best, polity_id, capital, reach, systems):
         return
     reach_pc = ly_to_pc(reach)
     for system_id, position in systems.items():
-        distance_pc = math.dist(capital, position)
+        distance_pc = detmath.dist(capital, position)
         if distance_pc > reach_pc:
             continue
         strength = math.inf if distance_pc == 0 else reach_pc / distance_pc
@@ -394,14 +406,14 @@ def scan_life_worlds(conn):
     while low < top:
         high = min(top, low + SCAN_BATCH)
         rows = conn.execute(
-            "SELECT p.id, p.star_system_id, p.life_chemical, p.gravity_g, p.surface_temperature_k, "
+            "SELECT p.id, p.uid, p.star_system_id, p.life_chemical, p.gravity_g, p.surface_temperature_k, "
             "cfg.intelligent_life, cfg.prevalence_intelligent_life, e.paragraph FROM planets p "
             "JOIN planet_evolutionary_paragraphs e ON e.planet_id = p.id "
             "JOIN star_systems ss ON ss.id = p.star_system_id "
             "JOIN system_configs cfg ON cfg.id = ss.system_config_id "
             "LEFT JOIN species s ON s.homeworld_planet_id = p.id "
             "WHERE p.id > ? AND p.id <= ? AND s.id IS NULL "
-            "AND e.paragraph LIKE ? ORDER BY p.id, e.position",
+            "AND e.paragraph LIKE ? ORDER BY p.uid, e.position",
             (low, high, "%would have been Technological Civilization at%"),
         ).fetchall()
         planets = {}
@@ -413,14 +425,16 @@ def scan_life_worlds(conn):
             timeline = parse_timeline(paragraphs)
             if timeline is None:
                 continue
-            rng = draw.Stream(planet_id)
+            key = object_key(row["uid"])
+            rng = draw.Stream(f"life:{key}")
             traits = species_traits(row["gravity_g"], row["surface_temperature_k"], rng)
             if not has_civilization(timeline, row["intelligent_life"], rng, row["prevalence_intelligent_life"]):
                 # Only a technological civilization gets a species (GEN.80).
                 continue
             age = civilization_age(timeline.window_years, rng)
             era, spacefaring = era_for_age(age)
-            name = _unique_species_name(conn, taken)
+            with draw.bound(f"species-name:{key}"):
+                name = _unique_species_name(conn, taken)
             taken.add(name)
             inserts.append((name, planet_id, row["star_system_id"], row["life_chemical"], timeline.life_stage,
                             traits["build"], traits["climate"], traits["size"], age, era, int(spacefaring)))
@@ -464,7 +478,7 @@ def refresh_tech_levels(conn):
     """
     Draws the six tech indices and the tech level of every species that has none (POP.9): a new species, or
     one that existed before the columns. A species whose `tech_source` is `'admin'` (edited by hand) is never
-    redrawn. The draw uses a stream of its own (`tech:<homeworld planet id>`), apart from the one
+    redrawn. The draw uses a stream of its own (`tech:<homeworld unique ID>`), apart from the one
     `scan_life_worlds` draws a species' traits and age from, so no stored age changes.
 
     Returns:
@@ -472,12 +486,14 @@ def refresh_tech_levels(conn):
     """
     missing = " OR ".join(f"{column} IS NULL" for column in TECH_INDEX_COLUMNS)
     rows = conn.execute(
-        "SELECT id, homeworld_planet_id, civilization_age_years FROM species "
-        f"WHERE civilization_age_years IS NOT NULL AND (tech_source IS NULL OR tech_source <> 'admin') AND ({missing})"
+        "SELECT s.id, pl.uid, s.civilization_age_years FROM species s "
+        "JOIN planets pl ON pl.id = s.homeworld_planet_id "
+        "WHERE s.civilization_age_years IS NOT NULL AND (s.tech_source IS NULL OR s.tech_source <> 'admin') "
+        f"AND ({missing})"
     ).fetchall()
     updates = []
     for row in rows:
-        indices = tech.draw_indices(row["civilization_age_years"], draw.Stream(f"tech:{row['homeworld_planet_id']}"))
+        indices = tech.draw_indices(row["civilization_age_years"], draw.Stream(f"tech:{object_key(row['uid'])}"))
         updates.append((*(indices[domain] for domain in tech.DOMAINS), tech.tech_level(indices), row["id"]))
     if updates:
         sets = ", ".join(f"{column} = ?" for column in TECH_INDEX_COLUMNS)
@@ -513,15 +529,16 @@ def refresh_civilizations(conn):
             "DELETE p FROM polities p JOIN species s ON s.id = p.species_id WHERE s.spacefaring = 0"
         )
         founding = conn.execute(
-            "SELECT s.id, s.name, s.star_system_id FROM species s "
+            "SELECT s.id, s.name, s.star_system_id, pl.uid FROM species s "
+            "JOIN planets pl ON pl.id = s.homeworld_planet_id "
             "LEFT JOIN polities p ON p.species_id = s.id WHERE s.spacefaring = 1 AND p.id IS NULL"
         ).fetchall()
         if founding:
             conn.executemany(
                 "INSERT INTO polities (name, species_id, capital_system_id, government, color, reach_ly) "
                 "VALUES (?, ?, ?, ?, ?, 0)",
-                [(polity_name(row["name"], government_for(row["id"])), row["id"], row["star_system_id"],
-                  government_for(row["id"]), polity_color(row["id"])) for row in founding],
+                [(polity_name(row["name"], government_for(row["uid"])), row["id"], row["star_system_id"],
+                  government_for(row["uid"]), polity_color(row["uid"])) for row in founding],
             )
         reaches = conn.execute(
             "SELECT p.id, p.reach_ly, s.civilization_age_years FROM polities p JOIN species s ON s.id = p.species_id"

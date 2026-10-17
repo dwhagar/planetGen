@@ -271,6 +271,8 @@ Scaled linearly to the 1.17 x 10^9 rows (about 161 GB) GEN.100 would write befor
 
 Revision 0063 hand-rolls its `_exists` checks and per-row loop. A small module, `planetgen/db/migrations/helpers.py`, should carry the pattern: `add_index_online(table, name, columns)`, `add_column_instant(...)`, `batched_update(sql, table, key, batch, label)` with the progress callback, `exists_*` checks, and a `lock_wait_timeout` context. Alembic's `op.add_column` and `op.create_index` cannot pass an `ALGORITHM`, so the helpers use `op.execute("ALTER TABLE ... ALGORITHM=INPLACE, LOCK=NONE")`. This is the Alembic part of DB.7 (four columns on `sectors`, a small table: `ADD COLUMN ... ALGORITHM=INSTANT`) and of NAV.10 (position indexes on `star_systems` and others: `INPLACE, LOCK=NONE`). Every revision stays idempotent (section 3).
 
+**Built (DB.18).** `planetgen/db/migrations/helpers.py` has `add_column_instant`, `drop_column_instant`, `add_index_online`, `drop_index_online`, `batched_update`, the `exists_*` checks, `lock_wait_timeout`, `long_transactions` and `require_no_long_transactions`, with the `ALGORITHM` named in every statement and a retry (three tries) after a lock wait timeout or deadlock. `batched_update` takes the SET list and the WHERE condition as SQL, pages by the primary key and reports through `alembic_runner.report_progress`, as sketched below. Revision 0063 and the others already merged keep their own code; later revisions (DB.44 and on) use the helpers. Tests: `tests/test_migration_helpers.py`.
+
 Batched backfill, tested with Alembic 1.16.5, SQLAlchemy 2.0.54 and PyMySQL on MariaDB 10.11 [C]: keyset paging on the primary key, `WHERE ... IS NULL` so a re-run resumes, a commit per batch (no giant undo log or purge lag), and a progress callback read from `context.config.attributes`.
 
 ```python
@@ -335,7 +337,7 @@ Scaled by 32 to 1.6 x 10^8 rows (cached; much worse when the table does not fit 
 
 ## 8. Backup tooling facts
 
-- The repo has no database dump step, and OPS.18 rotates the JSON settings file, not dumps. Parity and seed regeneration are the only repair paths for sector data; nothing covers the non-sector tables (control database, admin logins, population tables).
+- The repo has no database dump step, and there is no settings file to rotate any more (ADM.50). Parity and seed regeneration are the only repair paths for sector data; nothing covers the non-sector tables (control database, admin logins, population tables).
 - `mysqldump` (MySQL 8.4) has `--source-data` (and `--master-data` as a deprecated alias); `mariadb-dump` (MariaDB 11.4) has `--master-data`, `--gtid`, `--as-of` and `--system` but no `--source-data` [S: `client/mysqldump.cc`]. One script cannot pass the same replication options to both: use `--single-transaction` and leave them out. MySQL's `mysqldump` against MariaDB needs `--column-statistics=0` [R].
 - Point in time needs the binary log (on by default in MySQL 8.4, off in MariaDB 11.4 [R]); parity and seed regeneration do not.
 

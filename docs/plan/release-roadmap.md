@@ -2,7 +2,7 @@
 
 Boss (2026-10-16, 1:07 PM EDT) turned the tiers into a version map: one version per release, starting at 8.1, which is the Phase 1 we are building today, and a version can have several phases when it holds too much for one. A version is only a PROPOSAL where its Status line says so; the headlines Boss named are used as given.
 
-Fourteen versions from 8.1 to 10.0, then a "later" list for features that belong to no version yet. Each has one headline (8.1 has two), its phases, the open items it holds, what it needs, how much of it is finished and a list of ideas that are not filed yet. Boss named 8.1 (infinite zoom, and the new generate scatters with accurate galactic generation and scattering including the halo), 8.2 (accounts with email invitations sent by an admin only), 8.5 (courses that bend around gravity wells), 8.6 (edit everything) and 10.0 (roles and permissions: user edit requests, moderators and admins). Politics and territories come before ships and stations, and many galaxies is a possible future feature, not a headline.
+Fifteen versions from 8.1 to 10.0, then a "later" list for features that belong to no version yet. Each has one headline (8.1 has two), its phases, the open items it holds, what it needs, how much of it is finished and a list of ideas that are not filed yet. Boss named 8.1 (infinite zoom, and the new generate scatters with accurate galactic generation and scattering including the halo), 8.2 (accounts with email invitations sent by an admin only), 8.5 (courses that bend around gravity wells), 8.6 (edit everything), 9.0 (atmosphere colour), 9.1 (the view from a planet), 9.4 (galaxy types: different galactic models for generation, based on known galaxy types) and 10.0 (roles and permissions: user edit requests, moderators and admins). Politics and territories come before ships and stations, and many galaxies is a possible future feature, not a headline.
 
 ## How to read this
 
@@ -62,7 +62,7 @@ Suggested:
 Status: proposed
 Headline: Planet classes R to Z and the habitability-driven refactor: a world's class, atmosphere and life follow its index
 Today: (new)
-Change: The planet class work (GEN.33, GEN.28, GEN.27, GEN.90 and the rest) has no headline today.
+Change: The planet class work (GEN.33, GEN.28, GEN.27, GEN.90 and the rest) has no headline today. Boss (11:25 PM EDT) put the foundations of the atmosphere colour here, as five new phases ahead of the class work: the gas table, the mixture, the stored albedo and greenhouse values, ozone, haze, dust and cloud (GEN.409 to GEN.415, DB.67, DB.68, TEST.209, DOC.63), and, first, the bulk composition that drives density, mass and gravity (Boss, 11:49 PM EDT: GEN.425 to GEN.430, DB.69, TEST.210, DOC.65).
 Needs: The habitability index (built). GEN.33 first, one class per PR. GEN.95 comes before GEN.93 (nebula conditions on planets). POP.13 (the species editor) goes with it because the "find me a world" idea needs species limits.
 Suggested:
 - S8.4-a: A planet class gallery: one page per class with the rule that makes it, an example and a link to every example in the galaxy.
@@ -130,7 +130,7 @@ Suggested:
 Status: proposed
 Headline: Remote generation: build a galaxy on a local machine, upload it through the API and have the server verify it
 Today: (new)
-Change: The remote generation chain (API.3 and its parts) and recipes (API.18, API.19) have no headline today. Boss (1:33 PM EDT): 8.6 and this version are closely related, so what both need is built once in 8.6: the unit finalizer (ADM.82, used by API.8) and the recipe schema and runner (API.28, used by API.18); API.8 and API.18 here keep only the upload and route parts, and API.19 uses the region object of 8.6 (GEN.302). It depends only on the reproducibility items of 8.1 phase 1 and those 8.6 pieces, so it can move earlier if Boss wants it sooner.
+Change: The remote generation chain (API.3 and its parts) and recipes (API.18, API.19) have no headline today. Boss (1:33 PM EDT): 8.6 and this version are closely related, so what both need is built once in 8.6: the unit finalizer (ADM.82, used by API.8) and the recipe schema and runner (API.28, used by API.18); API.8 and API.18 here keep only the upload and route parts, and API.19 uses the region object of 8.6 (GEN.302). It depends only on the reproducibility items of 8.1 phase 1 and those 8.6 pieces, so it can move earlier if Boss wants it sooner. Also here (Boss, 11:26 PM EDT): the sky data and research of the view from a planet (VIEW.4, VIEW.6, VIEW.9, DB.64, VIEW.1, VIEW.7, VIEW.8) and the backups and repair chain (ADM.88 to ADM.91, DB.40 to DB.42, OPS.55, TEST.180, DOC.56), moved from 9.0 because none of it needs the atmosphere colour.
 Needs: GEN.57, GEN.135, OPS.28 and TEST.77 (reproducibility, 8.1 phase 1) first: remote generation must reproduce what the server makes (API.17). API.10, API.11 and API.12 are the base; API.19 needs API.18.
 Suggested:
 - S8.9-a: A pip and Docker package of the generator with a one-command local run.
@@ -139,33 +139,34 @@ Suggested:
 - S8.9-d: Per-key rate limits and a usage page, from the API call log (API.15).
 - S8.9-e: A gallery of shared recipes and notebook examples.
 
-## Release 9.0: The view from a planet
-Status: proposed; Boss does not want the gravity map here
-Headline: Stand on a world and look up: the sky from any planet or moon, with real constellations, rendered as a picture
-Today: 9.0 the gravity map (MAP.167)
-Change: Boss (2:00 PM EDT) targeted the backups and repair chain for 9.0 (umbrella ADM.91, 10 items in phases 3 and 4): the control database and parity parts of the backup archive (ADM.88, DB.40), restoring each (ADM.89, DB.41), repairing the galaxy from an archive (DB.42), one repair page (ADM.90), a nightly full backup from the daily maintenance run (OPS.55, Boss 2:06 PM EDT: yes), the end-to-end test and the guide (TEST.180, DOC.56). The settings page and the settings backups stay in 8.1. The gravity map moved to 9.1. A 9.0 headline still needs Boss's choice; this page recommends the view from a planet. 9.0 is a `major` note and needs his word.
-Needs: 8.1 (the camera that reaches a world; the settings page and the archive of ADM.87; the parity file and repair of DB.9; DB.17), 8.3 (so the sky changes with the date) and 8.4 (the worlds). The backups chain needs only 8.1. VIEW.1 and VIEW.2 start with a research session with Boss; VIEW.6 settles the handedness of the galaxy before real sky coordinates.
-Alternative (Politics and territories): Territories that grow and shift on the map, with borders drawn and polities that trade. Placed at 9.2; it could be the 9.0 headline.
-Alternative (Generate anywhere): Remote generation as a platform headline (API.3). Placed at 8.9; it could be the 9.0 headline instead.
-Alternative (Edit everything): Already the 8.6 headline; it could be held back to a major release if Boss prefers.
+## Release 9.0: Atmosphere colour
+Status: proposed; Boss named it the 9.0 feature (11:25 PM EDT)
+Headline: The colour of the air of any world, worked out from its real atmosphere, for solid worlds and gas giants, with every stored value agreeing
+Today: (new)
+Change: Boss (11:24 PM EDT, 11:25 PM EDT): store the albedo and greenhouse values, break the molar density into per-gas partial pressures so both match, build ozone from real research, add haze, dust and cloud, keep one table of every gas and compound, and word the sky colour as atmosphere colour, absolute and including gas giants; it replaces the planet colour on the maps. The view from a planet that was planned here moved to 9.1 and the backups and repair chain to 8.9 (11:26 PM EDT: "Everything for 9.0 before splits between 9.1 and 8.9").
+Needs: The foundations are in 8.4 phases 1 to 5 (the bulk composition that drives mass, density and gravity comes first, in phases 1 and 2, with the gas table): the sources check (GEN.408, done) and the design (GEN.409), the gas table (GEN.410), the mixture and the stored values (GEN.411, GEN.412, DB.67), ozone, haze, dust and cloud (GEN.413, GEN.414, DB.68), the description text (GEN.415), the consistency sweep (TEST.209) and docs (DOC.63). 9.0 holds the colour model (GEN.416 to GEN.419) and what shows it (GEN.420, MAP.244, DOC.64), with the headline item GEN.421. The migrations come after the 0102 to 0105 stack of 8.1.
+Alternative (Politics and territories): Territories that grow and shift on the map, with borders drawn and polities that trade. Placed at 9.2; it could be a later headline.
 Suggested:
-- S9.0-a: Sky effects from the surface: atmospheric colour and twilight, moons with phases, rings in the sky and the planets that show to the eye.
-- S9.0-b: A sky-at-a-date slider (needs 8.3): the sky as it was or will be, with eclipse and conjunction predictions.
-- S9.0-c: Sunrise and sunset times and a day-and-night cycle for any world.
-- S9.0-d: A planetarium mode for a big screen, and a PNG or poster export of any sky.
-- S9.0-e: Constellation names per species or polity, from the name generator (VIEW.4).
+- S9.0-a: Sunrise and sunset colours, twilight and a day strip: the colour of the air through the day (the view from a planet, 9.1).
+- S9.0-b: A regression test against published Earth sky models (Bruneton and Neyret 2008, Hillaire 2020).
+- S9.0-c: Band tints of giants and the moons of giants lit by their primary.
+- S9.0-d: A model-atmosphere table for the light of M dwarfs instead of the blackbody.
 
-## Release 9.1: The gravity map
-Status: proposed; moved from 9.0
-Headline: A heat map of the gravitational field inside a sector and across a star system, as pull, well depth and tidal strength
-Today: 9.1 the gravity map (MAP.167)
-Change: Moved from 9.0 (Boss does not think it the best major headline). Its foundations (GEN.198, TEST.131) are already in 8.3; the rest stays together.
-Needs: GEN.198 (8.3), then GEN.199 and PERF.72 (the per-zone grid and its cost), API.24, MAP.168, MAP.169 and UX.94. MAP.170 (the coarse Galaxy Map layer) stays later and optional.
+## Release 9.1: The view from a planet
+Status: proposed; Boss chose the headline (11:42 PM EDT)
+Headline: Stand on a world and look up: the sky from any planet or moon, with real constellations, rendered as a picture
+Today: (new)
+Change: Boss (11:26 PM EDT, 11:42 PM EDT): the view from a planet moved here from 9.0 and is the headline of 9.1, with the gravity map (MAP.167) as the second feature. Its sky data and research are in 8.9 (VIEW.4, VIEW.6, VIEW.9, DB.64, VIEW.1, VIEW.7, VIEW.8) and it builds on the atmosphere colour of 9.0 (VIEW.11 extends GEN.416). The gravity map keeps its foundations in 8.3 (GEN.198, TEST.131).
+Needs: 8.3 (so the sky changes with the date), 8.4 (the worlds) and the atmosphere colour of 9.0. VIEW.2 starts with a research session with Boss; VIEW.6 settles the handedness of the galaxy before real sky coordinates. The gravity map needs GEN.199 and PERF.72 (the per-zone grid and its cost), API.24, MAP.168, MAP.169 and UX.94; MAP.170 (the coarse Galaxy Map layer) stays later and optional.
 Suggested:
-- S9.1-a: A Lagrange point finder: a list and map markers for every stable point in a system.
-- S9.1-b: Gravity-assist hints in the courses of 8.5: a flyby that saves fuel.
-- S9.1-c: A stability view for planets in multi-star systems: where an orbit survives.
-- S9.1-d: Roche limit and tidal-lock zones shown around bodies.
+- S9.1-a: Sky effects from the surface: sunrise and sunset colours, moons with phases, rings in the sky and the planets that show to the eye.
+- S9.1-b: A sky-at-a-date slider (needs 8.3): the sky as it was or will be, with eclipse and conjunction predictions.
+- S9.1-c: A planetarium mode for a big screen, and a PNG or poster export of any sky.
+- S9.1-d: Constellation names per species or polity, from the name generator (VIEW.4).
+- S9.1-e: A Lagrange point finder: a list and map markers for every stable point in a system.
+- S9.1-f: Gravity-assist hints in the courses of 8.5: a flyby that saves fuel.
+- S9.1-g: A stability view for planets in multi-star systems: where an orbit survives.
+- S9.1-h: Roche limit and tidal-lock zones shown around bodies.
 
 ## Release 9.2: Politics and territories
 Status: Boss ordered it before ships and stations; idea only, no items
@@ -191,6 +192,19 @@ Suggested:
 - S9.3-c: Fog of war: each user sees only what they have charted or their ships have visited.
 - S9.3-d: Station docking and a ship log that writes itself from the course.
 
+## Release 9.4: Galaxy types
+Status: Boss named it (8:48 PM EDT); items filed
+Headline: Galaxy types: the seed draws a galaxy of a known type (spiral, lenticular, elliptical, irregular or dwarf), every shape number calculated from published scaling relations
+Today: (new)
+Change: New headline (Boss, 8:48 PM EDT: "different galactic models for generation based on known galaxy types", broken into a chain of required items and counted back from 9.4), filed as 18 items in 6 phases with the plan in docs/design/galaxy-types.md. A galaxy type is a parameter family, never a copy of a named galaxy (no fixed content, Boss 4:11 and 4:14 PM EDT): the seed draws the stellar mass, then the family from the mass-dependent type fractions, then each number from a scaling relation. It reuses the shape, the density model, the potential, the halo, the satellites and the scatters. The old "Hubble-sequence generator" suggestion (SL-b) is this headline. 9.4 is Boss's own number and needs no .major note.
+Needs: three steps of the chain come earlier so the families only fill in the shape: GEN.378 (the checked design and its scaling relation table, after GEN.368) in 8.1, then DB.66 (the family key and component columns, a migration) and GEN.379 (the density model as a list of components, which the potential GEN.338 reads) in 8.3. Then, in 9.4: the type draw and the Sérsic spheroid (phase 1); the spiral, elliptical and irregular and dwarf families (phase 2); the lenticular family, populations, clusters with the nucleus (phase 3); creation (phase 4); the Generate page, the Galaxy Map, the plausibility tests and the docs (phase 5; each family also gets a simple vector outline, UX.135, in phase 1); the headline (phase 6). It also reads GEN.368, GEN.369, GEN.297, GEN.134 and GEN.319.
+Lanes: not assigned; GEN.378 is proposed for Core 1 (it writes GEN.368's table), and the rest sits after 8.3.
+Suggested:
+- S9.4-a: Interacting and merging galaxies: a tidal tail or a merger remnant as a family variant.
+- S9.4-b: Satellite galaxies drawn from the same families as the main galaxy, so a satellite's stars follow its family's laws.
+- S9.4-c: Active nuclei by family: a quasar or jet drawn from the black hole mass and the gas supply.
+- S9.4-d: A family comparison page: draw many seeds and plot each family's mass-size and mass-metallicity points against the published relations.
+
 ## Release 10.0: Roles and permissions
 Status: Boss named it (1:43 PM EDT); items filed
 Headline: Roles and permissions: users submit edit requests, moderators approve user requests and admins approve moderator requests
@@ -214,7 +228,6 @@ Change: Boss, 1:07 PM EDT: multiple galaxies is a possible future feature, not a
 Needs: GEN.9 (the plan for more than one galaxy in the database) first; GEN.157 (a verified table of about 25 real galaxies) before MAP.145 and NAV.57; GEN.164 needs GEN.9. The infinite zoom of 8.1 would extend past the galaxy edge.
 Suggested:
 - SL-a: Intergalactic flight: the zoom of 8.1 continues out to a galaxy group, with the cosmic web as a faint background.
-- SL-b: A Hubble-sequence generator: elliptical, spiral and irregular galaxies from one set of rules.
 - SL-c: A galaxy picker: several generated galaxies in one database, each with its seed, and a way to compare them.
 - SL-d: A long-timescale merger preview such as the Milky Way and Andromeda, run as a stated-span orbital update.
 - SL-e: Lookback time and travel-time readouts for objects in other galaxies.

@@ -138,11 +138,14 @@ def test_explicit_dark_theme_matches_the_os_dark_theme():
     os_dark = _tokens(_block(css, ':root:not([data-theme="light"]) {'))
     explicit = _tokens(_block(css, ':root[data-theme="dark"] {'))
     assert os_dark and os_dark == explicit
-    # Same colours base.html's <meta name="theme-color"> tags use.
+    # The colours the `web.theme_color_*` options default to (ADM.44), which base.html's <meta name="theme-color">
+    # tags use, are the stylesheet's.
+    from planetgen.util.settings import Web
+    assert Web.model_fields["theme_color_dark"].default == os_dark["--bg"]
+    assert Web.model_fields["theme_color_light"].default == _tokens(_block(css, ":root {"))["--bg"]
     base = open(os.path.join(_SRC_DIR, "planetgen", "web", "templates", "base.html"), encoding="utf-8").read()
-    assert f'content="{os_dark["--bg"]}" media="(prefers-color-scheme: dark)"' in base
-    light = _tokens(_block(css, ":root {"))["--bg"]
-    assert f'content="{light}" media="(prefers-color-scheme: light)"' in base
+    assert 'content="{{ head_info.theme_dark }}" media="(prefers-color-scheme: dark)"' in base
+    assert 'content="{{ head_info.theme_light }}" media="(prefers-color-scheme: light)"' in base
 
 
 def test_favicon_and_theme_script_exist():

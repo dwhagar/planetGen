@@ -19,7 +19,7 @@ import time
 
 import pytest
 
-from planetgen.util import draw
+from planetgen.util import detmath, draw
 from planetgen.cli import generate as generate_cli
 from planetgen.galaxy import spherical
 from planetgen.generation import run_common
@@ -271,11 +271,11 @@ def test_nearest_search_without_shells_matches_the_shell_walk():
         point = (rng.uniform(-8, 8), rng.uniform(-8, 8), rng.uniform(-8, 8))
         assert len(dense.systems) >= (2 * (math.ceil(store.NEAREST_SYSTEMS_SEARCH_PC) + 1) + 1) ** 3
         expected = sorted(
-            (math.dist(point, p), n) for n, p in systems[:40] if math.dist(point, p) <= store.NEAREST_SYSTEMS_SEARCH_PC
+            (detmath.dist(point, p), n) for n, p in systems[:40] if detmath.dist(point, p) <= store.NEAREST_SYSTEMS_SEARCH_PC
         )[:store.NEAREST_SYSTEMS_COUNT]
         assert sparse.nearest(point) == expected
         expected_dense = sorted(
-            (math.dist(point, p), n) for n, p in systems if math.dist(point, p) <= store.NEAREST_SYSTEMS_SEARCH_PC
+            (detmath.dist(point, p), n) for n, p in systems if detmath.dist(point, p) <= store.NEAREST_SYSTEMS_SEARCH_PC
         )[:store.NEAREST_SYSTEMS_COUNT]
         assert dense.nearest(point) == expected_dense
 

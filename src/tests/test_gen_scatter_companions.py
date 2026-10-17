@@ -8,6 +8,7 @@ scatter's class rate is divided by `1 + p_placed` so the density of the class is
 
 import math
 import random
+from types import SimpleNamespace
 from collections import Counter
 
 import pytest
@@ -15,6 +16,7 @@ import pytest
 from planetgen import tuning
 from planetgen.db import scatter_systems, store
 from planetgen.galaxy.density import build_galaxy_shape
+from planetgen.galaxy.scatter_limits import ScatterLimits
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import multistar, phenomenon_scatter, scatter_companions
 from planetgen.physics import constants
@@ -397,12 +399,20 @@ def test_clearing_the_star_scatter_clears_its_members_but_not_the_phenomenon_sca
         conn.close()
 
 
+def _limits():
+    """The scatter limits of a galaxy scattered at the defaults (no stored skeleton here, so the core and halo are
+    the defaults': the star rows seeded are far from the 14 to 15.4 solar mass window they differ in)."""
+    skeleton = SimpleNamespace(shape=SHAPE, edge_pc=EDGE_PC, core_min_luminosity_sol=None, core_mass_limit_sol=None,
+                               halo_min_luminosity_sol=tuning.HALO_MIN_LUMINOSITY_SOL)
+    return ScatterLimits.of(skeleton, 9000.0, 14.0)
+
+
 @pytest.mark.parametrize("part, gone, kept", [("mass", 20.0, 6.0), ("luminosity", 6.0, 20.0)])
 def test_clearing_one_star_pass_clears_only_that_passs_members(mysql_config, part, gone, kept):
     conn = store.get_connection(mysql_config)
     try:
         _seed_with_members(conn)
-        store.clear_bright_star_pass(conn, part, 14.0)
+        store.clear_bright_star_pass(conn, part, _limits())
         initial = {r["initial_mass_sol"] for r in conn.execute("SELECT initial_mass_sol FROM bright_stars").fetchall()}
         assert initial == {kept}
         owners = {r["source_id"] for r in conn.execute("SELECT DISTINCT source_id FROM scatter_members").fetchall()}

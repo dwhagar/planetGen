@@ -2,7 +2,7 @@
 {% extends "base.html" %}
 {% block content %}
 <section class="panel" aria-labelledby="review-heading">
-  <h2 id="review-heading">These changes will be saved</h2>
+  <h2 id="review-heading">{{ heading }}</h2>
   <div class="table-scroll" tabindex="0">
   <table class="settings-diff">
     <caption class="sr-only">Changes to config.json</caption>
@@ -25,13 +25,13 @@
   <p class="error" role="status">An environment variable overrides {% for title, var in shadowed.items() %}{{ title }} ({{ var }}){% if not loop.last %}, {% endif %}{% endfor %}: the file will hold your value but the variable still wins.</p>
   {%- endif %}
   <p class="hint">A secret is shown as (changed), never its text. The old file is kept in a backup archive before it is replaced.</p>
-  <form method="post" action="{{ url_for('web.admin_settings') }}" class="settings-confirm">
+  <form method="post" action="{{ confirm_url }}" class="settings-confirm">
     {{ csrf_field() }}
-    <input type="hidden" name="action" value="save">
-    <input type="hidden" name="expect_hash" value="{{ expect_hash }}">
-    <input type="hidden" name="changes" value="{{ changes_json }}">
-    <button type="submit" class="btn">Save these changes</button>
-    <a href="{{ url_for('web.admin_settings') }}">Go back without saving</a>
+    {%- for name, value in hidden %}
+    <input type="hidden" name="{{ name }}" value="{{ value }}">
+    {%- endfor %}
+    <button type="submit" class="btn">{{ button }}</button>
+    <a href="{{ back_url }}">Go back without saving</a>
   </form>
 </section>
 {% endblock %}

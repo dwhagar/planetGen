@@ -47,6 +47,7 @@ from planetgen.generation import run_population
 from planetgen.generation import run_sector
 from planetgen.generation import stages, steps
 from planetgen.util import draw
+from planetgen.util import detmath
 
 
 LARGE_RUN_WARNING_THRESHOLD = 2000
@@ -168,13 +169,14 @@ def _fill_context(args, address):
         if skeleton is None:
             return None
         profile = sector_profile(address, skeleton)
+        limits, backfill_seed = run_plan._scatter_limits_and_seed(conn, skeleton)
         resolution = galaxyResolution.cell_resolution(
-            profile, skeleton.cell_star_ceiling, skeleton.fill_luminosity_cap_sol, store.bright_star_mass_limit(conn))
+            profile, skeleton.cell_star_ceiling, skeleton.fill_luminosity_cap_sol,
+            limits.mass_limit_at(address[0], address[1]))
         if resolution.capped:
             # GEN.281: a cell above the ceiling is taken down to the cap and no further.
-            galaxy_level, backfill_seed = run_plan._scatter_level_and_seed(conn, skeleton)
             run_plan._draw_sector_bands(conn, skeleton, [tuple(address)], resolution.luminosity_cap_sol,
-                                        galaxy_level, backfill_seed)
+                                        limits, backfill_seed)
         phenomena = below_cut = None
         settings = store.phenomenon_scatter_settings(conn)
         if settings is not None:
@@ -283,13 +285,14 @@ def backfill_bright_stars_around(config, centers_pc, progress=None):
         skeleton = store.get_galaxy_shape(conn)
         if skeleton is None:
             return summary
-        galaxy_level, seed = run_plan._scatter_level_and_seed(conn, skeleton)
-        mass_limit = store.bright_star_mass_limit(conn)
+        limits, seed = run_plan._scatter_limits_and_seed(conn, skeleton)
         bounds = store.get_galaxy_bounds(conn)
         centers = {sector_address_at(center, skeleton.edge_pc) for center in centers_pc}
         targets = backfill_step_targets(centers, bounds)
-        if mass_limit is not None:
-            targets = {address: mass for address, mass in targets.items() if mass < mass_limit}
+        # GEN.333: a sector backfills the masses under its own band's mass limit.
+        targets = {address: mass for address, mass in targets.items()
+                   if limits.mass_limit_at(address[0], address[1]) is None
+                   or mass < limits.mass_limit_at(address[0], address[1])}
         held = store.sector_bright_masses(conn, targets)
         filled = store.get_occupied_addresses(conn, {address[0] for address in targets})
         todo = {address: mass for address, mass in targets.items()
@@ -300,7 +303,7 @@ def backfill_bright_stars_around(config, centers_pc, progress=None):
 
             def on_sector():
                 bar.update(advance=1)
-        drawn = run_plan._draw_sector_masses(conn, skeleton, todo, galaxy_level, mass_limit, seed,
+        drawn = run_plan._draw_sector_masses(conn, skeleton, todo, limits, seed,
                                              on_sector=on_sector, shells=shells)
         summary["sectors"], summary["stars"] = drawn
         failed = False
@@ -1037,6 +1040,30 @@ def require_math_check():
             f"Run 'planetgen check-math' for details.")
 
 
+def estimate_cell(density, systems, config=None):
+    """
+    The size and time of filling one cell (UX.113), from the server's own stored speeds and sizes
+    (`generationStats.estimate`; the defaults before any run is recorded). Reads, writes nothing, and does not check the
+    disk: the Generate page's estimate does that when a run is asked for.
+
+    Args:
+        density (float): The cell's `relative_density` (picks the speed bucket).
+        systems (float): The systems the fill makes (`CellResolution.resolved_systems`).
+        config (MySQLConfig, optional): The galaxy's database.
+
+    Returns:
+        dict: `systems`, `stars`, `bytes`, `seconds` and `measured` (whether the speed is this server's own).
+    """
+    config = config or store.DEFAULT_MYSQL_CONFIG
+    try:
+        result = run_common.generationStats.estimate([(density, systems)], run_common._stats_for_config(config),
+                                                     config.database, workers=1)
+    finally:
+        run_common._RUN_STATS.clear()
+    return {"systems": round(result.systems), "stars": round(result.stars), "bytes": result.bytes,
+            "seconds": round(result.seconds, 1), "measured": result.measured}
+
+
 def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, estimate_only=False):
     """
     Non-CLI counterpart to `run_local_neighborhood` -- for the admin web
@@ -1201,7 +1228,7 @@ def _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken, dra
             continue
         position_pc = sector_position_pc(*address, edge_pc)
         if many and (
-                any(math.dist(position_pc, other) < 2 * radius_pc for other in taken)
+                any(detmath.dist(position_pc, other) < 2 * radius_pc for other in taken)
                 or not _whole_neighborhood_inside(batch_density.bounds, position_pc, radius_pc, edge_pc)):
             continue
         if args.avoid_filled_space:

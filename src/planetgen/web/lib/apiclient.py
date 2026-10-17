@@ -568,6 +568,13 @@ def get_uncharted_sector(db, shell_index, band_index, wedge_index):
     })
 
 
+def get_galaxy_profile(db, shell_index, band_index, wedge_index):
+    """`GET /api/galaxy/profile`'s payload (API.27, UX.113): the Sector Profile of one cell of the grid, charted or
+    not, with `sector_id`, `unresolved` and the `estimate` of filling it."""
+    _require_db(db)
+    return _request("/galaxy/profile", {"db": db, "shell": shell_index, "band": band_index, "wedge": wedge_index})
+
+
 def get_galaxy_tiles(db, tile_keys):
     """
     Returns `GET /api/galaxy/tiles`'s payload (`tiles`/`edge_pc`/
@@ -992,19 +999,6 @@ def admin_naming_key(cookie_header, db):
     return body
 
 
-def admin_galaxy_settings(cookie_header):
-    """`GET /api/admin/galaxy-settings` -- the creation-settings files (ADM.18)."""
-    body, _set_cookie_headers = _auth_request("GET", "/admin/galaxy-settings", cookie_header=cookie_header)
-    return body
-
-
-def admin_galaxy_settings_file(cookie_header, name):
-    """`GET /api/admin/galaxy-settings/<name>` -- one file's JSON (ADM.18)."""
-    body, _set_cookie_headers = _auth_request(
-        "GET", f"/admin/galaxy-settings/{urllib.parse.quote(name, safe='')}", cookie_header=cookie_header)
-    return body
-
-
 def admin_settings(cookie_header):
     """`GET /api/admin/settings` -- every option with its help, limits, default, value and source, the file's
     hash, why it can't be written, and the options waiting for a restart (ADM.84)."""
@@ -1026,6 +1020,69 @@ def admin_settings_save(cookie_header, changes, expect_hash=None):
     `ApiError` (409) (ADM.84)."""
     body, _set_cookie_headers = _auth_request("POST", "/admin/settings", cookie_header=cookie_header,
                                               json_body={"changes": changes, "expect_hash": expect_hash})
+    return body
+
+
+def admin_images(cookie_header):
+    """`GET /api/admin/images` -- each upload kind with the stored file in use (ADM.44)."""
+    body, _set_cookie_headers = _auth_request("GET", "/admin/images", cookie_header=cookie_header)
+    return body
+
+
+def admin_image_upload(cookie_header, kind, data_base64):
+    """`POST /api/admin/images/<kind>` -- stores the picture (base64 text) and saves the setting that names it;
+    a picture that can't be used raises `ApiError` (422) with the reason (ADM.44)."""
+    body, _set_cookie_headers = _auth_request("POST", f"/admin/images/{kind}", cookie_header=cookie_header,
+                                              json_body={"data": data_base64})
+    return body
+
+
+def admin_image_remove(cookie_header, kind):
+    """`DELETE /api/admin/images/<kind>` -- the built-in picture (or no icon) applies again (ADM.44)."""
+    body, _set_cookie_headers = _auth_request("DELETE", f"/admin/images/{kind}", cookie_header=cookie_header)
+    return body
+
+
+def admin_backups(cookie_header):
+    """`GET /api/admin/backups` -- the backup archives, newest first, with their parts (ADM.85)."""
+    body, _set_cookie_headers = _auth_request("GET", "/admin/backups", cookie_header=cookie_header)
+    return body
+
+
+def admin_backup_take(cookie_header):
+    """`POST /api/admin/backups` -- Back up now: one archive of every part (ADM.85)."""
+    body, _set_cookie_headers = _auth_request("POST", "/admin/backups", cookie_header=cookie_header, json_body={})
+    return body
+
+
+def admin_backup(cookie_header, name):
+    """`GET /api/admin/backups/<name>` -- one archive, whether it verifies, and the diff of its settings part
+    against today's config.json (ADM.85). Raises `NotFoundError` for a name that isn't an archive."""
+    body, _set_cookie_headers = _auth_request(
+        "GET", f"/admin/backups/{urllib.parse.quote(name, safe='')}", cookie_header=cookie_header)
+    return body
+
+
+def admin_backup_restore(cookie_header, name, parts=None, expect_hash=None):
+    """`POST /api/admin/backups/<name>/restore` -- restores the whole archive (`parts` None) or the named parts
+    (ADM.85). A changed settings file or a backup that doesn't fit raises `ApiError` (409)."""
+    body, _set_cookie_headers = _auth_request(
+        "POST", f"/admin/backups/{urllib.parse.quote(name, safe='')}/restore", cookie_header=cookie_header,
+        json_body={"parts": parts, "expect_hash": expect_hash})
+    return body
+
+
+def admin_settings_export(cookie_header):
+    """`GET /api/admin/settings/export` -- the settings an admin may change, without secrets (ADM.85)."""
+    body, _set_cookie_headers = _auth_request("GET", "/admin/settings/export", cookie_header=cookie_header)
+    return body
+
+
+def admin_settings_import(cookie_header, document, expect_hash=None, check_only=False):
+    """`POST /api/admin/settings/import` -- checks (`check_only`) or saves an export (ADM.85)."""
+    body, _set_cookie_headers = _auth_request(
+        "POST", "/admin/settings/import", cookie_header=cookie_header,
+        json_body={"document": document, "expect_hash": expect_hash, "check_only": check_only})
     return body
 
 
