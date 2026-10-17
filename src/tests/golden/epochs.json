@@ -17,8 +17,7 @@
     },
     {
       "epoch": 4,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1679",
       "reason": "Stars leaving the main sequence follow the real phases and tables: a horizontal branch (35 to 50 solar luminosities, colour from [Fe/H] and age) and an asymptotic giant branch for stars under 2.2 solar masses, a red giant branch whose time per unit of ln L falls as L^-0.78 instead of an even spread, and the corrected horizontal-branch temperature ranges and colour shares, so a giant or horizontal-branch star's luminosity, temperature and type differ (GEN.286, GEN.287, GEN.407)."
     }
   ]
