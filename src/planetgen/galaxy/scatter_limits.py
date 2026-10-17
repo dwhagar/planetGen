@@ -342,3 +342,26 @@ def band_pass(newer, older):
             bands.append(PassBand(new.min_luminosity_sol, old.min_luminosity_sol,
                                   None if new.mass_limit_sol is None else (None, new.mass_limit_sol)))
     return TieredPass(newer, tuple(bands))
+
+
+def tiered_to_json(tiered):
+    """A `TieredPass` as plain JSON (a unit on the work queue, PERF.97): the tier limits and the three bands; the
+    galaxy's shape is not in it, the unit reads that from the database (`tiered_from_json`). `None` for `None`."""
+    if tiered is None:
+        return None
+    tiers = None if tiered.limits.tiers is None else [[t.min_luminosity_sol, t.mass_limit_sol]
+                                                       for t in tiered.limits.tiers]
+    bands = [None if band is None else
+             [band.min_luminosity_sol, band.max_luminosity_sol,
+              None if band.mass_range is None else list(band.mass_range)] for band in tiered.bands]
+    return {"tiers": tiers, "bands": bands}
+
+
+def tiered_from_json(data, skeleton):
+    """The `TieredPass` `tiered_to_json` wrote, for the galaxy `skeleton` (its shape and sector edge)."""
+    if data is None:
+        return None
+    tiers = None if data["tiers"] is None else tuple(TierLimit(low, mass) for low, mass in data["tiers"])
+    bands = tuple(None if band is None else
+                  PassBand(band[0], band[1], None if band[2] is None else tuple(band[2])) for band in data["bands"])
+    return TieredPass(ScatterLimits(skeleton.shape, skeleton.edge_pc, tiers), bands)

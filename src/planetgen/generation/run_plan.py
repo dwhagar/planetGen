@@ -17,7 +17,7 @@ import queue as queue_module
 import threading
 import time
 
-from planetgen.queue import progress_rate, redisqueue, work as workQueue
+from planetgen.queue import progress_rate, redisqueue, units, work as workQueue
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
@@ -463,7 +463,8 @@ def scatter_bright_stars(args, passes=("mass", "luminosity")):
             counts = _scatter_shells(args, mysql_config, skeleton, extents, filled,
                                      starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL, mass_seed, "Massive stars",
                                      stats_kind="scatter-mass", task_kind="mass-stars",
-                                     tiered=scatter_limits.mass_pass(limits, starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL))
+                                     tiered=scatter_limits.mass_pass(limits, starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL),
+                                     on_run_record=True)
             massive = sum(counts.values())
         else:
             stages.skip("mass", "not chosen to be redone")
@@ -701,6 +702,63 @@ def shell_chunks(rows, workers):
     return sorted(chunks, key=lambda chunk: -sum(row[2] for row in chunk))
 
 
+def static_shell_chunks(rows):
+    """
+    The units of a scatter on the new queue (PERF.97): the outline cut into runs of consecutive shells of about
+    equal expected work, from the rows alone (`units.static_chunks`), so the same galaxy is the same units at any
+    worker count. The heaviest unit first, as `shell_chunks`.
+
+    Args:
+        rows (list): `(shell_index, high_band, weight)`, innermost shell first.
+    """
+    chunks = units.static_chunks(rows, max_rows=MAX_SHELLS_PER_CHUNK)
+    return sorted(chunks, key=lambda chunk: -sum(row[2] for row in chunk))
+
+
+def _scatter_shells_on_run_record(args, mysql_config, label, tasks, weights, payload_for, tracker, on_done_for,
+                                  workers, seed):
+    """
+    The units of a shell scatter on the new queue (PERF.97): one `mass-scatter` unit per task in `tasks` (a run of
+    shells, the far shells, the components), arguments plain JSON (the database's name, host, port and user -- never
+    its password --, the task's `payload_for` made JSON: its shells, expected stars, sectors to leave out, floors, seed,
+    tiered pass; the components are read by the unit from the database), followed here until all are done. A unit's
+    result and progress reach `on_done_for(unit)` and the `tracker` as they would from the old queue's tasks.
+
+    Raises:
+        redisqueue.Unavailable: No Redis server answers.
+        units.RunStopped: A unit failed.
+    """
+    if sorted(tasks) != list(range(len(tasks))):
+        raise RuntimeError("the units of a stage are numbered from 0")
+    unit_list = []
+    for key, chunk in tasks.items():
+        payload = payload_for(key, chunk)
+        args_json = {
+            "database": {"host": mysql_config.host, "port": mysql_config.port, "user": mysql_config.user,
+                         "database": mysql_config.database},
+            "key": key,
+            "shells": [list(pair) for pair in payload["shells"]],
+            "far": None if payload["far"] is None else list(payload["far"]),
+            "reach": payload["reach"], "components": payload["components"] is not None,
+            "expected_by_shell": [[shell, expected] for shell, expected in payload["expected_by_shell"].items()],
+            "skip": sorted(list(address) for address in payload["skip"]),
+            "edge_pc": payload["edge_pc"], "expected": payload["expected"],
+            "min_luminosity_sol": payload["min_luminosity_sol"], "max_luminosity_sol": payload["max_luminosity_sol"],
+            "seed": payload["seed"],
+            "mass_range": None if payload["mass_range"] is None else list(payload["mass_range"]),
+            "tiered": scatter_limits.tiered_to_json(payload["tiered"]),
+        }
+        unit_list.append((args_json, weights[key]))
+
+    def result_in(unit, result):
+        on_done_for(unit)(result, result["seconds"], weights[unit])
+
+    units.run_stage(
+        label, "mass", label, "mass-scatter", unit_list, result_in, on_progress=tracker.task_progress,
+        workers_count=workers, who=getattr(args, "who", None), database=mysql_config.database,
+        argv=getattr(args, "argv", None), seed=seed)
+
+
 def _shell_names(shells):
     """`shells` (a chunk's rows) as "7" or "100-131"."""
     first, last = shells[0][0], shells[-1][0]
@@ -751,7 +809,7 @@ def _galaxy_components(mysql_config):
 
 def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosity_sol, seed, label,
                     max_luminosity_sol=None, mass_range=None, stats_kind="scatter-bright", task_kind="bright-stars",
-                    tiered=None):
+                    tiered=None, on_run_record=False):
     """
     Draws and writes the bright stars of every shell through the work
     queue, a task per run of consecutive shells (`shell_chunks`), with a
@@ -768,6 +826,11 @@ def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosit
     which also adds the second bar for slow tasks). Each task's time
     goes into the speed stats as a `stats_kind` task (PERF.10): the massive-star pass and the bright-star pass
     each have their own rows, and their own work queue task kind `task_kind` (PERF.54).
+
+    With `on_run_record` (PERF.97, the massive-star pass) the stage runs on the new queue instead
+    (`planetgen.queue.units`): a run record in Redis, static units of shells (`static_shell_chunks`, the same at any
+    worker count), JSON arguments, and this process following the units' results and progress until the stage is
+    done. `--workers` (or `PLANETGEN_WORKERS`) is how many workers the run starts, one included.
 
     Returns:
         dict: Stars written per population.
@@ -806,7 +869,7 @@ def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosit
             beyond=estimates[shell_index] if reach_on else None)
         rows.append((shell_index, high_band, weight))
     workers = run_common._worker_count(args)
-    tasks = dict(enumerate(shell_chunks(rows, workers)))
+    tasks = dict(enumerate(static_shell_chunks(rows) if on_run_record else shell_chunks(rows, workers)))
     weights = {key: sum(row[2] for row in chunk) for key, chunk in tasks.items()}
     sizes = {key: len(chunk) for key, chunk in tasks.items()}
     names = {key: _shell_names(chunk) for key, chunk in tasks.items()}
@@ -875,43 +938,56 @@ def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosit
                                                                      stars=stars, workers=workers)
                 return task_done
 
-            stop = threading.Event()
-            channel = drain = None
-            try:
-                with run_common._work_queue(args, label) as queue:
-                    if queue.parallel:
-                        channel = queue.channel("scatter-progress")
-                        drain = threading.Thread(target=_drain_channel, args=(channel, tracker, stop),
-                                                 name="scatter-progress", daemon=True)
-                        drain.start()
-                    else:
-                        channel = _DirectChannel(tracker)
-                    queue.submit_each(task_kind, [
-                        (f"shell {names[key]}", {
-                            "mysql_config": mysql_config, "shape": skeleton.shape, "key": key,
-                            "shells": [] if key in (far_key, component_key) else
-                                      [(shell, high) for shell, high, _weight in chunk],
-                            "far": (first_far, reach_shell) if key == far_key else None, "reach": reach_on,
-                            "components": components if key == component_key else None,
-                            "expected_by_shell": ({first_far: expected[first_far]} if key == far_key else
-                                                  {COMPONENT_TASK_SHELL: expected[COMPONENT_TASK_SHELL]}
-                                                  if key == component_key else
-                                                  {shell: expected[shell] for shell, _high, _weight in chunk}),
-                            "edge_pc": skeleton.edge_pc, "expected": e_value,
-                            "min_luminosity_sol": min_luminosity_sol, "max_luminosity_sol": max_luminosity_sol,
-                            "seed": seed, "skip": (set(filled) if key == component_key else
-                                                   set().union(*(skip_by_shell.get(shell, set())
-                                                                 for shell, _high, _weight in chunk))),
-                            "mass_range": mass_range, "tiered": tiered, "channel": channel,
-                        }, weights[key], on_done_for(key))
-                        for key, chunk in tasks.items()], _scatter_shells_task)
-            finally:
-                stop.set()
-                if drain is not None:
-                    drain.join(timeout=5)
-                if isinstance(channel, redisqueue.Channel):
-                    channel.close()
-                run_common._finish_stats(args)
+            def payload_for(key, chunk):
+                """What one task of the pass is given besides the database, the shape and the progress channel."""
+                return {
+                    "shells": [] if key in (far_key, component_key) else
+                              [(shell, high) for shell, high, _weight in chunk],
+                    "far": (first_far, reach_shell) if key == far_key else None, "reach": reach_on,
+                    "components": components if key == component_key else None,
+                    "expected_by_shell": ({first_far: expected[first_far]} if key == far_key else
+                                          {COMPONENT_TASK_SHELL: expected[COMPONENT_TASK_SHELL]}
+                                          if key == component_key else
+                                          {shell: expected[shell] for shell, _high, _weight in chunk}),
+                    "edge_pc": skeleton.edge_pc, "expected": e_value,
+                    "min_luminosity_sol": min_luminosity_sol, "max_luminosity_sol": max_luminosity_sol,
+                    "seed": seed, "skip": (set(filled) if key == component_key else
+                                           set().union(*(skip_by_shell.get(shell, set())
+                                                         for shell, _high, _weight in chunk))),
+                    "mass_range": mass_range, "tiered": tiered,
+                }
+
+            if on_run_record:
+                try:
+                    _scatter_shells_on_run_record(
+                        args, mysql_config, label, tasks, weights, payload_for, tracker, on_done_for, workers, seed)
+                finally:
+                    run_common._finish_stats(args)
+            else:
+                stop = threading.Event()
+                channel = drain = None
+                try:
+                    with run_common._work_queue(args, label) as queue:
+                        if queue.parallel:
+                            channel = queue.channel("scatter-progress")
+                            drain = threading.Thread(target=_drain_channel, args=(channel, tracker, stop),
+                                                     name="scatter-progress", daemon=True)
+                            drain.start()
+                        else:
+                            channel = _DirectChannel(tracker)
+                        queue.submit_each(task_kind, [
+                            (f"shell {names[key]}", {
+                                "mysql_config": mysql_config, "shape": skeleton.shape, "key": key,
+                                **payload_for(key, chunk), "channel": channel,
+                            }, weights[key], on_done_for(key))
+                            for key, chunk in tasks.items()], _scatter_shells_task)
+                finally:
+                    stop.set()
+                    if drain is not None:
+                        drain.join(timeout=5)
+                    if isinstance(channel, redisqueue.Channel):
+                        channel.close()
+                    run_common._finish_stats(args)
             finished = True
         finally:
             if bar is not None:
@@ -1023,6 +1099,54 @@ def add_bright_star_band(args):
     log.debug(f"bright-star band: {total} stars, seed {seed}, {target:g} to {current:g} L_sun")
     return {"counts": counts, "total": total, "elapsed_s": elapsed,
             "from_luminosity_sol": current, "to_luminosity_sol": target}
+
+
+class _ReportChannel:
+    """What `_scatter_shells_task` puts its progress on, for a unit on the new queue: `(key, done, estimate)`
+    becomes the unit's `report(done, estimate)`."""
+
+    def __init__(self, report):
+        self.report = report
+
+    def put(self, item):
+        _key, done, estimate = item
+        self.report(done, estimate)
+
+
+def scatter_shells_unit(unit_args, report):
+    """
+    A `mass-scatter` unit of the new queue (PERF.97, `queue/units.py`): the shells `_scatter_shells_task` draws and
+    writes for a run of shells, from plain JSON arguments. The galaxy's shape comes from the database, which this
+    unit opens with the credentials of this worker's settings and the database, host, port and user the run named.
+
+    Returns:
+        dict: `_scatter_shells_task`'s, plus `seconds` the unit took.
+    """
+    started = time.monotonic()
+    named = unit_args["database"]
+    mysql_config = store.MySQLConfig(host=named["host"], port=named["port"], user=named["user"],
+                                     database=named["database"])
+    conn = store.get_connection(mysql_config)
+    try:
+        skeleton = store.get_galaxy_shape(conn)
+    finally:
+        conn.close()
+    mass_range = unit_args.get("mass_range")
+    far = unit_args.get("far")
+    result = _scatter_shells_task({
+        "mysql_config": mysql_config, "shape": skeleton.shape, "key": unit_args["key"],
+        "shells": [tuple(pair) for pair in unit_args["shells"]],
+        "far": None if far is None else tuple(far), "reach": unit_args.get("reach", False),
+        "components": _galaxy_components(mysql_config) if unit_args.get("components") else None,
+        "expected_by_shell": {shell: expected for shell, expected in unit_args["expected_by_shell"]},
+        "edge_pc": skeleton.edge_pc, "expected": skeleton.expected_system_count_at_density_1,
+        "min_luminosity_sol": unit_args["min_luminosity_sol"], "max_luminosity_sol": unit_args.get("max_luminosity_sol"),
+        "seed": unit_args["seed"], "skip": {tuple(address) for address in unit_args["skip"]},
+        "mass_range": None if mass_range is None else tuple(mass_range),
+        "tiered": scatter_limits.tiered_from_json(unit_args.get("tiered"), skeleton), "channel": _ReportChannel(report),
+    })
+    result["seconds"] = time.monotonic() - started
+    return result
 
 
 def _scatter_shells_task(payload):
