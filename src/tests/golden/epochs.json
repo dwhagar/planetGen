@@ -24,6 +24,12 @@
       "epoch": 5,
       "first_release": "8.0.1685",
       "reason": "The bright-star and mass passes cover the 262 kpc reach in groups of 64 bands, drawing stars beyond the outline from new streams (GEN.322)."
+    },
+    {
+      "epoch": 6,
+      "first_release": null,
+      "pending": true,
+      "reason": "The phenomena pass covers the 262 kpc reach in groups of bands, drawing black holes, neutron stars, planetary nebulae, supernova remnants and magnetars beyond the outline from new streams (GEN.323)."
     }
   ]
 }
