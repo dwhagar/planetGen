@@ -2,6 +2,90 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1646] - 2026-10-17
+
+**Headline:** Belts, the quasar, comets, facilities and the members of scattered star systems are stored with their point, mass and epoch.
+
+### Changed
+- **The point of every object is filled when it is made (GEN.337).** A belt is stored at its star's centre with no movement vector and a stated zero mass, the galaxy's quasar with a stated zero vector and the orbit epoch, a comet with the mass of its nucleus (at the density of comet 67P), a facility with the mass of the star, planet or moon it sits on (none for a belt, a field or open space), and each member of a scattered multi-star system with the epoch its tree was drawn at.
+
+TODO items resolved: GEN.337. Added: none.
+
+## [8.0.1645] - 2026-10-17
+
+**Headline:** The database gets the columns every object needs to be one point with a position, a mass and a movement vector.
+
+### Changed
+- **Migration 0102 (DB.55).** Adds the missing vector, mass, position and epoch columns to the object tables, the parent and dynamical state to planets and moons, and the heaviest-object fields to sectors, backfilled from what is stored. Nothing reads them yet; GEN.336 and GEN.337 do.
+
+TODO items resolved: DB.55. Added: none.
+
+## [8.0.1644] - 2026-10-17
+
+**Headline:** A built star system can store its tree of orbits, its stars' places and velocities, and its disks.
+
+### Changed
+- **Orbit tree storage (DB.53).** A built multi-star system gets `orbit_nodes` (the same columns as the scatter's nodes, plus a disk descriptor), each star gets its node, offset, velocity, state, flags, decay age and epoch, and a circumbinary planet gets its host node. Existing close and wide pairs convert to one node each from their stored orbit. Migration 0104.
+
+TODO items resolved: DB.53. Added: none.
+
+## [8.0.1643] - 2026-10-17
+
+**Headline:** Stars, black holes, neutron stars, rogue planets, comets, asteroid fields, nebulae and remnants keep a movement vector and a mass.
+
+### Changed
+- **One movement vector per free object (GEN.336).** A black hole, neutron star, rogue planet, interstellar comet, asteroid field, nebula or supernova remnant is stored with a velocity vector (the tangent of the galaxy's rotation at its place, at its speed) instead of a scalar speed, and the nightly orbit update turns the vector with the position. A star and a close pair take their system's vector. Migration 0103 drops the scalar speed columns.
+- **Masses are derived.** A comet nucleus is its sphere at the density of comet 67P, and a nebula or remnant is its bounding sphere at its particle density with the helium counted; an asteroid field, whose mass is not known, is a stated zero.
+- **Pages.** The galactic speed shown for an object is the length of its vector.
+
+TODO items resolved: GEN.336. Added: none.
+
+## [8.0.1642] - 2026-10-17
+
+**Headline:** The atmosphere sources check is done and its corrections are folded into the gas table, ozone, aerosol and giant-planet items.
+
+### Added
+- docs/design/atmosphere-sources-check.md: the result of GEN.408, 19 sources with what was read, what is second-hand and what Boss must research.
+
+### Changed
+- GEN.409, GEN.410, GEN.413, GEN.414, GEN.417 and GEN.419 carry the nine corrections and the design findings (the reference temperature per gas, the Kozakis ozone fit, grey dust, the Sudarsky bounds and the Cahoy colour table); the plan note lists what stays open for Boss's research.
+
+TODO items resolved: GEN.408 / Added: none
+
+## [8.0.1641] - 2026-10-17
+
+**Headline:** The bulk composition that drives a body's density, mass and gravity is planned in 8.4, ahead of the atmosphere chain.
+
+### Added
+- The bulk composition chain (goal issue #1949): GEN.425 to GEN.430, DB.69, TEST.210 and DOC.65, in 8.4 phases 1, 2 and 5; the atmosphere mixture (GEN.411) now needs the derived gravity (GEN.429).
+
+### Changed
+- The 8.4 plan has six phases: the atmosphere foundations moved from phases 1 to 4 to phases 1 to 5 to make room, and the class work is phase 6.
+
+TODO items resolved: none / Added: GEN.425, GEN.426, GEN.427, GEN.428, GEN.429, GEN.430, DB.69, TEST.210, DOC.65
+
+## [8.0.1640] - 2026-10-17
+
+**Headline:** Every test or investigation on a TODO item now leaves a dated comment on its goal issue, and bugs that could not be reproduced are flagged.
+
+### Changed
+- TODO.md and the issue group rules carry the investigation log rule; TEST.111, TEST.116, TEST.126, TEST.138, TEST.141, TEST.144, TEST.167, TEST.171, TEST.173, TEST.190, TEST.194 and TEST.198 carry a Status line with the latest result and what is needed next time (the history is in the comments on #1694).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1639] - 2026-10-17
+
+**Headline:** Core 4 is the proposed owner of the atmosphere generator items, and the view from a planet is the headline of 9.1.
+
+### Added
+- VIEW.18, the headline item of 9.1 (the view from a planet), in goal issue #1693.
+
+### Changed
+- GEN.409 to GEN.415, GEN.422 to GEN.424, DB.67 and DB.68 name Core 4 as proposed owner in TODO.md and the 8.4 plan notes.
+- 9.1 is headlined by the view from a planet, with the gravity map as the second feature; its plan file is now `version-9-1-view-from-a-planet.md`.
+
+TODO items resolved: none / Added: VIEW.18
+
 ## [8.0.1638] - 2026-10-17
 
 **Headline:** The plan records which release takes generator epochs 4 and 5.
