@@ -35,7 +35,9 @@ from planetgen.cli import generate as generate_cli
 from planetgen.generation import run_sector
 from planetgen import tuning
 from planetgen.generation.phenomena.compact_remnant import BlackHole
+from planetgen.galaxy import mass_chain
 from planetgen.generation.config import SystemConfig
+from planetgen.physics import constants
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 
@@ -357,14 +359,17 @@ def test_generate_sector_does_not_generate_systems_past_the_first_placement_fail
     assert generated_count["n"] == 3
 
 
-def test_generate_sector_real_capacity_overflow_returns_a_partial_sector():
+def test_generate_sector_real_capacity_overflow_returns_a_partial_sector(monkeypatch):
     # End-to-end (no monkeypatching): a sector this size physically cannot
     # hold 120 systems at real Hill-sphere spacing (see this project's own
     # local-stellar-density constants), which used to raise ValueError and
     # discard the whole sector. 120, not 60: a lucky draw occasionally fit
     # all 60 (sampled fills run about 20-59). -planets keeps this fast (skips
     # planet/moon generation) without touching the real placement logic
-    # this test actually cares about.
+    # this test actually cares about. The spacing follows the galaxy's virial mass
+    # (GEN.400): a galaxy of 1.15e12 solar masses (a test value) keeps it wide
+    # enough for the overflow whatever mass a seed draws.
+    monkeypatch.setattr(mass_chain, "current_central_mass_kg", lambda: 1.15e12 * constants.SOLAR_MASS_TO_KG)
     args = _real_sector_args(120, "RealCapacityOverflowSector", planets=False)
     _sector_name, sector = run_sector.generate_sector(args)
 

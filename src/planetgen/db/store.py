@@ -72,7 +72,7 @@ from planetgen.db import alembic_runner, login, point_columns, scatter_systems
 from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, nebula_field as nebulaField, object_uid as objectUid, scatter_limits as scatterLimits, seed as galaxySeed, uid as galaxyUid, version_key as versionKey
-from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, radiation, spin
+from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, spin
 from planetgen.util import log
 from planetgen.util.settings import env_name, get_settings
 from planetgen.generation import steps
@@ -2761,9 +2761,10 @@ def insert_star(conn, star, star_system_id, role) -> int:
             reflex_offset_x_km, reflex_offset_y_km, reflex_offset_z_km,
             rotation_period_hours, spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg,
             log_lx_lbol, l_xuv_w, xuv_saturated, flare_n33_per_yr, flare_alpha, xuv_fluence_j,
-            lethal_event_rate_per_gyr, metallicity_fe_h
+            lethal_event_rate_per_gyr, metallicity_fe_h,
+            disk_kind, disk_mass_solar, disk_inner_au, disk_outer_au
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                  ?, ?, ?, ?, ?, ?, ?)
+                  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, role, star.name, star.type, star.yerkes_class,
@@ -2784,6 +2785,7 @@ def insert_star(conn, star, star_system_id, role) -> int:
             *spin.spin_values(star),
             *(getattr(star, name, None) for name in activity.STAR_ACTIVITY_FIELDS),
             getattr(star, "metallicity_fe_h", None),
+            *(getattr(star, name, None) for name in pre_main_sequence.DISK_FIELDS),
         ),
     )
     return cur.lastrowid
@@ -8159,6 +8161,7 @@ def _star_row_to_dict(row, speed_kms):
         **{name: row[name] for name in spin.SPIN_FIELDS},
         **{name: row[name] for name in activity.STAR_ACTIVITY_FIELDS},
         "xuv_saturated": None if row["xuv_saturated"] is None else bool(row["xuv_saturated"]),
+        **{name: row[name] for name in pre_main_sequence.DISK_FIELDS},
     }
 
 

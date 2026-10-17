@@ -2,6 +2,83 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1706] - 2026-10-17
+
+**Headline:** The galaxy's mass chain is merged and retired: every galaxy draws its stellar mass, halo mass, virial radius and concentration from its seed.
+
+### Changed
+
+- GEN.400 (#2011, generator epoch 10) is retired: the stellar mass comes from the Schechter function, the halo mass, virial radius and concentration follow, and the Hill spheres read the virial mass; the fixed Milky Way mass is gone.
+- GEN.401, GEN.403 and GEN.399 no longer wait on it.
+- GEN.406 now carries the stellar halo constants (`HALO_MASS_SOLAR`, `HALO_SYSTEM_FRACTION`): they are the stellar halo, not the dark matter halo, so GEN.400 left them, and the laws table has no stellar halo law until GEN.406 researches one.
+
+TODO items resolved: GEN.400 / Added: none
+
+## [8.0.1705] - 2026-10-17
+
+**Headline:** Every galaxy now draws its own stellar mass, halo mass, virial radius and concentration from its seed, and the Hill spheres read that mass in place of the fixed Milky Way mass.
+
+### Changed
+- **The galaxy's mass chain (GEN.400).** `galaxy/mass_chain.py` draws the stellar mass from the double Schechter function (Baldry et al. 2012) inside 3e9 to 2e11 solar masses, the halo mass from the stellar-to-halo relation (Moster et al. 2013) by the approximation Boss chose, and the virial radius and NFW concentration (Dutton and Maccio 2014, 0.11 dex scatter), all from the galaxy seed: the same seed gives the same galaxy.
+- **No fixed Milky Way mass.** `MILKY_WAY_MASS` is removed. A star's, a pair's and a compact object's Hill sphere (the system perimeter and the keep-out radius) read the drawn galaxy's virial mass, so the perimeters differ with the galaxy. `keepout.galactic_hill_radius_km` and `compact_keep_out` take the central mass as an argument.
+- **Stays.** `HALO_MASS_SOLAR` and `HALO_SYSTEM_FRACTION` are the stellar halo (a fraction of the visible mass), not the dark matter halo; their law is GEN.406's research.
+
+generation-output: changed
+
+TODO items resolved: GEN.400. Added: none.
+
+## [8.0.1704] - 2026-10-17
+
+**Headline:** The pre-main-sequence state is merged and retired, and its inferred constants are filed for a sourced table.
+
+### Changed
+
+- GEN.242 (#2009, generator epoch 9) is retired: stars under 8 solar masses and under 10 Myr are protostars or pre-main-sequence stars with a disk descriptor, and the protostar's companion chance uses the Perseus fractions; GEN.320 no longer waits.
+- GEN.529 is filed for what it left: the Hayashi temperature, the birthline radius and the energy factor are inferred, not sourced, and the state stops at 10 Myr; it needs a Baraffe 2015 or Siess 2000 table and gates GEN.301.
+- TEST.174 gets another sighting (the sector accessibility flake in a second gate).
+
+TODO items resolved: GEN.242 / Added: GEN.529
+
+## [8.0.1703] - 2026-10-17
+
+**Headline:** Stars under 10 Myr are protostars and pre-main-sequence stars with a disk, instead of main-sequence stars that happen to be young.
+
+### Added
+- **The pre-main-sequence state (GEN.242).** A star under 8 solar masses and under 10 Myr is a Class 0 or I protostar (under 0.5 Myr) or a pre-main-sequence star, with luminosity, temperature and radius from a contraction track worked out from the energy it releases (a solar mass reaches the main sequence in about 40 Myr, 0.1 solar masses in about 0.9 Gyr). The star page names the stage ("Class I Protostar", "Pre-Main-Sequence Star") and says the star is still contracting.
+- **The disk descriptor.** A young star holds a Class 0, I or II disk (age under 0.15, 0.5 and 3 Myr; none after) of 0.01 to 0.3 of its mass, from the dust sublimation radius out to 10 to 300 AU, with no bodies in it. It is stored in `stars.disk_kind`, `disk_mass_solar`, `disk_inner_au` and `disk_outer_au` and shown on the star page.
+- **Companions of protostars.** A Class 0 protostar has a companion in 57% of systems and a Class I protostar in 23% (the Perseus survey), in place of the field's share by spectral class.
+
+### Changed
+- The companions of a young system (`multistar`) take their stage and radius from the same track; the old `31 Myr x m^-2.5` law is gone (it gave 10 Gyr at 0.1 solar masses).
+- A star of 8 solar masses or more is never a protostar: it is on the main sequence by the time it shows.
+- A young star counts as saturated in X-rays, and has no planets inside the engulfment radius of a giant.
+
+generation-output: changed
+
+TODO items resolved: GEN.242. Added: none.
+
+## [8.0.1702] - 2026-10-17
+
+**Headline:** The satellites' young and intermediate shares are decided: derived from each satellite's age history and gas, not a typed 1% and 9%.
+
+### Changed
+
+- GEN.526 records Boss's decision (7:54 AM EDT, "Derive from the law"); it no longer waits on GEN.369, which re-derives the shares when it calculates the satellites.
+- The design note's open question 5 and the Magellanic caveat say the stand-in is dropped; GEN.528 notes that its Magellanic-cell part waits only on GEN.526 merging.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1701] - 2026-10-17
+
+**Headline:** The map layer registry is merged and retired, which frees the layer items that waited on it.
+
+### Changed
+
+- MAP.217 (#2006) is retired: one registry that the Galaxy stage view, the Sector Map and the System Map share for a toggled layer; the items that listed it as a prerequisite no longer wait.
+- MAP.225 and MAP.227 carry Core 2's notes on what their coming PRs do not cover (the column-density ray fallback, clearance and the half-way double click; the trail at the stage's own size).
+
+TODO items resolved: MAP.217 / Added: none
+
 ## [8.0.1700] - 2026-10-17
 
 **Headline:** The three maps share one layer registry, so a map's layers have one menu, one set of URL keys and one legend.

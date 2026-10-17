@@ -4473,64 +4473,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   line on this item.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **GEN.242 A pre-main-sequence state for young stars, so protostars can exist as real stars**
-  Step 11 of the whole-sphere train (design note section 5.10). The star
-  model has no pre-main-sequence state: `evolve_star` goes from the main
-  sequence on. Add one (age under 1 Myr for stars below 8 solar masses,
-  drawn from the IMF's low end for protostars), shown as such on the
-  star page and in the description layer (wording through the Interface
-  lane's document model, UX.105 and UX.108). Done: a star younger than
-  the limit comes out of `evolve_star` as a pre-main-sequence star with
-  its own radius, luminosity and type text, the older states are
-  unchanged, and the page says so. Owner: Core (2026-10-15). Decided
-  (Boss, 2026-10-15): the research note's recommendation stands: reach
-  262 kpc (65,535 shells), 96-bit object IDs, one rule set everywhere
-  with per-sector parameters, nothing generated unless asked, and an
-  asked sector always generated and saved.
-  Systems around protostars (design note section 5.12, answering Boss's
-  2026-10-15 question). A protostar is a state of an ordinary star, so
-  it gets an ordinary star system with no special path. No planets yet:
-  the planet draw already drops every non-belt body around a star
-  younger than `PLANET_MIN_STAR_AGE_GY` = 0.01 Gy (`system.py:1024`), so
-  belts are the most it keeps and nothing new is needed for that. Add a
-  `disk` descriptor on the star instead (class 0, I or II by age under
-  0.15, 0.5 and 3 Myr; mass 0.01 to 0.3 of the star, outer radius 10 to
-  300 AU), with no bodies in it. Companions come from the normal binary
-  machinery at the Perseus multiplicity: 0.57 for Class 0 and 0.23 for
-  Class I, higher than the field's 0.26 to 0.45. Done also means: a
-  protostar's system shows its disk and its companions, and holds no
-  planets.
-  Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and backscatters get
-  no systems, planets or moons, so bright stars, massive stars, neutron
-  stars, black holes and the other scattered objects are bare rows;
-  planets and moons are made only when a sector is being filled with
-  everything; a sector fill must represent every kind of object, and
-  when a fill meets a phenomenon that can have a system (or makes one
-  that can) it generates that system if the real-world probabilities
-  give it one; nebulae need stars and phenomena, not planets. For this
-  item: a protostar's disk, companions and belts come when its sector
-  fills; the scattered row carries none.
-  Catalogue (Boss 2026-10-15 6:08 PM EDT;
-  docs/design/multi-star-systems.md sections 13 to 16): the
-  circumstellar and circumbinary disk descriptor and the young
-  non-hierarchical groups of sections 13.1 and 13.5 build on this state
-  (GEN.273, GEN.275).
-  Finding (Core 2, 2026-10-15, #1705): the design note's
-  pre-main-sequence time 31 Myr x m^-2.5 gives 10 Gyr at 0.1 solar
-  masses and 1.2 Gyr at 0.2 (models: about 1 Gyr and a few hundred Myr).
-  GEN.261 capped it at 1 Gyr (KELVIN_HELMHOLTZ_MAX_YR in
-  generation/multistar.py); this item confirms or replaces the law.
-  Scope after the review (2026-10-16 review): The pre-main-sequence
-  state and the disk laws (class by age, mass and radius); it fills the
-  disk descriptor columns that the first child of GEN.129 adds, and does
-  not add them.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Prerequisites: GEN.235, DB.53. Related: GEN.241, UX.108.
-  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
-
 - [ ] **GEN.243 Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X**
   Step 13 of the whole-sphere train (design note section 5.11; GEN.113's
   Tier 2 item 3, never built because the star model has no W state). The
@@ -4644,7 +4586,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Scatter note (Core 3, 2026-10-16,
   docs/design/later-phenomena-scatter-rules.md (section 8)): fill-only
   attribute; it shares the `stars` disk columns with GEN.242.
-  Prerequisite: GEN.242.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.246 Luminous blue variables and hypergiants (later)**
@@ -4832,7 +4773,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
   PM EDT, 2026-10-16; queue in the lane report); held until its blocker
   merges: GEN.242, GEN.320 (Core 3). Core 4 takes it when it unblocks.
-  Prerequisites: GEN.242, GEN.320. Related: GEN.242.
+  Prerequisites: GEN.320. Related: GEN.242.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.259 Intermediate-mass black hole share gives about 100,000 in the Galaxy against a handful of candidates (bug)**
@@ -5778,10 +5719,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.238, GEN.241, GEN.242, GEN.243, GEN.244, GEN.259,
+  Prerequisites: GEN.238, GEN.241, GEN.243, GEN.244, GEN.259,
   GEN.280, GEN.282, GEN.283, GEN.284, GEN.298, UX.116, TEST.159,
   TEST.160, GEN.447, GEN.448, GEN.449, GEN.450, TEST.196, GEN.463,
-  GEN.467, GEN.469, GEN.502, GEN.526, GEN.528.
+  GEN.467, GEN.469, GEN.502, GEN.526, GEN.528, GEN.529.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -6084,7 +6025,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.242. Related: GEN.241.
+  Prerequisites: none. Related: GEN.241.
 
 - [ ] **GEN.321 Emission regions D and E: the ionizing members of a young cluster in a Plummer sphere, cut by sector cube**
   Split from GEN.241 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6880,7 +6821,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shows a galaxy twice the size changes the Hill
   radius. Fails on main: no failure, a fixed assumption. Related:
   GEN.368, GEN.285.
-  Prerequisites: GEN.400, GEN.404. Related: GEN.368, GEN.285, GEN.223.
+  Prerequisites: GEN.404. Related: GEN.368, GEN.285, GEN.223.
 
 - [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
   Boss (2026-10-16, 4:02 PM EDT, in the Core 1 thread): "we'll need a
@@ -7102,7 +7043,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Mass limits: the first family's range is 3e9 to 2e11 solar stellar
   mass (Boss, 2026-10-16, 9:40 PM EDT, reported by Core 1); GEN.378
   states the other families' ranges.
-  Prerequisites: GEN.378, GEN.379, GEN.400, GEN.401. Related: GEN.368,
+  Prerequisites: GEN.378, GEN.379, GEN.401. Related: GEN.368,
   GEN.369, GEN.381.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
@@ -7521,41 +7462,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass and the scatter difference per stellar mass, and a switch to the
   exact conditional if the difference matters. Needs GEN.368's build
   (GEN.400).
-  Prerequisites: GEN.400. Related: GEN.368, GEN.378, GEN.380.
-
-- [ ] **GEN.400 The galaxy's mass chain: stellar mass from the Schechter function, the halo mass by the approximation, the virial radius and the concentration**
-  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
-  source Shen et al. 2003, approximation for the halo mass, no home
-  position, every derived law draws its natural scatter from the seed,
-  the first family covers 3e9 to 2e11 solar stellar mass; paper check
-  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
-  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
-  1's docs PR merges; draft
-  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Rows 1 to
-  3. A pure function `draw_mass_chain(seed)` takes the stellar mass from
-  the double Schechter function inside the first family's range, the
-  halo mass from the stellar-to-halo relation inverted numerically with
-  the approximation GEN.399 later checks (median inverse with an
-  effective halo mass scatter), the virial radius from the Bryan and
-  Norman overdensity and the NFW concentration with its scatter. It
-  replaces `HALO_MASS_SOLAR`, `HALO_SYSTEM_FRACTION` and
-  `MILKY_WAY_MASS` as the galaxy's total mass; the Hill spheres
-  (binary.py, star.py, keepout.py) read this chain's virial mass until
-  GEN.370 (8.3) replaces it with the mass enclosed at the star's radius.
-  Done: the same seed gives the same chain; a
-  histogram over 10,000 seeds matches the Schechter function within
-  sampling error; every draw stays in the range; the worked table of the
-  draft (5e10 gives a halo near 2e12 solar) is reproduced within its
-  scatter; the old constants are gone and their tests check the law. No
-  fixed content (Boss, 4:11 and 4:14 PM EDT): no Milky Way preset or
-  option; the real values are only plausibility targets (GEN.366). Each
-  law is written with its source named in the code and the doc; the
-  scatter is a log-normal drawn through `unit_seed(galaxy_seed, ...)`
-  and the one random wrapper. No compatibility shim: the old constant
-  goes in the same change. A change that alters the generator output
-  follows the epoch rule.
-  Prerequisites: GEN.368. Related: GEN.399, GEN.378, GEN.380, GEN.369,
-  GEN.370.
+  Prerequisites: none. Related: GEN.368, GEN.378, GEN.380.
 
 - [ ] **GEN.401 The shape of the stars from the stellar mass: disk length and height, thick disk, bulge, bar and arms replace the generate defaults**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -7589,7 +7496,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
   compatibility shim: the old constant goes in the same change. A change
   that alters the generator output follows the epoch rule.
-  Prerequisites: GEN.400. Related: GEN.378, GEN.382, GEN.366, GEN.134.
+  Prerequisites: none. Related: GEN.378, GEN.382, GEN.366, GEN.134.
 
 - [ ] **GEN.402 The central black hole mass and the nuclear cluster follow the bulge: the M-bulge and M-sigma relations replace the fixed ranges**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -7659,7 +7566,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   law and does not define a second count. Boss approved this halo-mass
   law in GEN.368's table (2026-10-16, 10:11 PM EDT); GEN.164's older
   S_N-by-morphology count is superseded by it.
-  Prerequisites: GEN.400. Related: GEN.297, GEN.366, GEN.387.
+  Prerequisites: none. Related: GEN.297, GEN.366, GEN.387.
 
 - [ ] **GEN.404 The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -7697,7 +7604,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   through `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
   compatibility shim: the old constant goes in the same change. A change
   that alters the generator output follows the epoch rule.
-  Prerequisites: GEN.400, GEN.401. Related: GEN.144, GEN.405, MAP.190,
+  Prerequisites: GEN.401. Related: GEN.144, GEN.405, MAP.190,
   USR.11.
   Owner (coordinator, 2026-10-16, 10:16 PM EDT): Core 4 proposed (it
   owns the metallicity and star-density work in GEN.103 and GEN.134); it
@@ -7784,6 +7691,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   then the numbers go into GEN.401, GEN.403, GEN.405 and GEN.369 as
   laws. A verifying thread can read arXiv (Boss allowed it, 9:44 PM
   EDT).
+  Moved here from GEN.400 (Core 1, 2026-10-17, 8:50 AM EDT as the lane
+  reported, GEN.400 merged as #2011, epoch 10): `HALO_MASS_SOLAR`
+  (1.5e9) and `HALO_SYSTEM_FRACTION` in `tuning.py` are the STELLAR halo
+  (3% of the visible mass), not the dark matter halo the mass chain
+  draws, so GEN.400 left them in place; the laws table has no law for
+  the stellar halo fraction. They stay until this item researches the
+  stellar halo fraction and replaces them with a law; the
+  old-constants-are-gone check of GEN.400 does not cover them.
   Prerequisites: GEN.368. Related: GEN.369, GEN.401, GEN.403, GEN.405.
 
 - [ ] **GEN.409 The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model**
@@ -12457,11 +12372,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lanes verify citations before relying on them), the design note's
   yield table and open question 5 are updated with the measured values,
   and `planetgen plan --redo-scatters luminosity mass phenomena`
-  applies. Decision for Boss (relay as a card): derive the shares from
-  age and gas as above, or keep the stated 1% and 9% as a labelled
-  stand-in until the research is done. Owner: Core 3 (proposed, the
-  GEN.324 and GEN.240 work).
-  Prerequisites: GEN.369. Related: GEN.324, GEN.240, GEN.369, GEN.366,
+  applies. Decided (Boss, 2026-10-17, 7:54 AM EDT, card "How should
+  gas-rich satellites get young and intermediate stars?", tapped "Derive
+  from the law", the recommended option; relayed by the coordinator):
+  the shares are derived from each satellite's age history and gas, not
+  the stated 1% and 9% stand-in, which is dropped. Owner: Core 3
+  (proposed, the GEN.324 and GEN.240 work). The shares are a function of
+  each satellite's age range and gas, so the existing table gives a
+  first answer now and GEN.369's calculated satellites re-derive it;
+  GEN.369 is related, not a blocker.
+  Prerequisites: none. Related: GEN.324, GEN.240, GEN.369, GEN.366,
   GEN.319.
 
 - [ ] **GEN.527 The second star of a wide pair in a saved runaway system loads back 0.4 m/s off the system's velocity: find the cause instead of loosening the test (bug)**
@@ -12495,8 +12415,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Ia share and the old-star share profile fields and had the profile's
   kind factors read them; two parts of its Done list are not met. (1) A
   Magellanic cell can show every class: it cannot until the satellites
-  have young and intermediate populations (GEN.526, waiting on Boss's
-  card), so the Clouds still lack the young-star classes. (2) The
+  have young and intermediate populations (GEN.526, decided by Boss at
+  7:54 AM EDT: derived from age and gas), so the Clouds still lack the
+  young-star classes until it merges. (2) The
   scatter's planetary nebulae are not yet weighted by the old share (the
   profile's factor is), so the stored scatter rows still use the old
   rate; that changes stored values, so it is a generator epoch change
@@ -12510,6 +12431,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rule and `planetgen plan --redo-scatters phenomena` apply. Owner: Core
   3 (proposed, GEN.319's author).
   Prerequisites: GEN.526. Related: GEN.319, GEN.526, GEN.324, GEN.322.
+
+- [ ] **GEN.529 The pre-main-sequence track takes its Hayashi temperature, birthline radius and energy factor from a sourced table, and the state reaches stars still contracting after 10 Myr**
+  Residual of GEN.242 (merged #2009, 7:58 AM EDT as Core 3 reported,
+  generator epoch 9), filed by the TODO thread from Core 3's finding.
+  Three constants in `tuning.py` are marked [I] (inferred from
+  remembered tracks, not looked up): the Hayashi temperature (4,300 K at
+  1 solar mass, slope 0.17), the birthline radius (2.5 solar radii at 1
+  solar mass, mass to the 1/3) and
+  `PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR` = 3.5, which is set to one
+  remembered anchor (1 solar mass reaches the main sequence at about 40
+  Myr; the derived time alone gives 12 Myr). Baraffe et al. 2015
+  (arXiv:1503.04107) opens, but the paper has no tables; a table is
+  needed from the Baraffe 2015 CDS tracks or Siess 2000, giving the
+  zero-age main sequence age and the early luminosity and temperature by
+  mass. The Perseus multiplicity fractions (0.57 Class 0, 0.23 Class I)
+  are verified against the abstract of arXiv:1601.00692. Known
+  simplification: the state is drawn only under 10 Myr, so a 0.2 solar
+  mass star still shrinking at 100 Myr is drawn on the main sequence.
+  Not modelled: protostar accretion luminosity. Do: a lane fetches and
+  checks the table (citations verified before use; research on Boss's
+  list, Boss researches on request if the table is not reachable), the
+  three constants are replaced by values read from it with the source
+  named, the 40 Myr anchor is dropped, and the state extends past 10 Myr
+  for the low-mass stars the table says are still contracting; the
+  stored star rows change, so it is a generator epoch change joined to
+  the one rescatter. Done: the three constants and the energy factor are
+  gone or sourced (no [I]), a test compares the model's zero-age main
+  sequence age and early luminosity and temperature with the table for
+  at least five masses, the low-mass state follows the table past 10
+  Myr, and the epoch rule applies. Owner: Core 3 (proposed, GEN.242's
+  author).
+  Prerequisites: none. Related: GEN.242, GEN.407, GEN.502, GEN.258.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -15708,6 +15661,11 @@ clears each one.
   fetch is in flight, and the test counts an aborted request as a
   failure. TEST.219 (requests still running 8 s after the server stops)
   is the same kind of leftover.
+  Sighting (Core 3, 2026-10-17, 7:58 AM EDT as the lane reported,
+  GEN.242 gate, 6:36 to 7:56 AM EDT): the sector a11y flake failed again
+  in the full gate and passed alone. Fails on main: not checked.
+  Frequency: now 2 of 2 of Core 3's full gates (the GEN.319 gate was the
+  first).
   Prerequisites: none. Related: TEST.170, TEST.172.
 
 - [ ] **TEST.175 Edit everything end to end: the headline scenarios with approval and undo**

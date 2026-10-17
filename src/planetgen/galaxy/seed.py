@@ -19,6 +19,7 @@ that changes one formula changes only what that formula touches.
 """
 
 import contextlib
+import contextvars
 import hashlib
 import re
 import secrets
@@ -95,6 +96,15 @@ def short_seed(galaxy_seed, kind, address, bits=63):
     return unit_seed(galaxy_seed, kind, address) >> (256 - bits)
 
 
+_current_galaxy_seed = contextvars.ContextVar("galaxy_seed", default=None)
+
+
+def current_galaxy_seed():
+    """The galaxy seed of the unit running in this thread (`seeded` binds it), or `None` outside any unit: work with
+    no galaxy, a stand-alone command or a test. Hill spheres read the galaxy's mass chain through it (GEN.400)."""
+    return _current_galaxy_seed.get()
+
+
 @contextlib.contextmanager
 def seeded(galaxy_seed, kind, address):
     """
@@ -106,5 +116,9 @@ def seeded(galaxy_seed, kind, address):
     if galaxy_seed is None:
         yield
         return
-    with draw.bound(unit_seed(galaxy_seed, kind, address)):
-        yield
+    token = _current_galaxy_seed.set(bytes(galaxy_seed))
+    try:
+        with draw.bound(unit_seed(galaxy_seed, kind, address)):
+            yield
+    finally:
+        _current_galaxy_seed.reset(token)
