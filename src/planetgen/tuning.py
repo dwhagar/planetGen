@@ -665,36 +665,50 @@ LIFE_MIN_STAR_AGE_GY = 0.1
 GIANT_ENGULFMENT_RADIUS_FACTOR = 2.0
 WD_PROGENITOR_ENGULFMENT_AU = 1.5
 
-# The pre-main-sequence state (GEN.242, physics/pre_main_sequence.py). A star
-# below PRE_MAIN_SEQUENCE_MAX_MASS_SOL younger than its contraction time is a
-# protostar (Class 0 and I, under PROTOSTAR_MAX_AGE_YR) or a pre-main-sequence
-# star (Class II and III). The track is derived, not tabulated: a convective
-# star (polytrope n = 3/2) holds 3/7 G M^2 / R of energy and a radiative one
-# (n = 3) 3/4 G M^2 / R, it shrinks at the luminosity it radiates, and on its
-# Hayashi line (convective) the effective temperature stays put, so
-# R^-3 grows in step with time. The three numbers below are the inferred part
-# [I]: they were set from the published tracks as remembered (Baraffe et al.
-# 2015, arXiv:1503.04107, could be fetched but not its tables), and a TODO
-# finding asks for a sourced replacement. The state is drawn only under
-# PRE_MAIN_SEQUENCE_MAX_AGE_YR, the age limit of T Tauri and Herbig Ae/Be stars
-# and of planet formation (PLANET_MIN_STAR_AGE_GY): a red dwarf still shrinking
-# towards the main sequence at 100 Myr (the track takes 0.1 solar masses 860
-# Myr) is drawn on it, a known simplification that costs it up to a few times
-# its light.
+# The pre-main-sequence state (GEN.242, GEN.529, physics/pre_main_sequence.py).
+# A star below PRE_MAIN_SEQUENCE_MAX_MASS_SOL younger than its contraction time
+# is a protostar (Class 0 and I, under PROTOSTAR_MAX_AGE_YR) or a
+# pre-main-sequence star (Class II and III), however old that time is: the
+# track takes 0.1 solar masses about a billion years, and a red dwarf still
+# shrinking at 100 Myr keeps its pre-main-sequence class. The track is
+# derived: a convective star (polytrope n = 3/2) holds 3/7 G M^2 / R of
+# energy and a radiative one (n = 3) 3/4 G M^2 / R, it shrinks at the
+# luminosity it radiates, and on its Hayashi line (convective) the effective
+# temperature stays put, so R^-3 grows in step with time. Three numbers are
+# read from the published tracks, not recalled (GEN.529): Baraffe, Homeier,
+# Allard and Chabrier 2015 (A&A 577, A42, arXiv:1503.04107, the BHAC15 tracks
+# table at perso.ens-lyon.fr/isabelle.baraffe/BHAC15dir, solar metallicity,
+# 0.1 to 1.4 solar masses, from 0.5 Myr) [V]. The Hayashi temperature is the
+# effective temperature at 1 Myr, 4357 K at one solar mass and rising as
+# m^0.1815 (18 masses, rms 0.004 dex); the birthline radius is the radius at
+# the table's first age, 3.19 solar radii at one solar mass and rising as
+# m^0.4335 (rms 0.03 dex); both are extended past 1.4 solar masses by their
+# power law. The energy factor is the one number the table fixes only through
+# its end: contraction alone, at the luminosity the star radiates, is too
+# quick, and deuterium burning and the heat of the interior pay for part of
+# the light, so the time is stretched by 3.0, the value at which the model
+# reaches the main sequence at the age the table's radius settles to within
+# 2% of its minimum, rms 0.106 dex over the 18 masses (0.7 to 1.4 solar masses
+# within 0.06 dex, 0.1 to 0.2 up to 0.21 dex too slow). The model ends on the
+# generator's own main sequence (`stellar_evolution`), which is 0.05 to 0.28
+# dex brighter than the table's 1 Gyr star below 1.2 solar masses (the table
+# is solar-composition at 1 Gyr, the generator's relation is anchored on the
+# Sun), so a state against the table is that much too bright at the end of the
+# contraction. At 1 to 10 Myr the luminosity is within 0.25 dex of the table up
+# to 0.3 solar masses and up to 0.35 dex too bright from 0.5 to 1.4, where the
+# derived Hayashi phase falls more slowly than the table's.
 PRE_MAIN_SEQUENCE_MAX_MASS_SOL = 8.0
-PRE_MAIN_SEQUENCE_MAX_AGE_YR = 10.0e6
+# No star contracts longer than this: the track takes the lightest star (0.08 solar masses) 0.94 Gyr. A shortcut for
+# the old stars, which are nearly all of them; the test checks it against the track.
+PRE_MAIN_SEQUENCE_LONGEST_YR = 1.0e9
 PROTOSTAR_MAX_AGE_YR = 0.5e6
-HAYASHI_TEMPERATURE_1_SOL_K = 4300.0
-HAYASHI_TEMPERATURE_MASS_EXPONENT = 0.17
-BIRTHLINE_RADIUS_1_SOL_RSUN = 2.5
-BIRTHLINE_RADIUS_MASS_EXPONENT = 1.0 / 3.0
+HAYASHI_TEMPERATURE_1_SOL_K = 4357.0
+HAYASHI_TEMPERATURE_MASS_EXPONENT = 0.1815
+BIRTHLINE_RADIUS_1_SOL_RSUN = 3.187
+BIRTHLINE_RADIUS_MASS_EXPONENT = 0.4335
 CONVECTIVE_BINDING_COEFFICIENT = 3.0 / 7.0
 RADIATIVE_BINDING_COEFFICIENT = 3.0 / 4.0
-# Contraction alone, at the luminosity the star radiates, takes a solar-mass star to the main sequence in 12 Myr and
-# a 0.1 solar-mass star in 245 Myr, where the published tracks give about 40 Myr and 1 Gyr: deuterium burning and
-# the heat of the interior pay for part of the light. The time is stretched by this factor [I], set to that one
-# remembered anchor (1 solar mass, 40 Myr); the shape in mass is the derived one.
-PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR = 3.5
+PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR = 3.0
 # The disk (VANDAM and the TODO text, GEN.242): Class 0 under 0.15 Myr, I under
 # 0.5, II under 3, and none after; mass 0.01 to 0.3 of the star and outer
 # radius 10 to 300 AU, each log-uniform; the inner edge is where a blackbody
