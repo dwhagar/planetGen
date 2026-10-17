@@ -13,19 +13,19 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.134 |
-| MAP | MAP.242 |
+| UX | UX.135 |
+| MAP | MAP.243 |
 | NAV | NAV.63 |
-| GEN | GEN.378 |
+| GEN | GEN.391 |
 | PERF | PERF.111 |
-| DB | DB.66 |
+| DB | DB.67 |
 | API | API.31 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.204 |
+| TEST | TEST.205 |
 | USR | USR.31 |
 | OPS | OPS.60 |
-| DOC | DOC.59 |
+| DOC | DOC.60 |
 | VIEW | VIEW.18 |
 | POP | POP.15 |
 
@@ -580,6 +580,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.63 | Table for ships and stations, user-owned or generated (migration only) | none | open |
 | DB.64 | Table for stored constellations (migration only) | none | open |
 | DB.65 | Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates | none | open |
+| DB.66 | The shape row carries the galaxy family and one column per density component, as a migration only | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -638,6 +639,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.56 | Backups, restore and repair: the deployment guide and the help page | none | open |
 | DOC.57 | Help section framework: page template, index, '?' links, help search and the link check | none | open |
 | DOC.58 | Help coverage test: every user-facing route has a help page and every help page has a route | none | open |
+| DOC.59 | Docs: the galaxy types note moves to built and the density, potential, schema, API and Generate page notes say the shape holds a family and components | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -1015,6 +1017,19 @@ Parents marked "new parent" had no old number of their own.
 | GEN.375 | Field kernel subtracts a local origin before its loop in `physics/sector_path.py` | none | open |
 | GEN.376 | Region test uses the haversine form for angles under 1e-3 rad in `galaxy/region.py` | none | open |
 | GEN.377 | Scatter limits by place for the neutron star and black hole scatter below the cut: the core and halo tiers apply to it, not one global mass cut | none | open |
+| GEN.378 | The galaxy type families: the checked design with its scaling relation table and the draw order | none | open |
+| GEN.379 | The density model as a list of components, each with an amplitude that may be 0, and a mass for each component | none | open |
+| GEN.380 | The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass | none | open |
+| GEN.381 | A Sérsic spheroid as a density component: index, effective radius, axis ratios and orientation, with a mass | none | open |
+| GEN.382 | The spiral family: scale length and height, bulge-to-total, bar, arm count and pitch angle from mass and Hubble stage | none | open |
+| GEN.383 | The elliptical family: Sérsic index and size from mass, intrinsic axis ratios, no disk, arms or bar, an old population | none | open |
+| GEN.384 | The lenticular family: a smooth disk and a large bulge, no arms, old stars and almost no gas | none | open |
+| GEN.385 | The irregular and dwarf families: a clumpy exponential or Sérsic body with young stars, and an old dwarf spheroid | none | open |
+| GEN.386 | Population mix, star-formation history and gas fraction by family: the young share that the nebula and profile rules read | none | open |
+| GEN.387 | Globular clusters, the nuclear cluster and the central black hole follow the family's spheroid and halo | none | open |
+| GEN.388 | The home position by family: one rule of the shape, with the spiral rule as the disk case | none | open |
+| GEN.389 | Galaxy creation draws the family from the seed and stores it, with the family in the log, the API and the version check | none | open |
+| GEN.390 | Headline of 9.4: generate a galaxy of any known type, with spiral, lenticular, elliptical, irregular and dwarf families from one set of rules | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1256,6 +1271,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.239 | Raise the Galaxy Map tile root to the 262 kpc reach: `TILE_ROOT` in `galaxy/viewport.py` and `galaxymap3d.js` | none | open |
 | MAP.240 | Browser buffers hold camera-relative coordinates: territory dots, superbubbles, made rings, block prisms, stage views, system view dots and belts | none | open |
 | MAP.241 | Stars on the star maps should glow brighter, not grow bigger: size stays small, glow and colour carry luminosity and temperature (bug) | none | open |
+| MAP.242 | The Galaxy Map and its key draw what the family has: arms and bar only where they exist, a spheroid shell, a lens or a clumpy body | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -1697,6 +1713,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.131 | Console tokens, type and base template in both themes | none | open |
 | UX.132 | Console look for the shared components: buttons, tables, panels, status chips, icons and the maps' chrome | none | open |
 | UX.133 | `GET /polities` and `GET /species` answer 404 before the population pass has run: show an empty page instead (bug) | none | open |
+| UX.134 | Generate page: the galaxy type shows what the seed drew and can be pinned | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -2004,6 +2021,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.201 | `block_stats` totals do not depend on the order of the rows: a test | none | open |
 | TEST.202 | `test_galaxy_map_drill_down_by_clicks` failed under load and passed alone: call 28 s to 52 s on a loaded worker (bug) | none | open |
 | TEST.203 | `test_one_worker_leaves_the_runs_own_random_stream_alone` failed once under heavy load with WorkerDied "the task's job ended canceled" and passes alone (bug) | none | open |
+| TEST.204 | Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
