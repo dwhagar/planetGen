@@ -83,9 +83,10 @@ def density_pc3(kind, radius_pc, shape, expected_at_density_1, edge_pc, galaxy_s
 
 def expected_in_cell(position_pc, volume_pc3, shape, expected_at_density_1, edge_pc, galaxy_seed=None):
     """`{kind: mean}`: how many ejecta of each kind a cell of `volume_pc3` centred on `position_pc` holds on average,
-    the mean of its Poisson draw."""
+    the mean of its Poisson draw, at most `tuning.EJECTA_MAX_PER_CELL` a kind."""
     radius = math.sqrt(sum(c * c for c in position_pc))
-    return {kind: density_pc3(kind, radius, shape, expected_at_density_1, edge_pc, galaxy_seed) * volume_pc3
+    return {kind: min(density_pc3(kind, radius, shape, expected_at_density_1, edge_pc, galaxy_seed) * volume_pc3,
+                      tuning.EJECTA_MAX_PER_CELL)
             for kind in KINDS}
 
 

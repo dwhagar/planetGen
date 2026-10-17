@@ -3448,6 +3448,11 @@ EJECTA_AGE_GY = 10.0
 """float: How long the ejecta of a galaxy have been leaving, Gyr: with `EJECTA_SPEED_RANGE_KMS` it sets where the
 population ends, at `v T` (3 to 5 Mpc, far beyond any grid's reach) (GEN.238) [I]."""
 
+EJECTA_MAX_PER_CELL = 50.0
+"""float: The most ejected objects of one kind a cell draws (GEN.238), a program limit: the draw is O(mean), and a galaxy
+shaped to hold astronomically many systems in a few cells would otherwise draw more than a cell has room for. The real
+galaxy's densest cells draw far fewer."""
+
 HYPERVELOCITY_COUNT_RADIUS_KPC = 100.0
 """float: The radius the count `HYPERVELOCITY_STARS_PER_GALAXY` is read to: "galaxy-wide" is taken as out to 100 kpc,
 the halo's extent (docs/design/intergalactic-and-halo-contents.md 2.3) [I]."""

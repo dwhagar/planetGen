@@ -196,8 +196,7 @@ class SupernovaRemnant(LazySaladName):
             ambient_density = self.density_cm3
         else:
             log.choice("Supernova remnant ambient density", f"{ambient_density:.4g} cm^-3",
-                       "the remnant sits in a superbubble: its Sedov-Taylor size reads the cavity's interior density "
-                       "(GEN.298)")
+                       "the remnant sits in a superbubble: its Sedov-Taylor size reads the cavity's interior density")
         self.radius_ly = sedov_taylor_radius_ly(self.age_years, ambient_density)
         self.compact_offset_ly = self._draw_kick_offset_ly(kind)
 
