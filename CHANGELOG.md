@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1693] - 2026-10-17
+
+**Headline:** The massive-star scatter runs on the new work queue: its units are queued on Redis, followed from the run's record, and give the same stars at any worker count.
+
+### Changed
+- **The massive-star pass of the scatter is the first stage on the Redis work queue (PERF.97, step 3 of PERF.86).** `planetgen galaxy` and `planetgen plan` start a run record in Redis for the stage, queue its units on the bulk queue as JSON (the database's name, host, port and user, the shells, their expected stars, the sectors to leave out, the floors and the seed; never a password), start up to `--workers` idle-timeout workers and follow the units' results and progress until the stage is done. One worker uses the same path as many. The units are cut from the work alone (about 512 runs of shells of equal expected work, never more than 4,000), so the same galaxy and seed give the same stars at any worker count and the same stars the old queue drew. A unit that fails ends the run with the unit and the error recorded; Ctrl+C cancels it and frees the machine. Redis is required for this stage. The luminosity pass, the phenomena, the sectors and the backfill still run on the old queue until PERF.98.
+
 ## [8.0.1692] - 2026-10-17
 
 **Headline:** The browser-test teardown hang is retired, and two leftovers from its fix are filed.
