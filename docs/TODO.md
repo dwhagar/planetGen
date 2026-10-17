@@ -4951,26 +4951,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.242.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
-- [ ] **GEN.259 Intermediate-mass black hole share gives about 100,000 in the Galaxy against a handful of candidates (bug)**
-  `BLACK_HOLE_INTERMEDIATE_MASS_CHANCE` = 0.1% of black holes gives
-  about 1e5 intermediate-mass holes in the Galaxy, four orders above the
-  few candidates and none confirmed in the field (catalogue section
-  4.2). It was kept on purpose (Boss's "smattering") and is left alone
-  until Boss says. Decided (Boss, 2026-10-16, 3:00 PM EDT, decision
-  card): cut the chance so the Galaxy holds hundreds, as the
-  observations suggest. Done: the chance is cut so the Galaxy holds
-  hundreds of intermediate-mass holes, and its tests change with it.
-  Owner:
-  Core (2026-10-15).
-  Owner: Core 3, in the 8.1 new generate scatters line (Boss,
-  2026-10-16, 2:42 PM EDT; the cut was approved at 3:00 PM EDT).
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 24 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: GEN.236.
-  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
-
 - [ ] **GEN.263 Promote every bound compact pair to the scatter, whatever its mass**
   Step 4 (design note 4.5 and 11 item 4). A neutron star never passes
   the 14 solar mass cut, so a double neutron star would be a fill-time
@@ -5794,9 +5774,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.238, GEN.241, GEN.243, GEN.244, GEN.259, GEN.282,
-  GEN.284, GEN.298, TEST.159, TEST.160, GEN.450, TEST.196, GEN.463,
-  GEN.467, GEN.469, GEN.502, GEN.529, GEN.530.
+  Prerequisites: GEN.238, GEN.241, GEN.243, GEN.244, GEN.282, GEN.284,
+  GEN.298, TEST.159, TEST.160, GEN.450, TEST.196, GEN.469, GEN.530.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -6144,6 +6123,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Boss answered a card at 6:10 PM EDT (relayed by the coordinator, as
+  the card tap cannot be attached): GEN.321 stays with Core 3, which has
+  it in its gate (the second `changed` gate from 5:21 PM EDT); Blocker 1
+  does not take it. Blocker 1's order is GEN.314, PERF.118, GEN.438,
+  GEN.439, GEN.440. GEN.321 rides epoch 17 if that epoch is still
+  unstamped when it merges, else the next free one; `bump_version.py
+  --check-pr origin/main` decides.
   Prerequisites: none. Related: GEN.241.
 
 - [ ] **GEN.325 Planet cull in dense components by the survival formula and the metallicity factor**
@@ -10765,55 +10751,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   area-weighted result of the drawn surface rows (GEN.441), each
   carrying the band albedo of its material row in GEN.427.
 
-- [ ] **GEN.463 The neutron star's radius is derived from sourced mass-radius relations instead of the fixed range of 10 to 13 km (bug)**
-  Finding of the Body composition research lane (GEN.432 and GEN.433;
-  2026-10-17, about 1:10 AM EDT as the lane reported; merged as
-  docs/design/body-composition-research.md, parts in
-  docs/design/body-composition-parts/), filed by the TODO thread.
-  Finding F5 and part A sections 2.12 and 3.4:
-  `NEUTRON_STAR_RADIUS_RANGE_KM = (10.0, 13.0)` in `tuning.py` is drawn
-  uniformly (`compact_remnant.py` line 507) with a floor the cited
-  constraints do not support (the NICER and gravitational-wave radii
-  give 11.6 to 13.1 km). Boss decided (2026-10-17, 1:22 AM EDT, card
-  "Replace both"): replace the fixed range with a radius derived from
-  sourced relations. Do: derive the radius from the mass and the
-  equation-of-state band the sources give (the lane's table in part A
-  section 2.12, with the crust sequence and the neutron-drip layers of
-  GEN.439 reading it), as a function of the stored mass with its own
-  scatter, with the sources named and read first; remove the range and
-  the plausibility bounds that read it (`phenomena_plausibility.py`) in
-  the same change (no shim). Changes stored values (the remnant radius),
-  so it ships with a generator epoch bump and joins the one rescatter of
-  8.1; GEN.301 waits for it. Done: a test checks the radius against the
-  cited band at the cited masses, that no code reads the old range, and
-  determinism. Owner: Core 3 (proposed, the stellar tables work of
-  GEN.407).
-  Prerequisites: none. Related: GEN.407, GEN.435, GEN.439, GEN.467,
-  GEN.301.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 20 of 54). This replaces any earlier owner line on this item.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/gap-filling-plan.md section 8): BC19 white-dwarf spectral
-  type against temperature (VizieR catalogues). Data from HITRAN,
-  ExoMol, Brewer 2016 or Hypatia is downloaded at build time and no
-  derived table is stored in the repository, so builds need the network;
-  the design states how tests run offline (fixtures built by the test or
-  a cache of earlier downloads kept outside the repository, plan 6.5),
-  and the data work of group X9 waits on that design, not on the licence
-  read.
-  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
-  downloads this item makes at build time send the standard User-Agent
-  of API.31 (one function builds it).
-  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): Nearest law: Tolman-Oppenheimer-Volkoff with a cold-matter
-  equation of state gives R(M); constraints from GW170817 tidal
-  deformability and the PSR J0030 and J0740 radii; a TOV integrator is
-  about 20 lines; CompOSE tables are reachable. Quality good, rule V.
-
 - [ ] **GEN.464 The disk solids law reads the star's metal mass fraction Z over Z0, not 10 to the power of [Fe/H], which is off by 1.7 to 3 times in metal-poor alpha-enhanced stars**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
   2026-10-17, about 1:10 AM EDT as the lane reported; merged as
@@ -10941,44 +10878,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for this line; labelled stand-in at the widest bracket under the
   widest-range rule, replaced when a measurement exists. BC6, moon
   composition against distance and origin: no confirmed exomoon.
-
-- [ ] **GEN.467 The main-sequence lifetime is derived from sourced stellar relations instead of the fixed 10 Gyr for one solar mass and a power law of -2.5 (bug)**
-  Finding of the Body composition research lane (GEN.432 and GEN.433;
-  2026-10-17, about 1:10 AM EDT as the lane reported; merged as
-  docs/design/body-composition-research.md, parts in
-  docs/design/body-composition-parts/), filed by the TODO thread.
-  Finding F5 and part A section 3.4: `main_sequence_lifetime_gy`
-  (`physics/stellar_evolution.py`) is `SOLAR_MS_LIFESPAN_GY * M **
-  MS_LIFESPAN_MASS_EXPONENT`, which fixes 10 Gyr for one solar mass; the
-  Sun's central hydrogen reaches zero at about 8 Gyr in the structure
-  models, 25 percent apart. Boss decided (2026-10-17, 1:22 AM EDT, card
-  "Replace both"): replace the fixed lifetime with one derived from
-  sourced relations. Do: derive the lifetime from the star's mass and
-  metallicity through the sourced evolutionary relations (the fuel
-  fraction burned, the luminosity and the track endpoints the lane names
-  in part A section 3.4 and the stellar tables check of GEN.407), with
-  the sources read first, as a calculated function and not a set
-  constant; every user of `main_sequence_lifetime_gy` (star population,
-  giant phases, the dead-from age) reads it; remove
-  `SOLAR_MS_LIFESPAN_GY` and `MS_LIFESPAN_MASS_EXPONENT` in the same
-  change (no shim). Changes stored values (the populations by age), so
-  it ships with a generator epoch bump and joins the one rescatter of
-  8.1; GEN.301 waits for it. Done: a test checks the lifetime against
-  the cited tracks at 0.5, 1, 2 and 8 solar masses within the stated
-  error, that no code reads the old constants, and determinism. Owner:
-  Core 3 (proposed, the stellar tables work of GEN.407).
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 21 of 54). This replaces any earlier owner line on this item.
-  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): Nearest law: fuel consumption, lifetime = hydrogen fraction
-  burned x mass x X x 0.007 c^2 / mean luminosity (0.007 from the
-  recalled atomic masses of H-1 and He-4: check against NIST atomic
-  weights), or the analytic t_MS(M, Z) of Hurley, Pols and Tout 2000,
-  checked against a MIST track. Rule V.
-  Prerequisites: none. Related: GEN.407, GEN.463, GEN.396, GEN.301.
 
 - [ ] **GEN.468 Settle the water share beyond the snow line: the Marboeuf-derived 0.14 to 0.39 of the solids against the convention of about 0.5**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -12402,51 +12301,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   check the year on the item's citation.
   Prerequisites: none. Related: GEN.496, GEN.455, GEN.410.
 
-- [ ] **GEN.502 The giant branch finishes the stellar tables check: the red giant time law as a function of core mass, the tip by metallicity and the branch duration against the observed horizontal-branch ratio**
-  What GEN.407 (merged #1985, generator epoch 4, as the lane reported)
-  left out of its own Done list, filed by the TODO thread from the PR's
-  text and diff. (1) The red giant branch time law is one fitted
-  exponent, 0.78 (`GIANT_BRANCH_TIME_SLOPE`), not a calculated function
-  of core mass or metallicity; the checked core-mass-luminosity fit of
-  arXiv 2503.17772 has a slope that flattens from -0.83 at the base to
-  -0.56 at the tip, and the one exponent matches its share above 50,
-  100, 500 and 1,000 solar luminosities only within 15 percent. (2) The
-  tip stays one value, 2,500 solar luminosities, until the giant knows
-  its [Fe/H]: it is 1,650 to 1,780 at Z = 1e-4 (Serenelli 2017) and 15
-  to 50 percent higher for an [Fe/H] -2 halo star. (3) The model's red
-  giant branch (0.1 of the main-sequence lifetime, 1.1 Gy) is longer
-  than the observed one: the ratio of horizontal-branch stars to red
-  giants brighter than the branch is 0.85 against the observed 1.44 +/-
-  0.06 (41 halo clusters, Salaris et al. 2004), and the test was
-  loosened to 0.8 to 2.0 with a comment. The unverified shares (RR Lyrae
-  and extreme, the -0.1 row, the 0.1 dex per Gy age shift, the AGB
-  lifetime) stay flagged [R] and on Boss's research list. Do: the time
-  law and the tip are calculated from the core mass and [Fe/H] with the
-  sources named, the red giant branch duration follows its source so
-  that the horizontal-branch ratio test returns to the observed range
-  without a loosened bound, the stored scatter rows change so this is a
-  generator epoch change joined to the one rescatter. Done: the three
-  values follow their sources, the ratio test asserts the observed
-  range, the epoch rule and `planetgen plan --redo-scatters mass
-  luminosity` apply, and the design note realistic-galactic-core.md 5.3
-  states the checked values. Owner: Core 3 (proposed, the stellar tables
-  work of GEN.407).
-  Prerequisites: none. Related: GEN.407, GEN.396, GEN.322, GEN.301,
-  GEN.463, GEN.467.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 22 of 54). This replaces any earlier owner line on this item.
-  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): Nearest law: core-mass-luminosity relation of shell burning
-  with fuel consumption; tip from helium ignition (Serenelli 2017: 1,650
-  to 1,780 Lsun at Z = 1e-4); fit of Rees and Izzard 2025 (slope -0.83 at the base
-  to -0.56 at the tip). The evolutionary flux is 1.7 +- 0.4e-11 per
-  solar luminosity per year (Buzzoni 1997, read: V and N agree), never
-  the 2.2e-11 of earlier notes; the paper filed as 'Renzini 1997' is
-  Buzzoni 1997.
-
 - [ ] **GEN.503 The shared tuning harness: a target table, a simulate-and-compare function and a loader that refuses a tunable row without a target**
   Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
   as the coordinator reported; docs/design/tunable-gaps.md), filed by
@@ -13001,49 +12855,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   System value. Owner: Core 4 (proposed, with the composition chain).
   Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
-
-- [ ] **GEN.529 The pre-main-sequence track takes its Hayashi temperature, birthline radius and energy factor from a sourced table, and the state reaches stars still contracting after 10 Myr**
-  Residual of GEN.242 (merged #2009, 7:58 AM EDT as Core 3 reported,
-  generator epoch 9), filed by the TODO thread from Core 3's finding.
-  Three constants in `tuning.py` are marked [I] (inferred from
-  remembered tracks, not looked up): the Hayashi temperature (4,300 K at
-  1 solar mass, slope 0.17), the birthline radius (2.5 solar radii at 1
-  solar mass, mass to the 1/3) and
-  `PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR` = 3.5, which is set to one
-  remembered anchor (1 solar mass reaches the main sequence at about 40
-  Myr; the derived time alone gives 12 Myr). Baraffe et al. 2015
-  (arXiv:1503.04107) opens, but the paper has no tables; a table is
-  needed from the Baraffe 2015 CDS tracks or Siess 2000, giving the
-  zero-age main sequence age and the early luminosity and temperature by
-  mass. The Perseus multiplicity fractions (0.57 Class 0, 0.23 Class I)
-  are verified against the abstract of arXiv:1601.00692. Known
-  simplification: the state is drawn only under 10 Myr, so a 0.2 solar
-  mass star still shrinking at 100 Myr is drawn on the main sequence.
-  Not modelled: protostar accretion luminosity. Do: a lane fetches and
-  checks the table (citations verified before use; research on Boss's
-  list, Boss researches on request if the table is not reachable), the
-  three constants are replaced by values read from it with the source
-  named, the 40 Myr anchor is dropped, and the state extends past 10 Myr
-  for the low-mass stars the table says are still contracting; the
-  stored star rows change, so it is a generator epoch change joined to
-  the one rescatter. Done: the three constants and the energy factor are
-  gone or sourced (no [I]), a test compares the model's zero-age main
-  sequence age and early luminosity and temperature with the table for
-  at least five masses, the low-mass state follows the table past 10
-  Myr, and the epoch rule applies. Owner: Core 3 (proposed, GEN.242's
-  author).
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 23 of 54). This replaces any earlier owner line on this item.
-  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): The Hayashi temperature, birthline radius and energy factor are
-  recalled ([I]); the 12 Myr derived time against the 40 Myr anchor
-  shows the factor is wrong. Fix by a table lookup (Baraffe 2015 CDS
-  tables, Siess 2000 server, MIST pre-main-sequence tracks); the energy
-  factors are 3/7 (polytrope n = 3/2) and 3/4 (n = 3). Rule V.
-  Prerequisites: none. Related: GEN.242, GEN.407, GEN.502, GEN.258.
 
 - [ ] **GEN.530 A pre-placed star's hosted nebula shows from its scatter row on the maps and pages**
   Residual of GEN.320 (merged #2014, 10:07 AM EDT as Core 3 reported;
@@ -15544,7 +15355,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
   0106 DB.65 (merged, #2025), DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
   order they merge.
-  Update (TODO thread, 2026-10-17, 5:55 PM EDT): 0107 went to GEN.526
+  Update (TODO thread, 2026-10-17, 5:52 PM EDT): 0107 went to GEN.526
   (satellite ages), 0108 to DB.72 (#2060) and 0109 to GEN.289 (#2108);
   the head is 0109 and the next free is 0110. DB.69, DB.67, DB.70 and
   DB.68 take the next free ids in the order they merge, so the numbers
@@ -15565,7 +15376,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
   0106 DB.65 (merged, #2025), DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
   order they merge.
-  Update (TODO thread, 2026-10-17, 5:55 PM EDT): 0107 went to GEN.526
+  Update (TODO thread, 2026-10-17, 5:52 PM EDT): 0107 went to GEN.526
   (satellite ages), 0108 to DB.72 (#2060) and 0109 to GEN.289 (#2108);
   the head is 0109 and the next free is 0110. DB.69, DB.67, DB.70 and
   DB.68 take the next free ids in the order they merge, so the numbers
@@ -15643,7 +15454,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
   0106 DB.65 (merged, #2025), DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
   order they merge.
-  Update (TODO thread, 2026-10-17, 5:55 PM EDT): 0107 went to GEN.526
+  Update (TODO thread, 2026-10-17, 5:52 PM EDT): 0107 went to GEN.526
   (satellite ages), 0108 to DB.72 (#2060) and 0109 to GEN.289 (#2108);
   the head is 0109 and the next free is 0110. DB.69, DB.67, DB.70 and
   DB.68 take the next free ids in the order they merge, so the numbers
@@ -15698,7 +15509,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
   0106 DB.65 (merged, #2025), DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
   order they merge.
-  Update (TODO thread, 2026-10-17, 5:55 PM EDT): 0107 went to GEN.526
+  Update (TODO thread, 2026-10-17, 5:52 PM EDT): 0107 went to GEN.526
   (satellite ages), 0108 to DB.72 (#2060) and 0109 to GEN.289 (#2108);
   the head is 0109 and the next free is 0110. DB.69, DB.67, DB.70 and
   DB.68 take the next free ids in the order they merge, so the numbers
@@ -18327,168 +18138,6 @@ clears each one.
   planet, moon and star class, built as a census check on TEST.186's
   harness; TEST.209, TEST.210, TEST.211 and TEST.212 are four rule sets
   over it, not four builds.
-
-- [ ] **TEST.213 `test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star` failed in a loaded browser run: the wheel loop opened the system before the disc reached full share (bug)**
-  Found by Core 1 (2026-10-17, 12:49 AM EDT as the lane reported), filed
-  by the TODO thread.
-  `src/tests/test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star`
-  failed in a five-file run (`-n 2`, load about 4 to 6): `assert
-  shares[-1] == approx(1.0)` got [0.7507684], because the loop opened
-  the system (the URL had `&system=...`) before the disc reached full
-  share; it passed alone in 131 s at 12:49 AM EDT. Fails on main: not
-  checked. Frequency: 1 of 2 runs. Reproducer: that file with `-n 2`
-  under load. Same family as TEST.194 (fixed waits in a wheel loop).
-  Done: the cause is found (a fixed wait in the wheel loop, or a real
-  race between the disc fade and the system open), the test waits on the
-  condition it needs (the disc share) and not a fixed time, and it
-  passes under the same load, with no quarantine. Owner: Bug Hunt
-  (proposed).
-  Sighting (Core 4, 2026-10-17, 5:34 AM EDT as the lane reported, NAV.45
-  gate, build 036c9e8a685b0559, started 4:01 AM EDT): the same test
-  failed in the full gate with `assert 0.8843703345212668 == 1.0 +/-
-  1.0e-06`; it passed 3 of 3 alone on the NAV.45
-  branch (113 to 120 s each, idle box). Fails on main: not seen.
-  Frequency: now 1 of 1 more full gates (NAV.45 gate); with the 12:49 AM
-  EDT run, a loaded run only.
-  Sighting (Core 2, 2026-10-17, 6:31 AM EDT as the lane reported,
-  MAP.217 gate, work stashed, 336 s run, load 10): a different symptom,
-  "the system's scene never came in", assert [] (the shares list was
-  empty, not a share below 1). Checked idle by the TODO thread (6:28 AM
-  EDT, main with #2004, load 0.1): passed in 124.68 s. So it fails only
-  under load; the two symptoms (the disc share short of 1, the scene
-  never loading) both point to waits that are too short under load.
-  Sighting (Core 1, 2026-10-17, about 11:08 AM EDT as the lane reported,
-  DB.65's browser phase `scripts/test.py browser` on build
-  1cee3909da2b9fa6, 10:21 to 11:08 AM EDT, load about 10 on 4 cores):
-  failed once with "comparison failed" (the screenshot comparison of the
-  disc fade); 639 passed, 1 failed, 79 skipped. It passes alone (rerun
-  alone, 163.73 s on gw0, load 10.1). Fails on main: not checked.
-  Frequency: 1 of 1 full browser runs under load. Reproducer: run
-  `scripts/test.py browser` while another gate is running (load above
-  8). Bug Hunt owns it.
-  Sighting (Core 2, 2026-10-17, 11:35 AM EDT as the lane reported, its
-  MAP.225, MAP.227 and MAP.228 gate 9:36 to 11:18 AM EDT, load about 9.6
-  from other gates): failed again with "the system's scene never came
-  in", assert [], the second symptom. Core 2 reran it alone at 137.74 s
-  on gw0 at load 9.6 and it failed alone on main as well, so it fails
-  whenever the box is loaded, not only inside a gate. Fails on main:
-  yes, under load. Frequency: 1 of 1 gate runs, plus the alone rerun.
-  Bug Hunt owns it.
-  Sighting (Core 2, 2026-10-17, 11:52 AM EDT as the lane reported,
-  DOC.47's gate `scripts/test.py changed` 11:40 to 11:49 AM EDT, load
-  8.9): failed again with the same symptom, 24 passed and 1 failed;
-  reran alone, FAILED ALONE (154.81 s on gw1, load 8.9), and it fails
-  alone on main too. It has now failed alone four times at load 8.9 to
-  9.6. Fails on main: yes, under load. Bug Hunt owns it.
-  Sighting (Blocker 1, 2026-10-17, in its TEST.186 gate as the
-  coordinator relayed it at 12:18 PM EDT by the coordinator's clock,
-  load about 11): failed again with `assert shares[-1] == 1.0 +/-
-  1.0e-06`, got 0.9991066412536515 (fade shares [0, 0.022, 0.173, 0.453,
-  0.792, 0.9991]), the first symptom (the disc share short of 1). It
-  passes alone on rerun. Fails on main: not checked. Frequency: 1 of 1
-  gates run under load 11. Reproducer: run the test with the CPU busy,
-  or the full changed gate on a loaded machine. Bug Hunt owns it.
-  Clarification of the sighting of Core 1's DB.65 browser phase
-  (reported 12:58 PM EDT, its real clock): the failure text was
-  `AssertionError: [0]; assert 0 == 1.0 +/- 1.0e-06` (the disc opacity
-  read 0, expected 1), not only 'comparison failed'; it passed alone in
-  163.73 s on gw0 at load 10.1.
-  Sighting and update (Blocker 1, 2026-10-17, about 1:37 PM EDT as the
-  lane reported, relayed by the coordinator): it FAILS ON MAIN alone,
-  not only under load. A clean worktree of origin/main, run alone at
-  about 1:37 PM EDT, failed with "the system's scene never came in",
-  assert [] at line 231 of `src/tests/test_web_browser_sector_reach.py`;
-  it also failed alone in Blocker 1's second GEN.472 gate (changed gate:
-  14,408 passed, 1 failed). Kind: bug, real or environment failure on
-  main, not a load flake (the earlier 'passes alone' runs were on
-  branches without the current main). Fails on main: yes. Frequency: 2
-  of 2 alone runs at 1:37 PM EDT and in the second gate. Reproducer:
-  `python -m pytest src/tests/test_web_browser_sector_reach.py -k
-  fades_in` on main (about 2.5 minutes). Bug Hunt keeps ownership; the
-  Done line needs the cause found (a fixed wait, a real race or an
-  environment change) before any wait is lengthened.
-  Sighting (Core 2, 2026-10-17, about 1:55 and 1:58 PM EDT as the lane
-  reported, PERF.105 gate): fails alone on its branch (127 s, load 2.8)
-  AND alone on origin/main (119 s, idle): 'assert shares' empty, the
-  system's scene never came in. Fails on main: yes. Frequency: 2 of 2
-  idle runs by Core 2 (with Blocker 1's 2 of 2 alone runs: 4 of 4 alone
-  runs today after about 1:37 PM EDT). Reproducer: that one node id
-  alone. The symptom is now the empty-shares one in every idle run, not
-  the 0.75 or 0.88 share; Bug Hunt owns it.
-  Sighting (Core 5, 2026-10-17, about 2:20 PM EDT as the lane reported,
-  #2070 gate, relayed by the coordinator): fails alone on untouched main
-  8863d26 (147 s) and on Core 5's build (117 s), 'the system's scene
-  never came in', assert [], idle box. Fails on main: yes. Frequency: 6
-  of 6 alone runs since about 1:37 PM EDT (Blocker 1 two, Core 2 two,
-  Core 5 two). Reproducer: that one node id alone. Bug Hunt owns it and
-  has it next.
-  Sighting (Core 3, 2026-10-17, about 2:41 to 2:45 PM EDT as the lane
-  reported, relayed by the coordinator, GEN.528 changed gate): failed 3
-  of 3 runs in its lane, including the GEN.528 changed gate, and failed
-  alone on a clean worktree of origin/main at 2a22d340 (about 2:41 PM
-  EDT, lane clock): 'the system's scene never came in', assert [] at
-  line 231 of src/tests/test_web_browser_sector_reach.py. Fails on main:
-  yes. Frequency: 7 of 7 alone runs since about 1:37 PM EDT (Blocker 1
-  two, Core 2 two, Core 5 two, Core 3 one), plus Core 3's three lane
-  runs. Reproducer: python -m pytest
-  src/tests/test_web_browser_sector_reach.py -k fades_in (about 2
-  minutes). Bug Hunt owns it.
-  Sighting and finding (Core 1, 2026-10-17, 2:47 to 2:48 PM EDT as the
-  lane reported, GEN.527 gate and later runs): it FAILS ALONE ON CURRENT
-  MAIN at low load: origin/main 7f17820b run alone at 2:47 PM EDT failed
-  with 'the system's scene never came in', assert [] (about 2 minutes
-  per run); it also failed alone twice at load 2.4 on Core 1's branch,
-  in the DB.65 gate (it passed alone then, load 10.1) and in the GEN.527
-  gate (failed alone, load 9.1). The same test PASSED alone on an older
-  checkout, Release 8.0.1646, at 2:45 PM EDT. So it looks like a
-  regression between 8.0.1646 and 7f17820b, not a load flake. Fails on
-  main: yes. Frequency: 10 of 10 alone runs on main since about 1:37 PM
-  EDT (seven earlier plus Core 1's). Reproducer: PYTHONPATH=src python3
-  -m pytest src/tests/test_web_browser_sector_reach.py -k disc_fades_in.
-  Bug Hunt has been asked to bisect it (coordinator, 2:48 PM EDT).
-  Cause found (Bug Hunt, relayed by the coordinator, 2026-10-17, 3:22 PM
-  EDT): MAP.225's wheel zoom toward the pointer can anchor on the
-  sector's choice mesh behind a star and slide the camera away, so the
-  system's scene never comes in. It is a real product problem, not a
-  test fault, and is covered by MAP.245's clearance rule (Core 2, with a
-  test of that exact case). The test is right and stays as it is; this
-  item closes when the test passes on main with that fix, with no wait
-  lengthened and nothing quarantined. It was a regression of the zoom
-  (the test passed on Release 8.0.1646).
-  Bisect result (Bug Hunt, 2026-10-17, 4:05 PM EDT as the lane reported,
-  relayed directly): the test passes at 9e21cda9 (just before MAP.225)
-  and fails at 07b4d4a6 (the #2031 merge), alone, idle, 3 of 3 runs at
-  each point. Browser-instrumented cause at 07b4d4a6: in an opened
-  sector with the pointer a hair off the star, `anchorUnder` returns the
-  sector's choice mesh (layer 'choices', 2.28 pc behind) instead of the
-  star (0.28 pc away); `targetAboutAnchor` then moves the target 14
-  percent of the gap to that anchor per tick, 0.23 pc in one tick, so
-  the camera slides sideways past the star and a later tick leaves the
-  target 3 pc away. The system scene is never fetched (0 requests); 'the
-  scene never came in' is the symptom. This is MAP.245's clearance case
-  (the anchor must not be the sector's own wall from inside it, and the
-  step is bounded by the nearest pickable thing). The test-side patch
-  (the pointer follows the star, the disc whole at 0.999, 5 of 5 alone
-  runs pass) is held at /tmp/claude-0/test213-held.patch in Bug Hunt's
-  container; per the coordinator the test PR is held until MAP.245's
-  fix, because the product bug is real.
-  MAP.245's clearance fix is on main (Core 2, merged as #2103,
-  2026-10-17, 5:16 PM EDT as the lane reported, relayed by the
-  coordinator). The test is right and stays as it is; Bug Hunt's held
-  test-side change is released (coordinator, 5:17 PM EDT). This item
-  closes when the test passes on main with the fix and the test change
-  merged, with no wait lengthened and nothing quarantined.
-  Check on main after the fix (Bug Hunt, 2026-10-17, 5:55 PM EDT as the
-  lane reported): on main 62bca47c, which has #2103, the unmodified test
-  passes (one idle run, 83 s), so Bug Hunt's held test-side change is
-  dropped and no test PR will be opened; its big gate (build 4632033c,
-  finished 5:51 PM EDT, 19,420 passed) failed only this test because
-  that branch predated #2103. Core 2's MAP.245 gate also ran it green on
-  the branch with the fix. Closes when later gates on main (Core 3's
-  GEN.321, Core 5's bundle, Core 1's GEN.532/533) pass it too; the TODO
-  thread retires it on the first merge report of a gate that ran after
-  #2103 with this test green.
-  Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
   Boss (2026-10-17, 1:40 AM EDT, typed in the project chat): "We have to
