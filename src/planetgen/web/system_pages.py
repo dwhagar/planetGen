@@ -18,6 +18,8 @@ Nothing here reads a database name from the request (`db_name()`), and
 every link is a plain GET link (`page_url`).
 """
 
+import math
+
 from flask import abort, jsonify, redirect, request
 from markupsafe import Markup
 from planetgen.galaxy import objectref
