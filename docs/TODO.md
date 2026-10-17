@@ -5459,55 +5459,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.338. Related: GEN.280 (built), GEN.198.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
-- [ ] **GEN.286 Horizontal-branch and AGB phases in the stellar evolution model**
-  Boss (2026-10-16, 1:12 AM EDT): "why not build the model of
-  horizontal-branch stars into the mix?" The stellar evolution model
-  (src/planetgen/physics/stellar_evolution.py) has no horizontal-branch
-  phase, which makes the halo scatter counts low. Plan: section 5.3 of
-  docs/design/realistic-galactic-core.md (merged, #1735). Done:
-  evolve_star gains core helium-burning phases (red clump or red
-  horizontal branch, RR Lyrae, blue horizontal branch, extreme
-  horizontal branch: 10 to 60 solar luminosities, 4,600 to 35,000 K, 0.1
-  Gyr) and AGB phases (100 to 2,500 solar luminosities, 0.02 Gyr) for
-  stars under 2.2 solar masses between the giant phase and the white
-  dwarf; the colour is drawn from [Fe/H] and age; star_population's
-  _bright_windows, _bright_table and mass-band tables mirror the new
-  phases; Yerkes III with the type text, no column, no migration.
-  Measured: halo scatter rows at 100, 500 and 1000 floors are 12
-  million, 3.8 million and 310,000 now; the horizontal branch adds none,
-  the AGB adds 2.6%, 4% and 28%. [Fe/H] comes from GEN.158 (Core 2) or,
-  until it lands, from interim population defaults (halo -1.6 and -2.2,
-  disc and bulge -0.1). Boss (2026-10-15 10:06 PM EDT): the
-  horizontal-branch stars are to be fully part of the generation of a
-  sector, the fill as well as the scatter, in the proper proportions,
-  with the giant-branch spread of GEN.287 built in the same pipeline;
-  "go ahead and build the fix into
-  your pipe". Acceptance test (Core 3's figures): sampled old, halo and
-  bulge populations put about 0.8 to 1.2% of their stars on the
-  horizontal branch, the colour shares follow [Fe/H] (-2.2, -1.5, -0.1),
-  halo, bulge and globular-cluster cells all show them, and scatter plus
-  fill still sum to the untiered expected total. Owner Core 3 (Boss,
-  1:12 AM EDT). Goal issue #1677.
-  Prerequisites: none. Related: GEN.158, GEN.283, GEN.234, GEN.237,
-  GEN.159, GEN.160, GEN.236.
-  Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
-
-- [ ] **GEN.287 The stellar evolution model spreads giant-branch stars evenly in log luminosity, which probably overstates the bright giants by about a factor of two against real halo counts (bug)**
-  Finding from Core 3 (2026-10-16, 1:14 AM EDT, kind: model accuracy,
-  written in its galactic core note
-  docs/design/realistic-galactic-core.md, no fix planned there): the
-  giant-branch stars of the stellar evolution model are spread evenly in
-  log luminosity, which probably overstates the bright giants by about a
-  factor of two compared with real halo counts. Boss wants densities and
-  star counts to match real observations. Done: the giant-branch
-  luminosity distribution follows the time spent at each luminosity (the
-  real luminosity function) and the halo giant counts are checked
-  against published halo counts; built together with GEN.286 in the same
-  pipeline, not queued separately (Boss, 2026-10-15 10:06 PM EDT: "go
-  ahead and build the fix into your pipe"). Owner Core 3, goal issue
-  #1677.
-  Prerequisites: none. Related: GEN.286, GEN.283.
-
 - [ ] **GEN.289 Planets and moons kept as the universal point-in-space object, with point mass and movement vector stored, so perturbations have somewhere to land**
   Finding (orbital-encounters research, 2026-10-15, kind: gap in
   GEN.109): today a planet or moon is a distance, a period and a phase
@@ -5997,8 +5948,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
   Prerequisites: GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.244,
-  GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.286, GEN.287,
-  GEN.298, UX.116, TEST.159, TEST.160.
+  GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.298, UX.116,
+  TEST.159, TEST.160.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -6373,6 +6324,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Existing galaxies (Core 3 report, #1932, 2026-10-16, 10:00 PM EDT):
+  GEN.286 and GEN.287 change the stored scatter rows (the halo scatter
+  rows at the 500 luminosity floor fall from about 3.8 million to about
+  190,000), so a galaxy scattered earlier needs `planetgen plan
+  --redo-scatters mass luminosity` (as after GEN.333).
   Prerequisites: GEN.237. Related: GEN.240.
 
 - [ ] **GEN.323 The phenomena pass runs on the object-first sampler**
@@ -7884,6 +7840,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   intermediate populations follow the bubbles; old stars stay uniform.
   Prerequisites: GEN.393, NAV.60. Related: DB.38, ADM.94, GEN.298.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
+
+- [ ] **GEN.396 Revisit the Yerkes class III luminosity range: 50 to 1000 solar luminosities sits above many dim red giants**
+  Core 3's finding on GEN.286 and GEN.287 (merged #1932, 2026-10-16,
+  10:00 PM EDT): `constants.YERKES_LUMINOSITY_RANGES` gives class III 50
+  to 1,000 solar luminosities, but the red giant branch now starts near
+  3 solar luminosities (the law of GEN.287), so classification by that
+  range mislabels many dim giants. Done: the class III range, and the
+  neighbouring classes if they overlap it, follow from the evolved
+  star's own luminosity and mass (calculated, not set); a test
+  classifies stars along a 1 to 2 solar mass red giant branch at several
+  metallicities and gets class III for the giants; the classref tests
+  keep their coverage; no hand-set range stays. The generator epoch rule
+  applies if the class of any generated star changes. Not Core 3's: it
+  left the table alone.
+  Prerequisites: none. Related: GEN.286, GEN.287, GEN.259.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
