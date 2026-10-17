@@ -1224,7 +1224,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.151's tile keys; MAP.154, the nested lists, merged in #1303), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148
   and MAP.150, done in #1382); this umbrella closes last.
   Headline: 8.1 (infinite zoom: the fly-through Galaxy Map).
-  Prerequisites: MAP.245.
+  Prerequisites: MAP.247.
   Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
@@ -2320,53 +2320,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is gone (no shim).
   Prerequisites: GEN.420. Related: GEN.420.
 
-- [ ] **MAP.245 The wheel zoom's remaining parts: the column-density ray fallback, the clearance from the nearest pickable thing and the half-way double click**
-  Split from MAP.225 by the TODO thread (2026-10-17, after Core 2's
-  report of #2031 at 11:33 AM EDT as the lane reported): MAP.225's PR
-  built only the wheel part (zoom toward the point under the cursor, the
-  point staying fixed on screen; retired with #2031). Not built, and
-  kept here: the point under the cursor is, in order, the picked star,
-  remnant or cell, else the first sample along the cursor ray where the
-  integrated column density passes a threshold (the column-density ray
-  fallback), else the point at the current focus depth; each step moves
-  by `min(requested, 0.5 * (d_nearest - d_clear))`, so the speed is
-  logarithmic in the distance to the nearest pickable thing and the
-  camera never lands on a star or inside a wall by accident (the
-  clearance); and the "half way toward the point under the cursor"
-  double click on empty space (from Core 2, 2026-10-16, 4:03 PM EDT,
-  MAP.226 merged as #1859: a double click on empty space or a block
-  stays two clicks until this is built; a second click within 350 ms and
-  8 px is a double click). Boss (2026-10-09 22:24Z): "have them based on
-  the center of where the cursor is clicked. So that we always are
-  drilling down exactly where the user wants." Done: the wheel and the
-  double click use the picked object, then the column-density ray, then
-  the focus depth; a step never moves closer than the clearance to the
-  nearest pickable thing; a double click on empty space flies half way
-  toward the point under the cursor; a browser test zooms toward empty
-  space and checks the camera stops at the clearance and never inside a
-  star or wall.
-  Owner: Core 2 (the infinite zoom tree; behind PERF.105 and
-  UX.118, among the maps).
-  Case to cover (Bug Hunt finding, relayed by the coordinator,
-  2026-10-17, 3:22 PM EDT): MAP.225's wheel zoom toward the pointer can
-  anchor on the sector's choice mesh behind a star and slide the camera
-  away from the star. This is the cause of TEST.213
-  (`test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star`,
-  'the system's scene never came in') and is a real product problem, not
-  a test fault. The clearance rule of this item must cover that exact
-  case: the step toward a point never anchors on a mesh behind the
-  picked object, and a browser test zooms toward a star in front of its
-  choice mesh and ends at the star. Core 2 was told by the coordinator
-  to make sure of this and to add that test.
-  Built on branch map245 (Core 2, 2026-10-17, 4:24 PM EDT as the lane
-  reported; its gate runs until about 6:00 PM EDT, then it merges): the
-  anchor (the step never anchors on a mesh behind the picked object;
-  TEST.213 passes on the branch), the path clearance and the half-way
-  double click are done, with 3 new browser tests and 1 node test. The
-  column-density ray fallback is split out as MAP.247; this item is
-  retired when the branch merges.
-  Prerequisites: none. Related: MAP.225, MAP.146, MAP.199, MAP.226.
-
 - [ ] **MAP.247 The wheel zoom's column-density ray fallback: where the cursor ray hits nothing pickable, the point is the first sample where the integrated column density passes a threshold**
   Split from MAP.245 (Core 2, 2026-10-17, 4:24 PM EDT as the lane
   reported: the cell scene has no density field where the cursor ray
@@ -2380,7 +2333,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reason, and a browser test zooms with the cursor over empty space
   between the stars of a dense region and ends where the column passes
   the threshold, not at the focus depth. Owner: Core 2 (proposed).
-  Prerequisites: MAP.245. Related: MAP.225, MAP.245.
+  Prerequisites: none. Related: MAP.225, MAP.245.
 
 - [ ] **MAP.248 The maps and pages follow the plan configuration: with the halo or the satellite galaxies off, nothing is drawn, picked or offered beyond the configured boundaries**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
@@ -5913,9 +5866,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
   Prerequisites: GEN.238, GEN.241, GEN.243, GEN.244, GEN.259, GEN.282,
-  GEN.284, GEN.298, TEST.159, TEST.160, GEN.447, GEN.448, GEN.449,
-  GEN.450, TEST.196, GEN.463, GEN.467, GEN.469, GEN.502, GEN.529,
-  GEN.530.
+  GEN.284, GEN.298, TEST.159, TEST.160, GEN.450, TEST.196, GEN.463,
+  GEN.467, GEN.469, GEN.502, GEN.529, GEN.530.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -9968,133 +9920,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   composition statements it would write come from the checked values
   only.
 
-- [ ] **GEN.447 The wide-pair encounter limit uses the relative-velocity dispersion and the mass-weighted perturber mass**
-  Follow-up from the Core 4 citation re-check of GEN.103 and GEN.134
-  (2026-10-17, 12:45 AM EDT as the lane reported). The sharp cut at
-  a_1/2 (Jiang and Tremaine 2010: a_1/2 = 3.1e4 AU for sigma 50 km/s,
-  rho_2 0.03, 10 Gyr) reads sigma as the population's own dispersion,
-  but the paper's sigma is the dispersion of the relative velocity
-  (about the square root of 2 larger), and rho_2 uses the mass-weighted
-  perturber mass <M^2>/<M>, not the 0.4 solar mass used. The two
-  simplifications go opposite ways (about -30 percent and plus). Done:
-  the limit is computed from the galaxy's own velocity dispersion by
-  component (GEN.406) and its own mass function, with the
-  relative-velocity factor and the mass-weighted mean written out; the
-  two corrections are named in the code and the note; a test compares
-  the limit for the Sun's neighbourhood values (a test value, not an
-  input) with the paper's 3.1e4 AU. Owner: Core 4, with the multi-star
-  items.
-  Epoch and rescatter (2026-10-17, Boss 12:21 AM EDT: fix all of the
-  re-check's findings, with the 8.1 scatter changes so one rescatter
-  serves them): the item changes stored values, so it bumps the
-  generator epoch with the rule of OPS.56 and joins the one full
-  rescatter that follows the other scatter changes; GEN.301 waits for
-  it. The tables live in generation/multistar.py and tuning.py, not in
-  Core 3's sampler (GEN.322, GEN.323), so the two lanes do not collide;
-  ask Core 3 before touching its files. Core 4 takes GEN.447,
-  GEN.448 and GEN.449 as one run of PRs, so TEST.196 checks the finished
-  tables.
-  Fills (2026-10-17, gap-filling plan, docs/design/gap-filling-plan.md):
-  the values this item cannot source from a read paper are filled by the
-  plan's section 5 (derived D, bracket B, theory prior T, or labelled
-  placeholder P) and registered in one stand-in registry (plan section
-  6: fill id, kind, evidence label, source state, form, assumptions,
-  validity range, knobs, target id, falsifier test, replaced-by research
-  item, sources, licence, epoch). A lead such as Gemini may only widen a
-  bracket, and on a contradiction the verified source wins. A stand-in
-  replaced later changes stored output and rides the pending epoch. GR4
-  (age-velocity normalisation for any disc, plan 4.3, derived and ready,
-  group X2) is the gap GEN.301's own prerequisite line reaches through
-  this item; it has one closure target (the Milky Way, Sharma and Hayden
-  2020 Table 2) and is not yet tested on a second galaxy.
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): Aumer and Binney 2009 (arXiv:0905.2512)
-  is a research-thread read for the age-velocity normalisation (GR4), no
-  need for Boss.
-  Gemini batch 1 check (2026-10-17, finished 11:49 AM EDT as the lane
-  clock reported; docs/design/gemini-batch1-check.md): age-velocity
-  normalisation (Sharma and Hayden 2020 Table 2, verified): sigma_z(10
-  Gyr) 21.1 ± 0.2 km/s, sigma_R(10 Gyr) 39.4 ± 0.3, vertical heating
-  index 0.441 ± 0.007, radial index 0.251 ± 0.006; Gemini's 38.5, 62.0,
-  0.46 and 0.42 are contradicted. The Vc exponent of the vertical
-  normalisation (Gemini gamma 0.50) has no source: Martinsson prints
-  sigma_z,0 = (0.248 ± 0.038) V(2.2 hR), proportional to the rotation
-  speed.
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): GR4 for the Milky Way: Aumer and
-  Binney 2009 Eq. 16, sigma(t) = v10 ((t + tau1)/(10 Gyr + tau1))^beta,
-  Table 6: sigma_U beta 0.307, tau1 0.001, v10 41.899 km/s; sigma_V
-  0.430, 0.715, 28.823; sigma_W 0.445, 0.001, 23.831; 3D (Table 2 best
-  fit) 0.349, 0.149, 55.179; star formation alpha -2.549, gamma 0.117
-  per Gyr, tau_max 12.602 Gyr; beta = 0.5 is excluded [V]. The ratio
-  sigma_W/sigma_U runs from 0.41 at 1 Gyr to 0.57 at 10 Gyr, so the
-  plan's constant 0.54 is an old-age value. Their v10_W 23.8 km/s
-  compares with the plan's Sharma and Hayden 21.1 km/s (exponent 0.441),
-  and their beta_U 0.307 with the plan's radial 0.251. Table 5 row 3
-  prints sigma_final 61.82 where Eq. 16 gives 59.8 (a misprint). Nothing
-  covers other galaxies: that stays the Martinsson scaling with the 20
-  percent closure check.
-  Prerequisites: none. Related: GEN.103, GEN.373, GEN.406, GEN.269.
-
-- [ ] **GEN.448 Massive stars get binaries between 0.25 and 50 AU, so the metallicity trend reaches the separations where it was measured**
-  Follow-up from the Core 4 citation re-check of GEN.103 and GEN.134
-  (2026-10-17, 12:45 AM EDT as the lane reported). The generator has no
-  binaries between 0.25 and 50 AU, although massive stars peak near 10
-  AU (Moe and Di Stefano 2017; Sana 2012), so the metallicity trend (a <
-  10 AU) is applied only to the 0.05 to 0.25 AU class. Done: the
-  separation classes cover the whole range with the pooled Moe trend at
-  each star's own [Fe/H] in the odds form of GEN.103, the mass
-  dependence of the peak is drawn, the class counts stay reproducible
-  (GEN.56), and TEST.196 compares the fractions by primary mass and
-  [Fe/H] bin against the published ranges. Owner: Core 4, with the
-  multi-star items.
-  Epoch and rescatter (2026-10-17, Boss 12:21 AM EDT: fix all of the
-  re-check's findings, with the 8.1 scatter changes so one rescatter
-  serves them): the item changes stored values, so it bumps the
-  generator epoch with the rule of OPS.56 and joins the one full
-  rescatter that follows the other scatter changes; GEN.301 waits for
-  it. The tables live in generation/multistar.py and tuning.py, not in
-  Core 3's sampler (GEN.322, GEN.323), so the two lanes do not collide;
-  ask Core 3 before touching its files. Core 4 takes GEN.447,
-  GEN.448 and GEN.449 as one run of PRs, so TEST.196 checks the finished
-  tables.
-  Finding (Core 4, 2026-10-17, 10:16 AM EDT as the lane reported;
-  relayed by the coordinator): with the new binaries the G-dwarf level
-  inside 10 AU is 0.13 at [Fe/H] 0 against the pooled line's 0.20, and
-  the O and B flatness ratios are 1.32 and 1.43. The built branch is in
-  its gate (ends near 11:30 AM EDT); TEST.196 carries the check.
-  Prerequisites: none. Related: GEN.103, GEN.269, GEN.270, TEST.196.
-
-- [ ] **GEN.449 The companion table for mid and early B stars is raised to the observed frequencies**
-  Follow-up from the Core 4 citation re-check of GEN.103 and GEN.134
-  (2026-10-17, 12:45 AM EDT as the lane reported). The has-a-companion
-  table matches Moe and Di Stefano 2017 Table 13 for G, A and O stars
-  (0.44, 0.55 and 0.90 against 40, 59 and 94 percent) but is 10 to 20
-  points low for mid and early B stars (0.65 against 76 and 84 percent).
-  The same table also gives the close-binary frequency by mass bin
-  (0.15, 0.37, 0.63, 0.8, 1.0), the single-star fractions (0.60, 0.41,
-  0.24, 0.16, 0.06) and 35 +-10 percent of mid-B stars with a companion
-  (q above 0.1, P under 400 d), and the solar-type companion frequency
-  is 0.50 +-0.04. Done: `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`
-  and the star-count table are rederived from those figures, with the
-  table named in the constants; TEST.196 checks the bins. Owner: Core 4,
-  with the multi-star items.
-  Epoch and rescatter (2026-10-17, Boss 12:21 AM EDT: fix all of the
-  re-check's findings, with the 8.1 scatter changes so one rescatter
-  serves them): the item changes stored values, so it bumps the
-  generator epoch with the rule of OPS.56 and joins the one full
-  rescatter that follows the other scatter changes; GEN.301 waits for
-  it. The tables live in generation/multistar.py and tuning.py, not in
-  Core 3's sampler (GEN.322, GEN.323), so the two lanes do not collide;
-  ask Core 3 before touching its files. Core 4 takes GEN.447,
-  GEN.448 and GEN.449 as one run of PRs, so TEST.196 checks the finished
-  tables.
-  Prerequisites: none. Related: GEN.103, GEN.269, TEST.196.
-
 - [ ] **GEN.450 The star-formation profile's radial slope: reconcile the Schmidt index with the observed gradient, with the choice named**
   Follow-up from the Core 4 citation re-check of GEN.134 (2026-10-17,
   12:45 AM EDT as the lane reported), filed for Boss (2026-10-17, 12:21
@@ -13969,6 +13794,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.120, GEN.371.
   Boss, 2026-10-17, 4:49 PM EDT: the satellite scatter kinds read this
   switch from the stored galaxy setting, and no other scatter kind does.
+
+- [ ] **GEN.541 The wide-pair perturber mass: black holes carry about twice the second moment of all stars; decide whether remnants stay in it, with the black-hole mass function checked**
+  Finding from Core 4 (2026-10-17, 5:16 PM EDT as the lane reported,
+  GEN.447 merged as #2100): in the mass-weighted perturber mass of the
+  wide-pair encounter limit, black holes carry about twice the second
+  moment of all stars together; with `remnants=False` the stars-only
+  figure is 0.59 against 1.46 with them. Remnants are real perturbers,
+  so the default stands: they stay in. Done: the black-hole share of the
+  second moment is traced to its inputs (the black-hole number and mass
+  function the galaxy draws, with the sources read first, verified
+  sources before unverified, NO FIXED CONTENT), the figure that results
+  is written beside the limit with the stars-only value, and, if the
+  inputs do not hold, the limit is corrected; if they hold, the note
+  says so and the item closes. The change of any stored value bumps the
+  generator epoch with the OPS.56 rule. Owner: Core 4 (proposed, the
+  GEN.447 author).
+  Prerequisites: none. Related: GEN.447, GEN.450.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -18180,6 +18022,23 @@ clears each one.
   against this check's 1.3 edge. The check's expectations for them are
   to be set from the built tables (TEST.196), not the other way round,
   once GEN.448 and GEN.449 merge.
+  Merged-state findings (Core 4, 2026-10-17, 5:16 PM EDT as the lane
+  reported, GEN.447, GEN.448 and GEN.449 merged as #2100, #2101, #2102,
+  epochs 14, 15, 16): (1) the G-dwarf level inside 10 AU is 0.13 at
+  [Fe/H] 0 against the pooled line's 0.20 (Table 13's own figure is 0.15
+  +-0.03; the cause is open); Boss's 12:39 PM EDT rule (the newest
+  verified source wins) would point to the 2019 line; this check
+  compares ratios, not absolutes, so an offset in the level does not
+  fail it. (2) The O and B flatness ratios at [Fe/H] -0.7 are 1.32 and
+  1.43 against this check's 1.3 edge. Default until Boss says otherwise
+  (his rule that when two sources are both in question the widest range
+  wins, 12:39 PM EDT): the edge is widened to the range the sources give
+  once they are read, and the check is not narrowed to O only; Boss may
+  overrule. (3) Table 13's close-binary frequency by primary mass (0.15,
+  0.37, 0.63, 0.8, 1.0) sits in
+  `tuning.MULTIPLICITY_BY_PRIMARY_MASS_BIN` and nothing draws from it;
+  default: it is a reference for this check and never an input to the
+  draw, as the ranges above are.
 
 - [ ] **TEST.198 `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug)**
   Found by Core 3 (2026-10-16, 6:22 PM EDT), filed by the TODO thread.
@@ -18627,6 +18486,12 @@ clears each one.
   runs pass) is held at /tmp/claude-0/test213-held.patch in Bug Hunt's
   container; per the coordinator the test PR is held until MAP.245's
   fix, because the product bug is real.
+  MAP.245's clearance fix is on main (Core 2, merged as #2103,
+  2026-10-17, 5:16 PM EDT as the lane reported, relayed by the
+  coordinator). The test is right and stays as it is; Bug Hunt's held
+  test-side change is released (coordinator, 5:17 PM EDT). This item
+  closes when the test passes on main with the fix and the test change
+  merged, with no wait lengthened and nothing quarantined.
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
