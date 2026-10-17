@@ -46,6 +46,7 @@ from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import classref  # noqa: E402
 from planetgen.web.lib import pagecache  # noqa: E402
 from planetgen.web.lib import pagetags  # noqa: E402
+from planetgen.web.lib.slowpages import take_notice as slow_notice  # noqa: E402
 from planetgen.db import dataversion  # noqa: E402
 from planetgen.web.lib.fmt import STATIC_VERSION, format_number, utc_time_html  # noqa: E402
 from planetgen.web.lib.fmt import static_url as fmt_static_url  # noqa: E402
@@ -163,6 +164,7 @@ def _template_globals():
         "pending_restart_options": settings_view.pending_restart,
         "csrf_field": csrf.csrf_field,
         "edit_flashes": edit_flashes,
+        "slow_notice": slow_notice,
         "math_check_failures": math_check_failures,
         "utc_time": lambda value: Markup(utc_time_html(value)),
         # UX.20: every count or measurement a template shows, `num(x)` or

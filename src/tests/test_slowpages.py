@@ -68,7 +68,8 @@ def slow(galaxy, monkeypatch):  # noqa: F811
         if meta.get("db") == galaxy.config.database and meta.get("queue_job"):
             api_jobs.cancel(meta["queue_job"])
         if key.startswith(("planetgen:slowmeta:", f"planetgen:slowjob:{galaxy.config.database}:",
-                           f"planetgen:slowtime:{galaxy.config.database}:")):
+                           f"planetgen:slowtime:{galaxy.config.database}:",
+                           f"planetgen:slowpath:{galaxy.config.database}:")):
             connection.delete(key)
     slowpages.clear_estimates()
 
@@ -99,6 +100,19 @@ def test_a_measured_time_beats_the_row_estimate(slow, monkeypatch):
             "why": "timed"}
         monkeypatch.setattr(tuning, "SLOW_PAGE_ROW_BUDGET", 10 ** 12)
         assert slowpages.cost(db, "/phenomena", target)["why"] == "timed"  # slow in fact, small by rows
+
+
+def test_a_request_not_seen_before_takes_its_route_s_recent_slowest_build(slow, monkeypatch):
+    db = slow.config.database
+    app = _site(slow.config)
+    other = f"/phenomena?db={db}&limit=5"
+    with app.test_request_context("/"):
+        assert slowpages.cost(db, "/phenomena", other)["why"] == "rows"      # nothing on the route timed yet
+        pagejobs.record_duration(db, f"/phenomena?db={db}", tuning.SLOW_PAGE_SECONDS * 3)
+        assert slowpages.cost(db, "/phenomena", other)["why"] == "route"     # a wide one was slow a moment ago
+        redisclient.client().delete(pagejobs.path_key(db, "/phenomena"))
+        pagejobs.record_duration(db, f"/phenomena?db={db}", tuning.SLOW_PAGE_SECONDS / 10)
+        assert slowpages.cost(db, "/phenomena", other) is None                # the route has been quick lately
 
 
 def test_the_phenomena_route_is_costed_on_every_table_it_reads():

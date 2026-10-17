@@ -1,0 +1,36 @@
+{#- The loading state of a slow page (web/lib/slowroute.py, UX.118): the page's own frame with a progress bar in
+place of its content. static/slowload.js polls the job and swaps the finished page in. -#}
+{% extends "base.html" %}
+{% block head %}
+<meta name="robots" content="noindex">
+<noscript><meta http-equiv="refresh" content="{{ refresh_seconds }}"></noscript>
+<script type="module" src="{{ static_url('slowload.js') }}"></script>
+{% endblock %}
+{% block content %}
+<section class="panel slow-load" id="slow-load" aria-labelledby="slow-load-heading"
+  data-slow-load data-job="{{ job.id }}" data-status-url="{{ url_for('api.page_job_status_route', job_id=job.id) }}"
+  data-state="{{ job.state }}">
+  <div class="panel-header">
+    <h2 id="slow-load-heading">Building this page</h2>
+  </div>
+  <p class="hint">Some answers are large. This one is being built in the background and will appear here when it is
+    ready. You can keep using the menus meanwhile.</p>
+  <p class="job-progress">
+    <progress data-slow-bar max="100" aria-labelledby="slow-load-heading" aria-describedby="slow-load-status"
+      {%- if percent is not none %} value="{{ percent }}"{% endif %}></progress>
+    <span data-slow-percent>{% if percent is not none %}{{ percent }}%{% endif %}</span>
+  </p>
+  <p id="slow-load-status" data-slow-status role="status" aria-live="polite">
+    {%- if job.state == "running" %}{{ progress_text }}{% else %}{{ state_text.get(job.state, "") }}{% endif -%}
+  </p>
+  <p class="error" role="alert" data-slow-error{% if job.state not in ("failed", "cancelled") %} hidden{% endif %}>
+    {%- if job.state == "failed" %}{{ job.error or state_text.failed }}{% elif job.state == "cancelled" %}{{ state_text.cancelled }}{% endif -%}
+  </p>
+  <p class="slow-load-actions">
+    <button type="button" class="btn" data-slow-stop{% if job.state in ("failed", "cancelled") %} hidden{% endif %}>Stop waiting</button>
+    <button type="button" class="btn" data-slow-resume hidden>Check again</button>
+    <button type="button" class="btn" data-slow-retry{% if job.state not in ("failed", "cancelled") %} hidden{% endif %}>Try again</button>
+  </p>
+  <noscript><p class="hint">This page refreshes itself every {{ refresh_seconds }} seconds until it is ready.</p></noscript>
+</section>
+{% endblock %}

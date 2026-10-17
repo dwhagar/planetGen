@@ -26,6 +26,7 @@ from planetgen.galaxy import objectref
 from planetgen.physics import constants as physical_constants
 from planetgen.physics.lensing import einstein_radius_against_galactic_centre_m
 from planetgen.web.lib import apiclient, facility_display
+from planetgen.web.lib.slowroute import slow_route
 from planetgen.web.lib.fmt import (
     distance_km_html, distance_ly_html, format_distance_km, format_members, format_number, linkify_nearest,
     nearest_systems_html, period_years_html, quantity_html, runaway_text, speed_kms_html,
@@ -502,6 +503,8 @@ PHENOMENA_TABLE = tables.register(Table(
 
 
 @bp.route("/phenomena")
+@slow_route("Phenomena", section="phenomena", breadcrumbs=lambda: [crumb("Phenomena")],
+            description="Every nebula, black hole, neutron star and other exotic phenomenon in this charted galaxy.")
 def phenomena():
     """Every exotic phenomenon, placed on the galaxy map or not, as a data
     table (UX.41): sort by any column, filter by type and descriptor, and

@@ -11,6 +11,7 @@ import re
 from flask import abort, flash, get_flashed_messages, redirect, request, url_for
 
 from planetgen.web.lib import apiclient
+from planetgen.web.lib.slowroute import slow_route
 from planetgen.web.lib.datatable import Column, Facet, Result, Table, plain
 from planetgen.web.lib.fmt import (
     format_density, format_distance_ly, format_luminosity_sol, format_members, format_number, format_mass_solar)
@@ -310,6 +311,8 @@ def generate_uncharted_system(bright_star_id):
 
 @bp.route("/search")
 @page_limit("search")
+@slow_route("Search", breadcrumbs=lambda: [crumb("Search")],
+            description="Search this charted galaxy by name, size and type.")
 def search():
     """
     Faceted search (was `search.py`): `?q=` searches every kind of name

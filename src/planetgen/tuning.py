@@ -3864,6 +3864,10 @@ SLOW_PAGE_ROWS_PER_SECOND = 250_000
 """int: How many rows a build reads per second, for the first estimate of how long a request will take, before one
 has been timed. A planetGen default."""
 
+SLOW_PAGE_PATH_SECONDS = 600
+"""int: How long the slowest recent build of a route (any request on it) counts for a request of that route that
+has not been timed itself (`slowpages.cost`). A planetGen default."""
+
 SLOW_PAGE_JOB_SECONDS = 3600
 """int: How long a slow request's job (its id, progress and finished state) is kept in Redis. A planetGen default."""
 
