@@ -221,6 +221,8 @@ Rules, which make the GEN.61 merge deterministic and idempotent:
 
 ### 6.3 The settings JSON (ADM.18) in the same style
 
+*Removed by ADM.50 (2026-10-16): there is no settings file now ([reproducible-galaxies.md](reproducible-galaxies.md) section 7). The encoding rules below stand for any record that stores these values.*
+
 The same encoder: `seed` as 32 uppercase hex, `version_key` with parts spelled out, `epoch`, `fp_spec`, every creation setting at full float repr (they are generator inputs and must not be quantised), `lock_sha256`, `env`, the naming key and its `CODEC_VERSION` ([object-ids.md](object-ids.md), GEN.70), the filtered word list's SHA-256 with the list itself in gzip and base64 (stars and sectors keep word-salad names per Boss's 2026-10-08 decisions), and `content_sha256`. The file name `<seed>-<key>-<YYYYMMDD>-<HHMMSS>Z.json` has no colons.
 
 ## 7. Golden-seed test structure (TEST.77)

@@ -25,7 +25,7 @@ from planetgen.generation import phenomenon_scatter
 from planetgen.generation import scatter_companions as scatterCompanions
 from planetgen.generation import star_population as starPopulation
 from planetgen.generation.star_labels import describe_types, star_label
-from planetgen.galaxy import component_field as componentField, nebula_field as nebulaField, seed as galaxySeed, settings_file
+from planetgen.galaxy import component_field as componentField, nebula_field as nebulaField, seed as galaxySeed
 from planetgen.names import naming_key
 from planetgen.physics import constants
 from planetgen import tuning as program_constants
@@ -337,8 +337,7 @@ def build_skeleton(args):
     else:
         source = "drawn at random"
     log.normal(f"Galaxy seed {galaxySeed.format_seed(galaxy_seed)} ({source}).")
-    key = _draw_naming_key(mysql_config, galaxy_seed, new_seed=stored_seed != galaxy_seed)
-    _write_settings_file(args, galaxy_seed, key, edge_pc, outer_shell_index, e_value, shape)
+    _draw_naming_key(mysql_config, galaxy_seed, new_seed=stored_seed != galaxy_seed)
 
     return {
         "outer_shell_index": outer_shell_index,
@@ -371,26 +370,6 @@ def _draw_naming_key(mysql_config, galaxy_seed, new_seed):
         conn.close()
     log.normal(f"Naming key {key}.")
     return key
-
-
-def _write_settings_file(args, galaxy_seed, naming_key_value, edge_pc, outer_shell_index, e_value, shape):
-    """
-    ADM.18: the creation settings, seed, version and word lists as a JSON
-    file for the Admin dashboard (`galaxy/settings_file.py`). A plan that
-    changes nothing writes nothing; one that changes a setting keeps the old
-    file as a dated backup. A file that can't be written only warns: the
-    plan itself is done.
-    """
-    try:
-        document = settings_file.build(
-            vars(args), galaxy_seed, naming_key=naming_key_value,
-            shape={"edge_pc": edge_pc, "outer_shell_index": outer_shell_index,
-                   "expected_system_count_at_density_1": e_value, "k_norm": shape.k_norm})
-        entry = settings_file.write(document, galaxy_seed)
-    except Exception as exc:  # noqa: BLE001 -- no writable folder, or no word lists installed
-        log.normal(f"Warning: the settings file was not written: {exc}")
-        return
-    log.normal(f"Settings file {entry['path']}.")
 
 
 def scatter_bright_stars(args, passes=("mass", "luminosity")):

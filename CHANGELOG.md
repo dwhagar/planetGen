@@ -2,6 +2,174 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1596] - 2026-10-17
+
+**Headline:** The browser-test hangs (TEST.193 and TEST.195) have an owner: Core 1, ahead of its bug phase.
+
+### Changed
+- TEST.193 and TEST.195 name Core 1 as owner (Boss, 2026-10-16, 8:23 PM EDT, "Core 1 next"), starting right after its stack and the GEN.372 audit merge.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1595] - 2026-10-17
+
+**Headline:** DB.18 (migration helpers for slow DDL) leaves the TODO list, and the browser-test hangs that hit every full gate this evening are recorded as a repeating failure.
+
+### Changed
+- DB.18 retired on Core 2's merge (#1901).
+- TEST.193 and TEST.195 record Core 2's sighting (8:12 PM EDT): three browser tests hung about 15 minutes in setup or teardown in every full gate this evening, failing on main too.
+- DB.65 records its migration revision, 0105.
+
+TODO items resolved: DB.18 / Added: none
+
+## [8.0.1594] - 2026-10-17
+
+**Headline:** Migrations have helpers for slow changes on big tables, so the server refuses instead of silently copying.
+
+### Added
+- `planetgen/db/migrations/helpers.py`: `add_column_instant`, `drop_column_instant`, `add_index_online`, `drop_index_online`, `batched_update` (pages by key, a commit per page, progress on the migration's bar), the `exists_*` checks, `lock_wait_timeout`, and a check that refuses to start behind a long-open transaction. Each names its `ALGORITHM`, and each skips work already done so a stopped revision can be run again.
+
+## [8.0.1593] - 2026-10-16
+
+**Headline:** Boss's star-glow note is on the list: stars should glow brighter instead of growing bigger, with colour following the star's properties.
+
+### Added
+- MAP.241 (bug): stars on the Galaxy Map and the Sector Map keep a small, near-equal size while luminosity raises the glow and temperature sets the colour (Boss, 2026-10-16, 7:43 PM EDT).
+
+TODO items resolved: none / Added: MAP.241
+
+## [8.0.1592] - 2026-10-16
+
+**Headline:** The precision audit's follow-up work is on the list: eight items for the tile root, camera-relative buffers, orbit phases, the cell key, two kernels and two tests.
+
+### Added
+- MAP.239: the map tile root rises to the 262 kpc reach. MAP.240: browser buffers hold camera-relative coordinates (Boss, 2026-10-16, 7:36 to 7:38 PM EDT).
+- GEN.374 (orbit phase formulas reduce first, JavaScript Kepler tolerance 1e-12), DB.65 (cell key clamp), GEN.375 (field kernel local origin), GEN.376 (region haversine).
+- TEST.200 (the nightly local offset limit, documented and pinned), TEST.201 (`block_stats` totals independent of row order).
+
+### Changed
+- GEN.372 records the audit's verdict (64-bit is enough) and Boss's four decisions; GEN.109 notes that compensated sums wait for it.
+
+TODO items resolved: none (GEN.372 resolves when the audit merges) / Added: MAP.239, MAP.240, GEN.374, DB.65, GEN.375, GEN.376, TEST.200, TEST.201
+
+## [8.0.1591] - 2026-10-16
+
+**Headline:** A far-tail precision failure in the galaxy density fuzz test is on the list as TEST.199 and attached to the precision audit.
+
+### Added
+- TEST.199 (bug): `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on main when the halo is subtracted from a much larger sum (found by Core 2).
+
+### Changed
+- GEN.372 lists TEST.199 as its first attached precision finding.
+
+TODO items resolved: none / Added: TEST.199
+
+## [8.0.1590] - 2026-10-16
+
+**Headline:** ADM.50 (remove the galaxy settings files) leaves the TODO list, and the central black hole is recorded as staying exactly on the origin.
+
+### Changed
+- ADM.50 retired on Core 2's merge (#1896); the item that needed it no longer lists it.
+- GEN.368 records Boss's answer (2026-10-16, 7:27 PM EDT): the central black hole stays exactly on the origin with no seeded offset; its mass is to be derived from the bulge (M-bulge or M-sigma with scatter), the design gap the read-only thread found.
+
+TODO items resolved: ADM.50 / Added: none
+
+## [8.0.1589] - 2026-10-16
+
+**Headline:** The galaxy settings files are gone; the galaxy keeps one internal record of how it was made.
+
+### Changed
+- `planetgen plan` no longer writes a JSON settings file, and the Stats page and `GET /api/admin/galaxy-settings[/<name>]` no longer offer one. The mismatch warning compares the running release, Python, platform and version key with the record that `galaxy_shape` already holds, and still names the sectors made by another version.
+- `update.sh` deletes the old `galaxy-settings` folder from the jobs directory once.
+
+## [8.0.1588] - 2026-10-16
+
+**Headline:** Boss's three Galaxy Map notes of 2026-10-16 are on the list: clearer superbubble bounds, the invisible Charted only view, and colour-and-opacity highlighting for charted regions.
+
+### Added
+- MAP.236: superbubbles get clearer bounds and slightly more transparency (Boss, 7:24 PM EDT).
+- MAP.237 (bug): the Galaxy Map's Charted only view is invisible again.
+- MAP.238: charted regions are highlighted by colour and opacity, with no outlined blocks (after MAP.237).
+
+### Changed
+- UX.48 says the region highlight is a fill, not an outline.
+
+TODO items resolved: none / Added: MAP.236, MAP.237, MAP.238
+
+## [8.0.1587] - 2026-10-16
+
+**Headline:** The TODO list now has a Galaxy Map key item (the green superbubble shapes have no legend), and GEN.103 records the odds form as decided.
+
+### Added
+- MAP.234: a Key section in the Galaxy Map help dialog and an on-map key naming everything the map draws (Boss, 2026-10-16, 7:16 PM EDT).
+- MAP.235: superbubbles as a registered Galaxy Map layer with a toggle, hover name and radius, after MAP.217.
+
+### Changed
+- GEN.103 and the multi-star design note record Boss's choice (2026-10-16, 7:19 PM EDT): the metallicity factor is applied to the odds of a close companion, for every mass.
+
+TODO items resolved: none / Added: MAP.234, MAP.235
+
+## [8.0.1586] - 2026-10-16
+
+**Headline:** The massive-multiples rule of GEN.103 is now its own item, GEN.373, and the TODO list records Core 4's odds form for the metallicity effect.
+
+### Added
+- GEN.373: massive multiples sit in young regions, `prevalence` from the cell's young share with a derived cap (split from GEN.103 section 3.2).
+
+### Changed
+- GEN.103 in `docs/TODO.md` records the odds form (the [Fe/H] factor applied to the odds of a close companion), its check values and the point where Boss's word is needed; it closes with the 3.1 and 3.3 build.
+- TEST.196 notes the massive-star bins are expected to pass with that form.
+
+TODO items resolved: none / Added: GEN.373
+
+## [8.0.1585] - 2026-10-16
+
+**Headline:** The TODO list records that the GEN.103 placement note is on main and that its massive-multiples rule stays open.
+
+### Changed
+- GEN.103 in `docs/TODO.md` records the placement-by-population note (#1891), the split of the build (3.1 and 3.3 now, 3.2 with the multi-star items) and the open `prevalence` cap.
+- TEST.196 records that TEST.186 is not on main and that the massive-star bins wait for the cap decision.
+
+TODO items resolved: none (GEN.102 was retired earlier) / Added: none
+
+## [8.0.1584] - 2026-10-16
+
+**Headline:** The void-fill question (GEN.102) is answered again for the spherical grid, with a census of the sparse cells and the space beyond the outline.
+
+### Added
+
+- New `docs/design/void-fill-census.md`: the count of sparse cells on today's grid (13% of the outline's cells hold under one expected system and 0.8% of its systems), the time and storage of filling them, the 1.2 x 10^15 cells beyond the outline that hold 5.2 x 10^9 systems between them, and the recommendation (no pre-fill; the halo comes from regions, not cells). The census scripts are in the project files.
+
+TODO items resolved: GEN.102 / Added: none
+
+## [8.0.1583] - 2026-10-16
+
+**Headline:** The placement of each star type and phenomenon by population (GEN.103) is written down: what is built, and the three rules for the type draws that are not.
+
+### Added
+
+- New `docs/design/placement-by-population.md`: a table of where every kind in the registry is placed and by what, and three population-dependent rules for the star-count and pairing draws (close pairs against [Fe/H], massive multiples in young regions, a wide-pair limit from the local density), each as a function of the sector profile, with their constants, taken from Boss's 2026-10-16 research and checked against the sources.
+
+TODO items resolved: none (GEN.103's build is the multi-star items) / Added: none
+
+## [8.0.1582] - 2026-10-16
+
+**Headline:** The numeric precision audit (GEN.372) has an owner: Core 1, with Core 2 reading the camera and render rows.
+
+### Changed
+- GEN.372 in `docs/TODO.md` and the 8.3 plan page now name Core 1 as owner (Boss chose it on 2026-10-16, 6:59 PM EDT).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1581] - 2026-10-16
+
+**Headline:** The plan now has one item that collects every numeric precision question at galactic scale.
+
+### Added
+- **GEN.372, the numeric precision audit (Boss, 6:54 PM EDT).** One written audit of every float coordinate and sum the galaxy stores, computes or draws: how far each gets from its origin, where the first error shows, and whether float64 plus a coarse integer address and a local offset is enough or a wider sum is needed. It also settles three disagreeing spacing figures in the notes. It sits first in the 8.3 "Positions as one object" thread, GEN.294 waits on it, and any lane that meets a precision bug sends it to the TODO thread to attach there. Proposed owner Core 1; goal issue #1669.
+
+TODO items resolved: none / Added: GEN.372
+
 ## [8.0.1580] - 2026-10-16
 
 **Headline:** The TODO list retires the three scatter-limit settings columns, which Core 3 built.
