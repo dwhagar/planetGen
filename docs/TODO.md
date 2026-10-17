@@ -5922,7 +5922,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and scattering, including the halo).
   Prerequisites: GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.244,
   GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.298, UX.116,
-  TEST.159, TEST.160.
+  TEST.159, TEST.160, GEN.447, GEN.448, GEN.449, GEN.450.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -9243,6 +9243,113 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.430, GEN.415, GEN.420, GEN.208.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
+
+- [ ] **GEN.447 The wide-pair encounter limit uses the relative-velocity dispersion and the mass-weighted perturber mass**
+  Follow-up from the Core 4 citation re-check of GEN.103 and GEN.134
+  (2026-10-17, 12:45 AM EDT as the lane reported). The sharp cut at
+  a_1/2 (Jiang and Tremaine 2010: a_1/2 = 3.1e4 AU for sigma 50 km/s,
+  rho_2 0.03, 10 Gyr) reads sigma as the population's own dispersion,
+  but the paper's sigma is the dispersion of the relative velocity
+  (about the square root of 2 larger), and rho_2 uses the mass-weighted
+  perturber mass <M^2>/<M>, not the 0.4 solar mass used. The two
+  simplifications go opposite ways (about -30 percent and plus). Done:
+  the limit is computed from the galaxy's own velocity dispersion by
+  component (GEN.406) and its own mass function, with the
+  relative-velocity factor and the mass-weighted mean written out; the
+  two corrections are named in the code and the note; a test compares
+  the limit for the Sun's neighbourhood values (a test value, not an
+  input) with the paper's 3.1e4 AU. Owner: Core 4, with the multi-star
+  items.
+  Epoch and rescatter (2026-10-17, Boss 12:21 AM EDT: fix all of the
+  re-check's findings, with the 8.1 scatter changes so one rescatter
+  serves them): the item changes stored values, so it bumps the
+  generator epoch with the rule of OPS.56 and joins the one full
+  rescatter that follows the other scatter changes; GEN.301 waits for
+  it. The tables live in generation/multistar.py and tuning.py, not in
+  Core 3's sampler (GEN.322, GEN.323), so the two lanes do not collide;
+  ask Core 3 before touching its files. Core 4 takes GEN.373, GEN.447,
+  GEN.448 and GEN.449 as one run of PRs, so TEST.196 checks the finished
+  tables.
+  Prerequisites: none. Related: GEN.103, GEN.373, GEN.406, GEN.269.
+
+- [ ] **GEN.448 Massive stars get binaries between 0.25 and 50 AU, so the metallicity trend reaches the separations where it was measured**
+  Follow-up from the Core 4 citation re-check of GEN.103 and GEN.134
+  (2026-10-17, 12:45 AM EDT as the lane reported). The generator has no
+  binaries between 0.25 and 50 AU, although massive stars peak near 10
+  AU (Moe and Di Stefano 2017; Sana 2012), so the metallicity trend (a <
+  10 AU) is applied only to the 0.05 to 0.25 AU class. Done: the
+  separation classes cover the whole range with the pooled Moe trend at
+  each star's own [Fe/H] in the odds form of GEN.103, the mass
+  dependence of the peak is drawn, the class counts stay reproducible
+  (GEN.56), and TEST.196 compares the fractions by primary mass and
+  [Fe/H] bin against the published ranges. Owner: Core 4, with the
+  multi-star items.
+  Epoch and rescatter (2026-10-17, Boss 12:21 AM EDT: fix all of the
+  re-check's findings, with the 8.1 scatter changes so one rescatter
+  serves them): the item changes stored values, so it bumps the
+  generator epoch with the rule of OPS.56 and joins the one full
+  rescatter that follows the other scatter changes; GEN.301 waits for
+  it. The tables live in generation/multistar.py and tuning.py, not in
+  Core 3's sampler (GEN.322, GEN.323), so the two lanes do not collide;
+  ask Core 3 before touching its files. Core 4 takes GEN.373, GEN.447,
+  GEN.448 and GEN.449 as one run of PRs, so TEST.196 checks the finished
+  tables.
+  Prerequisites: none. Related: GEN.103, GEN.269, GEN.270, TEST.196.
+
+- [ ] **GEN.449 The companion table for mid and early B stars is raised to the observed frequencies**
+  Follow-up from the Core 4 citation re-check of GEN.103 and GEN.134
+  (2026-10-17, 12:45 AM EDT as the lane reported). The has-a-companion
+  table matches Moe and Di Stefano 2017 Table 13 for G, A and O stars
+  (0.44, 0.55 and 0.90 against 40, 59 and 94 percent) but is 10 to 20
+  points low for mid and early B stars (0.65 against 76 and 84 percent).
+  The same table also gives the close-binary frequency by mass bin
+  (0.15, 0.37, 0.63, 0.8, 1.0), the single-star fractions (0.60, 0.41,
+  0.24, 0.16, 0.06) and 35 +-10 percent of mid-B stars with a companion
+  (q above 0.1, P under 400 d), and the solar-type companion frequency
+  is 0.50 +-0.04. Done: `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`
+  and the star-count table are rederived from those figures, with the
+  table named in the constants; TEST.196 checks the bins. Owner: Core 4,
+  with the multi-star items.
+  Epoch and rescatter (2026-10-17, Boss 12:21 AM EDT: fix all of the
+  re-check's findings, with the 8.1 scatter changes so one rescatter
+  serves them): the item changes stored values, so it bumps the
+  generator epoch with the rule of OPS.56 and joins the one full
+  rescatter that follows the other scatter changes; GEN.301 waits for
+  it. The tables live in generation/multistar.py and tuning.py, not in
+  Core 3's sampler (GEN.322, GEN.323), so the two lanes do not collide;
+  ask Core 3 before touching its files. Core 4 takes GEN.373, GEN.447,
+  GEN.448 and GEN.449 as one run of PRs, so TEST.196 checks the finished
+  tables.
+  Prerequisites: none. Related: GEN.103, GEN.269, TEST.196.
+
+- [ ] **GEN.450 The star-formation profile's radial slope: reconcile the Schmidt index with the observed gradient, with the choice named**
+  Follow-up from the Core 4 citation re-check of GEN.134 (2026-10-17,
+  12:45 AM EDT as the lane reported), filed for Boss (2026-10-17, 12:21
+  AM EDT: fix all of the re-check's findings). The Milky Way's own
+  Schmidt index of 1.12 to 1.2 gives a star-formation gradient of about
+  -0.19 dex per kpc beyond the peak, while the observed -0.28 dex per
+  kpc needs an index of about 1.65 (Kennicutt 1998 gives 1.4 +-0.15).
+  GEN.134 derives the profile from the galaxy's own gas profile and a
+  Schmidt law, so the gradient it produces depends on this choice, and
+  the observed figure stays a test target, never an input (NO FIXED
+  CONTENT). Done: the sources for each way of closing the gap are
+  checked first (a Schmidt index that rises at low gas density, a gas
+  disc more extended or steeper than the stars, the Herschel scale
+  length of 1.55 kpc against the stellar 2.6 kpc, the outer-disc
+  threshold of Kennicutt), the one the science supports is built in the
+  profile with the others named in the note, and the generated gradient
+  is compared with the observed one in the star-type share test. If the
+  sources do not settle it, Boss decides on a card. Owner: Core 4 (it
+  owns GEN.134 and density.py).
+  Epoch and rescatter (2026-10-17, Boss 12:21 AM EDT: fix all of the
+  re-check's findings, with the 8.1 scatter changes so one rescatter
+  serves them): the item changes stored values, so it bumps the
+  generator epoch with the rule of OPS.56 and joins the one full
+  rescatter that follows the other scatter changes; GEN.301 waits for
+  it. The profile code (density.py, tuning.py) is Core 4's GEN.134 work
+  and not Core 3's sampler (GEN.322, GEN.323); ask Core 3 before
+  touching its files.
+  Prerequisites: GEN.134. Related: GEN.134, GEN.405, GEN.386, TEST.186.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
