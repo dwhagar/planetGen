@@ -16,16 +16,16 @@ release is stamped.
 | UX | UX.136 |
 | MAP | MAP.244 |
 | NAV | NAV.63 |
-| GEN | GEN.391 |
+| GEN | GEN.396 |
 | PERF | PERF.111 |
 | DB | DB.67 |
 | API | API.31 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.206 |
+| TEST | TEST.207 |
 | USR | USR.31 |
 | OPS | OPS.60 |
-| DOC | DOC.60 |
+| DOC | DOC.62 |
 | VIEW | VIEW.18 |
 | POP | POP.15 |
 
@@ -640,6 +640,8 @@ Parents marked "new parent" had no old number of their own.
 | DOC.57 | Help section framework: page template, index, '?' links, help search and the link check | none | open |
 | DOC.58 | Help coverage test: every user-facing route has a help page and every help page has a route | none | open |
 | DOC.59 | Docs: the galaxy types note moves to built and the density, potential, schema, API and Generate page notes say the shape holds a family and components | none | open |
+| DOC.60 | Settings note: read sections A2 and A6 of the settings and accounts design against the built one-file settings and fix what is stale | none | open |
+| DOC.61 | Docs: how the bubbles shape the stars, the setting values and what the drawn layer now is | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -1030,6 +1032,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.388 | The home position by family: one rule of the shape, with the spiral rule as the disk case | none | open |
 | GEN.389 | Galaxy creation draws the family from the seed and stores it, with the family in the log, the API and the version check | none | open |
 | GEN.390 | Headline of 9.4: generate a galaxy of any known type, with spiral, lenticular, elliptical, irregular and dwarf families from one set of rules | none | open |
+| GEN.391 | Superbubbles shape the stars: the design of the bubble field as a density modulation, with its bounds and touch points checked | none | open |
+| GEN.392 | A bubble field handle on the galaxy shape: seed-carried bubbles with a box cut, a certified maximum factor and a bubble-free density read | none | open |
+| GEN.393 | The density terms apply the bubble factors at one call site per form, with a golden test that no bubble means identical density | none | open |
+| GEN.394 | The scatter bounds and the phenomena pass respect the bubble factor: a certified bound in band_majorants and per-position thinning | none | open |
+| GEN.395 | Sector build follows the bubbles: the fill count from the cell mean, star positions weighted by the factor, shown in the profile and the region query | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2025,6 +2032,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.203 | `test_one_worker_leaves_the_runs_own_random_stream_alone` failed once under heavy load with WorkerDied "the task's job ended canceled" and passes alone (bug) | none | open |
 | TEST.204 | Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges | none | open |
 | TEST.205 | `test_no_reserved_word_is_an_unquoted_identifier` fails on main: the DB.18 migration helpers use LOCK in `ALGORITHM=INPLACE, LOCK=NONE` (bug) | none | open |
+| TEST.206 | Superbubble density tests: rim excess, interior depletion, old stars unchanged, scatter against fill and determinism | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
