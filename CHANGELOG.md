@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1638] - 2026-10-17
+
+**Headline:** The plan records which release takes generator epochs 4 and 5.
+
+### Changed
+- TEST.77 and GEN.407 note Core 3's epoch plan: a small PR carrying the horizontal branch note and the GEN.407 constants takes epoch 4, and GEN.322 takes epoch 5.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1637] - 2026-10-17
 
 **Headline:** The atmosphere colour becomes the 9.0 feature: the foundations are planned in 8.4 and the old 9.0 work moves to 8.9 and 9.1.
