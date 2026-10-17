@@ -17633,6 +17633,12 @@ clears each one.
   and passed alone. Fails on main: not run on main. Frequency: 1 of this
   gate; Core 5's gate saw it at about 3:58 PM EDT too. Bug Hunt's big
   branch carries the fix (#1694).
+  Detail from Core 3 (2026-10-17, 7:09 PM EDT as the lane reported,
+  filed by the TODO thread), on the 6:50 PM EDT sighting of
+  `test_galaxy_map_drill_down_by_clicks` in GEN.321's second gate (ended
+  6:41 PM EDT): it passed alone on the rerun in 10.3 s at load 7.8. The
+  same test passed in Core 3's earlier gate at 4:35 PM EDT. No solo
+  reproducer; it needs another lane's gate running beside it.
   Prerequisites: none. Related: MAP.210, TEST.170, TEST.171.
 
 - [ ] **TEST.174 test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug)**
@@ -18619,6 +18625,14 @@ clears each one.
   in the test or the page without lengthening a wait blindly and without
   quarantining. Done: the cause is on this item and the test passes
   under load in a gate. Owner: Bug Hunt (proposed).
+  Detail from Core 3 (2026-10-17, 7:09 PM EDT as the lane reported,
+  filed by the TODO thread): the failure was in the browser phase of
+  GEN.321's second gate (ended 6:41 PM EDT, load 8 to 10 from other
+  lanes' gates); on the rerun alone it passed in 9.4 s at load 8.2. It
+  passed in Core 3's earlier gate at 4:35 PM EDT. The failure text
+  itself is still not relayed (it is in Core 3's
+  `.test-failures.jsonl`). Fails on main: not run on main. No solo
+  reproducer.
   Prerequisites: none. Related: TEST.126, TEST.172, TEST.213.
 
 - [ ] **TEST.228 test_stars_and_phenomena_fit_within_their_sectors_real_cells compares a dark cloud's centre with its sector's cell, but the cloud is filed by its centroid**
