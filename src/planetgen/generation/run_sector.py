@@ -24,7 +24,7 @@ from planetgen.generation import fill_stages
 from planetgen.generation import nebula_contents
 from planetgen.generation import system_pass
 from planetgen.generation import bright_stars as brightStars
-from planetgen.galaxy import nebula_field
+from planetgen.galaxy import ejecta_field, nebula_field
 from planetgen.galaxy.frame import galaxy_to_local_pc
 from planetgen.galaxy.system_position import random_unit_vector
 from planetgen.physics import constants, stellar_evolution
@@ -563,6 +563,41 @@ def add_below_cut_remnants(sector, args, fill, galactic_center_dist_ly=None):
     return entries
 
 
+def add_ejecta(sector, args, fill, galactic_center_dist_ly=None):
+    """
+    The neutron stars and black holes the galaxy ejected that stream through this sector (GEN.238): per kind, a Poisson
+    count with the mean of the sector's profile (`SectorProfile.ejecta`, `ejecta_field`), each remnant built like any
+    other (a stellar-mass black hole), placed like a rolled one (anywhere in the cube clear of the Hill spheres already
+    there), and given a velocity of its own (`ejecta_field.draw_velocity_kms`) in place of an orbit. They carry no
+    planets: a kick that unbinds a star strips them. A sector with no profile (a standalone one) has none.
+
+    Returns:
+        list: The new `SectorPhenomenonEntry` instances (one that found no room is skipped).
+    """
+    profile = getattr(fill, "profile", None)
+    expected = getattr(profile, "ejecta", None) or {}
+    entries = []
+    for kind in ejecta_field.KINDS:
+        mean = expected.get(kind, 0.0)
+        if mean <= 0.0:
+            continue
+        with fill_stages.stage(sector, fill_stages.EJECTA, kind):
+            for _ in range(_sample_poisson_count(mean)):
+                config = SystemConfig()
+                config.MARKDOWN = args.markdown
+                if kind == "black-hole":
+                    remnant = BlackHole(config, galactic_center_dist_ly=galactic_center_dist_ly, mass_class="stellar")
+                else:
+                    remnant = NeutronStar(config, galactic_center_dist_ly=galactic_center_dist_ly)
+                remnant.eject(ejecta_field.draw_velocity_kms())
+                try:
+                    entries.append(sector.add_phenomenon(remnant, kind))
+                except ValueError:
+                    continue  # no room clear of the Hill spheres already placed
+                fill_stages.count(sector, fill_stages.EJECTA, kind)
+    return entries
+
+
 def _add_hypervelocity_star(sector, args, row, position, dist_ly):
     """A scattered hypervelocity star built as an ordinary young system at
     its stored point, flagged with its speed and direction (the stored
@@ -734,6 +769,7 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
                 below_cut_entries = add_below_cut_remnants(sector, args, fill, galactic_center_dist_ly)
             with fill_stages.stage(sector, fill_stages.SYSTEM_PASS, "below-cut"):
                 system_pass.run(sector, args, below_cut_entries, galactic_center_dist_ly)
+        add_ejecta(sector, args, fill, galactic_center_dist_ly)
         with fill_stages.stage(sector, fill_stages.FLAGS, "fast-stars"):
             flagged = flag_fast_stars(sector, galactic_center_dist_ly=galactic_center_dist_ly, scattered=scattered)
         fill_stages.count(sector, fill_stages.FLAGS, "fast-star", flagged)
