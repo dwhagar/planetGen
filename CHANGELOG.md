@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1673] - 2026-10-17
+
+**Headline:** NAV.60 retired: what is nearby reads by the cell key.
+
+### Changed
+
+NAV.60 (Core 2, #1977) is retired. NAV.61, NAV.45 and UX.114 now carry its findings: the answer fields are `not_generated` and `not_generated_total`, phenomena are measured to the object's position (the NAV.43 rule, standing as Decided), and the 50 pc measurement at the Sun's density (533 ms for 66,661 rows on a loaded box) is to be re-measured on a quiet box by NAV.61. The unblocked NAV.61 and the DOC.51 no longer wait on it.
+
+TODO items resolved: NAV.60 / Added: none
+
 ## [8.0.1672] - 2026-10-17
 
 **Headline:** Boss's second research note (2:11 AM EDT) is recorded as awaiting verification.
