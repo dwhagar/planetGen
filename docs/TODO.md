@@ -7872,10 +7872,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only); the crossover of 0.5 is at log M* 11.61, not 1.5e11. R5:
   Courteau scatter 0.097 dex about the paper's own line (by class:
   ellipticals 0.050, S0 to Sab 0.081, Sb to Sbc 0.095, Sc to Scd 0.076,
-  lenticulars 0.133). Thick-to-thin conflicts widened, both kept (Boss's
-  decision 2): height ratio 2.5 (Yoachim) against a median 4.24 (Comeron
-  2018), mass ratio against Vc 0.53 (Vc/100)^-2.3 against 0.87
-  (Vc/100)^-1.09; the Comeron heights and outer lengths against M* are
+  lenticulars 0.133). Thick-to-thin conflicts OPEN, awaiting Boss's
+  cards (not covered by his 11:19 AM EDT card 2): height ratio 2.5
+  (Yoachim) against a median 4.24 (Comeron 2018), mass ratio against Vc
+  0.53 (Vc/100)^-2.3 against 0.87 (Vc/100)^-1.09; the Comeron heights
+  and outer lengths against M* are
   in the check note.
   Prerequisites: none. Related: GEN.378, GEN.382, GEN.366, GEN.134.
 
@@ -8021,7 +8022,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   at 1e14); a simulation fit (Cooper and Cole 2010) is still open (R10).
   Cluster system radius against the galaxy's: about 3.5 times (Hudson
   and Robison 2018, Forbes 2018) against about 6 times (Kartha 2016,
-  twelve galaxies), widened and both kept (Boss's decision 2). The blue
+  twelve galaxies), OPEN, awaiting Boss's card (not covered by his 11:19
+  AM EDT card 2, which covered only the blue to red radius ratio). The
+  blue
   to red radius ratio (R7) stays open: the 1.20 ± 0.08 of Gemini is in
   none of the papers read. Cluster half-light radius (R9): 2.7 ± 0.35 pc
   after correction, red about 17 percent smaller than blue, invariant to
@@ -13551,8 +13554,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   62.0); the nuclear cluster slope is 0.48 (Neumayer), not 0.65; the
   cluster half-light radius invariance holds over a factor of about 350
   in host luminosity, not 10^5. Three conflicts between two verified
-  sources are recorded as widened, both kept (Boss's decision 2, 11:19
-  to 11:23 AM EDT): thick-to-thin height ratio 2.5 (Yoachim and
+  sources are OPEN, awaiting Boss (his 11:19 AM EDT card 2, widen and
+  keep both, covered only arm pitch against bulge fraction, the nuclear
+  cluster mass slope and the blue to red cluster radius ratio; the
+  coordinator posted a card for each of these three at about 11:56 AM
+  EDT as it reported): thick-to-thin height ratio 2.5 (Yoachim and
   Dalcanton) against a median 4.24 (Comeron 2018); thick-to-thin mass
   ratio against Vc, 0.53 (Vc/100)^-2.3 against 0.87 (Vc/100)^-1.09;
   cluster system radius about 3.5 (Hudson and Robison, Forbes) against
