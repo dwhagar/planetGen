@@ -2407,9 +2407,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   every other star whatever its luminosity, so a budget cut removes them
   first and only then touches the disc and the bulge. Halo and satellite
   galaxies are two classes (they are separate switches in 8.5, GEN.537
-  to GEN.540), the cut order among the two is for Core 2 to propose with
-  the rule written down (default: satellite galaxies before the halo,
-  since they are farther and more numerous; Boss may overrule). Done:
+  to GEN.540). Cut order among the two, Decided (Boss, 2026-10-17, 6:57
+  PM EDT, "That's confirmed", answering the coordinator's post that
+  Core 2 owns MAP.249 and MAP.250): satellite-galaxy stars are cut
+  before halo stars, so the tiers from the lowest priority up are
+  satellite galaxies, halo, then everything else. Done:
   one ranking function holds the tier, every budget in the list above
   reads it and none keeps its own order; a test fills a budget-limited
   tile with halo, satellite and disc stars and checks no disc or bulge
