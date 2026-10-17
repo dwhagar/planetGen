@@ -32,6 +32,12 @@ The composition fractions that drive density, mass and gravity, stored and descr
 |---|---|---|---|
 | GEN.412 | Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give | GEN.409 | Boss 11:24 PM EDT; the inverse feeds the migration. Core 4 proposed (Boss, 11:41 PM EDT). |
 
+### Atmosphere tables
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.478 | The atmosphere possibility tables: the 16 categories and 104 rows of part 09, loaded through the gated table loader, with every row that has no sourced weight flagged and drawn from its bracket | GEN.472, GEN.410 | Atmosphere lane part 09: the 16 weighted atmosphere tables (104 rows) as the data of GEN.472. Core 4 proposed. |
+
 ## Phase 2: Surfaces, small bodies and one mixture
 
 The ground's composition and the small bodies' composition from the bulk model, and the atmosphere's molar density derived from its partial pressures with the values that follow from it.
@@ -44,16 +50,17 @@ The ground's composition and the small bodies' composition from the bulk model, 
 | GEN.441 | Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air | GEN.428, GEN.429, GEN.459, GEN.461, GEN.472 | Boss 11:58 PM EDT; the ground's composition; generator epoch bump. |
 | GEN.442 | Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line | GEN.428, GEN.429, GEN.458, GEN.459, GEN.470, GEN.472 | Boss 11:58 PM EDT; small bodies; generator epoch bump. |
 | GEN.466 | Moons draw their origin type, ice fraction and composition from the parent, the circumplanetary ice line and the age | GEN.428, GEN.429, GEN.442, GEN.458, GEN.472 | Body composition research lane part D sections 2.8 to 2.11; generator epoch bump. Core 4 proposed. |
-| GEN.455 | Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates | GEN.441, GEN.442, GEN.410, GEN.472 | Atmosphere research lane new work 6 (parts 04 section 5 and 05); generator epoch bump. Core 4 proposed. |
+| GEN.455 | Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates | GEN.441, GEN.442, GEN.410, GEN.472, GEN.478 | Atmosphere research lane new work 6 (parts 04 section 5 and 05); generator epoch bump. Core 4 proposed. |
 
 ### Mixture and stored values
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.411 | The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree | GEN.410, GEN.429 | Boss 11:24 PM EDT; generator epoch bump. Core 4 proposed (Boss, 11:41 PM EDT). |
+| GEN.411 | The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree | GEN.410, GEN.429, GEN.478 | Boss 11:24 PM EDT; generator epoch bump. Core 4 proposed (Boss, 11:41 PM EDT). |
+| GEN.479 | The class atmosphere mixes contradict the checked chemistry: classes C, D and S have no mix, free oxygen sits in seven classes with no life rule, class L is 60 percent argon, E and F hold ammonia and methane at 340 to 400 K, N reads reducing and is oxidised, and I, J and T share one mix in every zone (bug) | GEN.478, GEN.411 | Atmosphere lane part 09 conflicts 3 to 8 with the code, checked on main; replaced by the recipe tables. Core 4 proposed. |
 | GEN.452 | The condensation table is replaced by the checked saturation curves: the hydrogen sulphide row is a copy of the sulphur dioxide row, and carbon dioxide, sulphur dioxide and the cold gases are 2 to 20 K off (bug) | GEN.409, GEN.410, GEN.470 | Atmosphere research lane finding 1 (part 01 section 7); generator epoch bump. Core 4 proposed. |
-| GEN.451 | The mantle redox mean follows the meteorite building blocks: a young rocky planet starts reduced, not at the modern Earth's 3.5 above the iron-wuestite buffer | GEN.410, GEN.428 | Atmosphere research lane finding, part 5, 2026-10-17; generator epoch bump. Core 4 proposed. |
-| GEN.454 | Giant planets, ice giants and brown dwarfs draw their atmosphere mixture from the equilibrium chemistry sequence: by temperature, pressure, metallicity and quench | GEN.410, GEN.411, GEN.460, GEN.472 | Atmosphere research lane new work 5 (part 05 sections 8 and 9); generator epoch bump. Core 4 proposed. |
+| GEN.451 | The mantle redox mean follows the meteorite building blocks: a young rocky planet starts reduced, not at the modern Earth's 3.5 above the iron-wuestite buffer | GEN.410, GEN.428, GEN.478 | Atmosphere research lane finding, part 5, 2026-10-17; generator epoch bump. Core 4 proposed. |
+| GEN.454 | Giant planets, ice giants and brown dwarfs draw their atmosphere mixture from the equilibrium chemistry sequence: by temperature, pressure, metallicity and quench | GEN.410, GEN.411, GEN.460, GEN.472, GEN.478 | Atmosphere research lane new work 5 (part 05 sections 8 and 9); generator epoch bump. Core 4 proposed. |
 | GEN.422 | Stop the recalculation redraw and order the steps so pressure, mixture and temperature agree after the cold-side freeze-out | GEN.411, GEN.412, GEN.452 | Composition thread finding; Boss 11:24 PM EDT chain. Core 4 proposed (Boss, 11:41 PM EDT). |
 | GEN.423 | Atmosphere density, scale height and the greenhouse multiplier follow from the mixture | GEN.410, GEN.411, GEN.412 | Composition thread finding; Boss 11:24 PM EDT chain. Core 4 proposed (Boss, 11:41 PM EDT). |
 | GEN.424 | The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture | GEN.410, GEN.411 | Composition thread finding; Boss 11:24 PM EDT chain. Core 4 proposed (Boss, 11:41 PM EDT). |
@@ -68,14 +75,14 @@ The ozone figures and the scatterers that the colour needs, each its own thread,
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.413 | Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance | GEN.411 | Boss 11:24 PM EDT; real research, generated where missing. Core 4 proposed (Boss, 11:41 PM EDT). |
+| GEN.413 | Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance | GEN.411, GEN.478 | Boss 11:24 PM EDT; real research, generated where missing. Core 4 proposed (Boss, 11:41 PM EDT). |
 
 ### Haze, dust and cloud
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.414 | Haze, dust and cloud: derived or drawn optical depths for every planet and moon | GEN.411, GEN.412 | Boss 11:24 PM EDT; draws and derivations, nothing fixed per class. Core 4 proposed (Boss, 11:41 PM EDT). |
-| GEN.456 | Lava worlds and hot rocky planets draw a vapour atmosphere over the magma from the surface composition and temperature: sodium, potassium, silicon monoxide, magnesium, iron and the oxides | GEN.441, GEN.410, GEN.411, GEN.414, GEN.451, GEN.472 | Atmosphere research lane new work 8 (parts 05 and 06); generator epoch bump. Core 4 proposed. |
+| GEN.414 | Haze, dust and cloud: derived or drawn optical depths for every planet and moon | GEN.411, GEN.412, GEN.478 | Boss 11:24 PM EDT; draws and derivations, nothing fixed per class. Core 4 proposed (Boss, 11:41 PM EDT). |
+| GEN.456 | Lava worlds and hot rocky planets draw a vapour atmosphere over the magma from the surface composition and temperature: sodium, potassium, silicon monoxide, magnesium, iron and the oxides | GEN.441, GEN.410, GEN.411, GEN.414, GEN.451, GEN.472, GEN.478 | Atmosphere research lane new work 8 (parts 05 and 06); generator epoch bump. Core 4 proposed. |
 
 ### Stored surface composition
 

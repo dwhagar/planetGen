@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.136 |
 | MAP | MAP.245 |
 | NAV | NAV.63 |
-| GEN | GEN.478 |
+| GEN | GEN.495 |
 | PERF | PERF.111 |
 | DB | DB.72 |
 | API | API.31 |
@@ -1129,6 +1129,23 @@ Parents marked "new parent" had no old number of their own.
 | GEN.475 | Meteorite groups become outputs and not inputs: regions of composition space reachable from the drawn bulk, with the measured groups kept as calibration | none | open |
 | GEN.476 | Aluminium-26 and iron-60 follow from the star's formation environment, not from the Solar System's own value and range | none | open |
 | GEN.477 | The asteroid belt and field composition is drawn from the star, the distance and the belt's mass, not four names drawn uniformly from a list of 84 (bug) | none | open |
+| GEN.478 | The atmosphere possibility tables: the 16 categories and 104 rows of part 09, loaded through the gated table loader, with every row that has no sourced weight flagged and drawn from its bracket | none | open |
+| GEN.479 | The class atmosphere mixes contradict the checked chemistry: classes C, D and S have no mix, free oxygen sits in seven classes with no life rule, class L is 60 percent argon, E and F hold ammonia and methane at 340 to 400 K, N reads reducing and is oxidised, and I, J and T share one mix in every zone (bug) | none | open |
+| GEN.480 | Source the occurrence weights of bare rock, hydrogen-helium envelope and water-rich worlds and of the envelope metal fraction, by radius, mass and insolation (AR1) | none | open |
+| GEN.481 | Source the volatile delivery against formation distance: the water mass fraction by a_form and the snow-line law over time (AR2) | none | open |
+| GEN.482 | Source the magma-ocean fO2 prior against mass and the oxidation law of the later mantle (AR3) | none | open |
+| GEN.483 | Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4) | none | open |
+| GEN.484 | Source the giant planets' C/O distribution and the fraction of carbon-rich hosts (AR5) | none | open |
+| GEN.485 | Source the hot-Jupiter thermochemistry above 2200 K, a Kzz distribution and the edges of the 1500 K and 2200 K regimes (AR6) | none | open |
+| GEN.486 | Source the lava-world vapour regimes and the fraction of lava worlds that keep volatiles (AR7) | none | open |
+| GEN.487 | Source the evolved and frost atmospheres: cold vapour pressures, the habitable-zone coefficients, the occurrence of Titan-, Pluto- and Venus-like bodies and the abiotic O2 frequency (AR8) | none | open |
+| GEN.488 | Source the comet coma classes and their volatile ratios (AR9) | none | open |
+| GEN.489 | Source the white-dwarf and pulsar planet options (AR10) | none | open |
+| GEN.490 | Source the trace-gas presence weights (AR11) | none | open |
+| GEN.491 | Source the cloud and haze windows and yields (AR12) | none | open |
+| GEN.492 | Source the ground radioisotope abundances by host and the potassium depletion by body class (AR13) | none | open |
+| GEN.493 | Source the initial-rotation distribution and the saturation time against stellar mass for the host-star UV regime (AR14) | none | open |
+| GEN.494 | Source the brown-dwarf type against temperature and the T/Y boundary near 500 to 700 K (AR15) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
