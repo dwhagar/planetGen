@@ -67,6 +67,7 @@
   "/api/galaxy/locate GET",
   "/api/galaxy/made GET",
   "/api/galaxy/phenomena GET",
+  "/api/galaxy/profile GET",
   "/api/galaxy/sectors GET",
   "/api/galaxy/shape GET",
   "/api/galaxy/stage GET",

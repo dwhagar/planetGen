@@ -104,6 +104,7 @@ ID_PATHS = {
     "api.suggest_facility_ratings": {"facility.id": "facility"},
     "api.suggest_all_facility_ratings": {},
     "api.galaxy_cell": {},
+    "api.galaxy_profile": {},
     "api.galaxy_uncharted_sector": {},
     "api.rename_star": {"id": "star"},
     "api.rename_planet": {"id": "planet"},

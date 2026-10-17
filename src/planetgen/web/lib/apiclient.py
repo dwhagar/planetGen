@@ -568,6 +568,13 @@ def get_uncharted_sector(db, shell_index, band_index, wedge_index):
     })
 
 
+def get_galaxy_profile(db, shell_index, band_index, wedge_index):
+    """`GET /api/galaxy/profile`'s payload (API.27, UX.113): the Sector Profile of one cell of the grid, charted or
+    not, with `sector_id`, `unresolved` and the `estimate` of filling it."""
+    _require_db(db)
+    return _request("/galaxy/profile", {"db": db, "shell": shell_index, "band": band_index, "wedge": wedge_index})
+
+
 def get_galaxy_tiles(db, tile_keys):
     """
     Returns `GET /api/galaxy/tiles`'s payload (`tiles`/`edge_pc`/
