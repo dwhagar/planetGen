@@ -115,14 +115,16 @@ def band_majorants(shape, shell, high_band, edge_pc, fractions):
         numpy.ndarray: One bound per band.
     """
     inner, z_near, z_far = band_geometry(shell, high_band, edge_pc)
-    return extent_majorants(shape, inner, z_near, z_far, fractions)
+    outer = spherical.shell_bounds_pc(shell, edge_pc)[1]
+    return extent_majorants(shape, inner, z_near, z_far, fractions, outer)
 
 
-def extent_majorants(shape, inner, z_near, z_far, fractions):
+def extent_majorants(shape, inner, z_near, z_far, fractions, outer):
     """
     `band_majorants` for any extents (arrays): an upper bound on `sum_p density_p * fractions[p]` in a region
-    whose smallest cylindrical radius is `inner` and whose `|z|` runs from `z_near` to `z_far`. A band is one such
-    region and a group of bands (`reach_groups`) another, bounded at its nearest point.
+    whose smallest cylindrical radius is `inner`, whose largest is at most `outer` (its outer spherical radius is
+    one) and whose `|z|` runs from `z_near` to `z_far`. A band is one such region and a group of bands
+    (`ReachGroups`) another, bounded at its nearest point.
     """
     terms = density.model_terms(shape)
     thin = np.exp(-inner / shape.disk_scale_length_pc) * _vertical(z_near, shape.disk_scale_height_pc)
@@ -132,7 +134,6 @@ def extent_majorants(shape, inner, z_near, z_far, fractions):
     up = z_near / terms["bulge_scale_z_pc"]
     bulge = shape.bulge_amplitude * np.exp(-0.5 * np.sqrt(along ** 4 + up ** 4))
     arm = shape.arm_level * (1.0 + abs(shape.arm_amplitude))
-    outer = spherical.shell_bounds_pc(shell, edge_pc)[1]
     disk_share = _disk_share_bound(shape, z_near, z_far, fractions, inner, outer)
     k = shape.k_norm
     halo = density._halo(inner, z_near, density.halo_terms(shape))

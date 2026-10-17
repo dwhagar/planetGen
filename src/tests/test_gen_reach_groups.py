@@ -99,7 +99,7 @@ def _points_in(groups, index, rng, count):
 def test_a_groups_bound_is_never_below_the_density_inside_it(make):
     groups = make()
     fractions = brightStars.band_fractions(FLOOR)
-    bound = object_first.extent_majorants(SHAPE, groups.inner, groups.z_near, groups.z_far, fractions)
+    bound = object_first.extent_majorants(SHAPE, groups.inner, groups.z_near, groups.z_far, fractions, groups.r_out)
     rng = np.random.default_rng(7)
     for index in rng.choice(len(groups), size=min(len(groups), 40), replace=False):
         plane, z = _points_in(groups, index, rng, 60)
@@ -187,7 +187,7 @@ def test_a_plan_scatter_covers_the_reach_and_a_pre_placed_star_is_never_drawn_tw
                             galaxy_seed=PLAN_SEED)
     store.replace_galaxy_shells(EXTENTS, config=mysql_config)
     summary = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only",
-                                                       "--bright-star-min-luminosity", "30000"))
+                                                       "--bright-star-min-luminosity", "2500"))
     conn = store.get_connection(mysql_config)
     try:
         rows = conn.execute("SELECT shell_index, band_index, COUNT(*) AS n FROM bright_stars"
