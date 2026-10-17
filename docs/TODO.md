@@ -2374,6 +2374,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   star or wall.
   Owner: Core 2 (the infinite zoom tree; behind PERF.105 and
   UX.118, among the maps).
+  Case to cover (Bug Hunt finding, relayed by the coordinator,
+  2026-10-17, 3:22 PM EDT): MAP.225's wheel zoom toward the pointer can
+  anchor on the sector's choice mesh behind a star and slide the camera
+  away from the star. This is the cause of TEST.213
+  (`test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star`,
+  'the system's scene never came in') and is a real product problem, not
+  a test fault. The clearance rule of this item must cover that exact
+  case: the step toward a point never anchors on a mesh behind the
+  picked object, and a browser test zooms toward a star in front of its
+  choice mesh and ends at the star. Core 2 was told by the coordinator
+  to make sure of this and to add that test.
   Prerequisites: none. Related: MAP.225, MAP.146, MAP.199, MAP.226.
 
 - [ ] **MAP.246 A loose group of stars far above the disc on a fresh galaxy cannot be reached by zoom or navigation and cannot be selected (bug)**
@@ -2405,6 +2416,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   places such a group and selects it, and nothing is quarantined. Owner:
   Bug Hunt (Boss's lanes, strictly bugs; assigned by the coordinator at
   3:09 PM EDT).
+  Boss's seed (2026-10-17, 3:22 PM EDT, typed in the project chat,
+  relayed by the coordinator): galaxy seed
+  2AFA1AD866D4BEB8646BF53C77A43DD6, PlanetGen 8.0.1737
+  (000800000006C9030C0300), run: galaxy --then-scatter
+  --phenomenon-min-mass 14 --compact-min-mass star
+  --bright-star-min-luminosity 9000. Reproduce on this seed first; the
+  screenshots show it.
   Prerequisites: none. Related: MAP.243, MAP.207, MAP.219, MAP.210.
 
 ## NAV: Navigation and courses
@@ -17821,6 +17839,15 @@ clears each one.
   EDT (seven earlier plus Core 1's). Reproducer: PYTHONPATH=src python3
   -m pytest src/tests/test_web_browser_sector_reach.py -k disc_fades_in.
   Bug Hunt has been asked to bisect it (coordinator, 2:48 PM EDT).
+  Cause found (Bug Hunt, relayed by the coordinator, 2026-10-17, 3:22 PM
+  EDT): MAP.225's wheel zoom toward the pointer can anchor on the
+  sector's choice mesh behind a star and slide the camera away, so the
+  system's scene never comes in. It is a real product problem, not a
+  test fault, and is covered by MAP.245's clearance rule (Core 2, with a
+  test of that exact case). The test is right and stays as it is; this
+  item closes when the test passes on main with that fix, with no wait
+  lengthened and nothing quarantined. It was a regression of the zoom
+  (the test passed on Release 8.0.1646).
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
