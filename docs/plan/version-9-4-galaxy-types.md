@@ -40,7 +40,7 @@ Three independent families.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.382 | The spiral family: scale length and height, bulge-to-total, bar, arm count and pitch angle from mass and Hubble stage | GEN.368, GEN.379, GEN.380 | Step 5 of the galaxy types chain; generalizes the shape row of GEN.368. |
+| GEN.382 | The spiral family: scale length and height, bulge-to-total, bar, arm count and pitch angle from mass and Hubble stage | GEN.379, GEN.380 | Step 5 of the galaxy types chain; generalizes the shape row of GEN.368. |
 
 ### Elliptical family
 
@@ -74,7 +74,7 @@ What reads the families.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.387 | Globular clusters, the nuclear cluster and the central black hole follow the family's spheroid and halo | GEN.382, GEN.383, GEN.297, GEN.368 | Step 6 of the galaxy types chain. |
+| GEN.387 | Globular clusters, the nuclear cluster and the central black hole follow the family's spheroid and halo | GEN.382, GEN.383, GEN.297 | Step 6 of the galaxy types chain. |
 
 
 ## Phase 4: Creation
