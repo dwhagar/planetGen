@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1636] - 2026-10-17
+
+**Headline:** GEN.306 is retired from the plan: the population streams are keyed on the object's unique ID.
+
+### Changed
+- GEN.306 leaves the TODO list and the 8.1 plan (#1942); TEST.77 notes generator epoch 3.
+
+TODO items resolved: GEN.306 (#1942) / Added: none
+
 ## [8.0.1635] - 2026-10-17
 
 **Headline:** A galaxy's species, civilization ages, technology levels, governments and colors no longer depend on how many workers filled it.
