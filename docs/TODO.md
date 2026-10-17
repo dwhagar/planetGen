@@ -13891,6 +13891,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The stage rule of GEN.401 (Kelvin cumulative counts read as local
   fractions) stays a listed stand-in (design note 5.13.8 and 5.13.6 item
   6).
+  Scope from Core 1 (12:58 PM EDT, its real clock; it sends the final
+  scope before building, after GEN.527 and before GEN.402): the
+  size-mass scatter in the shape draw becomes the Courteau 0.097 dex
+  (replacing the Shen sigma_ln between 0.47 and 0.34), and the Comeron
+  2018 fit replaces the Kregel q = 7.3 draw where it applies; the Boss
+  papers report (GR4, GR6, GR15) and the VizieR numbers are read for it.
+  Bar presence, axis ratios and angle stay tuning constants in 8.1 (no
+  stored density changes); the DB.66 wording in the GEN.401 note and
+  docstring should read 'stored by DB.66', not a dependency. GEN.533
+  (the bar draw) therefore stays in 8.3 behind DB.66 and is not an 8.1
+  prerequisite of anything.
   Prerequisites: none. Related: GEN.401, GEN.402, GEN.531.
 
 - [ ] **GEN.533 The galaxy shape draws bar presence, axes and angle from the seed into the DB.66 columns**
@@ -17918,6 +17929,11 @@ clears each one.
   passes alone on rerun. Fails on main: not checked. Frequency: 1 of 1
   gates run under load 11. Reproducer: run the test with the CPU busy,
   or the full changed gate on a loaded machine. Bug Hunt owns it.
+  Clarification of the sighting of Core 1's DB.65 browser phase
+  (reported 12:58 PM EDT, its real clock): the failure text was
+  `AssertionError: [0]; assert 0 == 1.0 +/- 1.0e-06` (the disc opacity
+  read 0, expected 1), not only 'comparison failed'; it passed alone in
+  163.73 s on gw0 at load 10.1.
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
@@ -18153,6 +18169,12 @@ clears each one.
   of each is found, each test waits on the condition it needs and not a
   fixed time, and both pass under the same load, with no quarantine.
   Owner: Bug Hunt (proposed).
+  Failure text (Core 1, 12:58 PM EDT, its real clock): both tests fail
+  with `AssertionError: nothing to click on the Galaxy Map (None); at
+  ['Galaxy']`, so the click-target search finds nothing while the page
+  is slow under load; the cause is not established. Both passed alone
+  (load 10.4 and 10.7, 15.73 s and 16.36 s on gw1); none relates to Core
+  1's diffs, which touched no map or camera code.
   Prerequisites: none. Related: TEST.213, TEST.194.
 
 ## USR: User accounts
