@@ -9535,6 +9535,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ask Core 3 before touching its files. Core 4 takes GEN.447,
   GEN.448 and GEN.449 as one run of PRs, so TEST.196 checks the finished
   tables.
+  Finding (Core 4, 2026-10-17, 10:16 AM EDT as the lane reported;
+  relayed by the coordinator): with the new binaries the G-dwarf level
+  inside 10 AU is 0.13 at [Fe/H] 0 against the pooled line's 0.20, and
+  the O and B flatness ratios are 1.32 and 1.43. The built branch is in
+  its gate (ends near 11:30 AM EDT); TEST.196 carries the check.
   Prerequisites: none. Related: GEN.103, GEN.269, GEN.270, TEST.196.
 
 - [ ] **GEN.449 The companion table for mid and early B stars is raised to the observed frequencies**
@@ -15980,6 +15985,13 @@ clears each one.
   (2026-10-17, 10:07 AM EDT) and does not gate this test.
   Prerequisites: TEST.186. Related: GEN.103, TEST.186,
   TEST.161, TEST.164.
+  Finding (Core 4, 2026-10-17, 10:16 AM EDT as the lane reported, from
+  building GEN.448; relayed by the coordinator): the G-dwarf
+  close-companion level inside 10 AU is 0.13 at [Fe/H] 0 against the
+  pooled line's 0.20, and the O and B flatness ratios are 1.32 and 1.43
+  against this check's 1.3 edge. The check's expectations for them are
+  to be set from the built tables (TEST.196), not the other way round,
+  once GEN.448 and GEN.449 merge.
 
 - [ ] **TEST.198 `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug)**
   Found by Core 3 (2026-10-16, 6:22 PM EDT), filed by the TODO thread.
