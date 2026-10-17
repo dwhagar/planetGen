@@ -55,7 +55,7 @@ The foundations every editor stands on: the change plan and its store, the unit 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | DB.38 | Region density overrides table (migration only) |  | Core 1 owns migrations |
-| GEN.302 | A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it | GEN.276 | Reads by the cell key built in 8.1 |
+| GEN.302 | A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it |  | Reads by the cell key built in 8.1 |
 | MAP.212 | A region selection tool on the Galaxy Map and the Sector Map, for admin actions | GEN.302, MAP.217 |  |
 | DB.60 | Migration: record the density multiplier used on each filled sector (migration only) | DB.38 | Split from MAP.119. Core 1 owns migrations. |
 

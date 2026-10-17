@@ -5393,40 +5393,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.331, GEN.332. Related: GEN.252, GEN.95, GEN.242.
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
-- [ ] **GEN.276 The sphere-to-key-runs cover: `sphere_runs` over the existing cell key (at most 256 merged runs)**
-  Step 2 of the region-query train (design note sections 6.1 and 6.3,
-  item 2). `cell_key(points)` weaves the three cube numbers `floor((p +
-  reach) / cell)` (21 bits each, x in the top bit of each triple) into
-  one 63-bit unsigned integer, with the cell 0.25 pc and the reach
-  262,144 pc by default; `sphere_runs(center, r, budget=256)` lays the
-  sphere over the nested grid and returns at most 256 ascending, merged
-  runs of keys, about 1.5 ms in numpy. Integers and numpy only: it must
-  not import numba, because the web app never does. When the plan stores
-  another reach the cell size follows, `2 x reach / 2^21`. The 21-bit
-  constants (the five mask-and-shift steps) and the outside-the-box case
-  are not yet tested: test them here. Done: a fuzz against brute force
-  shows every point inside a random sphere lands in a run, runs never
-  exceed the budget, points just inside and just outside the box edge
-  are handled as the design says (outside gives no key), and the
-  function is the one the SQL column of DB.34 is tested against. Owner:
-  Core (2026-10-15). Boss (2026-10-15 5:32 PM EDT): "if it's not ready
-  in time before the spherical sector layout is, then we'll skip it and
-  move to the next sequence until it's finished research and we can plan
-  it." The research is finished and merged (#1659), so stage C is live.
-  Prerequisites: none. Related: DB.34, NAV.60, TEST.165, DOC.51,
-  GEN.233.
-  The cell key (`planetgen/galaxy/cellkey.py`: `cell_key`, `cell_keys`,
-  `sql_cell_key`, tested) already exists; only the sphere-to-key-runs
-  cover is built here, numpy only, fuzzed against brute force, with the
-  outside-the-box edge cases (2026-10-16 review).
-  Owner: Core 2 (Boss, 2026-10-16, 3:00 PM EDT: the region query goes to
-  Core 2), after the infinite zoom tree and its labels.
-  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
-  the coordinator): this item and NAV.60 go ahead of the rest of Core
-  2's queue. Core 2's order: the GEN.135 gate, GEN.306, then GEN.276 and
-  NAV.60. Owner: Core 2.
-  Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
-
 - [ ] **GEN.282 Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec)**
   Build step of the realistic galactic core plan
   (docs/design/realistic-galactic-core.md, section 9; Boss's item,
@@ -11758,6 +11724,15 @@ clears each one.
   failing run's captured traceback, the number of tests running at the
   time (the load), and the elapsed time if it fails again. Running log:
   the comments on issue #1694.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): TEST.167 folded in. Named sighting:
+  `test_random_start_mode_respects_min_start_density` hit its 900 s
+  timeout in a `scripts/test.py changed` run (Interface, 2026-10-15,
+  5:43 PM EDT) and passes alone (Bug Hunt: 15 of 15 clean solo runs);
+  the same slow fast-body path as this item (GEN.232). Close both on the
+  same clean full runs; if it times out again with no path integration
+  in the traceback, split it back out. Agreed by Bug Hunt (2026-10-17,
+  12:33 AM EDT as the lane reported).
   Prerequisites: none.
 
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
@@ -11852,6 +11827,21 @@ clears each one.
   test is recorded for this item. Needed next time: It closes unless a
   traceback shows up; if it fails again, the captured traceback and the
   load. Running log: the comments on issue #1694.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): TEST.138 folded in. Named sighting:
+  `test_open_map_menus_hold_no_overlap[web.galaxy-1280]` failed once in
+  a full -n 4 run (2026-10-10, load average up to 14) and
+  `[web.sector-600]` once under load (2026-10-15); same family and fix
+  (`tests/browser_waits.py`); close with this item and reopen only on a
+  captured traceback. Agreed by Bug Hunt (2026-10-17, 12:33 AM EDT as
+  the lane reported).
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): TEST.144 folded in. Named sighting:
+  `test_every_plain_button_does_something[web.sector]` failed once in a
+  full parallel run (2026-10-14, 15,573 passed and 9 failed); same
+  family and fix; close with this item and reopen only on a captured
+  traceback. Agreed by Bug Hunt (2026-10-17, 12:33 AM EDT as the lane
+  reported).
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
@@ -12008,36 +11998,6 @@ clears each one.
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.111, TEST.128, TEST.132 (done, PR #1578).
 
-- [ ] **TEST.138 test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug)**
-  Reported by Foundations lane 2 (2026-10-10 23:33Z):
-  tests/test_web_browser_controls.py::test_open_map_menus_hold_no_overlap[web.galaxy-1280]
-  failed in a full suite run (-n 4, 15,485 passed and 7 failed, 74 min,
-  load average up to 14) and passed when re-run alone with 3 others (10
-  min); not checked on main. Same load-timeout family as TEST.126. Done:
-  the next failure's traceback is captured, the cause is found (a load
-  timeout in the page wait, or a real overlap that appears only at that
-  moment) and the test is made reliable without loosening it. Owner:
-  Bugfixes lane 2, with TEST.126.
-  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
-  into the rebuild, no separate hunt; same family and fix as TEST.126.
-  Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Recurrence (Quality, 2026-10-15, 4:56 PM EDT run):
-  `test_open_map_menus_hold_no_overlap[web.sector-600]` also failed once
-  under load; same family, same fix.
-  Same family and fix as TEST.126 (`tests/browser_waits.py`): close with
-  it, reopen only on a captured traceback (2026-10-16 review).
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): fixed on main,
-  not confirmed. Bug Hunt found the browser wait ceiling of 120 s
-  (`browser_waits`) already on main and no failure since; no run of the
-  test is recorded for this item. Needed next time: It closes unless a
-  traceback shows up; if it fails again, the captured traceback and the
-  load. Running log: the comments on issue #1694.
-  Prerequisites: none. Related: TEST.126, TEST.128, TEST.137.
-
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
   Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
   min):
@@ -12058,7 +12018,7 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Prerequisites: none. Related: TEST.128, TEST.137, TEST.138.
+  Prerequisites: none. Related: TEST.128, TEST.137, TEST.126.
 
 - [ ] **TEST.141 test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug)**
   Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
@@ -12082,63 +12042,6 @@ clears each one.
   time: The failing parametrisation, the text of the failure and the
   load at the time. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.128, TEST.132 (done, PR #1578), TEST.134.
-
-- [ ] **TEST.144 test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug)**
-  Reported by Foundations lane 2 (2026-10-14 13:17Z, shared suite -n 4,
-  15,573 passed and 9 failed, 54 min):
-  tests/test_web_browser_controls.py::test_every_plain_button_does_something[web.sector]
-  failed once under load and passes serially and on a re-run; not
-  checked on main. Same load-timeout family as TEST.126 and TEST.138.
-  Done: the next failure's traceback is captured, the cause is found (a
-  load timeout in the page wait, or a button that really does nothing at
-  that moment) and the test is made reliable without loosening it.
-  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
-  into the rebuild, no separate hunt; same family and fix as TEST.126.
-  Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Same family and fix as TEST.126 (`tests/browser_waits.py`): close with
-  it (2026-10-16 review).
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): fixed on main,
-  not confirmed. Bug Hunt found the browser wait ceiling of 120 s
-  (`browser_waits`) already on main and no failure since; no run of the
-  test is recorded for this item. Needed next time: It closes unless a
-  traceback shows up; if it fails again, the captured traceback and the
-  load. Running log: the comments on issue #1694.
-  Prerequisites: none. Related: TEST.126, TEST.138.
-
-- [ ] **TEST.148 Investigate resuming a test run where it left off when the build is the same**
-  Boss (2026-10-15 00:09Z): wants to be able to restart a test run where
-  it left off so long as the build is the same, so a run that is stopped
-  or times out does not start over (a full run is about 49 minutes).
-  Boss also set the standing rule that every test run starts with a
-  timeout of at least 90 minutes and is known to be done by its own
-  completion notice or final summary line, not by polling (now in
-  docs/testing.md). Done when the Test Suite Rebuild thread reports the
-  options (for example a record of passed tests keyed by the git commit
-  and a hash of the working tree, a resume flag in scripts/test.py that
-  skips them, and what must invalidate a resume: any changed file,
-  database or Redis state, the Python or library versions) with a
-  recommendation, and Boss picks one; the build is then filed as its own
-  items. The thread reported (2026-10-15, /mnt/project-files/test-suite-rebuild/resume-a-run-options.md): a per-test progress log, a build id hashed from the tree, uncommitted changes, lock files, test command, Python and database versions, and a `--resume` flag that skips tests that passed; about three small PRs. Options: A, progress log plus an explicit `--resume` (recommended; a resumed run says so in its last line and in the PR); B, automatic resume (not recommended for the merge gate); C, re-run only what failed. Boss picks. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread), part of TEST.139 (done, PR #1605), not a lane.
-  Decided (Boss, 2026-10-15, tapped Build
-  it): option A, a per-test progress log plus an explicit
-  `scripts/test.py <command> --resume`, same build id only; not
-  automatic and not part of the merge gate. Build items TEST.150 (done, PR #1431),
-  TEST.151 (done, PR #1484) and TEST.152 (done, PR #1520), owner the Test Suite Rebuild thread (TEST.133
-  done, #1405).
-  Quality, 2026-10-15: after a container restart `scripts/test.py
-  changed --resume` refused ("packages changed since": the build id
-  includes the installed packages), so a run interrupted by a restart in
-  the cloud environment cannot be resumed; the browser phase has to be
-  rerun alone with `scripts/test.py browser`. Decide whether the build
-  id should keep the package list.
-  Boss (2026-10-16, 10:37 PM EDT) wants the reuse to carry across builds
-  when a test's own dependencies are unchanged; filed as TEST.208. The
-  same-build-only rule above is what TEST.208 widens.
-  Prerequisites: none. Related: TEST.139 (done, PR #1605).
 
 - [ ] **TEST.155 Wording and index agree: property test**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
@@ -12314,27 +12217,6 @@ clears each one.
   Prerequisite: GEN.276. Related: NAV.60, DOC.51.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
-- [ ] **TEST.167 test_random_start_mode_respects_min_start_density hit a 900 s timeout in a full run and passes alone (bug)**
-  Reported by Interface (2026-10-15, 5:43 PM EDT gate run, relayed by
-  the coordinator): `tests/test_generate*`
-  `test_random_start_mode_respects_min_start_density` hit its 900 s
-  timeout in a `scripts/test.py changed` run and passes alone. It may be
-  the same slow fast-body path as TEST.111 (GEN.232 merged in #1660, so
-  check whether it still hangs). Done: the cause is found and the test
-  is made reliable without skipping or loosening it, or the product bug
-  it hides is fixed. Owner: Quality (2026-10-15).
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
-  reproduce. 6 solo runs of the test, 8 to 19 s each, all passed.
-  GEN.232 cured the 900 s timeout path. Needed next time: 5 clean full
-  runs are still needed before it can close; the failing run's captured
-  traceback, the number of tests running at the time (the load), and the
-  elapsed time if it fails again. Running log: the comments on issue
-  #1694.
-  Prerequisites: none. Related: TEST.111, GEN.232.
-
 - [ ] **TEST.168 Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
   update on everything once this is done so all the controls work
@@ -12387,7 +12269,7 @@ clears each one.
   work done instead of a wall-clock limit; the breadcrumb test waits for
   layout to settle before measuring) or its cost is explained, and the
   same gate shows neither red. Owner: unassigned. Related: TEST.111,
-  TEST.138, TEST.163, TEST.167.
+  TEST.126, TEST.163.
   Scope after the 2026-10-16 review: only the
   `test_math_check::test_whole_run_is_fast` timing test (a relative
   budget); the breadcrumb folding test joins the TEST.126 family.
@@ -12418,6 +12300,16 @@ clears each one.
   Needed next time: If it fails again: the text of the failure and
   whether the pinned test failed with it. The item stays open until Bug
   Hunt's PR merges. Running log: the comments on issue #1694.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): TEST.173 folded in. Second sighting of the unpinned-seed
+  cause:
+  `test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star`
+  raised `min() iterable argument is empty` in `_nearest` (Core 1,
+  2026-10-16, 7:18 AM EDT; 13 of 13 passes alone) because the sector the
+  backfill reached drew no stars. One pinned seed in `_seed_galaxy`
+  fixes both; optionally `_nearest` handles an empty ring where that is
+  a real edge (the TEST.132 edge). Agreed by Bug Hunt (2026-10-17, 12:33
+  AM EDT as the lane reported).
   Prerequisites: none. Related: TEST.170, TEST.111.
 
 - [ ] **TEST.172 test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug)**
@@ -12446,34 +12338,16 @@ clears each one.
   `changed`): failed again under load and passed alone (clicking a block
   "did nothing", state unchanged, call 27 s), so it has now failed in
   both the GEN.333 and the UX.116 full runs.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): TEST.202 folded in. Named sighting:
+  `test_galaxy_map_drill_down_by_clicks` failed under load (call 28 s to
+  52 s, Core 3, 2026-10-16, 8:34 PM EDT, GEN.333 gate, full `changed`,
+  118 minutes, load 16) and passed alone; one fix for the
+  click-before-ready failures (the `_wait_settled` wait, 15 s to 90 s).
+  The empty-rim-block question (MAP.210) stays its own sub-check;
+  TEST.194 (system map) and TEST.203 (WorkerDied) stay separate. Agreed
+  by Bug Hunt (2026-10-17, 12:33 AM EDT as the lane reported).
   Prerequisites: none. Related: MAP.210, TEST.170, TEST.171.
-
-- [ ] **TEST.173 test_gen_bright_scatter_edges::test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star failed once under gate load with an empty ring in _nearest (bug)**
-  Finding from Core 1 (2026-10-16, 7:18 AM EDT, kind: flaky test, fails
-  on main: unknown, how often: once in a loaded scripts/test.py changed
-  run from 6:00 to 7:12 AM EDT with 4 workers, 13 of 13 passes alone on
-  an idle machine):
-  src/tests/test_gen_bright_scatter_edges.py::test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star
-  raised ValueError: min() iterable argument is empty in _nearest(...)
-  because the ring_cells intersect given was empty: the sector the
-  backfill reached drew no stars (the TEST.132 edge). Not touched by
-  GEN.101 or GEN.251. Reproducer: loop the test under load. Done: the
-  test pins its seed or builds a guaranteed star case, or _nearest
-  handles an empty ring where that is a real edge, without loosening
-  what the test proves, and the same gate shows it green. Owner:
-  unassigned.
-  No separate seed fix (2026-10-16 review): check that its nearest
-  backfill cell draws a star under the seed TEST.171 pins.
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
-  reproduce, pinned anyway by Bug Hunt. The test did not fail again. Bug
-  Hunt pinned the failing path with a test in its branch regardless.
-  Needed next time: If it fails again: the text of the failure and
-  whether the pinned test failed with it. The item stays open until Bug
-  Hunt's PR merges. Running log: the comments on issue #1694.
-  Prerequisites: none. Related: TEST.132, TEST.171, TEST.172.
 
 - [ ] **TEST.174 test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug)**
   Finding from Core 2 (2026-10-16, 7:48 AM EDT, kind: browser test, load
@@ -12497,6 +12371,15 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): TEST.197 folded in. Named sighting:
+  `test_page_is_accessible_and_fits[web.sector-phone-light]` failed in a
+  full `changed` run (78 minutes, load 9.6, Core 3, 2026-10-16, 6:22 PM
+  EDT) and passed alone; one fix in `test_web_a11y.py` (an ERR_ABORTED
+  of a page-cancelled tile fetch no longer counts). TEST.198 (the
+  prefetch test in `test_web_browser_fixture_maps.py`) stays a separate
+  item until a failure text shows the same cause. Agreed by Bug Hunt
+  (2026-10-17, 12:33 AM EDT as the lane reported).
   Prerequisites: none. Related: TEST.170, TEST.172.
 
 - [ ] **TEST.175 Edit everything end to end: the headline scenarios with approval and undo**
@@ -12708,7 +12591,7 @@ clears each one.
   describes did not appear. Needed next time: The run log that shows
   dependents waiting their full timeout, and the fixture that failed
   first. Running log: the comments on issue #1694.
-  Prerequisites: none. Related: TEST.167.
+  Prerequisites: none. Related: TEST.111.
 
 - [ ] **TEST.191 The plan tests write real settings JSON into `/var/lib/planetGen/jobs/galaxy-settings` and log "No naming key drawn ... Unknown database": give them a temporary directory and a test database**
   Found by a lane (2026-10-16), filed by the TODO thread. The `plan`
@@ -12758,6 +12641,15 @@ clears each one.
   Owner: Core 1 (Boss, 2026-10-16, 8:23 PM EDT, card "Core 1 next"): starts right after
   its current stack and the GEN.372 audit merge, ahead of its bug phase.
   TEST.193 and TEST.195 are likely one root cause, so Core 1 takes both together.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): TEST.195 folded in. Second symptom:
+  `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel`
+  timed out at 30 s fetching `/sector/<id>/galaxy` in a full gate run
+  with 2 browser workers (Core 2, 2026-10-16, 5:52 PM EDT) and passed
+  alone; the same sighting as the 8:12 PM EDT DB.18 gate. Likely one
+  root cause with the setup or teardown hang (Core 1 takes both); if the
+  metadata-lock fix does not stop this symptom, it is split back out.
+  Agreed by Bug Hunt (2026-10-17, 12:33 AM EDT as the lane reported).
   Prerequisites: none.
 
 - [ ] **TEST.194 `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug)**
@@ -12779,30 +12671,6 @@ clears each one.
   next time: The failure text of a loaded run (the captured traceback
   and the browser console) and the load at the time. Running log: the
   comments on issue #1694.
-  Prerequisites: none.
-
-- [ ] **TEST.195 `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` timed out at 30 s fetching `/sector/<id>/galaxy` inside a full gate run and passed alone (bug)**
-  Found by Core 2 (2026-10-16, 5:52 PM EDT), filed by the TODO thread.
-  `src/tests/test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel`:
-  `page.request.get` of `/sector/<id>/galaxy` timed out at 30 s in the
-  full gate run with 2 browser workers, and the test passed alone. Done:
-  the cause is found (a slow first request that builds the whole galaxy
-  scene under load, or a real stall in the route), and the test either
-  waits on the condition it needs or the route is made fast enough, with
-  no quarantine. Fails on main: unknown. Frequency: once so far.
-  Reproducer: none beyond the full browser phase with 2 workers.
-  Sighting (Core 2, 2026-10-16, 8:12 PM EDT, DB.18 gate: scripts/test.py
-  changed, 468 passed, 1 failed, 2 errors): three browser tests hung
-  about 15 minutes in setup or teardown:
-  test_web_browser_sector_open::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel,
-  test_web_browser_sector_reach::test_no_scene_is_loaded_while_the_camera_is_far
-  and test_web_browser_units::test_the_server_text_is_the_automatic_text
-  (passes alone). Fails on main: yes (the same two failed in the OPS.56
-  gate). Frequency: every full gate this evening, so it is no longer rare
-  and costs each lane about 15 minutes a gate; one root cause is likely.
-  Owner: Core 1 (Boss, 2026-10-16, 8:23 PM EDT, card "Core 1 next"): starts right after
-  its current stack and the GEN.372 audit merge, ahead of its bug phase.
-  TEST.193 and TEST.195 are likely one root cause, so Core 1 takes both together.
   Prerequisites: none.
 
 - [ ] **TEST.196 Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged**
@@ -12830,19 +12698,6 @@ clears each one.
   gate this test.
   Prerequisites: TEST.186. Related: GEN.103, TEST.186,
   TEST.161, TEST.164.
-
-- [ ] **TEST.197 `test_page_is_accessible_and_fits[web.sector-phone-light]` failed under load and passed alone: find the cause and make it robust (bug)**
-  Found by Core 3 (2026-10-16, 6:22 PM EDT), filed by the TODO thread.
-  `src/tests/test_web_a11y.py::test_page_is_accessible_and_fits[web.sector-phone-light]`
-  failed in a full `changed` run (78 minutes, load 9.6) on a branch that
-  touches neither maps nor the sector page, and passed alone. Done: the
-  cause is found (a timing assumption under load, or a real layout race
-  on the phone sector page), the test waits on the condition it needs
-  and not a fixed time, and it passes under the same load, with no
-  quarantine. Fails on main: not checked. Frequency: once. Reproducer:
-  none beyond the full suite at load about 9.
-  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
-  Prerequisites: none.
 
 - [ ] **TEST.198 `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug)**
   Found by Core 3 (2026-10-16, 6:22 PM EDT), filed by the TODO thread.
@@ -12919,23 +12774,6 @@ clears each one.
   GEN.109 (Boss card): see the note on GEN.109. Owner: Core 1.
   Prerequisites: none. Related: GEN.372, GEN.109.
 
-- [ ] **TEST.202 `test_galaxy_map_drill_down_by_clicks` failed under load and passed alone: call 28 s to 52 s on a loaded worker (bug)**
-  Found by Core 3 (2026-10-16, 8:34 PM EDT, in the GEN.333 gate: full
-  `changed`, 118 minutes, load 16), filed by the TODO thread.
-  `src/tests/test_web_browser_maps.py::test_galaxy_map_drill_down_by_clicks`
-  failed under load and passed alone (call 52 s on a loaded worker); the
-  same gate also failed
-  `test_galaxy_map_forward_to_current_jumps_to_the_newest_view` (call 28
-  s; TEST.172 carries that sighting). Fails on main: not checked.
-  Frequency: once. Reproducer: none beyond a loaded full run. Done: the
-  cause is found (a fixed wait or a click before the stage view is
-  ready, or a real slow path in the drill-down), the test waits on the
-  condition it needs, it passes under the same load, and no quarantine.
-  Likely the same family as TEST.197 (a timing assumption under load)
-  and the browser hangs of TEST.193 and TEST.195, so Core 1 reads them
-  together. Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
-  Prerequisites: none. Related: TEST.172, TEST.197, TEST.193, TEST.195.
-
 - [ ] **TEST.203 `test_one_worker_leaves_the_runs_own_random_stream_alone` failed once under heavy load with WorkerDied "the task's job ended canceled" and passes alone (bug)**
   Found by the Settings lane (2026-10-16, 8:45 PM EDT, in its ADM.85
   full `changed` run: 133 minutes, two full runs on the machine), filed
@@ -12950,7 +12788,7 @@ clears each one.
   passes under the same load, and no quarantine. Likely related to the
   load flakes of TEST.197 and TEST.202. Owner: Bug Hunt (proposed,
   Boss's lane started 10:20 PM EDT).
-  Prerequisites: none. Related: TEST.197, TEST.202, TEST.193.
+  Prerequisites: none. Related: TEST.174, TEST.172, TEST.193.
 
 - [ ] **TEST.204 Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
@@ -13009,8 +12847,16 @@ clears each one.
   main, run it again with `--resume` and see it refuse or start from
   zero.
   Owner: Bug Hunt (proposed, as the coordinator suggested; any lane).
-  Prerequisites: none. Related: TEST.148, TEST.150, TEST.151, TEST.152,
-  TEST.139.
+  Prerequisites: none. Related: TEST.150, TEST.151, TEST.152, TEST.139.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): TEST.148 folded in. TEST.148 was the investigation of
+  resuming a run (its builds TEST.150, TEST.151 and TEST.152 are done;
+  the options are in
+  /mnt/project-files/test-suite-rebuild/resume-a-run-options.md); this
+  item widens the same-build-only rule across builds. Its
+  restart-in-the-cloud note ('packages changed since' refusal after a
+  container restart) is tested here. Agreed by Bug Hunt (2026-10-17,
+  12:33 AM EDT as the lane reported).
 
 - [ ] **TEST.209 One consistency sweep over every planet and moon class: composition, density, temperature, ozone, aerosols and text all agree**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -14159,7 +14005,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   it and move to the next sequence until it's finished research and we
   can plan it." The research is finished and merged (#1659), so stage C
   is live.
-  Prerequisites: GEN.276, NAV.60. Related: NAV.61, TEST.165.
+  Prerequisites: NAV.60. Related: NAV.61, TEST.165.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
 - [ ] **DOC.52 A docs index page: links to every HTML page under docs/, each with a description of what it contains**
