@@ -1,6 +1,6 @@
 # Atmosphere colour: one consistent atmosphere, then its colour
 
-**Status (2026-10-16):** plan; nothing is built. Boss (11:24 PM EDT, 11:25 PM EDT) made this the seminal feature of 9.0: the colour of the air of any world, worked out from the atmosphere it really has. GEN.408 checks the sources and GEN.409 turns this note into the checked design. The base is [sky-colour-analysis.md](sky-colour-analysis.md).
+**Status (2026-10-16):** plan; nothing is built. Boss (11:24 PM EDT, 11:25 PM EDT) made this the seminal feature of 9.0: the colour of the air of any world, worked out from the atmosphere it really has. GEN.408 checked the sources (done) and GEN.409 turns this note into the checked design. Boss (11:58 PM EDT) made composition the joint headline of 9.0: the master note is [composition-model.md](composition-model.md), and the research, design and table items moved down to 8.1. The base is [sky-colour-analysis.md](sky-colour-analysis.md).
 
 ## 1. What Boss decided
 
@@ -18,20 +18,20 @@
 | Where | Item | What |
 |---|---|---|
 | 8.4 phase 1 | GEN.408 | Verify the sources and say what is missing (done 2026-10-17, [atmosphere-sources-check.md](atmosphere-sources-check.md)) |
-| 8.4 phase 1 | GEN.409 | The checked design (this note) |
-| 8.4 phase 2 | GEN.410 | The gas and compound table |
-| 8.4 phase 3 | GEN.411 | Molar density from the partial pressures |
-| 8.4 phase 3 | GEN.412 | Albedo and greenhouse multiplier recorded, with an inverse |
-| 8.4 phase 3 | GEN.422 | Stop the recalculation redraw; order the steps so pressure, mixture and temperature agree after the freeze-out |
-| 8.4 phase 3 | GEN.423 | Atmosphere density, scale height and the greenhouse multiplier follow from the mixture |
-| 8.4 phase 3 | GEN.424 | The balance gas is a named gas with its own molar mass; habitability reads the stored mean molar mass |
-| 8.4 phase 3 | DB.67 | Columns and migration for albedo, greenhouse multiplier, molar density |
-| 8.4 phase 4 | GEN.413 | Ozone from the oxygen, the star's UV and the Chapman balance |
-| 8.4 phase 4 | GEN.414 | Haze, dust and cloud optical depths |
-| 8.4 phase 5 | DB.68 | Columns for ozone and the aerosol depths |
-| 8.4 phase 5 | GEN.415 | Description text written from the stored mixture |
-| 8.4 phase 5 | TEST.209 | One consistency sweep over every class |
-| 8.4 phase 5 | DOC.63 | The data model docs |
+| 8.1 phase 1 | GEN.409 | The checked design (this note) |
+| 8.1 phase 2 | GEN.410 | The gas and compound table |
+| 8.4 phase 2 | GEN.411 | Molar density from the partial pressures |
+| 8.4 phase 1 | GEN.412 | Albedo and greenhouse multiplier recorded, with an inverse |
+| 8.4 phase 2 | GEN.422 | Stop the recalculation redraw; order the steps so pressure, mixture and temperature agree after the freeze-out |
+| 8.4 phase 2 | GEN.423 | Atmosphere density, scale height and the greenhouse multiplier follow from the mixture |
+| 8.4 phase 2 | GEN.424 | The balance gas is a named gas with its own molar mass; habitability reads the stored mean molar mass |
+| 8.4 phase 2 | DB.67 | Columns and migration for albedo, greenhouse multiplier, molar density |
+| 8.4 phase 3 | GEN.413 | Ozone from the oxygen, the star's UV and the Chapman balance |
+| 8.4 phase 3 | GEN.414 | Haze, dust and cloud optical depths |
+| 8.4 phase 4 | DB.68 | Columns for ozone and the aerosol depths |
+| 8.4 phase 4 | GEN.415 | Description text written from the stored mixture |
+| 8.4 phase 4 | TEST.209 | One consistency sweep over every class |
+| 8.4 phase 4 | DOC.63 | The data model docs |
 | 9.0 phase 1 | GEN.416 | Blackbody colour of a star (first part of the photometry library) |
 | 9.0 phase 1 | GEN.417 | Rayleigh optical depth of the mixture |
 | 9.0 phase 1 | GEN.418 | Atmosphere colour of a solid world |
@@ -75,9 +75,14 @@ What it changed in the plan:
 5. Refractivity and King factors of H2S, SO2 (Bogaard 1978), NH3 and CO.
 6. Condensation curves of NH3, H2O and CH4 (Lodders and Fegley 2002, Lodders 2003 and 2010, Weidenschilling and Lewis 1973).
 7. Bucholtz 1995 Table 3, and the originals of Peck and Huang 1977, Kasting and Donahue 1980, Segura 2003, Hulburt 1953, an Angstrom-exponent review.
-8. Widening the proxy (Project settings, environment network): doi.org, ADS, Science, Copernicus (AMT, ACP), Optica, ScienceDirect, NTRS and the Mainz and Bremen data hosts.
+8. Ice sublimation curves for N2, CO, CH4 and CO2, which the vapour-pressure relations reached by the mixing-ratio research (part 5) do not cover.
+9. Per-comet abundance tables (volatile ratios by comet, not the few well-known ones).
+10. Magma-ocean redox papers: the mantle redox of a young rocky planet and how it drifts (the code's mean is 3.5 above the iron-wuestite buffer, the building blocks sit near 0 to 1 below; GEN.451).
+11. Widening the proxy (Project settings, environment network): doi.org, ADS, Science, Copernicus (AMT, ACP), Optica, ScienceDirect, NTRS and the Mainz and Bremen data hosts.
 
-Until an item is researched, its design entry names the seeded range used meanwhile (rule: nothing fixed per class).
+Until an item is researched, its design entry names the seeded range used meanwhile (rule: nothing fixed per class). Boss widened the network at about 12:02 AM EDT on 2026-10-17: arxiv.org itself is reachable now and the Atmosphere research lane (GEN.431) re-read the four sources the check could not reach.
+
+**Result of the Atmosphere research (GEN.431, 2026-10-17, merged as [atmosphere-composition.md](atmosphere-composition.md) with seven parts in `atmosphere-composition-parts/`):** the four unreached sources were re-checked. The Peck and Huang 1977 H2 constants were read in the refractiveindex.info database file (data, CC0; paper not reached); the Burkholder and Talukdar 1994 and Serdyuchenko 2014 cross sections were read in the Mainz and Bremen data files (the Bremen page states no licence); the Chandrasekhar ground-bounce factor was re-derived and checked by Monte Carlo; Sneep and Ubachs, Bates, Kasting and Donahue, Segura and Kasten and Young stay second-hand. The open CO2 value at 532 nm closes at 13.3e-27 cm2 (measured in He 2021). The ranked research list in section 6 of that note supersedes the list above where they differ (the ice sublimation curves of Fray and Schmitt 2009 lead it). The findings that change the code are GEN.452 (the condensation table), GEN.453 (the radiation constants), GEN.451 (the mantle redox), and DB.71 with GEN.410 (the species that are not stored).
 
 ## 5. Bulk composition: the cause of mass, density and gravity
 
@@ -85,14 +90,14 @@ Boss (2026-10-16, 11:49 PM EDT) asked whether the system stores a body's composi
 
 | Where | Item | What |
 |---|---|---|
-| 8.4 phase 1 | GEN.425 | Verify the mass-radius and equation-of-state sources |
-| 8.4 phase 1 | GEN.426 | The checked design (docs/design/bulk-composition.md) |
-| 8.4 phase 2 | GEN.427 | The bulk materials table with equation-of-state constants |
-| 8.4 phase 2 | GEN.428 | Composition fractions drawn, replacing the fixed text (generator epoch) |
-| 8.4 phase 2 | GEN.429 | Density, mass, radius and gravity derived from the fractions |
-| 8.4 phase 2 | DB.69 | Columns and migration for the fractions |
-| 8.4 phase 2 | GEN.430 | Descriptions state the stored composition |
-| 8.4 phase 5 | TEST.210 | Bulk composition sweep over every class |
-| 8.4 phase 5 | DOC.65 | Docs |
+| done | GEN.425 | Verify the mass-radius and equation-of-state sources ([bulk-composition-sources-check.md](bulk-composition-sources-check.md)) |
+| 8.1 phase 1 | GEN.426 | The checked design (docs/design/bulk-composition.md) |
+| 8.1 phase 2 | GEN.427 | The bulk materials table with equation-of-state constants |
+| 8.4 phase 1 | GEN.428 | Composition fractions drawn, replacing the fixed text (generator epoch) |
+| 8.4 phase 1 | GEN.429 | Density, mass, radius and gravity derived from the fractions |
+| 8.4 phase 1 | DB.69 | Columns and migration for the fractions |
+| 8.4 phase 1 | GEN.430 | Descriptions state the stored composition |
+| 8.4 phase 4 | TEST.210 | Bulk composition sweep over every class |
+| 8.4 phase 4 | DOC.65 | Docs |
 
-Research needed (GEN.425 checks them; only the sources it cannot reach may need Boss): mass-radius relations for solid planets (Seager 2007, Zeng and Sasselov 2013, Zeng, Sasselov and Jacobsen 2016, Zeng 2019), envelopes (Lopez and Fortney 2014, Fortney, Marley and Barnes 2007), equations of state (Vinet or Birch-Murnaghan constants, Saumon, Chabrier and van Horn 1995 for hydrogen and helium), the link from the star's Fe, Mg and Si to the core fraction (Dorn 2015, Thiabaud 2015, Santos 2015) and the water fraction against the snow line. All are recalled, not yet verified.
+Research needed (GEN.425 checked them, done 2026-10-17, see [bulk-composition-sources-check.md](bulk-composition-sources-check.md); only the sources it cannot reach may need Boss): mass-radius relations for solid planets (Seager 2007, Zeng and Sasselov 2013, Zeng, Sasselov and Jacobsen 2016, Zeng 2019), envelopes (Lopez and Fortney 2014, Fortney, Marley and Barnes 2007), equations of state (Vinet or Birch-Murnaghan constants, Saumon, Chabrier and van Horn 1995 for hydrogen and helium), the link from the star's Fe, Mg and Si to the core fraction (Dorn 2015, Thiabaud 2015, Santos 2015) and the water fraction against the snow line. All are recalled, not yet verified.

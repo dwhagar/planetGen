@@ -163,7 +163,7 @@ HOLMAN_WIEGERT_P_TYPE_ECCENTRICITY_RANGE = (0.0, 0.7)
 # configurations symmetric with each other.
 WIDE_BINARY_DEFAULT_CHANCE = 0.5
 
-# S-type binary separation is sampled log-uniformly between these bounds
+# S-type binary separation is sampled log-uniformly from this lower bound
 # (see binary.WideBinaryPair.generate) rather than with plain
 # random.uniform -- real wide-binary separations are observed roughly
 # log-uniform/log-normal over several decades (Duquennoy & Mayor 1991;
@@ -171,14 +171,16 @@ WIDE_BINARY_DEFAULT_CHANCE = 0.5
 # density in the single largest order of magnitude (the same reasoning
 # `physics.planets.generate_moons` already applies to moon spacing). The lower
 # bound sits comfortably above the close/P-type BinaryStarProxy separation
-# range (0.05-0.25 AU) so the two configurations' separations never overlap;
-# the upper bound keeps generated pairs within the separation regime that
-# typically survives Galactic tidal shear and passing-star perturbations
-# over a stellar lifetime (real wide pairs increasingly disrupt beyond
-# roughly 0.1-0.2 pc, ~20,000-41,000 AU -- Jiang & Tremaine 2010), without
-# this generator needing to model that disruption process directly.
+# range (0.05-0.25 AU) so the two configurations' separations never overlap.
+# The upper bound is not a constant: a pair survives only inside the
+# widest axis its place allows (GEN.103, `generation.place_terms.
+# wide_axis_limit_au`: passing stars and the galactic tide, from the place's
+# density, velocity dispersion and the pair's age), and a place that allows
+# none under this lower bound keeps no wide pair.
 WIDE_BINARY_SEPARATION_MIN_AU = 50.0
-WIDE_BINARY_SEPARATION_MAX_AU = 10000.0
+WIDE_BINARY_SEPARATION_CEILING_AU = 1.0e6
+"""float: Only where a place's density is zero is the survival limit infinite; no pair is a pair past a few parsecs
+(the Jacobi radius at the halo's density is under 10 pc), and this keeps the log-uniform draw finite."""
 
 # Cap on the sampled binary orbital eccentricity for an S-type pair (see
 # binary.WideBinaryPair.generate's thermal-distribution sampling).
@@ -428,7 +430,7 @@ SPECTRAL_PROBABILITIES_NORMAL = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G'
 # massive O stars are very nearly certain to. Keyed by spectral letter
 # (`Star.type[0]`) the same way SPECTRAL_PROBABILITIES_NORMAL above is,
 # and used the same way when `SystemConfig.BINARY_SYSTEM` is left at its
-# default `None` -- see `StarSystem._should_generate_binary`. Anchor
+# default `None` -- see `StarSystem._companion`. Anchor
 # points, in solar-mass order:
 #   M: 0.26  -- Duchene & Kraus 2013 (Annual Review of Astronomy and
 #               Astrophysics 51:269-310), low-mass-star multiplicity
@@ -958,6 +960,27 @@ below it, by Knuth's method (PERF.60)."""
 # Binary mass ratio q = M2/M1, uniform (Moe & Di Stefano 2017, ApJS 230:15,
 # find it close to flat); the secondary shares the primary's age.
 BINARY_MASS_RATIO_RANGE = (0.1, 1.0)
+
+# The chance of a companion inside 10 AU against the star's own [Fe/H] (GEN.103; Boss, 2026-10-16, 6:12 to 6:15 PM
+# EDT: one pooled trend, every star mass). Moe, Kratter & Badenes 2019, ApJ 875:61 (arXiv 1808.02116), for solar-type
+# primaries (0.6 to 1.5 Msun, periods under 10^4 d): 53 +-12% at [Fe/H] -3.0, 40 +-6% at -1.0, 24 +-4% at -0.2 and
+# 10 +-3% at +0.5. `generation.place_terms.close_companion_factor` reads the straight line through them, held flat
+# past the ends, as `F(fe_h) / F(0)` on the odds of the generator's own close share (Boss, 2026-10-16: the odds, not the chance). The errors are reference values for the check
+# (TEST.196), not inputs.
+CLOSE_BINARY_FRACTION_BY_FE_H = {-3.0: 0.53, -1.0: 0.40, -0.2: 0.24, 0.5: 0.10}
+
+# The semi-major axis at which half of the pairs of age t survive passing stars is
+# `ENCOUNTER_LIMIT_COEFFICIENT * (M1 + M2) * sigma / (G * rho_2 * t)` (Bahcall, Hut & Tremaine 1985, ApJ 290:15, as
+# Jiang & Tremaine 2010, MNRAS 401:977 restate it, arXiv 0907.2952). The coefficient is that source's; what it folds
+# in (the Coulomb logarithm, the encounter integral) was not checked.
+ENCOUNTER_LIMIT_COEFFICIENT = 0.002
+
+# A system drawn with no galaxy placement (a single system from the command line) has no cell to read a density and
+# a dispersion from; it takes the Sun's neighbourhood, the way `constants.GALACTIC_CENTER_DISTANCE_LY` stands for its
+# distance from the centre. Recalled round values (Jiang & Tremaine 2010: 0.1 Msun/pc^3 in mass, a field dispersion
+# of 30 km/s), to verify.
+SOLAR_NEIGHBOURHOOD_MASS_DENSITY_SOLAR_PC3 = 0.1
+SOLAR_NEIGHBOURHOOD_DISPERSION_KMS = 30.0
 
 # --- Planet Classification Data ---
 
@@ -2714,6 +2737,10 @@ doesn't depend on whether the comet is bound to a star.
 # separate, wider range reflects that real difference rather than reusing
 # the interstellar range as-is.
 BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM = (0.5, 20.0)
+COMET_NUCLEUS_DENSITY_KG_M3 = 533.0
+"""float: Bulk density of a comet nucleus, kg/m^3 -- 67P/Churyumov-Gerasimenko, measured by Rosetta (Paetzold et al.
+2016, 533 +/- 6), the one nucleus whose mass and volume are both known. A nucleus's mass is this times its sphere's
+volume (`physics/bulk_mass.comet_nucleus_mass_kg`)."""
 
 # Perihelion distance range, in AU, for a star-bound comet -- wide enough
 # to cover both a sungrazer-like close pass and an outer-system comet that
