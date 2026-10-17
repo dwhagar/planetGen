@@ -167,7 +167,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.189 | A test that runs `migrate` leaves maintenance mode on: restore `state/maintenance.json` in the fixture (bug) |  | Test-infrastructure finding. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.190 | A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug) |  | Test-infrastructure finding. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.194 | `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug) |  | Flaky test finding from the Settings lane, 5:47 PM EDT. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
-| TEST.213 | `test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star` failed in a loaded browser run: the wheel loop opened the system before the disc reached full share (bug) |  | Core 1 finding, 2026-10-17; any lane, Bug Hunt proposed. |
 | TEST.223 | Two galaxy-map browser tests fail in a loaded full browser run and pass alone: the free camera from a window down, and forward to the current view (bug) |  | Flaky under load. Bug Hunt proposed. |
 | TEST.224 | `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed once in a full gate: the nested system's inside_nebula_id was None (bug) |  | Core 5 finding at #2070: a nested system had no inside_nebula_id in one full gate. |
 | TEST.225 | `test_random_start_neighborhood_matches_the_real_skeleton_plan` generated 18,210 systems against a predicted 83,346.6 in one gate run (bug) |  | Bug Hunt: generated 18,210 systems against 83,346.6 predicted, seed A4D8564BFD80DA2331294BD96F547E67. |
@@ -181,10 +180,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.199 | `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on main for a far-tail case: the halo subtraction loses precision, 2.4e-9 against a 1e-9 tolerance (bug) |  | Core 2 found it; fails on main; also a GEN.372 finding. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | GEN.397 | `planetgen plan` stage 2 prints the progress weight as the number of phenomena to place (bug) |  | Rescatter thread finding, 2026-10-16; any Core lane. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | GEN.398 | The massive-star and bright-star passes place more stars than their log lines expect: 70 and 12 percent over (bug) |  | Rescatter thread finding; Core 3 proposed (scatter spine). |
-| GEN.463 | The neutron star's radius is derived from sourced mass-radius relations instead of the fixed range of 10 to 13 km (bug) |  | Body composition research lane finding F5; Boss 1:22 AM EDT card Replace both; generator epoch bump. Core 3 proposed. |
-| GEN.467 | The main-sequence lifetime is derived from sourced stellar relations instead of the fixed 10 Gyr for one solar mass and a power law of -2.5 (bug) |  | Body composition research lane finding F5; Boss 1:22 AM EDT card Replace both; generator epoch bump. Core 3 proposed. |
 | GEN.396 | Revisit the Yerkes class III luminosity range: 50 to 1000 solar luminosities sits above many dim red giants |  | Core 3 finding, 2026-10-16 10:00 PM EDT; any Core lane. |
-| GEN.502 | The giant branch finishes the stellar tables check: the red giant time law as a function of core mass, the tip by metallicity and the branch duration against the observed horizontal-branch ratio |  | Residual of GEN.407: law as a function, tip by metallicity, branch duration. |
 | TEST.208 | `scripts/test.py --resume` reuses an earlier pass across builds when none of that test's own dependencies changed |  | Boss, 10:37 PM EDT; saves hours per cancelled gate; Bug Hunt proposed. |
 
 ### Nebula data foundations
@@ -306,7 +302,6 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.529 | The pre-main-sequence track takes its Hayashi temperature, birthline radius and energy factor from a sourced table, and the state reaches stars still contracting after 10 Myr |  | Residual of GEN.242: three inferred constants and the 10 Myr cut; needs a sourced Baraffe 2015 or Siess 2000 table. |
 | GEN.243 | Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X |  | Whole-sphere build train, Boss 2026-10-15. Step 13. Core. |
 | GEN.258 | Protostars embedded in giant molecular clouds |  | Phenomena catalogue, Boss 2026-10-15. Step 8, later. Core. |
 | GEN.357 | Generation knows the cloud it sits in: surrounding_cloud extended, containers found early, StarSystem.apply_cloud |  | Split from GEN.95. |
@@ -388,7 +383,6 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.259 | Intermediate-mass black hole share gives about 100,000 in the Galaxy against a handful of candidates (bug) |  | Phenomena catalogue, Boss 2026-10-15. Question for Boss. Core. |
 | GEN.282 | Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec) | GEN.244 | Core 3; step 3 of the galactic core note |
 | GEN.377 | Scatter limits by place for the neutron star and black hole scatter below the cut: the core and halo tiers apply to it, not one global mass cut |  | Core 3 finding after GEN.333. |
 | GEN.303 | Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000 |  | Core 3 wires it; Boss 1:47 PM EDT. |
@@ -470,4 +464,4 @@ The last audits and the headline: they test the component pass, the core and the
 | TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | TEST.184, TEST.185 | Whole-sphere build train, Boss 2026-10-15. Step 15. Quality. |
 | TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | GEN.282, GEN.321 | Phenomena catalogue, Boss 2026-10-15. Step 4. Quality. |
 | TEST.196 | Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged |  | Core 4; Boss 6:15 PM EDT: expected-numbers check for GEN.103. |
-| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.238, GEN.241, GEN.243, GEN.244, GEN.259, GEN.282, GEN.284, GEN.298, TEST.159, TEST.160, TEST.196, GEN.450, GEN.463, GEN.467, GEN.469, GEN.502, GEN.529, GEN.530 |  |
+| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.238, GEN.241, GEN.243, GEN.244, GEN.282, GEN.284, GEN.298, TEST.159, TEST.160, TEST.196, GEN.450, GEN.469, GEN.530 |  |
