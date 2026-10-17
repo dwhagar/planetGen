@@ -747,3 +747,5 @@ Baseline: PR #1817.
 | GEN.134 | 8.1 | Components and wanderers |
 | NAV.60 | 8.1 | Region query |
 | GEN.407 | 8.1 | Bugs and flaky tests |
+| UX.114 | 8.1 | Region query |
+| TEST.217 | 8.1 | Bugs and flaky tests |

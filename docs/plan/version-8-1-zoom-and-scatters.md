@@ -163,7 +163,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.193 | A module fixture's `DROP DATABASE IF EXISTS` blocks for 853 s on a metadata lock that another connection holds, so a browser test hangs in teardown (bug) |  | Test infrastructure finding from Core 2, 5:04 PM EDT. |
 | TEST.194 | `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug) |  | Flaky test finding from the Settings lane, 5:47 PM EDT. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.213 | `test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star` failed in a loaded browser run: the wheel loop opened the system before the disc reached full share (bug) |  | Core 1 finding, 2026-10-17; any lane, Bug Hunt proposed. |
-| TEST.217 | `test_every_column_is_written` found a NULL in every row of `moons.evolutionary_speed` in the full parallel gate, and passes alone (bug) |  | Core 4 finding (UX.114 gate, 2:44 AM EDT as the lane reported): fails only in the full parallel run, passes alone on main. |
 | TEST.216 | `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed in the full parallel gate: the nested system's `inside_nebula_id` was None, and it passes alone (bug) |  | Core 4 finding (UX.114 gate, 2:44 AM EDT as the lane reported): fails only in the full parallel run, passes alone on main. |
 | TEST.198 | `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug) |  | Flaky test finding from Core 3, 6:22 PM EDT. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.203 | `test_one_worker_leaves_the_runs_own_random_stream_alone` failed once under heavy load with WorkerDied "the task's job ended canceled" and passes alone (bug) |  | Settings lane finding. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
@@ -324,7 +323,6 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 | NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map |  | Boss 04:39Z. Map action opening NAV.44; drawn sphere optional. |
 | NAV.61 | Nearest-first by a radius ladder, and a dense-core guard with an early-stop count |  | Spherical region query, stage C. Step 4. Core. |
 | GEN.376 | Region test uses the haversine form for angles under 1e-3 rad in `galaxy/region.py` |  | GEN.372 audit. |
-| UX.114 | Scatter-row pages list the stored members and the map shows a system mass |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 8. Interface. |
 
 ### Superbubble density design
 

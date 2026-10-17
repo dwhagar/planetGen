@@ -1842,7 +1842,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.111 | Reads, API and web wording on shells | none | done, PR #1607 |
 | UX.112 | Maintenance mode: the site is closed to everyone but admin while the maps are rebuilt | none | done, PR #1607 |
 | UX.113 | The sector page shows the profile of any address in the reach, and heavy cells and far neighbourhoods warn before they run | none | done, PR #1919 |
-| UX.114 | Scatter-row pages list the stored members and the map shows a system mass | none | open |
+| UX.114 | Scatter-row pages list the stored members and the map shows a system mass | none | done, PR #1989 |
 | UX.115 | Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages) | none | open |
 | UX.116 | Sliders for every scatter and fill limit: one limit_slider with a number box, in three new segments under the scatter-limits row of the Generate page | none | done, PR #1911 |
 | UX.117 | The Apply filters button on the phenomena list disappears while the list loads (bug) | none | done, PR #1778 |
@@ -2185,7 +2185,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.214 | Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence | none | open |
 | TEST.215 | The Solar System calibration rows live in test files only: a flag fences them and a test fails when a generator table reads one | none | open |
 | TEST.216 | `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed in the full parallel gate: the nested system's `inside_nebula_id` was None, and it passes alone (bug) | none | open |
-| TEST.217 | `test_every_column_is_written` found a NULL in every row of `moons.evolutionary_speed` in the full parallel gate, and passes alone (bug) | none | open |
+| TEST.217 | `test_every_column_is_written` found a NULL in every row of `moons.evolutionary_speed` in the full parallel gate, and passes alone (bug) | none | done, PR #1989 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
