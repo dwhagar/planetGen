@@ -82,7 +82,7 @@ given; an option given replaces its draw, and the bulge's amplitude is solved fo
 | `--bulge-scale-radius-pc` | A third of the bar's length, which is drawn in disk scale lengths by stage (Erwin 2005) |
 | `--bulge-amplitude` | Solved so the bulge's mass is the drawn bulge-to-total of the bulge and disks (Graham and Worley 2008, by stage) |
 | `--arm-count` | Shares of Hart et al. 2017 (two arms in 64.5 percent) |
-| `--pitch-angle-deg` | Falls with stellar mass between Yu and Ho 2018's two binned means, 5.5 degrees of scatter |
+| `--pitch-angle-deg` | Falls with stellar mass between Yu and Ho 2019's two binned means (earlier notes say 2018; Crossref gives ApJ 871, 194, 2019 for the pitch-angle paper), 5.5 degrees of scatter |
 | `--arm-density`, `--interarm-density` | 1.4 and 0.6, the arm contrast (not drawn; no source) |
 | `--calibration-radius-pc` | 3.15 x scale length (`tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH`) |
 
