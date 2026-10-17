@@ -625,7 +625,7 @@ with `clamp()`.
   audit starts, so it checks the finished pages. Queued, not started:
   Interface and Quality stay idle until the sphere and generation stages
   finish (Boss, 12:27 AM EDT) unless Boss says earlier.
-  Prerequisites: NAV.61, NAV.45, MAP.243.
+  Prerequisites: NAV.61, MAP.243.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
 
 - [ ] **UX.118 Slow pages show a progress bar while their data loads: the search page and the phenomena list pages**
@@ -2531,35 +2531,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   may have been filled in the meantime; a hop that is now known shows
   as ordinary, and the course says what changed. Prerequisite: NAV.17.
   Design: [docs/design/course-routing.md](design/course-routing.md)
-
-- [ ] **NAV.45 "What's within N pc" from the Galaxy Map and Sector Map**
-  Boss (2026-10-02 04:39Z, with NAV.43): "Add TODO items for I want the
-  ability to select a location and ask the sytem what stuff (of any
-  kind) is within some distance in parsecs." Done: on the Galaxy Map and
-  the Sector Map, a selected sector, system, phenomenon or picked point
-  gets a "What's within N pc" action on the shared control panel that
-  opens the "What's nearby" page (NAV.44, done) with that place filled in. Optional (default left out
-  unless Boss asks): the map draws the search sphere and highlights the
-  objects inside it. It uses MAP.65's shared control panel and NAV.15's picking of
-  any object on the maps. GitHub issue [#677](https://github.com/dwhagar/planetGen/issues/677) (Boss, 2026-10-08 22:24Z): "Add search options so that when I select a star from anywhere I can take it directly to the search tab to search for items / objects within x distance of that point. Should work for stars, phenomena, even planets and moons." So the action is offered for any pickable object, down to planets and moons (NAV.15), and the result lists every kind.
-  Research (2026-10-09, course-routing.md): page 1 comes from shells and
-  totals are capped ("300+"); show the "not generated yet" counts.
-  NAV.43 (built) filters by exact distance after asking for `radius +
-  one edge`, with a keyset cursor `(distance, kind, id)`; it should also
-  count the pre-placed bright stars, black holes and neutron stars of
-  unfilled cells. Decided (Boss, 2026-10-10 18:44Z, defaults approved;
-  default yes): list those as
-  "not generated yet" rows.
-  Region query (stage C, research #1659): the nearby page reads by the
-  cell key through NAV.60 and the radius ladder and early-stop count of
-  NAV.61, so it stays fast in the dense core and shows "300+" from the
-  capped count.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report, queue position 7).
-  Core 2's NAV.60 (#1977, 2:12 AM EDT as the lane reported) replaced the
-  answer fields `sectors_in_range` and `sectors_generated` by
-  `not_generated` and `not_generated_total` (the API docs and the CLI
-  are updated); this item's pages read the new fields.
 
 - [ ] **NAV.49 Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared**
   Boss (2026-10-07 11:47Z): "Then you can go find another location
@@ -16291,6 +16262,13 @@ clears each one.
   condition it needs (the disc share) and not a fixed time, and it
   passes under the same load, with no quarantine. Owner: Bug Hunt
   (proposed).
+  Sighting (Core 4, 2026-10-17, 5:34 AM EDT as the lane reported, NAV.45
+  gate, build 036c9e8a685b0559, started 4:01 AM EDT): the same test
+  failed in the full gate with `assert 0.8843703345212668 == 1.0 +/-
+  1.0e-06`; it passed 3 of 3 alone on the NAV.45
+  branch (113 to 120 s each, idle box). Fails on main: not seen.
+  Frequency: now 1 of 1 more full gates (NAV.45 gate); with the 12:49 AM
+  EDT run, a loaded run only.
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
@@ -16389,6 +16367,10 @@ clears each one.
   49bf9a8656ac115e, 2:42 to 3:58 AM EDT, 18,849 passed, 1 failed, the
   round-trip column of TEST.217), consistent with a 1 in 40 draw. Bug
   Hunt's `_placed_nebula(holds_ly=6)` fix is still the open fix.
+  Sighting (Core 4, 2026-10-17, 5:34 AM EDT as the lane reported): the
+  nebula persistence failure did not recur in UX.114's gate 2 (2:42 to
+  3:58 AM EDT) or in the NAV.45 gate (4:01 to 5:21 AM EDT, 18866 passed,
+  1 failed, the disc-fade test of TEST.213).
   Prerequisites: none. Related: TEST.213, TEST.194, TEST.208.
 
 - [ ] **TEST.218 `test_first_control_connections_at_once` leaves 3 idle connections open on `planetgen_test_*` when its fixture ends: the test should close its own connections (bug)**
