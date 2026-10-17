@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1661] - 2026-10-17
+
+**Headline:** GEN.323's expected black-hole count is corrected to the measured 9.1 million, accepted by Boss.
+
+### Changed
+
+- GEN.323 and GEN.240 now say about 9.1 million extra black-hole rows beyond the outline (Core 3's measurement; 1.9 million beyond 15 kpc and 7 million in the inner shells), with the cap and the physical weights kept.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1660] - 2026-10-17
 
 **Headline:** Seven test items that Bug Hunt agreed are the same fix as another are merged, and GEN.276 is done.
