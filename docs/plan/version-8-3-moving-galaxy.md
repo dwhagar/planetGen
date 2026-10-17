@@ -18,10 +18,16 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
+| GEN.372 | Numeric precision audit at galactic scale: every float coordinate and sum, how far it gets from its origin, where the first error shows, and what needs a wider or split representation |  | Owner Core 1 (Boss, 6:59 PM EDT); Boss 6:54 PM EDT: precision at galactic scale. Holds every precision finding. |
+| TEST.201 | `block_stats` totals do not depend on the order of the rows: a test |  | GEN.372 audit. |
+| TEST.200 | The nightly local offset limit is documented and pinned by `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point` |  | GEN.372 audit; Boss card. |
+| GEN.375 | Field kernel subtracts a local origin before its loop in `physics/sector_path.py` |  | GEN.372 audit. |
+| DB.65 | Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates |  | GEN.372 audit; small, needs a revision. |
+| GEN.374 | Orbit phase formulas reduce first, and the JavaScript Kepler solver uses tolerance 1e-12: Python, SQL and JavaScript agree |  | GEN.372 audit. |
 | DB.55 | One additive migration for the 8.3 schema: point columns for every kind, heaviest object per sector, asteroid-field provenance |  | Split from GEN.294. Core 1 owns migrations. |
 | GEN.336 | Compact and free objects hold a velocity vector and a mass: stars, black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants | DB.55 | Split from GEN.294. |
 | GEN.337 | Epoch, vector and mass for the rest: belts, quasars, comets, facilities, scatter points and members | DB.55, GEN.336 | Split from GEN.294. |
-| GEN.294 | Every object in the galaxy is held as one SpatialPosition3D with its position, point mass and movement vector stored as columns | DB.55, GEN.336, GEN.337 | Boss 2026-10-15 11:12 PM EDT. |
+| GEN.294 | Every object in the galaxy is held as one SpatialPosition3D with its position, point mass and movement vector stored as columns | DB.55, GEN.336, GEN.337, GEN.372 | Boss 2026-10-15 11:12 PM EDT. |
 | GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) |  | Research follow-up to GEN.108 (built). |
 | GEN.289 | Planets and moons kept as the universal point-in-space object, with point mass and movement vector stored, so perturbations have somewhere to land | DB.55 |  |
 | GEN.142 | Peculiar velocity for rogue planets and asteroid fields | GEN.336 | Research: prerequisite of GEN.110. |
@@ -40,13 +46,17 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 |---|---|---|---|
 | MAP.217 | Map layer interface: one registry the Galaxy stage view, the Sector Map and the System Map share for a toggled layer (menu entry, modes, URL key, legend, picker layer, fade rule) |  | Foundation found in the review. |
 | MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt | MAP.217 |  |
+| MAP.235 | Superbubbles as a registered Galaxy Map layer: a toggle, a hover name and radius, and a key row | MAP.217 | Split from the Galaxy Map key item. |
 
 ### Galactic gravity
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs |  | Research: three Sun distances today. |
-| GEN.338 | The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests | GEN.144 | Split from GEN.115. |
+| DB.66 | The shape row carries the galaxy family and one column per density component, as a migration only | GEN.378 | Step 2 of the galaxy types chain (9.4); Core 1 numbers it. |
+| GEN.379 | The density model as a list of components, each with an amplitude that may be 0, and a mass for each component | GEN.378, DB.66 | Step 3 of the galaxy types chain (9.4); GEN.338 reads its component masses. |
+| GEN.338 | The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests | GEN.144, GEN.369, GEN.379 | Split from GEN.115. |
+| GEN.285 | Nuclear mass components in the galactic potential for the orbital update | GEN.338 | Core 3; step 5 of the galactic core note; moved from 8.1 (no potential module until GEN.338); Boss 8:41 PM EDT: stays in 8.3. |
 | GEN.370 | Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug) |  | Found by the TODO thread. |
 
 ## Phase 2: The update itself

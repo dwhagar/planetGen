@@ -96,7 +96,7 @@ from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits
 from planetgen import tuning
 from planetgen.population import facility_ratings, facility_suggest, facility_types
-from planetgen.galaxy import objectref as object_ref, superbubble_field, version_check
+from planetgen.galaxy import objectref as object_ref, scatter_limits, superbubble_field, version_check
 from planetgen.galaxy.profile import sector_profile
 from planetgen.galaxy.profile_report import profile_report
 from planetgen.galaxy.resolution import cell_resolution
@@ -503,6 +503,7 @@ def sector_detail(sector_id):
         return jsonify({"error": str(exc)}), 404
     detail["superbubble"] = superbubble_of(conn, detail)
     detail["unresolved"] = unresolved_of(conn, detail)
+    detail["scatter_tier"] = scatter_tier_of(conn, detail)
     return jsonify(detail)
 
 
@@ -954,6 +955,24 @@ def superbubble_of(conn, detail):
             "centre_distance_pc": round(math.dist(bubble.center_pc, center), 1)}
 
 
+def scatter_tier_of(conn, detail):
+    """
+    The tier of the sector's band and the limits the galaxy scatter drew its stars at there (GEN.333): `{"tier",
+    "min_luminosity_sol", "mass_limit_sol"}` (`mass_limit_sol` `None` when the scatter had no mass pass), or `None`
+    for a sector outside the galaxy or before any scatter ran.
+    """
+    address = (detail.get("shell_index"), detail.get("band_index"), detail.get("wedge_index"))
+    if not detail.get("placed") or None in address:
+        return None
+    limits = store.scatter_limits_of(conn)
+    found = limits.limit_at(address[0], address[1])
+    if found is None:
+        return None
+    return {"tier": scatter_limits.TIER_NAMES[limits.tier_at(address[0], address[1])],
+            "min_luminosity_sol": float("%.6g" % found.min_luminosity_sol),
+            "mass_limit_sol": None if found.mass_limit_sol is None else float("%.6g" % found.mass_limit_sol)}
+
+
 def unresolved_of(conn, detail):
     """
     What a placed sector leaves unresolved (`sector_detail`'s `unresolved`, GEN.281), or `None` when the cell expected
@@ -965,7 +984,8 @@ def unresolved_of(conn, detail):
     if skeleton is None or not detail.get("placed") or None in address:
         return None
     found = cell_resolution(sector_profile(address, skeleton), skeleton.cell_star_ceiling,
-                            skeleton.fill_luminosity_cap_sol, store.bright_star_mass_limit(conn))
+                            skeleton.fill_luminosity_cap_sol,
+                            store.scatter_limits_of(conn, skeleton).mass_limit_at(address[0], address[1]))
     if not found.capped:
         return None
     return {"ceiling_systems": found.ceiling_systems, "luminosity_cap_sol": found.luminosity_cap_sol,

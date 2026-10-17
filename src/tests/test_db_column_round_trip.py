@@ -128,9 +128,8 @@ NEVER_READ = {
     **{(table, stamp): "row timestamps (the Galaxy Map's change feed reads modified_at in bulk)"
        for table in ("star_systems", "facilities") for stamp in ("created_at", "modified_at")},
     ("polities", "created_at"): "row timestamp", ("species", "created_at"): "row timestamp",
-    # DB.6: what made the galaxy and its runs, for a rebuild (OPS.12) and the update history (OPS.13).
-    **{("galaxy_shape", column): "what made the galaxy (DB.6)" for column in
-       ("version_key", "planetgen_version", "python_version", "platform")},
+    # DB.6: what made the galaxy and its runs, for a rebuild (OPS.12) and the update history (OPS.13). The
+    # galaxy's own record is read back by the version check (ADM.50), so it is not listed here.
     # PERF.11: galaxy-wide stats, read by `store.galaxy_density_ratio`, not by an object loader.
     ("galaxy_shape", "density_ratio_avg"): "density stats (PERF.11)",
     ("galaxy_shape", "density_ratio_samples"): "density stats (PERF.11)",

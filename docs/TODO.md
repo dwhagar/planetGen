@@ -142,6 +142,7 @@ item has no row there.
 | 9.1 | [version-9-1-gravity-map.md](plan/version-9-1-gravity-map.md) | The gravity map |
 | 9.2 | [version-9-2-politics-and-territories.md](plan/version-9-2-politics-and-territories.md) | Politics and territories |
 | 9.3 | [version-9-3-ships-and-stations.md](plan/version-9-3-ships-and-stations.md) | Ships and stations |
+| 9.4 | [version-9-4-galaxy-types.md](plan/version-9-4-galaxy-types.md) | Galaxy types |
 | 10.0 | [version-10-0-roles-and-permissions.md](plan/version-10-0-roles-and-permissions.md) | Roles and permissions |
 | later | [version-later-future-features.md](plan/version-later-future-features.md) | Future features (not scheduled) |
 
@@ -397,7 +398,11 @@ with `clamp()`.
     No grouping or API of its own: the bookmark per charted group (kept
     up to date as sectors are charted) and the highlighted outline on
     open, from the library of MAP.190 (2026-10-16 review).
-    Prerequisites: UX.47, MAP.190.
+    Boss (2026-10-16, 7:24 PM EDT): dislikes the outlined blocks marking
+    charted space and wants colour and opacity highlighting instead, so
+    the region highlight here is a fill (the same as MAP.238), not an
+    outline.
+    Prerequisites: UX.47, MAP.190. Related: MAP.238.
 
 - [ ] **UX.82 Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle**
   Carry into UX.43 or a small follow-up: a check that every file under
@@ -663,23 +668,6 @@ with `clamp()`.
   Prerequisites: GEN.240, NAV.61, API.27, UX.113, NAV.45.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
 
-- [ ] **UX.116 Sliders for every scatter and fill limit: one limit_slider with a number box, in three new segments under the scatter-limits row of the Generate page**
-  Boss (2026-10-16, 1:09 AM EDT, in Core 3's thread): "Each control will
-  be a slider and clearly labeled with a text box at the end of the
-  slider that shows the number in the slider. Use existing layout and
-  segments to design all the slider controls for scatter floors and
-  ceilings." Done (spec: section 5.2 of
-  docs/design/realistic-galactic-core.md): one limit_slider macro (a
-  range with a number box at the end that shows the value and accepts a
-  typed one; log scale for luminosities) replacing mass_slider; the
-  baseline luminosity select becomes a slider too; three new segments
-  under the existing scatter-limits row (Core, Halo and intergalactic
-  space, Dense cells); core sliders follow the baseline until touched;
-  defaults shown and a Reset per segment; the halo luminosity floor
-  slider runs from 50 (default 500; Boss, 2026-10-15 10:06 PM EDT, was
-  100). Owner Core 3 (Boss, 1:09 AM EDT).
-  Prerequisites: DB.54. Related: GEN.234, ADM.43, UX.49.
-
 - [ ] **UX.118 Slow pages show a progress bar while their data loads: the search page and the phenomena list pages**
   Boss (2026-10-16, 12:21 PM EDT): "have a progress bar in the search
   page so the user knows it is loading, that is one of the main issues".
@@ -878,6 +866,48 @@ with `clamp()`.
   galaxy before the first population pass. Reproducer: start a fresh
   galaxy and request both URLs.
   Prerequisites: none.
+
+- [ ] **UX.134 Generate page: the galaxy type shows what the seed drew and can be pinned**
+  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
+  generation based on known galaxy types, as a chain of required items
+  counted back from 9.4. The create-galaxy form shows "Galaxy type: auto
+  (drawn from the seed)" with a list to pin spiral, barred spiral,
+  lenticular, elliptical, irregular or dwarf; pinning fixes the family
+  and never a size or count. After creation the page shows the drawn
+  family, the stellar and halo mass and the family's main numbers. Done:
+  a browser test pins each family and sees it in the stored shape; auto
+  shows the drawn one; the field macro (UX.125) and the help text name
+  every option; the limit sliders of UX.116 are unchanged.
+  Outlines (Boss, 2026-10-16, 9:00 PM EDT): the pin list and the
+  drawn-family read-out show each family's outline from UX.135 beside
+  its name, so the user sees roughly what the model looks like before
+  creating the galaxy.
+  Prerequisites: GEN.389, UX.135. Related: UX.116, UX.125, DOC.13.
+  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **UX.135 One simple vector outline per galaxy family in the icon library: spiral, barred spiral, lenticular, elliptical, irregular and dwarf spheroid**
+  Boss (2026-10-16, 9:00 PM EDT, for 9.4): each galaxy type should have
+  an image of that model as a simple vector outline, so the user knows
+  approximately what it should look like. Default (stands as Decided
+  unless Boss says otherwise): one hand-drawn static SVG per family key
+  GEN.378 lists (today: spiral, barred spiral, lenticular, elliptical,
+  irregular, dwarf spheroid), kept in the repo with the other
+  icon-library shapes, so it works on the offline page and needs no
+  generation step. Each is a plain outline, one stroke weight, no fill
+  or a light fill, drawn in the view that tells the family apart: the
+  arms and bar face-on for the spirals, the smooth lens for the
+  lenticular, the ellipse for the elliptical, the ragged body for the
+  irregular, the faint round blob for the dwarf spheroid; the stroke
+  uses the current text colour so both themes work. Done: the outlines
+  are in the icon library, one per family key; a test fails when a
+  family has no outline or an outline has a script, an external
+  reference, no viewBox or more than 4 KB; a screenshot test shows each
+  on both themes; the Generate page (UX.134) and the Galaxy Map key
+  (MAP.242) use them. Boss sees the drawings in the PR. The art can be
+  drawn any time after GEN.378 fixes the family list; the outlines are
+  not a copy of any named galaxy.
+  Prerequisites: GEN.378. Related: UX.134, MAP.242, UX.101, GEN.378.
+  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -2013,6 +2043,185 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zoom.
   Prerequisites: MAP.229, MAP.176. Related: MAP.176, MAP.180.
 
+- [ ] **MAP.234 Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws**
+  Boss (2026-10-16, 7:16 PM EDT, timeline): "ON the galaxy map, I just
+  realized there is no key, but what are the greenish colored spheroid
+  shapes? They seem to be 2 intersecting elipses to define a space. What
+  are those?" Found by the read-only "galaxy map shapes" thread: they
+  are superbubbles (GEN.254, merged #1814), each drawn as three faint
+  great circles (`static/galaxymap3d.js`, "Superbubbles (GEN.254)",
+  colour 0x6fb3d8, opacity 0.14, always on, never picked, no hover, no
+  legend entry). The help dialog (`GALAXY_MAP_HELP` in
+  `src/planetgen/web/maps/galaxymap3d.py`, "Reading the map") covers
+  only density blocks and stars; it does not mention superbubbles,
+  nebula clouds, supernova remnants, territory balls, course lines or
+  the made-sector rings. The only on-map legends today are the Color by
+  gradient bar (MAP.131) and the course key (NAV.20). Done: a Key
+  section in the help dialog and a small on-map key (collapsible) naming
+  every drawn thing with its colour and shape: density blocks, stars,
+  nebula clouds, remnants, superbubbles, territories, the course line
+  and the made-sector rings; each entry appears only when that thing is
+  drawn at the current view; a browser test that every kind drawn on the
+  map has a key entry (so a new layer cannot be added without one). Not
+  covered elsewhere: DOC.7 is the help page (it lists "nebula and
+  territory overlays" but not superbubbles) and MAP.217 gives a legend
+  per toggled layer, but superbubbles are not a toggled layer today. The
+  superbubble toggle, hover name and radius are MAP.235. Owner: Core 2
+  (the Galaxy Map and its help dialog).
+  Prerequisites: none. Related: MAP.131, NAV.20, MAP.217, DOC.7,
+  GEN.254.
+
+- [ ] **MAP.235 Superbubbles as a registered Galaxy Map layer: a toggle, a hover name and radius, and a key row**
+  Split from MAP.234 (2026-10-16, 7:21 PM EDT). Superbubbles (GEN.254)
+  are drawn always on as faint great circles with no toggle, no picking
+  and no hover. Done: they are a layer on the MAP.217 registry (menu
+  entry, URL key, legend row from the registry), on by default, off on
+  request; hovering one names it and gives its radius and centre; it is
+  a picker layer so a click selects it. Needs the registry (MAP.217).
+  The key text itself is MAP.234. Owner: Core 2.
+  Prerequisites: MAP.217. Related: MAP.234, MAP.217, GEN.254.
+
+- [ ] **MAP.236 Superbubbles need clearer bounds and slightly more transparency on the Galaxy Map**
+  Boss (2026-10-16, 7:24 PM EDT, timeline): "the super bubbles need
+  better definition to the bounds and be slightly more transparent."
+  Today each superbubble (GEN.254) is three faint great circles
+  (`static/galaxymap3d.js`, "Superbubbles (GEN.254)", colour 0x6fb3d8,
+  opacity 0.14, always on), so the bound reads as two crossing ellipses
+  and the inside has no edge. Done: the bound of each bubble is clearly
+  defined (a brighter rim where the shell meets the line of sight, or a
+  crisp outline of the true sphere silhouette, not three crossing
+  rings), and the fill is slightly more transparent than today; both
+  read in the dark and the light theme and at every zoom stage, and the
+  look is drawn the same on the Sector Map where a bubble is shown. A
+  browser screenshot test checks that the rim is brighter than the fill
+  and the fill alpha is lower than 0.14. The key entry and toggle are
+  MAP.234 and MAP.235; this item changes only the look.
+  Owner: Core 2 (the Galaxy Map; proposed, Core 2 reads the plan).
+  Prerequisites: none. Related: MAP.234, MAP.235, GEN.254.
+
+- [ ] **MAP.237 The Galaxy Map's "Charted only" view is invisible again: charted space cannot be told from the rest (bug)**
+  Boss (2026-10-16, 7:24 PM EDT, timeline): "the 'charted only' has gone
+  back to being invisible from the galactic map, so we need some kind of
+  way to see where they are." MAP.111 made "Charted only" dim blocks
+  with nothing generated, dim stars outside charted sectors and outline
+  each charted block ("Charted only" in the Menu; `setChartedOnly` in
+  `static/galaxymap3d.js` sets the `chartedOnly` star uniform and calls
+  `stageView.setChartedOnly`), and MAP.112 let empty blocks be hovered
+  with it on. It was visible then and is not now, so something since
+  then broke it or hid it (the infinite-zoom and tile work changed the
+  stages). Reproduce on a database with a charted region, find the root
+  cause, and fix it; do not add a second way to see charted space (the
+  look itself is MAP.237). Done: with Charted only on, charted space is
+  visibly different from the rest at every stage (whole galaxy, a window
+  of blocks, a single sector window), with a browser test that compares
+  a screenshot (or the drawn colours) with the toggle on and off at each
+  stage and fails if they are the same.
+  Owner: Core 2 (the Galaxy Map; proposed, Core 2 reads the plan).
+  Prerequisites: none. Related: MAP.111, MAP.112, MAP.238, MAP.190,
+  UX.48.
+
+- [ ] **MAP.238 Charted regions shown by colour and opacity, not outlined blocks: drop the outlines everywhere charted space is marked**
+  Boss (2026-10-16, 7:24 PM EDT, timeline): "I also don't like the
+  outlined blocks for it, they are really ugly and make it hard to
+  navigate and see where you are. So rather I want to highlight with
+  color and opacity." Today charted space is marked by an outline around
+  each charted block (MAP.111) and UX.48 plans an outlined region shape.
+  Done: charted blocks and regions are highlighted by a fill colour and
+  opacity that rise with the filled share (the amber of generated blocks
+  already grows more solid with it), with no outline drawn around
+  charted blocks or regions on the Galaxy Map or the Sector Map;
+  "Charted only" (the Menu) raises the highlight and dims the rest; the
+  hover outline on a choice stays (it marks what the pointer is on, not
+  charted space); the region highlight of UX.48 uses the same fill. Both
+  themes, every stage, and a browser test that no outline mesh is built
+  for charted blocks and the fill differs between a charted and an empty
+  block. Needs MAP.237 (the toggle must show something at all before it
+  is restyled), and changes the look MAP.111 gave it.
+  Owner: Core 2 (the Galaxy Map; proposed, Core 2 reads the plan).
+  Prerequisites: MAP.237. Related: MAP.237, MAP.111, MAP.190, UX.48.
+
+- [ ] **MAP.239 Raise the Galaxy Map tile root to the 262 kpc reach: `TILE_ROOT` in `galaxy/viewport.py` and `galaxymap3d.js`**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Boss decided by card (2026-10-16, 7:36 to 7:38 PM EDT):
+  the map tile root rises to the 262 kpc reach. Done: `TILE_ROOT` in
+  `src/planetgen/galaxy/viewport.py` and
+  `src/html/static/galaxymap3d.js` is the reach, so a tile key covers
+  every address in it; stale comments fixed (`web/lib/tilepack.py:30`,
+  `galaxyprisms.js:475`); `test_tiles_cover_the_reach` checks that every
+  cell at the reach edge falls in a tile. Owner: Core 2.
+  Prerequisites: none. Related: GEN.372, MAP.146.
+
+- [ ] **MAP.240 Browser buffers hold camera-relative coordinates: territory dots, superbubbles, made rings, block prisms, stage views, system view dots and belts**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Boss decided by card: fix camera-relative now. Float32
+  attribute buffers in the browser hold absolute coordinates (float32
+  spacing at 262 kpc is far above a parsec), so far from the origin the
+  shapes jitter and snap. Done: the buffers of territory dots,
+  superbubbles, made-sector rings, block prisms, stage views, and the
+  system view's dots and belts are built relative to the camera (or a
+  per-object origin) in double precision on the CPU and the model matrix
+  carries the offset; a browser test reads each attribute range and
+  fails if any value exceeds the safe float32 range (a set bound, in
+  parsecs, stated in the test) at a camera 262 kpc from the origin.
+  Owner: Core 2. Related: the superbubble look (MAP.236) and the key
+  (MAP.234) touch the same buffers.
+  Prerequisites: none. Related: GEN.372, MAP.236, MAP.234, MAP.146.
+
+- [ ] **MAP.241 Stars on the star maps should glow brighter, not grow bigger: size stays small, glow and colour carry luminosity and temperature (bug)**
+  Boss (2026-10-16, 7:43 PM EDT, timeline): "Bug, stars on the starmap
+  should glow brighter but not be bigger if that makes any sense so they
+  are more obviously stars with glows and colors relative to the star's
+  properties." Which map: the message says the star map; the default is
+  both the Galaxy Map and the Sector Map (both draw stars the same way),
+  and the Galaxy Map comes first. What exists: Boss's earlier rule
+  (MAP.51/MAP.208, in the header of `static/galaxymap3d.js`) is "very
+  small with a big glow", sizes by the star's radius, brightness by
+  luminosity and colour by temperature. Today each star is a point
+  `POINT_PX` across far away and, from about a sector away, grows into a
+  core sized by the star's radius (`STAR_CORE_PX` 1.1 to 4.5 px) inside
+  a halo whose width and strength both grow with luminosity
+  (`STAR_MIN_PX` 6 to `STAR_MAX_PX` 30 px), so a luminous star becomes a
+  bigger disc, not a brighter point; the Sector Map has its own curve
+  (MAP.87, `static/starlight.js`). Done: a star's on-screen footprint
+  stays small and close to the same for every star (the size no longer
+  grows with luminosity or radius beyond a narrow band); luminosity
+  raises the glow's intensity (a brighter, hotter-looking core and halo
+  that stays tight), colour follows the blackbody temperature with
+  enough saturation to read, and a dim star reads dim and a bright star
+  reads bright at the same size; the halo-blend rule stays (crowded arms
+  glow in their colours, not white); one shared star look for both maps
+  (`static/starpoint.js` or `starlight.js`, not two curves); both
+  themes; a browser test that two stars of very different luminosity
+  have the same sprite size within a stated tolerance but different peak
+  glow, and that colour follows temperature. The star key entry of
+  MAP.234 says what size, glow and colour mean. Overlap checked: MAP.208
+  (built the grow-into-a-core rule that this changes), MAP.87 (the
+  Sector Map curve), MAP.164 and MAP.165 (colour and size, built),
+  MAP.148 (visibility law, unchanged), MAP.217 (layer registry, no
+  change), and the density/age coloring design, which is for blocks, not
+  stars. Owner: Core 2 (proposed).
+  Prerequisites: none. Related: MAP.208, MAP.87, MAP.164, MAP.165,
+  MAP.234, MAP.148.
+
+- [ ] **MAP.242 The Galaxy Map and its key draw what the family has: arms and bar only where they exist, a spheroid shell, a lens or a clumpy body**
+  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
+  generation based on known galaxy types, as a chain of required items
+  counted back from 9.4. The skeleton prisms read the component list
+  (GEN.379): no arm layer on an elliptical or a lenticular, the bar only
+  when the family has one, an iso-density shell for a spheroid, a clumpy
+  body for an irregular; the key row names the family; the labels of
+  MAP.232 name only the features the family has. Done: browser tests on
+  a small galaxy of each family show the right layers, with no arm layer
+  on an elliptical and the family's name in the key.
+  Outlines (Boss, 2026-10-16, 9:00 PM EDT): the key row for the family
+  shows its outline from UX.135 beside the family's name.
+  Prerequisites: GEN.389, UX.135. Related: MAP.232, MAP.234, MAP.235.
+  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -2422,6 +2631,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   NAV.61, TEST.165.
   Owner: Core 2 (Boss, 2026-10-16, 3:00 PM EDT: the region query goes to
   Core 2), after the infinite zoom tree and its labels.
+  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
+  the coordinator): it follows GEN.276 in Core 2's queue, after the
+  GEN.135 gate and GEN.306. Owner: Core 2.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
 - [ ] **NAV.61 Nearest-first by a radius ladder, and a dense-core guard with an early-stop count**
@@ -3046,6 +3258,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   replaced by the derived limit. The last card, whether the metallicity
   effect fades above about 2 solar masses, was answered "all masses":
   no fade, and the check is the safeguard.
+  Design note landed (Core 4, 2026-10-16, 7:16 PM EDT, #1891):
+  docs/design/placement-by-population.md. The build follows in its own PR
+  and covers 3.1 (close pairs by [Fe/H], every mass) and 3.3 (the derived
+  wide-pair limit). Section 3.2, massive multiples sitting in young
+  regions through `prevalence`, is NOT in that PR: it is GEN.373, with the
+  multi-star items (GEN.269, GEN.270 to GEN.275), and its cap on the rise
+  is the open constant (a design default, not a value from a source).
+  GEN.103 closes when the 3.1 and 3.3 build merges. The metallicity
+  effect applies to every mass, so the numbers need a ceiling that is not
+  a per-mass value: Core 4's recommendation (2026-10-16, 7:25 PM EDT): no new
+  constant; apply the pooled [Fe/H] factor F/F(0) to the odds p/(1-p) of
+  a close companion, not to the chance p, for every mass. It cannot pass
+  1, and a star already likely to have a companion rises less. Core 4's
+  check values: G dwarf 0.43, 0.36, 0.25, 0.12 at [Fe/H] -3.0, -1.0,
+  -0.2, +0.5 against Moe, Kratter and Badenes 53+-12, 40+-6, 24+-4,
+  10+-3% (all within 1 sigma); an O star at [Fe/H] -0.7 goes 0.45 to 0.58
+  (+29%) against the "no change within about 30%" read for O and early-B
+  stars in the Large Cloud and stays under Sana's 0.69+-0.09 (plain
+  scaling gives 0.77). Boss chose the odds form on a card (2026-10-16, 7:19 PM EDT): Decided,
+  the metallicity factor applies to the odds p/(1-p) of a close
+  companion, for every mass. Core 4 builds it.
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
   PM EDT, 2026-10-16; queue in the lane report, queue position 5).
 
@@ -3133,6 +3366,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     chunks and shared work): this item is now the umbrella and is done
     when its subitems are: GEN.338, GEN.339, GEN.340. Four deliverables
     with different readers and timing.
+    NO FIXED CONTENT (2026-10-16, 8:43 PM EDT): the "constant 229.3 km/s
+    whatever the galaxy's size" default above is superseded for the
+    number by Boss's ruling (4:11 and 4:14 PM EDT); the circular speed
+    follows from the masses derived from the generated galaxy, and 229.3
+    is a reference value for a plausibility test. GEN.338 carries the
+    rewrite.
     Prerequisites: GEN.338, GEN.339, GEN.340.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
@@ -3222,6 +3461,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     kernel that feeds the stepper, the perturbed pass and the warnings;
     no integrator of its own for stars (the stepper is child c of
     GEN.115).
+    Precision note (GEN.372 audit, Boss card 2026-10-16, 7:36 to 7:38 PM EDT):
+    the long force sums here use compensated summation (Neumaier or fsum,
+    or mpmath for the long integrations from the galactic centre); the audit
+    decided they wait for this item, not before.
     Prerequisites: GEN.341, GEN.342, GEN.343, GEN.344.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
@@ -3555,6 +3798,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by radius (peak at 5 kpc, -0.28 dex per kpc beyond, the dip inside 3
   kpc), the B share and the bulge's young tail, without the Central
   Molecular Zone, which GEN.282 owns.
+  Built derived, not fixed (Boss, NO FIXED CONTENT, 2026-10-16, 4:11 and
+  4:14 PM EDT; confirmed by the coordinator 2026-10-16, 8:40 PM EDT): the
+  Milky Way numbers above (peak at 5 kpc, -0.28 dex per kpc, the dip
+  inside 3 kpc, B stars at 0.04%, the bulge's 10% young tail) are test
+  targets only, never inputs and never a preset; the star-formation
+  profile, the B share and the bulge tail are derived from the galaxy's
+  own shape, mass function and formation history, with the science named
+  for each link (docs/design/star-types-by-galactic-radius.md, "How the
+  proposals are built"). Boss chose Core 4 first for this item (2026-10-16,
+  8:40 PM EDT, card "Core 4 first"): it researches the inner-disc dip and
+  asks Boss only for what it cannot look up or verify.
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
   PM EDT, 2026-10-16; queue in the lane report, queue position 11; start
   after Core 3 merges GEN.283 and GEN.333 (tuning.py and the profile)).
@@ -3713,6 +3967,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Moved to the first place of the new Galactic gravity thread, ahead of
   GEN.115 child a, which edits the same constants and tests at the same
   radius (2026-10-16 review).
+  NO FIXED CONTENT (2026-10-16, 8:43 PM EDT): 8.128 kpc and 8.2 kpc are
+  the Milky Way's values. The one named value for the test radius stays
+  as the reference for the Milky Way plausibility test only; the Sun's
+  position in a generated galaxy is the derived home position of GEN.368,
+  not a constant.
   Prerequisites: none.
   Design: [docs/design/galactic-potential.md](design/galactic-potential.md)
 
@@ -5116,6 +5375,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   outside-the-box edge cases (2026-10-16 review).
   Owner: Core 2 (Boss, 2026-10-16, 3:00 PM EDT: the region query goes to
   Core 2), after the infinite zoom tree and its labels.
+  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
+  the coordinator): this item and NAV.60 go ahead of the rest of Core
+  2's queue. Core 2's order: the GEN.135 gate, GEN.306, then GEN.276 and
+  NAV.60. Owner: Core 2.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
 - [ ] **GEN.282 Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec)**
@@ -5130,48 +5393,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owns the Central Molecular Zone and the nuclear disc's young share
   (2026-10-16 review); GEN.134 does not build them.
   Prerequisites: GEN.244. Related: GEN.280, GEN.246.
-  Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
-
-- [ ] **GEN.283 Scatter limits by place: a core luminosity floor and mass limit, a halo luminosity floor (default 500, lowest 50), and the baseline everywhere else**
-  Build step of the realistic galactic core plan
-  (docs/design/realistic-galactic-core.md, sections 5 and 9; Boss's
-  item, 2026-10-16, 12:43 AM EDT; note updated for Boss's 1:09 and 1:10
-  AM EDT messages, #1733). Owner Core 3, goal issue #1677. Boss (12:51
-  AM EDT): "the density plan should match as close as we can real-world
-  or at least real possible observations about the galactic density and
-  star counts and all that. THEN for our scatter sweeps, we tweak our
-  minimum mass and minimum luminosity values when we scatter." Boss
-  (1:09 and 1:10 AM EDT): a halo luminosity floor that defaults to 500
-  and can be set no lower than 100 solar luminosities (Boss, 2026-10-15
-  10:06 PM EDT: lowest allowed is now 50, default still 500), and the
-  scatter
-  core with its own levers defaulting to about 10% above the defaults.
-  Done: three settings: a core luminosity floor (default 9,900, the
-  baseline times 1.1, following the baseline until moved), a core mass
-  limit (default 15.4) and a halo luminosity floor (default 500, slider
-  range from 50 up to 4,000,000); the halo has no mass limit of its own;
-  the disc,
-  bulge, satellites and clusters stay on the baseline; the tier is
-  chosen per band by the dominant term of lambda; L_cell and M_cell in
-  the passes, the backfill and the fill; placed_star_fraction uses the
-  cell's cuts; the metallicity argument comes from GEN.158. Three new
-  galaxy_shape columns (core_min_luminosity_sol, core_mass_limit_sol,
-  halo_min_luminosity_sol) share one Core 1 migration revision with
-  GEN.281; options planetgen plan --core-min-luminosity,
-  --core-mass-limit and --halo-min-luminosity. A halo floor of 500 gives
-  about 3.8 million rows (0.6 GB). To allow a floor of 50 the build
-  lowers the ceiling of `WD_LUMINOSITY_RANGE_SOL` from 100 to 50 so
-  `star_population._check_threshold` accepts it (Core 3's finding;
-  GEN.149, now built, changed the same white-dwarf constants), and the plan option `--halo-min-luminosity` accepts 50.
-  Migration revision (updated 2026-10-16, 11:25 AM EDT, GEN.281 merged as #1820): 0098 shipped with GEN.281 alone. The scatter-limit tier itself is a field on SectorProfile with a tuning constant, no column.
-  Built-on note (Core 1, 2026-10-16, 3:17 AM EDT, GEN.235 merged as
-  #1784): the scatter-limit tier is a field plus a tuning constant on
-  SectorProfile in galaxy/profile.py, no columns.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: DB.54, GEN.333. GEN.283 mixes a Core 1
-  migration with the tier logic, and the sliders wait on the wrong half.
-  Prerequisites: GEN.333. Related: GEN.234, GEN.237.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
 - [ ] **GEN.284 Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut**
@@ -5197,7 +5418,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-16, 12:43 AM EDT; merged as #1728). Owner Core 3, goal issue
   #1677. Done: the nuclear cluster and the nuclear disc enter
   galactic-potential.py so orbits near the centre feel them.
-  Prerequisite: GEN.280. Related: GEN.198.
+  Finding (Core 3, 2026-10-16, 8:42 PM EDT): `galactic-potential.py`
+  does not exist; main has only the old rotation curve in
+  `galaxy/galactic_orbit.py`. The Hernquist, Miyamoto-Nagai and NFW
+  module is GEN.338 (needs GEN.144), unbuilt and unowned, in 8.3. So
+  this item needs GEN.338 and moves from 8.1 to 8.3 behind it; it no
+  longer gates the 8.1 headline (GEN.301). Decided (Boss, 2026-10-16,
+  8:41 PM EDT, card "Keep in 8.3"): GEN.285, GEN.338 and GEN.144 stay in
+  8.3; Core 3 is proposed as owner of all three when 8.3 starts (nothing
+  before 8.1 closes).
+  Prerequisites: GEN.338. Related: GEN.280 (built), GEN.198.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
 - [ ] **GEN.286 Horizontal-branch and AGB phases in the stellar evolution model**
@@ -5509,7 +5739,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   owns every revision. Placed in Phase 2 before GEN.109,
   because the influence set sums the point mass of every object kind. No
   lane has it yet (Boss, 11:07 PM EDT: hand to TODO, nothing built).
-  Prerequisites: DB.55, GEN.336, GEN.337. Related: GEN.74,
+  Prerequisites: DB.55, GEN.336, GEN.337, GEN.372. Related: GEN.74,
   GEN.109, GEN.223, GEN.289,
   GEN.290.
   Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
@@ -5528,6 +5758,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
   top 5 blockers, starting right after GEN.237 merges; estimates from
   Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
+  Waits on GEN.372, the numeric precision audit, before it closes (Boss,
+  2026-10-16, 6:54 PM EDT); the audit does not hold up DB.55, GEN.336 or
+  GEN.337, which Core 1 starts first.
 
 - [ ] **GEN.295 Nebulae as point groups whose shape follows the orbital update (design and research)**
   Boss asked (2026-10-16, 1:01 AM EDT, project chat): "should nebulae be
@@ -5730,9 +5963,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.238, GEN.240, GEN.241, GEN.242, GEN.243,
-  GEN.244, GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.285,
-  GEN.286, GEN.287, GEN.298, UX.116, TEST.159, TEST.160.
+  Prerequisites: GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.244,
+  GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.286, GEN.287,
+  GEN.298, UX.116, TEST.159, TEST.160.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -6277,20 +6510,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   line on this item.
   Prerequisites: DB.53, GEN.314, GEN.315. Related: GEN.275.
 
-- [ ] **GEN.333 Scatter limits by place: the tier chosen per band by the dominant lambda term, applied in the passes, the backfill and the fill**
-  Split from GEN.283 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). The tier is chosen per band by
-  the dominant term of lambda (core, halo, or the baseline for disc,
-  bulge, satellites and clusters); L_cell and M_cell are used in the
-  passes, the backfill and the fill, and placed_star_fraction uses the
-  cell's cuts; the metallicity argument comes from GEN.158. To allow a
-  floor of 50 the ceiling of WD_LUMINOSITY_RANGE_SOL goes from 100 to 50
-  so star_population._check_threshold accepts it. Done: a halo floor of
-  500 gives about 3.8 million rows (0.6 GB), the core tier follows the
-  baseline until moved, a cell never changes tier mid-band, and scatter
-  plus fill still sum to the untiered expected total.
-  Prerequisites: DB.54. Related: GEN.283.
-
 - [ ] **GEN.334 Pair closest-approach library: sweep, pair windows, window cap and chunking**
   Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
   item for smaller chunks and shared work, 1:33 PM EDT: shared
@@ -6369,7 +6588,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Galactic gravity thread) names the 8.128 kpc test radius and the 8.2
   kpc placement value, and this module only reads them (2026-10-16
   review).
-  Prerequisites: GEN.144. Related: GEN.115.
+  Rewrite for NO FIXED CONTENT (finding from the read-only "galactic
+  potential realism" thread, 2026-10-16, 8:43 PM EDT; Boss, 4:11 and 4:14
+  PM EDT): the values above (a circular speed of 229.3 km/s, a bulge of
+  1.0e10, a disk of 6.8e10 with a 3.5 kpc scale, a halo of 5.4e11 with r_h
+  16 kpc, the 8.128 and 8.2 kpc radii, the 213 to 231 km/s band) are the
+  Milky Way's and are reference values for a plausibility test, never
+  defaults. The module's masses and scales are derived from the generated
+  galaxy: the bulge, disk and halo masses from the density model of this
+  galaxy's shape, the halo mass and scale from GEN.369's halo derivation,
+  and the circular speed follows from them; it is not a constant. The
+  tests check the shape and internal consistency of the curve (a rising
+  then flat or gently falling curve, v_c squared equal to r times the
+  radial pull, Kz and local density from the same masses, an orbit
+  keeping its radius, Lz conserved, energy drift, a finite pull at the
+  origin), and compare the Milky Way's numbers only as a reference for a
+  galaxy built with the Milky Way's shape. The module is also the one
+  source for the other rotation numbers in the code today: the flat
+  velocity of 220 km/s with a 3,000 pc core in `physics/constants.py`
+  (every star's orbit, about 206 km/s at 7.91 kpc), `tuning.CLUSTER_HALO_CIRCULAR_KMS`
+  (220, the cluster Jacobi radius and cluster rotation) and
+  `constants.MILKY_WAY_MASS` (1.15e12, the Hill spheres in
+  `generation/binary.py`; GEN.370), so the cluster generator and the Hill
+  spheres read it too, not only GEN.339 and GEN.340.
+  Galaxy types (2026-10-16, 8:50 PM EDT, Boss for 9.4): the bulge, disk
+  and halo masses come from GEN.379's `component_masses`, and a
+  component of zero mass is legal and tested (a galaxy without a disk,
+  an elliptical, needs no change in the potential); GEN.379 and DB.66
+  sit just before this item in the thread.
+  Prerequisites: GEN.144, GEN.369, GEN.379. Related: GEN.115.
 
 - [ ] **GEN.339 Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded**
   Split from GEN.115 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6759,6 +7006,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   real rows are kept only as reference data for the plausibility test of
   GEN.369, with no Milky Way option (Boss, 2026-10-16, 4:11 PM EDT), so
   this check matters only for that test and waits on GEN.369.
+  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
+  the coordinator): Core 1 does it last of its four (order: GEN.368,
+  GEN.369, GEN.371, GEN.366). Owner: Core 1.
   Prerequisites: GEN.369.
 
 - [ ] **GEN.367 The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae**
@@ -6843,7 +7093,45 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The item also keeps a list of the pieces that cannot be looked up,
   each with what is needed and why, and hands it to Boss as research
   requests (the TODO thread puts them to him).
-  Prerequisites: none. Related: GEN.237, GEN.369, GEN.297, GEN.370.
+  Finding (read-only thread, 2026-10-16, 7:21 PM EDT, from Boss's 7:24
+  PM EDT question "should the super massive black hole at the center of
+  the galaxy always be at exactly 0,0,0?"; repo facts checked on main):
+  the nucleus is pinned to (0,0,0) in three places: `store.GALACTIC_CENTER_PLACEMENT`
+  / `insert_quasar` (snaps any placement to the origin),
+  `phenomenon_scatter.nucleus_row` (position (0,0,0) in cell (0,0,0)) and
+  `run_sector.add_galactic_nucleus` (position (-dist,0,0) in the sector
+  frame); hypervelocity stars start from the origin too. Decided (Boss,
+  2026-10-16, 7:27 PM EDT, card "Exactly 0,0,0"): the central black hole
+  stays exactly on the origin, with no seeded offset or drift; the read-only
+  thread's offset proposal is not built. The hole's mass is still drawn,
+  not derived: `BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR` (1e6, 1e8)
+  log-uniform (`tuning.py`), quasar 1e8 to 1e10 log-uniform, both
+  independent of the bulge mass or the galaxy shape (real holes track
+  bulge mass and dispersion, M-sigma, Haring and Rix; figures from memory,
+  to be checked here), and the sphere-of-influence dispersion is a
+  constant 100 km/s (`BLACK_HOLE_SUPERMASSIVE_VELOCITY_DISPERSION_KMS`,
+  course-avoidance.md). Work for this item's central black hole row:
+  derive the hole mass and the dispersion from the galaxy's bulge mass or
+  dispersion by an M-bulge or M-sigma relation with its scatter as a
+  seeded draw, instead of the independent log-uniform range; the active
+  and quiescent split stays a draw. Kind: design gap, not a bug.
+  Galaxy types (Boss, 2026-10-16, 8:48 PM EDT, for 9.4): the galaxy
+  shape row of this table is the spiral family's row of a wider draw,
+  because 9.4 adds elliptical, lenticular, irregular and dwarf families
+  chosen from the seed (docs/design/galaxy-types.md, GEN.378). The table
+  is written with that in mind: the root draw is the stellar mass, the
+  halo mass follows from it by the stellar-to-halo relation, and the
+  shape-draw build that follows this item's approval is written once for
+  every family, so GEN.378 reads this table and extends it, and the
+  build is not redone for 9.4.
+  Prerequisites: none. Related: GEN.237, GEN.369, GEN.297, GEN.370,
+  GEN.378.
+  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
+  the coordinator): this item and its Core 1 chain go ahead of the rest
+  of Core 1's queue. Core 1's order: its current stack, the GEN.372
+  audit, TEST.193 and TEST.195, then GEN.368, GEN.369, GEN.371 and
+  GEN.366. Owner: Core 1. It blocks 65 items now, the galaxy types chain
+  (GEN.378) among them.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.369 Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option**
@@ -6870,6 +7158,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   owner), after the global top 5 blockers unless Boss moves it up; the
   component pass GEN.324 places stars for whatever component rows exist,
   so it does not wait on this.
+  Velocity (finding from the "galactic potential realism" thread,
+  2026-10-16, 8:43 PM EDT): `generation/satellites.py` gives every
+  satellite velocity (0, 0, 0). The derived population lists a velocity
+  as an output, drawn from the galaxy's potential; the potential module
+  is GEN.338 (8.3), so the velocities arrive with GEN.339 (8.3), not with
+  this item's 8.1 build, which keeps them at rest and says so.
   Prerequisites: GEN.368, GEN.371. Related: GEN.237, GEN.366, GEN.324,
   GEN.297.
   Waits on GEN.371, the feasibility study of generating satellites
@@ -6909,6 +7203,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   numbers are used where we can. Things are derived everywhere we can or
   calculated everywhere we can. If needed you should ask me to do
   research if there are pieces missing that you can't look up yourself."
+  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
+  the coordinator): Core 1 builds it right after GEN.368 (order:
+  GEN.368, GEN.369, GEN.371, GEN.366). Owner: Core 1.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
@@ -6974,8 +7271,416 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   numbers are used where we can. Things are derived everywhere we can or
   calculated everywhere we can. If needed you should ask me to do
   research if there are pieces missing that you can't look up yourself."
+  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
+  the coordinator): Core 1 does it right after GEN.369 (order: GEN.368,
+  GEN.369, GEN.371, GEN.366). Owner: Core 1.
   Prerequisites: GEN.368. Related: GEN.368, GEN.369, GEN.324, GEN.237.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
+
+- [ ] **GEN.372 Numeric precision audit at galactic scale: every float coordinate and sum, how far it gets from its origin, where the first error shows, and what needs a wider or split representation**
+  Boss (2026-10-16, 6:54 PM and 6:55 PM EDT, project chat): are 64-bit
+  numbers enough for positions at galactic scale, or do we need 128 or
+  256 bits, and who should own all of our bugs and concerns about it.
+  This is the one place they are collected. Existing coverage is
+  scattered: docs/design/orbital-updates.md (positions as integer
+  milliparsecs relative to the sector and kilometres relative to a
+  system, and a float64 spacing line of 32.8 km at 8.128 kpc),
+  docs/design/orbital-solvers-and-integrators.md (a float64 spacing
+  table), docs/design/galactic-potential.md (cancellation and float32
+  notes), the spherical sector design (a coarse integer address with a
+  local offset), the field kernel of PERF.88 (float64 sums), TEST.192 (a
+  cancellation in a test), and a GEN.142 note that says "about 14 km at
+  8 kpc". These disagree: 2^-40 pc is about 28 km at 8.128 kpc, and at
+  the 262 kpc reach the spacing is about 900 km below 262,144 pc and
+  about 1,800 km above it. Done: a written audit
+  (docs/design/numeric-precision-audit.md) with one table row for each
+  float quantity the galaxy stores, computes or draws (the galactic
+  position of every object kind, the sector-relative offset, system,
+  planet and moon frames, velocities, epochs and phases, orbital
+  elements, the field kernel and potential sums, the camera and render
+  path including float32 in the browser, the JavaScript twins, the API
+  wire formats, the 96-bit ID and cell key arithmetic), giving the
+  largest distance from its origin it reaches (up to the 262 kpc reach),
+  the spacing of a float64 there in kilometres, the smallest change that
+  must survive (a moon's move, the 0.01 mpc threshold, a planet's
+  orbit), and the first place the error shows. It says for each row
+  whether float64 plus the coarse integer address and a local offset is
+  enough, or where a wider sum is needed (a compensated or integer sum,
+  or mpmath, for long integrations from the galactic centre), recommends
+  the cases that need work as new items, and names a test for each (for
+  example a differenced-position test at 262 kpc). No build in this
+  item. Findings rule: any lane that meets a precision bug or concern
+  sends it to the TODO thread, which attaches it here. Owner: Core 1 (Boss
+  chose it by card, 2026-10-16, 6:59 PM EDT), who owns the point columns
+  (DB.55, GEN.336, GEN.337, GEN.294) and the IDs, with Core 2 reading the
+  camera and render rows.
+  Audit written (Core 1, 2026-10-16, 7:39 PM EDT; docs/design/numeric-precision-audit.md,
+  merging in its own PR): verdict, 64-bit is enough for every stored
+  value, no 128-bit or 256-bit column. Boss decided four items by card
+  (7:36 to 7:38 PM EDT): the nightly update keeps a local offset (document
+  and test only, TEST.200); the map tile root rises to the 262 kpc reach
+  (MAP.239); browser buffers become camera-relative now (MAP.240);
+  compensated sums wait for GEN.109. Items filed from the audit's section
+  5: MAP.239, MAP.240, GEN.374 (phase formula), DB.65 (cell key clamp),
+  GEN.375 (field kernel local origin), GEN.376 (region haversine),
+  TEST.200 (local offset limit), TEST.201 (block_stats order). GEN.372
+  resolves when the audit merges.
+  Finding attached (Core 2, 2026-10-16, 7:27 PM EDT): TEST.199, the
+  halo subtraction in the density skeleton loses precision in the far tail
+  (a relative gap of 2.4e-9 against 1e-9 at z = 36,706 pc).
+  Prerequisites: none. Related: GEN.294, GEN.139, GEN.142, GEN.223,
+  MAP.146, NAV.62, TEST.192, PERF.88, DB.55, TEST.199.
+  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
+
+- [ ] **GEN.373 Massive multiples sit in young regions: set `prevalence` from the cell's young share, with a derived cap on the rise**
+  Split from GEN.103 (Core 4, 2026-10-16, 7:16 PM EDT; the coordinator
+  asked it be an item of its own at 7:17 PM EDT).
+  docs/design/placement-by-population.md section 3.2: high-mass stars
+  are far more often in multiples, and the most massive sit in clusters
+  and associations. The mass dependence is already in
+  `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS` and
+  `STAR_COUNT_PROBABILITIES`; the place dependence is not. Done:
+  `prevalence` of `draw_member_tree` is the cell's young share (the
+  profile's `populations["young"].share`) over the solar circle's
+  reference share (`profile._reference_young_share(shape)`), so it is 1
+  where a cell looks like the solar circle, above 1 in arms and
+  associations and 0 in the halo; the five-or-more columns scale with
+  it. The cap on the rise is the one open constant (a design default,
+  not a value from a source): under Boss's no-fixed-content rule it is
+  derived, not typed in; the odds form Core 4 recommended for GEN.103
+  (the factor applied to the odds, so nothing passes 1) is the model.
+  Boss decides the cap on a card. Test: the massive-multiple census bins
+  of TEST.164, and the metallicity check of TEST.196. Owner: Core 4,
+  with the multi-star items (GEN.269 to GEN.275).
+  Prerequisites: none. Related: GEN.103, GEN.269, GEN.270, TEST.164,
+  TEST.196.
+  Design: [docs/design/placement-by-population.md](design/placement-by-population.md)
+
+- [ ] **GEN.374 Orbit phase formulas reduce first, and the JavaScript Kepler solver uses tolerance 1e-12: Python, SQL and JavaScript agree**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Done: the phase formula reduces the angle modulo one
+  turn before multiplying (`body_positions` and `system_tree` in Python,
+  `src/html/static/orbitpositions.js` in JavaScript); the JavaScript
+  Kepler solver's tolerance is 1e-12; tests show that the Python, SQL
+  and JavaScript phase functions agree within a stated bound at long
+  times (millions of days from the epoch). Owner: Core 2, or whoever
+  owns `orbitpositions.js`.
+  Prerequisites: none. Related: GEN.372, GEN.109, GEN.313.
+
+- [ ] **GEN.375 Field kernel subtracts a local origin before its loop in `physics/sector_path.py`**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Done: the field kernel of
+  `src/planetgen/physics/sector_path.py` subtracts a local origin (the
+  path's own start or the cell centre) from every position before the
+  loop, so the sums run on small numbers; a test shows the result agrees
+  with a high-precision reference within the float64 spacing at a sector
+  262 kpc from the origin. Owner: Core 1, with GEN.294.
+  Prerequisites: none. Related: GEN.372, GEN.294.
+
+- [ ] **GEN.376 Region test uses the haversine form for angles under 1e-3 rad in `galaxy/region.py`**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Done: the angle in the region test of
+  `src/planetgen/galaxy/region.py` is computed with the haversine form
+  below 1e-3 rad (the arccos form loses all precision there); a test
+  with two points a few parsecs apart at 262 kpc gives the right angle
+  within a stated relative bound. Owner: Core 4 (region query).
+  Prerequisites: none. Related: GEN.372, GEN.276, NAV.60.
+
+- [ ] **GEN.377 Scatter limits by place for the neutron star and black hole scatter below the cut: the core and halo tiers apply to it, not one global mass cut**
+  Found by Core 3 (2026-10-16, 8:34 PM EDT, after GEN.333 merged as
+  #1904), filed by the TODO thread at its request as a later 8.1 item.
+  GEN.333 applies the tiers (core, baseline, halo) to the star scatter;
+  the phenomena scatter below the cut (neutron stars and black holes
+  from stellar density) still keeps ONE global mass cut, so the core and
+  halo tiers do not apply to it. Done: the neutron star and black hole
+  scatter below the cut takes its mass limit by place (core, baseline,
+  halo) the same way GEN.333 does for stars, with the tier chosen per
+  band by the dominant lambda term; the three limits are the same
+  settings the Generate page already shows (UX.116), with no extra
+  setting; a test shows that a core band and a halo band cut the
+  phenomena at their own tier limits and the baseline is unchanged.
+  Changed behaviour recorded with GEN.333: the brightest white dwarf is
+  now 50 solar luminosities (it was 100), so the luminosity floors and
+  caps may go as low as 50. Owner: Core 3.
+  Prerequisites: none. Related: GEN.333, GEN.283, UX.116, GEN.301.
+
+- [ ] **GEN.378 The galaxy type families: the checked design with its scaling relation table and the draw order**
+  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
+  generation based on known galaxy types, as a chain of required items
+  counted back from 9.4. This is the design step. Done:
+  docs/design/galaxy-types.md, which starts as the plan filed with this
+  item, becomes the checked design: the family list (spiral unbarred and
+  barred, lenticular, elliptical, irregular, dwarf spheroidal); the draw
+  order (stellar mass from a Schechter function, then the family from
+  the mass-dependent morphology fractions, then the halo mass from the
+  stellar-to-halo relation, then each family's parameters); one table
+  row per parameter with its law, its source checked against the paper,
+  its range and scatter, and the component of the model it feeds; the
+  mass limits that keep the galaxy's extent inside the 262 kpc reach;
+  the reference galaxies the plausibility tests (TEST.204) compare
+  against and nothing else; the columns DB.66 adds; and which of
+  GEN.368's shape rows are the spiral family's, so that the shape-draw
+  build that follows GEN.368's approval is written once for every
+  family. Relations that cannot be looked up go to Boss as research
+  requests (the TODO thread puts them to him). Boss reads and approves
+  the table before DB.66 and GEN.379 are built. No fixed content (Boss,
+  4:11 and 4:14 PM EDT): no named galaxy, preset or hand-set value;
+  reference galaxies only check the result. Owner: Core 1 proposed (it
+  writes GEN.368's table), after GEN.368.
+  Prerequisites: GEN.368. Related: GEN.369, GEN.297, GEN.234, GEN.134,
+  GEN.338, GEN.390.
+  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **GEN.379 The density model as a list of components, each with an amplitude that may be 0, and a mass for each component**
+  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
+  generation based on known galaxy types, as a chain of required items
+  counted back from 9.4. `relative_density`, `population_densities` and
+  the array form in `galaxy/density.py` sum named components (thin disk
+  with arms, thick disk, spheroid or bulge with its bar, halo, nuclear
+  cluster and disc), each read from the shape's own amplitudes; an
+  amplitude of 0 removes the component exactly.
+  `component_masses(shape)` returns each component's mass in solar
+  masses by integrating its profile; the potential (GEN.338) reads its
+  bulge, disk and halo masses from it. Done: a golden test over a grid
+  of positions shows today's spiral shape gives the same density and
+  population split as before (relative error under 1e-12); the array
+  form is no slower than today's on the sector gate (within 5 percent);
+  `component_masses` matches a numerical integral of each profile within
+  1e-4; the population keys do not change. No new content: this is the
+  spiral family written as components. No fixed content (Boss, 4:11 and
+  4:14 PM EDT): no named galaxy, preset or hand-set value; reference
+  galaxies only check the result.
+  Prerequisites: GEN.378, DB.66. Related: GEN.338, GEN.381, GEN.234,
+  GEN.280.
+  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **GEN.380 The galaxy type draw: stellar mass from a Schechter function, then the family from the mass-dependent fractions, then the halo mass**
+  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
+  generation based on known galaxy types, as a chain of required items
+  counted back from 9.4. A pure function of the galaxy seed,
+  `draw_galaxy_type(seed)`, returns the family, the stellar mass and the
+  halo mass. The stellar mass follows a Schechter function and the
+  family the mass-dependent morphology fractions (with the survey fits
+  GEN.378 names); the halo mass comes from the stellar-to-halo relation
+  with its scatter as a seeded draw. The mass limits are settings whose
+  defaults GEN.378 states, so that the galaxy's visible extent fits the
+  262 kpc reach. It draws through `unit_seed(galaxy_seed, ...)` and the
+  one random wrapper (planetgen/util/draw.py). Done: the same seed gives
+  the same draw; a histogram over 10,000 seeds matches the stated
+  fractions within sampling error; every draw is inside the mass limits;
+  no family or mass appears as a default. No fixed content (Boss, 4:11
+  and 4:14 PM EDT): no named galaxy, preset or hand-set value; reference
+  galaxies only check the result.
+  Prerequisites: GEN.378, GEN.379. Related: GEN.368, GEN.369, GEN.381.
+  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **GEN.381 A Sérsic spheroid as a density component: index, effective radius, axis ratios and orientation, with a mass**
+  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
+  generation based on known galaxy types, as a chain of required items
+  counted back from 9.4. The spheroid component of GEN.379's list: a
+  deprojected Sérsic profile (the Prugniel and Simien approximation,
+  checked in GEN.378) with an index n, an effective radius, a triaxial
+  axis ratio pair and an orientation, normalised to a stated mass. A
+  bulge is a spheroid with its own n and radius; today's COBE bar-bulge
+  stays as the bar form. The array form serves the sector gate. Done:
+  the deprojected density integrates to the stated mass within 1e-4; the
+  projected profile follows the Sérsic law within 1 percent over 0.1 to
+  10 effective radii for n from 0.5 to 8; the axis ratios and the
+  orientation are tested on a rotated grid; the density is finite at the
+  origin (a floor, no divide by zero); the same inputs give the same
+  density. No fixed content (Boss, 4:11 and 4:14 PM EDT): no named
+  galaxy, preset or hand-set value; reference galaxies only check the
+  result.
+  Prerequisites: GEN.379. Related: GEN.383, GEN.385, GEN.384.
+  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **GEN.382 The spiral family: scale length and height, bulge-to-total, bar, arm count and pitch angle from mass and Hubble stage**
+  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
+  generation based on known galaxy types, as a chain of required items
+  counted back from 9.4. The spiral family's laws, written as the
+  general form of GEN.368's shape row: disk scale length from the
+  mass-size relation, scale height from thickness against length, the
+  thick-disk share, bulge-to-total and Sérsic index from the Hubble
+  stage (early to late, drawn with the mass), a bar by the fraction at
+  this mass and gas content (barred or unbarred is a draw inside the
+  family) with its length from the disk scale length, arm count and
+  pitch angle from the shear and the mass, and the arm amplitude by
+  stage; the halo comes from GEN.380's halo mass. Done:
+  `draw_spiral(rng, mass, halo)` returns the shape parameters, each law
+  named in the code with its source; bulge-to-total falls from early to
+  late stages over many seeds; the barred fraction matches the stated
+  fraction within sampling error; pitch angle moves with shear in the
+  stated direction; every parameter stays inside its stated range; the
+  real Milky Way's measured numbers are tested only as values the draw
+  can produce, never as defaults. No fixed content (Boss, 4:11 and 4:14
+  PM EDT): no named galaxy, preset or hand-set value; reference galaxies
+  only check the result.
+  Prerequisites: GEN.368, GEN.379, GEN.380. Related: GEN.134, GEN.369.
+  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **GEN.383 The elliptical family: Sérsic index and size from mass, intrinsic axis ratios, no disk, arms or bar, an old population**
+  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
+  generation based on known galaxy types, as a chain of required items
+  counted back from 9.4. One spheroid component (GEN.381) and no disk,
+  arms or bar: the Sérsic index rises with mass, the effective radius
+  follows the early-type mass-size relation, the intrinsic axis ratios
+  follow the observed ellipticity distribution (flatter fast rotators at
+  low mass, triaxial at high mass), and the stars are old with almost no
+  gas. The stellar halo is the Sérsic outer part, so the separate halo
+  power law of GEN.234 takes a low amplitude. Done:
+  `draw_elliptical(rng, mass, halo)` returns the shape parameters with
+  every law named; mass-size and index-mass slopes over many seeds match
+  the stated relations; the axis ratios cover the stated range; the
+  density has no arm, bar or disk term (all amplitudes 0); same seed
+  same galaxy. No fixed content (Boss, 4:11 and 4:14 PM EDT): no named
+  galaxy, preset or hand-set value; reference galaxies only check the
+  result.
+  Prerequisites: GEN.380, GEN.381. Related: GEN.385, GEN.386.
+  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **GEN.384 The lenticular family: a smooth disk and a large bulge, no arms, old stars and almost no gas**
+  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
+  generation based on known galaxy types, as a chain of required items
+  counted back from 9.4. A disk without arms (the disk draw of GEN.382)
+  and a spheroid (GEN.381) with a bulge-to-total above the spirals', old
+  stars, almost no gas, an optional weak bar by the lenticular bar
+  fraction, and the early-type size relation for the disk. Done:
+  `draw_lenticular(rng, mass, halo)` returns the shape parameters with
+  every law named; the arm amplitude is 0; bulge-to-total over many
+  seeds sits above the spiral draw's and inside the stated range; no
+  young population; same seed same galaxy. No fixed content (Boss, 4:11
+  and 4:14 PM EDT): no named galaxy, preset or hand-set value; reference
+  galaxies only check the result.
+  Prerequisites: GEN.382, GEN.383. Related: GEN.386.
+  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **GEN.385 The irregular and dwarf families: a clumpy exponential or Sérsic body with young stars, and an old dwarf spheroid**
+  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
+  generation based on known galaxy types, as a chain of required items
+  counted back from 9.4. Two bodies from one draw of the lower mass
+  range: a dwarf irregular (an exponential or Sérsic n near 1 body,
+  clumps drawn as a young-star mass share, no arms, no defined bulge, a
+  high gas fraction; a barred irregular is a draw inside the family, not
+  a preset) and a dwarf spheroid or elliptical (a Plummer or low-n
+  Sérsic body, old and metal-poor). The size-mass and metallicity-mass
+  laws are the satellite laws of GEN.369, called here for a main galaxy
+  of low mass instead of derived again. Done: `draw_irregular` and
+  `draw_dwarf_spheroid` return the shape parameters with every law
+  named; the family's size and [Fe/H] follow the satellite laws over
+  many seeds; the clumps hold the stated young share; no arm, bar or
+  thick-disk term; same seed same galaxy. No fixed content (Boss, 4:11
+  and 4:14 PM EDT): no named galaxy, preset or hand-set value; reference
+  galaxies only check the result.
+  Prerequisites: GEN.369, GEN.380, GEN.381. Related: GEN.382, GEN.386.
+  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **GEN.386 Population mix, star-formation history and gas fraction by family: the young share that the nebula and profile rules read**
+  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
+  generation based on known galaxy types, as a chain of required items
+  counted back from 9.4. Each family sets the shares or age ranges of
+  the young, intermediate and old populations
+  (`tuning.STELLAR_POPULATION_AGE_RANGES_GY`), the star-formation rate
+  and so the young share that GEN.319's profile fields read, the gas
+  fraction and the [Fe/H] gradient from the mass-metallicity relation.
+  GEN.134's radial star-formation profile is the spiral family's; the
+  other families scale from it. Nebula and H II rates follow the young
+  share, so an elliptical makes almost none. Done: an elliptical's young
+  share stays under the stated bound everywhere; a late-type spiral's is
+  above an early-type's; the lenticular and dwarf spheroid are old; the
+  spiral family still gives GEN.134's profile; every number is a
+  calculated or drawn law with its source named. No fixed content (Boss,
+  4:11 and 4:14 PM EDT): no named galaxy, preset or hand-set value;
+  reference galaxies only check the result.
+  Prerequisites: GEN.382, GEN.383, GEN.385, GEN.134, GEN.319. Related:
+  GEN.385, GEN.320.
+  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **GEN.387 Globular clusters, the nuclear cluster and the central black hole follow the family's spheroid and halo**
+  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
+  generation based on known galaxy types, as a chain of required items
+  counted back from 9.4. The cluster count follows the family's specific
+  frequency (more clusters per unit stellar mass in ellipticals) while
+  GEN.297's calibrated laws still give each cluster's mass, size and
+  place; the nuclear cluster scales with the spheroid mass (GEN.280's
+  pair); the central black hole's mass comes from the spheroid mass by
+  the M-bulge relation with its scatter as a seeded draw (the row
+  GEN.368 plans), and a family without a spheroid draws no hole or a
+  small one by the occupation fraction; the sphere-of-influence
+  dispersion follows the spheroid's dispersion. The hole stays exactly
+  on the origin (Boss, 7:27 PM EDT). Done: cluster count per stellar
+  mass is higher for the elliptical family than the spiral on average
+  over many seeds; the black hole mass tracks the spheroid mass with the
+  stated scatter; a dwarf irregular's hole is absent or small by the
+  stated fraction; same seed same galaxy. No fixed content (Boss, 4:11
+  and 4:14 PM EDT): no named galaxy, preset or hand-set value; reference
+  galaxies only check the result.
+  Prerequisites: GEN.382, GEN.383, GEN.297, GEN.368. Related: GEN.384,
+  GEN.280.
+  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **GEN.388 The home position by family: one rule of the shape, with the spiral rule as the disk case**
+  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
+  generation based on known galaxy types, as a chain of required items
+  counted back from 9.4. Today the home object sits near 3.15 disk scale
+  lengths at the inter-arm minimum (`GALAXY_SUN_RADIUS_PC`; GEN.144
+  gives one distance and GEN.368 plans its draw). A family needs its own
+  rule: a disk family places the home at a radius drawn from the
+  stellar-mass-weighted distribution of disk stars, a few scale lengths
+  out and off the arm crest; a spheroid family places it at a drawn
+  fraction of the effective radius in any direction; the rule is one
+  function of the shape and stays inside the reach. Done: the function
+  is tested for each family on a small galaxy (the radius distribution,
+  off the arm crest for the disk case, inside the reach); the sector
+  page, the maps and the frames read the stored home and need no change;
+  same seed same position. No fixed content (Boss, 4:11 and 4:14 PM
+  EDT): no named galaxy, preset or hand-set value; reference galaxies
+  only check the result.
+  Prerequisites: GEN.144, GEN.382, GEN.383. Related: GEN.368, GEN.384.
+  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **GEN.389 Galaxy creation draws the family from the seed and stores it, with the family in the log, the API and the version check**
+  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
+  generation based on known galaxy types, as a chain of required items
+  counted back from 9.4. `plan` and `generate` call the type draw
+  (GEN.380) from the galaxy seed and then the family's draw (GEN.382 to
+  GEN.384), write the family key and the component values into the shape
+  row (DB.66), and log the draw (stellar mass, halo mass, family and the
+  main shape numbers). A pinned family (`--family` and UX.134) fixes
+  only the family; every size and count is still drawn. The galaxy
+  version check and the fingerprint include the family; `GET
+  /api/galaxy/shape` carries `family` and the component list; the
+  satellites, clusters and sector scatters read the stored shape
+  unchanged. Done: an end-to-end test builds one small galaxy per family
+  and shows its density, population split and halo are those of its
+  family; the same seed gives the same galaxy; the full gate passes. One
+  galaxy per database; a second galaxy with its own family stays the
+  later note. No fixed content (Boss, 4:11 and 4:14 PM EDT): no named
+  galaxy, preset or hand-set value; reference galaxies only check the
+  result.
+  Prerequisites: GEN.384, GEN.386, GEN.387, GEN.388, GEN.385, GEN.382,
+  GEN.383, DB.66. Related: API.28, GEN.369, GEN.297, GEN.301.
+  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **GEN.390 Headline of 9.4: generate a galaxy of any known type, with spiral, lenticular, elliptical, irregular and dwarf families from one set of rules**
+  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
+  generation based on known galaxy types, as a chain of required items
+  counted back from 9.4. The headline: the seed draws the galaxy's type
+  and every number of its shape from published scaling relations; the
+  pages and maps show the family; the tests hold it to the published
+  ranges. Done when every need has merged and Boss has said the version
+  is ready; the version number is stamped by the release process and
+  never by hand, and no `.major.md` note is written without Boss's word.
+  No fixed content (Boss, 4:11 and 4:14 PM EDT): no named galaxy, preset
+  or hand-set value; reference galaxies only check the result.
+  Prerequisites: UX.134, MAP.242, TEST.204, DOC.59. Related: GEN.301,
+  GEN.9.
+  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -7510,29 +8215,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Also needs GEN.179 (the stored directives it reads) and ADM.50 (the
   galaxy's internal record), both moved into this thread before it
   (2026-10-16 review).
-  Prerequisites: GEN.57, DB.47, GEN.179, ADM.50.
-  Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
-
-- [ ] **DB.18 Migration helpers for slow DDL: online indexes, instant columns and batched updates**
-  `planetgen/db/migrations/helpers.py` with `add_index_online`,
-  `add_column_instant`, `batched_update` (keyset-paged, commit per
-  batch, progress callback), `exists_*` checks and a `lock_wait_timeout`
-  context. Every slow DDL is written through `op.execute` with explicit
-  `ALGORITHM=` and `LOCK=NONE`; never `op.batch_alter_table` on the
-  large tables. Budget 11 to 31 minutes per index per 1.6e8 rows (a
-  sizing figure, not the scatter's row count).
-  Revision 0063 (DB.13) builds five indexes with plain `CREATE INDEX`
-  and a per-row INSERT loop: fine today, not a pattern for the 10^8-row
-  tables.
-  Owner of the shared migration helpers: moved into the Reproducible
-  galaxies thread before DB.16 and the migration children of DB.9 and
-  GEN.136 (2026-10-16 review).
-  Owner of the shared migration helpers: moved into the Reproducible
-  galaxies thread, before the migration children of DB.9 and GEN.136 and
-  before DB.16 (2026-10-16 review).
-  Owner: Core 2 (Boss, 2026-10-16, 2:42 PM EDT: Core 2 takes the 8.1
-  phase 1 top 5 blockers: PERF.88, OPS.56, ADM.50, DB.59, DB.18, then
-  PERF.97). Core 1 only hands out the migration revision number.
+  Prerequisites: GEN.57, DB.47, GEN.179.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
 - [ ] **DB.29 update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them**
@@ -8116,6 +8799,37 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   fixture, an idempotent upgrade and a round-trip test; no code writes
   it yet.
   Prerequisites: none. Related: VIEW.3.
+
+- [ ] **DB.65 Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Done: `cell_index` and `cell_keys` in
+  `src/planetgen/.../cellkey.py` clamp the per-axis index at 2^21-1 so a
+  coordinate past the reach cannot wrap into another cell's key, and the
+  generated SQL expression does the same (one migration, which needs a
+  revision from Core 1); a test pins that a point beyond the reach maps
+  to the edge cell in both the Python and the SQL form. Small. Owner:
+  Core 1 (needs a migration revision).
+  Migration revision: 0105, after DB.53's 0104 (Core 1, 2026-10-16, 7:42 PM EDT;
+  numbers are assigned at merge time against main).
+  Prerequisites: none. Related: GEN.372, DB.55.
+
+- [ ] **DB.66 The shape row carries the galaxy family and one column per density component, as a migration only**
+  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
+  generation based on known galaxy types, as a chain of required items
+  counted back from 9.4. Migration only; Core 1 owns the numbering. The
+  `galaxy_shape` row gains the family key (one of the families GEN.378
+  lists) and the parameters of each component the density model sums
+  beyond today's: thick-disk amplitude, bar amplitude and axis ratios,
+  the spheroid's Sérsic index, effective radius, axis ratios and
+  orientation, and an irregular body's clump share, exactly as GEN.378's
+  table lists them. The migration gives every existing galaxy the spiral
+  family and the values the model derives for it today, so no stored
+  density changes. No reader changes in this item. The early-alpha
+  schema is not a constraint.
+  Prerequisites: GEN.378. Related: GEN.379, GEN.389.
+  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 ## API: The JSON API
 
@@ -8719,54 +9433,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   it goes idle).
   Prerequisites: ADM.43.
 
-- [ ] **ADM.50 Remove the galaxy settings files and everything around them; keep only an internal record of the current galaxy**
-  Boss (2026-10-10 21:14Z): 'remove the galaxy seed JSON files
-  entirely.' Boss (21:17Z): 'I only want to store the current galaxy
-  things that I need to store, I don't care about past galaxies, so it
-  can go in a JSON but we don't need to expose it to the user at all
-  unless it's admin but even then, there's no real reason for someone to
-  have that file since we're removing importing/exporting settings.'
-  What exists: `planetgen plan` writes `<32-hex seed>-<22-hex version
-  key>-<YYYYMMDD>-<HHMMSS>Z.json` into `galaxy-settings` in the jobs
-  directory (`PLANETGEN_SETTINGS_DIR`), one dated file per plan, old ones
-  kept as backups, holding the plan options, seed, version key, naming
-  key, the requirements.lock hash and both word lists. What reads or
-  writes it: planetgen/galaxy/settings_file.py (write, list_files,
-  current_file, build); generation/run_plan.py (`_write_settings_file`,
-  called at the end of the plan); galaxy/version_check.py (compares the
-  running code with the file's settings and warns); api/admin.py (`GET
-  /api/admin/galaxy-settings[/<name>]`); web/lib/apiclient.py and
-  web/admin_pages.py (the download); web/templates/admin_stats.html (the
-  'Galaxy settings' panel); tests test_settings_file.py,
-  test_sector_versions.py, test_web_admin.py and test_settings.py;
-  docs/design/reproducible-galaxies.md section 7 ('As built (ADM.18)').
-  Done: (1) the whole outward surface is gone, with no shim, wrapper or
-  compatibility stub (Boss, 2026-10-07): the two API routes and their
-  clients, the download, the Admin panel and its text, the dated files,
-  the backups and the history, and the plan step that wrote them; there
-  is no import or export of settings anywhere (no item plans one; ADM.42
-  to ADM.44's configuration file `config.json` is a different thing and
-  stays).
-  (2) Only what the current galaxy needs is kept, as one internal record
-  that nobody can see or download (a row in the database's control
-  tables, or a file under the data directory that the site never serves;
-  decide in the PR and say which): the seed, which already lives in
-  `galaxy_shape`, the naming key, which already lives in `galaxy_naming`,
-  and the generator epoch and `fp_spec` when OPS.28 and OPS.37 land; the
-  requirements.lock hash and the word lists existed only in the file, so
-  keep them in that record only if OPS.28 still needs them, else drop
-  them. A new plan overwrites the record; nothing older is kept. (3)
-  The version check keeps comparing sector versions and compares the
-  running code with that record. (4) The tests and the design section
-  are deleted or rewritten, README and docs text that mention the files
-  are updated, update.sh removes any old `galaxy-settings` directory
-  once, and the changelog entry says the files are gone.
-  Prerequisites: none. Related: ADM.18, OPS.28, OPS.37, DB.16, DB.17,
-  DOC.14, GEN.135.
-  Owner: Core 2 (Boss, 2026-10-16, 2:42 PM EDT: Core 2 takes the 8.1
-  phase 1 top 5 blockers: PERF.88, OPS.56, ADM.50, DB.59, DB.18, then
-  PERF.97). Core 1 only hands out the migration revision number.
-
 - [ ] **ADM.52 A star system editor: plan a system as a 2D diagram or from the command line**
   GitHub issue [#1228](https://github.com/dwhagar/planetGen/issues/1228)
   (Boss, 2026-10-13 02:27Z): "We need a star system editor that the user
@@ -9249,40 +9915,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: none. Related: ADM.57, ADM.60, API.8.
   Design: [docs/design/edit-everything.md](design/edit-everything.md)
 
-- [ ] **ADM.85 Settings backups, restore, import and export on the settings page**
-  Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
-  somewhere, that needs to get bumped up because we're starting to
-  desperately need that." Part of the configuration page of ADM.43
-  (GitHub issue
-  [#515](https://github.com/dwhagar/planetGen/issues/515)), moved from
-  8.2 to 8.1 phase 1. The settings page is also the one screen for
-  backups (ADM.87): it lists the archives (time, who, the parts each
-  holds and their sizes), takes "Back up now" (every part available),
-  downloads one (the Owner only, because an archive holds the whole
-  `config.json` with its secrets; until the Owner exists in 8.2 the
-  archives are owner-only files and an admin can export a version
-  without secrets), shows the diff of an
-  archive's settings part against the current settings, and restores the
-  whole archive or one part after a confirmation and an audit row (on
-  the web a restore of the settings part puts back only the options an
-  admin may change; only the command line restores the whole file); the
-  control database part (ADM.88, restore ADM.89) and the parity part
-  (DB.40, restore DB.41) arrive in 9.0 and show up in the same list and
-  restore through the same screen, with the guard of ADM.89, so this
-  screen is built once for every part. Export and import are for the
-  settings part alone: export
-  downloads the editable options as JSON without secrets (a secret shows
-  only "(changed)") or command-line-only options;
-  import reads
-  such a file through the same validation and diff as an edit. Done: the
-  list, back up now, download, whole and one-part restore, export and
-  import with a browser test and a test that an import with one bad
-  value changes nothing.
-  Owner: Settings page lane, "Settings page (2026-10-16)" (Boss,
-  2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
-  it goes idle).
-  Prerequisites: ADM.84. Related: ADM.43.
-
 - [ ] **ADM.86 Owner-tier settings: Owner-only options behind a recent-password prompt**
   Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
   somewhere, that needs to get bumped up because we're starting to
@@ -9346,7 +9978,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   archive from a newer version, a refused restore while the guard is on,
   and a restore that fails in the scratch schema and leaves the live
   schema untouched.
-  Prerequisites: ADM.88, ADM.85, OPS.41. Related: ADM.85, ADM.43,
+  Prerequisites: ADM.88, OPS.41. Related: ADM.85, ADM.43,
   ADM.91.
 
 - [ ] **ADM.90 Database health and repair page: run the check, see damaged and unprotected sectors, repair from the live parity or from an archive, restore parts, as a queue job**
@@ -9404,7 +10036,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   are documented, the admin start page uses them, every item of the ADM
   chain can be built on them, and a browser test opens the converted
   page in both themes with no console error.
-  Prerequisites: ADM.55, ADM.50. Related: ADM.56.
+  Prerequisites: ADM.55. Related: ADM.56.
 
 - [ ] **ADM.93 Move every existing admin page onto the shell and fix the defects the audit ranks above its line**
   Split from ADM.56 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -9983,7 +10615,7 @@ clears each one.
   on the census harness (the new first item of the Whole-sphere audits
   thread); TEST.161, TEST.162 and TEST.164 add their checks to it, not
   counters of their own.
-  Prerequisites: GEN.240, GEN.282, GEN.283, GEN.321,
+  Prerequisites: GEN.240, GEN.282, GEN.321,
   TEST.186.
   Related: TEST.159.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
@@ -10202,6 +10834,14 @@ clears each one.
   order set at 3:00 PM EDT: non-test bugs, then the database-version
   test failures, then the failures that hit full runs, then the one-off
   load flakes). Fix the cause; no skipping or quarantine.
+  Second sighting (Core 3, 2026-10-16, 8:34 PM EDT, GEN.333 gate: full
+  `changed`, 118 minutes, load 16): failed again under load and passed
+  alone (call 28 s on a loaded worker); the same gate failed
+  `test_galaxy_map_drill_down_by_clicks` (filed as TEST.202).
+  Third sighting (Core 3, 2026-10-16, 8:46 PM EDT, UX.116 gate: full
+  `changed`): failed again under load and passed alone (clicking a block
+  "did nothing", state unchanged, call 27 s), so it has now failed in
+  both the GEN.333 and the UX.116 full runs.
   Prerequisites: none. Related: MAP.210, TEST.170, TEST.171.
 
 - [ ] **TEST.173 test_gen_bright_scatter_edges::test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star failed once under gate load with an empty ring in _nearest (bug)**
@@ -10491,6 +11131,18 @@ clears each one.
   gate hit the same shape. Reproducer: run `scripts/test.py changed`
   with the browser tests selected and read `show full processlist` in
   mysql during the teardown.
+  Sighting (Core 2, 2026-10-16, 8:12 PM EDT, DB.18 gate: scripts/test.py
+  changed, 468 passed, 1 failed, 2 errors): three browser tests hung
+  about 15 minutes in setup or teardown:
+  test_web_browser_sector_open::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel,
+  test_web_browser_sector_reach::test_no_scene_is_loaded_while_the_camera_is_far
+  and test_web_browser_units::test_the_server_text_is_the_automatic_text
+  (passes alone). Fails on main: yes (the same two failed in the OPS.56
+  gate). Frequency: every full gate this evening, so it is no longer rare
+  and costs each lane about 15 minutes a gate; one root cause is likely.
+  Owner: Core 1 (Boss, 2026-10-16, 8:23 PM EDT, card "Core 1 next"): starts right after
+  its current stack and the GEN.372 audit merge, ahead of its bug phase.
+  TEST.193 and TEST.195 are likely one root cause, so Core 1 takes both together.
   Prerequisites: none.
 
 - [ ] **TEST.194 `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug)**
@@ -10518,6 +11170,18 @@ clears each one.
   waits on the condition it needs or the route is made fast enough, with
   no quarantine. Fails on main: unknown. Frequency: once so far.
   Reproducer: none beyond the full browser phase with 2 workers.
+  Sighting (Core 2, 2026-10-16, 8:12 PM EDT, DB.18 gate: scripts/test.py
+  changed, 468 passed, 1 failed, 2 errors): three browser tests hung
+  about 15 minutes in setup or teardown:
+  test_web_browser_sector_open::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel,
+  test_web_browser_sector_reach::test_no_scene_is_loaded_while_the_camera_is_far
+  and test_web_browser_units::test_the_server_text_is_the_automatic_text
+  (passes alone). Fails on main: yes (the same two failed in the OPS.56
+  gate). Frequency: every full gate this evening, so it is no longer rare
+  and costs each lane about 15 minutes a gate; one root cause is likely.
+  Owner: Core 1 (Boss, 2026-10-16, 8:23 PM EDT, card "Core 1 next"): starts right after
+  its current stack and the GEN.372 audit merge, ahead of its bug phase.
+  TEST.193 and TEST.195 are likely one root cause, so Core 1 takes both together.
   Prerequisites: none.
 
 - [ ] **TEST.196 Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged**
@@ -10536,6 +11200,13 @@ clears each one.
   when a bin is out of range. The ranges are reference values for the
   check, never inputs to the draw. Owner: Core 4 (near TEST.186, which
   is Core 3's harness; ask Core 3 before editing census.py).
+  Status (Core 4, 2026-10-16, 7:16 PM EDT): TEST.186 is not on main yet,
+  so the check cannot be built. The note lists the expected ranges. The
+  massive-star flatness bins fail with plain scaling of the metallicity
+  factor; with the odds form Core 4 recommends in GEN.103 they are
+  expected to pass at the edge. The test lands only with a green run (no
+  skip, no quarantine). The 3.2 prevalence cap is GEN.373 and does not
+  gate this test.
   Prerequisites: GEN.103, TEST.186. Related: GEN.103, TEST.186,
   TEST.161, TEST.164.
 
@@ -10562,6 +11233,126 @@ clears each one.
   quarantine. Fails on main: not checked. Frequency: once. Reproducer:
   none beyond the full suite at load about 9.
   Prerequisites: none.
+
+- [ ] **TEST.199 `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on main for a far-tail case: the halo subtraction loses precision, 2.4e-9 against a 1e-9 tolerance (bug)**
+  Found by Core 2 (2026-10-16, 7:27 PM EDT, in its ADM.50 gate), filed
+  by the TODO thread. Kind: test, deterministic for the shrunk case.
+  `src/tests/test_fuzz_galaxy_grid.py::test_skeleton_bound_is_an_upper_bound_at_every_angle`
+  failed once in an 88 minute `changed` run, found by hypothesis, and
+  fails on main. Failure text: `assert (1.4882030977187565e-12 -
+  1.488203070457534e-12) <= ((2.7261222351049663e-20 * (1 + 1e-09)) +
+  1e-300)`. Reproducer:
+  `shape=build_galaxy_shape(disk_scale_length_pc=50.0,
+  disk_scale_height_pc=259.0, bulge_scale_radius_pc=10.0,
+  bulge_amplitude=0.0, arm_count=1, pitch_angle_rad=1.0,
+  arm_amplitude=0.0)`, `r_cyl=0.0`, `z=36706.0`, `theta=0.0`: `k_norm *
+  _raw_density` minus `halo_density` is 2.7261222417e-20 against a
+  skeleton bound of 2.7261222351e-20, a relative gap of 2.4e-9 against
+  the 1e-9 tolerance, so subtracting the halo from a sum two orders of
+  magnitude larger loses precision in the far tail. Done: the cause is
+  settled (a cancellation in the subtraction: compute the component
+  density without subtracting the halo from a total, or state the
+  tolerance the cancellation allows and why), the bound holds for this
+  case and a test pins it, and hypothesis finds no further case in a
+  full run; no quarantine, no loosened tolerance without the stated
+  reason. It is also a precision finding, so it is attached to GEN.372
+  (the precision audit). Related: TEST.192 (an earlier fuzz bound).
+  Second sighting (Settings lane, 2026-10-16, 4:57 PM EDT, reported again at 8:45 PM EDT
+  from its ADM.85 full run): the same test failed in that run too.
+  Owner: Core 1 (proposed: its bug phase and GEN.372).
+  Prerequisites: none. Related: GEN.372, TEST.192, GEN.301.
+
+- [ ] **TEST.200 The nightly local offset limit is documented and pinned by `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point`**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Boss decided by card: the nightly update keeps a local
+  offset, and this item documents it and tests it, with no code change
+  to the update. Done: the limit (how far an object's local offset may
+  grow before it is folded into the absolute point) is written in the
+  orbital update's design doc, and
+  `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point`
+  pins that after the largest rotation the update applies the local
+  offset is within one unit in the last place of the absolute point.
+  Owner: Core 1.
+  Prerequisites: none. Related: GEN.372, GEN.223, GEN.294.
+
+- [ ] **TEST.201 `block_stats` totals do not depend on the order of the rows: a test**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Done: a test sums the block statistics (`block_stats`)
+  of the same rows in several random orders and requires identical
+  totals (or totals within a stated bound), failing if the sum is order
+  dependent. Compensated sums for the long accumulations wait for
+  GEN.109 (Boss card): see the note on GEN.109. Owner: Core 1.
+  Prerequisites: none. Related: GEN.372, GEN.109.
+
+- [ ] **TEST.202 `test_galaxy_map_drill_down_by_clicks` failed under load and passed alone: call 28 s to 52 s on a loaded worker (bug)**
+  Found by Core 3 (2026-10-16, 8:34 PM EDT, in the GEN.333 gate: full
+  `changed`, 118 minutes, load 16), filed by the TODO thread.
+  `src/tests/test_web_browser_maps.py::test_galaxy_map_drill_down_by_clicks`
+  failed under load and passed alone (call 52 s on a loaded worker); the
+  same gate also failed
+  `test_galaxy_map_forward_to_current_jumps_to_the_newest_view` (call 28
+  s; TEST.172 carries that sighting). Fails on main: not checked.
+  Frequency: once. Reproducer: none beyond a loaded full run. Done: the
+  cause is found (a fixed wait or a click before the stage view is
+  ready, or a real slow path in the drill-down), the test waits on the
+  condition it needs, it passes under the same load, and no quarantine.
+  Likely the same family as TEST.197 (a timing assumption under load)
+  and the browser hangs of TEST.193 and TEST.195, so Core 1 reads them
+  together. Owner: Core 1, bug phase.
+  Prerequisites: none. Related: TEST.172, TEST.197, TEST.193, TEST.195.
+
+- [ ] **TEST.203 `test_one_worker_leaves_the_runs_own_random_stream_alone` failed once under heavy load with WorkerDied "the task's job ended canceled" and passes alone (bug)**
+  Found by the Settings lane (2026-10-16, 8:45 PM EDT, in its ADM.85
+  full `changed` run: 133 minutes, two full runs on the machine), filed
+  by the TODO thread.
+  `src/tests/test_parallel_generation.py::test_one_worker_leaves_the_runs_own_random_stream_alone`
+  failed once with `WorkerDied` "the task's job ended canceled" under
+  heavy load and passes alone. Fails on main: not checked under load.
+  Frequency: once in two runs. Reproducer: none beyond a loaded full
+  run. Done: the cause is found (the RQ job is cancelled by a timeout or
+  by a worker restart under load, or the test races the worker), the
+  test waits on the condition it needs or the job is not cancelled, it
+  passes under the same load, and no quarantine. Likely related to the
+  load flakes of TEST.197 and TEST.202. Owner: Core 1, bug phase
+  (one-off load flakes).
+  Prerequisites: none. Related: TEST.197, TEST.202, TEST.193.
+
+- [ ] **TEST.204 Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges**
+  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
+  generation based on known galaxy types, as a chain of required items
+  counted back from 9.4. Over many seeds, each family's drawn masses,
+  sizes, Sérsic indices, bulge-to-total, bar fractions and arm pitch
+  angles fall inside the ranges GEN.378 states, and the scaling
+  relations show their slopes (mass-size, mass-metallicity,
+  stellar-to-halo, M-bulge); the real galaxies' numbers are reference
+  points the draw must be able to produce, never presets; a failure
+  lists the parameter and the mass bin, like TEST.196.
+  Prerequisites: GEN.389. Related: TEST.196, GEN.378, GEN.366.
+  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **TEST.205 `test_no_reserved_word_is_an_unquoted_identifier` fails on main: the DB.18 migration helpers use LOCK in `ALGORITHM=INPLACE, LOCK=NONE` (bug)**
+  Finding from Core 1 (2026-10-16, 9:2x PM EDT, kind: test, fails on
+  main: yes, on a clean origin/main since DB.18 (#1901), how often:
+  every run), filed by the TODO thread.
+  `src/tests/test_sql_portability.py::test_no_reserved_word_is_an_unquoted_identifier`
+  fails with "Reserved words used as unquoted identifiers:
+  planetgen/db/migrations/helpers.py:197 and :207 'LOCK' in
+  ALGORITHM=INPLACE, LOCK=NONE". Reproducer: `python -m pytest
+  src/tests/test_sql_portability.py -k reserved_word`. Core 1 found it
+  in its stack gate and asked Core 2, the author of DB.18, at the same
+  time. Done: the helpers' `ALTER TABLE ... ALGORITHM=INPLACE,
+  LOCK=NONE` statements are accepted by the test as SQL syntax (LOCK is
+  syntax there, so `SYNTAX_KEYWORDS` in the test names it with a reason)
+  or the statements are written so the test passes, without loosening
+  what the test proves for identifiers; the test passes on main. Every
+  full run fails until it is fixed, so it goes ahead of other bug work.
+  Owner: Core 2 (DB.18's lane), asked by Core 1; the TODO thread
+  confirms with Core 2.
+  Prerequisites: none. Related: TEST.203, DB.9.
 
 ## USR: User accounts
 
@@ -11290,7 +12081,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   warning. Done: the migration with an old-schema fixture, the row, the
   record, the check, and tests for an unchanged update, a changed lock
   file and an epoch difference.
-  Prerequisites: OPS.57, ADM.50. Related: OPS.28.
+  Prerequisites: OPS.57. Related: OPS.28.
 
 - [ ] **OPS.59 `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug)**
   Found by a lane (2026-10-16), filed by the TODO thread. Sending
@@ -11713,6 +12504,16 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   DOC.13, DOC.14, DOC.15, DOC.16, DOC.54. Related: DOC.6.
   The coverage test runs without the allowlist once every page exists
   (2026-10-16 review).
+
+- [ ] **DOC.59 Docs: the galaxy types note moves to built and the density, potential, schema, API and Generate page notes say the shape holds a family and components**
+  Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
+  generation based on known galaxy types, as a chain of required items
+  counted back from 9.4. docs/design/galaxy-types.md is marked built;
+  the density, potential, coordinate, schema and API notes and the
+  Generate page help say that the shape holds a family and a list of
+  components, name the families, and point at the one note.
+  Prerequisites: GEN.389. Related: DOC.13, DOC.48.
+  Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 ## VIEW: The view from a planet
 
