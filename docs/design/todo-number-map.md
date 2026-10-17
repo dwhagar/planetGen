@@ -22,7 +22,7 @@ release is stamped.
 | API | API.31 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.216 |
+| TEST | TEST.218 |
 | USR | USR.31 |
 | OPS | OPS.60 |
 | DOC | DOC.67 |
@@ -2153,6 +2153,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.213 | `test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star` failed in a loaded browser run: the wheel loop opened the system before the disc reached full share (bug) | none | open |
 | TEST.214 | Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence | none | open |
 | TEST.215 | The Solar System calibration rows live in test files only: a flag fences them and a test fails when a generator table reads one | none | open |
+| TEST.216 | `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed in the full parallel gate: the nested system's `inside_nebula_id` was None, and it passes alone (bug) | none | open |
+| TEST.217 | `test_every_column_is_written` found a NULL in every row of `moons.evolutionary_speed` in the full parallel gate, and passes alone (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
