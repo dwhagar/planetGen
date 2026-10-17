@@ -25,6 +25,8 @@ How each field was obtained:
 
 ## B. Other papers the three files could not read for the same reason
 
+Status, 1:23 PM EDT on 2026-10-17: Boss will research B5 and B6 (AD1, the visible methane and ammonia absorption of the giants) himself; no free source exists and the stand-in stays until he does.
+
 Selection rule: the file says the paper was not read, second-hand only, or behind a refused publisher, and a number is wanted from it. Each has a Crossref-confirmed DOI unless stated.
 
 | # | Paper | Gap ids and what we need | Citation | DOI | Where to try, free copy | Ambiguity |
