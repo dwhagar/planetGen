@@ -724,3 +724,5 @@ Baseline: PR #1817.
 | UX.116 | 8.1 | Galactic core and halo |
 | API.27 | 8.1 | Region query |
 | UX.113 | 8.1 | Region query |
+| ADM.43 | 8.1 | Settings page |
+| ADM.44 | 8.1 | Settings page |
