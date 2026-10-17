@@ -59,3 +59,4 @@ Commit each file came from:
 - v104: 3940ad23 (DB.55, GEN.336 and DB.53 together as #1952, before GEN.324 satellite stars)
 - v105: 0690c541 (GEN.324 satellite stars, before DB.65 cell key edge)
 - v106: 9c172019 (DB.65 cell key edge, before GEN.526 satellite young and intermediate populations)
+- v107: 9a8f7671 (GEN.526 satellite young and intermediate populations, before DB.72 band_index INT)
