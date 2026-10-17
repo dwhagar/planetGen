@@ -8172,6 +8172,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   EDT).
   Prerequisites: GEN.368. Related: GEN.369, GEN.401, GEN.403, GEN.405.
 
+- [ ] **GEN.407 Correct the horizontal-branch and red giant tables to the checked sources: the RGB time law, the evolutionary flux, the HB colour row, the extreme HB luminosity and the tip**
+  Findings of the stellar tables check thread (read-only; Boss tapped
+  "Thread checks" at 10:04 PM EDT; report
+  /mnt/project-files/reports/stellar-evolution-tables-check-2026-10-17.md)
+  on the values Core 3 recalled for GEN.286 and GEN.287 (merged #1932):
+  five do not match the published sources. (1) The red giant branch time
+  law L^-0.9 is too steep: a published core-mass-luminosity fit (arXiv
+  2503.17772 equation 1) gives a local slope of -0.84 at the base
+  flattening to -0.56 at the tip, so giants above 500 solar luminosities
+  are undercounted about 2 times. (2) The evolutionary flux 2.2e-11 is
+  not in the literature: Buzzoni 1989 through Renzini 1997 gives 1.7
+  plus or minus 0.4 e-11. (3) The HB colour row at [Fe/H] -1.5 is about
+  0.25 redder in HB type than the 57 cluster mean (Salaris et al. 2004
+  Table 2) and the code names no metallicity scale. (4) The extreme HB
+  luminosity of 40 to 60 solar conflicts with the design note's own 10
+  to 40, and extreme HB stars skip the AGB. (5) The tip of 2,500 solar
+  luminosities is 1,650 to 1,780 for Z = 1e-4 (Serenelli 2017 Table 2).
+  Matches: R = 1.4 (halo mean 1.44 plus or minus 0.06), the colour rows
+  at -2.2 and -0.7, the temperature boundaries. Not verifiable: the RR
+  Lyrae and extreme shares, the 0.1 dex per Gy age shift, the AGB
+  lifetime. Done: each of the five values follows its source (the law as
+  a calculated function of core mass or metallicity, not a set
+  constant), the metallicity scale of the colour table is named, the
+  design note realistic-galactic-core.md 5.3 states the checked values
+  and marks the three unverifiable ones, the halo luminosity tier tests
+  keep their coverage, and the generator epoch rule applies because
+  stored scatter rows change (older galaxies need `planetgen plan
+  --redo-scatters mass luminosity`). Core 3 keeps its values flagged
+  until this lands. Owner: Core 3 proposed.
+  Prerequisites: none. Related: GEN.286, GEN.287, GEN.322, GEN.396,
+  GEN.259.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -11755,6 +11787,10 @@ clears each one.
   existing one), the 24 tests pass, and a check keeps every new route's
   sample valid. Owner guess: the Settings lane (ADM.85, ADM.84); Core 1
   told it.
+  Owner (coordinator, 2026-10-16, 10:20 PM EDT): Core 2 proposed, right
+  after GEN.306 and ahead of GEN.276 (it fixed TEST.205 the same way,
+  and every gate on main sees the 24 errors); the Settings lane is
+  retired.
   Prerequisites: none. Related: ADM.85, ADM.84, TEST.172, TEST.174.
 
 ## USR: User accounts
