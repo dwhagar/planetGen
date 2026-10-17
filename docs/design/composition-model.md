@@ -9,6 +9,7 @@
 - Every body gets figures on its composition from actual science, and not made up where that can be avoided. Drawing the density and the other figures that are drawn today and then filling in a composition that fits is acceptable, and so is building from the most basic composition up; either works, and the design picks the simplest consistent one per kind of body.
 - 9.0 completes it, together with the atmosphere colour, and adds what becomes derivable: the atmospheric radiation (the atmosphere's transmission and greenhouse effect, since we know what is in the air) and the surface radiation (from the atmosphere and the ground composition).
 - The building blocks go back from 9.0 to 8.1 (as early as their blockers allow), then a collision and consolidation sweep merges items that do almost the same thing and suit one worker, then the issue clusters and all documents are updated.
+- Added 2026-10-17 at 1:40 AM EDT: every composition category is a gated table of possibilities with weighted probabilities that add up to 100 percent (section 4b).
 - The standing rule stays: nothing fixed per class and nothing copied from the Solar System or the Milky Way; every input is a stored physical quantity, a derived value or a seeded draw, and the Sun, Earth and the rest are test targets.
 
 ## 2. The chain
@@ -52,6 +53,7 @@ Research, designs and tables are building blocks with no behaviour change and si
 
 | Where | Item | What |
 |---|---|---|
+| 8.1 phase 2 | GEN.472 | One gated possibility-table format and loader: every composition category is a table of possibilities with a class gate and a weight |
 | 8.1 phase 2 | GEN.438 | One table of the elements and their isotopes: atomic data and the radioactive isotopes' half-lives and decay energies |
 | 8.1 phase 2 | GEN.410 | One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention |
 | 8.1 phase 2 | GEN.427 | One table of the bulk materials with their equation-of-state constants and the source of each |
@@ -66,6 +68,8 @@ Research, designs and tables are building blocks with no behaviour change and si
 | 8.1 phase 1 | GEN.463 | The neutron star's radius is derived from sourced mass-radius relations (with the stellar tables) |
 | 8.1 phase 1 | GEN.467 | The main-sequence lifetime is derived from sourced stellar relations |
 | 8.1 phase 3 | GEN.464 | The disk solids law reads Z over Z0, not 10 to the power of [Fe/H] |
+| 8.1 phase 4 | TEST.215 | The Solar System calibration rows live in test files only: a test fails when a generator table reads one |
+| 8.1 phase 4 | TEST.214 | Every registered possibility table: the gated weights add up to 100 percent for every class, with a source on every row |
 | 8.1 phase 4 | TEST.211 | A star composition sweep: every kind of star, remnant and brown dwarf, fractions, trends and determinism |
 
 **Bodies: generation and storage**
@@ -148,6 +152,10 @@ Research, designs and tables are building blocks with no behaviour change and si
 | Where | Item | What |
 |---|---|---|
 | 9.0 phase 4 | TEST.212 | A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition |
+| 9.0 phase 3 | GEN.473 | Replace the asteroid taxon shares and the zone kernel by a derived or general distribution (R1) |
+| 9.0 phase 3 | GEN.474 | Replace the Earth rock-type library by ground types derived from the bulk composition (R2) |
+| 9.0 phase 3 | GEN.475 | Meteorite groups become outputs: regions of composition space reachable from the drawn bulk (R3) |
+| 9.0 phase 3 | GEN.476 | Aluminium-26 and iron-60 follow from the star's formation environment (R4) |
 | 9.0 phase 4 | DOC.66 | Docs: the composition model of stars, bodies and atmospheres, the radiation it derives and the sources of every number |
 | 9.0 phase 4 | GEN.421 | Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it |
 
@@ -166,6 +174,43 @@ Each lane writes its draft to /mnt/project-files/design-drafts/ and reports; the
 3. 1:22 AM EDT, "Replace both": the neutron-star radius floor and the 10 Gyr main-sequence lifetime are derived from sourced relations (GEN.463, GEN.467, 8.1 with the stellar tables, each a generator epoch change joined to the one rescatter).
 4. 1:24 AM EDT, "1 bar": the radius reference level (GEN.427, GEN.429).
 5. 1:24 AM EDT, "Asplund 2021": the reference solar abundance set, with the spread among Asplund 2021, Lodders 2009 and Lodders 2019 as the uncertainty on ratios (GEN.435, GEN.439).
+6. 1:43 AM EDT, "Weights, Dirichlet where unsure": the proportions of a drawn possibility use the table weights directly where a sourced kernel exists, and a Dirichlet draw around those weights, with the concentration from the known spread, where only a range is known (GEN.472, section 4b).
+7. 1:44 AM EDT, "Stand-in only": measured Solar System shapes (the asteroid taxon shares and zone kernel, the Earth rock-type library, and the other content taken from measured Solar System objects) enter a table only as flagged temporary stand-ins, each with a research item that replaces it with a derived or general distribution (GEN.473 to GEN.476, TEST.215, section 4b).
+8. 1:47 AM EDT, Boss's design point (typed in the body composition thread): anything an asteroid field or belt can be made of, a planet or moon can be made of too, so the materials and components are one shared table gated by class, and no object kind has a list of its own (GEN.427, GEN.472, GEN.477).
+
+## 4b. The gated possibility table (Boss, 2026-10-17, 1:40 AM EDT)
+
+Boss (typed in the project chat): for each composition there is a list of possibilities with weighted probabilities, for all compositions, each category a table of possibilities and their associated values; the list items are gated, each table line lists the planet or object classes it supports, and the composition is drawn from the probabilities, which add up to 100 percent. The coordinator answered yes with two refinements, kept here: a weight may depend on the star and the formation distance (the route 2 decision of section 4a), and every weight carries its source (nothing invented; the standing no-fixed-content rule).
+
+**The standing format** (one loader, GEN.472; the sum test is TEST.214):
+
+| Column | Meaning |
+|---|---|
+| possibility | The row: a recipe, a taxon, an origin type, a population or a gas, named for what it is and never for a Solar System object |
+| supported classes | The class gate: the planet, moon, star or object classes the row applies to |
+| weight or weight function | A number, or a function of the star's stored [Fe/H], mass and age, the formation distance and the snow line |
+| source and licence | Where the weight comes from and the licence of the data (the F5 rule: the loader refuses a row without them); `open` where none is found |
+| notes | The ranges the row's drawn fractions or partial pressures take, the validity range, the check |
+
+**The draw:**
+
+1. Take the rows whose gate passes the body's class.
+2. Evaluate each weight at the body's star and formation distance; drop rows whose weight is zero.
+3. Normalise the rest to add up to 100 percent and pick one with the one random wrapper (GEN.56), in the table's fixed row order.
+4. The drawn row supplies the ranges of its fractions or partial pressures; those are normalised by the item that owns them (the mixture in GEN.411, the bulk fractions in GEN.428). Two sums are therefore checked: the weights of the possibilities, and the fractions of the drawn one.
+5. Proportions inside a drawn possibility (Decided 1:43 AM EDT, section 4a item 6): the table weights are used directly where the row names a sourced kernel, and as a Dirichlet draw around the weights where only a range is known, with the concentration from the spread, built from the one random wrapper.
+
+**Rules that follow:**
+
+- No row passes the gate, or every weight is zero: an error that names the class and the table. There is no silent fallback to a fixed row.
+- A weight with no source is written `open`; the open rows of one gate share equally, the loader lists them in one report, and each is replaced when a source or a derivation is found. This is the one place the table holds a placeholder, and it is visible.
+- Adding, removing or reweighting a row changes the draws of every seed in its classes, so each table has a version and a change is a generator epoch bump.
+- A row built from a measured Solar System shape carries the marker `stand-in` (Decided 1:44 AM EDT, section 4a item 7), names its replacement research item (GEN.473 asteroid belt composition, GEN.474 rock types from the bulk oxides, GEN.475 meteorite groups as outputs, GEN.476 Al-26 and Fe-60 from the formation environment), and is listed with the `open` weights in the loader's report; the calibration rows themselves (Earth, Mars, Moon, the Galilean moons, Sirius B) live in test files only and no generator table reads them (TEST.215).
+- The materials and components are one shared table (Decided 1:47 AM EDT, section 4a item 8): a belt's, a comet's, a moon's and a planet's components are rows of the table of GEN.427 selected by the class gate, and the loader refuses a component list that belongs to one kind alone; the belt and field draw of today, with its own list of 84 names and per-family lists, is replaced by it (GEN.477).
+- One mixture storage and one text writer serve every body (the body composition research lane's section 14.6, proposed for the design GEN.426 to settle): a body's composition is a mixture of rows of the shared table stored as component mass fractions (DB.69 and DB.70 together, replacing `asteroid_belt_composition` and the planet composition text), the gate does the physics (condensation temperature at the formation distance, oxidation state, water and carbon inventory, star abundances) and not the object type, the rare-earth, uranium, platinum-group, gem and aromatic species are trace accessories scaled to the chemistry, and the descriptions come from the stored fractions through one thresholded writer (GEN.430, GEN.446), the class label becoming a summary of the mixture.
+- Tables register themselves with the loader, so TEST.214 walks them all and a table added later is covered without a change to the test.
+
+**Where it applies:** the gas table (GEN.410, gate and source columns), the material table (GEN.427), the star abundance rows (GEN.439, GEN.440), the bulk recipes (GEN.428), the atmosphere recipes (GEN.411, GEN.454 to GEN.456), the small-body and moon tables (GEN.442, GEN.457, GEN.466) and the surface rows (GEN.441). Where an item is derived and not drawn (GEN.412, GEN.458 to GEN.462, GEN.464) it has no table and takes the drawn row or the weight arguments of the tables above. The element table (GEN.438) is a constants table with no weights.
 
 ## 5. What Boss may research for the bodies
 
