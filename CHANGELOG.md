@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1699] - 2026-10-17
+
+**Headline:** A page cache that never trims its no-database entries is filed, with the reproducer checked on main.
+
+### Changed
+
+- PERF.111 is filed (bug, found by Core 2 in the MAP.217 gate): `ResponseCache.put` without a database skips the eviction loop, so the cache passes `max_entries`; the reproducer gives 6 entries for a bound of 3 on main.
+- TEST.213 gets a sighting with a second symptom (the system's scene never came in, under load 10); it passed in 124.68 s on an idle box.
+
+TODO items resolved: none / Added: PERF.111
+
 ## [8.0.1698] - 2026-10-17
 
 **Headline:** The Type Ia and old-star shares as profile fields are merged and retired, and the two parts of the item that are not met are filed.
