@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1648] - 2026-10-17
+
+**Headline:** The point columns (DB.55, GEN.336, GEN.337) are retired from the TODO and the first slice of DB.53 is recorded.
+
+### Changed
+- DB.55, GEN.336 and GEN.337 leave the TODO and the version plan; DB.53 records that its first slice (migration 0104, `orbit_nodes`) merged in #1952, and TEST.128 records the flake seen in that gate.
+
+TODO items resolved: DB.55, GEN.336, GEN.337 / Added: none
+
 ## [8.0.1647] - 2026-10-17
 
 **Headline:** A star's chance of a close companion now follows its own metallicity, and a wide pair's widest axis follows the density and motion of the place it is in, in place of fixed numbers.
