@@ -150,7 +150,7 @@ def test_the_luminosity_pass_draws_each_band_down_to_its_tiers_floor():
     assert lowest >= FLOOR * tuning.CORE_TIER_FACTOR * (1 - 1e-9)
     assert max(row[COLUMN["initial_mass_sol"]] for row in core[CORE]) < MASS * tuning.CORE_TIER_FACTOR
     mixed = _drawn(MIXED_SHELL, tiered)
-    assert len(mixed[HALO]) > 10 * len(mixed[BASELINE])     # the halo's low floor takes many dimmer giants
+    assert len(mixed[HALO]) > 3 * len(mixed[BASELINE])      # the halo's low floor takes many dimmer giants (red giants stop at 2,500 solar, GEN.286)
     halo_lowest = min(_watts(row) for row in mixed[HALO]) / constants.SOLAR_LUMINOSITY
     assert tuning.HALO_MIN_LUMINOSITY_SOL * (1 - 1e-9) <= halo_lowest < FLOOR
     assert min(_watts(row) for row in mixed[BASELINE]) / constants.SOLAR_LUMINOSITY >= FLOOR * (1 - 1e-9)

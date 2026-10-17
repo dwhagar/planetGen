@@ -728,3 +728,5 @@ Baseline: PR #1817.
 | ADM.44 | 8.1 | Settings page |
 | GEN.135 | 8.1 | Reproducible galaxies |
 | TEST.205 | 8.1 | Bugs and flaky tests |
+| GEN.286 | 8.1 | Galactic core and halo |
+| GEN.287 | 8.1 | Galactic core and halo |
