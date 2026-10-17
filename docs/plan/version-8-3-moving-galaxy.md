@@ -32,8 +32,7 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| OPS.30 | A lock helper for the maintenance run |  | Research: used by OPS.16 (ADM.20's admin merge was dropped). |
-| OPS.16 | A daily maintenance script for Linux, macOS and Windows | OPS.30 | scripts/maintenance.sh and .ps1: positional update, delta merge, rotation; lock; optional OPS.15 check. |
+| OPS.16 | A daily maintenance script for Linux and macOS, with its lock helper |  | scripts/maintenance.sh and .ps1: positional update, delta merge, rotation; lock; optional OPS.15 check. |
 | OPS.17 | Install and update set up the daily maintenance schedule | OPS.16 | Same scripts as OPS.7/OPS.8/OPS.13 (install/update, deploy-common), after them. |
 
 ### Movement on the maps
@@ -64,7 +63,6 @@ N-body influence, collisions, encounters and the Quantity class.
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.139 | Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built) |  | Research follow-up to GEN.106 (built). |
-| GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback |  | Research: optional speed-up. |
 | GEN.339 | Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded | GEN.338, GEN.294 | Split from GEN.115. |
 | GEN.340 | One star stepper: kick-drift-kick in the potential, a step per object, on arrays | GEN.338, GEN.294, GEN.139 | Split from GEN.115. |
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | GEN.338, GEN.339, GEN.340 | Model from Boss's "Computational Astrodynamics.md" (2026-10-07): bulge, disk and halo potential. |
@@ -119,7 +117,6 @@ The event records, the long-step rules and the gravity field evaluator the cours
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential | GEN.338, GEN.342 | Gravity map foundation (Boss 2026-10-10). |
-| TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | GEN.198 |  |
 
 ### What moved in the last update
 

@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.136 |
 | MAP | MAP.245 |
 | NAV | NAV.63 |
-| GEN | GEN.451 |
+| GEN | GEN.452 |
 | PERF | PERF.111 |
 | DB | DB.71 |
 | API | API.31 |
@@ -461,7 +461,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.70 | Specification form: "regenerate to this specification" built from the aspect catalogue and the system generator options | none | open |
 | ADM.71 | Move a star system or phenomenon within its sector or to another sector, as a plan | none | open |
 | ADM.72 | Edit a body's orbit: distance, eccentricity, inclination and angles, with its moons following, as a plan | none | open |
-| ADM.73 | Density overrides for any region: store them, show them, and apply them to later fills | none | open |
+| ADM.73 | Density overrides for any region: store them, show them, and apply them to later fills | none | merged into MAP.218 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | ADM.74 | Adjust the world to a density change: a plan that adds or removes systems so a region matches its new density | none | open |
 | ADM.75 | Rearrange a system around a change to a planet, moon or belt: the plan that fewest changes make valid again | none | open |
 | ADM.76 | Rearrange a system around a change to a star: class, mass, luminosity or companions | none | open |
@@ -633,7 +633,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.46 | Docs for the spherical sector grid | none | done, PR #1627 |
 | DOC.47 | Rebuild docs/design/architecture.html from the new architecture.md | none | open |
 | DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | none | open |
-| DOC.49 | Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue | none | open |
+| DOC.49 | Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue | none | merged into DOC.50 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | none | open |
 | DOC.51 | Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder | none | open |
 | DOC.52 | A docs index page: links to every HTML page under docs/, each with a description of what it contains | none | open |
@@ -791,7 +791,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.138 | Moon `hill_radius_km` uses the star's mass, so moon spacing and the orbit slider are wrong (bug) | none | done, PR #865 |
 | GEN.139 | Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built) | none | open |
 | GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) | none | open |
-| GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback | none | open |
+| GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback | none | merged into GEN.212 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | GEN.142 | Peculiar velocity for rogue planets and asteroid fields | none | open |
 | GEN.143 | The orbital-event admin report, the last-collisions view and a test that runs the whole collision path | none | open |
 | GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs | none | open |
@@ -830,8 +830,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.177 | Planetary magnetic fields: a stagnant-lid factor | none | done, PR #1410 |
 | GEN.178 | Magnetic fields: the induced field of an ocean moon | none | done, PR #1447 |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector | none | open |
-| GEN.180 | Directives: a forced fill (met_forced) after K failed draws | none | open |
-| GEN.181 | Directives: refuse impossible requests up front from the compound-Poisson tables | none | open |
+| GEN.180 | Directives: a forced fill (met_forced) after K failed draws, and refusal of impossible requests up front | none | open |
+| GEN.181 | Directives: refuse impossible requests up front from the compound-Poisson tables | none | merged into GEN.180 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | GEN.182 | Some comets' orbits do not bring them back: they are ejected into space (bug) | none | done, PR #938 |
 | GEN.183 | A mass cut the user sets: preset values on a slider from 8 to 20 solar masses | none | done, PR #969 |
 | GEN.184 | A luminosity floor the user sets: presets from 2500 to 4 million solar luminosities, default 3000 | none | done, PR #965 |
@@ -1101,6 +1101,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.448 | Massive stars get binaries between 0.25 and 50 AU, so the metallicity trend reaches the separations where it was measured | none | open |
 | GEN.449 | The companion table for mid and early B stars is raised to the observed frequencies | none | open |
 | GEN.450 | The star-formation profile's radial slope: reconcile the Schmidt index with the observed gradient, with the choice named | none | open |
+| GEN.451 | The mantle redox mean follows the meteorite building blocks: a young rocky planet starts reduced, not at the modern Earth's 3.5 above the iron-wuestite buffer | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1318,7 +1319,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.215 | Nebulae tint the stars seen through them, with soft translucent boundaries | none | open |
 | MAP.216 | Admin page of the objects that moved in the last update, with the movement vector and a map ghost of the old position | none | open |
 | MAP.217 | Map layer interface: one registry the Galaxy stage view, the Sector Map and the System Map share for a toggled layer (menu entry, modes, URL key, legend, picker layer, fade rule) | none | open |
-| MAP.218 | Galaxy Map density control: a readout for everyone, an editor for admins, with preview, confirm and undo | none | open |
+| MAP.218 | Galaxy Map density control: a readout for everyone, an editor for admins over any region, with preview, confirm and undo | none | open |
 | MAP.219 | Galaxy Map marker layer: a kind registry with per-kind toggles, the zoom budget and picking, shipping the black-hole kind | none | open |
 | MAP.220 | Markers for habitable worlds and chosen classes, optional per kind | none | open |
 | MAP.221 | Station and vessel icons on the Galaxy Map | none | open |
@@ -1337,8 +1338,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.234 | Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws | none | open |
 | MAP.235 | Superbubbles as a registered Galaxy Map layer: a toggle, a hover name and radius, and a key row | none | open |
 | MAP.236 | Superbubbles need clearer bounds and slightly more transparency on the Galaxy Map | none | open |
-| MAP.237 | The Galaxy Map's "Charted only" view is invisible again: charted space cannot be told from the rest (bug) | none | open |
-| MAP.238 | Charted regions shown by colour and opacity, not outlined blocks: drop the outlines everywhere charted space is marked | none | open |
+| MAP.237 | The Galaxy Map's "Charted only" view is invisible again, and charted regions are shown by colour and opacity, not outlined blocks (bug) | none | open |
+| MAP.238 | Charted regions shown by colour and opacity, not outlined blocks: drop the outlines everywhere charted space is marked | none | merged into MAP.237 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | MAP.239 | Raise the Galaxy Map tile root to the 262 kpc reach: `TILE_ROOT` in `galaxy/viewport.py` and `galaxymap3d.js` | none | open |
 | MAP.240 | Browser buffers hold camera-relative coordinates: territory dots, superbubbles, made rings, block prisms, stage views, system view dots and belts | none | open |
 | MAP.241 | Stars on the star maps should glow brighter, not grow bigger: size stays small, glow and colour carry luminosity and temperature (bug) | none | open |
@@ -1399,7 +1400,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.52 | Port `join_islands` and the k-d tree to cKDTree | none | done, PR #1172 |
 | NAV.53 | A `cells_touching_sphere` helper, and pad `store.sectors_reached_by` by one edge (bug) | none | done, PR #843 |
 | NAV.54 | One keep-out table for every kind of object: fields, supermassive holes and quasars, moons, stars in their own system, nebulae and remnants | none | open |
-| NAV.55 | A tuning block for the keep-out knobs | none | open |
+| NAV.55 | A tuning block for the keep-out knobs | none | merged into NAV.54 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | NAV.56 | Census of overlapping keep-out spheres in a generated galaxy | none | open |
 | NAV.57 | The Intergalactic Frame in navigation-frames.md and `navigation.py` | none | open |
 | NAV.58 | Edit a course: add, remove, reorder and drag its waypoints, then save the edit | none | open |
@@ -1422,7 +1423,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.13 | Every update records the version key, keeping the last 10 | none | done, PR #810 |
 | OPS.14 | A warning when the running version key differs from the galaxy's | none | done, PR #876 |
 | OPS.15 | Each update says whether it changes generated output | none | open |
-| OPS.16 | A daily maintenance script for Linux, macOS and Windows | none | open |
+| OPS.16 | A daily maintenance script for Linux and macOS, with its lock helper | none | open |
 | OPS.17 | Install and update set up the daily maintenance schedule | none | open |
 | OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | none | dropped (Boss, 2026-10-09 20:42Z) |
 | OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) | none | done, PR #525 |
@@ -1436,7 +1437,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.27 | The Windows installer and docs point at Redis in WSL, not Memurai | none | done, PR #475 |
 | OPS.28 | Generator epoch and battery digest: say whether two checkouts generate the same galaxy | none | open |
 | OPS.29 | Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts | none | open |
-| OPS.30 | A lock helper for the maintenance run | none | open |
+| OPS.30 | A lock helper for the maintenance run | none | merged into OPS.16 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | OPS.31 | Lint every example plist, XML and service file in CI | none | done, PR #1715 |
 | OPS.32 | `examples/macos/org.planetgen.update.plist` is not well-formed XML, so the update daemon silently fails to install (bug) | none | done, PR #865 |
 | OPS.33 | `.gitattributes` has no LF pins for the lock files and word list, so hashes differ between a Windows and a Linux checkout (bug) | none | done, PR #843 |
@@ -1483,7 +1484,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.15 | Fewer queries per web page | none | done, PR #223 |
 | PERF.16 | Search names without scanning every row | none | done, PR #223 |
 | PERF.17 | A time limit on web database statements | none | done, PR #223 |
-| PERF.18 | Run the GEN.30 bright-star backfill in parallel on the work queue | none | open |
+| PERF.18 | Run the GEN.30 bright-star backfill in parallel on the work queue | none | merged into PERF.108 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | PERF.19 | Everything the API or web site starts runs on the work queue (investigate) | none | done, PR #492 |
 | PERF.20 | Short-term caching through the work queue and API | none | open |
 | PERF.21 | Generation works with any worker count: the parallel path is built, used and tested (bug) | none | done, PR #371 |
@@ -1684,7 +1685,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.29 | Every comet in a system shows its type as a link (bug) | none | done, PR #487 |
 | UX.30 | Planet information without the Markdown render | none | absorbed into UX.105 |
 | UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | none | done, PR #533 |
-| UX.32 | Planet rows show the class only, without the type and moon labels | none | open |
+| UX.32 | Planet rows show the class only, without the type and moon labels | none | merged into UX.100 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | UX.33 | Filter phenomena by their classes and types (bug) | none | done, PR #606 |
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) | none | done, PR #448 |
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens | none | done, PR #879 |
@@ -1797,7 +1798,7 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.7 | Sky tiers and the backfill cost measurement | none | open |
 | VIEW.8 | A dust model for the sky: the galactic extinction law and `nebulae.extinction_av` | none | open |
 | VIEW.9 | Replace the BC_V table with a published relation (Flower 1996 or Torres 2010) | none | open |
-| VIEW.10 | A HYG calibration test: a generated sky has about 9,000 stars at V <= 6.5 | none | open |
+| VIEW.10 | A HYG calibration test: a generated sky has about 9,000 stars at V <= 6.5 | none | merged into VIEW.12 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | VIEW.11 | Photometry library: apparent magnitude, bolometric correction, blackbody colour and the extinction law | none | open |
 | VIEW.12 | Sky catalogue: the stars an observer sees, with direction, brightness and light-time | none | open |
 | VIEW.13 | Galactic band: the glow of the unresolved stars and dust along each line of sight | none | open |
@@ -2023,7 +2024,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.128 | test_spatial_position_db and test_web_db_fields fail under a parallel run on one MySQL (bug) | none | open |
 | TEST.129 | Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug) | none | open |
 | TEST.130 | test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug) | none | open |
-| TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | none | open |
+| TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | none | merged into GEN.198 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) | none | done, PR #1578 |
 | TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems | none | done, PR #1405 |
 | TEST.134 | test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug) | none | open |
