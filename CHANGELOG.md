@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1718] - 2026-10-17
+
+**Headline:** The first Gemini research batch for the galaxy laws is recorded as unverified input on GEN.531.
+
+### Changed
+
+- GEN.531 notes that Gemini batch 1 (structural scaling laws, kinematics, assembly histories, ex situ halo fractions) arrived at 10:52 AM EDT and replaces no placeholder until each claim is checked against its source.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1717] - 2026-10-17
 
 **Headline:** The fifteen galaxy research requests (GEN.531) record that a Gemini search and a gap-filling plan are under way.
