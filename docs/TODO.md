@@ -17734,6 +17734,23 @@ clears each one.
   item closes when the test passes on main with that fix, with no wait
   lengthened and nothing quarantined. It was a regression of the zoom
   (the test passed on Release 8.0.1646).
+  Bisect result (Bug Hunt, 2026-10-17, 4:05 PM EDT as the lane reported,
+  relayed directly): the test passes at 9e21cda9 (just before MAP.225)
+  and fails at 07b4d4a6 (the #2031 merge), alone, idle, 3 of 3 runs at
+  each point. Browser-instrumented cause at 07b4d4a6: in an opened
+  sector with the pointer a hair off the star, `anchorUnder` returns the
+  sector's choice mesh (layer 'choices', 2.28 pc behind) instead of the
+  star (0.28 pc away); `targetAboutAnchor` then moves the target 14
+  percent of the gap to that anchor per tick, 0.23 pc in one tick, so
+  the camera slides sideways past the star and a later tick leaves the
+  target 3 pc away. The system scene is never fetched (0 requests); 'the
+  scene never came in' is the symptom. This is MAP.245's clearance case
+  (the anchor must not be the sector's own wall from inside it, and the
+  step is bounded by the nearest pickable thing). The test-side patch
+  (the pointer follows the star, the disc whole at 0.999, 5 of 5 alone
+  runs pass) is held at /tmp/claude-0/test213-held.patch in Bug Hunt's
+  container; per the coordinator the test PR is held until MAP.245's
+  fix, because the product bug is real.
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
@@ -17973,6 +17990,33 @@ clears each one.
   gate on 3 runs, and a test pins the condition it depended on. Owner:
   Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.208, TEST.213.
+
+- [ ] **TEST.225 `test_random_start_neighborhood_matches_the_real_skeleton_plan` generated 18,210 systems against a predicted 83,346.6 in one gate run (bug)**
+  Found by Bug Hunt (2026-10-17, 4:05 PM EDT as the lane reported, kind:
+  test failure, non-browser phase of its gate, build e0eba2695164ff35,
+  finished 2:48 PM EDT, 4 workers), filed by the TODO thread.
+  `src/tests/test_galaxy_gen.py::test_random_start_neighborhood_matches_the_real_skeleton_plan`
+  failed with 'generated 18210 systems across this neighborhood, but the
+  real skeleton predicted 83346.6 -- generation doesn't look
+  density-driven any more' (`assert 83346.6/3.0 <= 18210`, the actual
+  total is 4.6 times below the prediction). The run drew a random galaxy
+  seed A4D8564BFD80DA2331294BD96F547E67 and a random start at shell 18,
+  band 13, wedge 7 (29 sectors). It passed 3 of 3 alone on the same
+  tree, each with its own random draw. Fails on main: unknown (not run
+  on main). Frequency: 1 of 1 gate runs on this tree; the earlier gate
+  build 8cedd973 did not show it. Reproducer: none yet; the seed and the
+  random start are drawn per run, so pin the seed above and the start
+  (shell 18, band 13, wedge 7) and run the test. Do: reproduce with the
+  pinned seed and start, then find whether the 29-sector total is capped
+  (the cell star ceiling, PERF.36's caps, or a sector's star ceiling)
+  while the plan's estimate is not, or whether the estimate is wrong for
+  dense sectors; fix the cause, in the test (the expected sum must
+  include the cap) or in the generator, without widening the 3x bound. A
+  loop of fresh random draws on an idle box is the first step, since
+  'passes alone' only means a different draw. Done: the cause is on this
+  item, the test passes for the pinned draw and for 100 fresh draws, and
+  nothing is quarantined. Owner: Bug Hunt.
+  Prerequisites: none. Related: TEST.213, GEN.76.
 
 ## USR: User accounts
 
