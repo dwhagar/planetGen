@@ -7,6 +7,7 @@ Rules:
 - One issue per goal. An item belongs to the issue that groups it; an item may appear in more than one row.
 - Issues Boss opened keep his text. The TODO lane adds a "TODO sync" comment that lists their items and does not edit his words.
 - Findings from any thread that belong to a goal (a failed test, a bug noticed in passing, an oddity) go to the TODO thread, which attaches them to the goal's issue as a comment headed `Finding (date, source, kind)` with the test or object, the failure text, whether it fails on main, how often, and a reproducer. An item with no goal yet gets a new issue.
+- Every test or investigation on an item gets a dated comment on its goal issue (fix, failure or could not reproduce), with the date and time in EDT, what was run, the result and what is needed next time; a bug that could not be reproduced or needs more information is flagged so (Boss, 2026-10-16, 11:48 PM EDT).
 - Issue labels: `goal` marks a goal issue; one label per TODO ID (for example `GEN.250`) lets the issue list filter to an item's issue. Bugs also carry `bug`.
 - An issue closes when every item in its row is done or dropped; the row stays so the reference page keeps its links.
 
@@ -14,6 +15,8 @@ Rules:
 |---|---|---|---|
 | [#1914](https://github.com/dwhagar/planetGen/issues/1914) | open | Galaxy types: one family per known galaxy type, drawn from the seed (9.4) | DB.66, DOC.59, GEN.378, GEN.379, GEN.380, GEN.381, GEN.382, GEN.383, GEN.384, GEN.385, GEN.386, GEN.387, GEN.389, GEN.390, MAP.242, TEST.204, UX.134, UX.135 |
 | [#1924](https://github.com/dwhagar/planetGen/issues/1924) | open | Superbubbles shape the stars: the bubble field as a density modulation (8.1) | DOC.61, GEN.391, GEN.392, GEN.393, GEN.394, GEN.395, TEST.206 |
+| [#1944](https://github.com/dwhagar/planetGen/issues/1944) | open | Atmosphere colour: one consistent atmosphere, then the colour of the air (9.0, foundations in 8.4) | DB.67, DB.68, DOC.63, DOC.64, GEN.409, GEN.410, GEN.411, GEN.412, GEN.413, GEN.414, GEN.415, GEN.416, GEN.417, GEN.418, GEN.419, GEN.420, GEN.421, GEN.422, GEN.423, GEN.424, MAP.244, TEST.209 |
+| [#1949](https://github.com/dwhagar/planetGen/issues/1949) | open | Bulk composition drives mass, density and gravity (8.4) | DB.69, DOC.65, GEN.425, GEN.426, GEN.427, GEN.428, GEN.429, GEN.430, TEST.210 |
 | [#1846](https://github.com/dwhagar/planetGen/issues/1846) | open | Map labels: names for stars, systems, sectors, big features and nebulae | MAP.229, MAP.230, MAP.231, MAP.232, MAP.233 |
 | [#1845](https://github.com/dwhagar/planetGen/issues/1845) | open | One configuration file and the settings page (8.1) | ADM.43, ADM.44, ADM.50, ADM.83, ADM.84, ADM.85, ADM.86, ADM.87, ADM.96, GEN.303 |
 | [#1844](https://github.com/dwhagar/planetGen/issues/1844) | open | Backups: the archive, parity data, control database and repair from an archive | ADM.87, ADM.88, ADM.89, ADM.90, ADM.91, DB.40, DB.41, DB.42, DOC.56, OPS.55, TEST.180 |
@@ -30,7 +33,7 @@ Rules:
 | [#1758](https://github.com/dwhagar/planetGen/issues/1758) | closed | test_math_check::test_whole_run_is_fast and the Galaxy Map breadcrumb folding test fail under full-suite load (TEST.170) | TEST.170 |
 | [#1726](https://github.com/dwhagar/planetGen/issues/1726) | open | Interface update: every control works on the whole sphere | UX.115, TEST.168 |
 | [#1694](https://github.com/dwhagar/planetGen/issues/1694) | open | Test failures under parallel load and on MySQL 8.4 | TEST.208, TEST.116, TEST.167, TEST.126, TEST.127, TEST.128, TEST.134, TEST.137, TEST.140, TEST.141, TEST.144, TEST.189, TEST.190, TEST.187, TEST.188, TEST.191, TEST.192, TEST.193, TEST.194, TEST.195, TEST.197, TEST.198, TEST.199, TEST.202, TEST.203, TEST.205, TEST.138, TEST.111, TEST.170, TEST.171, TEST.172, TEST.173, TEST.174, DB.33, TEST.148 |
-| [#1693](https://github.com/dwhagar/planetGen/issues/1693) | open | View from a planet: sky maps and constellations | VIEW.1, VIEW.2, VIEW.3, VIEW.4, VIEW.6, VIEW.7, VIEW.8, VIEW.9, VIEW.10, DB.64, VIEW.11, VIEW.12, VIEW.13, VIEW.14, VIEW.15, VIEW.16, VIEW.17 |
+| [#1693](https://github.com/dwhagar/planetGen/issues/1693) | open | View from a planet: sky maps and constellations | VIEW.1, VIEW.2, VIEW.3, VIEW.4, VIEW.6, VIEW.7, VIEW.8, VIEW.9, VIEW.10, DB.64, VIEW.11, VIEW.12, VIEW.13, VIEW.14, VIEW.15, VIEW.16, VIEW.17, VIEW.18 |
 | [#1691](https://github.com/dwhagar/planetGen/issues/1691) | open | Documentation corrections and the docs index | DOC.4, DOC.21, DOC.24, DOC.52, DOC.53, DOC.60, DOC.62 |
 | [#1690](https://github.com/dwhagar/planetGen/issues/1690) | open | Static help section for the web interface | DOC.6, DOC.7, DOC.8, DOC.9, DOC.10, DOC.11, DOC.12, DOC.13, DOC.14, DOC.15, DOC.16, DOC.18, DOC.57, DOC.58 |
 | [#1689](https://github.com/dwhagar/planetGen/issues/1689) | open | One logging standard and a themed, componentised interface | UX.102, DOC.19, UX.43, UX.49, UX.82, TEST.183, UX.121, UX.122, UX.123, UX.124, UX.125, UX.126, UX.130, UX.131, UX.132 |
