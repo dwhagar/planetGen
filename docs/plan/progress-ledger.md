@@ -811,3 +811,4 @@ Baseline: PR #1817.
 | GEN.529 | 8.1 | Nebula and young stars |
 | GEN.259 | 8.1 | Galactic core and halo |
 | TEST.213 | 8.1 | Bugs and flaky tests |
+| GEN.314 | 8.1 | Multi-star and compact systems |
