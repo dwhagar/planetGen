@@ -31,7 +31,9 @@ from planetgen.galaxy import spherical
 from planetgen.physics.constants import SOLAR_LUMINOSITY as SOLAR_LUMINOSITY_W
 from planetgen.db.store import MySQLConfig
 from planetgen.generation.config import SystemConfig
-from planetgen.galaxy.viewport import tile_keys_containing, tiles_intersecting_sphere
+from planetgen.galaxy.viewport import (
+    TILE_MAX_LEVEL, TILE_ROOT_EXTRA_LEVELS, tile_keys_containing, tiles_intersecting_sphere,
+)
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen.wiki import WikiClientPageExistsError, WikiPage
@@ -819,8 +821,8 @@ def test_galaxy_tiles_returns_placed_sectors_by_cube(client, mysql_config):
     _place_sector(mysql_config, "Near Core", (5.0, 5.0, 5.0))
     _place_sector(mysql_config, "Far Out", (9000.0, -3000.0, 20.0))
 
-    near = tiles_intersecting_sphere(12, (5.0, 5.0, 5.0), 0.0)[0]
-    far = tiles_intersecting_sphere(12, (9000.0, -3000.0, 20.0), 0.0)[0]
+    near = tiles_intersecting_sphere(TILE_MAX_LEVEL, (5.0, 5.0, 5.0), 0.0)[0]
+    far = tiles_intersecting_sphere(TILE_MAX_LEVEL, (9000.0, -3000.0, 20.0), 0.0)[0]
     whole = "0/0/0/0"
     response = client.get(f"/api/galaxy/tiles?tiles={near},{far},{whole}")
     assert response.status_code == 200
@@ -1124,7 +1126,7 @@ def _cut_views():
         keys = fetch_cut_tiles(camera, look, bounds)
         distance = math.dist(camera, look)
         if distance <= DETAIL_CAMERA_PC:
-            keys = tiles_intersecting_sphere(12, look, DETAIL_RADIUS_PC) + keys
+            keys = tiles_intersecting_sphere(TILE_MAX_LEVEL, look, DETAIL_RADIUS_PC) + keys
         yield keys
 
 
@@ -1198,9 +1200,9 @@ def test_galaxy_tile_counts_follow_the_level_budget_for_dense_and_sparse_sectors
     gives its brightest, the sparse one still shows."""
     sector_ids, _star_ids = _generated_sectors(mysql_config, [90.0, 60.0])
     _add_stars_to_sector(mysql_config, sector_ids[0], [80.0, 70.0, 50.0, 40.0, 30.0])
-    key = tiles_intersecting_sphere(6, (2.0, 2.0, 0.0), 0.0)[0]
-    finest = tiles_intersecting_sphere(12, (2.0, 2.0, 0.0), 0.0)[0]
-    monkeypatch.setattr(query, "GALAXY_TILE_STAR_BUDGET", {6: 4})
+    key = tiles_intersecting_sphere(6 + TILE_ROOT_EXTRA_LEVELS, (2.0, 2.0, 0.0), 0.0)[0]
+    finest = tiles_intersecting_sphere(TILE_MAX_LEVEL, (2.0, 2.0, 0.0), 0.0)[0]
+    monkeypatch.setattr(query, "GALAXY_TILE_STAR_BUDGET", {6 + TILE_ROOT_EXTRA_LEVELS: 4})
     monkeypatch.setattr(query, "SECTOR_ALLOWANCE_FUDGE", 1)
 
     def lums(tile):
@@ -1218,7 +1220,7 @@ def test_galaxy_tile_counts_follow_the_level_budget_for_dense_and_sparse_sectors
 def test_galaxy_tiles_carry_no_comets_rogue_planets_or_asteroid_fields(client, mysql_config):
     """MAP.115: those live on the Sector Map only."""
     _generated_sectors(mysql_config, [1.0])
-    key = tiles_intersecting_sphere(12, (2.0, 2.0, 0.0), 0.0)[0]
+    key = tiles_intersecting_sphere(TILE_MAX_LEVEL, (2.0, 2.0, 0.0), 0.0)[0]
     tile = client.get(f"/api/galaxy/tiles?tiles={key}").get_json()["tiles"][key]
     assert set(tile) == {"placed", "planned", "sector_count", "clouds", "stars", "generated", "points"}
     assert {p["type"] for p in tile["points"]} <= {"black_hole", "neutron_star", "quasar"}
@@ -1229,8 +1231,8 @@ def test_galaxy_tiles_lists_generated_stars_by_tile_level(client, mysql_config):
     brightness floor, so a sparse tile lists all it has), and a galaxy-sized one none (the bright stars
     cover it)."""
     _sector_ids, star_ids = _generated_sectors(mysql_config, [0.001, 5.0])
-    finest = tiles_intersecting_sphere(12, (2.0, 2.0, 0.0), 0.0)[0]
-    mid = tiles_intersecting_sphere(6, (2.0, 2.0, 0.0), 0.0)[0]
+    finest = tiles_intersecting_sphere(TILE_MAX_LEVEL, (2.0, 2.0, 0.0), 0.0)[0]
+    mid = tiles_intersecting_sphere(6 + TILE_ROOT_EXTRA_LEVELS, (2.0, 2.0, 0.0), 0.0)[0]
     tiles = client.get(f"/api/galaxy/tiles?tiles={finest},{mid},0/0/0/0").get_json()["tiles"]
     assert [s["id"] for s in tiles[finest]["generated"]] == pids("star", [star_ids[1], star_ids[0]])
     assert [s["id"] for s in tiles[mid]["generated"]] == pids("star", [star_ids[1], star_ids[0]])
@@ -1268,7 +1270,7 @@ def test_galaxy_tiles_list_every_star_and_point_phenomenon_at_sector_zoom(client
     finally:
         conn.close()
 
-    finest = tiles_intersecting_sphere(12, (2.0, 2.0, 0.0), 0.0)[0]
+    finest = tiles_intersecting_sphere(TILE_MAX_LEVEL, (2.0, 2.0, 0.0), 0.0)[0]
     sector_level = tiles_intersecting_sphere(query.POINT_PHENOMENON_MIN_LEVEL, (2.0, 2.0, 0.0), 0.0)[0]
     coarse = tiles_intersecting_sphere(query.POINT_PHENOMENON_MIN_LEVEL - 1, (2.0, 2.0, 0.0), 0.0)[0]
     monkeypatch.setattr(query, "GALAXY_TILE_STAR_BUDGET", {query.POINT_PHENOMENON_MIN_LEVEL: 1})
@@ -1317,7 +1319,7 @@ def test_galaxy_tiles_list_the_scattered_black_holes_and_neutron_stars_before_th
 
     near = (0.04, 0.03, 0.0)
     fine = tiles_intersecting_sphere(query.POINT_PHENOMENON_MIN_LEVEL, near, 0.0)[0]
-    coarse = tiles_intersecting_sphere(3, near, 0.0)[0]
+    coarse = tiles_intersecting_sphere(3 + TILE_ROOT_EXTRA_LEVELS, near, 0.0)[0]
     tiles = client.get(f"/api/galaxy/tiles?tiles={fine},{coarse}").get_json()["tiles"]
     fine_points = tiles[fine]["points"]
     assert [(p["type"], p["descriptor"], p["size"]) for p in fine_points] == [

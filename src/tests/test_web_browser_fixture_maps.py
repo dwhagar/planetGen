@@ -23,6 +23,7 @@ import pytest
 sync_api = pytest.importorskip("playwright.sync_api")
 Image = pytest.importorskip("PIL.Image")
 
+from planetgen.galaxy.viewport import TILE_MAX_LEVEL  # noqa: E402
 from planetgen.galaxy.spherical import provisional_sector_designation  # noqa: E402
 from tests.map_site_support import PHENOMENA, POINT_FIELD, SECTOR_ID, SECTORS, SYSTEMS, UNCHARTED_CELL, map_site  # noqa: E402,F401 -- fixture
 
@@ -2603,7 +2604,7 @@ def test_galaxy_map_prefetches_only_the_way_in_and_only_when_still(page, map_sit
         eye = [target[i] + (camera[i] - target[i]) * scale for i in range(3)]
         return set(fetch_cut_tiles(eye, target, bounds))
 
-    asked = {key for _at, keys in requests for key in keys if not key.startswith("12/")}
+    asked = {key for _at, keys in requests for key in keys if not key.startswith(f"{TILE_MAX_LEVEL}/")}
     here, in_one, out_one = cut_at(1.0), cut_at(1.0 / 3.0), cut_at(3.0)
     way_out = out_one - here - in_one
     assert way_out, "the way out needs tiles of its own for this test to mean anything"
