@@ -687,7 +687,8 @@ connectivity to that specific schema rather than the default one.
   `estimate` and queues nothing. Before anything is queued: `404` for an
   unknown or unplaced sector, `409` when the galaxy has never been planned
   (`planetgen plan`) or the math check failed, `507` when the database
-  disk can't hold the run. `503` when no Redis server answers. Every new
+  disk can't hold the run, `413` when the radius holds more than 2 million
+  sectors (a web request lists no more). `503` when no Redis server answers. Every new
   sector also gets the bright stars (100 L_sun and up) within 100 ly of it
   (GEN.23). A large radius (100 ly) covers thousands of candidate slots,
   so this can run for a long time. The sector page asks for its

@@ -1620,7 +1620,8 @@ def generate_sector_neighborhood_route(sector_id):
     PERF.3: `"estimate_only": true` returns the counts and the size and
     time `estimate` without writing anything; a run the database disk
     can't hold (over a quarter of it, or under 5 GB left) is refused with
-    507 and nothing written."""
+    507 and nothing written; a radius holding more than 2 million sectors
+    (`run_common.WEB_ENUMERATION_LIMIT`, PERF.36) is refused with 413."""
     body = request_json()
     if body is None:
         body = {}
@@ -1642,6 +1643,8 @@ def generate_sector_neighborhood_route(sector_id):
         result = run_galaxy.generate_sector_neighborhood(
             sector_id, radius_ly=radius_ly, config=config, estimate_only=True,
         )
+    except run_galaxy.EnumerationTooLarge as exc:
+        raise ApiError(str(exc), status_code=413)
     except ValueError as exc:
         raise ApiError(str(exc), status_code=404)
     except RuntimeError as exc:

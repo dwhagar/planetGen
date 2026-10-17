@@ -46,6 +46,7 @@ from planetgen.generation import run_plan
 from planetgen.generation import run_population
 from planetgen.generation import run_sector
 from planetgen.generation import stages, steps
+from planetgen.generation import stats as generationStats
 from planetgen.util import draw
 from planetgen.util import detmath
 
@@ -154,6 +155,117 @@ class _BatchDensity:
                                       self.skeleton.expected_system_count_at_density_1).density
         resolved.num_systems = None
         return resolved
+
+
+class _Pending:
+    """
+    The sectors a run still has to generate, walked and not listed (PERF.36): a batch of a million sectors would hold a
+    million resolved copies of the arguments, so a run counts its sectors in a first pass (`survey`), works its estimate
+    out from a sample of them (`sample_args`, over `generationStats.SAMPLE_ABOVE`; below that, `items` as a list) and
+    resolves each sector only as it is handed to the work queue (`items`, one more pass). The same occupancy,
+    reach and `--limit` rules decide every pass.
+
+    Attributes:
+        count (int): The sectors to generate; set by `survey`.
+        existed (int): The addresses left out because they were already generated, or named in `skip`.
+        skipped (int): The addresses left out because they lie beyond the grid's reach.
+    """
+
+    def __init__(self, args, walk, place, occupied, batch_density, skip=(), limit=None):
+        """
+        Args:
+            args (argparse.Namespace): The run's arguments.
+            walk (callable): `walk()` -> a new iterable of `(address, extra)` each time, in the order to generate.
+            place (callable): `place(address, extra)` -> `(position_pc, suffix)` of the sector.
+            occupied (set): The addresses already generated.
+            batch_density (_BatchDensity): Resolves each sector's own arguments.
+            skip (iterable): Addresses to leave out too.
+            limit (int or None): Generate at most this many.
+        """
+        self.args = args
+        self._walk = walk
+        self._place = place
+        self._occupied = occupied
+        self._density = batch_density
+        self._skip = skip
+        self._limit = limit
+        self.count = self.existed = self.skipped = 0
+
+    @classmethod
+    def of_addresses(cls, args, addresses, occupied, batch_density, edge_pc, limit=None):
+        """The addresses `addresses()` yields (a callable giving a fresh iterable each time)."""
+        return cls(args, lambda: ((address, None) for address in addresses()),
+                   lambda address, _extra: (sector_position_pc(*address, edge_pc), ""),
+                   occupied, batch_density, limit=limit)
+
+    @classmethod
+    def of_candidates(cls, args, candidates, occupied, batch_density, suffix="", skip=()):
+        """The `_neighborhood_candidates` list, with `suffix` (it may hold `{distance}`, pc) on each."""
+        return cls(args, lambda: ((candidate[:3], candidate) for candidate in candidates),
+                   lambda _address, candidate: (candidate[3:6], suffix.format(distance=candidate[6])),
+                   occupied, batch_density, skip=skip)
+
+    def _eligible(self):
+        """The `(address, extra)` to generate, counting `existed` and `skipped` as it goes."""
+        existed = skipped = taken = 0
+        bounds = self._density.bounds
+        for address, extra in self._walk():
+            if address in self._occupied or address in self._skip:
+                existed += 1
+                continue
+            if self._limit is not None and taken >= self._limit:
+                break
+            if not bounds.contains(address[0], address[1]):
+                log.debug(f"{_format_address(address)}: skipped (beyond the grid's reach)")
+                skipped += 1
+                continue
+            taken += 1
+            yield address, extra
+        self.count, self.existed, self.skipped = taken, existed, skipped
+
+    def survey(self):
+        """Counts the sectors to generate (`count`, `existed`, `skipped`)."""
+        for _entry in self._eligible():
+            pass
+        return self.count
+
+    def items(self):
+        """Each sector to generate as a `_submit_batch` item `(address, position_pc, sector_args, suffix)`, resolved as
+        it is reached."""
+        for address, extra in self._eligible():
+            position_pc, suffix = self._place(address, extra)
+            yield address, position_pc, self._density.resolve(self.args, address, position_pc), suffix
+
+    def sample_args(self, size=None):
+        """The resolved arguments of `size` sectors spread evenly through the run (`generationStats.sample_positions`);
+        `survey` first."""
+        wanted = generationStats.sample_positions(self.count, size)
+        sample = []
+        if not wanted:
+            return sample
+        for place, (address, extra) in enumerate(self._eligible()):
+            if place == wanted[len(sample)]:
+                position_pc, _suffix = self._place(address, extra)
+                sample.append(self._density.resolve(self.args, address, position_pc))
+                if len(sample) == len(wanted):
+                    break
+        return sample
+
+
+def _plan_pending(pending):
+    """
+    Counts what `pending` (a `_Pending`) has to generate and chooses how the run goes on (PERF.36): up to
+    `generationStats.SAMPLE_ABOVE` sectors, a list with the estimate worked out from all of them; above it, the sectors
+    streamed as they are submitted and the estimate worked out from a sample.
+
+    Returns:
+        tuple: `(batch, estimate_args, total)`: the items to submit (a list or a generator), the arguments the estimate
+            reads and the size of the run when they are a sample of it (else `None`).
+    """
+    if pending.survey() > generationStats.SAMPLE_ABOVE:
+        return pending.items(), pending.sample_args(), pending.count
+    batch = list(pending.items())
+    return batch, [item[2] for item in batch], None
 
 
 def _fill_context(args, address):
@@ -721,9 +833,11 @@ def _log_saved(saved, address, suffix=""):
     run_sector._log_summary(saved["summary"])
 
 
-def _submit_batch(args, batch, title, edge_pc, progress, bar):
+def _submit_batch(args, batch, title, edge_pc, progress, bar, count=None):
     """Queues every `(address, position_pc, sector_args, suffix)` of
-    `batch` (`_submit_sector`) and waits for them."""
+    `batch` (`_submit_sector`) and waits for them. `batch` may be a generator (PERF.36): then `count` says how many
+    it holds; the queue takes them as its workers are free, so a run of millions is never held at once."""
+    count = len(batch) if count is None else count
     relay = steps.Relay(args, progress)
     stop = threading.Event()
     channel = drain = None
@@ -735,8 +849,8 @@ def _submit_batch(args, batch, title, edge_pc, progress, bar):
                 drain.start()
             else:
                 channel = relay   # one worker saves in this process: its reports go straight to the relay
-            queue.expect(len(batch))
-            log.normal(f"Generating {len(batch):,} sector(s) with {queue.workers} worker(s); each is reported below as "
+            queue.expect(count)
+            log.normal(f"Generating {count:,} sector(s) with {queue.workers} worker(s); each is reported below as "
                        f"it is saved, so the first report can take a while in a dense region.")
             for address, position_pc, sector_args, suffix in batch:
                 _submit_sector(queue, sector_args, address, position_pc, edge_pc, bar, suffix=suffix, channel=channel)
@@ -856,7 +970,13 @@ def _report_far_neighborhood(args, center, radius_pc, edge_pc, bounds, skeleton)
         run_common._refuse_or_warn(args, f"That is {count:,} sectors, a very large run (--yes goes ahead without asking).")
 
 
-def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds, args=None, skeleton=None, ordered=True):
+class EnumerationTooLarge(Exception):
+    """PERF.36: a web request asked for a ball of more sectors than it may list (`run_common.WEB_ENUMERATION_LIMIT`);
+    the message says how many and what to do."""
+
+
+def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds, args=None, skeleton=None, ordered=True,
+                             limit=None):
     """
     Every address within `radius_pc` of `center` that the neighbourhood
     takes (`_neighborhood_filter`: inside the galaxy's outline for a centre
@@ -872,6 +992,10 @@ def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds, args=No
     passes `ordered=False` and gets the enumeration's order. With `args` given, the
     steps that are not between neighbours are counted in a line of the log, once
     per run.
+
+    Raises:
+        EnumerationTooLarge: The ball holds more than `limit` sectors (PERF.36: a web request is not to enumerate more than
+            `run_common.WEB_ENUMERATION_LIMIT`); nothing was enumerated.
     """
     far = _is_far(center, edge_pc, bounds)
     keep = bounds.contains if far else bounds.qualifies
@@ -882,6 +1006,11 @@ def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds, args=No
         farthest = bounds.reach_shell_index if far else bounds.outer_shell_index
         reach_pc = math.sqrt(sum(c * c for c in center)) + (farthest + 2) * edge_pc
         radius_pc = min(radius_pc, reach_pc)
+    if limit is not None:
+        held = Region(center, radius_pc, edge_pc).count(_ReachOnly(bounds) if far else bounds)
+        if held > limit:
+            raise EnumerationTooLarge(f"That ball holds {held:,} sectors, more than the {limit:,} a web request may list. "
+                             f"Choose a smaller radius, or run the fill from the command line.")
     if far and skeleton is not None and not getattr(args, "_far_reported", False):
         if args is not None:
             args._far_reported = True
@@ -927,21 +1056,9 @@ def _neighborhood_batch(args, candidates, occupied, batch_density, suffix="", sk
     Returns:
         tuple: `(batch, already_existed, skipped)`.
     """
-    batch = []
-    skipped = 0
-    already_existed = 0
-    for shell_index, band_index, wedge_index, x, y, z, distance_pc in candidates:
-        address = (shell_index, band_index, wedge_index)
-        if address in occupied or address in skip:
-            already_existed += 1
-            continue
-        sector_args = batch_density.resolve(args, address, (x, y, z))
-        if sector_args is None:
-            log.debug(f"{_format_address(address)}: skipped (beyond the grid's reach)")
-            skipped += 1
-            continue
-        batch.append((address, (x, y, z), sector_args, suffix.format(distance=distance_pc)))
-    return batch, already_existed, skipped
+    pending = _Pending.of_candidates(args, candidates, occupied, batch_density, suffix, skip)
+    batch = list(pending.items())
+    return batch, pending.existed, pending.skipped
 
 
 def run_local_neighborhood(args, edge_pc, progress):
@@ -989,20 +1106,27 @@ def run_local_neighborhood(args, edge_pc, progress):
     center_shell, center_band, _wedge = sector_address_at(center, edge_pc)
     _require_in_reach(batch_density.bounds, center_shell, center_band,
                       f"sector_id={args.center_sector} sits at {_format_address(sector_address_at(center, edge_pc))}")
-    candidates, occupied, outside = _neighborhood_candidates(
-        center, args.radius_pc, edge_pc, mysql_config, batch_density.bounds, args, batch_density.skeleton,
-    )
+    estimating = getattr(args, "estimate_only", False)   # the Generate page's web request (PERF.36)
+    try:
+        candidates, occupied, outside = _neighborhood_candidates(
+            center, args.radius_pc, edge_pc, mysql_config, batch_density.bounds, args, batch_density.skeleton,
+            ordered=not estimating, limit=run_common.WEB_ENUMERATION_LIMIT if estimating else None,
+        )
+    except EnumerationTooLarge as exc:
+        log.error(str(exc))
+        raise SystemExit(1) from exc
     region = _region_text(args)
 
-    batch, already_existed, skipped = _neighborhood_batch(
-        args, candidates, occupied, batch_density, f", {{distance:.2f}} pc from sector_id={args.center_sector}",
-    )
-    run_common._check_estimate(args, [item[2] for item in batch],
-                    f"the sectors {region} of sector {args.center_sector}", progress)
-    with run_common.sector_bar(progress, args, "Sectors (local neighborhood)", len(batch)) as bar:
+    pending = _Pending.of_candidates(args, candidates, occupied, batch_density,
+                                     f", {{distance:.2f}} pc from sector_id={args.center_sector}")
+    batch, estimate_args, total = _plan_pending(pending)
+    already_existed, skipped = pending.existed, pending.skipped
+    run_common._check_estimate(args, estimate_args,
+                    f"the sectors {region} of sector {args.center_sector}", progress, total=total)
+    with run_common.sector_bar(progress, args, "Sectors (local neighborhood)", pending.count) as bar:
         _submit_batch(args, batch, f"Sectors ({region} of sector {args.center_sector})",
-                      edge_pc, progress, bar)
-    generated = len(batch)
+                      edge_pc, progress, bar, count=pending.count)
+    generated = pending.count
 
     skip_note = f", {skipped} skipped (beyond the grid's reach)" if skipped else ""
     outside_note = f", {outside} beyond the galaxy's edge left out" if outside else ""
@@ -1097,6 +1221,7 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
     Raises:
         ValueError: If `center_sector_id` doesn't exist, has never been
                    placed in a galaxy, or lies beyond the grid's reach.
+        EnumerationTooLarge: The radius holds more sectors than a web request may list (PERF.36).
         GenerationRefused: The database disk can't hold it (nothing was
                    written).
         RuntimeError: If the galaxy's skeleton has never been built.
@@ -1135,6 +1260,7 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
         )
     candidates, occupied, outside = _neighborhood_candidates(
         center, radius_pc, edge_pc, config, batch_density.bounds,
+        ordered=not estimate_only, limit=run_common.WEB_ENUMERATION_LIMIT,
     )
 
     args = _default_generation_args(config=config)
@@ -1144,14 +1270,15 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
     args.num_systems = None
     args.workers = 1   # one sector at a time, in whichever process called this
 
-    batch, already_existed, skipped = _neighborhood_batch(args, candidates, occupied, batch_density)
+    pending = _Pending.of_candidates(args, candidates, occupied, batch_density)
+    batch, estimate_args, total = _plan_pending(pending)
     counts = {
-        "already_existed": already_existed,
-        "skipped": skipped,
+        "already_existed": pending.existed,
+        "skipped": pending.skipped,
         "candidates": len(candidates),
         "outside_galaxy": outside,
     }
-    estimate = run_common._estimate_sectors(args, [item[2] for item in batch])
+    estimate = run_common._estimate_sectors(args, estimate_args, total)
     if estimate_only:
         run_common._RUN_STATS.clear()
         return {"generated": 0, "estimate": estimate.as_dict(), **counts}
@@ -1426,10 +1553,12 @@ def run_single_sector(args, edge_pc, progress):
 
 def _generate_addresses(args, addresses, shells, total, what, edge_pc, progress, batch_density):
     """
-    Generates every not-yet-generated address of `addresses` (an iterable of
-    `(shell, band, wedge)`, walked lazily, in order) up to `args.limit` when
+    Generates every not-yet-generated address of `addresses` (a callable giving a new iterable of
+    `(shell, band, wedge)` each time it is called, walked lazily, in order) up to `args.limit` when
     set -- the loop behind the shell, span and course modes; see
-    `_BatchDensity.resolve` for how each sector's density is set.
+    `_BatchDensity.resolve` for how each sector's density is set. A run of more than
+    `generationStats.SAMPLE_ABOVE` sectors is estimated from a sample and its sectors are resolved as they are
+    submitted, not held (`_Pending`, PERF.36).
 
     Args:
         shells (iterable): The shells `addresses` lie in, to look up what is
@@ -1443,28 +1572,16 @@ def _generate_addresses(args, addresses, shells, total, what, edge_pc, progress,
         conn.close()
 
     limit = getattr(args, "limit", None)
-    batch = []
-    skipped = 0
-    existed = 0
-    for address in addresses:
-        if address in occupied:
-            existed += 1
-            continue
-        if limit is not None and len(batch) >= limit:
-            break
-        position_pc = sector_position_pc(*address, edge_pc)
-        sector_args = batch_density.resolve(args, address, position_pc)
-        if sector_args is None:
-            skipped += 1
-            continue
-        batch.append((address, position_pc, sector_args, ""))
+    pending = _Pending.of_addresses(args, addresses, occupied, batch_density, edge_pc, limit=limit)
+    batch, estimate_args, sampled_total = _plan_pending(pending)
+    skipped, existed = pending.skipped, pending.existed
 
-    run_common._check_estimate(args, [item[2] for item in batch], what, progress)
-    with run_common.sector_bar(progress, args, f"Sectors ({what})", len(batch)) as bar:
-        _submit_batch(args, batch, f"Sectors ({what})", edge_pc, progress, bar)
-    generated = len(batch)
+    run_common._check_estimate(args, estimate_args, what, progress, total=sampled_total)
+    with run_common.sector_bar(progress, args, f"Sectors ({what})", pending.count) as bar:
+        _submit_batch(args, batch, f"Sectors ({what})", edge_pc, progress, bar, count=pending.count)
+    generated = pending.count
     skip_note = f", {skipped} skipped (beyond the grid's reach)" if skipped else ""
-    already = f"{total - len(batch) - skipped} already existed" if limit is None else f"{existed} already existed"
+    already = f"{total - generated - skipped} already existed" if limit is None else f"{existed} already existed"
     log.normal(f"Generated {generated} new sector(s) in {what} ({total} total, {already}{skip_note}).")
 
 
@@ -1489,7 +1606,8 @@ def run_shell(args, edge_pc, progress):
         what = f"shell {shell_index} band {band}"
         _require_in_reach(bounds, shell_index, band, what)
         total = spherical.wedge_count(shell_index, band)
-        addresses = ((shell_index, band, wedge) for wedge in range(total))
+        def addresses():
+            return ((shell_index, band, wedge) for wedge in range(total))
     else:
         what = f"shell {shell_index}"
         _require_in_reach(bounds, shell_index, 0, what)
@@ -1499,7 +1617,8 @@ def run_shell(args, edge_pc, progress):
             return
         span = Span(shells=(shell_index, shell_index))
         total = span.count(bounds)
-        addresses = span.addresses(bounds)
+        def addresses():
+            return span.addresses(bounds)
     if total > LARGE_RUN_WARNING_THRESHOLD and args.limit is None and not args.yes:
         run_common._refuse_or_warn(args, f"{what.capitalize()} holds {total:,} sectors, a very large run "
                                          f"(--limit N generates only the first N not-yet-generated sectors).")
@@ -1525,7 +1644,7 @@ def run_span(args, edge_pc, progress):
     if total > LARGE_RUN_WARNING_THRESHOLD and args.limit is None and not args.yes:
         run_common._refuse_or_warn(args, f"{what.capitalize()} holds {total:,} sectors, a very large run "
                                          f"(--limit N generates only the first N).")
-    _generate_addresses(args, span.addresses(bounds), span._shells(bounds), total, what, edge_pc, progress,
+    _generate_addresses(args, lambda: span.addresses(bounds), span._shells(bounds), total, what, edge_pc, progress,
                         batch_density)
 
 
@@ -1596,7 +1715,7 @@ def run_course(args, edge_pc, progress):
         raise SystemExit(1)
     if plan["outside_galaxy"]:
         log.normal(f"{plan['outside_galaxy']} uncharted cell(s) lie outside the galaxy and are left out.")
-    _generate_addresses(args, cells, {cell[0] for cell in cells}, len(cells), what, edge_pc, progress,
+    _generate_addresses(args, lambda: cells, {cell[0] for cell in cells}, len(cells), what, edge_pc, progress,
                         _BatchDensity(config))
 
 
