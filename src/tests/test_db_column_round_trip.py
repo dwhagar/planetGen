@@ -52,6 +52,8 @@ NULL_IN_THIS_GALAXY = {
     ("galaxy_shape", "bright_star_mass_limit_sol"): "no scatter",
     ("galaxy_shape", "phenomenon_scatter_seed"): "no scatter",
     ("galaxy_shape", "phenomenon_min_mass_solar"): "no scatter",
+    ("galaxy_shape", "core_min_luminosity_sol"): "follows the galaxy-wide limit until set (DB.54)",
+    ("galaxy_shape", "core_mass_limit_sol"): "follows the galaxy-wide limit until set (DB.54)",
     # High-pressure ice lies only under the deepest oceans.
     **{(table, "hp_ice_km"): CHANCE for table in ("planets", "moons", "rogue_planets")},
     # Facilities on stars, moons and asteroid fields, and the field's galaxy position.
@@ -126,9 +128,8 @@ NEVER_READ = {
     **{(table, stamp): "row timestamps (the Galaxy Map's change feed reads modified_at in bulk)"
        for table in ("star_systems", "facilities") for stamp in ("created_at", "modified_at")},
     ("polities", "created_at"): "row timestamp", ("species", "created_at"): "row timestamp",
-    # DB.6: what made the galaxy and its runs, for a rebuild (OPS.12) and the update history (OPS.13).
-    **{("galaxy_shape", column): "what made the galaxy (DB.6)" for column in
-       ("version_key", "planetgen_version", "python_version", "platform")},
+    # DB.6: what made the galaxy and its runs, for a rebuild (OPS.12) and the update history (OPS.13). The
+    # galaxy's own record is read back by the version check (ADM.50), so it is not listed here.
     # PERF.11: galaxy-wide stats, read by `store.galaxy_density_ratio`, not by an object loader.
     ("galaxy_shape", "density_ratio_avg"): "density stats (PERF.11)",
     ("galaxy_shape", "density_ratio_samples"): "density stats (PERF.11)",

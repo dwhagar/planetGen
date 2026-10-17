@@ -30,6 +30,7 @@ Field metadata sits in `json_schema_extra` under `x-` keys, written with
 - `x-editable`: `false` means the web may not change it (the database, secrets
   that open the host, `jobs.python`); only the command line, run on the server, can
 - `x-min_role`: `admin` (the default) or `owner`: who may save it from the web
+- `x-multiline`: a text option the form edits in a text area (robots.txt text, security.txt)
 - `x-unit`, `x-category`: the form's suffix and section
 
 The log options (`debug`, `log_file`, `log_dir`, `log_rotation`) are read
@@ -44,8 +45,10 @@ import copy
 import hashlib
 import json
 import os
+import re
 import threading
 from typing import Any, List, Literal, get_args, get_origin
+from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
@@ -61,10 +64,10 @@ _FALSE_STRINGS = ("", "0", "false", "no", "off")
 
 
 def opt(default, description, env=None, restart=False, secret=False, editable=True, role="admin",
-        unit=None, category="general", env_empty=False, **constraints):
+        unit=None, category="general", env_empty=False, multiline=False, **constraints):
     """A model field with its `x-` metadata (see the module docstring)."""
     extra = {"x-restart": restart, "x-secret": secret, "x-editable": editable, "x-min_role": role,
-             "x-category": category}
+             "x-category": category, "x-multiline": multiline}
     if env:
         extra["x-env"] = env
     if env_empty:
@@ -219,6 +222,185 @@ class SettingsFile(_Section):
                             unit="backups", category="backups", ge=1, le=200)
 
 
+_HEX_COLOR = re.compile(r"^#[0-9a-fA-F]{6}$")
+_ASSET_NAME = re.compile(r"^([0-9a-f]{16}\.(png|ico|jpg|svg))?$")
+_TWITTER_HANDLE = re.compile(r"^(@[A-Za-z0-9_]{1,15})?$")
+_LANGUAGE = re.compile(r"^[a-z]{2,3}(-[A-Za-z]{2,4})?$")
+
+ROBOTS_DIRECTIVES = ("user-agent", "allow", "disallow", "sitemap", "crawl-delay", "host")
+"""tuple[str]: The lines a robots.txt text may hold besides comments and blank lines (RFC 9309 and the common extras)."""
+
+
+def robots_problems(text):
+    """`[message]` for each line of a robots.txt text that is not a `Field: value` line with a known field, a comment
+    or blank; empty when the text is fine. The first problems only, so one bad paste doesn't list a thousand."""
+    problems = []
+    for number, raw in enumerate(text.splitlines(), 1):
+        line = raw.split("#", 1)[0].strip()
+        if not line:
+            continue
+        field, colon, value = line.partition(":")
+        if not colon or field.strip().lower() not in ROBOTS_DIRECTIVES:
+            problems.append(f"line {number} is not a robots.txt line (Field: value; known fields are "
+                            f"{', '.join(ROBOTS_DIRECTIVES)})")
+            if len(problems) >= 5:
+                break
+    return problems
+
+
+class Site(_Section):
+    tagline: str = opt("", "A short line shown under the home page's heading and used as the description of pages "
+                       "that give none of their own.", category="site", max_length=120)
+    language: str = opt("en", "The pages' language as a code (en, de, en-GB): the `lang` of every page and the Open "
+                        "Graph locale.", category="site")
+
+    @field_validator("language")
+    @classmethod
+    def _language_code(cls, value):
+        if not _LANGUAGE.match(value):
+            raise ValueError("must be a language code such as en or en-GB")
+        return value
+
+
+class Web(_Section):
+    title_template: str = opt("{title} - {site_name}", "How a page's title is written in the browser tab and in "
+                              "search results; {title} is the page's own title and {site_name} the site name.",
+                              category="web", max_length=120)
+    theme_color_light: str = opt("#f6f7fb", "The browser's toolbar colour on phones for the light theme, as #rrggbb.",
+                                 category="web")
+    theme_color_dark: str = opt("#14151e", "The same for the dark theme.", category="web")
+    assets_dir: str = opt("", "Where uploaded icons and images are kept; empty means the assets folder in the state "
+                          "folder.", env="PLANETGEN_ASSETS_DIR", editable=False, category="web")
+
+    @field_validator("title_template")
+    @classmethod
+    def _title_has_title(cls, value):
+        try:
+            shown = value.format(title="X", site_name="Y")
+        except (KeyError, IndexError, ValueError) as exc:
+            raise ValueError(f"may only use {{title}} and {{site_name}} ({exc})") from exc
+        if "X" not in shown:
+            raise ValueError("must contain {title}")
+        return value
+
+    @field_validator("theme_color_light", "theme_color_dark")
+    @classmethod
+    def _color(cls, value):
+        if not _HEX_COLOR.match(value):
+            raise ValueError("must be a colour written #rrggbb")
+        return value
+
+
+class Icons(_Section):
+    favicon_svg: str = opt("", "The site icon as an uploaded SVG; empty uses the built-in one. Set it by uploading on "
+                           "the Images page.", category="icons")
+    favicon_png: str = opt("", "A PNG or ICO icon for browsers that do not take an SVG; empty offers none. Set it by "
+                           "uploading on the Images page.", category="icons")
+    apple_touch_icon: str = opt("", "The 180 by 180 PNG iPhones and iPads use for a home-screen bookmark. Set it by "
+                                "uploading on the Images page.", category="icons")
+    manifest_enabled: bool = opt(False, "Serve /site.webmanifest, which names the site, its icon and its theme colour "
+                                 "for browsers that can install it.", category="icons")
+
+    _loose = field_validator("manifest_enabled", mode="before")(_loose_bool)
+
+    @field_validator("favicon_svg", "favicon_png", "apple_touch_icon")
+    @classmethod
+    def _asset(cls, value):
+        if not _ASSET_NAME.match(value):
+            raise ValueError("is the name of an uploaded file; upload it on the Images page")
+        return value
+
+
+class Seo(_Section):
+    indexing: Literal["off", "top_pages", "all"] = opt(
+        "top_pages", "Whether search engines may index the site: off (robots.txt disallows everything and every page "
+        "says noindex), top_pages (the home, class, species, polity, galaxy and list pages), or all (also the "
+        "system, sector and phenomenon pages).", category="seo")
+    detail_pages: Literal["noindex", "index"] = opt(
+        "noindex", "Whether the generated system, sector and phenomenon pages may be indexed when indexing is "
+        "top_pages. Millions of generated pages look like scaled content to search engines, so they stay out by "
+        "default; a small galaxy can switch this to index.", category="seo")
+    description: str = opt("", "The description search engines show for pages that give none of their own (about 155 "
+                           "characters are shown); empty uses the tagline.", category="seo", max_length=300)
+    keywords: List[str] = opt([], "Keywords for the keywords meta tag. Google has ignored it since 2009; some "
+                              "smaller engines still read it.", category="seo")
+    json_ld: bool = opt(True, "Add a WebSite block (schema.org) to the home page.", category="seo")
+    robots_extra: str = opt("", "Lines added to the end of the generated robots.txt.", category="seo", multiline=True,
+                            max_length=64 * 1024)
+    robots_override: str = opt("", "Replaces the generated robots.txt entirely when not empty. A mistake here can "
+                               "hide the whole site from search engines.", category="seo", multiline=True,
+                               max_length=500 * 1024)
+    block_ai_crawlers: bool = opt(False, "Disallow the crawlers that collect text to train AI models (GPTBot, "
+                                  "ClaudeBot, CCBot, Google-Extended, Applebot-Extended) in robots.txt.",
+                                  category="seo")
+    sitemap_enabled: bool = opt(True, "Serve /sitemap.xml and list it in robots.txt.", category="seo")
+    sitemap_max_urls: int = opt(50000, "Most addresses in one sitemap file (the limit is 50,000).", unit="addresses",
+                                category="seo", ge=1, le=50000)
+    sitemap_cache_hours: int = opt(24, "How long a built sitemap is reused.", unit="hours", category="seo", ge=1,
+                                   le=168)
+    security_txt: str = opt("", "The text of /.well-known/security.txt (RFC 9116 needs a Contact and an Expires "
+                            "line); empty serves none.", category="seo", multiline=True, max_length=16 * 1024)
+    humans_txt: str = opt("", "The text of /humans.txt; empty serves none.", category="seo", multiline=True,
+                          max_length=16 * 1024)
+    privacy_note: str = opt("", "A short note shown on the account page about what the site keeps.", category="seo",
+                            multiline=True, max_length=4 * 1024)
+
+    _loose = field_validator("json_ld", "block_ai_crawlers", "sitemap_enabled", mode="before")(_loose_bool)
+
+    @field_validator("robots_extra", "robots_override")
+    @classmethod
+    def _robots(cls, value):
+        problems = robots_problems(value)
+        if problems:
+            raise ValueError("; ".join(problems))
+        return value
+
+    @field_validator("keywords")
+    @classmethod
+    def _keywords(cls, value):
+        cleaned = [word.strip() for word in value if word.strip()]
+        if len(", ".join(cleaned)) > 300:
+            raise ValueError("the keywords together may be at most 300 characters")
+        return cleaned
+
+
+class OpenGraph(_Section):
+    enabled: bool = opt(True, "Add Open Graph and Twitter tags to the public pages, so a link shows a title, a "
+                        "description and a picture when shared.", category="og")
+    site_name: str = opt("", "The site name in link previews; empty uses the site name.", category="og",
+                         max_length=100)
+    image_alt: str = opt("", "A description of the default preview picture for people who cannot see it.",
+                         category="og", max_length=200)
+    default_image: str = opt("", "The picture link previews show (a PNG or JPEG about 1200 by 630); empty uses the "
+                             "built-in one. Set it by uploading on the Images page.", category="og")
+    twitter_card: Literal["summary", "summary_large_image"] = opt(
+        "summary_large_image", "How X (Twitter) draws a preview: a large picture or a small one.", category="og")
+    twitter_site: str = opt("", "The site's X (Twitter) account, as @name; empty names none.", category="og")
+    generated_cards: bool = opt(False, "Draw a preview picture per system and sector instead of one for the whole "
+                                "site. Off until a card drawer is installed; every page then uses the "
+                                "default picture.", category="og")
+    card_cache_mb: float = opt(100, "How much disk the drawn preview pictures may use.", unit="MB", category="og",
+                               ge=0)
+    card_cache_dir: str = opt("", "Where drawn preview pictures are cached; empty means the state folder.",
+                              editable=False, category="og")
+
+    _loose = field_validator("enabled", "generated_cards", mode="before")(_loose_bool)
+
+    @field_validator("default_image")
+    @classmethod
+    def _image(cls, value):
+        if not _ASSET_NAME.match(value):
+            raise ValueError("is the name of an uploaded file; upload it on the Images page")
+        return value
+
+    @field_validator("twitter_site")
+    @classmethod
+    def _handle(cls, value):
+        if not _TWITTER_HANDLE.match(value):
+            raise ValueError("must be an @name of up to 15 letters, digits or underscores")
+        return value
+
+
 class Settings(_Section):
     """Every `config.json` option."""
 
@@ -226,9 +408,20 @@ class Settings(_Section):
                               editable=False, category="file", ge=1)
     site_name: str = opt("planetGen", "Display name for this deployment, shown in the header, the home page "
                          "heading, every page title and the footer.", category="site", min_length=1)
-    base_url: str = opt("http://localhost/", "The base URL this deployment is served from. Not yet read by any "
-                        "page; reserved for absolute links that a request alone can't give.", role="owner",
-                        category="site")
+    base_url: str = opt("http://localhost/", "The address this site is reached at, as an absolute http or https "
+                        "address with a trailing slash. Canonical links, link previews, the sitemap and emailed links "
+                        "are built from it, never from the request's Host header.", role="owner", category="site")
+
+    @field_validator("base_url")
+    @classmethod
+    def _base_url(cls, value):
+        parts = urlsplit(value)
+        if parts.scheme not in ("http", "https") or not parts.netloc or parts.query or parts.fragment \
+                or parts.username or parts.password:
+            raise ValueError("must be an absolute http or https address such as https://example.org/ (no query, "
+                             "fragment or password)")
+        return value if value.endswith("/") else value + "/"
+
     api_base_url: str = opt("http://127.0.0.1/api", "Base URL of the Flask API's /api mount point, used by "
                             "web/lib/apiclient.py only outside the Flask app.", env="PLANETGEN_API_BASE_URL",
                             restart=True, editable=False, category="site")
@@ -245,6 +438,11 @@ class Settings(_Section):
         "program, 100 MB per file, 30 old copies) or auto (system where an installed rotation config exists, else "
         "app).", restart=True, editable=False, category="logging")
     settings: SettingsFile = SettingsFile()
+    site: Site = Site()
+    web: Web = Web()
+    icons: Icons = Icons()
+    seo: Seo = Seo()
+    og: OpenGraph = OpenGraph()
     mysql: MySQL = MySQL()
     control_database: str = opt("planetgen_control", "The MySQL schema holding admin identities, sessions, API keys "
                                 "and the audit log. Never listed or selectable as a galaxy.",

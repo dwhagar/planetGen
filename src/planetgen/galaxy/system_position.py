@@ -17,6 +17,7 @@ import math
 from planetgen.physics import constants as physical_constants
 from planetgen.physics.position import SpatialPosition3D
 from planetgen.util import draw
+from planetgen.util import detmath
 
 _AXES = "xyz"
 
@@ -51,7 +52,7 @@ def galactic_velocity_ms(position, speed_kms):
     """
     if not isinstance(speed_kms, (int, float)) or isinstance(speed_kms, bool) or not speed_kms > 0.0:
         return (0.0, 0.0, 0.0)
-    r = math.hypot(position[0], position[1])
+    r = detmath.hypot(position[0], position[1])
     if r == 0.0:
         return (0.0, 0.0, 0.0)
     scale = speed_kms * 1000.0 / r

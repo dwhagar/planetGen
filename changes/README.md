@@ -82,7 +82,8 @@ of them:
    golden files (it refuses under CI, with no golden change, and a second time in the same change);
 3. a line `generation-output: changed` in the PR's note, inside the section it belongs to.
 
-A change that leaves the output as it was touches none of them. `planetgen.util.generator_epoch.generator_epoch()`
+Until the first golden file is checked in (the golden test, TEST.77), there is nothing to change in step 1, so
+steps 2 and 3 go together alone. A change that leaves the output as it was touches none of them. `planetgen.util.generator_epoch.generator_epoch()`
 reads the epoch; stamping the release fills in the epoch's `first_release`.
 
 ## Commands

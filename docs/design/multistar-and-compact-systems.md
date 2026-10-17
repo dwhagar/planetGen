@@ -527,7 +527,9 @@ number before any of it is coded.**
 
 1. **Close-binary fraction against metallicity.** For solar-type primaries (about 0.6 to 1.2 Msun) the fraction
    inside about 10 AU (P below about 10^3.5 days) falls as [Fe/H] rises: about 50% to 60% at [Fe/H] below -1
-   and about 10% to 15% above +0.3 (the table in section 2 gives the finer steps). The dependence vanishes
+   and about 10% to 15% above +0.3 (the table in section 2 gives the finer steps; Core 4 reads the Moe et al. 2019
+   points as 53%, 40%, 24% and 10% at [Fe/H] -3.0, -1.0, -0.2 and +0.5, and El-Badry and Rix as 2019, so the
+   rounder figures here are summaries to be replaced by the points). The dependence vanishes
    for separations above about 200 AU. The cause is disk fragmentation: low metallicity means low dust
    opacity, so the outer disk cools fast (t_cool below about 3 over Omega, with Toomre Q near 1 or below),
    fragments into companions that migrate inward and stall inside about 10 AU, while metal-rich disks
@@ -539,7 +541,7 @@ number before any of it is coded.**
    (a) The diffusive limit: the largest separation whose binding energy survives the summed impulses of
    perturbers over the age of the population, from the local stellar number density, the mean perturber
    mass, the velocity dispersion, the Coulomb logarithm and the age (Bahcall et al. 1985; Jiang and
-   Tremaine 2010; the formula as Boss typed it needs checking against those papers). (b) The tidal limit:
+   Tremaine 2010; Core 4 found the formula as Boss typed it dimensionally inconsistent, so it is re-derived from those papers before it is coded). (b) The tidal limit:
    the Jacobi radius from the galactic potential at the cell, (G M / (4 Omega^2 - kappa^2))^(1/3) = (G M /
    (2 A (A - B)))^(1/3) for a pair of total mass M, which the generator evaluates from the same potential
    as the orbital update. A pair is kept only below the smaller of the two. **Check values, not inputs:** the
@@ -547,6 +549,13 @@ number before any of it is coded.**
    2 pc for 2 Msun, with Gaia wide-binary catalogues truncating near 0.1 to 0.25 pc. Where GEN.103 lands, this
    derived limit takes the place of the fixed 10,000 AU cap, and it shrinks in the bulge, clusters and halo
    because the density and dispersion there are higher.
+
+**Boss's decisions (2026-10-16, 6:12 to 6:15 PM EDT, by cards in the project chat).** (1) The close-binary trend is
+the pooled one, read at the star's own [Fe/H]. (2) The metallicity effect applies to every star mass, and the
+generator is checked that it behaves as expected: TEST.196 compares the generated close-companion share, by primary-mass
+bin and [Fe/H] bin, to the published ranges and flags any bin outside them. (3) Wide pairs have no metallicity
+dependence. (4) The encounter limit is a sharp cut at a_1/2, the smaller of the two limits above. (5) The fixed
+10,000 AU wide-pair cap is replaced by the derived limit. The last card, whether the metallicity effect fades above about 2 solar masses, was answered "all masses": there is no fade, and the check is the safeguard. A last card (2026-10-16, 7:19 PM EDT) chose the form: the factor F/F(0) is applied to the odds p/(1-p) of a close companion, not to the chance p, for every mass. It cannot pass 1, and a star already likely to have a companion rises less.
 
 ## 7. Compact-object primaries
 

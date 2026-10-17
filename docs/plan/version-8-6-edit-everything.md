@@ -21,7 +21,7 @@ The foundations every editor stands on: the change plan and its store, the unit 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | ADM.55 | Admin usability audit: walk every admin page and task, rank what is hard to use, and propose one layout | UX.115 | Queued admin chain (Boss, 12:52 AM EDT); first of the chain |
-| ADM.92 | Admin shell: one layout, one navigation and the shared table, form, confirmation and job-log components | ADM.55, ADM.50 | Split from ADM.56. |
+| ADM.92 | Admin shell: one layout, one navigation and the shared table, form, confirmation and job-log components | ADM.55 | Split from ADM.56. |
 
 ### Existing admin editors
 
