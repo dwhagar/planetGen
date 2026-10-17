@@ -2768,6 +2768,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (https://claude.ai/code/artifact/549f0ba8-ca6f-4d35-be2d-0c7591b93256).
   Prerequisites: GEN.33, GEN.146.
   Plan (2026-10-07): Moved to phase 2 under GEN.90.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): a class contributes an albedo range, an atmosphere
+  mixture from the gas table and composition-fraction priors through the
+  materials table (GEN.427, GEN.428), not a fixed text or a hand-tuned
+  greenhouse (the composition chain of the 9.0 headline; the planet
+  classes were built to land after it, so they wait for GEN.428 and
+  GEN.411).
+  Related: GEN.412, GEN.423, GEN.428.
 
 - [ ] **GEN.28 Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z)**
   Boss (2026-10-01 15:26Z): "add the other 6 classes filling in the
@@ -2862,7 +2870,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   10-16 Earth masses come out up to 17,600 km, past class S's
   11,468 km top, and get S as the nearest fit (PR #415); Boss to decide
   whether those sizes make sense or need their own range.
-  Prerequisites: GEN.28, GEN.27, GEN.91, GEN.92, GEN.146.
+  Prerequisites: GEN.28, GEN.27, GEN.91, GEN.92, GEN.146, TEST.209,
+  TEST.210.
   Plan (2026-10-07): Under GEN.90: the refactor is the sweep, so it
   stays with it in phase 2.
   Research (2026-10-09, atmospheres-retention-and-classes.md): known
@@ -2875,6 +2884,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Checked 2026-10-10 22:19Z for Boss's generation-first priority: this
   waits on GEN.27 and GEN.28 (the new planet classes) and sits under the
   GEN.90 refactor, so it cannot move up yet; it starts when they land.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): reduced to the judgement pass over its oddities list and
+  Boss's decisions (rogue sizes, a D in the hot zone), run on top of the
+  TEST.209 and TEST.210 harness; not a second sweep over the same
+  classes.
 
 - [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
   Boss (2026-10-01 22:22Z): "see if we can cut down the number of
@@ -3976,7 +3990,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   regenerated" guard.
   Needs the shoreline functions (child a of GEN.91) and the
   unchanged-until-regenerated guard of GEN.92 (2026-10-16 review).
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): a class contributes an albedo range, an atmosphere
+  mixture from the gas table and composition-fraction priors through the
+  materials table (GEN.427, GEN.428), not a fixed text or a hand-tuned
+  greenhouse (the composition chain of the 9.0 headline; the planet
+  classes were built to land after it, so they wait for GEN.428 and
+  GEN.411).
   Prerequisites: GEN.355, GEN.92.
+  Related: GEN.412, GEN.423, GEN.428.
   Design: [docs/design/atmospheres-retention-and-classes.md](design/atmospheres-retention-and-classes.md)
 
 - [ ] **GEN.146 Teff-dependent habitable zone from the Kopparapu table**
@@ -4108,6 +4130,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Whole-sphere train (docs/design/intergalactic-and-halo-contents.md,
   Boss 2026-10-15): step 7; also the source of seeded fictional
   satellites for other shapes.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): the cluster count is GEN.403's halo-mass law with
+  GEN.387's family factor; the S_N-by-morphology count above is kept as
+  history and is not built. What this item still owns: the two-Gaussian
+  [Fe/H] mixture, the metal-rich and metal-poor position profiles and
+  the seeded fictional satellites for other shapes.
+  Prerequisites: GEN.403, GEN.387.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
 - [ ] **GEN.179 Store each sector's generation directive and attempt record with the sector**
@@ -6747,7 +6776,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   flags, weights, ranges, atmosphere, moon eligibility, rogue flag,
   reference page and the class-contract and 1,000-system tests; no old
   row or test expects T.
-  Prerequisites: GEN.33, GEN.355, GEN.146. Related: GEN.28.
+  Prerequisites: GEN.33, GEN.355, GEN.146, GEN.428, GEN.411. Related:
+  GEN.28, GEN.412, GEN.423, GEN.428.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): a class contributes an albedo range, an atmosphere
+  mixture from the gas table and composition-fraction priors through the
+  materials table (GEN.427, GEN.428), not a fixed text or a hand-tuned
+  greenhouse (the composition chain of the 9.0 headline; the planet
+  classes were built to land after it, so they wait for GEN.428 and
+  GEN.411).
 
 - [ ] **GEN.351 Class U, icy world**
   Split from GEN.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -6755,7 +6792,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cold (Ganymede, Callisto, Triton, Pluto, Eris). Data only. Done: zone
   flags, weights, ranges, atmosphere, moon eligibility, rogue flag,
   reference page and the class tests.
-  Prerequisites: GEN.33. Related: GEN.28.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): a class contributes an albedo range, an atmosphere
+  mixture from the gas table and composition-fraction priors through the
+  materials table (GEN.427, GEN.428), not a fixed text or a hand-tuned
+  greenhouse (the composition chain of the 9.0 headline; the planet
+  classes were built to land after it, so they wait for GEN.428 and
+  GEN.411).
+  Prerequisites: GEN.33, GEN.428, GEN.411. Related: GEN.28, GEN.412,
+  GEN.423, GEN.428.
 
 - [ ] **GEN.352 Classes W and X, subsurface ocean bodies**
   Split from GEN.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -6766,7 +6811,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   depth rogue_surface.py already has. Done: both classes with zone
   flags, weights, ranges, atmosphere, moon eligibility (W moon-only),
   rogue flag (X), reference pages and the class tests.
-  Prerequisites: GEN.33. Related: GEN.28.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): a class contributes an albedo range, an atmosphere
+  mixture from the gas table and composition-fraction priors through the
+  materials table (GEN.427, GEN.428), not a fixed text or a hand-tuned
+  greenhouse (the composition chain of the 9.0 headline; the planet
+  classes were built to land after it, so they wait for GEN.428 and
+  GEN.411).
+  Prerequisites: GEN.33, GEN.428, GEN.411. Related: GEN.28, GEN.412,
+  GEN.423, GEN.428.
 
 - [ ] **GEN.353 Class Y, Titan-like world**
   Split from GEN.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -6775,7 +6828,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the shoreline ratio is under 0.7 and the vapour-pressure gate passes.
   Done: zone flags, weights, ranges, atmosphere, moon eligibility, rogue
   flag, reference page and the class tests.
-  Prerequisites: GEN.355, GEN.146. Related: GEN.28.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): a class contributes an albedo range, an atmosphere
+  mixture from the gas table and composition-fraction priors through the
+  materials table (GEN.427, GEN.428), not a fixed text or a hand-tuned
+  greenhouse (the composition chain of the 9.0 headline; the planet
+  classes were built to land after it, so they wait for GEN.428 and
+  GEN.411).
+  Prerequisites: GEN.355, GEN.146, GEN.428, GEN.411. Related: GEN.28,
+  GEN.412, GEN.423, GEN.428.
 
 - [ ] **GEN.354 Class Z, lifeless temperate world**
   Split from GEN.28 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -6786,7 +6847,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   partial pressures and the pre-main-sequence rule of GEN.92. Done: zone
   flags, weights, ranges, atmosphere, moon eligibility, rogue flag,
   reference page and the class tests, and life stage none.
-  Prerequisites: GEN.92, GEN.146. Related: GEN.28.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): a class contributes an albedo range, an atmosphere
+  mixture from the gas table and composition-fraction priors through the
+  materials table (GEN.427, GEN.428), not a fixed text or a hand-tuned
+  greenhouse (the composition chain of the 9.0 headline; the planet
+  classes were built to land after it, so they wait for GEN.428 and
+  GEN.411).
+  Prerequisites: GEN.92, GEN.146, GEN.428, GEN.411. Related: GEN.28,
+  GEN.412, GEN.423, GEN.428.
 
 - [ ] **GEN.355 Atmosphere retention module with its test table**
   Split from GEN.91 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -6800,7 +6869,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   energy-limited XUV. Done: unit tests on the 13-body table (Earth 0.17
   dense, Venus 0.43, Mars 1.77 tenuous, Mercury 53.7 none, Moon 81.6
   none, Titan 0.59) and the answer written in the design note.
-  Prerequisites: GEN.33. Related: GEN.91.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): its species list reads the gas table of GEN.410.
+  Prerequisites: GEN.33, GEN.410. Related: GEN.91.
 
 - [ ] **GEN.356 Class N re-scoped as the hot, lifeless world; its life chemical and hidden timeline removed**
   Split from GEN.91 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -6813,7 +6884,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   N is generated only above the runaway threshold with no life chemical
   or timeline, the class page text matches, and existing galaxies are
   unchanged until regenerated.
-  Prerequisites: GEN.355, GEN.92. Related: GEN.91.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): a class contributes an albedo range, an atmosphere
+  mixture from the gas table and composition-fraction priors through the
+  materials table (GEN.427, GEN.428), not a fixed text or a hand-tuned
+  greenhouse (the composition chain of the 9.0 headline; the planet
+  classes were built to land after it, so they wait for GEN.428 and
+  GEN.411).
+  Prerequisites: GEN.355, GEN.92, GEN.428, GEN.411. Related: GEN.91,
+  GEN.412, GEN.423, GEN.428.
 
 - [ ] **GEN.357 Generation knows the cloud it sits in: surrounding_cloud extended, containers found early, StarSystem.apply_cloud**
   Split from GEN.95 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -7273,10 +7352,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generation based on known galaxy types, as a chain of required items
   counted back from 9.4. A pure function of the galaxy seed,
   `draw_galaxy_type(seed)`, returns the family, the stellar mass and the
-  halo mass. The stellar mass follows a Schechter function and the
-  family the mass-dependent morphology fractions (with the survey fits
-  GEN.378 names); the halo mass comes from the stellar-to-halo relation
-  with its scatter as a seeded draw. The mass limits are settings whose
+  halo mass. It calls GEN.400's `draw_mass_chain` for the stellar mass
+  (the double Schechter function) and the halo mass (the stellar-to-halo
+  relation with its scatter), with no second draw of either, and adds
+  the family from the mass-dependent morphology fractions (with the
+  survey fits GEN.378 names) and the other families' mass ranges;
+  GEN.400's first-family range is the default the family limits widen.
+  The mass limits are settings whose
   defaults GEN.378 states, so that the galaxy's visible extent fits the
   262 kpc reach. It draws through `unit_seed(galaxy_seed, ...)` and the
   one random wrapper (planetgen/util/draw.py). Done: the same seed gives
@@ -7288,7 +7370,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Mass limits: the first family's range is 3e9 to 2e11 solar stellar
   mass (Boss, 2026-10-16, 9:40 PM EDT, reported by Core 1); GEN.378
   states the other families' ranges.
-  Prerequisites: GEN.378, GEN.379. Related: GEN.368, GEN.369, GEN.381.
+  Prerequisites: GEN.378, GEN.379, GEN.400, GEN.401. Related: GEN.368,
+  GEN.369, GEN.381.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.381 A Sérsic spheroid as a density component: index, effective radius, axis ratios and orientation, with a mass**
@@ -7314,8 +7397,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 - [ ] **GEN.382 The spiral family: scale length and height, bulge-to-total, bar, arm count and pitch angle from mass and Hubble stage**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
   generation based on known galaxy types, as a chain of required items
-  counted back from 9.4. The spiral family's laws, written as the
-  general form of GEN.368's shape row: disk scale length from the
+  counted back from 9.4. The spiral family's laws, the general form of
+  GEN.401's shape draw (GEN.401 is the same law for the first family;
+  this item adds the Hubble stage and the family argument on top of it,
+  with no second set of laws): disk scale length from the
   mass-size relation, scale height from thickness against length, the
   thick-disk share, bulge-to-total and Sérsic index from the Hubble
   stage (early to late, drawn with the mass), a bar by the fraction at
@@ -7332,7 +7417,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   can produce, never as defaults. No fixed content (Boss, 4:11 and 4:14
   PM EDT): no named galaxy, preset or hand-set value; reference galaxies
   only check the result.
-  Prerequisites: GEN.379, GEN.380. Related: GEN.134, GEN.369.
+  Prerequisites: GEN.379, GEN.380, GEN.401. Related: GEN.134, GEN.369.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.383 The elliptical family: Sérsic index and size from mass, intrinsic axis ratios, no disk, arms or bar, an old population**
@@ -7408,20 +7493,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   calculated or drawn law with its source named. No fixed content (Boss,
   4:11 and 4:14 PM EDT): no named galaxy, preset or hand-set value;
   reference galaxies only check the result.
-  Prerequisites: GEN.382, GEN.383, GEN.385, GEN.134, GEN.319. Related:
+  Prerequisites: GEN.382, GEN.383, GEN.385, GEN.134, GEN.319, GEN.405,
+  GEN.406. Related:
   GEN.385, GEN.320.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): it is the family scaling of GEN.405's metallicity law and
+  GEN.406's age ranges, with those as prerequisites; it keeps only the
+  per-family shares, the gas fraction and the young-share bounds. Core 4
+  owns GEN.405.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.387 Globular clusters, the nuclear cluster and the central black hole follow the family's spheroid and halo**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
   generation based on known galaxy types, as a chain of required items
   counted back from 9.4. The cluster count follows the family's specific
-  frequency (more clusters per unit stellar mass in ellipticals) while
+  frequency (more clusters per unit stellar mass in ellipticals) as a
+  factor over GEN.403's halo-mass law, not a second count law, while
   GEN.297's calibrated laws still give each cluster's mass, size and
   place; the nuclear cluster scales with the spheroid mass (GEN.280's
   pair); the central black hole's mass comes from the spheroid mass by
-  the M-bulge relation with its scatter as a seeded draw (the row
-  GEN.368 plans), and a family without a spheroid draws no hole or a
+  GEN.402's M-bulge relation with its scatter as a seeded draw (the
+  family's spheroid mass and occupation fraction are its inputs), and a
+  family without a spheroid draws no hole or a
   small one by the occupation fraction; the sphere-of-influence
   dispersion follows the spheroid's dispersion. The hole stays exactly
   on the origin (Boss, 7:27 PM EDT). Done: cluster count per stellar
@@ -7431,7 +7524,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stated fraction; same seed same galaxy. No fixed content (Boss, 4:11
   and 4:14 PM EDT): no named galaxy, preset or hand-set value; reference
   galaxies only check the result.
-  Prerequisites: GEN.382, GEN.383, GEN.297. Related: GEN.384,
+  Prerequisites: GEN.382, GEN.383, GEN.297, GEN.402, GEN.403. Related:
+  GEN.384,
   GEN.280.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
@@ -7795,6 +7889,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
   compatibility shim: the old constant goes in the same change. A change
   that alters the generator output follows the epoch rule.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): take the spheroid mass (the bulge mass for a spiral) as
+  an input from the start, so GEN.387 (9.4) adds the family's occupation
+  fraction and does not rewrite this item.
   Prerequisites: GEN.401. Related: GEN.280, GEN.387, GEN.368.
 
 - [ ] **GEN.403 The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157**
@@ -7823,6 +7921,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   through `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
   compatibility shim: the old constant goes in the same change. A change
   that alters the generator output follows the epoch rule.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): take a family specific frequency factor as an input from
+  the start (1 for the first family), so GEN.387 (9.4) multiplies this
+  law and does not define a second count. Boss approved this halo-mass
+  law in GEN.368's table (2026-10-16, 10:11 PM EDT); GEN.164's older
+  S_N-by-morphology count is superseded by it.
   Prerequisites: GEN.400. Related: GEN.297, GEN.366, GEN.387.
 
 - [ ] **GEN.404 The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position**
@@ -12906,7 +13010,12 @@ clears each one.
   passes on a generated galaxy and fails when any one rule is broken (a
   test that breaks each rule in turn).
   Prerequisites: GEN.411, GEN.412, GEN.413, GEN.414, GEN.415, DB.67,
-  DB.68, GEN.422, GEN.423, GEN.424. Related: GEN.415, DB.68.
+  DB.68, GEN.422, GEN.423, GEN.424, TEST.186. Related: GEN.415, DB.68.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): one shared fixture: a generated galaxy holding every
+  planet, moon and star class, built as a census check on TEST.186's
+  harness; TEST.209, TEST.210, TEST.211 and TEST.212 are four rule sets
+  over it, not four builds.
 
 - [ ] **TEST.210 A bulk composition sweep over every class: fractions, density, mass, radius and gravity agree**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -12929,7 +13038,12 @@ clears each one.
   materials. Done: it passes on a generated galaxy and fails when any
   one rule is broken (a test that breaks each rule in turn).
   Prerequisites: GEN.428, GEN.429, GEN.430, DB.69, GEN.441, GEN.442,
-  DB.70. Related: TEST.209.
+  DB.70, TEST.186. Related: TEST.209.
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): one shared fixture: a generated galaxy holding every
+  planet, moon and star class, built as a census check on TEST.186's
+  harness; TEST.209, TEST.210, TEST.211 and TEST.212 are four rule sets
+  over it, not four builds.
 
 - [ ] **TEST.211 A star composition sweep: every kind of star, remnant and brown dwarf, fractions, trends and determinism**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -12952,6 +13066,11 @@ clears each one.
   Owner: Core 4 (Boss tapped Core 4, 2026-10-17, 12:13 AM EDT, a card,
   for the star composition items together with the other composition
   design and table items).
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): one shared fixture: a generated galaxy holding every
+  planet, moon and star class, built as a census check on TEST.186's
+  harness; TEST.209, TEST.210, TEST.211 and TEST.212 are four rule sets
+  over it, not four builds.
   Prerequisites: GEN.440. Related: TEST.210, GEN.439.
 
 - [ ] **TEST.212 A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition**
@@ -12974,10 +13093,16 @@ clears each one.
   radiation gives; habitability reads the same numbers; and the text
   quotes them. Done: it passes on a generated galaxy and fails when any
   rule is broken (a test that breaks each in turn).
-  Prerequisites: GEN.443, GEN.444, GEN.445, GEN.446. Related: TEST.209,
+  Prerequisites: GEN.443, GEN.444, GEN.445, GEN.446, TEST.186. Related:
+  TEST.209,
   TEST.210, TEST.211.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
+  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
+  2026-10-17): one shared fixture: a generated galaxy holding every
+  planet, moon and star class, built as a census check on TEST.186's
+  harness; TEST.209, TEST.210, TEST.211 and TEST.212 are four rule sets
+  over it, not four builds.
 
 ## USR: User accounts
 

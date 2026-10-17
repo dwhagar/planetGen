@@ -56,6 +56,6 @@ The radiation sweep, the documents of the whole composition model and the headli
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| TEST.212 | A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition | GEN.443, GEN.444, GEN.445, GEN.446 | Boss 11:58 PM EDT; the radiation proof. |
+| TEST.212 | A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition | GEN.443, GEN.444, GEN.445, GEN.446, TEST.186 | Boss 11:58 PM EDT; the radiation proof. |
 | DOC.66 | Docs: the composition model of stars, bodies and atmospheres, the radiation it derives and the sources of every number | TEST.212, TEST.211, DOC.63, DOC.65 | Boss 11:58 PM EDT; docs only. |
 | GEN.421 | Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it | GEN.420, MAP.244, DOC.64, GEN.446, TEST.209, TEST.210, TEST.211, TEST.212, DOC.66 | Headline of 9.0 (Boss, 11:25 PM EDT). |
