@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1710] - 2026-10-17
+
+**Headline:** The nebula stars of GEN.320 are recorded as built, and Boss's drop of the massive-multiples prevalence cap (GEN.373) is recorded.
+
+### Changed
+
+- GEN.320 is retired (merged as #2014, generator epoch 11 pending); GEN.243, GEN.258 and GEN.321 no longer wait on it.
+- GEN.373 is closed as dropped (Boss, 10:07 AM EDT, his card answer as Core 4 reported it): the `prevalence` cap is not built, and `docs/design/placement-by-population.md` says so.
+
+TODO items resolved: GEN.320 (GEN.373 dropped). / Added: none
+
 ## [8.0.1709] - 2026-10-17
 
 **Headline:** Boss chose to split Core 3's 8.1 chain across two generation lanes; the decision is recorded on the headline item.
