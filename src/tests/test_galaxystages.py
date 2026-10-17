@@ -181,24 +181,38 @@ def test_a_malformed_sector_link_opens_the_galaxy_with_a_reason(query):
     assert out["problem"]
 
 
-def test_a_window_outside_the_galaxy_is_refused():
+def test_a_window_beyond_the_outline_holds_its_cells_and_one_past_the_reach_is_refused():
+    """MAP.243: the halo and the satellite galaxies lie beyond the outline; a window there holds every cell the grid
+    names. Past the grid's last shell nothing can be named, and the window is refused."""
     out = _run("""
-const far = S.windowStage({m: 243, shell: 20, band: 0, wedge: 0});
+const beyond = S.windowStage({m: 243, shell: 20, band: 0, wedge: 0});
 const high = S.windowStage({m: 3, shell: 1400, band: 0, wedge: 0});
-console.log(JSON.stringify([S.resolveStage(far, outline, edge).problem, S.resolveStage(high, outline, edge).problem]));
+const past = S.windowStage({m: 243, shell: 400, band: 0, wedge: 0});
+const r = [beyond, high].map(stage => S.resolveStage(stage, outline, edge));
+console.log(JSON.stringify({
+  problems: r.map(x => x.problem), blocks: r.map(x => x.view.blocks.length),
+  past: S.resolveStage(past, outline, edge).problem,
+  outside: P.sectorInOutline(4860, 0, 0, outline),
+}));
 """)
-    assert all(problem and "Nothing of the galaxy" in problem for problem in out)
+    assert out["problems"] == [None, None]
+    assert all(count > 0 for count in out["blocks"])
+    assert out["past"] and "Nothing of the galaxy" in out["past"]
+    assert out["outside"] is False  # the first window lies beyond the outline
 
 
-def test_a_sector_far_outside_the_galaxy_parses_but_has_no_stage():
+def test_a_sector_beyond_the_outline_has_a_stage_and_one_past_the_reach_has_none():
     out = _run("""
 const code = S.sectorDesignation(4000, 7, 3);
 const parsed = S.parseStageQuery("?sector=" + code);
 const s = parsed.sector;
-console.log(JSON.stringify({sector: s, stage: s ? S.sectorStage(s.shell, s.band, s.wedge, outline) : "none"}));
+console.log(JSON.stringify({sector: s, stage: s ? S.sectorStage(s.shell, s.band, s.wedge) : "none",
+  past: S.sectorStage(90000, 0, 0), inOutline: P.sectorInOutline(4000, 7, 3, outline)}));
 """)
     assert out["sector"] == {"shell": 4000, "band": 7, "wedge": 3}
-    assert out["stage"] is None
+    assert out["inOutline"] is False
+    assert out["stage"] == {"win": {"centre": {"m": 1, "shell": 4000, "band": 7, "wedge": 3}, "g": 9}}
+    assert out["past"] is None
 
 
 def test_sector_links_open_the_window_that_shows_the_sector():
@@ -208,7 +222,7 @@ def test_sector_links_open_the_window_that_shows_the_sector():
 const shell = 700, band = -20, wedge = Math.floor(P.wedgeCount(shell, band) / 3);
 const code = S.sectorDesignation(shell, band, wedge);
 const parsed = S.parseStageQuery("?sector=" + code);
-const stage = S.sectorStage(shell, band, wedge, outline);
+const stage = S.sectorStage(shell, band, wedge);
 const r = S.resolveStage(stage, outline, edge);
 console.log(JSON.stringify({shell, band, wedge, code, back: S.parseSectorDesignation(code), parsed, stage,
   sectors: r.view.blocks.every(b => b.m === 1),
@@ -229,7 +243,7 @@ console.log(JSON.stringify({shell, band, wedge, code, back: S.parseSectorDesigna
 
 def test_parent_stages_walk_back_to_the_galaxy():
     out = _run("""
-let stage = S.sectorStage(600, 4, 20, outline);
+let stage = S.sectorStage(600, 4, 20);
 const crumbs = S.crumbs(stage, outline, edge).length;
 let steps = 0;
 let repeated = false;
@@ -355,7 +369,7 @@ const holds = (stage, s) => {
 const nearStage = S.courseStage([home, near], outline, edge);
 const midStage = S.courseStage([home, mid], outline, edge);
 console.log(JSON.stringify({
-  same: S.sameStage(S.courseStage([home, home], outline, edge), S.sectorStage(home.shell, home.band, home.wedge, outline)),
+  same: S.sameStage(S.courseStage([home, home], outline, edge), S.sectorStage(home.shell, home.band, home.wedge)),
   nearHolds: holds(nearStage, home) && holds(nearStage, near),
   nearLevel: nearStage.win.centre.m,
   midHolds: holds(midStage, home) && holds(midStage, mid),

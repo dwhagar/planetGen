@@ -171,6 +171,35 @@ POINT_FIELD = [
 among the fixture stars."""
 
 
+HALO_CENTER_PC = (4000.0, 1500.0, 9500.0)
+"""Where the halo fixture's loose group of stars sits (MAP.243): a satellite-galaxy-like group far beyond the fixture
+galaxy's outline (the test checks that it is), above the plane."""
+
+
+def _halo_field():
+    """A loose group of stars and one black hole beyond the outline: what the halo and a satellite galaxy leave there
+    (`halo=True` on `FixtureApi`)."""
+    import random
+
+    rng = random.Random(243)
+    stars = []
+    for i in range(40):
+        lum = 10 ** rng.uniform(1.0, 4.0)
+        stars.append({
+            "id": 12000 + i, "name": None,
+            "x": HALO_CENTER_PC[0] + rng.uniform(-60.0, 60.0), "y": HALO_CENTER_PC[1] + rng.uniform(-60.0, 60.0),
+            "z": HALO_CENTER_PC[2] + rng.uniform(-60.0, 60.0),
+            "luminosity_sol": float("%.4g" % lum), "temperature_k": 4200 + 100 * i,
+            "radius_sol": float("%.3g" % (lum ** 0.35)), "star_type": "G",
+        })
+    black_hole = _point("black_hole", 9.0, id=62, name="Fixture Outlier", descriptor="stellar",
+                        x=HALO_CENTER_PC[0], y=HALO_CENTER_PC[1] + 25.0, z=HALO_CENTER_PC[2])
+    return stars, [black_hole]
+
+
+HALO_STARS, HALO_POINTS = _halo_field()
+
+
 def galaxy_shape():
     """The stored shape `GET /api/galaxy/shape` would return."""
     shape = shape_with_terms(build_galaxy_shape(2800.0, 350.0, 200.0, 1.0, 2, math.radians(15.0), 0.4))
@@ -301,8 +330,10 @@ def system_scene_payload(system_id):
 class FixtureApi:
     """The `apiclient`/`tilecache` reads the map pages make."""
 
-    def __init__(self):
+    def __init__(self, halo=False):
         self.shape = galaxy_shape()
+        self.stars = STAR_FIELD + (HALO_STARS if halo else [])
+        self.points = POINT_FIELD + (HALO_POINTS if halo else [])
 
     def get_galaxy_sectors(self, db):
         out = []
@@ -334,9 +365,9 @@ class FixtureApi:
         tiles = {}
         for key in tile_keys:
             lo, hi = tile_bounds_pc(*parse_tile_key(key))
-            stars = [star for star in STAR_FIELD
+            stars = [star for star in self.stars
                      if all(lo[i] <= star[axis] < hi[i] for i, axis in enumerate("xyz"))]
-            points = [point for point in POINT_FIELD
+            points = [point for point in self.points
                       if all(lo[i] <= point[axis] < hi[i] for i, axis in enumerate("xyz"))]
             # Like the real tile: every cloud whose sphere reaches into the box.
             clouds = []
@@ -428,10 +459,8 @@ class _SiteConfig(Config):
     RATELIMIT_PAGES = PAGE_LIMITS_OFF
 
 
-@pytest.fixture(scope="module")
-def map_site(tmp_path_factory):
-    """The base URL of a local server for the map pages, on fixture data."""
-    api = FixtureApi()
+def _serve(api, tmp_path_factory):
+    """Serves the map pages over `api` (a `FixtureApi`) on a local server; yields its base URL."""
     patch = pytest.MonkeyPatch()
     try:
         for name in _APICLIENT:
@@ -455,4 +484,16 @@ def map_site(tmp_path_factory):
         patch.undo()
 
 
-__all__ = ["map_site", "DrillBlock", "SECTOR_ID", "SYSTEMS", "PHENOMENA", "SECTORS", "UNCHARTED_CELL"]
+@pytest.fixture(scope="module")
+def map_site(tmp_path_factory):
+    """The base URL of a local server for the map pages, on fixture data."""
+    yield from _serve(FixtureApi(), tmp_path_factory)
+
+
+@pytest.fixture(scope="module")
+def halo_site(tmp_path_factory):
+    """`map_site` with a loose group of stars and a black hole beyond the galaxy's outline (MAP.243)."""
+    yield from _serve(FixtureApi(halo=True), tmp_path_factory)
+
+
+__all__ = ["map_site", "halo_site", "HALO_CENTER_PC", "HALO_STARS", "HALO_POINTS", "DrillBlock", "SECTOR_ID", "SYSTEMS", "PHENOMENA", "SECTORS", "UNCHARTED_CELL"]

@@ -952,8 +952,14 @@ export function galaxyOutline(edgePc, shape, galaxyRadius) {
   return { high: Int32Array.from(extents), outerShell: extents.length - 1, shapeless: false };
 }
 
+// MAP.243: the outline of every cell the grid can name: each shell out to the designation's last, with all its bands.
+// The galaxy's own outline holds what its density allows; a window of the map and a sector's address hold anything
+// the grid names, so the halo and the satellite galaxies beyond the disc can be reached.
+export var REACH_OUTLINE = { high: null, outerShell: DESIGNATION_MAX_SHELL, shapeless: true, reach: true };
+
 // The highest band sector shell `shell` reaches under `outline`, or -1.
 export function outlineHigh(outline, shell) {
+  if (outline.reach) return shell >= 0 && shell <= DESIGNATION_MAX_SHELL ? bandRange(shell)[1] : -1;
   return shell >= 0 && shell < outline.high.length ? outline.high[shell] : -1;
 }
 
