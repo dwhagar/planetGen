@@ -145,11 +145,13 @@ def test_a_satellites_cells_show_up_as_the_satellite_population_with_its_own_met
     shape = SHAPE._replace(components=component_field.ComponentField(found, EDGE, E1))
     cloud = _by_name(found)["Large Magellanic Cloud"]
     where = profile.profile_at(cloud.center_pc, shape, EDGE, E1)
-    assert where.region == "satellite" and where.populations["satellite"].share > 0.99
-    assert where.mix["satellite"] > 1.0 and where.mix["cluster"] == 0.0
+    parts = ("satellite_young", "satellite_intermediate", "satellite")
+    assert where.region == "satellite" and sum(where.populations[name].share for name in parts) > 0.99
+    assert sum(where.mix[name] for name in parts) > 1.0 and where.mix["cluster"] == 0.0
     assert sum(where.mix.values()) == pytest.approx(where.density, rel=1e-9)
-    ((weight, mean, sigma),) = where.populations["satellite"].fe_h
-    assert (mean, sigma) == (cloud.metallicity_fe_h, tuning.COMPONENT_FE_H_SIGMA["satellite"]) and weight > 0.0
+    for name in parts:      # the Cloud's young and old stars share the Cloud's metallicity
+        ((weight, mean, sigma),) = where.populations[name].fe_h
+        assert (mean, sigma) == (cloud.metallicity_fe_h, tuning.COMPONENT_FE_H_SIGMA["satellite"]) and weight > 0.0
     assert where.populations["satellite"].age_gy == tuning.STELLAR_POPULATION_AGE_RANGES_GY["satellite"]
     assert where.expected_systems == pytest.approx(E1 * where.density)
     # A cell at the Sun has no satellite and takes the generic peaks if one is asked for.
@@ -172,12 +174,14 @@ def test_the_field_sums_kinds_and_leaves_the_arrays_alone():
     field = component_field.ComponentField(found, EDGE, E1)
     cloud = _by_name(found)["Large Magellanic Cloud"].center_pc
     densities = field.densities(cloud)
-    assert set(densities) == set(component_field.KINDS_IN_THE_GATE)
-    assert densities["cluster"] == 0.0 and densities["satellite"] == field.relative_density(cloud)
+    assert set(densities) == set(component_field.POPULATIONS_IN_THE_GATE)
+    assert densities["cluster"] == 0.0
+    assert sum(densities[name] for name in component_field.SATELLITE_POPULATIONS) == pytest.approx(
+        field.relative_density(cloud))
     shape = SHAPE._replace(components=field)
     arrays = galaxyDensity.population_densities_array(np.array([cloud[0]]), np.array([cloud[1]]), np.array([cloud[2]]), shape)
-    assert arrays["satellite"][0] == 0.0 and arrays["cluster"][0] == 0.0     # the component pass is GEN.240
-    assert galaxyDensity.population_densities(cloud, shape)["satellite"] > 1.0
+    assert all(arrays[name][0] == 0.0 for name in component_field.POPULATIONS_IN_THE_GATE)     # the component pass is GEN.240
+    assert galaxyDensity.population_densities(cloud, shape)["satellite"] > 0.5
 
 
 def test_the_bound_and_the_outline_take_a_satellite_in():

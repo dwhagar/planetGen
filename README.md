@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 8.0.1710 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 8.0.1726 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 planetGen generates a galaxy: stars, star systems, planets, moons,
 asteroid belts and exotic phenomena, placed in a physically modeled
@@ -246,7 +246,7 @@ its options:
 | [docs/example-systems.md](docs/example-systems.md) | The example system files and what each one tests |
 | [docs/database-schema.md](docs/database-schema.md) | The database tables and migrations |
 | [docs/design/architecture.md](docs/design/architecture.md) | How the program fits together: every file and the main flows |
-| [docs/design/architecture.html](docs/design/architecture.html) | The same as an illustrated page to open in a browser: modules, flows, data and deployment (a 2026-10-07 snapshot from before the package move) |
+| [docs/design/architecture.html](docs/design/architecture.html) | The same as an illustrated page to open in a browser: modules, flows, data and deployment (a snapshot of 2026-10-17, rebuilt from the architecture.md above) |
 | [docs/design/](docs/design/) | Design notes: the galaxy model, coordinates, navigation, phenomena, and why each choice was made |
 | [docs/TODO.md](docs/TODO.md) | Open work, and the index of the phase plans |
 | [docs/plan/](docs/plan/) | The phase plans: order, dependencies and research notes for each phase of the open work |

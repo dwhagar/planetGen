@@ -382,6 +382,10 @@ CRUMBS_BLOCK = """<nav class="crumbs galaxy-crumbs" id="galaxymap3d-crumbs" aria
 """
 """The breadcrumb the stage view fills."""
 
+WHERE_BLOCK = """<div class="galaxy-where" id="galaxymap3d-where" aria-live="polite" hidden></div>
+"""
+"""MAP.227: which sector the camera is in, over the map's top-left corner (a line of its own would push the map down)."""
+
 ZOOM_BUTTONS = """  <button type="button" class="starmap-btn" data-action="zoom-out" aria-label="Zoom out">&minus;</button>
   <button type="button" class="starmap-btn" data-action="zoom-in" aria-label="Zoom in">+</button>
 """
@@ -661,8 +665,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
     )
 
     # MAP.131: what the blocks' fill shows, and the legend of the choice.
-    color_block = legend_block = ""
+    color_block = legend_block = where_block = ""
     if not pinned:
+        where_block = WHERE_BLOCK
         color_block = (
             '    <label class="galaxy-color-by">Color by <select id="galaxymap3d-color-by" data-color-by\n'
             '            title="What the blocks and sectors are colored by">\n'
@@ -722,10 +727,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <canvas id="galaxymap3d-canvas" class="starmap-canvas" tabindex="0" role="application"
      aria-label="Interactive Galaxy Map. Arrow keys move among the parts you can pick and Enter takes
      one; Escape or Backspace goes one step back out
-     and Home returns to the whole galaxy. Dragging, or Shift and the arrow keys, turns the view and the wheel zooms, both about the center marked in the middle of the map; Shift-click or right-click makes the point you click the new center, Alt and the arrow keys move it, and C centers the view on what is selected."></canvas>
+     and Home returns to the whole galaxy. Dragging, or Shift and the arrow keys, turns the view about the center marked in the middle of the map, and the wheel zooms toward what is under the pointer; Shift-click or right-click makes the point you click the new center, Alt and the arrow keys move it, and C centers the view on what is selected."></canvas>
 <div class="starmap-centre" id="galaxymap3d-centre" aria-hidden="true" title="The center the view turns and zooms about"></div>
 <div class="starmap-scale" id="galaxymap3d-scale" aria-live="polite"></div>
-{legend_block}
+{where_block}{legend_block}
 <div class="map-layer-legend" id="galaxymap3d-layer-legend" hidden></div>
 <div class="map-tooltip" id="galaxymap3d-tooltip" hidden></div>
 </div>

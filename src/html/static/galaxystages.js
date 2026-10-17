@@ -473,13 +473,27 @@ function addressProblem(sector) {
 
 // --- URLs ---------------------------------------------------------------------
 
-// A stage URL's query (section 8.1): "" for the galaxy, else "?win=" with the
-// centre's "m.shell.band.wedge" and "&g=" the cells across (when not the default).
-export function stageQuery(stage) {
-  if (!stage.win) return "";
-  const parts = ["win=" + formatDrillKey(stage.win.centre)];
-  if (stage.win.g !== DEFAULT_WINDOW) parts.push("g=" + stage.win.g);
-  return "?" + parts.join("&");
+// MAP.228: the camera in the address. `?cam=` holds the view's middle (x, y, z in parsecs), its distance (parsecs)
+// and its turn (a quaternion x, y, z, w), so a link opens exactly where it was copied and the stage is worked out
+// from it; there are no stage tokens. Ten significant digits keep a view of a few AU exact 100 kpc from the origin.
+export function cameraQuery(camera) {
+  const num = function (value) { return String(Number(value.toPrecision(10))); };
+  return "cam=" + camera.target.concat([camera.dist], camera.quat).map(num).join(",");
+}
+
+// The camera a `cam` value holds as {target, dist, quat}, or null when it is not eight finite numbers, a
+// distance above zero and a turn that is not null (the turn comes back as a unit quaternion).
+export function parseCamera(text) {
+  const parts = String(text == null ? "" : text).split(",");
+  if (parts.length !== 8 || parts.some(function (part) { return part.trim() === ""; })) return null;
+  const numbers = parts.map(Number);
+  if (!numbers.every(Number.isFinite)) return null;
+  const length = Math.hypot(numbers[4], numbers[5], numbers[6], numbers[7]);
+  if (!(numbers[3] > 0) || !(length > 0)) return null;
+  return {
+    target: numbers.slice(0, 3), dist: numbers[3],
+    quat: numbers.slice(4).map(function (value) { return value / length; }),
+  };
 }
 
 // The printed object ID of a system or body in a link (API.23: hex digits in up to three dashed groups,
@@ -487,42 +501,34 @@ export function stageQuery(stage) {
 const ID_PART = /^[0-9A-Fa-f]+(?:-[0-9A-Fa-f]+){0,2}$/;
 const OBJECT_REF = /^(?:star|planet|moon|belt|comet):[0-9A-Fa-f]+(?:-[0-9A-Fa-f]+){0,2}$/;
 
-// The stage a URL's query asks for: {stage, sector, open, problem}. `sector`
-// ({shell, band, wedge}) is set by ?sector=<designation>, whose stage the
-// caller works out (sectorStage needs the outline); `open` by &open=1 with
-// it, the sector opened in place (MAP.66) and not only selected, and `system`
-// (&system=<id>, with open, and &object=<ref> a body of it) the system of it
-// opened in place too (MAP.125). ?win= (and &g=) names a window. Anything
-// malformed, and the arcs, slabs and blocks of the links before MAP.150,
-// opens the galaxy; `problem` says why for the first. Whether a window holds
-// anything is the caller's to check against the outline (resolveStage).
+// What a URL's query asks for: {camera, sector, open, system, object, problem}. `camera` ({target, dist, quat},
+// MAP.228) is set by ?cam= and the caller works its stage out (it needs the outline and the view's size);
+// `sector` ({shell, band, wedge}) by ?sector=<designation>, whose stage the caller works out too (sectorStage
+// needs the outline); `open` by &open=1 with it, the sector opened in place (MAP.66) and not only selected, and
+// `system` (&system=<id>, with open, and &object=<ref> a body of it) the system of it opened in place too
+// (MAP.125). Anything malformed, and the windows, arcs, slabs and blocks of the links before MAP.228, opens the
+// galaxy; `problem` says why for a bad ?cam= or ?sector=.
 export function parseStageQuery(search) {
   const params = new URLSearchParams(search || "");
-  const galaxy = galaxyStage();
+  let camera = null;
+  let problem = null;
+  if (params.has("cam")) {
+    camera = parseCamera(params.get("cam"));
+    if (!camera) problem = "There is no camera " + params.get("cam") + ".";
+  }
   const designation = params.get("sector");
   if (designation != null) {
     const sector = parseSectorDesignation(designation);
-    if (!sector) return { stage: galaxy, sector: null, problem: "There is no sector " + designation + "." };
+    if (!sector) return { camera: null, sector: null, problem: "There is no sector " + designation + "." };
     // The ID stays text, in upper case as objectref.js writes it.
     const system = ID_PART.test(params.get("system") || "") ? params.get("system").toUpperCase() : null;
     const wantedObject = params.get("object") || "";
     const object = OBJECT_REF.test(wantedObject)
       ? wantedObject.slice(0, wantedObject.indexOf(":") + 1) + wantedObject.slice(wantedObject.indexOf(":") + 1).toUpperCase()
       : null;
-    // The window the visitor was in when the sector was picked, if the link keeps it (`?win=...&sector=...`).
-    const asked = params.has("win") ? parseCellKey(params.get("win")) : null;
-    const g = params.has("g") ? Number(params.get("g")) : DEFAULT_WINDOW;
-    const stage = asked && WINDOW_WIDTHS.indexOf(g) >= 0 ? windowStage(asked, g) : galaxy;
-    return { stage: stage, sector: sector, open: params.get("open") === "1", system: system, object: object, problem: null };
+    return { camera: camera, sector: sector, open: params.get("open") === "1", system: system, object: object, problem: problem };
   }
-  if (params.has("win")) {
-    const centre = parseCellKey(params.get("win"));
-    if (!centre) return { stage: galaxy, sector: null, problem: "There is no cell " + params.get("win") + "." };
-    const g = params.has("g") ? Number(params.get("g")) : DEFAULT_WINDOW;
-    if (WINDOW_WIDTHS.indexOf(g) < 0) return { stage: galaxy, sector: null, problem: "A window cannot be " + params.get("g") + " cells across." };
-    return { stage: windowStage(centre, g), sector: null, problem: null };
-  }
-  return { stage: galaxy, sector: null, problem: null };
+  return { camera: camera, sector: null, problem: problem };
 }
 
 // --- Labels -------------------------------------------------------------------
@@ -551,6 +557,25 @@ export function crumbs(stage, outline, edgePc) {
     const s = r.stage;
     return { stage: s, label: s.win ? windowLabel(s.win) : "Galaxy", last: n === steps.length - 1 };
   });
+}
+
+// MAP.227: the stage the camera is in. A stage is a window round one cell; the camera's middle may have moved to
+// another cell of the same size, and the trail of containers is that cell's, worked out from the position (the
+// cells are closed form) and not from the stage the view was opened at. The stage itself when the middle is still
+// in its cell, or the cell it moved to lies outside the galaxy.
+export function stageAtPoint(stage, point, outline, edgePc) {
+  if (!stage.win) return stage;
+  const centre = stage.win.centre;
+  const cell = cellAt(centre.m, point[0], point[1], point[2], edgePc);
+  if (sameBlock(cell, centre)) return stage;
+  const next = windowStage(cell, stage.win.g);
+  return resolveStage(next, outline, edgePc).problem ? stage : next;
+}
+
+// The sector holding `point` as {shell, band, wedge}, or null when the galaxy has none there (outside its outline).
+export function sectorAtPoint(point, outline, edgePc) {
+  const at = sectorAddressAt(point[0], point[1], point[2], edgePc);
+  return sectorInOutline(at.shell, at.band, at.wedge, outline) ? at : null;
 }
 
 // Degrees counterclockwise from +X, as the longitude labels read.

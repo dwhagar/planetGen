@@ -71,11 +71,11 @@ function open(href, options) {
   const viewport = h("div", { class: "starmap-viewport" }, [canvasEl, tooltip]);
   viewport.rect = canvasEl.rect;
   const els = {
-    crumbs: h("nav"), tooltip: tooltip, notice: h("p", { hidden: true }),
+    crumbs: h("nav"), where: h("p", { hidden: true }), tooltip: tooltip, notice: h("p", { hidden: true }),
     address: h("form", {}, [h("input", { type: "search" })]), matches: h("div", { hidden: true }),
     controls: h("div", { id: "galaxymap3d-controls" }, controlButtons()),
   };
-  document.body.append(h("div", { "data-bookmark-db": "planetgen" }), viewport, els.crumbs, els.notice,
+  document.body.append(h("div", { "data-bookmark-db": "planetgen" }), viewport, els.crumbs, els.where, els.notice,
     els.address, els.matches, els.controls);
   const calls = { cameras: [], fetches: [], blockInfo: [], placed: [], cells: [], hints: [], sizes: [], clips: [], locates: [], scenes: [], infos: [], hidden: [], pages: [], uncharted: [] };
   const server = options.server || (() => ({ children: [], sectors: [] }));
@@ -197,6 +197,14 @@ function wire(m, extra) {
   }, extra || {});
   G3.wireMapControls(m.els.controls, G3.mapControlHandlers(ctx));
   return ctx;
+}
+
+// A query without its ?cam= (the camera rides the address once the view is still, MAP.228).
+function withoutCam(search) {
+  const params = new URLSearchParams(search);
+  params.delete("cam");
+  const text = params.toString().replace(/%2C/gi, ",");
+  return text ? "?" + text : "";
 }
 
 function crumbLabels(m) {
@@ -380,7 +388,8 @@ test("each step down by keyboard pushes a history entry and a breadcrumb, a wind
   for (let n = 0; n < 12; n++) {
     if (!(await drillOnce(m))) break;
     seen.push(m.view.stage());
-    assert.equal(m.win.location.search, S.stageQuery(m.view.stage()), "the URL names the stage");
+    assert.match(m.win.location.search, /^\?cam=[-\d.e+,]+$/, "the URL holds the camera, not a stage");
+    assert.ok(S.parseCamera(new URLSearchParams(m.win.location.search).get("cam")), "a camera that reads back");
     assert.deepEqual(crumbLabels(m), expectedCrumbs(m));
     assert.equal(m.win.history.length, seen.length + 1);
     assert.equal(button(m, "back").disabled, false);
@@ -395,6 +404,7 @@ test("Back, Forward, Up and Reset buttons move through the stages", async () => 
   wire(m);
   await drillOnce(m);
   const first = m.view.stage();
+  const firstSearch = m.win.location.search;
   await drillOnce(m);
   const second = m.view.stage();
   assert.notDeepEqual(first, second);
@@ -402,7 +412,12 @@ test("Back, Forward, Up and Reset buttons move through the stages", async () => 
   button(m, "back").click();
   await arrive(m);
   assert.deepEqual(m.view.stage(), first);
-  assert.equal(m.win.location.search, S.stageQuery(first));
+  const sameCamera = (a, b) => {
+    const x = S.parseCamera(new URLSearchParams(a).get("cam"));
+    const y = S.parseCamera(new URLSearchParams(b).get("cam"));
+    return [...x.target, x.dist, ...x.quat].every((value, k) => Math.abs(value - [...y.target, y.dist, ...y.quat][k]) <= 1e-8 * Math.max(1, Math.abs(value)));
+  };
+  assert.ok(sameCamera(m.win.location.search, firstSearch), "back to the entry's own address");
   assert.equal(button(m, "forward").disabled, false);
 
   button(m, "forward").click();
@@ -506,17 +521,21 @@ test("Up from a window is the window one size up, centred on the block holding i
 test("a stage URL opens that stage; a bad one opens the galaxy and says why", async () => {
   const deep = await start();
   for (let n = 0; n < 6; n++) await drillOnce(deep);
-  const query = S.stageQuery(deep.view.stage());
+  const query = deep.win.location.search;
 
   const m = await start("http://localhost/galaxy" + query);
   assert.deepEqual(m.view.stage(), deep.view.stage());
   // The deep map has a sector selected in its window of sectors too.
   assert.deepEqual(crumbLabels(m), crumbLabels(deep).slice(0, -1));
 
-  const bad = await start("http://localhost/galaxy?win=nonsense");
+  const bad = await start("http://localhost/galaxy?cam=nonsense");
   assert.deepEqual(bad.view.stage(), { win: null });
   assert.equal(bad.els.notice.hidden, false);
-  assert.match(bad.els.notice.textContent, /There is no cell nonsense/);
+  assert.match(bad.els.notice.textContent, /There is no camera nonsense/);
+
+  // The window tokens of before MAP.228 are not read.
+  const old = await start("http://localhost/galaxy?win=81.1.0.1&g=9");
+  assert.deepEqual(old.view.stage(), { win: null });
 });
 
 test("?sector= opens the stage around that sector with it selected", async () => {
@@ -539,7 +558,7 @@ test("the address bar flies to a sector, or says what is wrong", async () => {
   m.els.address.dispatchEvent(submit);
   assert.ok(submit.defaultPrevented, "the form isn't sent");
   await arrive(m);
-  assert.equal(m.win.location.search, "?sector=" + S.sectorDesignation(400, 0, 1000));
+  assert.match(m.win.location.search, new RegExp("^\\?sector=" + S.sectorDesignation(400, 0, 1000) + "(&cam=[-\\d.e+,]+)?$"));
   assert.equal(m.els.notice.hidden, true);
 
   input.value = "0/0/99";
@@ -576,7 +595,7 @@ test("the address bar looks names up: one match flies there, several are listed"
 
   await ask("Bead");
   assert.deepEqual(m.calls.locates, ["Bead"]);
-  assert.equal(m.win.location.search, "?sector=" + S.sectorDesignation(400, 0, 1000));
+  assert.equal(withoutCam(m.win.location.search), "?sector=" + S.sectorDesignation(400, 0, 1000));
 
   await ask("Nowhere");
   assert.equal(m.els.notice.textContent, "Nothing is named like Nowhere.");
@@ -592,7 +611,7 @@ test("the address bar looks names up: one match flies there, several are listed"
   choices[1].click();
   await arrive(m);
   assert.equal(m.els.matches.hidden, true);
-  assert.equal(m.win.location.search, "?sector=" + S.sectorDesignation(401, 1, 10));
+  assert.equal(withoutCam(m.win.location.search), "?sector=" + S.sectorDesignation(401, 1, 10));
 });
 
 // --- The free view -------------------------------------------------------------
@@ -633,16 +652,27 @@ test("the wheel past the end of a window's zoom goes on into the block under the
   assert.equal(m.view.stage().win.centre.m, 27);
 });
 
-test("the wheel zooms about the view's one center, wherever the pointer is (MAP.199)", async () => {
+test("the wheel zooms toward the point under the pointer, which stays under it (MAP.225)", async () => {
   const m = await freeStage();
+  const screenOf = (point) => {
+    const ndc = new THREE.Vector3(point[0], point[1], point[2]).project(m.camera);
+    return [ndc.x, ndc.y];
+  };
   for (const [x, y] of [[560, 210], [260, 380]]) {
     const before = lastCamera(m);
+    const anchor = m.view.anchorUnder(x, y);
+    assert.ok(anchor, "something is under the pointer");
+    const where = screenOf(anchor);
     m.view.onWheel(new FakeEvent("wheel", { deltaY: -120, clientX: x, clientY: y }));
     const after = lastCamera(m);
     assert.ok(after.dist < before.dist, "closer");
-    assert.deepEqual(after.target, before.target, "the center stays put");
+    assert.notDeepEqual(after.target, before.target, "the center moved toward the pointer");
+    const now = screenOf(anchor);
+    assert.ok(Math.abs(now[0] - where[0]) < 1e-6 && Math.abs(now[1] - where[1]) < 1e-6, "the point stays where it is on the screen");
     m.view.onWheel(new FakeEvent("wheel", { deltaY: 120, clientX: x, clientY: y }));
-    assert.deepEqual(lastCamera(m).target, before.target, "and zooming out");
+    const back = lastCamera(m);
+    const off = Math.hypot(back.target[0] - before.target[0], back.target[1] - before.target[1], back.target[2] - before.target[2]);
+    assert.ok(off < 1e-6 * before.dist, "zooming out about it brings the center back: " + off);
   }
 });
 
@@ -756,7 +786,7 @@ test("clicking a block on the map zooms into a window around its middle", async 
   assert.equal(parent.shell, Number(block[1].replace(/,/g, "")), "centred on the block clicked");
   assert.equal(parent.band, Number(block[2]));
   assert.equal(parent.wedge, Number(block[3].replace(/,/g, "")));
-  assert.match(m.win.location.search, /^\?win=81\.\d+\.\d+\.-?\d+$/, "the URL names the window by its centre");
+  assert.match(m.win.location.search, /^\?cam=[-\d.e+,]+$/, "the URL holds the camera");
 });
 
 test("a block the near field has faded out can't be picked (MAP.149)", async () => {
@@ -851,10 +881,7 @@ test("a generated sector opens in place; one uncharted is selected", async () =>
   assert.deepEqual(m.calls.scenes, [42]);
   assert.equal(S.parseStageQuery(m.win.location.search).open, true, "the URL says the sector is open: " + m.win.location.search);
   assert.deepEqual(S.parseStageQuery(m.win.location.search).sector, sector);
-  // The window it was picked in rides the link, so a fresh load shows the same steps.
-  const url = S.parseStageQuery(m.win.location.search);
-  assert.deepEqual(url.stage, m.view.stage());
-  assert.match(m.win.location.search, /^\?win=1\.[^&]+&sector=\w+&open=1$/);
+  assert.match(m.win.location.search, /^\?sector=\w+&open=1$/, "the sector link has no window token");
   assert.equal(m.calls.hidden.length, 1, "the galaxy's own stars leave the cell");
   assert.ok(m.calls.hidden[0].r1 > 0);
   assert.ok(m.view.stage(), "still on the stage that holds it");
@@ -996,7 +1023,7 @@ test("on the Galaxy Map a hidden kind rides every stage URL and stays hidden aft
   assert.equal(m.view.kindHidden("star"), true);
   m.view.up();
   await arrive(m);
-  assert.match(m.win.location.search, /^\?sector=\w+&hide=star$/, m.win.location.search);
+  assert.match(withoutCam(m.win.location.search), /^\?sector=\w+&hide=star$/, m.win.location.search);
   assert.equal(m.view.kindHidden("star"), true, "a kind stays hidden after Up");
 });
 
@@ -1016,4 +1043,65 @@ test("a stage URL names the system opened in place (MAP.125)", () => {
   assert.equal(S.parseStageQuery("?sector=" + CODE + "&open=1").system, null);
   assert.equal(S.parseStageQuery("?sector=" + CODE + "&open=1&system=702&object=planet:12").object, "planet:12");
   assert.equal(S.parseStageQuery("?sector=" + CODE + "&open=1&system=702&object=nope").object, null);
+});
+
+test("the breadcrumb and the header name the cell the camera's middle is in (MAP.227)", async () => {
+  const d = { shell: 400, band: 0, wedge: 1000 };
+  const m = await start("http://localhost/galaxy?sector=" + S.sectorDesignation(d.shell, d.band, d.wedge));
+  const outline = S.galaxyOutline(F.edgePc, F.shape, F.galaxyRadius);
+  const stage = m.view.stage();
+  const here = P.sectorPositionPc(d.shell, d.band, d.wedge, F.edgePc);
+  assert.equal(S.sectorAtPoint(here, outline, F.edgePc).wedge, d.wedge);
+  assert.equal(S.stageAtPoint(stage, here, outline, F.edgePc), stage, "in its own cell the stage stands");
+  assert.equal(m.els.where.textContent, "In Sector " + S.blockLabel(d));
+  assert.equal(m.els.where.hidden, false);
+
+  const next = { shell: d.shell, band: d.band, wedge: d.wedge + 1 };
+  const there = P.sectorPositionPc(next.shell, next.band, next.wedge, F.edgePc);
+  const moved = S.stageAtPoint(stage, there, outline, F.edgePc);
+  assert.deepEqual(moved.win.centre, { m: 1, ...next }, "the cell the middle moved to");
+  m.host.canvasEl.galaxyCentreOn(there[0], there[1], there[2]);
+  await arrive(m);
+  assert.equal(m.els.where.textContent, "In Sector " + S.blockLabel(next));
+  const crumbs = crumbLabels(m);
+  assert.equal(crumbs[crumbs.length - 1], "Sector " + S.blockLabel(next) + " (1)", "the trail ends at the cell it is in");
+  assert.deepEqual(m.view.stage(), stage, "the data stage is the one it was opened at");
+});
+
+test("the address holds the camera: it is written in place once the view is still, and opening it puts the camera there (MAP.228)", async () => {
+  const m = await freeStage();
+  const entries = m.win.history.length;
+  m.view.onWheel(new FakeEvent("wheel", { deltaY: -200, clientX: 560, clientY: 210 }));
+  m.view.onPointerDown(new FakeEvent("pointerdown", { clientX: 400, clientY: 300, pointerId: 1, button: 0, pointerType: "mouse" }));
+  m.view.onPointerMove(new FakeEvent("pointermove", { clientX: 440, clientY: 320, pointerId: 1, pointerType: "mouse" }));
+  m.view.onPointerUp(new FakeEvent("pointerup", { clientX: 440, clientY: 320, pointerId: 1, pointerType: "mouse" }));
+  const moved = lastCamera(m);
+  await arrive(m);
+  assert.equal(m.win.history.length, entries, "the camera replaces the entry, it adds none");
+  const camera = S.parseCamera(new URLSearchParams(m.win.location.search).get("cam"));
+  assert.ok(camera, m.win.location.search);
+  const close = (a, b, scale) => Math.abs(a - b) <= 1e-8 * scale;
+  assert.ok(close(camera.dist, moved.dist, moved.dist) && camera.target.every((v, k) => close(v, moved.target[k], moved.dist)));
+  assert.ok(camera.quat.every((v, k) => close(v, moved.quaternion[k], 1)), "the turn is in the address too");
+
+  const again = await start("http://localhost/galaxy" + m.win.location.search);
+  assert.equal(again.view.stage().win.centre.m, m.view.stage().win.centre.m, "the stage is the one the camera looks at");
+  const there = lastCamera(again);
+  assert.ok(close(there.dist, moved.dist, moved.dist), "the same distance: " + there.dist + " vs " + moved.dist);
+  assert.ok(there.target.every((v, k) => close(v, moved.target[k], moved.dist)), "the same middle");
+  assert.ok(there.quaternion.every((v, k) => close(v, moved.quaternion[k], 1)), "the same turn");
+});
+
+test("the stage a camera opens is the finest window that holds its view, and the galaxy for a view of the whole (MAP.228)", async () => {
+  const m = await freeStage();
+  const outline = S.galaxyOutline(F.edgePc, F.shape, F.galaxyRadius);
+  assert.ok(outline);
+  const whole = await start();
+  const galaxy = lastCamera(whole);
+  const open = await start("http://localhost/galaxy?cam=" + [...galaxy.target, galaxy.dist, ...galaxy.quaternion].join(","));
+  assert.deepEqual(open.view.stage(), { win: null }, "a view of the whole galaxy opens it");
+
+  const close = lastCamera(m);
+  const nearer = await start("http://localhost/galaxy?cam=" + [...close.target, close.dist / 3, ...close.quaternion].join(","));
+  assert.ok(nearer.view.stage().win.centre.m <= m.view.stage().win.centre.m, "a nearer view opens the same window or a finer one");
 });

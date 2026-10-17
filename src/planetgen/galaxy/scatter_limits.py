@@ -34,7 +34,7 @@ import numpy as np
 
 from planetgen import tuning
 from planetgen.galaxy import density as galaxyDensity
-from planetgen.galaxy.component_field import KINDS_IN_THE_GATE
+from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
 from planetgen.galaxy.spherical import band_center_pc, wedge_count
 
 CORE, BASELINE, HALO = 0, 1, 2
@@ -108,7 +108,7 @@ def _tiers_of_bands(shape, shell_index, bands, edge_pc):
             zs.append(z)
     found = galaxyDensity.population_densities_array(np.array(xs), np.array(ys), np.array(zs), shape)
     kept = {name: np.maximum(array, 0.0) for name, array in found.items()}
-    for kind in KINDS_IN_THE_GATE:
+    for kind in POPULATIONS_IN_THE_GATE:
         kept[kind] = np.zeros_like(kept[kind])
     offsets = np.concatenate(([0], np.cumsum(counts)[:-1]))
 
@@ -121,7 +121,7 @@ def _tiers_of_bands(shape, shell_index, bands, edge_pc):
 def _dominant_tiers(summed):
     """The tier index of each place from its populations' densities (`{population: array}`, a gate kind's counted
     as none and a negative term as none): the nuclear terms' share, then the halo's, against `TIER_DOMINANCE_SHARE`."""
-    total = sum(array for name, array in summed.items() if name not in KINDS_IN_THE_GATE)
+    total = sum(array for name, array in summed.items() if name not in POPULATIONS_IN_THE_GATE)
     nuclear = sum(summed[name] for name in _NUCLEAR)
     halo = summed["halo"]
     wanted = tuning.TIER_DOMINANCE_SHARE * total
@@ -150,7 +150,7 @@ def probe_densities(shape, plane, z, azimuths=REACH_AZIMUTH_BINS):
         np.repeat(z, azimuths), shape)
     means = {}
     for name, array in found.items():
-        array = np.zeros_like(array) if name in KINDS_IN_THE_GATE else np.maximum(array, 0.0)
+        array = np.zeros_like(array) if name in POPULATIONS_IN_THE_GATE else np.maximum(array, 0.0)
         means[name] = array.reshape(len(plane), azimuths).mean(axis=1)
     return means, _dominant_tiers(means)
 
@@ -268,7 +268,7 @@ def tier_of_densities(densities):
     total = nuclear = halo = 0.0
     for found in densities:
         for name, value in found.items():
-            if name in KINDS_IN_THE_GATE:
+            if name in POPULATIONS_IN_THE_GATE:
                 continue
             value = max(value, 0.0)
             total += value

@@ -4476,3 +4476,15 @@ p.hint a {
   margin: 0 0 1rem;
   color: var(--text-muted, inherit);
 }
+
+/* MAP.227: the sector the camera is in, over the map's top-left corner. */
+.galaxy-where {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+  font-size: 0.85rem;
+  pointer-events: none;
+}

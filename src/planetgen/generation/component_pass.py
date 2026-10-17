@@ -27,6 +27,7 @@ import numpy as np
 from planetgen import tuning
 from planetgen.generation import bright_stars, phenomenon_reach, phenomenon_scatter
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS
+from planetgen.galaxy import component_field
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.physics import component_profiles
 from planetgen.util import draw
@@ -71,7 +72,8 @@ def _address(point, edge_pc):
 
 def component_spots(component, edge_pc, by_tier, tier_of, rng, skip_addresses):
     """
-    The stars of one component the pass keeps: Poisson in its systems times the largest share of its population any
+    The stars of one component the pass keeps, population by population (a satellite's three, `galaxy.satellite_history`):
+    Poisson in its systems times the population's share of its stars times the largest share of that population any
     tier keeps, each kept with probability its tier's share over that.
 
     Args:
@@ -79,22 +81,25 @@ def component_spots(component, edge_pc, by_tier, tier_of, rng, skip_addresses):
         tier_of (callable or None): `tier_of(shell, band)` the tier of a band, `None` for one tier.
 
     Yields:
-        tuple: `(shell, band, wedge, point, population, tier)`.
+        tuple: `(shell, band, wedge, point, population, tier)`; `population` is the cluster's or one of the satellite's
+            three.
     """
-    population = component.kind
-    shares = [item[population] for item in by_tier]
-    best = max(shares)
-    if best <= 0.0:
-        return
-    points, (keep, _spare) = _candidates(component, systems_of(component) * best, rng)
-    for index in range(points.shape[1]):
-        point = tuple(int(value) for value in points[:, index])
-        address = _address(point, edge_pc)
-        if address in skip_addresses:
+    for population, share_of_stars in component_field.population_shares(component).items():
+        if share_of_stars <= 0.0:
             continue
-        tier = 0 if tier_of is None else tier_of(address[0], address[1])
-        if keep[index] * best < shares[tier]:
-            yield (*address, point, population, tier)
+        shares = [item[population] for item in by_tier]
+        best = max(shares)
+        if best <= 0.0:
+            continue
+        points, (keep, _spare) = _candidates(component, systems_of(component) * share_of_stars * best, rng)
+        for index in range(points.shape[1]):
+            point = tuple(int(value) for value in points[:, index])
+            address = _address(point, edge_pc)
+            if address in skip_addresses:
+                continue
+            tier = 0 if tier_of is None else tier_of(address[0], address[1])
+            if keep[index] * best < shares[tier]:
+                yield (*address, point, population, tier)
 
 
 def scatter_stars(components, edge_pc, seed, fractions, pass_bands, tiered=None, skip_addresses=None):
@@ -121,8 +126,9 @@ def expected_stars(components, fractions, tiered=None):
     """About how many stars `scatter_stars` places, the progress bar's weight: each component's systems times the
     largest share of its population any tier keeps (an upper bound, the tiers differing by place)."""
     by_tier = fractions if tiered is not None else [fractions]
-    return sum(systems_of(component) * max(item[component.kind] for item in by_tier)
-               for component in components if component.kind in COMPONENT_KINDS)
+    return sum(systems_of(component) * share * max(item[population] for item in by_tier)
+               for component in components if component.kind in COMPONENT_KINDS
+               for population, share in component_field.population_shares(component).items())
 
 
 def phenomenon_rates(min_mass_solar):

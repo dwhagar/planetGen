@@ -21,11 +21,37 @@ import math
 import numpy as np
 
 from planetgen import tuning
+from planetgen.galaxy import satellite_history
 from planetgen.physics import component_profiles
 
 
 KINDS_IN_THE_GATE = ("cluster", "satellite")
 """tuple: The component kinds that put systems in a cell (a stream, later, would too); each is a population of the mix."""
+
+SATELLITE_POPULATIONS = ("satellite_young", "satellite_intermediate", "satellite")
+"""tuple: The populations of a satellite's stars (GEN.526): the history's last 0.1 Gy, its last 3 Gy before that, and the
+rest."""
+
+POPULATIONS_IN_THE_GATE = ("cluster", *SATELLITE_POPULATIONS)
+"""tuple: The populations of the mix that components put in a cell, which the scatters leave to the component pass and
+the sector's own draw counts as none (a satellite's three are one kind, `satellite`)."""
+
+KIND_OF_POPULATION = {"cluster": "cluster", "satellite": "satellite", "satellite_young": "satellite",
+                      "satellite_intermediate": "satellite"}
+"""dict: Population -> the component kind whose stars it holds."""
+
+
+def population_shares(component):
+    """
+    The shares of a component's stars by population, `{population: share}` adding up to 1: a cluster's are all `cluster`;
+    a satellite's are its history's (`galaxy.satellite_history`), young, intermediate and the rest.
+    """
+    if component.kind != "satellite":
+        return {component.kind: 1.0}
+    found = satellite_history.history(component.mass_solar, component.half_mass_radius_pc, component.age_gy)
+    return {"satellite_young": found.young_share, "satellite_intermediate": found.intermediate_share,
+            "satellite": found.old_share}
+
 
 
 class ComponentField:
@@ -39,8 +65,8 @@ class ComponentField:
         expected_at_density_1 (float): The systems a cell holds at `relative_density` 1.
     """
 
-    __slots__ = ("edge_pc", "expected_at_density_1", "names", "kinds", "fe_h", "_centers", "_reach", "_scale_pc",
-                 "_central", "_tables", "_index")
+    __slots__ = ("edge_pc", "expected_at_density_1", "names", "kinds", "fe_h", "shares", "_centers", "_reach",
+                 "_scale_pc", "_central", "_tables", "_index")
 
     def __init__(self, found, edge_pc, expected_at_density_1):
         held = [c for c in found if c.kind in KINDS_IN_THE_GATE]
@@ -49,6 +75,7 @@ class ComponentField:
         self.names = tuple(c.name for c in held)
         self.kinds = tuple(c.kind for c in held)
         self.fe_h = tuple(c.metallicity_fe_h for c in held)
+        self.shares = tuple(population_shares(c) for c in held)
         self._centers = np.array([c.center_pc for c in held], dtype=float).reshape(-1, 3)
         self._reach = np.array([c.tidal_radius_pc for c in held], dtype=float)
         self._scale_pc = np.array([component_profiles.scale_radius_pc(c) for c in held], dtype=float)
@@ -123,14 +150,16 @@ class ComponentField:
 
     def densities(self, position_pc):
         """
-        The components' part of the density at `position_pc` by kind, in the units of `relative_density`: the systems
-        each kind puts in the cell's cube over the systems a cell holds at density 1. Every kind in
-        `KINDS_IN_THE_GATE` is there (`0.0` away from its components).
+        The components' part of the density at `position_pc` by population, in the units of `relative_density`: the
+        systems each population puts in the cell's cube over the systems a cell holds at density 1. A cluster's stars are
+        `cluster`; a satellite's are split by its history into `satellite_young`, `satellite_intermediate` and
+        `satellite` (GEN.526). Every population in `POPULATIONS_IN_THE_GATE` is there (`0.0` away from its components).
         """
-        total = dict.fromkeys(KINDS_IN_THE_GATE, 0.0)
+        total = dict.fromkeys(POPULATIONS_IN_THE_GATE, 0.0)
         for i, systems in self._contributions(position_pc):
-            total[self.kinds[i]] += systems
-        return {kind: systems / self.expected_at_density_1 for kind, systems in total.items()}
+            for population, share in self.shares[i].items():
+                total[population] += systems * share
+        return {population: systems / self.expected_at_density_1 for population, systems in total.items()}
 
     def relative_density(self, position_pc, kind=None):
         """
@@ -142,10 +171,12 @@ class ComponentField:
 
     def fe_h_peaks(self, position_pc, kind):
         """
-        The [Fe/H] distribution of the `kind` stars at `position_pc`, `((weight, mean, sigma), ...)`: one peak per
+        The [Fe/H] distribution of the `kind` stars (a population of a satellite's three is the kind `satellite`) at
+        `position_pc`, `((weight, mean, sigma), ...)`: one peak per
         component of the kind that reaches the point, weighted by the systems it puts in the cell and centred on its own
         [Fe/H] with `tuning.COMPONENT_FE_H_SIGMA[kind]`. Empty where no component of the kind reaches.
         """
+        kind = KIND_OF_POPULATION.get(kind, kind)
         sigma = tuning.COMPONENT_FE_H_SIGMA[kind]
         return tuple((systems, self.fe_h[i], sigma) for i, systems in self._contributions(position_pc)
                      if self.kinds[i] == kind and systems > 0.0)

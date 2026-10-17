@@ -82,16 +82,19 @@ def test_the_count_is_the_systems_times_the_share_the_population_keeps():
     counts = [len(_stars([component], seed=seed)) for seed in range(8)]
     assert np.mean(counts) == pytest.approx(wanted, abs=5.0 * math.sqrt(wanted / len(counts)))
     assert component_pass.expected_stars([component], fractions) == pytest.approx(wanted)
+    shares = component_field.population_shares(_satellite())
     assert component_pass.expected_stars([_satellite()], fractions) == pytest.approx(
-        component_pass.systems_of(_satellite()) * fractions["satellite"])
+        component_pass.systems_of(_satellite()) * sum(share * fractions[name] for name, share in shares.items()))
 
 
 def test_a_stars_row_sits_in_its_cell_and_is_a_star_of_its_components_population():
     rows = _stars([_cluster(), _satellite()])
     assert len(rows) > 100
     columns = dict(zip(store.BRIGHT_STAR_COLUMNS, rows[0]))
-    assert columns["population"] in component_pass.COMPONENT_KINDS
-    assert {row[6] for row in rows} == {"cluster", "satellite"}
+    assert columns["population"] in component_field.POPULATIONS_IN_THE_GATE
+    populations = {row[6] for row in rows}
+    assert "cluster" in populations and populations <= set(component_field.POPULATIONS_IN_THE_GATE)
+    assert "satellite_young" in populations       # a Cloud with gas places its massive young stars (GEN.526)
     for row in rows:
         address = spherical.sector_address_at(tuple(value / 1000.0 for value in row[3:6]), EDGE)
         assert address == tuple(row[:3])
@@ -104,7 +107,9 @@ def test_the_same_seed_gives_the_same_stars_and_a_component_does_not_depend_on_t
     assert both == _stars([first, second]) and both != _stars([first, second], seed=SEED + 1)
     by_population = lambda rows, population: [row for row in rows if row[6] == population]
     assert by_population(both, "cluster") == by_population(_stars([first]), "cluster")
-    assert by_population(both, "satellite") == by_population(_stars([second, _cluster("Another", mass=3.0e5)]), "satellite")
+    for population in component_field.SATELLITE_POPULATIONS:
+        assert by_population(both, population) == by_population(
+            _stars([second, _cluster("Another", mass=3.0e5)]), population)
     assert _stars([_cluster("Renamed")]) != _stars([first])         # the stream is the component's own
 
 

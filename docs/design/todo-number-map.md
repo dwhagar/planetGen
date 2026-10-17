@@ -14,18 +14,18 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.136 |
-| MAP | MAP.245 |
+| MAP | MAP.246 |
 | NAV | NAV.63 |
-| GEN | GEN.530 |
+| GEN | GEN.532 |
 | PERF | PERF.112 |
 | DB | DB.72 |
-| API | API.31 |
+| API | API.32 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.220 |
+| TEST | TEST.222 |
 | USR | USR.31 |
 | OPS | OPS.60 |
-| DOC | DOC.67 |
+| DOC | DOC.68 |
 | VIEW | VIEW.19 |
 | POP | POP.15 |
 
@@ -515,6 +515,7 @@ Parents marked "new parent" had no old number of their own.
 | API.28 | Recipe schema and runner: a recipe fixes, ranges or randomises any aspect, and a library turns it into objects | none | open |
 | API.29 | Upload spool and unit states: received batches on disk, units assembled at seal, finalize as a queue job | none | open |
 | API.30 | generate.py --remote: the client driver for sector and galaxy runs | none | open |
+| API.31 | Every outgoing web request sends a standard User-Agent with the software, its version and the API version | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
@@ -579,7 +580,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.62 | Upload bookkeeping tables in the control database (migration only) | none | open |
 | DB.63 | Table for ships and stations, user-owned or generated (migration only) | none | open |
 | DB.64 | Table for stored constellations (migration only) | none | open |
-| DB.65 | Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates | none | open |
+| DB.65 | Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates | none | done, PR #2025 |
 | DB.66 | The shape row carries the galaxy family and one column per density component, as a migration only | none | open |
 | DB.67 | Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with | none | open |
 | DB.68 | Planets and moons store the ozone column and the haze, dust and cloud optical depths | none | open |
@@ -632,7 +633,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it | none | done, PR #1584 |
 | DOC.45 | Reference docs follow the description layer | none | open |
 | DOC.46 | Docs for the spherical sector grid | none | done, PR #1627 |
-| DOC.47 | Rebuild docs/design/architecture.html from the new architecture.md | none | open |
+| DOC.47 | Rebuild docs/design/architecture.html from the new architecture.md | none | done, PR #2037 |
 | DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | none | open |
 | DOC.49 | Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue | none | merged into DOC.50 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | none | open |
@@ -652,6 +653,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.64 | Docs: the atmosphere colour, its method and its sources | none | open |
 | DOC.65 | Docs: bulk composition, the materials table and how density, mass and gravity follow | none | open |
 | DOC.66 | Docs: the composition model of stars, bodies and atmospheres, the radiation it derives and the sources of every number | none | open |
+| DOC.67 | An architecture map Boss can drill down: project areas, modules and functions with the call flow between them, generated from the code | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -1057,7 +1059,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.403 | The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157 | none | open |
 | GEN.404 | The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position | none | open |
 | GEN.405 | Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values | none | open |
-| GEN.406 | Research the population ages and velocity dispersions by component, the thick disk scaling and the stellar halo fraction so they become laws | none | open |
+| GEN.406 | Research the population ages and velocity dispersions by component, the thick disk scaling and the stellar halo fraction so they become laws | none | done, PR #2022 |
 | GEN.407 | Correct the horizontal-branch and red giant tables to the checked sources: the RGB time law, the evolutionary flux, the HB colour row, the extreme HB luminosity and the tip | none | done, PR #1985 |
 | GEN.408 | Research: verify the atmosphere sources and say what is missing | none | done, PR #1951 |
 | GEN.409 | The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model | none | open |
@@ -1177,10 +1179,12 @@ Parents marked "new parent" had no old number of their own.
 | GEN.523 | Tuned draw builder B15: host-star activity | none | open |
 | GEN.524 | Tuned draw builder B16: halogens and trace gases | none | open |
 | GEN.525 | Tuned draw builder B17: the design-flag registry | none | open |
-| GEN.526 | Satellites with gas get young and intermediate populations derived from their age history and gas, so the Clouds hold massive stars | none | open |
+| GEN.526 | Satellites with gas get young and intermediate populations derived from their age history and gas, so the Clouds hold massive stars | none | done, PR #2043 |
 | GEN.527 | The second star of a wide pair in a saved runaway system loads back 0.4 m/s off the system's velocity: find the cause instead of loosening the test (bug) | none | open |
 | GEN.528 | The rest of GEN.319: a Magellanic cell shows every class, and the scatter's planetary nebulae are weighted by the old share | none | open |
 | GEN.529 | The pre-main-sequence track takes its Hayashi temperature, birthline radius and energy factor from a sourced table, and the state reaches stars still contracting after 10 Myr | none | open |
+| GEN.530 | A pre-placed star's hosted nebula shows from its scatter row on the maps and pages | none | open |
+| GEN.531 | Boss's research requests from the galaxy laws research (R1 to R15): the observed stellar halo, the dwarf range, the thick disk fits and the cluster system | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1405,10 +1409,10 @@ Parents marked "new parent" had no old number of their own.
 | MAP.222 | Nebula zoom window: choosing a nebula on the Galaxy Map flies into a view of that nebula alone | none | open |
 | MAP.223 | Globular cluster zoom window: choosing a cluster flies into a view of its own stars | none | open |
 | MAP.224 | Cluster pages and the Galaxy Map use the parent link | none | open |
-| MAP.225 | The wheel zooms toward the point under the cursor, with clearance | none | open |
+| MAP.225 | The wheel zooms toward the point under the cursor, with clearance | none | done, PR #2031 |
 | MAP.226 | Double-click flight on the Galaxy Map: fly to the thing clicked, or half way toward empty space | none | done, PR #1859 |
-| MAP.227 | The camera names its container: the header and the breadcrumb come from its position | none | open |
-| MAP.228 | The camera in the address: the URL and bookmarks hold the camera's target, distance and orientation | none | open |
+| MAP.227 | The camera names its container: the header and the breadcrumb come from its position | none | done, PR #2032 |
+| MAP.228 | The camera in the address: the URL and bookmarks hold the camera's target, distance and orientation | none | done, PR #2032 |
 | MAP.229 | Map label engine: names placed by priority, with no overlaps, shown and hidden by zoom | none | open |
 | MAP.230 | Names of stars, systems and sectors on the Galaxy Map | none | open |
 | MAP.231 | The Sector Map and the System Map use the label engine | none | open |
@@ -1425,6 +1429,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.242 | The Galaxy Map and its key draw what the family has: arms and bar only where they exist, a spheroid shell, a lens or a clumpy body | none | open |
 | MAP.243 | The Galaxy Map cannot select or enter anything in the halo: the halo's scatter objects are not pickable at galaxy scale and a zoom toward one stops without opening a view (bug) | none | open |
 | MAP.244 | The maps and pages use the atmosphere colour where they showed the planet colour | none | open |
+| MAP.245 | The wheel zoom's remaining parts: the column-density ray fallback, the clearance from the nearest pickable thing and the half-way double click | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2159,7 +2164,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.183 | A test that fails when a new output path formats its own lines | none | open |
 | TEST.184 | Whole-sphere tests, nebula and Wolf-Rayet side: contents per class, the Wolf-Rayet count, tiling, determinism and the King solver | none | open |
 | TEST.185 | Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius | none | open |
-| TEST.186 | Census audit harness: fill seeded sectors per region class, count by kind and stage, compare to expectation within k Poisson sigma, print one report | none | open |
+| TEST.186 | Census audit harness: fill seeded sectors per region class, count by kind and stage, compare to expectation within k Poisson sigma, print one report | none | done, PR #2041 |
 | TEST.187 | Browser-test failure reports are buried in the werkzeug request log: set that logger to WARNING in the test server | none | open |
 | TEST.188 | The skimage marching-cubes call reads `.shape` in a way NumPy 2.5 deprecates: change the call and keep the warning out of the log | none | open |
 | TEST.189 | A test that runs `migrate` leaves maintenance mode on: restore `state/maintenance.json` in the fixture (bug) | none | open |
@@ -2193,6 +2198,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.217 | `test_every_column_is_written` found a NULL in every row of `moons.evolutionary_speed` in the full parallel gate, and passes alone (bug) | none | done, PR #1989 |
 | TEST.218 | `test_first_control_connections_at_once` leaves 3 idle connections open on `planetgen_test_*` when its fixture ends: the test should close its own connections (bug) | none | open |
 | TEST.219 | Browser pages still have 1 to 7 requests running 8 s after the server stops: find what keeps them busy and make it faster | none | open |
+| TEST.220 | test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter finds `neutron-star` inside `magnetar neutron-star` (bug) | none | open |
+| TEST.221 | test_a_runaway_system_moves_beyond_the_rotation_curve_and_its_stars_and_bodies_share_it raises StopIteration when the first system's only planet entry is an asteroid belt (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

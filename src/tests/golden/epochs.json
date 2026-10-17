@@ -54,6 +54,11 @@
       "epoch": 11,
       "first_release": "8.0.1708",
       "reason": "A Bok globule holds a protostar in 30% of clouds and a star-forming core one to four, built by the sectors the cloud reaches; a planetary nebula's central star has a close companion in 20%; a star's hosted-nebula roll comes from its own seed (GEN.320)."
+    },
+    {
+      "epoch": 12,
+      "first_release": "8.0.1726",
+      "reason": "A satellite galaxy's stars are split by a history derived from its stellar mass, size and mean age into young, intermediate and old populations (the Magellanic Clouds now place massive stars), the satellite's old window is 3 to 13 Gy, and the satellite scatter rows change with it (GEN.526)."
     }
   ]
 }

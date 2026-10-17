@@ -2,6 +2,188 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1726] - 2026-10-17
+
+**Headline:** The Magellanic Clouds now hold young and massive stars, from a star formation history worked out for each satellite instead of a typed share.
+
+### Added
+- **A satellite's star formation history (GEN.526).** Each satellite galaxy's young and intermediate stars come from a history set by its stellar mass, size and mean stellar age: the rate rises or falls over 13 Gyr to give that mean age, the gas the present rate needs follows from the Schmidt-Kennicutt law, and a satellite whose gas is under the star formation threshold forms no stars now. The Large Cloud comes out at 1.4% young and 36% intermediate stars, with 0.36 solar masses a year and 4.4e8 solar masses of gas; the Small Cloud at 1.0% and 26%; Sagittarius, Fornax and the dwarf spheroidals form no stars now.
+- Two stellar populations, `satellite_young` and `satellite_intermediate`, beside `satellite` (which is now the stars of 3 to 13 Gyr). The sector profile lists all three, and `bright_stars.population` takes them (migration 0107, which also widens the column to 24 characters).
+
+### Changed
+- The Clouds place massive stars: at the default floor of 9,000 solar luminosities the Clouds hold about 3.8e4 bright stars (none before) and 1.8e4 stars above the mass cut. A galaxy scattered before this needs `planetgen plan --redo-scatters luminosity mass phenomena`.
+- A satellite place counts its young stars as young in the Type Ia share, the planetary nebula share and the molecular cloud share.
+
+generation-output: changed
+
+TODO items resolved: GEN.526. Added: none.
+
+## [8.0.1725] - 2026-10-17
+
+**Headline:** The test suite has one census harness that fills seeded sectors per region class and checks the counts of each kind against their expectation.
+
+### Added
+- **The census audit harness (`src/tests/audit/census.py`).** It fills a fixed set of seeded sectors for each region class, counts what each fill made by stage and kind, tests each count against its expectation within four Poisson sigma, applies the rule that a kind expected 20 or more times appears at least once, flags a kind found where its gate expects none, and writes one report. The representation, fill-stage, multiplicity, catalogue-type and whole-sphere audits add their checks to it and keep no counters of their own.
+
+TODO items resolved: TEST.186. Added: none.
+
+## [8.0.1724] - 2026-10-17
+
+**Headline:** The illustrated architecture page is rebuilt from the current architecture document.
+
+### Changed
+- `docs/design/architecture.html` is rebuilt from `docs/design/architecture.md` as of 2026-10-17 (it was a 2026-10-07 snapshot from before the package move): the same sections (overview, every module, the five flows, data, deployment, packages), now with the code map as it stands (391 entries with their line counts, read from the files), the flows with their diagrams drawn in the page, the shell, band and wedge grid in place of rings, layers and slots, the 61 content and 18 control tables, the CI jobs as they run today, and a Packages section (the packages, how they depend on each other, the libraries) in place of the old "planned target". The README line that describes it carries the new date.
+
+### Added
+- Nothing in the code: the page is documentation only.
+
+TODO items resolved: DOC.47 / Added: none
+
+## [8.0.1723] - 2026-10-17
+
+**Headline:** The Galaxy Map's address holds the camera, so a copied link, a bookmark and a reload open the view exactly where it was.
+
+### Changed
+- The address is `?cam=x,y,z,d,qx,qy,qz,qw` (the view's middle and distance in parsecs and its turn, ten significant digits). It is written in place once the view has been still for a moment, a hop to another stage adds a history entry, and the sector and display parts of the query (`sector=`, `open=`, `hide=`, `color=` and the rest) are left as they are. Opening one works the stage out from the camera (the finest window of 9 cells, centred on the cell holding the view's middle, that holds the view; the whole galaxy for a view of all of it) and puts the camera there. A history entry also keeps its stage, so Back, Forward and a reload return to it exactly.
+- Bookmarks of a view keep the camera.
+- The `?win=` and `&g=` tokens, and the `win=` that a sector link carried, are no longer read: those links open the galaxy.
+
+### Added
+- Tests: the camera query and its refusals (`test_galaxystages.py`), the address written in place and a link that opens the camera (`galaxymap.test.mjs`), and the browser tests of the stages now open a window through the page's own hook instead of `?win=`.
+
+TODO items resolved: MAP.228 / Added: none
+
+## [8.0.1722] - 2026-10-17
+
+**Headline:** The Galaxy Map's breadcrumb and a new "In Sector …" line follow the cell the camera is in, not the stage the map was opened at.
+
+### Changed
+- The breadcrumb is the trail of containers of the cell holding the view's middle (`stageAtPoint` in `galaxystages.js`, the cells are closed form), so moving the center into the next cell of the stage's size changes its last crumb; a crumb above it still flies out to that container. The trail follows the camera at the stage's own cell size only (a finer or coarser step is not derived from the distance); an opened sector or system shows the window round that sector, as a fresh load of its address does.
+- A label over the map's top-left corner (`galaxymap3d-where`) names the sector the view's middle is in (`sectorAtPoint`), updated as the camera moves.
+
+### Added
+- Tests: `stageAtPoint` and `sectorAtPoint` through the stage view in `galaxymap.test.mjs`, and a browser test that moves the center into the next sector and checks the line, every crumb and the crumb out to the galaxy.
+
+TODO items resolved: MAP.227 / Added: none
+
+## [8.0.1721] - 2026-10-17
+
+**Headline:** The wheel on the Galaxy and Sector Map zooms toward what is under the pointer, which stays under it.
+
+### Changed
+- The wheel zooms toward the star, remnant or cell under the pointer (else the point of the focus plane under it): the center moves toward it so it stays where it is on the screen. A step in moves the eye by at most half the way to it (`limitApproach`, `targetAboutAnchor` in `mapcontrol.js`), so repeated steps approach it without landing on it; a view that cannot be moved, or a wheel with no pointer over the map, zooms about the middle as before. The Shift-click, the zoom buttons and the slider are unchanged.
+
+### Added
+- Tests: `limitApproach` and `targetAboutAnchor` in `mapcontrol.test.mjs`, and a browser test that the star under the pointer stays under it while zooming in.
+
+TODO items resolved: none (MAP.225 stays open: the wheel is built; the column-density ray fallback, the clearance from the nearest pickable thing and the half-way double click are not) / Added: none
+
+## [8.0.1720] - 2026-10-17
+
+**Headline:** The cell key at the edge of its box is recorded as built (DB.65), with the migration head at 0106.
+
+### Changed
+
+- DB.65 is retired (merged as #2025, migration 0106, schema v106); the revision queue now reads DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110. TEST.213 carries a new sighting from DB.65's browser run.
+
+TODO items resolved: DB.65. / Added: none
+
+## [8.0.1719] - 2026-10-17
+
+**Headline:** The cell key no longer wraps for a position within 3e-11 parsecs of the 262 kpc box edge: it takes the last cube instead of the opposite edge's.
+
+### Changed
+- `cellkey.cell_index`, `cell_keys` and the SQL expression (`sql_cell_key`) hold the cube number at 2^21 - 1 (`cellkey.LAST_CELL`). Migration 0106 recomputes the generated `cell_key` of all 14 tables that have one (a table rebuild per table); `planetgen.cli.migrate` shows its progress.
+- `store.detect_schema_version` reads generated-column expressions to recognise v106.
+
+No generated object lies that close to the reach, so no stored value changes and the generator epoch stays.
+
+TODO items resolved: DB.65. Added: none.
+
+## [8.0.1718] - 2026-10-17
+
+**Headline:** The first Gemini research batch for the galaxy laws is recorded as unverified input on GEN.531.
+
+### Changed
+
+- GEN.531 notes that Gemini batch 1 (structural scaling laws, kinematics, assembly histories, ex situ halo fractions) arrived at 10:52 AM EDT and replaces no placeholder until each claim is checked against its source.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1717] - 2026-10-17
+
+**Headline:** The fifteen galaxy research requests (GEN.531) record that a Gemini search and a gap-filling plan are under way.
+
+### Changed
+
+- GEN.531 notes Boss's word (10:44 AM EDT): some things are not known; a Gemini agent searches the fifteen items with theories and speculation included, a read-only thread plans how the generator fills the gaps itself, and every stand-in is labelled so it can be replaced.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1716] - 2026-10-17
+
+**Headline:** The galaxy laws research (GEN.406) is filed as a design note with the sourced ranges for the stellar halo, ages, dispersions, thick disk, dwarfs and clusters.
+
+### Added
+
+- `docs/design/galaxy-laws-research.md`: the sourced laws and ranges, the conflicts between sources with proposed defaults, and fifteen open requests (GEN.531).
+
+### Changed
+
+- GEN.401, GEN.403, GEN.405 and GEN.369 carry the pointers and the flags (the 1.5e9 halo anchor is a Milky Way copy, the thick disk and the dispersion and height conflicts); GEN.409, GEN.426, GEN.435, GEN.436 and GEN.437 go to Blocker 1 and GEN.180 and GEN.229 to Core 5.
+
+TODO items resolved: GEN.406. / Added: GEN.531
+
+## [8.0.1715] - 2026-10-17
+
+**Headline:** Boss started the lane Blocker 1 for the composition loader (GEN.472) and the census harness (TEST.186).
+
+### Changed
+
+- GEN.472 and TEST.186 name Blocker 1 as owner (Boss, 10:27 AM EDT); GEN.472 notes that its prerequisite GEN.437 and the four design notes under it are still open with Core 4.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1714] - 2026-10-17
+
+**Headline:** Every open 8.1 item now names the lane that builds it, from Boss's Core 1 to Core 5 lanes.
+
+### Changed
+
+- Boss's lanes (10:06 AM EDT; Bug Hunt strictly bugs, Cores 1 to 5 each a distinct lane to 8.1 from the foundations forward) are recorded on GEN.301, and 154 items carry an Owner note with the lane and the position in its order; GEN.530's map and page reads are proposed to Core 2.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1713] - 2026-10-17
+
+**Headline:** The galaxy laws research of GEN.406 has its own research thread, chosen by Boss.
+
+### Changed
+
+- GEN.406 names the read-only research thread as its owner (Boss, 10:20 AM EDT), not Core 1; the lane assignment drops it from Core 1's queue.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1712] - 2026-10-17
+
+**Headline:** Core 4's findings from building the massive-star binaries are recorded on the items that check them.
+
+### Changed
+
+- GEN.448 and TEST.196 carry the G-dwarf close-companion level (0.13 against the pooled line's 0.20) and the O and B flatness ratios (1.32 and 1.43 against the 1.3 edge).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1711] - 2026-10-17
+
+**Headline:** The part of GEN.320 that Core 3 did not wire, a pre-placed star's nebula on the maps and pages, is filed ahead of the 8.1 headline.
+
+### Changed
+
+- GEN.530 is filed (a pre-placed star's hosted nebula shows from its scatter row) and gates GEN.301; TEST.184 carries Core 3's protostar yield finding.
+
+TODO items resolved: none / Added: GEN.530
+
 ## [8.0.1710] - 2026-10-17
 
 **Headline:** The nebula stars of GEN.320 are recorded as built, and Boss's drop of the massive-multiples prevalence cap (GEN.373) is recorded.
