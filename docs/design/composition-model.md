@@ -1,6 +1,6 @@
 # The composition model: what every body, star and atmosphere is made of
 
-**Status (2026-10-17):** plan; nothing is built. This is the master note of Boss's directive (2026-10-16, 11:58 PM EDT). It joins [atmosphere-colour.md](atmosphere-colour.md) (the atmosphere and the colour), the bulk composition of section 5 of that note, and the new stellar and radiation parts. GEN.437 turns it into the checked design once the research lanes and the four designs below are done. Every section the research lanes write goes into the design documents named here.
+**Status (2026-10-17):** checked design for Boss's approval (GEN.437, with the notes GEN.409, GEN.426, GEN.435 and GEN.436). The loader of section 4b is built (GEN.472, #2061); the tables, the draws and the derived values are not. This is the master note of Boss's directive (2026-10-16, 11:58 PM EDT). It joins [atmosphere-colour.md](atmosphere-colour.md) (the atmosphere and the colour), [bulk-composition.md](bulk-composition.md) (the bulk of every body), [stellar-composition.md](stellar-composition.md) (the stars and remnants) and [radiation-model.md](radiation-model.md) (the radiation); section 7 joins the four. Every section the research lanes write goes into the design documents named here.
 
 ## 1. What Boss decided
 
@@ -244,3 +244,78 @@ The research list of the Tunable gaps investigation ([tunable-gaps.md](tunable-g
 - How a small body's mass follows from its composition and size (belts have a stated mass of zero today, NAV.62).
 - Which radiation proxies of `physics/radiation.py` go and in which release (GEN.436, GEN.444).
 - The licence of the data the ozone and band cross sections come from (open since the sources check).
+
+## 7. The checked model (GEN.437)
+
+The master note joins the four checked designs and the loader. This section is the joint: what links to what, in what units, which way each kind of body is drawn, what is stored, when the generator epoch moves, and which note an item reads. The numbers and the worked examples are in the four notes; this section repeats none of them.
+
+| Note | Item | Settles |
+|---|---|---|
+| [atmosphere-colour.md](atmosphere-colour.md) | GEN.409 | The gas and compound table, the mixture, albedo and greenhouse (stored), ozone, aerosols and cloud, the giants' reference level, the colour model |
+| [bulk-composition.md](bulk-composition.md) | GEN.426 | The bulk fractions, the equation of state and the reference solver, the draws, density, mass and gravity, moons and small bodies, the inverse and the migration |
+| [stellar-composition.md](stellar-composition.md) | GEN.435 | X, Y, Z and the elements of every star from the stored [Fe/H], age and population, the remnants, what the star's iron, magnesium and silicon give the planets |
+| [radiation-model.md](radiation-model.md) | GEN.436 | The bands, transmission and greenhouse from the infrared opacity, shielding by column, the ground's dose and radon, the surface ultraviolet |
+| the loader, `generation/possibility_table.py` | GEN.472 | The one gated possibility-table format of section 4b |
+
+### 7.1 The chain, as checked
+
+1. **Elements** (GEN.438): atomic data and the radioactive isotopes. A constants table, no weights, no abundances.
+2. **Gases and materials** (GEN.410, GEN.427): the two tables every body reads. The materials table is the one shared components table of section 4a item 8; the gas table is the atmosphere's. Molar masses come from the elements. Every row is a row of the loader (section 4b) with a class gate, a source, a licence and a verification state.
+3. **Stars** (GEN.439, GEN.440): composition is a pure function of the stored [Fe/H], age and population (population from the age gate where a star has none). It adds no column to the 75 million stars.
+4. **Bodies** (GEN.428 to GEN.430, GEN.441, GEN.442, GEN.457 to GEN.466): the bulk fractions, the surface and the small bodies. The formation distance, the snow line and the star's abundances decide the gate.
+5. **Atmospheres** (GEN.411, GEN.412, GEN.454 to GEN.456): partial pressures first, then the molar mass, the pressure and the scale height from them.
+6. **Derived values** (GEN.413 to GEN.419, GEN.422, GEN.423, GEN.443 to GEN.446): the colour, the radiation, habitability and the text. Each is a pure function of stored values and the tables.
+
+### 7.2 One set of units and one source field
+
+- Storage is SI: kg, m, s, K, Pa, mol; kg/mol for molar mass (the `atm_molar_density` column keeps its name and unit, decided in the atmosphere note), and the units the existing columns already use stay. Doses are effective dose in mSv per year.
+- A solid or a star is described by **mass fractions** (X, Y, Z for a star; component fractions of the shared materials table for a body); a gas by **partial pressures** (the mole fractions follow). Conversion between them uses the element table's molar masses and nothing else.
+- Every number that comes from outside the repository sits in a table row or a named constant that carries its **source, its licence and its verification state** (`verified`, `partly verified` with the limit the check named, `open` with the seeded range used meanwhile, or `stand-in` with its replacing item). A number in a note has the same marks. The loader refuses a table row without them.
+- Where sources disagree the rules of section 4a item 12 decide, and each design note lists every case with the rule applied.
+
+### 7.3 Drawn first, or the composition is the cause
+
+Boss (11:58 PM EDT on 2026-10-16): either works, the design picks the simplest consistent one per kind of body. The choice, as the four notes make it:
+
+| Kind | Composition is | Density, radius, gravity |
+|---|---|---|
+| Star (every class) | derived from the stored [Fe/H], age and population | luminosity, radius and the rest stay as drawn today; composition does not change the GEN.407 tables (the tip luminosity by metallicity is GEN.502) |
+| Remnant (white dwarf, neutron star, black hole) | derived from the stored mass and the progenitor relation; a black hole carries none | the white-dwarf radius is integrated; the neutron-star radius and the main-sequence lifetime are derived (GEN.463, GEN.467) |
+| Rocky, water and envelope planets, moons, small bodies | drawn first from the gated tables, at the formation distance, the snow line and the star's abundances (route 2) | derived from the fractions by the reference solver or its closed forms at 1 bar; the inverse (route 1) serves editing, an imported density and the migration |
+| Giants and brown dwarfs | heavy-element mass from the mass law, the rest envelope | from the tabulated models; the reference level is the lower of 1 bar and the cloud top |
+| Atmospheres | partial pressures first, from the gated recipes | pressure is their sum; molar mass and scale height follow; albedo and greenhouse are stored draws, the temperature follows |
+
+### 7.4 Stored against derived
+
+The four notes each hold their table. The rule they share: store a value only when it was drawn, cannot be derived, or is expensive and exact to recompute; derive everything else on demand and test that a cache equals the recomputation. A recalculation after an orbit validation or a zone change never redraws a stored composition (finding F10).
+
+### 7.5 The generator epoch and the migrations
+
+The designs and the loader change no stored value, so they bump no epoch. The build items do, in the groups the notes name:
+
+- **8.1:** the loader (GEN.472) and the data tables (GEN.410, GEN.427, GEN.438, GEN.439, GEN.440) are building blocks with no behaviour change. GEN.463 and GEN.467 keep their own epochs, joined to the one rescatter. The epoch scope of GEN.427 is open between the item text and section 3 above; the bulk note follows section 3 (a data table bumps nothing by itself) and asks Boss to confirm.
+- **8.4:** one bump for the bulk chain (GEN.428 to GEN.430, DB.69 and the formation items GEN.458 to GEN.460, with the table versions); one for the atmosphere values (GEN.411, GEN.422, GEN.423, GEN.424, GEN.452, GEN.454, GEN.455 with DB.67 and DB.71); one for the added stored values (GEN.413, GEN.414, GEN.456 with DB.68). The revisions take the next free numbers at build time.
+- **9.0:** the colour functions (GEN.416 to GEN.419) are pure functions of stored values and need no migration. The radiation items (GEN.443, GEN.444) replace the dose proxies with a bump and a migration of the dose columns, after GEN.453 has corrected the constants.
+
+A change to a table row or weight is a change of that table's version and an epoch bump (section 4b); `Registry.versions` pins each table's version and digest.
+
+### 7.6 How the items that follow read it
+
+| Items | Read |
+|---|---|
+| GEN.438, GEN.410, GEN.427, GEN.472 | section 4b, then the gas table of the atmosphere note and the shared materials table of the bulk note |
+| GEN.439, GEN.440, GEN.463, GEN.467, GEN.502 | the stellar note |
+| GEN.428 to GEN.430, GEN.441, GEN.442, GEN.457 to GEN.466 | the bulk note |
+| GEN.411 to GEN.419, GEN.422 to GEN.424, GEN.452 to GEN.456 | the atmosphere note |
+| GEN.443 to GEN.446, GEN.453, GEN.459 | the radiation note, with the bulk note for the ground |
+| TEST.211, TEST.212, TEST.214, TEST.215, GEN.503 | each note's test targets; the registry walk of TEST.214; the harness of GEN.503 |
+
+### 7.7 What Boss rules on
+
+Each note ends with its own list of decisions for Boss with a recommendation. The ones that cross notes:
+
+1. **The reading of the third conflict rule.** The notes read "most permission take wins" as the most permissive, widest value or range, and keep both values where a range cannot be widened.
+2. **The age gate for the thick disc.** The stellar note moves the gate that replaces a stored population from 3.0 Gy to 8.0 Gy (range 6.5 to 9.5) on the verified thick-disc timing, which bears on the old-disc high-alpha share and on GEN.134.
+3. **The epoch scope of GEN.427,** as above.
+4. **The ozone spread and the thin-air closure** (atmosphere and radiation notes), which the research leaves wider than a single seeded range.
+5. **The giants' heavy-element law:** the newest (Chachan 2025) as the default with Thorngren selectable, by the newest-wins rule.
