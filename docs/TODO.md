@@ -5193,6 +5193,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Superbubble density (2026-10-16, 9:27 PM EDT): the core's young terms
   stay this item's; GEN.391 checks that a bubble reaching the core does
   not double them.
+  Finding (2026-10-17, 9:55 AM EDT, the read-only study "8.1 completion
+  estimate"
+  (/mnt/project-files/reports/8-1-completion-estimate-2026-10-17.md,
+  relayed at about 9:55 AM EDT by the coordinator's clock)): this item
+  has no live owner (the owner line names no running lane) and sits on
+  the longest path to GEN.301 (it needs GEN.244). It needs an owner; the
+  proposal is Core 3, whose files it touches, or a second generation
+  lane if Boss splits Core 3's chain.
   Prerequisites: GEN.244. Related: GEN.280, GEN.246.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -5635,6 +5643,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shape the young and intermediate star density by the bubble; the
   remnant reading of the bubble interior stays this item's, and GEN.391
   checks that neither counts the other twice.
+  Finding (2026-10-17, 9:55 AM EDT, the read-only study "8.1 completion
+  estimate"
+  (/mnt/project-files/reports/8-1-completion-estimate-2026-10-17.md,
+  relayed at about 9:55 AM EDT by the coordinator's clock)): the owner
+  line reads unassigned (Core 3's area) and the item gates GEN.301; it
+  needs a named owner.
   Prerequisites: none. Related: GEN.254, GEN.151, GEN.256.
 
 - [ ] **GEN.299 The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders**
@@ -15355,6 +15369,15 @@ clears each one.
   chunks and shared work): this item is now the umbrella and is done
   when its subitems are: TEST.184, TEST.185. The item lists tests of two
   kinds of code.
+  Finding (2026-10-17, 9:55 AM EDT, the read-only study "8.1 completion
+  estimate"
+  (/mnt/project-files/reports/8-1-completion-estimate-2026-10-17.md,
+  relayed at about 9:55 AM EDT by the coordinator's clock)): the owner
+  is the Quality lane, which has been idle since 12:40 AM EDT on Oct 16
+  with its queue handed back to TODO, so no lane runs this closing test;
+  it gates GEN.301 (directly or through the census harness TEST.186). A
+  test lane must be started or the item given to a running lane before
+  the headline can close.
   Prerequisites: TEST.184, TEST.185. Related: TEST.156.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -15389,6 +15412,15 @@ clears each one.
   counters of their own.
   Prerequisites: GEN.282, GEN.321,
   TEST.186.
+  Finding (2026-10-17, 9:55 AM EDT, the read-only study "8.1 completion
+  estimate"
+  (/mnt/project-files/reports/8-1-completion-estimate-2026-10-17.md,
+  relayed at about 9:55 AM EDT by the coordinator's clock)): the owner
+  is the Quality lane, which has been idle since 12:40 AM EDT on Oct 16
+  with its queue handed back to TODO, so no lane runs this closing test;
+  it gates GEN.301 (directly or through the census harness TEST.186). A
+  test lane must be started or the item given to a running lane before
+  the headline can close.
   Related: TEST.159.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
@@ -15796,6 +15828,15 @@ clears each one.
   shell of the reach; the profile and an empty sector are deterministic;
   the King solver against the textbook concentrations. Done: each test
   exists and runs in the normal suite.
+  Finding (2026-10-17, 9:55 AM EDT, the read-only study "8.1 completion
+  estimate"
+  (/mnt/project-files/reports/8-1-completion-estimate-2026-10-17.md,
+  relayed at about 9:55 AM EDT by the coordinator's clock)): the owner
+  is the Quality lane, which has been idle since 12:40 AM EDT on Oct 16
+  with its queue handed back to TODO, so no lane runs this closing test;
+  it gates GEN.301 (directly or through the census harness TEST.186). A
+  test lane must be started or the item given to a running lane before
+  the headline can close.
   Prerequisites: GEN.320, GEN.243, TEST.186. Related: TEST.159.
 
 - [ ] **TEST.185 Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius**
@@ -15805,6 +15846,15 @@ clears each one.
   region holds its members inside its radius; the pre-placed share of
   every population; no double count of a cluster star between the passes
   and the fill. Done: each test exists and runs in the normal suite.
+  Finding (2026-10-17, 9:55 AM EDT, the read-only study "8.1 completion
+  estimate"
+  (/mnt/project-files/reports/8-1-completion-estimate-2026-10-17.md,
+  relayed at about 9:55 AM EDT by the coordinator's clock)): the owner
+  is the Quality lane, which has been idle since 12:40 AM EDT on Oct 16
+  with its queue handed back to TODO, so no lane runs this closing test;
+  it gates GEN.301 (directly or through the census harness TEST.186). A
+  test lane must be started or the item given to a running lane before
+  the headline can close.
   Prerequisites: GEN.321, TEST.186. Related: TEST.159.
 
 - [ ] **TEST.186 Census audit harness: fill seeded sectors per region class, count by kind and stage, compare to expectation within k Poisson sigma, print one report**
@@ -15821,6 +15871,15 @@ clears each one.
   checks, not counters.
   Prerequisites: none. Related: TEST.159, TEST.160, TEST.161, TEST.162,
   TEST.164.
+  Finding (2026-10-17, 9:55 AM EDT, the read-only study "8.1 completion
+  estimate"
+  (/mnt/project-files/reports/8-1-completion-estimate-2026-10-17.md,
+  relayed at about 9:55 AM EDT by the coordinator's clock)): the owner
+  is the Quality lane, which has been idle since 12:40 AM EDT on Oct 16
+  with its queue handed back to TODO, so no lane runs this closing test;
+  it gates GEN.301 (directly or through the census harness TEST.186). A
+  test lane must be started or the item given to a running lane before
+  the headline can close.
 
 - [ ] **TEST.187 Browser-test failure reports are buried in the werkzeug request log: set that logger to WARNING in the test server**
   Found by a lane (2026-10-16), filed by the TODO thread. When a browser
