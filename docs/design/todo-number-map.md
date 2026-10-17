@@ -511,7 +511,7 @@ Parents marked "new parent" had no old number of their own.
 | API.24 | GET /api/sectors/<id>/gravity: the per-zone gravity grid as JSON | none | open |
 | API.25 | A structured description endpoint, and Markdown and wikitext on request only | none | done, PR #1527 |
 | API.26 | Bump API_VERSION for the shell, band and wedge sector address | none | open |
-| API.27 | A read-only profile lookup for any address in the reach, so an uncharted sector can be previewed | none | open |
+| API.27 | A read-only profile lookup for any address in the reach, so an uncharted sector can be previewed | none | done, PR #1919 |
 | API.28 | Recipe schema and runner: a recipe fixes, ranges or randomises any aspect, and a library turns it into objects | none | open |
 | API.29 | Upload spool and unit states: received batches on disk, units assembled at seal, finalize as a queue job | none | open |
 | API.30 | generate.py --remote: the client driver for sector and galaxy runs | none | open |
@@ -1692,7 +1692,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.110 | The phenomena count on the overview page is wrong (bug) | none | open |
 | UX.111 | Reads, API and web wording on shells | none | done, PR #1607 |
 | UX.112 | Maintenance mode: the site is closed to everyone but admin while the maps are rebuilt | none | done, PR #1607 |
-| UX.113 | The sector page shows the profile of any address in the reach, and heavy cells and far neighbourhoods warn before they run | none | open |
+| UX.113 | The sector page shows the profile of any address in the reach, and heavy cells and far neighbourhoods warn before they run | none | done, PR #1919 |
 | UX.114 | Scatter-row pages list the stored members and the map shows a system mass | none | open |
 | UX.115 | Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages) | none | open |
 | UX.116 | Sliders for every scatter and fill limit: one limit_slider with a number box, in three new segments under the scatter-limits row of the Generate page | none | done, PR #1911 |

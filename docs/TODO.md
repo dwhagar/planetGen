@@ -601,31 +601,6 @@ with `clamp()`.
   load flakes). Fix the cause; no skipping or quarantine.
   Prerequisites: none.
 
-- [ ] **UX.113 The sector page shows the profile of any address in the reach, and heavy cells and far neighbourhoods warn before they run**
-  Step 8 of the whole-sphere train. An uncharted address shows its
-  profile computed from the address alone: expected systems, the
-  population mix, the dark-matter density and mass in the cell, the
-  ambient medium (disk ISM, hot halo, intergalactic) with its density
-  and gas mass, and the expected counts per kind, like the interstellar
-  debris count already shown. An asked, empty sector shows the same with
-  "no objects". A heavy cell (a globular cluster core cell is 14 minutes
-  to 2.5 hours) is a queued job with an ETA and a warning, never a
-  blocking request, and a neighbourhood request out in the halo shows
-  its expected system count and cost line before it runs. Units go
-  through the ladders and no TODO codes appear in the text. Done: any
-  address inside the reach opens a page that says what is expected there
-  and why, nothing is stored by opening it, and the warnings show before
-  a heavy request starts. Owner: Interface; the numbers come from Core's
-  profile (GEN.235) through API.27.
-  Built-on note (Core 1, 2026-10-16, 3:17 AM EDT, GEN.235 merged as
-  #1784): call galaxy.profile.sector_profile(address, skeleton) for the
-  profile and GalaxyBounds.describe_miss for the "outside the outline"
-  line.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report, queue position 3).
-  Prerequisite: API.27. Related: GEN.237.
-  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
-
 - [ ] **UX.114 Scatter-row pages list the stored members and the map shows a system mass**
   Step 8 (design note 11 item 8). The sector and bright-star pages list
   the stored members of an unbuilt scatter row and the Galaxy Map shows
@@ -665,7 +640,7 @@ with `clamp()`.
   audit starts, so it checks the finished pages. Queued, not started:
   Interface and Quality stay idle until the sphere and generation stages
   finish (Boss, 12:27 AM EDT) unless Boss says earlier.
-  Prerequisites: GEN.240, NAV.61, API.27, UX.113, NAV.45.
+  Prerequisites: GEN.240, NAV.61, NAV.45.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
 
 - [ ] **UX.118 Slow pages show a progress bar while their data loads: the search page and the phenomena list pages**
@@ -9189,29 +9164,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (default: bump to 4; there is no backward compatibility and Boss is
   the only user, so no 3 route is kept). Not a bug.
   Prerequisites: none. Related: API.4.
-
-- [ ] **API.27 A read-only profile lookup for any address in the reach, so an uncharted sector can be previewed**
-  Step 8 of the whole-sphere train. A route returns the profile of an
-  address (expected systems, mix, gas, dark matter, kind factors)
-  computed from the address alone, with nothing stored and no sector row
-  needed, for the sector page (UX.113), the neighbourhood cost line and
-  any client. It follows the API standards (error bodies, versioning,
-  the per-key log of API.15). Done: the route answers in microseconds
-  for any address inside the reach, refuses one beyond it with the
-  grid's own message, is documented in docs/api.md and has tests. Owner:
-  Interface asks Core for the profile function (GEN.235). Decided (Boss,
-  2026-10-15): the research note's recommendation stands: reach 262 kpc
-  (65,535 shells), 96-bit object IDs, one rule set everywhere with
-  per-sector parameters, nothing generated unless asked, and an asked
-  sector always generated and saved.
-  Built-on note (Core 1, 2026-10-16, 3:17 AM EDT, GEN.235 merged as
-  #1784): call galaxy.profile.sector_profile(address, skeleton) for the
-  profile and GalaxyBounds.describe_miss for the "outside the outline"
-  line.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report, queue position 2).
-  Prerequisite: GEN.235. Related: UX.113, API.15.
-  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **API.28 Recipe schema and runner: a recipe fixes, ranges or randomises any aspect, and a library turns it into objects**
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
