@@ -669,14 +669,14 @@ disk is more extended, which would make the outer disk younger; 1 is the plain r
 what it gives against the observed fall."""
 BAR_GAP_RADIUS_RATIO = 2.2
 """float: The radius inside which the bar has depleted the star-forming gas, over the bulge's scale radius (the bar's
-length scale). The molecular gas has a gap from 0.5 to 3.5 kpc in a 2026 reconstruction whose outer edge matches the
-bar's length, against the bulge's 1.58 kpc scale radius: 2.2 [recalled, to verify; a model constant of the shape,
-like `BULGE_AXIS_RATIO_Y`, not derived]."""
+length scale). The molecular gas has a gap from 0.5 to 3.5 kpc in a 2026 reconstruction whose outer edge is taken to match the
+bar's half-length (arXiv 2603.17341, read; another estimate of the half-length is 5.0 kpc), against the bulge's 1.58 kpc scale radius:
+2.2 (a model constant of the shape, like `BULGE_AXIS_RATIO_Y`, not derived)."""
 BAR_GAP_STAR_FORMATION_FLOOR = 0.03
 """float: What is left of the star formation at the centre of the bar gap, as a share of the unbarred rate. The
-simulations deplete the gap but do not give the depth, and the observed deficit depends on the reconstruction
-(design note, 'the bar gap'), so this is a default [open]: below about 0.05 the rate per area peaks at the gap's edge,
-the ring a bar leaves."""
+simulations remove the gas "on 1 Gyr timescales" after the bar forms (arXiv 1908.11119, read), so 0.03 is what 3.5 Gyr
+leaves (`exp(-3.5)`); the observed deficit depends on the reconstruction (design note, 'the bar gap'), so this is a default [open]: below about 0.05
+the rate per area peaks at the gap's edge, the ring a bar leaves."""
 BAR_GAP_EDGE_POWER = 4.0
 """float: How sharp the gap's edge is: the rate rises as `u^p / (1 + u^p)` with `u` the radius over the gap radius.
 The bar's gas is swept in over its length and what lies beyond is untouched, so the edge is steep; 2 gives a ramp
