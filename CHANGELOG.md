@@ -2,6 +2,20 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1687] - 2026-10-17
+
+**Headline:** The globular clusters and the satellite galaxies now place their own bright and massive stars and their black holes, neutron stars and planetary nebulae.
+
+### Added
+- **The component pass (GEN.324).** A component's systems are its mass over the mean system mass; each pass draws one Poisson count from them times the share of its population the pass keeps, puts every candidate where the component's profile says (a radius with that share of the mass inside it, a direction uniform on the sphere), and keeps it by its tier's share. The same is done for the black holes, neutron stars and planetary nebulae by their rates per system. This is what a sector's fill already takes off the component's cells, so no pre-placed star is drawn twice. Each component has its own random stream.
+
+### Changed
+- `bright_stars.population` takes `satellite` (migration 0105); a galaxy scattered before this has no stars in its clusters or satellites: `planetgen plan --redo-scatters luminosity mass phenomena` draws them.
+
+generation-output: changed
+
+TODO items resolved: GEN.324. Added: none.
+
 ## [8.0.1686] - 2026-10-17
 
 **Headline:** The black holes, neutron stars, planetary nebulae and supernova remnants now reach the whole grid, out to 262 kpc, so the halo has them beyond the galaxy's outline.

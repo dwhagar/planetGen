@@ -32,8 +32,7 @@
     },
     {
       "epoch": 7,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1687",
       "reason": "The clusters and the satellite galaxies place their own bright and massive stars and phenomena from their profiles, and bright stars take the satellite population (GEN.324)."
     }
   ]
