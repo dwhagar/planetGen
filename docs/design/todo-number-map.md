@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.136 |
 | MAP | MAP.245 |
 | NAV | NAV.63 |
-| GEN | GEN.503 |
+| GEN | GEN.526 |
 | PERF | PERF.111 |
 | DB | DB.72 |
 | API | API.31 |
@@ -1154,6 +1154,29 @@ Parents marked "new parent" had no old number of their own.
 | GEN.500 | The licence audit: the licence column filled for every data source, and the permission list for NIST, JPL, Leiden, Bremen and Karkoschka | none | open |
 | GEN.501 | Source the activity factor of the NH3 photolysis rate from the Huebner and Mukherjee rate tables | none | open |
 | GEN.502 | The giant branch finishes the stellar tables check: the red giant time law as a function of core mass, the tip by metallicity and the branch duration against the observed horizontal-branch ratio | none | open |
+| GEN.503 | The shared tuning harness: a target table, a simulate-and-compare function and a loader that refuses a tunable row without a target | none | open |
+| GEN.504 | The Kepler transit-plus-recovery selection model | none | open |
+| GEN.505 | The mass-radius sample selection model | none | open |
+| GEN.506 | The JWST atmosphere target-selection model | none | open |
+| GEN.507 | The comet admission model by heliocentric distance | none | open |
+| GEN.508 | The white-dwarf pollution detection and settling model | none | open |
+| GEN.509 | Tuned draw builder B1: the radius valley and the envelope | none | open |
+| GEN.510 | Tuned draw builder B2: delivery and water worlds | none | open |
+| GEN.511 | Tuned draw builder B3: retention and lava worlds | none | open |
+| GEN.512 | Tuned draw builder B4: the iron branch | none | open |
+| GEN.513 | Tuned draw builder B5: redox and white-dwarf debris | none | open |
+| GEN.514 | Tuned draw builder B6: radioisotopes | none | open |
+| GEN.515 | Tuned draw builder B7: ground and petrology | none | open |
+| GEN.516 | Tuned draw builder B8: giant planets | none | open |
+| GEN.517 | Tuned draw builder B9: brown dwarfs | none | open |
+| GEN.518 | Tuned draw builder B10: the chemistry module | none | open |
+| GEN.519 | Tuned draw builder B11: aerosol amplitude | none | open |
+| GEN.520 | Tuned draw builder B12: the comet sampler | none | open |
+| GEN.521 | Tuned draw builder B13: belts | none | open |
+| GEN.522 | Tuned draw builder B14: moons and Kuiper belt objects | none | open |
+| GEN.523 | Tuned draw builder B15: host-star activity | none | open |
+| GEN.524 | Tuned draw builder B16: halogens and trace gases | none | open |
+| GEN.525 | Tuned draw builder B17: the design-flag registry | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
