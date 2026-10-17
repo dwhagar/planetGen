@@ -3322,6 +3322,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     chunks and shared work): this item is now the umbrella and is done
     when its subitems are: GEN.338, GEN.339, GEN.340. Four deliverables
     with different readers and timing.
+    NO FIXED CONTENT (2026-10-16, 8:43 PM EDT): the "constant 229.3 km/s
+    whatever the galaxy's size" default above is superseded for the
+    number by Boss's ruling (4:11 and 4:14 PM EDT); the circular speed
+    follows from the masses derived from the generated galaxy, and 229.3
+    is a reference value for a plausibility test. GEN.338 carries the
+    rewrite.
     Prerequisites: GEN.338, GEN.339, GEN.340.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
@@ -3917,6 +3923,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Moved to the first place of the new Galactic gravity thread, ahead of
   GEN.115 child a, which edits the same constants and tests at the same
   radius (2026-10-16 review).
+  NO FIXED CONTENT (2026-10-16, 8:43 PM EDT): 8.128 kpc and 8.2 kpc are
+  the Milky Way's values. The one named value for the test radius stays
+  as the reference for the Milky Way plausibility test only; the Sun's
+  position in a generated galaxy is the derived home position of GEN.368,
+  not a constant.
   Prerequisites: none.
   Design: [docs/design/galactic-potential.md](design/galactic-potential.md)
 
@@ -6529,7 +6540,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Galactic gravity thread) names the 8.128 kpc test radius and the 8.2
   kpc placement value, and this module only reads them (2026-10-16
   review).
-  Prerequisites: GEN.144. Related: GEN.115.
+  Rewrite for NO FIXED CONTENT (finding from the read-only "galactic
+  potential realism" thread, 2026-10-16, 8:43 PM EDT; Boss, 4:11 and 4:14
+  PM EDT): the values above (a circular speed of 229.3 km/s, a bulge of
+  1.0e10, a disk of 6.8e10 with a 3.5 kpc scale, a halo of 5.4e11 with r_h
+  16 kpc, the 8.128 and 8.2 kpc radii, the 213 to 231 km/s band) are the
+  Milky Way's and are reference values for a plausibility test, never
+  defaults. The module's masses and scales are derived from the generated
+  galaxy: the bulge, disk and halo masses from the density model of this
+  galaxy's shape, the halo mass and scale from GEN.369's halo derivation,
+  and the circular speed follows from them; it is not a constant. The
+  tests check the shape and internal consistency of the curve (a rising
+  then flat or gently falling curve, v_c squared equal to r times the
+  radial pull, Kz and local density from the same masses, an orbit
+  keeping its radius, Lz conserved, energy drift, a finite pull at the
+  origin), and compare the Milky Way's numbers only as a reference for a
+  galaxy built with the Milky Way's shape. The module is also the one
+  source for the other rotation numbers in the code today: the flat
+  velocity of 220 km/s with a 3,000 pc core in `physics/constants.py`
+  (every star's orbit, about 206 km/s at 7.91 kpc), `tuning.CLUSTER_HALO_CIRCULAR_KMS`
+  (220, the cluster Jacobi radius and cluster rotation) and
+  `constants.MILKY_WAY_MASS` (1.15e12, the Hill spheres in
+  `generation/binary.py`; GEN.370), so the cluster generator and the Hill
+  spheres read it too, not only GEN.339 and GEN.340.
+  Prerequisites: GEN.144, GEN.369. Related: GEN.115.
 
 - [ ] **GEN.339 Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded**
   Split from GEN.115 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -7052,6 +7086,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   owner), after the global top 5 blockers unless Boss moves it up; the
   component pass GEN.324 places stars for whatever component rows exist,
   so it does not wait on this.
+  Velocity (finding from the "galactic potential realism" thread,
+  2026-10-16, 8:43 PM EDT): `generation/satellites.py` gives every
+  satellite velocity (0, 0, 0). The derived population lists a velocity
+  as an output, drawn from the galaxy's potential; the potential module
+  is GEN.338 (8.3), so the velocities arrive with GEN.339 (8.3), not with
+  this item's 8.1 build, which keeps them at rest and says so.
   Prerequisites: GEN.368, GEN.371. Related: GEN.237, GEN.366, GEN.324,
   GEN.297.
   Waits on GEN.371, the feasibility study of generating satellites
