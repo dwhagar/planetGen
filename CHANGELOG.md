@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1612] - 2026-10-17
+
+**Headline:** The API can show the profile of any sector in the galaxy, charted or not.
+
+### Added
+- `GET /api/galaxy/profile` returns the Sector Profile (region, density, expected systems, the mix of populations with their ages, [Fe/H] and velocity dispersion, gas, superbubble, dark matter and the rate factors per kind) of any cell by address or by point, read only and computed from the stored galaxy shape and the address alone, so an uncharted sector can be previewed.
+
+TODO items resolved: API.27 / Added: none
+
 ## [8.0.1611] - 2026-10-17
 
 **Headline:** A failing portability test on main (the DB.18 helpers use LOCK) is on the TODO list for Core 2.
