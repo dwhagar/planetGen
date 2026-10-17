@@ -13684,6 +13684,46 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1:19 PM EDT as the lane reported), not MNRAS 468, 1850 (star formation
   against arm number). It holds no bulge result: the bulge share cites
   Graham and Worley 2008 and Erwin 2005 for the bar.
+  FINAL SCOPE (Core 1, 2026-10-17, 3:12 PM EDT as the lane reported;
+  built on one branch with GEN.533, one epoch bump; this replaces the
+  12:58 PM EDT scope above). Two corrections: (a) the Courteau 0.097 dex
+  is the scatter of the bulge Vc/sigma0 law (gap plan GR5), not the
+  size-mass scatter, so the Shen scatter of the shape draw stays; the
+  bulge dispersion is Vc/sigma0 = 2 (1 - B/T) scattered 0.097 dex; (b)
+  nothing replaces the Kregel q = 7.3 draw (Comeron 2018's height ratio
+  is the thick-to-thin one), so the Kregel line of the earlier scope is
+  dropped. Built in new modules galaxy/structure.py and
+  galaxy/structure_draw.py as a non-stored `structure` field on
+  GalaxyShape, drawn from the seed and rebuilt on load, nothing added to
+  the galaxy_shape row: (1) circular speed Vc from the baryonic
+  Tully-Fisher M_b = 47 Vf^4 (McGaugh 2012), M_b = M*, 0.0375 dex
+  scatter, a STAND-IN until GEN.338's potential gives Vc; (2) thick
+  disk: mass ratio log-uniform between Yoachim and Dalcanton 0.53
+  (Vc/100)^-2.3 and Comeron 2018 10^2.113 Vc^-1.086, scatter 0.268 dex,
+  length ratio Comeron 2018 10^(-1.638 + 0.817 log Vc), 0.316 dex
+  (newest wins over Yoachim's 1.15 (Vc/100)^-0.2, which stays in the
+  record), height ratio log-uniform 2.5 to 4.2, 0.13 dex; the thick
+  amplitude is derived from the mass ratio (replaces
+  THICK_DISK_LOCAL_DENSITY_RATIO 0.04); the hot-component bound (Comeron
+  2021 Eq. 1) is a test on the mean relation with the 0.13 dex margin;
+  (3) stellar halo: f = 0.05 (M*/5e10)^0.79 placeholder, scatter 1.01
+  dex (Dragonfly, the widest), cut to 0.1 to 30 percent of the stars,
+  reference anchor 1.4e9 (replaces HALO_MASS_SOLAR 1.5e9); (4) heights
+  and dispersions from one law: gas dispersion 10 +/- 2 km/s (Tamburro
+  2009), disc central vertical dispersion 0.248 Vc +/- 15 percent
+  (Martinsson 2013), heating exponent 0.441 +/- 0.03 (Sharma and Hayden
+  2020); a population's scale height is its squared vertical dispersion
+  over the old disc's; the profile dispersion is the three-axis total;
+  the halo dispersion comes from the Jeans equation (sqrt(3/3.5) Vc),
+  the bulge's from Courteau. Milky Way check: the old disc sigma_z at
+  the Sun is 16 km/s against Sharma and Hayden's 21.1, 24 percent low,
+  inside the plan's 35 percent. Caution to record: the young scale
+  height comes out 0.40 of the old disc's (116 pc for a 300 pc disc)
+  against the observed about 50 pc, because the 10 km/s is the HI
+  dispersion and molecular gas is colder (not read); it stays a STAND-IN
+  until a measured CO dispersion in a nearby-spiral sample replaces it
+  (filed as GEN.536, research). Hart 2017 and Yu and Ho 2019 citations
+  are also fixed in shape_draw.
   Prerequisites: none. Related: GEN.401, GEN.402, GEN.531.
 
 - [ ] **GEN.533 The galaxy shape draws bar presence, axis ratios and angle from the seed, rebuilt each time and not stored in a column**
@@ -13706,6 +13746,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nothing is added to the stored shape row, and the change rides the
   pending generator epoch and the wiped rescatter. Owner: Core 1 (Boss's
   card, 12:56 PM EDT; GEN.401's author), with GEN.532.
+  FINAL SCOPE (Core 1, 2026-10-17, 3:12 PM EDT as the lane reported;
+  built with GEN.532, one branch, one epoch bump). The sources were read
+  by a research worker and are filed as
+  docs/design/gen533-bar-sources.md (Core 1's PR lists it in
+  docs/design/README.md). Bar present with Erwin 2018 Eq. 6 (logistic
+  quadratic in log M*; 0.69 at 3e9, 0.58 at 10^10.5, 0.21 at 2e11; the
+  S4G early and late split, 0.63 against 0.66, is 1.1 sigma, so no split
+  by stage); in-plane axis ratio 1 - e with e ~ N(0.53, 0.15)
+  (Diaz-Garcia 2016); vertical axis ratio of a boxy or peanut bar (Erwin
+  and Debattista 2017 logistic; 0.23 +/- 0.06, a STAND-IN) or of a thin
+  bar (Luetticke 2000, 0.071 +/- 0.02); unbarred bulge axis ratios 0.83
+  +/- 0.21 and 0.54 +/- 0.19 (Costantin 2018, computed from its Table
+  C.1); bar angle uniform 0 to 180 degrees (a STAND-IN). Newest verified
+  wins: Erwin 2018 is used over the SDSS strong-bar fraction of 29
+  percent, because the model's bar is any bar, so the strong-only 0.29
+  of the laws table is not used. An unbarred galaxy has no bar gap in
+  its star formation. The Done line's 'fraction follows the stated trend
+  by stage' is replaced by 'follows the Erwin 2018 relation in stellar
+  mass'. No part needs a stored column.
   Prerequisites: none. Related: GEN.401, GEN.532, GEN.378, DB.66.
 
 - [ ] **GEN.534 A satellite's young stars reach the system-type tables: the young-star system types name `satellite_young`**
@@ -13748,6 +13807,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   age, and the research is dated on the goal issue. Owner: unowned
   (research, then Core 3 for the fix).
   Prerequisites: none. Related: GEN.528, GEN.369, GEN.526.
+
+- [ ] **GEN.536 Research the velocity dispersion of molecular gas (CO) in nearby spirals to set the young stars' scale height**
+  Filed by the TODO thread from Core 1's GEN.532 report (2026-10-17,
+  3:12 PM EDT as the lane reported). The generator's gas dispersion is
+  10 +/- 2 km/s (Tamburro 2009), which is the atomic (HI) value, so the
+  young stars' scale height comes out 0.40 of the old disc's (116 pc for
+  a 300 pc disc) against the observed about 50 pc; molecular gas is
+  colder and its dispersion was not read. Do: find a measured CO
+  velocity dispersion in a sample of nearby spirals (verified sources
+  only, citations checked first, read in full or marked as not read),
+  give the value and scatter against galaxy mass or Vc where the data
+  allow, and say what the young scale height becomes. Done: the research
+  is dated on the goal issue and labelled READ or NOT REACHED, the value
+  and its source are recorded for the stand-in registry, and the
+  replacement of the 10 km/s young-population dispersion is its own item
+  if the law is found. Owner: unowned (research; Boss or a read-only
+  research lane). This is a Boss research item.
+  Prerequisites: none. Related: GEN.532, GEN.531.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
