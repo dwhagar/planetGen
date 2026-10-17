@@ -1,0 +1,210 @@
+# Bulk composition: the fractions, the equation of state, the draws and the derived density, mass and gravity
+
+**Status (2026-10-17):** design note for GEN.426, written from the merged research, updated for Boss's papers (uploaded 12:10 to 12:12 PM EDT) and his conflict rules of 12:39 PM EDT, and not yet ruled on. It settles what a body is made of in bulk and how that makes its radius, density, mass and gravity. It changes no stored value and no draw; the build items do (section 8). Sibling notes: stellar composition GEN.435, small bodies and moons GEN.457, ground, radiogenic heat and radiation GEN.436. It feeds GEN.437 and gives GEN.409 and GEN.411 their gravity. Boss's decisions carry the time he gave them, in EDT, on 2026-10-17 unless a date is shown.
+
+Evidence: [body-composition-research.md](body-composition-research.md) ("master") and its parts [B](body-composition-parts/B-rocky.md), [C](body-composition-parts/C-volatile-and-giants.md), [D](body-composition-parts/D-small-bodies-moons.md), [G2](body-composition-parts/G2-radiogenic-thorngren.md), [G3](body-composition-parts/G3-magma-ocean-lava.md); [bulk-composition-sources-check.md](bulk-composition-sources-check.md) ("G425"); [composition-model.md](composition-model.md) sections 4a and 4b; [tunable-gaps.md](tunable-gaps.md) section 6 ("TG"); [boss-papers-2026-10-17.md](boss-papers-2026-10-17.md) ("papers", sections 2.6 to 2.10, 2.12, 3, 4). Verification states follow the rule of 3:02 AM EDT: **verified** (read), **partly verified** (shipped as sourced, with the limit named), **open** (no source; the seeded range used meanwhile is shown), **stand-in** (a measured Solar System shape or placeholder, flagged, with a replacing item). Source conflicts follow Boss's rules of 12:39 PM EDT: verified wins; when two verified sources are in doubt the newest wins; when both are in question the most permissive (widest) value or range wins. The third is my reading of "most permission take wins", an assumption for Boss to confirm. Each decision names the rule it used; section 11 lists them. Nothing is fixed per class and nothing is copied from the Solar System or Milky Way as a preset; those bodies are test targets (section 10).
+
+## 1. What exists at main 8.0.1635
+
+- `physics/planets.py` line 481 sets `planet.composition` to one text per class (for example "silicon, iron, and magnesium" for E to H, K to O and Q). No metal, silicate, water, ice or gas fraction is stored.
+- The radius is drawn first from the class radius range (`_sample_class_radius`, line 35). The density is uniform per class (line 500): `constants.PLANET_DENSITY["t"]` 3.93 to 5.51 g/cm3 for every terrestrial class, class D ("frozen hydrocarbons and ice") included, 6.38 to 9.45 for class S. Mass follows from radius and density (line 528); gravity from mass and radius (`calculate_surface_gravity`).
+- Giants (lines 534 to 557) draw a mass from dN/dlogM proportional to M^-0.31 (at most 1 percent of the star) and a radius from two anchored power laws (exponents 0.519 and -0.04, scatter 10 and 7 percent); density is whatever those make.
+- `physics/hydrosphere.py` line 255 draws `water_mass_fraction` log-uniform per class, apart from density; `bulk_mass.py` gives a comet nucleus one tuning density. `SNOW_LINE_AU_AT_1_LSUN = 2.7` (`constants.py` line 91) is the 170 K blackbody value (G425 2.12). A star stores only `metallicity_fe_h`; Mg, Si, O and C come from part A's fields, not built.
+- `reconcile_zone_and_class` (lines 962 to 1056) sets mass to `None` and calls `generate_planet_properties` again when a body moves to a zone its class does not fit, which redraws radius, density and mass (F10).
+
+## 2. The decisions
+
+States: **Decided** (Boss, EDT), **Default taken** (adopted so work proceeds; Boss may overrule), **Open** (seeded range used meanwhile). TG-D1 to TG-D6 are the defaults of tunable-gaps.md section 6, relayed at 3:36 AM EDT as standing unless Boss overrules them.
+
+| # | Decision | State | Used meanwhile, source, limit |
+|---|---|---|---|
+| 1 | Composition first (route 2) for new bodies of every kind; route 1 is the inverse for editing, imports and migration (supersedes D's density-first advice) | Decided 1:21 AM | Boss, 11:58 PM on 2026-10-16: either route acceptable. Route 2 keeps mass, radius, density, gravity and pressure consistent by construction (B 3.1) |
+| 2 | The water share of solids beyond the snow line is a switch | Decided 1:21 AM; setting Default taken | Default 0.14 to 0.39 (C 2.2); alternative about 0.5 (Lodders 2003, not read). GEN.468. Rule: verified (Marboeuf read, Lodders unread) |
+| 3 | Radius reference level 1 bar, scale-height correction for envelope tables | Decided 1:24 AM | Section 4.1 |
+| 4 | Reference abundance set Asplund 2021 proto-solar; spread with Lodders 2009 and 2019 recorded as ratio uncertainty | Decided 1:24 AM | Host abundances come from stored [Fe/H] and the population draw (A 2.2 to 2.8) |
+| 5 | Every category is a gated table of weighted possibilities (GEN.472); fractions inside the drawn row are normalised separately; Dirichlet around the weights where only a range is known | Decided 1:40, 1:43, 1:51 AM | Master 14 |
+| 6 | Solar System shapes enter tables only as flagged stand-ins with a replacing item (GEN.473 to GEN.476) | Decided 1:44 AM | Taxon kernel, rock types, meteorite groups |
+| 7 | One shared components table (GEN.427); no kind has a list of its own | Decided 1:47 AM | Section 3 |
+| 8 | Verified and partly verified is usable unless contradicted. Conflicts: verified wins; two verified in doubt, newest wins; both in question, most permissive | Decided 3:02 AM (first); 12:39 PM (the other two) | Section 11. Third rule read as widest value or range: assumption |
+| 9 | The one reference solver is part B's two-layer integrator (`structure`, B 3.8), extended with C's water layer and the Lopez and Fortney tables; closed forms of 4.3 are the fast path and tests | Default taken | Partly verified: halves verified separately; the joined solver (GEN.429) must pass C's 175-point grid |
+| 10 | Closed forms of 4.3 are the fast path and tests, each with its range | Default taken | Master section 7 |
+| 11 | At generation use the closed form inside its range; the solver serves tests, out-of-range bodies and edit views; no tabulated grid | Default taken (proposed here) | Solver 0.09 s, fit 4 microseconds (B 3.8). A grid stays an optional speed-up |
+| 12 | Newer water EOS (Journaux splines, French ice VII and X to 1 TPa, Seager polytrope above), not Fortney's warm ice (12 percent larger) | Default taken | G425 correction 3; C 2.3 (COMPUTED from spline data). Rule: verified and newest |
+| 13 | Iron: Vinet fit, Seager Table 1 cross-check. Mantle: the SLB 2024 Part III set as carried by B; periclase K0 161.14 GPa | Default taken | Partly verified. The paper in hand is Part II (2011) Table A1, 45 phases, not our set (post-perovskite K0 247.7 ours, 231 there; Mg-perovskite q0 0.834 against 1.1). A cold Birch-Murnaghan isotherm from A1 matches our 100 GPa density within 0.05 percent (perovskite) and 0.6 (periclase). Parts I and III are not here. GEN.425 rebuilds the table from A1 where it applies; licence GEN.500. Rule: verified |
+| 14 | Planet iron follows the star 1:1 with scatter; super-Mercury and coreless branches | Open | p_SM 0.05 to 0.23, CMF 0.5 to 0.8 there, scatter 0.1 in CMF (PARAMETRISATION). Slope 0.94 (+1.02/-1.07), 1.3 or 5.6 by fit (B 2.8) |
+| 15 | Mantle FeO and core light elements | Open | w_FeO clipped lognormal, median 0.077, range 0.02 to 0.12 (Putirka and Rarick 2019, READ); core Si from reaction 17; core O and S each 0 to 0.10. Check: Palme and O'Neill 2003 primitive mantle FeOt 8.10 +/- 0.05, Mg# 0.890 |
+| 16 | Snow line drawn once per system, 0.2 dex around 2.7 AU sqrt(L), stored (GEN.458) | Default taken | Mulders 2015 (READ); real lines move 2 to 3 times (F8) |
+| 17 | Born beyond the line, or a migrant | Default taken (TG-D1, GEN.510) | NGPPS logistic in mass, centre 6.1 Earth masses, slope 6.3 per dex (COMPUTED); bracket 0 to 0.87; floor 3 (M*/Msun)^0.48 Earth masses (figure-read); C's 0.14 to 0.67 is the alternative |
+| 18 | Pressure of the ice sequence | Open | Tie to the snow line: the pressure where water condenses at 170 K, about 1.1e-5 bar (9.2); range 1e-12 to 1e-4. C's 1e-10 bar puts water at 128 K. Rule: newest (G425 over C) for the 170 K; the link is in no source |
+| 19 | Water inside the snow line | Open, stand-in | Dry with probability 1 - p_deliv, else log-uniform 1.2e-4 to 5e-3 (Earth's water budget); p_deliv 1 with a giant outside the line, else 0.5 |
+| 20 | Envelope: f_env0 0.005 to 0.10, XUV energy-limited loss with efficiency 0.1 (v_esc/15 km/s)^-2 (bracket 0.05 to 0.2), core mass a third knob, Lopez and Fortney as the retained-envelope law | Default taken (TG-D2, GEN.509) | E_cum 3.1e16 J/m2 at S = 1 over 4.5 Gyr has no located source |
+| 21 | Giant heavy elements: Chachan 2025 mean law default, Thorngren 2016 selectable; Z at most 1 | Open | Chachan M_Z = 14.7 + 0.09 (M - 14.7) Earth masses (READ); Thorngren 57.9 (M/MJ)^0.61, 0.26 dex (READ twice); they differ 1.4 times at 318 Earth masses. Scatter: the wider, 0.26 dex (Chachan's is 0.66 x M_Z). Rule: newest for the mean, most permissive for the scatter |
+| 22 | Giant core and enriched-envelope radius | Open | Core log-uniform 5 to 20 Earth masses; Fortney tables have no enriched rows, so core-equivalent drawn between the core and M_Z (9.4) |
+| 23 | Giant radius from the Fortney 2007 table plus hot-Jupiter inflation; fallback power laws with exponent 0.589 (F7) | Default taken (GEN.460) | Interpolation rms 2 to 4, worst 11 to 20 percent. Inflation peak near 2 percent at 1500 to 1600 K; parameters not extracted |
+| 24 | Deuterium limit 13.55 - 0.9 log10(Z/Zsun) - 0.2 (Y - 0.25)/0.01 MJ; hydrogen limit 0.074 Msun; Baraffe radius table | Default taken | Spiegel 2011, Burrows 2001, Baraffe 2003 (READ); spread 0.8 MJ; solar Z only |
+| 25 | Below 1e20 kg the zero-pressure mixing rule with the Bierson and Nimmo brittle compaction law (their Eqs. 1 and 2, P in MPa); above it the solver | Law Default taken; hand-over Decided (Boss, 2:10 PM EDT, card "Move the hand-over", relayed in words): the 1e20 kg hand-over moves until the porosity jump disappears | Rule: verified (paper over the 1e6 Pa guess). At 1e20 kg the law leaves mean porosity 0.44 (computed), a 0.86 to 1.55 g/cm3 jump into a solver with none; viscous compaction (Eqs. 3 and 4, sign unchecked) is not coded. No validated solver from 1e20 kg to 0.1 Earth masses (section 12) |
+| 26 | Rock fraction of small icy bodies | Open | 0.30 to 0.82: Bierson and Nimmo constant 0.70 fits 14 of 17 KBOs within 2 sigma (Triton, Eris need more; 2002 UX25 about 0.5); the 0.08 scatter, 0.58 to 0.82 range and truncation are not in the paper (repo parameterisation); dwarf planets 0.78 +/- 0.12 (N = 7), small bodies 0.3 to 0.45 (TG T19). Rule: verified for the centre, most permissive for the range |
+| 27 | Moons use the same model; origin, ice ramp, satellite mass share belong to GEN.457 and GEN.466 | Open | Icy fraction 0.5 to 0.85; ramp from 0.4 r_ice, f_inf N(0.35, 0.10) (D 3.4.3) |
+| 28 | Planet mass once radius is not drawn first | Decided (Boss, 2:10 PM EDT, card "Staged", relayed in words) | The existing class mass ranges (`get_planet_mass_ranges`) as a flagged stand-in; physical candidate: `formation.isolation_mass_kg` at the formation distance. No source for the outcome |
+| 29 | A class is a label computed from stored fractions, mass and temperature; class ranges are outputs | Default taken | Composition model 4b; section 5 |
+| 30 | Migration: old rows get fractions by route 1 from stored mass, radius, density, which stay unchanged | Default taken (item text) | Section 8 |
+| 31 | A recalculation never redraws composition; the formation branch is stored | Default taken (F10) | Section 8 |
+| 32 | Reference oxide, K, Th and U tables | Default taken | Mantle: Palme and O'Neill 2003 Tables 3 and 4: MgO 36.77, Al2O3 4.49, SiO2 45.40, CaO 3.65, FeOt 8.10 wt percent, total 98.41 not 100 (rest: minor oxides 1.34, trace); K 260 ppm, Th 83.4 ppb, U 21.8 ppb, labelled "2003 edition". Our "2014" Th 0.0849 and U 0.0229 ppm (+1.8, +5.0 percent) cannot be confirmed and are dropped. Crust: Rudnick and Gao 2014 Table 11 matches ours exactly and wins over Palme's crust column; K = K2O x 0.8301. Their Mg/Si 1.045 and Al/Si 0.112 are mass ratios (molar 1.207, 0.117): section 3's molar thresholds use the converted values. Rule: verified |
+| 33 | Rock-forming volatile mass and later-mantle redox law (AT.a1, a2; GEN.482, GEN.498) | Open | Neither Gaillard and Scaillet 2014 nor Pahlevan et al. gives a law. Last equilibration above IW+1 (Pahlevan) against IW+0.5 (Sossi, our files); Gaillard's text FMQ-2 +/- 0.5 against its Figure 2, about FMQ-2.75 with 0.7 dex spread. The wider range is stored as a stand-in. Rule: most permissive |
+| 34 | Ice-giant volatile split (O, C, N, S in Z_env) | Open | No law; test target only. Irwin et al.: cloud-top H2S 0.4 to 0.8 ppm above the Uranus cloud (1.2 to 3 bar), column (2 to 5)e19 per cm2; deep S/N above 4.4 to 5.0 times solar; deep CH4 4 percent and He:H2 0.131 are assumed inputs; use the cloud-top mole fraction. Rule: verified |
+| 35 | Comet volatile bounds | Stand-in | Mumma and Charnley 2011 Table 4: NH3 1.5, 0.5, 0.7, under 0.3 percent of water, so our 3.6 percent bound becomes about 1.5; H2S 0.25 to 1.5; SO2 0.2 (Hale-Bopp only; 67P 0.127 in our files). No N2, O2, Ar, Kr, Xe (AT.k7 open). Rule: verified |
+
+## 3. The bulk fractions, and what is drawn from physics
+
+All are whole-body mass fractions adding to 1 (tested to 1e-9), the same set for every kind of body; a kind uses the rows its gate passes (decision 7). The shared table (GEN.427) holds every element, mineral, ice and organic the descriptions name; a body stores a mixture of its rows (DB.69, DB.70, master 14.6).
+
+| Fraction | Drawn from physics (stored inputs) | Plain seeded draw (range) |
+|---|---|---|
+| Metal core (CMF is its share of the dry part) | Host Fe/Mg, Si/Mg, Ca/Mg, Al/Mg (A's [Mg/Fe], [Si/Fe], [O/Fe], [C/Fe]) by stoichiometry (B 2.4); Hypatia means give CMF 0.2917 against 0.29 | planet-minus-star scatter, branch, w_FeO, core O and S (14, 15) |
+| Silicate mantle and crust | Oxides closed by the same stoichiometry (reference oxides, decision 32); assemblage by molar Mg/Si (thresholds 1 and 2) and C/O (carbide branch above 0.8), deterministic | none |
+| Water, x_w | Snow line, formation distance, mass floor, ice set from the formation temperature (2, 16, 17, 18) | ice-to-rock ratio N(1.0, 0.5) in 0.1 to 1.5 (Marboeuf, READ); organics factor 0.67 to 1 (C draws two values at 0.5; TG prefers a continuous fraction; Open) |
+| Other ices (CO2, CH3OH, NH3, H2S, CH4, CO, N2) | Same sequence: included when the formation temperature is below the species' condensation temperature; shares from Marboeuf Table 2 (comets: decision 35) | none |
+| Rock-forming volatiles (H, C, N, S) | Redox state, delta-IW on the one Hirschmann 2021 scale (GEN.498); atmosphere lane (GEN.451) | delta-IW about -4 to -1 plus 0.3 to 0.4 dex (G3 F8, PARAMETRISATION). Earth's inventories are under 0.1 wt percent (calibration only); no per-planet range exists (decision 33), so they stay out of the structure closure |
+| H/He envelope f_env, Y_env, Z_env | Loss from mass, flux and age (20); Y from the natal gas, Y = Y_P + 1.68 Z (A 2.4) | f_env0, efficiency, core mass |
+| Giant heavy elements M_Z | Mass law (21); Z_env = (M_Z - core)/(M - core); split among elements open (34) | scatter 0.26 dex; core 5 to 20 Earth masses |
+| Small-body porosity (not a mass fraction) | Bierson and Nimmo brittle compaction law (decision 25) | surface porosity U(0.25, 0.55) C-like, U(0.10, 0.35) S-like, U(0.5, 0.8) comets (D 3.5) |
+| Accessory compounds (rare earth, uranium, gems, aromatics) | Trace level from chemistry and a ppm threshold (master 14.6) | none |
+
+Star-side draws are made once per star and shared by its planets. Descriptions are written from the stored fractions by fixed thresholds (GEN.430), one writer for planets and belts.
+
+## 4. Mass-radius and equation-of-state model
+
+### 4.1 Reference level
+The radius is the 1 bar level (decision 3). Sources differ: Seager 0 pressure; Zeng and Sasselov, Fortney 2007 and B 1 bar; Lopez and Fortney 20 mbar; Zeng 2019 1 mbar. Solids need no correction. In Lopez and Fortney, R_core + R_env is the 100 bar radius and R_atm is about 9 scale heights up to 20 mbar (G425 2.5), so the 1 bar radius is R_core + R_env + ln(100) H (4.605 H; 1 bar to 20 mbar is ln 50 = 3.912 H), with H = kT/(mu m_u g). The temperature is a stand-in (equilibrium value, 278.3 K at 1 AU and 1 Lsun, G425 2.12); the atmosphere lane may replace it.
+
+### 4.2 The reference solver
+The one reference solver is part B's `structure`: hydrostatic balance in s = m^(1/3), fourth-order Runge-Kutta, shooting on central pressure to 1 bar at the surface. Core: one Vinet fit to hcp iron (8264.2 kg/m3, K0 157.07 GPa, K0' 5.6167; 0.3 percent over 1 to 1000 GPa). Mantle: a 19-node table from a Gibbs minimisation with SLB end-members (Part III set, decision 13) on a 1600 K adiabat, times (1 + 0.264 x_Fe). Light elements scale the core density (0.8 to 1.0); a thermal deficit 0.0525 ((T - 300)/3700)(135 GPa/P)^0.84 applies at the core-mantle pressure. Output: radius, central and core-mantle pressure, gravity, escape speed, moment of inertia. Verified: 0.20 percent in radius, 0.28 in moment of inertia, 0.93 in core-mantle pressure against a scipy reference over 90 cases; CMF reproduces Unterborn 2023 (0.2917 against 0.29); a Seager-constant run is within 1 to 4 percent of Zeng 2016's table (G425 2.7). Limits: validated 0.1 to 20 Earth masses only; core-mantle pressure for an Earth-like composition is 9 percent above PREM.
+
+C supplies the water layer (a 300 K isotherm of the ice and liquid splines to 1 TPa, Seager polytrope above) and the envelope (the Lopez and Fortney tables, 1584 rows, not Eq. 3). C's three-layer reference matches Zeng and Sasselov 2013 Table 1 within 1.5 percent for water-bearing cases (0.5 to 50 Earth masses), 2 to 3 percent large for dry silicate at 1 Earth mass. Not covered: superionic water (solid-density stand-in), steam atmospheres (Turbet 2020; needs a flag), the non-water ices at depth.
+
+### 4.3 Fast closed forms and their ranges
+| Form | Valid | Error | Role |
+|---|---|---|---|
+| B `radius_fit` (polynomial in ln M and CMF plus x_Fe and core-scale terms, B 3.8) | 0.1 to 20 Earth masses, CMF 0 to 0.8, x_Fe 0 to 0.3, scale 0.8 to 1 | max 0.40, rms 0.10 percent against `structure` (80 draws) | dry rock and iron |
+| C: R = (1.0688 - 0.2317 CMF (1 - x)) M^(1/3.7) (1 + 0.4492 x - 0.1597 x^2) | 0.3 to 20 Earth masses, CMF 0 to 0.5, x 0 to 1, cold | rms 1.2, max 3.6 percent against C's reference; -2.4 to +2.7 against Zeng and Sasselov mixtures; +6 to 7 at 30 and +17 to 20 at 100 Earth masses; dry CMF 0.5: +3 at 1, +7 at 0.3. Agrees with B to 0.1 to 0.8 percent where both apply | water-bearing bodies |
+| Lopez and Fortney Eq. 1 (R_core = M_core^0.25) and Eq. 3 | 1 to 20 Earth masses, f_env 0.01 to 20 percent, flux 0.1 to 1000, age 0.1 to 10 Gyr | against their tables mean +3.1, rms 6.3 percent at 1 Gyr (8.3 at 10), range -22 to +35; inverse f_env rms 0.106 dex | fast envelope path; tables are the reference |
+| Fortney 2007 table interpolation | 17 to 3594 Earth masses, 0.02 to 9.5 AU, 0.3 to 4.5 Gyr, core 0 to 100 | rms 2 to 4, worst 11 to 20 percent | giants |
+| 1 / sum(w_i / rho_i) times (1 - porosity) | below 1e20 kg | porosity moves density more than composition does (about 10 percent for meteorites, 65 to 79 for comets) | small bodies |
+
+Test-only forms, never sources of constants: Zeng 2016 Eq. 2 `(1.07 - 0.21 CMF) M^(1/3.7)` (1 to 8 Earth masses, CMF 0 to 0.4, within 0.01 Earth radii; PREM-calibrated); Zeng 2019 `f(x) = 1 + 0.55 x - 0.14 x^2` (2 to 4 percent); Fortney 2007 Eqs. 7 and 8; Seager Eq. 23. At CMF 0.325 these differ by 3 to 4 percent in radius and 10 to 12 in density (G425 3.2): the literature spread.
+
+**Why B and C:** their constants are cross-checked (Seager and SLB within 1 percent), their error is measured against a reference that can be rerun, they carry no Earth calibration, and they share one level. Derived: density M/(4/3 pi R^3), gravity G M/R^2, escape speed, moment of inertia, core pressure. Mass, radius and gravity are never drawn apart again.
+
+## 5. What a planet class means once composition drives it
+A class is a region of composition space plus mass and temperature; its letter is a label computed from the stored fractions. The fixed `composition` text and `density_range` go. Each class keeps a gate (mass range, water or envelope range, temperature state) in the GEN.472 format: a given class restricts which table rows pass, and an unclassed draw is classified afterwards. Class ranges are outputs: the TEST.210 sweep reports the 5th to 95th percentile of each fraction per class and nobody types them. Classes needing a mineral the star cannot make (anthracite needs C/O above 0.8; the highest among 849 stars is 0.66) will almost never occur. Letters stay as labels while GEN.90 reworks them.
+
+## 6. Moons and small bodies
+The same model and the same fractions. A moon is a `Planet` with `is_moon`; its composition comes from its origin gate (disk, impact, captured, ring, binary) and the circumplanetary ice line r_ice = 20 R_J (M_p/MJ)^(2/3) (tau/5 Myr)^(-1/3) (Sasaki 2010, untested far from 1 MJ); an impact moon takes the parent's mantle oxides from part B. Below the hand-over (1e20 kg until it is moved to remove the porosity jump, Decided by Boss at 2:10 PM EDT): mixing and the brittle compaction law (decision 25); above: the solver, same materials. Ice 920 and silicate 3500 kg/m3 are the paper's values (Bierson and Nimmo Table 1); other ices are close to water ice (N2 950, NH3 850, CO 1000, CO2 1000 to 1600, CH4 500 kg/m3). Simple mixing under-predicts Ganymede-class ice by 10 to 15 points (D 2.11), which is why the hand-over exists. Comets draw a refractory-to-ice ratio log-uniform 0.5 to 8 (Choukroun 2020), so `bulk_mass.py` takes a density from composition and porosity instead of one constant, and belts can leave a stated mass of zero (NAV.62). Taxon and comet-volatile tables are stand-ins until GEN.473 (comet bounds: decision 35).
+
+## 7. Route 2 and route 1
+**Route 2, composition first.** Fixed draw order (a reorder changes every seed, so it is an epoch change):
+1. Star abundance vector, once per star (A); snow line once per system, stored (16).
+2. Born beyond or migrant (17); formation distance and temperature; ice set (18).
+3. Water share W (2); x_w = W (1 - f_env).
+4. Dry part: planet Fe/Mg and Si/Mg from the star, branch, w_FeO, core O and S; `layers_from_bulk` gives CMF, x_Fe, core density factor, oxides.
+5. Mass (28); envelope f_env0 and loss (20); for giants M_Z and core (21, 22).
+6. Derive radius (closed form, or solver outside its range or for an edit), then density, gravity, escape speed, moment of inertia, core and water-base pressure (GEN.461). Store fractions, formation branch and flags; derive the rest.
+
+**Route 1, the inverse** (edited, imported or old mass, radius, density), with an honest range:
+- Rock and iron (B `route1`): reject if the radius is outside the dry limits for that mass and hand to C. Else 200 draws of w_FeO U(0, 0.20) and core factor U(0.8, 1.0), invert `radius_fit` for CMF, store the median and 16 to 84 percent range and draw the stored value from the sample. (M, R) fix total iron to about 0.01 but CMF only to plus or minus 0.1.
+- Water: root-find x_w in the closed form (monotone); a root above 1 sends the body to the envelope branch. Envelope: the Lopez and Fortney inverse (rms 0.106 dex).
+- Giants: M_Z from the law, capped at M, then C 3.2's table check; ice giants f_env log-uniform 0.05 to 0.20 (Helled and Fortney).
+- Small bodies: f_ice from density, rock analogue and porosity (D 3.3); porosity is degenerate with ice (9.5).
+Nuisance draws use a stream from the body's id and a fixed label, so a row always gives the same answer. Stored: `drawn` or `inverse`, and the range.
+
+## 8. Migration, the generator epoch, findings F3 and F10
+**Migration.** Old rows have no fractions. Each is worked back by route 1 from its stored mass, radius and density, which are not touched, so nothing visible changes. Rows route 1 cannot fit are flagged and kept: a rocky density on a class D body gives rock and metal and no ice (F3); a giant radius outside the table is kept. Inverse fractions are labelled `inverse`. Whether old galaxies are rebuilt under the new epoch is outside this note.
+
+**Generator epoch.** This design changes nothing. GEN.428 (fractions drawn), GEN.429 (derived density, mass, radius, gravity), GEN.430 (text from fractions) and DB.69 (storage) change what a seed generates and bump the epoch (OPS.56, `util/generator_epoch.py`) once, in 8.4 phase 1, in one change with the GEN.472 table versions (a changed weight is a version change). GEN.458, GEN.459 and GEN.460 are also 8.4 phase 1 and can join the same bump. GEN.427 is a data table in 8.1 phase 2 (composition-model.md section 3) with no behaviour change, so it bumps nothing by itself (Decided by Boss at 2:10 PM EDT, card "Data table, no bump"). Galaxies stored under an older epoch keep the release that rebuilds them.
+
+**F3 as a requirement.** Class D must not draw a rocky density. A new ice-rich body takes its density from the mixing rule and compaction, reaching the real icy range of about 1 to 2.5 g/cm3 (KBOs 0.5 to 3). Test: bulk density under 3 g/cm3 whenever the rock fraction is under 0.9 (D 3.7); with the paper's 3500 kg/m3 silicate, 3.93 g/cm3 needs an ice fraction of -0.04 even at zero porosity (-0.16 with a 2.71 g/cm3 grain).
+
+**F10 as a requirement.** A recalculation after orbit validation or a zone change must not redraw composition. Fractions, formation branch (`born_beyond_snow_line`, C 3.1), formation temperature and snow line are stored at generation; the recalculation derives radius, density, gravity, temperature and class label from them and the new orbit, consuming no random numbers. A body whose label changes keeps its fractions. Test: run validation twice and move the body across the snow line; fractions and derived values are identical. This is GEN.422's counterpart for the body.
+
+## 9. Worked examples
+Run in this session with B 3.8's Python (verbatim) and the formulas named. Constants: G 6.6743e-11, Earth mass 5.9722e24 kg, Earth radius 6371 km (B), Jupiter mass 1.8981e27 kg (repo), R_J 71492 km (D 2.8), molar masses H2 2.016 and He 4.0026 (atmosphere parts 09 and 01). Draws are chosen values inside the stated ranges, not presets. Host: 0.6 Lsun, 0.85 Msun, [Fe/H] bin -0.3 to 0, median molar Fe/Mg 0.689 and Si/Mg 0.840 (B 3.3, from A 2.8), Ca/Mg 0.07, Al/Mg 0.09 (B 3.9).
+
+### 9.1 Rocky planet, 2.5 Earth masses
+Draws: star-matched branch, w_FeO 0.077, core O 0.03, S 0.02, core 4000 K. `layers_from_bulk`: CMF 0.2551 (0.2793 without FeO and light elements), x_Fe 0.1002; total iron 27.6 wt percent. `structure`: **R 1.3085 Earth radii, density 6.153 g/cm3, g 14.34 m/s2 (1.46 of 9.80665), escape speed 15.46 km/s**, moment of inertia 0.3318, core-mantle pressure 344 GPa, core radius 4080 km. `radius_fit` 1.3090 (+0.04 percent). Dry limits at this mass: 0.982 (iron) to 1.3945 (coreless). Route 1 from (M, R): CMF median 0.231, 16 to 84 percent 0.168 to 0.270 (true 0.255). Mantle oxides of this draw, wt percent: MgO 38.8, SiO2 45.3, FeO 7.7, CaO 3.8, Al2O3 4.4; Palme and O'Neill 2003 Table 3 divided by its 98.41 total gives 37.4, 46.1, 8.2, 3.7, 4.6 (a comparison, not a target: star and branch differ).
+
+### 9.2 Water world, 5 Earth masses
+Snow line: 2.7 sqrt(0.6) = 2.091 AU, drawn at +0.5 sigma of 0.2 dex: 2.633 AU. Mass floor 3 (0.85)^0.48 = 2.78, passed. Formed at 150 K (T = 170 K sqrt(r_snow/r)), so r = 1.284 r_snow = 3.38 AU. Water condenses at 170 K at log10 P = -4.972 (interpolating C's 1e-6 and 1e-4 bar columns), 1.07e-5 bar; there H2O 170.0, CH3OH 141.9, NH3 99.7, CO2 87.0 K. At 150 K only water is condensed. W = m_H2O/(m_set + 25.0/r_ir) = 10.72/(10.72 + 25.0) = **0.300** at r_ir = 1; across r_ir 0.5 to 1.5 the range is 0.14 to 0.39 as in C. Dry part CMF 0.2455 (same star, w_FeO 0.077, no O or S). Closed form: **R 1.781 Earth radii (error up to 3.6 percent: 1.72 to 1.85), density 4.878 g/cm3, g 15.48 m/s2, escape speed 18.74 km/s**. Against C's grid at CMF 0.325 and x 0.1, 0.2, 0.5 the form is -1.7, -3.3, -0.4 percent. Route 1 returns x = 0.300 (the form inverts itself). Water-base pressure lies between C's 114 GPa (x 0.2) and 205 GPa (x 0.5); g x M/(4 pi R^2) gives 86 GPa and is too low (C: 20 percent low at x 0.1), so the hydrosphere needs the solver (GEN.461).
+
+### 9.3 Sub-Neptune, 6 Earth masses
+Dry core (not a migrant, no delivery); flux S = 0.6/0.25^2 = 9.6, age 4.5 Gyr, f_env0 0.04. Loss: core escape speed 21.1 km/s, efficiency 0.1 (21.1/15)^-2 = 0.0504, f_lost = eta pi R^3 E_cum S/(G M^2) = 0.0006, so f_env **0.0394**, core 5.764 Earth masses. Core radius 1.616 (B fit; Lopez and Fortney Eq. 1 gives 1.549); R_env = 2.06 M^-0.21 (f/5%)^0.59 S^0.044 (age/5)^-0.18 = 1.383; R(100 bar) = 2.999. Scale height: T 489.9 K, mean molar mass 2.331 g/mol (Y 0.272), g 5.7 m/s2, H 308 km, ln 100 H = 0.2225 Earth radii. **R(1 bar) 3.222 Earth radii, density 0.989 g/cm3, g 5.68 m/s2.** Route 1 gives f_env 0.0427 (+8.5 percent, inside 0.106 dex). All inputs lie in the Lopez and Fortney domain.
+
+### 9.4 Gas giant, 1 Jupiter mass (317.8 Earth masses)
+Flux 1 Earth (T_eq about 260 K), age 4.5 Gyr, host [Fe/H] 0.0 thin (Y 0.2720, A 2.5). Draws: scatter 0 (the mean law), core 10 Earth masses (middle of log-uniform 5 to 20). Chachan: M_Z = 14.7 + 0.09 (317.8 - 14.7) = **42.0 Earth masses** (Thorngren median 57.9), Z 0.132, Z_env (42.0 - 10)/(317.8 - 10) = 0.104, Y_env 0.272. Fortney rows for 1 MJ (C 2.6): core 10 gives 1.058 R_J, core equal to M_Z about 0.989; the core-equivalent drawn midway (26) gives **1.023 R_J = 73,172 km, density 1.157 g/cm3, g 23.7 m/s2**. The repo power law gives 0.999 R_J and 1.244 g/cm3.
+
+### 9.5 Small icy body, radius 200 km
+Draws: rock fraction 0.55 by mass; silicate 3500 and ice 920 kg/m3, surface porosity 0.60, ice floor 0.20, phi_i = max(0.60 exp(-0.1 P), 0.20), phi_s = min(0.6 P^-0.11, 0.6), P in MPa, layer porosity mixed by volume (Bierson and Nimmo Table 1 and Eqs. 1 and 2, verified; the earlier 1e6 Pa guess is dropped). Non-porous grain density 1/(0.45/920 + 0.55/3500) = 1.547 g/cm3. Iterating pressure and density on 1500 shells: central pressure 3.08 MPa, mean porosity 0.550, **bulk density 0.697 g/cm3, mass 2.34e19 kg, g 0.0390 m/s2, escape speed 125 m/s** (with a 2.71 g/cm3 silicate: 0.635 g/cm3). This is the brittle law only: the paper says viscous compaction decides density above about 200 to 500 km radius and its model is a lower bound. D 2.10's mean porosity 0.126 and density 1.26 g/cm3 at 200 km are replaced (paper wins). Mass is 0.23 of the 1e20 kg hand-over. Check: at 50 km and 70 percent rock the same code gives 0.77 g/cm3 against the paper's MU69 about 750, which is its initial-porosity case (760). Route 1 from 0.697 g/cm3: f_ice 0.45 at porosity 0.55 (the true value), 0.90 at 0.3, 1.43 at 0 (impossible), so porosity must be stored. The existing class D draw (3.93 to 5.51 g/cm3) is 5.6 to 7.9 times this density and 3.93 would need an ice fraction of -0.04 at porosity 0 (F3).
+
+## 10. Test targets
+**Invariants (TEST.210, master section 11).** (1) Fractions sum to 1; oxides sum to 1 (a match to Palme's table needs the 1.59 percent minor-oxide bin). (2) Composition to radius and back returns the composition inside the stated uncertainty; radius is monotone in mass, rises with x_w, falls with CMF. (3) Stored density equals mass over volume of the stored radius; gravity equals G M/R^2. (4) CMF of a star-matched planet equals the stoichiometric value within the scatter. (5) `radius_fit` is within 0.5 percent of `structure` on a fixed grid. (6) Z at most 1, M_Z at most M; median M_Z at 1 MJ within 15 percent of the law. (7) Snow-line median 1.00 +/- 0.05 of 2.7 sqrt(L). (8) A body born inside the line with no giant has x_w at most 5e-3. (10) Ice porosity at its 0.20 floor above about 11 MPa; hand-over at the stated mass; bulk density under 3 g/cm3 when rock is under 0.9 (F3). (11) Same seed, same fractions; a recalculation changes none (F10). (12) Class ranges reported, not typed.
+
+**Targets, never presets.** Each is met for some draw inside the allowed distributions, not for one draw, and lives in test files only (TEST.215).
+
+| Target | Tolerance | Source |
+|---|---|---|
+| Earth-like dry planet, CMF 0.325, 1 Earth mass: 1.00 Earth radii (route 2 with 8 wt percent FeO gives 0.9993, moment of inertia 0.3302 against 0.3308) | 1.6 percent | B 4, C 4 |
+| Pure water at 1 Earth mass 1.401 integrated (form 1.378, Zeng 1.41); 50 and 75 percent water, 0.3 to 10 Earth masses | 3 percent of Zeng and Sasselov Table 1 | C 4 |
+| Mercury-like CMF 0.77, Mars-like 0.18, Moon-like 0.046 | reachable | B 4 |
+| M-dwarf water-world relative density 0.47 +/- 0.05, radius 1.97 +/- 0.28 (50 percent water gives 0.54) | bracket | C 4 |
+| Ice giants envelope 0.10 to 0.20, Z 0.75 to 0.92; Jupiter-class radius 0.98 to 1.08 R_J at 4.5 Gyr; deuterium limit 13 +/- 0.8 MJ | as listed | C 4 |
+| Uranus-class ice giant: cloud-top H2S 0.4 to 0.8 ppm, deep S/N at least 4.4 to 5.0 times solar | inside range, lower bound | Irwin (papers 2.12) |
+| Earth-like primitive mantle: MgO 36.77, Al2O3 4.49, SiO2 45.40, CaO 3.65, FeOt 8.10 wt percent (total 98.41), Mg# 0.890; crust Rudnick and Gao Table 11 | within the paper's 1 sigma, or the star-matched spread | papers 2.8 |
+| Ordinary chondrite bulk 3.42, 3.36, 3.22 g/cm3 | 0.2 | D 4 |
+| 67P 537.8 kg/m3; mean TNO 0.77 and comet 0.47 g/cm3 | 100 kg/m3; 0.3 | D 4 |
+| KBO rock fraction 0.70 matches 14 of 17 densities within 2 sigma; Makemake and 2007 OR10 near or below Pluto (about 1800), MU69 about 750 kg/m3 | draws reach them; fraction counted, not typed | Bierson and Nimmo (papers 2.10) |
+| Comet NH3 up to 1.5 percent of water, H2S 0.25 to 1.5, SO2 0.2 | inside the draw | Mumma and Charnley (papers 2.6) |
+| Galilean densities 3.53, 3.01, 1.94, 1.83 g/cm3; ice order Io, Europa, Ganymede, Callisto | 0.3 (Ganymede needs the solver); order exact | D 4 |
+
+## 11. Source conflicts and the rule that decided each
+Rules (Boss, 12:39 PM EDT): 1 verified wins; 2 two verified sources in doubt, the newest wins; 3 both in question, "most permission take wins", which Boss confirmed at 1:12 PM EDT means the widest value or range (Decided; composition-model.md section 4a item 12).
+
+| # | Conflict | Taken | Rule |
+|---|---|---|---|
+| 1 | Snow line 170 K (G425 2.12) against C 2.1's ice sequence at 1e-10 bar (water at 128 K) | 170 K; pressure tied to it (18) | newest (G425 checks C) |
+| 2 | C 2.2's printed water fractions 0.304, 0.294, 0.245, 0.241 against its formula 0.278, 0.273, 0.241, 0.239 (endpoints agree) | formula | verified (arithmetic) |
+| 3 | D 3.2 "500 and 1000 km" against its pressures (178 and 242 km for a uniform sphere, computed) | pressures; master 1e20 kg | verified |
+| 4 | Rock fraction: master T19 0.58 to 0.82; TG 0.74 to 0.82 and 0.3 to 0.45; Bierson and Nimmo 0.70, no range | centre 0.70; draw 0.30 to 0.82 (26) | verified, most permissive |
+| 5 | Giant M_Z: Thorngren 2016 against Chachan 2025, both read | Chachan mean, Thorngren selectable, scatter 0.26 dex (21) | newest, most permissive |
+| 6 | Route: B and C route 2, D route 1 | route 2 (1) | Boss's decision |
+| 7 | Repo giant radius exponent 0.519 against Chen and Kipping 0.589 (F7, GEN.460) | 0.589 | verified |
+| 8 | Epoch scope: GEN.427 a data table or part of the bump with GEN.428 to GEN.430 | composition-model.md | Decided (Boss, 2:10 PM EDT, card "Data table, no bump", relayed in words): GEN.427 is a table in 8.1 phase 2 and bumps nothing; the one bump is GEN.428 to GEN.430 plus DB.69 in 8.4 phase 1 |
+| 9 | Mantle table: our Part III set against Part II Table A1 | A1 where it applies, table rebuilt in GEN.425 (13) | verified |
+| 10 | Palme and O'Neill "2014" Th 0.0849, U 0.0229 ppm against the 2003 edition 83.4 and 21.8 ppb | 2003, labelled (32) | verified |
+| 11 | Palme's crust column against Rudnick and Gao | Rudnick and Gao | verified (dedicated source) |
+| 12 | Ice compaction reference 1e6 Pa and D 2.10 porosity 0.126 against the paper's 10 MPa law and 0.55 | paper (25) | verified |
+| 13 | Comet NH3 bound 3.6 percent against about 1.5 | 1.5 (35) | verified |
+| 14 | Redox: Pahlevan above IW+1 against Sossi IW+0.5; Gaillard text FMQ-2 against its Figure 2 | wider range stored (33) | most permissive |
+| 15 | Water share 0.14 to 0.39 (read) against about 0.5 (Lodders 2003, unread) | 0.14 to 0.39; 0.5 selectable (2) | verified |
+| 16 | Fortney 2007 warm ice against Journaux, French and Seager | newer set (12) | verified, newest |
+
+Printing faults to check before coding: Bierson and Nimmo Eq. 3 prints a positive sign (porosity would grow) with a stray note "error in equation 2b"; Gaillard's quoted source fO2 (FMQ-1.7, -1.5, -1.4); Pahlevan Figure 5 axis against Figure 2.
+
+## 12. Gaps
+1. **No validated solver from 1e20 kg to 0.1 Earth masses.** B covers 0.1 to 20, C's form 0.3 to 20 (5 to 8 percent large at 0.1); Ganymede-class moons (0.025 Earth masses) and dwarf planets sit in the gap. The solver may run there, flagged extrapolated until the Galilean targets pass.
+2. **Hand-over continuity** (decision 25): the brittle law leaves 0.44 mean porosity at 1e20 kg, the solver none. Decided (Boss, 2:10 PM EDT, card "Move the hand-over", relayed in words): shift the hand-over until the jump (0.86 to 1.55 g/cm3) disappears, with a Galilean-class solver test before the range is called validated; viscous compaction can replace it later once the Eq. 3 sign check passes.
+3. **Missing papers:** Stixrude and Lithgow-Bertelloni Parts I and III, Palme and O'Neill 2014, Lodders 2003, Fray and Schmitt (ice densities), Hirschmann 2012 and Gaillard 2021/2022 (redox).
+4. **In no source:** non-water ice EOS at depth; per-planet H, C, N inventories; hot-Jupiter inflation parameters; enriched-envelope radii; rocky-planet mass distribution; the pressure link of decision 18; N2, O2, Ar, Kr, Xe in comets.
+
+## For Boss to approve
+Decided items are not repeated. Each ruling has a recommendation.
+1. **Decisions 9, 10, 11 (one reference solver; closed forms at generation).** Approve: 4 microseconds against 0.09 s per body, measured error 0.4 to 3.6 percent, the solver stays the authority for tests and edits.
+2. **Decisions 12 and 13 (newer water EOS; SLB constants).** Approve, with GEN.425 rebuilding the mantle table from Part II Table A1 where it applies and the licence check (GEN.500) before data is committed.
+3. **Decision 2 setting (Marboeuf-derived default).** Keep it until GEN.468 reads Lodders 2003; the switch costs nothing.
+4. **Decision 18 (ice sequence tied to the snow-line temperature).** Approve: otherwise a body formed at 150 K gets no ice where the snow line says there is ice.
+5. **Decisions 21 and 22 (Chachan default, Thorngren switch; enriched-envelope bracket).** Approve: both are read, the newer is the default by your rule, and the harness (GEN.503) can compare them with published giants.
+6. **Decisions 25 and 26 (compaction law and hand-over; rock fraction 0.30 to 0.82).** Approve the paper's law. The hand-over is Decided (Boss, 2:10 PM EDT, card "Move the hand-over", relayed in words): move it until the porosity jump (0.86 to 1.55 g/cm3) disappears; viscous compaction can replace it later once the Eq. 3 sign check passes. Add a Galilean-class solver test before the 1e20 kg to 0.1 Earth mass range is called validated.
+7. **Decision 28 (planet mass without a drawn radius).** Use the existing class mass ranges as a flagged stand-in at first, then the isolation mass at the formation distance once GEN.509 can tune it. Decided by Boss at 2:10 PM EDT by card ("Staged", relayed in words): the class mass ranges first as a flagged stand-in, then the isolation mass (`formation.isolation_mass_kg`) once GEN.509 can tune it. This is the one place the design still leans on class ranges, until GEN.509 lands.
+8. **Decision 30 (migration keeps stored mass, radius, density).** Approve: no visible change, legacy class D rows flagged.
+9. **Decisions 14, 15, 19 (seeded ranges for the iron branch, FeO, delivered water).** Approve as flagged ranges until GEN.510 and the harness replace them.
+10. **The epoch.** Decided (Boss, 2:10 PM EDT, card "Data table, no bump"): GEN.427 bumps nothing; one bump for GEN.428 to GEN.430 and DB.69 together in 8.4 phase 1, with the GEN.472 table versions (section 8).
+11. **Decisions 32 to 35 (reference tables; redox, ice-giant and comet stand-ins).** Approve: 32 and 35 follow the papers; 33 and 34 stay open.
+12. **The conflict rules (section 11).** The widest-range reading is Decided (Boss, 1:12 PM EDT) and recorded in composition-model.md section 4a item 12; the third rule decided only rows 4, 5 (scatter) and 14.

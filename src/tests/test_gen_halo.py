@@ -146,7 +146,7 @@ def test_the_halo_does_not_widen_the_outline():
     # The outline reads the disk and bulge only (`skeleton._bound_raw_density_at`), and the halo is under 0.3% of the
     # one-star threshold where it ends. Calibrating the Sun to 1.0 with the halo in lowers `k_norm` by 0.2%, so the
     # default galaxy's edge moves in by two shells (3,764 to 3,762) and its band total by 0.05%; nothing moves out.
-    extents, outer, _confirmed = build_shell_extents(mathcheck._default_galaxy_shape(), EDGE_PC, 1.0 / E_VALUE)
+    extents, outer, _confirmed = build_shell_extents(mathcheck._reference_galaxy_shape(), EDGE_PC, 1.0 / E_VALUE)
     assert outer == 3762
     assert len(extents) == 3763
     assert sum(high for _shell, high in extents) == 1618941   # +2 bands from the nuclear disc's bound (GEN.280)

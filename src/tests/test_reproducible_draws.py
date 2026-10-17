@@ -279,3 +279,12 @@ def test_a_sector_does_not_depend_on_hash_seed_or_locale():
     names = [locales[0], locales[-1]] if locales else ["C"]
     digests = {(seed, name): _probe(seed, name) for seed in (0, 1) for name in dict.fromkeys(names)}
     assert len(set(digests.values())) == 1, digests
+
+
+def test_gamma_and_dirichlet_are_pinned():
+    """The gamma draw (Marsaglia and Tsang) and the Dirichlet built on it, from `random()` and `gauss` alone: a change
+    here changes every drawn composition (GEN.472)."""
+    assert draw.Stream(12345).gamma(2.5) == pytest.approx(4.077514929171999, rel=1e-14)
+    assert draw.Stream(12345).gamma(0.5) == pytest.approx(0.42145988346233904, rel=1e-14)
+    assert draw.Stream(12345).dirichlet([0.5, 2.5, 7.0]) == pytest.approx(
+        [0.038555006928356686, 0.2464048638057911, 0.7150401292658523], rel=1e-14)

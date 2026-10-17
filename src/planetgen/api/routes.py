@@ -34,7 +34,7 @@ from flask import Blueprint, current_app, g, jsonify, request, url_for
 
 from planetgen.web.maps.systemscene import build_scene
 from planetgen.generation import run_galaxy
-from planetgen.queue import api_jobs
+from planetgen.queue import api_jobs, pagejobs
 from planetgen.util import draw
 
 from planetgen.db.shell_specs import galaxy_shell_specs
@@ -93,6 +93,7 @@ from planetgen.db.query import (
     system_detail as query_system_detail,
 )
 from planetgen.db import near as near_search
+from planetgen.db import stats as dbStats
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits
 from planetgen import tuning
@@ -1718,6 +1719,48 @@ def job_status_route(job_id):
         raise ApiError(f"no such job: {job_id}", status_code=404)
     made = job.pop("made")
     job["made_url"] = url_for("web.galaxy", made=f"{made['since']},{made['until']}") if made else None
+    return jsonify(job)
+
+
+@bp.route("/table-estimates")
+def table_estimates_route():
+    """`GET /api/table-estimates` -- `{"tables": {name: rows}}`, the database's own estimate (from
+    `information_schema`, instant and within some tens of percent) of every table's row count. The web pages read it
+    once a minute to decide which requests are slow (PERF.105, `web/lib/slowpages.py`)."""
+    conn = get_db()
+    return jsonify({"tables": {row["name"]: row["approx_rows"] for row in dbStats.table_stats(conn)}})
+
+
+@bp.route("/page-jobs/<job_id>")
+def page_job_status_route(job_id):
+    """`GET /api/page-jobs/<id>` -- where the job building a slow page's answer stands (PERF.105): `state`
+    (`queued`, `running`, `succeeded`, `failed` or `cancelled`), `done` of `total` rows (an estimate: `estimated`
+    is true), `unit`, `eta_seconds`, `seconds`, `error`, `cancelling`, `cache_key` and `target`. Public, like the
+    pages it serves; it names only page jobs, never the admin's other jobs. 404 for an unknown or expired id
+    (a job is kept an hour); 503 without Redis."""
+    try:
+        job = pagejobs.status(job_id)
+    except pagejobs.NoQueue as exc:
+        raise ApiError(str(exc), status_code=503)
+    if job is None:
+        raise ApiError(f"no such page job: {job_id}", status_code=404)
+    return jsonify(job)
+
+
+@bp.route("/page-jobs/<job_id>/cancel", methods=["POST"])
+@limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
+def page_job_cancel_route(job_id):
+    """`POST /api/page-jobs/<id>/cancel` -- admin only: stops the job building a slow page's answer if it has not
+    started its query (a query already running finishes, and its answer is kept in the cache); answers `GET`'s body.
+    Every visitor waiting on the same request shares the job, so a visitor's own "Cancel" only stops that page
+    waiting (it stops polling) and the job goes on for the others. 404 and 503 as `GET`."""
+    try:
+        job = pagejobs.cancel(job_id)
+    except pagejobs.NoQueue as exc:
+        raise ApiError(str(exc), status_code=503)
+    if job is None:
+        raise ApiError(f"no such page job: {job_id}", status_code=404)
     return jsonify(job)
 
 

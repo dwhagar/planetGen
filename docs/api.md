@@ -1638,6 +1638,23 @@ means no Redis server answered.
   its error text once it failed. `404` for an unknown or expired id
   (results are kept for a day), `503` when no Redis server answers.
 
+### Slow page answers (PERF.105)
+
+A page whose answer is slow to build does not build it in the request: it queues one job that stores the answer in the
+page cache and polls these routes (design in [slow-page-answers.md](design/slow-page-answers.md)).
+
+- `GET /api/table-estimates?db=` — `{"tables": {name: rows}}`, the database's own estimate (from `information_schema`;
+  instant, within some tens of percent) of every table's row count. The pages read it about once a minute to tell which
+  requests are slow.
+- `GET /api/page-jobs/<id>` — `{"id", "state", "done", "total", "unit", "estimated", "eta_seconds", "seconds",
+  "cancelling", "error", "cache_key", "target"}`. `state` is `queued`, `running`, `succeeded`, `failed` or `cancelled`.
+  `done` of `total` are rows and an estimate (`estimated` is always `true`): the share of the expected time that has
+  passed, never past 95 % before `succeeded`; `eta_seconds` is the time left, `null` when it is past the expected time
+  or unknown. `cache_key` is where the finished answer is stored and `target` the request it builds. Public, like the
+  pages it serves, and only for page jobs. `404` for an unknown or expired id (kept an hour), `503` without Redis.
+- `POST /api/page-jobs/<id>/cancel` (admin) — stops the job if its query has not started, and answers the `GET` body. A
+  query already running finishes and its answer is kept. Every visitor waiting on the request shares the job.
+
 ## Rate limiting
 
 Every route is rate-limited per client IP via

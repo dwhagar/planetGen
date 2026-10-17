@@ -438,12 +438,16 @@ debug log, and a Generate page job's log starts with the same line for
 the job before its first step. Design:
 [`design/reproducible-galaxies.md`](design/reproducible-galaxies.md).
 
-`planetgen plan` takes the shape of the galaxy as options, each with the
-real Milky Way's value as its default: `--disk-scale-length-pc` (2600) and
-`--disk-scale-height-pc` (300) for the thin disk, `--bulge-scale-radius-pc`
-(1580) and `--bulge-amplitude` (3.11) for the bar bulge, `--arm-count` (2),
-`--pitch-angle-deg` (15), `--arm-density` (1.4) and `--interarm-density`
-(0.6) for the spiral arms, `--nuclear-amplitude` (1: the observed nuclear star
+`planetgen plan` draws the shape of the galaxy from its seed (GEN.401), and each part can be
+set as an option: `--disk-scale-length-pc` and `--disk-scale-height-pc` for the thin disk,
+`--bulge-scale-radius-pc` and `--bulge-amplitude` for the bar bulge, `--arm-count` and
+`--pitch-angle-deg` for the spiral arms. An option left out is drawn: the galaxy's stellar mass
+comes from the seed (`galaxy/mass_chain.py`), the disk length from the size-mass relation of
+late-type galaxies, the height from the length, the bulge's share and size from the galaxy's
+stage and the arm count and pitch angle from the arm statistics
+([`design/intergalactic-and-halo-contents.md`](design/intergalactic-and-halo-contents.md),
+section 5.13, rows 4 to 6). The plan prints what was drawn. `--arm-density` (1.4) and
+`--interarm-density` (0.6) set the arms' contrast, `--nuclear-amplitude` (1: the nuclear star
 cluster and nuclear stellar disc at the centre, scaled to the bulge; 0 is none) and
 `--calibration-radius-pc` (the Sun's radius, 3.15 times the disk scale length)
 for where relative density 1.0 sits. `--max-shell` caps how far out the

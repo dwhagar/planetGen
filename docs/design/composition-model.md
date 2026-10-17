@@ -1,6 +1,6 @@
 # The composition model: what every body, star and atmosphere is made of
 
-**Status (2026-10-17):** plan; nothing is built. This is the master note of Boss's directive (2026-10-16, 11:58 PM EDT). It joins [atmosphere-colour.md](atmosphere-colour.md) (the atmosphere and the colour), the bulk composition of section 5 of that note, and the new stellar and radiation parts. GEN.437 turns it into the checked design once the research lanes and the four designs below are done. Every section the research lanes write goes into the design documents named here.
+**Status (2026-10-17):** checked design for Boss's approval (GEN.437, with the notes GEN.409, GEN.426, GEN.435 and GEN.436). The loader of section 4b is built (GEN.472, #2061); the tables, the draws and the derived values are not. This is the master note of Boss's directive (2026-10-16, 11:58 PM EDT). It joins [atmosphere-colour.md](atmosphere-colour.md) (the atmosphere and the colour), [bulk-composition.md](bulk-composition.md) (the bulk of every body), [stellar-composition.md](stellar-composition.md) (the stars and remnants) and [radiation-model.md](radiation-model.md) (the radiation); section 7 joins the four. Every section the research lanes write goes into the design documents named here.
 
 ## 1. What Boss decided
 
@@ -184,7 +184,7 @@ Each lane writes its draft to /mnt/project-files/design-drafts/ and reports; the
 9. 1:51 AM EDT, "Yes" on "Are table weights the odds of picking a possibility, fractions normalised separately?": the weights of the gated rows are the odds of picking a possibility, the fractions or partial pressures inside the drawn row are normalised separately by the item that owns them, and both sums are tested (GEN.472, TEST.214).
 10. 3:02 AM EDT, Boss's standing rule (typed in the project chat, relayed by the coordinator): everything verified and partially verified is usable as long as it is not contradictory; if a contradiction occurs the verified source wins. A partly verified value ships in a table as sourced with its stated limit (the validity window or caveat the check named) unless a verified source contradicts it; a contradicted or unsupported value does not ship; where two sources disagree the one that was verified is used.
 11. 3:36 AM EDT, defaults of the Tunable gaps investigation ([tunable-gaps.md](tunable-gaps.md) section 6, the coordinator's relay; they stand as Decided unless Boss overrules them): D1 the water-rich share is a switch with the NGPPS logistic as the model default and the flagged bracket 0 to 0.87 (GEN.510); D2 the envelope loss is XUV energy-limited with variable efficiency, a core-mass distribution as a third knob and Lopez and Fortney 2014 as the retained-envelope radius law (GEN.509); D3 the white-dwarf delta-IW is the core-formation scale and the magma-ocean rows the surface scale, with a conversion test (GEN.498, GEN.513); D4 the life-linked gases are flagged design brackets, default off, never tuned (GEN.525); D5 Kzz and haze yield are nuisance parameters with the Brande scatter as prior, the LU[1e7, 1e11] Kzz draw replaced by a Teq threshold (GEN.519); D6 the comets take the Solar System population as the within-system shape plus a per-system offset knob bracketed by the two interstellar objects (GEN.520). The unsourced weights are seeded draws tuned to published populations through one harness (GEN.503, builders GEN.509 to GEN.525); the rows that no public data set defines stay labelled brackets.
-12. 12:39 PM EDT, Boss's general rules (typed in the project chat at 12:39 PM EDT on 2026-10-17, relayed by the coordinator): when in doubt, verified wins; when two verified sources are in doubt, the newest wins; when two sources are both in question, the one that takes the most permission wins (Boss's words are 'most permission take wins'; the coordinator read this as the most permissive, widest value, and Boss has not confirmed that reading, so it is applied only as the widest bracket until he does). Boss answered a card at 12:40 PM EDT (relayed in words): his six earlier 'widen and keep both' answers stand (arm pitch against bulge fraction, nuclear cluster mass slope, blue to red cluster radius ratio, thick-to-thin height ratio, thick-to-thin mass ratio against Vc, cluster system radius), and the newest-wins rule applies to every conflict that comes after them. This extends item 10: it settles what item 10 left open when two verified sources disagree.
+12. 12:39 PM EDT, Boss's general rules (typed in the project chat at 12:39 PM EDT on 2026-10-17, relayed by the coordinator): when in doubt, verified wins; when two verified sources are in doubt, the newest wins; when two sources are both in question, the one that takes the most permission wins (his words are 'most permission take wins'; Boss confirmed by card at 1:12 PM EDT on 2026-10-17, relayed in words by the coordinator, that it means the widest range of the two sources). Boss answered a card at 12:40 PM EDT (relayed in words): his six earlier 'widen and keep both' answers stand (arm pitch against bulge fraction, nuclear cluster mass slope, blue to red cluster radius ratio, thick-to-thin height ratio, thick-to-thin mass ratio against Vc, cluster system radius), and the newest-wins rule applies to every conflict that comes after them. This extends item 10: it settles what item 10 left open when two verified sources disagree.
 
 ## 4b. The gated possibility table (Boss, 2026-10-17, 1:40 AM EDT)
 
@@ -221,6 +221,15 @@ Boss (typed in the project chat): for each composition there is a list of possib
 
 **Where it applies:** the gas table (GEN.410, gate and source columns), the material table (GEN.427), the star abundance rows (GEN.439, GEN.440), the bulk recipes (GEN.428), the atmosphere recipes (GEN.411, GEN.454 to GEN.456), the small-body and moon tables (GEN.442, GEN.457, GEN.466) and the surface rows (GEN.441). Where an item is derived and not drawn (GEN.412, GEN.458 to GEN.462, GEN.464) it has no table and takes the drawn row or the weight arguments of the tables above. The element table (GEN.438) is a constants table with no weights.
 
+### As built (GEN.472)
+
+- **Where.** `planetgen/generation/possibility_table.py`: `Row`, `Table`, `Registry` (the module's `REGISTRY` is the generator's), `Subject`, `Condition`. The Dirichlet draw is `draw.dirichlet` (and `draw.gamma`) in `util/draw.py`, so it is built on the one random wrapper.
+- **The gate evaluator.** A row passes when the subject's class is in its `classes` (or the row says `ANY_CLASS`) and every `Condition` holds. A condition reads one stored quantity of the subject (`minimum`, `maximum` or `equals`, a bound inclusive) and a quantity the subject lacks is an error, never a pass. The condition predicates of section 14.6 (the condensation temperature at the formation distance, the oxidation state, the water and carbon inventory, the star's abundances) are conditions on those stored or derived quantities, so no table needs class letters.
+- **Open weights.** The sourced weights of the rows that pass are probabilities and the open rows of that gate share what is left over equally; with only open rows they share all of it. If the sourced weights already use up the whole, an open row gets nothing and stays in the report; if they add up to more than 1 while an open row passes, the draw is refused.
+- **Fractions.** A row with `fractions` and no `concentration` gives them directly (scaled to 1); with a `concentration` they are a Dirichlet draw around them (`concentration_from_spread(mean, sd)` gives the concentration for a known spread). Component names are rows of the one shared table (`SHARED_COMPONENTS`, "materials", GEN.427): a table with fractions must name it, and `Registry.validate` refuses a component that table does not hold, so no kind has a list of its own.
+- **Versions.** `Table.digest` hashes the version, every row's name, gate, weight (a function by its qualified name), state and fractions; `Registry.versions` lists `(version, digest)` per table. The first real tables (GEN.410, GEN.427, GEN.439) pin them with their epoch bump; the loader itself changes no stored value and has no epoch.
+- **Not in the loader.** The sum test over every class and table (TEST.214), the target-table check of the tunable rows (GEN.503) and the tables themselves.
+
 ## 5. What Boss may research for the bodies
 
 From the bulk composition sources check (section 5 of [bulk-composition-sources-check.md](bulk-composition-sources-check.md)): the low-pressure ice and silicate densities for small bodies and moons; the stellar Mg, Si, O and C against [Fe/H] (the project stores only [Fe/H]); a cited solar abundance set (Lodders 2003, Asplund 2009); the water inside the snow line; iron oxidation and the light elements in the core; the SCvH or CMS19 tables if any lane integrates an envelope itself.
@@ -235,3 +244,78 @@ The research list of the Tunable gaps investigation ([tunable-gaps.md](tunable-g
 - How a small body's mass follows from its composition and size (belts have a stated mass of zero today, NAV.62).
 - Which radiation proxies of `physics/radiation.py` go and in which release (GEN.436, GEN.444).
 - The licence of the data the ozone and band cross sections come from (open since the sources check).
+
+## 7. The checked model (GEN.437)
+
+The master note joins the four checked designs and the loader. This section is the joint: what links to what, in what units, which way each kind of body is drawn, what is stored, when the generator epoch moves, and which note an item reads. The numbers and the worked examples are in the four notes; this section repeats none of them.
+
+| Note | Item | Settles |
+|---|---|---|
+| [atmosphere-colour.md](atmosphere-colour.md) | GEN.409 | The gas and compound table, the mixture, albedo and greenhouse (stored), ozone, aerosols and cloud, the giants' reference level, the colour model |
+| [bulk-composition.md](bulk-composition.md) | GEN.426 | The bulk fractions, the equation of state and the reference solver, the draws, density, mass and gravity, moons and small bodies, the inverse and the migration |
+| [stellar-composition.md](stellar-composition.md) | GEN.435 | X, Y, Z and the elements of every star from the stored [Fe/H], age and population, the remnants, what the star's iron, magnesium and silicon give the planets |
+| [radiation-model.md](radiation-model.md) | GEN.436 | The bands, transmission and greenhouse from the infrared opacity, shielding by column, the ground's dose and radon, the surface ultraviolet |
+| the loader, `generation/possibility_table.py` | GEN.472 | The one gated possibility-table format of section 4b |
+
+### 7.1 The chain, as checked
+
+1. **Elements** (GEN.438): atomic data and the radioactive isotopes. A constants table, no weights, no abundances.
+2. **Gases and materials** (GEN.410, GEN.427): the two tables every body reads. The materials table is the one shared components table of section 4a item 8; the gas table is the atmosphere's. Molar masses come from the elements. Every row is a row of the loader (section 4b) with a class gate, a source, a licence and a verification state.
+3. **Stars** (GEN.439, GEN.440): composition is a pure function of the stored [Fe/H], age and population (population from the age gate where a star has none). It adds no column to the 75 million stars.
+4. **Bodies** (GEN.428 to GEN.430, GEN.441, GEN.442, GEN.457 to GEN.466): the bulk fractions, the surface and the small bodies. The formation distance, the snow line and the star's abundances decide the gate.
+5. **Atmospheres** (GEN.411, GEN.412, GEN.454 to GEN.456): partial pressures first, then the molar mass, the pressure and the scale height from them.
+6. **Derived values** (GEN.413 to GEN.419, GEN.422, GEN.423, GEN.443 to GEN.446): the colour, the radiation, habitability and the text. Each is a pure function of stored values and the tables.
+
+### 7.2 One set of units and one source field
+
+- Storage is SI: kg, m, s, K, Pa, mol; kg/mol for molar mass (the `atm_molar_density` column keeps its name and unit, decided in the atmosphere note), and the units the existing columns already use stay. Doses are effective dose in mSv per year.
+- A solid or a star is described by **mass fractions** (X, Y, Z for a star; component fractions of the shared materials table for a body); a gas by **partial pressures** (the mole fractions follow). Conversion between them uses the element table's molar masses and nothing else.
+- Every number that comes from outside the repository sits in a table row or a named constant that carries its **source, its licence and its verification state** (`verified`, `partly verified` with the limit the check named, `open` with the seeded range used meanwhile, or `stand-in` with its replacing item). A number in a note has the same marks. The loader refuses a table row without them.
+- Where sources disagree the rules of section 4a item 12 decide, and each design note lists every case with the rule applied.
+
+### 7.3 Drawn first, or the composition is the cause
+
+Boss (11:58 PM EDT on 2026-10-16): either works, the design picks the simplest consistent one per kind of body. The choice, as the four notes make it:
+
+| Kind | Composition is | Density, radius, gravity |
+|---|---|---|
+| Star (every class) | derived from the stored [Fe/H], age and population | luminosity, radius and the rest stay as drawn today; composition does not change the GEN.407 tables (the tip luminosity by metallicity is GEN.502) |
+| Remnant (white dwarf, neutron star, black hole) | derived from the stored mass and the progenitor relation; a black hole carries none | the white-dwarf radius is integrated; the neutron-star radius and the main-sequence lifetime are derived (GEN.463, GEN.467) |
+| Rocky, water and envelope planets, moons, small bodies | drawn first from the gated tables, at the formation distance, the snow line and the star's abundances (route 2) | derived from the fractions by the reference solver or its closed forms at 1 bar; the inverse (route 1) serves editing, an imported density and the migration |
+| Giants and brown dwarfs | heavy-element mass from the mass law, the rest envelope | from the tabulated models; the reference level is the lower of 1 bar and the cloud top |
+| Atmospheres | partial pressures first, from the gated recipes | pressure is their sum; molar mass and scale height follow; albedo and greenhouse are stored draws, the temperature follows |
+
+### 7.4 Stored against derived
+
+The four notes each hold their table. The rule they share: store a value only when it was drawn, cannot be derived, or is expensive and exact to recompute; derive everything else on demand and test that a cache equals the recomputation. A recalculation after an orbit validation or a zone change never redraws a stored composition (finding F10).
+
+### 7.5 The generator epoch and the migrations
+
+The designs and the loader change no stored value, so they bump no epoch. The build items do, in the groups the notes name:
+
+- **8.1:** the loader (GEN.472) and the data tables (GEN.410, GEN.427, GEN.438, GEN.439, GEN.440) are building blocks with no behaviour change. GEN.463 and GEN.467 keep their own epochs, joined to the one rescatter. The epoch scope of GEN.427 is Decided (Boss, 2:10 PM EDT, card "Data table, no bump", relayed in words): it is a data table that bumps nothing, and the one bump is GEN.428 to GEN.430 plus DB.69 in 8.4 phase 1.
+- **8.4:** one bump for the bulk chain (GEN.428 to GEN.430, DB.69 and the formation items GEN.458 to GEN.460, with the table versions); one for the atmosphere values (GEN.411, GEN.422, GEN.423, GEN.424, GEN.452, GEN.454, GEN.455 with DB.67 and DB.71); one for the added stored values (GEN.413, GEN.414, GEN.456 with DB.68). The revisions take the next free numbers at build time.
+- **9.0:** the colour functions (GEN.416 to GEN.419) are pure functions of stored values and need no migration. The radiation items (GEN.443, GEN.444) replace the dose proxies with a bump and a migration of the dose columns, after GEN.453 has corrected the constants.
+
+A change to a table row or weight is a change of that table's version and an epoch bump (section 4b); `Registry.versions` pins each table's version and digest.
+
+### 7.6 How the items that follow read it
+
+| Items | Read |
+|---|---|
+| GEN.438, GEN.410, GEN.427, GEN.472 | section 4b, then the gas table of the atmosphere note and the shared materials table of the bulk note |
+| GEN.439, GEN.440, GEN.463, GEN.467, GEN.502 | the stellar note |
+| GEN.428 to GEN.430, GEN.441, GEN.442, GEN.457 to GEN.466 | the bulk note |
+| GEN.411 to GEN.419, GEN.422 to GEN.424, GEN.452 to GEN.456 | the atmosphere note |
+| GEN.443 to GEN.446, GEN.453, GEN.459 | the radiation note, with the bulk note for the ground |
+| TEST.211, TEST.212, TEST.214, TEST.215, GEN.503 | each note's test targets; the registry walk of TEST.214; the harness of GEN.503 |
+
+### 7.7 What Boss rules on
+
+Each note ends with its own list of decisions for Boss with a recommendation. The ones that cross notes:
+
+1. **The reading of the third conflict rule.** Decided by Boss at 1:12 PM EDT: "most permission take wins" means the widest range of the two sources; both values are kept where a range cannot be widened. Nothing to approve.
+2. **The age gate for the thick disc.** The stellar note moves the gate that replaces a stored population from 3.0 Gy to 8.0 Gy (range 6.5 to 9.5) on the verified thick-disc timing, which bears on the old-disc high-alpha share and on GEN.134.
+3. **The epoch scope of GEN.427:** Decided (Boss, 2:10 PM EDT, card "Data table, no bump"). Nothing to approve.
+4. **The ozone spread and the thin-air closure** (atmosphere and radiation notes), which the research leaves wider than a single seeded range.
+5. **The giants' heavy-element law:** the newest (Chachan 2025) as the default with Thorngren selectable, by the newest-wins rule.

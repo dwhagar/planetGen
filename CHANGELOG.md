@@ -2,6 +2,89 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1733] - 2026-10-17
+
+**Headline:** A page request that is slow to build now queues one job that stores the answer in the page cache, with a status route and a progress estimate, instead of holding a web thread.
+
+### Changed
+- `apiclient` (`web/lib/apiclient.py`) can take a slow cache miss off the request. A page that opts in with `slowpages.allow_pending()` gets `slowpages.Pending`, carrying the job's status, for a request the cost rule calls slow; any other page, and the job itself, builds as before. The cost rule is in one place (`web/lib/slowpages.py`): a request is slow when its last timed build took more than `SLOW_PAGE_SECONDS` (3 s), or, never timed, when the tables its route reads in full hold more than `SLOW_PAGE_ROW_BUDGET` (2,000,000) rows by the database's estimate (both in `tuning.py`, with the rows per second and the times the jobs and timings are kept).
+- `planetgen/queue/pagejobs.py` queues the job (`build_answer`, on the interactive queue beside the cache warm-up's): it makes the request through the site's own app, so the answer is stored under the tags it read and an edit invalidates it like any cached answer. Two visitors asking for the same request, even in the same moment and in different web processes, share one job (`SET NX`); a finished job whose answer was invalidated is replaced; a failed or cancelled one is shown for 30 s, then replaced, or at once on retry. Its record, progress and the last build time live in Redis, all with a TTL.
+- The progress is an estimate and says so (`estimated: true`): the elapsed share of the expected time, never past 95 % before the answer is stored, with the time left. The answer is one query, so there is no step to count; PERF.99 splits the lists it can.
+- The job is a node of kind "Slow page answer" on the admin queue page with a result line. An admin cancels it there or with `POST /api/page-jobs/<id>/cancel`: a job not yet started is removed, one not yet at its query stops, a running query finishes and its answer stays cached. A visitor's own Cancel only stops that page waiting. `api_jobs.cancel` removes a queued job.
+- Without Redis, or while an update runs, the answer is built in the request as it is today, the log says why, and `slowpages.take_notice()` gives the page a sentence to show.
+- `docs/design/slow-page-answers.md` is the design; `docs/api.md` documents the routes; the architecture document lists the module.
+
+### Added
+- `GET /api/table-estimates` and `GET /api/page-jobs/<id>` (public), `POST /api/page-jobs/<id>/cancel` (admin); the API route snapshot is updated (additions only, no version change).
+- `tests/test_slowpages.py` (16 tests): the cost rule, one job per request across processes and threads, the answer stored and found by another process without an API call, an edit invalidating it, a failed job and its retry, the status route, the progress estimate, the cancels, the admin node, and the fallback with no queue or an update running.
+
+TODO items resolved: PERF.105 / Added: none
+
+## [8.0.1732] - 2026-10-17
+
+**Headline:** A whole-sphere galaxy scatter now runs to the last shell instead of stopping at 97 percent.
+
+### Fixed
+- **The massive-star scatter stopped at 97 percent with "Out of range value for column 'band_index'" (DB.72).** A shell's bands run from `-(h + 1)` to `h + 1`, which passes the 32,767 that a SMALLINT holds at shell 20,861 and reaches 102,942 at shell 65,535, the outer shell of the 262 kpc reach. `band_index` is now INT in `bright_stars`, `sector_stats` and `phenomenon_scatter` (migration 0108, schema v108; each table is rebuilt in place and no value changes). A test stores and reads back a row at the outermost shell's polar cap band in each table, and another refuses any column named for a band that is narrower than INT.
+
+TODO items resolved: DB.72. Added: none.
+
+## [8.0.1731] - 2026-10-17
+
+**Headline:** The composition design is written down as four checked notes plus the master joint, ready for Boss's approval.
+
+### Added
+- **Three new design notes.** `docs/design/bulk-composition.md` (GEN.426), `docs/design/stellar-composition.md` (GEN.435) and `docs/design/radiation-model.md` (GEN.436) set out the bulk fractions and equation of state, the composition of every star and remnant, and the radiation model, each with worked examples and a list of what Boss must approve.
+- **Master joint.** `docs/design/composition-model.md` section 7 (GEN.437) joins the four notes and the gated possibility-table loader: the chain as checked, the units, which way each kind of body is drawn, what is stored and when the generator epoch moves.
+
+### Changed
+- **The atmosphere colour note is now the checked design (GEN.409).** `docs/design/atmosphere-colour.md` is rewritten around the one gas and compound table, the mixture, stored albedo and greenhouse values, aerosols and cloud, and the colour model; the design index lists all four notes.
+
+TODO items resolved: GEN.409, GEN.426, GEN.435, GEN.436, GEN.437. Added: none.
+
+## [8.0.1730] - 2026-10-17
+
+**Headline:** Every composition table now loads through one gated possibility-table format, and a draw takes the rows that pass the body's class and conditions and picks one by normalised weight.
+
+### Added
+- **The gated possibility table and its loader (GEN.472).** A row names a possibility, the classes it supports, optional conditions on stored quantities, a weight (a number, `open`, or a function of the star and the formation distance), its source with the verification state, and its licence. A draw drops the rows that fail the gate or weigh zero, normalises the rest to 100 percent and picks one on the generator's own random stream. A class no row supports, or a table whose weights are all zero, is an error naming the class and the table, and a row without a source or a licence is refused when the table loads. Open weights share what the sourced weights leave equally and are listed with the stand-in rows in one report. Fractions inside a row are taken directly from a sourced kernel or drawn from a Dirichlet distribution where only a range is known, and every component must be a row of the one shared materials table.
+- **`draw.gamma` and `draw.dirichlet`**, built on the generator's own random wrapper like the other draws.
+
+TODO items resolved: GEN.472. Added: none.
+
+## [8.0.1729] - 2026-10-17
+
+**Headline:** A new galaxy now draws its size, thickness, bulge, bar and spiral arms from its seed instead of every galaxy being built to the Milky Way's measurements.
+
+### Changed
+- **The spiral shape is drawn (GEN.401).** `planetgen plan` and the Generate page leave `--disk-scale-length-pc`, `--disk-scale-height-pc`, `--bulge-scale-radius-pc`, `--bulge-amplitude`, `--arm-count` and `--pitch-angle-deg` blank by default; blank means drawn from the galaxy seed (`galaxy/shape_draw.py`). The disk length follows the size-mass relation of late-type galaxies from the seed's stellar mass (GEN.400), the height follows the length, the bulge's share and size follow the galaxy's stage, and the arm count and pitch angle follow the arm statistics. An option given still replaces its draw, and the bulge's density is solved for the disk used. The plan prints what it drew.
+- The old defaults (2,600 pc, 300 pc, 1,580 pc, 3.11, two arms at 15 degrees) are gone from the plan, the CLI and the page. They stay only as the reference shape the math check measures the model against.
+- Bar presence and the bar's axes and angle stay the model's constants until the shape columns of DB.66; the stage rule is a stand-in (design note 5.13.8).
+
+TODO items resolved: GEN.401. Added: none.
+
+## [8.0.1728] - 2026-10-17
+
+**Headline:** The Generate page answers a repeated size-and-time estimate from a cache, and costly cached answers are refreshed just before they expire.
+
+### Added
+- **The Generate page's estimate is cached (PERF.109).** The estimate (`--estimate-only`, up to two minutes for a large shell) is kept in Redis for five minutes under the job kind, its command line and the database, and served only while the generator epoch, the galaxy's data version and the recorded speed statistics are unchanged. Two admins asking for the same estimate at once run it once.
+- **XFetch for costly entries that expire by age (PERF.110).** An answer in the page cache that took half a second or more to fetch (the Search page's facets, for one) is fetched again by one reader shortly before it expires, so a burst of visitors does not all miss in the same second. The admin Stats page keeps its database figures for 30 seconds when they take half a second or more to count, and one request makes them again just before they go stale; a galaxy that counts quickly always shows live figures.
+
+### Changed
+- `singleflight.claim` and `singleflight.wait` take the length of the claim and of the wait, for builds that take longer than a tile.
+
+## [8.0.1727] - 2026-10-17
+
+**Headline:** The benchmark records the buffer pool, table sizes and worker start-up cost, and the test suite is quieter and uses the shell, band and wedge words.
+
+### Changed
+- **The PERF.31 benchmark records its setting (PERF.47).** A run now stores the InnoDB buffer pool size, the size of each table and how long a worker takes to start, and prints them in the setup lines, so two runs on different machines can be compared.
+- **A multi-row literal INSERT is built in one place (PERF.48).** The bright-stars and phenomenon-scatter inserts share one builder that splits a statement at a size limit; a numeric-only row no longer goes through the driver's escaping.
+- **Browser-test failures are no longer buried in the request log (TEST.187).** The test server's request log is set to WARNING.
+- **The marching-cubes call no longer floods the log with a NumPy 2.5 deprecation (TEST.188).** The warning comes from inside scikit-image, so the nebula mesh builder filters it around the call; remove the filter when scikit-image stops raising it.
+- **Tests that named ring, layer and slot now name shell, band and wedge (TEST.156).** The migration tests that describe the old schema keep the old words.
+
 ## [8.0.1726] - 2026-10-17
 
 **Headline:** The Magellanic Clouds now hold young and massive stars, from a star formation history worked out for each satellite instead of a typed share.

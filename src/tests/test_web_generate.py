@@ -277,7 +277,7 @@ def test_plan_defaults_match_generate_py():
     defaults = vars(parsers["plan"].parse_args([]))
     for name, flag, _label, kind, default, _minimum, _maximum in generate_page.PLAN_FIELDS:
         assert defaults[flag.lstrip("-").replace("-", "_")] == default, flag
-        assert isinstance(default, kind)
+        assert default is None or isinstance(default, kind)
 
 
 # --- Building jobs ----------------------------------------------------------------

@@ -27,13 +27,14 @@ from planetgen.generation import scatter_companions as scatterCompanions
 from planetgen.generation import star_population as starPopulation
 from planetgen.generation.star_labels import describe_types, star_label
 from planetgen.galaxy import component_field as componentField, nebula_field as nebulaField, seed as galaxySeed
+from planetgen.galaxy import shape_draw as shapeDraw
 from planetgen.names import naming_key
 from planetgen.physics import constants
 from planetgen import tuning as program_constants
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
 from planetgen.util import log
-from planetgen.galaxy.density import arm_terms, build_galaxy_shape, model_terms, relative_density
+from planetgen.galaxy.density import model_terms, relative_density
 from planetgen.galaxy import scatter_limits, spherical
 from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.galaxy.skeleton import (
@@ -257,28 +258,6 @@ def build_skeleton(args):
     e_value = expected_system_count_at_density_1(program_constants.DEFAULT_SECTOR_EDGE_LY)
     threshold_rho = 1.0 / e_value
 
-    arm_amplitude, arm_level = arm_terms(args.arm_density, args.interarm_density)
-    shape = build_galaxy_shape(
-        disk_scale_length_pc=args.disk_scale_length_pc,
-        disk_scale_height_pc=args.disk_scale_height_pc,
-        bulge_scale_radius_pc=args.bulge_scale_radius_pc,
-        bulge_amplitude=args.bulge_amplitude,
-        arm_count=args.arm_count,
-        pitch_angle_rad=math.radians(args.pitch_angle_deg),
-        arm_amplitude=arm_amplitude,
-        arm_level=arm_level,
-        nuclear_amplitude=args.nuclear_amplitude,
-        calibration_radius_pc=args.calibration_radius_pc,
-    )
-
-    log.normal(
-        f"Building skeleton: edge_pc={edge_pc:g} disk_scale_length_pc={shape.disk_scale_length_pc} "
-        f"disk_scale_height_pc={shape.disk_scale_height_pc} "
-        f"bulge_scale_radius_pc={shape.bulge_scale_radius_pc} "
-        f"bulge_amplitude={shape.bulge_amplitude} arm_count={shape.arm_count} "
-        f"k_norm={shape.k_norm:.4f} threshold_rho={threshold_rho:.6f}"
-    )
-
     reach_shell_index = getattr(args, "reach_shells", DEFAULT_REACH_SHELL)
     try:
         spherical.check_reach(reach_shell_index)
@@ -298,10 +277,18 @@ def build_skeleton(args):
             raise SystemExit(1)
         # A new outline invalidates every pre-placed bright star (schema v43).
         store.clear_bright_stars(conn)
-        # The globular clusters (GEN.159, GEN.160) come from the galaxy seed and the satellites (GEN.237) from the
-        # catalogue, and both go in the outline's bound, so the seed is settled first and the components are placed
-        # before the outline is walked.
+        # The seed is settled first: the shape (GEN.401), the globular clusters (GEN.159, GEN.160) and the satellites
+        # (GEN.237) all come from it, and the components go in the outline's bound, so they are placed before the
+        # outline is walked.
         galaxy_seed = requested_seed or stored_seed or galaxySeed.new_seed()
+        shape, drawn = shapeDraw.plan_shape(args, galaxy_seed)
+        log.normal(
+            f"Building skeleton: edge_pc={edge_pc:g} stellar_mass={drawn.chain.stellar_mass_solar:.3g} ({drawn.stage}-type) "
+            f"disk_scale_length_pc={shape.disk_scale_length_pc:.0f} disk_scale_height_pc={shape.disk_scale_height_pc:.0f} "
+            f"bulge_scale_radius_pc={shape.bulge_scale_radius_pc:.0f} bulge_to_total={drawn.bulge_to_total:.3f} "
+            f"arm_count={shape.arm_count} pitch_angle_deg={drawn.pitch_angle_deg:.1f} "
+            f"k_norm={shape.k_norm:.4f} threshold_rho={threshold_rho:.6f}"
+        )
         scale = shape.disk_scale_length_pc / program_constants.HALO_SCALE_LENGTH_PC
         found = clusters.generate_clusters(
             galaxy_seed, epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX, scale=scale)

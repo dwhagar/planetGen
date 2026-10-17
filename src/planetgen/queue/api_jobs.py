@@ -167,6 +167,28 @@ def wait(job_id, seconds=SHORT_WAIT_SECONDS):
         time.sleep(0.05)
 
 
+def cancel(job_id):
+    """
+    Removes job `job_id` from the queue if no worker has taken it yet (PERF.105).
+
+    Returns:
+        bool: Whether it was removed; a job already running, finished or unknown is left alone.
+
+    Raises:
+        NoQueue: No Redis server answers.
+    """
+    if not isinstance(job_id, str) or not JOB_ID_RE.match(job_id):
+        return False
+    try:
+        job = redisqueue.fetch_job(QUEUE_PREFIX + job_id, _connection(), redisqueue.serializer_for(QUEUE_NAME))
+    except redisqueue.Unavailable as exc:
+        raise NoQueue(str(exc)) from exc
+    if job is None or _STATES.get(job.get_status(refresh=True)) != "queued":
+        return False
+    job.cancel()
+    return True
+
+
 def status(job_id):
     """
     One job's state.
