@@ -604,36 +604,6 @@ with `clamp()`.
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none.
 
-- [ ] **UX.114 Scatter-row pages list the stored members and the map shows a system mass**
-  Step 8 (design note 11 item 8). The sector and bright-star pages list
-  the stored members of an unbuilt scatter row and the Galaxy Map shows
-  the system mass; a `Members` column in the Phenomena table. Done: an
-  unbuilt row with companions shows them and its total mass on its page
-  and in the table. Owner: Interface (2026-10-15); asks Core for any
-  schema change. Boss (2026-10-15 5:51 PM EDT): stellar companions of
-  stars and star-like objects, including neutron star and black hole
-  pairs, are generated at scatter time because they matter for gravity;
-  planets, moons and belts stay at sector fill. Defaults taken
-  (reversible): compact pairs promoted to the scatter, black hole
-  companion fraction 1.25%, cap 12 stars (7 before the 6:08 PM EDT
-  catalogue), hierarchical trees only, a row's members deleted when its
-  sector builds it, pair rates from the middle of the evidence.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report, queue position 6).
-  Core 2's NAV.60 (#1977, 2:12 AM EDT as the lane reported) replaced the
-  answer fields `sectors_in_range` and `sectors_generated` by
-  `not_generated` and `not_generated_total` (the API docs and the CLI
-  are updated); this item's pages read the new fields.
-  Gate 1 (Core 4, build 07b08de92ff11081, started 1:18 AM EDT, FAIL in
-  78 min 4 s: 18,654 passed, 12 failed, 104 skipped, as the lane
-  reported at 2:44 AM EDT): ten failures were this item's own and are
-  fixed in its branch (the new route had no test value, no SEO class and
-  an underline on a badge link; `format_members` printed 'nan members'
-  for a non-finite count, caught by a new sweep test); two are not this
-  item's and are filed as TEST.216 and TEST.217. Gate 2 started 2:42 AM
-  EDT (build 49bf9a8656ac115e), expected to end about 4:00 AM EDT.
-  Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
-
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
   update on everything once this is done so all the controls work
@@ -655,7 +625,7 @@ with `clamp()`.
   audit starts, so it checks the finished pages. Queued, not started:
   Interface and Quality stay idle until the sphere and generation stages
   finish (Boss, 12:27 AM EDT) unless Boss says earlier.
-  Prerequisites: GEN.240, NAV.61, NAV.45, MAP.243.
+  Prerequisites: NAV.61, NAV.45, MAP.243.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
 
 - [ ] **UX.118 Slow pages show a progress bar while their data loads: the search page and the phenomena list pages**
@@ -2284,7 +2254,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proposed (the map lane that owns the infinite zoom tree and MAP.239),
   after the tree; the Interface lane may take it with UX.115 if that
   lane starts first.
-  Prerequisites: GEN.323, MAP.225, MAP.239. Related: MAP.207,
+  Prerequisites: MAP.225, MAP.239. Related: MAP.207,
   MAP.219, MAP.210, UX.115, GEN.322, API.27.
 
 - [ ] **MAP.244 The maps and pages use the atmosphere colour where they showed the planet colour**
@@ -4065,7 +4035,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane queue); a line here that named Core 4 was the TODO thread's
   counting error, corrected 2026-10-16, 4:50 PM EDT.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
-  Prerequisites: GEN.324.
+  Prerequisites: none.
 
 - [ ] **GEN.162 Planet cull and blue stragglers in clusters**
   Research (2026-10-09, globular-clusters.md, PR #824; handoff in
@@ -4447,7 +4417,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.235, GEN.323. Related: GEN.223, GEN.240.
+  Prerequisites: GEN.235. Related: GEN.223, GEN.240.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.239 High-velocity clouds and the Magellanic Stream as placed gas clouds (later)**
@@ -4459,103 +4429,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   clouds exist as placed gas objects and the Stream is a chain of them.
   Later, after the components. Owner: Core (2026-10-15).
   Prerequisite: GEN.237. Related: GEN.202, GEN.241.
-  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
-
-- [ ] **GEN.240 The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass**
-  Step 6 of the whole-sphere train. The bright-star and mass passes keep
-  their algorithm (one Poisson count per shell from a certified bound,
-  bands in proportion, accept by true density over bound;
-  `object_first.py`) but take the halo term in `band_majorants`, the new
-  populations in `fractions`, and band groups of 64 bands beyond the
-  outline: to 262 kpc that is about 2 minutes a pass instead of 2.25
-  hours, with under 10% efficiency loss beyond 8 kpc. The phenomena pass
-  walks every band of every shell today (`_band_rows`), which cannot
-  reach 262 kpc; it moves to the same object-first sampler, with its
-  rates, cut and below-cut draw at sector time unchanged. Components
-  (clusters, Clouds, Sagittarius) get their own pass: total star count
-  from the mass, positions by inverse transform of the profile table,
-  each star kept or dropped by the same pass cut, and the sector fill
-  adds the component's density to `lambda` so no pre-placed star is
-  counted twice. At the defaults the passes place nothing in the halo,
-  clusters or old satellites, a few thousand stars in the Clouds, and
-  about 9.1 million extra black-hole rows beyond the outline (Core 3's
-  measurement, accepted by Boss 2026-10-17, 12:52 AM EDT; the earlier
-  estimate was 2.4 million, 4% on top of the disk's scatter). Done: the
-  three passes cover the reach with the
-  same code, a pre-placed star is never drawn again at fill, and the
-  yields match the design note's table. Owner: Core (2026-10-15), after
-  GEN.232 (the cap on path integration for fast bodies); the wanderers
-  are GEN.238. Decided (Boss, 2026-10-15): the research note's
-  recommendation stands: reach 262 kpc (65,535 shells), 96-bit object
-  IDs, one rule set everywhere with per-sector parameters, nothing
-  generated unless asked, and an asked sector always generated and
-  saved.
-  Decided (Boss, 2026-10-15 5:27 PM EDT): the scatter from the origin
-  keeps the banded, layered approach it has now, because the bands of a
-  shell have fixed slices (Boss's recollection; Core checks it against
-  `object_first.py` and the band and wedge counts of `spherical.py`
-  before relying on it, and reports if it is wrong). The band groups of
-  this item stay inside that structure. Decided (Boss, 2026-10-15 5:27
-  PM EDT): early alpha, so the current database schema is not a
-  constraint. Redesign tables, columns and layouts as the work needs,
-  with one migration or a fresh galaxy; nothing is kept for the sake of
-  production data. Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and
-  backscatters get no systems, planets or moons, so bright stars,
-  massive stars, neutron stars, black holes and the other scattered
-  objects are bare rows; planets and moons are made only when a sector
-  is being filled with everything; a sector fill must represent every
-  kind of object, and when a fill meets a phenomenon that can have a
-  system (or makes one that can) it generates that system if the
-  real-world probabilities give it one; nebulae need stars and
-  phenomena, not planets. For this item: the three scatters write bare
-  rows and never build a system; the system is built when the sector
-  fills.
-  Decided (Boss, 2026-10-15 5:51 PM EDT), refining the 5:39 PM rule:
-  scatters still carry no planets or moons, but the stellar companions
-  of stars and star-like objects (stars, former stars, protostars,
-  neutron stars, black holes), including neutron star pairs, black hole
-  and neutron star pairs, black hole pairs and stars with neutron star
-  or black hole companions, are generated at scatter time, because such
-  systems matter for gravity; planets and moons still come only at
-  sector fill. Multi-star research is under way (docs to follow; the
-  coordinator relays its items). For this item: each scatter row carries
-  its stellar companions (their masses and orbit), but never planets or
-  moons; the band groups and the object-first sampler must place the
-  companions with the primary so a pair is one gravitational source.
-  Reworded (Boss, 2026-10-15 5:51 PM EDT;
-  docs/design/multi-star-systems.md): companions of stars and star-like
-  objects are generated at scatter time, planets, moons and belts at
-  sector fill; a scatter row is a system with a barycentre, a total mass
-  and stored members. Each scatter row's members are drawn in the
-  scatter passes (GEN.262), the band groups and the object-first sampler
-  must treat a row as one system (`1 + p_placed` bookkeeping), and the
-  whole-sphere passes take the same member columns (GEN.260).
-  Region query (stage C): scatter rows keep their (shell, band, wedge)
-  address columns and gain the point columns and cell key (DB.35); the
-  scatter pass keeps its bands and order and the key is computed from
-  whatever position it writes.
-  Prerequisites: GEN.322, GEN.323, GEN.324. Related: GEN.238, GEN.223.
-  Built-on note (Core 1, 2026-10-16, 12:03 PM EDT, GEN.236 merged as
-  #1824, no migration): SectorProfile.kind_factors carries one factor
-  per rare kind (supernova remnant = gas fraction; molecular cloud =
-  cold gas times the young share against the solar circle's; hosted
-  nebulae = cold gas alone; rogue planet and comet = planet occurrence
-  at the place's [Fe/H]; bound remnants, planetary nebulae and brown
-  dwarfs = 1; no magnetar factor, GEN.278 gates it); the fill and the
-  scatters apply them; metal-poor stars cap their object count at
-  ceil(16 x occurrence) below [Fe/H] -0.5 and thin gas giants.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: GEN.322, GEN.323, GEN.324. The item itself says
-  'the three scatters' and lists three deliverables: band groups and the
-  halo term for the bright-star and mass passes (about 2 minutes a pass
-  instead of 2.25 hours), moving the phenomena pass off its walk of
-  every band (_band_rows) onto the object-first sampler, and a new
-  component pass.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.241 Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds**
@@ -5945,10 +5818,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.244,
+  Prerequisites: GEN.238, GEN.241, GEN.242, GEN.243, GEN.244,
   GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.298, UX.116,
   TEST.159, TEST.160, GEN.447, GEN.448, GEN.449, GEN.450, TEST.196,
-  GEN.463, GEN.467, GEN.469, GEN.502.
+  GEN.463, GEN.467, GEN.469, GEN.502, GEN.526.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -6291,103 +6164,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
   Prerequisites: GEN.320. Related: GEN.241.
-
-- [ ] **GEN.322 Band groups and the halo term: the bright-star and mass passes cover the 262 kpc reach**
-  Split from GEN.240 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). The two passes keep their
-  algorithm (one Poisson count per shell from a certified bound, bands
-  in proportion, accept by true density over bound) but take the halo
-  term in band_majorants, the new populations in fractions, and band
-  groups of 64 bands beyond the outline; rows carry their companions
-  with the primary and a row counts as 1 + p_placed. Done: the passes
-  cover the reach with the same code, inside the outline they yield
-  exactly the rows they yielded before, beyond 8 kpc under 10%
-  efficiency is lost, a pass to 262 kpc takes about 2 minutes, and a
-  pre-placed star is never drawn again at fill.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Existing galaxies (Core 3 report, #1932, 2026-10-16, 10:00 PM EDT):
-  GEN.286 and GEN.287 change the stored scatter rows (the halo scatter
-  rows at the 500 luminosity floor fall from about 3.8 million to about
-  190,000), so a galaxy scattered earlier needs `planetgen plan
-  --redo-scatters mass luminosity` (as after GEN.333).
-  Redo scope (rescatter thread finding, 2026-10-16): `--redo-scatters`
-  redoes rows only; satellites and clusters (`galaxy_components`) are
-  drawn only by a full `plan`. DOC.62 puts the line in docs/cli.md.
-  Epoch plan (Core 3, 3:11 AM EDT as the lane reported): generator epoch
-  5, bumped at its merge once the earlier epoch is stamped; GEN.322,
-  GEN.323 and GEN.324 share one stack gate on the GEN.324 tip (started
-  3:13 AM EDT, ends about 4:30 AM EDT as the lane reported).
-  Prerequisites: GEN.237. Related: GEN.240.
-
-- [ ] **GEN.323 The phenomena pass runs on the object-first sampler**
-  Split from GEN.240 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). The phenomena pass walks every
-  band of every shell (_band_rows), which cannot reach 262 kpc. Move it
-  to the same object-first sampler as a, with its rates, cut and
-  below-cut draw at sector time unchanged and the cell key written from
-  whatever position it writes. Done: the pass covers the reach, a seeded
-  galaxy inside the outline gets the same phenomenon rows as before (a
-  test compares), and about 9.1 million extra black-hole rows appear
-  beyond the outline at the defaults (1.9 million beyond 15 kpc and 7
-  million in the inner shells above and below the disk; Core 3 measured
-  it and Boss accepted it with the cap and the physical weights kept,
-  2026-10-17, 12:52 AM EDT).
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Redo scope (rescatter thread finding, 2026-10-16): `--redo-scatters`
-  redoes rows only; satellites and clusters (`galaxy_components`) come
-  only from a full `plan`. DOC.62 documents it.
-  Finding (Core 3, 2026-10-17, relayed by the coordinator at 12:47 AM
-  EDT): measured about 9.1 million black-hole rows beyond the outline,
-  not 2.4 million (1.9 million beyond 15 kpc and 7 million in the inner
-  shells above and below the disk). Boss accepted it (card "Accept",
-  2026-10-17, 12:52 AM EDT, as the coordinator relayed), so the Done
-  figure here and in GEN.240's text is now 9.1 million.
-  Epoch plan (Core 3, 3:11 AM EDT as the lane reported): generator epoch
-  6, bumped at its merge once the earlier epoch is stamped; GEN.322,
-  GEN.323 and GEN.324 share one stack gate on the GEN.324 tip (started
-  3:13 AM EDT, ends about 4:30 AM EDT as the lane reported).
-  Prerequisites: GEN.322. Related: GEN.240.
-
-- [ ] **GEN.324 A component pass: clusters, the Clouds and Sagittarius place their stars, and the fill adds the component's density to lambda**
-  Split from GEN.240 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Components get their own pass:
-  total star count from the mass, positions by inverse transform of the
-  profile table, each star kept or dropped by the same pass cut; the
-  sector fill adds the component's density to lambda so no pre-placed
-  star is counted twice. Done: at the defaults the pass places nothing
-  in clusters and old satellites and a few thousand stars in the Clouds,
-  no cluster star is counted twice, and the yields match the design
-  note's table.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Migration revision 0110 is reserved for this item's bright_stars
-  population CHECK ('satellite'), after the queue 0105 (DB.65), 0106
-  (DB.69), 0107 (DB.67), 0108 (DB.70) and 0109 (DB.68) (coordinator
-  relay, 2026-10-17, 12:47 AM EDT). Alembic chains by down_revision: if
-  this merges before the others, take the next free number at merge and
-  tell Core 1.
-  Finding (Core 3, 2026-10-17, 2:10 AM EDT as the lane reported, running
-  its GEN.324 tests): the migration runner (`alembic_runner`) requires
-  contiguous revision ids, so a file numbered 0110 with head 0104 raises
-  "migration revision '0110' should be '0105'"; a reserved number cannot
-  be used until every lower number exists. The revision numbers listed
-  here are therefore an order of merge and not reservations: each
-  migration takes the next free number when it merges, and its author
-  tells the owners of the migrations still waiting (Core 3 for GEN.324,
-  Core 1 for the DB.65, DB.69, DB.67, DB.70 and DB.68 queue).
-  Epoch plan (Core 3, 3:11 AM EDT as the lane reported): generator epoch
-  7, bumped at its merge once the earlier epoch is stamped; GEN.322,
-  GEN.323 and GEN.324 share one stack gate on the GEN.324 tip (started
-  3:13 AM EDT, ends about 4:30 AM EDT as the lane reported).
-  Prerequisites: GEN.322. Related: GEN.240.
 
 - [ ] **GEN.325 Planet cull in dense components by the survival formula and the metallicity factor**
   Split from GEN.162 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -7294,7 +7070,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Changed behaviour recorded with GEN.333: the brightest white dwarf is
   now 50 solar luminosities (it was 100), so the luminosity floors and
   caps may go as low as 50. Owner: Core 3.
-  Prerequisites: GEN.323. Related: GEN.333, GEN.283, UX.116, GEN.301.
+  Prerequisites: none. Related: GEN.333, GEN.283, UX.116, GEN.301.
 
 - [ ] **GEN.378 The galaxy type families: the checked design with its scaling relation table and the draw order**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
@@ -7693,7 +7469,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rows. No fixed content (Boss, 4:11 and 4:14 PM EDT): the bubbles stay
   derived from the seed; every strength is a calculated or drawn law
   with its source named.
-  Prerequisites: GEN.393, GEN.322, GEN.323. Related: GEN.240, GEN.301,
+  Prerequisites: GEN.393. Related: GEN.240, GEN.301,
   GEN.377.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
 
@@ -7991,6 +7767,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rates) and GEN.370 (central mass), so GEN.404 and GEN.405 no longer
   point at each other; GEN.406 (research) now comes first in the Galaxy
   laws build and GEN.405 waits for it.
+  Core 3 note (GEN.322 to GEN.324 merged): `band_majorants` is now
+  `band_majorants` plus `extent_majorants(shape, inner, z_near, z_far,
+  fractions, outer)`; GEN.322's plan test uses a luminosity floor of
+  2500 (30,000 gave only 284 stars at GEN.134's young share, none in the
+  high-extent shells beyond the outline).
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -11204,6 +10985,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   verified, partly verified (with its limit), open or stand-in, reports
   the count per table, and the draw uses partly verified rows as
   sourced-with-limit.
+  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
+  docs/design/tunable-gaps.md): the loader's tunable rows also carry a
+  target-table entry (statistic, value, sigma, source, label, validity
+  range, selection-model id) that the loader checks, built in the
+  harness GEN.503; a knob outside its validity range is a flagged
+  extrapolation.
 
 - [ ] **GEN.473 Replace the asteroid taxon shares and the zone kernel, measured in the Solar System belt, by a derived or general distribution**
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
@@ -11470,7 +11257,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.413, GEN.414, GEN.451, GEN.454, GEN.455, GEN.456, GEN.479,
   TEST.214, GEN.480, GEN.481, GEN.482, GEN.483, GEN.484, GEN.485,
   GEN.486, GEN.487, GEN.488, GEN.489, GEN.490, GEN.491, GEN.492,
-  GEN.493, GEN.494.
+  GEN.493, GEN.494, GEN.503.
   Boss's standing rule (3:02 AM EDT, section 4a item 10 of
   composition-model.md): everything verified and partially verified is
   usable as long as it is not contradictory, and the verified source
@@ -11478,6 +11265,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   state; partly verified rows ship as sourced-with-limit unless a
   verified source contradicts them, and only the rows with no usable
   source stay open (the 48 of part 09, AR1 to AR15).
+  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
+  docs/design/tunable-gaps.md): of the 48 rows with no sourced weight, 5
+  are tunable draws (a3, a4, p6, k4, k5), 14 tunable only to a few
+  constraints (b1, b2, b3, e5, f7, h4, i6, k1, k2, k3, n6, o2, o3, o6),
+  17 are derivations and not probabilities (b6, d6, e3, e4, g1, g4, h2,
+  h3, j1, j5, l1, l2, l3, m2, m5, m6, o4: compute them, the only
+  randomness is upstream), 6 need a named source (a1, a2, b4, b5, n7,
+  k7) and 6 are design flags (j2, j3, j4, m3, m4, m11: a labelled
+  bracket, default off, never tuned). The seeded brackets are corrected:
+  d table K window LU[3.0e-4, 6.6e-4] with slope 4 is contradicted (use
+  the Berta-Thompson logistic and Meni-Gallardo and Palle slope 5.77);
+  a4 centre -1.0 becomes -1.25 +/- 0.10 and a3's U[-1.4, 0] is 0.55 dex
+  high; f7 f_tail LU[0.0013, 0.34] is outside the data (planet tail
+  0.043 to 0.087, core centre 0.57); p4 tau_sat depends on stellar mass
+  (0.16 Gyr for 0.5 to 0.6 solar masses, 0.6 +/- 0.3 for 0.2 to 0.3, 2.3
+  +/- 1.3 for 0.1 to 0.2). Tuning and its harness are GEN.503 and the
+  builders GEN.509 to GEN.525; the six defaults D1 to D6 stand as
+  Decided (composition-model.md section 4a item 11).
 
 - [ ] **GEN.479 The class atmosphere mixes contradict the checked chemistry: classes C, D and S have no mix, free oxygen sits in seven classes with no life rule, class L is 60 percent argon, E and F hold ammonia and methane at 340 to 400 K, N reads reducing and is oxidised, and I, J and T share one mix in every zone (bug)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -11541,6 +11346,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Body composition research lanes to verify; summary in section 10 of
   docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the note's R1 (radius
   valley with photoevaporation and core-powered mass loss).
+  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
+  docs/design/tunable-gaps.md): row b4 (water-rich share) needs a named
+  source: published shares run from at most 3 percent (Rogers 2025) to
+  87 percent depending on the formation model, and mass and radius alone
+  cannot break the degeneracy with H/He (about 6 informative JWST
+  spectra); decision D1 default: keep the formation model as a switch
+  with the NGPPS logistic as the MODEL default and the flagged bracket 0
+  to 0.87 (builder GEN.510).
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.481 Source the volatile delivery against formation distance: the water mass fraction by a_form and the snow-line law over time (AR2)**
@@ -11569,6 +11382,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Body composition research lanes to verify; summary in section 10 of
   docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the note's R2 (volatile
   delivery by tracking planetesimals and pebbles across the snow lines).
+  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
+  docs/design/tunable-gaps.md): row b5 (sub-percent water) needs a named
+  source: no ensemble measures it; b6 (rogue water) is not a separate
+  draw. The NGPPS formation-stage tables (DACE, Zenodo 10527170, open,
+  no licence field) are the public source of water against formation
+  distance (migrant probability logistic in mass, centre 6.1 Earth
+  masses). Part 09 R2's source is wrong: Thiabaud 2014 (arXiv:1312.3085)
+  is about refractories and mentions water five times.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.482 Source the magma-ocean fO2 prior against mass and the oxidation law of the later mantle (AR3)**
@@ -11590,6 +11411,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   derivation with citations, the rows change from DESIGN to SOURCED or
   DERIVED, and TEST.214 lists fewer `open` rows. Owner: unowned
   (research; Boss or a read-only research lane).
+  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
+  docs/design/tunable-gaps.md): row a3 and a4 are tunable to 22
+  white-dwarf debris values (Doyle 2020 and 2023): centre -1.25 +/-
+  0.10, sd 0.45, intrinsic about 0.22 (builder GEN.513); rows a1
+  (magma-ocean fO2 against mass) and a2 (the later mantle) need a named
+  source: the Earth end and the slope are Solar System only, the mass
+  slope has no observational anchor beyond theory (derive the surface
+  fO2 from the ocean base pressure and draw only the scatter, Deng 0.5
+  and Guimond 0.3 to 0.4 dex); source needs Deng 2020 Fig. 3 data,
+  Hirschmann 2021 full text, a primary Na and K condensation-temperature
+  source.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.483 Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4)**
@@ -11613,6 +11445,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   derivation with citations, the rows change from DESIGN to SOURCED or
   DERIVED, and TEST.214 lists fewer `open` rows. Owner: unowned
   (research; Boss or a read-only research lane).
+  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
+  docs/design/tunable-gaps.md): the K window fitted to 13 Solar System
+  bodies is contradicted by two verified exoplanet papers and by 55 Cnc
+  e and TOI-561 b (K 12 to 190 times higher); Meni-Gallardo and Palle
+  have slope 5.77, intercept -4.35 (arXiv:2508.12865), not 'keep slope
+  4'; Berta-Thompson 2025 gives log10 f0 = 2.62 (+0.45/-0.31), p = 5.9,
+  q = 1.17, width 0.247 dex (arXiv:2507.02136); Zahnle and Catling draw
+  the line by eye and give no K; 'TRAPPIST-1 b and c under 0.1 bar' is
+  in no paper read (at or above 1 bar disfavoured). Builder GEN.511.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.484 Source the giant planets' C/O distribution and the fraction of carbon-rich hosts (AR5)**
@@ -11639,6 +11480,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Body composition research lanes to verify; summary in section 10 of
   docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the note's R5 (giant C/O
   from gas-grain chemical evolution).
+  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
+  docs/design/tunable-gaps.md): f7: the 34 percent of hosts above C/O
+  0.8 (Delgado Mena) is one blended oxygen line (Teske 2013); Brewer and
+  Fischer (N=849) and Suarez-Andres (N=499) find no star above 0.8; both
+  ends of the f_tail bracket [0.0013, 0.34] lie outside the planet data
+  (0.043 to 0.087) and the core centre is 0.57 (LExACoM,
+  arXiv:2510.26785). Builder GEN.516.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.485 Source the hot-Jupiter thermochemistry above 2200 K, a Kzz distribution and the edges of the 1500 K and 2200 K regimes (AR6)**
@@ -11659,6 +11507,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rows change from DESIGN to SOURCED or DERIVED, and TEST.214 lists
   fewer `open` rows. Owner: unowned (research; Boss or a read-only
   research lane).
+  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
+  docs/design/tunable-gaps.md): the 1500 K and 2200 K regime edges are
+  pressure-dependent outputs: CH4 = CO at 966 to 1907 K (0.1 to 100 bar)
+  and half the water dissociated at 2570 to 3600 K (1 mbar to 1 bar), by
+  a Gibbs calculation with NASA-format polynomials; Ti-bearing gas is
+  kept only at Teq 2641 K and absent at 2210 to 2350 K while VO is kept
+  at 2210 K; the Kzz draw LU[1e7, 1e11] is replaced by a Teq threshold
+  (decision D5). Builders GEN.518 and GEN.519.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.486 Source the lava-world vapour regimes and the fraction of lava worlds that keep volatiles (AR7)**
@@ -11727,6 +11583,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Body composition research lanes to verify; summary in section 10 of
   docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the note's R9 (chemical
   taxonomy of comets by hypervolatile abundances and D/H).
+  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
+  docs/design/tunable-gaps.md): comet weights k1 to k3 (0.5, 1/3, 0.1)
+  are rounded abstract words; the counts are 13, 9 and 3 of 25
+  (Harrington Pinto 2022 Table 2); k4 and k5 log-normal widths from N=21
+  (10.9 percent, 0.51 dex) and N=16 (2.5 percent, 0.65 dex) in the
+  Robinson 2024 database (CC BY 4.0); row k7 (N2, O2 and the noble gases
+  from 67P alone) needs a named source. Builder GEN.520, decision D6.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.489 Source the white-dwarf and pulsar planet options (AR10)**
@@ -11774,6 +11637,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Body composition research lanes to verify; summary in section 10 of
   docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the note's R11 (trace
   gases from photochemical steady-state networks).
+  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
+  docs/design/tunable-gaps.md): row m2: O3 is 0.01 to 0.1 percent of
+  Earth for G, K and M hosts and 15 percent for an F host
+  (Domagal-Goldman 2014 Table 3), not 'about 10 percent'; HCl and HF are
+  percent level only for crust composition, below 0.1 percent for the
+  bulk silicate Earth; rows m3, m4, m11 are design flags (no exoplanet
+  N2O, PH3, NO2 or CH3Cl measurement exists). Builders GEN.524 and
+  GEN.525.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.491 Source the cloud and haze windows and yields (AR12)**
@@ -11795,6 +11666,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   weights or the derivation with citations, the rows change from DESIGN
   to SOURCED or DERIVED, and TEST.214 lists fewer `open` rows. Owner:
   unowned (research; Boss or a read-only research lane).
+  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
+  docs/design/tunable-gaps.md): row n7 (haze yield) needs a named
+  source: no population of Kzz and haze yields exists (WASP-107 b Kzz is
+  10^11.6 by Sing 2024 and 10^8.4 to 10^9.0 by Welbanks 2024); the
+  aerosol amplitude samples are Fu 2017 (N=34), Estrela 2022 (N=62) and
+  Brande 2024 (N=15). Builder GEN.519.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.492 Source the ground radioisotope abundances by host and the potassium depletion by body class (AR13)**
@@ -11817,6 +11694,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   derivation with citations, the rows change from DESIGN to SOURCED or
   DERIVED, and TEST.214 lists fewer `open` rows. Owner: unowned
   (research; Boss or a read-only research lane).
+  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
+  docs/design/tunable-gaps.md): o2 Th scatter is 0.056 dex for solar
+  twins (Botelho) to 0.19 dex mixed catalogues (Hypatia), not 0.14 to
+  0.19 for the thin disc; o3 K/U depletion has only Solar System bodies
+  (Moon 0.032, Earth 0.18, Mercury 0.18, Mars 0.28) unless Boss accepts
+  Na in 202 DZ white dwarfs as a proxy for formation temperature
+  (Harrison 2021, arXiv:2103.05713): Solar System K/U must not be the
+  tuning target; o4 Th/U U[3.8, 4.5] is an age-4.5 Gyr value to derive
+  from the production ratio, birth epoch and decay; o6 Al-26 is a
+  mixture, not log-uniform. Builder GEN.514.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.493 Source the initial-rotation distribution and the saturation time against stellar mass for the host-star UV regime (AR14)**
@@ -11837,6 +11724,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   derivation with citations, the rows change from DESIGN to SOURCED or
   DERIVED, and TEST.214 lists fewer `open` rows. Owner: unowned
   (research; Boss or a read-only research lane).
+  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
+  docs/design/tunable-gaps.md): p4 tau_sat LU[0.162, 2] Gyr is mass
+  dependent (0.16 Gyr for 0.5 to 0.6 solar masses, 0.6 +/- 0.3 for 0.2
+  to 0.3, 2.3 +/- 1.3 for 0.1 to 0.2; arXiv:1111.0031, 2205.02331) and
+  p6 becomes a percentile draw (arXiv:2009.07695). Builder GEN.523.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.494 Source the brown-dwarf type against temperature and the T/Y boundary near 500 to 700 K (AR15)**
@@ -11863,6 +11755,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Body composition research lanes to verify; summary in section 10 of
   docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the note's R15
   (brown-dwarf and exoplanet cloud regimes by kinetic grain growth).
+  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
+  docs/design/tunable-gaps.md): the 500 to 700 K range is T8 to T9; Y0
+  is 371 to 510 K (Kirkpatrick 2021 Table 13; Beiler 2024); g1 to g5 are
+  one Teff map and rows g1 and g4 are derivations. Builder GEN.517.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.495 The comet population table: species ranges and log-normal scatters replace the draw centred on one comet, with a carbon-chain-depleted flag**
@@ -11960,6 +11856,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that the CO2/CO and H2O/H2 ratios reproduce Sossi's equation 4 on the
   stored scale, and that no constant is on another scale. Owner: Core 4
   (proposed, with the composition chain).
+  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
+  docs/design/tunable-gaps.md): decision D3: the white-dwarf delta-IW is
+  the core-formation scale and rows a1 and a2 are the surface
+  magma-ocean scale; add the conversion test between them to this item's
+  tests.
   Prerequisites: GEN.437. Related: GEN.451, DB.69, GEN.422, GEN.456.
 
 - [ ] **GEN.499 The lava-world vapour species and mean molar mass from temperature and composition, replacing the heavy-oxide range of 40 to 60 g/mol**
@@ -12006,6 +11907,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Atmosphere lane (finding 29): JPL 19-5 is not public domain; Huebner
   and Mukherjee, NMSU and Bremen no licence found; Mainz CC BY 4.0;
   Leiden cite on use.
+  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
+  docs/design/tunable-gaps.md): licences with none stated that need
+  confirming before derived tables are distributed: Hypatia (copyright
+  notice, no licence), the NGPPS Zenodo record (open, no licence field),
+  the LExACoM CSV, Zenodo 17986129 (Paragas texture data), the CKS and
+  DR25 tables; the Robinson 2024 database is CC BY 4.0.
   Prerequisites: none. Related: GEN.472, GEN.410, GEN.427, GEN.438.
 
 - [ ] **GEN.501 Source the activity factor of the NH3 photolysis rate from the Huebner and Mukherjee rate tables**
@@ -12054,6 +11961,567 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   work of GEN.407).
   Prerequisites: none. Related: GEN.407, GEN.396, GEN.322, GEN.301,
   GEN.463, GEN.467.
+
+- [ ] **GEN.503 The shared tuning harness: a target table, a simulate-and-compare function and a loader that refuses a tunable row without a target**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. One build used by every builder group: a target table
+  with the columns row id, statistic, value, sigma, source, label,
+  validity range and selection-model id; a simulate-and-compare function
+  per target (chi-square within 2 sigma, or a binomial or Wilson
+  interval for counts); and a check in the loader (extends TEST.214)
+  that refuses a tunable row with no target-table entry. The knob scope
+  is the validity range of the data (for example [Fe/H] -0.5 to +0.5 for
+  the Kepler metallicity null, 20 pc for brown dwarfs, FGK for the
+  radius valley); outside it a draw is a flagged extrapolation. The
+  tuned seeded draw keeps its knobs tunable and a retune is a table
+  version change and so a generator epoch bump. Do: build the table
+  format, the comparison function and the loader check, with one worked
+  example row. Done: a test draws a tunable row at many seeds and
+  compares it with its target within the stated sigma, the loader
+  refuses a tunable row without a target, and the harness holds no Solar
+  System value as a target without the flag. Owner: Core 4 (proposed,
+  with the composition chain).
+  Prerequisites: GEN.472, GEN.478. Related: GEN.472, GEN.478, TEST.214,
+  GEN.480, GEN.494.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.504 The Kepler transit-plus-recovery selection model**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. One of the five shared selection models of section 4:
+  a model of which planets Kepler would detect: the transit geometry,
+  the detection threshold of the Kepler pipeline and the DR25
+  injection-recovery curve (public injections and a fitted recovery
+  curve), so that a tuned radius-valley width is compared with what
+  Kepler could see and not with the whole population. Shared by B1
+  (radius valley) and used for the period, radius and mass cuts. Data:
+  Kepler DR25 injection tables, the Petigura detection model. Needs the
+  CKS tables and the DR25 efficiency tables of the research list. Do:
+  build the model as a function from a simulated population to the
+  observed-sample statistic, with its data and its validity range named.
+  Done: a test applies the model to a known mock population and recovers
+  the published selection within its stated tolerance, and the model is
+  registered in the harness under an id the target table refers to.
+  Owner: Core 4 (proposed, with the composition chain).
+  Prerequisites: GEN.503. Related: GEN.503, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.505 The mass-radius sample selection model**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. One of the five shared selection models of section 4:
+  the sample cut of the precisely measured planets, mass better than 25
+  percent and radius better than 8 percent, so that a density
+  distribution (water-rich share, iron branch) is compared with the
+  planets that could be measured. Shared by B2 (water-rich share) and B4
+  (iron branch, with mass and radius error injection). Do: build the
+  model as a function from a simulated population to the observed-sample
+  statistic, with its data and its validity range named. Done: a test
+  applies the model to a known mock population and recovers the
+  published selection within its stated tolerance, and the model is
+  registered in the harness under an id the target table refers to.
+  Owner: Core 4 (proposed, with the composition chain).
+  Prerequisites: GEN.503. Related: GEN.503, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.506 The JWST atmosphere target-selection model**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. One of the five shared selection models of section 4:
+  which planets JWST observes (chosen for signal: nearby, hot, large
+  scale height, bright host), so that a tuned fraction of retained or
+  clear atmospheres is compared with the observed list and not the
+  population. Shared by B3 (retention and lava), B8 (giants) and B11
+  (aerosols). Data: the JWST rocky-planet list, the ExoAtmospheres
+  export. Do: build the model as a function from a simulated population
+  to the observed-sample statistic, with its data and its validity range
+  named. Done: a test applies the model to a known mock population and
+  recovers the published selection within its stated tolerance, and the
+  model is registered in the harness under an id the target table refers
+  to. Owner: Core 4 (proposed, with the composition chain).
+  Prerequisites: GEN.503. Related: GEN.503, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.507 The comet admission model by heliocentric distance**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. One of the five shared selection models of section 4:
+  which comets are measured at which heliocentric distance (the
+  production-rate and abundance samples are biased to bright comets near
+  the Sun), so that the comet volatile ratios and their r_h term are
+  compared with admitted comets. Shared by B12 (comet sampler). Data:
+  the Robinson database (CC BY 4.0), the three review papers. Do: build
+  the model as a function from a simulated population to the
+  observed-sample statistic, with its data and its validity range named.
+  Done: a test applies the model to a known mock population and recovers
+  the published selection within its stated tolerance, and the model is
+  registered in the harness under an id the target table refers to.
+  Owner: Core 4 (proposed, with the composition chain).
+  Prerequisites: GEN.503. Related: GEN.503, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.508 The white-dwarf pollution detection and settling model**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. One of the five shared selection models of section 4:
+  which polluted white dwarfs are detected, with the settling timescales
+  of DA and DB stars (the detection truncation near delta-IW -0.9, the
+  settling bias, no lower bound for 7 of 24), so that the redox and
+  composition draws are compared with the 24 polluted white dwarfs of
+  Doyle 2020 and 2023. Data: Koester 2014, Buchan 2022, Harrison 2021.
+  Shared by B5 (redox and white-dwarf debris). Do: build the model as a
+  function from a simulated population to the observed-sample statistic,
+  with its data and its validity range named. Done: a test applies the
+  model to a known mock population and recovers the published selection
+  within its stated tolerance, and the model is registered in the
+  harness under an id the target table refers to. Owner: Core 4
+  (proposed, with the composition chain).
+  Prerequisites: GEN.503. Related: GEN.503, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.509 Tuned draw builder B1: the radius valley and the envelope**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. Builder group B1 of section 4 (one worker). Rows: e1,
+  e2, e-link. Shared data and fit: CKS DR1/DR2/Gaia tables, Kepler DR25
+  injections, Petigura detection model, Rogers and Owen and Ho 2024
+  targets. Needs: injection-recovery selection module (shared with B2);
+  decision D2; Lopez and Fortney 2014 radius law. Decision D2 (default,
+  Decided unless Boss says otherwise): XUV energy-limited loss with
+  variable efficiency (Owen and Wu, the repo's choice), a core-mass
+  distribution as a third knob, and Lopez and Fortney 2014 as the
+  retained-envelope radius law (not yet fetched). Do: replace the seeded
+  bracket of each DESIGN row of GEN.478 in these rows by a seeded draw
+  whose knobs are tuned through the harness to the published statistics
+  of section 3 of the report (knob, statistic, target with N,
+  uncertainty, source and label), inside the validity range of the data
+  and flagged outside it; rows of class P become formulas of their
+  inputs and rows of class S or X are not tuned. Solar System values are
+  test points only (NO FIXED CONTENT). Done: every tuned row has a
+  target-table entry the loader checks, the simulate-and-compare test
+  passes within the stated sigma, no value rests on a Solar System body
+  alone, and the part 09 row carries its state (Decided 3:02 AM EDT
+  rule). A retune changes the table version and is a generator epoch
+  bump. Owner: Core 4 (proposed, with the composition chain).
+  Prerequisites: GEN.503, GEN.504. Related: GEN.503, GEN.478, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.510 Tuned draw builder B2: delivery and water worlds**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. Builder group B2 of section 4 (one worker). Rows: b1
+  to b6, e3, e4, T9, T11, switch. Shared data and fit: NGPPS NG76
+  extraction, Luque and Palle, Parc, Dainese, TRAPPIST-1 (Agol). Needs:
+  decision D1; DACE formation-stage tables. Decision D1 (default): keep
+  the formation model as a switch with the NGPPS logistic as the MODEL
+  default and the flagged bracket 0 to 0.87. Do: replace the seeded
+  bracket of each DESIGN row of GEN.478 in these rows by a seeded draw
+  whose knobs are tuned through the harness to the published statistics
+  of section 3 of the report (knob, statistic, target with N,
+  uncertainty, source and label), inside the validity range of the data
+  and flagged outside it; rows of class P become formulas of their
+  inputs and rows of class S or X are not tuned. Solar System values are
+  test points only (NO FIXED CONTENT). Done: every tuned row has a
+  target-table entry the loader checks, the simulate-and-compare test
+  passes within the stated sigma, no value rests on a Solar System body
+  alone, and the part 09 row carries its state (Decided 3:02 AM EDT
+  rule). A retune changes the table version and is a generator epoch
+  bump. Owner: Core 4 (proposed, with the composition chain).
+  Prerequisites: GEN.503, GEN.505. Related: GEN.503, GEN.478, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.511 Tuned draw builder B3: retention and lava worlds**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. Builder group B3 of section 4 (one worker). Rows: d1
+  to d6, j1, j5, i6. Shared data and fit: Berta-Thompson label table,
+  Meni-Gallardo database, JWST rocky-planet list. Needs: JWST
+  target-selection module; Berta-Thompson code and labels. Bracket
+  correction: the cosmic-shoreline K window LU[3.0e-4, 6.6e-4] with
+  slope 4 is contradicted by exoplanet fits and by 55 Cnc e and TOI-561
+  b (K 12 to 190 times higher); use the Meni-Gallardo and Palle slope
+  5.77, intercept -4.35 and the Berta-Thompson 2025 logistic (log10 f0 =
+  2.62, p = 5.9, q = 1.17, width 0.247 dex); 'TRAPPIST-1 b and c under
+  0.1 bar' is in no paper read. Do: replace the seeded bracket of each
+  DESIGN row of GEN.478 in these rows by a seeded draw whose knobs are
+  tuned through the harness to the published statistics of section 3 of
+  the report (knob, statistic, target with N, uncertainty, source and
+  label), inside the validity range of the data and flagged outside it;
+  rows of class P become formulas of their inputs and rows of class S or
+  X are not tuned. Solar System values are test points only (NO FIXED
+  CONTENT). Done: every tuned row has a target-table entry the loader
+  checks, the simulate-and-compare test passes within the stated sigma,
+  no value rests on a Solar System body alone, and the part 09 row
+  carries its state (Decided 3:02 AM EDT rule). A retune changes the
+  table version and is a generator epoch bump. Owner: Core 4 (proposed,
+  with the composition chain).
+  Prerequisites: GEN.503, GEN.506. Related: GEN.503, GEN.478, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.512 Tuned draw builder B4: the iron branch**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. Builder group B4 of section 4 (one worker). Rows: T5.
+  Shared data and fit: Plotnykov 2025, Brinkman 2024, Adibekyan 2021,
+  Schulze 2021. Needs: mass and radius error injection.  Do: replace the
+  seeded bracket of each DESIGN row of GEN.478 in these rows by a seeded
+  draw whose knobs are tuned through the harness to the published
+  statistics of section 3 of the report (knob, statistic, target with N,
+  uncertainty, source and label), inside the validity range of the data
+  and flagged outside it; rows of class P become formulas of their
+  inputs and rows of class S or X are not tuned. Solar System values are
+  test points only (NO FIXED CONTENT). Done: every tuned row has a
+  target-table entry the loader checks, the simulate-and-compare test
+  passes within the stated sigma, no value rests on a Solar System body
+  alone, and the part 09 row carries its state (Decided 3:02 AM EDT
+  rule). A retune changes the table version and is a generator epoch
+  bump. Owner: Core 4 (proposed, with the composition chain).
+  Prerequisites: GEN.503, GEN.505. Related: GEN.503, GEN.478, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.513 Tuned draw builder B5: redox and white-dwarf debris**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. Builder group B5 of section 4 (one worker). Rows: a1
+  to a4, T8, l1 to l3. Shared data and fit: Doyle 2020 and 2023 tables
+  (transcribe 24 rows), Koester 2014, Buchan 2022, Harrison 2021. Needs:
+  WD detection and settling model; decision D3. Bracket correction: the
+  white-dwarf redox centre of -1.0 (six stars) becomes -1.25 +/- 0.10
+  (22 values, sd 0.45, intrinsic about 0.22); a3's U[-1.4, 0] has mean
+  -0.7, 0.55 dex above it. Decision D3: the white-dwarf delta-IW is the
+  core-formation scale and a1 and a2 the surface magma-ocean scale, with
+  the conversion test of GEN.498. Do: replace the seeded bracket of each
+  DESIGN row of GEN.478 in these rows by a seeded draw whose knobs are
+  tuned through the harness to the published statistics of section 3 of
+  the report (knob, statistic, target with N, uncertainty, source and
+  label), inside the validity range of the data and flagged outside it;
+  rows of class P become formulas of their inputs and rows of class S or
+  X are not tuned. Solar System values are test points only (NO FIXED
+  CONTENT). Done: every tuned row has a target-table entry the loader
+  checks, the simulate-and-compare test passes within the stated sigma,
+  no value rests on a Solar System body alone, and the part 09 row
+  carries its state (Decided 3:02 AM EDT rule). A retune changes the
+  table version and is a generator epoch bump. Owner: Core 4 (proposed,
+  with the composition chain).
+  Prerequisites: GEN.503, GEN.508. Related: GEN.503, GEN.478, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.514 Tuned draw builder B6: radioisotopes**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. Builder group B6 of section 4 (one worker). Rows: o2,
+  o3, o4, o6, T23. Shared data and fit: Hypatia API (Th, Eu, K),
+  Botelho, Mors-style cluster results (Lichtenberg 2016), Th/U formula.
+  Needs: Hypatia licence; a chemical-evolution r-process history.
+  Findings: the o6 Al-26 range is a mixture (enriched flag) and not
+  log-uniform around the Solar System value (arXiv 2206.09675,
+  1608.01435); o4 Th/U U[3.8, 4.5] is an age-4.5 Gyr value, derive it
+  from the production ratio, the birth epoch and the decay. Do: replace
+  the seeded bracket of each DESIGN row of GEN.478 in these rows by a
+  seeded draw whose knobs are tuned through the harness to the published
+  statistics of section 3 of the report (knob, statistic, target with N,
+  uncertainty, source and label), inside the validity range of the data
+  and flagged outside it; rows of class P become formulas of their
+  inputs and rows of class S or X are not tuned. Solar System values are
+  test points only (NO FIXED CONTENT). Done: every tuned row has a
+  target-table entry the loader checks, the simulate-and-compare test
+  passes within the stated sigma, no value rests on a Solar System body
+  alone, and the part 09 row carries its state (Decided 3:02 AM EDT
+  rule). A retune changes the table version and is a generator epoch
+  bump. Owner: Core 4 (proposed, with the composition chain).
+  Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.515 Tuned draw builder B7: ground and petrology**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. Builder group B7 of section 4 (one worker). Rows:
+  T20, T22, T21, R2. Shared data and fit: petrology on the stored bulk;
+  Putirka and Xu, Trierweiler, Paragas. Needs: Putirka and Xu Table A1.
+  Do: replace the seeded bracket of each DESIGN row of GEN.478 in these
+  rows by a seeded draw whose knobs are tuned through the harness to the
+  published statistics of section 3 of the report (knob, statistic,
+  target with N, uncertainty, source and label), inside the validity
+  range of the data and flagged outside it; rows of class P become
+  formulas of their inputs and rows of class S or X are not tuned. Solar
+  System values are test points only (NO FIXED CONTENT). Done: every
+  tuned row has a target-table entry the loader checks, the
+  simulate-and-compare test passes within the stated sigma, no value
+  rests on a Solar System body alone, and the part 09 row carries its
+  state (Decided 3:02 AM EDT rule). A retune changes the table version
+  and is a generator epoch bump. Owner: Core 4 (proposed, with the
+  composition chain).
+  Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.516 Tuned draw builder B8: giant planets**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. Builder group B8 of section 4 (one worker). Rows: f5
+  to f7, T12. Shared data and fit: Thorngren 2016, Chachan 2025, LExACoM
+  CSV, Brewer and Fischer, Suarez-Andres. Needs: machine-readable T&F
+  2019 and Chachan tables. Bracket correction: the giant C/O tail f_tail
+  LU[0.0013, 0.34] with core 0.55 is outside the data (stellar tail zero
+  above 0.8, planet tail 0.043 to 0.087, core centre 0.57); 'Chachan
+  gives lower Z for sub-Saturns' is opposite (1.4 to 1.6 times lower
+  than Thorngren from 0.3 to 3 Jupiter masses). Do: replace the seeded
+  bracket of each DESIGN row of GEN.478 in these rows by a seeded draw
+  whose knobs are tuned through the harness to the published statistics
+  of section 3 of the report (knob, statistic, target with N,
+  uncertainty, source and label), inside the validity range of the data
+  and flagged outside it; rows of class P become formulas of their
+  inputs and rows of class S or X are not tuned. Solar System values are
+  test points only (NO FIXED CONTENT). Done: every tuned row has a
+  target-table entry the loader checks, the simulate-and-compare test
+  passes within the stated sigma, no value rests on a Solar System body
+  alone, and the part 09 row carries its state (Decided 3:02 AM EDT
+  rule). A retune changes the table version and is a generator epoch
+  bump. Owner: Core 4 (proposed, with the composition chain).
+  Prerequisites: GEN.503, GEN.506. Related: GEN.503, GEN.478, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.517 Tuned draw builder B9: brown dwarfs**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. Builder group B9 of section 4 (one worker). Rows: g1,
+  g4. Shared data and fit: Kirkpatrick 2021 Tables 13 to 15, Beiler
+  2024, Filippazzo 2015. Needs: Tables 11, 14, 15 machine-readable.
+  Finding: the 500 to 700 K 'gap' is T8 to T9 (Y0 at 371 to 510 K,
+  Kirkpatrick 2021 Table 13); g1 to g5 are one Teff map. Do: replace the
+  seeded bracket of each DESIGN row of GEN.478 in these rows by a seeded
+  draw whose knobs are tuned through the harness to the published
+  statistics of section 3 of the report (knob, statistic, target with N,
+  uncertainty, source and label), inside the validity range of the data
+  and flagged outside it; rows of class P become formulas of their
+  inputs and rows of class S or X are not tuned. Solar System values are
+  test points only (NO FIXED CONTENT). Done: every tuned row has a
+  target-table entry the loader checks, the simulate-and-compare test
+  passes within the stated sigma, no value rests on a Solar System body
+  alone, and the part 09 row carries its state (Decided 3:02 AM EDT
+  rule). A retune changes the table version and is a generator epoch
+  bump. Owner: Core 4 (proposed, with the composition chain).
+  Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.518 Tuned draw builder B10: the chemistry module**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. Builder group B10 of section 4 (one worker). Rows:
+  h2, h3, n6 crossover, f8, m7 to m9, n1 to n4, m2. Shared data and fit:
+  easyCHEM or own Gibbs solver with NASA-format polynomials. Needs:
+  licence check on the polynomial source. Finding: the 1500 K and 2200 K
+  edges are pressure-dependent outputs (CH4 = CO at 966 to 1907 K for
+  0.1 to 100 bar; half the water dissociated at 2570 to 3600 K for 1
+  mbar to 1 bar), computed by a Gibbs solver and not fixed edges. Do:
+  replace the seeded bracket of each DESIGN row of GEN.478 in these rows
+  by a seeded draw whose knobs are tuned through the harness to the
+  published statistics of section 3 of the report (knob, statistic,
+  target with N, uncertainty, source and label), inside the validity
+  range of the data and flagged outside it; rows of class P become
+  formulas of their inputs and rows of class S or X are not tuned. Solar
+  System values are test points only (NO FIXED CONTENT). Done: every
+  tuned row has a target-table entry the loader checks, the
+  simulate-and-compare test passes within the stated sigma, no value
+  rests on a Solar System body alone, and the part 09 row carries its
+  state (Decided 3:02 AM EDT rule). A retune changes the table version
+  and is a generator epoch bump. Owner: Core 4 (proposed, with the
+  composition chain).
+  Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.519 Tuned draw builder B11: aerosol amplitude**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. Builder group B11 of section 4 (one worker). Rows:
+  h4, n6, n7. Shared data and fit: Fu 2017 (N=34), Estrela 2022 (N=62),
+  Brande 2024 (N=15), UHJ TiO/VO list. Needs: decision D5. Decision D5
+  (default): Kzz and haze yield are nuisance parameters with the Brande
+  scatter as prior; drop the LU[1e7, 1e11] Kzz draw in favour of a Teq
+  threshold. Finding: Ti-bearing gas is kept only at Teq 2641 K and
+  absent at 2210 to 2350 K; VO is kept at 2210 K. Do: replace the seeded
+  bracket of each DESIGN row of GEN.478 in these rows by a seeded draw
+  whose knobs are tuned through the harness to the published statistics
+  of section 3 of the report (knob, statistic, target with N,
+  uncertainty, source and label), inside the validity range of the data
+  and flagged outside it; rows of class P become formulas of their
+  inputs and rows of class S or X are not tuned. Solar System values are
+  test points only (NO FIXED CONTENT). Done: every tuned row has a
+  target-table entry the loader checks, the simulate-and-compare test
+  passes within the stated sigma, no value rests on a Solar System body
+  alone, and the part 09 row carries its state (Decided 3:02 AM EDT
+  rule). A retune changes the table version and is a generator epoch
+  bump. Owner: Core 4 (proposed, with the composition chain).
+  Prerequisites: GEN.503, GEN.506. Related: GEN.503, GEN.478, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.520 Tuned draw builder B12: the comet sampler**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. Builder group B12 of section 4 (one worker). Rows: k1
+  to k5, k7, T15, T16. Shared data and fit: Robinson database (CC BY
+  4.0), HP22 Table 4, Willacy 2025, interstellar objects. Needs:
+  decision D6; the three review papers. Decision D6 (default): accept
+  the Solar System population as the within-system shape plus a
+  per-system offset knob bracketed by the two interstellar objects.
+  Finding: replace the k1 to k3 weights 0.5, 1/3, 0.1 by the printed
+  counts 13, 9, 3 of 25 and an r_h term. Do: replace the seeded bracket
+  of each DESIGN row of GEN.478 in these rows by a seeded draw whose
+  knobs are tuned through the harness to the published statistics of
+  section 3 of the report (knob, statistic, target with N, uncertainty,
+  source and label), inside the validity range of the data and flagged
+  outside it; rows of class P become formulas of their inputs and rows
+  of class S or X are not tuned. Solar System values are test points
+  only (NO FIXED CONTENT). Done: every tuned row has a target-table
+  entry the loader checks, the simulate-and-compare test passes within
+  the stated sigma, no value rests on a Solar System body alone, and the
+  part 09 row carries its state (Decided 3:02 AM EDT rule). A retune
+  changes the table version and is a generator epoch bump. Owner: Core 4
+  (proposed, with the composition chain).
+  Prerequisites: GEN.503, GEN.507. Related: GEN.503, GEN.478, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.521 Tuned draw builder B13: belts**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. Builder group B13 of section 4 (one worker). Rows:
+  T13, T14, E2, E3, R1, R3. Shared data and fit: DeMeo and Carry Table
+  6, fall shares, Mulders. Needs: stand-in flags only.  Do: replace the
+  seeded bracket of each DESIGN row of GEN.478 in these rows by a seeded
+  draw whose knobs are tuned through the harness to the published
+  statistics of section 3 of the report (knob, statistic, target with N,
+  uncertainty, source and label), inside the validity range of the data
+  and flagged outside it; rows of class P become formulas of their
+  inputs and rows of class S or X are not tuned. Solar System values are
+  test points only (NO FIXED CONTENT). Done: every tuned row has a
+  target-table entry the loader checks, the simulate-and-compare test
+  passes within the stated sigma, no value rests on a Solar System body
+  alone, and the part 09 row carries its state (Decided 3:02 AM EDT
+  rule). A retune changes the table version and is a generator epoch
+  bump. Owner: Core 4 (proposed, with the composition chain).
+  Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.522 Tuned draw builder B14: moons and Kuiper belt objects**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. Builder group B14 of section 4 (one worker). Rows:
+  T17, T18, T19. Shared data and fit: Canup and Ward, Sasaki, Cilibrasi,
+  Quintana, Brown, Barr and Schwamb. Needs: Bierson and Nimmo.  Do:
+  replace the seeded bracket of each DESIGN row of GEN.478 in these rows
+  by a seeded draw whose knobs are tuned through the harness to the
+  published statistics of section 3 of the report (knob, statistic,
+  target with N, uncertainty, source and label), inside the validity
+  range of the data and flagged outside it; rows of class P become
+  formulas of their inputs and rows of class S or X are not tuned. Solar
+  System values are test points only (NO FIXED CONTENT). Done: every
+  tuned row has a target-table entry the loader checks, the
+  simulate-and-compare test passes within the stated sigma, no value
+  rests on a Solar System body alone, and the part 09 row carries its
+  state (Decided 3:02 AM EDT rule). A retune changes the table version
+  and is a generator epoch bump. Owner: Core 4 (proposed, with the
+  composition chain).
+  Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.523 Tuned draw builder B15: host-star activity**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. Builder group B15 of section 4 (one worker). Rows:
+  p4, p6 (and p3, p5). Shared data and fit: Jackson 2012, Medina 2022,
+  Wright 2011 and 2018, Johnstone 2021 tracks. Needs: the Mors
+  percentile data. Bracket correction: tau_sat LU[0.162, 2] Gyr is mass
+  dependent (0.16 Gyr for 0.5 to 0.6 solar masses, 0.6 +/- 0.3 for 0.2
+  to 0.3, 2.3 +/- 1.3 for 0.1 to 0.2) and p6 becomes a percentile draw.
+  Do: replace the seeded bracket of each DESIGN row of GEN.478 in these
+  rows by a seeded draw whose knobs are tuned through the harness to the
+  published statistics of section 3 of the report (knob, statistic,
+  target with N, uncertainty, source and label), inside the validity
+  range of the data and flagged outside it; rows of class P become
+  formulas of their inputs and rows of class S or X are not tuned. Solar
+  System values are test points only (NO FIXED CONTENT). Done: every
+  tuned row has a target-table entry the loader checks, the
+  simulate-and-compare test passes within the stated sigma, no value
+  rests on a Solar System body alone, and the part 09 row carries its
+  state (Decided 3:02 AM EDT rule). A retune changes the table version
+  and is a generator epoch bump. Owner: Core 4 (proposed, with the
+  composition chain).
+  Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.524 Tuned draw builder B16: halogens and trace gases**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. Builder group B16 of section 4 (one worker). Rows:
+  m5, m6, m2 look-up. Shared data and fit: Schaefer 2012, Asplund 2021,
+  Maas, Jonsson. Needs: Cl and F depletion source. Finding: m2's 'O3
+  about 10 percent of Earth' is 0.01 to 0.1 percent for G, K and M hosts
+  and 15 percent for an F host (Domagal-Goldman 2014); HCl and HF are
+  percent level only for crust composition, below 0.1 percent for the
+  bulk silicate Earth. Do: replace the seeded bracket of each DESIGN row
+  of GEN.478 in these rows by a seeded draw whose knobs are tuned
+  through the harness to the published statistics of section 3 of the
+  report (knob, statistic, target with N, uncertainty, source and
+  label), inside the validity range of the data and flagged outside it;
+  rows of class P become formulas of their inputs and rows of class S or
+  X are not tuned. Solar System values are test points only (NO FIXED
+  CONTENT). Done: every tuned row has a target-table entry the loader
+  checks, the simulate-and-compare test passes within the stated sigma,
+  no value rests on a Solar System body alone, and the part 09 row
+  carries its state (Decided 3:02 AM EDT rule). A retune changes the
+  table version and is a generator epoch bump. Owner: Core 4 (proposed,
+  with the composition chain).
+  Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.525 Tuned draw builder B17: the design-flag registry**
+  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
+  as the coordinator reported; docs/design/tunable-gaps.md), filed by
+  the TODO thread. Builder group B17 of section 4 (one worker). Rows: j2
+  to j4, m3, m4, m11, k7 rest, E3, T17, T18. Needs: decision D4.
+  Decision D4 (default): a flagged design bracket, default off unless
+  the life-stage flag allows, never tuned: the six rows j2, j3, j4, m3,
+  m4, m11 (no exoplanet measurement exists, or the quantity is whether
+  life makes the gas). Do: a registry of the rows no ensemble can
+  define, each a labelled bracket with its flag and its reason, shown in
+  the loader report, never tuned and never silently filled. Done: every
+  design-flag row of GEN.478 is in the registry with its default state,
+  the loader reports them, and no knob of these rows is tuned to a Solar
+  System value. Owner: Core 4 (proposed, with the composition chain).
+  Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
+  Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
+
+- [ ] **GEN.526 Satellites with gas get young and intermediate populations derived from their age history and gas, so the Clouds hold massive stars**
+  Found by Core 3 while measuring GEN.240's yields (merged #1994), filed
+  by the TODO thread. The satellite population built by GEN.324 gives
+  every satellite one old age range and no young share, so at the
+  default floors the Large and Small Magellanic Clouds place 0 stars in
+  the mass pass and no bright star at the 9,000 solar luminosity floor;
+  about 1e6 bright stars appear only at the halo tier's floor of 500
+  (Core 3's rebuilt yields: 1.5e6 in all, halo 3.2e5, LMC 9.4e5, SMC
+  2.0e5, Sagittarius 3.8e4, clusters 1.4e4; black-hole rows 1.1e7;
+  planetary nebulae 2.4e3). The design note's default
+  (`docs/design/intergalactic-and-halo-contents.md`, open question 5,
+  Magellanic mix: 1% young and 9% intermediate until a better source is
+  found) was never built, and the NO FIXED CONTENT rule asks for a
+  derived share anyway. Do: each satellite's young and intermediate
+  shares are derived from its star formation history and gas mass (the
+  satellite's age range, its gas fraction and the same star formation
+  law the disk and the halo use), not from a fixed 1% and 9%; a
+  satellite with no gas keeps none; the stored scatter rows change, so
+  this is a generator epoch change joined to the one rescatter. Done:
+  the Clouds place massive stars in the mass pass and bright stars at
+  the default floor, the shares are calculated with the source named
+  (research first if the satellite history is not in the design notes;
+  lanes verify citations before relying on them), the design note's
+  yield table and open question 5 are updated with the measured values,
+  and `planetgen plan --redo-scatters luminosity mass phenomena`
+  applies. Decision for Boss (relay as a card): derive the shares from
+  age and gas as above, or keep the stated 1% and 9% as a labelled
+  stand-in until the research is done. Owner: Core 3 (proposed, the
+  GEN.324 and GEN.240 work).
+  Prerequisites: GEN.369. Related: GEN.324, GEN.240, GEN.369, GEN.366,
+  GEN.319.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -13154,6 +13622,15 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Core 1 (needs a migration revision).
   Migration revision: 0105, after DB.53's 0104 (Core 1, 2026-10-16, 7:42 PM EDT;
   numbers are assigned at merge time against main).
+  Migration revision shift (Core 3, GEN.324 #1993 merged about 4:55 AM
+  EDT as the lane reported): GEN.324 took 0105_satellite_stars because
+  main's head was 0104 and alembic_runner requires contiguous ids
+  (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
+  DB.65 0106, DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
+  order they merge.  Migration tests that count the populations of
+  chk_bright_stars_population use bright_stars.POPULATIONS (changed in
+  test_migration_halo_populations, test_migration_nuclear_structures and
+  test_migration_orbit_nodes).
   Prerequisites: none. Related: GEN.372, DB.55.
 
 - [ ] **DB.66 The shape row carries the galaxy family and one column per density component, as a migration only**
@@ -13190,6 +13667,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
   Prerequisites: GEN.411, GEN.412, GEN.422, GEN.423, GEN.424. Related:
   DB.65, DB.68, GEN.412.
+  Migration revision shift (Core 3, GEN.324 #1993 merged about 4:55 AM
+  EDT as the lane reported): GEN.324 took 0105_satellite_stars because
+  main's head was 0104 and alembic_runner requires contiguous ids
+  (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
+  DB.65 0106, DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
+  order they merge.
 
 - [ ] **DB.68 Planets and moons store the ozone column and the haze, dust and cloud optical depths**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -13200,6 +13683,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   revision after DB.67). Done: every row has the values; a test checks
   them against the stored mixture.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
+  Migration revision shift (Core 3, GEN.324 #1993 merged about 4:55 AM
+  EDT as the lane reported): GEN.324 took 0105_satellite_stars because
+  main's head was 0104 and alembic_runner requires contiguous ids
+  (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
+  DB.65 0106, DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
+  order they merge.
   Prerequisites: GEN.413, GEN.414, DB.67. Related: DB.67.
 
 - [ ] **DB.69 Planets and moons store the composition fractions**
@@ -13267,6 +13756,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   claims): the stored mantle oxidation state is delta-IW on the one
   reference scale of GEN.498 (Hirschmann 2021), with the stored
   quantities part G3 F8 lists.
+  Migration revision shift (Core 3, GEN.324 #1993 merged about 4:55 AM
+  EDT as the lane reported): GEN.324 took 0105_satellite_stars because
+  main's head was 0104 and alembic_runner requires contiguous ids
+  (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
+  DB.65 0106, DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
+  order they merge.
 
 - [ ] **DB.70 Planets, moons and small bodies store the surface and small-body composition shares**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -13311,6 +13806,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   filed by the TODO thread: one mixture storage for every body replaces
   `asteroid_belt_composition` and the planet composition text (see
   DB.69); designed together with it.
+  Migration revision shift (Core 3, GEN.324 #1993 merged about 4:55 AM
+  EDT as the lane reported): GEN.324 took 0105_satellite_stars because
+  main's head was 0104 and alembic_runner requires contiguous ids
+  (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
+  DB.65 0106, DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
+  order they merge.
 
 - [ ] **DB.71 Planets and moons store the partial pressures of the added gases, not only the ten stored today**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -14936,7 +15437,7 @@ clears each one.
   on the census harness (the new first item of the Whole-sphere audits
   thread); TEST.161, TEST.162 and TEST.164 add their checks to it, not
   counters of their own.
-  Prerequisites: GEN.240, GEN.282, GEN.321,
+  Prerequisites: GEN.282, GEN.321,
   TEST.186.
   Related: TEST.159.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
@@ -15338,7 +15839,7 @@ clears each one.
   region holds its members inside its radius; the pre-placed share of
   every population; no double count of a cluster star between the passes
   and the fill. Done: each test exists and runs in the normal suite.
-  Prerequisites: GEN.240, GEN.321, TEST.186. Related: TEST.159.
+  Prerequisites: GEN.321, TEST.186. Related: TEST.159.
 
 - [ ] **TEST.186 Census audit harness: fill seeded sectors per region class, count by kind and stage, compare to expectation within k Poisson sigma, print one report**
   Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
@@ -15946,45 +16447,12 @@ clears each one.
   Fix: `_placed_nebula(holds_ly=6)` redraws until the 27 points around
   the system point are inside; 80 of 80 solo runs passed (3:03 to 3:12
   AM EDT). Retires on Bug Hunt's merge.
+  Occurrence record (Core 4, UX.114 PR #1989, merged 4:01 AM EDT as the
+  lane reported): it did not recur in the second UX.114 gate (build
+  49bf9a8656ac115e, 2:42 to 3:58 AM EDT, 18,849 passed, 1 failed, the
+  round-trip column of TEST.217), consistent with a 1 in 40 draw. Bug
+  Hunt's `_placed_nebula(holds_ly=6)` fix is still the open fix.
   Prerequisites: none. Related: TEST.213, TEST.194, TEST.208.
-
-- [ ] **TEST.217 `test_every_column_is_written` found a NULL in every row of `moons.evolutionary_speed` in the full parallel gate, and passes alone (bug)**
-  Found by Core 4 (2026-10-17, 2:44 AM EDT as the lane reported, in the
-  full gate of UX.114: build 07b08de92ff11081 started 1:18 AM EDT, FAIL
-  in 78 min 4 s with 18,654 passed, 12 failed and 104 skipped; the other
-  ten failures were UX.114's own and are fixed in its branch), filed by
-  the TODO thread. Kind: test. Test:
-  `src/tests/test_db_column_round_trip.py::test_every_column_is_written`.
-  Failure: `NULL in every row (never written?): [('moons',
-  'evolutionary_speed')]`. Fails on main: no (it passes alone on main
-  and on the branch, the same 42 s run). Frequency: 1 of 1 full gate
-  runs. Reproducer: the full run only; it looks like a test that writes
-  `moons` rows ran alongside or ahead of the round trip, or the
-  round-trip test's own moon rows lose the column. Not reproduced in
-  isolation, so it is flagged as needing the full-run reproduction
-  first. Done: the cause is found, the test passes in the full parallel
-  run, and the round trip does not depend on which other tests ran, with
-  no quarantine. Owner: Bug Hunt (proposed).
-  Investigation record (2026-10-17): fails on main, and not only in the
-  full gate. Core 2 (3:2x AM EDT as the lane reported, on a worktree of
-  current main with NAV.60, no PERF.97): passes alone every time, fails
-  in the same process after `tests/test_workers.py
-  tests/test_update_guard_work.py tests/test_api_jobs.py` (2 of 2 runs
-  of that order; once in the PERF.97 gate, not in the NAV.60 gate);
-  reproducer `cd src && python -m pytest tests/test_workers.py
-  tests/test_update_guard_work.py tests/test_api_jobs.py
-  tests/test_db_column_round_trip.py -q`, idle box, 148 s. Core 3 saw
-  the same failure in its GEN.407 gate (1:53 AM EDT start, 15,540
-  passed, 1 failed; passes alone 4 of 4). TODO thread reproduced it on
-  main a5acb516 (run 3:13 to 3:16 AM EDT, box idle, load 0.17): 66 passed, 1
-  failed, 203.86 s, the same assertion. Cause (Bug Hunt, 3:13 AM EDT as
-  the lane reported): `moons.evolutionary_speed` is None on every
-  lifeless moon (life.py:216, GEN.206), and the test galaxy's draws
-  shift with every generator change (GEN.103), so whether any moon has
-  life depends on the draw; the column joins the CHANCE list beside
-  life_chemical. Fixed on Bug Hunt's branch (passes, 51 s at 3:08 AM
-  EDT); retires on its merge.
-  Prerequisites: none. Related: TEST.213, TEST.208.
 
 ## USR: User accounts
 

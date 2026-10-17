@@ -35,6 +35,7 @@ import uuid
 import pymysql
 import pytest
 
+from planetgen import tuning
 from planetgen.db import store as _db
 from planetgen.db.store import MySQLConfig
 
@@ -418,6 +419,16 @@ def _fast_password_hashing(request, monkeypatch):
     # The unknown-username dummy hash is cached; make the next one cheap
     # too (monkeypatch puts the production one back afterwards).
     monkeypatch.setattr(adminAuth, "_dummy_password_hash", None)
+    yield
+
+
+@pytest.fixture(autouse=True)
+def _toy_galaxies_scatter_inside_their_outline(monkeypatch):
+    """The star passes cover the grid's whole reach, 262 kpc by default (GEN.322), the bands beyond the outline
+    included. A test galaxy is a few dozen parsecs across with an outline written by hand, and its fixed-size halo
+    would fill the rest of the grid with stars, so a test draws inside the outline unless it asks for the reach
+    (`tuning.SCATTER_COVERS_REACH`, set True by the tests of GEN.322)."""
+    monkeypatch.setattr(tuning, "SCATTER_COVERS_REACH", False)
     yield
 
 

@@ -79,6 +79,34 @@ The colour shown in the descriptions, on the maps in place of the planet colour,
 | GEN.494 | Source the brown-dwarf type against temperature and the T/Y boundary near 500 to 700 K (AR15) | GEN.478 | Atmosphere lane research need R15 (rows g1, g4); replaces the seeded bracket of the DESIGN rows. |
 | GEN.501 | Source the activity factor of the NH3 photolysis rate from the Huebner and Mukherjee rate tables |  | Body lane reconciliation: NH3 lifetime 6.7e3 s quiet Sun, 5.6e3 s quiet/active mean; activity factor unknown. |
 
+### Tuned draws and selection models
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.503 | The shared tuning harness: a target table, a simulate-and-compare function and a loader that refuses a tunable row without a target | GEN.472, GEN.478 | Tunable gaps report: The shared tuning harness: a target table, a simulate-and-compare func. |
+| GEN.504 | The Kepler transit-plus-recovery selection model | GEN.503 | Tunable gaps report: The Kepler transit-plus-recovery selection model. |
+| GEN.505 | The mass-radius sample selection model | GEN.503 | Tunable gaps report: The mass-radius sample selection model. |
+| GEN.506 | The JWST atmosphere target-selection model | GEN.503 | Tunable gaps report: The JWST atmosphere target-selection model. |
+| GEN.507 | The comet admission model by heliocentric distance | GEN.503 | Tunable gaps report: The comet admission model by heliocentric distance. |
+| GEN.508 | The white-dwarf pollution detection and settling model | GEN.503 | Tunable gaps report: The white-dwarf pollution detection and settling model. |
+| GEN.509 | Tuned draw builder B1: the radius valley and the envelope | GEN.503, GEN.504 | Tunable gaps report: Tuned draw builder B1: the radius valley and the envelope. |
+| GEN.510 | Tuned draw builder B2: delivery and water worlds | GEN.503, GEN.505 | Tunable gaps report: Tuned draw builder B2: delivery and water worlds. |
+| GEN.511 | Tuned draw builder B3: retention and lava worlds | GEN.503, GEN.506 | Tunable gaps report: Tuned draw builder B3: retention and lava worlds. |
+| GEN.512 | Tuned draw builder B4: the iron branch | GEN.503, GEN.505 | Tunable gaps report: Tuned draw builder B4: the iron branch. |
+| GEN.513 | Tuned draw builder B5: redox and white-dwarf debris | GEN.503, GEN.508 | Tunable gaps report: Tuned draw builder B5: redox and white-dwarf debris. |
+| GEN.514 | Tuned draw builder B6: radioisotopes | GEN.503 | Tunable gaps report: Tuned draw builder B6: radioisotopes. |
+| GEN.515 | Tuned draw builder B7: ground and petrology | GEN.503 | Tunable gaps report: Tuned draw builder B7: ground and petrology. |
+| GEN.516 | Tuned draw builder B8: giant planets | GEN.503, GEN.506 | Tunable gaps report: Tuned draw builder B8: giant planets. |
+| GEN.517 | Tuned draw builder B9: brown dwarfs | GEN.503 | Tunable gaps report: Tuned draw builder B9: brown dwarfs. |
+| GEN.518 | Tuned draw builder B10: the chemistry module | GEN.503 | Tunable gaps report: Tuned draw builder B10: the chemistry module. |
+| GEN.519 | Tuned draw builder B11: aerosol amplitude | GEN.503, GEN.506 | Tunable gaps report: Tuned draw builder B11: aerosol amplitude. |
+| GEN.520 | Tuned draw builder B12: the comet sampler | GEN.503, GEN.507 | Tunable gaps report: Tuned draw builder B12: the comet sampler. |
+| GEN.521 | Tuned draw builder B13: belts | GEN.503 | Tunable gaps report: Tuned draw builder B13: belts. |
+| GEN.522 | Tuned draw builder B14: moons and Kuiper belt objects | GEN.503 | Tunable gaps report: Tuned draw builder B14: moons and Kuiper belt objects. |
+| GEN.523 | Tuned draw builder B15: host-star activity | GEN.503 | Tunable gaps report: Tuned draw builder B15: host-star activity. |
+| GEN.524 | Tuned draw builder B16: halogens and trace gases | GEN.503 | Tunable gaps report: Tuned draw builder B16: halogens and trace gases. |
+| GEN.525 | Tuned draw builder B17: the design-flag registry | GEN.503 | Tunable gaps report: Tuned draw builder B17: the design-flag registry. |
+
 ## Phase 4: The proofs and the headline
 
 The radiation sweep, the documents of the whole composition model and the headline.

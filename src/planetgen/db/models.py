@@ -233,7 +233,7 @@ bright_stars = sa.Table(
     sa.Index('idx_bright_stars_luminosity', 'luminosity_w'),
     sa.Index('idx_bright_stars_next_update_due', 'next_update_due'),
     sa.Index('idx_bright_stars_population', 'population', 'off_plane', 'luminosity_w'),
-    sa.CheckConstraint("(`population` in (_utf8mb4'young',_utf8mb4'intermediate',_utf8mb4'old',_utf8mb4'bulge',_utf8mb4'halo',_utf8mb4'cluster',_utf8mb4'nuclear_cluster',_utf8mb4'nuclear_disc'))", name='chk_bright_stars_population'),
+    sa.CheckConstraint("(`population` in (_utf8mb4'young',_utf8mb4'intermediate',_utf8mb4'old',_utf8mb4'bulge',_utf8mb4'halo',_utf8mb4'cluster',_utf8mb4'satellite',_utf8mb4'nuclear_cluster',_utf8mb4'nuclear_disc'))", name='chk_bright_stars_population'),
     sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_bright_stars_system', ondelete='SET NULL'),
     mysql_engine="InnoDB",
 )
