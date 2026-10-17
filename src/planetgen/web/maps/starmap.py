@@ -41,7 +41,8 @@ import colorsys
 import math
 
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
-from planetgen.web.lib.fmt import format_distance_ly, format_luminosity_sol, format_number, format_speed_kms
+from planetgen.web.lib.fmt import (
+    format_distance_ly, format_luminosity_sol, format_members, format_number, format_speed_kms)
 
 try:
     from planetgen.physics.constants import SPECTRAL_CLASS_COLORS, TEMP_RANGES, SOLAR_LUMINOSITY, SOLAR_RADIUS_M
@@ -517,7 +518,9 @@ def _neighbor_indicator_data(link_url, neighbor):
     if bright:
         data["brightStarCount"] = len(bright)
         data["brightStars"] = [
-            f'{star["star_type"]}, {format_luminosity_sol(star["luminosity_sol"])}' for star in bright[:_NEIGHBOR_BRIGHT_STARS_SHOWN]
+            f'{star["star_type"]}, {format_luminosity_sol(star["luminosity_sol"])}'
+            + (f', {format_members(star["member_count"], star["system_mass_solar"])}' if star.get("member_count") else "")
+            for star in bright[:_NEIGHBOR_BRIGHT_STARS_SHOWN]
         ]
     return data
 
@@ -1283,7 +1286,8 @@ def uncharted_scene_data(address, designation, center_pc, edge_pc, contents, gen
     for star in contents["stars"]:
         x_px, y_px, z_px = _uncharted_position_px((star["x"], star["y"], star["z"]), center_pc, half_edge_pc)
         stars.append(_uncharted_star_entry(
-            star, x_px, y_px, z_px, f'{star["star_type"]} star ({UNCHARTED_LABEL.lower()})'))
+            star, x_px, y_px, z_px, f'{star["star_type"]} star ({UNCHARTED_LABEL.lower()})',
+            type_label=format_members(star["member_count"], star["system_mass_solar"]) if star.get("member_count") else None))
     brightest_sol = max([star["luminositySol"] for star in stars]
                         + [HYPERVELOCITY_EXPECTED_STAR["luminosity_sol"]] * any(
                             row["type"] == "hypervelocity_star" for row in contents["scattered"]), default=None)
