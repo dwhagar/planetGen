@@ -17052,6 +17052,13 @@ clears each one.
   run on main. Frequency: 2 of Core 2's last 3 gates (also its UX.118
   gate). Reproducer: run `scripts/test.py changed` while another lane's
   gate shares the box.
+  Sighting (Bug Hunt, 2026-10-17, 7:01 PM EDT as the lane reported,
+  relayed by the coordinator, filed by the TODO thread): in the browser
+  phase of gate 586fdaa6 (about 60% at 7:01 PM EDT)
+  `test_open_map_menus_hold_no_overlap[web.sector-390]` failed and was
+  being rerun alone. Fails on main: not checked. Frequency: one more
+  loaded gate run for the menu-overlap family folded into this item.
+  Reproducer: run the browser phase while other lanes' gates run.
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
@@ -18653,6 +18660,27 @@ clears each one.
   3 once GEN.532 is merged, until Core 1's exclusion lands. Reproducer:
   run the test with random seeds on GEN.532's branch.
   Prerequisites: GEN.532. Related: GEN.532.
+
+- [ ] **TEST.229 The browser phase of a gate stalls for minutes at one test with a headless_shell gpu process near 200% CPU (bug)**
+  Found by Blocker 1 (2026-10-17, 7:02 PM EDT as the lane reported,
+  relayed by the coordinator), filed by the TODO thread. In both of
+  Blocker 1's gates today (GEN.289's and GEN.314's) the browser phase
+  stopped advancing for about 9 minutes at 66%, with the log quiet
+  (GEN.314's since 6:49 PM EDT) while one `headless_shell` gpu process
+  ran near 200% CPU; it then continued and nothing failed. The pause
+  costs gate time on a box where four lanes share four cores, and it may
+  be what makes the load flakes of TEST.126, TEST.171, TEST.172 and
+  TEST.227 worse. Fails on main: not a failure (slowness), not checked
+  on main. Frequency: 2 of 2 Blocker 1 gates today at the same 66%
+  point. Reproducer: run `scripts/test.py changed` and watch `top` for a
+  `headless_shell --type=gpu-process` near 200% while the log is quiet.
+  Do: find which test is running at the stall and why the GPU process
+  spins (software rendering of a WebGL scene, a frame loop that never
+  idles, or a page left open by an earlier test), then stop the spin or
+  run that test in a way that does not take two cores. Done: the cause
+  is on this item and the browser phase shows no multi-minute stall in a
+  gate. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.126, TEST.171, TEST.172, TEST.227.
 
 
 ## USR: User accounts
