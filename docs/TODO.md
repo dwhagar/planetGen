@@ -11874,6 +11874,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   replacement item. Proposed home `planetgen/fills.py` (data, not
   behaviour). The plan puts X1 first because every other fill group
   registers into it.
+  Boss's general rules (typed in the project chat at 12:39 PM EDT on
+  2026-10-17, relayed by the coordinator): when in doubt, verified wins;
+  when two verified sources are in doubt, the newest wins; when two
+  sources are both in question, the one that takes the most permission
+  wins (his words 'most permission take wins'; the coordinator read it
+  as the most permissive, widest value, which Boss has not confirmed, so
+  apply it only as the widest bracket until he does). At 12:40 PM EDT,
+  by card (relayed in words), his six earlier 'widen and keep both'
+  answers stand; the newest-wins rule applies to every conflict after
+  them. The loader's source-conflict handling follows this: a verified
+  row beats a partly verified or second-hand one, the newest of two
+  verified rows wins and the older stays recorded, and two rows both in
+  question widen to the widest bracket; the six earlier
+  widen-and-keep-both cases keep both.
 
 - [ ] **GEN.473 Replace the asteroid taxon shares and the zone kernel, measured in the Solar System belt, by a derived or general distribution**
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
@@ -13063,6 +13077,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stand-in is checked against the same target (plan section 6.3). Each
   filled value in the docs carries one line `Fill <id> (<kind>,
   <evidence>): ...`.
+  Boss's general rules (typed in the project chat at 12:39 PM EDT on
+  2026-10-17, relayed by the coordinator): when in doubt, verified wins;
+  when two verified sources are in doubt, the newest wins; when two
+  sources are both in question, the one that takes the most permission
+  wins (his words 'most permission take wins'; the coordinator read it
+  as the most permissive, widest value, which Boss has not confirmed, so
+  apply it only as the widest bracket until he does). At 12:40 PM EDT,
+  by card (relayed in words), his six earlier 'widen and keep both'
+  answers stand; the newest-wins rule applies to every conflict after
+  them. The stand-in registry's conflict rule is the one in the gap plan
+  section 6.4 as updated.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
 - [ ] **GEN.504 The Kepler transit-plus-recovery selection model**
@@ -13937,6 +13962,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   list: Bogaard 1978, JPL Evaluation 19, Stixrude Part I, Palme and
   O'Neill 2014, Lodders 2003, Hirschmann 2012, Gaillard 2021 and 2022,
   Bensby 2014, Pinna 2019b, Bottema 1993.
+  Boss's general rules (typed in the project chat at 12:39 PM EDT on
+  2026-10-17, relayed by the coordinator): when in doubt, verified wins;
+  when two verified sources are in doubt, the newest wins; when two
+  sources are both in question, the one that takes the most permission
+  wins (his words 'most permission take wins'; the coordinator read it
+  as the most permissive, widest value, which Boss has not confirmed, so
+  apply it only as the widest bracket until he does). At 12:40 PM EDT,
+  by card (relayed in words), his six earlier 'widen and keep both'
+  answers stand; the newest-wins rule applies to every conflict after
+  them. Recorded in the gap plan section 6.4 and 6, composition-model.md
+  section 4a item 12 and atmosphere-composition.md section 11.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
