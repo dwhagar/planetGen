@@ -24,7 +24,9 @@ REGION_LABELS = {
 }
 POPULATION_LABELS = {
     "young": "Young disk", "intermediate": "Intermediate disk", "old": "Old disk", "bulge": "Bulge", "halo": "Halo",
-    "cluster": "Cluster", "satellite": "Satellite", "nuclear_cluster": "Nuclear cluster", "nuclear_disc": "Nuclear disc",
+    "cluster": "Cluster", "satellite": "Old satellite stars", "nuclear_cluster": "Nuclear cluster",
+    "nuclear_disc": "Nuclear disc", "satellite_young": "Young satellite stars",
+    "satellite_intermediate": "Intermediate satellite stars",
 }
 ROTATION_LABELS = {"disk": "Follows the disk", "bar": "Follows the bar", "orbit": "Orbits the galaxy", "none": "No net motion"}
 AMBIENT_LABELS = {

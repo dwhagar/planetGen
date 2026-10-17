@@ -56,7 +56,7 @@ import numpy as np
 from planetgen.physics import constants, metallicity
 from planetgen import tuning
 from planetgen.galaxy import scatter_limits as scatterLimits
-from planetgen.galaxy.component_field import KINDS_IN_THE_GATE
+from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
 from planetgen.galaxy.density import population_densities, population_densities_array
 from planetgen.galaxy.spherical import (
     band_center_pc,
@@ -157,7 +157,7 @@ def _densities(position_pc, shape):
     pre-places no component star (they are filled, GEN.161, or scattered by their own pass, GEN.240), which is what
     `_densities_at` and the band majorants already assume."""
     found = {population: max(density, 0.0) for population, density in population_densities(position_pc, shape).items()}
-    for kind in KINDS_IN_THE_GATE:
+    for kind in POPULATIONS_IN_THE_GATE:
         found[kind] = 0.0
     return found
 
@@ -235,7 +235,7 @@ def star_fe_h(population, point, seed, params=None):
     stored point, whole milliparsecs), on a stream of its own seed so no scatter draw moves. `None` for a cluster
     or satellite star, which carries its component's value (GEN.159, GEN.237). A horizontal-branch star keeps the
     [Fe/H] its colour was drawn from (`params["metallicity_fe_h"]`, GEN.286)."""
-    if population in ("cluster", "satellite"):
+    if population in POPULATIONS_IN_THE_GATE:
         return None
     if params is not None and params.get("metallicity_fe_h") is not None:
         return params["metallicity_fe_h"]
@@ -1101,7 +1101,7 @@ class FillContext:
         after a scatter, the luminosity cap."""
         system_config.POPULATION = pick_population(self.densities, rng)
         system_config.PLACE_TERMS = self.place_terms
-        if system_config.POPULATION in ("cluster", "satellite"):
+        if system_config.POPULATION in POPULATIONS_IN_THE_GATE:
             system_config.FE_H_PEAKS = self.profile.populations[system_config.POPULATION].fe_h
         if self.min_luminosity_sol is not None:
             system_config.MAX_STAR_LUMINOSITY_SOL = self.min_luminosity_sol

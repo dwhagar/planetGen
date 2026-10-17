@@ -711,14 +711,17 @@ PROTOSTAR_MULTIPLICITY_BY_CLASS = {"0": 0.57, "I": 0.23}
 # ~150 pc (A to F dwarfs, Bovy 2017). The bulge is old
 # (8-12 Gy), and so is the thick disk, whose stars count as "old"
 # (`galaxy.density.population_densities`). The halo and the globular clusters are older still, 10 to 13 Gy
-# (GEN.234). A satellite galaxy's stars (GEN.237) run from 0.5 Gy to the age of the Universe: the Clouds still form
-# stars and the dwarf spheroidals do not, so this is the window of the lot, not of one. The nuclear
+# (GEN.234). A satellite galaxy's stars (GEN.237) are three populations, split by age like the disk's and by the same windows
+# (GEN.526): `satellite_young` and `satellite_intermediate` are the shares its star formation history puts in the last
+# 0.1 and 3 Gy (`galaxy.satellite_history`; 0 for a satellite that no longer forms stars and holds none in its
+# history's last 3 Gy), and `satellite` is the rest, 3 Gy to the age of the Universe. The nuclear
 # populations (GEN.280) are windows with the mean ages of the observed mixes (the cluster 80% 5 to 12 Gyr and 20%
 # 0.1 to 5, a mean of 7.3 Gyr; the disc 70% 8 to 12 and 30% 0 to 8, a mean of 8.2) [recalled, to verify].
 STELLAR_POPULATION_AGE_RANGES_GY = {
     "young": (0.0, 0.1), "intermediate": (0.1, 3.0), "old": (3.0, 10.0), "bulge": (8.0, 12.0),
-    "halo": (10.0, 13.0), "cluster": (10.0, 13.0), "satellite": (0.5, 13.0),
+    "halo": (10.0, 13.0), "cluster": (10.0, 13.0), "satellite": (3.0, 13.0),
     "nuclear_cluster": (3.0, 12.0), "nuclear_disc": (4.0, 12.0),
+    "satellite_young": (0.0, 0.1), "satellite_intermediate": (0.1, 3.0),
 }
 STELLAR_POPULATION_SCALE_HEIGHT_RATIO = {"young": 50 / 300, "intermediate": 150 / 300, "old": 1.0}
 STELLAR_POPULATION_ARM_AMPLITUDE = {"young": 0.9, "intermediate": 0.4, "old": 0.0}
@@ -934,11 +937,13 @@ local density, about 2.7 times what `HALO_SYSTEM_FRACTION` gives (0.185%). Not u
 STELLAR_POPULATION_DISPERSION_KMS = {
     "young": 15.0, "intermediate": 25.0, "old": 50.0, "bulge": 120.0, "halo": 120.0, "cluster": 8.0,
     "satellite": 25.0,       # the dwarfs' and Clouds' own 20 to 30 km/s (design note 5.3)
+    "satellite_young": 25.0, "satellite_intermediate": 25.0,       # the same satellite, so the same motion (GEN.526)
     "nuclear_cluster": 150.0, "nuclear_disc": 80.0,
 }
 STELLAR_POPULATION_ROTATION = {
     "young": "disk", "intermediate": "disk", "old": "disk", "bulge": "bar", "halo": "none", "cluster": "orbit",
-    "satellite": "orbit", "nuclear_cluster": "none", "nuclear_disc": "disk",
+    "satellite": "orbit", "satellite_young": "orbit", "satellite_intermediate": "orbit",
+    "nuclear_cluster": "none", "nuclear_disc": "disk",
 }
 # A cluster carries its own [Fe/H] (`physics.metallicity`); until the component table (GEN.237) gives each one
 # its own, the profile of a cluster cell shows the two peaks of the Milky Way's clusters (-1.5 and -0.5,
@@ -951,6 +956,22 @@ METALLICITY_CLUSTER_PEAKS = ((0.65, -1.5, 0.3), (0.35, -0.5, 0.3))
 # and dwarfs' middle (LMC about -0.4, SMC about -0.9, the dwarf spheroidals -1.0 to -2.1, recalled).
 COMPONENT_FE_H_SIGMA = {"cluster": 0.15, "satellite": 0.3}
 METALLICITY_SATELLITE_PEAKS = ((1.0, -1.2, 0.5),)
+
+# A satellite's star formation history (GEN.526, `galaxy.satellite_history`, docs/design/intergalactic-and-halo-contents.md
+# 5.5). Worked out from what its row holds (stellar mass, half-light radius, mean stellar age), with no value from the
+# Clouds' own histories (those are the test targets of `tests/test_satellite_history.py`, never inputs).
+SATELLITE_HISTORY_SPAN_GY = STELLAR_POPULATION_AGE_RANGES_GY["satellite"][1]
+"""float: How long ago a satellite's first stars formed, Gy: the top of the age window, which is the age of the
+Universe in this model. Its history runs from there to the present."""
+STAR_FORMATION_LAW_COEFFICIENT = 2.5e-4
+"""float: The Schmidt-Kennicutt law's coefficient: the star formation rate per area is this times the gas per area (solar
+masses per pc2) to `STAR_FORMATION_LAW_EXPONENT`, in solar masses per year per kpc2 (Kennicutt 1998, ApJ 498, 541, eq. 4:
+(2.5 +/- 0.7) e-4, read in arXiv astro-ph/9712213)."""
+SATELLITE_STAR_FORMATION_THRESHOLD_MSUN_PC2 = 3.0
+"""float: The gas surface density below which a satellite forms no stars, solar masses per pc2. Schaye (2004, ApJ 609,
+667, read in arXiv astro-ph/0205125) puts the empirical threshold at 3 to 10 and the point where the gas turns cold
+at about 10 (some H II regions form at 2 to 4); the lower end is taken [I], so a dwarf with a trace of gas still forms
+stars."""
 
 # How deep one dense cell is filled (GEN.281, docs/design/realistic-galactic-core.md 4.2). A cell that expects more
 # systems than the cell star ceiling fills only the stars at or above the fill luminosity cap; the rest is
