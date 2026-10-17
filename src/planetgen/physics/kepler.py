@@ -52,6 +52,7 @@ from planetgen.physics import constants
 from planetgen.physics.orbits import orbital_position_au
 from planetgen.physics.state_vectors import state_from_elements
 from planetgen.util.checks import finite_domain
+from planetgen.util import detmath
 
 TWO_PI = 2 * math.pi
 
@@ -529,7 +530,7 @@ def _near_parabolic_anomaly_and_distance(mean_anomaly_rad, eccentricity, perihel
     since_perihelion = mean / math.sqrt(mu / semi_major_axis_au ** 3)
     position, velocity = state_from_elements(mu, perihelion_distance_au, eccentricity, 0.0, 0.0, 0.0, 0.0)
     position, velocity = universal_step(position, velocity, mu, since_perihelion)
-    return math.atan2(position[1], position[0]), math.hypot(position[0], position[1])
+    return math.atan2(position[1], position[0]), detmath.hypot(position[0], position[1])
 
 
 def comet_orbital_state(orbit_type, perihelion_distance_au, eccentricity, inclination_deg,

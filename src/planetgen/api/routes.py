@@ -111,6 +111,7 @@ from planetgen.db.render import describe_system, render_system_sections, render_
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, pc_to_ly
 from planetgen.util.format import format_distance_ly
 from planetgen.wiki import WikiClient, WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
+from planetgen.util import detmath
 
 from . import ids
 from .authz import audit, require_admin
@@ -949,7 +950,7 @@ def superbubble_of(conn, detail):
         return None
     return {"radius_pc": round(bubble.radius_pc, 1), "ambient_density_cm3": float("%.3g" % bubble.ambient_density_cm3),
             "temperature_k": bubble.temperature_k,
-            "centre_distance_pc": round(math.dist(bubble.center_pc, center), 1)}
+            "centre_distance_pc": round(detmath.dist(bubble.center_pc, center), 1)}
 
 
 def unresolved_of(conn, detail):

@@ -16,6 +16,7 @@ from planetgen import tuning
 from planetgen.galaxy import components
 from planetgen.physics import king
 from planetgen.util import draw
+from planetgen.util import detmath
 
 _GROUP_HALO = 0
 _ATTEMPTS = 64
@@ -76,7 +77,7 @@ def _place(stream, group):
         dispersion = tuning.CLUSTER_BULGE_DISPERSION_KMS
         rotation = tuning.CLUSTER_HALO_CIRCULAR_KMS
     x, y, z = distance * dx, distance * dy, distance * dz
-    cylindrical = math.hypot(x, y) or 1.0
+    cylindrical = detmath.hypot(x, y) or 1.0
     velocity = (
         -rotation * y / cylindrical + stream.gauss(0.0, dispersion),
         rotation * x / cylindrical + stream.gauss(0.0, dispersion),

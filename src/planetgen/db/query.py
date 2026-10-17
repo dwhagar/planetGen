@@ -91,6 +91,7 @@ from planetgen.tuning import (
     NAV_ISLAND_LINKS, PLANET_CLASSES,
 )
 from planetgen.physics.units import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
+from planetgen.util import detmath
 
 
 def open_readonly(config=None, statement_timeout_s=None):
@@ -977,7 +978,7 @@ def _sector_local_positions(conn, sector_id):
 
 
 def _longest_hop(path, positions):
-    return max((math.dist(positions[a], positions[b]) for a, b in zip(path, path[1:])), default=0.0)
+    return max((detmath.dist(positions[a], positions[b]) for a, b in zip(path, path[1:])), default=0.0)
 
 
 def _galaxy_route(conn, origin_position, destination_position, from_key, to_key, adjacency_k, unknown_edges=None):
@@ -999,7 +1000,7 @@ def _galaxy_route(conn, origin_position, destination_position, from_key, to_key,
         tuple: `(positions, found)`: the positions the graph was built from
             (`{node_id: (x, y, z)}`, light-years) and `shortest_path`'s answer.
     """
-    direct_ly = math.dist(origin_position, destination_position)
+    direct_ly = detmath.dist(origin_position, destination_position)
     half_width = min(max(direct_ly * NAV_CORRIDOR_FRACTION, NAV_CORRIDOR_MIN_LY), NAV_CORRIDOR_START_MAX_LY)
     while True:
         positions = positions_near_segment(conn, origin_position, destination_position, half_width)
@@ -1038,7 +1039,7 @@ def _with_stones(conn, path, positions, distance_ly):
         new_path.append(b)
     if not found:
         return path, distance_ly, {}
-    return new_path, sum(math.dist(positions[a], positions[b]) for a, b in zip(new_path, new_path[1:])), found
+    return new_path, sum(detmath.dist(positions[a], positions[b]) for a, b in zip(new_path, new_path[1:])), found
 
 
 def _route_places(conn, path):
@@ -1260,7 +1261,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             if stones and galaxy_frame is not None:
                 path, distance_ly, stops_found = _with_stones(conn, path, positions, distance_ly)
             route_positions = {node_id: positions[node_id] for node_id in path}
-            hops = [{"from": a, "to": b, "distance_ly": math.dist(positions[a], positions[b]),
+            hops = [{"from": a, "to": b, "distance_ly": detmath.dist(positions[a], positions[b]),
                      "unknown_space": False} for a, b in zip(path, path[1:])]
             places = _route_places(conn, path)
             for hop in hops:
@@ -2738,7 +2739,7 @@ def _scattered_built_target(conn, row):
         f"SELECT id, name, center_x_pc, center_y_pc, center_z_pc FROM {table} WHERE sector_id = ? {extra}"
         " AND center_x_pc IS NOT NULL", (sector["id"],)).fetchall()
     best = min(
-        ((math.dist(point, (c["center_x_pc"], c["center_y_pc"], c["center_z_pc"])), c) for c in candidates),
+        ((detmath.dist(point, (c["center_x_pc"], c["center_y_pc"], c["center_z_pc"])), c) for c in candidates),
         key=lambda pair: (pair[0], pair[1]["id"]), default=None)
     if best is None or best[0] > SCATTER_BUILT_MATCH_PC:
         return None
@@ -2861,7 +2862,7 @@ def _sector_reach_pc(sector, edge_pc):
     center = (sector["center_x_pc"], sector["center_y_pc"], sector["center_z_pc"])
     for vertex in sector_cell_vertices_pc(
             sector["shell_index"], sector["band_index"], sector["wedge_index"], edge_pc):
-        reach = max(reach, math.dist(vertex, center))
+        reach = max(reach, detmath.dist(vertex, center))
     return reach
 
 
@@ -3220,7 +3221,7 @@ def _nearest_sector_siblings(system, sibling_rows, count=NEAREST_NEIGHBOR_COUNT)
         position = (row["position_x_mpc"], row["position_y_mpc"], row["position_z_mpc"])
         if row["id"] == system["id"] or any(v is None for v in position):
             continue
-        distance_ly = milliparsecs_to_ly(math.dist(origin, position))
+        distance_ly = milliparsecs_to_ly(detmath.dist(origin, position))
         neighbors.append({"id": row["id"], "name": row["name"], "distance_ly": distance_ly})
     neighbors.sort(key=lambda entry: entry["distance_ly"])
     return neighbors[:count]
@@ -3711,8 +3712,8 @@ def _box_colatitude_range(lo, hi):
     """`(north, south)` colatitudes, radians from galactic north, the box
     `[lo, hi)` spans: the extremes sit at the corners of the box's
     `(distance from the axis, z)` rectangle."""
-    near = math.hypot(min(max(0.0, lo[0]), hi[0]), min(max(0.0, lo[1]), hi[1]))
-    far = math.hypot(max(abs(lo[0]), abs(hi[0])), max(abs(lo[1]), abs(hi[1])))
+    near = detmath.hypot(min(max(0.0, lo[0]), hi[0]), min(max(0.0, lo[1]), hi[1]))
+    far = detmath.hypot(max(abs(lo[0]), abs(hi[0])), max(abs(lo[1]), abs(hi[1])))
     angles = [math.atan2(rho, z) for rho in (near, far) for z in (lo[2], hi[2])]
     return min(angles), max(angles)
 

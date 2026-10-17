@@ -14,9 +14,9 @@ rest is seen where it is, a year ago; one moving away from the observer is
 seen closer than it is.
 """
 
-import math
 
 from planetgen.physics.constants import SPEED_OF_LIGHT_M_S
+from planetgen.util import detmath
 
 MAX_ITERATIONS = 200
 TOLERANCE = 1e-12
@@ -56,7 +56,7 @@ def apparent_position(position_at, observer, now_s=0.0, speed_m_s=SPEED_OF_LIGHT
     tau = 0.0
     for _ in range(MAX_ITERATIONS):
         position = position_at(now_s - tau)
-        new_tau = math.dist(position, observer) / speed_m_s
+        new_tau = detmath.dist(position, observer) / speed_m_s
         if abs(new_tau - tau) <= TOLERANCE * max(new_tau, 1.0):
             return position_at(now_s - new_tau), new_tau
         tau = new_tau

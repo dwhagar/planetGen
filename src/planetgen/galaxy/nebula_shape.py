@@ -46,7 +46,7 @@ _GRID_HALF_WIDTH = 1.8
 """float: The sampling grid reaches this far (natural units) either way
 from the centre -- far enough for the largest drawn shape and its warp."""
 
-from planetgen.util import draw
+from planetgen.util import detmath, draw
 
 _FIT_GRID = 24
 """int: Grid cells per axis for finding the surface's farthest point."""
@@ -104,7 +104,7 @@ def _rotation(angles):
     rx = np.array([[1, 0, 0], [0, cx, -sx], [0, sx, cx]])
     ry = np.array([[cy, 0, sy], [0, 1, 0], [-sy, 0, cy]])
     rz = np.array([[cz, -sz, 0], [sz, cz, 0], [0, 0, 1]])
-    return rz @ ry @ rx
+    return detmath.matmul(detmath.matmul(rz, ry), rx)
 
 
 class NebulaShape:
@@ -160,7 +160,7 @@ class NebulaShape:
     def field(self, natural):
         """The summed metaball field at `natural` points, shape (..., 3) -> (...)."""
         q = self._warped(np.asarray(natural, dtype=float))
-        q = (q @ self._rot) / np.array(self.axes)
+        q = detmath.matmul(q, self._rot) / np.array(self.axes)
         total = np.zeros(q.shape[:-1])
         for centre, radius in zip(self._centres, self._radii):
             d2 = np.sum((q - centre) ** 2, axis=-1) / (radius * radius)

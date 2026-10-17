@@ -47,6 +47,7 @@ from planetgen.generation import run_population
 from planetgen.generation import run_sector
 from planetgen.generation import stages, steps
 from planetgen.util import draw
+from planetgen.util import detmath
 
 
 LARGE_RUN_WARNING_THRESHOLD = 2000
@@ -1201,7 +1202,7 @@ def _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken, dra
             continue
         position_pc = sector_position_pc(*address, edge_pc)
         if many and (
-                any(math.dist(position_pc, other) < 2 * radius_pc for other in taken)
+                any(detmath.dist(position_pc, other) < 2 * radius_pc for other in taken)
                 or not _whole_neighborhood_inside(batch_density.bounds, position_pc, radius_pc, edge_pc)):
             continue
         if args.avoid_filled_space:
