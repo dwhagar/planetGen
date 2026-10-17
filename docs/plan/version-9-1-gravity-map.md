@@ -8,9 +8,28 @@ Version: 9.1
 
 ## Goal
 
-A heat map of the gravitational field inside a sector and across a star system (MAP.167), moved from 9.0 because Boss does not think it is the best 9.0 headline.
+A heat map of the gravitational field inside a sector and across a star system (MAP.167), moved from 9.0 because Boss does not think it is the best 9.0 headline. The view from a planet (phase 1: the photometry library, the sky catalogue, the star map and the PNG) joins it here from 9.0 (Boss, 2026-10-16, 11:26 PM EDT: "Everything for 9.0 before splits between 9.1 and 8.9"), because it builds on the atmosphere colour of 9.0; its sky data and research are in 8.9. Which of the two is the 9.1 headline is for Boss to say.
 
-## Phase 1: The gravity grid
+## Phase 1: Sky rendering
+
+The view from a planet, moved here from 9.0 (Boss, 10:27 PM EDT): the photometry library, the sky catalogue, the star map and the PNG. It builds on the atmosphere colour of 9.0 and on the sky data and research of 8.9.
+
+### Sky rendering
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| VIEW.11 | Photometry library: apparent magnitude, bolometric correction, blackbody colour and the extinction law | VIEW.1, VIEW.9, GEN.416 | Split from VIEW.2. Extends GEN.416 (the blackbody colour, 9.0). |
+| VIEW.10 | A HYG calibration test: a generated sky has about 9,000 stars at V <= 6.5 | VIEW.11, VIEW.7 | Research. |
+| VIEW.12 | Sky catalogue: the stars an observer sees, with direction, brightness and light-time | VIEW.11, VIEW.7 | Split from VIEW.2. |
+| VIEW.13 | Galactic band: the glow of the unresolved stars and dust along each line of sight | VIEW.11, VIEW.8 | Split from VIEW.2. |
+| VIEW.14 | Orientation and horizon: the planet's own sky, time of day and twilight | VIEW.12, VIEW.13, VIEW.6 | Split from VIEW.2. |
+| VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | VIEW.11, VIEW.12, VIEW.13, VIEW.14 |  |
+| VIEW.15 | Whole-sky PNG: Hammer-Aitoff projection, written with numpy and zlib, cached and served by the API | VIEW.11, VIEW.12, VIEW.13 | Split from VIEW.3. |
+| VIEW.16 | Constellations: the seeded partition over the brightest stars, stored per system, named by the codec, with Bayer labels | DB.64, VIEW.4, VIEW.12 | Split from VIEW.3. |
+| VIEW.17 | Constellation overlay: SVG lines and names over the sky chart, and the planet-sky card | VIEW.15, VIEW.16 | Split from VIEW.3. |
+| VIEW.3 | Render the view as a PNG, with constellations | VIEW.15, DB.64, VIEW.16, VIEW.17 |  |
+
+## Phase 2: The gravity grid
 
 The per-zone grid, its cost and the API route.
 
@@ -22,7 +41,7 @@ The per-zone grid, its cost and the API route.
 | GEN.199 | Per-zone gravity grid for a sector: stored in a cache and rebuilt when the orbits update | GEN.198, PERF.72 |  |
 | API.24 | GET /api/sectors/<id>/gravity: the per-zone gravity grid as JSON | GEN.199 |  |
 
-## Phase 2: The gravity layers
+## Phase 3: The gravity layers
 
 The Sector Map and System Map layers, the wording and the umbrella.
 

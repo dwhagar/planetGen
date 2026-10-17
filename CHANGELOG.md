@@ -2,6 +2,48 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1638] - 2026-10-17
+
+**Headline:** The plan records which release takes generator epochs 4 and 5.
+
+### Changed
+- TEST.77 and GEN.407 note Core 3's epoch plan: a small PR carrying the horizontal branch note and the GEN.407 constants takes epoch 4, and GEN.322 takes epoch 5.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1637] - 2026-10-17
+
+**Headline:** The atmosphere colour becomes the 9.0 feature: the foundations are planned in 8.4 and the old 9.0 work moves to 8.9 and 9.1.
+
+### Added
+- The atmosphere colour chain (goal issue #1944): GEN.408 to GEN.424, DB.67, DB.68, TEST.209, DOC.63, DOC.64 and MAP.244, with the headline item GEN.421; the foundations are four new phases at the front of the 8.4 plan, the colour model and the pages are 9.0.
+- A plan note (`docs/design/atmosphere-colour.md`) and the sky colour study it is based on (`docs/design/sky-colour-analysis.md`).
+
+### Changed
+- The version map: the backups and repair chain (ADM.88 to ADM.91 and the rest) and the sky data and research of the view from a planet move to 8.9; the rest of the view from a planet (the photometry library, the sky catalogue, the star map, the PNG) joins the gravity map in 9.1. VIEW.11 now extends GEN.416.
+
+TODO items resolved: none / Added: GEN.408, GEN.409, GEN.410, GEN.411, GEN.412, GEN.413, GEN.414, GEN.415, GEN.416, GEN.417, GEN.418, GEN.419, GEN.420, GEN.421, GEN.422, GEN.423, GEN.424, DB.67, DB.68, TEST.209, DOC.63, DOC.64, MAP.244
+
+## [8.0.1636] - 2026-10-17
+
+**Headline:** GEN.306 is retired from the plan: the population streams are keyed on the object's unique ID.
+
+### Changed
+- GEN.306 leaves the TODO list and the 8.1 plan (#1942); TEST.77 notes generator epoch 3.
+
+TODO items resolved: GEN.306 (#1942) / Added: none
+
+## [8.0.1635] - 2026-10-17
+
+**Headline:** A galaxy's species, civilization ages, technology levels, governments and colors no longer depend on how many workers filled it.
+
+### Changed
+- The population pass keys every draw on the homeworld's unique ID instead of a row id: a species' traits and age (`life:<id>`), its name (`species-name:<id>`), its technology indices (`tech:<id>`), and its polity's government and color (`government:<id>`, `polity-color:<id>`). Row ids come from per-worker id blocks, so the same galaxy used to draw differently at 1 and at 4 workers and in another fill order. Planets are scanned in unique-ID order. A polity color is now a drawn hue, so neighbouring polities no longer step round the color wheel.
+
+generation-output: changed
+
+TODO items resolved: GEN.306 / Added: none
+
 ## [8.0.1634] - 2026-10-17
 
 **Headline:** TEST.208 is filed: `scripts/test.py --resume` should reuse a test's earlier pass across builds when none of its own dependencies changed.
