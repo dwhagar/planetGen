@@ -797,3 +797,5 @@ Baseline: PR #1817.
 | GEN.528 | 8.1 | Components and wanderers |
 | DB.53 | 8.1 | Star-system storage |
 | GEN.294 | 8.3 | Positions as one object |
+| UX.3 | 8.1 | Generate page and directives |
+| DOC.24 | 8.1 | Docs |
