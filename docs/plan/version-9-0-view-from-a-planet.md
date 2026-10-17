@@ -54,7 +54,7 @@ Target 9.0 (Boss, 2:00 PM EDT): the control database and parity parts of the bac
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | ADM.88 | Control database backup part: a dump of the planetgen_control schema (admin logins, API keys, run records) in the backup archive |  | Boss 1:59 PM EDT; part of the ADM.87 archive. |
-| ADM.89 | Control database restore: load a backed-up planetgen_control into a scratch schema, check it, then replace the live schema, from the command and from the settings page | ADM.88, ADM.85, OPS.41 | Boss 2:00 PM EDT. |
+| ADM.89 | Control database restore: load a backed-up planetgen_control into a scratch schema, check it, then replace the live schema, from the command and from the settings page | ADM.88, OPS.41 | Boss 2:00 PM EDT. |
 
 ### Parity data
 
