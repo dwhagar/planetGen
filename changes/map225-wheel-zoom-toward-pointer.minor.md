@@ -6,4 +6,4 @@
 ### Added
 - Tests: `limitApproach` and `targetAboutAnchor` in `mapcontrol.test.mjs`, and a browser test that the star under the pointer stays under it while zooming in.
 
-TODO items resolved: MAP.225 / Added: none
+TODO items resolved: none (MAP.225 stays open: the wheel is built; the column-density ray fallback, the clearance from the nearest pickable thing and the half-way double click are not) / Added: none
