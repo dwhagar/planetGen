@@ -18,13 +18,9 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| PERF.109 | Cache the Generate page estimate |  | Split from PERF.20. |
-| PERF.110 | XFetch refresh for costly entries that expire by age |  | Split from PERF.20. |
-| PERF.20 | Short-term caching through the work queue and API | PERF.109, PERF.110 | Plans on RQ results and the new caches. Plan with Boss. |
+| PERF.20 | Short-term caching through the work queue and API |  | Plans on RQ results and the new caches. Plan with Boss. |
 | PERF.36 | Memory and request guard: list at most about 50,000 candidate cells, stream the rest, and refuse enumerations above about 2 million cells in a web request |  | Research: protects the Generate page estimates. |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) |  | Research follow-up to PERF.25 (built). |
-| PERF.47 | The PERF.31 benchmark records the buffer pool, table sizes and worker start-up cost |  | Generation performance study. |
-| PERF.48 | Low priority: a numeric-only INSERT formatter or C driver for bright_stars and phenomenon_scatter |  | Generation performance study. |
 | PERF.75 | Keyset paging for the other data tables and the jump-by-value box (Systems name sort done) |  | Decided by default. Foundations lane 1. |
 | PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply |  |  |
 | PERF.91 | Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws) |  |  |
@@ -149,13 +145,10 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  | Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.140 | test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug) |  | Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.141 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug) |  | Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
-| TEST.156 | Rewrite the tests that name ring, layer and slot |  |  |
 | TEST.170 | test_math_check::test_whole_run_is_fast and the Galaxy Map breadcrumb folding test fail under full-suite load and pass alone (bug) |  | Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.171 | test_gen_resume::test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards failed once under gate load with no scattered system (0 > 0) and passes alone (bug) |  | Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.172 | test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug) |  | Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.174 | test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug) |  | Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
-| TEST.187 | Browser-test failure reports are buried in the werkzeug request log: set that logger to WARNING in the test server |  | Test-infrastructure finding. |
-| TEST.188 | The skimage marching-cubes call reads `.shape` in a way NumPy 2.5 deprecates: change the call and keep the warning out of the log |  | Test-infrastructure finding. |
 | UX.133 | `GET /polities` and `GET /species` answer 404 before the population pass has run: show an empty page instead (bug) |  | Finding from a lane. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.189 | A test that runs `migrate` leaves maintenance mode on: restore `state/maintenance.json` in the fixture (bug) |  | Test-infrastructure finding. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.190 | A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug) |  | Test-infrastructure finding. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |

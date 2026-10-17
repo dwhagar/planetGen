@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.222 |
+| TEST | TEST.223 |
 | USR | USR.31 |
 | OPS | OPS.60 |
 | DOC | DOC.68 |
@@ -1597,8 +1597,8 @@ Parents marked "new parent" had no old number of their own.
 | PERF.44 | Compute object uids in Python and write them with the row | none | done, PR #863 |
 | PERF.45 | Nearest-system links and containment as one later pass | none | done, PR #863 |
 | PERF.46 | Planets and moons: set the position once per body | none | done, PR #1186 |
-| PERF.47 | The PERF.31 benchmark records the buffer pool, table sizes and worker start-up cost | none | open |
-| PERF.48 | Low priority: a numeric-only INSERT formatter or C driver for bright_stars and phenomenon_scatter | none | open |
+| PERF.47 | The PERF.31 benchmark records the buffer pool, table sizes and worker start-up cost | none | done, PR #2050 |
+| PERF.48 | Low priority: a numeric-only INSERT formatter or C driver for bright_stars and phenomenon_scatter | none | done, PR #2050 |
 | PERF.49 | Batch system-name reservation: remove the quadratic scan and the long-held registry locks (re-measure first) | none | done, PR #870 |
 | PERF.50 | A progress bar inside one sector's save: workers report their sub-steps to the main process | none | done, PR #922 |
 | PERF.51 | One progress mechanism for every sub-step: a bar starts by itself when a step is predicted to take over 15 seconds | none | done, PR #919 |
@@ -1659,8 +1659,8 @@ Parents marked "new parent" had no old number of their own.
 | PERF.106 | The plan command on the run record, with stage timing, the killed-worker handler and job timeouts | none | open |
 | PERF.107 | The sector units and the stages around them: start, neighborhood, sectors, link, population and settle | none | open |
 | PERF.108 | The backfill as queue units: chunks of at least 10,000 cells, one enumeration (folds in PERF.18) | none | open |
-| PERF.109 | Cache the Generate page estimate | none | open |
-| PERF.110 | XFetch refresh for costly entries that expire by age | none | open |
+| PERF.109 | Cache the Generate page estimate | none | done, PR #2050 |
+| PERF.110 | XFetch refresh for costly entries that expire by age | none | done, PR #2050 |
 | PERF.111 | `ResponseCache.put` without a database never trims the page cache: the cache grows past `max_entries`, and the thread test fails when its last put is one of those (bug) | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -2134,7 +2134,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.153 | A single hung test can stall a whole run (bug) | none | done, PR #1451 |
 | TEST.154 | A flaky test: the first facility's host is not the first planet of the random system in test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing (bug) | none | done, PR #1486 |
 | TEST.155 | Wording and index agree: property test | none | open |
-| TEST.156 | Rewrite the tests that name ring, layer and slot | none | open |
+| TEST.156 | Rewrite the tests that name ring, layer and slot | none | done, PR #2050 |
 | TEST.157 | A flaky test: test_system_detail_names_the_containing_nebula fails now and then (bug) | none | done, PR #1572 |
 | TEST.158 | The math check tests the spherical shell, band and wedge grid | none | done, PR #1697 |
 | TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | none | open |
@@ -2165,8 +2165,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.184 | Whole-sphere tests, nebula and Wolf-Rayet side: contents per class, the Wolf-Rayet count, tiling, determinism and the King solver | none | open |
 | TEST.185 | Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius | none | open |
 | TEST.186 | Census audit harness: fill seeded sectors per region class, count by kind and stage, compare to expectation within k Poisson sigma, print one report | none | done, PR #2041 |
-| TEST.187 | Browser-test failure reports are buried in the werkzeug request log: set that logger to WARNING in the test server | none | open |
-| TEST.188 | The skimage marching-cubes call reads `.shape` in a way NumPy 2.5 deprecates: change the call and keep the warning out of the log | none | open |
+| TEST.187 | Browser-test failure reports are buried in the werkzeug request log: set that logger to WARNING in the test server | none | done, PR #2050 |
+| TEST.188 | The skimage marching-cubes call reads `.shape` in a way NumPy 2.5 deprecates: change the call and keep the warning out of the log | none | done, PR #2050 |
 | TEST.189 | A test that runs `migrate` leaves maintenance mode on: restore `state/maintenance.json` in the fixture (bug) | none | open |
 | TEST.190 | A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug) | none | open |
 | TEST.191 | The plan tests write real settings JSON into `/var/lib/planetGen/jobs/galaxy-settings` and log "No naming key drawn ... Unknown database": give them a temporary directory and a test database | none | open |
@@ -2200,6 +2200,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.219 | Browser pages still have 1 to 7 requests running 8 s after the server stops: find what keeps them busy and make it faster | none | open |
 | TEST.220 | test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter finds `neutron-star` inside `magnetar neutron-star` (bug) | none | open |
 | TEST.221 | test_a_runaway_system_moves_beyond_the_rotation_curve_and_its_stars_and_bodies_share_it raises StopIteration when the first system's only planet entry is an asteroid belt (bug) | none | open |
+| TEST.222 | Remove the NumPy 2.5 deprecation filter around the skimage marching-cubes call once scikit-image stops raising it | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

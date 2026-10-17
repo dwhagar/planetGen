@@ -22,3 +22,13 @@ Neighbour galaxies, more than one galaxy in the database and the intergalactic f
 | GEN.164 | Synthetic globular-cluster systems for generated galaxies | GEN.403, GEN.387 | Globular-cluster chain. |
 | MAP.145 | A sky and Galaxy Map drawing rule for neighbour galaxies | GEN.157 | Research. |
 | NAV.57 | The Intergalactic Frame in navigation-frames.md and `navigation.py` | GEN.157 | Research: stage 2 of GEN.9. |
+
+## Phase 2: Waiting on other projects
+
+Small clean-ups that wait for an upstream release; none is part of a version's build.
+
+### Upstream follow-ups
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| TEST.222 | Remove the NumPy 2.5 deprecation filter around the skimage marching-cubes call once scikit-image stops raising it |  | Waits on a scikit-image release. Core 5 found it. |
