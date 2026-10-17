@@ -304,7 +304,7 @@ guard. Built in GEN.108; `src/tests/test_orbital_limits.py` hits each one.
 | Steps longer than an orbit | `elapsed / period` many orbits long leaves few digits for the fraction that matters | Whole orbits are dropped first (`MOD(elapsed, period)`), in every SQL phase update and the Python galactic and comet steps; the universal step drops whole periods too | `store._phase_turn_sql`, `store._galactic_turn`, `advance_comet_orbits` |
 | Very close passes | A body moved through another, or given a slingshot from inside it | `orbits.classify_encounter`: inside the radii a collision (GEN.110), inside the fluid Roche limit (`roche_limit_m`, 2.44 R (rho_M / rho_m)^(1/3)) a disruption, inside the Hill sphere a capture handed to the host's system pass, otherwise a flyby | `physics/orbits.py`; GEN.109 and GEN.110 call it |
 | The galactic centre | A point mass gives an infinite kick and a zero period | The rotation curve is softened by its 3 kpc core (`v = V r / sqrt(r^2 + r_c^2)`), so the period tends to 2 pi r_c / V; an object exactly at the centre (the nucleus) has period 0 and never turns. GEN.115's potential adds 1 pc Plummer softening | `galactic_orbit.calculate_galactic_orbit`, `store._galactic_turn` |
-| Precision at galactic distances | A 100,000 km moon move lost when added to a 30 kpc position | Positions are stored in integer milliparsecs relative to the sector and in kilometres relative to the system or planet (section 9); the position object does the frames | `physics/position.py` |
+| Precision at galactic distances | A 100,000 km moon move lost when added to a 30 kpc position | Positions are stored as DOUBLE milliparsecs relative to the sector (scatter points as DOUBLE milliparsecs in the galaxy frame) and as kilometres relative to the system or planet (section 9; the audit is [numeric-precision-audit.md](numeric-precision-audit.md)); the position object does the frames | `physics/position.py` |
 | Unbound results | A body flung out of the galaxy | Kept and flagged, never deleted (GEN.109) | to come |
 
 The full checklist, with the numbers behind each guard, is also in [orbital-solvers-and-integrators.md](orbital-solvers-and-integrators.md) section 7.
@@ -334,8 +334,10 @@ but 20 to 30 times slower than a Mikkola or Markley solver for comets):
 | Rotation matrices for frames and spin axes | products of rotations | round-off drifts them away from orthonormal after many updates | re-orthonormalize with the SVD (or a quaternion renormalize) on every save |
 
 Precision: positions are 64-bit floats (epsilon about 2.2e-16). The
-spacing of absolute coordinates is 32.8 km at 8.128 kpc, 65.5 km at 15 kpc and
-131 km at 30 kpc (an earlier version of this section said 0.2 km), still far
+spacing of absolute coordinates in metres is 32.8 km at 8.128 kpc, 65.5 km at
+15 kpc and 131 km at 30 kpc; stored in parsecs it is 28.1 km, 56.1 km and 112 km,
+and 898 km at the 262 kpc reach (see [numeric-precision-audit.md](numeric-precision-audit.md);
+an earlier version of this section said 0.2 km), still far
 below the 0.01 mpc galactic threshold (3.1e8 km) but not below a moon's
 100,000 km by a wide margin (3,000 spacings at 8 kpc). Systems and moons still use their local
 frames (section 7), because a moon's 100,000 km threshold must survive
