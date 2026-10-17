@@ -2,7 +2,7 @@
 
 Boss (2026-10-16, 1:07 PM EDT) turned the tiers into a version map: one version per release, starting at 8.1, which is the Phase 1 we are building today, and a version can have several phases when it holds too much for one. A version is only a PROPOSAL where its Status line says so; the headlines Boss named are used as given.
 
-Fifteen versions from 8.1 to 10.0, then a "later" list for features that belong to no version yet. Each has one headline (8.1 has two), its phases, the open items it holds, what it needs, how much of it is finished and a list of ideas that are not filed yet. Boss named 8.1 (infinite zoom, and the new generate scatters with accurate galactic generation and scattering including the halo), 8.2 (accounts with email invitations sent by an admin only), 8.5 (courses that bend around gravity wells), 8.6 (edit everything), 9.0 (atmosphere colour), 9.4 (galaxy types: different galactic models for generation, based on known galaxy types) and 10.0 (roles and permissions: user edit requests, moderators and admins). Politics and territories come before ships and stations, and many galaxies is a possible future feature, not a headline.
+Fifteen versions from 8.1 to 10.0, then a "later" list for features that belong to no version yet. Each has one headline (8.1 has two), its phases, the open items it holds, what it needs, how much of it is finished and a list of ideas that are not filed yet. Boss named 8.1 (infinite zoom, and the new generate scatters with accurate galactic generation and scattering including the halo), 8.2 (accounts with email invitations sent by an admin only), 8.5 (courses that bend around gravity wells), 8.6 (edit everything), 9.0 (atmosphere colour), 9.1 (the view from a planet), 9.4 (galaxy types: different galactic models for generation, based on known galaxy types) and 10.0 (roles and permissions: user edit requests, moderators and admins). Politics and territories come before ships and stations, and many galaxies is a possible future feature, not a headline.
 
 ## How to read this
 
@@ -152,17 +152,21 @@ Suggested:
 - S9.0-c: Band tints of giants and the moons of giants lit by their primary.
 - S9.0-d: A model-atmosphere table for the light of M dwarfs instead of the blackbody.
 
-## Release 9.1: The gravity map
-Status: proposed; moved from 9.0
-Headline: A heat map of the gravitational field inside a sector and across a star system, as pull, well depth and tidal strength
-Today: 9.1 the gravity map (MAP.167)
-Change: Moved from 9.0 (Boss does not think it the best major headline). Its foundations (GEN.198, TEST.131) are already in 8.3; the rest stays together. The view from a planet (VIEW.1 to VIEW.17) joins it here (Boss, 11:26 PM EDT), with its sky data and research in 8.9; which one is the 9.1 headline is for Boss.
-Needs: GEN.198 (8.3), then GEN.199 and PERF.72 (the per-zone grid and its cost), API.24, MAP.168, MAP.169 and UX.94. MAP.170 (the coarse Galaxy Map layer) stays later and optional.
+## Release 9.1: The view from a planet
+Status: proposed; Boss chose the headline (11:42 PM EDT)
+Headline: Stand on a world and look up: the sky from any planet or moon, with real constellations, rendered as a picture
+Today: (new)
+Change: Boss (11:26 PM EDT, 11:42 PM EDT): the view from a planet moved here from 9.0 and is the headline of 9.1, with the gravity map (MAP.167) as the second feature. Its sky data and research are in 8.9 (VIEW.4, VIEW.6, VIEW.9, DB.64, VIEW.1, VIEW.7, VIEW.8) and it builds on the atmosphere colour of 9.0 (VIEW.11 extends GEN.416). The gravity map keeps its foundations in 8.3 (GEN.198, TEST.131).
+Needs: 8.3 (so the sky changes with the date), 8.4 (the worlds) and the atmosphere colour of 9.0. VIEW.2 starts with a research session with Boss; VIEW.6 settles the handedness of the galaxy before real sky coordinates. The gravity map needs GEN.199 and PERF.72 (the per-zone grid and its cost), API.24, MAP.168, MAP.169 and UX.94; MAP.170 (the coarse Galaxy Map layer) stays later and optional.
 Suggested:
-- S9.1-a: A Lagrange point finder: a list and map markers for every stable point in a system.
-- S9.1-b: Gravity-assist hints in the courses of 8.5: a flyby that saves fuel.
-- S9.1-c: A stability view for planets in multi-star systems: where an orbit survives.
-- S9.1-d: Roche limit and tidal-lock zones shown around bodies.
+- S9.1-a: Sky effects from the surface: sunrise and sunset colours, moons with phases, rings in the sky and the planets that show to the eye.
+- S9.1-b: A sky-at-a-date slider (needs 8.3): the sky as it was or will be, with eclipse and conjunction predictions.
+- S9.1-c: A planetarium mode for a big screen, and a PNG or poster export of any sky.
+- S9.1-d: Constellation names per species or polity, from the name generator (VIEW.4).
+- S9.1-e: A Lagrange point finder: a list and map markers for every stable point in a system.
+- S9.1-f: Gravity-assist hints in the courses of 8.5: a flyby that saves fuel.
+- S9.1-g: A stability view for planets in multi-star systems: where an orbit survives.
+- S9.1-h: Roche limit and tidal-lock zones shown around bodies.
 
 ## Release 9.2: Politics and territories
 Status: Boss ordered it before ships and stations; idea only, no items

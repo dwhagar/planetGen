@@ -1,4 +1,4 @@
-# Version 9.1: The gravity map
+# Version 9.1: The view from a planet
 
 Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).
 [docs/TODO.md](../TODO.md) is the master file: it holds each item's full text, and its "Plan: versions" section indexes every version.
@@ -8,7 +8,7 @@ Version: 9.1
 
 ## Goal
 
-A heat map of the gravitational field inside a sector and across a star system (MAP.167), moved from 9.0 because Boss does not think it is the best 9.0 headline. The view from a planet (phase 1: the photometry library, the sky catalogue, the star map and the PNG) joins it here from 9.0 (Boss, 2026-10-16, 11:26 PM EDT: "Everything for 9.0 before splits between 9.1 and 8.9"), because it builds on the atmosphere colour of 9.0; its sky data and research are in 8.9. Which of the two is the 9.1 headline is for Boss to say.
+A heat map of the gravitational field inside a sector and across a star system (MAP.167), moved from 9.0 because Boss does not think it is the best 9.0 headline. The view from a planet (phase 1: the photometry library, the sky catalogue, the star map and the PNG) joins it here from 9.0 (Boss, 2026-10-16, 11:26 PM EDT: "Everything for 9.0 before splits between 9.1 and 8.9"), because it builds on the atmosphere colour of 9.0; its sky data and research are in 8.9. Boss (2026-10-16, 11:42 PM EDT, card "View from a planet"): the view from a planet is the headline of 9.1 and the gravity map is the second feature.
 
 ## Phase 1: Sky rendering
 
@@ -28,6 +28,7 @@ The view from a planet, moved here from 9.0 (Boss, 10:27 PM EDT): the photometry
 | VIEW.16 | Constellations: the seeded partition over the brightest stars, stored per system, named by the codec, with Bayer labels | DB.64, VIEW.4, VIEW.12 | Split from VIEW.3. |
 | VIEW.17 | Constellation overlay: SVG lines and names over the sky chart, and the planet-sky card | VIEW.15, VIEW.16 | Split from VIEW.3. |
 | VIEW.3 | Render the view as a PNG, with constellations | VIEW.15, DB.64, VIEW.16, VIEW.17 |  |
+| VIEW.18 | Headline of 9.1: the view from a planet, with its starmap, its picture and its constellations | VIEW.2, VIEW.3 | Headline of 9.1 (Boss, 11:42 PM EDT). |
 
 ## Phase 2: The gravity grid
 
