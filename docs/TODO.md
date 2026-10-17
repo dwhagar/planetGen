@@ -17135,6 +17135,19 @@ clears each one.
   Core 2's worktree). Fails on main: not checked. The MAP.227 breadcrumb
   change is in main, so the next capture decides whether this is the
   load timeout of this item or a real breadcrumb race.
+  Sighting (Core 2, 2026-10-17, 5:13 PM EDT as the lane reported, gate
+  for MAP.245):
+  `src/tests/test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names`
+  failed in the browser phase at load about 9 with AssertionError
+  ('Escape', 'http://127.0.0.1:39173/galaxy?sector=3000000001&cam=...',
+  ['Galaxy', 'Block 0·0·0 (243)', 'Block 0·0·0 (81)', ...]) at line
+  2199, `assert live == _crumbs_on_a_fresh_load(page)`; the diff is at
+  index 6, 'Sector 1·0·2 (1)' against 'Sector 1·0·1 (1)', the live list
+  holding one extra item 'Sector 1·0·1'. Passes alone (93.56 s at load
+  9.4, and again at 5:15 PM EDT at load 4.5, 97 s). Fails on main: not
+  run on main. Frequency: 2 of Core 2's last 3 gates (also its UX.118
+  gate). Reproducer: run `scripts/test.py changed` while another lane's
+  gate shares the box.
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
