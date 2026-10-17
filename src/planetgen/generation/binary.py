@@ -23,6 +23,7 @@ from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.util import draw
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
+from planetgen.galaxy import mass_chain
 from planetgen.galaxy.galactic_orbit import format_galactic_orbit
 from planetgen.physics.orbits import (
     calculate_habitable_zone, calculate_hill_sphere, circular_orbital_speed_kms, minimum_update_interval_years, orbital_position_au,
@@ -470,7 +471,7 @@ class BinaryStarProxy(Star):
         if galactic_center_dist_ly is None:
             galactic_center_dist_ly = constants.GALACTIC_CENTER_DISTANCE_LY
         galactic_center_dist_m = max(galactic_center_dist_ly, constants.MIN_TIDAL_DISTANCE_LY) * constants.LY_TO_M
-        hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, mass, constants.MILKY_WAY_MASS)
+        hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, mass, mass_chain.current_central_mass_kg())
         return hill_radius_m / constants.AU_TO_M
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)

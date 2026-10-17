@@ -36,24 +36,25 @@ PASS_THROUGH_NOTE = "No mass is stored for it, so the course passes through it."
 NO_KEEP_OUT = KeepOut(None, "none", None)
 
 
-def galactic_hill_radius_km(mass_kg, galactic_radius_pc):
+def galactic_hill_radius_km(mass_kg, galactic_radius_pc, central_mass_kg):
     """
     The Hill radius, in km, of an object of `mass_kg` that orbits the
-    galaxy `galactic_radius_pc` parsecs from its center
-    (`MILKY_WAY_MASS` as the central mass, as for a star's own
-    `calculate_hill_sphere`).
+    galaxy `galactic_radius_pc` parsecs from its center, with
+    `central_mass_kg` (the galaxy's virial mass from its mass chain,
+    `mass_chain.central_mass_kg`) as the central mass, as for a star's own
+    `calculate_hill_sphere`.
     """
     distance_m = galactic_radius_pc * constants.PARSEC_M
-    return calculate_hill_sphere(distance_m, mass_kg, constants.MILKY_WAY_MASS) / 1000.0
+    return calculate_hill_sphere(distance_m, mass_kg, central_mass_kg) / 1000.0
 
 
-def compact_keep_out(mass_kg, galactic_radius_pc, radius_km):
+def compact_keep_out(mass_kg, galactic_radius_pc, radius_km, central_mass_kg):
     """
     The keep-out of a black hole, neutron star, quasar or rogue planet:
     its galactic Hill radius, but no smaller than `radius_km` (the object
     itself).
     """
-    hill = galactic_hill_radius_km(mass_kg, galactic_radius_pc)
+    hill = galactic_hill_radius_km(mass_kg, galactic_radius_pc, central_mass_kg)
     if hill >= radius_km:
         return KeepOut(hill, "galactic_hill", None)
     return KeepOut(radius_km, "radius", None)

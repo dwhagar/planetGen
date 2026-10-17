@@ -29,6 +29,7 @@ from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.physics.stellar_evolution import (YERKES_CLASS_NAMES, evolve_star, sample_living_star, sample_star_age_gy,
                                star_params)
+from planetgen.galaxy import mass_chain
 from planetgen.galaxy.galactic_orbit import (
     calculate_galactic_orbit, format_galactic_orbit, generate_galactic_orbit_fields,
 )
@@ -675,7 +676,7 @@ class Star(LazySaladName):
         if galactic_center_dist_ly is None:
             galactic_center_dist_ly = constants.GALACTIC_CENTER_DISTANCE_LY
         galactic_center_dist_m = max(galactic_center_dist_ly, constants.MIN_TIDAL_DISTANCE_LY) * constants.LY_TO_M
-        hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, constants.MILKY_WAY_MASS)
+        hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, mass_chain.current_central_mass_kg())
         return hill_radius_m / constants.AU_TO_M
 
     def calculate_galactic_orbit(self, galactic_center_dist_ly=None):
