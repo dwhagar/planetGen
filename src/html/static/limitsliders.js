@@ -8,7 +8,17 @@
 // data-follow-factor until the user sets it; "Follow the galaxy-wide limits" turns that following back on and a
 // segment's Reset button returns its sliders to the defaults.
 
-const significant = (value) => Number(Number(value).toPrecision(6));
+const VERSION_QUERY = new URL(import.meta.url).search;
+
+const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
+
+// A value to six significant figures, so a stop's float noise (0.30000000000000004) does not reach a box.
+const significant = (value) => {
+  const number = Number(value);
+  if (!number || !isFinite(number)) return number;
+  const scale = 10 ** (5 - Math.floor(Math.log10(Math.abs(number))));
+  return Math.round(number * scale) / scale;
+};
 
 function nearest(stops, value, scale) {
   let best = 0;
@@ -147,7 +157,7 @@ for (const note of document.querySelectorAll("[data-ceiling-cost]")) {
       : `${(seconds / 3600).toFixed(1)} hours`;
     const size = systems * bytes;
     const space = size < 1e9 ? `${Math.round(size / 1e6)} MB` : `${(size / 1e9).toFixed(1)} GB`;
-    note.textContent = `A full cell makes about ${systems.toLocaleString("en-US")} systems: roughly ${time} and ${space} each.`;
+    note.textContent = `A full cell makes about ${formatNumber(systems)} systems: roughly ${time} and ${space} each.`;
   };
   box.addEventListener("input", show);
   box.addEventListener("change", show);

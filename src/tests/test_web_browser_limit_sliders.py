@@ -37,7 +37,13 @@ def page(browser, base_url, admin_token):
 
 
 def _box(page, name):
+    _open_folds(page)
     return page.locator(f"#{PLAN}-{name}-box" if name else f"#{PLAN}-box")
+
+
+def _open_folds(page):
+    """Every section open (the page can fold them again while it loads)."""
+    page.evaluate("() => document.querySelectorAll('details.fold').forEach((d) => { d.open = true; })")
 
 
 def _slide(slider, position):
