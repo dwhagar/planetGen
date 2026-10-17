@@ -22,8 +22,7 @@
     },
     {
       "epoch": 5,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1685",
       "reason": "The bright-star and mass passes cover the 262 kpc reach in groups of 64 bands, drawing stars beyond the outline from new streams (GEN.322)."
     }
   ]
