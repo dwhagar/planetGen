@@ -769,3 +769,10 @@ Baseline: PR #1817.
 | DOC.47 | 8.1 | Docs |
 | TEST.186 | 8.1 | Whole-sphere audits |
 | GEN.526 | 8.1 | Components and wanderers |
+| PERF.109 | 8.1 | Queue, caches and performance |
+| PERF.110 | 8.1 | Queue, caches and performance |
+| PERF.47 | 8.1 | Queue, caches and performance |
+| PERF.48 | 8.1 | Queue, caches and performance |
+| TEST.156 | 8.1 | Bugs and flaky tests |
+| TEST.187 | 8.1 | Bugs and flaky tests |
+| TEST.188 | 8.1 | Bugs and flaky tests |

@@ -14015,7 +14015,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 27 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: PERF.109, PERF.110.
+  Core 5 (reported 12:50 PM EDT as the lane clock read, relayed by the
+  coordinator): PERF.109 and PERF.110 merged (#2050): the Generate page
+  estimate is cached and the XFetch refresh for costly age-expiring
+  entries is built in `web/lib/xfetch.py` (not util: the GEN.56 draw
+  scan forbids random in generation packages); this item's prerequisites
+  are met.
+  Prerequisites: none.
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
   Replace the one-`sector_stats`-row-per-visited-cell ledger of
@@ -14058,34 +14064,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 4 of 54). This replaces any earlier owner line on this item.
+  Core 5 (reported 12:50 PM EDT as the lane clock read, relayed by the
+  coordinator): waits on Boss's cold-rebuild time before it can be done.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
-
-- [ ] **PERF.47 The PERF.31 benchmark records the buffer pool, table sizes and worker start-up cost**
-  Research (2026-10-09, generation-performance-study.md, PR #835;
-  handoff in
-  /mnt/project-files/research/handoff/generation-performance.md; from
-  Boss's requests of 19:08Z and 19:21Z, generation being his slowest
-  point): record `innodb_buffer_pool_size`, the table sizes and the
-  worker start-up cost with every benchmark run, so a result can be
-  compared with the next.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 5 of 54). This replaces any earlier owner line on this item.
-  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
-
-- [ ] **PERF.48 Low priority: a numeric-only INSERT formatter or C driver for bright_stars and phenomenon_scatter**
-  Research (2026-10-09, generation-performance-study.md, PR #835;
-  handoff in
-  /mnt/project-files/research/handoff/generation-performance.md; from
-  Boss's requests of 19:08Z and 19:21Z, generation being his slowest
-  point): 13.8 down to 10.1 microseconds a row. Low priority.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 6 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none.
-  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
 - [ ] **PERF.72 Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources**
   Done: a note (docs/design/gravity-map.md, section 'How it is
@@ -14403,41 +14384,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 31 of 54). This replaces any earlier owner line on this item.
   Prerequisites: PERF.107. Related: PERF.98.
-
-- [ ] **PERF.109 Cache the Generate page estimate**
-  Split from PERF.20 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). The estimate (`--estimate-only`,
-  up to 120 s) is repeatable and costly: cache it in front of the work,
-  in the web or API process, keyed by (kind, arguments digest, epoch,
-  speed-stats version), with the epoch from PERF.104's `epoch` tag and
-  single-flight through `web/lib/singleflight.py`, so concurrent
-  identical requests run one estimate (a queue round trip costs 2.4 s,
-  so no RQ for cache reads). PERF.105's slow-route rule decides whether
-  a miss is queued. Done: a second identical estimate request answers
-  from the cache in milliseconds; a change of plan or epoch or new stage
-  statistics misses; two concurrent identical requests run the estimate
-  once; tests.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 1 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: PERF.20.
-
-- [ ] **PERF.110 XFetch refresh for costly entries that expire by age**
-  Split from PERF.20 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). For entries that expire by age
-  and cost more than a stated build time (the stats page, search
-  aggregates), recompute shortly before expiry with a probability that
-  rises toward it (XFetch, beta 1), so a burst of visitors does not all
-  miss at the expiry second. Done: a helper in the page cache with an
-  injectable clock and random source, the stats page and the search
-  aggregates on it, and a test that under 50 concurrent readers at the
-  expiry time one recompute happens before it and none after.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 2 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: PERF.20.
 
 - [ ] **PERF.111 `ResponseCache.put` without a database never trims the page cache: the cache grows past `max_entries`, and the thread test fails when its last put is one of those (bug)**
   Found by Core 2 (2026-10-17, 6:31 AM EDT as the lane reported, MAP.217
@@ -17006,21 +16952,6 @@ clears each one.
   position 18 of 54). This replaces any earlier owner line on this item.
   Prerequisite: GEN.218.
 
-- [ ] **TEST.156 Rewrite the tests that name ring, layer and slot**
-  The 79 affected test files are rewritten as each of the grid items
-  lands; a MISSED line is a selection bug. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread). Source: item 9 of section 6 of the plan. Boss decided the
-  move (2026-10-15 06:39Z): "two meridian lines from pole to pole make a
-  wedge (vert), shell (radius), and band (horizontal), together they
-  identify a single 3D segment of the sphere". TOP PRIORITY in Phase 1,
-  ahead of every lane queue.
-  Quality, 2026-10-15 (#1697): the non-map step is done; the map tests
-  that name ring, layer or slot remain.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 13 of 54). This replaces any earlier owner line on this item.
-  Design: [docs/design/spherical-sector-coordinates.md](design/spherical-sector-coordinates.md)
-
 - [ ] **TEST.159 Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population**
   Step 15 of the whole-sphere train. Tests: no emission, reflection or
   core-collapse remnant in a halo or old cluster cell; a planetary
@@ -17580,37 +17511,6 @@ clears each one.
   position 50 of 54). This replaces any earlier owner line on this item.
   Prerequisites: GEN.321. Related: TEST.159.
 
-- [ ] **TEST.187 Browser-test failure reports are buried in the werkzeug request log: set that logger to WARNING in the test server**
-  Found by a lane (2026-10-16), filed by the TODO thread. When a browser
-  test fails, the pytest report ends with hundreds of lines of werkzeug
-  request log ("GET /static/... 200"), and the assertion text sits above
-  them. Done: the test server fixture sets the `werkzeug` logger to
-  WARNING, a failing browser test report shows the assertion and the
-  page console first, and one test proves the request log stays out of
-  the captured output. Fails on main: yes (every failure). Frequency:
-  every browser test failure. Reproducer: make any web.* browser test
-  fail and read the report.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 10 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none.
-
-- [ ] **TEST.188 The skimage marching-cubes call reads `.shape` in a way NumPy 2.5 deprecates: change the call and keep the warning out of the log**
-  Found by a lane (2026-10-16), filed by the TODO thread. The nebula
-  mesh tests emit a NumPy deprecation warning from the skimage
-  marching-cubes path (`.shape` assignment on an array). Done: the call
-  uses the supported form (`reshape`), the test run has no deprecation
-  warning from this path, and the filterwarnings list holds no entry for
-  it. Fails on main: no failure, a warning on every nebula mesh test.
-  Frequency: every run. Reproducer: `python -W error::DeprecationWarning
-  -m pytest -q src/tests -k nebula_shape`.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 11 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none.
-
 - [ ] **TEST.189 A test that runs `migrate` leaves maintenance mode on: restore `state/maintenance.json` in the fixture (bug)**
   Found by a lane (2026-10-16), filed by the TODO thread. A test that
   runs the `migrate` command leaves
@@ -17659,6 +17559,11 @@ clears each one.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 12 of 54). This replaces any earlier owner line on this item.
+  Core 5 (reported 12:50 PM EDT as the lane clock read, relayed by the
+  coordinator): the jobs-directory half is stale after ADM.50; the real
+  noise was 'Unknown database pgtest_control_' from three real-plan
+  tests, and the fix is in Core 5's next PR (PERF.36, GEN.308, PERF.91,
+  TEST.191, DOC.53, DOC.60, DOC.62, DOC.51).
   Prerequisites: none.
 
 - [ ] **TEST.194 `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug)**
@@ -18274,7 +18179,26 @@ clears each one.
   not an AsteroidBelt (one line), a test pins that a belt-only system is
   skipped, no quarantine. Owner: Core 5 (it carries the one-line fix in
   its next PR unless another lane owns it; Bug Hunt otherwise).
+  Core 5 (reported 12:50 PM EDT as the lane clock read, relayed by the
+  coordinator): the fix is in Core 5's next PR (PERF.36, GEN.308,
+  PERF.91, TEST.191, DOC.53, DOC.60, DOC.62, DOC.51); do not assign it
+  elsewhere.
   Prerequisites: none. Related: TEST.220.
+
+- [ ] **TEST.222 Remove the NumPy 2.5 deprecation filter around the skimage marching-cubes call once scikit-image stops raising it**
+  Found by Core 5 while fixing TEST.188 (2026-10-17, 12:50 PM EDT as the
+  lane reported; merged #2050), filed by the TODO thread. The NumPy 2.5
+  deprecation comes from inside scikit-image's marching cubes, not from
+  our call, so Core 5 filters that warning around the call in the nebula
+  mesh builder. Do: when a released scikit-image no longer raises the
+  warning, delete the filter and its comment from the nebula mesh
+  builder. Done: the filter is gone, `python -W
+  error::DeprecationWarning -m pytest -q src/tests -k nebula_shape`
+  passes without it, and the pinned scikit-image version in the
+  requirements is the one that fixed it. Waits on an upstream release,
+  so it is not part of a version's build; check the pinned version when
+  the requirements are next locked.
+  Prerequisites: none. Related: TEST.188.
 
 ## USR: User accounts
 
@@ -19358,6 +19282,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 15 of 54). This replaces any earlier owner line on this item.
+  Core 5 (reported 12:50 PM EDT as the lane clock read, relayed by the
+  coordinator): the API cap and ladder sentence waits for NAV.61; the
+  rest of the item ships in Core 5's next PR.
   Prerequisites: none. Related: NAV.61, TEST.165.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
