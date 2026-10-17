@@ -347,13 +347,10 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 |---|---|---|---|
 | GEN.450 | The star-formation profile's radial slope: reconcile the Schmidt index with the observed gradient, with the choice named |  | Core 4 citation re-check, 2026-10-17; follow-up of GEN.134. Core 4. |
 | GEN.469 | The disk's star-formation history from the gas law: the local B-star share is 0.2 percent against the observed 0.04 percent |  | GEN.134 follow-up (proposal 2); generator epoch bump, joins the one rescatter. Core 4. |
-| GEN.322 | Band groups and the halo term: the bright-star and mass passes cover the 262 kpc reach |  | Split from GEN.240. |
-| GEN.323 | The phenomena pass runs on the object-first sampler | GEN.322 | Split from GEN.240. |
 | GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies |  | Core 1; Boss 4:02 PM EDT: feasibility study. |
 | GEN.369 | Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option | GEN.371 | Core 1; Boss 4:01 PM EDT: Draw them. |
-| GEN.324 | A component pass: clusters, the Clouds and Sagittarius place their stars, and the fill adds the component's density to lambda | GEN.322 | Split from GEN.240. |
-| GEN.240 | The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass | GEN.322, GEN.323, GEN.324 | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
-| GEN.238 | Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population | GEN.323 | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
+| GEN.240 | The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass |  | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
+| GEN.238 | Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population |  | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
 | GEN.321 | Emission regions D and E: the ionizing members of a young cluster in a Plummer sphere, cut by sector cube | GEN.320 | Split from GEN.241. |
 | GEN.241 | Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds | GEN.319, GEN.320, GEN.321 | Whole-sphere build train, Boss 2026-10-15. Step 12. Core. Folds in MAP.182. |
 | GEN.328 | Groups at fill in star-forming cores and OB regions | GEN.327, GEN.321 | Split from GEN.273. |
@@ -397,7 +394,7 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 |---|---|---|---|
 | GEN.259 | Intermediate-mass black hole share gives about 100,000 in the Galaxy against a handful of candidates (bug) |  | Phenomena catalogue, Boss 2026-10-15. Question for Boss. Core. |
 | GEN.282 | Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec) | GEN.244 | Core 3; step 3 of the galactic core note |
-| GEN.377 | Scatter limits by place for the neutron star and black hole scatter below the cut: the core and halo tiers apply to it, not one global mass cut | GEN.323 | Core 3 finding after GEN.333. |
+| GEN.377 | Scatter limits by place for the neutron star and black hole scatter below the cut: the core and halo tiers apply to it, not one global mass cut |  | Core 3 finding after GEN.333. |
 | GEN.303 | Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000 |  | Core 3 wires it; Boss 1:47 PM EDT. |
 | GEN.284 | Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut | GEN.325 | Core 3; step 4 of the galactic core note |
 
@@ -405,7 +402,7 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.243 | The Galaxy Map cannot select or enter anything in the halo: the halo's scatter objects are not pickable at galaxy scale and a zoom toward one stops without opening a view (bug) | GEN.323, MAP.225, MAP.239 | Boss 9:21 PM EDT; bug; Core 2 proposed. |
+| MAP.243 | The Galaxy Map cannot select or enter anything in the halo: the halo's scatter objects are not pickable at galaxy scale and a zoom toward one stops without opening a view (bug) | MAP.225, MAP.239 | Boss 9:21 PM EDT; bug; Core 2 proposed. |
 | UX.115 | Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages) | GEN.240, NAV.61, NAV.45, MAP.243 | Interface; queued after sphere stages (Boss, 12:52 AM EDT) |
 | TEST.168 | Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs | UX.115 | Quality; queued after UX.115 |
 
@@ -429,7 +426,7 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.161 | Bright-first fill for cluster sectors | GEN.324 | Globular-cluster chain. |
+| GEN.161 | Bright-first fill for cluster sectors |  | Globular-cluster chain. |
 | GEN.326 | Blue stragglers in clusters: N_BSS scales as the core mass to the 0.4 | GEN.161 | Split from GEN.162. |
 | GEN.162 | Planet cull and blue stragglers in clusters | GEN.325, GEN.326 | Globular-cluster chain. |
 | GEN.163 | Type-B pulsar planets in globular clusters (GEN.130 follow-on) | GEN.317 | Globular-cluster chain. |
@@ -450,7 +447,7 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 |---|---|---|---|
 | GEN.392 | A bubble field handle on the galaxy shape: seed-carried bubbles with a box cut, a certified maximum factor and a bubble-free density read | GEN.391 | Step 2 of the superbubble density chain; Core 3 proposed. |
 | GEN.393 | The density terms apply the bubble factors at one call site per form, with a golden test that no bubble means identical density | GEN.392, GEN.319 | Step 3 of the superbubble density chain; waits for Core 3's profile work so the files are not edited twice. |
-| GEN.394 | The scatter bounds and the phenomena pass respect the bubble factor: a certified bound in band_majorants and per-position thinning | GEN.393, GEN.322, GEN.323 | Step 4 of the superbubble density chain; Core 3 proposed. |
+| GEN.394 | The scatter bounds and the phenomena pass respect the bubble factor: a certified bound in band_majorants and per-position thinning | GEN.393 | Step 4 of the superbubble density chain; Core 3 proposed. |
 | GEN.395 | Sector build follows the bubbles: the fill count from the cell mean, star positions weighted by the factor, shown in the profile and the region query | GEN.393 | Step 5 of the superbubble density chain; Core 3 proposed. |
 | TEST.206 | Superbubble density tests: rim excess, interior depletion, old stars unchanged, scatter against fill and determinism | GEN.394, GEN.395, TEST.186 | Step 6 of the superbubble density chain. |
 | DOC.61 | Docs: how the bubbles shape the stars, the setting values and what the drawn layer now is | GEN.395 | Superbubble density chain. |

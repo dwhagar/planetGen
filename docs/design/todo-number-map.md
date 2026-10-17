@@ -973,9 +973,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.319 | Nebula rates read the profile: young and old shares, the cell's gas and the Type Ia share as profile fields | none | open |
 | GEN.320 | build_nebula_with_contents: every hosted nebula gets its stars as real systems inside its bounds (classes C, G, F, planetary, remnants, P and Q) | none | open |
 | GEN.321 | Emission regions D and E: the ionizing members of a young cluster in a Plummer sphere, cut by sector cube | none | open |
-| GEN.322 | Band groups and the halo term: the bright-star and mass passes cover the 262 kpc reach | none | open |
-| GEN.323 | The phenomena pass runs on the object-first sampler | none | open |
-| GEN.324 | A component pass: clusters, the Clouds and Sagittarius place their stars, and the fill adds the component's density to lambda | none | open |
+| GEN.322 | Band groups and the halo term: the bright-star and mass passes cover the 262 kpc reach | none | done, PR #1991 |
+| GEN.323 | The phenomena pass runs on the object-first sampler | none | done, PR #1992 |
+| GEN.324 | A component pass: clusters, the Clouds and Sagittarius place their stars, and the fill adds the component's density to lambda | none | done, PR #1993 |
 | GEN.325 | Planet cull in dense components by the survival formula and the metallicity factor | none | open |
 | GEN.326 | Blue stragglers in clusters: N_BSS scales as the core mass to the 0.4 | none | open |
 | GEN.327 | The group node and the remnant draw: offset and velocity columns, a decay age, and the lightest member ejected | none | open |
