@@ -2,6 +2,7 @@
 
 """`tests.served.served` (TEST.193): the test web server waits for the requests still running when it stops."""
 
+import logging
 import threading
 import time
 import urllib.request
@@ -81,3 +82,26 @@ def test_the_count_includes_a_request_that_raises():
     except RuntimeError:
         pass
     assert counted.drain(0.1) == 0
+
+
+def test_the_request_log_stays_out_of_a_failing_tests_output(capfd, caplog):
+    """TEST.187: werkzeug logs one line per request, which buried a failing browser test's assertion."""
+    logger = logging.getLogger("werkzeug")
+    saved = (logger.level, list(logger.handlers))
+    logger.setLevel(logging.NOTSET)  # as werkzeug finds it before its first request
+    logger.handlers[:] = []
+    caplog.set_level(logging.DEBUG)
+    try:
+        def app(environ, start_response):
+            start_response("200 OK", [("Content-Type", "text/plain")])
+            return [b"hello"]
+
+        with served(app) as url:
+            for _ in range(3):
+                urllib.request.urlopen(f"{url}/static/style.css", timeout=10).read()
+        assert logger.level == logging.WARNING
+        assert "GET /static/style.css" not in capfd.readouterr().err
+        assert not [record for record in caplog.records if record.name == "werkzeug"]
+    finally:
+        logger.setLevel(saved[0])
+        logger.handlers[:] = saved[1]

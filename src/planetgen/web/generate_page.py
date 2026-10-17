@@ -59,13 +59,14 @@ from pydantic import Field, TypeAdapter, ValidationError
 
 from planetgen.queue import api_jobs, progress_rate
 from planetgen.web import limit_sliders
-from planetgen.web.lib import apiclient
+from planetgen.web.lib import apiclient, estimatecache
 from planetgen.web.lib.fmt import utc_time_html
 from planetgen.web.lib.pagination import PAGE_SIZE, clamp_page, page_offset, parse_page
 from planetgen.admin import activity_log, updateguard
 from planetgen.generation import luminosity_floor, prevalence, stages, stats
 from planetgen import tuning
-from planetgen.util import log, stagemark
+from planetgen.db import dataversion, store
+from planetgen.util import generator_epoch, log, stagemark
 from planetgen.galaxy import objectref
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.galaxy.span import Span, SpanError, parse_range
@@ -83,14 +84,15 @@ from .helpers import crumb, current_admin, db_name, page_url, pager, render_page
 # ---------------------------------------------------------------------
 
 PLAN_FIELDS = (
-    # (form name, planetgen flag, label, type, default, minimum, exclusive maximum)
-    ("disk_scale_length_pc", "--disk-scale-length-pc", "Disk scale length (pc)", float, 2600.0, 1.0, None),
-    ("disk_scale_height_pc", "--disk-scale-height-pc", "Disk scale height (pc)", float, 300.0, 1.0, None),
-    ("bulge_scale_radius_pc", "--bulge-scale-radius-pc", "Bulge scale radius (pc)", float, 1580.0, 1.0, None),
-    ("bulge_amplitude", "--bulge-amplitude", "Bulge density", float, 3.11, 0.0, 100.0),
+    # (form name, planetgen flag, label, type, default, minimum, exclusive maximum); a default of None is drawn from the
+    # galaxy seed (GEN.401) and shown as a placeholder
+    ("disk_scale_length_pc", "--disk-scale-length-pc", "Disk scale length (pc)", float, None, 1.0, None),
+    ("disk_scale_height_pc", "--disk-scale-height-pc", "Disk scale height (pc)", float, None, 1.0, None),
+    ("bulge_scale_radius_pc", "--bulge-scale-radius-pc", "Bulge scale radius (pc)", float, None, 1.0, None),
+    ("bulge_amplitude", "--bulge-amplitude", "Bulge density", float, None, 0.0, 100.0),
     ("nuclear_amplitude", "--nuclear-amplitude", "Nuclear structures", float, 1.0, 0.0, 10.0),
-    ("arm_count", "--arm-count", "Spiral arms", int, 2, 0, None),
-    ("pitch_angle_deg", "--pitch-angle-deg", "Arm pitch angle (degrees)", float, 15.0, 1.0, 90.0),
+    ("arm_count", "--arm-count", "Spiral arms", int, None, 0, None),
+    ("pitch_angle_deg", "--pitch-angle-deg", "Arm pitch angle (degrees)", float, None, 1.0, 90.0),
     ("arm_density", "--arm-density", "Arm density", float, 1.4, 0.01, 10.0),
     ("interarm_density", "--interarm-density", "Inter-arm density", float, 0.6, 0.0, 10.0),
 )
@@ -240,6 +242,23 @@ def run_estimate(argv, env):
     tail = [line.strip() for line in (done["stderr"] + "\n" + done["stdout"]).splitlines() if line.strip()]
     message = " ".join(tail[-3:]) if tail else f"the generator exited with {done['returncode']}"
     raise FormError(f"Nothing was generated: {message}")
+
+
+def _estimate_versions(database):
+    """
+    What the cached estimate (`estimatecache`, PERF.109) was made under: the generator epoch, the galaxy's
+    data version (every data change bumps it) and the speed statistics' fingerprint.
+
+    Raises:
+        Exception: Redis or the control database can't be asked (the estimate then runs uncached).
+    """
+    incarnation, found = dataversion.versions(database, [dataversion.COUNT_FIELD, dataversion.TAG_EPOCH])
+    conn = store.get_control_connection(current_app.config["MYSQL_CONFIG"])
+    try:
+        speeds = stats.fingerprint(conn)
+    finally:
+        conn.close()
+    return {"generator_epoch": generator_epoch.generator_epoch(), "data": [incarnation, found], "speeds": speeds}
 
 
 _problems = contextvars.ContextVar("generate_form_problems", default=None)
@@ -1252,7 +1271,9 @@ def generate():
         # PERF.3: show the size and time first; the admin confirms (or the
         # disk refuses it) before the job starts.
         try:
-            estimate = run_estimate(steps[-1]["argv"], env)
+            argv = steps[-1]["argv"]
+            estimate = estimatecache.estimate(database, kind, argv, lambda: _estimate_versions(database),
+                                              lambda: run_estimate(argv, env))
         except FormError as exc:
             if wants_json:
                 return _no_store(make_response(jsonify({"error": str(exc)}), 400))

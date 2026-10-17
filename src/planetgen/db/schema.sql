@@ -1329,6 +1329,12 @@
 -- v106 (DB.65): every generated `cell_key` holds a cube number of at most 2^21 - 1 (`LEAST(..., 2097151)` on each axis), so the
 --   last double below the 262,144 pc edge, which rounds up to 2^21, no longer wraps to the opposite edge's key.
 --
+-- v107 (GEN.526): `bright_stars.population` (now VARCHAR(24)) also takes `satellite_young` and `satellite_intermediate`, the stars a
+--   satellite galaxy's history puts in the last 0.1 Gy and the 3 Gy before that (`satellite` is the rest).
+--
+-- v108 (DB.72): `band_index` is INT in `bright_stars`, `sector_stats` and `phenomenon_scatter` (it was SMALLINT, which stops at
+--   32,767; a shell's bands reach +-32,768 from shell 20,861 and +-102,942 at shell 65,535).
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -3315,7 +3321,7 @@ CREATE TABLE IF NOT EXISTS nearest_systems (
 CREATE TABLE IF NOT EXISTS bright_stars (
     id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     shell_index           INT NOT NULL,
-    band_index            SMALLINT NOT NULL,
+    band_index            INT NOT NULL,
     wedge_index           INT NOT NULL,
     position_x_mpc       DOUBLE NOT NULL,
     position_y_mpc       DOUBLE NOT NULL,
@@ -3324,7 +3330,7 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     -- NULL outside the box of plus or minus 262,144 pc. `planetgen/galaxy/cellkey.py` has the same function.
     cell_key             BIGINT UNSIGNED GENERATED ALWAYS AS (IF(ABS(position_x_mpc / 1000.0) < 262144 AND ABS(position_y_mpc / 1000.0) < 262144 AND ABS(position_z_mpc / 1000.0) < 262144, ((((((((((((LEAST(CAST(FLOOR(((position_x_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED), 2097151)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((LEAST(CAST(FLOOR(((position_x_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED), 2097151)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((LEAST(CAST(FLOOR(((position_x_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED), 2097151)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 2) | ((((((((((((LEAST(CAST(FLOOR(((position_y_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED), 2097151)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((LEAST(CAST(FLOOR(((position_y_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED), 2097151)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((LEAST(CAST(FLOOR(((position_y_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED), 2097151)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)) << 1) | (((((((((((LEAST(CAST(FLOOR(((position_z_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED), 2097151)) >> 0) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 0) | ((((((((((LEAST(CAST(FLOOR(((position_z_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED), 2097151)) >> 7) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 21) | ((((((((((LEAST(CAST(FLOOR(((position_z_mpc / 1000.0) + 262144) / 0.25) AS UNSIGNED), 2097151)) >> 14) & 127) * 257) & 28687) * 17) & 274627) * 5) & 299593) << 42)), NULL)) STORED,
     KEY idx_bright_stars_cell (cell_key, position_x_mpc, position_y_mpc, position_z_mpc),
-    population           VARCHAR(16) NOT NULL,
+    population           VARCHAR(24) NOT NULL,
     star_type            VARCHAR(64) NOT NULL,
     yerkes_class         VARCHAR(16) NOT NULL,
     mass_kg              DOUBLE NOT NULL,
@@ -3352,7 +3358,7 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     KEY idx_bright_stars_luminosity (luminosity_w),
     KEY idx_bright_stars_next_update_due (next_update_due),
     KEY idx_bright_stars_population (population, off_plane, luminosity_w),
-    CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge', 'halo', 'cluster', 'satellite', 'nuclear_cluster', 'nuclear_disc')),
+    CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge', 'halo', 'cluster', 'satellite', 'nuclear_cluster', 'nuclear_disc', 'satellite_young', 'satellite_intermediate')),
     CONSTRAINT fk_bright_stars_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -3384,7 +3390,7 @@ CREATE TABLE IF NOT EXISTS bright_stars (
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS sector_stats (
     shell_index           INT NOT NULL,
-    band_index            SMALLINT NOT NULL,
+    band_index            INT NOT NULL,
     wedge_index           INT NOT NULL,
     bright_level_sol       DOUBLE NOT NULL DEFAULT -1,
     level_before_fill_sol  DOUBLE,
@@ -3504,7 +3510,7 @@ CREATE TABLE IF NOT EXISTS generation_run_arguments (
 CREATE TABLE IF NOT EXISTS phenomenon_scatter (
     id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     shell_index           INT NOT NULL,
-    band_index            SMALLINT NOT NULL,
+    band_index            INT NOT NULL,
     wedge_index           INT NOT NULL,
     kind                 VARCHAR(24) NOT NULL,
     subtype              VARCHAR(16),

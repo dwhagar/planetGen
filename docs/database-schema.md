@@ -1808,7 +1808,7 @@ before any sector is filled. See "Bright-star pre-placement (v43)" above.
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | BIGINT UNSIGNED | PK | |
-| `shell_index`, `band_index`, `wedge_index` | INT / SMALLINT / INT | NOT NULL | The sector cell it falls in. Indexed together. |
+| `shell_index`, `band_index`, `wedge_index` | INT / INT / INT | NOT NULL | The sector cell it falls in. Indexed together. |
 | `position_x_mpc`, `position_y_mpc`, `position_z_mpc` | BIGINT | NOT NULL | Galaxy-frame position, milliparsecs. |
 | `population` | VARCHAR(12) | NOT NULL, CHECK IN ('young','intermediate','old','bulge','halo','cluster') | |
 | `star_type`, `yerkes_class` | VARCHAR | NOT NULL | As on `stars`. |
@@ -1835,7 +1835,7 @@ row per sector address a backfill reached or a fill generated. See
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
-| `shell_index`, `band_index`, `wedge_index` | INT / SMALLINT / INT | PK | The sector's grid address. |
+| `shell_index`, `band_index`, `wedge_index` | INT / INT / INT | PK | The sector's grid address. |
 | `bright_level_sol` | DOUBLE | NOT NULL, default -1 | How deep its bright stars go: -1 untouched (follows `galaxy_shape.bright_star_min_luminosity_sol`), a positive L_sun for a backfill's floor, 0 generated. Indexed. |
 | `level_before_fill_sol` | DOUBLE | nullable | The level a fill found, put back when the sector is deleted. |
 | `bright_mass_sol` | DOUBLE | nullable | Added in v79 (GEN.187). The initial mass, in solar masses, down to which a backfill placed every living star of the unfilled sector; NULL where none did, so the sector holds only the galaxy scatter's mass pass (stars born at or above `galaxy_shape.bright_star_mass_limit_sol`). A new plan scatter clears it. |
@@ -1960,7 +1960,7 @@ Added in v64 (GEN.100) and v77. `planetgen plan` places every black hole, neutro
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | BIGINT UNSIGNED | PK, AUTO_INCREMENT | |
-| `shell_index`, `band_index`, `wedge_index` | INT / SMALLINT / INT | NOT NULL | The sector cell the point is in. Indexed together (`idx_phenomenon_scatter_address`). |
+| `shell_index`, `band_index`, `wedge_index` | INT / INT / INT | NOT NULL | The sector cell the point is in. Indexed together (`idx_phenomenon_scatter_address`). |
 | `kind` | VARCHAR(24) | NOT NULL, CHECK | `black-hole`, `neutron-star`, `planetary-nebula`, `supernova-remnant`, `hypervelocity-star` or `quasar`. |
 | `subtype` | VARCHAR(16) | nullable | `supermassive` for the nucleus black hole, NULL for the rest (the object draws its own class from `seed`). |
 | `position_x_mpc`, `position_y_mpc`, `position_z_mpc` | BIGINT | NOT NULL | The point, in milliparsecs, galaxy frame. |
@@ -2129,6 +2129,14 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v108 (DB.72): band numbers are INT in the scatter tables
+
+Migration 0108 widens `band_index` from SMALLINT to INT in `bright_stars`, `sector_stats` and `phenomenon_scatter`. A shell's bands run from `-(h + 1)` to `h + 1`, which passes SMALLINT's 32,767 at shell 20,861 and reaches 102,942 at shell 65,535, the outer shell of the 262 kpc reach, so the whole-sphere scatter stopped at 97 percent with "Out of range value for column 'band_index'". `sectors`, `galaxy_shell` and `galaxy_block_stats` were INT already. Each table is rebuilt in place (its address index with it) and no value is touched; a column that is already INT is skipped, so a stopped run can be started again. The version is detected from `bright_stars.band_index` being INT.
+
+### v107 (GEN.526): a satellite's young and intermediate stars
+
+Migration 0107 lets `bright_stars.population` take `satellite_young` and `satellite_intermediate`, the stars a satellite galaxy's star formation history puts in the last 0.1 Gy and in the 3 Gy before that (`galaxy/satellite_history.py`); `satellite` is now the rest, 3 Gy and older. The column widens to VARCHAR(24) for the longer name (an in-place change that copies no row) and no row is touched. The version is detected from the check constraint `chk_bright_stars_population` listing `satellite_young`.
 
 ### v106 (DB.65): the cell key holds the last cube at the box edge
 

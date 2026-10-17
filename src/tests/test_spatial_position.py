@@ -435,7 +435,7 @@ def test_the_epoch_is_kept_and_checked():
     assert SpatialPosition3D((0.0, 0.0, 0.0), SECTOR, epoch_unix=5).epoch_unix == 5.0
 
 
-# --- The sector address: ring, layer, slot, kept in step -----------------------------
+# --- The sector address: shell, band, wedge, kept in step -----------------------------
 
 EDGE_PC = 4.0
 
@@ -504,7 +504,7 @@ def test_setting_the_address_moves_the_body_to_that_cell_keeping_its_offset():
     assert _close(p.get_coordinates("galactic", "cartesian"),
                   tuple(c + o for c, o in zip(spherical.sector_position_pc(200, 3, 17, EDGE_PC), (0.5, 0.0, 0.5))))
     with pytest.raises(ValueError):
-        p.set_sector_address(1, 0, 99)  # ring 1 has few slots
+        p.set_sector_address(1, 0, 99)  # shell 1 has few wedges
 
 
 def test_bodies_in_a_system_know_their_sector():

@@ -334,7 +334,7 @@ connectivity to that specific schema rather than the default one.
   stores nothing, so two calls give the same answer. The body has `shell_index`/`band_index`/`wedge_index`, `center_pc`,
   `edge_pc`, `volume_pc3`, `region` (`nuclear`, `bulge`, `disk`, `halo`, `cluster` or `satellite`), `density` and
   `expected_systems` (the mean of the cell's Poisson draw), `mix` (population -> density), `populations` (for each of
-  `young`, `intermediate`, `old`, `bulge`, `halo`, `cluster`, `satellite`, `nuclear_cluster`, `nuclear_disc`: `density`,
+  `young`, `intermediate`, `old`, `bulge`, `halo`, `cluster`, `satellite`, `nuclear_cluster`, `nuclear_disc`, `satellite_young`, `satellite_intermediate`: `density`,
   `share`, `age_gy` as `[youngest, oldest]`, `fe_h` as `[weight, mean, sigma]` peaks, `dispersion_kms`, `rotation`),
   `gas` (`cold_fraction`, `ambient`, `ambient_density_cm3`, `mass_solar`, and `superbubble`: `null` or the cavity's
   `radius_pc`, `ambient_density_cm3`, `temperature_k`, `center_pc`, `centre_distance_pc`), `dark_matter`

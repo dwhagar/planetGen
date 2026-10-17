@@ -112,10 +112,10 @@ def test_every_searched_column_has_an_index_that_starts_with_it(mysql_config):
 def test_a_generation_runs_command_line_is_one_row_per_argument(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
-        run_id = store.start_generation_run(conn, "sector", ["--ring", "3", "--name", "a b"])
+        run_id = store.start_generation_run(conn, "sector", ["--shell", "3", "--name", "a b"])
         rows = conn.execute("SELECT position, value FROM generation_run_arguments WHERE run_id = ?"
                             " ORDER BY position", (run_id,)).fetchall()
-        assert [(row["position"], row["value"]) for row in rows] == [(0, "--ring"), (1, "3"), (2, "--name"),
+        assert [(row["position"], row["value"]) for row in rows] == [(0, "--shell"), (1, "3"), (2, "--name"),
                                                                      (3, "a b")]
         conn.execute("DELETE FROM generation_runs WHERE id = ?", (run_id,))
         conn.commit()
@@ -131,7 +131,7 @@ def test_the_v63_migration_moves_the_json_command_lines_into_rows(mysql_config):
     try:
         conn.execute(
             "INSERT INTO generation_runs (command, arguments, version_key, planetgen_version, python_version,"
-            " platform) VALUES ('sector', ?, 'k', 'v', 'p', 'x')", (json.dumps(["--ring", "3", "x" * 2000]),))
+            " platform) VALUES ('sector', ?, 'k', 'v', 'p', 'x')", (json.dumps(["--shell", "3", "x" * 2000]),))
         conn.execute(
             "INSERT INTO generation_runs (command, arguments, version_key, planetgen_version, python_version,"
             " platform) VALUES ('plan', 'not json', 'k', 'v', 'p', 'x')")
@@ -146,7 +146,7 @@ def test_the_v63_migration_moves_the_json_command_lines_into_rows(mysql_config):
         rows = conn.execute("SELECT r.command, a.position, a.value FROM generation_runs r"
                             " JOIN generation_run_arguments a ON a.run_id = r.id ORDER BY a.position").fetchall()
         assert [(row["command"], row["position"], row["value"][:3]) for row in rows] == [
-            ("sector", 0, "--r"), ("sector", 1, "3"), ("sector", 2, "xxx")]
+            ("sector", 0, "--s"), ("sector", 1, "3"), ("sector", 2, "xxx")]
         assert len(rows[2]["value"]) == store.GENERATION_ARGUMENT_LENGTH
         columns = {row["c"] for row in conn.execute(
             "SELECT column_name AS c FROM information_schema.columns WHERE table_schema = DATABASE()"

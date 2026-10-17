@@ -62,6 +62,8 @@ def test_the_majorant_is_never_below_the_true_density(shape, shell):
                        "satellite": 0.2, "nuclear_cluster": 0.9, "nuclear_disc": 0.2},
                       {"young": 0.0, "intermediate": 0.0, "old": 0.0, "bulge": 0.0, "halo": 1.0, "cluster": 0.0,
                        "satellite": 0.0, "nuclear_cluster": 0.0, "nuclear_disc": 0.0}):
+        fractions = {"satellite_young": fractions["satellite"], "satellite_intermediate": fractions["satellite"],
+                     **fractions}           # a satellite's three populations take its share (GEN.526)
         majorants = object_first.band_majorants(shape, shell, high, EDGE_PC, fractions)
         assert len(majorants) == 2 * high + 1
         for band in range(-high, high + 1, max(1, high // 20)):

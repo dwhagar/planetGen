@@ -19,7 +19,7 @@ import math
 import threading
 
 import pytest
-from werkzeug.serving import make_server
+from tests.served import make_quiet_server
 
 from planetgen.web.app import create_app
 from planetgen.api.config import Config
@@ -443,7 +443,7 @@ def map_site(tmp_path_factory):
         patch.delenv("PLANETGEN_TILE_CACHE_MAX_MB", raising=False)
         app = create_app(_SiteConfig)
         app.testing = True
-        server = make_server("127.0.0.1", 0, app, threaded=True)
+        server = make_quiet_server("127.0.0.1", 0, app, threaded=True)
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
         try:

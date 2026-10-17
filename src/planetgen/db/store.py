@@ -1519,7 +1519,13 @@ def _check_marker(name, text):
     return lambda shape: text in shape["checks"].get(name, "")
 
 
+def _type_marker(table, column, column_type):
+    return lambda shape: shape["column_types"].get((table, column)) == column_type
+
+
 _VERSION_MARKERS = (
+    (108, _type_marker("bright_stars", "band_index", "int")),
+    (107, _check_marker("chk_bright_stars_population", "satellite_young")),
     (106, lambda shape: "least(" in shape["generated"].get(("star_systems", "cell_key"), "")),
     (105, _check_marker("chk_bright_stars_population", "satellite")),
     (104, _column_marker("planets", "host_node_id")),
@@ -1599,6 +1605,9 @@ def detect_schema_version(conn):
         "tables": tables,
         "columns": {(row["t"].lower(), row["c"].lower()) for row in conn.execute(
             "SELECT table_name AS t, column_name AS c FROM information_schema.columns"
+            " WHERE table_schema = DATABASE()").fetchall()},
+        "column_types": {(row["t"].lower(), row["c"].lower()): row["y"].lower() for row in conn.execute(
+            "SELECT table_name AS t, column_name AS c, column_type AS y FROM information_schema.columns"
             " WHERE table_schema = DATABASE()").fetchall()},
         "indexes": {(row["t"].lower(), row["i"].lower()) for row in conn.execute(
             "SELECT DISTINCT table_name AS t, index_name AS i FROM information_schema.statistics"
@@ -6105,25 +6114,43 @@ def _scatter_value(value):
     return str(value)
 
 
-def insert_phenomenon_scatter(conn, rows, batch_size=5000):
-    """Bulk-writes scattered phenomena (`PHENOMENON_SCATTER_COLUMNS` order),
-    `batch_size` rows to a statement. The statement text is built here
-    (`_scatter_value`), which costs about half what the driver's own
-    per-value escaping does over tens of millions of rows (PERF.73).
-    Returns the rows written."""
-    head = f"INSERT INTO phenomenon_scatter ({', '.join(PHENOMENON_SCATTER_COLUMNS)}) VALUES "
+LITERAL_STATEMENT_CHARS = 1_000_000
+"""int: A multi-row `INSERT` built by `_insert_literal_rows` is sent once its text reaches this length, whatever
+`batch_size` says: the driver's own `executemany` cuts its statements at the same size, and a server's
+`max_allowed_packet` may be small."""
+
+
+def _insert_literal_rows(conn, table, columns, rows, batch_size):
+    """Bulk-writes `rows` (values in `columns` order) into `table`, `batch_size` rows to a statement whose text is
+    built here (`_scatter_value`): numbers, `None` and a few fixed names only, so the driver's own per-value
+    escaping, about a quarter of an insert over tens of millions of rows, is skipped (PERF.73, PERF.48). A value
+    that is any other kind of string must not come through here. Returns the rows written."""
+    head = f"INSERT INTO {table} ({', '.join(columns)}) VALUES "
     written = 0
     batch = []
+    chars = 0
     for row in rows:
-        batch.append("(" + ",".join(map(_scatter_value, row)) + ")")
-        if len(batch) >= batch_size:
+        text = "(" + ",".join(map(_scatter_value, row)) + ")"
+        batch.append(text)
+        chars += len(text) + 1
+        if len(batch) >= batch_size or chars >= LITERAL_STATEMENT_CHARS:
             conn.execute_literal(head + ",".join(batch))
             written += len(batch)
             batch = []
+            chars = 0
     if batch:
         conn.execute_literal(head + ",".join(batch))
         written += len(batch)
     return written
+
+
+def insert_phenomenon_scatter(conn, rows, batch_size=5000):
+    """Bulk-writes scattered phenomena (`PHENOMENON_SCATTER_COLUMNS` order),
+    `batch_size` rows to a statement. The statement text is built here
+    (`_insert_literal_rows`), which costs about half what the driver's own
+    per-value escaping does over tens of millions of rows (PERF.73).
+    Returns the rows written."""
+    return _insert_literal_rows(conn, "phenomenon_scatter", PHENOMENON_SCATTER_COLUMNS, rows, batch_size)
 
 
 def drop_phenomenon_scatter_indexes(conn):
@@ -6536,25 +6563,15 @@ def insert_bright_stars(conn, rows, batch_size=10000):
     """
     Bulk-writes scattered bright stars (`BRIGHT_STAR_COLUMNS` order) in
     batches of `batch_size`, which need no server setting (`LOAD DATA
-    LOCAL INFILE` would need `local_infile` on both ends).
+    LOCAL INFILE` would need `local_infile` on both ends). Only numbers,
+    `None` and the fixed population, spectral type and class names are in
+    a row, so the statement text is built here (`_insert_literal_rows`,
+    PERF.48) instead of through the driver's per-value escaping.
 
     Returns:
         int: Rows written.
     """
-    columns = ", ".join(BRIGHT_STAR_COLUMNS)
-    marks = ", ".join("?" * len(BRIGHT_STAR_COLUMNS))
-    written = 0
-    batch = []
-    for row in rows:
-        batch.append(tuple(row))
-        if len(batch) >= batch_size:
-            conn.executemany(f"INSERT INTO bright_stars ({columns}) VALUES ({marks})", batch)
-            written += len(batch)
-            batch = []
-    if batch:
-        conn.executemany(f"INSERT INTO bright_stars ({columns}) VALUES ({marks})", batch)
-        written += len(batch)
-    return written
+    return _insert_literal_rows(conn, "bright_stars", BRIGHT_STAR_COLUMNS, rows, batch_size)
 
 
 def bright_stars_for_sector(conn, shell_index, band_index, wedge_index):

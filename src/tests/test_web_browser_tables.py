@@ -15,7 +15,7 @@ import time
 from urllib.parse import parse_qs, urlparse
 
 import pytest
-from werkzeug.serving import make_server
+from tests.served import make_quiet_server
 
 sync_api = pytest.importorskip("playwright.sync_api")
 
@@ -178,7 +178,7 @@ def table_site():
             "stamp": "0" * 16, "tiles": {}, "density": {}, "edge_pc": 3.066, "has_shape": False})
         app = create_app(_SiteConfig)
         app.testing = True
-        server = make_server("127.0.0.1", 0, app, threaded=True)
+        server = make_quiet_server("127.0.0.1", 0, app, threaded=True)
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
         try:
@@ -218,7 +218,7 @@ def admin_site():
                       lambda db: {"generated": True, "species": True, "polities": True, "territories": False})
         app = create_app(_SiteConfig)
         app.testing = True
-        server = make_server("127.0.0.1", 0, app, threaded=True)
+        server = make_quiet_server("127.0.0.1", 0, app, threaded=True)
         thread = threading.Thread(target=server.serve_forever, daemon=True)
         thread.start()
         try:

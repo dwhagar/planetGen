@@ -38,13 +38,14 @@ import math
 from dataclasses import dataclass, field
 
 from planetgen import tuning
+from planetgen.galaxy import component_field as componentField
 from planetgen.galaxy import density as galaxyDensity
 from planetgen.galaxy import nebula_field, spherical, superbubble_field
 from planetgen.physics import metallicity
 from planetgen.physics.units import pc_to_ly
 
 POPULATIONS = ("young", "intermediate", "old", "bulge", "halo", "cluster", "satellite", "nuclear_cluster",
-               "nuclear_disc")
+               "nuclear_disc", "satellite_young", "satellite_intermediate")
 """tuple: The populations of a profile's mix, in the order `galaxy.density.population_densities` has them."""
 
 _DISK = ("young", "intermediate", "old")
@@ -154,7 +155,8 @@ class SectorProfile:
 def _region(mix):
     """The label of the term that dominates `mix`: the disk's three populations count together."""
     terms = {"disk": sum(mix[name] for name in _DISK), "bulge": mix["bulge"], "halo": mix["halo"],
-             "cluster": mix["cluster"], "satellite": mix["satellite"],
+             "cluster": mix["cluster"],
+             "satellite": mix["satellite"] + mix["satellite_young"] + mix["satellite_intermediate"],
              "nuclear": mix["nuclear_cluster"] + mix["nuclear_disc"]}
     best = max(terms.values())
     if best <= 0.0:
@@ -169,7 +171,7 @@ def _fe_h(name, distance_ly, shape=None, position_pc=None):
     """`((weight, mean, sigma), ...)` of a population's [Fe/H] `distance_ly` from the centre. A cluster or satellite
     place takes the [Fe/H] of the components that reach it (`ComponentField.fe_h_peaks`) and, where it has none, the
     generic peaks of `tuning`."""
-    if name in ("cluster", "satellite"):
+    if name in componentField.POPULATIONS_IN_THE_GATE:
         found = () if shape is None or shape.components is None else shape.components.fe_h_peaks(position_pc, name)
         if found:
             return found
@@ -196,7 +198,7 @@ def _young_and_old_against_the_solar_circle(populations, shape):
     """`(young, old)`, the young stars' share of the place's stars and the share that is not young, each divided by
     the same share around the solar circle (`_reference_young_share`): 1 and 1 for the solar circle's mix."""
     reference = _reference_young_share(shape)
-    young_share = populations["young"].share
+    young_share = populations["young"].share + populations["satellite_young"].share
     young = 0.0 if reference <= 0.0 else young_share / reference
     old = (1.0 - young_share) / (1.0 - reference) if reference < 1.0 else 0.0
     return young, old

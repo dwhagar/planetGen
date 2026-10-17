@@ -122,6 +122,39 @@ class Stream:
 
     normal = gauss
 
+    def gamma(self, shape):
+        """A gamma draw of the given `shape` and scale 1 (Marsaglia and Tsang 2000; a shape under 1 is raised by one and
+        scaled by a uniform to the power 1 / shape). Built on `random()` and `gauss` here, so it is ours and stays put."""
+        if not shape > 0.0:
+            raise ValueError("the shape of a gamma draw must be positive")
+        if shape < 1.0:
+            u = 1.0 - self._random.random()     # (0, 1]
+            return self.gamma(shape + 1.0) * u ** (1.0 / shape)
+        d = shape - 1.0 / 3.0
+        c = 1.0 / math.sqrt(9.0 * d)
+        while True:
+            x = self.gauss()
+            v = 1.0 + c * x
+            if v <= 0.0:
+                continue
+            v = v * v * v
+            u = 1.0 - self._random.random()     # (0, 1], so the log is finite
+            if u < 1.0 - 0.0331 * x ** 4 or math.log(u) < 0.5 * x * x + d * (1.0 - v + math.log(v)):
+                return d * v
+
+    def dirichlet(self, alphas):
+        """A list of proportions that adds up to 1 within 1e-15, Dirichlet distributed with the concentrations `alphas`
+        (one gamma draw each, divided by their sum). Where every draw underflows to zero (all alphas tiny) the whole
+        goes to the component with the largest alpha."""
+        if not len(alphas):
+            raise ValueError("a Dirichlet draw needs at least one concentration")
+        gammas = [self.gamma(a) for a in alphas]
+        total = math.fsum(gammas)
+        if not total > 0.0:
+            best = max(range(len(alphas)), key=lambda i: alphas[i])
+            return [1.0 if i == best else 0.0 for i in range(len(alphas))]
+        return [g / total for g in gammas]
+
     def getrandbits(self, k):
         """A `k`-bit non-negative int, 32 bits per `random()` call."""
         value = 0
@@ -208,6 +241,14 @@ def gauss(mu=0.0, sigma=1.0):
 
 
 normal = gauss
+
+
+def gamma(shape):
+    return current().gamma(shape)
+
+
+def dirichlet(alphas):
+    return current().dirichlet(alphas)
 
 
 def getrandbits(k):

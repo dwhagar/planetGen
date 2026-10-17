@@ -31,8 +31,8 @@ The radiation derived from the stored composition: the band transmission and gre
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.443 | Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud | GEN.417, GEN.413, GEN.414, GEN.436 | Boss 11:58 PM EDT; band transmission and greenhouse from the mixture. |
-| GEN.453 | The radiation constants are corrected: the dipole cutoff scales with moment over radius squared, the dose curve against the column and the field factor follow the measured and simulated tables (bug) | GEN.436 | Atmosphere research lane finding 4 (part 07 sections 2.1 and 4); generator epoch bump. Core 4 proposed. |
+| GEN.443 | Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud | GEN.417, GEN.413, GEN.414 | Boss 11:58 PM EDT; band transmission and greenhouse from the mixture. |
+| GEN.453 | The radiation constants are corrected: the dipole cutoff scales with moment over radius squared, the dose curve against the column and the field factor follow the measured and simulated tables (bug) |  | Atmosphere research lane finding 4 (part 07 sections 2.1 and 4); generator epoch bump. Core 4 proposed. |
 | GEN.444 | Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content | GEN.443, GEN.441, GEN.438, GEN.453, GEN.459, GEN.478 | Boss 11:58 PM EDT; replaces the proxies of physics/radiation.py; generator epoch bump. |
 | GEN.445 | Habitability, toxicity and the UV index read the derived radiation instead of the proxies | GEN.444 | Boss 11:58 PM EDT; habitability reads the derived values. |
 
@@ -83,7 +83,7 @@ The colour shown in the descriptions, on the maps in place of the planet colour,
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.503 | The shared tuning harness: a target table, a simulate-and-compare function and a loader that refuses a tunable row without a target | GEN.472, GEN.478 | Tunable gaps report: The shared tuning harness: a target table, a simulate-and-compare func. |
+| GEN.503 | The shared tuning harness: a target table, a simulate-and-compare function and a loader that refuses a tunable row without a target | GEN.478 | Tunable gaps report: The shared tuning harness: a target table, a simulate-and-compare func. |
 | GEN.504 | The Kepler transit-plus-recovery selection model | GEN.503 | Tunable gaps report: The Kepler transit-plus-recovery selection model. |
 | GEN.505 | The mass-radius sample selection model | GEN.503 | Tunable gaps report: The mass-radius sample selection model. |
 | GEN.506 | The JWST atmosphere target-selection model | GEN.503 | Tunable gaps report: The JWST atmosphere target-selection model. |
@@ -115,6 +115,6 @@ The radiation sweep, the documents of the whole composition model and the headli
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| TEST.212 | A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition | GEN.443, GEN.444, GEN.445, GEN.446, TEST.186 | Boss 11:58 PM EDT; the radiation proof. |
+| TEST.212 | A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition | GEN.443, GEN.444, GEN.445, GEN.446 | Boss 11:58 PM EDT; the radiation proof. |
 | DOC.66 | Docs: the composition model of stars, bodies and atmospheres, the radiation it derives and the sources of every number | TEST.212, TEST.211, DOC.63, DOC.65 | Boss 11:58 PM EDT; docs only. |
 | GEN.421 | Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it | GEN.420, MAP.244, DOC.64, GEN.446, TEST.209, TEST.210, TEST.211, TEST.212, DOC.66 | Headline of 9.0 (Boss, 11:25 PM EDT). |
