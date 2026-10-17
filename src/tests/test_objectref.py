@@ -188,16 +188,20 @@ def test_a_compact_object_at_the_galactic_center_keeps_out_by_its_own_size():
     from planetgen.galaxy import keepout
     from planetgen.physics import constants
 
+    central = 1.0e12 * constants.SOLAR_MASS_TO_KG
     mass = 4e6 * constants.SOLAR_MASS_TO_KG
-    at_core = keepout.compact_keep_out(mass, 0.0, 1.2e7)
+    at_core = keepout.compact_keep_out(mass, 0.0, 1.2e7, central)
     assert (at_core.radius_km, at_core.basis) == (1.2e7, "radius")
-    far = keepout.compact_keep_out(10 * constants.SOLAR_MASS_TO_KG, 8000.0, 30.0)
+    far = keepout.compact_keep_out(10 * constants.SOLAR_MASS_TO_KG, 8000.0, 30.0, central)
     assert far.basis == "galactic_hill" and far.radius_km > 30.0
     # The Hill radius grows with the cube root of the mass and linearly with distance.
-    assert keepout.galactic_hill_radius_km(8 * 1e30, 2000.0) == pytest.approx(
-        2 * keepout.galactic_hill_radius_km(1e30, 2000.0))
-    assert keepout.galactic_hill_radius_km(1e30, 4000.0) == pytest.approx(
-        2 * keepout.galactic_hill_radius_km(1e30, 2000.0))
+    assert keepout.galactic_hill_radius_km(8 * 1e30, 2000.0, central) == pytest.approx(
+        2 * keepout.galactic_hill_radius_km(1e30, 2000.0, central))
+    assert keepout.galactic_hill_radius_km(1e30, 4000.0, central) == pytest.approx(
+        2 * keepout.galactic_hill_radius_km(1e30, 2000.0, central))
+    # A heavier galaxy pulls harder: the Hill radius falls with the cube root of its mass.
+    assert keepout.galactic_hill_radius_km(1e30, 2000.0, 8 * central) == pytest.approx(
+        0.5 * keepout.galactic_hill_radius_km(1e30, 2000.0, central))
 
 
 def test_keep_out_for_bodies_and_systems(client, mysql_config):

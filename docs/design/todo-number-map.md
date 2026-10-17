@@ -16,8 +16,8 @@ release is stamped.
 | UX | UX.136 |
 | MAP | MAP.245 |
 | NAV | NAV.63 |
-| GEN | GEN.528 |
-| PERF | PERF.111 |
+| GEN | GEN.532 |
+| PERF | PERF.112 |
 | DB | DB.72 |
 | API | API.31 |
 | ADM | ADM.97 |
@@ -579,7 +579,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.62 | Upload bookkeeping tables in the control database (migration only) | none | open |
 | DB.63 | Table for ships and stations, user-owned or generated (migration only) | none | open |
 | DB.64 | Table for stored constellations (migration only) | none | open |
-| DB.65 | Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates | none | open |
+| DB.65 | Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates | none | done, PR #2025 |
 | DB.66 | The shape row carries the galaxy family and one column per density component, as a migration only | none | open |
 | DB.67 | Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with | none | open |
 | DB.68 | Planets and moons store the ozone column and the haze, dust and cloud optical depths | none | open |
@@ -893,7 +893,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.239 | High-velocity clouds and the Magellanic Stream as placed gas clouds (later) | none | open |
 | GEN.240 | The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass | none | done, PR #1994 |
 | GEN.241 | Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds | none | open |
-| GEN.242 | A pre-main-sequence state for young stars, so protostars can exist as real stars | none | open |
+| GEN.242 | A pre-main-sequence state for young stars, so protostars can exist as real stars | none | done, PR #2009 |
 | GEN.243 | Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X | none | open |
 | GEN.244 | Young open clusters and OB associations as components (later) | none | open |
 | GEN.245 | Debris disks around A and F stars (later) | none | open |
@@ -970,8 +970,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.316 | Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired | none | open |
 | GEN.317 | Pulsar planets and the radiation environment of neutron stars | none | open |
 | GEN.318 | White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk | none | open |
-| GEN.319 | Nebula rates read the profile: young and old shares, the cell's gas and the Type Ia share as profile fields | none | open |
-| GEN.320 | build_nebula_with_contents: every hosted nebula gets its stars as real systems inside its bounds (classes C, G, F, planetary, remnants, P and Q) | none | open |
+| GEN.319 | Nebula rates read the profile: young and old shares, the cell's gas and the Type Ia share as profile fields | none | done, PR #2003 |
+| GEN.320 | build_nebula_with_contents: every hosted nebula gets its stars as real systems inside its bounds (classes C, G, F, planetary, remnants, P and Q) | none | done, PR #2014 |
 | GEN.321 | Emission regions D and E: the ionizing members of a young cluster in a Plummer sphere, cut by sector cube | none | open |
 | GEN.322 | Band groups and the halo term: the bright-star and mass passes cover the 262 kpc reach | none | done, PR #1991 |
 | GEN.323 | The phenomena pass runs on the object-first sampler | none | done, PR #1992 |
@@ -1024,7 +1024,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.370 | Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug) | none | open |
 | GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies | none | open |
 | GEN.372 | Numeric precision audit at galactic scale: every float coordinate and sum, how far it gets from its origin, where the first error shows, and what needs a wider or split representation | none | done, PR #1959 |
-| GEN.373 | Massive multiples sit in young regions: set `prevalence` from the cell's young share, with a derived cap on the rise | none | open |
+| GEN.373 | Massive multiples sit in young regions: set `prevalence` from the cell's young share, with a derived cap on the rise | none | dropped (Boss, 2026-10-17, 10:07 AM EDT, his card answer as Core 4 reported it) |
 | GEN.374 | Orbit phase formulas reduce first, and the JavaScript Kepler solver uses tolerance 1e-12: Python, SQL and JavaScript agree | none | open |
 | GEN.375 | Field kernel subtracts a local origin before its loop in `physics/sector_path.py` | none | open |
 | GEN.376 | Region test uses the haversine form for angles under 1e-3 rad in `galaxy/region.py` | none | open |
@@ -1051,13 +1051,13 @@ Parents marked "new parent" had no old number of their own.
 | GEN.397 | `planetgen plan` stage 2 prints the progress weight as the number of phenomena to place (bug) | none | open |
 | GEN.398 | The massive-star and bright-star passes place more stars than their log lines expect: 70 and 12 percent over (bug) | none | open |
 | GEN.399 | Research the halo mass function and compare it with the halo mass approximation GEN.368 uses | none | open |
-| GEN.400 | The galaxy's mass chain: stellar mass from the Schechter function, the halo mass by the approximation, the virial radius and the concentration | none | open |
+| GEN.400 | The galaxy's mass chain: stellar mass from the Schechter function, the halo mass by the approximation, the virial radius and the concentration | none | done, PR #2011 |
 | GEN.401 | The shape of the stars from the stellar mass: disk length and height, thick disk, bulge, bar and arms replace the generate defaults | none | open |
 | GEN.402 | The central black hole mass and the nuclear cluster follow the bulge: the M-bulge and M-sigma relations replace the fixed ranges | none | open |
 | GEN.403 | The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157 | none | open |
 | GEN.404 | The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position | none | open |
 | GEN.405 | Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values | none | open |
-| GEN.406 | Research the population ages and velocity dispersions by component, the thick disk scaling and the stellar halo fraction so they become laws | none | open |
+| GEN.406 | Research the population ages and velocity dispersions by component, the thick disk scaling and the stellar halo fraction so they become laws | none | done, PR #2022 |
 | GEN.407 | Correct the horizontal-branch and red giant tables to the checked sources: the RGB time law, the evolutionary flux, the HB colour row, the extreme HB luminosity and the tip | none | done, PR #1985 |
 | GEN.408 | Research: verify the atmosphere sources and say what is missing | none | done, PR #1951 |
 | GEN.409 | The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model | none | open |
@@ -1179,6 +1179,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.525 | Tuned draw builder B17: the design-flag registry | none | open |
 | GEN.526 | Satellites with gas get young and intermediate populations derived from their age history and gas, so the Clouds hold massive stars | none | open |
 | GEN.527 | The second star of a wide pair in a saved runaway system loads back 0.4 m/s off the system's velocity: find the cause instead of loosening the test (bug) | none | open |
+| GEN.528 | The rest of GEN.319: a Magellanic cell shows every class, and the scatter's planetary nebulae are weighted by the old share | none | open |
+| GEN.529 | The pre-main-sequence track takes its Hayashi temperature, birthline radius and energy factor from a sourced table, and the state reaches stars still contracting after 10 Myr | none | open |
+| GEN.530 | A pre-placed star's hosted nebula shows from its scatter row on the maps and pages | none | open |
+| GEN.531 | Boss's research requests from the galaxy laws research (R1 to R15): the observed stellar halo, the dwarf range, the thick disk fits and the cluster system | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1395,7 +1399,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.214 | Galaxy Map default view: no density, age or luminosity shading, only stars and markers for known space | none | open |
 | MAP.215 | Nebulae tint the stars seen through them, with soft translucent boundaries | none | open |
 | MAP.216 | Admin page of the objects that moved in the last update, with the movement vector and a map ghost of the old position | none | open |
-| MAP.217 | Map layer interface: one registry the Galaxy stage view, the Sector Map and the System Map share for a toggled layer (menu entry, modes, URL key, legend, picker layer, fade rule) | none | open |
+| MAP.217 | Map layer interface: one registry the Galaxy stage view, the Sector Map and the System Map share for a toggled layer (menu entry, modes, URL key, legend, picker layer, fade rule) | none | done, PR #2006 |
 | MAP.218 | Galaxy Map density control: a readout for everyone, an editor for admins over any region, with preview, confirm and undo | none | open |
 | MAP.219 | Galaxy Map marker layer: a kind registry with per-kind toggles, the zoom budget and picking, shipping the black-hole kind | none | open |
 | MAP.220 | Markers for habitable worlds and chosen classes, optional per kind | none | open |
@@ -1467,7 +1471,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.42 | Each route stop shows the course and distance to the next stop | none | done, PR #1153 |
 | NAV.43 | Find everything within a distance of a place: the query and the API | none | done, PR #804 |
 | NAV.44 | A "What's nearby" page: pick a place, enter a distance in parsecs, list what is there | none | done, PR #804 |
-| NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map | none | open |
+| NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map | none | done, PR #2001 |
 | NAV.46 | The NAV picker can't click galaxy wedges to zoom in (bug) | none | closed, already fixed; covered by a browser test (#568) |
 | NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | none | done, PR #1389 |
 | NAV.48 | Offer to generate the uncharted sectors that block a course | none | done, PR #1195 |
@@ -1654,6 +1658,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.108 | The backfill as queue units: chunks of at least 10,000 cells, one enumeration (folds in PERF.18) | none | open |
 | PERF.109 | Cache the Generate page estimate | none | open |
 | PERF.110 | XFetch refresh for costly entries that expire by age | none | open |
+| PERF.111 | `ResponseCache.put` without a database never trims the page cache: the cache grows past `max_entries`, and the thread test fails when its last put is one of those (bug) | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |

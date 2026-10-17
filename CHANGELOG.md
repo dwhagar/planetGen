@@ -2,6 +2,308 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1720] - 2026-10-17
+
+**Headline:** The cell key at the edge of its box is recorded as built (DB.65), with the migration head at 0106.
+
+### Changed
+
+- DB.65 is retired (merged as #2025, migration 0106, schema v106); the revision queue now reads DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110. TEST.213 carries a new sighting from DB.65's browser run.
+
+TODO items resolved: DB.65. / Added: none
+
+## [8.0.1719] - 2026-10-17
+
+**Headline:** The cell key no longer wraps for a position within 3e-11 parsecs of the 262 kpc box edge: it takes the last cube instead of the opposite edge's.
+
+### Changed
+- `cellkey.cell_index`, `cell_keys` and the SQL expression (`sql_cell_key`) hold the cube number at 2^21 - 1 (`cellkey.LAST_CELL`). Migration 0106 recomputes the generated `cell_key` of all 14 tables that have one (a table rebuild per table); `planetgen.cli.migrate` shows its progress.
+- `store.detect_schema_version` reads generated-column expressions to recognise v106.
+
+No generated object lies that close to the reach, so no stored value changes and the generator epoch stays.
+
+TODO items resolved: DB.65. Added: none.
+
+## [8.0.1718] - 2026-10-17
+
+**Headline:** The first Gemini research batch for the galaxy laws is recorded as unverified input on GEN.531.
+
+### Changed
+
+- GEN.531 notes that Gemini batch 1 (structural scaling laws, kinematics, assembly histories, ex situ halo fractions) arrived at 10:52 AM EDT and replaces no placeholder until each claim is checked against its source.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1717] - 2026-10-17
+
+**Headline:** The fifteen galaxy research requests (GEN.531) record that a Gemini search and a gap-filling plan are under way.
+
+### Changed
+
+- GEN.531 notes Boss's word (10:44 AM EDT): some things are not known; a Gemini agent searches the fifteen items with theories and speculation included, a read-only thread plans how the generator fills the gaps itself, and every stand-in is labelled so it can be replaced.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1716] - 2026-10-17
+
+**Headline:** The galaxy laws research (GEN.406) is filed as a design note with the sourced ranges for the stellar halo, ages, dispersions, thick disk, dwarfs and clusters.
+
+### Added
+
+- `docs/design/galaxy-laws-research.md`: the sourced laws and ranges, the conflicts between sources with proposed defaults, and fifteen open requests (GEN.531).
+
+### Changed
+
+- GEN.401, GEN.403, GEN.405 and GEN.369 carry the pointers and the flags (the 1.5e9 halo anchor is a Milky Way copy, the thick disk and the dispersion and height conflicts); GEN.409, GEN.426, GEN.435, GEN.436 and GEN.437 go to Blocker 1 and GEN.180 and GEN.229 to Core 5.
+
+TODO items resolved: GEN.406. / Added: GEN.531
+
+## [8.0.1715] - 2026-10-17
+
+**Headline:** Boss started the lane Blocker 1 for the composition loader (GEN.472) and the census harness (TEST.186).
+
+### Changed
+
+- GEN.472 and TEST.186 name Blocker 1 as owner (Boss, 10:27 AM EDT); GEN.472 notes that its prerequisite GEN.437 and the four design notes under it are still open with Core 4.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1714] - 2026-10-17
+
+**Headline:** Every open 8.1 item now names the lane that builds it, from Boss's Core 1 to Core 5 lanes.
+
+### Changed
+
+- Boss's lanes (10:06 AM EDT; Bug Hunt strictly bugs, Cores 1 to 5 each a distinct lane to 8.1 from the foundations forward) are recorded on GEN.301, and 154 items carry an Owner note with the lane and the position in its order; GEN.530's map and page reads are proposed to Core 2.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1713] - 2026-10-17
+
+**Headline:** The galaxy laws research of GEN.406 has its own research thread, chosen by Boss.
+
+### Changed
+
+- GEN.406 names the read-only research thread as its owner (Boss, 10:20 AM EDT), not Core 1; the lane assignment drops it from Core 1's queue.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1712] - 2026-10-17
+
+**Headline:** Core 4's findings from building the massive-star binaries are recorded on the items that check them.
+
+### Changed
+
+- GEN.448 and TEST.196 carry the G-dwarf close-companion level (0.13 against the pooled line's 0.20) and the O and B flatness ratios (1.32 and 1.43 against the 1.3 edge).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1711] - 2026-10-17
+
+**Headline:** The part of GEN.320 that Core 3 did not wire, a pre-placed star's nebula on the maps and pages, is filed ahead of the 8.1 headline.
+
+### Changed
+
+- GEN.530 is filed (a pre-placed star's hosted nebula shows from its scatter row) and gates GEN.301; TEST.184 carries Core 3's protostar yield finding.
+
+TODO items resolved: none / Added: GEN.530
+
+## [8.0.1710] - 2026-10-17
+
+**Headline:** The nebula stars of GEN.320 are recorded as built, and Boss's drop of the massive-multiples prevalence cap (GEN.373) is recorded.
+
+### Changed
+
+- GEN.320 is retired (merged as #2014, generator epoch 11 pending); GEN.243, GEN.258 and GEN.321 no longer wait on it.
+- GEN.373 is closed as dropped (Boss, 10:07 AM EDT, his card answer as Core 4 reported it): the `prevalence` cap is not built, and `docs/design/placement-by-population.md` says so.
+
+TODO items resolved: GEN.320 (GEN.373 dropped). / Added: none
+
+## [8.0.1709] - 2026-10-17
+
+**Headline:** Boss chose to split Core 3's 8.1 chain across two generation lanes; the decision is recorded on the headline item.
+
+### Changed
+
+- GEN.301 records Boss's decision (10:02 AM EDT, "Split Core 3"): a new generation lane takes the stellar tables and small items, Core 3 keeps the nebula and cluster line; no test lane was chosen.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1708] - 2026-10-17
+
+**Headline:** Bok globules and star-forming cores now hold their protostars, and a planetary nebula's central star has its close companion.
+
+### Added
+- **The stars a nebula needs (GEN.320).** A Bok globule holds one protostar in 30% of clouds and a star-forming core holds one to four (mean 2 before the cap), each drawn from the cloud's own seed. A cloud that reaches several sectors gives the same members to each, and each sector builds the ones inside its own cell, so none is made twice or left out. The members are ordinary young systems with a disk and the companions of a protostar.
+- **The close companion of a planetary nebula's central star.** One central star in five is a close binary (15 to 20% of central stars are, per the survey literature); the rest stay single.
+
+### Changed
+- A star's hosted-nebula roll (its chance, its class and its age) comes from a stream seeded by the star itself, so the same star gets the same nebula wherever it is made.
+
+generation-output: changed
+
+TODO items resolved: GEN.320. Added: none.
+
+## [8.0.1707] - 2026-10-17
+
+**Headline:** The 8.1 completion study's findings are recorded on the items they concern.
+
+### Changed
+
+- GEN.282 and GEN.298 (no live owner, on the longest path to GEN.301) and the five closing tests TEST.184, TEST.185, TEST.186, TEST.159 and TEST.160 (owned by the idle Quality lane) carry the finding, so the owner gap is visible on each item.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1706] - 2026-10-17
+
+**Headline:** The galaxy's mass chain is merged and retired: every galaxy draws its stellar mass, halo mass, virial radius and concentration from its seed.
+
+### Changed
+
+- GEN.400 (#2011, generator epoch 10) is retired: the stellar mass comes from the Schechter function, the halo mass, virial radius and concentration follow, and the Hill spheres read the virial mass; the fixed Milky Way mass is gone.
+- GEN.401, GEN.403 and GEN.399 no longer wait on it.
+- GEN.406 now carries the stellar halo constants (`HALO_MASS_SOLAR`, `HALO_SYSTEM_FRACTION`): they are the stellar halo, not the dark matter halo, so GEN.400 left them, and the laws table has no stellar halo law until GEN.406 researches one.
+
+TODO items resolved: GEN.400 / Added: none
+
+## [8.0.1705] - 2026-10-17
+
+**Headline:** Every galaxy now draws its own stellar mass, halo mass, virial radius and concentration from its seed, and the Hill spheres read that mass in place of the fixed Milky Way mass.
+
+### Changed
+- **The galaxy's mass chain (GEN.400).** `galaxy/mass_chain.py` draws the stellar mass from the double Schechter function (Baldry et al. 2012) inside 3e9 to 2e11 solar masses, the halo mass from the stellar-to-halo relation (Moster et al. 2013) by the approximation Boss chose, and the virial radius and NFW concentration (Dutton and Maccio 2014, 0.11 dex scatter), all from the galaxy seed: the same seed gives the same galaxy.
+- **No fixed Milky Way mass.** `MILKY_WAY_MASS` is removed. A star's, a pair's and a compact object's Hill sphere (the system perimeter and the keep-out radius) read the drawn galaxy's virial mass, so the perimeters differ with the galaxy. `keepout.galactic_hill_radius_km` and `compact_keep_out` take the central mass as an argument.
+- **Stays.** `HALO_MASS_SOLAR` and `HALO_SYSTEM_FRACTION` are the stellar halo (a fraction of the visible mass), not the dark matter halo; their law is GEN.406's research.
+
+generation-output: changed
+
+TODO items resolved: GEN.400. Added: none.
+
+## [8.0.1704] - 2026-10-17
+
+**Headline:** The pre-main-sequence state is merged and retired, and its inferred constants are filed for a sourced table.
+
+### Changed
+
+- GEN.242 (#2009, generator epoch 9) is retired: stars under 8 solar masses and under 10 Myr are protostars or pre-main-sequence stars with a disk descriptor, and the protostar's companion chance uses the Perseus fractions; GEN.320 no longer waits.
+- GEN.529 is filed for what it left: the Hayashi temperature, the birthline radius and the energy factor are inferred, not sourced, and the state stops at 10 Myr; it needs a Baraffe 2015 or Siess 2000 table and gates GEN.301.
+- TEST.174 gets another sighting (the sector accessibility flake in a second gate).
+
+TODO items resolved: GEN.242 / Added: GEN.529
+
+## [8.0.1703] - 2026-10-17
+
+**Headline:** Stars under 10 Myr are protostars and pre-main-sequence stars with a disk, instead of main-sequence stars that happen to be young.
+
+### Added
+- **The pre-main-sequence state (GEN.242).** A star under 8 solar masses and under 10 Myr is a Class 0 or I protostar (under 0.5 Myr) or a pre-main-sequence star, with luminosity, temperature and radius from a contraction track worked out from the energy it releases (a solar mass reaches the main sequence in about 40 Myr, 0.1 solar masses in about 0.9 Gyr). The star page names the stage ("Class I Protostar", "Pre-Main-Sequence Star") and says the star is still contracting.
+- **The disk descriptor.** A young star holds a Class 0, I or II disk (age under 0.15, 0.5 and 3 Myr; none after) of 0.01 to 0.3 of its mass, from the dust sublimation radius out to 10 to 300 AU, with no bodies in it. It is stored in `stars.disk_kind`, `disk_mass_solar`, `disk_inner_au` and `disk_outer_au` and shown on the star page.
+- **Companions of protostars.** A Class 0 protostar has a companion in 57% of systems and a Class I protostar in 23% (the Perseus survey), in place of the field's share by spectral class.
+
+### Changed
+- The companions of a young system (`multistar`) take their stage and radius from the same track; the old `31 Myr x m^-2.5` law is gone (it gave 10 Gyr at 0.1 solar masses).
+- A star of 8 solar masses or more is never a protostar: it is on the main sequence by the time it shows.
+- A young star counts as saturated in X-rays, and has no planets inside the engulfment radius of a giant.
+
+generation-output: changed
+
+TODO items resolved: GEN.242. Added: none.
+
+## [8.0.1702] - 2026-10-17
+
+**Headline:** The satellites' young and intermediate shares are decided: derived from each satellite's age history and gas, not a typed 1% and 9%.
+
+### Changed
+
+- GEN.526 records Boss's decision (7:54 AM EDT, "Derive from the law"); it no longer waits on GEN.369, which re-derives the shares when it calculates the satellites.
+- The design note's open question 5 and the Magellanic caveat say the stand-in is dropped; GEN.528 notes that its Magellanic-cell part waits only on GEN.526 merging.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1701] - 2026-10-17
+
+**Headline:** The map layer registry is merged and retired, which frees the layer items that waited on it.
+
+### Changed
+
+- MAP.217 (#2006) is retired: one registry that the Galaxy stage view, the Sector Map and the System Map share for a toggled layer; the items that listed it as a prerequisite no longer wait.
+- MAP.225 and MAP.227 carry Core 2's notes on what their coming PRs do not cover (the column-density ray fallback, clearance and the half-way double click; the trail at the stage's own size).
+
+TODO items resolved: MAP.217 / Added: none
+
+## [8.0.1700] - 2026-10-17
+
+**Headline:** The three maps share one layer registry, so a map's layers have one menu, one set of URL keys and one legend.
+
+### Changed
+- New `maplayers.js`: a layer (id, label, modes, group, default on or off, URL key for hiding and for showing, legend line, picker layer, availability, title) is registered once, and the registry gives the menu buttons, the `hide=`/`show=` URL keys, the legend block and the blocker fade for it. The Galaxy and Sector stage view registers its sector kinds as layers; the System Map uses it for its own (course, facilities and the rest); the 3D galaxy map has the legend block (`galaxymap3d-layer-legend`). A kind absent from a sector is left out of the menu but keeps its URL entry.
+
+### Added
+- Tests: the registry in `maplayers.test.mjs` (16), the System Map layer menu, and a browser test that a registered Sector Map layer has a menu button, a URL key and a legend line.
+
+TODO items resolved: MAP.217 / Added: none
+
+## [8.0.1699] - 2026-10-17
+
+**Headline:** A page cache that never trims its no-database entries is filed, with the reproducer checked on main.
+
+### Changed
+
+- PERF.111 is filed (bug, found by Core 2 in the MAP.217 gate): `ResponseCache.put` without a database skips the eviction loop, so the cache passes `max_entries`; the reproducer gives 6 entries for a bound of 3 on main.
+- TEST.213 gets a sighting with a second symptom (the system's scene never came in, under load 10); it passed in 124.68 s on an idle box.
+
+TODO items resolved: none / Added: PERF.111
+
+## [8.0.1698] - 2026-10-17
+
+**Headline:** The Type Ia and old-star shares as profile fields are merged and retired, and the two parts of the item that are not met are filed.
+
+### Changed
+
+- GEN.319 (#2003) is retired: the Type Ia share and the old-star share are profile fields and the kind factors read them.
+- GEN.528 is filed for the rest of it: a Magellanic cell showing every class (waits on GEN.526) and the scatter's planetary nebulae weighted by the old share (generator epoch 8 rides the next generation change).
+- TEST.174 gets another sighting: the a11y sector page under load aborts a tile fetch.
+
+TODO items resolved: GEN.319 / Added: GEN.528
+
+## [8.0.1697] - 2026-10-17
+
+**Headline:** A place's supernova remnants are Type Ia or core-collapse by who lives there, so a halo never shows a remnant with a pulsar in it.
+
+### Added
+- **The Type Ia share (GEN.319).** The sector profile (and `/api/galaxy/profile` and the profile page) carries `type_ia_share`: the share of the place's supernova remnants that are Type Ia, worked out from the odds at the solar circle (three core collapses to one Type Ia) and the place's share of young stars against its share of older ones. It is 1 where no young stars are (the halo, clusters, old satellites), and the fill and the scatter's remnants are built with it, so a halo or cluster remnant never keeps a neutron star or a black hole.
+
+### Changed
+- The planetary nebula factor of the sector profile is the share of stars that are not young against the solar circle's, capped at 1: 1 in every older place and within 3% of 1 in the disk.
+- A galaxy generated before this keeps its stored sectors; sectors generated after have remnants built with their place's share.
+
+generation-output: changed
+
+TODO items resolved: GEN.319. Added: none.
+
+## [8.0.1696] - 2026-10-17
+
+**Headline:** The "what is within N pc" pages are merged and retired.
+
+### Changed
+
+- NAV.45 (#2001) is retired: systems, sectors and scatter objects link to what is within 10 pc; NAV.61 and MAP.243 are the remaining prerequisites of the item that waited on it.
+- TEST.213 gets a second sighting (the disc fade measured 0.884 in the NAV.45 gate), and TEST.216 a note that it did not recur in two gates.
+
+TODO items resolved: NAV.45 / Added: none
+
+## [8.0.1695] - 2026-10-17
+
+**Headline:** Selecting a sector, system, planet, moon or phenomenon on a map now offers "What's within 10 pc", which opens the What's nearby page with that place filled in.
+
+### Added
+
+- A "What's within 10 pc" link in the info panel of the Galaxy Map (a generated sector, a sector cell by its middle, a black hole, neutron star, quasar or cloud) and the Sector Map (a system, a phenomenon, a charted neighbouring sector). It is also in the panel of a body (star, planet, moon, belt, comet) on the System Map in both views and in a system opened inside the Galaxy Map, and it is left out while a NAV course is being picked.
+- The link asks for 10 pc; the distance is changed on the page it opens.
+- A scattered object nothing has built yet has no record to ask from, so it gets no link.
+
+TODO items resolved: NAV.45 / Added: none
+
 ## [8.0.1694] - 2026-10-17
 
 **Headline:** The massive-star scatter on the new work queue is merged and retired.

@@ -144,8 +144,12 @@ def test_the_tail_reaches_eight_stars_and_stops_at_the_cap():
 
 
 def test_members_take_their_state_from_the_age():
-    young = _tree(multistar.Placed("star", 20.0), 2.0e5, 3, n_stars=3)
+    # GEN.242: a star of 8 solar masses or more has no contracting stage; the lighter ones are protostars.
+    young = _tree(multistar.Placed("star", 6.0), 2.0e5, 3, n_stars=3)
     assert {member.kind for member in young.members} == {"protostar"}
+    massive = _tree(multistar.Placed("star", 20.0), 2.0e5, 3, n_stars=3)
+    assert {m.kind for m in massive.members if m.initial_mass_solar >= 8.0} <= {"main-sequence"}
+    assert {m.kind for m in massive.members if m.initial_mass_solar < 8.0} <= {"protostar"}
     mid = {m.kind for seed in range(80) for m in _tree(multistar.Placed("star", 20.0), 1.0e6, seed, n_stars=4).members}
     assert "pre-main-sequence" in mid and "main-sequence" in mid
     old = {m.kind for seed in range(80) for m in _tree(multistar.Placed("star", 1.0), 12.0e9, seed, n_stars=3).members}

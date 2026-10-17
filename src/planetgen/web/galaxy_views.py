@@ -210,6 +210,7 @@ def galaxy():
         phenomenon_url=phenomenon_url_template(),
         system_url=system_url_template(),
         nav_url=page_url("nav"),
+        nearby_url=page_url("nearby"),
         uncharted_scene_url=uncharted_scene_url_template(),
         uncharted_phenomenon_url=uncharted_phenomenon_url_template(),
         superbubbles=apiclient.get_superbubbles(db),

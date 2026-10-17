@@ -58,6 +58,8 @@ const { createSelection } = await import(`./picker.js${VERSION_QUERY}`);
 const { createBreadcrumb } = await import(`./breadcrumb.js${VERSION_QUERY}`);
 const { createPicker, createTooltip } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createSectorStage, DEFAULT_HIDDEN_KINDS } = await import(`./galaxysector.js${VERSION_QUERY}`);
+const { createLayerRegistry } = await import(`./maplayers.js${VERSION_QUERY}`);
+const { KINDS } = await import(`./sectorscene.js${VERSION_QUERY}`);
 const { createSystemStage } = await import(`./galaxysystem.js${VERSION_QUERY}`);
 const NF = await import(`./nearfield.js${VERSION_QUERY}`);
 const GO = await import(`./gridopacity.js${VERSION_QUERY}`);
@@ -864,11 +866,7 @@ export function createStageView(host) {
   // the fill's color), as query parts; a bookmark of a view keeps them too.
   function displayParts() {
     const extra = [];
-    const hidden = sectorStage.hiddenKinds();
-    const hide = hidden.filter(function (kind) { return DEFAULT_HIDDEN_KINDS.indexOf(kind) < 0; });
-    const show = DEFAULT_HIDDEN_KINDS.filter(function (kind) { return hidden.indexOf(kind) < 0; });
-    if (hide.length) extra.push("hide=" + hide.join(","));
-    if (show.length) extra.push("show=" + show.join(","));
+    layers.writeUrl(new URLSearchParams()).forEach(function (value, name) { extra.push(name + "=" + value); });
     if (sectorStage.markedKinds().length) extra.push("mark=" + sectorStage.markedKinds().join(","));
     if (sectorStage.hiddenClasses().length) extra.push("stars=" + sectorStage.hiddenClasses().join(","));
     if (sectorStage.minLuminosity() > 0) extra.push("lum=" + sectorStage.minLuminosity());
@@ -897,20 +895,55 @@ export function createStageView(host) {
     if (host.colorChanged) host.colorChanged(colorBy);
   }
 
-  // The kinds a URL's `hide` names.
-  // Kinds that begin hidden (rogue planets, MAP.137) are named by `show` when shown.
-  function hiddenFromLocation() {
-    const params = new URLSearchParams(location.search);
-    const list = function (name) { return (params.get(name) || "").split(",").filter(Boolean); };
-    const shown = list("show");
-    return DEFAULT_HIDDEN_KINDS.filter(function (kind) { return shown.indexOf(kind) < 0; }).concat(list("hide"));
+  // MAP.217: the kinds of object the map shows are layers of the registry the maps share (maplayers.js): the
+  // Menu's buttons and the URL's `hide` (kinds turned off) and `show` (kinds that begin hidden, rogue planets,
+  // MAP.137, when turned on) come from it, and the sector stage follows what it says.
+  const layers = createLayerRegistry(pinned ? "sector" : "galaxy", { forgetUnknown: true });
+  let layersFollowing = false; // the registry is being brought up to the stage or the URL, so its changes are not echoed back
+  KINDS.forEach(function (pair) {
+    layers.register({
+      id: pair[0], label: pair[1], modes: ["galaxy", "sector"], group: "Show on the map", data: { kind: pair[0] },
+      defaultOn: DEFAULT_HIDDEN_KINDS.indexOf(pair[0]) < 0, urlKey: "hide", urlKeyOn: "show",
+      available: function () { return kindCount(pair[0]) > 0; },
+      title: function () { return "Show or hide the " + pair[1].toLowerCase() + " (" + kindCount(pair[0]) + ")"; },
+    });
+  });
+  layers.onChange(function (id, on) {
+    if (layersFollowing) return;
+    sectorStage.setKindHidden(id, !on);
+    writeHiddenToUrl();
+  });
+
+  function kindCount(kind) {
+    const found = sectorStage.kinds().find(function (entry) { return entry.kind === kind; });
+    return found ? found.count : 0;
+  }
+
+  // The registry follows the URL, then the stage follows the registry.
+  function takeLayersFromLocation() {
+    layersFollowing = true;
+    try {
+      layers.readUrl(location.search);
+    } finally {
+      layersFollowing = false;
+    }
+    sectorStage.setHiddenKinds(KINDS.map(function (pair) { return pair[0]; }).filter(function (kind) { return !layers.isOn(kind); }));
+  }
+
+  // The registry follows the stage (a selection showing its kind).
+  function takeLayersFromStage() {
+    layersFollowing = true;
+    try {
+      KINDS.forEach(function (pair) { layers.setOn(pair[0], !sectorStage.kindHidden(pair[0])); });
+    } finally {
+      layersFollowing = false;
+    }
   }
 
   // Shows or hides a kind of object on the open sector, and keeps the choice
   // in the URL (changed in place: it is no step of its own).
   function setKindHidden(kind, hidden) {
-    sectorStage.setKindHidden(kind, hidden);
-    writeHiddenToUrl();
+    layers.setOn(kind, !hidden);
   }
 
   // MAP.123: the star classes left off and the luminosity floor, from the URL.
@@ -940,13 +973,7 @@ export function createStageView(host) {
 
   function writeHiddenToUrl() {
     const params = new URLSearchParams(location.search);
-    const now = sectorStage.hiddenKinds();
-    const hide = now.filter(function (kind) { return DEFAULT_HIDDEN_KINDS.indexOf(kind) < 0; });
-    const show = DEFAULT_HIDDEN_KINDS.filter(function (kind) { return now.indexOf(kind) < 0; });
-    if (hide.length) params.set("hide", hide.join(","));
-    else params.delete("hide");
-    if (show.length) params.set("show", show.join(","));
-    else params.delete("show");
+    layers.writeUrl(params);
     const marked = sectorStage.markedKinds();
     if (marked.length) params.set("mark", marked.join(","));
     else params.delete("mark");
@@ -983,6 +1010,7 @@ export function createStageView(host) {
   // A kind shown or hidden by the sector stage itself (a selection of
   // something hidden shows its kind): the URL and the buttons follow.
   function kindsChanged() {
+    takeLayersFromStage();
     writeHiddenToUrl();
     if (host.kindsChanged) host.kindsChanged();
   }
@@ -1251,6 +1279,7 @@ export function createStageView(host) {
     THREE: THREE, scene: host.scene, camera: camera, canvasEl: canvasEl, picker: picker,
     accentColor: host.accentColor || "#4f5fe8",
     fetchScene: host.fetchSystemScene, showInfo: host.showInfo || function () {}, viewport: host.viewport || null,
+    navPick: host.navPick || null,
     flyTo: function (entry) { flyToBody(entry); },
     setMode: function (mode) { setSystemMode(mode); },
     deselected: function () { host.showHint(hintFor(resolved)); },
@@ -2833,7 +2862,7 @@ export function createStageView(host) {
     // The marks, star classes and floor first: taking the hidden kinds up rewrites the URL
     // from what is set so far, and would drop a `mark` that wasn't set yet.
     applyStarFiltersFromLocation();
-    sectorStage.setHiddenKinds(hiddenFromLocation());
+    takeLayersFromLocation();
     setColorFromLocation();
     const asked = stageFromLocation(true);
     let r = resolve(asked.stage);
@@ -2861,7 +2890,7 @@ export function createStageView(host) {
     // The marks, star classes and floor first: taking the hidden kinds up rewrites the URL
     // from what is set so far, and would drop a `mark` that wasn't set yet.
     applyStarFiltersFromLocation();
-    sectorStage.setHiddenKinds(hiddenFromLocation());
+    takeLayersFromLocation();
     setColorFromLocation();
     const asked = stageFromLocation(false);
     if (asked.problem) {
@@ -2944,6 +2973,8 @@ export function createStageView(host) {
     kinds: sectorStage.kinds,
     kindHidden: sectorStage.kindHidden,
     setKindHidden: setKindHidden,
+    // MAP.217: the layer registry (the Menu draws its buttons from it).
+    layers: layers,
     kindMarked: sectorStage.kindMarked,
     setKindMarked: setKindMarked,
     // MAP.123: star classes and the luminosity floor.

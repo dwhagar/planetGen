@@ -21,6 +21,7 @@ import math
 
 import pytest
 
+from planetgen.galaxy import mass_chain
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star, _sample_evolved_star_mass_sol
 from planetgen.physics import constants as pc
@@ -254,9 +255,12 @@ def test_gravitational_sphere_of_influence_scales_with_mass_cube_root():
     Regression guard for the Hill/galactic-tidal sphere ("sphere of
     influence") formula: system_perimeter / mass^(1/3) must be a constant
     (the formula is a pure function of mass and galactic position, both
-    fixed), and for a solar-mass star it should land within the literature
-    range for the Sun's own galactic tidal radius (~100,000-200,000 AU,
-    i.e. the commonly-cited ~1.5-2 ly edge of the Oort cloud).
+    fixed), and equal the formula with the galaxy's virial mass (its mass
+    chain, GEN.400). In a galaxy of the Milky Way's mass (a test value, not
+    a program constant: the plausibility target) a solar-mass star lands
+    within the literature range for the Sun's own galactic tidal radius
+    (~100,000-200,000 AU, i.e. the commonly-cited ~1.5-2 ly edge of the
+    Oort cloud).
     """
     ratios = []
     for star_type in ["G2V", "M5V", "K3III", "B2V", "A0VII"]:
@@ -267,7 +271,12 @@ def test_gravitational_sphere_of_influence_scales_with_mass_cube_root():
     for r in ratios[1:]:
         assert r == pytest.approx(ratios[0], rel=1e-6)
 
-    assert 80_000 <= ratios[0] <= 250_000
+    def per_cube_root_mass(central_kg):
+        return (pc.GALACTIC_CENTER_DISTANCE_LY * pc.LY_TO_M / pc.AU_TO_M
+                * (pc.SOLAR_MASS_TO_KG / (3.0 * central_kg)) ** (1 / 3))
+
+    assert ratios[0] == pytest.approx(per_cube_root_mass(mass_chain.current_central_mass_kg()), rel=1e-9)
+    assert 80_000 <= per_cube_root_mass(1.15e12 * pc.SOLAR_MASS_TO_KG) <= 250_000
 
 
 @pytest.mark.parametrize("star_type", ALL_STAR_TYPES)

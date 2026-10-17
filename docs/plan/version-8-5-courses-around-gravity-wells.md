@@ -34,9 +34,9 @@ Showing courses on the maps and bending them around keep-out spheres.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.22 | Courses inside a sector and a system | MAP.217 |  |
-| NAV.5 | Show a course on the Galaxy Map | NAV.21, NAV.22, NAV.23, MAP.217 | Courses stay drawn until cleared (NAV.49). Parent; most of it exists (MAP.27). |
-| NAV.36 | Unknown-space jumps drawn red and glowing | MAP.217 | Route strip, navmap.py and the Galaxy Map course; legend; reduced motion; both themes. |
+| NAV.22 | Courses inside a sector and a system |  |  |
+| NAV.5 | Show a course on the Galaxy Map | NAV.21, NAV.22, NAV.23 | Courses stay drawn until cleared (NAV.49). Parent; most of it exists (MAP.27). |
+| NAV.36 | Unknown-space jumps drawn red and glowing |  | Route strip, navmap.py and the Galaxy Map course; legend; reduced motion; both themes. |
 
 ### Steering clear of gravity wells
 

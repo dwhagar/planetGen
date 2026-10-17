@@ -22,13 +22,14 @@ import re
 
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
-from planetgen.physics import activity, metallicity, spin
+from planetgen.physics import activity, metallicity, pre_main_sequence, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.physics.stellar_evolution import (YERKES_CLASS_NAMES, evolve_star, sample_living_star, sample_star_age_gy,
                                star_params)
+from planetgen.galaxy import mass_chain
 from planetgen.galaxy.galactic_orbit import (
     calculate_galactic_orbit, format_galactic_orbit, generate_galactic_orbit_fields,
 )
@@ -198,6 +199,7 @@ class Star(LazySaladName):
         "a_crit_au", "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
         "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
         *activity.STAR_ACTIVITY_FIELDS, "metallicity_fe_h",
+        "disk_kind", "disk_mass_solar", "disk_inner_au", "disk_outer_au",
     ]
     """
     Every attribute set by `__init__`/`generate_star`, excluding
@@ -207,6 +209,15 @@ class Star(LazySaladName):
 
     metallicity_fe_h = None
     """float or None: [Fe/H] in dex (GEN.158); class-level default for the same reason as `a_crit_au`."""
+
+    disk_kind = None
+    disk_mass_solar = None
+    disk_inner_au = None
+    disk_outer_au = None
+    """The disk descriptor of a protostar or a young pre-main-sequence star (GEN.242, `pre_main_sequence.draw_disk`):
+    `disk_kind` ("class-0", "class-i" or "class-ii"), its mass in solar masses and its inner and outer edge in AU;
+    None for every other star. A descriptor only: no body is placed in it. Class-level defaults for the same reason as
+    `a_crit_au`."""
 
     a_crit_au = None
     """
@@ -675,7 +686,7 @@ class Star(LazySaladName):
         if galactic_center_dist_ly is None:
             galactic_center_dist_ly = constants.GALACTIC_CENTER_DISTANCE_LY
         galactic_center_dist_m = max(galactic_center_dist_ly, constants.MIN_TIDAL_DISTANCE_LY) * constants.LY_TO_M
-        hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, constants.MILKY_WAY_MASS)
+        hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, mass_chain.current_central_mass_kg())
         return hill_radius_m / constants.AU_TO_M
 
     def calculate_galactic_orbit(self, galactic_center_dist_ly=None):
@@ -948,6 +959,13 @@ class Star(LazySaladName):
                 else self.galactic_center_dist_ly,
                 draw.Stream(f"metallicity:{self.mass!r}:{self.age!r}:{self.galactic_center_dist_ly!r}"),
                 peaks=getattr(self.system_config, "FE_H_PEAKS", None))
+        # GEN.242: the disk of a young star, from its own stream like the [Fe/H] above.
+        if self.yerkes_class in pre_main_sequence.STAGE_CLASSES:
+            disk = pre_main_sequence.draw_disk(
+                self.mass / constants.SOLAR_MASS_TO_KG, self.age * 1.0e9, self.luminosity / constants.SOLAR_LUMINOSITY,
+                draw.Stream(f"disk:{self.mass!r}:{self.age!r}"))
+            for name, value in (disk or {}).items():
+                setattr(self, name, value)
 
     def get_table_properties(self):
         """
@@ -986,6 +1004,12 @@ class Star(LazySaladName):
                 self.reflex_offset_x ** 2 + self.reflex_offset_y ** 2 + self.reflex_offset_z ** 2
             ) * constants.AU_TO_KM
             properties["wobble"] = f"{format_distance_km(offset_km)} from its nominal position, pulled by its own planets"
+        if self.disk_kind:
+            properties["disk"] = (
+                f"{self.disk_kind.replace('-', ' ').capitalize()} disk of "
+                f"{format_mass_kg(self.disk_mass_solar * constants.SOLAR_MASS_TO_KG)}, from "
+                f"{format_distance_au(self.disk_inner_au)} to {format_distance_au(self.disk_outer_au)}, "
+                f"with no bodies in it")
         return properties
 
     def to_paragraph_list(self):
@@ -1020,6 +1044,7 @@ class Star(LazySaladName):
             "hab": "Habitable Zone",
             "orbit": "Galactic Orbit",
             "wobble": "Planetary Wobble",
+            "disk": "Disk",
             "loc": "Location"
         }
 
@@ -1029,7 +1054,10 @@ class Star(LazySaladName):
         # Construct the age and evolutionary notes sentence
         age_str = format_age_string(self.age)
 
-        if self.lifespan == float('inf'):
+        if self.yerkes_class in pre_main_sequence.STAGE_CLASSES:
+            age_sentence_base = (f"The star is approximately {age_str} old and is still contracting towards the main "
+                                 f"sequence, with an expected lifespan of {format_age_string(self.lifespan)}")
+        elif self.lifespan == float('inf'):
             age_sentence_base = f"The star is approximately {age_str} old and is now a white dwarf, which will cool for trillions of years"
         else:
             lifespan_str = format_age_string(self.lifespan)

@@ -21,11 +21,13 @@ from planetgen.db import store
 from planetgen.galaxy import seed as galaxySeed
 from planetgen.generation import directives
 from planetgen.generation import fill_stages
+from planetgen.generation import nebula_contents
 from planetgen.generation import system_pass
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import nebula_field
+from planetgen.galaxy.frame import galaxy_to_local_pc
 from planetgen.galaxy.system_position import random_unit_vector
-from planetgen.physics import constants
+from planetgen.physics import constants, stellar_evolution
 from planetgen import tuning as program_constants
 from planetgen.util import draw
 from planetgen.util import log
@@ -136,7 +138,7 @@ def sector_star_count(sector):
 
 
 def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_field=None, scattered=False,
-                              kind_factors=None):
+                              kind_factors=None, type_ia_share=None):
     """
     Populates an already-built `sector` with its exotic phenomena, each
     kind in `SECTOR_PHENOMENON_KINDS` sampled independently by a Poisson
@@ -178,6 +180,8 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
             from their scatter rows (`add_scattered_phenomena`), and those
             below its mass cut are drawn by `add_below_cut_remnants`
             (GEN.168), so none is rolled here.
+        type_ia_share (float, optional): The sector profile's `type_ia_share` (GEN.319): the share of this sector's
+            supernova remnants that are Type Ia. `None`: the solar circle's.
         kind_factors (dict, optional): The sector profile's `kind_factors`
             (GEN.236): each kind's mean is its rate per star times the star
             count times its factor, and the star-hosted nebulae's chance is
@@ -213,6 +217,7 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
             for _ in range(count):
                 phenomenon_config = SystemConfig()
                 phenomenon_config.MARKDOWN = args.markdown
+                phenomenon_config.TYPE_IA_SHARE = type_ia_share
                 phenomenon = factory(phenomenon_config, galactic_center_dist_ly)
                 if kind == "planetary-nebula":
                     entry = _add_planetary_nebula(sector, args, phenomenon, galactic_center_dist_ly)
@@ -236,6 +241,9 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
         hosted = add_star_hosted_nebulae(sector, args, chance_factor=kind_factors.get("nebula", 1.0))
     fill_stages.count(sector, fill_stages.NEBULAE, "nebula", len(hosted))
     new_entries.extend(hosted)
+    if cloud_field is not None:
+        with fill_stages.stage(sector, fill_stages.NEBULAE, "protostars"):
+            add_cloud_protostars(sector, args, cloud_field, galactic_center_dist_ly)
     return new_entries
 
 
@@ -255,7 +263,7 @@ def _add_planetary_nebula(sector, args, nebula, galactic_center_dist_ly=None, po
     config = SystemConfig()
     config.MARKDOWN = args.markdown
     config.STAR_TYPE = draw.choice(program_constants.PLANETARY_NEBULA_CENTRAL_STAR_TYPES)
-    config.BINARY_SYSTEM = False
+    nebula_contents.planetary_central_config(config)  # GEN.320: a close companion in 20%
     system = StarSystem(system_config=config, galactic_center_dist_ly=galactic_center_dist_ly)
     try:
         if position is None:
@@ -293,25 +301,53 @@ def add_star_hosted_nebulae(sector, args, chance_factor=1.0):
         stars = getattr(system_entry.star_system, "stars", None) or []
         if not stars:
             continue
-        code = _spectral_code(stars[0])
-        match = re.fullmatch(r"([OBAFGKM])([0-9])V", code)
-        if match is None:
+        nebula = nebula_contents.hosted_nebula_of(stars[0], chance_factor, args.markdown)
+        if nebula is None:
             continue
-        letter, subclass = match.group(1), int(match.group(2))
-        age_myr = stars[0].age * 1000.0
-        for rule_letter, low, high, classes, chance in program_constants.NEBULA_HOST_RULES:
-            if letter != rule_letter or not (low <= subclass <= high):
+        log.debug(f"Sector {sector.name!r}: {_spectral_code(stars[0])} star {system_entry.star_system.name!r} "
+                  f"lights class {nebula.nebula_class} nebula {nebula.name!r}")
+        entries.append(sector.add_phenomenon(nebula, "nebula", position=system_entry.position))
+    return entries
+
+
+def add_cloud_protostars(sector, args, cloud_field, galactic_center_dist_ly=None):
+    """
+    Builds the protostars of the field clouds that reach `sector` (GEN.320): each Bok globule (P) and star-forming core
+    (Q) draws its members from its own seed (`nebula_contents.cloud_members`), and the sector builds the ones whose
+    points fall inside it, each as an ordinary young system at its point. A member that finds the sector's cell closed
+    to it is skipped, not the cloud.
+
+    Args:
+        sector (SpaceSector): The populated sector, with `field_nebulae` set.
+        args (argparse.Namespace): Parsed arguments.
+        cloud_field (tuple): `(galaxy_seed, shape, center_pc, reach_pc)` as `generate_sector_phenomena` took it.
+        galactic_center_dist_ly (float, optional): As in `generate_sector`.
+
+    Returns:
+        list: The new systems' `SectorSystemEntry` instances.
+    """
+    galaxy_seed, _shape, center_pc, _reach = cloud_field
+    entries = []
+    for nebula, cloud_center in sector.field_nebulae:
+        for member in nebula_contents.cloud_members(galaxy_seed, nebula, cloud_center):
+            local = tuple(pc_to_ly(value) for value in galaxy_to_local_pc(center_pc, member.position_pc))
+            if not sector.contains(local):
                 continue
-            young = tuple(c for c in classes if age_myr <= program_constants.NEBULA_CLASS_MAX_AGE_MYR[c])
-            if young and draw.random() < chance * chance_factor:
-                config = SystemConfig()
-                config.MARKDOWN = args.markdown
-                nebula_class = choose_weighted_class(young, "Star-hosted nebula class")
-                nebula = Nebula(config, nebula_class=nebula_class, host=(letter, subclass), age_myr=age_myr)
-                log.debug(f"Sector {sector.name!r}: {code} star {system_entry.star_system.name!r} "
-                          f"lights class {nebula_class} nebula {nebula.name!r}")
-                entries.append(sector.add_phenomenon(nebula, "nebula", position=system_entry.position))
-            break
+            config = run_system.build_system_config(args)
+            config.POPULATION = "young"
+            age_gy = member.age_yr / 1.0e9
+            with draw.bound(member.seed):
+                params = stellar_evolution.star_params(member.mass_sol, age_gy,
+                                                       stellar_evolution.evolve_star(member.mass_sol, age_gy))
+                system = StarSystem(system_config=config, galactic_center_dist_ly=galactic_center_dist_ly,
+                                    primary_star_params=params)
+            try:
+                entry = sector.add_preplaced_system(system, local, system_config=config)
+            except ValueError:
+                continue
+            entry.system_seed = member.seed
+            fill_stages.count(sector, fill_stages.NEBULAE, "protostar")
+            entries.append(entry)
     return entries
 
 
@@ -440,7 +476,9 @@ def add_scattered_phenomena(sector, args, fill):
                                   for axis in ("position_x_mpc", "position_y_mpc", "position_z_mpc")))
         dist_ly = pc_to_ly(radius_pc)
         cut = fill.below_cut.min_mass_solar if fill.below_cut is not None else None
-        entry = _seeded_build(row["seed"], lambda: _build_scattered(sector, args, row, position, dist_ly, cut))
+        type_ia_share = getattr(getattr(fill, "profile", None), "type_ia_share", None)
+        entry = _seeded_build(row["seed"], lambda: _build_scattered(sector, args, row, position, dist_ly, cut,
+                                                                    type_ia_share))
         if entry is None:
             continue
         entry.scatter_id = row["id"]
@@ -451,15 +489,17 @@ def add_scattered_phenomena(sector, args, fill):
     return new_entries
 
 
-def _build_scattered(sector, args, row, position, dist_ly, min_mass_solar=None):
+def _build_scattered(sector, args, row, position, dist_ly, min_mass_solar=None, type_ia_share=None):
     """One scatter row built into `sector` at `position` (sector-local
     light-years): its entry, or `None` when a planetary nebula's central
     system found no room. A neutron star's or black hole's mass is drawn
     at or above the scatter's cut `min_mass_solar` (GEN.166; `None`: the
-    whole range)."""
+    whole range). A supernova remnant is Type Ia with the share `type_ia_share` (GEN.319; `None`: the solar
+    circle's)."""
     kind = row["kind"]
     config = SystemConfig()
     config.MARKDOWN = args.markdown
+    config.TYPE_IA_SHARE = type_ia_share
     if kind == "hypervelocity-star":
         return _add_hypervelocity_star(sector, args, row, position, dist_ly)
     if kind == "planetary-nebula":
@@ -687,7 +727,8 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
     with log.timed_phase("generate_sector_phenomena"):
         generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly,
                                   cloud_field=cloud_field, scattered=scattered,
-                                  kind_factors=getattr(getattr(fill, "profile", None), "kind_factors", None))
+                                  kind_factors=getattr(getattr(fill, "profile", None), "kind_factors", None),
+                                  type_ia_share=getattr(getattr(fill, "profile", None), "type_ia_share", None))
         if scattered and fill.below_cut is not None:
             with fill_stages.stage(sector, fill_stages.BELOW_CUT):
                 below_cut_entries = add_below_cut_remnants(sector, args, fill, galactic_center_dist_ly)
