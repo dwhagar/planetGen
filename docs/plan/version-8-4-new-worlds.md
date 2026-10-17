@@ -18,8 +18,7 @@ The base of the 9.0 atmosphere colour (Boss, 2026-10-16, 11:25 PM EDT: foundatio
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.408 | Research: verify the atmosphere sources and say what is missing |  | Boss 11:24 PM EDT; a read-only research thread, any lane; no code. |
-| GEN.409 | The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model | GEN.408 | Boss 11:24 PM EDT; design note, no code. Core 4 proposed (Boss, 11:41 PM EDT). |
+| GEN.409 | The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model |  | Boss 11:24 PM EDT; design note, no code. Core 4 proposed (Boss, 11:41 PM EDT). |
 
 ### Bulk composition sources and design
 
@@ -71,7 +70,7 @@ The ozone figures and the scatterers that the colour needs, each its own thread.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.413 | Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance | GEN.408, GEN.411 | Boss 11:24 PM EDT; real research, generated where missing. Core 4 proposed (Boss, 11:41 PM EDT). |
+| GEN.413 | Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance | GEN.411 | Boss 11:24 PM EDT; real research, generated where missing. Core 4 proposed (Boss, 11:41 PM EDT). |
 
 ### Haze, dust and cloud
 

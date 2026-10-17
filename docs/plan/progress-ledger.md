@@ -731,3 +731,4 @@ Baseline: PR #1817.
 | GEN.286 | 8.1 | Galactic core and halo |
 | GEN.287 | 8.1 | Galactic core and halo |
 | GEN.306 | 8.1 | Reproducible galaxies |
+| GEN.408 | 8.4 | Atmosphere sources and design |

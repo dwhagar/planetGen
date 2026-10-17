@@ -8228,39 +8228,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   constants of this item ship in the small PR that takes generator epoch
   4 together with GEN.286/287's note; GEN.322 takes epoch 5.
 
-- [ ] **GEN.408 Research: verify the atmosphere sources and say what is missing**
-  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
-  docs/design/sky-colour-analysis.md): before anything is built, check
-  the real-world sources the chain stands on, in a read-only thread that
-  reads the papers (ar5iv.labs.arxiv.org serves arXiv papers; arxiv.org
-  itself was refused by the proxy on 2026-10-16 even though Boss allowed
-  it) and writes
-  /mnt/project-files/reports/atmosphere-sources-check-(date).md, each
-  source marked verified (read), second-hand or not found. To check: (1)
-  Rayleigh refractivity and King factor for every gas the table will
-  hold (Sneep and Ubachs 2005, Bates 1984, Peck and Huang 1977, Penndorf
-  1957; Betremieux and Kaltenegger 2014, arXiv:1507.02107, is already
-  verified for N2, CO2, H2 and He); (2) ozone: the Chapman balance and
-  the O3 column from the O2 partial pressure and the star's UV, and the
-  Chappuis and Hartley cross sections (Burkholder and Talukdar 1994,
-  Serdyuchenko 2014, Kasting and Donahue 1980, Segura 2003 and others it
-  finds); (3) aerosols: dust on Mars (Lemmon 2004), Titan haze (Tomasko
-  2008), Venus cloud, water cloud from saturation, Mie extinction; (4)
-  the albedo and greenhouse relations behind the stored values and a
-  published check of the temperature formula; (5) the cloud-top
-  reference level and methane absorption for gas and ice giants
-  (Karkoschka 1994, Sudarsky 2000); (6) stellar spectra beyond the
-  blackbody for M dwarfs. Done: the report lists every number the table,
-  ozone and aerosol items need with its source and what is still
-  unfound; Boss researches the unfound ones on request (the TODO thread
-  tells the coordinator which).
-  Prerequisites: none. Related: GEN.409, GEN.410, GEN.413, GEN.414.
-
 - [ ] **GEN.409 The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/sky-colour-analysis.md): turn
   docs/design/atmosphere-colour.md (the plan note) into the checked
-  design, with the sources of GEN.408. It settles: the gas and compound
+  design, with the sources check of 2026-10-17 (GEN.408, done;
+  docs/design/atmosphere-sources-check.md). It settles: the gas and compound
   table's columns; which values are stored (albedo, greenhouse
   multiplier, molar density, ozone, aerosol optical depths) and which
   are derived; how the albedo and greenhouse values are worked back from
@@ -8274,7 +8247,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tau 0.097 at 550 nm and a blue sky, a red dwarf world and a thin CO2
   world give what the physics says), and Boss approves it.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
-  Prerequisites: GEN.408. Related: GEN.410, GEN.411, GEN.412, GEN.413,
+  Sources check (GEN.408, 2026-10-17; 19 sources: 3 read, 10 second-hand,
+  4 not reached, 2 citation only): the design carries its 9 corrections
+  (Betremieux and Kaltenegger is 2015; the Sneep and Ubachs CO2 typo; the
+  coded CO formula is half the measured value; Burkholder and Talukdar is
+  the Chappuis band only, 410 to 760 nm; Serdyuchenko has eleven
+  temperatures from about 193 to 293 K; Sudarsky class III starts above
+  about 350 K and class IV is 900 to 1500 K; H2 is 0.20 and He 0.013 of
+  N2; Meadows 2018 is the colour from space; Venus cloud depth is about
+  20 to 30). What the sources could not give is Boss's to research (the
+  list is section 7 of the report); the design marks each such input as
+  open and names the seeded range used meanwhile.
+  Prerequisites: none. Related: GEN.410, GEN.411, GEN.412, GEN.413,
   GEN.414, GEN.416, GEN.417, GEN.418.
 
 - [ ] **GEN.410 One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention**
@@ -8297,8 +8281,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   describer, in `docs/design/Atmospheric Toxicity.md`, in the planet
   class text labels (`tuning.PLANET_CLASSES`), in the habitability and
   toxicity code and in the docs, and each appears in the table or is
-  dropped from the text. Done: a test fails when a gas named anywhere in
-  the code is missing from the table; every number has a source.
+  dropped from the text. Sources check (GEN.408, section 2 of the
+  report): the table stores, per gas, the reference temperature its
+  refractivity formula was fitted at (N2, Ar, CO2, CO, CH4 at 288.15 K;
+  O2 at 273.15 K), because the wrong one is 1.1 percent off for O2 and
+  about 8 percent for codes that mix conventions; CO uses the Allen/Cox
+  form (n - 1 = 32.7e-5 (1 + 8.1e-3/lambda^2) at 273.15 K), not the
+  coded Sneep and Ubachs form; H2 and He use the cross-section laws of
+  Dalgarno and Williams and of Kurucz/Dalgarno; the CH4 value is 15
+  percent high in the Sneep and Ubachs formalism; water vapour uses the
+  vapour depolarization 2.99e-4, not the liquid's 0.17; H2S, SO2 and the
+  King factor of NH3 are not found and stay marked open. Done: a test
+  fails when a gas named anywhere in the code is missing from the table;
+  every number has a source.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
   Prerequisites: GEN.409. Related: GEN.208, GEN.85, GEN.355, GEN.411,
   GEN.415.
@@ -8363,7 +8358,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the O2 partial) and activity events that strip it (GEN.189). Do: put
   ozone in the gas table and compute its column and partial pressure
   from the oxygen, the star's UV at the planet and the photochemical
-  balance (Chapman, with the real cross sections of GEN.408) so it joins
+  balance (Chapman, with the real cross sections of the sources check) so it joins
   the mixture and the other gases keep summing to the pressure; the
   ozone-loss events of GEN.189 reduce it. Where the research is missing,
   the item says what Boss should look up and builds a generator from the
@@ -8372,7 +8367,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tolerance, a world with no oxygen has none, and the habitability UV
   index reads the same number.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
-  Prerequisites: GEN.408, GEN.411. Related: GEN.87, GEN.189, DB.68.
+  Sources check (GEN.408, section 4 of the report): the column does not
+  follow a power of the oxygen (the Chapman balance gives a local density
+  of the square-root form, the column flattens or peaks for hot stars), so
+  use the checked polynomial fit of Kozakis et al. 2022 (Table 3: column
+  from the log of the oxygen mixing ratio, one row each for G0V, the Sun,
+  K2V, K5V and M5V, valid for 0.01 to 150 percent of today's oxygen,
+  clamped outside), interpolate between the hosts in T_eff, and draw a
+  seeded spread of about 30 percent (the models differ by a factor of
+  about 2 at low oxygen). The ozone is a Beer-Lambert absorber of the
+  Chappuis band (410 to 760 nm) along the sun path, with the Hartley band
+  kept for the UV index; the cross sections ship as a small fitted table,
+  because the licence of the Malicet/Brion, Serdyuchenko and Burkholder
+  files was not found (Boss to settle). The Earth figure is a test value,
+  279 to 300 Dobson units, not a constant. Prerequisites: GEN.411.
+  Related: GEN.87, GEN.189, DB.68.
 
 - [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8386,7 +8395,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   remaining scatter inside the physical range, seeded. Store optical
   depth at 550 nm for each kind and an absorption slope (iron-oxide dust
   and organic haze absorb blue) so Mars, Venus and Titan come out as
-  they are without being named. Done: a clear Earth-like world with
+  they are without being named. Sources check (GEN.408, section 5 of the
+  report): dust is nearly grey (Angstrom exponent near 0, radius 1 to 2
+  micron, optical depth 0.5 to 1 typical, 1 to 1.5 for local storms,
+  about 7 to 11 percent less at 440 than 880 nm); haze extinction goes as
+  lambda^-1 to lambda^-2.3, steeper aloft; cloud depth for a Venus-like
+  deck is about 20 to 30 and an Earth cloud about 10 (grey); the dust's
+  colour (single scattering albedo), the haze's absolute depth and the
+  condensation curves of ammonia, water and methane are open and are
+  Boss's to research. Done: a clear Earth-like world with
   oceans has cloud and little dust, a dry thin-air world has dust, a
   methane and nitrogen world under UV has haze; a test pins each rule
   with a physical range, nothing is fixed per class.
@@ -8430,11 +8447,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   gas's cross section, N_col = P / (m_bar g), the standard cross section
   24 pi^3 / (lambda^4 N_s^2) times ((n^2 - 1)/(n^2 + 2))^2 times the
   King factor, with n and the King factor from the table of GEN.410 and
-  the mole fractions from the stored mixture (GEN.411). Done: Earth's
-  air column gives tau 0.097 at 550 nm (Bucholtz 1995) and the exponent
-  near -4.08 across the visible; doubling the pressure doubles tau; a
-  pure hydrogen air scatters about a fifth as much per molecule as
-  nitrogen; no NaN for any generated class.
+  the mole fractions from the stored mixture (GEN.411). Test values from
+  the sources check, section 3: tau at 350, 443, 550, 670, 865 nm for one
+  bar of Earth air is 0.62, 0.23, 0.10, 0.043, 0.015, and the air mass of
+  Kasten and Young is an Earth fit only (other worlds use the Chapman
+  function). Done: Earth's
+  air column gives tau 0.0969 at 550 nm (computed in the sources check,
+  tolerance 2 percent; Bucholtz 1995 itself was not reached) and the
+  exponent near -4.08 across the visible; doubling the pressure doubles tau; a
+  pure hydrogen air scatters 0.20 as much per molecule as
+  nitrogen (helium 0.013, carbon dioxide 2.5); no NaN for any generated class.
   Prerequisites: GEN.410, GEN.411. Related: GEN.418.
 
 - [ ] **GEN.418 Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce**
@@ -8465,7 +8487,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chosen reference pressure level (the cloud top or a fixed bar, the
   design GEN.409 settles), through the Rayleigh depth of the hydrogen
   and helium above it, the methane absorption that tints ice giants
-  blue-green, and the stored cloud and haze depths. Done: a hydrogen and
+  blue-green, and the stored cloud and haze depths. Sources check
+  (GEN.408, section 5): the class comes from T_eff by the Sudarsky table
+  (I below about 150 K, II about 250 K, III above about 350 K, IV 900 to
+  1500 K, V above about 1500 K), the B, V, R, I colour from the nearest
+  model of Cahoy, Marley and Fortney 2010 (Table 6) interpolated in
+  distance and metallicity, with no colour fixed per class letter; the
+  methane band strengths of Karkoschka 1994 and of Karkoschka and Tomasko
+  are missing and are Boss's to research. Done: a hydrogen and
   helium giant, a methane-rich ice giant and a cloud-covered giant each
   give a colour that follows the stored composition and the reference
   level, with no per-class colour and no NaN.
@@ -8489,7 +8518,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss (2026-10-16, 11:25 PM EDT): "We just found our seminal feature
   for 9.0 folks, everything else gets bumped, this is the 9.0 feature."
   This item is done when its items are: the foundations of 8.4 phases
-  1 to 5 (GEN.408 to GEN.415, DB.67, DB.68, TEST.209, DOC.63), the colour model
+  1 to 5 (GEN.409 to GEN.415, DB.67, DB.68, TEST.209, DOC.63), the colour model
   (GEN.416 to GEN.419) and what shows it (GEN.420, MAP.244, DOC.64).
   Headline: 9.0 (atmosphere colour: the colour of the air of any world,
   from its real atmosphere, with every stored value consistent). A major
@@ -8593,7 +8622,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done: the report lists every relation and constant the materials
   table, the draws and the density derivation need, with its source, and
   what is still unfound; Boss researches the unfound ones on request.
-  Prerequisites: none. Related: GEN.426, GEN.427, GEN.408.
+  Prerequisites: none. Related: GEN.426, GEN.427.
 
 - [ ] **GEN.426 The bulk composition design: the fractions, the equation of state, the draws and the derived density, mass and gravity**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
