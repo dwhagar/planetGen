@@ -7096,6 +7096,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (the build gives 4.4e8) and Harris and Zaritsky 2009 about 0.2 Msun/yr
   over the last 5 Gy (read in arXiv:0908.1422; the build gives 0.36
   Msun/yr now).
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): GR15 occupation width: Graus (v1
+  preprint) Eq. 1 is an erf in peak velocity and not in mass: f(>Vpeak)
+  = (1 + erf((Vpeak - V50)/(sqrt2 sigma)))/2 with V50 = 18 km/s and
+  sigma = 2.5 km/s (alternative V50 = 10.5 km/s), sigma assumed from
+  FIRE-2 and not fitted [V, re-read]. With Mpeak proportional to Vpeak^3
+  anchored at 1e9 solar masses at 20 km/s the width is about 0.18 dex
+  (V50 18) and 0.32 dex (V50 10.5) [R]; the conventional model's
+  edge-to-edge span (25 to 10 km/s) is 1.19 dex against 1.22 dex between
+  the Benitez-Llambay and Frenk edges, so the plan's derived width (0.20
+  to 0.25 dex) is confirmed and not tightened. No reionization redshift
+  is used, so GR12 is not served; the v1 numbers may differ from the
+  published MNRAS 488, 4585.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
@@ -7476,6 +7491,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   independent of host mass is contradicted. The oldest thick-disc age
   against host mass for low-mass star-forming discs stays open (needs
   Sattler's star formation history table).
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): GR6 for the Milky Way: Haywood 2013:
+  the thick disc forms from about 13 to about 8 Gyr ago (4 to 5 Gyr
+  long, age scale uncertain by 1 to 1.5 Gyr); the inner thin disc starts
+  about 8 Gyr ago and the outer thin disc 9 to 10 Gyr ago, so 'thin-disc
+  start' is two numbers; Aumer and Binney's disc age is 12.6 Gyr. Pinna
+  2019a covers one galaxy (FCC 170): star formation peaks at the 14 Gyr
+  edge of its age grid (resolution about 3 Gyr), thick-disc history has
+  a second bump near 10 Gyr and stops about 11 Gyr. The plan's FCC 153,
+  FCC 177 and '2 to 4 Gyr first phase' statements need Pinna 2019b and
+  Bensby 2014 (not uploaded) and stay unverified.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.387 Globular clusters, the nuclear cluster and the central black hole follow the family's spheroid and halo**
@@ -7898,6 +7926,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   not only a second-ranked fill; the mass ratio against Vc is widened
   between 0.53 (Vc/100)^-2.3 and 0.87 (Vc/100)^-1.09, both kept; the
   Comeron heights and outer lengths against M* are in the check note.
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): GR3 for the Milky Way: Haywood 2013
+  gives M_thick/M_thin at least 0.2 and possibly up to about 1;
+  Gowanlock 2011 disc density forms give 0.24 and 0.29 [R]. Conflict to
+  widen and keep, not to resolve: the Knapen book's Comeron 2014
+  statement (hot-to-cold mass ratio independent of galaxy mass)
+  disagrees with the mass-dependent Comeron 2021 law the plan uses.
+  Pinna 2019a prints no thick-to-thin ratio (the digitized 0.45 is a
+  bin-mass ratio). The book's text layer loses minus signs: check any
+  sign taken from it against the primary paper.
   Prerequisites: none. Related: GEN.378, GEN.382, GEN.366, GEN.134.
 
 - [ ] **GEN.402 The central black hole mass and the nuclear cluster follow the bulge: the M-bulge and M-sigma relations replace the fixed ranges**
@@ -8545,6 +8585,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
   downloads this item makes at build time send the standard User-Agent
   of API.31 (one function builds it).
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): AD3 filled: Myhre 1998 Table 3, dF in
+  W m^-2: CO2 5.35 ln(C/C0) (C in ppmv), CH4 0.036 (sqrt M - sqrt M0) -
+  (f(M,N0) - f(M0,N0)), N2O 0.12 (sqrt N - sqrt N0) - (f(M0,N) -
+  f(M0,N0)), CFC-11 0.25 (X - X0), CFC-12 0.33 (X - X0), f(M,N) = 0.47
+  ln[1 + 2.01e-5 (MN)^0.75 + 5.31e-15 M (MN)^1.52]; assumed
+  uncertainties 1 percent CO2, 10 CH4, 5 N2O and CFC-11, 3 CFC-12; a CO2
+  doubling gives 3.71 W m^-2 [V, R]. Label correction for the lane that
+  owns the parts file: the values 5.35 and 0.12 are Myhre 1998 and not
+  'IPCC 1990' (IPCC 1990 had 6.3 and 0.14, printed in the same table).
+  The paper states no validity range; its Table 2 total 2.247 does not
+  equal its 15 rows (2.2537). The infrared opacity grids (correlated-k)
+  stay a build-time download job from the line lists.
   Related: GEN.87, GEN.189, DB.68.
 
 - [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
@@ -8645,6 +8700,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
   downloads this item makes at build time send the standard User-Agent
   of API.31 (one function builds it).
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): AD3 filled: Myhre 1998 Table 3, dF in
+  W m^-2: CO2 5.35 ln(C/C0) (C in ppmv), CH4 0.036 (sqrt M - sqrt M0) -
+  (f(M,N0) - f(M0,N0)), N2O 0.12 (sqrt N - sqrt N0) - (f(M0,N) -
+  f(M0,N0)), CFC-11 0.25 (X - X0), CFC-12 0.33 (X - X0), f(M,N) = 0.47
+  ln[1 + 2.01e-5 (MN)^0.75 + 5.31e-15 M (MN)^1.52]; assumed
+  uncertainties 1 percent CO2, 10 CH4, 5 N2O and CFC-11, 3 CFC-12; a CO2
+  doubling gives 3.71 W m^-2 [V, R]. Label correction for the lane that
+  owns the parts file: the values 5.35 and 0.12 are Myhre 1998 and not
+  'IPCC 1990' (IPCC 1990 had 6.3 and 0.14, printed in the same table).
+  The paper states no validity range; its Table 2 total 2.247 does not
+  equal its 15 rows (2.2537). The infrared opacity grids (correlated-k)
+  stay a build-time download job from the line lists.
 
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8902,6 +8972,32 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   al. 1978 with King 1923 the origin of the factor (Boss fetches both,
   with Sneep and Ubachs 2005, Bates 1984 and Bucholtz 1995 on the list);
   AD1 is Karkoschka 1994 and Karkoschka and Tomasko 2010 (list B).
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): AD4 filled for air, N2, O2, Ar, CO2
+  (CO, CH4, N2O, SF6 at 532 nm only). King factor F_K = (6 + 3 rho)/(6 -
+  7 rho) and the mixture rule F_mix - 1 = sum w_r (F_r - 1), w_r = v_r
+  (mu_r - 1)^2 / sum(v (mu - 1)^2) [V, R]. Dry air at 0 C: sigma
+  5.656e-26 (0.30 micron), 1.673e-26 (0.40), 6.663e-27 (0.50), 4.513e-27
+  (0.55), 1.695e-27 (0.70), 4.022e-28 cm^2 (1.00) (Bates 1984 Table 1);
+  Bucholtz 1995 fit sigma = A lambda^-(B + C lambda + D/lambda) with A
+  3.01577e-28, B 3.55212, C 1.35579, D 0.11563 (0.2 to 0.5 micron) and
+  4.01061e-28, 3.99668, 1.10298e-3, 2.71393e-2 (above 0.5), error under
+  0.4 percent, in Table 3. Earth test value tau_R(550 nm) = 0.09721
+  (Bucholtz Table 4, 1962 US Standard), which replaces the computed
+  0.0969 as the test target inside the same 2 percent tolerance. Bates
+  and Bucholtz are one source (Bucholtz back-computes from Bates's
+  rounded King factors). Measured at 532 nm (Sneep and Ubachs Table 2,
+  1e-27 cm^2): Ar 4.45, N2 5.10, CO 6.19, CO2 12.4, CH4 12.47, N2O
+  15.90, SF6 32.3; the generic Rayleigh error of 5 to 9 percent is 2.5
+  to 4 percent for Ar and N2, 7 for CO2 and 10 to 18 for CO, CH4 and
+  N2O. Open: SO2, H2S, H2, He, NH3 and water vapour (Bogaard 1978 not
+  uploaded), and AD1 (Karkoschka, paid): their stand-ins stay. Printing
+  faults to avoid when coding: Sneep Eq. 13 prefactor wrong by 1000
+  (1.1427e3 reproduces Table 2), Eq. 17 and Eq. 23 as in report section
+  4, Bates F_K 1.047 at 0.500 micron should be 1.049, Bucholtz Table 4
+  subarctic winter 0.55 micron 9.761e-2 is a misprint.
 
 - [ ] **GEN.423 Atmosphere density, scale height and the greenhouse multiplier follow from the mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -8969,6 +9065,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   papers he can download himself, the coordinator posted the list at
   11:32 AM EDT as it reported): AD2 originals: Tomasko et al. 2008
   (Titan haze) and Wolff et al. 2009 (Mars dust), list B.
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): AD2: Wolff 2009 prints no table of
+  single scattering albedo, n or k. Printed: solar-band w0 0.922 to
+  0.926 (+-0.003) for effective radius 1.2 to 1.8 micron, 0.940 +-0.003
+  for the 1.8 refractive index and 1.4 scattering case, literature 0.89
+  to 0.94 [V]. The wavelength spectra (30 channels, 440 to 2920 nm, four
+  radii) exist only in Figures 12 to 14 and were digitized from the PDF
+  geometry [D, accuracy about 0.0005 in w0, 0.0002 in n, 0.0001 in k;
+  for example reff 1.8 micron: 500 nm w0 0.8310, n 1.5000, k 0.00549;
+  700 nm w0 0.9712; 2400 nm w0 0.9659]. Whatever the data module stores
+  is labelled 'digitized from Figures 12 to 14', never the paper's
+  table. Titan haze (Tomasko 2008) is paid and not uploaded: that
+  stand-in stays.
 
 - [ ] **GEN.424 The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -9085,6 +9196,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   moved it at 10:41 AM EDT). Blocker 1 builds it after TEST.186 because
   GEN.437 and GEN.472 wait on it. This replaces any earlier owner line
   on this item.
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): BC3: Stixrude and Lithgow-Bertelloni
+  2011 (Part II) Table A1 (pp. 1207 to 1208) holds 45 phases, with A2
+  interaction and A3 Landau parameters; A1 was transcribed in full, A2
+  was not. No density-at-pressure table: the test 'density at 100 GPa
+  within 2 percent' was recomputed from A1 with a cold Birch-Murnaghan
+  isotherm and passes (perovskite within 0.05 percent of our copy,
+  periclase 0.6 percent). Label correction: our mantle parts table is
+  the 2024 Part III set and not Part II (Mg-post-perovskite K0 247.7
+  against 231 here, Mg-perovskite q0 0.834 against 1.1). The authors say
+  full-precision parameters are available on request and that rounded
+  values do not reproduce high-pressure results. Part I (2005) and Part
+  III are not uploaded. BC3 stays not a blocker.
 
 - [ ] **GEN.427 One table of the bulk materials with their equation-of-state constants and the source of each**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -9323,6 +9449,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Rudnick and Gao 2014 (the 2014 second editions, Treatise on
   Geochemistry); Lodders 2003 (BC1) has a free IOP PDF a thread can
   retry.
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): BC4: Rudnick and Gao 2014 Table 11
+  (upper, middle, lower, total, weight percent): SiO2 66.6, 63.5, 53.4,
+  60.6; TiO2 0.64, 0.69, 0.82, 0.72; Al2O3 15.4, 15.0, 16.9, 15.9; FeOT
+  5.04, 6.02, 8.57, 6.71; MgO 2.48, 3.59, 7.24, 4.66; CaO 3.59, 5.25,
+  9.59, 6.41; Na2O 3.27, 3.39, 2.65, 3.07; K2O 2.80, 2.30, 0.61, 1.81;
+  Th ppm 10.5, 6.5, 1.2, 5.6; U ppm 2.7, 1.3, 0.2, 1.3 [V]; every crust
+  value in our files matches it exactly. K is not tabulated: K2O x
+  0.8301 gives 23,244, 19,093, 5,064 and 15,026 ppm; use K2O and U
+  directly (the printed K/U row is 7 to 10 percent off). The chapter is
+  the 2003 text under a 2014 cover. Palme and O'Neill's own crust column
+  (Th 3,500 ppb, U 910 ppb, K 9,100 ppm) disagrees with it and Rudnick
+  wins for the crust. Primitive mantle, Palme and O'Neill 2003 (first
+  edition, not the 2014 edition) Table 3: MgO 36.77 +-0.44, Al2O3 4.49
+  +-0.37, SiO2 45.40 +-0.30, CaO 3.65 +-0.31, FeOt 8.10 +-0.05, total
+  98.41 and not 100 (the other 1.59 is minor oxides 1.34 and trace), Mg#
+  0.890; Table 4: K 260 ppm, Th 83.4 ppb, U 21.8 ppb [V, re-read]. Our
+  files' 'Palme and O'Neill 2014' Th 0.0849 and U 0.0229 ppm are 1.8 and
+  5.0 percent higher and cannot be confirmed: under the standing rule
+  (the verified source wins) the item uses 83.4 and 21.8 ppb labelled
+  'Palme and O'Neill 2003, first edition' until the 2014 edition is
+  read; label correction for the lane that owns the parts file.
 
 - [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -9561,6 +9711,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   11:32 AM EDT as it reported): BC13: the ICRP 103 free extract stops
   before the wR and wT tables (section 4, pages 61 to 78); Hassler et
   al. 2014 (Mars dose) is on list B.
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): AD5 and BC13: Hassler 2014 Mars
+  surface, galactic cosmic rays only, about 300 sols (Table 1): 0.21
+  +-0.04 mGy/day, quality factor 3.05 +-0.26, 0.64 +-0.12 mSv/day;
+  cruise 0.48 mGy/day, Q 3.82, 1.84 mSv/day; Table 3: 76 mGy/yr and 232
+  mSv/yr at the surface [V, re-read]. The measured column at Gale is
+  about 21 g/cm^2; our file's code point (16.4 g/cm^2, 237 mSv/yr)
+  matches the value but not the column. The paper uses the ICRP 60
+  quality function Q(L), not ICRP 103 weights. BC13 is not closed:
+  neither ICRP upload holds any wR, wT or dose limit (the free extract
+  has front matter and report pages 1 to 34; the tables are in section
+  4, printed pp. 61 to 78, and from p. 98), so the tissue factors stay a
+  labelled stand-in until the full report is uploaded. They do hold
+  Q(L): 1 below 10 keV/micron, 0.32 L - 2.2 for 10 to 100, 300/sqrt(L)
+  above 100, and about 5 percent per Sv.
 
 - [ ] **GEN.437 The composition model: how the element, compound, material and body tables link, and what is stored against derived**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9952,6 +10119,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   11:32 AM EDT as it reported): Fray and Schmitt 2009 is on Boss's list;
   Bierson and Nimmo 2019 has a free PubMed Central copy (PMC7058130) a
   thread can fetch.
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): BC7: Bierson and Nimmo (accepted
+  manuscript) Table 1 and Eq. 1 to 2: ice density 920 and silicate 3500
+  kg/m^3, initial porosity 0.60, strength-supported porosity 0.20 (ice),
+  compaction b1 -0.1 per MPa (ice) and b2 -0.11 (silicate); ice porosity
+  phi_i = max(0.60 exp(-0.1 P), 0.20), P in MPa; silicate phi_s =
+  min(0.6 P^-0.11, 0.6) [V, re-read]. A constant 70 percent rock mass
+  fraction matches 14 of 17 Kuiper Belt objects within 2 sigma; minimum
+  formation time 4 Myr (rock fraction 0.5) or 5 Myr (0.7) from early
+  Al-26; Makemake and 2007 OR10 about 1800 kg/m^3 and MU69 about 750
+  predicted. Contradiction, the paper wins: our ice compaction guess has
+  the reference pressure P0 = 1e6 Pa, ten times lower than the paper's
+  10 MPa with the 0.2 floor; our 0.08 scatter and 0.58 to 0.82 range are
+  not in the paper. Eq. 3 (dphi/dt = phi P/eta) prints a positive sign,
+  which would make porosity grow, and the file carries the note 'error
+  in equation 2b': check against Besserer 2013 or the published version
+  before coding it. Fray and Schmitt (paid) is still missing.
 
 - [ ] **GEN.443 Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -10066,6 +10252,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   11:32 AM EDT as it reported): BC13: the ICRP 103 free extract stops
   before the wR and wT tables (section 4, pages 61 to 78); Hassler et
   al. 2014 (Mars dose) is on list B.
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): AD5 and BC13: Hassler 2014 Mars
+  surface, galactic cosmic rays only, about 300 sols (Table 1): 0.21
+  +-0.04 mGy/day, quality factor 3.05 +-0.26, 0.64 +-0.12 mSv/day;
+  cruise 0.48 mGy/day, Q 3.82, 1.84 mSv/day; Table 3: 76 mGy/yr and 232
+  mSv/yr at the surface [V, re-read]. The measured column at Gale is
+  about 21 g/cm^2; our file's code point (16.4 g/cm^2, 237 mSv/yr)
+  matches the value but not the column. The paper uses the ICRP 60
+  quality function Q(L), not ICRP 103 weights. BC13 is not closed:
+  neither ICRP upload holds any wR, wT or dose limit (the free extract
+  has front matter and report pages 1 to 34; the tables are in section
+  4, printed pp. 61 to 78, and from p. 98), so the tissue factors stay a
+  labelled stand-in until the full report is uploaded. They do hold
+  Q(L): 1 below 10 keV/micron, 0.32 L - 2.2 for 10 to 100, 300/sqrt(L)
+  above 100, and about 5 percent per Sv.
 
 - [ ] **GEN.445 Habitability, toxicity and the UV index read the derived radiation instead of the proxies**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -10201,6 +10404,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   normalisation (Gemini gamma 0.50) has no source: Martinsson prints
   sigma_z,0 = (0.248 ± 0.038) V(2.2 hR), proportional to the rotation
   speed.
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): GR4 for the Milky Way: Aumer and
+  Binney 2009 Eq. 16, sigma(t) = v10 ((t + tau1)/(10 Gyr + tau1))^beta,
+  Table 6: sigma_U beta 0.307, tau1 0.001, v10 41.899 km/s; sigma_V
+  0.430, 0.715, 28.823; sigma_W 0.445, 0.001, 23.831; 3D (Table 2 best
+  fit) 0.349, 0.149, 55.179; star formation alpha -2.549, gamma 0.117
+  per Gyr, tau_max 12.602 Gyr; beta = 0.5 is excluded [V]. The ratio
+  sigma_W/sigma_U runs from 0.41 at 1 Gyr to 0.57 at 10 Gyr, so the
+  plan's constant 0.54 is an old-age value. Their v10_W 23.8 km/s
+  compares with the plan's Sharma and Hayden 21.1 km/s (exponent 0.441),
+  and their beta_U 0.307 with the plan's radial 0.251. Table 5 row 3
+  prints sigma_final 61.82 where Eq. 16 gives 59.8 (a misprint). Nothing
+  covers other galaxies: that stays the Martinsson scaling with the 20
+  percent closure check.
   Prerequisites: none. Related: GEN.103, GEN.373, GEN.406, GEN.269.
 
 - [ ] **GEN.448 Massive stars get binaries between 0.25 and 50 AU, so the metallicity trend reaches the separations where it was measured**
@@ -10797,6 +11016,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   11:32 AM EDT as it reported): Fray and Schmitt 2009 is on Boss's list;
   Bierson and Nimmo 2019 has a free PubMed Central copy (PMC7058130) a
   thread can fetch.
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): BC7: Bierson and Nimmo (accepted
+  manuscript) Table 1 and Eq. 1 to 2: ice density 920 and silicate 3500
+  kg/m^3, initial porosity 0.60, strength-supported porosity 0.20 (ice),
+  compaction b1 -0.1 per MPa (ice) and b2 -0.11 (silicate); ice porosity
+  phi_i = max(0.60 exp(-0.1 P), 0.20), P in MPa; silicate phi_s =
+  min(0.6 P^-0.11, 0.6) [V, re-read]. A constant 70 percent rock mass
+  fraction matches 14 of 17 Kuiper Belt objects within 2 sigma; minimum
+  formation time 4 Myr (rock fraction 0.5) or 5 Myr (0.7) from early
+  Al-26; Makemake and 2007 OR10 about 1800 kg/m^3 and MU69 about 750
+  predicted. Contradiction, the paper wins: our ice compaction guess has
+  the reference pressure P0 = 1e6 Pa, ten times lower than the paper's
+  10 MPa with the 0.2 floor; our 0.08 scatter and 0.58 to 0.82 range are
+  not in the paper. Eq. 3 (dphi/dt = phi P/eta) prints a positive sign,
+  which would make porosity grow, and the file carries the note 'error
+  in equation 2b': check against Besserer 2013 or the published version
+  before coding it. Fray and Schmitt (paid) is still missing.
   Prerequisites: none. Related: GEN.426, GEN.442, GEN.466, GEN.437.
 
 - [ ] **GEN.458 Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes**
@@ -11417,6 +11655,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/gap-filling-plan.md section 8): BC12 vapour-pressure
   windows: Fray and Schmitt 2009 is on Boss's own list; each fit stays
   inside its stated window meanwhile.
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): BC12: still open. Fray and Schmitt
+  2009 (the temperature window of each sublimation fit and the cold end)
+  is paid and was not uploaded; the stand-in of each fit inside its
+  window with Clausius-Clapeyron beyond, flagged and doubled in width,
+  stays.
 
 - [ ] **GEN.471 Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K**
   Part F of the Body composition research lane
@@ -11473,6 +11719,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   11:32 AM EDT as it reported): AD7: Tabazadeh, Toon, Clegg and Hamill
   1997 is bronze open access at Wiley, Zeleznik 1991 and Ayers et al.
   1980 are closed (Boss fetches).
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): AD7: water side filled, acid side
+  partly. Tabazadeh 1997 Eq. 1: ln P0_H2O = 18.452406985 -
+  3505.1578807/T - 330918.55082/T^2 + 12725068.262/T^3 (mbar, 185 to 260
+  K); Table 1: P_H2O = exp(a + b/T + c/T^2) for 15 compositions of 10 to
+  80 weight percent H2SO4 (40 percent: a 20.379, b -4828.5, c -112550;
+  60 percent: 20.405, -5252.1, -100840), within 2 percent of Clegg and
+  Brimblecombe, linear interpolation between compositions [V]. Eq. 2 to
+  3 and Table 2 (acid weight percent against water activity) have three
+  branches discontinuous at a_w 0.05 and 0.85 (steps of 0.2 to 1 weight
+  percent); test at 200 K and 60 weight percent: P0 3.165e-3 mbar and
+  a_w 0.0735 [R]. Zeleznik 1991 gives the Gibbs energy function (Eq. 12
+  to 13, 50 parameters, Table 6A) and activities and osmotic
+  coefficients at 200 to 350 K: no vapour phase and no partial
+  pressures; against Tabazadeh the water activity differs by 10 to 22
+  percent at 60 to 70 weight percent and 200 to 220 K and under 5
+  percent at 40 to 50 percent and 250 K. Printing faults: Zeleznik Eq.
+  12 should read ln x_j and Eq. 11 lacks a minus sign. No paper here
+  prints the acid vapour pressure: it needs Ayers 1980 (paid) or the
+  Kulmala-Laaksonen form already in the files; the stand-in stays.
 
 - [ ] **GEN.472 One gated possibility-table format and loader: every composition category is a table of possibilities with a class gate and a weight, drawn by the normalised weights of the rows that pass**
   Boss (2026-10-17, 1:40 AM EDT, typed in the project chat): "We have to
@@ -12047,6 +12315,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   11:32 AM EDT as it reported): AT.a1 and a2: Hirschmann 2012 and
   Gaillard and Scaillet 2014 and Gaillard et al. 2022 are on list B;
   Sossi 2020 is already read.
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): AT.a1 and a2: Gaillard and Scaillet
+  2014 (equations 1 to 11 without coefficients; its text claims
+  convergence to FMQ-2 +-0.5 at 10 to 0.01 bar while its own Figure 2
+  shows about FMQ-2.75 with 0.7 dex spread at 0.01 bar) and Pahlevan,
+  Schaefer and Hirschmann (Earth only, last magma-ocean equilibration
+  above IW+1, H2/H2O below 0.3; its Figure 5 top axis contradicts its
+  Figure 2 by a factor of 6 to 9) give no mass law and no later-mantle
+  oxidation law. The stand-ins stay. Hirschmann 2012 and Gaillard 2021
+  and 2022 are not uploaded.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.483 Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4)**
@@ -12238,6 +12518,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   papers he can download himself, the coordinator posted the list at
   11:32 AM EDT as it reported): AT.k7: Mumma and Charnley 2011 (Annu.
   Rev. Astron. Astrophys. 49, 471) is on list B.
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): AT.k7: Mumma and Charnley 2011 Table
+  4 and Figure 4 hold no N2, O2, Ar, Kr or Xe for any comet, so those
+  stand-ins stay. SO2 is listed for Hale-Bopp only, 0.2 percent of water
+  [V, re-read], a second comet beside 67P (0.127 percent in our files).
+  NH3 is 1.5, 0.5, 0.7 and under 0.3 percent of water in the four comets
+  that have it and H2S 0.4, 0.8, 1.5, 1.15 and 0.25 (Halley, Hyakutake,
+  Hale-Bopp, C/2001 A2, 73P/SW3), so the repo's NH3 upper bound of 3.6
+  percent is not supported by this review (the paper wins). Three
+  infrared taxonomy classes: organics-normal, enriched, depleted.
+  Figure-read ranges are approximate.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.489 Source the white-dwarf and pulsar planet options (AR10)**
@@ -12331,6 +12624,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   papers he can download himself, the coordinator posted the list at
   11:32 AM EDT as it reported): AD7: Tabazadeh 1997 is bronze open
   access at Wiley, Zeleznik 1991 is closed (Boss fetches).
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): AD7: water side filled, acid side
+  partly. Tabazadeh 1997 Eq. 1: ln P0_H2O = 18.452406985 -
+  3505.1578807/T - 330918.55082/T^2 + 12725068.262/T^3 (mbar, 185 to 260
+  K); Table 1: P_H2O = exp(a + b/T + c/T^2) for 15 compositions of 10 to
+  80 weight percent H2SO4 (40 percent: a 20.379, b -4828.5, c -112550;
+  60 percent: 20.405, -5252.1, -100840), within 2 percent of Clegg and
+  Brimblecombe, linear interpolation between compositions [V]. Eq. 2 to
+  3 and Table 2 (acid weight percent against water activity) have three
+  branches discontinuous at a_w 0.05 and 0.85 (steps of 0.2 to 1 weight
+  percent); test at 200 K and 60 weight percent: P0 3.165e-3 mbar and
+  a_w 0.0735 [R]. Zeleznik 1991 gives the Gibbs energy function (Eq. 12
+  to 13, 50 parameters, Table 6A) and activities and osmotic
+  coefficients at 200 to 350 K: no vapour phase and no partial
+  pressures; against Tabazadeh the water activity differs by 10 to 22
+  percent at 60 to 70 weight percent and 200 to 220 K and under 5
+  percent at 40 to 50 percent and 250 K. Printing faults: Zeleznik Eq.
+  12 should read ln x_j and Eq. 11 lacks a minus sign. No paper here
+  prints the acid vapour pressure: it needs Ayers 1980 (paid) or the
+  Kulmala-Laaksonen form already in the files; the stand-in stays.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.492 Source the ground radioisotope abundances by host and the potassium depletion by body class (AR13)**
@@ -12447,6 +12762,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   papers he can download himself, the coordinator posted the list at
   11:32 AM EDT as it reported): AT.k7: Mumma and Charnley 2011 (Annu.
   Rev. Astron. Astrophys. 49, 471) is on list B.
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): AT.k7: Mumma and Charnley 2011 Table
+  4 and Figure 4 hold no N2, O2, Ar, Kr or Xe for any comet, so those
+  stand-ins stay. SO2 is listed for Hale-Bopp only, 0.2 percent of water
+  [V, re-read], a second comet beside 67P (0.127 percent in our files).
+  NH3 is 1.5, 0.5, 0.7 and under 0.3 percent of water in the four comets
+  that have it and H2S 0.4, 0.8, 1.5, 1.15 and 0.25 (Halley, Hyakutake,
+  Hale-Bopp, C/2001 A2, 73P/SW3), so the repo's NH3 upper bound of 3.6
+  percent is not supported by this review (the paper wins). Three
+  infrared taxonomy classes: organics-normal, enriched, depleted.
+  Figure-read ranges are approximate.
 
 - [ ] **GEN.496 The photolysis lifetime table: species lifetimes at 1 AU for the quiet Sun, the active-Sun factors and the species-specific stellar-spectrum ratios**
   Body composition research lane check of Boss's second research note
@@ -12482,6 +12810,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   papers he can download himself, the coordinator posted the list at
   11:32 AM EDT as it reported): AD8: JPL Publication 19-5 (Burkholder et
   al. 2020) is on Boss's list.
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): AD8: still open. JPL Evaluation 19
+  was not uploaded and the Curchod and Orr-Ewing 2024 review has no rate
+  numbers; it prints 2019 for the evaluation the plan calls 2020, so
+  check the year on the item's citation.
 
 - [ ] **GEN.497 The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve**
   Body composition research lane check of Boss's second research note
@@ -12514,6 +12849,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/gap-filling-plan.md section 8): BC12 vapour-pressure
   windows: Fray and Schmitt 2009 is on Boss's own list; each fit stays
   inside its stated window meanwhile.
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): BC12: still open. Fray and Schmitt
+  2009 (the temperature window of each sublimation fit and the cold end)
+  is paid and was not uploaded; the stand-in of each fit inside its
+  window with Clausius-Clapeyron beyond, flagged and doubled in width,
+  stays.
   Prerequisites: GEN.470. Related: GEN.470, GEN.452, GEN.410, GEN.427.
 
 - [ ] **GEN.498 One oxygen-fugacity scale for the generator: the reference fixed, delta-IW stored on it, and the buffers converted**
@@ -12546,6 +12889,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   11:32 AM EDT as it reported): AT.a1 and a2: Hirschmann 2012 and
   Gaillard and Scaillet 2014 and Gaillard et al. 2022 are on list B;
   Sossi 2020 is already read.
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): AT.a1 and a2: Gaillard and Scaillet
+  2014 (equations 1 to 11 without coefficients; its text claims
+  convergence to FMQ-2 +-0.5 at 10 to 0.01 bar while its own Figure 2
+  shows about FMQ-2.75 with 0.7 dex spread at 0.01 bar) and Pahlevan,
+  Schaefer and Hirschmann (Earth only, last magma-ocean equilibration
+  above IW+1, H2/H2O below 0.3; its Figure 5 top axis contradicts its
+  Figure 2 by a factor of 6 to 9) give no mass law and no later-mantle
+  oxidation law. The stand-ins stay. Hirschmann 2012 and Gaillard 2021
+  and 2022 are not uploaded.
   Prerequisites: GEN.437. Related: GEN.451, DB.69, GEN.422, GEN.456.
 
 - [ ] **GEN.499 The lava-world vapour species and mean molar mass from temperature and composition, replacing the heavy-oxide range of 40 to 60 g/mol**
@@ -12635,6 +12990,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   papers he can download himself, the coordinator posted the list at
   11:32 AM EDT as it reported): AD8: JPL Publication 19-5 (Burkholder et
   al. 2020) is on Boss's list.
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): AD8: still open. JPL Evaluation 19
+  was not uploaded and the Curchod and Orr-Ewing 2024 review has no rate
+  numbers; it prints 2019 for the evaluation the plan calls 2020, so
+  check the year on the item's citation.
   Prerequisites: none. Related: GEN.496, GEN.455, GEN.500, GEN.410.
 
 - [ ] **GEN.502 The giant branch finishes the stellar tables check: the red giant time law as a function of core mass, the tip by metallicity and the branch duration against the observed horizontal-branch ratio**
@@ -13547,6 +13909,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thick-to-thin mass ratio against Vc, 0.53 (Vc/100)^-2.3 against 0.87
   (Vc/100)^-1.09; cluster system radius about 3.5 (Hudson and Robison,
   Forbes) against about 6 (Kartha 2016) times the galaxy's.
+  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
+  the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
+  summary in the gap plan section 4.10; V read, R recomputed, D
+  digitized, FIG read off a plot): 28 distinct papers filed in
+  /mnt/project-files/papers/ (INDEX.md there; one upload was a
+  byte-identical copy). Filled: AD4 (Rayleigh for air, N2, O2, Ar, CO2;
+  Earth test value 0.09721), AD7 water side and the acid and water
+  activities, AD3 (Myhre forcing), AD5 Mars surface dose, BC4
+  continental crust (Rudnick and Gao matches every value in our files),
+  BC7 ice compaction, BC3 Part II Table A1, GR4 and GR6 and GR3 for the
+  Milky Way (plus one other galaxy), GR15 form and width. Still open,
+  labelled stand-ins stay: AD4 for SO2, H2S, H2, He, NH3 (Bogaard 1978),
+  AD1 (Karkoschka, paid), AD2 Titan (Tomasko, paid), AD8 (JPL 19 not
+  uploaded), BC12 (Fray and Schmitt, paid), BC13 (ICRP tables missing
+  from the extract), comet N2, O2, Ar, Kr, Xe, the mantle redox mass
+  law, the acid vapour pressure (Ayers 1980), GR1, GR10, GR12, GR14, GX5
+  and the rows the Knapen book and Gowanlock leave untouched. Twelve
+  places where the paper wins over our files are listed on the items
+  that use them (report section 3). Wolff's Mars dust spectra are
+  digitized from Figures 12 to 14: label them that way. The Irwin Uranus
+  H2S numbers (0.4 to 0.8 ppm at the cloud top, deep S/N 4.4 to 5.0
+  times solar) carry nothing to compare. The Knapen book's Merritt 2016
+  halo-fraction scatter (1.01 dex, 8 galaxies) is about three times the
+  Harmsen 0.33 dex in the plan: two sources in conflict, widened and
+  kept once the primary paper is read. Missing and still on the fetch
+  list: Bogaard 1978, JPL Evaluation 19, Stixrude Part I, Palme and
+  O'Neill 2014, Lodders 2003, Hirschmann 2012, Gaillard 2021 and 2022,
+  Bensby 2014, Pinna 2019b, Bottema 1993.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
