@@ -8329,7 +8329,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.423 and GEN.424 carry the related fixes (the recalculation redraw,
   density, scale height and greenhouse from the mix, the balance gas).
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
-  Prerequisites: GEN.410. Related: GEN.85, GEN.355, GEN.223, DB.67.
+  Prerequisites: GEN.410, GEN.429. Related: GEN.85, GEN.355, GEN.223,
+  DB.67.
+  The surface gravity it reads is derived from the bulk composition by
+  GEN.429 (Boss, 11:49 PM EDT: the composition drives mass, density and
+  gravity), so this item follows it.
 
 - [ ] **GEN.412 Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8485,7 +8489,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss (2026-10-16, 11:25 PM EDT): "We just found our seminal feature
   for 9.0 folks, everything else gets bumped, this is the 9.0 feature."
   This item is done when its items are: the foundations of 8.4 phases
-  1 to 4 (GEN.408 to GEN.415, DB.67, DB.68, TEST.209, DOC.63), the colour model
+  1 to 5 (GEN.408 to GEN.415, DB.67, DB.68, TEST.209, DOC.63), the colour model
   (GEN.416 to GEN.419) and what shows it (GEN.420, MAP.244, DOC.64).
   Headline: 9.0 (atmosphere colour: the colour of the air of any world,
   from its real atmosphere, with every stored value consistent). A major
@@ -8553,6 +8557,177 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   same stored number; a test says so.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
   Prerequisites: GEN.410, GEN.411. Related: GEN.411, GEN.423, TEST.209.
+
+- [ ] **GEN.425 Research: verify the mass-radius and equation-of-state sources and say what is missing**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. Before anything is built, check the
+  real-world sources, in a read-only thread that reads the papers
+  (ar5iv.labs.arxiv.org serves arXiv papers) and writes
+  /mnt/project-files/reports/bulk-composition-sources-check-(date).md,
+  each source marked verified (read), second-hand or not found. To
+  check: (1) mass-radius relations for solid planets with the iron,
+  silicate and water fractions as inputs (Seager et al. 2007, Zeng and
+  Sasselov 2013, Zeng, Sasselov and Jacobsen 2016, Zeng et al. 2019);
+  (2) envelopes: the hydrogen and helium mass fraction against radius
+  and age (Lopez and Fortney 2014) and giant planet radii (Fortney,
+  Marley and Barnes 2007); (3) equations of state: the Vinet or
+  Birch-Murnaghan constants for iron, silicates and the ice phases, and
+  the hydrogen and helium tables (Saumon, Chabrier and van Horn 1995);
+  (4) how the iron, magnesium and silicon abundances of the star set a
+  rocky planet's core fraction (Dorn et al. 2015, Unterborn and Panero,
+  Thiabaud et al. 2015, Santos et al. 2015); (5) the water fraction
+  against formation distance and the snow line, and the compositions of
+  moons; (6) observed ranges as test targets, not presets (Earth, Mars,
+  Venus, the Galilean moons, Titan, Neptune, Kepler-planet densities).
+  Done: the report lists every relation and constant the materials
+  table, the draws and the density derivation need, with its source, and
+  what is still unfound; Boss researches the unfound ones on request.
+  Prerequisites: none. Related: GEN.426, GEN.427, GEN.408.
+
+- [ ] **GEN.426 The bulk composition design: the fractions, the equation of state, the draws and the derived density, mass and gravity**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. Write docs/design/bulk-composition.md
+  and have Boss approve it. It settles: the set of bulk fractions (metal
+  core, silicate mantle, water and the ices, rock-forming volatiles, the
+  hydrogen and helium envelope, and the compounds the descriptions
+  name); which are drawn from physics (the core fraction from the star's
+  iron, magnesium and silicon abundance, the water fraction from where
+  the body formed against the snow line, the envelope fraction from mass
+  and age) and which are plain seeded draws inside the physical range;
+  the mass-radius and equation-of-state model that turns the fractions
+  and the mass into radius, density and gravity (an analytic fit or a
+  tabulated model, with its error); what a planet class means once
+  composition drives it (a range of fractions, not a fixed value); how
+  moons and small bodies use the same model; the migration (the stored
+  fractions of old rows are worked back from the stored density, mass
+  and radius) and the generator epoch. Rule: nothing fixed per class and
+  nothing copied from the Solar System; the Solar System bodies are test
+  targets. Done: the note carries the decisions, a worked example per
+  kind of body and the test targets.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.425. Related: GEN.409, GEN.427, GEN.428, GEN.429.
+
+- [ ] **GEN.427 One table of the bulk materials with their equation-of-state constants and the source of each**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. A constants module for iron and its
+  alloys, the silicates, water in its ice phases and as liquid, the
+  other ices (methane, ammonia, carbon dioxide), hydrogen and helium,
+  each with density and the equation-of-state constants of the chosen
+  model (GEN.426) and the source of every number; the compounds are the
+  same ones as the gas table of GEN.410 where they overlap. Done: a test
+  fails when a material named in a description or in the class tables is
+  missing from it; every number has a source.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.426. Related: GEN.410, GEN.428.
+
+- [ ] **GEN.428 Planets and moons draw their bulk composition fractions instead of carrying a fixed text**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. Replace the fixed `composition`
+  string of each class with drawn fractions that sum to one: the core
+  fraction from the host star's abundances, the water and ice fraction
+  from the formation distance, the envelope from mass and age, the rest
+  seeded inside the range of the design (GEN.426), for planets and moons
+  alike. The class sets a range, never a value. Changes stored values,
+  so it ships with a generator epoch bump. Done: every generated body
+  has fractions that sum to one and stay inside their physical ranges,
+  the same galaxy gives the same fractions at any worker count, a test
+  says so.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.427. Related: GEN.429, DB.69, GEN.430.
+
+- [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. Replace the uniform per-class density
+  draw (`PLANET_DENSITY`, the class density ranges) and the separate
+  giant path with one derivation: the mass (or radius) is drawn from the
+  physics of the body's kind, the fractions of GEN.428 and the equation
+  of state of GEN.427 give the radius and the density, and the surface
+  gravity follows from them. The atmosphere chain reads this gravity.
+  Done: for every class the density and gravity follow from the stored
+  fractions and mass; a body of Earth's fractions and mass comes out
+  near Earth's density and gravity (a test target, not a preset);
+  changing a fraction moves the density as the model says; a test says
+  so. Ships with the generator epoch bump of GEN.428.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.428. Related: GEN.411, GEN.423, DB.69.
+
+- [ ] **GEN.430 The planet and moon descriptions state the composition from the stored fractions**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. The description layer writes the
+  composition sentence from the stored fractions and the materials table
+  (for example the metal, rock, water and gas shares) instead of the
+  class text, and never names a material the body does not hold. Done: a
+  test generates bodies of every class and checks that every material
+  named in the text is in the stored fractions above a stated share and
+  that the shares quoted equal the stored ones.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.428, GEN.429. Related: GEN.415, GEN.218, GEN.208.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -9732,6 +9907,31 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   them against the stored mixture.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
   Prerequisites: GEN.413, GEN.414, DB.67. Related: DB.67.
+
+- [ ] **DB.69 Planets and moons store the composition fractions**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. The columns that hold the fractions
+  of GEN.428 on `planets` and `moons`, and a migration that fills old
+  rows by working the fractions back from the stored density, mass,
+  radius and class (the inverse of GEN.429, the closest fractions that
+  reproduce the stored density, drawn seeded inside the class range
+  where the inverse has many answers). The revision comes after DB.67's.
+  Done: the migration runs on a database of the previous revision and
+  every row has fractions that sum to one and reproduce its density
+  within a stated tolerance.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.429. Related: DB.67, DB.68.
 
 ## API: The JSON API
 
@@ -12236,6 +12436,28 @@ clears each one.
   Prerequisites: GEN.411, GEN.412, GEN.413, GEN.414, GEN.415, DB.67,
   DB.68, GEN.422, GEN.423, GEN.424. Related: GEN.415, DB.68.
 
+- [ ] **TEST.210 A bulk composition sweep over every class: fractions, density, mass, radius and gravity agree**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. Generate planets and moons of every
+  class and check: the fractions sum to one and stay in range; the
+  density equals the model's density for the fractions and mass; the
+  gravity equals G M over the radius squared; the stored values agree
+  with the fractions after the migration; the text names only stored
+  materials. Done: it passes on a generated galaxy and fails when any
+  one rule is broken (a test that breaks each rule in turn).
+  Prerequisites: GEN.428, GEN.429, GEN.430, DB.69. Related: TEST.209.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -13469,6 +13691,25 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   include (sunsets, twilight and the day strip, which belong to the view
   from a planet) and the sources. Done: each page says so.
   Prerequisites: GEN.420, MAP.244. Related: DOC.63.
+
+- [ ] **DOC.65 Docs: bulk composition, the materials table and how density, mass and gravity follow**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. The data model and physics pages
+  describe the fractions, the materials table, the mass-radius model,
+  the migration and the sweep, with the sources of every number. Done:
+  the pages name each stored value and where it comes from.
+  Prerequisites: TEST.210. Related: DOC.63, DB.69.
 
 ## VIEW: The view from a planet
 
