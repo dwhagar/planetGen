@@ -1016,32 +1016,36 @@ def test_galaxy_map_back_forward_and_url_state(page, map_site):
     queries = [q for q, _ in steps]
     page.go_back()
     _settle(page)
-    assert _query(page) in queries[:-1]
-    at = queries.index(_query(page))
+    assert _stage_query(page) in queries[:-1]
+    at = queries.index(_stage_query(page))
     assert _crumbs(page) == steps[at][1]
     page.go_forward()
     _settle(page)
-    assert _query(page) in queries[at + 1:]
+    assert _stage_query(page) in queries[at + 1:]
 
     # The map's own Back, Forward and Up.
-    here, crumbs = _query(page), _crumbs(page)
+    here, crumbs = _stage_query(page), _crumbs(page)
     page.click('#galaxymap3d-controls [data-action="back"]')
     _settle(page)
-    assert _query(page) != here
+    assert _stage_query(page) != here
     page.click('#galaxymap3d-controls [data-action="forward"]')
     _settle(page)
-    assert _query(page) == here
+    assert _stage_query(page) == here
     page.click('#galaxymap3d-controls [data-action="up"]')
     _settle(page)
     assert _crumbs(page) == crumbs[:-1]
 
-    # A stage's URL opens it directly; Whole galaxy goes home.
-    deep_query, deep_crumbs = steps[-1]
-    _open_galaxy(page, map_site, "?" + deep_query)
+    # An address opens the view it was copied at directly (MAP.228); Whole galaxy goes home.
+    page.wait_for_timeout(600)
+    deep_url, deep_crumbs = page.url, _crumbs(page)
+    assert "cam=" in deep_url, deep_url
+    _open(page, deep_url, GALAXY_CANVAS)
+    page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
+    _settle(page)
     assert _crumbs(page) == deep_crumbs
     page.click('#galaxymap3d-controls [data-action="reset"]')
     _settle(page)
-    assert _crumbs(page) == ["Galaxy"] and _query(page) == ""
+    assert _crumbs(page) == ["Galaxy"] and _stage_query(page) == ""
 
 
 def test_galaxy_map_keys_pick_go_up_and_home(page, map_site):
