@@ -75,18 +75,20 @@ Rule (Boss, 6:12 to 6:15 PM EDT, decided): the close-companion chance follows on
 `F(fe_h) / F(0)` multiplies the **odds** `p / (1 - p)` of the close share the generator already has (Boss, 7:19 PM EDT, on a card: the odds
 form, not the chance), and nothing else moves:
 
-- Today a pair is drawn in two rolls: `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS[class]` for "has a companion" (O 0.90, B 0.65, A 0.55,
-  F 0.47, G 0.44, K 0.40, M 0.26), then `WIDE_BINARY_DEFAULT_CHANCE` (0.5) for wide against close (`system.py`, now `StarSystem._companion`). So today's close share is `p_close0 = P_binary(class) * (1 - 0.5)` (G 0.22, O 0.45) and the wide share
-  `p_wide = P_binary(class) * 0.5`. The generator's close pairs sit at 0.05 to 0.25 AU (`binary.py`), all inside the 10 AU the points describe.
-- New: `odds_close = p_close0 / (1 - p_close0) * F(fe_h) / F(0)`, so `p_close = odds_close / (1 + odds_close)`; `p_wide` is unchanged (answer 3:
-  no dependence); one roll then picks close, wide or single from `p_close`, `p_wide` and the rest, with `p_close + p_wide` held to at most 1: where the sum
-  would pass 1 the wide share is cut to `1 - p_close`. That happens only for O stars below [Fe/H] about -0.5 (their close share reaches 0.55 and their wide share is
-  0.45), and it is the one place the wide share moves with [Fe/H], an exception to answer 3 that the wide-flatness check skips.
+- Built in GEN.448 (it was two rolls, "has a companion" then a coin flip between close and wide): the chance of a companion,
+  `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS[class]` (O 0.90, B 0.65, A 0.55, F 0.47, G 0.44, K 0.40, M 0.26), is shared between
+  the close range (0.05 to 0.25 AU), the inner range (0.25 to 10 AU) and the outer range (10 AU and out) by Moe and Di Stefano's
+  companions per decade of period (`generation/companion_classes.py`; [multistar-and-compact-systems.md](multistar-and-compact-systems.md) 4).
+  The points describe companions inside 10 AU, so the close and inner ranges together are `p_in0 = P_binary(class) * (their share)` (G 0.126, O 0.41 before the place's cut), and the outer range is `p_out`.
+- New: `odds_in = p_in0 / (1 - p_in0) * F(fe_h) / F(0)`, so `p_in = odds_in / (1 + odds_in)`; `p_out` is unchanged (answer 3:
+  no dependence); one roll then picks close, wide or single from `p_in` (split between the close and inner ranges as before the factor), `p_out` and the rest, with `p_in + p_out` held to at most 1: where the sum
+  would pass 1 the outer share is cut to `1 - p_in`, the one place the share beyond 10 AU moves with [Fe/H], an exception to answer 3 that the wide-flatness check skips. The place then keeps the part of each range under its widest axis (3.3); what it drops is lost from the chances, not moved to another range.
 - Why the odds: the chance form lets a massive star's close share run to 1 (an O star at [Fe/H] -3.0 would have a companion inside 10 AU every time),
   against the O and early-B surveys that find no change within about 30%; the odds form never passes 1 and moves a star that is already likely
   to have a companion less. It uses no constant beyond the four points (a fade above 2 solar masses, which Boss declined, or a per-mass ceiling would).
-- A G dwarf (p_close0 = 0.22) then gets 0.43, 0.36, 0.25 and 0.12 at [Fe/H] -3.0, -1.0, -0.2 and +0.5, against 53, 40, 24 and 10%
-  (+-12, 6, 4, 3) in the paper, all inside one standard error [C]; an O star (0.45) goes to 0.58 at -0.7 (+29%).
+- A G dwarf inside 10 AU then gets 0.28, 0.22, 0.15 and 0.07 at [Fe/H] -3.0, -1.0, -0.2 and +0.5, against 53, 40, 24 and 10%
+  (+-12, 6, 4, 3) in the paper [C]: the shape follows the line (the odds ratios equal `F / F(0)`), the level is about 0.6 of it (0.52 to 0.67 at the four points). The cause is not settled [R]:
+  Table 13's 0.15 companions inside log P 3.7 are a count per primary, and the generator's chance is the fraction of stars with one. An O star inside 10 AU goes from 0.41 at [Fe/H] 0 to 0.54 at -0.7 (+31%).
 
 The factor is a function of the star's own [Fe/H] and nothing else, so no population is named.
 
@@ -108,23 +110,22 @@ What the sources limit:
 - **Wide pairs.** Answer 3: no metallicity dependence, so the rule moves the close share only. El-Badry and Rix (2019, MNRAS Letters; arXiv 1809.06860)
   say the wide fraction is flat in [Fe/H] beyond about 250 AU and anticorrelated below about 200 AU; Hwang et al. 2021 (arXiv 2010.02920) find it peaks
   near [Fe/H] 0 and falls to both sides for 10^3 to 10^4 AU, and Niu et al. 2022 (arXiv 2205.04444) say the sign depends on separation range
-  and temperature. The generator's wide pairs start at 50 AU (`WIDE_BINARY_SEPARATION_MIN_AU`), so the choice leaves the 50 to 200 AU
-  anticorrelation out; that is Boss's rule.
+  and temperature. Wide pairs start at 0.25 AU (`WIDE_BINARY_SEPARATION_MIN_AU`, GEN.448); the outer range, 10 AU and out, carries no trend, and the inner range carries the close-binary one, so the 10 to 200 AU anticorrelation is left out; that is Boss's rule.
 - **Iron or alpha.** Mazzola et al. (2020, MNRAS 499, 1607; arXiv 2007.09059) find the close fraction follows the alpha abundance more
   steeply than iron, with a high alpha abundance suppressing it at most [Fe/H]. The generator has no alpha abundance. Used with [Fe/H] alone the rule would give the thick disc
   more close pairs than a high-alpha sample shows. [R: from the abstract only]
 
-What the pooled line does to each class (close share with the factor on the odds, from the generator's table, all [C]):
+What the pooled line does to each class (chance of a companion inside 10 AU at the Sun's neighbourhood, with the factor on the odds, from the generator's table, all [C]):
 
 | [Fe/H] | F | F / F(0) | O | B | A | F | G | K | M |
 |---|---|---|---|---|---|---|---|---|---|
-| -3.0 | 53% | 2.65 | 0.68 | 0.56 | 0.50 | 0.45 | 0.43 | 0.40 | 0.28 |
-| -1.0 | 40% | 2.00 | 0.62 | 0.49 | 0.43 | 0.38 | 0.36 | 0.33 | 0.23 |
-| -0.7 | 34% | 1.70 | 0.58 | 0.45 | 0.39 | 0.34 | 0.32 | 0.30 | 0.20 |
-| -0.4 | 28% | 1.40 | 0.53 | 0.40 | 0.35 | 0.30 | 0.28 | 0.26 | 0.17 |
-| -0.2 | 24% | 1.20 | 0.50 | 0.37 | 0.31 | 0.27 | 0.25 | 0.23 | 0.15 |
-| 0.0 | 20% | 1.00 | 0.45 | 0.33 | 0.28 | 0.23 | 0.22 | 0.20 | 0.13 |
-| +0.5 | 10% | 0.50 | 0.29 | 0.19 | 0.16 | 0.13 | 0.12 | 0.11 | 0.07 |
+| -3.0 | 53% | 2.65 | 0.65 | 0.50 | 0.39 | 0.32 | 0.28 | 0.26 | 0.18 |
+| -1.0 | 40% | 2.00 | 0.58 | 0.43 | 0.33 | 0.26 | 0.22 | 0.21 | 0.15 |
+| -0.7 | 34% | 1.70 | 0.54 | 0.39 | 0.29 | 0.23 | 0.20 | 0.18 | 0.13 |
+| -0.4 | 28% | 1.40 | 0.49 | 0.35 | 0.25 | 0.20 | 0.17 | 0.16 | 0.11 |
+| -0.2 | 24% | 1.20 | 0.45 | 0.31 | 0.22 | 0.17 | 0.15 | 0.14 | 0.09 |
+| 0.0 | 20% | 1.00 | 0.41 | 0.28 | 0.19 | 0.15 | 0.13 | 0.12 | 0.08 |
+| +0.5 | 10% | 0.50 | 0.26 | 0.16 | 0.11 | 0.08 | 0.07 | 0.06 | 0.04 |
 
 ### 3.1b The check that the numbers act as expected (TEST.196)
 
@@ -137,16 +138,17 @@ and are never read by the draw.
 
 | Primary mass bin | Expected close share (inside 10 AU) | Source | What the check does |
 |---|---|---|---|
-| 0.6 to 1.5 Msun (G, late F, early K) | 53 +-12% at [Fe/H] -3.0, 40 +-6% at -1.0, 24 +-4% at -0.2, 10 +-3% at +0.5 | Moe, Kratter and Badenes 2019 [S: abstract] | fails when outside the range widened by the sampling error |
+| 0.6 to 1.5 Msun (G, late F, early K) | the shape: 53 +-12% at [Fe/H] -3.0, 40 +-6% at -1.0, 24 +-4% at -0.2, 10 +-3% at +0.5, as ratios to the value at 0 (2.65, 2.0, 1.2, 0.5); the level at [Fe/H] 0: 0.15 +-0.03 companions inside log P 3.7 | Moe, Kratter and Badenes 2019 [S: abstract]; Moe and Di Stefano 2017 Table 13 | fails when a ratio is outside its range widened by the sampling error, or the level outside Table 13's |
 | 7 +-2 Msun (mid B) | at least 23 +-7% (companions at periods 100 to 1500 d only, mass ratio 0.1 to 1); [Fe/H] about 0 | Moe and Di Stefano 2017 [S: search summary of the abstract] | fails below the lower bound at [Fe/H] -0.2 to 0 |
 | 28 +-8 Msun (O) | between 35 +-12% (periods 100 to 1500 d) and about 69 +-9% (Sana et al. 2012, periods to about 3000 d, intrinsic binary fraction) | Moe and Di Stefano 2017; Sana et al. 2012 [S: search summaries] | fails outside the span at [Fe/H] -0.2 to 0 |
-| O and early B across [Fe/H] -0.7 to +0.1 | the same value within about 30% (no trend) | Moe and Di Stefano 2013; Dunstall 2015; Almeida 2017 [S] | fails when the ratio of the lowest to the highest [Fe/H] bin leaves 0.7 to 1.3 (the odds form gives 1.29 for O at -0.7, at the edge) |
+| O and early B across [Fe/H] -0.7 to +0.1 | the same value within about 30% (no trend) | Moe and Di Stefano 2013; Dunstall 2015; Almeida 2017 [S] | fails when the ratio of the lowest to the highest [Fe/H] bin leaves 0.7 to 1.3 (the odds form gave 1.29 for O at -0.7 before GEN.448 and gives 1.32 now, see below) |
 | below 0.6 Msun, 1.5 to 5 Msun | no number verified in this environment; the close fraction rises with mass | Moe and Di Stefano 2017 (not opened) | printed, never fails, until Boss does the research |
-| wide share (50 AU and out), all masses | no change with [Fe/H] (answer 3) | the rule itself | fails when two [Fe/H] bins differ by more than the allowance; skips the O and B bins where the companion chance saturates (see above) |
+| outer share (10 AU and out), all masses | no change with [Fe/H] (answer 3) | the rule itself | fails when two [Fe/H] bins differ by more than the allowance; skips the O and B bins where the companion chance saturates (see above) |
 
-Predicted first-run result, from the table above: the G-dwarf bins pass at all four points (inside one standard error); the O bin comes out at
-0.50 at [Fe/H] -0.2 and 0.58 at -0.7, between the 35% floor and the 69% ceiling, and the O and early-B flatness ratio is 1.29, at the 1.3 edge, so no bin needs an expected
-failure; at +0.5 the O share is 0.29, above the 35 - 12 = 23% floor. If a run lands outside a range, the check fails it and reports the bin: it stays the safeguard
+Predicted first-run result, from the table above (GEN.448 changed the levels): the G-dwarf bins keep the pooled line's shape (the odds ratios equal `F / F(0)`) at a level of
+0.13 at [Fe/H] 0, inside one standard error of Table 13's 0.15 +-0.03 and about 0.6 of the pooled line's 0.20, so the check compares ratios, not the line's absolute values (the absolute
+values would fail by construction: the 53, 40, 24 and 10% belong to the paper's own normalisation, whose cause is open). The O bin is 0.45 at [Fe/H] -0.2 and 0.54 at -0.7,
+between the 35% floor and the 69% ceiling, and the O and early-B flatness ratio (the inside-10-AU chance at -0.7 over 0) is 1.32 for O and 1.43 for B, outside the 1.3 edge of the row above: the odds form moves a star with a lower inside-10-AU chance more, and GEN.448 lowered it (O 0.45 to 0.41). Whether the edge widens or the check reads only O is open for TEST.196 and Boss; the B figure was already 1.36 before. If a run lands outside a range, the check fails it and reports the bin: it stays the safeguard
 for the next change, such as an alpha-abundance term or a different metallicity law.
 
 ### 3.2 Massive multiples sit in young regions
@@ -210,10 +212,8 @@ the one the orbital update uses. Where the cell holds only its density, (M / (3 
 mass density (1.9 pc for 0.1 solar masses per pc^3 [C]) and serves as the check.
 
 The widest axis a wide pair may keep is the smaller of the two (answer 4: a **sharp cut** at a_1/2, a pair wider than that does not exist). It takes the
-place of the fixed 10,000 AU cap (`WIDE_BINARY_SEPARATION_MAX_AU`, answer 5), as section 6.6 now says: the axis is still drawn log-uniform
-from the 50 AU lower edge, up to the limit instead of 10,000 AU. A cell whose limit is under 50 AU keeps no wide pair: the wide roll then gives the primary alone
-(the pair dissolved), which is the whole effect in the bulge. The wide *chance* (0.5 of the binary chance) does not change where the limit is
-above 50 AU; scaling it by the share of the log range kept would need a natal upper bound the sources do not give, so it is left out (a design default). Today's shape, a 2 solar mass pair of age 10 Gyr, the density of the
+place of the fixed 10,000 AU cap (`WIDE_BINARY_SEPARATION_MAX_AU`, answer 5), as section 6.6 now says: the axis is drawn from the companion lines of Moe and Di Stefano (GEN.448, 3.1) from the 0.25 AU lower edge, up to the limit instead of 10,000 AU. A cell whose limit is under 0.25 AU keeps no wide pair: the wide roll then gives the primary alone
+(the pair dissolved), which is the whole effect at the very centre. Before GEN.448 the lower edge was 50 AU and the wide roll was a coin flip of 0.5; now the chances of the ranges the place keeps are the part of the birth distribution (to 20,000 AU) under its limit, so a tight place loses chances in proportion (`companion_classes.odds`). Today's shape, a 2 solar mass pair of age 10 Gyr, the density of the
 model's `relative_density` times `E / edge^3` times `tuning.MEAN_SYSTEM_MASS_SOLAR` (0.4), the default perturber mass of 1.46 and the one-dimensional sigma [C]:
 
 | Place | rho (solar masses per pc^3) | sigma (km/s) | Encounter limit a_1/2 | Tidal limit | Widest axis kept |
@@ -221,12 +221,12 @@ model's `relative_density` times `E / edge^3` times `tuning.MEAN_SYSTEM_MASS_SOL
 | 8.2 kpc out, in the plane | 0.048 | 30 | 11,400 AU | 500,000 AU | 11,400 AU |
 | bulge, 500 pc from the centre | 6.9 | 120 | 317 AU | 95,000 AU | 317 AU |
 | bulge, 100 pc from the centre | 77 | 120 | 28 AU | 42,000 AU | 28 AU |
-| 10 pc from the centre | 660 | 120 | 3 AU | 21,000 AU | none (under the 50 AU lower edge) |
-| 2 pc from the centre | 61,000 | 150 | under 1 AU | 4,600 AU | none |
+| 10 pc from the centre | 660 | 120 | 3 AU | 21,000 AU | 3 AU |
+| 2 pc from the centre | 61,000 | 150 | under 1 AU | 4,600 AU | under 1 AU, or none under 0.25 AU |
 
 So the encounter limit, not the tide, decides everywhere, and the old fixed cap of 10,000 AU is a little under the disc's limit
 (11,400 AU) and far too wide in the bulge. That is the intended consequence of 6.6, and it is a visible one: a
-bulge sector would hold almost no wide pairs. The reference density `rho_2` and sigma come from the profile (`gas.mass_solar`
+bulge sector holds only tight pairs. The reference density `rho_2` and sigma come from the profile (`gas.mass_solar`
 and `dark_matter` are left out of rho, which would shorten the limit a little). The sigma used is the share-weighted rms of the
 cell's populations (`tuning.STELLAR_POPULATION_DISPERSION_KMS`). The age is the star's own, so a young pair keeps a wider axis than an old one.
 
@@ -289,7 +289,7 @@ Sources added for the TEST.196 ranges (2026-10-16, 6:28 PM EDT; same method: sea
    so a massive star's share stays inside the published span.
 3. **Wide pairs.** No metallicity dependence.
 4. **Encounter limit.** A sharp cut at a_1/2.
-5. **The 10,000 AU cap.** Replaced by the derived limit (3.3); a cell whose limit is under 50 AU keeps no wide pair.
+5. **The 10,000 AU cap.** Replaced by the derived limit (3.3); a cell whose limit is under the 0.25 AU lower edge keeps no wide pair (the lower edge was 50 AU before GEN.448).
 
 Design defaults chosen here, for Boss to overrule: where the close and wide chances together pass 1 (O stars below [Fe/H] about -0.5) the wide share gives way (3.1); the wide chance is not scaled by the
 log range kept (3.3); a dissolved wide pair leaves the primary alone (3.3).

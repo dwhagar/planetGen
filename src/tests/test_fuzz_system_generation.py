@@ -268,7 +268,9 @@ def assert_flags_honored(system, cfg):
     if cfg.COMETS is False:
         assert not system.comets and not system.secondary_comets
     if cfg.COMETS is True:
-        assert len(system.comets) >= prog.SYSTEM_COMET_COUNT_RANGE[0]
+        # A wide pair a few AU apart can leave both stars no room for a comet's orbit (GEN.448): then it is unmet.
+        assert (len(system.comets) + len(system.secondary_comets) >= prog.SYSTEM_COMET_COUNT_RANGE[0]
+                or "a comet" in system.unmet_requirements)
     explicit_belt = any(spec and spec.get("type") == "asteroid_belt" for spec in (cfg.SLOTS or []))
     if cfg.ASTEROID_BELT is False and not explicit_belt:
         assert not any(b.body_type == "a" for b in bodies), "ASTEROID_BELT=False but a belt exists"

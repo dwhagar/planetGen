@@ -70,6 +70,12 @@
       "first_release": null,
       "pending": true,
       "reason": "The widest axis a wide pair keeps follows the relative-velocity dispersion (root 2 times a population's own) and the mass-weighted mean mass of the stars and remnants that pass it, from the generator's own mass function, so the widest axis a wide pair keeps is about 2.5 times narrower than before in every place (GEN.447)."
+    },
+    {
+      "epoch": 15,
+      "first_release": null,
+      "pending": true,
+      "reason": "A star's companion chance is shared between close (0.05 to 0.25 AU), inner (0.25 to 10 AU) and outer (10 AU and out) pairs by the companions per decade of period of Moe and Di Stefano's Table 13, wide pairs start at 0.25 AU and draw their axis from the same lines, and the metallicity trend moves the close and inner odds together, so which stars have a companion, of what kind and how far differ (GEN.448)."
     }
   ]
 }

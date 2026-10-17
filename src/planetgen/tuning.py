@@ -164,30 +164,32 @@ SINGLE_SYSTEM_GENERATION_ATTEMPTS = 5
 HOLMAN_WIEGERT_P_TYPE_MU_RANGE = (0.1, 0.5)
 HOLMAN_WIEGERT_P_TYPE_ECCENTRICITY_RANGE = (0.0, 0.7)
 
-# Probability an S-type (wide) binary is chosen over a P-type (close) one
-# when BINARY_SYSTEM is True and WIDE_BINARY is left at None. A plain
-# coin-flip, not an attempt to model true field-star multiplicity
-# demographics (real wide pairs vastly outnumber sub-0.25-AU pairs) --
-# BINARY_SYSTEM's own binary-vs-none split is already a game-design toggle
-# rather than a demographic model, so this keeps the two forceable binary
-# configurations symmetric with each other.
-WIDE_BINARY_DEFAULT_CHANCE = 0.5
+# The companions of a star by orbital period, for a primary of each mass (Moe & Di Stefano 2017, ApJS 230:15, Table 13,
+# arXiv 1606.05347, "after correcting for observational selection effects"): the companions per decade of log10 of the
+# period in days (mass ratios above 0.1) at log P 1, 3, 5 and 7 (each across a decade centred there, a = 0.1 to 10^3
+# AU for a pair of two solar masses), for the five mass bins the table has: solar-type (0.8 to 1.2 Msun), A and
+# late B (2 to 5), mid-B (5 to 9), early-B (9 to 16) and O (above 16). `generation.companion_classes` draws a
+# companion's class and axis from the straight lines between the four points (GEN.448). The bins' centres are the
+# geometric means of their edges, and 25 Msun for the open-ended O bin (a design default: the IMF-weighted middle
+# of 16 to 150 Msun). The 1 sigma errors (0.009 to 0.11) are reference values for TEST.196, not inputs.
+COMPANION_LOG_PERIODS_DAYS = (1.0, 3.0, 5.0, 7.0)
+COMPANIONS_PER_DECADE_BY_PRIMARY_MASS = (
+    (1.0, (0.027, 0.057, 0.095, 0.075)),
+    (3.16, (0.07, 0.12, 0.13, 0.09)),
+    (6.71, (0.14, 0.22, 0.20, 0.11)),
+    (12.0, (0.19, 0.26, 0.23, 0.13)),
+    (25.0, (0.29, 0.32, 0.30, 0.18)),
+)
 
-# S-type binary separation is sampled log-uniformly from this lower bound
-# (see binary.WideBinaryPair.generate) rather than with plain
-# random.uniform -- real wide-binary separations are observed roughly
-# log-uniform/log-normal over several decades (Duquennoy & Mayor 1991;
-# Raghavan et al. 2010), and a flat-uniform draw would spend almost all its
-# density in the single largest order of magnitude (the same reasoning
-# `physics.planets.generate_moons` already applies to moon spacing). The lower
-# bound sits comfortably above the close/P-type BinaryStarProxy separation
-# range (0.05-0.25 AU) so the two configurations' separations never overlap.
+# S-type binary separation is drawn from the companions-per-decade lines above (GEN.448), from this lower bound,
+# the top of the close/P-type BinaryStarProxy separation range (0.05-0.25 AU), so the two configurations'
+# separations never overlap.
 # The upper bound is not a constant: a pair survives only inside the
 # widest axis its place allows (GEN.103, `generation.place_terms.
 # wide_axis_limit_au`: passing stars and the galactic tide, from the place's
 # density, velocity dispersion and the pair's age), and a place that allows
 # none under this lower bound keeps no wide pair.
-WIDE_BINARY_SEPARATION_MIN_AU = 50.0
+WIDE_BINARY_SEPARATION_MIN_AU = 0.25
 WIDE_BINARY_SEPARATION_CEILING_AU = 1.0e6
 """float: Only where a place's density is zero is the survival limit infinite; no pair is a pair past a few parsecs
 (the Jacobi radius at the halo's density is under 10 pc), and this keeps the log-uniform draw finite."""
@@ -2973,27 +2975,31 @@ SYSTEM_COMET_CHANCE = 0.3
 # --- Prevalence (generation/prevalence.py, GEN.52) ---
 # The share of systems that come out with each feature that no single draw
 # decides, measured over 20,000 systems generated with default options
-# (four seeds of 5,000; 2026-10-07). A sector or galaxy run's
+# (four seeds of 5,000; 2026-10-07, remeasured 2026-10-17 after GEN.447 to
+# GEN.449 changed the companions). A sector or galaxy run's
 # `--prevalence feature=+50` forces the feature on in enough systems to
 # make that share 1.5 times as large. Remeasure after a change to
 # generation moves one of them: tests/test_prevalence.py checks they still
 # hold within a few points.
 PREVALENCE_BASE_SHARES = {
-    "habitable_world": 0.242,   # a habitable planet or moon
-    "asteroid_belt": 0.590,     # an asteroid belt
-    "large_star": 0.052,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
-    "planets": 0.959,           # at least one planet or belt
+    "habitable_world": 0.257,   # a habitable planet or moon
+    "asteroid_belt": 0.607,     # an asteroid belt
+    "large_star": 0.050,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
+    "planets": 0.961,           # at least one planet or belt
 }
 
 # The usual share of each feature one draw decides (ADM.16: the Generate
 # page starts each prevalence field at its usual share), measured over
-# 10,000 systems with default options (four seeds of 2,500; 2026-10-08).
+# 10,000 systems with default options (four seeds of 2,500; 2026-10-08;
+# comets, binary_system and wide_binary remeasured 2026-10-17 over 20,000
+# systems, four seeds of 5,000: GEN.448 puts 93% of the binaries in the wide
+# class, the close class being the 0.05 to 0.25 AU range only).
 # Each is a share of the things in its comment, not always of systems.
 # Remeasure with PREVALENCE_BASE_SHARES.
 PREVALENCE_DRAW_SHARES = {
-    "comets": 0.334,            # systems with comets (each star of a wide pair draws)
-    "binary_system": 0.303,     # systems with two stars
-    "wide_binary": 0.499,       # binaries that are wide pairs
+    "comets": 0.321,            # systems with comets (each star of a wide pair draws)
+    "binary_system": 0.260,     # systems with two stars
+    "wide_binary": 0.928,       # binaries that are wide pairs
     "moons": 0.429,             # planets with at least one moon
     "max_planets": 0.037,       # stars that get the most orbits they can hold
 }
