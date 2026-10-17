@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1606] - 2026-10-17
+
+**Headline:** UX.116 (limit sliders on the Generate page) leaves the TODO list.
+
+### Changed
+- UX.116 retired on Core 3's merge (#1911): scatter and fill limits are sliders with core, halo and dense-cell segments and a Reset.
+
+TODO items resolved: UX.116 / Added: none
+
 ## [8.0.1605] - 2026-10-17
 
 **Headline:** ADM.85 (the backups screen, restore, and settings export and import) leaves the TODO list.
