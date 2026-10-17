@@ -405,7 +405,7 @@ This also covers a question Boss did not ask: a **planetary nebula's central whi
 
 ### 5.13 The laws that replace the fixed content (GEN.368)
 
-**Status:** a table for Boss to read and approve before any build. Boss's rules: no fixed content and no Milky Way preset (2026-10-16, 4:11 and 4:14 PM EDT); a calculated or derived law over a drawn one wherever the science gives one; a seeded draw only where the science gives a distribution; a research request to Boss where a piece cannot be looked up. Decided on the draft (Boss, 2026-10-16 9:39 to 9:43 PM EDT): the first family covers `M*` = 3e9 to 2e11 solar; every law draws its natural scatter from the seed; there is no stored home position.
+**Status:** approved by Boss on 2026-10-16 at 10:11 PM EDT; the build is planned from it. Boss's rules: no fixed content and no Milky Way preset (2026-10-16, 4:11 and 4:14 PM EDT); a calculated or derived law over a drawn one wherever the science gives one; a seeded draw only where the science gives a distribution; a research request to Boss where a piece cannot be looked up. Decided on the draft (Boss, 2026-10-16 9:39 to 9:43 PM EDT): the first family covers `M*` = 3e9 to 2e11 solar; every law draws its natural scatter from the seed; there is no stored home position.
 
 **How the sources were checked.** A separate read-only thread read each cited paper on 2026-10-17 (full text through ar5iv, tables as text) and wrote its findings to `/mnt/project-files/reports/gen368-paper-check-2026-10-17.md`: 39 claims verified, 16 corrected, 16 found, 8 not found. The corrected numbers are in the table below. Tags used in the last column: `V` the paper says what the table says; `C` the table was corrected from the paper; `F` the number was missing and the paper gave it; `N` not found in any paper read. arxiv.org itself was refused by the network proxy (403), so papers that ar5iv has no rendering of could not be read; no table row depends on one.
 
@@ -486,8 +486,9 @@ The paper check left these, none of which blocks the rows above:
 - **Q2** Decided (Boss, 2026-10-16, 9:43 PM EDT): there is no home position; viewing starts where sectors are generated.
 - **Q3** Decided (Boss, 2026-10-16, 9:39 PM EDT): sources were read by a verifying thread.
 - **Q4** Decided (Boss, 2026-10-16, 9:40 PM EDT): every derived law draws its natural scatter from the seed.
-- **Q5 Which size relation sets the disk length.** Shen et al. 2003 is a local (z about 0.1), mass-based fit with a published form (3.9 kpc at 5e10); van der Wel et al. 2014 has no z = 0 point (its lowest bin is z = 0.25, 7.2 kpc at 5e10, a different radius). Default: Shen, with van der Wel as the cross-check of the scatter.
-- **Q6 How Mh follows M\*.** The paper's scatter is in M* at fixed Mh. Default: the approximation in row 2 (median inverse with an effective Mh scatter), with the conditional through a halo mass function as a later refinement; alternative: build the conditional now.
+- **Q5** Decided (Boss, 2026-10-16, 10:09 PM EDT, card): Shen et al. 2003 sets the disk length (3.9 kpc at 5e10); van der Wel et al. 2014 stays the cross-check of the scatter.
+- **Q6** Decided (Boss, 2026-10-16, 10:10 PM EDT, card): the approximation in row 2 (median inverse with an effective Mh scatter), the conditional through a halo mass function as a later refinement.
+- **Approval** (Boss, 2026-10-16, 10:11 PM EDT, card): the table is approved; the build is planned from it.
 
 ## 6. What it costs
 
