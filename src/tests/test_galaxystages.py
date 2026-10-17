@@ -132,49 +132,52 @@ console.log(JSON.stringify({
   picks: r.options.every(o => o.pick.kind === "cell" && o.blocks.length === 1),
   into: S.windowInto(S.galaxyStage(), r.view.blocks[0], null, edge),
   sameTwice: S.resolveStage(S.galaxyStage(), outline, edge).view.blocks === r.view.blocks,
-  query: S.stageQuery(S.galaxyStage()),
 }));
 """)
     assert out["problem"] is None and out["kind"] == "cell" and out["win"] is None
     assert out["options"] == out["blocks"] > 50
     assert out["same"] and out["bounded"] and out["picks"] and out["sameTwice"]
     assert out["into"]["win"]["centre"]["m"] == 81 and out["into"]["win"]["g"] == 9
-    assert out["query"] == ""
 
 
-def test_stage_urls_round_trip_and_bad_ones_are_refused():
+def test_camera_urls_round_trip_and_bad_ones_are_refused():
+    """MAP.228: the address holds the camera, to ten digits, and a bad one is refused with a reason."""
     out = _run("""
-const centre = {m: 27, shell: 40, band: -1, wedge: 11};
-const stages = [S.galaxyStage(), S.windowStage(centre), S.windowStage(centre, 5), S.windowStage({m: 1, shell: 50, band: 3, wedge: 7})];
-const queries = stages.map(S.stageQuery);
+const cameras = [
+  {target: [1234.5678901234, -98765.4321, 0.0001234567], dist: 0.0000123456789, quat: [0.5, -0.5, 0.5, 0.5]},
+  {target: [0, 0, 0], dist: 262144, quat: [0, 0, 0, 1]},
+];
+const queries = cameras.map(c => "?" + S.cameraQuery(c));
 const parsed = queries.map(q => S.parseStageQuery(q));
-const bad = ["?win=729.0.0.0", "?win=27.3.99999.0", "?win=x", "?win=27.3.0.0&g=4", "?win=27.3.0.0&g=x", "?win=27.3.0.0&g=33",
-  "?win=27.3.0.999999", "?win=3.1.0.0&g=5"]
-  .map(q => S.parseStageQuery(q));
-console.log(JSON.stringify({queries, same: parsed.map((p, n) => S.sameStage(p.stage, stages[n]) && p.problem === null),
-  bad: bad.map(p => [p.problem, p.stage])}));
+const bad = ["?cam=", "?cam=1,2,3", "?cam=1,2,3,4,5,6,7", "?cam=1,2,3,0,0,0,0,1", "?cam=1,2,3,-4,0,0,0,1", "?cam=1,2,3,4,0,0,0,0",
+  "?cam=a,2,3,4,0,0,0,1", "?cam=1,2,3,4,0,0,0,Infinity", "?cam=1,2,,4,0,0,0,1"].map(q => S.parseStageQuery(q));
+console.log(JSON.stringify({queries, cameras: parsed.map(p => p.camera), problems: parsed.map(p => p.problem),
+  bad: bad.map(p => [p.camera, p.problem]), unit: S.parseCamera("1,2,3,4,0,0,0,2").quat}));
 """)
-    assert out["queries"] == ["", "?win=27.40.-1.11", "?win=27.40.-1.11&g=5", "?win=1.50.3.7"]
-    assert all(out["same"])
-    for problem, stage in out["bad"][:-1]:
-        assert problem and stage == {"win": None}
-    # A block shell 1 of size 3 does exist: that last link is fine.
-    assert out["bad"][-1][0] is None
+    assert out["queries"][1] == "?cam=0,0,0,262144,0,0,0,1"
+    assert out["problems"] == [None, None]
+    first = out["cameras"][0]
+    assert first["target"] == [1234.567890, -98765.4321, 0.0001234567] and first["dist"] == 0.0000123456789
+    assert first["quat"] == [0.5, -0.5, 0.5, 0.5]
+    for camera, problem in out["bad"]:
+        assert camera is None and problem and "no camera" in problem
+    assert out["unit"] == [0, 0, 0, 1]
 
 
-@pytest.mark.parametrize("query", ["?at=27.14.30.-1", "?p=a1.90", "?slab=2", "?at=3.1.1.0&p=L0,s9.4", "?ring=3&layer=1"])
-def test_the_links_from_before_the_window_stages_open_the_galaxy(query):
-    """MAP.150 retired the arc, slab and segment picks; their links have no
-    backward-compatible reading and open the galaxy."""
+@pytest.mark.parametrize("query", ["?at=27.14.30.-1", "?p=a1.90", "?slab=2", "?at=3.1.1.0&p=L0,s9.4", "?ring=3&layer=1",
+                                   "?win=27.40.-1.11", "?win=27.40.-1.11&g=5"])
+def test_the_links_from_before_the_camera_address_open_the_galaxy(query):
+    """MAP.150 retired the arc, slab and segment picks and MAP.228 the window tokens (?win=, &g=); their links
+    have no backward-compatible reading and open the galaxy."""
     out = _run(f"console.log(JSON.stringify(S.parseStageQuery({json.dumps(query)})));")
-    assert out["stage"] == {"win": None}
+    assert out["camera"] is None
     assert out["sector"] is None
 
 
 @pytest.mark.parametrize("query", ["?sector=ZZZ", "?sector=", "?sector=123456789012"])
 def test_a_malformed_sector_link_opens_the_galaxy_with_a_reason(query):
     out = _run(f"console.log(JSON.stringify(S.parseStageQuery({json.dumps(query)})));")
-    assert out["stage"] == {"win": None}
+    assert out["camera"] is None and out["sector"] is None
     assert out["problem"]
 
 
@@ -215,7 +218,7 @@ console.log(JSON.stringify({shell, band, wedge, code, back: S.parseSectorDesigna
     sector = {"shell": out["shell"], "band": out["band"], "wedge": out["wedge"]}
     assert out["back"] == sector
     assert out["parsed"]["sector"] == sector
-    assert out["parsed"]["stage"] == {"win": None}
+    assert out["parsed"]["camera"] is None
     assert out["stage"] == {"win": {"centre": {"m": 1, **sector}, "g": 9}}
     assert out["sectors"] and out["holds"]
     crumbs = out["crumbs"]
