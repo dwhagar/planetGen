@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1631] - 2026-10-17
+
+**Headline:** The plan files the corrections the stellar tables check found for the horizontal-branch and red giant values.
+
+### Added
+- GEN.407: five values recalled for GEN.286 and GEN.287 do not match the published sources (the red giant time law, the evolutionary flux, the HB colour row, the extreme HB luminosity and the tip); grouped under #1666, Core 3 proposed.
+
+### Changed
+- TEST.207 names Core 2 as the proposed owner, after GEN.306 and ahead of GEN.276.
+
+TODO items resolved: none / Added: GEN.407
+
 ## [8.0.1630] - 2026-10-17
 
 **Headline:** The plan files the accessibility fixture failure that has been red on main since the backups screen and records the owners of the Sun radius removal.
