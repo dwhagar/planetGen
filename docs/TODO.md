@@ -17862,6 +17862,25 @@ clears each one.
   Reproducer: run the migrate test, then `cat
   /var/lib/planetGen/state/maintenance.json`.
   Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
+  Sighting (2026-10-17, 6:59 PM EDT as Core 2 reported, filed by the
+  TODO thread): on the test container
+  `/var/lib/planetGen/state/maintenance.json` held {"enabled": true,
+  "cause": "update", "since": "2026-10-17T21:21:44Z" (5:21 PM EDT),
+  "by": "migrate"} with no lock holder; it appeared while Core 2's
+  MAP.239 gate was running its first phase (started 5:16 PM EDT).
+  `planetgen plan` then refused with `UpdateRunning: A run can't start:
+  the site is being updated`
+  (`planetgen.admin.updateguard.refuse_while_updating`). Core 2 worked
+  around it with `PLANETGEN_STATE_DIR` pointing at a scratch folder and
+  did not clear the file because its gate was running. This is the cause
+  this item describes: a test that runs `migrate` writes the real state
+  folder. Fails on main: not checked (container state). Frequency: once,
+  first noticed 6:48 PM EDT. Reproducer: `source
+  /etc/profile.d/planetgen-test.sh; planetgen plan --seed
+  2AFA1AD866D4BEB8646BF53C77A43DD6 --workers 1` while the file is set.
+  Done adds: a test that runs any migrate or maintenance path sets
+  `PLANETGEN_STATE_DIR` to a temp folder, so the real folder is never
+  written.
   Prerequisites: none.
 
 - [ ] **TEST.190 A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug)**
