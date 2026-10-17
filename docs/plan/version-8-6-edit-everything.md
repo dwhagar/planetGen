@@ -121,7 +121,7 @@ Each editor produces a plan: move a system, edit an orbit, adjust the world to a
 | ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere | ADM.92, ADM.58, ADM.65, ADM.66, ADM.82 | Merges two asks (one system added by the computer; placement chosen by admin). |
 | ADM.71 | Move a star system or phenomenon within its sector or to another sector, as a plan | ADM.32, ADM.58, ADM.65 |  |
 | ADM.36 | Change an object's trajectory vector | GEN.109, ADM.92, ADM.58, ADM.65, ADM.66 |  |
-| ADM.72 | Edit a body's orbit: distance, eccentricity, inclination and angles, with its moons following, as a plan | ADM.36, ADM.52, ADM.58, ADM.65, GEN.289 |  |
+| ADM.72 | Edit a body's orbit: distance, eccentricity, inclination and angles, with its moons following, as a plan | ADM.36, ADM.52, ADM.58, ADM.65 |  |
 
 ### Density plans
 
