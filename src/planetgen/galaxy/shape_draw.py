@@ -1,0 +1,277 @@
+# planetgen/galaxy/shape_draw.py
+
+"""
+The shape of a spiral galaxy, drawn from its seed (GEN.401; docs/design/intergalactic-and-halo-contents.md, section
+5.13, rows 4 to 6).
+
+The stellar mass comes from the mass chain (`galaxy.mass_chain`, GEN.400). Everything here follows from it and from
+draws about the median laws, each through the one random wrapper (`planetgen.util.draw.Stream`) from
+`unit_seed(galaxy_seed, "shape", <link>)`, so one seed gives one shape and two seeds give two:
+
+1. **Disk scale length** from the size-mass relation of late-type galaxies (Shen et al. 2003, astro-ph/0301527):
+   `R50 = gamma M^alpha (1 + M/M0)^(beta - alpha)`, a log-normal draw about it, and `Rd = R50 / 1.678` (the half-light
+   radius of a pure exponential disk; Boss chose Shen, 2026-10-16, 10:09 PM EDT).
+2. **Scale height** from the length: `hz = Rd / q`, `q = 7.3` with a 0.13 dex draw (Kregel, van der Kruit and de Grijs
+   2002, astro-ph/0204154, Section 5.1).
+3. **Stage.** Early (Sa to Sb) or late (Sc and later), the late share falling with mass as the GAMA morphology counts
+   of Kelvin et al. 2014 (arXiv:1407.7555, Table 1) say. STAND-IN: the table gives cumulative fractions above a mass
+   bound, read here as the local fraction, and its classes (S0-Sa, Sab-Scd) are not the two classes of the next link;
+   the per-bin fractions are the replacement research (5.13.6 item 6).
+4. **Bulge share** `B/T`: `log10(B/D)` drawn about the median of the stage (Graham and Worley 2008, arXiv:0805.3565,
+   Table 4, K band: -0.51 for T = 1 to 3 and -1.19 for T = 6 to 9) with the table's half width as the scatter.
+5. **Bulge and bar scale.** The model has one boxy component, the bulge with its bar. Its major axis is set by the
+   bar's length in disk scale lengths, drawn about the stage's mean and deviation (Erwin 2005, astro-ph/0508590,
+   Table 5: S0-Sab 1.29 +/- 0.54, Sc-Sd 0.57 +/- 0.44) inside 0.2 to 3 (Erwin's smallest, and Gadotti 2011,
+   arXiv:1003.1719: no bar reaches 3 scale lengths). The profile `exp(-r_s^2 / 2)` is down to 1.1 percent of its
+   centre at three scale radii, taken as the bar's end. The bar's own mass (Gadotti 2009: 0.09 of the total in barred
+   galaxies) is not added to `B/T`, and whether a bar is present, its axis ratios and angle stay the model's
+   constants until DB.66 stores them.
+6. **Arms.** The count follows the shares of Hart et al. 2017 (arXiv:1708.04628, Table 1: 1, 2, 3, 4 and 5 or more arms
+   are 3.9, 64.5, 17.8, 6.5 and 7.3 percent; "5 or more" is taken as 5), independent of mass (their rank correlation
+   with total mass is +0.05). The pitch angle falls with mass as the two binned means of Yu and Ho 2018
+   (arXiv:1812.06010: 26.0 degrees at log M* = 9.6, 13.8 at 11.1; no fit is published, so the line through them) with
+   their 5 to 6 degree scatter, kept inside Hart's 10 to 40 degrees. The two papers disagree on how strong the mass
+   trend is (5.13.6 item 7).
+
+An option the caller sets (`fixed`) replaces its drawn value, and what follows from it is recomputed: the bulge's
+amplitude is solved from `B/T` for the disk and bulge actually used.
+
+Only the spiral family exists; GEN.378 adds the others.
+"""
+
+import dataclasses
+import math
+
+from planetgen import tuning
+from planetgen.galaxy import density, mass_chain, seed as galaxySeed
+from planetgen.util import draw
+
+SPIRAL = "spiral"
+
+# --- Row 4: size (Shen et al. 2003, late-type fit) ---------------------------------------------------------------
+
+SHEN_ALPHA = 0.14
+SHEN_BETA = 0.39
+SHEN_GAMMA_KPC = 0.10
+SHEN_M0_SOLAR = 3.98e10
+SHEN_SIGMA_LN_SMALL = 0.47
+"""float: The scatter in ln R at low mass (0.20 dex)."""
+SHEN_SIGMA_LN_LARGE = 0.34
+"""float: The scatter in ln R at high mass (0.15 dex)."""
+EXPONENTIAL_HALF_LIGHT_OVER_SCALE = 1.678
+"""float: R50 / Rd for a pure exponential disk."""
+
+# --- Row 5: height (Kregel, van der Kruit and de Grijs 2002) -----------------------------------------------------
+
+KREGEL_Q = 7.3
+KREGEL_SCATTER_DEX = 0.13
+
+# --- Row 6: stage, bulge, bar and arms ---------------------------------------------------------------------------
+
+KELVIN_MASS_BOUNDS = (9.0, 9.5, 10.0, 10.5, 11.0)
+"""tuple: The lower bounds, log10 solar masses, of the columns of Kelvin et al. 2014 Table 1."""
+KELVIN_S0_SA = (0.18, 0.28, 0.42, 0.48, 0.22)
+KELVIN_SAB_SCD = (0.28, 0.36, 0.32, 0.20, 0.06)
+"""tuple: Fractions of the galaxies above each bound that are S0-Sa and Sab-Scd (Vmax weighted)."""
+
+LOG_BD_EARLY = -0.51
+LOG_BD_EARLY_SIGMA = 0.41
+LOG_BD_LATE = -1.19
+LOG_BD_LATE_SIGMA = 0.415
+"""float: Median `log10(B/D)` and its half width, for T = 1 to 3 (Sa-Sb) and T = 6 to 9, Graham and Worley Table 4."""
+
+BAR_LENGTH_OVER_H_EARLY = (1.29, 0.54)
+BAR_LENGTH_OVER_H_LATE = (0.57, 0.44)
+BAR_LENGTH_OVER_H_RANGE = (0.2, 3.0)
+BAR_LENGTH_PER_SCALE_RADIUS = 3.0
+"""float: The bar's semi-major length in scale radii of the model's bulge profile."""
+
+ARM_COUNT_SHARES = ((1, 3.9), (2, 64.5), (3, 17.8), (4, 6.5), (5, 7.3))
+"""tuple: `(arms, percent)` from Hart et al. 2017 Table 1."""
+PITCH_AT_LOW_DEG = 26.0
+PITCH_AT_HIGH_DEG = 13.8
+PITCH_LOG_MASS_LOW = 9.6
+PITCH_LOG_MASS_HIGH = 11.1
+PITCH_SCATTER_DEG = 5.5
+PITCH_RANGE_DEG = (10.0, 40.0)
+
+
+@dataclasses.dataclass(frozen=True)
+class GalaxyDraw:
+    """What one seed draws for a spiral's shape; the values `density.build_galaxy_shape` takes."""
+
+    chain: mass_chain.MassChain
+    stage: str
+    disk_scale_length_pc: float
+    disk_scale_height_pc: float
+    bulge_to_total: float
+    bar_length_pc: float
+    bulge_scale_radius_pc: float
+    bulge_amplitude: float
+    arm_count: int
+    pitch_angle_deg: float
+
+
+def _stream(galaxy_seed, link):
+    return draw.Stream(galaxySeed.unit_seed(galaxy_seed or mass_chain.FALLBACK_SEED, "shape", link))
+
+
+def size_median_kpc(stellar_mass_solar):
+    """Shen et al. 2003's median half-light radius, kpc, of a late-type galaxy of `stellar_mass_solar`."""
+    return (SHEN_GAMMA_KPC * stellar_mass_solar ** SHEN_ALPHA
+            * (1.0 + stellar_mass_solar / SHEN_M0_SOLAR) ** (SHEN_BETA - SHEN_ALPHA))
+
+
+def size_sigma_ln(stellar_mass_solar):
+    """The scatter in ln R, falling from `SHEN_SIGMA_LN_SMALL` to `SHEN_SIGMA_LN_LARGE` with mass."""
+    return SHEN_SIGMA_LN_LARGE + (SHEN_SIGMA_LN_SMALL - SHEN_SIGMA_LN_LARGE) / (1.0 + (stellar_mass_solar / SHEN_M0_SOLAR) ** 2)
+
+
+def late_share(stellar_mass_solar):
+    """The share of the spirals that are late, from Kelvin et al. 2014 Table 1: `Sab-Scd / (S0-Sa + Sab-Scd)` above
+    each mass bound, linear in log mass between the bounds and held at the ends."""
+    shares = [late / (early + late) for early, late in zip(KELVIN_S0_SA, KELVIN_SAB_SCD)]
+    log_mass = math.log10(stellar_mass_solar)
+    bounds = KELVIN_MASS_BOUNDS
+    if log_mass <= bounds[0]:
+        return shares[0]
+    for i in range(1, len(bounds)):
+        if log_mass <= bounds[i]:
+            fraction = (log_mass - bounds[i - 1]) / (bounds[i] - bounds[i - 1])
+            return shares[i - 1] + fraction * (shares[i] - shares[i - 1])
+    return shares[-1]
+
+
+def pitch_median_deg(stellar_mass_solar):
+    """The pitch angle, degrees, on the line through Yu and Ho's two binned means, kept inside Hart's range."""
+    slope = (PITCH_AT_HIGH_DEG - PITCH_AT_LOW_DEG) / (PITCH_LOG_MASS_HIGH - PITCH_LOG_MASS_LOW)
+    value = PITCH_AT_LOW_DEG + slope * (math.log10(stellar_mass_solar) - PITCH_LOG_MASS_LOW)
+    return min(max(value, PITCH_RANGE_DEG[0]), PITCH_RANGE_DEG[1])
+
+
+def disk_masses(disk_scale_length_pc, disk_scale_height_pc, arm_level=1.0):
+    """`(thin, thick)` disk masses in the model's units (central thin density 1): `2 pi L^2 x 4 h` for the thin
+    disk (its `sech^2` profile integrates to `4 h`) times its level, and the same for the thick disk, whose length,
+    height and local density follow from the thin disk's by the model's ratios."""
+    length, height = disk_scale_length_pc, disk_scale_height_pc
+    solar_radius = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * length
+    thick_length = tuning.THICK_DISK_SCALE_LENGTH_RATIO * length
+    thick_height = tuning.THICK_DISK_SCALE_HEIGHT_RATIO * height
+    thick_amplitude = tuning.THICK_DISK_LOCAL_DENSITY_RATIO * math.exp(solar_radius / thick_length - solar_radius / length)
+    thin = arm_level * 2.0 * math.pi * length ** 2 * 4.0 * height
+    thick = thick_amplitude * 2.0 * math.pi * thick_length ** 2 * 4.0 * thick_height
+    return thin, thick
+
+
+def bulge_amplitude_for(bulge_to_total, disk_scale_length_pc, disk_scale_height_pc, bulge_scale_radius_pc, arm_level=1.0):
+    """The bulge's central density, against the thin disk's 1, that makes its mass `bulge_to_total` of the bulge plus
+    the thin and thick disks (the model's `bulge_mass` formula, `density.model_terms`)."""
+    thin, thick = disk_masses(disk_scale_length_pc, disk_scale_height_pc, arm_level)
+    bulge_mass = (thin + thick) * bulge_to_total / (1.0 - bulge_to_total)
+    unit = (bulge_scale_radius_pc * tuning.BULGE_AXIS_RATIO_Y * bulge_scale_radius_pc
+            * tuning.BULGE_AXIS_RATIO_Z * bulge_scale_radius_pc * density.BULGE_UNIT_INTEGRAL)
+    return bulge_mass / unit
+
+
+def _truncated(stream, mean, sigma, low, high):
+    for _ in range(50):
+        value = stream.gauss(mean, sigma)
+        if low <= value <= high:
+            return value
+    return min(max(mean, low), high)
+
+
+def draw_galaxy(galaxy_seed, family=SPIRAL, arm_level=1.0, **fixed):
+    """
+    The shape of the galaxy a seed makes: the same seed gives the same shape.
+
+    Args:
+        galaxy_seed (bytes or None): The galaxy's 16-byte seed; `None` uses the mass chain's fallback seed.
+        family (str): `SPIRAL` (the only family so far).
+        arm_level (float): The thin disk's density level (`density.arm_terms`), which the bulge's amplitude is solved
+            against.
+        **fixed: Any of `disk_scale_length_pc`, `disk_scale_height_pc`, `bulge_scale_radius_pc`, `bulge_amplitude`,
+            `arm_count`, `pitch_angle_deg`; a value given (not `None`) replaces the drawn one.
+
+    Returns:
+        GalaxyDraw: The drawn values, with the fixed ones in place of theirs.
+
+    Raises:
+        ValueError: For a family other than `SPIRAL`, or an option name that is not one of the six.
+    """
+    if family != SPIRAL:
+        raise ValueError(f"no shape law for the {family!r} family yet")
+    unknown = set(fixed) - {"disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc",
+                            "bulge_amplitude", "arm_count", "pitch_angle_deg"}
+    if unknown:
+        raise ValueError(f"not a shape option: {', '.join(sorted(unknown))}")
+    fixed = {name: value for name, value in fixed.items() if value is not None}
+    chain = mass_chain.draw_mass_chain(galaxy_seed)
+    mass = chain.stellar_mass_solar
+
+    length = fixed.get("disk_scale_length_pc")
+    if length is None:
+        log_r50 = math.log(size_median_kpc(mass)) + _stream(galaxy_seed, "size").gauss(0.0, size_sigma_ln(mass))
+        length = math.exp(log_r50) / EXPONENTIAL_HALF_LIGHT_OVER_SCALE * 1000.0
+    height = fixed.get("disk_scale_height_pc")
+    if height is None:
+        q = 10.0 ** (math.log10(KREGEL_Q) + _stream(galaxy_seed, "height").gauss(0.0, KREGEL_SCATTER_DEX))
+        height = length / q
+
+    late = _stream(galaxy_seed, "stage").random() < late_share(mass)
+    stage = "late" if late else "early"
+    log_bd = _stream(galaxy_seed, "bulge-share").gauss(
+        LOG_BD_LATE if late else LOG_BD_EARLY, LOG_BD_LATE_SIGMA if late else LOG_BD_EARLY_SIGMA)
+    bulge_to_total = 1.0 / (1.0 + 10.0 ** -log_bd)
+    mean, sigma = BAR_LENGTH_OVER_H_LATE if late else BAR_LENGTH_OVER_H_EARLY
+    bar_length = length * _truncated(_stream(galaxy_seed, "bar-length"), mean, sigma, *BAR_LENGTH_OVER_H_RANGE)
+    bulge_radius = fixed.get("bulge_scale_radius_pc")
+    if bulge_radius is None:
+        bulge_radius = bar_length / BAR_LENGTH_PER_SCALE_RADIUS
+    amplitude = fixed.get("bulge_amplitude")
+    if amplitude is None:
+        amplitude = bulge_amplitude_for(bulge_to_total, length, height, bulge_radius, arm_level)
+
+    arms = fixed.get("arm_count")
+    if arms is None:
+        point = _stream(galaxy_seed, "arm-count").random() * sum(percent for _, percent in ARM_COUNT_SHARES)
+        for arms, percent in ARM_COUNT_SHARES:
+            point -= percent
+            if point < 0.0:
+                break
+    pitch = fixed.get("pitch_angle_deg")
+    if pitch is None:
+        pitch = _truncated(_stream(galaxy_seed, "pitch"), pitch_median_deg(mass), PITCH_SCATTER_DEG, *PITCH_RANGE_DEG)
+    return GalaxyDraw(chain, stage, length, height, bulge_to_total, bar_length, bulge_radius, amplitude, arms, pitch)
+
+
+def plan_shape(args, galaxy_seed):
+    """
+    The `GalaxyShape` a `plan` run builds: the shape options the user gave, the rest drawn from the galaxy seed.
+
+    Args:
+        args (argparse.Namespace): The plan's parsed arguments (`add_plan_arguments`); a shape option left at `None`
+            is drawn.
+        galaxy_seed (bytes or None): The galaxy's seed.
+
+    Returns:
+        tuple: `(shape, drawn)`: the `GalaxyShape` with `k_norm` set, and the `GalaxyDraw` it was built from.
+    """
+    arm_amplitude, arm_level = density.arm_terms(args.arm_density, args.interarm_density)
+    drawn = draw_galaxy(
+        galaxy_seed, arm_level=arm_level, disk_scale_length_pc=args.disk_scale_length_pc,
+        disk_scale_height_pc=args.disk_scale_height_pc, bulge_scale_radius_pc=args.bulge_scale_radius_pc,
+        bulge_amplitude=args.bulge_amplitude, arm_count=args.arm_count, pitch_angle_deg=args.pitch_angle_deg)
+    shape = density.build_galaxy_shape(
+        disk_scale_length_pc=drawn.disk_scale_length_pc,
+        disk_scale_height_pc=drawn.disk_scale_height_pc,
+        bulge_scale_radius_pc=drawn.bulge_scale_radius_pc,
+        bulge_amplitude=drawn.bulge_amplitude,
+        arm_count=drawn.arm_count,
+        pitch_angle_rad=math.radians(drawn.pitch_angle_deg),
+        arm_amplitude=arm_amplitude,
+        arm_level=arm_level,
+        nuclear_amplitude=args.nuclear_amplitude,
+        calibration_radius_pc=args.calibration_radius_pc,
+    )
+    return shape, drawn
