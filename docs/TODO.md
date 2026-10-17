@@ -11131,6 +11131,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   range, selection-model id) that the loader checks, built in the
   harness GEN.503; a knob outside its validity range is a flagged
   extrapolation.
+  Owner: Blocker 1 (the code lane "Blocker 1 (2026-10-17)", started by
+  Boss at 10:27 AM EDT, typed in the project chat: "Start Blocker thread
+  1, I want you to put GEN.472 and TEST.186 please, then it will go idle
+  until I need it again"; relayed by the coordinator). No lane had
+  started it. This replaces any earlier owner line on this item.
+  Prerequisite GEN.437 (the composition model design note) is still
+  open, and its four design notes GEN.409, GEN.426, GEN.435 and GEN.436
+  are open with Core 4; the format is already Decided in
+  docs/design/composition-model.md sections 4a and 4b, so the lane
+  builds on those sections.
 
 - [ ] **GEN.473 Replace the asteroid taxon shares and the zone kernel, measured in the Solar System belt, by a derived or general distribution**
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
@@ -16407,6 +16417,12 @@ clears each one.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 44 of 54). This replaces any earlier owner line on this item.
+  Owner: Blocker 1 (the code lane "Blocker 1 (2026-10-17)", started by
+  Boss at 10:27 AM EDT, typed in the project chat: "Start Blocker thread
+  1, I want you to put GEN.472 and TEST.186 please, then it will go idle
+  until I need it again"; relayed by the coordinator). No lane had
+  started it. This replaces any earlier owner line on this item. No
+  prerequisite.
 
 - [ ] **TEST.187 Browser-test failure reports are buried in the werkzeug request log: set that logger to WARNING in the test server**
   Found by a lane (2026-10-16), filed by the TODO thread. When a browser
