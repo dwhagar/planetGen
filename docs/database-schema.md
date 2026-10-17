@@ -2258,7 +2258,7 @@ The table was dropped in v91 (DB.32) and made again in v92 on shells (see "v92" 
 
 ### v71 (GEN.167): `galaxy_shape.phenomenon_min_mass_solar`
 
-`galaxy_shape.phenomenon_min_mass_solar` (DOUBLE, nullable): the phenomenon scatter's mass cut. The scatter places only the neutron stars and black holes at or above it (with 20, only the intermediate-mass black holes: about 2.7e5 rows instead of 1.17e9); a sector fill draws the share below it on the stream `{seed}:phenomena-fill:{ring}:{layer}:{slot}`, so the two add up to the whole population. `planetgen plan --phenomena-only --phenomenon-min-mass M` re-scatters at a new cut; filled sectors already hold every mass and are left out. See docs/design/phenomenon-scatter-mass-cut.md.
+`galaxy_shape.phenomenon_min_mass_solar` (DOUBLE, nullable): the phenomenon scatter's mass cut. The scatter places only the neutron stars and black holes at or above it (with 20, only the intermediate-mass black holes: about 2.7e5 rows at a 0.1% share, about 800 at the 3e-6 of GEN.259, instead of 1.17e9); a sector fill draws the share below it on the stream `{seed}:phenomena-fill:{ring}:{layer}:{slot}`, so the two add up to the whole population. `planetgen plan --phenomena-only --phenomenon-min-mass M` re-scatters at a new cut; filled sectors already hold every mass and are left out. See docs/design/phenomenon-scatter-mass-cut.md.
 
 ### v72 (GEN.86): stellar activity and magnetic fields
 

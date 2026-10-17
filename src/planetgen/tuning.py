@@ -2203,11 +2203,14 @@ HABITABLE_FLAVOR = [ # Flavor text for any habitable world.
 # instead draws an intermediate-mass black hole (IMBH), log-uniform over
 # ~1e2-1e5 Msun -- the range between stellar and supermassive black
 # holes (Greene, Strader & Ho 2020, ARA&A 58:257). Boss (2026-09-30)
-# wants them "a smattering (rare)": retuned 2026-10-09 from 2% to 0.1%
-# (about 1e5 in a Milky Way-sized galaxy; the observed candidates number a handful).
+# wants them "a smattering (rare)": retuned 2026-10-09 from 2% to 0.1%, which
+# gave about 1e5 in a Milky Way-sized galaxy against the handful of observed
+# candidates, and on 2026-10-16 (Boss, decision card, GEN.259) to 3e-6, so that
+# a Milky Way-sized galaxy, with about 1e8 black holes, holds about 300 of them
+# ("hundreds, as the observations suggest") [R].
 BLACK_HOLE_MASS_RANGE_SOLAR = (5.0, 20.0)
 BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR = (1e2, 1e5)
-BLACK_HOLE_INTERMEDIATE_MASS_CHANCE = 0.001
+BLACK_HOLE_INTERMEDIATE_MASS_CHANCE = 3.0e-6
 
 # A quiescent supermassive black hole sits at the center of every galaxy
 # whose nucleus isn't an active quasar (generate.add_galactic_nucleus).
@@ -3422,8 +3425,8 @@ or above it; a sector draws the rest when it is filled (GEN.168). An
 object's tidal sphere (1.44 pc per cube root of a solar mass) reaches one
 4 pc sector edge at about 21 solar masses, so below the cut an object's
 pull stays within its own and the neighbouring sectors. 20 first (only the
-intermediate-mass black holes scattered: about 2.7e5 rows instead of
-1.17e9); 8 on 2026-10-10 (Boss, the bottom preset)."""
+intermediate-mass black holes scattered: about 2.7e5 rows at a 0.1%
+share, about 800 at the 3e-6 of GEN.259, instead of 1.17e9); 8 on 2026-10-10 (Boss, the bottom preset)."""
 
 
 def phenomenon_rate_per_star(kind):

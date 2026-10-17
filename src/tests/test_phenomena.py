@@ -95,6 +95,13 @@ def test_black_hole_mass_class_matches_its_mass(monkeypatch):
     assert bh.mass_class == "stellar" and bh.type == "Stellar-Mass Black Hole"
 
 
+def test_a_galaxy_holds_hundreds_of_intermediate_mass_black_holes():
+    """GEN.259 (Boss, decision card, 2026-10-16): the Galaxy's 1e8 black holes (the central observed value of GEN.100)
+    give hundreds of intermediate-mass ones, as the handful of candidates suggest, not the 1e5 of a 0.1% share."""
+    black_holes = 1.0e8
+    assert 100.0 <= black_holes * tuning.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE <= 1000.0
+
+
 def test_supermassive_black_hole_sits_still_and_glows_faintly():
     bh = BlackHole(make_config(), mass_class="supermassive")
     low, high = tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR
