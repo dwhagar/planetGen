@@ -3748,6 +3748,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by radius (peak at 5 kpc, -0.28 dex per kpc beyond, the dip inside 3
   kpc), the B share and the bulge's young tail, without the Central
   Molecular Zone, which GEN.282 owns.
+  Built derived, not fixed (Boss, NO FIXED CONTENT, 2026-10-16, 4:11 and
+  4:14 PM EDT; confirmed by the coordinator 2026-10-16, 8:40 PM EDT): the
+  Milky Way numbers above (peak at 5 kpc, -0.28 dex per kpc, the dip
+  inside 3 kpc, B stars at 0.04%, the bulge's 10% young tail) are test
+  targets only, never inputs and never a preset; the star-formation
+  profile, the B share and the bulge tail are derived from the galaxy's
+  own shape, mass function and formation history, with the science named
+  for each link (docs/design/star-types-by-galactic-radius.md, "How the
+  proposals are built"). Boss chose Core 4 first for this item (2026-10-16,
+  8:40 PM EDT, card "Core 4 first"): it researches the inner-disc dip and
+  asks Boss only for what it cannot look up or verify.
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
   PM EDT, 2026-10-16; queue in the lane report, queue position 11; start
   after Core 3 merges GEN.283 and GEN.333 (tuning.py and the profile)).
