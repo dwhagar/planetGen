@@ -3615,6 +3615,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     (2026-10-16 review).
   Prerequisites keep the umbrellas; each umbrella closes with its
   children (2026-10-16 review).
+  Decided (Boss, 2026-10-17, 4:19 PM EDT): every command does one and
+  only one thing and the order lives only in the wrapper's step list
+  (PERF.118, PERF.120); the nightly run of this item follows that and
+  replaces `cli.orbits`, which advances planets, moons, stars and
+  binaries in one command.
     Prerequisites: GEN.345, GEN.346.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
@@ -14343,6 +14348,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sequence can be changed without touching any command. A command that
   reaches into another stage's work, or a stage that must run in a fixed
   place because a command assumes it, is wrong.
+  Decided (Boss, 2026-10-17, 4:19 PM EDT): the principle applies to ALL
+  commands, not only the generate stages: every command of the inventory
+  in docs/design/command-inventory.md does one and only one thing, so
+  any sequence can be built. The umbrella is PERF.120 and its subitems
+  are PERF.121 to PERF.128, OPS.60 and OPS.61.
   Design: [docs/design/redis-and-the-work-queue.md](design/redis-and-the-work-queue.md)
 
 - [ ] **PERF.119 The Generate page, the API and the one-off sector and system commands start their runs through the wrapper**
@@ -14380,7 +14390,175 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.118 holds for every start path: each entry point only builds the
   list of steps from what the user requested and hands it to the
   wrapper, which alone handles the sequence.
+  The command inventory (docs/design/command-inventory.md, PERF.120)
+  lists every other command and entry point.
   Prerequisites: PERF.98, PERF.118. Related: PERF.99, PERF.118.
+
+- [ ] **PERF.120 Every command does one thing: the umbrella for reshaping every command and entry point**
+  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
+  we can build whatever sequences we want" (the principle of 4:18 PM
+  EDT: each command does one and only one thing and does it
+  exceptionally well; the order lives only in the wrapper's step list).
+  Inventory: docs/design/command-inventory.md. This item is done when
+  every command of the inventory does one and only one thing, takes only
+  its own parameters, and runs alone or as a step of a wrapper list, and
+  the commands that still did more are reshaped by its subitems. It also
+  holds the rules a new command follows: one job, its own parameters, no
+  knowledge of another stage or of the order, a registered kind with
+  JSON arguments and a result (PERF.118), a test that runs it alone, and
+  a docs line. The nightly orbital update of GEN.105 follows the same
+  rules (it replaces `cli.orbits`). Owner: Core 5 (proposed; the
+  PERF.118 chain).
+  Prerequisites: PERF.118. Related: PERF.118, PERF.121, PERF.122,
+  PERF.123, PERF.124, PERF.125, PERF.126, PERF.127, PERF.128.
+  Design: [docs/design/command-inventory.md](design/command-inventory.md)
+
+- [ ] **PERF.121 `plan` does only the skeleton, and the scatters become one `scatter` command with exactly one kind per run (mass, luminosity, phenomena, nebula field, band)**
+  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
+  we can build whatever sequences we want" (the principle of 4:18 PM
+  EDT: each command does one and only one thing and does it
+  exceptionally well; the order lives only in the wrapper's step list).
+  Inventory: docs/design/command-inventory.md. Today `planetgen plan` is
+  nine jobs behind flags (the skeleton; the bright-star band; the
+  map-luminosity fill; the habitability re-score; the nebula-field
+  clean-up; redo scatters; phenomena only; bright stars only; and the
+  three scatters after the skeleton unless `--no-bright-stars`). Done:
+  `plan` builds the skeleton and nothing else; `scatter` takes exactly
+  one of `--mass`, `--luminosity`, `--phenomena`, `--nebula-field`,
+  `--band` and only that kind's parameters (the draw limits and the seed
+  that belong to it); each kind is its own registered command
+  (PERF.106); the flags that grouped them (`--no-bright-stars`,
+  `--bright-stars-only`, `--phenomena-only`, `--redo-scatters`,
+  `--bright-stars-down-to`, `--redo-nebula-field`) are gone with no
+  shim; a test runs each command alone and the wrapper builds the old
+  `plan` run as a step list that gives the same galaxy for the same
+  seed. Owner: Core 5 (proposed; the PERF.118 chain).
+  Prerequisites: PERF.106, PERF.120. Related: PERF.106, PERF.118,
+  PERF.120.
+  Design: [docs/design/command-inventory.md](design/command-inventory.md)
+
+- [ ] **PERF.122 The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags**
+  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
+  we can build whatever sequences we want" (the principle of 4:18 PM
+  EDT: each command does one and only one thing and does it
+  exceptionally well; the order lives only in the wrapper's step list).
+  Inventory: docs/design/command-inventory.md. Today `plan
+  --fill-map-luminosity` and `plan --fill-habitability` are modes of the
+  skeleton command. Done: each is its own command with its own
+  parameters (the batch size and the id range), registered with the
+  wrapper, runnable alone, with the `plan` flags removed and no shim; a
+  test runs each alone. Owner: Core 5 (proposed; the PERF.118 chain).
+  Prerequisites: PERF.106, PERF.120. Related: PERF.106, PERF.116,
+  PERF.117, PERF.121.
+  Design: [docs/design/command-inventory.md](design/command-inventory.md)
+
+- [ ] **PERF.123 `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds**
+  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
+  we can build whatever sequences we want" (the principle of 4:18 PM
+  EDT: each command does one and only one thing and does it
+  exceptionally well; the order lives only in the wrapper's step list).
+  Inventory: docs/design/command-inventory.md. Today `planetgen galaxy`
+  runs eight jobs in one run (sector generation in nine modes, the link,
+  the three scatters through `--then-scatter`, the backfill, the
+  population pass through `--population` and the settle, each switched
+  by a flag). Done: generating sectors is one command (its modes are its
+  own parameters: random start with neighborhood, shell, block, center
+  sector, band, wedge, course); `link`, `backfill`, `population` and
+  `settle` are each their own command; `--then-scatter`, `--population`,
+  `--no-settle` and `--backfill-from none` are gone, because what runs
+  is what the step list holds; `planetgen galaxy` stays only as the way
+  to ask the wrapper for the usual list (sectors, link, scatters,
+  backfill, population, settle) and prints it with `--estimate-only`;
+  the same seed gives the same galaxy as today at 1 and 4 workers.
+  Owner: Core 5 (proposed; the PERF.118 chain).
+  Prerequisites: PERF.107, PERF.108, PERF.121. Related: PERF.107,
+  PERF.108, PERF.118, PERF.120.
+  Design: [docs/design/command-inventory.md](design/command-inventory.md)
+
+- [ ] **PERF.124 `sector` and `phenomenon` only generate: the population pass leaves `sector` and the settle leaves `phenomenon`**
+  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
+  we can build whatever sequences we want" (the principle of 4:18 PM
+  EDT: each command does one and only one thing and does it
+  exceptionally well; the order lives only in the wrapper's step list).
+  Inventory: docs/design/command-inventory.md. Today `planetgen sector
+  --population` also runs the population pass and `planetgen phenomenon`
+  settles its sector unless `--no-settle`. Done: each only generates
+  what its name says; the population pass and the settle are the
+  commands of PERF.123 and PERF.125, asked for in the step list when
+  wanted; `--population` and `--no-settle` are gone on these two with no
+  shim; the Generate page and the one-off pages ask for the settle as a
+  step (PERF.119); a test per command. Owner: Core 5 (proposed; the
+  PERF.118 chain).
+  Prerequisites: PERF.123. Related: PERF.119, PERF.120,
+  PERF.123, PERF.125.
+  Design: [docs/design/command-inventory.md](design/command-inventory.md)
+
+- [ ] **PERF.125 The population pass and the territories pass are separate commands**
+  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
+  we can build whatever sequences we want" (the principle of 4:18 PM
+  EDT: each command does one and only one thing and does it
+  exceptionally well; the order lives only in the wrapper's step list).
+  Inventory: docs/design/command-inventory.md. Today `planetgen
+  population` runs the population pass and, by `--territories-only` and
+  `--rescan`, the territories pass (`model.run_pass`,
+  `pass_stage_count`). Done: the population pass and the territories
+  pass are each their own command with their own parameters, registered
+  with the wrapper and runnable alone, with `--territories-only` removed
+  and no shim; the same stored rows as today for the same seed. Owner:
+  Core 5 (proposed; the PERF.118 chain).
+  Prerequisites: PERF.107, PERF.120. Related: PERF.107, PERF.114,
+  PERF.120.
+  Design: [docs/design/command-inventory.md](design/command-inventory.md)
+
+- [ ] **PERF.126 `check-db`: each check is its own command and the report is the list the wrapper runs**
+  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
+  we can build whatever sequences we want" (the principle of 4:18 PM
+  EDT: each command does one and only one thing and does it
+  exceptionally well; the order lives only in the wrapper's step list).
+  Inventory: docs/design/command-inventory.md. Today `planetgen
+  check-db` runs the schema revision check, the table health check, the
+  rows-without-parents check and, with `--deep`, the sector and
+  wide-binary checks, picked by flags. Done: each check is its own
+  read-only command with its own parameters (the scope, `--deep`
+  becoming its own check), a wrapper step list of all of them gives
+  today's report and the same exit codes (1 on damage, 2 when a check
+  could not run), and the flags that grouped them are gone with no shim.
+  Owner: Core 5 (proposed; the PERF.118 chain).
+  Prerequisites: PERF.118, PERF.120. Related: PERF.118, PERF.120.
+  Design: [docs/design/command-inventory.md](design/command-inventory.md)
+
+- [ ] **PERF.127 `warm_map`: each cache family is its own command and `update.sh` builds the list**
+  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
+  we can build whatever sequences we want" (the principle of 4:18 PM
+  EDT: each command does one and only one thing and does it
+  exceptionally well; the order lives only in the wrapper's step list).
+  Inventory: docs/design/command-inventory.md. Today `python3 -m
+  planetgen.cli.warm_map` builds the Galaxy Map opening view, every
+  list, every sector, system and phenomenon page and the search in one
+  command, picked with `--only FAMILY`. Done: each family (the Galaxy
+  Map view, the lists, the sector pages, the system pages, the
+  phenomenon pages, the search) is its own command with its own
+  parameters, runnable alone; the step list of all of them is what
+  `update.sh` hands to the wrapper after an update; `--only` is gone
+  with no shim. Owner: Core 5 (proposed; the PERF.118 chain).
+  Prerequisites: PERF.118, PERF.120. Related: PERF.118, PERF.120,
+  PERF.104.
+  Design: [docs/design/command-inventory.md](design/command-inventory.md)
+
+- [ ] **PERF.128 `benchmark` is a step list handed to the wrapper, not a sequence of its own**
+  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
+  we can build whatever sequences we want" (the principle of 4:18 PM
+  EDT: each command does one and only one thing and does it
+  exceptionally well; the order lives only in the wrapper's step list).
+  Inventory: docs/design/command-inventory.md. Today `planetgen
+  benchmark` starts `plan` and then `galaxy` over a small shell as child
+  processes in scratch databases and prints the timings. Done: it builds
+  a step list (skeleton, scatters, sectors, link, backfill, settle over
+  the small shell) and hands it to the wrapper in the scratch databases,
+  reading the stage timings the run record already holds; it runs no
+  stage itself. Owner: Core 5 (proposed; the PERF.118 chain).
+  Prerequisites: PERF.123. Related: PERF.31, PERF.118, PERF.120.
+  Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 ## DB: Database and schema
 
@@ -19026,6 +19204,37 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   child.
   Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
   Prerequisites: none.
+
+- [ ] **OPS.60 The admin commands that did two things by flag: `lockouts` lists or lifts, `version_history --list` repeats `planetgen versions`**
+  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
+  we can build whatever sequences we want" (the principle of 4:18 PM
+  EDT: each command does one and only one thing and does it
+  exceptionally well; the order lives only in the wrapper's step list).
+  Inventory: docs/design/command-inventory.md. Done: listing the
+  lockouts and lifting a lockout are two commands (list; lift with the
+  address, the user, all, or the forgotten devices);
+  `cli.version_history` only records the version key, and listing is
+  only `planetgen versions` (`--list` removed, no shim); a test per
+  command; the docs and `update.sh` lines follow. Owner: unassigned
+  (small).
+  Prerequisites: none. Related: PERF.120.
+  Design: [docs/design/command-inventory.md](design/command-inventory.md)
+
+- [ ] **OPS.61 Remove the one-off tools `cli.render_parity` and `cli.dedupe`: they check and fix a schema and a naming rule that migrated long ago**
+  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
+  we can build whatever sequences we want" (the principle of 4:18 PM
+  EDT: each command does one and only one thing and does it
+  exceptionally well; the order lives only in the wrapper's step list).
+  Inventory: docs/design/command-inventory.md. `cli.render_parity` is
+  the pre-upgrade check for schema v29 (stored page text dropped) and
+  `cli.dedupe` the one-off backfill for names that predate the
+  uniqueness rule (v24); neither runs from `update.sh` or `install.sh`,
+  and the database is at revision 0108. Done: both modules, their tests
+  (src/tests/test_admin_script_cli.py and the render-parity cases of
+  src/tests/test_system_render.py) and their docs lines are removed with
+  no shim; nothing else imports them. Owner: unassigned (small).
+  Prerequisites: none. Related: PERF.120.
+  Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 ## DOC: Documentation
 

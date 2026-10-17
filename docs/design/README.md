@@ -139,6 +139,7 @@ A note's own status line, at its top, is the authority; this page only points at
 
 | Note | What it covers | Status |
 |---|---|---|
+| [command-inventory.md](command-inventory.md) | Every command does one and only one thing and the order lives only in the wrapper's step list: Boss's principle (2026-10-17), and the inventory of every command and entry point with the item that reshapes each one (PERF.118, PERF.120 to PERF.128, OPS.60, OPS.61) | plan |
 | [redis-and-the-work-queue.md](redis-and-the-work-queue.md) | How Redis is used and what to change (PERF.86) | research (decided; being built) |
 | [work-queue-audit.md](work-queue-audit.md) | What starts work and what moves to the queue | built (replaced in part by PERF.86) |
 | [performance-eta-queue-and-caching.md](performance-eta-queue-and-caching.md) | Progress estimates, the job queue and caching | research (queue under redo) |
