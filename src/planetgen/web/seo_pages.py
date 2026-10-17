@@ -88,7 +88,7 @@ def sitemap_index():
             size = settings.seo.sitemap_max_urls
             for kind, total in (("systems", apiclient.get_systems(db, limit=1)["total"]),
                                 ("sectors", apiclient.get_sectors(db, limit=1)["total"])):
-                files += [seo.absolute(url_for("web.sitemap_detail", kind=kind, n=n))
+                files += [seo.absolute(url_for("web.sitemap_detail", listing=kind, n=n))
                           for n in range(1, _chunks(total, size) + 1)]
         return seo.sitemap_index_xml(files)
 
@@ -155,16 +155,16 @@ def _sector_chunk(db, n, size):
     return urls
 
 
-@bp.route("/sitemap-<any(systems,sectors):kind>-<int:n>.xml")
+@bp.route("/sitemap-<any(systems,sectors):listing>-<int:n>.xml")
 @_file
-def sitemap_detail(kind, n):
+def sitemap_detail(listing, n):
     """One file of system or sector addresses; 404 unless the detail pages may be indexed."""
     settings = _sitemaps_on()
     if not seo.detail_indexed(settings) or n < 1:
         abort(404)
     db, size = db_name(), settings.seo.sitemap_max_urls
-    build = (lambda: _system_chunk(db, n, size)) if kind == "systems" else (lambda: _sector_chunk(db, n, size))
-    urls = seo.cached((kind, db, n, size), lambda: seo.sitemap_urls_xml(build()))
+    build = (lambda: _system_chunk(db, n, size)) if listing == "systems" else (lambda: _sector_chunk(db, n, size))
+    urls = seo.cached((listing, db, n, size), lambda: seo.sitemap_urls_xml(build()))
     return _text(urls, "application/xml")
 
 
