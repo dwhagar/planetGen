@@ -12457,11 +12457,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lanes verify citations before relying on them), the design note's
   yield table and open question 5 are updated with the measured values,
   and `planetgen plan --redo-scatters luminosity mass phenomena`
-  applies. Decision for Boss (relay as a card): derive the shares from
-  age and gas as above, or keep the stated 1% and 9% as a labelled
-  stand-in until the research is done. Owner: Core 3 (proposed, the
-  GEN.324 and GEN.240 work).
-  Prerequisites: GEN.369. Related: GEN.324, GEN.240, GEN.369, GEN.366,
+  applies. Decided (Boss, 2026-10-17, 7:54 AM EDT, card "How should
+  gas-rich satellites get young and intermediate stars?", tapped "Derive
+  from the law", the recommended option; relayed by the coordinator):
+  the shares are derived from each satellite's age history and gas, not
+  the stated 1% and 9% stand-in, which is dropped. Owner: Core 3
+  (proposed, the GEN.324 and GEN.240 work). The shares are a function of
+  each satellite's age range and gas, so the existing table gives a
+  first answer now and GEN.369's calculated satellites re-derive it;
+  GEN.369 is related, not a blocker.
+  Prerequisites: none. Related: GEN.324, GEN.240, GEN.369, GEN.366,
   GEN.319.
 
 - [ ] **GEN.527 The second star of a wide pair in a saved runaway system loads back 0.4 m/s off the system's velocity: find the cause instead of loosening the test (bug)**
@@ -12495,8 +12500,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Ia share and the old-star share profile fields and had the profile's
   kind factors read them; two parts of its Done list are not met. (1) A
   Magellanic cell can show every class: it cannot until the satellites
-  have young and intermediate populations (GEN.526, waiting on Boss's
-  card), so the Clouds still lack the young-star classes. (2) The
+  have young and intermediate populations (GEN.526, decided by Boss at
+  7:54 AM EDT: derived from age and gas), so the Clouds still lack the
+  young-star classes until it merges. (2) The
   scatter's planetary nebulae are not yet weighted by the old share (the
   profile's factor is), so the stored scatter rows still use the old
   rate; that changes stored values, so it is a generator epoch change
