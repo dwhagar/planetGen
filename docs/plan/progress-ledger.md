@@ -795,3 +795,5 @@ Baseline: PR #1817.
 | DOC.60 | 8.1 | Docs |
 | GEN.527 | 8.1 | Components and wanderers |
 | GEN.528 | 8.1 | Components and wanderers |
+| DB.53 | 8.1 | Star-system storage |
+| GEN.294 | 8.3 | Positions as one object |
