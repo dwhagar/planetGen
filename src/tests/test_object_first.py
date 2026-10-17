@@ -75,6 +75,31 @@ def test_the_majorant_is_never_below_the_true_density(shape, shell):
                 assert wanted <= majorants[band + high] * (1 + 1e-9), (shell, band, fractions)
 
 
+@pytest.mark.parametrize("shell", [100, 400, 800, 900, 1000, 1100, 1250, 2000, 3000])
+def test_the_majorant_holds_across_the_bar_gap_and_the_outer_disk(shell):
+    """GEN.134: the recent star-formation factor moves young and intermediate stars by radius (a gap, a ring at its
+    edge, a fall outward), and the majorant widens their weights by the factor's true range over each band's radii.
+    Bands near the plane and near the axis of shells from the bulge to the outer disk, for passes that take only the
+    recent populations, the old ones, or a mix."""
+    rng = random.Random(shell)
+    high = spherical.band_range(shell)[1]
+    zero = {name: 0.0 for name in brightStars.POPULATIONS}
+    passes = (dict(zero, young=1.0), dict(zero, intermediate=1.0), dict(zero, young=0.7, intermediate=0.3),
+              dict(zero, old=1.0), dict(zero, young=0.01, intermediate=0.2, old=0.6, bulge=1.0))
+    bands = sorted({0, 1, -1, 2, high // 8, -high // 8, high // 3, -high // 3, high // 2, high - 1, 1 - high})
+    for fractions in passes:
+        majorants = object_first.band_majorants(MILKY_WAY, shell, high, EDGE_PC, fractions)
+        for band in bands:
+            for _ in range(120):
+                wedge = rng.randrange(wedge_count(shell, band))
+                point = brightStars._point_in_cell(random.Random(rng.random()), shell, band, wedge, EDGE_PC)
+                if point is None:
+                    continue
+                densities = brightStars._densities(tuple(v / brightStars.MPC_PER_PC for v in point), MILKY_WAY)
+                wanted = sum(densities[p] * fractions[p] for p in brightStars.POPULATIONS)
+                assert wanted <= majorants[band + high] * (1 + 1e-9), (shell, band, fractions)
+
+
 def test_check_mode_runs_whole_shells_without_the_majorant_being_exceeded():
     for shell, high in EXTENTS:
         list(brightStars.scatter_shell(SHAPE, shell, high, EDGE_PC, E_VALUE, THRESHOLD, 5, check=True))
