@@ -331,7 +331,6 @@ Helpers every package can use.
 | [`serialization.py`](../../src/planetgen/util/serialization.py) | The allowlist `to_dict`/`from_dict` helpers the generator's classes share. |
 | [`settings.py`](../../src/planetgen/util/settings.py) | One Pydantic model, `Settings`, describes every `config.json` option: its type, default, help text, unit, whether it is a secret, whether changing it needs a restart, which environment variable overrides it and whether the web may edit it. |
 | [`stagemark.py`](../../src/planetgen/util/stagemark.py) | The one wording for "where a job is": `"Stage 4 of 12"` for one stage and `"Stages 4 to 12 of 12"` for a run of them. |
-| [`xfetch.py`](../../src/planetgen/util/xfetch.py) | Fetching a costly value shortly before it expires (PERF.110, XFetch): `xfetch_early` is the decision, `AgedCache` the in-process cache the admin Stats page's database figures use; the page cache uses the decision for its own costly entries. |
 
 #### src/planetgen/queue/
 
@@ -506,6 +505,7 @@ Shared page-building code.
 | [`mdrender.py`](../../src/planetgen/web/lib/mdrender.py) | Renders the generator's narrow Markdown subset to HTML with the `markdown` package (UX.39); anything outside the subset stays plain text and is escaped. |
 | [`modulegraph.py`](../../src/planetgen/web/lib/modulegraph.py) | The modules a page's script pulls in, for `<link rel="modulepreload">` hints (MAP.161). |
 | [`pagecache.py`](../../src/planetgen/web/lib/pagecache.py) | Cache of the API's public GET answers for the pages (PERF.2, PERF.104): in memory per process and shared through Redis, each answer served only while the data tags it read are unchanged ([`pagetags.py`](../../src/planetgen/web/lib/pagetags.py), [`dataversion.py`](../../src/planetgen/db/dataversion.py)), capped by age and size. `page_cache` in `config.json`; `PLANETGEN_PAGE_CACHE=off` turns it off. See [cache-warm-up.md](cache-warm-up.md). |
+| [`xfetch.py`](../../src/planetgen/web/lib/xfetch.py) | Fetching a costly value shortly before it expires (PERF.110, XFetch): `xfetch_early` is the decision, `AgedCache` the in-process cache the admin Stats page's database figures use; the page cache uses the decision for its own costly entries. |
 | [`pagination.py`](../../src/planetgen/web/lib/pagination.py) | The site's one pager. |
 | [`privatedir.py`](../../src/planetgen/web/lib/privatedir.py) | Safe private fallback directories in the system temp folder. |
 | [`singleflight.py`](../../src/planetgen/web/lib/singleflight.py) | One build of each Galaxy Map tile or stage at a time (PERF.38). |

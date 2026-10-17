@@ -25,7 +25,7 @@ from planetgen.admin import auth, throttle
 from planetgen.generation import stats as generationStats
 from planetgen.api import naming
 from planetgen.names import naming_key
-from planetgen.util import xfetch
+from planetgen.web.lib import xfetch
 from planetgen._version import __version__
 
 from .authz import audit, require_admin

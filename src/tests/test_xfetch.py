@@ -14,7 +14,7 @@ import time
 import pytest
 
 from planetgen.queue import redisclient
-from planetgen.util import xfetch
+from planetgen.web.lib import xfetch
 from planetgen.web.lib import pagecache
 
 

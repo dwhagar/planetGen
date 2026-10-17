@@ -63,7 +63,7 @@ import redis
 from planetgen.db import dataversion
 from planetgen.queue import redisclient
 from planetgen.util.settings import PageCache
-from planetgen.util.xfetch import XFETCH_BETA, XFETCH_MIN_SECONDS, xfetch_early
+from planetgen.web.lib.xfetch import XFETCH_BETA, XFETCH_MIN_SECONDS, xfetch_early
 from planetgen.web.lib import pagetags
 
 DEFAULTS = PageCache().model_dump()

@@ -138,7 +138,7 @@ def test_stats_reports_health_and_database_numbers(admin_client, colliding_names
 def test_slow_database_figures_are_kept_and_made_again_before_they_go_stale(admin_client, monkeypatch):
     """PERF.110: figures that took long to make are served for a while, and a fast galaxy always shows live ones."""
     from planetgen.api import admin
-    from planetgen.util import xfetch
+    from planetgen.web.lib import xfetch
 
     class Clock:
         now = 1000.0
