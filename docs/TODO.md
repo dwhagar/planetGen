@@ -15355,7 +15355,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
   0106 DB.65 (merged, #2025), DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
   order they merge.
-  Update (TODO thread, 2026-10-17, 5:55 PM EDT): 0107 went to GEN.526
+  Update (TODO thread, 2026-10-17, 5:52 PM EDT): 0107 went to GEN.526
   (satellite ages), 0108 to DB.72 (#2060) and 0109 to GEN.289 (#2108);
   the head is 0109 and the next free is 0110. DB.69, DB.67, DB.70 and
   DB.68 take the next free ids in the order they merge, so the numbers
@@ -15376,7 +15376,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
   0106 DB.65 (merged, #2025), DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
   order they merge.
-  Update (TODO thread, 2026-10-17, 5:55 PM EDT): 0107 went to GEN.526
+  Update (TODO thread, 2026-10-17, 5:52 PM EDT): 0107 went to GEN.526
   (satellite ages), 0108 to DB.72 (#2060) and 0109 to GEN.289 (#2108);
   the head is 0109 and the next free is 0110. DB.69, DB.67, DB.70 and
   DB.68 take the next free ids in the order they merge, so the numbers
@@ -15454,7 +15454,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
   0106 DB.65 (merged, #2025), DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
   order they merge.
-  Update (TODO thread, 2026-10-17, 5:55 PM EDT): 0107 went to GEN.526
+  Update (TODO thread, 2026-10-17, 5:52 PM EDT): 0107 went to GEN.526
   (satellite ages), 0108 to DB.72 (#2060) and 0109 to GEN.289 (#2108);
   the head is 0109 and the next free is 0110. DB.69, DB.67, DB.70 and
   DB.68 take the next free ids in the order they merge, so the numbers
@@ -15509,7 +15509,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
   0106 DB.65 (merged, #2025), DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
   order they merge.
-  Update (TODO thread, 2026-10-17, 5:55 PM EDT): 0107 went to GEN.526
+  Update (TODO thread, 2026-10-17, 5:52 PM EDT): 0107 went to GEN.526
   (satellite ages), 0108 to DB.72 (#2060) and 0109 to GEN.289 (#2108);
   the head is 0109 and the next free is 0110. DB.69, DB.67, DB.70 and
   DB.68 take the next free ids in the order they merge, so the numbers
