@@ -131,8 +131,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.43 | A full configuration page under Admin |  | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). Umbrella; the Owner tier is ADM.86 in 8.2. |
-| ADM.44 | Web, Open Graph and SEO settings | ADM.43 | GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743). Moved from 8.2 with ADM.43. |
 
 ### Generate page and directives
 
