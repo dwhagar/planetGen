@@ -7083,6 +7083,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bright stars are placed in the Clouds at the default floor. The
   calculated satellites of this item re-derive these shares from the
   halo mass history.
+  Findings from GEN.526 (Core 3, 2026-10-17, 12:16 PM EDT as the lane
+  reported; kind design gap, both for this item's re-derivation): (1)
+  the exponential history family over 13 Gy with the row's mean age, and
+  the 3 Msun/pc2 threshold (the low end of Schaye 2004's 3 to 10), are
+  inferred, not sourced; a sourced satellite history table replaces the
+  family. (2) Leo I comes out forming stars (7 Msun/pc2) although it has
+  no gas today, because its recalled mean age of 5 Gy in
+  MILKY_WAY_SATELLITES asks for a rising history; those table values are
+  the unchecked GEN.237 ones, which this item re-derives. Test targets
+  that are recalled and still to verify: LMC atomic gas about 4e8 Msun
+  (the build gives 4.4e8) and Harris and Zaritsky 2009 about 0.2 Msun/yr
+  over the last 5 Gy (read in arXiv:0908.1422; the build gives 0.36
+  Msun/yr now).
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
@@ -13249,6 +13262,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 2 of 48). This replaces any earlier owner line on this item.
+  Finding from GEN.526 (Core 3, 2026-10-17, 12:16 PM EDT as the lane
+  reported; merged #2043): satellite_young is in
+  system_types.POPULATIONS but no system-type row names it, the
+  system-type tables list only the disk's young population for the
+  young-star types, and the component pass's phenomenon_rates drops the
+  gas and young-star classes for satellites, so the Clouds' young stars
+  do not yet get supernova remnants or magnetars. This is part (1) of
+  this item: after GEN.526, a Magellanic cell still lacks those classes
+  until the rows name satellite_young and the rates keep the gas and
+  young-star classes.
   Prerequisites: none. Related: GEN.319, GEN.526, GEN.324, GEN.322.
 
 - [ ] **GEN.529 The pre-main-sequence track takes its Hayashi temperature, birthline radius and energy factor from a sourced table, and the state reaches stars still contracting after 10 Myr**
