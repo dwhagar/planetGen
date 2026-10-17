@@ -8211,9 +8211,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Huebner 2015, Burkholder 2020, the Mainz and Serdyuchenko files:
   verify redistribution rights before embedding cross-section files) and
   the list of publisher domains to open for primary sources; the lane
-  found the same licence question (master section 6 item 13). Awaiting
-  verification; not a verified input, and every number stays labelled by
-  what the lane read.
+  found the same licence question (master section 6 item 13). Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/atmosphere-composition.md); every number stays labelled by what the lane read.
   Part F of the Body composition research lane
   (docs/design/body-composition-parts/F-boss-note-check.md; 2026-10-17,
   1:28 AM EDT as the lane reported; checks Boss's research note of 1:22
@@ -8256,8 +8254,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the dataset licence table
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the dataset licence table
   (Mainz CC BY 4.0, Leiden citation request, JPL 19-5 public domain,
   Bremen unspecified, NMSU processed tables only) for the licence
   column.
@@ -8273,6 +8270,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   permission or a re-derivation from the primary measurements; the audit
   is GEN.500, and the photolysis lifetimes are constants of this table
   (GEN.496).
+  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
+  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
+  10A to 10D of atmosphere-composition.md): cold curves are lab fits
+  only inside their windows (N2 23 to 31 K, CO 26 to 35, CH4 31 to 43
+  from Grundy 2024; beta-O2 29 to 37 and NH3 88 to 105 from Blakley
+  2025), blended into Fray and Schmitt where the ratio reaches 1; the
+  earlier factor 4 at 24 K for O2 is dropped (extrapolation); never
+  scale p_vap by a sticking coefficient; no Rayleigh coefficient from
+  the note is adopted (its CO2, O2, CH4 dispersion formulas are wrong,
+  N_s is right; SO2 and H2S stay on the polarizability route until
+  Bogaard 1978); licences: JPL 19-5 is not public domain, Huebner and
+  Mukherjee, NMSU and Bremen have no licence found, Mainz is CC BY 4.0.
   Related: DB.71.
 
 - [ ] **GEN.411 The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree**
@@ -8372,6 +8381,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   code was tested in the grey limit; the open point is the opacity link
   (kappa_R and gamma_v from the mixture), and the Parmentier 2015
   opacity tables (arXiv:1311.6322) still have to be extracted.
+  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
+  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
+  10A to 10D of atmosphere-composition.md): the Parmentier and Guillot
+  semi-grey form is equation 30 with mu_* throughout; beta is the band
+  fraction, not an opacity ratio.
   Prerequisites: GEN.409. Related: DB.67, GEN.85, GEN.355.
 
 - [ ] **GEN.413 Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance**
@@ -8421,10 +8435,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the JPL 19-5 Troe falloff
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the JPL 19-5 Troe falloff
   form, the chlorine catalytic cycles and the phosphine photolysis cross
   sections.
+  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
+  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
+  10A to 10D of atmosphere-composition.md): Troe falloff with Fc 0.6 and
+  N 1 (JPL; the note's exponent gives -0.238); JPL 19-5 did not update
+  the ClO reactions; no new PH3 cross sections; Harman 2015, Zahnle 2006
+  and Hunten 1973 are not shown to be updated by new cross sections.
   Related: GEN.87, GEN.189, DB.68.
 
 - [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
@@ -8472,8 +8491,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   equivalent-sphere Mie underpredicting forward scattering by up to 40
   percent (Tomasko 2008, Doose 2016); an organic haze threshold of
   CH4/CO2 above 0.1 (Arney 2016, as the lane read it); volatile SO2
-  aerosol optics. Awaiting verification; not a verified input, and every
-  number stays labelled by what the lane read.
+  aerosol optics. Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/atmosphere-composition.md); every number stays labelled by what the lane read.
   Checked by the Body composition research lane (part F, 1:28 AM EDT as
   the lane reported): Boss's row that gives the Mars dust albedo of 0.92
   to 0.95 near 670 nm under 'volcanic SO2 aerosol' with Lemmon 2004 and
@@ -8500,10 +8518,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the Mars dust albedo and
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the Mars dust albedo and
   effective radii, the CH4/CO2 haze threshold of about 0.1 and the haze
   extinction index of 2 to 4.
+  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
+  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
+  10A to 10D of atmosphere-composition.md): aerosol ranges are in
+  finding 28 (dust effective radius and single-scattering albedo, haze
+  threshold); the Mars dust albedo and Titan haze figures of the note
+  are only partly confirmed.
 
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8578,8 +8601,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and H2S with depolarization above 0.04 (King factors above 1.20), from
   Bates 1984, Bucholtz 1995, Sneep and Ubachs 2005 and Bogaard 1978; the
   lane's part 02 carries the verified depolarization spreads, which the
-  design compares with these. Awaiting verification; not a verified
-  input, and every number stays labelled by what the lane read.
+  design compares with these. Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/atmosphere-composition.md); every number stays labelled by what the lane read.
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
   reported (findings 11 to 20 and section 3b of
   docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
@@ -8591,10 +8613,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the per-gas refractive
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the per-gas refractive
   index and King factor formulas and the cross sections at 532 nm;
   compare with finding 14.
+  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
+  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
+  10A to 10D of atmosphere-composition.md): no Rayleigh coefficient of
+  the note replaces a verified one; use the part 02 table and the
+  first-report formulas; the note's N_s = 2.54743e19 cm^-3 is right; the
+  King-factor-above-1.20 claim is unsupported.
   Prerequisites: GEN.410, GEN.411. Related: GEN.418, VIEW.14.
 
 - [ ] **GEN.418 Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce**
@@ -8647,8 +8674,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   analysis; weak-band windows at 727 and 890 nm), Coles 2018 ammonia
   coefficients with low-temperature CH4 correlated-k grids, and the weak
   visible tails of NH3, SO2 and NO2 (master section 6 item 3 of
-  docs/design/atmosphere-composition.md). Awaiting verification; not a
-  verified input, and every number stays labelled by what the lane read.
+  docs/design/atmosphere-composition.md). Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/atmosphere-composition.md); every number stays labelled by what the lane read.
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
   reported (findings 11 to 20 and section 3b of
   docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
@@ -8661,8 +8687,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the visible line lists of
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the visible line lists of
   CH4 and NH3 (Karkoschka 1994, Karkoschka and Tomasko 2009 and 2010,
   Sithajan 2025).
   Prerequisites: GEN.418. Related: GEN.409, GEN.420.
@@ -8739,6 +8764,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in the melt; the repo's REDOX_EARTH_DELTA_IW of 3.5 is the later
   mantle only (rows a1 and a2 of part 09, category a). The cold curves
   are the composite of GEN.410.
+  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
+  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
+  10A to 10D of atmosphere-composition.md): lava worlds: carbon is CO
+  below about IW and carbonate above about IW+1; Na leads the vapour to
+  about 2700 K, so no 2200 K switch and no 40 to 60 g/mol mean; keep the
+  Miguel type edges; cold curves as in GEN.410.
 
 - [ ] **GEN.423 Atmosphere density, scale height and the greenhouse multiplier follow from the mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -8775,8 +8806,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ln(C/C0) W/m2, with the warning that it fails above 1 bar of CO2
   (pressure broadening, continuum), where correlated-k grids from ExoMol
   or HITEMP are needed; the same open point as master section 6 item 5
-  of docs/design/atmosphere-composition.md. Awaiting verification; not a
-  verified input, and every number stays labelled by what the lane read.
+  of docs/design/atmosphere-composition.md. Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/atmosphere-composition.md); every number stays labelled by what the lane read.
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
   reported (findings 11 to 20 and section 3b of
   docs/design/atmosphere-composition.md; parts 08A, 08B and 09), filed
@@ -8790,10 +8820,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the double-grey
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the double-grey
   Parmentier and Guillot profile with gamma = kappa_v / kappa_th;
   compare with finding 13.
+  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
+  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
+  10A to 10D of atmosphere-composition.md): Parmentier and Guillot as in
+  GEN.412 (equation 30, mu_* throughout, beta is the band fraction).
 
 - [ ] **GEN.424 The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -9007,8 +9040,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the dataset licence table
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the dataset licence table
   (see GEN.410) for the licence column.
   Checked by the Body composition research lane against Boss's second
   note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
@@ -9324,8 +9356,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   neutrons 5 to 20) and secondary neutron cascades dominating subsurface
   dose; W values and EUV outer-shell cross sections for Ar, Ne, Kr, Xe,
   HCN, H2CO, HCl, HF, CH3Cl, SiO, TiO and VO (part 07 of the atmosphere
-  research is the evidence). Awaiting verification; not a verified
-  input, and every number stays labelled by what the lane read.
+  research is the evidence). Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/atmosphere-composition.md); every number stays labelled by what the lane read.
   Checked by the Body composition research lane (part F, 1:28 AM EDT as
   the lane reported): in ICRP 103 the tissue weights belong to tissues
   and not to particle types (Boss's table pairs each particle with a
@@ -9415,8 +9446,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the dataset licence table
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the dataset licence table
   (see GEN.410) for the licence column.
   Prerequisites: GEN.437, GEN.500. Related: GEN.410, GEN.427, GEN.439,
   GEN.444.
@@ -9723,10 +9753,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the Rayleigh formulas,
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the Rayleigh formulas,
   the double-grey profile and the correlated-k and Rosseland mean
   opacity route for composition-derived infrared optical depth.
+  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
+  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
+  10A to 10D of atmosphere-composition.md): the note's Band form for
+  solar particles is discontinuous; use the integral rigidity Band form
+  with the Atwell 2015 parameters; the atmospheric cutoff comes from
+  inverting the PSTAR range for column P/g (Mars 165 MeV vertical);
+  neutrons are 2 to 7 percent of the dose; W(air) is 33.97 eV.
 
 - [ ] **GEN.444 Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9781,8 +9817,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the K/U and Th/U table by
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the K/U and Th/U table by
   reservoir (CI chondrites, bulk Earth, Moon, Mars, Venus, Mercury;
   Solar System values as test targets only), the metallicity trend of Th
   and U, the Band function for energetic-particle spectra and the Mars
@@ -9822,8 +9857,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the surface dose rates by
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the surface dose rates by
   body (Mars 76 mGy per year and 232 mSv per year under 20 to 22 g/cm2;
   Europa and Titan rows) and the biological thresholds; compare the
   neutron share with finding 18.
@@ -9865,8 +9899,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the radiation and
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the radiation and
   composition statements it would write come from the checked values
   only.
 
@@ -10020,8 +10053,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Venus outgassing were alike. It agrees with the lane's magma-ocean
   stage (near the buffer to one above) and does not change the
   building-block mean (about 1 below to 0 above) that this item uses;
-  the Earth value is a test target only. Awaiting verification; not a
-  verified input, and every number stays labelled by what the lane read.
+  the Earth value is a test target only. Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/atmosphere-composition.md); every number stays labelled by what the lane read.
   Part F of the Body composition research lane
   (docs/design/body-composition-parts/F-boss-note-check.md; 2026-10-17,
   1:28 AM EDT as the lane reported; checks Boss's research note of 1:22
@@ -10053,8 +10085,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the carbonate against CO
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the carbonate against CO
   and CH4 split of carbon in silicate melt by delta-IW (Hirschmann 2012,
   Gaillard 2014 and 2021) and the outgassed atmosphere by redox state;
   compare with finding 12.
@@ -10121,8 +10152,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   same two typos and that Fray and Schmitt exceeds the laboratory curves
   by up to 6 times below 40 K; the design checks the Boss-supplied
   coefficients against the lane's table before they replace anything.
-  Awaiting verification; not a verified input, and every number stays
-  labelled by what the lane read.
+  Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/atmosphere-composition.md); every number stays labelled by what the lane read.
   Checked by the Body composition research lane (part F, 2026-10-17,
   1:28 AM EDT as the lane reported) against Boss's note: water ice by
   Feistel and Wagner is correct to 0.06 percent against IAPWS R14-08 (60
@@ -10192,10 +10222,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the 150 MeV Mars cutoff,
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the 150 MeV Mars cutoff,
   the Band function and the W-value of 33.85 eV per ion pair, to compare
   with the constants this item corrects.
+  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
+  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
+  10A to 10D of atmosphere-composition.md): the Titan column is 10,850
+  g/cm2 (the note's was 10 times too small) with a surface dose of about
+  3e-6 Gy per year; Europa needs a depth profile (the note's figure has
+  no primary source); Mars RAD numbers 0.21 mGy/day and 0.64 mSv/day are
+  confirmed.
 
 - [ ] **GEN.454 Giant planets, ice giants and brown dwarfs draw their atmosphere mixture from the equilibrium chemistry sequence: by temperature, pressure, metallicity and quench**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -10261,8 +10297,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the giant metallicity
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the giant metallicity
   scaling and the double-grey profile.
 
 - [ ] **GEN.455 Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates**
@@ -10300,8 +10335,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rate Q(H2O) 1e26 to 1e31 molecules per second (Mumma and Charnley
   2011, Bockelee-Morvan 2004, Dello Russo 2016, A'Hearn 2012), and the
   advice to sample a distribution and never an average composition.
-  Awaiting verification; not a verified input, and every number stays
-  labelled by what the lane read.
+  Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/atmosphere-composition.md); every number stays labelled by what the lane read.
   Checked by the Body composition research lane (part F, 1:28 AM EDT as
   the lane reported): Boss's comet ranges are consistent with what part
   D read (CO/H2O median 3.3 with range 0.3 to 26 and CO2/H2O median 12
@@ -10322,8 +10356,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the comet volatile table
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the comet volatile table
   (CO, CO2, CH4, C2H6, NH3, HCN against water, with photochemical
   lifetimes at 1 AU); the NH3 range disagrees with finding 17.
   Checked by the Body composition research lane against Boss's second
@@ -10336,6 +10369,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mm NH3 line (the ground rotational line is 572.498 GHz); the lifetimes
   are quiet-Sun values and the active Sun shortens H2O by 1.7 and CO2 by
   2.35 (items GEN.495 and GEN.496).
+  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
+  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
+  10A to 10D of atmosphere-composition.md): NH3 photolysis lifetime
+  about 5.6e3 s by this lane (the Body lane read 6.7e3 s; GEN.496
+  reconciles the two); comet CO2 ratios confirmed, other comet ranges
+  per finding 27.
 
 - [ ] **GEN.456 Lava worlds and hot rocky planets draw a vapour atmosphere over the magma from the surface composition and temperature: sodium, potassium, silicon monoxide, magnesium, iron and the oxides**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -10372,8 +10411,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dominated by Na, K, Fe, Si, SiO, O and O2, the TiO and VO optical
   bands that cause stratospheric inversions, and the pressure-broadened
   Na D and K I wings (Schaefer, Lodders and Fegley 2012, LavAtmos).
-  Awaiting verification; not a verified input, and every number stays
-  labelled by what the lane read.
+  Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/atmosphere-composition.md); every number stays labelled by what the lane read.
   Part F of the Body composition research lane
   (docs/design/body-composition-parts/F-boss-note-check.md; 2026-10-17,
   1:28 AM EDT as the lane reported; checks Boss's research note of 1:22
@@ -10390,8 +10428,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the LavAtmos and VapoRock
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the LavAtmos and VapoRock
   vaporisation lines, the sub-liquidus alkali regime and the
   super-liquidus monoxides above 2200 K.
   Checked by the Body composition research lane against Boss's second
@@ -10404,6 +10441,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chemical-potential calculations (LavAtmos is arXiv:2210.10463, 9
   oxides, GPL-3.0; VapoRock is AGPL-3.0; tools to read, not code to
   copy), see the vapour species item GEN.499.
+  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
+  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
+  10A to 10D of atmosphere-composition.md): lava vapour as in GEN.422:
+  Na-dominated to about 2700 K, no 40 to 60 g/mol mean (the Body lane
+  reads 25 to 33 g/mol, see GEN.499).
 
 - [ ] **GEN.457 The small bodies and moons composition design: the taxon and comet draws, compaction, the moon origin types and the ice fraction**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -10544,8 +10586,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   high Th/U raising early radiogenic heating and low K/U lowering
   long-term crustal heating (master section 6 item 12 of
   docs/design/atmosphere-composition.md); the lane's parts A and E hold
-  the read abundance trends. Awaiting verification; not a verified
-  input, and every number stays labelled by what the lane read.
+  the read abundance trends. Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/atmosphere-composition.md); every number stays labelled by what the lane read.
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
   docs/design/composition-model.md; format and loader GEN.472, the sum
   test TEST.214): no table: the radiogenic heat is derived from the host
@@ -10565,8 +10606,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the K/U and Th/U table by
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the K/U and Th/U table by
   reservoir and the Th and U against [Fe/H] and alpha trend; Solar
   System values are test targets only.
   Checked by the Body composition research lane against Boss's second
@@ -10583,6 +10623,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dex per dex, Eu/alpha -0.16 to -0.23); d_K log-uniform 0.03 to 1 stays
   (observed bodies lie at 0.03 to 0.28). K/U and Th/U by reservoir are
   calibration targets with the scatters of part G2, never presets.
+  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
+  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
+  10A to 10D of atmosphere-composition.md): Venus K/U 6 to 8 thousand;
+  MORB Th/U about 3.0 (the radioisotope Th/U range needs a lower tail);
+  Solar System reservoirs stay test targets.
 
 - [ ] **GEN.460 Giant planets and brown dwarfs get their radius and heavy-element content from the checked laws: the heavy-element mass law, the Fortney and Baraffe tables with inflation, and the burning limits shifted by metallicity and helium (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -10623,9 +10668,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   M_z proportional to M_p^beta with scatter of about 0.3 to 0.5 dex; the
   Body composition lane's read value is 0.26 dex with M_Z = 57.9
   (M/MJ)^0.61 Earth masses (arXiv:1511.07854), which this item uses
-  until the Boss-supplied figure is verified. Awaiting verification; not
-  a verified input, and every number stays labelled by what the lane
-  read.
+  until the Boss-supplied figure is verified. Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/atmosphere-composition.md); every number stays labelled by what the lane read.
   Checked by the Body composition research lane (part F, 1:28 AM EDT as
   the lane reported): the Thorngren exponent matches (0.61) but the
   scatter is 0.26 dex (factor 1.82) in the paper as read, not 0.3 to 0.5
@@ -10638,8 +10681,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the Thorngren scaling
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the Thorngren scaling
   Z_planet/Z_star proportional to M^-alpha with alpha 0.45 to 0.55 (the
   Body composition lane read 0.61 and a scatter of 0.26 dex).
   Checked by the Body composition research lane against Boss's second
@@ -10658,6 +10700,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (log-uniform 5 to 20 Earth masses) is supported by Chachan 2025 (14.7
   Earth masses). The 0.45 to 0.55 of the note matches the exponent in
   magnitude only.
+  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
+  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
+  10A to 10D of atmosphere-composition.md): Thorngren fit Z_p/Z_* = 9.7
+  M_J^-0.45 (arXiv:1511.07854, the note had the wrong id) with scatter
+  x1.82, valid from 20 Earth masses; do not add 'more heat at low
+  metallicity'.
 
 - [ ] **GEN.461 The hydrosphere reads the stored water mass fraction: the compressed water-layer depth, the base pressure, the high-pressure ice and the liquidus are recomputed, and the class label follows from the water share (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -10697,8 +10745,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   H2SO4-H2O vapour pressure by weight percent 70 to 98 (Tabazadeh 1997,
   Zeleznik 1991, Ayers 1980) and clathrate dissociation ln(P/P0) = A +
   B/T (Sloan and Koh 2007, Choukroun 2010); the Venus acid part belongs
-  to GEN.414. Awaiting verification; not a verified input, and every
-  number stays labelled by what the lane read.
+  to GEN.414. Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/atmosphere-composition.md); every number stays labelled by what the lane read.
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
   docs/design/composition-model.md; format and loader GEN.472, the sum
   test TEST.214): no table of its own: the hydrosphere reads the water
@@ -10999,8 +11046,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the cold-ice vapour
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the cold-ice vapour
   pressures below 50 K (Grundy 2024 and Blakley 2025 laboratory fits,
   beta-O2 lower by 1.6), Jager and Span 2012 for CO2, and H2, HD and He
   as non-condensable above their critical temperatures; the
@@ -11017,6 +11063,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and solid CO2 uses Span and Wagner equation 3.12 (the 0 to 800 K, 12
   GPa range of the note belongs to Trusler 2011); H2 freezes below 13.96
   K (Tc 33.145 to 33.18 K, HD Tc 35.908 K); the item is GEN.497.
+  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
+  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
+  10A to 10D of atmosphere-composition.md): the Jager and Span CO2
+  equation is valid 80 to 300 K and 0 to 500 MPa; triple points CO 68.16
+  K, O2 54.361 K, NH3 195.49 K; lab fit windows as in GEN.410.
+  Blakley 2025 beta-O2 'lower than legacy by an average factor of 1.6'
+  is a mean over its own 29 to 37 K window (Fray and Schmitt over lab
+  2.4 down to 1.3; recomputed 1.7); the factor 4.1 at 24 K is the fitted
+  curve extrapolated below the lowest datum, not a measurement, and part
+  01 labels its 24 and 26 K ratios as extrapolation (Atmosphere lane,
+  part 10A claim 2, about 2:55 AM EDT as the lane reported).
 
 - [ ] **GEN.471 Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K**
   Part F of the Body composition research lane
@@ -11044,8 +11101,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the CO2 clathrate
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the CO2 clathrate
   quadruple point (271.60 K, 1.044 MPa), the van der Waals and Platteeuw
   model, salt shifts, perchlorate deliquescence and the eutectic near
   205 K for Mg(ClO4)2, and the Venus H2SO4-H2O activity sources.
@@ -11057,6 +11113,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Semenov 2023 with +/- 0.021 MPa (not +/- 0.002), and Q2 is 283.13 K at
   4.494 MPa; the deliquescence relative humidity sources (Gough 2011,
   Nuding 2014) and the JPL copyright page were not reached.
+  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
+  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
+  10A to 10D of atmosphere-composition.md): the CO2 hydrate quadruple
+  point Q1 271.60 K at 1.044 MPa is confirmed; the brine and H2SO4-H2O
+  remarks carry no constants and stay unadopted until Tabazadeh 1997,
+  Zeleznik 1991 and Ayers 1980 are read.
 
 - [ ] **GEN.472 One gated possibility-table format and loader: every composition category is a table of possibilities with a class gate and a weight, drawn by the normalised weights of the rows that pass**
   Boss (2026-10-17, 1:40 AM EDT, typed in the project chat): "We have to
@@ -11486,8 +11548,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the note's R1 (radius
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the note's R1 (radius
   valley with photoevaporation and core-powered mass loss).
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
@@ -11515,8 +11576,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the note's R2 (volatile
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the note's R2 (volatile
   delivery by tracking planetesimals and pebbles across the snow lines).
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
@@ -11586,8 +11646,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the note's R5 (giant C/O
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the note's R5 (giant C/O
   from gas-grain chemical evolution).
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
@@ -11675,8 +11734,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the note's R9 (chemical
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the note's R9 (chemical
   taxonomy of comets by hypervolatile abundances and D/H).
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
@@ -11723,8 +11781,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the note's R11 (trace
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the note's R11 (trace
   gases from photochemical steady-state networks).
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
@@ -11813,8 +11870,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
   Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as
-  awaiting verification, not a verified input: the note's R15
+  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the note's R15
   (brown-dwarf and exoplanet cloud regimes by kinetic grain growth).
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
@@ -11859,6 +11915,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a test checks each lifetime against the part's computed value and that
   no module holds a lifetime constant of its own. Owner: Core 4
   (proposed, with the composition chain).
+  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
+  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
+  10A to 10D of atmosphere-composition.md): the Atmosphere lane reads
+  the NH3 photolysis lifetime as about 5.6e3 s, the Body lane as 6.7e3
+  s: the table must carry the source and cross-section set of each
+  figure and reconcile them.
   Prerequisites: GEN.410. Related: GEN.410, GEN.455, GEN.413, GEN.472.
 
 - [ ] **GEN.497 The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve**
@@ -11948,6 +12010,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of every table names its licence, the loader (GEN.472) refuses a row
   without one, and the permission list is a document in docs/design.
   Owner: Core 4 (proposed, with the composition chain).
+  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
+  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
+  10A to 10D of atmosphere-composition.md): licence findings of the
+  Atmosphere lane (finding 29): JPL 19-5 is not public domain; Huebner
+  and Mukherjee, NMSU and Bremen no licence found; Mainz CC BY 4.0;
+  Leiden cite on use.
   Prerequisites: none. Related: GEN.472, GEN.410, GEN.427, GEN.438.
 
 ## PERF: Speed, caching, bulk generation and parallel work
