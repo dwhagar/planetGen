@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1627] - 2026-10-17
+
+**Headline:** The plan files the rescatter measurements: a wrong progress line, a star-count mismatch and stale generation cost notes.
+
+### Added
+- GEN.397 (bug): the stage-2 line of `plan` prints the progress weight as the number of phenomena. GEN.398 (bug): the massive-star and bright-star passes place 70 and 12 percent more than their log lines expect. DOC.62: the generation cost figures and the `--redo-scatters` scope are stale in the docs.
+
+### Changed
+- OPS.58, GEN.322 and GEN.323 note that scatter passes carry no epoch mark and that `--redo-scatters` redoes rows only.
+
+TODO items resolved: none / Added: GEN.397, GEN.398, DOC.62
+
 ## [8.0.1626] - 2026-10-17
 
 **Headline:** The stellar evolution fixes for horizontal-branch and giant stars are done, and the old Yerkes class III range is filed.
