@@ -303,6 +303,8 @@ Boss: every part of the generate process, all the scatter phases included, is an
 
 This is the shape of 5.1 made explicit. A command is a kind in the units registry (`queue/units.py` HANDLERS) with JSON arguments and a JSON result, and can be run alone. The wrapper is a pure function from the arguments of `planetgen galaxy` or `planetgen plan` to the ordered stages, each a list of commands with predicted cost; it writes the run record and queues the first stage, and the barrier of 5.1 queues each next stage. A chunk of a chunked stage is its own command. Built by PERF.118 (the wrapper), PERF.106 to PERF.108 (the stages as commands) and PERF.119 (every start path goes through the wrapper).
 
+Decided (Boss, 2026-10-17, 4:15 PM EDT): from the command line Boss runs `plan`, then `scatter`, and each scatter kind is its own command even where the root command is the same: a scatter command for only mass, only luminosity, only phenomena, only the nebula field, only the backfill, never one command that groups them. Each command has its own parameters, set by the UX when it runs the commands through the API and by Boss on the command line. When a new generate job is called, the wrapper only selects the commands that will run and never touches the others; they run in sequence; the progress bars are dynamic to the current context and show only what is going to run.
+
 ## 6. Decisions for Boss
 
 Each has a default; the default is what a "yes" means.
