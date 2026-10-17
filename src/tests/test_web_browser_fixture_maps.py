@@ -2061,7 +2061,9 @@ def test_galaxy_map_stars_fade_in_with_the_zoom(page, map_site):
     here = page.evaluate(opacity, 1.0)
     camera = here["camera"]
     assert here["count"] > 0 and here["camera"] > 0, here
-    steps = [camera * 2 ** (k / 8) for k in range(-8, 9)]
+    # Out to 1.4 times the camera's distance: further out the cut would hand the stars over to coarser tiles (the
+    # tile root reaches 262 kpc, MAP.239) that this view has not fetched, so the loaded tiles alone fade out there.
+    steps = [camera * 2 ** (k / 8) for k in range(-8, 5)]
     sums = [page.evaluate(opacity, r)["sum"] for r in steps]
     assert all(0 <= s <= here["count"] + 1e-6 for s in sums), sums
     for before, after in zip(sums, sums[1:]):
