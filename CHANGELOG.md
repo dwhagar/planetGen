@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1634] - 2026-10-17
+
+**Headline:** TEST.208 is filed: `scripts/test.py --resume` should reuse a test's earlier pass across builds when none of its own dependencies changed.
+
+### Added
+- TEST.208 (8.1 phase 1, goal issue #1694): a per-test dependency fingerprint so a cancelled gate after a merge of main reruns only the tests the merge affects; a changed package, server or day still reruns everything. TEST.148 carries a note that it widens.
+
+TODO items resolved: none / Added: TEST.208
+
 ## [8.0.1633] - 2026-10-17
 
 **Headline:** The Bug Hunt lane is recorded as the proposed owner of the open Phase 1 bugs.
