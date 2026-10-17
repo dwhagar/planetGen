@@ -2,6 +2,158 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1720] - 2026-10-17
+
+**Headline:** The cell key at the edge of its box is recorded as built (DB.65), with the migration head at 0106.
+
+### Changed
+
+- DB.65 is retired (merged as #2025, migration 0106, schema v106); the revision queue now reads DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110. TEST.213 carries a new sighting from DB.65's browser run.
+
+TODO items resolved: DB.65. / Added: none
+
+## [8.0.1719] - 2026-10-17
+
+**Headline:** The cell key no longer wraps for a position within 3e-11 parsecs of the 262 kpc box edge: it takes the last cube instead of the opposite edge's.
+
+### Changed
+- `cellkey.cell_index`, `cell_keys` and the SQL expression (`sql_cell_key`) hold the cube number at 2^21 - 1 (`cellkey.LAST_CELL`). Migration 0106 recomputes the generated `cell_key` of all 14 tables that have one (a table rebuild per table); `planetgen.cli.migrate` shows its progress.
+- `store.detect_schema_version` reads generated-column expressions to recognise v106.
+
+No generated object lies that close to the reach, so no stored value changes and the generator epoch stays.
+
+TODO items resolved: DB.65. Added: none.
+
+## [8.0.1718] - 2026-10-17
+
+**Headline:** The first Gemini research batch for the galaxy laws is recorded as unverified input on GEN.531.
+
+### Changed
+
+- GEN.531 notes that Gemini batch 1 (structural scaling laws, kinematics, assembly histories, ex situ halo fractions) arrived at 10:52 AM EDT and replaces no placeholder until each claim is checked against its source.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1717] - 2026-10-17
+
+**Headline:** The fifteen galaxy research requests (GEN.531) record that a Gemini search and a gap-filling plan are under way.
+
+### Changed
+
+- GEN.531 notes Boss's word (10:44 AM EDT): some things are not known; a Gemini agent searches the fifteen items with theories and speculation included, a read-only thread plans how the generator fills the gaps itself, and every stand-in is labelled so it can be replaced.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1716] - 2026-10-17
+
+**Headline:** The galaxy laws research (GEN.406) is filed as a design note with the sourced ranges for the stellar halo, ages, dispersions, thick disk, dwarfs and clusters.
+
+### Added
+
+- `docs/design/galaxy-laws-research.md`: the sourced laws and ranges, the conflicts between sources with proposed defaults, and fifteen open requests (GEN.531).
+
+### Changed
+
+- GEN.401, GEN.403, GEN.405 and GEN.369 carry the pointers and the flags (the 1.5e9 halo anchor is a Milky Way copy, the thick disk and the dispersion and height conflicts); GEN.409, GEN.426, GEN.435, GEN.436 and GEN.437 go to Blocker 1 and GEN.180 and GEN.229 to Core 5.
+
+TODO items resolved: GEN.406. / Added: GEN.531
+
+## [8.0.1715] - 2026-10-17
+
+**Headline:** Boss started the lane Blocker 1 for the composition loader (GEN.472) and the census harness (TEST.186).
+
+### Changed
+
+- GEN.472 and TEST.186 name Blocker 1 as owner (Boss, 10:27 AM EDT); GEN.472 notes that its prerequisite GEN.437 and the four design notes under it are still open with Core 4.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1714] - 2026-10-17
+
+**Headline:** Every open 8.1 item now names the lane that builds it, from Boss's Core 1 to Core 5 lanes.
+
+### Changed
+
+- Boss's lanes (10:06 AM EDT; Bug Hunt strictly bugs, Cores 1 to 5 each a distinct lane to 8.1 from the foundations forward) are recorded on GEN.301, and 154 items carry an Owner note with the lane and the position in its order; GEN.530's map and page reads are proposed to Core 2.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1713] - 2026-10-17
+
+**Headline:** The galaxy laws research of GEN.406 has its own research thread, chosen by Boss.
+
+### Changed
+
+- GEN.406 names the read-only research thread as its owner (Boss, 10:20 AM EDT), not Core 1; the lane assignment drops it from Core 1's queue.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1712] - 2026-10-17
+
+**Headline:** Core 4's findings from building the massive-star binaries are recorded on the items that check them.
+
+### Changed
+
+- GEN.448 and TEST.196 carry the G-dwarf close-companion level (0.13 against the pooled line's 0.20) and the O and B flatness ratios (1.32 and 1.43 against the 1.3 edge).
+
+TODO items resolved: none / Added: none
+
+## [8.0.1711] - 2026-10-17
+
+**Headline:** The part of GEN.320 that Core 3 did not wire, a pre-placed star's nebula on the maps and pages, is filed ahead of the 8.1 headline.
+
+### Changed
+
+- GEN.530 is filed (a pre-placed star's hosted nebula shows from its scatter row) and gates GEN.301; TEST.184 carries Core 3's protostar yield finding.
+
+TODO items resolved: none / Added: GEN.530
+
+## [8.0.1710] - 2026-10-17
+
+**Headline:** The nebula stars of GEN.320 are recorded as built, and Boss's drop of the massive-multiples prevalence cap (GEN.373) is recorded.
+
+### Changed
+
+- GEN.320 is retired (merged as #2014, generator epoch 11 pending); GEN.243, GEN.258 and GEN.321 no longer wait on it.
+- GEN.373 is closed as dropped (Boss, 10:07 AM EDT, his card answer as Core 4 reported it): the `prevalence` cap is not built, and `docs/design/placement-by-population.md` says so.
+
+TODO items resolved: GEN.320 (GEN.373 dropped). / Added: none
+
+## [8.0.1709] - 2026-10-17
+
+**Headline:** Boss chose to split Core 3's 8.1 chain across two generation lanes; the decision is recorded on the headline item.
+
+### Changed
+
+- GEN.301 records Boss's decision (10:02 AM EDT, "Split Core 3"): a new generation lane takes the stellar tables and small items, Core 3 keeps the nebula and cluster line; no test lane was chosen.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1708] - 2026-10-17
+
+**Headline:** Bok globules and star-forming cores now hold their protostars, and a planetary nebula's central star has its close companion.
+
+### Added
+- **The stars a nebula needs (GEN.320).** A Bok globule holds one protostar in 30% of clouds and a star-forming core holds one to four (mean 2 before the cap), each drawn from the cloud's own seed. A cloud that reaches several sectors gives the same members to each, and each sector builds the ones inside its own cell, so none is made twice or left out. The members are ordinary young systems with a disk and the companions of a protostar.
+- **The close companion of a planetary nebula's central star.** One central star in five is a close binary (15 to 20% of central stars are, per the survey literature); the rest stay single.
+
+### Changed
+- A star's hosted-nebula roll (its chance, its class and its age) comes from a stream seeded by the star itself, so the same star gets the same nebula wherever it is made.
+
+generation-output: changed
+
+TODO items resolved: GEN.320. Added: none.
+
+## [8.0.1707] - 2026-10-17
+
+**Headline:** The 8.1 completion study's findings are recorded on the items they concern.
+
+### Changed
+
+- GEN.282 and GEN.298 (no live owner, on the longest path to GEN.301) and the five closing tests TEST.184, TEST.185, TEST.186, TEST.159 and TEST.160 (owned by the idle Quality lane) carry the finding, so the owner gap is visible on each item.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1706] - 2026-10-17
 
 **Headline:** The galaxy's mass chain is merged and retired: every galaxy draws its stellar mass, halo mass, virial radius and concentration from its seed.

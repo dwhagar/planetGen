@@ -1520,6 +1520,7 @@ def _check_marker(name, text):
 
 
 _VERSION_MARKERS = (
+    (106, lambda shape: "least(" in shape["generated"].get(("star_systems", "cell_key"), "")),
     (105, _check_marker("chk_bright_stars_population", "satellite")),
     (104, _column_marker("planets", "host_node_id")),
     (103, lambda shape: ("sectors", "max_mass_id") in shape["columns"]
@@ -1605,6 +1606,9 @@ def detect_schema_version(conn):
         "checks": {row["n"].lower(): row["c"] for row in conn.execute(
             "SELECT constraint_name AS n, check_clause AS c FROM information_schema.check_constraints"
             " WHERE constraint_schema = DATABASE()").fetchall()},
+        "generated": {(row["t"].lower(), row["c"].lower()): row["e"].lower() for row in conn.execute(
+            "SELECT table_name AS t, column_name AS c, generation_expression AS e FROM information_schema.columns"
+            " WHERE table_schema = DATABASE() AND generation_expression <> ''").fetchall()},
     }
     for version, marked in _VERSION_MARKERS:
         if marked(shape):

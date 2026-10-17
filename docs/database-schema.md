@@ -2130,6 +2130,10 @@ relationship.
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
 
+### v106 (DB.65): the cell key holds the last cube at the box edge
+
+Migration 0106 recomputes the generated `cell_key` of the 14 tables that hold one (`star_systems`, the phenomenon tables, `bright_stars`, `phenomenon_scatter`, `facilities`, `nebula_field`, `galaxy_components`, `asteroid_fields`) with `LEAST(cube number, 2097151)` on each axis. A coordinate just under the 262,144 pc reach whose rounded cube number came to 2^21 took the key of the opposite edge (the 21-bit field dropped the top bit); it now takes the last cube's. The version is detected from `LEAST` in `star_systems.cell_key`'s generation expression. Altering a stored generated column rebuilds the table and its covering index, so the migration runs once per table with a progress line.
+
 ### v105 (GEN.324): satellite stars
 
 Migration 0105 lets `bright_stars.population` take `satellite`, the stars of a satellite galaxy (the Clouds, Sagittarius, the dwarfs) that the component pass places (`generation/component_pass.py`); a globular cluster's stars were already `cluster` (v94). Nothing else changes and no row is touched. The version is detected from the check constraint `chk_bright_stars_population` listing `satellite`.

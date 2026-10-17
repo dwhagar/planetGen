@@ -19,7 +19,7 @@ def _points(count=20000):
     # Near the Sun, where a real galaxy's cubes are small compared with its sectors.
     points += [(8200 + rng.uniform(-60, 60), rng.uniform(-60, 60), rng.uniform(-30, 30)) for _ in range(count // 4)]
     edges = (0.0, cell, -cell, cell / 2, 1e-9, -1e-9, reach - cell, reach - 1e-6, reach - cell / 2, -reach + 1e-6,
-             -reach + cell, -reach)
+             -reach + cell, -reach, math.nextafter(reach, 0.0), math.nextafter(-reach, 0.0))
     points += [(a, b, c) for a in edges for b in (0.0, edges[2], reach - 1e-6) for c in edges[:6]]
     # On and just outside the box.
     points += [(reach, 0.0, 0.0), (0.0, -reach, 0.0), (0.0, 0.0, reach + 1.0), (1e9, 0.0, 0.0), (-reach - 1e-6, 1.0, 1.0)]
@@ -32,6 +32,23 @@ def test_the_constants_make_one_cube_per_integer_of_21_bits():
     assert cellkey.cell_key(-cellkey.REACH_PC + 1e-6, -cellkey.REACH_PC + 1e-6, -cellkey.REACH_PC + 1e-6) == 0
     assert cellkey.cell_key(cellkey.REACH_PC - 1e-6, cellkey.REACH_PC - 1e-6, cellkey.REACH_PC - 1e-6) == 2 ** 63 - 1
     assert cellkey.cell_key(cellkey.REACH_PC, 0.0, 0.0) is None and cellkey.cell_key(0.0, 0.0, -1e9) is None
+
+
+def test_cell_key_at_the_reach_edge():
+    """DB.65: the double just under the reach rounds up to cube 2 ** 21 when the offset is added; it is held in the last
+    cube instead of wrapping to the opposite edge's, in the scalar key, the vector key and (by the parity test below)
+    the SQL."""
+    reach = cellkey.REACH_PC
+    just_under = math.nextafter(reach, 0.0)
+    assert (just_under + reach) / cellkey.CELL_PC == 2 ** cellkey.BITS  # the rounding the defect came from
+    assert cellkey.cell_index(just_under) == cellkey.LAST_CELL == 2 ** cellkey.BITS - 1
+    assert cellkey.cell_index(reach - cellkey.CELL_PC / 2) == cellkey.LAST_CELL
+    assert cellkey.cell_index(-math.nextafter(reach, 0.0)) == 0
+    point = (just_under, -just_under, just_under)
+    assert cellkey.cell_key(*point) == cellkey.cell_key(reach - 1e-6, -reach + 1e-6, reach - 1e-6)
+    assert cellkey.cell_key(*point) != cellkey.cell_key(-reach + 1e-6, -reach + 1e-6, -reach + 1e-6)
+    keys, valid = cellkey.cell_keys([point, (reach, 0.0, 0.0)])
+    assert valid.tolist() == [True, False] and int(keys[0]) == cellkey.cell_key(*point)
 
 
 def test_spread_puts_bit_i_at_bit_3i():
