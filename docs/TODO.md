@@ -5348,7 +5348,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-16, 12:43 AM EDT; merged as #1728). Owner Core 3, goal issue
   #1677. Done: the nuclear cluster and the nuclear disc enter
   galactic-potential.py so orbits near the centre feel them.
-  Prerequisite: GEN.280. Related: GEN.198.
+  Finding (Core 3, 2026-10-16, 8:42 PM EDT): `galactic-potential.py`
+  does not exist; main has only the old rotation curve in
+  `galaxy/galactic_orbit.py`. The Hernquist, Miyamoto-Nagai and NFW
+  module is GEN.338 (needs GEN.144), unbuilt and unowned, in 8.3. So
+  this item needs GEN.338 and moves from 8.1 to 8.3 behind it; it no
+  longer gates the 8.1 headline (GEN.301). Owner: Core 3 proposed for
+  GEN.144, GEN.338 and this item when 8.3 starts (nothing before 8.1
+  closes).
+  Prerequisites: GEN.338. Related: GEN.280 (built), GEN.198.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
 - [ ] **GEN.286 Horizontal-branch and AGB phases in the stellar evolution model**
@@ -5884,9 +5892,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.238, GEN.240, GEN.241, GEN.242, GEN.243,
-  GEN.244, GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.285,
-  GEN.286, GEN.287, GEN.298, UX.116, TEST.159, TEST.160.
+  Prerequisites: GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.244,
+  GEN.259, GEN.280, GEN.282, GEN.283, GEN.284, GEN.286, GEN.287,
+  GEN.298, UX.116, TEST.159, TEST.160.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
