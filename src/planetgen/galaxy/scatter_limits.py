@@ -115,14 +115,44 @@ def _tiers_of_bands(shape, shell_index, bands, edge_pc):
     def per_band(array):
         return np.add.reduceat(array, offsets)
 
-    total = per_band(sum(kept.values()))
-    nuclear = per_band(sum(kept[name] for name in _NUCLEAR))
-    halo = per_band(kept["halo"])
+    return _dominant_tiers({name: per_band(array) for name, array in kept.items()})
+
+
+def _dominant_tiers(summed):
+    """The tier index of each place from its populations' densities (`{population: array}`, a gate kind's counted
+    as none and a negative term as none): the nuclear terms' share, then the halo's, against `TIER_DOMINANCE_SHARE`."""
+    total = sum(array for name, array in summed.items() if name not in KINDS_IN_THE_GATE)
+    nuclear = sum(summed[name] for name in _NUCLEAR)
+    halo = summed["halo"]
     wanted = tuning.TIER_DOMINANCE_SHARE * total
-    tiers = np.full(len(bands), BASELINE, dtype=np.int8)
+    tiers = np.full(np.shape(total), BASELINE, dtype=np.int8)
     tiers[(total > 0.0) & (halo >= wanted)] = HALO
     tiers[(total > 0.0) & (nuclear >= wanted)] = CORE
     return tiers
+
+
+REACH_AZIMUTH_BINS = 2
+"""int: Longitudes a group of bands beyond the outline is probed at (`probe_densities`): far from the disk the
+density is nearly round, and a group is bounded, not measured."""
+
+
+def probe_densities(shape, plane, z, azimuths=REACH_AZIMUTH_BINS):
+    """
+    The population densities at each of the places `(plane, z)` (arrays of cylindrical radius and height, parsecs),
+    each averaged over `azimuths` evenly spaced longitudes, and the tier those densities give the place
+    (`tier_indices`' rule): `(means, tiers)`, `means` `{population: array}` with a gate kind's and a negative term
+    counted as none. What a group of bands beyond the outline is bounded and weighed from (GEN.322).
+    """
+    plane, z = np.asarray(plane, dtype=float), np.asarray(z, dtype=float)
+    theta = (np.arange(azimuths) + 0.5) * 2.0 * math.pi / azimuths
+    found = galaxyDensity.population_densities_array(
+        (plane[:, None] * np.cos(theta)).ravel(), (plane[:, None] * np.sin(theta)).ravel(),
+        np.repeat(z, azimuths), shape)
+    means = {}
+    for name, array in found.items():
+        array = np.zeros_like(array) if name in KINDS_IN_THE_GATE else np.maximum(array, 0.0)
+        means[name] = array.reshape(len(plane), azimuths).mean(axis=1)
+    return means, _dominant_tiers(means)
 
 
 @functools.lru_cache(maxsize=4096)

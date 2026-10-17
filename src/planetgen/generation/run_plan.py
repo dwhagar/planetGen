@@ -707,8 +707,9 @@ def _shell_names(shells):
 
 
 def _cells_in(shells):
-    """Sectors in `shells` (`(shell_index, high_band)` pairs) inside the outline."""
-    return sum(spherical.cells_in_band_range(shell, high) for shell, high in shells)
+    """Sectors in `shells` (`(shell_index, high_band)` pairs) inside the outline (none in a shell the outline does not
+    reach, `high_band` -1)."""
+    return sum(spherical.cells_in_band_range(shell, high) for shell, high in shells if high >= 0)
 
 
 def log_shells(label, shells):
@@ -771,17 +772,41 @@ def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosit
     for address in filled:
         skip_by_shell[address[0]].add(address)
     rows, expected = [], {}
-    for shell_index, high_band in extents:
+    # GEN.322: the pass covers the grid's whole reach. The outline's shells also draw the bands beyond the outline,
+    # the shells past it are drawn one by one while they hold stars to speak of, and the faint ones further out
+    # together, as one task.
+    outer_shell = max((shell for shell, _high in extents), default=0)
+    reach_on = program_constants.SCATTER_COVERS_REACH
+    reach_shell = getattr(skeleton, "reach_shell_index", None) if reach_on else None
+    reach_shell = outer_shell if reach_shell is None else max(reach_shell, outer_shell)
+    first_beyond = outer_shell + 1
+    first_far, _means = brightStars.far_shells(
+        skeleton.shape, first_beyond, reach_shell, skeleton.edge_pc, e_value, fractions)
+    beyond_shells = [(shell, -1) for shell in range(first_beyond, first_far)]
+    estimates = brightStars.reach_estimates(
+        skeleton.shape, list(extents) + beyond_shells, skeleton.edge_pc, e_value, fractions) if reach_on else {}
+    for shell_index, high_band in list(extents) + beyond_shells:
         weight, expected[shell_index] = brightStars.shell_weight(
             skeleton.shape, shell_index, high_band, skeleton.edge_pc, e_value, fractions,
-        )
+            beyond=estimates[shell_index] if reach_on else None)
         rows.append((shell_index, high_band, weight))
     workers = run_common._worker_count(args)
     tasks = dict(enumerate(shell_chunks(rows, workers)))
     weights = {key: sum(row[2] for row in chunk) for key, chunk in tasks.items()}
     sizes = {key: len(chunk) for key, chunk in tasks.items()}
     names = {key: _shell_names(chunk) for key, chunk in tasks.items()}
-    log.normal(f"{label}: about {round(sum(expected.values())):,} stars expected in {len(extents):,} shells.")
+    far_key = None
+    if first_far <= reach_shell:
+        far_key = len(tasks)
+        far_expected = brightStars.far_expected_stars(
+            skeleton.shape, first_far, reach_shell, skeleton.edge_pc, e_value, fractions)
+        expected[first_far] = far_expected
+        tasks[far_key] = [(first_far, reach_shell, far_expected)]
+        weights[far_key] = far_expected + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS
+        sizes[far_key] = reach_shell - first_far + 1
+        names[far_key] = f"{first_far}-{reach_shell}"
+    log.normal(f"{label}: about {round(sum(expected.values())):,} stars expected in "
+               f"{sum(sizes.values()):,} shells, {reach_shell:,} shells being the grid's reach.")
     with run_common._generation_progress() as progress:
         log.set_console(progress.console)
         bar, finished = None, False
@@ -808,6 +833,8 @@ def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosit
                     for shell_index, shell_stars in result["shells"]:
                         if shell_stars:
                             drew.add(shell_index)
+                    if key == far_key:
+                        return
                     cells = _cells_in([(shell, high) for shell, high, _weight in chunk])
                     wanted = sum(expected[shell] for shell, _high, _weight in chunk)
                     density = wanted / (e_value * band_share * cells) if band_share and cells else 0.0
@@ -830,8 +857,10 @@ def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosit
                     queue.submit_each(task_kind, [
                         (f"shell {names[key]}", {
                             "mysql_config": mysql_config, "shape": skeleton.shape, "key": key,
-                            "shells": [(shell, high) for shell, high, _weight in chunk],
-                            "expected_by_shell": {shell: expected[shell] for shell, _high, _weight in chunk},
+                            "shells": [] if key == far_key else [(shell, high) for shell, high, _weight in chunk],
+                            "far": (first_far, reach_shell) if key == far_key else None, "reach": reach_on,
+                            "expected_by_shell": ({first_far: expected[first_far]} if key == far_key else
+                                                  {shell: expected[shell] for shell, _high, _weight in chunk}),
                             "edge_pc": skeleton.edge_pc, "expected": e_value,
                             "min_luminosity_sol": min_luminosity_sol, "max_luminosity_sol": max_luminosity_sol,
                             "seed": seed, "skip": set().union(*(skip_by_shell.get(shell, set())
@@ -854,11 +883,11 @@ def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosit
     # Every shell is walked, but only the ones that drew a star count as
     # holding any (GEN.79).
     if drew:
-        log.normal(f"{label}: stars landed in {len(drew):,} of {len(extents):,} shells "
+        log.normal(f"{label}: stars landed in {len(drew):,} of {sum(sizes.values()):,} shells "
                    f"(shells {min(drew)} to {max(drew)}); {systems[0]:,} of them have companions.")
     else:
-        log.normal(f"{label}: no stars landed in any of the {len(extents):,} shells.")
-    stages.note(shells=len(extents), shells_modified=len(drew), objects=sum(counts.values()))
+        log.normal(f"{label}: no stars landed in any of the {sum(sizes.values()):,} shells.")
+    stages.note(shells=sum(sizes.values()), shells_modified=len(drew), objects=sum(counts.values()))
     return counts
 
 
@@ -996,24 +1025,38 @@ def _scatter_shells_task(payload):
         epoch = scatterCompanions.default_epoch_unix(conn)
         systems = 0
         batch = []
-        for shell_index, high_band in payload["shells"]:
+        runs = [(shell_index, brightStars.scatter_shell(
+            payload["shape"], shell_index, high_band, payload["edge_pc"],
+            payload["expected"], payload["min_luminosity_sol"], payload["seed"], skip_addresses=payload["skip"],
+            max_luminosity_sol=payload.get("max_luminosity_sol"), on_progress=report,
+            mass_range=payload.get("mass_range"), tiered=payload.get("tiered"), reach=payload.get("reach", False)))
+                for shell_index, high_band in payload["shells"]]
+        if payload.get("far"):
+            # GEN.322: the faint shells far out, drawn together (`brightStars.scatter_far`).
+            first_far, last_far = payload["far"]
+            runs.append((first_far, brightStars.scatter_far(
+                payload["shape"], first_far, last_far, payload["edge_pc"], payload["expected"],
+                payload["min_luminosity_sol"], payload["seed"], skip_addresses=payload["skip"],
+                max_luminosity_sol=payload.get("max_luminosity_sol"), on_progress=report,
+                mass_range=payload.get("mass_range"), tiered=payload.get("tiered"))))
+        for shell_index, rows in runs:
             remaining[0] -= expected_by_shell[shell_index]
             drawn = 0
-            for row in brightStars.scatter_shell(
-                payload["shape"], shell_index, high_band, payload["edge_pc"],
-                payload["expected"], payload["min_luminosity_sol"], payload["seed"], skip_addresses=payload["skip"],
-                max_luminosity_sol=payload.get("max_luminosity_sol"), on_progress=report,
-                mass_range=payload.get("mass_range"), tiered=payload.get("tiered"),
-            ):
+            landed = collections.Counter()
+            for row in rows:
                 counts[row[6]] += 1
                 types[star_label(row[7], row[8])] += 1
                 drawn += 1
+                landed[row[0]] += 1
                 batch.append(row)
                 if len(batch) >= 10000:
                     systems += scatterCompanions.insert_bright_stars(conn, batch, epoch).systems
                     conn.commit()
                     batch = []
-            per_shell.append([shell_index, drawn])
+            if payload.get("far") and shell_index == payload["far"][0]:
+                per_shell.extend([shell, stars] for shell, stars in sorted(landed.items()))
+            else:
+                per_shell.append([shell_index, drawn])
             before[0] += drawn
         if batch:
             systems += scatterCompanions.insert_bright_stars(conn, batch, epoch).systems
