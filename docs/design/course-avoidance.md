@@ -27,7 +27,7 @@ Prototype and test scripts are in the research scratchpad (`nav05/`: planner `av
 | Piece | What it does | Note |
 |---|---|---|
 | `galaxy/keepout.py`, `queryDb.keep_out_radius` | One rule per kind, returns `KeepOut(radius_km, basis, note)`; `GET /api/objects/<ref>` shows it as `keep_out` | Asteroid field returns none (needs the NAV.51 change); SMBH and quasar floor is the horizon radius |
-| `stars.system_perimeter_km` | `r_gal * (M / (3 M_MW))^(1/3)`, `MILKY_WAY_MASS` = 1.15e12 solar masses (`Star.calculate_system_perimeter`) | Sun at 8 kpc: 0.53 pc = 1.7 ly = 1.09e5 AU [C] |
+| `stars.system_perimeter_km` | `r_gal * (M / (3 M_vir))^(1/3)`, `M_vir` the galaxy's virial mass from its mass chain (`galaxy/mass_chain.py`, GEN.400; it was a fixed 1.15e12 solar masses) (`Star.calculate_system_perimeter`) | A galaxy of 1.15e12 solar masses, Sun at 8 kpc: 0.53 pc = 1.7 ly = 1.09e5 AU [C] |
 | `planets.hill_radius_km`, `moons.hill_radius_km` | `a (m / 3M)^(1/3)` (`orbits.calculate_hill_sphere`) | Planet: central mass is the star, correct. Moon: also the star's mass (section 3.3) |
 | `asteroid_fields.radius_ly` | Bounding sphere, 0.001 to 1 ly (63 AU to 63,000 AU), `tuning.ASTEROID_FIELD_RADIUS_RANGE_LY` | No number density stored, only `density` = sparse, typical or dense |
 | `nebulae.radius_ly`, `nebula_shape.NebulaShape.contains` | Bounding radius 0.1 to 200 ly; irregular metaball shape | A containment test exists, so a chord length can be measured |

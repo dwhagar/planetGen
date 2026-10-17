@@ -472,6 +472,8 @@ The five different Sun radii (row 11, removed with the home position); the super
 
 #### 5.13.5 The build that follows approval
 
+**Built so far (GEN.400, rows 1 to 3).** `galaxy/mass_chain.py` holds `draw_mass_chain(galaxy_seed)`: the stellar mass from the double Schechter function (inverse of its cumulative sum over 3e9 to 2e11 solar masses), the halo mass from the Moster relation inverted numerically with the effective scatter of the approximation (0.15 dex over the local slope, 0.07 dex at 3e9 up to 0.38 dex at 2e11), the 200c virial radius and the Dutton and Maccio concentration with 0.11 dex. The worked table above is reproduced to its printed digits. `constants.MILKY_WAY_MASS` is gone: every Hill sphere reads the chain's virial mass through `seed.current_galaxy_seed()` (bound by `seeded`, the fallback seed outside a unit) or, in the keep-out query, the stored seed. `HALO_MASS_SOLAR` and `HALO_SYSTEM_FRACTION` stay: they are the *stellar* halo (3% of the visible mass), not the dark matter halo this chain draws, and the law for the stellar halo fraction is GEN.406's research.
+
 The shape-draw build is written once for every family (GEN.378 reads this table and extends it): a `draw_galaxy(seed, family)` that runs the chain in 5.13.1 and returns the shape, the halo and the component masses; `build_galaxy_shape` calls it; the plan and Generate defaults become "drawn from the seed", with the old numbers gone (no compatibility shim, per Boss). The new shape columns need a migration (DB.66, GEN.378); this item adds none.
 
 #### 5.13.6 What is still open

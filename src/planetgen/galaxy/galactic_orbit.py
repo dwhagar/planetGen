@@ -29,7 +29,7 @@ def calculate_galactic_orbit(distance_ly):
     `GALACTIC_ROTATION_CORE_RADIUS_PC`'s simple rotation-curve model (see
     that module's comment for the physical justification and calibration
     against Sol's own distance) rather than a Keplerian point-mass orbit
-    around `physical_constants.MILKY_WAY_MASS` -- the latter would put a
+    around the galaxy's virial mass (`mass_chain`) -- the latter would put a
     Sol-distance orbit at nearly 800 km/s, ~4x the real value, since most
     of the galaxy's mass isn't actually enclosed within that radius the way
     a naive point-mass calculation assumes. This function is deliberately
