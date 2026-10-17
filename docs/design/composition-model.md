@@ -314,7 +314,7 @@ A change to a table row or weight is a change of that table's version and an epo
 
 Each note ends with its own list of decisions for Boss with a recommendation. The ones that cross notes:
 
-1. **The reading of the third conflict rule.** The notes read "most permission take wins" as the most permissive, widest value or range, and keep both values where a range cannot be widened.
+1. **The reading of the third conflict rule.** Decided by Boss at 1:12 PM EDT: "most permission take wins" means the widest range of the two sources; both values are kept where a range cannot be widened. Nothing to approve.
 2. **The age gate for the thick disc.** The stellar note moves the gate that replaces a stored population from 3.0 Gy to 8.0 Gy (range 6.5 to 9.5) on the verified thick-disc timing, which bears on the old-disc high-alpha share and on GEN.134.
 3. **The epoch scope of GEN.427,** as above.
 4. **The ozone spread and the thin-air closure** (atmosphere and radiation notes), which the research leaves wider than a single seeded range.

@@ -282,7 +282,7 @@ Solar System rows (Earth, Venus, Titan, Mars, Jupiter) live in test files only; 
 
 ## 17. Source conflicts and the rule that decided each
 
-Rules (Boss, 12:39 PM EDT): verified wins; two verified sources in doubt, the newest wins; two sources both in question, the most permissive wins. The third rule is read as the widest value or range either source allows, never a value outside both, as composition-model.md section 4a item 12 records it. Where a paper contradicts a second-hand value in our files, the paper wins and both values are stated.
+Rules (Boss, 12:39 PM EDT): verified wins; two verified sources in doubt, the newest wins; two sources both in question, the most permissive wins. The third rule means the widest value or range either source allows, never a value outside both: Boss confirmed at 1:12 PM EDT that it means the widest range (Decided), as composition-model.md section 4a item 12 records it. Where a paper contradicts a second-hand value in our files, the paper wins and both values are stated.
 
 | # | Conflict | Decision | Rule applied |
 |---|---|---|---|
@@ -327,5 +327,5 @@ Nothing here is approved. Rulings wanted, with a recommendation each:
 11. **Epoch grouping (29).** One bump for 8.4 phase 2, one for phase 3. Recommend yes.
 12. **Research order (30).** Recommend: Bogaard 1978 (six open Rayleigh gases), giant band strengths, Tomasko 2008 and Doose 2016, a printed Mars dust table, then the Bremen licence.
 13. **Rayleigh centre and range (18).** Refractivity centre for N2, O2, Ar, CO2 with a one-sided draw down to the Sneep and Ubachs value; He 2021 centre for CH4, N2O. Recommend yes; the alternative, centring on the measured values, lowers Earth-like tau by about 4 percent and fails the 2 percent test against the published 0.09721.
-14. **Third conflict rule.** The reading in section 17 (the widest value or range either source allows, never outside both) is the one recorded in composition-model.md section 4a item 12; no ruling is needed unless Boss wants it changed.
+14. **Third conflict rule.** The reading in section 17 (the widest value or range either source allows, never outside both) is the one recorded in composition-model.md section 4a item 12, and Boss confirmed it at 1:12 PM EDT (Decided); nothing to approve.
 15. **Item numbers.** Ask the TODO thread to reconcile the GEN numbers of the master chain with those of the gap plan before the build items are written. Recommend yes.

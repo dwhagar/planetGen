@@ -202,7 +202,7 @@ Not found anywhere in the research (open, for Boss's list): mass and metallicity
 
 ## 13. Source conflicts and the rule that decided each
 
-Rules (Boss, 12:39 PM EDT on 2026-10-17): verified wins; if two verified sources are in doubt, the newest wins; if both are in question, most permissive wins. The third is read as the widest value or range, or both options kept with the spread carried, as composition-model.md section 4a item 12 records it.
+Rules (Boss, 12:39 PM EDT on 2026-10-17): verified wins; if two verified sources are in doubt, the newest wins; if both are in question, most permissive wins. The third means the widest value or range, or both options kept with the spread carried: Boss confirmed this at 1:12 PM EDT (Decided), as composition-model.md section 4a item 12 records it.
 
 | Conflict | Rule applied | Outcome |
 |---|---|---|
@@ -234,7 +234,7 @@ Rules (Boss, 12:39 PM EDT on 2026-10-17): verified wins; if two verified sources
 | D14 | Return birth composition, no photospheric correction | Approve until an age law is read |
 | D15 | No GEN.407 table changes here; tip by Z through GEN.502 | Approve |
 | D16 | Shared [Fe/H], branch and offsets in groups and clusters, zero within-group scatter | Approve as a flagged default |
-| Rule | Third source rule read as most permissive (widest value or range, or both kept) | Confirm or correct the reading; section 13 shows where it was used |
+| Rule | Third source rule: the widest value or range, or both kept (Boss confirmed at 1:12 PM EDT that 'most permission take wins' means the widest range of the two sources: Decided) | Nothing to confirm; section 13 shows where it was used |
 | Brewer scatter | Use Brewer 2016's wider sd (0.06 to 0.13) in place of part A's (0.04 to 0.07)? | No: keep part A, carry the 0.1 dex mean difference as uncertainty |
 | Research | Isochrone grids for L, T and lifetime against Z; white-dwarf layers; neutron-star EOS | Boss to supply or approve a build-time download as in D6 |
 
