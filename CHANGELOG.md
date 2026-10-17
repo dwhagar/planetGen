@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1628] - 2026-10-17
+
+**Headline:** The plan has an 8.2 item to research the halo mass function and compare it with the halo mass approximation.
+
+### Added
+- The new GEN item (research and compare the halo mass function with GEN.368's approximation) sits in 8.2 phase 2 and needs GEN.368; it is grouped under goal issue #1673.
+
+TODO items resolved: none / Added: GEN.399
+
 ## [8.0.1627] - 2026-10-17
 
 **Headline:** The plan files the rescatter measurements: a wrong progress line, a star-count mismatch and stale generation cost notes.
