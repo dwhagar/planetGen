@@ -32,6 +32,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [superbubble-density.md](superbubble-density.md) | Superbubbles shape the stars: the seeded bubble field becomes a density modulation on the young and intermediate populations, with bounds, sector counts and positions, and the chain that builds it | plan |
 | [atmosphere-colour.md](atmosphere-colour.md) | Atmosphere colour, the 9.0 feature: one gas and compound table, the mixture that sets the molar density, stored albedo and greenhouse values, ozone, haze, dust and cloud, then the absolute colour of the air, with the chain that builds it | plan |
 | [sky-colour-analysis.md](sky-colour-analysis.md) | The read-only study behind the atmosphere colour: what exists, the method, the effort and how well each source was checked | study |
+| [atmosphere-sources-check.md](atmosphere-sources-check.md) | The check of the real-world sources behind the atmosphere colour chain: what was read, what is second-hand, what Boss must research | study |
 | [spherical-sector-coordinates.md](spherical-sector-coordinates.md) | The plan for spherical shells, bands and wedges | plan, built (the switch merged to main on 2026-10-15, #1607; the Galaxy Map ladder is MAP.205 and MAP.206) |
 | [spherical-shell-sectors.md](spherical-shell-sectors.md) | What spherical-shell sectors would mean (the question behind the plan) | research |
 | [spherical-ladder-meridians.md](spherical-ladder-meridians.md) | Meridians for the spherical block ladder | research |

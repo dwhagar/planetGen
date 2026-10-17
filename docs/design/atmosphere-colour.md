@@ -17,7 +17,7 @@
 
 | Where | Item | What |
 |---|---|---|
-| 8.4 phase 1 | GEN.408 | Verify the sources and say what is missing |
+| 8.4 phase 1 | GEN.408 | Verify the sources and say what is missing (done 2026-10-17, [atmosphere-sources-check.md](atmosphere-sources-check.md)) |
 | 8.4 phase 1 | GEN.409 | The checked design (this note) |
 | 8.4 phase 2 | GEN.410 | The gas and compound table |
 | 8.4 phase 3 | GEN.411 | Molar density from the partial pressures |
@@ -54,9 +54,30 @@ The read-only trace of 2026-10-17 (`/mnt/project-files/reports/composition-densi
 5. **Aerosols:** dust has no data today; its rule is a flagged parametrisation with a physical range.
 6. **Stars:** the blackbody is the light; M dwarfs and cooler get a model-atmosphere table later.
 
-## 4. Research needed
+## 4. Research: what the sources check found
 
-Verified: Betremieux and Kaltenegger 2014 (arXiv:1507.02107) for the refractivities of N2, CO2, H2 and He. To check (GEN.408): Sneep and Ubachs 2005, Bates 1984, Peck and Huang 1977, Penndorf 1957 (Rayleigh); Bucholtz 1995 (the Earth test value); Burkholder and Talukdar 1994, Serdyuchenko 2014, Kasting and Donahue 1980, Segura 2003 (ozone); Lemmon 2004, Tomasko 2008, Karkoschka 1994 (dust, haze, giants); Sudarsky 2000 (giant cloud classes). The study of 2026-10-17 lists how well each was checked.
+The study of 2026-10-17 (GEN.408, [atmosphere-sources-check.md](atmosphere-sources-check.md)) went through 19 sources: 3 read in full (Betremieux and Kaltenegger, which is a 2015 paper, Sudarsky, Burrows and Pinto 2000, Meadows et al. 2018), 10 verified second-hand, 4 not reached and 2 citation only. Only arXiv papers (through `export.arxiv.org`), open-source code and PyPI package data could be read; journal sites were refused.
+
+What it changed in the plan:
+
+- **Rayleigh table (GEN.410, GEN.417):** each gas stores the temperature its refractivity formula was fitted at (288.15 K for N2, Ar, CO2, CO and CH4; 273.15 K for O2). The ratios to N2 are CO2 2.5, H2 0.20, He 0.013. The coded CO formula is half the measured value and is replaced. H2S and SO2 are not found. Earth air gives tau 0.0969 at 550 nm (computed, 2 percent tolerance).
+- **Ozone (GEN.413):** use the Kozakis 2022 polynomial fit of the column against the oxygen by host star, not a power law; seeded spread about 30 percent; ozone is a Chappuis absorber along the sun path and matters at twilight, not at noon; the Earth figure is a test range of 279 to 300 Dobson units.
+- **Aerosols (GEN.414):** dust is grey, haze goes as lambda^-1 to lambda^-2.3, cloud depth follows Venus (20 to 30) and Earth (about 10).
+- **Giants (GEN.419):** Sudarsky classes by T_eff (III above about 350 K, IV 900 to 1500 K), colour from the Cahoy, Marley and Fortney table.
+- **Meadows 2018** is the colour of the disk from space, a precedent for star plus Rayleigh only.
+
+**Open, Boss's to research** (ranked by how much the chain depends on it):
+
+1. Single scattering albedo of Mars dust (Lemmon 2004, Tomasko 1999) and the refractive index of iron-oxide dust.
+2. Titan haze absolute optical depth and spectrum (Tomasko 2008, Doose 2016).
+3. Methane, ammonia and water absorption strengths in the visible for giants (Karkoschka 1994; Karkoschka and Tomasko 2009, 2010).
+4. Ozone cross sections with a clear licence (Serdyuchenko 2014 at IUP Bremen, Burkholder and Talukdar 1994 at MPI Mainz).
+5. Refractivity and King factors of H2S, SO2 (Bogaard 1978), NH3 and CO.
+6. Condensation curves of NH3, H2O and CH4 (Lodders and Fegley 2002, Lodders 2003 and 2010, Weidenschilling and Lewis 1973).
+7. Bucholtz 1995 Table 3, and the originals of Peck and Huang 1977, Kasting and Donahue 1980, Segura 2003, Hulburt 1953, an Angstrom-exponent review.
+8. Widening the proxy (Project settings, environment network): doi.org, ADS, Science, Copernicus (AMT, ACP), Optica, ScienceDirect, NTRS and the Mainz and Bremen data hosts.
+
+Until an item is researched, its design entry names the seeded range used meanwhile (rule: nothing fixed per class).
 
 ## 5. Bulk composition: the cause of mass, density and gravity
 
