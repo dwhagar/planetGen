@@ -2493,6 +2493,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.251 thins evenly in space inside this order (a cut removes the
   same fraction in every region), and the order above decides who goes
   first within each region.
+  The distance default above is now Decided (Boss, 2026-10-17, 7:46 PM
+  EDT, replying to the coordinator's post of that default: "That is
+  exactly what I mean, thank you"): distance moves each object earlier
+  on its ramp the farther it is, and the brightest and most massive near
+  objects still go last. Design constraint (Core 2, 7:48 PM EDT as the
+  lane reported): the server tile build knows no viewer (tiles are a
+  pure function of key and database, cached by key and stamp), so the
+  distance rule lives in the per-level tile budgets
+  (GALAXY_TILE_BRIGHT_BUDGET, GALAXY_TILE_STAR_BUDGET and
+  GALAXY_TILE_POINT_BUDGET falling with distance, nested), in the cut's
+  reach (viewport.fetch_cut_tiles and distance_cut_tiles) and in the
+  client's per-frame limit (starfade.js, starmagnitude.js), never in the
+  tile query.
   Prerequisites: MAP.250. Related: MAP.249, MAP.250.
 
 - [ ] **MAP.252 Viewing only the filled sectors does not dim the phenomena (bug)**
@@ -2543,6 +2556,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.252 the same order is the dim order: the objects that go first
   when dropping are the ones that dim first when the view shows charted
   sectors only, so the dimming and the dropping read one ranking.
+  The distance default above is now Decided (Boss, 2026-10-17, 7:46 PM
+  EDT, replying to the coordinator's post of that default: "That is
+  exactly what I mean, thank you"): distance moves each object earlier
+  on its ramp the farther it is, and the brightest and most massive near
+  objects still go last. Design constraint (Core 2, 7:48 PM EDT as the
+  lane reported): the server tile build knows no viewer (tiles are a
+  pure function of key and database, cached by key and stamp), so the
+  distance rule lives in the per-level tile budgets
+  (GALAXY_TILE_BRIGHT_BUDGET, GALAXY_TILE_STAR_BUDGET and
+  GALAXY_TILE_POINT_BUDGET falling with distance, nested), in the cut's
+  reach (viewport.fetch_cut_tiles and distance_cut_tiles) and in the
+  client's per-frame limit (starfade.js, starmagnitude.js), never in the
+  tile query.
   Prerequisites: none. Related: MAP.250.
 
 
