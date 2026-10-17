@@ -49,6 +49,14 @@ that default.
   tables, columns and layouts as the work needs, with one migration or a
   fresh galaxy.
 
+### Investigation log
+
+- Every test or investigation on an item gets a dated comment on its goal issue, whether it fixes, fails or cannot reproduce (Boss, 2026-10-16,
+  11:48 PM EDT: "I want to keep issues having a running history of what we do and why"). A bug that could not be reproduced, or that needs
+  more information, is flagged so in the item (a "Status" line) and in a comment headed with the item ID and the words "Could not reproduce"
+  or "Needs information", giving the date and time in EDT, what was run (the number of runs, the load, the inputs), the result, and the
+  failure text needed next time. The comment is the history; the item says only the latest status.
+
 ### Links
 
 - This file is the only place that links an item to its design document,
@@ -138,8 +146,8 @@ item has no row there.
 | 8.7 | [version-8-7-console-and-help.md](plan/version-8-7-console-and-help.md) | The pilot's console and built-in help |
 | 8.8 | [version-8-8-deep-sky.md](plan/version-8-8-deep-sky.md) | The deep sky |
 | 8.9 | [version-8-9-generate-anywhere.md](plan/version-8-9-generate-anywhere.md) | Generate anywhere |
-| 9.0 | [version-9-0-view-from-a-planet.md](plan/version-9-0-view-from-a-planet.md) | The view from a planet |
-| 9.1 | [version-9-1-gravity-map.md](plan/version-9-1-gravity-map.md) | The gravity map |
+| 9.0 | [version-9-0-atmosphere-colour.md](plan/version-9-0-atmosphere-colour.md) | Atmosphere colour |
+| 9.1 | [version-9-1-view-from-a-planet.md](plan/version-9-1-view-from-a-planet.md) | The view from a planet, with the gravity map |
 | 9.2 | [version-9-2-politics-and-territories.md](plan/version-9-2-politics-and-territories.md) | Politics and territories |
 | 9.3 | [version-9-3-ships-and-stations.md](plan/version-9-3-ships-and-stations.md) | Ships and stations |
 | 9.4 | [version-9-4-galaxy-types.md](plan/version-9-4-galaxy-types.md) | Galaxy types |
@@ -164,10 +172,14 @@ Headline features (Boss, 2026-10-16, 1:07 PM EDT): 8.1 infinite zoom
 (MAP.146) and the new generate scatters (GEN.301), 8.2 user accounts with
 sign-up by an email invitation only an admin can send (USR.1), 8.3 the
 orbital update system (GEN.105), 8.5 courses that bend around gravity wells
-(NAV.59), 8.6 edit everything (ADM.57), 9.1 the gravity map (MAP.167),
+(NAV.59), 8.6 edit everything (ADM.57), 9.1 the view from a planet (VIEW.18),
+with the gravity map (MAP.167) as the second feature,
 10.0 roles and permissions with user edit requests and moderators
-(USR.25, Boss 1:43 PM EDT). 9.0 has no chosen headline yet (the view from
-a planet is proposed); multiple galaxies is a possible future feature. A
+(USR.25, Boss 1:43 PM EDT). 9.0 the atmosphere colour (GEN.421, Boss,
+11:25 PM EDT: the seminal feature of 9.0; everything planned for 9.0 before
+split between 8.9, the backups chain and the sky data, and 9.1, the view
+from a planet, 11:26 PM EDT); multiple galaxies is a possible future
+feature. A
 headline feature carries a `Headline: VERSION (name).` line in its item;
 `scripts/build_todo_docs.py` reads it and shows, in every plan page, each
 headline with all the open items it needs in build order. Every release in
@@ -2257,6 +2269,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.323, MAP.225, MAP.239, NAV.60. Related: MAP.207,
   MAP.219, MAP.210, UX.115, GEN.322, API.27.
 
+- [ ] **MAP.244 The maps and pages use the atmosphere colour where they showed the planet colour**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): "Sky color should definitely
+  replace the planet color and such, if that's what you mean." Replace
+  the temperature-based glow of a planet on the System Map
+  (`glowColorForTemp` in the map script) and any other stand-in for a
+  planet's colour with its atmosphere colour, with the airless bodies
+  keeping a neutral rock colour from the stored surface words. Done: a
+  planet with air is drawn in its atmosphere colour on the System Map
+  and the planet page, in both themes, and the old three-colour gesture
+  is gone (no shim).
+  Prerequisites: GEN.420. Related: GEN.420.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -3001,7 +3026,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     address, the directive digest and the attempt number
     (`generation/directives.py` seeds attempt a >= 1 from the
     directives' digest).
-    Prerequisites: GEN.306, GEN.307, TEST.181.
+    Prerequisites: GEN.307, TEST.181.
 
   - [ ] **OPS.15 Each update says whether it changes generated output**
     The second half of Boss's update "sweep". Done: after OPS.13's row
@@ -3112,6 +3137,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     made the generator epoch 2 (nebula shapes and the last bits of
     positions differ); the epoch and golden-files rule is waived until
     this item is built.
+    Generator epoch 3 (GEN.306, #1942, 11:28 PM EDT as the lane
+    reported): population streams are keyed on the homeworld's unique
+    ID; the golden files still do not exist, so the epoch and its note
+    went in together, as for epoch 2.
+    Epoch plan (Core 3, as the coordinator reported at 11:42 PM EDT):
+    the horizontal branch change (GEN.286, GEN.287, #1932) shipped
+    without an epoch entry (the golden files do not exist yet, so the PR
+    rule did not fail). A small PR carrying GEN.286/287's note and the
+    GEN.407 constants takes generator epoch 4 with the
+    `generation-output: changed` line; GEN.322 (which adds rows) takes
+    epoch 5.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
     Prerequisites: GEN.304, OPS.57, GEN.57.
 
@@ -6022,21 +6058,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   count.
   Prerequisites: GEN.304, DB.49. Related: GEN.136.
 
-- [ ] **GEN.306 Population seeds keyed on the object, not on row ids**
-  Split from GEN.57 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). `population/model.py` draws a
-  species' form from `Stream(species_id * 7919)`, a planet's life from
-  `Stream(planet_id)` and its technology from
-  `Stream(f"tech:{homeworld_planet_id}")`; row ids come from per-worker
-  id blocks, so the population changes with the worker count and the
-  fill order. Key every one of these streams on the object's unique ID
-  (uid) or the sector address plus the object's index. Changes stored
-  values, so it ships with a generator epoch bump (OPS.28 child a).
-  Done: the same galaxy gets the same species, ages and technology
-  indices at 1 and 4 workers and in two fill orders; a test says so; no
-  stream is seeded from a database id.
-  Prerequisites: OPS.56. Related: GEN.57.
-
 - [ ] **GEN.307 The object-ID collision number keyed on the lower address**
   Split from GEN.57 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). `db/store._claim_object_ids` gives
@@ -8203,6 +8224,539 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   until this lands. Owner: Core 3 proposed.
   Prerequisites: none. Related: GEN.286, GEN.287, GEN.322, GEN.396,
   GEN.259.
+  Epoch (Core 3, as the coordinator reported at 11:42 PM EDT): the
+  constants of this item ship in the small PR that takes generator epoch
+  4 together with GEN.286/287's note; GEN.322 takes epoch 5.
+
+- [ ] **GEN.409 The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): turn
+  docs/design/atmosphere-colour.md (the plan note) into the checked
+  design, with the sources check of 2026-10-17 (GEN.408, done;
+  docs/design/atmosphere-sources-check.md). It settles: the gas and compound
+  table's columns; which values are stored (albedo, greenhouse
+  multiplier, molar density, ozone, aerosol optical depths) and which
+  are derived; how the albedo and greenhouse values are worked back from
+  stored temperature and pressure for old rows, and the class-range draw
+  where that fails; the ozone model; the haze, dust and cloud draws and
+  derivations; the reference level of a gas or ice giant; the colour
+  model and the thick-air limit; the migration revisions. Rule: nothing
+  fixed per class and nothing copied from the Solar System; every input
+  is a stored physical quantity or a seeded draw. Done: the note carries
+  the decisions, a worked example and the test targets (Earth air gives
+  tau 0.097 at 550 nm and a blue sky, a red dwarf world and a thin CO2
+  world give what the physics says), and Boss approves it.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Sources check (GEN.408, 2026-10-17; 19 sources: 3 read, 10 second-hand,
+  4 not reached, 2 citation only): the design carries its 9 corrections
+  (Betremieux and Kaltenegger is 2015; the Sneep and Ubachs CO2 typo; the
+  coded CO formula is half the measured value; Burkholder and Talukdar is
+  the Chappuis band only, 410 to 760 nm; Serdyuchenko has eleven
+  temperatures from about 193 to 293 K; Sudarsky class III starts above
+  about 350 K and class IV is 900 to 1500 K; H2 is 0.20 and He 0.013 of
+  N2; Meadows 2018 is the colour from space; Venus cloud depth is about
+  20 to 30). What the sources could not give is Boss's to research (the
+  list is section 7 of the report); the design marks each such input as
+  open and names the seeded range used meanwhile.
+  Prerequisites: none. Related: GEN.410, GEN.411, GEN.412, GEN.413,
+  GEN.414, GEN.416, GEN.417, GEN.418.
+
+- [ ] **GEN.410 One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): "atmospheric composition will
+  probably need a table of gasses that might be in atmospheres, not sure
+  if there is an existing library but if needed define constants in the
+  program. These aren't just atomic or diatomic gasses though we need to
+  track all the possible compounds that would matter, also everything
+  that a planet description says might be in the planet atmosphere
+  because we're going to have to make it all match and be consistent."
+  Build one constants module (formula, name, molar mass, Rayleigh
+  refractivity and King factor, condensation and freezing curve,
+  greenhouse strength, absorption flags, and the source of each number)
+  for every gas and compound that can occur, starting from the ten
+  stored partials (O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S, SO2) and
+  adding helium, ammonia, ozone, sulphur dioxide and trioxide, sulphuric
+  acid vapour, hydrogen cyanide, ethane, neon, sodium and the rest the
+  audit finds. The audit lists every gas or compound named in the
+  describer, in `docs/design/Atmospheric Toxicity.md`, in the planet
+  class text labels (`tuning.PLANET_CLASSES`), in the habitability and
+  toxicity code and in the docs, and each appears in the table or is
+  dropped from the text. Sources check (GEN.408, section 2 of the
+  report): the table stores, per gas, the reference temperature its
+  refractivity formula was fitted at (N2, Ar, CO2, CO, CH4 at 288.15 K;
+  O2 at 273.15 K), because the wrong one is 1.1 percent off for O2 and
+  about 8 percent for codes that mix conventions; CO uses the Allen/Cox
+  form (n - 1 = 32.7e-5 (1 + 8.1e-3/lambda^2) at 273.15 K), not the
+  coded Sneep and Ubachs form; H2 and He use the cross-section laws of
+  Dalgarno and Williams and of Kurucz/Dalgarno; the CH4 value is 15
+  percent high in the Sneep and Ubachs formalism; water vapour uses the
+  vapour depolarization 2.99e-4, not the liquid's 0.17; H2S, SO2 and the
+  King factor of NH3 are not found and stay marked open. Done: a test
+  fails when a gas named anywhere in the code is missing from the table;
+  every number has a source.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Prerequisites: GEN.409. Related: GEN.208, GEN.85, GEN.355, GEN.411,
+  GEN.415.
+
+- [ ] **GEN.411 The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): "since we're doing an atmosphere
+  mix analysis for habitability we should be able to break the atm molar
+  density into the component gasses partial pressures and at that time
+  calculate the atm molar density so that they match. Then we can use
+  that to know exactly what atmosphere the light is interacting with."
+  Today `atm_molar_density` is an independent random draw
+  (`physics/planets.py`) that does not match the partials GEN.85 draws
+  afterwards. Do: split the density into per-gas partial pressures in
+  the one step and derive the molar density, the mean molecular weight
+  and the scale height from the stored partials (not the other way);
+  remove the independent draw and the old field (no shim); planets and
+  moons both. Changes stored values, so it ships with a generator epoch
+  bump. Done: for every generated planet and moon the partial pressures
+  sum to the surface pressure, the molar density equals pressure over R
+  T, and a test says so.
+  Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
+  10:29 PM EDT; code read on main, line numbers as that thread gave
+  them; report
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md if
+  written): the drawn molar density (planets.py 526) is off from the mix
+  by more than 10 percent for classes A, B, E, G, H, L and Q; GEN.422,
+  GEN.423 and GEN.424 carry the related fixes (the recalculation redraw,
+  density, scale height and greenhouse from the mix, the balance gas).
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Prerequisites: GEN.410, GEN.429. Related: GEN.85, GEN.355, GEN.223,
+  DB.67.
+  The surface gravity it reads is derived from the bulk composition by
+  GEN.429 (Boss, 11:49 PM EDT: the composition drives mass, density and
+  gravity), so this item follows it.
+
+- [ ] **GEN.412 Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): "let's definitely build the
+  database entries and data storage to store the albedo and greenhouse
+  values used, that's easy." `calculate_atmospheric_conditions` draws
+  the albedo from the class range and the greenhouse multiplier at
+  random and keeps only the temperature they gave
+  (`physics/planets.py`). Do: keep both numbers on the planet and moon
+  objects, give the temperature formula an inverse (solve for the
+  greenhouse multiplier from the albedo, the stored temperature and the
+  stored pressure, or the reverse), and let the migration of DB.67 use
+  it. Done: a test checks that the stored temperature equals the formula
+  applied to the stored albedo and greenhouse multiplier for every
+  class, and that the inverse returns the drawn values to a stated
+  tolerance; where the inverse has no solution it says so and the
+  migration draws from the class range, seeded.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Prerequisites: GEN.409. Related: DB.67, GEN.85, GEN.355.
+
+- [ ] **GEN.413 Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): "Build the ozone figures into the
+  system, using real world research, let me know if you need web access
+  or for me to research. If we don't have it, build it to generate it."
+  Today only a proxy exists (`physics/radiation.py` `ozone_ratio` from
+  the O2 partial) and activity events that strip it (GEN.189). Do: put
+  ozone in the gas table and compute its column and partial pressure
+  from the oxygen, the star's UV at the planet and the photochemical
+  balance (Chapman, with the real cross sections of the sources check) so it joins
+  the mixture and the other gases keep summing to the pressure; the
+  ozone-loss events of GEN.189 reduce it. Where the research is missing,
+  the item says what Boss should look up and builds a generator from the
+  oxygen and UV instead. Done: Earth's oxygen and the Sun's UV give an
+  ozone column near the measured 300 Dobson units within a stated
+  tolerance, a world with no oxygen has none, and the habitability UV
+  index reads the same number.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Sources check (GEN.408, section 4 of the report): the column does not
+  follow a power of the oxygen (the Chapman balance gives a local density
+  of the square-root form, the column flattens or peaks for hot stars), so
+  use the checked polynomial fit of Kozakis et al. 2022 (Table 3: column
+  from the log of the oxygen mixing ratio, one row each for G0V, the Sun,
+  K2V, K5V and M5V, valid for 0.01 to 150 percent of today's oxygen,
+  clamped outside), interpolate between the hosts in T_eff, and draw a
+  seeded spread of about 30 percent (the models differ by a factor of
+  about 2 at low oxygen). The ozone is a Beer-Lambert absorber of the
+  Chappuis band (410 to 760 nm) along the sun path, with the Hartley band
+  kept for the UV index; the cross sections ship as a small fitted table,
+  because the licence of the Malicet/Brion, Serdyuchenko and Burkholder
+  files was not found (Boss to settle). The Earth figure is a test value,
+  279 to 300 Dobson units, not a constant. Prerequisites: GEN.411.
+  Related: GEN.87, GEN.189, DB.68.
+
+- [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): "I also want you to build into
+  the calculations haze, dust, etc, so add reasonable draws or
+  derivations for these." Nothing is stored today. Do: derive cloud from
+  the water vapour pressure against its saturation pressure at the
+  surface temperature (`vapour_pressure_kpa`) and from the albedo of
+  GEN.412; dust from pressure, gravity and dryness (low ocean fraction);
+  photochemical haze from methane plus nitrogen plus UV; and draw the
+  remaining scatter inside the physical range, seeded. Store optical
+  depth at 550 nm for each kind and an absorption slope (iron-oxide dust
+  and organic haze absorb blue) so Mars, Venus and Titan come out as
+  they are without being named. Sources check (GEN.408, section 5 of the
+  report): dust is nearly grey (Angstrom exponent near 0, radius 1 to 2
+  micron, optical depth 0.5 to 1 typical, 1 to 1.5 for local storms,
+  about 7 to 11 percent less at 440 than 880 nm); haze extinction goes as
+  lambda^-1 to lambda^-2.3, steeper aloft; cloud depth for a Venus-like
+  deck is about 20 to 30 and an Earth cloud about 10 (grey); the dust's
+  colour (single scattering albedo), the haze's absolute depth and the
+  condensation curves of ammonia, water and methane are open and are
+  Boss's to research. Done: a clear Earth-like world with
+  oceans has cloud and little dust, a dry thin-air world has dust, a
+  methane and nitrogen world under UV has haze; a test pins each rule
+  with a physical range, nothing is fixed per class.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Prerequisites: GEN.411, GEN.412. Related: GEN.413, DB.68, GEN.418.
+
+- [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): "By the end I want all of the
+  values to be consistent across the board." Rewrite the atmosphere
+  wording of the description layer (`describe/build.py`
+  `_atmosphere_composition` and the class text labels) so every gas or
+  compound it names is read from the stored mixture and the table of
+  GEN.410, with the ozone, haze, dust and cloud of the other items; a
+  text never names a gas the planet does not hold. Done: a test
+  generates planets of every class and checks that each compound named
+  in the text is in the stored mixture above a stated threshold, and
+  that the text, the composition table and the molar density agree.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Prerequisites: GEN.410, GEN.411, GEN.413. Related: GEN.208, GEN.218,
+  TEST.209.
+
+- [ ] **GEN.416 Blackbody colour of a star: Planck to the CIE curves to sRGB, as the first part of the photometry library**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): The star's light colour is a
+  blackbody at the star's temperature weighted by the CIE curves (the
+  Wyman, Sloan and Shirley 2013 fit already validated in
+  `docs/design/sky-view.md`), encoded to sRGB, in
+  `planetgen/physics/photometry.py`. This is only the colour part of
+  VIEW.11; the apparent magnitude, bolometric correction and extinction
+  law stay there and extend this module. Done: 5,772 K gives a
+  white-yellow, 3,300 K an orange-cream and 10,000 K a blue-white within
+  a stated tolerance of the published colours, and the module has no
+  database access.
+  Prerequisites: none. Related: VIEW.11, GEN.417.
+
+- [ ] **GEN.417 Rayleigh optical depth of the mixture: per-gas cross sections from the table and the air column from pressure and gravity**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): `planetgen/physics/sky.py`:
+  tau(lambda) = N_col times the sum of the mole fractions times each
+  gas's cross section, N_col = P / (m_bar g), the standard cross section
+  24 pi^3 / (lambda^4 N_s^2) times ((n^2 - 1)/(n^2 + 2))^2 times the
+  King factor, with n and the King factor from the table of GEN.410 and
+  the mole fractions from the stored mixture (GEN.411). Test values from
+  the sources check, section 3: tau at 350, 443, 550, 670, 865 nm for one
+  bar of Earth air is 0.62, 0.23, 0.10, 0.043, 0.015, and the air mass of
+  Kasten and Young is an Earth fit only (other worlds use the Chapman
+  function). Done: Earth's
+  air column gives tau 0.0969 at 550 nm (computed in the sources check,
+  tolerance 2 percent; Bucholtz 1995 itself was not reached) and the
+  exponent near -4.08 across the visible; doubling the pressure doubles tau; a
+  pure hydrogen air scatters 0.20 as much per molecule as
+  nitrogen (helium 0.013, carbon dioxide 2.5); no NaN for any generated class.
+  Prerequisites: GEN.410, GEN.411. Related: GEN.418.
+
+- [ ] **GEN.418 Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): "sky color and atmosphere color
+  are the same I believe, so let's word it as atmosphere color" and the
+  colour is the absolute one, not adapted to the star (Boss's card,
+  10:24 PM EDT as the coordinator reported). Compute the clear-sky
+  colour at noon from the star's light (GEN.416), the Rayleigh depth
+  (GEN.417), the Chappuis absorption of the stored ozone, the stored
+  cloud, dust and haze (Mie extinction plus the absorption slope), the
+  ground's bounce from the stored albedo, and a thick-air limit for tau
+  above about 0.5 where single scattering over-saturates (white sky,
+  reddened sun, no sun disc at very large tau). Returns the hex colour
+  and a short word. Done: Earth gives a pale blue under the Sun, a thin
+  clear CO2 world and a dusty one differ, a 1 MPa nitrogen world is
+  white-cyan with an orange sun, a 9 MPa CO2 world is white;
+  deterministic and free of NaN for every class; the label says when
+  aerosols dominate the answer.
+  Prerequisites: GEN.416, GEN.417, GEN.413, GEN.414, DB.67, DB.68.
+  Related: GEN.419, GEN.420.
+
+- [ ] **GEN.419 Atmosphere colour of gas and ice giants, read at a reference level in the cloud tops**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): gas giants are in the first
+  version (Boss's card, 10:24 PM EDT as the coordinator reported). A
+  giant has no surface, so the colour is that of the light seen from a
+  chosen reference pressure level (the cloud top or a fixed bar, the
+  design GEN.409 settles), through the Rayleigh depth of the hydrogen
+  and helium above it, the methane absorption that tints ice giants
+  blue-green, and the stored cloud and haze depths. Sources check
+  (GEN.408, section 5): the class comes from T_eff by the Sudarsky table
+  (I below about 150 K, II about 250 K, III above about 350 K, IV 900 to
+  1500 K, V above about 1500 K), the B, V, R, I colour from the nearest
+  model of Cahoy, Marley and Fortney 2010 (Table 6) interpolated in
+  distance and metallicity, with no colour fixed per class letter; the
+  methane band strengths of Karkoschka 1994 and of Karkoschka and Tomasko
+  are missing and are Boss's to research. Done: a hydrogen and
+  helium giant, a methane-rich ice giant and a cloud-covered giant each
+  give a colour that follows the stored composition and the reference
+  level, with no per-class colour and no NaN.
+  Prerequisites: GEN.418. Related: GEN.409, GEN.420.
+
+- [ ] **GEN.420 The descriptions show the atmosphere colour: a swatch and a word in the planet and moon facts, in every output**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): A new "Atmosphere colour" row in
+  `describe/build.py` (`_planet_facts`) with a hex swatch and the colour
+  word, for every body with air and for giants, through a new inline
+  item in the Document model and its text, markdown, wikitext and web
+  renderers, the JSON of `GET /api/systems/<id>/description` and the
+  checks of `describe/model.py`. Done: the row is present for a body
+  with air and absent for an airless one; every output shows the word,
+  the web page shows the chip; the existing description parity tests
+  pass.
+  Prerequisites: GEN.418, GEN.419. Related: GEN.208, GEN.218, MAP.244,
+  DOC.64.
+
+- [ ] **GEN.421 Headline of 9.0: the atmosphere colour of every world, from its real atmosphere, with every stored value consistent**
+  Boss (2026-10-16, 11:25 PM EDT): "We just found our seminal feature
+  for 9.0 folks, everything else gets bumped, this is the 9.0 feature."
+  This item is done when its items are: the foundations of 8.4 phases
+  1 to 5 (GEN.409 to GEN.415, DB.67, DB.68, TEST.209, DOC.63), the colour model
+  (GEN.416 to GEN.419) and what shows it (GEN.420, MAP.244, DOC.64).
+  Headline: 9.0 (atmosphere colour: the colour of the air of any world,
+  from its real atmosphere, with every stored value consistent). A major
+  version needs Boss's word.
+  Prerequisites: GEN.420, MAP.244, DOC.64, TEST.209. Related: GEN.416,
+  GEN.417, GEN.418, GEN.419, DOC.63.
+
+- [ ] **GEN.422 Stop the recalculation redraw and order the steps so pressure, mixture and temperature agree after the cold-side freeze-out**
+  Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
+  10:29 PM EDT; code read on main, line numbers as that thread gave
+  them; report
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md if
+  written): after orbit validation the planet is recalculated and the
+  albedo (`physics/planets.py` 657-658), the greenhouse multiplier, the
+  mantle redox and the mix are drawn again, so the values the first pass
+  used are lost; and the freeze-out lowers the pressure after the
+  temperature is set (`physics/atmosphere.py` 243-245), so the
+  temperature, the pressure and the mix disagree. Do: keep the first
+  draws (they are stored by GEN.412), and run the steps in one order
+  (mix, pressure with the freeze-out, density, scale height, greenhouse,
+  temperature) as a fixed point that stops within a stated tolerance.
+  Changes stored values, so it ships with the generator epoch bump of
+  GEN.411. Done: a planet recalculated after orbit validation keeps its
+  drawn albedo, greenhouse multiplier, redox and mix; after the
+  freeze-out the pressure, the mix and the temperature satisfy the
+  formula together; a test says so for every class.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Prerequisites: GEN.411, GEN.412. Related: GEN.411, GEN.412, GEN.423,
+  TEST.209.
+
+- [ ] **GEN.423 Atmosphere density, scale height and the greenhouse multiplier follow from the mixture**
+  Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
+  10:29 PM EDT; code read on main, line numbers as that thread gave
+  them; report
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md if
+  written): the mix takes the total pressure from the surface pressure,
+  but the drawn `atm_molar_density` (`physics/planets.py` 526, off by
+  more than 10 percent from the mix for classes A, B, E, G, H, L and Q),
+  the atmosphere density (523, 692-694), the scale height (671-677) and
+  the greenhouse multiplier (710-714) never see the mix. Do: compute the
+  atmosphere density and the scale height from the mean molecular weight
+  of the stored partials, and the greenhouse multiplier from the table's
+  greenhouse strength of each gas and their partial pressures (CO2, CH4,
+  H2O and the rest from GEN.410), so a change of mixture changes all of
+  them. Done: every generated planet has density, scale height and
+  greenhouse multiplier that follow from its stored mixture, a test
+  changes the mix and the values move as the formulas say.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Prerequisites: GEN.410, GEN.411, GEN.412. Related: GEN.411, GEN.422,
+  TEST.209.
+
+- [ ] **GEN.424 The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture**
+  Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
+  10:29 PM EDT; code read on main, line numbers as that thread gave
+  them; report
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md if
+  written): `habitability_world.py` 244 recomputes a mean molar mass but
+  never writes it back, and it uses 28 g/mol for every balance gas,
+  which is wrong for helium (4 g/mol) and for the rest of the table. Do:
+  name the balance gas in the mixture (helium, neon, ammonia and so on
+  from GEN.410), give each its molar mass, store the mean molar mass
+  with the mixture and let the habitability code read it. Done: a
+  helium-rich atmosphere has a mean molar mass near 2 to 4 g/mol, not
+  28; habitability, the scale height and the molar density all read the
+  same stored number; a test says so.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Prerequisites: GEN.410, GEN.411. Related: GEN.411, GEN.423, TEST.209.
+
+- [ ] **GEN.425 Research: verify the mass-radius and equation-of-state sources and say what is missing**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. Before anything is built, check the
+  real-world sources, in a read-only thread that reads the papers
+  (ar5iv.labs.arxiv.org serves arXiv papers) and writes
+  /mnt/project-files/reports/bulk-composition-sources-check-(date).md,
+  each source marked verified (read), second-hand or not found. To
+  check: (1) mass-radius relations for solid planets with the iron,
+  silicate and water fractions as inputs (Seager et al. 2007, Zeng and
+  Sasselov 2013, Zeng, Sasselov and Jacobsen 2016, Zeng et al. 2019);
+  (2) envelopes: the hydrogen and helium mass fraction against radius
+  and age (Lopez and Fortney 2014) and giant planet radii (Fortney,
+  Marley and Barnes 2007); (3) equations of state: the Vinet or
+  Birch-Murnaghan constants for iron, silicates and the ice phases, and
+  the hydrogen and helium tables (Saumon, Chabrier and van Horn 1995);
+  (4) how the iron, magnesium and silicon abundances of the star set a
+  rocky planet's core fraction (Dorn et al. 2015, Unterborn and Panero,
+  Thiabaud et al. 2015, Santos et al. 2015); (5) the water fraction
+  against formation distance and the snow line, and the compositions of
+  moons; (6) observed ranges as test targets, not presets (Earth, Mars,
+  Venus, the Galilean moons, Titan, Neptune, Kepler-planet densities).
+  Done: the report lists every relation and constant the materials
+  table, the draws and the density derivation need, with its source, and
+  what is still unfound; Boss researches the unfound ones on request.
+  Prerequisites: none. Related: GEN.426, GEN.427.
+
+- [ ] **GEN.426 The bulk composition design: the fractions, the equation of state, the draws and the derived density, mass and gravity**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. Write docs/design/bulk-composition.md
+  and have Boss approve it. It settles: the set of bulk fractions (metal
+  core, silicate mantle, water and the ices, rock-forming volatiles, the
+  hydrogen and helium envelope, and the compounds the descriptions
+  name); which are drawn from physics (the core fraction from the star's
+  iron, magnesium and silicon abundance, the water fraction from where
+  the body formed against the snow line, the envelope fraction from mass
+  and age) and which are plain seeded draws inside the physical range;
+  the mass-radius and equation-of-state model that turns the fractions
+  and the mass into radius, density and gravity (an analytic fit or a
+  tabulated model, with its error); what a planet class means once
+  composition drives it (a range of fractions, not a fixed value); how
+  moons and small bodies use the same model; the migration (the stored
+  fractions of old rows are worked back from the stored density, mass
+  and radius) and the generator epoch. Rule: nothing fixed per class and
+  nothing copied from the Solar System; the Solar System bodies are test
+  targets. Done: the note carries the decisions, a worked example per
+  kind of body and the test targets.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.425. Related: GEN.409, GEN.427, GEN.428, GEN.429.
+
+- [ ] **GEN.427 One table of the bulk materials with their equation-of-state constants and the source of each**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. A constants module for iron and its
+  alloys, the silicates, water in its ice phases and as liquid, the
+  other ices (methane, ammonia, carbon dioxide), hydrogen and helium,
+  each with density and the equation-of-state constants of the chosen
+  model (GEN.426) and the source of every number; the compounds are the
+  same ones as the gas table of GEN.410 where they overlap. Done: a test
+  fails when a material named in a description or in the class tables is
+  missing from it; every number has a source.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.426. Related: GEN.410, GEN.428.
+
+- [ ] **GEN.428 Planets and moons draw their bulk composition fractions instead of carrying a fixed text**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. Replace the fixed `composition`
+  string of each class with drawn fractions that sum to one: the core
+  fraction from the host star's abundances, the water and ice fraction
+  from the formation distance, the envelope from mass and age, the rest
+  seeded inside the range of the design (GEN.426), for planets and moons
+  alike. The class sets a range, never a value. Changes stored values,
+  so it ships with a generator epoch bump. Done: every generated body
+  has fractions that sum to one and stay inside their physical ranges,
+  the same galaxy gives the same fractions at any worker count, a test
+  says so.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.427. Related: GEN.429, DB.69, GEN.430.
+
+- [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. Replace the uniform per-class density
+  draw (`PLANET_DENSITY`, the class density ranges) and the separate
+  giant path with one derivation: the mass (or radius) is drawn from the
+  physics of the body's kind, the fractions of GEN.428 and the equation
+  of state of GEN.427 give the radius and the density, and the surface
+  gravity follows from them. The atmosphere chain reads this gravity.
+  Done: for every class the density and gravity follow from the stored
+  fractions and mass; a body of Earth's fractions and mass comes out
+  near Earth's density and gravity (a test target, not a preset);
+  changing a fraction moves the density as the model says; a test says
+  so. Ships with the generator epoch bump of GEN.428.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.428. Related: GEN.411, GEN.423, DB.69.
+
+- [ ] **GEN.430 The planet and moon descriptions state the composition from the stored fractions**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. The description layer writes the
+  composition sentence from the stored fractions and the materials table
+  (for example the metal, rock, water and gas shares) instead of the
+  class text, and never names a material the body does not hold. Done: a
+  test generates bodies of every class and checks that every material
+  named in the text is in the stored fractions above a stated share and
+  that the shares quoted equal the stored ones.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.428, GEN.429. Related: GEN.415, GEN.218, GEN.208.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -8934,7 +9488,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   have to build a way to use that data so build that out and let's make
   this targetted for v9.0 so incorporate the chain for these (restore /
   repair using backups) with that due date. Settings page is v8.1".
-  Target 9.0 (the backups and repair chain, umbrella ADM.91); the
+  Target 8.9 (the backups and repair chain, umbrella ADM.91); the
   settings page and the settings backups stay in 8.1 (ADM.83 to ADM.85).
   All backup pieces are parts of one `.tar.bz2` archive (ADM.87);
   retention is `settings.backups_kept` (default 20, 1 to 200). DB.9
@@ -8955,7 +9509,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Boss (2:00 PM EDT): "we also have to build a way to use that data so
   build that out and let's make this targetted for v9.0 so incorporate
   the chain for these (restore / repair using backups) with that due
-  date. Settings page is v8.1". Target 9.0 (the backups and repair
+  date. Settings page is v8.1". Target 8.9 (the backups and repair
   chain, umbrella ADM.91); the settings page and the settings backups
   stay in 8.1 (ADM.83 to ADM.85). All backup pieces are parts of one
   `.tar.bz2` archive (ADM.87); retention is `settings.backups_kept`
@@ -8975,7 +9529,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Boss (2:00 PM EDT): "we also have to build a way to use that data so
   build that out and let's make this targetted for v9.0 so incorporate
   the chain for these (restore / repair using backups) with that due
-  date. Settings page is v8.1". Target 9.0 (the backups and repair
+  date. Settings page is v8.1". Target 8.9 (the backups and repair
   chain, umbrella ADM.91); the settings page and the settings backups
   stay in 8.1 (ADM.83 to ADM.85). All backup pieces are parts of one
   `.tar.bz2` archive (ADM.87); retention is `settings.backups_kept`
@@ -9352,6 +9906,61 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   schema is not a constraint.
   Prerequisites: GEN.378. Related: GEN.379, GEN.389.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
+
+- [ ] **DB.67 Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): "for the migration we'll have to
+  generate reasonable ones from the planet class or see if we can work
+  the formula back to get the 2 values from the temp and pressure." Add
+  the columns (albedo, greenhouse multiplier, molar density) to
+  `planets` and `moons`; the migration fills old rows by the inverse of
+  GEN.412 where the temperature and pressure allow, and otherwise by a
+  seeded draw inside the class range, and recomputes the molar density
+  from the stored partials (GEN.411). The revision number comes after
+  the 0102 to 0105 stack of the current build (the schema is not a
+  constraint, and Boss wipes and rebuilds). Done: the migration runs on
+  a database of the previous revision and every row has the three
+  values; a test checks the values agree with the stored temperature and
+  pressure.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Prerequisites: GEN.411, GEN.412, GEN.422, GEN.423, GEN.424. Related:
+  DB.65, DB.68, GEN.412.
+
+- [ ] **DB.68 Planets and moons store the ozone column and the haze, dust and cloud optical depths**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): The columns that hold the values
+  of GEN.413 and GEN.414 (ozone column, cloud, dust and haze optical
+  depth at 550 nm and the absorption slope) on `planets` and `moons`,
+  filled for old rows by the same derivations (a migration only, in the
+  revision after DB.67). Done: every row has the values; a test checks
+  them against the stored mixture.
+  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; when 8.4 begins, behind its queue).
+  Prerequisites: GEN.413, GEN.414, DB.67. Related: DB.67.
+
+- [ ] **DB.69 Planets and moons store the composition fractions**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. The columns that hold the fractions
+  of GEN.428 on `planets` and `moons`, and a migration that fills old
+  rows by working the fractions back from the stored density, mass,
+  radius and class (the inverse of GEN.429, the closest fractions that
+  reproduce the stored density, drawn seeded inside the class range
+  where the inverse has many answers). The revision comes after DB.67's.
+  Done: the migration runs on a database of the previous revision and
+  every row has fractions that sum to one and reproduce its density
+  within a stated tolerance.
+  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Prerequisites: GEN.429. Related: DB.67, DB.68.
 
 ## API: The JSON API
 
@@ -10355,7 +10964,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   have to build a way to use that data so build that out and let's make
   this targetted for v9.0 so incorporate the chain for these (restore /
   repair using backups) with that due date. Settings page is v8.1".
-  Target 9.0 (the backups and repair chain, umbrella ADM.91); the
+  Target 8.9 (the backups and repair chain, umbrella ADM.91); the
   settings page and the settings backups stay in 8.1 (ADM.83 to ADM.85).
   All backup pieces are parts of one `.tar.bz2` archive (ADM.87);
   retention is `settings.backups_kept` (default 20, 1 to 200). The
@@ -10377,7 +10986,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Boss (2:00 PM EDT): "we also have to build a way to use that data so
   build that out and let's make this targetted for v9.0 so incorporate
   the chain for these (restore / repair using backups) with that due
-  date. Settings page is v8.1". Target 9.0 (the backups and repair
+  date. Settings page is v8.1". Target 8.9 (the backups and repair
   chain, umbrella ADM.91); the settings page and the settings backups
   stay in 8.1 (ADM.83 to ADM.85). All backup pieces are parts of one
   `.tar.bz2` archive (ADM.87); retention is `settings.backups_kept`
@@ -10403,7 +11012,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Boss (2:00 PM EDT): "we also have to build a way to use that data so
   build that out and let's make this targetted for v9.0 so incorporate
   the chain for these (restore / repair using backups) with that due
-  date. Settings page is v8.1". Target 9.0 (the backups and repair
+  date. Settings page is v8.1". Target 8.9 (the backups and repair
   chain, umbrella ADM.91); the settings page and the settings backups
   stay in 8.1 (ADM.83 to ADM.85). All backup pieces are parts of one
   `.tar.bz2` archive (ADM.87); retention is `settings.backups_kept`
@@ -10420,14 +11029,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   from an archive and shows a passing check.
   Prerequisites: DB.42, ADM.89, DB.41. Related: ADM.85, DB.8, ADM.91.
 
-- [ ] **ADM.91 Backups and repair, target 9.0: one bz2 archive of the settings, the control database and the parity data, and the ways to use it (restore the control database, restore parity, repair the galaxy, the repair page)**
+- [ ] **ADM.91 Backups and repair, target 8.9: one bz2 archive of the settings, the control database and the parity data, and the ways to use it (restore the control database, restore parity, repair the galaxy, the repair page)**
   Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
   control DB and backups of the parity data for DB repair." and "All
   those should be bz2 tarballed together." Boss (2:00 PM EDT): "we also
   have to build a way to use that data so build that out and let's make
   this targetted for v9.0 so incorporate the chain for these (restore /
   repair using backups) with that due date. Settings page is v8.1".
-  Target 9.0 (the backups and repair chain, umbrella ADM.91); the
+  Target 8.9 (the backups and repair chain, umbrella ADM.91); the
   settings page and the settings backups stay in 8.1 (ADM.83 to ADM.85).
   All backup pieces are parts of one `.tar.bz2` archive (ADM.87);
   retention is `settings.backups_kept` (default 20, 1 to 200). Umbrella
@@ -10435,7 +11044,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the settings part are in 8.1 (ADM.87, with ADM.83 to ADM.85); the
   control database and parity parts, their restores, the repair from an
   archive, the repair page, the end-to-end test and the guide are in
-  9.0.
+  8.9 (moved from 9.0, Boss, 2026-10-16, 11:26 PM EDT).
   Prerequisites: ADM.88, ADM.89, DB.40, DB.41, DB.42, ADM.90, TEST.180,
   DOC.56, OPS.55. Related: ADM.43, ADM.87, DB.9.
 
@@ -10571,6 +11180,13 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce. 6 solo runs of the test, 8 to 19 s each, all passed.
+  GEN.232 cured the 900 s path this item was filed for. Needed next
+  time: 5 clean full runs are still needed before it can close; the
+  failing run's captured traceback, the number of tests running at the
+  time (the load), and the elapsed time if it fails again. Running log:
+  the comments on issue #1694.
   Prerequisites: none.
 
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
@@ -10591,6 +11207,11 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce. 86,000 systems with the primary forced to K2V were
+  generated and the primary was K2V every time. Needed next time: The
+  failing assertion text and the seed of the failing run. Running log:
+  the comments on issue #1694.
   Prerequisites: none. Related: TEST.111, TEST.71.
 
 - [ ] **TEST.126 The heavy WebGL browser-map tests time out when four workers run them together (bug)**
@@ -10654,6 +11275,12 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): fixed on main,
+  not confirmed. Bug Hunt found the browser wait ceiling of 120 s
+  (`browser_waits`) already on main and no failure since; no run of the
+  test is recorded for this item. Needed next time: It closes unless a
+  traceback shows up; if it fails again, the captured traceback and the
+  load. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
@@ -10842,6 +11469,12 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): fixed on main,
+  not confirmed. Bug Hunt found the browser wait ceiling of 120 s
+  (`browser_waits`) already on main and no failure since; no run of the
+  test is recorded for this item. Needed next time: It closes unless a
+  traceback shows up; if it fails again, the captured traceback and the
+  load. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.126, TEST.128, TEST.137.
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
@@ -10883,6 +11516,10 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce. 24 runs of the test under load all passed. Needed next
+  time: The failing parametrisation, the text of the failure and the
+  load at the time. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.128, TEST.132 (done, PR #1578), TEST.134.
 
 - [ ] **TEST.144 test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug)**
@@ -10903,6 +11540,12 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): fixed on main,
+  not confirmed. Bug Hunt found the browser wait ceiling of 120 s
+  (`browser_waits`) already on main and no failure since; no run of the
+  test is recorded for this item. Needed next time: It closes unless a
+  traceback shows up; if it fails again, the captured traceback and the
+  load. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.126, TEST.138.
 
 - [ ] **TEST.148 Investigate resuming a test run where it left off when the build is the same**
@@ -11122,6 +11765,13 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce. 6 solo runs of the test, 8 to 19 s each, all passed.
+  GEN.232 cured the 900 s timeout path. Needed next time: 5 clean full
+  runs are still needed before it can close; the failing run's captured
+  traceback, the number of tests running at the time (the load), and the
+  elapsed time if it fails again. Running log: the comments on issue
+  #1694.
   Prerequisites: none. Related: TEST.111, GEN.232.
 
 - [ ] **TEST.168 Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs**
@@ -11201,6 +11851,12 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce, pinned anyway by Bug Hunt. The test did not fail again. Bug
+  Hunt pinned the failing path with a test in its branch regardless.
+  Needed next time: If it fails again: the text of the failure and
+  whether the pinned test failed with it. The item stays open until Bug
+  Hunt's PR merges. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.170, TEST.111.
 
 - [ ] **TEST.172 test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug)**
@@ -11250,6 +11906,12 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce, pinned anyway by Bug Hunt. The test did not fail again. Bug
+  Hunt pinned the failing path with a test in its branch regardless.
+  Needed next time: If it fails again: the text of the failure and
+  whether the pinned test failed with it. The item stays open until Bug
+  Hunt's PR merges. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.132, TEST.171, TEST.172.
 
 - [ ] **TEST.174 test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug)**
@@ -11346,7 +12008,7 @@ clears each one.
   Boss (2:00 PM EDT): "we also have to build a way to use that data so
   build that out and let's make this targetted for v9.0 so incorporate
   the chain for these (restore / repair using backups) with that due
-  date. Settings page is v8.1". Target 9.0 (the backups and repair
+  date. Settings page is v8.1". Target 8.9 (the backups and repair
   chain, umbrella ADM.91); the settings page and the settings backups
   stay in 8.1 (ADM.83 to ADM.85). All backup pieces are parts of one
   `.tar.bz2` archive (ADM.87); retention is `settings.backups_kept`
@@ -11372,7 +12034,7 @@ clears each one.
   content). Why: this is the proof GEN.57 states, and TEST.77's tier B
   stands on it. Done: the test runs in the `changed` gate and fails when
   a or b is reverted.
-  Prerequisites: GEN.306, GEN.307. Related: GEN.57.
+  Prerequisites: GEN.307. Related: GEN.57.
 
 - [ ] **TEST.182 Put one block-first backfill into the golden galaxy**
   Split from GEN.42 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -11478,6 +12140,12 @@ clears each one.
   fixture fails. Reproducer: make the server fixture raise after its
   start and time the run.
   Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce as described. pytest already fails the tests that depend on
+  a failed session fixture at once, so the 900 s wait this item
+  describes did not appear. Needed next time: The run log that shows
+  dependents waiting their full timeout, and the fixture that failed
+  first. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.167.
 
 - [ ] **TEST.191 The plan tests write real settings JSON into `/var/lib/planetGen/jobs/galaxy-settings` and log "No naming key drawn ... Unknown database": give them a temporary directory and a test database**
@@ -11544,6 +12212,11 @@ clears each one.
   full browser phase; try the file with two browser workers and a busy
   machine.
   Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce. The test passed in repeated runs on an idle machine. Needed
+  next time: The failure text of a loaded run (the captured traceback
+  and the browser console) and the load at the time. Running log: the
+  comments on issue #1694.
   Prerequisites: none.
 
 - [ ] **TEST.195 `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` timed out at 30 s fetching `/sector/<id>/galaxy` inside a full gate run and passed alone (bug)**
@@ -11620,6 +12293,13 @@ clears each one.
   quarantine. Fails on main: not checked. Frequency: once. Reproducer:
   none beyond the full suite at load about 9.
   Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce. The test passed in repeated runs on an idle machine. The
+  `/galaxy/tiles` net::ERR text this item quotes matches the
+  request-error handler of the accessibility test, so it may have come
+  from another test's page. Needed next time: The full run's traceback
+  naming the failing test and the load at the time. Running log: the
+  comments on issue #1694.
   Prerequisites: none.
 
 - [ ] **TEST.199 `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on main for a far-tail case: the halo subtraction loses precision, 2.4e-9 against a 1e-9 tolerance (bug)**
@@ -11769,6 +12449,43 @@ clears each one.
   Owner: Bug Hunt (proposed, as the coordinator suggested; any lane).
   Prerequisites: none. Related: TEST.148, TEST.150, TEST.151, TEST.152,
   TEST.139.
+
+- [ ] **TEST.209 One consistency sweep over every planet and moon class: composition, density, temperature, ozone, aerosols and text all agree**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): The proof of "all of the values
+  consistent across the board". Generate planets and moons of every
+  class and check: partial pressures sum to the pressure; molar density,
+  mean molecular weight and scale height follow from them; the
+  temperature equals the formula on the stored albedo and greenhouse
+  multiplier; ozone follows the oxygen and UV; the aerosol depths follow
+  their rules; every gas in a description is in the table and the
+  mixture. Runs in the `changed` gate for the files involved. Done: it
+  passes on a generated galaxy and fails when any one rule is broken (a
+  test that breaks each rule in turn).
+  Prerequisites: GEN.411, GEN.412, GEN.413, GEN.414, GEN.415, DB.67,
+  DB.68, GEN.422, GEN.423, GEN.424. Related: GEN.415, DB.68.
+
+- [ ] **TEST.210 A bulk composition sweep over every class: fractions, density, mass, radius and gravity agree**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. Generate planets and moons of every
+  class and check: the fractions sum to one and stay in range; the
+  density equals the model's density for the fractions and mass; the
+  gravity equals G M over the radius squared; the stored values agree
+  with the fractions after the migration; the text names only stored
+  materials. Done: it passes on a generated galaxy and fails when any
+  one rule is broken (a test that breaks each rule in turn).
+  Prerequisites: GEN.428, GEN.429, GEN.430, DB.69. Related: TEST.209.
 
 ## USR: User accounts
 
@@ -12443,7 +13160,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
 
 - [ ] **OPS.55 Nightly full backup: a backup step in the daily maintenance run that takes every part into one archive, with a schedule setting and a nightly retention setting**
   Boss (2026-10-16, 2:06 PM EDT): "Yes plese." to a nightly full backup
-  from the daily maintenance run. Target 9.0 (the backups and repair
+  from the daily maintenance run. Target 8.9 (the backups and repair
   chain, umbrella ADM.91). The maintenance logic of OPS.16 (`--if-due`,
   `--only STEP`, lock, log, exit codes) gets a `backup` step that calls
   `planetgen.backup.take` of ADM.87 with every registered part
@@ -12885,7 +13602,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Boss (2:00 PM EDT): "we also have to build a way to use that data so
   build that out and let's make this targetted for v9.0 so incorporate
   the chain for these (restore / repair using backups) with that due
-  date. Settings page is v8.1". Target 9.0 (the backups and repair
+  date. Settings page is v8.1". Target 8.9 (the backups and repair
   chain, umbrella ADM.91); the settings page and the settings backups
   stay in 8.1 (ADM.83 to ADM.85). All backup pieces are parts of one
   `.tar.bz2` archive (ADM.87); retention is `settings.backups_kept`
@@ -12985,6 +13702,43 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   a full plan. Done: the two design notes and cli.md carry the measured
   table and the one-line scope; nothing else changes.
   Prerequisites: none. Related: GEN.240, GEN.322, GEN.323.
+
+- [ ] **DOC.63 Docs: the atmosphere data model, the gas table and how the values agree**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): The data model and physics pages
+  describe the new columns, the gas table, the mixture rule, ozone,
+  aerosols and the consistency sweep, with the sources of every number.
+  Done: the pages name each stored value and where it comes from.
+  Prerequisites: TEST.209. Related: DB.67, DB.68.
+
+- [ ] **DOC.64 Docs: the atmosphere colour, its method and its sources**
+  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
+  docs/design/sky-colour-analysis.md): The API page, the description
+  document page and the physics pages explain the atmosphere colour, the
+  method (Rayleigh from the mixture, ozone, aerosols, the thick-air
+  limit, the reference level of a giant), what the colour does not
+  include (sunsets, twilight and the day strip, which belong to the view
+  from a planet) and the sources. Done: each page says so.
+  Prerequisites: GEN.420, MAP.244. Related: DOC.63.
+
+- [ ] **DOC.65 Docs: bulk composition, the materials table and how density, mass and gravity follow**
+  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
+  stores the composition of a body and that composition drives the mass
+  calculations and density calculations for gravity and such?" Answer
+  (read-only trace,
+  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
+  main at 8.0.1635): no. `planet.composition` is one fixed text string
+  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
+  fractions exist; the bulk density is a uniform draw per class (500:
+  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
+  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
+  radius and density (528) and the gravity from those; giants take mass
+  and radius from a mass-radius relation (534-557). The chain below
+  makes the composition the cause. The data model and physics pages
+  describe the fractions, the materials table, the mass-radius model,
+  the migration and the sweep, with the sources of every number. Done:
+  the pages name each stored value and where it comes from.
+  Prerequisites: TEST.210. Related: DOC.63, DB.69.
 
 ## VIEW: The view from a planet
 
@@ -13191,7 +13945,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   tests against the numbers of sky-view.md (Sun -0.07, A_B/A_V 1.3226,
   Sun B-V to 5,778 K), and the HYG calibration test of VIEW.10 run
   against it.
-  Prerequisites: VIEW.1, VIEW.9. Related: VIEW.2.
+  The blackbody colour is GEN.416 in 9.0 (Boss, 2026-10-16, 11:24 PM
+  EDT, the atmosphere colour chain); this item extends that module with
+  the magnitude, bolometric correction and extinction law.
+  Prerequisites: VIEW.1, VIEW.9, GEN.416. Related: VIEW.2.
 
 - [ ] **VIEW.12 Sky catalogue: the stars an observer sees, with direction, brightness and light-time**
   Split from VIEW.2 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -13265,6 +14022,19 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   card, and a browser test that toggles the figures and finds a named
   constellation.
   Prerequisites: VIEW.15, VIEW.16. Related: VIEW.3.
+
+- [ ] **VIEW.18 Headline of 9.1: the view from a planet, with its starmap, its picture and its constellations**
+  Boss (2026-10-16, 11:42 PM EDT, card "View from a planet"): the view
+  from a planet is the headline of 9.1 and the gravity map is the second
+  feature. This item is done when its items are: the starmap seen from a
+  planet (VIEW.2) and the picture of the view with constellations
+  (VIEW.3), which carry the sky catalogue, the photometry library, the
+  galactic band, the horizon and the constellations beneath them, on the
+  sky data and research of 8.9 and the atmosphere colour of 9.0.
+  Headline: 9.1 (the view from a planet: the sky from any planet or
+  moon, with real constellations, rendered as a picture). A hand version
+  bump needs Boss's word.
+  Prerequisites: VIEW.2, VIEW.3. Related: VIEW.1, MAP.167, GEN.421.
 
 ## POP: Population and politics
 
