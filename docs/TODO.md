@@ -49,6 +49,14 @@ that default.
   tables, columns and layouts as the work needs, with one migration or a
   fresh galaxy.
 
+### Investigation log
+
+- Every test or investigation on an item gets a dated comment on its goal issue, whether it fixes, fails or cannot reproduce (Boss, 2026-10-16,
+  11:48 PM EDT: "I want to keep issues having a running history of what we do and why"). A bug that could not be reproduced, or that needs
+  more information, is flagged so in the item (a "Status" line) and in a comment headed with the item ID and the words "Could not reproduce"
+  or "Needs information", giving the date and time in EDT, what was run (the number of runs, the load, the inputs), the result, and the
+  failure text needed next time. The comment is the history; the item says only the latest status.
+
 ### Links
 
 - This file is the only place that links an item to its design document,
@@ -10943,6 +10951,13 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce. 6 solo runs of the test, 8 to 19 s each, all passed.
+  GEN.232 cured the 900 s path this item was filed for. Needed next
+  time: 5 clean full runs are still needed before it can close; the
+  failing run's captured traceback, the number of tests running at the
+  time (the load), and the elapsed time if it fails again. Running log:
+  the comments on issue #1694.
   Prerequisites: none.
 
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
@@ -10963,6 +10978,11 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce. 86,000 systems with the primary forced to K2V were
+  generated and the primary was K2V every time. Needed next time: The
+  failing assertion text and the seed of the failing run. Running log:
+  the comments on issue #1694.
   Prerequisites: none. Related: TEST.111, TEST.71.
 
 - [ ] **TEST.126 The heavy WebGL browser-map tests time out when four workers run them together (bug)**
@@ -11026,6 +11046,12 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): fixed on main,
+  not confirmed. Bug Hunt found the browser wait ceiling of 120 s
+  (`browser_waits`) already on main and no failure since; no run of the
+  test is recorded for this item. Needed next time: It closes unless a
+  traceback shows up; if it fails again, the captured traceback and the
+  load. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
@@ -11214,6 +11240,12 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): fixed on main,
+  not confirmed. Bug Hunt found the browser wait ceiling of 120 s
+  (`browser_waits`) already on main and no failure since; no run of the
+  test is recorded for this item. Needed next time: It closes unless a
+  traceback shows up; if it fails again, the captured traceback and the
+  load. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.126, TEST.128, TEST.137.
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
@@ -11255,6 +11287,10 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce. 24 runs of the test under load all passed. Needed next
+  time: The failing parametrisation, the text of the failure and the
+  load at the time. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.128, TEST.132 (done, PR #1578), TEST.134.
 
 - [ ] **TEST.144 test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug)**
@@ -11275,6 +11311,12 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): fixed on main,
+  not confirmed. Bug Hunt found the browser wait ceiling of 120 s
+  (`browser_waits`) already on main and no failure since; no run of the
+  test is recorded for this item. Needed next time: It closes unless a
+  traceback shows up; if it fails again, the captured traceback and the
+  load. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.126, TEST.138.
 
 - [ ] **TEST.148 Investigate resuming a test run where it left off when the build is the same**
@@ -11494,6 +11536,13 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce. 6 solo runs of the test, 8 to 19 s each, all passed.
+  GEN.232 cured the 900 s timeout path. Needed next time: 5 clean full
+  runs are still needed before it can close; the failing run's captured
+  traceback, the number of tests running at the time (the load), and the
+  elapsed time if it fails again. Running log: the comments on issue
+  #1694.
   Prerequisites: none. Related: TEST.111, GEN.232.
 
 - [ ] **TEST.168 Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs**
@@ -11573,6 +11622,12 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce, pinned anyway by Bug Hunt. The test did not fail again. Bug
+  Hunt pinned the failing path with a test in its branch regardless.
+  Needed next time: If it fails again: the text of the failure and
+  whether the pinned test failed with it. The item stays open until Bug
+  Hunt's PR merges. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.170, TEST.111.
 
 - [ ] **TEST.172 test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug)**
@@ -11622,6 +11677,12 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce, pinned anyway by Bug Hunt. The test did not fail again. Bug
+  Hunt pinned the failing path with a test in its branch regardless.
+  Needed next time: If it fails again: the text of the failure and
+  whether the pinned test failed with it. The item stays open until Bug
+  Hunt's PR merges. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.132, TEST.171, TEST.172.
 
 - [ ] **TEST.174 test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug)**
@@ -11850,6 +11911,12 @@ clears each one.
   fixture fails. Reproducer: make the server fixture raise after its
   start and time the run.
   Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce as described. pytest already fails the tests that depend on
+  a failed session fixture at once, so the 900 s wait this item
+  describes did not appear. Needed next time: The run log that shows
+  dependents waiting their full timeout, and the fixture that failed
+  first. Running log: the comments on issue #1694.
   Prerequisites: none. Related: TEST.167.
 
 - [ ] **TEST.191 The plan tests write real settings JSON into `/var/lib/planetGen/jobs/galaxy-settings` and log "No naming key drawn ... Unknown database": give them a temporary directory and a test database**
@@ -11916,6 +11983,11 @@ clears each one.
   full browser phase; try the file with two browser workers and a busy
   machine.
   Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce. The test passed in repeated runs on an idle machine. Needed
+  next time: The failure text of a loaded run (the captured traceback
+  and the browser console) and the load at the time. Running log: the
+  comments on issue #1694.
   Prerequisites: none.
 
 - [ ] **TEST.195 `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` timed out at 30 s fetching `/sector/<id>/galaxy` inside a full gate run and passed alone (bug)**
@@ -11992,6 +12064,13 @@ clears each one.
   quarantine. Fails on main: not checked. Frequency: once. Reproducer:
   none beyond the full suite at load about 9.
   Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
+  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
+  reproduce. The test passed in repeated runs on an idle machine. The
+  `/galaxy/tiles` net::ERR text this item quotes matches the
+  request-error handler of the accessibility test, so it may have come
+  from another test's page. Needed next time: The full run's traceback
+  naming the failing test and the load at the time. Running log: the
+  comments on issue #1694.
   Prerequisites: none.
 
 - [ ] **TEST.199 `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on main for a far-tail case: the halo subtraction loses precision, 2.4e-9 against a 1e-9 tolerance (bug)**
