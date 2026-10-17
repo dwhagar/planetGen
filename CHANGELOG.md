@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1603] - 2026-10-17
+
+**Headline:** The Admin Settings page now has a backups screen: see every backup, make one, compare it with today's settings and restore all or part of it, and export or import the settings that an admin may change.
+
+### Changed
+- New page `/admin/settings/backups` (linked from Settings): every backup archive newest first with who made it, why, which parts it holds and its size, and Back up now. Opening an archive checks it against its recorded hashes, compares its settings with today's `config.json` (the old and new value of each option a restore would change, a secret shown as `(changed)`, a backup that no longer fits the settings model refused with the reason) and restores the whole archive or only the parts ticked. A restore first backs up what it replaces, writes an audit row per changed option and per restore, and from the web puts back only the options an admin may change, so it can never swap the database password or the secret key.
+- Downloading an archive is for the Owner only (it holds every secret in `config.json`); an admin sees why it is not offered.
+- New Export and Import on the same screen: the export is the options set in `config.json` that an admin may change, without secrets or server-only options; an import is checked exactly like an edit (type, range, who may change each option, unknown keys), shows the review diff and saves with a backup and an audit row (`config.import`). One bad value changes nothing.
+- New API routes `GET` and `POST /api/admin/backups`, `GET /api/admin/backups/<name>`, `POST .../restore`, `GET .../download`, `GET /api/admin/settings/export` and `POST /api/admin/settings/import` (`docs/api.md`).
+- The pending-restart banner on the admin pages and the intro links on the settings pages now underline their links, as the accessibility check requires.
+
 ## [8.0.1602] - 2026-10-17
 
 **Headline:** The galactic potential items (GEN.338, GEN.115, GEN.144) are rewritten so the potential is derived from the generated galaxy, with the Milky Way's numbers only as reference values.
