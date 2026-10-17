@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1601] - 2026-10-17
+
+**Headline:** Boss decided that the galactic potential module and the nuclear mass components stay in 8.3.
+
+### Changed
+- GEN.285, GEN.338 and GEN.144 are recorded as Decided to stay in 8.3 (Boss, 2026-10-16, 8:41 PM EDT, card "Keep in 8.3"), with Core 3 proposed as owner when 8.3 starts.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1600] - 2026-10-17
 
 **Headline:** GEN.134 (star populations by galactic radius) is recorded as built derived, with the Milky Way figures only as test targets.
