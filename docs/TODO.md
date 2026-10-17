@@ -236,55 +236,6 @@ use the full width; touch targets at least 44-48 px on coarse pointers
 (`pointer: coarse`), smaller is fine for a mouse; spacing and type sized
 with `clamp()`.
 
-- [ ] **UX.3 Warn every visitor while a background job changes the galaxy**
-  Boss (2026-10-01): "a warning to all users on the UI when a
-  task is running in the background which is modifying the starmap is
-  going on with an ETA until it will be finished to the nearest hour
-  rounding up." Today only the admin Generate page shows a running job
-  (`web/jobs.py`: the `active` lock in the jobs directory, each job's
-  `state.json`, and `progress.json` written by `generate.py` through
-  `stellarObjects.progressFile`). Done: while a job that writes to the
-  galaxy is running (plan, bright-star scatter, sector fill, block and
-  neighborhood generation from the map (MAP.20), reset, new galaxy,
-  and later ADM.8's regenerate), every page shows a banner to every
-  visitor, signed in or not, saying the galaxy is being changed and
-  when it should finish, as an ETA rounded up to the next whole hour
-  (from `progress.json`, and from PERF.3's measured stars-per-second
-  rate). Question (decided below): a banner at the top of every page, or
-  only on
-  the map and list pages? Does it also cover `generate.py` runs started
-  from the command line, which don't take the web jobs lock today
-  (they would need to write the same lock and progress file)? What does
-  it say when there's no ETA yet?
-  Plan (2026-10-07): The banner reads the RQ job's published progress
-  (ADM.22), not progress.json.
-  Research (2026-10-09, performance-eta-queue-and-caching.md): answer
-  its open questions: the banner shows on every page, polled every 30 s
-  from a public endpoint that reads a Redis progress record (5 s
-  per-process cache); command-line runs publish the same record and
-  refresh `planetgen:active:<db>` (60 s expiry) so they appear (open
-  question for Boss, default yes); "no ETA yet" shows the PERF.3
-  estimate labelled "from earlier runs" or "estimating". The hour rule:
-  show ceil(1.15 x eta), fall freely, rise only when 0.88 x eta exceeds
-  it (upward jumps of 9 to 18 per 10 h run fall to about 0; the
-  under-promise share of 15 to 25% falls to under 1%, except 9% on
-  two-cost-class runs).
-  Decided (2026-10-10): Boss (19:04-19:12Z cards, recommended option):
-  the banner shows on every page, and it also covers command-line runs,
-  so `generate.py` and the CLI must write the same lock and publish
-  progress.
-  Plan change (2026-10-15): the banner and its public endpoint are built on
-  the Redis run record and ETA function of PERF.96 (done, PR #1553), never on the MySQL job
-  tree that PERF.100 deletes; PERF.99 only repoints the Generate page,
-  Queue page and job log. PERF.96 has merged, so it is unblocked (held until Boss releases the lanes).
-  Narrowed (2026-10-16 review): the public status endpoint over the run
-  record, the banner on every page and the hour-rounding rule;
-  command-line runs appear because PERF.98 puts them on the run record.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 19 of 54). This replaces any earlier owner line on this item.
-
 - [ ] **UX.49 Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site**
   UX.40 (done, PRs #528, #533, #539, #544) moved the buttons, menus and
   dialogs onto Shoelace and lined up the Generate page's text boxes with
@@ -13888,7 +13839,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   kernel code of its own.
   Design: [docs/design/gravity-map.md](design/gravity-map.md)
 
-- [ ] **PERF.75 Keyset paging for the other data tables and the jump-by-value box (Systems name sort done)**
+- [ ] **PERF.75 The jump-by-value box for the big data tables (keyset paging is done for the Systems, Uncharted stars and Phenomena tables)**
   From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
   #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
   synthetic systems, MariaDB 10.11): `OFFSET` makes page n cost n times
@@ -13917,6 +13868,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dropped from this item (TODO thread's default; Boss can overrule): it
   stores only generated sectors, so a deep OFFSET stays cheap and keyset
   paging buys nothing there.
+  Part 1 merged (Core 5, PR #2086, 2026-10-17, about 3:58 PM EDT as the
+  lane reported): keyset paging for the Uncharted stars table, the
+  Phenomena scattered tail and the Systems name sort in either
+  direction. Still open: the jump-by-value box (a letter or a sector) on
+  the big tables, and any other table or API list route that still pages by OFFSET (not rechecked here). The Sectors table stays dropped from this item (the TODO
+  thread's default of 2:25 PM EDT; it stores only generated sectors, so
+  a deep OFFSET stays cheap).
   Prerequisites: none. Related: PERF.64, PERF.70, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
@@ -14176,6 +14134,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Bug Hunt (bugs only, Boss, 2026-10-17, 10:06 AM EDT). This
   replaces any earlier owner line on this item.
   Prerequisites: none. Related: PERF.104, TEST.54.
+
+- [ ] **PERF.112 The uncharted-star count runs a full COUNT(*) on every request: keep the count so the page and the API do not scan bright_stars each time (performance)**
+  Finding from Core 5 (2026-10-17, about 3:58 PM EDT as the lane
+  reported, relayed by the coordinator, kind: performance), checked by
+  the TODO thread against main: `count_uncharted_systems` in
+  `src/planetgen/db/query.py` runs `SELECT COUNT(*) FROM bright_stars
+  WHERE star_system_id IS NULL` and the Uncharted stars API route
+  (`api/routes.py`, `"total": count_uncharted_systems(db)`) calls it on
+  every request, so every page of the table costs a scan of the whole
+  scatter table even though the page itself is now a keyset page
+  (PERF.75 part 1). With millions of scattered stars the count
+  dominates. Not measured yet. Do: measure the count on a large seeded
+  galaxy (idle box, times stated), then keep the number where it is
+  cheap to read (a counter written when a star is built into a system
+  and when the scatter places stars, or a cached value invalidated by
+  those writes, whichever the design notes of PERF.71 prefer), and make
+  the web page and the API read it. Done: the count is read in constant
+  time on a galaxy of the measured size, it stays right after a star is
+  built, a rescatter and a reset (a test for each), and the measurement
+  is on the item. Owner: Core 5 (proposed, PERF.75's author).
+  Prerequisites: none. Related: PERF.75, PERF.71, UX.87.
 
 ## DB: Database and schema
 
@@ -16992,6 +16971,18 @@ clears each one.
   The empty-rim-block question (MAP.210) stays its own sub-check;
   TEST.194 (system map) and TEST.203 (WorkerDied) stay separate. Agreed
   by Bug Hunt (2026-10-17, 12:33 AM EDT as the lane reported).
+  Sighting (Core 5, 2026-10-17, about 3:58 PM EDT as the lane reported,
+  PERF.75, UX.3 and DOC.24 gate, 19,333 passed):
+  `test_galaxy_map_drill_down_by_clicks` (the TEST.202 test) failed once
+  in the gate and passed alone on rerun. Checked idle by the TODO thread
+  (4:03 PM EDT, main c4b88dc9, load 0.1 on 4 cores, nothing else
+  running): passed in 106.65 s (one run, not looped, so a rarer failure
+  at idle is not ruled out). Every failure seen so far was in a loaded
+  run. Fails on main: not at idle in one run. Frequency: now 3 loaded
+  gate runs seen for this test (Core 3
+  twice on 2026-10-16, Core 5 once). Reproducer: `PYTHONPATH=src python3
+  -m pytest src/tests/test_web_browser_maps.py -k drill_down_by_clicks`
+  while a gate runs. Bug Hunt owns it.
   Prerequisites: none. Related: MAP.210, TEST.170, TEST.171.
 
 - [ ] **TEST.174 test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug)**
@@ -18910,7 +18901,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   know about. Done: the sweep is run again on main, anything new is
   fixed in the same pass, README's headline feature list and the release
   headline are checked, and the result is recorded here.
-  Prerequisites: DOC.19, DOC.20, DOC.24, DOC.48, DOC.50, DOC.51, DOC.52.
+  Prerequisites: DOC.19, DOC.20, DOC.48, DOC.50, DOC.51, DOC.52.
   Related: DOC.4.
   Runs last: re-run the sweep when the other 8.1 DOC items are done
   (2026-10-16 review).
@@ -18951,34 +18942,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 43 of 54). This replaces any earlier owner line on this item.
   Prerequisite: PERF.86.
-
-- [ ] **DOC.24 Bring Python 3.12, numba and astropy into the research notes and three source comments**
-  Found by the full documentation sweep Boss asked for (2026-10-14
-  18:06Z); every finding was checked against the code on main
-  (8.0.1072), and the findings with file, line and evidence are in
-  /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
-  18 to 23. generation-determinism.md, reproducible-galaxies.md,
-  units-and-number-formatting.md and library-migration.md still treat
-  astropy as live and 3.9 as the floor; galactic-potential.md,
-  orbital-solvers-and-integrators.md, db-check-and-parity-repair.md,
-  api-design-standards.md and ops-scheduling-and-rotation.md need the
-  same check; stale 3.9 comments remain in util/settings.py (line 39),
-  queue/work.py (247) and cli/generate.py (1376). PERF.88 (the numba
-  sector-path integrator) is still open, so say so. Done: the notes and
-  comments match OPS.42 and GEN.211.
-  Progress (PR #1592, Quality): the notes and two of the comments are
-  done. One leftover: the Python 3.9 docstring and workaround
-  `reject_lost_option_values` in cli/generate.py is dead on 3.12; Quality
-  removes it after the spherical switch merges, because generate.py is in
-  the switch.
-  Quality, 2026-10-15 (#1698): DOC.21 is done; the
-  `reject_lost_option_values` comment in planetgen/cli/generate.py is
-  still open here.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 17 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: PERF.88.
 
 - [ ] **DOC.45 Reference docs follow the description layer**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
