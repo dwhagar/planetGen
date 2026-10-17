@@ -7819,6 +7819,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   11:32 AM EDT as it reported): Aumer and Binney 2009 (arXiv:0905.2512,
   GR4) is readable by a thread; the Courteau and Comeron VizieR search
   runs first (decision 6).
+  VizieR search result (2026-10-17, finished 11:39 AM EDT as the
+  coordinator reported; docs/design/vizier-courteau-comeron.md): GR5
+  stays at the plan's fill (log-normal 0.09 dex, bracket 0.06 to 0.12;
+  the raw scatter of two source samples is 0.104 to 0.123 dex, so 0.10
+  to 0.11 would match them, and the true scatter about the Courteau
+  relation is smaller and unknown; the table is not reachable). GR3 rank
+  2 becomes the Comeron 2018 fit, J/A+A/610/A5: log10(M_thick/M_thin) =
+  2.113 - 1.086 log10(Vc), scatter 0.27 dex (the plan had 0.2), median
+  height ratio 4.2 (the plan had 2.5) and median length ratio 1.46. 39
+  percent of the 124 real galaxies exceed the plan's hot-component
+  bound, so the bound test applies to the mean relation or carries a
+  margin of 0.13 dex. The replacement is a new stand-in version after
+  this item merges (Core 1's gate ends about 12:20 PM EDT).
   Prerequisites: none. Related: GEN.378, GEN.382, GEN.366, GEN.134.
 
 - [ ] **GEN.402 The central black hole mass and the nuclear cluster follow the bulge: the M-bulge and M-sigma relations replace the fixed ranges**
@@ -7877,6 +7890,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   uniform 0.48 to 1.36, both sources stay (Neumayer, Georgiev). GR5
   (Courteau 2007 scatter): the fill ships and the VizieR search result
   replaces it later.
+  VizieR search result (2026-10-17, finished 11:39 AM EDT as the
+  coordinator reported; docs/design/vizier-courteau-comeron.md): GR5
+  (Courteau 2007 scatter of log(Vc/sigma0)) stays at the plan's fill:
+  the table is not on VizieR; raw scatter of two source samples is 0.104
+  to 0.123 dex.
   Prerequisites: GEN.401. Related: GEN.280, GEN.387, GEN.368.
 
 - [ ] **GEN.403 The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157**
@@ -13421,6 +13439,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   VizieR table search for GR5 and GR3 started at 11:29 AM EDT as the
   coordinator reported (reports file
   vizier-courteau-comeron-2026-10-17.md).
+  VizieR search result (2026-10-17, finished 11:39 AM EDT as the
+  coordinator reported; docs/design/vizier-courteau-comeron.md): R5
+  (Courteau 2007 scatter) is not answerable from VizieR: the data table
+  is not there, the authors' file is refused, and the paper is ApJ 655,
+  L21 (astro-ph/0610721; its samples are 154, 24, 54 and 11 galaxies,
+  there is no "64"). The raw scatter of log10(Vc/sigma0) of two source
+  samples is 0.104 to 0.123 dex (Prugniel, Maubon and Simien 2001
+  J/A+A/366/68; Pizzella 2005), inside or at the top of the plan's 0.06
+  to 0.12 bracket, so the fill stays. R3 (thick-disc formulas) is
+  answered by the Comeron, Salo and Knapen 2018 table J/A+A/610/A5
+  (arXiv:1709.00457): log10(M_thick/M_thin) = 2.113 - 1.086 log10(Vc),
+  scatter 0.27 dex, median height ratio 4.2, median length ratio 1.46.
+  Corrections: A&A 562, A121 is the ARRAKIS ring atlas, the 2014
+  thick-disc paper is A&A 571, A58 (arXiv:1409.0466); the Comeron 2011
+  and 2012 tables are not on VizieR (superseded by 2018).
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
