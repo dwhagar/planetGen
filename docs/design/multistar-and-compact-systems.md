@@ -75,9 +75,13 @@ were rerun while writing this document.
   separation log-uniform 50 to 10,000 AU, thermal eccentricity capped at 0.8, live
   position circular ("a deliberate, documented simplification"). Each star keeps
   its planets and its Holman and Wiegert `wide_binary_a_crit_km`.
-- **Choice.** `StarSystem._should_generate_binary` rolls
+- **Choice.** `StarSystem._companion` rolls
   `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS` (O 0.90, B 0.65, A 0.55, F 0.47,
-  G 0.44, K 0.40, M 0.26), then `WIDE_BINARY_DEFAULT_CHANCE = 0.5`.
+  G 0.44, K 0.40, M 0.26), then `WIDE_BINARY_DEFAULT_CHANCE = 0.5`. Since GEN.103
+  it is one roll: the odds of the close share are multiplied by `F([Fe/H]) / F(0)` of the primary's
+  own [Fe/H] (every mass), the wide share is not, and a wide pair's axis is drawn up
+  to the place's survival limit instead of 10,000 AU
+  ([placement-by-population.md](placement-by-population.md) 3.1 and 3.3).
 - **Holman and Wiegert** is implemented in `physics/orbits.py`
   (`holman_wiegert_critical_semimajor_axis`, `holman_wiegert_circumbinary_a_crit_au`);
   `StarSystem._orbit_floor_au` applies the P-type limit.
@@ -93,7 +97,7 @@ were rerun while writing this document.
   and `NeutronStar` as `Star` subclasses. They anchor a `StarSystem` only through
   the `compact_remnant` argument (`phenomenon --anchor-system`), and that path
   skips binary generation (`compact_remnant is None and
-  self._should_generate_binary()` in `StarSystem.__init__`). **The module
+  self._companion()` in `StarSystem.__init__`). **The module
   docstring cites `docs/design/exotic-phenomena.md`, which does not exist**; a
   repo-wide grep finds the path only there (the words "exotic-phenomena" elsewhere
   are prose in `docs/cli.md` and a test CLI). The design home is

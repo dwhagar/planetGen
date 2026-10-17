@@ -2,6 +2,96 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1654] - 2026-10-17
+
+**Headline:** The consolidation sweep's contradictions and prerequisite cycles are fixed in the plan.
+
+### Changed
+
+- MAP.189 and MAP.190 no longer need each other (MAP.190 first); GEN.271 no longer waits on GEN.253; GEN.327 waits for GEN.329, which owns `runaway_origin`; GEN.396 waits for GEN.407 and rides its epoch.
+- GEN.400, GEN.404, GEN.405, GEN.370 and GEN.144 split the Sun-radius and central-mass work once: GEN.404 and GEN.405 no longer point at each other, GEN.406 (research) comes first and GEN.405 waits for it, GEN.370 follows GEN.400 and GEN.404.
+- OPS.37 only shows the generator version and OPS.15 compares the battery digest; DB.58 accepts the moderator role; NAV.59, NAV.19 and TEST.180 lose text another item owns; DB.56, GEN.346 and GEN.143 use one name (`orbital_events`, written by GEN.197); MAP.121 steps as a camera move after MAP.227 and MAP.228.
+- GEN.415, GEN.430 and GEN.446 wait for GEN.221 so the describer sentences are written once; GEN.440 lists the star kinds and flags it reads; MAP.236 follows MAP.240, UX.115 needs MAP.243, VIEW.14 needs GEN.417 and GEN.418, MAP.219 needs MAP.217, GEN.377 needs GEN.323, GEN.301 needs TEST.196.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1653] - 2026-10-17
+
+**Headline:** The plan for replacing every Milky Way copy with a calculated law is written down and checked against the papers.
+
+### Changed
+- **The laws table (GEN.368).** `docs/design/intergalactic-and-halo-contents.md` section 5.13 gives one chain from a drawn stellar mass (halo mass, virial radius, disk size and height, bulge, bar and arms, black hole, nuclear cluster, globular clusters, satellites, rotation curve, metallicity, rates) with the law, parameters, scatter and checked source of each row, the fixed values it replaces, and the open points. A paper check (39 claims verified, 16 corrected, 16 found) is in the table. No code changed.
+- **No stored home position.** The galaxy keeps no Sun position; every use computes at an object's own position and the map starts where sectors are generated.
+
+TODO items resolved: GEN.368 (the table; its build items follow). Added: none.
+
+## [8.0.1652] - 2026-10-17
+
+**Headline:** The numeric precision audit says 64-bit floats are enough for the whole galaxy, and lists eight places to fix.
+
+### Changed
+- **Numeric precision audit (GEN.372).** `docs/design/numeric-precision-audit.md` gives, for every float the galaxy stores, computes or draws, how far from its origin it reaches, the spacing of a 64-bit float there (28 km at the Sun, 898 km at the 262 kpc reach, in parsecs), the smallest change that must survive, where the first error shows and a verdict. No stored value needs a wider type; the cases that need work (a local offset rebuilt from absolute coordinates, the field kernel on absolute metres, absolute 32-bit buffers in the browser, three phase formulas, the map tile root, a cell-key wrap at the reach edge, the region test) are listed with a named test each.
+- **Two older documents corrected.** `orbital-updates.md` and `orbital-solvers-and-integrators.md` now say which unit the 32.8 km figure is for, and that positions are stored as DOUBLE milliparsecs, not integers.
+
+TODO items resolved: GEN.372. Added: none.
+
+## [8.0.1651] - 2026-10-17
+
+**Headline:** Four follow-ups from Core 4's citation re-check of the binary-star work are filed.
+
+### Added
+
+- GEN.450 (the star-formation profile's radial slope: reconcile the Schmidt index with the observed gradient, Core 4, after GEN.134 in 8.1 phase 4), and GEN.447 (the wide-pair encounter limit uses the relative-velocity dispersion and the mass-weighted perturber mass), GEN.448 (massive stars get binaries between 0.25 and 50 AU) and GEN.449 (the companion table for mid and early B stars is raised to the observed frequencies), the first three in 8.1 phase 3 with the multi-star items; GEN.301 (the 8.1 headline) now needs all four, so one rescatter serves them.
+
+TODO items resolved: none / Added: GEN.447, GEN.448, GEN.449, GEN.450
+
+## [8.0.1650] - 2026-10-17
+
+**Headline:** The bulk composition sources check is done and its constants, method order and corrections are folded into the bulk composition items.
+
+### Added
+- docs/design/bulk-composition-sources-check.md: the result of GEN.425, 12 sources with what was read, the constants for the materials table, the method order for the density and what Boss must research.
+
+### Changed
+- GEN.426 to GEN.429, DB.69, GEN.432, GEN.433 and GEN.440 carry the findings (the radius level, the core fraction from the star's Fe/Si and Mg/Si, the snow line, the star abundances the draws need); the star composition items go to Core 4 (Boss, 12:13 AM EDT) and the generation chain stays in 8.4.
+
+TODO items resolved: GEN.425 / Added: none
+
+## [8.0.1649] - 2026-10-17
+
+**Headline:** Composition of every body, star and atmosphere joins the atmosphere colour as the 9.0 headline, with its building blocks planned in 8.1.
+
+### Added
+- The composition tree (goal issue #1955, master note docs/design/composition-model.md): four research items (GEN.431 to GEN.434), the stellar, radiation and model designs (GEN.435 to GEN.437), the element and stellar tables (GEN.438, GEN.439), the derived star composition (GEN.440, TEST.211), the surface and small-body composition (GEN.441, GEN.442, DB.70), the atmospheric and surface radiation (GEN.443 to GEN.445), the text (GEN.446), the radiation sweep (TEST.212) and the docs (DOC.66).
+
+### Changed
+- 8.1 gains a third strand: research and designs in phase 1 (GEN.409, GEN.425 and GEN.426 move there), data tables in phase 2 (GEN.410 and GEN.427 move there), the star composition function in phase 3 and its sweep in phase 4; none changes a stored value.
+- 8.4 has five phases (the research and tables left it); 9.0 is "Composition and atmosphere colour" with four phases (colour model, radiation, product, proofs and headline); GEN.421 is the joint headline.
+
+TODO items resolved: GEN.103 / Added: GEN.431, GEN.432, GEN.433, GEN.434, GEN.435, GEN.436, GEN.437, GEN.438, GEN.439, GEN.440, GEN.441, GEN.442, GEN.443, GEN.444, GEN.445, GEN.446, DB.70, TEST.211, TEST.212, DOC.66
+
+## [8.0.1648] - 2026-10-17
+
+**Headline:** The point columns (DB.55, GEN.336, GEN.337) are retired from the TODO and the first slice of DB.53 is recorded.
+
+### Changed
+- DB.55, GEN.336 and GEN.337 leave the TODO and the version plan; DB.53 records that its first slice (migration 0104, `orbit_nodes`) merged in #1952, and TEST.128 records the flake seen in that gate.
+
+TODO items resolved: DB.55, GEN.336, GEN.337 / Added: none
+
+## [8.0.1647] - 2026-10-17
+
+**Headline:** A star's chance of a close companion now follows its own metallicity, and a wide pair's widest axis follows the density and motion of the place it is in, in place of fixed numbers.
+
+### Changed
+
+- **Close companions follow [Fe/H], for every star mass.** The odds of a primary's companion inside 10 AU are multiplied by `F([Fe/H]) / F(0)`, the straight line through Moe, Kratter and Badenes (2019): 53, 40, 24 and 10% at [Fe/H] −3.0, −1.0, −0.2 and +0.5 (a G dwarf's chance goes 0.43, 0.36, 0.25, 0.12; the odds, not the chance, so no star's share passes 1 and an O star at −0.7 rises 29%, not 70%). The wide share does not move with [Fe/H], and the two together never pass 1.
+- **A wide pair's widest axis is derived.** It is the smaller of the passing-star limit (Bahcall, Hut and Tremaine 1985, `a = 0.002 (M1 + M2) σ / (G ρ₂ t)`) and the galactic tide `(M / 3ρ)^(1/3)`, from the cell's density, its populations' velocity dispersion and the pair's age. The fixed 10,000 AU cap (`WIDE_BINARY_SEPARATION_MAX_AU`) is gone: the quiet disc keeps pairs out to about 29,000 AU, a bulge cell far fewer, and a place whose limit is under the 50 AU lower edge keeps no wide pair (the primary is alone, or a close pair when a companion is forced). A system drawn with no galaxy placement takes the Sun's neighbourhood.
+- `StarSystem._companion` replaces `_should_generate_binary`: one roll decides none, close or wide, and the mass ratio is drawn with it. The same seed gives different companions than before.
+- New `generation/place_terms.py` (the factor, the limits, `PlaceTerms` from a sector profile), `SystemConfig.PLACE_TERMS` (not saved), and the constants beside the binary mass ratio in `tuning.py`.
+
+TODO items resolved: GEN.103 (the close-pair rule 3.1 and the wide-pair limit 3.3; the massive-multiples rule 3.2 moved to GEN.373) / Added: none
+
 ## [8.0.1646] - 2026-10-17
 
 **Headline:** Belts, the quasar, comets, facilities and the members of scattered star systems are stored with their point, mass and epoch.
