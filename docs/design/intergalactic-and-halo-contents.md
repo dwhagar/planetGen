@@ -515,7 +515,7 @@ The paper check left these, none of which blocks the rows above:
 - **The halo's normalisation** is the weakest number: the stellar mass (1.5 +- 0.4e9, from a search summary of Deason et al. 2019) and the local density (about 0.5% recalled) disagree by 2.7 times. Either way every halo cell more than 9 kpc from the core is below 0.012 systems, and beyond 20 kpc below 2e-3 [C].
 - **Slopes and breaks** are still disputed: breaks from 10 to 30 kpc across studies (a 2026 DESI paper says "doubly broken", twisted) [S]. A single broken power law is a first model, not a map.
 - **The kick numbers are recalled**, so the 20% to 40% unbound fraction is a range from one population synthesis [S] and a recalled kick law [R, C]. Uniform-in-time production overcounts if star formation peaked early.
-- **The Magellanic populations**: the 10% young and intermediate share is an assumption; the bright and mass rows scale with it directly.
+- **The Magellanic populations**: the built satellites have one old age range and no young share, so the Clouds place no massive stars; Boss decided (2026-10-17, 7:54 AM EDT) that the young and intermediate shares are derived from each satellite's age history and gas (GEN.526), and the bright and mass rows scale with them directly.
 - **Satellite census and masses** are search summaries, not a catalogue check; positions, sizes and the dwarf list need McConnachie (2012) or the current Gaia census before any row ships.
 - **Metallicity values and dispersions** in section 5.3 are recalled and are inputs the generator does not have yet; until slice 1 lands, halo and cluster stars would still receive full planet systems.
 - **Cluster remnants**: the pre-placed cluster black holes (3.6e4) use the field's rate, which overcounts; clusters retain few.
@@ -530,7 +530,7 @@ Decided (Boss, 2026-10-15): the 262 kpc reach with 96-bit IDs; the same rules ev
 2. **Satellites.** ~~Real Milky Way satellites at their real places for the default shape, seeded fictional ones for other shapes later.~~ Superseded (Boss, 2026-10-16, 4:01 PM EDT, "Draw them"): every galaxy draws its satellites from its seed; there is no Milky Way option (Boss, 4:11 PM EDT), and the real list is reference data for plausibility tests only (GEN.369, planned by GEN.368; GEN.371 studies generating them through the scatter).
 3. **The floor.** Deleted; the halo and components replace it with no setting. Default: delete.
 4. **Normalisation.** The 1.5e9 solar mass anchor, with the local density (about 2.7 times higher) kept as the stated alternative. Default: mass anchor.
-5. **Magellanic mix.** 1% young and 9% intermediate until a better source is found. Default: as stated.
+5. **Magellanic mix.** Decided (Boss, 2026-10-17, 7:54 AM EDT): the young and intermediate shares of a satellite with gas are derived from its age history and gas (GEN.526), not the 1% and 9% stand-in, which is dropped.
 6. **How much of an H II cluster is real.** Default: the ionizing members only (5.5 solar masses and up); the whole cluster is the dearer alternative (about 8 minutes per giant complex).
 7. **Protostar rates.** 30% of globules, 1 to 4 per core: recalled and inferred, no source found. Default: as stated.
 
