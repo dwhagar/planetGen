@@ -349,7 +349,7 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 | GEN.469 | The disk's star-formation history from the gas law: the local B-star share is 0.2 percent against the observed 0.04 percent |  | GEN.134 follow-up (proposal 2); generator epoch bump, joins the one rescatter. Core 4. |
 | GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies |  | Core 1; Boss 4:02 PM EDT: feasibility study. |
 | GEN.369 | Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option | GEN.371 | Core 1; Boss 4:01 PM EDT: Draw them. |
-| GEN.240 | The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass |  | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
+| GEN.526 | Satellites with gas get young and intermediate populations derived from their age history and gas, so the Clouds hold massive stars | GEN.369 | Found by Core 3 at GEN.240: the Clouds place no massive stars because satellites have no young share. |
 | GEN.238 | Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population |  | Whole-sphere build train, Boss 2026-10-15. Step 6. Core. |
 | GEN.321 | Emission regions D and E: the ionizing members of a young cluster in a Plummer sphere, cut by sector cube | GEN.320 | Split from GEN.241. |
 | GEN.241 | Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds | GEN.319, GEN.320, GEN.321 | Whole-sphere build train, Boss 2026-10-15. Step 12. Core. Folds in MAP.182. |
@@ -403,7 +403,7 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | MAP.243 | The Galaxy Map cannot select or enter anything in the halo: the halo's scatter objects are not pickable at galaxy scale and a zoom toward one stops without opening a view (bug) | MAP.225, MAP.239 | Boss 9:21 PM EDT; bug; Core 2 proposed. |
-| UX.115 | Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages) | GEN.240, NAV.61, NAV.45, MAP.243 | Interface; queued after sphere stages (Boss, 12:52 AM EDT) |
+| UX.115 | Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages) | NAV.61, NAV.45, MAP.243 | Interface; queued after sphere stages (Boss, 12:52 AM EDT) |
 | TEST.168 | Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs | UX.115 | Quality; queued after UX.115 |
 
 ### Docs
@@ -472,8 +472,8 @@ The last audits and the headline: they test the component pass, the core and the
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| TEST.185 | Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius | GEN.240, GEN.321, TEST.186 | Split from TEST.159. |
+| TEST.185 | Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius | GEN.321, TEST.186 | Split from TEST.159. |
 | TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | TEST.184, TEST.185 | Whole-sphere build train, Boss 2026-10-15. Step 15. Quality. |
-| TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | GEN.240, GEN.282, GEN.321, TEST.186 | Phenomena catalogue, Boss 2026-10-15. Step 4. Quality. |
+| TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | GEN.282, GEN.321, TEST.186 | Phenomena catalogue, Boss 2026-10-15. Step 4. Quality. |
 | TEST.196 | Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged | TEST.186 | Core 4; Boss 6:15 PM EDT: expected-numbers check for GEN.103. |
-| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.244, GEN.259, GEN.282, GEN.284, GEN.298, TEST.159, TEST.160, TEST.196, GEN.447, GEN.448, GEN.449, GEN.450, GEN.463, GEN.467, GEN.469, GEN.502 |  |
+| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.238, GEN.241, GEN.242, GEN.243, GEN.244, GEN.259, GEN.282, GEN.284, GEN.298, TEST.159, TEST.160, TEST.196, GEN.447, GEN.448, GEN.449, GEN.450, GEN.463, GEN.467, GEN.469, GEN.502, GEN.526 |  |
