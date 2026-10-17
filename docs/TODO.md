@@ -3825,7 +3825,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: DB.53, GEN.311, GEN.312, MAP.213, GEN.313, GEN.314.
+  Prerequisites: GEN.311, GEN.312, MAP.213, GEN.313, GEN.314.
 
 - [ ] **GEN.130 Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes**
   Boss (GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778)): "We need to add exotic star systems that
@@ -5168,7 +5168,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   storing interaction on scatter_nodes and orbit_nodes, which waits on
   GEN.260 (migration 0093); exotic-star draws and rate alignment stay
   with GEN.270.
-  Prerequisites: GEN.260, DB.53. Related: GEN.268, GEN.243, GEN.242,
+  Prerequisites: GEN.260. Related: GEN.268, GEN.243, GEN.242,
   GEN.270, GEN.271, GEN.272. Finding from Core 2 (2026-10-16, 4:58 AM
   EDT, GEN.158 merged as #1789): a binary's secondary shares its
   primary's [Fe/H] (stored column Star.metallicity_fe_h, migration
@@ -5531,7 +5531,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   object; the one migration for both is DB.55, whose revision number
   Core 1 names. Design:
   /mnt/project-files/research/orbital-encounters/capture-and-ejection-design.md.
-  Prerequisites: DB.55. Related: GEN.105, GEN.109, GEN.110,
+  Prerequisites: none. Related: GEN.105, GEN.109, GEN.110,
   GEN.223,
   GEN.294.
   Rewritten (2026-10-16 review): this item is the build, not a design
@@ -5704,73 +5704,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   guard of GEN.223 and GEN.265).
   Prerequisite: GEN.290. Related: GEN.105, GEN.223, GEN.232, GEN.238.
 
-- [ ] **GEN.294 Every object in the galaxy is held as one SpatialPosition3D with its position, point mass and movement vector stored as columns**
-  Boss asked (2026-10-15, 11:12 PM EDT, project chat): "do we have a
-  TODO currently that says every object should have a SpacialPosition3D
-  property? Everything that exists in the galaxy." Answer: no open item
-  says it. GEN.74 (done, PR #665, "used by every object") built the
-  class (physics/position.py) and gave it to sector system and
-  phenomenon entries, stars, planets, moons and comets in memory;
-  GEN.223 (done, #1757) gave bright_stars and phenomenon_scatter their
-  point columns. The stored objects are not uniform: planets, moons,
-  comets, facilities and star systems keep position, a velocity vector
-  and an epoch; black holes, neutron stars, rogue planets, nebulae,
-  supernova remnants, interstellar comets and asteroid fields keep a
-  position, an epoch and only a scalar galactic_orbital_speed_kms (no
-  velocity vector); the quasar and the asteroid belts keep no epoch or
-  vector; stars take their place from the system; point mass is stored
-  for stars, planets, moons, black holes, neutron stars and rogue
-  planets but not for comets, interstellar comets, asteroid fields,
-  belts, nebulae, remnants, quasars or facilities. Done: every object
-  that exists in the galaxy (stars and their companions, planets, moons,
-  comets, interstellar comets, asteroid belts and fields, rogue planets,
-  black holes, neutron stars, quasars, nebulae, supernova remnants,
-  facilities, scatter points and scatter members) is held as one
-  SpatialPosition3D carrying its position, its point mass and its
-  movement vector (position, velocity, mass_kg with mu, epoch_unix),
-  stored one column per component with no JSON and a cell key, and read
-  back into the same object; a scalar speed column is replaced by the
-  vector, never kept beside it (no compatibility layer). A body with no
-  real mass (a belt's or field's bulk, a nebula) stores its total mass
-  or a stated zero so the gravity sum can include or skip it by rule; a
-  facility takes the mass of what it sits on or its own stated mass. A
-  test lists every uid table and fails when one lacks the point, the
-  mass or the vector, so a new object kind cannot ship without them. The
-  planet and moon dynamical state (parent, bound state, the replaced
-  circular phase) belongs to GEN.289, which builds on this object; both
-  go in the one migration DB.55, revision 0102 (Core 1, 2026-10-16, 2:44 PM EDT: 0099 and 0100 are Core 3's; DB.54 merged first as 0101, 6:22 PM EDT, so DB.55 is 0102), with the later drop revisions following in order; Core 1
-  owns every revision. Placed in Phase 2 before GEN.109,
-  because the influence set sums the point mass of every object kind. No
-  lane has it yet (Boss, 11:07 PM EDT: hand to TODO, nothing built).
-  Prerequisites: GEN.372. Related: GEN.74,
-  GEN.109, GEN.223, GEN.289,
-  GEN.290.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: GEN.335, DB.55, GEN.336, GEN.337. It touches
-  about fifteen object kinds (eight tables keep only a scalar speed,
-  five more lack mass, epoch or vector), with roughly 24 sites in
-  db/store.py, 15 in schema.sql and a generator per phenomenon, and it
-  hides a Core 1 migration that three other items (GEN.142, GEN.110,
-  GEN.109) also wanted columns in.
-  Scope after the review (2026-10-16 review): this item is the umbrella
-  of one definition of the stored point columns and a test of every
-  object table (a), one additive Core 1 revision for the 8.3 schema (m,
-  shared with GEN.289, GEN.142, GEN.110 and GEN.109), and the vector and
-  mass for compact and free objects (b) and for the rest (c).
-  Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT: Core 1 takes the global
-  top 5 blockers, starting right after GEN.237 merges; estimates from
-  Core 1: GEN.335 merged about 7:30 PM EDT, DB.55 about 10:30 PM EDT).
-  Waits on GEN.372, the numeric precision audit, before it closes (Boss,
-  2026-10-16, 6:54 PM EDT); the audit does not hold up DB.55, GEN.336 or
-  GEN.337, which Core 1 starts first.
-  Owner: Blocker 1 (Boss, 2026-10-17, 3:40 PM EDT, typed in the project
-  chat: DB.53, then GEN.289 and GEN.294, go to Blocker 1; confirmed not
-  in progress in Core 1 at 3:42 PM EDT, and Core 1 dropped it from its
-  queue; order DB.53, GEN.289, GEN.294). This replaces any earlier owner
-  line on this item. Its earlier waits (GEN.335, DB.55, GEN.336,
-  GEN.337) are all done.
-
 - [ ] **GEN.295 Nebulae as point groups whose shape follows the orbital update (design and research)**
   Boss asked (2026-10-16, 1:01 AM EDT, project chat): "should nebulae be
   a group of points that then as orbits update the nebula changes
@@ -5811,7 +5744,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a cap per nebula so the nightly cost stays bounded (PERF.103's row ceiling counts every point). Source:
   Boss's question and the coordinator's answer. Phase 3, after GEN.294,
   GEN.109 and GEN.292.
-  Prerequisites: GEN.294, GEN.109, GEN.292. Related: GEN.75, GEN.115,
+  Prerequisites: GEN.109, GEN.292. Related: GEN.75, GEN.115,
   GEN.241, GEN.289, GEN.293, MAP.176, MAP.178.
 
 - [ ] **GEN.296 The uncharted-star information panel shows the star's metallicity [Fe/H], which is already stored on bright_stars**
@@ -5948,7 +5881,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   SpatialPosition3D reading its mass and length through it, a property
   test that every kind round-trips through every rung and that the
   Python and JavaScript copies agree, and the design note updated.
-  Prerequisites: GEN.294. Related: GEN.74, GEN.109, UX.107,
+  Prerequisites: none. Related: GEN.74, GEN.109, UX.107,
   UX.108.
   Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
 
@@ -6180,7 +6113,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: DB.53. Related: GEN.129.
+  Prerequisites: none. Related: GEN.129.
 
 - [ ] **GEN.312 Naming for trees: path codes (Aa, Ab, Ba) with branch words at wide splits, and planet stems such as Pikkita Ba I**
   Split from GEN.129 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6311,7 +6244,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: DB.53, GEN.314. Related: GEN.130.
+  Prerequisites: GEN.314. Related: GEN.130.
 
 - [ ] **GEN.321 Emission regions D and E: the ionizing members of a young cluster in a Plummer sphere, cut by sector cube**
   Split from GEN.241 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6393,7 +6326,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its values, and this item writes `dynamical` into it. Core 3 may carry
   the two in one PR; check that the column is in DB.53's remaining
   slices.
-  Prerequisites: DB.53, GEN.329. Related: GEN.273.
+  Prerequisites: GEN.329. Related: GEN.273.
 
 - [ ] **GEN.328 Groups at fill in star-forming cores and OB regions**
   Split from GEN.273 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6424,7 +6357,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: DB.53. Related: GEN.274.
+  Prerequisites: none. Related: GEN.274.
 
 - [ ] **GEN.330 Cluster-hosted compact binaries: the cluster rates replace the field fractions**
   Split from GEN.274 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6472,7 +6405,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: DB.53, GEN.314, GEN.315. Related: GEN.275.
+  Prerequisites: GEN.314, GEN.315. Related: GEN.275.
 
 - [ ] **GEN.334 Pair closest-approach library: sweep, pair windows, window cap and chunking**
   Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
@@ -6570,7 +6503,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   kpc average 229.3 km/s with the stated dispersions, an old galaxy run
   through the reseed step gives the same distribution, and the old
   function and constants are gone.
-  Prerequisites: GEN.338, GEN.294. Related: GEN.115.
+  Prerequisites: GEN.338. Related: GEN.115.
 
 - [ ] **GEN.340 One star stepper: kick-drift-kick in the potential, a step per object, on arrays**
   Split from GEN.115 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6586,7 +6519,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lz is conserved to 1e-10, one century in one step agrees with a
   hundred one-year steps for stars without an encounter, and sector
   refiling is untouched.
-  Prerequisites: GEN.338, GEN.294, GEN.139. Related: GEN.115.
+  Prerequisites: GEN.338, GEN.139. Related: GEN.115.
 
 - [ ] **GEN.341 Influence-set search: every object inside the largest nearby Hill sphere, found by sector bounds, with cover lists and a brute-force check**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6604,7 +6537,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   at the core, mid radius, the rim, the top and bottom layers and across
   the slot-0 seam, the exact pairwise Hill criterion, a negative control
   without the margin, the cap, and a seed-reproducibility test.
-  Prerequisites: GEN.294, GEN.289. Related: GEN.109.
+  Prerequisites: GEN.289. Related: GEN.109.
 
 - [ ] **GEN.342 The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -14812,65 +14745,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   position 16 of 54). This replaces any earlier owner line on this item.
   Prerequisites: DB.51. Related: DB.31.
 
-- [ ] **DB.53 Built-system star storage: the orbit_nodes table, stars.parent_node_id, planets.host_node_id, the catalogue columns and the disk descriptor (one Core 1 revision)**
-  Split from GEN.129 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). A built multi-star system has
-  nowhere to keep its tree: scatter_nodes exists (migration 0093) but
-  the built side, orbit_nodes, does not. This item is the one Core 1
-  revision for everything the multi-star train stores on built systems,
-  so GEN.264, GEN.269, GEN.273, GEN.274, GEN.242 and GEN.275 do not each
-  ask for their own. Create orbit_nodes with the same names and units as
-  scatter_nodes (system id, node_no, parent_node_no, SMALLINT slot,
-  mass_solar, separation_km, eccentricity, inclination_deg,
-  ascending_node_deg, arg_periapsis_deg, mean_anomaly_deg, epoch_unix,
-  period_years, kind close, wide, compact or group, interaction, flags)
-  so a fill copies column for column; add stars.parent_node_id and
-  planets.host_node_id; add to the built star rows the member columns
-  scatter_members already has (state, flags, offset_*_au,
-  velocity_*_kms, decay_age_yr for the members of a group node); and add
-  one disk descriptor (disk_kind, disk_mass_solar, disk_inner_au,
-  disk_outer_au) on a star and on an orbit node, nullable, no bodies in
-  it. A plain binary converts to one node (the migration converts
-  existing galaxies, or the galaxy is rebuilt: Boss, 2026-10-15 5:27 PM
-  EDT, early alpha). Done: the revision applies on a fresh and on an
-  existing galaxy, check-db knows the new tables and columns, and a test
-  pins column parity with scatter_nodes and scatter_members so a copy is
-  column for column.
-  Shared by GEN.242, GEN.264, GEN.269, GEN.273, GEN.274 and GEN.275,
-  which each assumed columns on tables that do not exist yet; one Core 1
-  revision for all of them.
-  Owner: Core 1 (Boss, 2026-10-16, 2:42 PM EDT and 3:00 PM EDT: the
-  global top blockers; after the GEN.335, DB.55, GEN.336, GEN.337,
-  GEN.294 chain).
-  Migration revision (Core 1, 2026-10-16, 6:13 PM EDT): 0104, after
-  0103 (GEN.336).
-  Status (Core 1, #1952, merged 2026-10-17, 12:04 AM EDT as the lane
-  reported): the first slice is on main, migration 0104 creates
-  orbit_nodes with the star and planet columns for a built system's
-  orbit tree; the rest of the DB.53 chain remains. The next revision is
-  0105 (DB.65), then DB.69, DB.67, DB.70 and DB.68 in the order they
-  merge.
-  Revision numbers after 0104 (2026-10-17, 12:47 AM EDT): 0105 DB.65,
-  0106 DB.69, 0107 DB.67, 0108 DB.70, 0109 DB.68, 0110 GEN.324's
-  bright_stars population CHECK (Core 3).
-  Finding (Core 3, 2026-10-17, 2:10 AM EDT as the lane reported, running
-  its GEN.324 tests): the migration runner (`alembic_runner`) requires
-  contiguous revision ids, so a file numbered 0110 with head 0104 raises
-  "migration revision '0110' should be '0105'"; a reserved number cannot
-  be used until every lower number exists. The revision numbers listed
-  here are therefore an order of merge and not reservations: each
-  migration takes the next free number when it merges, and its author
-  tells the owners of the migrations still waiting (Core 3 for GEN.324,
-  Core 1 for the DB.65, DB.69, DB.67, DB.70 and DB.68 queue).
-  Owner: Blocker 1 (Boss, 2026-10-17, 3:40 PM EDT, typed in the project
-  chat: DB.53, then GEN.289 and GEN.294, go to Blocker 1; confirmed not
-  in progress in Core 1 at 3:42 PM EDT, and Core 1 dropped it from its
-  queue; order DB.53, GEN.289, GEN.294). This replaces any earlier owner
-  line on this item. The first slice is merged (#1952); an old untested
-  local draft branch claude/db53 (GEN.336 and DB.53, 'draft, untested',
-  Oct 16 evening) exists for Blocker 1 to reuse or ignore.
-  Prerequisites: none. Related: GEN.129.
-
 - [ ] **DB.56 The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings**
   Split from GEN.143 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). One row per event in
@@ -14901,7 +14775,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   by the run's row ceiling (PERF.103). Core 1 places the revision. Done:
   after an update the table lists exactly the objects counted as moved,
   a second update replaces it, and a test on a small galaxy checks both.
-  Prerequisites: GEN.294, GEN.212, GEN.340. Related: MAP.192.
+  Prerequisites: GEN.212, GEN.340. Related: MAP.192.
 
 - [ ] **DB.58 Control-schema revision for accounts: role, email and status, the single-Owner index, account_tokens and invite_uses**
   Split from USR.2 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -14975,7 +14849,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   owns the migration number and settles the columns. Done: the
   migration, models, an old-schema fixture, an idempotent upgrade and a
   round-trip test; no code reads the table yet.
-  Prerequisites: GEN.294. Related: USR.10.
+  Prerequisites: none. Related: USR.10.
 
 - [ ] **DB.64 Table for stored constellations (migration only)**
   Split from VIEW.3 (2026-10-16, Boss 1:07 PM EDT: look at each item for
