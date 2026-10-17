@@ -136,7 +136,7 @@ def sector_star_count(sector):
 
 
 def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_field=None, scattered=False,
-                              kind_factors=None):
+                              kind_factors=None, type_ia_share=None):
     """
     Populates an already-built `sector` with its exotic phenomena, each
     kind in `SECTOR_PHENOMENON_KINDS` sampled independently by a Poisson
@@ -178,6 +178,8 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
             from their scatter rows (`add_scattered_phenomena`), and those
             below its mass cut are drawn by `add_below_cut_remnants`
             (GEN.168), so none is rolled here.
+        type_ia_share (float, optional): The sector profile's `type_ia_share` (GEN.319): the share of this sector's
+            supernova remnants that are Type Ia. `None`: the solar circle's.
         kind_factors (dict, optional): The sector profile's `kind_factors`
             (GEN.236): each kind's mean is its rate per star times the star
             count times its factor, and the star-hosted nebulae's chance is
@@ -213,6 +215,7 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
             for _ in range(count):
                 phenomenon_config = SystemConfig()
                 phenomenon_config.MARKDOWN = args.markdown
+                phenomenon_config.TYPE_IA_SHARE = type_ia_share
                 phenomenon = factory(phenomenon_config, galactic_center_dist_ly)
                 if kind == "planetary-nebula":
                     entry = _add_planetary_nebula(sector, args, phenomenon, galactic_center_dist_ly)
@@ -440,7 +443,9 @@ def add_scattered_phenomena(sector, args, fill):
                                   for axis in ("position_x_mpc", "position_y_mpc", "position_z_mpc")))
         dist_ly = pc_to_ly(radius_pc)
         cut = fill.below_cut.min_mass_solar if fill.below_cut is not None else None
-        entry = _seeded_build(row["seed"], lambda: _build_scattered(sector, args, row, position, dist_ly, cut))
+        type_ia_share = getattr(getattr(fill, "profile", None), "type_ia_share", None)
+        entry = _seeded_build(row["seed"], lambda: _build_scattered(sector, args, row, position, dist_ly, cut,
+                                                                    type_ia_share))
         if entry is None:
             continue
         entry.scatter_id = row["id"]
@@ -451,15 +456,17 @@ def add_scattered_phenomena(sector, args, fill):
     return new_entries
 
 
-def _build_scattered(sector, args, row, position, dist_ly, min_mass_solar=None):
+def _build_scattered(sector, args, row, position, dist_ly, min_mass_solar=None, type_ia_share=None):
     """One scatter row built into `sector` at `position` (sector-local
     light-years): its entry, or `None` when a planetary nebula's central
     system found no room. A neutron star's or black hole's mass is drawn
     at or above the scatter's cut `min_mass_solar` (GEN.166; `None`: the
-    whole range)."""
+    whole range). A supernova remnant is Type Ia with the share `type_ia_share` (GEN.319; `None`: the solar
+    circle's)."""
     kind = row["kind"]
     config = SystemConfig()
     config.MARKDOWN = args.markdown
+    config.TYPE_IA_SHARE = type_ia_share
     if kind == "hypervelocity-star":
         return _add_hypervelocity_star(sector, args, row, position, dist_ly)
     if kind == "planetary-nebula":
@@ -687,7 +694,8 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
     with log.timed_phase("generate_sector_phenomena"):
         generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly,
                                   cloud_field=cloud_field, scattered=scattered,
-                                  kind_factors=getattr(getattr(fill, "profile", None), "kind_factors", None))
+                                  kind_factors=getattr(getattr(fill, "profile", None), "kind_factors", None),
+                                  type_ia_share=getattr(getattr(fill, "profile", None), "type_ia_share", None))
         if scattered and fill.below_cut is not None:
             with fill_stages.stage(sector, fill_stages.BELOW_CUT):
                 below_cut_entries = add_below_cut_remnants(sector, args, fill, galactic_center_dist_ly)

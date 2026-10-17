@@ -19,7 +19,7 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | MAP.173 | Phase 2. Foundations lane 2. |
-| MAP.219 | Galaxy Map marker layer: a kind registry with per-kind toggles, the zoom budget and picking, shipping the black-hole kind | MAP.217 | Split from MAP.132. |
+| MAP.219 | Galaxy Map marker layer: a kind registry with per-kind toggles, the zoom budget and picking, shipping the black-hole kind |  | Split from MAP.132. |
 | MAP.220 | Markers for habitable worlds and chosen classes, optional per kind | MAP.219 | Split from MAP.132. |
 | MAP.179 | Scattered nebulae as markers from level 8 | GEN.202, MAP.173, MAP.219 | Phase 2. Foundations lane 2. |
 | MAP.142 | Nebulae have fuzzy, fading boundaries |  | GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713). |
@@ -44,7 +44,7 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 | GEN.239 | High-velocity clouds and the Magellanic Stream as placed gas clouds (later) |  | Whole-sphere build train, Boss 2026-10-15. Step 10. Core, later. |
 | GEN.248 | Tidal streams as placed components of the halo (later) |  | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.296 | The uncharted-star information panel shows the star's metallicity [Fe/H], which is already stored on bright_stars |  |  |
-| MAP.207 | The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline | GEN.238, MAP.217 | Whole-sphere build train, Boss 2026-10-15. Step 9. Interface. |
+| MAP.207 | The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline | GEN.238 | Whole-sphere build train, Boss 2026-10-15. Step 9. Interface. |
 | MAP.232 | Names for the big features: spiral arms, bar, bulge, halo, satellites and clusters | MAP.229, MAP.207 | Map labels, Boss 2:30 PM EDT. |
 | GEN.367 | The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae |  | Finding from Core 3. |
 
@@ -58,7 +58,7 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 | GEN.249 | Be stars, carbon stars and Mira variables as star attributes (later) | GEN.270 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.255 | Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes | GEN.242 | Phenomena catalogue, Boss 2026-10-15. Step 7b, later. Core and Interface. |
 | GEN.256 | A radiation hazard score derived from distance to hot stars, Wolf-Rayet stars, remnants and magnetars | GEN.243 | Phenomena catalogue, Boss 2026-10-15. Step 7c, later. Core. |
-| GEN.257 | A Fermi-bubble overlay on the Galaxy Map | MAP.217 | Phenomena catalogue, Boss 2026-10-15. Step 7d, later. Interface. |
+| GEN.257 | A Fermi-bubble overlay on the Galaxy Map |  | Phenomena catalogue, Boss 2026-10-15. Step 7d, later. Interface. |
 
 ## Phase 2: Windows into nebulae and clusters
 

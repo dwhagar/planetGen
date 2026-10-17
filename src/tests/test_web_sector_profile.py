@@ -37,7 +37,7 @@ def _profile(unresolved=None, seconds=3.0, superbubble=None, charted_sector_id=N
         "gas": {"cold_fraction": 0.6, "ambient": "disk", "ambient_density_cm3": 0.4, "mass_solar": 3.2,
                 "superbubble": superbubble},
         "dark_matter": {"density_solar_pc3": 0.01, "mass_solar": 0.64},
-        "kind_factors": {}, "sector_id": charted_sector_id, "in_galaxy": True, "unresolved": unresolved,
+        "kind_factors": {}, "type_ia_share": 0.25, "sector_id": charted_sector_id, "in_galaxy": True, "unresolved": unresolved,
         "estimate": {"systems": 12, "stars": 16, "bytes": 3_000_000, "seconds": seconds, "measured": True},
     }
 
@@ -68,6 +68,7 @@ def test_a_charted_sector_page_shows_the_profile_of_its_address(client, profiles
     assert profiles["calls"] == [(5, 1, 20)]  # the fake sector's address
     assert "Old disk" in html and "45.0%" in html and "−0.10 ± 0.20" in html
     assert "Molecular gas is 60% of the solar circle" in html and "Dark matter:" in html
+    assert "25% are Type Ia" in html
     assert 'id="heavy-cell"' not in html  # the sector exists already: nothing left to warn about
 
 

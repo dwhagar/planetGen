@@ -2,6 +2,56 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1700] - 2026-10-17
+
+**Headline:** The three maps share one layer registry, so a map's layers have one menu, one set of URL keys and one legend.
+
+### Changed
+- New `maplayers.js`: a layer (id, label, modes, group, default on or off, URL key for hiding and for showing, legend line, picker layer, availability, title) is registered once, and the registry gives the menu buttons, the `hide=`/`show=` URL keys, the legend block and the blocker fade for it. The Galaxy and Sector stage view registers its sector kinds as layers; the System Map uses it for its own (course, facilities and the rest); the 3D galaxy map has the legend block (`galaxymap3d-layer-legend`). A kind absent from a sector is left out of the menu but keeps its URL entry.
+
+### Added
+- Tests: the registry in `maplayers.test.mjs` (16), the System Map layer menu, and a browser test that a registered Sector Map layer has a menu button, a URL key and a legend line.
+
+TODO items resolved: MAP.217 / Added: none
+
+## [8.0.1699] - 2026-10-17
+
+**Headline:** A page cache that never trims its no-database entries is filed, with the reproducer checked on main.
+
+### Changed
+
+- PERF.111 is filed (bug, found by Core 2 in the MAP.217 gate): `ResponseCache.put` without a database skips the eviction loop, so the cache passes `max_entries`; the reproducer gives 6 entries for a bound of 3 on main.
+- TEST.213 gets a sighting with a second symptom (the system's scene never came in, under load 10); it passed in 124.68 s on an idle box.
+
+TODO items resolved: none / Added: PERF.111
+
+## [8.0.1698] - 2026-10-17
+
+**Headline:** The Type Ia and old-star shares as profile fields are merged and retired, and the two parts of the item that are not met are filed.
+
+### Changed
+
+- GEN.319 (#2003) is retired: the Type Ia share and the old-star share are profile fields and the kind factors read them.
+- GEN.528 is filed for the rest of it: a Magellanic cell showing every class (waits on GEN.526) and the scatter's planetary nebulae weighted by the old share (generator epoch 8 rides the next generation change).
+- TEST.174 gets another sighting: the a11y sector page under load aborts a tile fetch.
+
+TODO items resolved: GEN.319 / Added: GEN.528
+
+## [8.0.1697] - 2026-10-17
+
+**Headline:** A place's supernova remnants are Type Ia or core-collapse by who lives there, so a halo never shows a remnant with a pulsar in it.
+
+### Added
+- **The Type Ia share (GEN.319).** The sector profile (and `/api/galaxy/profile` and the profile page) carries `type_ia_share`: the share of the place's supernova remnants that are Type Ia, worked out from the odds at the solar circle (three core collapses to one Type Ia) and the place's share of young stars against its share of older ones. It is 1 where no young stars are (the halo, clusters, old satellites), and the fill and the scatter's remnants are built with it, so a halo or cluster remnant never keeps a neutron star or a black hole.
+
+### Changed
+- The planetary nebula factor of the sector profile is the share of stars that are not young against the solar circle's, capped at 1: 1 in every older place and within 3% of 1 in the disk.
+- A galaxy generated before this keeps its stored sectors; sectors generated after have remnants built with their place's share.
+
+generation-output: changed
+
+TODO items resolved: GEN.319. Added: none.
+
 ## [8.0.1696] - 2026-10-17
 
 **Headline:** The "what is within N pc" pages are merged and retired.
