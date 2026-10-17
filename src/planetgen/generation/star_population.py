@@ -60,9 +60,9 @@ import math
 from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.physics.stellar_evolution import (
-    _power_law_integral, _sample_power_law, agb_bright_chance, evolve_star, giant_bright_chance,
+    _power_law_integral, _sample_power_law, agb_bright_chance, evolve_star, giant_bright_chance, giant_end_fraction,
     has_core_helium_phases, horizontal_branch_bright_chance, main_sequence_lifetime_gy, main_sequence_luminosity_sol,
-    population_age_range_gy, sample_living_star, star_params,
+    population_age_range_gy, sample_living_star, star_params, subgiant_end_fraction, subgiant_end_luminosity_sol,
 )
 from planetgen.util import draw
 
@@ -100,8 +100,8 @@ def _bright_windows(mass_sol, min_luminosity_sol):
     """
     pc = tuning
     t_ms = main_sequence_lifetime_gy(mass_sol)
-    t_sub = t_ms * pc.SUBGIANT_PHASE_END_MS_FRACTION
-    t_giant = t_ms * pc.GIANT_PHASE_END_MS_FRACTION
+    t_sub = t_ms * subgiant_end_fraction(mass_sol)
+    t_giant = t_ms * giant_end_fraction(mass_sol)
     l_ms = main_sequence_luminosity_sol(mass_sol)
     windows = []
     if l_ms >= min_luminosity_sol:
@@ -111,15 +111,15 @@ def _bright_windows(mass_sol, min_luminosity_sol):
         if chance > 0:
             windows.append((t_ms, t_giant, chance))
         return windows
-    # A subgiant brightens linearly from l_ms to SUBGIANT_MAX_BRIGHTENING * l_ms.
-    progress = (min_luminosity_sol / l_ms - 1) / (pc.SUBGIANT_MAX_BRIGHTENING - 1)
+    # A subgiant brightens linearly from l_ms to the base of its giant branch.
+    progress = (min_luminosity_sol - l_ms) / (subgiant_end_luminosity_sol(mass_sol) - l_ms)
     if progress < 1:
         windows.append((t_ms + (t_sub - t_ms) * max(progress, 0.0), t_sub, 1.0))
     chance = _giant_bright_chance(mass_sol, min_luminosity_sol)
     if chance > 0:
         windows.append((t_sub, t_giant, chance))
     if has_core_helium_phases(mass_sol):
-        t_horizontal = t_giant + t_ms * pc.HORIZONTAL_BRANCH_MS_FRACTION
+        t_horizontal = t_giant + pc.HORIZONTAL_BRANCH_DURATION_GY
         t_agb = t_horizontal + t_ms * pc.AGB_MS_FRACTION
         chance = horizontal_branch_bright_chance(min_luminosity_sol)
         if chance > 0:
@@ -143,8 +143,41 @@ def _living_measure(mass_sol, window):
     span = window[1] - window[0]
     if mass_sol < tuning.SUPERGIANT_MIN_MASS_SOL:
         return span
-    dead_from = main_sequence_lifetime_gy(mass_sol) * tuning.GIANT_PHASE_END_MS_FRACTION
+    dead_from = main_sequence_lifetime_gy(mass_sol) * giant_end_fraction(mass_sol)
     return span - _overlap(dead_from, math.inf, window)
+
+
+@functools.lru_cache(maxsize=None)
+def _light_star_phase_envelope(low_mass, high_mass):
+    """
+    `(sub_low, sub_high, giant_low, giant_high)`: the least and greatest `subgiant_end_fraction` and
+    `giant_end_fraction` of a star lighter than `HELIUM_FLASH_MASS_SOL` between `low_mass` and `high_mass` (GEN.502),
+    over a grid of masses across the cell and a percent either side. The fractions move with the mass, so a cell's
+    bound takes them over its own masses; a bound over all light stars would be a hundred times too loose.
+    """
+    top = min(high_mass, tuning.HELIUM_FLASH_MASS_SOL)
+    masses = [low_mass * (top / low_mass) ** (i / _ENVELOPE_STEPS) for i in range(_ENVELOPE_STEPS + 1)]
+    subgiant = [subgiant_end_fraction(m) for m in masses]
+    giant = [giant_end_fraction(m) for m in masses]
+    return min(subgiant) * 0.99, max(subgiant) * 1.01, min(giant) * 0.99, max(giant) * 1.01
+
+
+_ENVELOPE_STEPS = 16
+"""int: How many steps across a cell the phase fractions are sampled for its bound."""
+
+
+def _phase_fraction_bounds(low_mass, high_mass):
+    """`(sub_low, sub_high, giant_low, giant_high)` over the masses `low_mass` to `high_mass` of one cell, which no
+    phase-rule mass splits: the light stars' envelope, or the constants of the heavier ones."""
+    pc = tuning
+    heavy = (pc.SUBGIANT_PHASE_END_MS_FRACTION, pc.SUBGIANT_PHASE_END_MS_FRACTION,
+             pc.GIANT_PHASE_END_MS_FRACTION, pc.GIANT_PHASE_END_MS_FRACTION)
+    if low_mass >= pc.HELIUM_FLASH_MASS_SOL:
+        return heavy
+    light = _light_star_phase_envelope(low_mass, high_mass)
+    if high_mass <= pc.HELIUM_FLASH_MASS_SOL:
+        return light
+    return tuple(min(a, b) if i % 2 == 0 else max(a, b) for i, (a, b) in enumerate(zip(light, heavy)))
 
 
 def _bright_measure_bound(low_mass, high_mass, min_luminosity_sol, window):
@@ -157,6 +190,7 @@ def _bright_measure_bound(low_mass, high_mass, min_luminosity_sol, window):
     pc = tuning
     t_long = main_sequence_lifetime_gy(low_mass)
     t_short = main_sequence_lifetime_gy(high_mass)
+    sub_low, sub_high, giant_low, giant_high = _phase_fraction_bounds(low_mass, high_mass)
     l_max = main_sequence_luminosity_sol(high_mass)
     bound = 0.0
     if l_max >= min_luminosity_sol:
@@ -164,18 +198,19 @@ def _bright_measure_bound(low_mass, high_mass, min_luminosity_sol, window):
     if low_mass >= pc.SUPERGIANT_MIN_MASS_SOL:
         chance = _supergiant_bright_chance(l_max, min_luminosity_sol)
         return bound + chance * _overlap(t_short, t_long * pc.GIANT_PHASE_END_MS_FRACTION, window)
-    if l_max * pc.SUBGIANT_MAX_BRIGHTENING > min_luminosity_sol:
-        bound += _overlap(t_short, t_long * pc.SUBGIANT_PHASE_END_MS_FRACTION, window)
-    # A heavier giant starts its branch higher, so the chance at the cell's top mass bounds the cell's.
-    chance = _giant_bright_chance(high_mass, min_luminosity_sol)
-    bound += chance * _overlap(t_short * pc.SUBGIANT_PHASE_END_MS_FRACTION,
-                               t_long * pc.GIANT_PHASE_END_MS_FRACTION, window)
+    if subgiant_end_luminosity_sol(high_mass) > min_luminosity_sol:
+        bound += _overlap(t_short, t_long * sub_high, window)
+    # A heavier giant starts its branch higher, so the chance at the cell's top mass bounds the cell's, except right
+    # at a light star's tip, which falls a little with the mass: the greatest of three masses covers that.
+    chance = max(_giant_bright_chance(mass, min_luminosity_sol)
+                 for mass in (low_mass, math.sqrt(low_mass * high_mass), high_mass))
+    bound += chance * _overlap(t_short * sub_low, t_long * giant_high, window)
     if has_core_helium_phases(high_mass):
-        horizontal = pc.GIANT_PHASE_END_MS_FRACTION + pc.HORIZONTAL_BRANCH_MS_FRACTION
+        horizontal = pc.HORIZONTAL_BRANCH_DURATION_GY
         bound += horizontal_branch_bright_chance(min_luminosity_sol) * _overlap(
-            t_short * pc.GIANT_PHASE_END_MS_FRACTION, t_long * horizontal, window)
+            t_short * giant_low, t_long * giant_high + horizontal, window)
         bound += agb_bright_chance(min_luminosity_sol) * _overlap(
-            t_short * horizontal, t_long * (horizontal + pc.AGB_MS_FRACTION), window)
+            t_short * giant_low + horizontal, t_long * (giant_high + pc.AGB_MS_FRACTION) + horizontal, window)
     return bound
 
 
@@ -469,7 +504,7 @@ def _sample_one_in_mass_band(table, max_luminosity_sol, rng):
             continue
         oldest = window[1]
         if mass >= tuning.SUPERGIANT_MIN_MASS_SOL:
-            oldest = min(oldest, main_sequence_lifetime_gy(mass) * tuning.GIANT_PHASE_END_MS_FRACTION)
+            oldest = min(oldest, main_sequence_lifetime_gy(mass) * giant_end_fraction(mass))
         age = rng.uniform(window[0], oldest)
         state = evolve_star(mass, age, rng, population=table["population"])
         if state is None:

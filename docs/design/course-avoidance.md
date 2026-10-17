@@ -153,7 +153,7 @@ The tidal-disruption radius of a star is `R_star (M_bh / M_star)^(1/3)` (Hills 1
 
 ### 4.4 Neutron stars, pulsars, magnetars
 
-Mass 1.1 to 2.2 solar, radius 10 to 13 km. The DB has `spin_period_ms`, `magnetic_field_gauss` (up to 1e13 G) and `pulsar_type`; there are no magnetars in the generator (1e14 to 1e15 G [S]).
+Mass 1.1 to 2.2 solar, radius about 11 to 14 km, the band of Miller et al. 2021 at its mass (GEN.463). The DB has `spin_period_ms`, `magnetic_field_gauss` (up to 1e13 G) and `pulsar_type`; there are no magnetars in the generator (1e14 to 1e15 G [S]).
 
 - Light cylinder `c P / (2 pi)`: 67 km (1.4 ms), 760 km (16 ms), 9.5e4 km (2 s) [C; formula S].
 - Dipole field `B(r) = B0 (R/r)^3` falls to 1 tesla at 260 km (1e8 G ms pulsar), 5,600 km (1e12 G), 12,000 km (1e13 G), 56,000 km (1e15 G magnetar) [C].
