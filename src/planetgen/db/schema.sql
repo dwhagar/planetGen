@@ -1335,6 +1335,10 @@
 -- v108 (DB.72): `band_index` is INT in `bright_stars`, `sector_stats` and `phenomenon_scatter` (it was SMALLINT, which stops at
 --   32,767; a shell's bands reach +-32,768 from shell 20,861 and +-102,942 at shell 65,535).
 --
+-- v109 (GEN.289): `orbital_phase_deg` is gone from `planets` and `moons`. A planet or moon is its state vector (position,
+--   velocity, mass, epoch, parent and dynamical state, the columns of v102) and moves by `kepler.universal_step`; the
+--   phase was a second record of the same place on a circle. A circumbinary planet's parent is its system.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1978,17 +1982,17 @@ CREATE TABLE IF NOT EXISTS planets (
     flavor_text               TEXT,
     flavor_text_count         INT NOT NULL DEFAULT 0,
     -- Orbital motion (v9, see header comment) -- inclination/ascending
-    -- node are fixed at generation time; phase changes over time, advanced
-    -- in place by planetgen.cli.orbits. rotation_period_hours is a separate,
-    -- static "day length" stat.
+    -- node are fixed at generation time. rotation_period_hours is a
+    -- separate, static "day length" stat. There is no stored phase (v109,
+    -- GEN.289): the body is its state vector below.
     orbital_inclination_deg     DOUBLE NOT NULL,
     orbital_ascending_node_deg  DOUBLE NOT NULL,
-    orbital_phase_deg           DOUBLE NOT NULL,
     -- Position/speed (v11, see header comment) -- Cartesian position
     -- relative to this planet's orbital anchor (the star, or the
-    -- BinaryStarProxy's combined center for a binary system), derived from
-    -- distance_km and the orbital-motion columns above; changes in
-    -- lockstep with orbital_phase_deg as planetgen.cli.orbits advances it.
+    -- BinaryStarProxy's combined center for a binary system), made from
+    -- distance_km and the orbital-motion columns above and moved by
+    -- planetgen.cli.orbits with kepler.universal_step, with the velocity
+    -- below and epoch_unix as its state.
     -- orbital_speed_kms is constant around a circular orbit -- it only
     -- changes if distance_km/period_years do.
     position_x_km               DOUBLE NOT NULL,
@@ -2178,14 +2182,13 @@ CREATE TABLE IF NOT EXISTS moons (
     flavor_text               TEXT,
     flavor_text_count         INT NOT NULL DEFAULT 0,
     -- Orbital motion (v9, see header comment) -- inclination/ascending
-    -- node are fixed at generation time; phase changes over time, advanced
-    -- in place by planetgen.cli.orbits. rotation_period_hours is a separate,
-    -- static "day length" stat.
+    -- node are fixed at generation time. rotation_period_hours is a
+    -- separate, static "day length" stat. There is no stored phase (v109,
+    -- GEN.289): the body is its state vector below.
     orbital_inclination_deg     DOUBLE NOT NULL,
     orbital_ascending_node_deg  DOUBLE NOT NULL,
-    orbital_phase_deg           DOUBLE NOT NULL,
     -- Position/speed (v11, see header comment) -- Cartesian position
-    -- relative to this moon's orbital anchor, its parent planet; derived
+    -- relative to this moon's orbital anchor, its parent planet; made
     -- from distance_km and the orbital-motion columns above the same way
     -- planets.position_x/y/z_km are (see that table's comment).
     position_x_km               DOUBLE NOT NULL,
