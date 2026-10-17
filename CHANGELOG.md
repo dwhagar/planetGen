@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1680] - 2026-10-17
+
+**Headline:** GEN.407 is retired after its merge, what it left out is filed as GEN.502, and the two gate test failures carry their investigation records.
+
+### Changed
+
+- GEN.407 (stellar tables check, #1985, generator epoch 4) is retired; GEN.502 holds what its PR did not build (the red giant time law as a function of core mass, the tip by metallicity, the branch duration against the observed horizontal-branch ratio) and GEN.301 waits for it.
+- TEST.217 now records that it fails on main in an order-dependent run and its cause; TEST.216 records its reproduction and cause.
+
+TODO items resolved: GEN.407 / Added: GEN.502
+
 ## [8.0.1679] - 2026-10-17
 
 **Headline:** The giant-branch slope, horizontal-branch levels and colour table now match what the papers say, after a check of the stellar evolution tables.
