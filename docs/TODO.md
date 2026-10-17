@@ -871,6 +871,19 @@ with `clamp()`.
   Prerequisites: GEN.378. Related: UX.134, MAP.242, UX.101, GEN.378.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
+- [ ] **UX.136 The data tables' own row fetches (scroll and sort) wait on a page job when the answer is slow, like the pages do**
+  Follow-up from Core 2 (2026-10-17, 4:10 PM EDT as the lane reported,
+  UX.118 merged as #2089): the search and phenomena pages show a
+  progress bar while a slow answer builds (`@slow_route`,
+  static/slowload.js), but the data table's own row fetches (scroll and
+  sort: datatable.js asking its JSON data route) are not marked slow.
+  Done: datatable.js waits on a page job when its data route answers 202
+  (polls /api/page-jobs/<id>, then asks again), shows the same progress
+  bar and estimate text, and the Stop waiting and Try again actions work
+  in the table; browser test for a slow scroll and a slow sort, in both
+  themes and at phone width. Owner: Core 2 (proposed).
+  Prerequisites: none. Related: PERF.105, UX.118.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -14039,6 +14052,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registered with the wrapper of PERF.118, and the wrapper builds the
   command list, each command is one queue item; the stages are not wired
   in any other way.
+  Decided (Boss, 2026-10-17, 4:15 PM EDT): each scatter kind (mass,
+  luminosity, phenomena, nebula field, backfill and the rest) is its own
+  command with its own parameters, never one command that groups
+  scatters; see PERF.118.
   Prerequisites: PERF.118. Related: PERF.98.
 
 - [ ] **PERF.107 The sector units and the stages around them: start, neighborhood, sectors, link, population and settle**
@@ -14060,6 +14077,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registered with the wrapper of PERF.118, and the wrapper builds the
   command list, each command is one queue item; the stages are not wired
   in any other way.
+  Decided (Boss, 2026-10-17, 4:15 PM EDT): each scatter kind (mass,
+  luminosity, phenomena, nebula field, backfill and the rest) is its own
+  command with its own parameters, never one command that groups
+  scatters; see PERF.118.
   Prerequisites: PERF.106. Related: PERF.98.
 
 - [ ] **PERF.108 The backfill as queue units: chunks of at least 10,000 cells, one enumeration (folds in PERF.18)**
@@ -14093,6 +14114,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registered with the wrapper of PERF.118, and the wrapper builds the
   command list, each command is one queue item; the stages are not wired
   in any other way.
+  Decided (Boss, 2026-10-17, 4:15 PM EDT): each scatter kind (mass,
+  luminosity, phenomena, nebula field, backfill and the rest) is its own
+  command with its own parameters, never one command that groups
+  scatters; see PERF.118.
   Prerequisites: PERF.107. Related: PERF.98.
 
 - [ ] **PERF.111 `ResponseCache.put` without a database never trims the page cache: the cache grows past `max_entries`, and the thread test fails when its last put is one of those (bug)**
@@ -14285,6 +14310,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wrapper).
   Prerequisites: none. Related: PERF.86, PERF.97, PERF.98, PERF.106,
   PERF.107, PERF.108.
+  Decided (Boss, 2026-10-17, 4:15 PM EDT): from the command line Boss
+  runs `plan`, then `scatter`; each scatter kind is its own command even
+  where the root command is the same (a scatter command for only mass,
+  only luminosity, only phenomena, only the nebula field, only the
+  backfill, and so on, never one command that groups them). Each command
+  has its own parameters, which the UX sets when it runs the commands
+  through the API and which Boss sets on the command line. When a new
+  generate job is called, the wrapper ONLY selects the commands that
+  will run and never touches the others; they run in sequence; the
+  progress bars are dynamic to the current context and show only what is
+  going to run (the overall bar, the stage count and the estimate come
+  from the selected commands alone). A grouped scatter command or a
+  stage list that includes commands which will not run is wrong.
   Design: [docs/design/redis-and-the-work-queue.md](design/redis-and-the-work-queue.md)
 
 - [ ] **PERF.119 The Generate page, the API and the one-off sector and system commands start their runs through the wrapper**
@@ -14304,6 +14342,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the run record; a grep finds no stage started outside the wrapper.
   Owner: Core 5 (after PERF.98, before PERF.99 reads the run record on
   the pages).
+  Decided (Boss, 2026-10-17, 4:15 PM EDT): from the command line Boss
+  runs `plan`, then `scatter`; each scatter kind is its own command even
+  where the root command is the same (a scatter command for only mass,
+  only luminosity, only phenomena, only the nebula field, only the
+  backfill, and so on, never one command that groups them). Each command
+  has its own parameters, which the UX sets when it runs the commands
+  through the API and which Boss sets on the command line. When a new
+  generate job is called, the wrapper ONLY selects the commands that
+  will run and never touches the others; they run in sequence; the
+  progress bars are dynamic to the current context and show only what is
+  going to run (the overall bar, the stage count and the estimate come
+  from the selected commands alone). So each entry point sends its own
+  parameters per command, and its progress shows only the commands
+  selected.
   Prerequisites: PERF.98, PERF.118. Related: PERF.99, PERF.118.
 
 ## DB: Database and schema
