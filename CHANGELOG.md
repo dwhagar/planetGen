@@ -2,6 +2,59 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1593] - 2026-10-16
+
+**Headline:** Boss's star-glow note is on the list: stars should glow brighter instead of growing bigger, with colour following the star's properties.
+
+### Added
+- MAP.241 (bug): stars on the Galaxy Map and the Sector Map keep a small, near-equal size while luminosity raises the glow and temperature sets the colour (Boss, 2026-10-16, 7:43 PM EDT).
+
+TODO items resolved: none / Added: MAP.241
+
+## [8.0.1592] - 2026-10-16
+
+**Headline:** The precision audit's follow-up work is on the list: eight items for the tile root, camera-relative buffers, orbit phases, the cell key, two kernels and two tests.
+
+### Added
+- MAP.239: the map tile root rises to the 262 kpc reach. MAP.240: browser buffers hold camera-relative coordinates (Boss, 2026-10-16, 7:36 to 7:38 PM EDT).
+- GEN.374 (orbit phase formulas reduce first, JavaScript Kepler tolerance 1e-12), DB.65 (cell key clamp), GEN.375 (field kernel local origin), GEN.376 (region haversine).
+- TEST.200 (the nightly local offset limit, documented and pinned), TEST.201 (`block_stats` totals independent of row order).
+
+### Changed
+- GEN.372 records the audit's verdict (64-bit is enough) and Boss's four decisions; GEN.109 notes that compensated sums wait for it.
+
+TODO items resolved: none (GEN.372 resolves when the audit merges) / Added: MAP.239, MAP.240, GEN.374, DB.65, GEN.375, GEN.376, TEST.200, TEST.201
+
+## [8.0.1591] - 2026-10-16
+
+**Headline:** A far-tail precision failure in the galaxy density fuzz test is on the list as TEST.199 and attached to the precision audit.
+
+### Added
+- TEST.199 (bug): `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on main when the halo is subtracted from a much larger sum (found by Core 2).
+
+### Changed
+- GEN.372 lists TEST.199 as its first attached precision finding.
+
+TODO items resolved: none / Added: TEST.199
+
+## [8.0.1590] - 2026-10-16
+
+**Headline:** ADM.50 (remove the galaxy settings files) leaves the TODO list, and the central black hole is recorded as staying exactly on the origin.
+
+### Changed
+- ADM.50 retired on Core 2's merge (#1896); the item that needed it no longer lists it.
+- GEN.368 records Boss's answer (2026-10-16, 7:27 PM EDT): the central black hole stays exactly on the origin with no seeded offset; its mass is to be derived from the bulge (M-bulge or M-sigma with scatter), the design gap the read-only thread found.
+
+TODO items resolved: ADM.50 / Added: none
+
+## [8.0.1589] - 2026-10-16
+
+**Headline:** The galaxy settings files are gone; the galaxy keeps one internal record of how it was made.
+
+### Changed
+- `planetgen plan` no longer writes a JSON settings file, and the Stats page and `GET /api/admin/galaxy-settings[/<name>]` no longer offer one. The mismatch warning compares the running release, Python, platform and version key with the record that `galaxy_shape` already holds, and still names the sectors made by another version.
+- `update.sh` deletes the old `galaxy-settings` folder from the jobs directory once.
+
 ## [8.0.1588] - 2026-10-16
 
 **Headline:** Boss's three Galaxy Map notes of 2026-10-16 are on the list: clearer superbubble bounds, the invisible Charted only view, and colour-and-opacity highlighting for charted regions.

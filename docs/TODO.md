@@ -2114,6 +2114,73 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 2 (the Galaxy Map; proposed, Core 2 reads the plan).
   Prerequisites: MAP.237. Related: MAP.237, MAP.111, MAP.190, UX.48.
 
+- [ ] **MAP.239 Raise the Galaxy Map tile root to the 262 kpc reach: `TILE_ROOT` in `galaxy/viewport.py` and `galaxymap3d.js`**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Boss decided by card (2026-10-16, 7:36 to 7:38 PM EDT):
+  the map tile root rises to the 262 kpc reach. Done: `TILE_ROOT` in
+  `src/planetgen/galaxy/viewport.py` and
+  `src/html/static/galaxymap3d.js` is the reach, so a tile key covers
+  every address in it; stale comments fixed (`web/lib/tilepack.py:30`,
+  `galaxyprisms.js:475`); `test_tiles_cover_the_reach` checks that every
+  cell at the reach edge falls in a tile. Owner: Core 2.
+  Prerequisites: none. Related: GEN.372, MAP.146.
+
+- [ ] **MAP.240 Browser buffers hold camera-relative coordinates: territory dots, superbubbles, made rings, block prisms, stage views, system view dots and belts**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Boss decided by card: fix camera-relative now. Float32
+  attribute buffers in the browser hold absolute coordinates (float32
+  spacing at 262 kpc is far above a parsec), so far from the origin the
+  shapes jitter and snap. Done: the buffers of territory dots,
+  superbubbles, made-sector rings, block prisms, stage views, and the
+  system view's dots and belts are built relative to the camera (or a
+  per-object origin) in double precision on the CPU and the model matrix
+  carries the offset; a browser test reads each attribute range and
+  fails if any value exceeds the safe float32 range (a set bound, in
+  parsecs, stated in the test) at a camera 262 kpc from the origin.
+  Owner: Core 2. Related: the superbubble look (MAP.236) and the key
+  (MAP.234) touch the same buffers.
+  Prerequisites: none. Related: GEN.372, MAP.236, MAP.234, MAP.146.
+
+- [ ] **MAP.241 Stars on the star maps should glow brighter, not grow bigger: size stays small, glow and colour carry luminosity and temperature (bug)**
+  Boss (2026-10-16, 7:43 PM EDT, timeline): "Bug, stars on the starmap
+  should glow brighter but not be bigger if that makes any sense so they
+  are more obviously stars with glows and colors relative to the star's
+  properties." Which map: the message says the star map; the default is
+  both the Galaxy Map and the Sector Map (both draw stars the same way),
+  and the Galaxy Map comes first. What exists: Boss's earlier rule
+  (MAP.51/MAP.208, in the header of `static/galaxymap3d.js`) is "very
+  small with a big glow", sizes by the star's radius, brightness by
+  luminosity and colour by temperature. Today each star is a point
+  `POINT_PX` across far away and, from about a sector away, grows into a
+  core sized by the star's radius (`STAR_CORE_PX` 1.1 to 4.5 px) inside
+  a halo whose width and strength both grow with luminosity
+  (`STAR_MIN_PX` 6 to `STAR_MAX_PX` 30 px), so a luminous star becomes a
+  bigger disc, not a brighter point; the Sector Map has its own curve
+  (MAP.87, `static/starlight.js`). Done: a star's on-screen footprint
+  stays small and close to the same for every star (the size no longer
+  grows with luminosity or radius beyond a narrow band); luminosity
+  raises the glow's intensity (a brighter, hotter-looking core and halo
+  that stays tight), colour follows the blackbody temperature with
+  enough saturation to read, and a dim star reads dim and a bright star
+  reads bright at the same size; the halo-blend rule stays (crowded arms
+  glow in their colours, not white); one shared star look for both maps
+  (`static/starpoint.js` or `starlight.js`, not two curves); both
+  themes; a browser test that two stars of very different luminosity
+  have the same sprite size within a stated tolerance but different peak
+  glow, and that colour follows temperature. The star key entry of
+  MAP.234 says what size, glow and colour mean. Overlap checked: MAP.208
+  (built the grow-into-a-core rule that this changes), MAP.87 (the
+  Sector Map curve), MAP.164 and MAP.165 (colour and size, built),
+  MAP.148 (visibility law, unchanged), MAP.217 (layer registry, no
+  change), and the density/age coloring design, which is for blocks, not
+  stars. Owner: Core 2 (proposed).
+  Prerequisites: none. Related: MAP.208, MAP.87, MAP.164, MAP.165,
+  MAP.234, MAP.148.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -3344,6 +3411,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     kernel that feeds the stepper, the perturbed pass and the warnings;
     no integrator of its own for stars (the stepper is child c of
     GEN.115).
+    Precision note (GEN.372 audit, Boss card 2026-10-16, 7:36 to 7:38 PM EDT):
+    the long force sums here use compensated summation (Neumaier or fsum,
+    or mpmath for the long integrations from the galactic centre); the audit
+    decided they wait for this item, not before.
     Prerequisites: GEN.341, GEN.342, GEN.343, GEN.344.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
@@ -6968,6 +7039,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The item also keeps a list of the pieces that cannot be looked up,
   each with what is needed and why, and hands it to Boss as research
   requests (the TODO thread puts them to him).
+  Finding (read-only thread, 2026-10-16, 7:21 PM EDT, from Boss's 7:24
+  PM EDT question "should the super massive black hole at the center of
+  the galaxy always be at exactly 0,0,0?"; repo facts checked on main):
+  the nucleus is pinned to (0,0,0) in three places: `store.GALACTIC_CENTER_PLACEMENT`
+  / `insert_quasar` (snaps any placement to the origin),
+  `phenomenon_scatter.nucleus_row` (position (0,0,0) in cell (0,0,0)) and
+  `run_sector.add_galactic_nucleus` (position (-dist,0,0) in the sector
+  frame); hypervelocity stars start from the origin too. Decided (Boss,
+  2026-10-16, 7:27 PM EDT, card "Exactly 0,0,0"): the central black hole
+  stays exactly on the origin, with no seeded offset or drift; the read-only
+  thread's offset proposal is not built. The hole's mass is still drawn,
+  not derived: `BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR` (1e6, 1e8)
+  log-uniform (`tuning.py`), quasar 1e8 to 1e10 log-uniform, both
+  independent of the bulge mass or the galaxy shape (real holes track
+  bulge mass and dispersion, M-sigma, Haring and Rix; figures from memory,
+  to be checked here), and the sphere-of-influence dispersion is a
+  constant 100 km/s (`BLACK_HOLE_SUPERMASSIVE_VELOCITY_DISPERSION_KMS`,
+  course-avoidance.md). Work for this item's central black hole row:
+  derive the hole mass and the dispersion from the galaxy's bulge mass or
+  dispersion by an M-bulge or M-sigma relation with its scatter as a
+  seeded draw, instead of the independent log-uniform range; the active
+  and quiescent split stays a draw. Kind: design gap, not a bug.
   Prerequisites: none. Related: GEN.237, GEN.369, GEN.297, GEN.370.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -7139,8 +7232,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chose it by card, 2026-10-16, 6:59 PM EDT), who owns the point columns
   (DB.55, GEN.336, GEN.337, GEN.294) and the IDs, with Core 2 reading the
   camera and render rows.
+  Audit written (Core 1, 2026-10-16, 7:39 PM EDT; docs/design/numeric-precision-audit.md,
+  merging in its own PR): verdict, 64-bit is enough for every stored
+  value, no 128-bit or 256-bit column. Boss decided four items by card
+  (7:36 to 7:38 PM EDT): the nightly update keeps a local offset (document
+  and test only, TEST.200); the map tile root rises to the 262 kpc reach
+  (MAP.239); browser buffers become camera-relative now (MAP.240);
+  compensated sums wait for GEN.109. Items filed from the audit's section
+  5: MAP.239, MAP.240, GEN.374 (phase formula), DB.65 (cell key clamp),
+  GEN.375 (field kernel local origin), GEN.376 (region haversine),
+  TEST.200 (local offset limit), TEST.201 (block_stats order). GEN.372
+  resolves when the audit merges.
+  Finding attached (Core 2, 2026-10-16, 7:27 PM EDT): TEST.199, the
+  halo subtraction in the density skeleton loses precision in the far tail
+  (a relative gap of 2.4e-9 against 1e-9 at z = 36,706 pc).
   Prerequisites: none. Related: GEN.294, GEN.139, GEN.142, GEN.223,
-  MAP.146, NAV.62, TEST.192, PERF.88, DB.55.
+  MAP.146, NAV.62, TEST.192, PERF.88, DB.55, TEST.199.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
 - [ ] **GEN.373 Massive multiples sit in young regions: set `prevalence` from the cell's young share, with a derived cap on the rise**
@@ -7166,6 +7273,42 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.103, GEN.269, GEN.270, TEST.164,
   TEST.196.
   Design: [docs/design/placement-by-population.md](design/placement-by-population.md)
+
+- [ ] **GEN.374 Orbit phase formulas reduce first, and the JavaScript Kepler solver uses tolerance 1e-12: Python, SQL and JavaScript agree**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Done: the phase formula reduces the angle modulo one
+  turn before multiplying (`body_positions` and `system_tree` in Python,
+  `src/html/static/orbitpositions.js` in JavaScript); the JavaScript
+  Kepler solver's tolerance is 1e-12; tests show that the Python, SQL
+  and JavaScript phase functions agree within a stated bound at long
+  times (millions of days from the epoch). Owner: Core 2, or whoever
+  owns `orbitpositions.js`.
+  Prerequisites: none. Related: GEN.372, GEN.109, GEN.313.
+
+- [ ] **GEN.375 Field kernel subtracts a local origin before its loop in `physics/sector_path.py`**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Done: the field kernel of
+  `src/planetgen/physics/sector_path.py` subtracts a local origin (the
+  path's own start or the cell centre) from every position before the
+  loop, so the sums run on small numbers; a test shows the result agrees
+  with a high-precision reference within the float64 spacing at a sector
+  262 kpc from the origin. Owner: Core 1, with GEN.294.
+  Prerequisites: none. Related: GEN.372, GEN.294.
+
+- [ ] **GEN.376 Region test uses the haversine form for angles under 1e-3 rad in `galaxy/region.py`**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Done: the angle in the region test of
+  `src/planetgen/galaxy/region.py` is computed with the haversine form
+  below 1e-3 rad (the arccos form loses all precision there); a test
+  with two points a few parsecs apart at 262 kpc gives the right angle
+  within a stated relative bound. Owner: Core 4 (region query).
+  Prerequisites: none. Related: GEN.372, GEN.276, NAV.60.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -7700,7 +7843,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Also needs GEN.179 (the stored directives it reads) and ADM.50 (the
   galaxy's internal record), both moved into this thread before it
   (2026-10-16 review).
-  Prerequisites: GEN.57, DB.47, GEN.179, ADM.50.
+  Prerequisites: GEN.57, DB.47, GEN.179.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
 - [ ] **DB.18 Migration helpers for slow DDL: online indexes, instant columns and batched updates**
@@ -8307,6 +8450,19 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   it yet.
   Prerequisites: none. Related: VIEW.3.
 
+- [ ] **DB.65 Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Done: `cell_index` and `cell_keys` in
+  `src/planetgen/.../cellkey.py` clamp the per-axis index at 2^21-1 so a
+  coordinate past the reach cannot wrap into another cell's key, and the
+  generated SQL expression does the same (one migration, which needs a
+  revision from Core 1); a test pins that a point beyond the reach maps
+  to the edge cell in both the Python and the SQL form. Small. Owner:
+  Core 1 (needs a migration revision).
+  Prerequisites: none. Related: GEN.372, DB.55.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -8908,54 +9064,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   2026-10-16, 2:45 PM EDT: it finishes the whole settings chain before
   it goes idle).
   Prerequisites: ADM.43.
-
-- [ ] **ADM.50 Remove the galaxy settings files and everything around them; keep only an internal record of the current galaxy**
-  Boss (2026-10-10 21:14Z): 'remove the galaxy seed JSON files
-  entirely.' Boss (21:17Z): 'I only want to store the current galaxy
-  things that I need to store, I don't care about past galaxies, so it
-  can go in a JSON but we don't need to expose it to the user at all
-  unless it's admin but even then, there's no real reason for someone to
-  have that file since we're removing importing/exporting settings.'
-  What exists: `planetgen plan` writes `<32-hex seed>-<22-hex version
-  key>-<YYYYMMDD>-<HHMMSS>Z.json` into `galaxy-settings` in the jobs
-  directory (`PLANETGEN_SETTINGS_DIR`), one dated file per plan, old ones
-  kept as backups, holding the plan options, seed, version key, naming
-  key, the requirements.lock hash and both word lists. What reads or
-  writes it: planetgen/galaxy/settings_file.py (write, list_files,
-  current_file, build); generation/run_plan.py (`_write_settings_file`,
-  called at the end of the plan); galaxy/version_check.py (compares the
-  running code with the file's settings and warns); api/admin.py (`GET
-  /api/admin/galaxy-settings[/<name>]`); web/lib/apiclient.py and
-  web/admin_pages.py (the download); web/templates/admin_stats.html (the
-  'Galaxy settings' panel); tests test_settings_file.py,
-  test_sector_versions.py, test_web_admin.py and test_settings.py;
-  docs/design/reproducible-galaxies.md section 7 ('As built (ADM.18)').
-  Done: (1) the whole outward surface is gone, with no shim, wrapper or
-  compatibility stub (Boss, 2026-10-07): the two API routes and their
-  clients, the download, the Admin panel and its text, the dated files,
-  the backups and the history, and the plan step that wrote them; there
-  is no import or export of settings anywhere (no item plans one; ADM.42
-  to ADM.44's configuration file `config.json` is a different thing and
-  stays).
-  (2) Only what the current galaxy needs is kept, as one internal record
-  that nobody can see or download (a row in the database's control
-  tables, or a file under the data directory that the site never serves;
-  decide in the PR and say which): the seed, which already lives in
-  `galaxy_shape`, the naming key, which already lives in `galaxy_naming`,
-  and the generator epoch and `fp_spec` when OPS.28 and OPS.37 land; the
-  requirements.lock hash and the word lists existed only in the file, so
-  keep them in that record only if OPS.28 still needs them, else drop
-  them. A new plan overwrites the record; nothing older is kept. (3)
-  The version check keeps comparing sector versions and compares the
-  running code with that record. (4) The tests and the design section
-  are deleted or rewritten, README and docs text that mention the files
-  are updated, update.sh removes any old `galaxy-settings` directory
-  once, and the changelog entry says the files are gone.
-  Prerequisites: none. Related: ADM.18, OPS.28, OPS.37, DB.16, DB.17,
-  DOC.14, GEN.135.
-  Owner: Core 2 (Boss, 2026-10-16, 2:42 PM EDT: Core 2 takes the 8.1
-  phase 1 top 5 blockers: PERF.88, OPS.56, ADM.50, DB.59, DB.18, then
-  PERF.97). Core 1 only hands out the migration revision number.
 
 - [ ] **ADM.52 A star system editor: plan a system as a 2D diagram or from the command line**
   GitHub issue [#1228](https://github.com/dwhagar/planetGen/issues/1228)
@@ -9594,7 +9702,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   are documented, the admin start page uses them, every item of the ADM
   chain can be built on them, and a browser test opens the converted
   page in both themes with no console error.
-  Prerequisites: ADM.55, ADM.50. Related: ADM.56.
+  Prerequisites: ADM.55. Related: ADM.56.
 
 - [ ] **ADM.93 Move every existing admin page onto the shell and fix the defects the audit ranks above its line**
   Split from ADM.56 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -10760,6 +10868,58 @@ clears each one.
   none beyond the full suite at load about 9.
   Prerequisites: none.
 
+- [ ] **TEST.199 `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on main for a far-tail case: the halo subtraction loses precision, 2.4e-9 against a 1e-9 tolerance (bug)**
+  Found by Core 2 (2026-10-16, 7:27 PM EDT, in its ADM.50 gate), filed
+  by the TODO thread. Kind: test, deterministic for the shrunk case.
+  `src/tests/test_fuzz_galaxy_grid.py::test_skeleton_bound_is_an_upper_bound_at_every_angle`
+  failed once in an 88 minute `changed` run, found by hypothesis, and
+  fails on main. Failure text: `assert (1.4882030977187565e-12 -
+  1.488203070457534e-12) <= ((2.7261222351049663e-20 * (1 + 1e-09)) +
+  1e-300)`. Reproducer:
+  `shape=build_galaxy_shape(disk_scale_length_pc=50.0,
+  disk_scale_height_pc=259.0, bulge_scale_radius_pc=10.0,
+  bulge_amplitude=0.0, arm_count=1, pitch_angle_rad=1.0,
+  arm_amplitude=0.0)`, `r_cyl=0.0`, `z=36706.0`, `theta=0.0`: `k_norm *
+  _raw_density` minus `halo_density` is 2.7261222417e-20 against a
+  skeleton bound of 2.7261222351e-20, a relative gap of 2.4e-9 against
+  the 1e-9 tolerance, so subtracting the halo from a sum two orders of
+  magnitude larger loses precision in the far tail. Done: the cause is
+  settled (a cancellation in the subtraction: compute the component
+  density without subtracting the halo from a total, or state the
+  tolerance the cancellation allows and why), the bound holds for this
+  case and a test pins it, and hypothesis finds no further case in a
+  full run; no quarantine, no loosened tolerance without the stated
+  reason. It is also a precision finding, so it is attached to GEN.372
+  (the precision audit). Related: TEST.192 (an earlier fuzz bound).
+  Owner: Core 1 (proposed: its bug phase and GEN.372).
+  Prerequisites: none. Related: GEN.372, TEST.192, GEN.301.
+
+- [ ] **TEST.200 The nightly local offset limit is documented and pinned by `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point`**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Boss decided by card: the nightly update keeps a local
+  offset, and this item documents it and tests it, with no code change
+  to the update. Done: the limit (how far an object's local offset may
+  grow before it is folded into the absolute point) is written in the
+  orbital update's design doc, and
+  `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point`
+  pins that after the largest rotation the update applies the local
+  offset is within one unit in the last place of the absolute point.
+  Owner: Core 1.
+  Prerequisites: none. Related: GEN.372, GEN.223, GEN.294.
+
+- [ ] **TEST.201 `block_stats` totals do not depend on the order of the rows: a test**
+  From the GEN.372 precision audit (Core 1,
+  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
+  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
+  stored value. Done: a test sums the block statistics (`block_stats`)
+  of the same rows in several random orders and requires identical
+  totals (or totals within a stated bound), failing if the sum is order
+  dependent. Compensated sums for the long accumulations wait for
+  GEN.109 (Boss card): see the note on GEN.109. Owner: Core 1.
+  Prerequisites: none. Related: GEN.372, GEN.109.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -11487,7 +11647,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   warning. Done: the migration with an old-schema fixture, the row, the
   record, the check, and tests for an unchanged update, a changed lock
   file and an epoch difference.
-  Prerequisites: OPS.57, ADM.50. Related: OPS.28.
+  Prerequisites: OPS.57. Related: OPS.28.
 
 - [ ] **OPS.59 `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug)**
   Found by a lane (2026-10-16), filed by the TODO thread. Sending
