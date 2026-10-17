@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1671] - 2026-10-17
+
+**Headline:** The reserved migration revision numbers are recorded as an order of merge, not reservations.
+
+### Changed
+
+Core 3 found that the migration runner requires contiguous revision ids, so a reserved revision number cannot be used until every lower number exists. The plan notes on GEN.324 and DB.53 now say that the listed numbers are an order of merge and each migration takes the next free number when it merges.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1670] - 2026-10-17
 
 **Headline:** What is nearby is read by the cell key, so it finds every object (also those with no sector) and its cost follows the rows near the place, not the size of the galaxy.
