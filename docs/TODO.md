@@ -15371,6 +15371,16 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   outermost units, and no column named for a band is narrower than INT.
   This blocks the one wiped rescatter and GEN.301. Owner: Bug Hunt
   (Boss's order via the coordinator, 12:59 PM EDT).
+  In progress with Bug Hunt (1:03 PM EDT as the coordinator reported):
+  Bug Hunt confirmed the cause independently (SMALLINT band_index
+  overflows from shell 20,861, where the polar cap band reaches 32,768,
+  in bright_stars, sector_stats and phenomenon_scatter) and its fix,
+  three columns to INT in one migration with a test at the outermost
+  shell, goes out as its own PR ahead of its queue; it takes the next
+  free migration number at merge (head 0107). Boss's
+  job-20261017-162736-67d4 (PlanetGen 8.0.1726, started 12:27 PM EDT by
+  the file name) hit it; the finding the coordinator sent at 12:59 PM
+  EDT is this item, not a second bug.
   Prerequisites: none. Related: GEN.301, DB.65.
 
 ## API: The JSON API
