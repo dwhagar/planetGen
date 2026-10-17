@@ -13032,6 +13032,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2016, Hypatia); 5 papers behind refused publishers; 6 the Courteau
   2007 64-galaxy table and the Comeron fit equations; 7 external-galaxy
   thick-disc histories (Pinna 2019 and similar).
+  Boss (11:17 AM EDT, card tap "One checking thread" as the coordinator
+  reported) chose a single read-only thread to check the other checkable
+  claims of Gemini batch 1; "Gemini batch 1 check (2026-10-17)" started
+  at 11:19 AM EDT as the coordinator reported and writes
+  /mnt/project-files/reports/gemini-batch1-check-2026-10-17.md. The
+  recommendation in the previous note is taken. Until it reports, every
+  Gemini claim stays unverified.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
