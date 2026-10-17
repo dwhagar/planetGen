@@ -2631,6 +2631,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   NAV.61, TEST.165.
   Owner: Core 2 (Boss, 2026-10-16, 3:00 PM EDT: the region query goes to
   Core 2), after the infinite zoom tree and its labels.
+  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
+  the coordinator): it follows GEN.276 in Core 2's queue, after the
+  GEN.135 gate and GEN.306. Owner: Core 2.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
 - [ ] **NAV.61 Nearest-first by a radius ladder, and a dense-core guard with an early-stop count**
@@ -5372,6 +5375,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   outside-the-box edge cases (2026-10-16 review).
   Owner: Core 2 (Boss, 2026-10-16, 3:00 PM EDT: the region query goes to
   Core 2), after the infinite zoom tree and its labels.
+  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
+  the coordinator): this item and NAV.60 go ahead of the rest of Core
+  2's queue. Core 2's order: the GEN.135 gate, GEN.306, then GEN.276 and
+  NAV.60. Owner: Core 2.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
 - [ ] **GEN.282 Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec)**
@@ -6999,6 +7006,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   real rows are kept only as reference data for the plausibility test of
   GEN.369, with no Milky Way option (Boss, 2026-10-16, 4:11 PM EDT), so
   this check matters only for that test and waits on GEN.369.
+  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
+  the coordinator): Core 1 does it last of its four (order: GEN.368,
+  GEN.369, GEN.371, GEN.366). Owner: Core 1.
   Prerequisites: GEN.369.
 
 - [ ] **GEN.367 The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae**
@@ -7116,6 +7126,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   build is not redone for 9.4.
   Prerequisites: none. Related: GEN.237, GEN.369, GEN.297, GEN.370,
   GEN.378.
+  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
+  the coordinator): this item and its Core 1 chain go ahead of the rest
+  of Core 1's queue. Core 1's order: its current stack, the GEN.372
+  audit, TEST.193 and TEST.195, then GEN.368, GEN.369, GEN.371 and
+  GEN.366. Owner: Core 1. It blocks 65 items now, the galaxy types chain
+  (GEN.378) among them.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.369 Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option**
@@ -7187,6 +7203,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   numbers are used where we can. Things are derived everywhere we can or
   calculated everywhere we can. If needed you should ask me to do
   research if there are pieces missing that you can't look up yourself."
+  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
+  the coordinator): Core 1 builds it right after GEN.368 (order:
+  GEN.368, GEN.369, GEN.371, GEN.366). Owner: Core 1.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
@@ -7252,6 +7271,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   numbers are used where we can. Things are derived everywhere we can or
   calculated everywhere we can. If needed you should ask me to do
   research if there are pieces missing that you can't look up yourself."
+  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
+  the coordinator): Core 1 does it right after GEN.369 (order: GEN.368,
+  GEN.369, GEN.371, GEN.366). Owner: Core 1.
   Prerequisites: GEN.368. Related: GEN.368, GEN.369, GEN.324, GEN.237.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
