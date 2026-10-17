@@ -382,15 +382,15 @@ def test_sector_page_map_keeps_to_its_sector(page, map_site):
     for gone in ("#galaxymap3d-crumbs", "#galaxymap3d-slabs", "#galaxymap3d-address", '[data-action="up"]',
                  '[data-action="back"]', '[data-action="reset"]'):
         assert page.locator(gone).count() == 0, gone
-    url = page.url
+    url = _raw_query(page)
     first = _shot(page, SECTOR_CANVAS)
     page.locator(SECTOR_CANVAS).focus()
     for key in ("Escape", "Backspace", "Home"):
         page.keyboard.press(key)
-    assert page.url == url
+    assert _raw_query(page) == url
     assert _shot(page, SECTOR_CANVAS) == first, "no key leaves the sector"
     _x, _y, name = _click_a_star(page)
-    assert name in SYSTEM_NAMES and page.url == url, "picking a star adds no history entry"
+    assert name in SYSTEM_NAMES and _raw_query(page) == url, "picking a star adds no history entry"
 
 
 # --- The Galaxy Map -------------------------------------------------------------------
@@ -404,7 +404,7 @@ def _crumbs(page):
     return steps[1:] if steps[:1] == ["Home"] else steps  # UX.59: the trail starts at Home
 
 
-def _query(page):
+def _raw_query(page):
     """The address's query without the camera it carries once the view is still (MAP.228)."""
     return "&".join(part for part in urlparse(page.url).query.split("&") if part and not part.startswith("cam="))
 
@@ -413,15 +413,20 @@ def _stage(page):
     return page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStage()")
 
 
-def _stage_query(page):
-    """The stage on screen written as the address named it before MAP.228, "win=m.shell.band.wedge" (with
-    "&g=" when not 9), or the address's own sector query when one is in it, else ""."""
-    query = _query(page)
+def _query(page):
+    """The address as these tests read it: its query without the camera, led by "win=m.shell.band.wedge" (with
+    "&g=" when not 9) naming the window on screen when no sector is in it. The stage is no part of the address
+    since MAP.228 (the camera is); the window is read from the page."""
+    query = _raw_query(page)
     win = _stage(page)["win"]
     if "sector=" in query or not win:
         return query
     centre = win["centre"]
-    return f"win={centre['m']}.{centre['shell']}.{centre['band']}.{centre['wedge']}" + (f"&g={win['g']}" if win["g"] != 9 else "")
+    token = f"win={centre['m']}.{centre['shell']}.{centre['band']}.{centre['wedge']}" + (f"&g={win['g']}" if win["g"] != 9 else "")
+    return token + ("&" + query if query else "")
+
+
+_stage_query = _query
 
 
 def _open_window(page, base, m, shell, band, wedge, g=9):
@@ -633,7 +638,7 @@ def _click_choice(page, wanted=None):
     found = _hover_choice(page, wanted)
     assert found, f"nothing to click on the Galaxy Map ({wanted}); at {_crumbs(page)}"
     x, y, text = found
-    before = (page.url, _crumbs(page))
+    before = (_query(page), _crumbs(page))
     if re.match(r"Sector .*, charted$", text):
         # A generated sector opens in the map itself (MAP.66).
         _take(page, found)
@@ -642,7 +647,7 @@ def _click_choice(page, wanted=None):
         return text
     _take(page, found)
     _settle(page)
-    assert (page.url, _crumbs(page)) != before, f"clicking {text!r} did nothing"
+    assert (_query(page), _crumbs(page)) != before, f"clicking {text!r} did nothing"
     return text
 
 
@@ -1154,7 +1159,7 @@ def test_galaxy_map_bookmark_star_saves_the_stage_and_the_menu_opens_it(page, ma
     assert star.count() == 1
     star.click()
     saved = _bookmarks(page)
-    assert len(saved) == 1 and saved[0]["kind"] == "stage" and stage_query in saved[0]["value"]
+    assert len(saved) == 1 and saved[0]["kind"] == "stage" and "cam=" in saved[0]["value"], saved
     assert star.get_attribute("aria-pressed") == "true"
 
     page.click('#galaxymap3d-controls [data-action="reset"]')
@@ -1339,7 +1344,7 @@ SEED_BOOKMARKS = """(entries) => {
 }"""
 
 PICK_BOOKMARKS = [
-    {"name": "Saved view", "kind": "stage", "value": "/galaxy?cam=0,0,0,5000,0,0,0,1", "created": 1},
+    {"name": "Saved view", "kind": "stage", "value": "/galaxy?cam=3003.436762,5.294542628,-0.6473350564,151.006709,0.325344516,-0.3247703979,-0.6274082299,0.6285173408", "created": 1},
     {"name": "Middling Sun", "kind": "system", "value": "system:702", "url": "/system/702", "created": 2},
     {"name": "Fixture Second", "kind": "sector", "value": "8·0·3", "url": "/sector/8", "sectorId": 8, "created": 3},
 ]
@@ -1355,7 +1360,7 @@ def _assert_pick_links(links):
     assert links["Middling Sun"] == "/nav?from=system:701&to=system:702", links
     assert links["Fixture Second"] == "/sector/8?pick=to&from=system:701", links
     view = parse_qs(urlparse(links["Saved view"]).query)
-    assert view == {"cam": ["0,0,0,5000,0,0,0,1"], "pick": ["to"], "from": ["system:701"]}, links
+    assert view == {"cam": ["3003.436762,5.294542628,-0.6473350564,151.006709,0.325344516,-0.3247703979,-0.6274082299,0.6285173408"], "pick": ["to"], "from": ["system:701"]}, links
 
 
 def test_bookmarks_keep_a_course_pick_on_the_galaxy_map(page, map_site):
@@ -1373,14 +1378,15 @@ def test_bookmarks_keep_a_course_pick_on_the_galaxy_map(page, map_site):
     with page.expect_navigation():
         page.keyboard.press("1")
     _settle(page)
-    params = parse_qs(_query(page))
-    assert params["pick"] == ["to"] and params["from"] == ["system:701"] and params["win"] == ["27.27.0.0"]
+    params = parse_qs(urlparse(page.url).query)
+    assert params["pick"] == ["to"] and params["from"] == ["system:701"] and "cam" in params
     assert page.locator(".pick-banner").count() == 1
     # A step on the map keeps the pick in the URL.
+    shown = _crumbs(page)
     page.click('#galaxymap3d-controls [data-action="up"]')
     _settle(page)
-    assert "win" not in parse_qs(_query(page)) or parse_qs(_query(page))["win"] != ["27.27.0.0"]
-    params = parse_qs(_query(page))
+    assert len(_crumbs(page)) < len(shown), (shown, _crumbs(page))
+    params = parse_qs(_raw_query(page))
     assert params.get("pick") == ["to"] and params.get("from") == ["system:701"], params
 
 
@@ -1560,10 +1566,10 @@ def test_galaxy_map_hover_lights_every_choice_while_picking_a_course(page, map_s
     _open_galaxy(page, map_site, "?pick=to&from=system:701")
     found = _hover_choice(page, r"nothing charted here to pick\)$")
     assert found, "no empty arc to hover"
-    before = (page.url, _crumbs(page))
+    before = (_query(page), _crumbs(page))
     page.mouse.click(found[0], found[1])
     _settle(page)
-    assert (page.url, _crumbs(page)) == before
+    assert (_query(page), _crumbs(page)) == before
 
 
 def test_galaxy_map_charted_only_does_not_stop_picking(page, map_site):
@@ -1577,10 +1583,10 @@ def test_galaxy_map_charted_only_does_not_stop_picking(page, map_site):
     empty = _hover_choice(page, r"(^|[ ,])0 (of .+ )?sectors charted$|uncharted$")
     assert empty, "no choice without generated sectors to hover"
     assert "nothing charted here to pick" not in empty[2], empty
-    before = (page.url, _crumbs(page))
+    before = (_query(page), _crumbs(page))
     page.mouse.click(empty[0], empty[1])
     _settle(page)
-    assert (page.url, _crumbs(page)) != before, "the empty choice can be taken"
+    assert (_query(page), _crumbs(page)) != before, "the empty choice can be taken"
 
 
 def test_galaxy_map_charted_only_works_while_picking_a_course(page, map_site):
@@ -1596,10 +1602,10 @@ def test_galaxy_map_charted_only_works_while_picking_a_course(page, map_site):
     assert only.get_attribute("aria-pressed") == "false"
     found = _hover_choice(page, r"nothing charted here to pick\)$")
     assert found, "no empty arc to hover"
-    before = (page.url, _crumbs(page))
+    before = (_query(page), _crumbs(page))
     page.mouse.click(found[0], found[1])
     _settle(page)
-    assert (page.url, _crumbs(page)) == before
+    assert (_query(page), _crumbs(page)) == before
 
 
 FRAME = "() => document.querySelector('#galaxymap3d-canvas').galaxyFrame()"
@@ -2018,7 +2024,7 @@ def test_galaxy_map_pick_mode_clicks_down_through_every_stage(page, map_site):
     _open_galaxy(page, map_site, "?pick=to&from=system:701")
     seen = [_crumbs(page)]
     for _ in range(8):
-        before = (page.url, _crumbs(page))
+        before = (_query(page), _crumbs(page))
         text = _click_choice(page, GENERATED_CHOICE)
         if re.match(r"Sector .*, charted$", text):
             break

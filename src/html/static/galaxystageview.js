@@ -1187,8 +1187,8 @@ export function createStageView(host) {
 
   // Whether the selected sector is the one the window is centred on (the
   // window's own crumb names it).
-  function isSelectedCentre() {
-    const win = stage.win;
+  function isSelectedCentre(of) {
+    const win = (of || stage).win;
     return !!(selectedSector && win && win.centre.m === 1 && win.centre.shell === selectedSector.shell
       && win.centre.band === selectedSector.band && win.centre.wedge === selectedSector.wedge);
   }
@@ -2582,6 +2582,8 @@ export function createStageView(host) {
   let pendingCamera = null;
   let camChangedAt = 0;
   const CAM_URL_DELAY_MS = 350;
+  // A camera written to ten digits and read back is as far as this over or under the stage's own fit.
+  const STAGE_FIT_TOLERANCE = 1e-6;
 
   // The view as {target, dist, quat: [x, y, z, w]}, or null.
   function currentCamera() {
@@ -2632,7 +2634,7 @@ export function createStageView(host) {
       if (r.problem) continue;
       const extent = S.extentOf(r.view.blocks);
       const fit = centeredFit(fitPointsOf(r), extent.center, quat).dist;
-      if (fit >= camera.dist) return candidate;
+      if (fit * (1 + STAGE_FIT_TOLERANCE) >= camera.dist) return candidate;
       coarsest = candidate;
       coarsestFit = fit;
     }
@@ -2676,9 +2678,15 @@ export function createStageView(host) {
   // MAP.227: the stage the camera is in, worked out from where the view's middle is: the breadcrumb is the trail
   // of containers of the cell holding it (galaxy, blocks, sector), so panning to a neighbouring cell changes it and
   // "Sector X" in the header names the sector it is in, with no stored state of its own. An opened sector or
-  // system keeps the stage it was opened from.
+  // system is shown in the window round that sector.
   function cameraStage() {
-    if (!view || entered || enteredSystem || !stage.win) return stage;
+    if (!view || !stage.win) return stage;
+    if (entered) {
+      // The address of an open sector names only the sector, so the trail is the one of the window round it, as a
+      // fresh load of that address shows.
+      return S.sectorStage(entered.sector.shell, entered.sector.band, entered.sector.wedge, getOutline()) || stage;
+    }
+    if (enteredSystem) return stage;
     return S.stageAtPoint(stage, view.target, getOutline(), edgePc);
   }
 
@@ -2739,9 +2747,10 @@ export function createStageView(host) {
   })();
 
   function crumbSteps() {
-    const items = S.crumbs(cameraStage(), getOutline(), edgePc);
+    const shown = cameraStage();
+    const items = S.crumbs(shown, getOutline(), edgePc);
     if (homeStep) items.unshift({ label: homeStep.label, href: homeStep.href, last: false });
-    if (selectedSector && !isSelectedCentre()) {
+    if (selectedSector && !isSelectedCentre(entered ? shown : stage)) {
       const uncharted = entered && entered.uncharted && !pinned;
       items.push({
         label: "Sector " + S.blockLabel(selectedSector)
