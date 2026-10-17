@@ -28,6 +28,8 @@ The expected time of a request nothing has timed is its rows over `SLOW_PAGE_ROW
 
 **Redis down, or an update running: build it in the request, and say so.** `ensure` raises `NoQueue`; `slowpages.pending_for` returns nothing, `apiclient` builds the answer in the request as it did before, the log says why, and `slowpages.take_notice()` gives the page one sentence to show ("This page is slow to build and the work queue is not available, so it was built while you waited."). A page cache that cannot reach Redis is already a plain miss, so the page is slower, never wrong.
 
+**With the early refresh (PERF.110).** A costly cached answer is fetched again shortly before it expires, by one reader at a time (`pagecache.ResponseCache._refresh_early`); that reader's cache read is a miss. On a page that opted in and a request that is slow, that miss queues the job like any other, so the early refresh of a slow answer is built on the queue, not in a request; the visitor of that moment sees the loading state for the length of the build. Every other reader is still served the old copy until the new one is stored.
+
 ## Redis keys (all with a TTL, PERF.86)
 
 | Key | Holds | Kept |
