@@ -7591,9 +7591,9 @@ def get_galaxy_shape(conn):
         k_norm=row["k_norm"],
     )
     shape = shape._replace(components=_component_field(conn, row["edge_pc"], row["expected_system_count_at_density_1"]))
-    seed = None if row.get("galaxy_seed") is None else bytes(row["galaxy_seed"])
-    chain = massChain.draw_mass_chain(seed)
-    shape = shape._replace(masses=(chain.stellar_mass_solar, chain.halo_mass_solar))
+    if row.get("galaxy_seed") is not None:      # a galaxy with no seed has no masses: its disk's size stands for them
+        chain = massChain.draw_mass_chain(bytes(row["galaxy_seed"]))
+        shape = shape._replace(masses=(chain.stellar_mass_solar, chain.halo_mass_solar))
     return GalaxySkeletonInfo(
         shape=shape, edge_pc=row["edge_pc"], outer_shell_index=row["outer_shell_index"],
         expected_system_count_at_density_1=row["expected_system_count_at_density_1"],

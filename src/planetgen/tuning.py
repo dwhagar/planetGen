@@ -835,8 +835,8 @@ follows the stellar mass the halo's growth builds."""
 HALO_GROWTH_RATE_AT_1E12_MSUN_YR = 46.1
 """float: That fit's amplitude, solar masses per year for a halo of 1e12 solar masses at z = 0. It only sets how the
 halo's mass went back in time; the disk's inflow is scaled to the stars it must build, so its size drops out."""
-WHITE_DWARF_REMNANT_MASS_SOL = (0.444, 0.084)
-"""tuple: A star of 1 to 7 solar masses leaves a white dwarf of `0.444 + 0.084 m` (Weidemann 2000's initial-final masses
+WHITE_DWARF_REMNANT_MASS_SOL = {"intercept": 0.444, "slope": 0.084}
+"""dict: A star of 1 to 7 solar masses leaves a white dwarf of `intercept + slope * m` (Weidemann 2000's initial-final masses
 as Madau and Dickinson 2014, ARA&A 52, 415, arXiv 1403.0007, quote them, read)."""
 NEUTRON_STAR_RETURN_REMNANT_SOL = 1.4
 """float: The remnant of a star of 8 to `BLACK_HOLE_RETURN_MASS_SOL` solar masses (the same source's choice)."""

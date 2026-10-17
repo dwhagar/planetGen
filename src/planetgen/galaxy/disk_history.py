@@ -72,8 +72,7 @@ class DiskHistory:
         """
         span = float(self.age_gy[0])
         edges = np.clip(np.array([young_edge_gy, old_edge_gy], dtype=float), 0.0, span)
-        weights = self.radius_scale_lengths                      # a ring's area, equal widths
-        total_rate = weights @ self.rate
+        total_rate = self._total_rate()
         step = span / (len(self.age_gy) - 1)
         cumulative = np.concatenate(([0.0], np.cumsum(0.5 * (total_rate[1:] + total_rate[:-1]) * step)))
         since_start = span - edges                               # time since the disk began, at each edge
@@ -82,8 +81,12 @@ class DiskHistory:
 
     def present_over_mean(self):
         """The whole disk's star formation now over its mean over the disk's life (rings weighted by area)."""
-        total_rate = self.radius_scale_lengths @ self.rate
+        total_rate = self._total_rate()
         return float(total_rate[-1] / np.mean(total_rate))
+
+    def _total_rate(self):
+        """The disk's star formation at each step: the rings' rates weighted by their areas (equal widths)."""
+        return np.sum(self.radius_scale_lengths[:, None] * self.rate, axis=0)
 
 
 def universe_age_gy():
@@ -178,7 +181,7 @@ def mass_return_fraction(breaks, slopes):
         density[inside] = scale * mass[inside] ** -alpha
         if i + 1 < len(slopes):
             scale *= breaks[i + 1] ** (slopes[i + 1] - alpha)
-    intercept, slope = tuning.WHITE_DWARF_REMNANT_MASS_SOL
+    intercept, slope = tuning.WHITE_DWARF_REMNANT_MASS_SOL["intercept"], tuning.WHITE_DWARF_REMNANT_MASS_SOL["slope"]
     remnant = np.where(mass < 8.0, intercept + slope * mass,
                        np.where(mass < tuning.BLACK_HOLE_RETURN_MASS_SOL, tuning.NEUTRON_STAR_RETURN_REMNANT_SOL, mass))
     returned = np.where(mass >= tuning.RECYCLING_MASS_SOL, mass - remnant, 0.0)
@@ -210,11 +213,14 @@ def _solve_rings(stars_now, inflow, span_gy):
     supply = np.trapezoid(inflow, dx=step_gy)
 
     def run(amplitude):
+        # Semi-implicit: the gas used in a step is taken at the step's end, so a ring so dense that it uses its gas
+        # up within a step (a toy galaxy) stays positive and stable.
         gas = np.zeros_like(amplitude)
-        rate = np.empty((steps + 1, len(amplitude)))
-        for i in range(steps + 1):
-            rate[i] = coefficient * gas ** exponent
-            gas = np.maximum(gas + step_gy * (amplitude * inflow[i] - keep * rate[i]), 0.0)
+        rate = np.zeros((steps + 1, len(amplitude)))
+        for i in range(steps):
+            use = step_gy * keep * coefficient * gas ** (exponent - 1.0)
+            gas = (gas + step_gy * amplitude * inflow[i]) / (1.0 + use)
+            rate[i + 1] = coefficient * gas ** exponent
         return rate, gas
 
     def formed(rate):
