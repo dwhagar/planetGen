@@ -61,6 +61,7 @@ from planetgen.admin import auth
 from planetgen.db.store import MySQLConfig  # noqa: E402
 
 from tests.bughunt_support import forced_system_config, mysql_argv, run_cli  # noqa: E402
+from tests import dbpool  # noqa: E402
 from tests.conftest import _test_server_kwargs  # noqa: E402
 
 AXE_JS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vendor", "axe-core", "axe.min.js")
@@ -269,13 +270,7 @@ def site_db(_mysql_server_available):
         yield config
     finally:
         store.close_pool(config)
-        admin_conn = pymysql.connect(**kwargs)
-        try:
-            with admin_conn.cursor() as cur:
-                cur.execute(f"DROP DATABASE IF EXISTS `{name}`")
-            admin_conn.commit()
-        finally:
-            admin_conn.close()
+        dbpool.drop_database(kwargs, name)
 
 
 @pytest.fixture(scope="module")
