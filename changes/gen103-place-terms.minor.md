@@ -7,4 +7,4 @@
 - `StarSystem._companion` replaces `_should_generate_binary`: one roll decides none, close or wide, and the mass ratio is drawn with it. The same seed gives different companions than before.
 - New `generation/place_terms.py` (the factor, the limits, `PlaceTerms` from a sector profile), `SystemConfig.PLACE_TERMS` (not saved), and the constants beside the binary mass ratio in `tuning.py`.
 
-TODO items resolved: GEN.103 (the close-pair rule 3.1 and the wide-pair limit 3.3; the massive-multiples rule 3.2 is left to the multi-star items) / Added: none
+TODO items resolved: GEN.103 (the close-pair rule 3.1 and the wide-pair limit 3.3; the massive-multiples rule 3.2 moved to GEN.373) / Added: none
