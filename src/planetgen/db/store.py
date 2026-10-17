@@ -1519,7 +1519,12 @@ def _check_marker(name, text):
     return lambda shape: text in shape["checks"].get(name, "")
 
 
+def _type_marker(table, column, column_type):
+    return lambda shape: shape["column_types"].get((table, column)) == column_type
+
+
 _VERSION_MARKERS = (
+    (108, _type_marker("bright_stars", "band_index", "int")),
     (107, _check_marker("chk_bright_stars_population", "satellite_young")),
     (106, lambda shape: "least(" in shape["generated"].get(("star_systems", "cell_key"), "")),
     (105, _check_marker("chk_bright_stars_population", "satellite")),
@@ -1600,6 +1605,9 @@ def detect_schema_version(conn):
         "tables": tables,
         "columns": {(row["t"].lower(), row["c"].lower()) for row in conn.execute(
             "SELECT table_name AS t, column_name AS c FROM information_schema.columns"
+            " WHERE table_schema = DATABASE()").fetchall()},
+        "column_types": {(row["t"].lower(), row["c"].lower()): row["y"].lower() for row in conn.execute(
+            "SELECT table_name AS t, column_name AS c, column_type AS y FROM information_schema.columns"
             " WHERE table_schema = DATABASE()").fetchall()},
         "indexes": {(row["t"].lower(), row["i"].lower()) for row in conn.execute(
             "SELECT DISTINCT table_name AS t, index_name AS i FROM information_schema.statistics"

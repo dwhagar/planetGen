@@ -1332,6 +1332,9 @@
 -- v107 (GEN.526): `bright_stars.population` (now VARCHAR(24)) also takes `satellite_young` and `satellite_intermediate`, the stars a
 --   satellite galaxy's history puts in the last 0.1 Gy and the 3 Gy before that (`satellite` is the rest).
 --
+-- v108 (DB.72): `band_index` is INT in `bright_stars`, `sector_stats` and `phenomenon_scatter` (it was SMALLINT, which stops at
+--   32,767; a shell's bands reach +-32,768 from shell 20,861 and +-102,942 at shell 65,535).
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -3318,7 +3321,7 @@ CREATE TABLE IF NOT EXISTS nearest_systems (
 CREATE TABLE IF NOT EXISTS bright_stars (
     id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     shell_index           INT NOT NULL,
-    band_index            SMALLINT NOT NULL,
+    band_index            INT NOT NULL,
     wedge_index           INT NOT NULL,
     position_x_mpc       DOUBLE NOT NULL,
     position_y_mpc       DOUBLE NOT NULL,
@@ -3387,7 +3390,7 @@ CREATE TABLE IF NOT EXISTS bright_stars (
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS sector_stats (
     shell_index           INT NOT NULL,
-    band_index            SMALLINT NOT NULL,
+    band_index            INT NOT NULL,
     wedge_index           INT NOT NULL,
     bright_level_sol       DOUBLE NOT NULL DEFAULT -1,
     level_before_fill_sol  DOUBLE,
@@ -3507,7 +3510,7 @@ CREATE TABLE IF NOT EXISTS generation_run_arguments (
 CREATE TABLE IF NOT EXISTS phenomenon_scatter (
     id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     shell_index           INT NOT NULL,
-    band_index            SMALLINT NOT NULL,
+    band_index            INT NOT NULL,
     wedge_index           INT NOT NULL,
     kind                 VARCHAR(24) NOT NULL,
     subtype              VARCHAR(16),
