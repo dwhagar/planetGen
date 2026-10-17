@@ -29,10 +29,10 @@ Research, designs and tables are building blocks with no behaviour change and si
 
 | Where | Item | What |
 |---|---|---|
+| done | GEN.432 | Research: what rocky, icy and giant bodies and their small relatives are made of (merged, see section 4) |
+| done | GEN.433 | Research: what stars and stellar remnants are made of (merged, see section 4) |
 | done | GEN.431 | Research: what is in the atmospheres of every kind of world, and the numbers each compound needs |
-| 8.1 phase 1 | GEN.432 | Research: what rocky, icy and giant bodies and their small relatives are made of, and the numbers each material needs |
-| 8.1 phase 1 | GEN.433 | Research: what stars and stellar remnants are made of, and the numbers each needs |
-| 8.1 phase 1 | GEN.434 | Research: radiation through atmospheres and at the ground, and the numbers it needs |
+| done | GEN.434 | Research: radiation through atmospheres and at the ground, and the numbers it needs (covered by the two research lanes and merged) |
 | done | GEN.425 | Research: verify the mass-radius and equation-of-state sources and say what is missing ([bulk-composition-sources-check.md](bulk-composition-sources-check.md)) |
 
 **Designs (docs/design)**
@@ -43,6 +43,9 @@ Research, designs and tables are building blocks with no behaviour change and si
 | 8.1 phase 1 | GEN.426 | The bulk composition design: the fractions, the equation of state, the draws and the derived density, mass and gravity |
 | 8.1 phase 1 | GEN.435 | The stellar composition design: the abundance relations, what is stored and what is derived, and the remnants |
 | 8.1 phase 1 | GEN.436 | The radiation design: atmospheric transmission and greenhouse by band, shielding by column, and the ground's own dose |
+| 8.1 phase 1 | GEN.457 | The small bodies and moons composition design: the taxon and comet draws, compaction, the moon origin types and the ice fraction |
+| 8.1 phase 1 | GEN.465 | A second extraction pass over the sources the research could not reach and that are reachable now |
+| 8.1 phase 1 | GEN.468 | Settle the water share beyond the snow line (the factor of two) |
 | 8.1 phase 1 | GEN.437 | The composition model: how the element, compound, material and body tables link, and what is stored against derived |
 
 **Data tables (no behaviour change)**
@@ -59,19 +62,28 @@ Research, designs and tables are building blocks with no behaviour change and si
 | Where | Item | What |
 |---|---|---|
 | 8.1 phase 3 | GEN.440 | Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf |
+| 8.1 phase 1 | GEN.463 | The neutron star's radius is derived from sourced mass-radius relations (with the stellar tables) |
+| 8.1 phase 1 | GEN.467 | The main-sequence lifetime is derived from sourced stellar relations |
+| 8.1 phase 3 | GEN.464 | The disk solids law reads Z over Z0, not 10 to the power of [Fe/H] |
 | 8.1 phase 4 | TEST.211 | A star composition sweep: every kind of star, remnant and brown dwarf, fractions, trends and determinism |
 
 **Bodies: generation and storage**
 
 | Where | Item | What |
 |---|---|---|
+| 8.4 phase 1 | GEN.458 | Each system draws its snow line and stores it once |
 | 8.4 phase 1 | GEN.428 | Planets and moons draw their bulk composition fractions instead of carrying a fixed text |
 | 8.4 phase 1 | GEN.429 | Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation |
+| 8.4 phase 1 | GEN.459 | One radiogenic module: heat from the isotope-wise decay, drawn from the host star's abundances |
+| 8.4 phase 1 | GEN.460 | Giants and brown dwarfs: radius and heavy-element content from the checked laws |
 | 8.4 phase 1 | DB.69 | Planets and moons store the composition fractions |
 | 8.4 phase 1 | GEN.430 | The planet and moon descriptions state the composition from the stored fractions |
 | 8.4 phase 1 | GEN.412 | Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give |
 | 8.4 phase 2 | GEN.441 | Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air |
+| 8.4 phase 2 | GEN.461 | The hydrosphere reads the stored water mass fraction (compressed layer depth, base pressure, ice phases) |
 | 8.4 phase 2 | GEN.442 | Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line |
+| 8.4 phase 2 | GEN.466 | Moons draw their origin type, ice fraction and composition |
+| 8.4 phase 3 | GEN.462 | Ground albedo by band, handed to the atmosphere colour once |
 | 8.4 phase 3 | DB.70 | Planets, moons and small bodies store the surface and small-body composition shares |
 | 8.4 phase 2 | GEN.455 | Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind |
 
@@ -140,10 +152,18 @@ Research, designs and tables are building blocks with no behaviour change and si
 ## 4. The research lanes
 
 - **Atmosphere research (2026-10-17):** GEN.431, with the re-check of the four sources the first check could not reach. Done and merged: [atmosphere-composition.md](atmosphere-composition.md) (the master: findings, design synthesis, sources, what Boss must research) and its seven parts in [atmosphere-composition-parts/](atmosphere-composition-parts/01-gas-table-thermodynamics.md) (gas table and thermodynamics, optics, infrared and greenhouse, photochemistry and escape, mixing ratios by class, condensates and aerosols, radiation shielding and ground sources). Its findings are GEN.452 to GEN.456, DB.71 and the notes on GEN.409 to GEN.411, GEN.413, GEN.414, GEN.417, GEN.422, GEN.423, GEN.436, GEN.444, GEN.445 and GEN.451.
-- **Body composition research (2026-10-17):** GEN.432 (planets, moons, small bodies, giants), then GEN.433 (stars and remnants). GEN.425 (mass-radius and equation-of-state sources) is done, see the sources check.
-- **Radiation research:** GEN.434 is covered by the two lanes above (the coordinator, 12:17 AM EDT); no separate thread unless Boss asks.
+- **Body composition research (2026-10-17):** GEN.432 (planets, moons, small bodies, giants) and GEN.433 (stars and remnants), done and merged: [body-composition-research.md](body-composition-research.md) (the master: what each body is made of, the chain, the findings against the code, the decisions, the clusters, the invariants) and its five parts in [body-composition-parts/](body-composition-parts/A-stars.md). GEN.425 (mass-radius and equation-of-state sources) is done, see the sources check.
+- **Radiation research:** GEN.434 was covered by the two lanes above (the coordinator, 12:17 AM EDT) and is done with their merges.
 
 Each lane writes its draft to /mnt/project-files/design-drafts/ and reports; the TODO thread merges it into the design documents (atmosphere-composition.md and its parts, the body-composition sections, stellar-composition.md, radiation-model.md, bulk-composition.md and atmosphere-colour.md) in a PR, with a dated comment on the goal issue. On 2026-10-17 at 12:02 AM EDT Boss widened the environment's network access, so the sources the first check could not reach can be re-read.
+
+## 4a. Decided (Boss, 2026-10-17, as the coordinator relayed his card taps)
+
+1. 1:21 AM EDT, "Composition first": new bodies get their composition drawn from the formation distance and the star and the bulk figures derived (route 2); route 1 stays as the inverse for editing and for an imported density (GEN.426, GEN.428, GEN.429).
+2. 1:21 AM EDT, "Keep the switch": the water share of the solids beyond the snow line has both values selectable until a source settles it, the Marboeuf-derived 0.14 to 0.39 as the research draft's default and about 0.5 as the convention (GEN.428, GEN.458; the research is GEN.468).
+3. 1:22 AM EDT, "Replace both": the neutron-star radius floor and the 10 Gyr main-sequence lifetime are derived from sourced relations (GEN.463, GEN.467, 8.1 with the stellar tables, each a generator epoch change joined to the one rescatter).
+4. 1:24 AM EDT, "1 bar": the radius reference level (GEN.427, GEN.429).
+5. 1:24 AM EDT, "Asplund 2021": the reference solar abundance set, with the spread among Asplund 2021, Lodders 2009 and Lodders 2019 as the uncertainty on ratios (GEN.435, GEN.439).
 
 ## 5. What Boss may research for the bodies
 

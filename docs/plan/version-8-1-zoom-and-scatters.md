@@ -170,6 +170,8 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | GEN.398 | The massive-star and bright-star passes place more stars than their log lines expect: 70 and 12 percent over (bug) |  | Rescatter thread finding; Core 3 proposed (scatter spine). |
 | DOC.62 | Docs: the generation cost figures and the redo scope are stale (the phenomena cut, rows, bytes and time; `--redo-scatters` leaves satellites and clusters alone) |  | Rescatter thread finding; docs only, any lane. |
 | GEN.407 | Correct the horizontal-branch and red giant tables to the checked sources: the RGB time law, the evolutionary flux, the HB colour row, the extreme HB luminosity and the tip |  | Stellar tables check, 2026-10-16 10:16 PM EDT; Core 3 proposed. |
+| GEN.463 | The neutron star's radius is derived from sourced mass-radius relations instead of the fixed range of 10 to 13 km (bug) |  | Body composition research lane finding F5; Boss 1:22 AM EDT card Replace both; generator epoch bump. Core 3 proposed. |
+| GEN.467 | The main-sequence lifetime is derived from sourced stellar relations instead of the fixed 10 Gyr for one solar mass and a power law of -2.5 (bug) | GEN.407 | Body composition research lane finding F5; Boss 1:22 AM EDT card Replace both; generator epoch bump. Core 3 proposed. |
 | GEN.396 | Revisit the Yerkes class III luminosity range: 50 to 1000 solar luminosities sits above many dim red giants | GEN.407 | Core 3 finding, 2026-10-16 10:00 PM EDT; any Core lane. |
 | TEST.208 | `scripts/test.py --resume` reuses an earlier pass across builds when none of that test's own dependencies changed |  | Boss, 10:37 PM EDT; saves hours per cancelled gate; Bug Hunt proposed. |
 
@@ -185,13 +187,13 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.432 | Research: what rocky, icy and giant bodies and their small relatives are made of, and the numbers each material needs |  | Boss 11:58 PM EDT; a read-only research lane; the draft goes to /mnt/project-files/design-drafts/ and the TODO thread merges it into docs/design. |
-| GEN.433 | Research: what stars and stellar remnants are made of, and the numbers each needs |  | Boss 11:58 PM EDT; a read-only research lane; the draft goes to /mnt/project-files/design-drafts/ and the TODO thread merges it into docs/design. |
-| GEN.434 | Research: radiation through atmospheres and at the ground, and the numbers it needs |  | Boss 11:58 PM EDT; a read-only research lane; the draft goes to /mnt/project-files/design-drafts/ and the TODO thread merges it into docs/design. |
 | GEN.409 | The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model |  | Boss 11:24 PM EDT; design note, no code. Core 4 proposed (Boss, 11:41 PM EDT). |
-| GEN.426 | The bulk composition design: the fractions, the equation of state, the draws and the derived density, mass and gravity | GEN.432 | Boss 11:49 PM EDT; design note, no code. Core 4 proposed. |
-| GEN.435 | The stellar composition design: the abundance relations, what is stored and what is derived, and the remnants | GEN.433 | Boss 11:58 PM EDT; design note, no code. |
-| GEN.436 | The radiation design: atmospheric transmission and greenhouse by band, shielding by column, and the ground's own dose | GEN.432, GEN.434 | Boss 11:58 PM EDT; design note, no code. |
+| GEN.426 | The bulk composition design: the fractions, the equation of state, the draws and the derived density, mass and gravity |  | Boss 11:49 PM EDT; design note, no code. Core 4 proposed. |
+| GEN.465 | A second extraction pass over the sources the body and atmosphere research could not reach and that are reachable now |  | Body composition research lane master section 8; read-only. Unowned. |
+| GEN.468 | Settle the water share beyond the snow line: the Marboeuf-derived 0.14 to 0.39 of the solids against the convention of about 0.5 |  | Body composition research lane master section 5 decision 2; Boss 1:21 AM EDT card Keep the switch; read-only. Unowned. |
+| GEN.457 | The small bodies and moons composition design: the taxon and comet draws, compaction, the moon origin types and the ice fraction |  | Body composition research lane part D; design note, no code. Core 4 proposed. |
+| GEN.435 | The stellar composition design: the abundance relations, what is stored and what is derived, and the remnants |  | Boss 11:58 PM EDT; design note, no code. |
+| GEN.436 | The radiation design: atmospheric transmission and greenhouse by band, shielding by column, and the ground's own dose |  | Boss 11:58 PM EDT; design note, no code. |
 | GEN.437 | The composition model: how the element, compound, material and body tables link, and what is stored against derived | GEN.409, GEN.426, GEN.435, GEN.436 | Boss 11:58 PM EDT; design note, no code. |
 
 
@@ -328,6 +330,7 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.440 | Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf | GEN.439 | Boss 11:58 PM EDT; a pure function of stored values; no column, no stored change. |
+| GEN.464 | The disk solids law reads the star's metal mass fraction Z over Z0, not 10 to the power of [Fe/H], which is off by 1.7 to 3 times in metal-poor alpha-enhanced stars | GEN.440 | Body composition research lane finding F6 (A-S2); generator epoch bump. Core 4 proposed. |
 
 ## Phase 4: New scatters: components, clusters and audits
 
@@ -337,8 +340,8 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius |  | From GEN.133's four unbuilt proposals (star-types-by-galactic-radius.md); Boss to confirm which he wants. |
-| GEN.450 | The star-formation profile's radial slope: reconcile the Schmidt index with the observed gradient, with the choice named | GEN.134 | Core 4 citation re-check, 2026-10-17; follow-up of GEN.134. Core 4. |
+| GEN.450 | The star-formation profile's radial slope: reconcile the Schmidt index with the observed gradient, with the choice named |  | Core 4 citation re-check, 2026-10-17; follow-up of GEN.134. Core 4. |
+| GEN.469 | The disk's star-formation history from the gas law: the local B-star share is 0.2 percent against the observed 0.04 percent |  | GEN.134 follow-up (proposal 2); generator epoch bump, joins the one rescatter. Core 4. |
 | GEN.322 | Band groups and the halo term: the bright-star and mass passes cover the 262 kpc reach |  | Split from GEN.240. |
 | GEN.323 | The phenomena pass runs on the object-first sampler | GEN.322 | Split from GEN.240. |
 | GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies |  | Core 1; Boss 4:02 PM EDT: feasibility study. |
@@ -469,4 +472,4 @@ The last audits and the headline: they test the component pass, the core and the
 | TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | TEST.184, TEST.185 | Whole-sphere build train, Boss 2026-10-15. Step 15. Quality. |
 | TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | GEN.240, GEN.282, GEN.321, TEST.186 | Phenomena catalogue, Boss 2026-10-15. Step 4. Quality. |
 | TEST.196 | Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged | TEST.186 | Core 4; Boss 6:15 PM EDT: expected-numbers check for GEN.103. |
-| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.244, GEN.259, GEN.282, GEN.284, GEN.298, TEST.159, TEST.160, TEST.196, GEN.447, GEN.448, GEN.449, GEN.450 |  |
+| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.238, GEN.240, GEN.241, GEN.242, GEN.243, GEN.244, GEN.259, GEN.282, GEN.284, GEN.298, TEST.159, TEST.160, TEST.196, GEN.447, GEN.448, GEN.449, GEN.450, GEN.463, GEN.467, GEN.469 |  |
