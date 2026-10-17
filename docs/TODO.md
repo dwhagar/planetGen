@@ -19178,6 +19178,50 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
 
+- [ ] **DOC.67 An architecture map Boss can drill down: project areas, modules and functions with the call flow between them, generated from the code**
+  Boss (2026-10-17, 12:23 PM EDT, relayed by the coordinator): "I want a
+  more detailed architecture HTML document that I can drill down and see
+  the flow through modules and even functions if possible, I want a map
+  of the project and its distinct areas." docs/design/architecture.html
+  (DOC.47, merged #2037) is the overview level, written by hand from
+  architecture.md; there is no code map and no generator behind it, so
+  this item builds both. Do: a generator
+  (`scripts/build_architecture_map.py`) reads `src/planetgen` with the
+  ast module (about 380 modules) and writes one self-contained page,
+  `docs/design/architecture-map.html`, with no network and no build
+  step. Level 1 is the project map: the distinct areas (web, api, queue,
+  generation, galaxy, population, physics, describe, db, admin, backup,
+  wiki, cli, names, tuning and the tests) as boxes with the imports
+  between them and a one-line purpose from architecture.md. Level 2 is
+  an area: its modules, what each imports and what imports it. Level 3
+  is a module: its classes and functions with the docstring's first
+  line, and for each function the functions it calls and the functions
+  that call it, resolved where the name is unambiguous and marked as
+  unresolved where it is not. Level 4 is a function's source with the
+  call edges clickable. A flow view shows the main paths end to end (a
+  page request to the API, to the work queue, to generation and the
+  database; a scatter pass; a map tile read; a backup) as a chain a
+  reader can click down through, written as a short hand-kept list of
+  entry functions so the chain is traced by the generator and not drawn
+  by hand. Search by module or function name; links are stable anchors.
+  Done: the page opens offline, every area, module and function of
+  `src/planetgen` is reachable by drilling down from the project map,
+  the flow view traces at least the five paths named above, the
+  generator has `--check` and a test that fails when a module is missing
+  from the page, and the page is listed in the docs index (DOC.52).
+  Default picked: the generated page is committed like the TODO pages;
+  module and import levels are checked in the docs gate, and the
+  function level is regenerated at each release stamp, so a lane does
+  not regenerate it on every merge (the lane may choose a better rule
+  and say so).
+  Owner: Core 5 (proposed by the TODO thread, Boss's lanes to 8.1,
+  2026-10-17): it owns DOC.52, whose index must list the page, and the
+  DOC sweep DOC.18, and it takes the small docs items first; Core 2
+  wrote DOC.47 but is on the wheel zoom chain, the 8.1 headline. Not on
+  the headline path: it can wait behind Core 5's stellar bundle unless
+  Boss promotes it.
+  Prerequisites: none. Related: DOC.47, DOC.52, DOC.18.
+
 ## VIEW: The view from a planet
 
 - [ ] **VIEW.1 View from a planet**
