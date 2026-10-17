@@ -53,10 +53,9 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.55 | Same seed, same data: a sector's contents depend only on the seed, the version and its address (internal) |  | Parent of the chain. |
-| GEN.306 | Population seeds keyed on the object, not on row ids |  | Split from GEN.57. |
 | GEN.307 | The object-ID collision number keyed on the lower address |  | Split from GEN.57. |
-| TEST.181 | The order-independence test: the same sectors at 1 and 4 workers and in two orders | GEN.306, GEN.307 | Split from GEN.57. |
-| GEN.57 | A sector's contents depend only on the seed, the version and its address | GEN.306, GEN.307, TEST.181 | Name collisions go away with GEN.67; GEN.63 dropped. Also keys GEN.64's ID collision counter on address (it checks stored rows, PR #406). |
+| TEST.181 | The order-independence test: the same sectors at 1 and 4 workers and in two orders | GEN.307 | Split from GEN.57. |
+| GEN.57 | A sector's contents depend only on the seed, the version and its address | GEN.307, TEST.181 | Name collisions go away with GEN.67; GEN.63 dropped. Also keys GEN.64's ID collision counter on address (it checks stored rows, PR #406). |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector |  | Left over from GEN.96. |
 | DB.43 | Reed-Solomon codec in the standard library: planetgen/util/rscodec.py |  | Split from DB.9. Core 1 owns migrations. |
 | DB.44 | Migration only: the sector storage checksum and the parity dirty flag |  | Split from DB.9. Core 1 owns migrations. |

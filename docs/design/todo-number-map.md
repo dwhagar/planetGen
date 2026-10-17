@@ -948,7 +948,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.303 | Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000 | none | open |
 | GEN.304 | The canonical fingerprint encoder: floats to 9 significant digits, SHA-256, structural and float digests | none | open |
 | GEN.305 | Store a leaf digest at save time and build the tree: roots and region digests | none | open |
-| GEN.306 | Population seeds keyed on the object, not on row ids | none | open |
+| GEN.306 | Population seeds keyed on the object, not on row ids | none | done, PR #1942 |
 | GEN.307 | The object-ID collision number keyed on the lower address | none | open |
 | GEN.308 | A block-first sampler for the backfill: a Poisson candidate count from the block's density bound, then thinning | none | open |
 | GEN.309 | The backfill picks the draw path per block and gives the same stars wherever it lands | none | open |

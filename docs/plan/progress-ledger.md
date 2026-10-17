@@ -730,3 +730,4 @@ Baseline: PR #1817.
 | TEST.205 | 8.1 | Bugs and flaky tests |
 | GEN.286 | 8.1 | Galactic core and halo |
 | GEN.287 | 8.1 | Galactic core and halo |
+| GEN.306 | 8.1 | Reproducible galaxies |
