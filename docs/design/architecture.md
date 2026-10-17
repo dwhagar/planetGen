@@ -358,6 +358,7 @@ The content database: writing, reading, migrating and checking it. `schema.sql` 
 |---|---|
 | [`__init__.py`](../../src/planetgen/db/__init__.py) | The content database (MySQL): writing, reading, migrating and checking it. |
 | [`alembic_runner.py`](../../src/planetgen/db/alembic_runner.py) | Runs the Alembic revisions in `planetgen/db/migrations/` against a planetGen content database (DB.11). |
+| [`migrations/helpers.py`](../../src/planetgen/db/migrations/helpers.py) | What a revision uses on a big table: instant columns, online indexes, updates in committed pages with progress, and the existence checks (DB.18). |
 | [`check.py`](../../src/planetgen/db/check.py) | `planetgen check-db` (and the Admin dashboard's "Check the database" button, which runs it as a job) looks for damage in a galaxy database and changes nothing. |
 | [`corridor.py`](../../src/planetgen/db/corridor.py) | The objects near a straight segment of the galaxy, for routing and course steering. |
 | [`countcache.py`](../../src/planetgen/db/countcache.py) | Counts and filter-menu totals that are too big to take inside a web request (PERF.64). |
