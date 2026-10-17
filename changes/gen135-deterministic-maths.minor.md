@@ -7,3 +7,8 @@
 generation-output: changed
 
 - The epoch rule needs the golden files, the epoch and the note's line together only once a golden file is checked in; until the golden test lands, the epoch and the note go together alone.
+
+### Fixed
+- TEST.205: the SQL portability lint no longer reads `ALGORITHM=INPLACE, LOCK=NONE` in an ALTER TABLE as a column named `lock` (broken on main since DB.18).
+
+TODO items resolved: GEN.135, TEST.205 / Added: none
