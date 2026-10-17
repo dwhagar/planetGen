@@ -13,7 +13,7 @@ Rules:
 
 | Issue | State | Goal | Items |
 |---|---|---|---|
-| [#2095](https://github.com/dwhagar/planetGen/issues/2095) | open | Halo and intergalactic generation as a switch, default off (8.5) | GEN.537, GEN.538, MAP.248, UX.137, TEST.226 |
+| [#2095](https://github.com/dwhagar/planetGen/issues/2095) | open | The plan configuration and two switches, halo and satellite galaxies, both default off (8.5) | GEN.537, GEN.538, GEN.539, GEN.540, MAP.248, UX.137, TEST.226 |
 | [#2096](https://github.com/dwhagar/planetGen/issues/2096) | open | Robust tile caching: build ahead, store compressed, build proactively, keep until the data changes (8.2) | PERF.129, PERF.130, PERF.131, PERF.132, PERF.133, PERF.134 |
 | [#1914](https://github.com/dwhagar/planetGen/issues/1914) | open | Galaxy types: one family per known galaxy type, drawn from the seed (9.4) | DB.66, DOC.59, GEN.378, GEN.379, GEN.380, GEN.381, GEN.382, GEN.383, GEN.384, GEN.385, GEN.386, GEN.387, GEN.389, GEN.390, MAP.242, TEST.204, UX.134, UX.135 |
 | [#1924](https://github.com/dwhagar/planetGen/issues/1924) | open | Superbubbles shape the stars: the bubble field as a density modulation (8.1) | DOC.61, GEN.391, GEN.392, GEN.393, GEN.394, GEN.395, TEST.206 |
