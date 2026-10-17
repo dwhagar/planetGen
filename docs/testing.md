@@ -260,7 +260,9 @@ only `PLANETGEN_TEST_REDIS_URL` (never `PLANETGEN_REDIS_URL`) and removes only k
 the API test queues `planetgen-api-test-*`, the run queues `planetgen-run-*` and queues `test-*`, with the job
 records those queues list. It does not flush the database and leaves the rate-limit keys (`LIMITS:*`, which expire on
 their own and are shared by every running test). A run queue of the application is named like a test's, so if any
-worker has sent a heartbeat in the last 90 seconds the clean-up does nothing and says so. It prints
+worker has sent a heartbeat in the last 90 seconds the clean-up does nothing and says so, and a queue that lists a
+job made in the last 15 minutes is left whole (another run may be queueing for workers that have not yet started: its
+test would end with `WorkerDied: the task's job ended canceled`, TEST.203). It prints
 `removed N keys earlier test runs left on the test Redis` when it cleared something.
 
 A resumed run with `--record-deps` or `--check` keeps the dependency-map entries of the tests it skipped and
