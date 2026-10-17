@@ -19,10 +19,9 @@ The view from a planet, moved here from 9.0 (Boss, 10:27 PM EDT): the photometry
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | VIEW.11 | Photometry library: apparent magnitude, bolometric correction, blackbody colour and the extinction law | VIEW.1, VIEW.9, GEN.416 | Split from VIEW.2. Extends GEN.416 (the blackbody colour, 9.0). |
-| VIEW.10 | A HYG calibration test: a generated sky has about 9,000 stars at V <= 6.5 | VIEW.11, VIEW.7 | Research. |
 | VIEW.12 | Sky catalogue: the stars an observer sees, with direction, brightness and light-time | VIEW.11, VIEW.7 | Split from VIEW.2. |
 | VIEW.13 | Galactic band: the glow of the unresolved stars and dust along each line of sight | VIEW.11, VIEW.8 | Split from VIEW.2. |
-| VIEW.14 | Orientation and horizon: the planet's own sky, time of day and twilight | VIEW.12, VIEW.13, VIEW.6 | Split from VIEW.2. |
+| VIEW.14 | Orientation and horizon: the planet's own sky, time of day and twilight | VIEW.12, VIEW.13, VIEW.6, GEN.417, GEN.418 | Split from VIEW.2. |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | VIEW.11, VIEW.12, VIEW.13, VIEW.14 |  |
 | VIEW.15 | Whole-sky PNG: Hammer-Aitoff projection, written with numpy and zlib, cached and served by the API | VIEW.11, VIEW.12, VIEW.13 | Split from VIEW.3. |
 | VIEW.16 | Constellations: the seeded partition over the brightest stars, stored per system, named by the codec, with Bayer labels | DB.64, VIEW.4, VIEW.12 | Split from VIEW.3. |

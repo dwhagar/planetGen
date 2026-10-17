@@ -41,6 +41,7 @@ from planetgen.db.store import (
     STATEMENT_TIMEOUT_ERRORS, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
 )
 from planetgen.db import countcache, point_columns
+from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
 from planetgen.physics.habitability_world import EQUIPMENT_LABELS, EQUIPMENT_NAMES
@@ -2133,8 +2134,8 @@ def _scattered_page(conn, classes, limit, offset):
     for entry in classes:
         clauses.append("(kind = ? AND COALESCE(subtype, '') = ?)")
         params.extend([entry["kind"], entry["subtype"]])
-    query = ("SELECT id, kind, COALESCE(subtype, '') AS subtype, shell_index, band_index, wedge_index"
-             f" FROM phenomenon_scatter WHERE built_at IS NULL AND ({' OR '.join(clauses)}) ORDER BY id")
+    query = ("SELECT id, kind, COALESCE(subtype, '') AS subtype, shell_index, band_index, wedge_index,"
+             f" member_count, system_mass_solar FROM phenomenon_scatter WHERE built_at IS NULL AND ({' OR '.join(clauses)}) ORDER BY id")
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
         params.extend([limit, offset or 0])
@@ -2143,7 +2144,7 @@ def _scattered_page(conn, classes, limit, offset):
          "name": f"Uncharted {row['kind'].replace('-', ' ')} {row['shell_index']}.{row['band_index']}."
                  f"{row['wedge_index']}",
          "descriptor": by_class[(row["kind"], row["subtype"])]["descriptor"], "radius_ly": 0.0,
-         "sector_id": None, "sector_name": None, "placed": True, "scattered": True}
+         "sector_id": None, "sector_name": None, "placed": True, "scattered": True, **_member_fields(row)}
         for row in conn.execute(query, params).fetchall()
     ]
 
@@ -2202,8 +2203,9 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
             `schema.sql`'s "v18" header note), `placed` (bool --
             whether it has a galaxy position at all) and `scattered` (bool
             -- placed by the scatter but not yet built, so `id` is its
-            `phenomenon_scatter` row, with no page; its `type` can also be
-            `"hypervelocity_star"`).
+            `phenomenon_scatter` row, with a page of its own; its `type` can also be
+            `"hypervelocity_star"`). A scattered row also has `member_count` and `system_mass_solar`
+            (`_member_fields`, UX.114).
     """
     if sort not in PHENOMENON_SORTS:
         raise ValueError(f"unknown phenomenon sort {sort!r}")
@@ -2775,7 +2777,9 @@ def scattered_phenomenon_detail(conn, scatter_id):
 
     Returns:
         dict: `id`, `kind`, `subtype`, `type` (as `_SCATTER_TYPES`), `built` (bool), `address` (`[shell, band,
-            wedge]`), `x`/`y`/`z` (galaxy-frame parsecs), `distance_from_core_pc`, `mass_solar` (or `None`), and
+            wedge]`), `x`/`y`/`z` (galaxy-frame parsecs), `distance_from_core_pc`, `mass_solar` (or `None`),
+            `member_count` and `system_mass_solar` (UX.114; an unbuilt row with members also has `members` and
+            `nodes`, as `scatter_member_tree`), and
             for a row with a velocity `speed_kms`, `direction` (a unit vector) and `flight_years` (the time to
             fly its distance from the core at that speed, the age bound of a star ejected from the centre). A
             built row also has `target`: `{"kind", "id", "name"}` of what it became (`"system"` for a
@@ -2795,8 +2799,10 @@ def scattered_phenomenon_detail(conn, scatter_id):
         "type": _SCATTER_TYPES.get(row["kind"], row["kind"]), "built": row["built_at"] is not None,
         "address": [row["shell_index"], row["band_index"], row["wedge_index"]],
         "x": point[0], "y": point[1], "z": point[2], "distance_from_core_pc": distance_pc,
-        "mass_solar": row["mass_solar"],
+        "mass_solar": row["mass_solar"], **_member_fields(row),
     }
+    if detail["member_count"] and not detail["built"]:
+        detail.update(scatter_member_tree(conn, "phenomenon_scatter", row["id"]))
     velocity = [row[f"velocity_{axis}_kms"] for axis in "xyz"]
     if all(value is not None for value in velocity):
         speed = math.sqrt(sum(value * value for value in velocity))
@@ -3851,7 +3857,49 @@ def _bright_star_entry(row):
         "yerkes_class": row["yerkes_class"], "shell_index": row["shell_index"],
         "band_index": row["band_index"], "wedge_index": row["wedge_index"],
         "system_id": row["star_system_id"],
+        **_member_fields(row),
     }
+
+
+def scatter_member_tree(conn, table, row_id):
+    """
+    The stored members of an unbuilt scatter row, as a page lists them (UX.114): `members` (`member_no`, `kind`,
+    `state`, `mass_solar`, `parent_node_no`) in member order and `nodes` (`node_no`, `parent_node_no`, `kind`
+    (`close`, `wide`, `compact` or `group`), `mass_solar`, `separation_au`, `period_years`, `eccentricity`), both empty
+    for a single object. Reads the two child tables by their primary key, so it is cheap at any galaxy size.
+
+    Args:
+        conn (planetgen.db.store.Connection): An open, read-only connection.
+        table (str): `"bright_stars"` or `"phenomenon_scatter"`.
+        row_id (int): The row's id.
+    """
+    source = SCATTER_SOURCES[table]
+    members = [
+        {"member_no": r["member_no"], "kind": r["kind"], "state": r["state"], "mass_solar": r["mass_solar"],
+         "parent_node_no": r["parent_node_no"]}
+        for r in conn.execute(
+            "SELECT member_no, kind, state, mass_solar, parent_node_no FROM scatter_members"
+            " WHERE source = ? AND source_id = ? ORDER BY member_no", (source, int(row_id))).fetchall()]
+    nodes = [
+        {"node_no": r["node_no"], "parent_node_no": r["parent_node_no"], "kind": r["kind"],
+         "mass_solar": r["mass_solar"], "separation_au": r["separation_km"] * 1000.0 / constants.AU_M,
+         "period_years": r["period_years"], "eccentricity": r["eccentricity"]}
+        for r in conn.execute(
+            "SELECT node_no, parent_node_no, kind, mass_solar, separation_km, period_years, eccentricity"
+            " FROM scatter_nodes WHERE source = ? AND source_id = ? ORDER BY node_no",
+            (source, int(row_id))).fetchall()]
+    return {"members": members, "nodes": nodes}
+
+
+def _member_fields(row):
+    """
+    `member_count` (0 for a single object) and `system_mass_solar` (the mass the point carries, `None` for a single
+    object) of a scatter row (UX.114). Only the readers that ask for the two columns carry them: the map tiles, which
+    read thousands of rows, leave them out and the keys are absent.
+    """
+    if "member_count" not in row.keys():
+        return {}
+    return {"member_count": int(row["member_count"] or 0), "system_mass_solar": row["system_mass_solar"]}
 
 
 def bright_stars_in_sector(conn, shell_index, band_index, wedge_index, unfilled_only=True):
@@ -3877,7 +3925,8 @@ def bright_stars_in_sector(conn, shell_index, band_index, wedge_index, unfilled_
     rows = conn.execute(
         f"""
         SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k, radius_km,
-               star_type, population, yerkes_class, shell_index, band_index, wedge_index, star_system_id
+               star_type, population, yerkes_class, shell_index, band_index, wedge_index, star_system_id,
+               member_count, system_mass_solar
         FROM bright_stars
         WHERE shell_index = ? AND band_index = ? AND wedge_index = ?{unfilled}
         ORDER BY luminosity_w DESC, id
@@ -3920,38 +3969,65 @@ def list_uncharted_systems(conn, limit=None, offset=None, sort="luminosity", des
             its sector (`shell_index`, `band_index`, `wedge_index`,
             `designation`), `x`/`y`/`z` (galaxy frame, parsecs),
             `local_x`/`local_y`/`local_z` (parsecs from the sector's
-            center, where the star's sector is in the grid) and
-            `galactic_radius_pc`.
+            center, where the star's sector is in the grid),
+            `galactic_radius_pc`, and `member_count` and
+            `system_mass_solar` (`_member_fields`, UX.114).
     """
     if sort not in UNCHARTED_SYSTEM_SORTS:
         raise ValueError(f"unknown uncharted system sort {sort!r}")
     direction = "DESC" if descending else "ASC"
     order = ", ".join(f"{column} {direction}" for column in UNCHARTED_SYSTEM_SORTS[sort].split(","))
     query = (f"SELECT id, shell_index, band_index, wedge_index, position_x_mpc, position_y_mpc, position_z_mpc,"
-             f" population, star_type, yerkes_class, mass_kg, radius_km, temperature_k, luminosity_w, age_gy"
-             f" FROM bright_stars WHERE star_system_id IS NULL ORDER BY {order}, id")
+             f" population, star_type, yerkes_class, mass_kg, radius_km, temperature_k, luminosity_w, age_gy,"
+             f" member_count, system_mass_solar FROM bright_stars WHERE star_system_id IS NULL ORDER BY {order}, id")
     params = []
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
         params = [int(limit), int(offset or 0)]
     skeleton = get_galaxy_shape(conn)
     edge_pc = skeleton.edge_pc if skeleton else float(tuning.DEFAULT_SECTOR_EDGE_PC)
-    items = []
-    for row in conn.execute(query, params).fetchall():
-        address = (row["shell_index"], row["band_index"], row["wedge_index"])
-        x, y, z = (row[f"position_{axis}_mpc"] / MPC_PER_PC for axis in "xyz")
-        local = galaxy_to_local_pc(sector_position_pc(*address, edge_pc), (x, y, z))
-        items.append({
-            "id": row["id"], "star_type": row["star_type"], "yerkes_class": row["yerkes_class"],
-            "population": row["population"], "mass_solar": row["mass_kg"] / constants.SOLAR_MASS_TO_KG,
-            "radius_solar": _radius_sol(row["radius_km"]), "temperature_k": row["temperature_k"],
-            "luminosity_sol": row["luminosity_w"] / constants.SOLAR_LUMINOSITY, "age_gy": row["age_gy"],
-            "shell_index": address[0], "band_index": address[1], "wedge_index": address[2],
-            "designation": provisional_sector_designation(*address),
-            "x": x, "y": y, "z": z, "local_x": local[0], "local_y": local[1], "local_z": local[2],
-            "galactic_radius_pc": math.sqrt(x * x + y * y + z * z),
-        })
-    return items
+    return [_uncharted_item(row, edge_pc) for row in conn.execute(query, params).fetchall()]
+
+
+def _uncharted_item(row, edge_pc):
+    """One `bright_stars` row as `list_uncharted_systems` returns it."""
+    address = (row["shell_index"], row["band_index"], row["wedge_index"])
+    x, y, z = (row[f"position_{axis}_mpc"] / MPC_PER_PC for axis in "xyz")
+    local = galaxy_to_local_pc(sector_position_pc(*address, edge_pc), (x, y, z))
+    return {
+        "id": row["id"], "star_type": row["star_type"], "yerkes_class": row["yerkes_class"],
+        "population": row["population"], "mass_solar": row["mass_kg"] / constants.SOLAR_MASS_TO_KG,
+        "radius_solar": _radius_sol(row["radius_km"]), "temperature_k": row["temperature_k"],
+        "luminosity_sol": row["luminosity_w"] / constants.SOLAR_LUMINOSITY, "age_gy": row["age_gy"],
+        "shell_index": address[0], "band_index": address[1], "wedge_index": address[2],
+        "designation": provisional_sector_designation(*address),
+        "x": x, "y": y, "z": z, "local_x": local[0], "local_y": local[1], "local_z": local[2],
+        "galactic_radius_pc": math.sqrt(x * x + y * y + z * z), **_member_fields(row),
+    }
+
+
+def uncharted_system_detail(conn, bright_star_id):
+    """
+    One scattered star as its page needs it (UX.114): `list_uncharted_systems`'s item, plus `system_id` (the system
+    built around it, or `None` while it is uncharted) and, for a star with company, its `members` and `nodes`
+    (`scatter_member_tree`). A star already built into a system lists no members: its members are the system's stars.
+
+    Raises:
+        ValueError: If no such `bright_stars` row exists.
+    """
+    row = conn.execute(
+        "SELECT id, shell_index, band_index, wedge_index, position_x_mpc, position_y_mpc, position_z_mpc,"
+        " population, star_type, yerkes_class, mass_kg, radius_km, temperature_k, luminosity_w, age_gy,"
+        " member_count, system_mass_solar, star_system_id FROM bright_stars WHERE id = ?",
+        (int(bright_star_id),)).fetchone()
+    if row is None:
+        raise ValueError(f"no bright_stars row with id {bright_star_id}")
+    skeleton = get_galaxy_shape(conn)
+    detail = _uncharted_item(row, skeleton.edge_pc if skeleton else float(tuning.DEFAULT_SECTOR_EDGE_PC))
+    detail["system_id"] = row["star_system_id"]
+    if detail["member_count"] and row["star_system_id"] is None:
+        detail.update(scatter_member_tree(conn, "bright_stars", row["id"]))
+    return detail
 
 
 UNCHARTED_SCATTER_LIMIT = 500
@@ -3978,7 +4054,8 @@ def uncharted_sector_contents(conn, shell_index, band_index, wedge_index):
         stars = []
     rows = conn.execute(
         f"""
-        SELECT id, kind, subtype, mass_solar, {point_columns.LAYOUTS["phenomenon_scatter"].select("position", "velocity")}
+        SELECT id, kind, subtype, mass_solar, {point_columns.LAYOUTS["phenomenon_scatter"].select("position", "velocity")},
+               member_count, system_mass_solar
         FROM phenomenon_scatter
         WHERE shell_index = ? AND band_index = ? AND wedge_index = ? AND built_at IS NULL
         ORDER BY id
@@ -3992,7 +4069,8 @@ def uncharted_sector_contents(conn, shell_index, band_index, wedge_index):
          "x": row["position_x_mpc"] / MPC_PER_PC, "y": row["position_y_mpc"] / MPC_PER_PC,
          "z": row["position_z_mpc"] / MPC_PER_PC,
          "speed_kms": None if row["velocity_x_kms"] is None else math.sqrt(
-             row["velocity_x_kms"] ** 2 + row["velocity_y_kms"] ** 2 + row["velocity_z_kms"] ** 2)}
+             row["velocity_x_kms"] ** 2 + row["velocity_y_kms"] ** 2 + row["velocity_z_kms"] ** 2),
+         **_member_fields(row)}
         for row in rows
     ]
     return {"stars": stars, "scattered": scattered}

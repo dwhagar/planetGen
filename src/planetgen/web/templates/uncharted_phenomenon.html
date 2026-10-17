@@ -13,6 +13,7 @@
 </div>
 {% endblock %}
 {% block content %}
+{%- set view = members %}
 {%- if built_note %}<p>{{ built_note }}</p>{% endif %}
 <section class="panel" aria-labelledby="phenomenon-data-heading">
   <h2 id="phenomenon-data-heading">{{ type_label }} Data</h2>
@@ -24,4 +25,5 @@
     </tbody>
   </table></div>
 </section>
+{%- include "partials/scatter_members.html" with context %}
 {% endblock %}

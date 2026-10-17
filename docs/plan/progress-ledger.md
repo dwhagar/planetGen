@@ -732,3 +732,20 @@ Baseline: PR #1817.
 | GEN.287 | 8.1 | Galactic core and halo |
 | GEN.306 | 8.1 | Reproducible galaxies |
 | GEN.408 | 8.4 | Atmosphere sources and design |
+| DB.55 | 8.3 | Positions as one object |
+| GEN.336 | 8.3 | Positions as one object |
+| GEN.337 | 8.3 | Positions as one object |
+| GEN.103 | 8.1 | Components and wanderers |
+| GEN.425 | 8.1 | Composition research and design |
+| GEN.372 | 8.3 | Positions as one object |
+| GEN.368 | 8.1 | Components and wanderers |
+| GEN.276 | 8.1 | Region query |
+| GEN.431 | 8.1 | Composition research and design |
+| GEN.432 | 8.1 | Composition research and design |
+| GEN.433 | 8.1 | Composition research and design |
+| GEN.434 | 8.1 | Composition research and design |
+| GEN.134 | 8.1 | Components and wanderers |
+| NAV.60 | 8.1 | Region query |
+| GEN.407 | 8.1 | Bugs and flaky tests |
+| UX.114 | 8.1 | Region query |
+| TEST.217 | 8.1 | Bugs and flaky tests |

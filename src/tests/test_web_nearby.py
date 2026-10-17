@@ -74,14 +74,30 @@ def test_the_page_walks_from_a_sector_to_a_system_to_a_distance(client, mysql_co
     assert 'name="distance"' in html and 'name="kinds"' in html
 
 
+def _add_unbuilt_bright_star(mysql_config, system_id):
+    """One pre-placed bright star, not built, 1 pc from the system."""
+    conn = store.get_connection(mysql_config)
+    try:
+        row = conn.execute("SELECT galaxy_x_pc x, galaxy_y_pc y, galaxy_z_pc z FROM star_systems WHERE id = ?",
+                           (system_id,)).fetchone()
+        point = (row["x"] + 1.0, row["y"], row["z"])
+        store.insert_bright_stars(conn, [(*spherical.sector_address_at(point, EDGE_PC),
+                                          *(int(round(v * 1000)) for v in point), "young", "B", "III", 1e31, 1e7,
+                                          15000.0, 1e28, 0.05, 0.1, 8.0, None, 1, None)])
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def test_the_list_shows_what_is_near_with_links_and_the_ungenerated_count(client, mysql_config):
     system = _first_system(mysql_config)
+    _add_unbuilt_bright_star(mysql_config, system["id"])
     response = client.get(f"/nearby?place=system:{system['pid']}&distance=12")
     html = response.get_data(as_text=True)
     assert response.status_code == 200
     assert "Within 12 pc of" in html and escape(system["name"]) in html
     assert re.search(r'href="/system/[0-9A-F-]+"', html)
-    assert "are uncharted" in html or "is uncharted" in html
+    assert "1 object in range is not generated yet (bright stars: 1)" in html
     assert 'id="nearby-results"' in html
 
 

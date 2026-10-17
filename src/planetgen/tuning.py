@@ -163,7 +163,7 @@ HOLMAN_WIEGERT_P_TYPE_ECCENTRICITY_RANGE = (0.0, 0.7)
 # configurations symmetric with each other.
 WIDE_BINARY_DEFAULT_CHANCE = 0.5
 
-# S-type binary separation is sampled log-uniformly between these bounds
+# S-type binary separation is sampled log-uniformly from this lower bound
 # (see binary.WideBinaryPair.generate) rather than with plain
 # random.uniform -- real wide-binary separations are observed roughly
 # log-uniform/log-normal over several decades (Duquennoy & Mayor 1991;
@@ -171,14 +171,16 @@ WIDE_BINARY_DEFAULT_CHANCE = 0.5
 # density in the single largest order of magnitude (the same reasoning
 # `physics.planets.generate_moons` already applies to moon spacing). The lower
 # bound sits comfortably above the close/P-type BinaryStarProxy separation
-# range (0.05-0.25 AU) so the two configurations' separations never overlap;
-# the upper bound keeps generated pairs within the separation regime that
-# typically survives Galactic tidal shear and passing-star perturbations
-# over a stellar lifetime (real wide pairs increasingly disrupt beyond
-# roughly 0.1-0.2 pc, ~20,000-41,000 AU -- Jiang & Tremaine 2010), without
-# this generator needing to model that disruption process directly.
+# range (0.05-0.25 AU) so the two configurations' separations never overlap.
+# The upper bound is not a constant: a pair survives only inside the
+# widest axis its place allows (GEN.103, `generation.place_terms.
+# wide_axis_limit_au`: passing stars and the galactic tide, from the place's
+# density, velocity dispersion and the pair's age), and a place that allows
+# none under this lower bound keeps no wide pair.
 WIDE_BINARY_SEPARATION_MIN_AU = 50.0
-WIDE_BINARY_SEPARATION_MAX_AU = 10000.0
+WIDE_BINARY_SEPARATION_CEILING_AU = 1.0e6
+"""float: Only where a place's density is zero is the survival limit infinite; no pair is a pair past a few parsecs
+(the Jacobi radius at the halo's density is under 10 pc), and this keeps the log-uniform draw finite."""
 
 # Cap on the sampled binary orbital eccentricity for an S-type pair (see
 # binary.WideBinaryPair.generate's thermal-distribution sampling).
@@ -428,7 +430,7 @@ SPECTRAL_PROBABILITIES_NORMAL = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G'
 # massive O stars are very nearly certain to. Keyed by spectral letter
 # (`Star.type[0]`) the same way SPECTRAL_PROBABILITIES_NORMAL above is,
 # and used the same way when `SystemConfig.BINARY_SYSTEM` is left at its
-# default `None` -- see `StarSystem._should_generate_binary`. Anchor
+# default `None` -- see `StarSystem._companion`. Anchor
 # points, in solar-mass order:
 #   M: 0.26  -- Duchene & Kraus 2013 (Annual Review of Astronomy and
 #               Astrophysics 51:269-310), low-mass-star multiplicity
@@ -502,17 +504,25 @@ BRIGHT_GIANT_MIN_MASS_SOL = 4.0
 # That is the real luminosity function, and it follows from the physics: the
 # helium core grows by the hydrogen shell burning at the star's luminosity, so
 # dt = (X Q / L) dMc, and the luminosity climbs as a power Mc^p of the core
-# mass (p about 10 for the low-mass cores of an old population), which gives
-# dt/dlnL proportional to L^(1/p - 1), slope 0.9 [R, Refsdal and Weigert 1970;
-# Salaris and Cassisi 2005; recalled, unconfirmed]. The tip is where the core
-# helium ignites (near 2,500 Lsun, M_bol about -3.7; Salaris and Cassisi 2005).
+# mass, which gives dt/dlnL proportional to L^(1/p - 1) [R, Refsdal and Weigert
+# 1970; Salaris and Cassisi 2005; recalled, unconfirmed]. p is about 10 at the
+# base and about 5 at the tip, so the true slope flattens from -0.83 to -0.56
+# along the branch (the core-mass-luminosity fit of arXiv 2503.17772, eq. 1:
+# one data point [P]); one exponent, 0.78, reproduces that fit's share of the
+# branch spent above 50, 100, 500 and 1,000 Lsun (9.6, 5.5, 1.3 and 0.59%)
+# within 15% (stellar tables check, 2026-10-17); the first value, 0.9, undercounted
+# the giants above 500 Lsun by a factor of two. The tip is where the core
+# helium ignites: near 2,500 Lsun for a solar-metallicity star (Serenelli et al.
+# 2017, table 2: 2,410 to 2,450 at Z 0.004), 1,650 to 1,780 at Z 0.0001, so 15 to
+# 50% high for an [Fe/H] -2 halo star [P]; one tip, until the giant knows its [Fe/H].
 # Log-uniform spreading over 50 to 1,000 Lsun, which this replaces, put every
 # giant above 50 Lsun and overstated the bright ones many times against real
 # counts: the real branch spends most of its time near its base (its
 # observed ratio of horizontal-branch stars to red giants brighter than the
-# horizontal branch is about 1.4 [R, Salaris et al. 2004]).
+# horizontal branch is 1.44 +- 0.06 for the 41 halo clusters of Salaris et
+# al. 2004, table 2, and 1.51 +- 0.05 for all 57 [P]).
 GIANT_BRANCH_TIP_LUMINOSITY_SOL = 2500.0
-GIANT_BRANCH_TIME_SLOPE = 0.9
+GIANT_BRANCH_TIME_SLOPE = 0.78
 BRIGHT_GIANT_LUMINOSITY_RANGE_SOL = (1000.0, 10000.0)  # log-uniform
 GIANT_TEMPERATURE_RANGE_K = (3500.0, 5000.0)
 # The horizontal branch (core helium burning): one luminosity range, whatever
@@ -521,24 +531,36 @@ GIANT_TEMPERATURE_RANGE_K = (3500.0, 5000.0)
 # are the metal-rich, RR Lyrae the middle, blue horizontal-branch the
 # metal-poor and extreme horizontal-branch (hot subdwarfs) a few percent of
 # old stars (docs/design/realistic-galactic-core.md 5.3) [R, recalled, unconfirmed:
-# Lee, Demarque and Zinn 1994; Catelan 2009].
-HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL = (40.0, 60.0)
+# Lee, Demarque and Zinn 1994; Catelan 2009]. The luminosity is the RR Lyrae
+# level, 36 to 47 Lsun (M_V 0.56 to 0.80 at [Fe/H] -1.6, Catelan 2009; Gould and
+# Popowski 1998) and the red clump's 30 to 40 [P, stellar tables check]; a hot
+# subdwarf is dimmer, 10 to 40 Lsun, and skips the AGB, which is not modelled
+# (a few percent of old stars). The strip is 6,100 to 7,500 K (blue edge 7,400
+# to 7,600 K, red edge 6,100 to 6,250 K); red horizontal-branch stars fill the
+# 4,600 to 6,100 K below it; 20,000 K is the usual extreme boundary [P].
+HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL = (35.0, 50.0)
 HORIZONTAL_BRANCH_COLOUR_TEMPERATURE_RANGE_K = {
-    "red": (4600.0, 5300.0), "rr-lyrae": (5900.0, 7400.0),
+    "red": (4600.0, 6100.0), "rr-lyrae": (6100.0, 7500.0),
     "blue": (7500.0, 20000.0), "extreme": (20000.0, 35000.0),
 }
 # Colour shares (blue, RR Lyrae, red, extreme) at [Fe/H] anchors, linear
 # between them and held beyond the ends: nearly all blue at -2.2, a mix at
-# -1.5 (the intermediate halo), nearly all red above -0.5.
+# -1.5 (the intermediate halo), nearly all red above -0.5. The anchors are on
+# the Zinn and West (1984) scale, the one the 57 globular clusters of Salaris et
+# al. 2004, table 2, are listed on: their mean HB type, (blue - red) / all, is
+# +0.75 at -2.2, +0.50 at -1.5 and -0.92 at -0.7 (the Carretta and Gratton 1997
+# scale, 0.2 dex higher at -1.5, gives +0.72 there). The RR Lyrae and extreme
+# shares and the -0.1 row are unverified [R].
 HORIZONTAL_BRANCH_COLOURS = (
     (-2.2, (0.82, 0.07, 0.02, 0.09)),
-    (-1.5, (0.43, 0.25, 0.25, 0.07)),
+    (-1.5, (0.55, 0.25, 0.13, 0.07)),
     (-0.7, (0.06, 0.06, 0.86, 0.02)),
     (-0.1, (0.0, 0.0, 0.98, 0.02)),
 )
 # The second parameter: a younger population has a redder branch, as if its
 # [Fe/H] were higher by this many dex for each Gy it is younger than the
-# reference age.
+# reference age. No published figure was found; the papers imply 0.12 to 0.23
+# dex per Gy indirectly (Lee et al. 1999, 2001; Catelan 2009) [R].
 HORIZONTAL_BRANCH_AGE_SHIFT_DEX_PER_GY = 0.1
 HORIZONTAL_BRANCH_REFERENCE_AGE_GY = 12.0
 # The asymptotic giant branch: the same time-at-luminosity law, between these.
@@ -657,6 +679,30 @@ STELLAR_POPULATION_AGE_RANGES_GY = {
 }
 STELLAR_POPULATION_SCALE_HEIGHT_RATIO = {"young": 50 / 300, "intermediate": 150 / 300, "old": 1.0}
 STELLAR_POPULATION_ARM_AMPLITUDE = {"young": 0.9, "intermediate": 0.4, "old": 0.0}
+
+# How much of the thin disk's recent star formation a place holds (GEN.134, `galaxy.star_formation`): derived from the
+# galaxy's shape, with the Milky Way's profile only as a test target.
+STAR_FORMATION_LAW_EXPONENT = 1.4
+"""float: The Kennicutt-Schmidt exponent: the rate per area goes as the gas per area to this power (Kennicutt 1998:
+1.4 +/- 0.15 over 61 spirals and 36 starbursts; other fits run from 1.3 to 1.65)."""
+GAS_TO_STELLAR_SCALE_LENGTH_RATIO = 1.0
+"""float: The gas disk's scale length over the stellar disk's. An assumption, not a measurement: the observed gas
+disk is more extended, which would make the outer disk younger; 1 is the plain reading, and the profile test shows
+what it gives against the observed fall."""
+BAR_GAP_RADIUS_RATIO = 2.2
+"""float: The radius inside which the bar has depleted the star-forming gas, over the bulge's scale radius (the bar's
+length scale). The molecular gas has a gap from 0.5 to 3.5 kpc in a 2026 reconstruction whose outer edge is taken to match the
+bar's half-length (arXiv 2603.17341, read; another estimate of the half-length is 5.0 kpc), against the bulge's 1.58 kpc scale radius:
+2.2 (a model constant of the shape, like `BULGE_AXIS_RATIO_Y`, not derived)."""
+BAR_GAP_STAR_FORMATION_FLOOR = 0.03
+"""float: What is left of the star formation at the centre of the bar gap, as a share of the unbarred rate. The
+simulations remove the gas "on 1 Gyr timescales" after the bar forms (arXiv 1908.11119, read), so 0.03 is what 3.5 Gyr
+leaves (`exp(-3.5)`); the observed deficit depends on the reconstruction (design note, 'the bar gap'), so this is a default [open]: below about 0.05
+the rate per area peaks at the gap's edge, the ring a bar leaves."""
+BAR_GAP_EDGE_POWER = 4.0
+"""float: How sharp the gap's edge is: the rate rises as `u^p / (1 + u^p)` with `u` the radius over the gap radius.
+The bar's gas is swept in over its length and what lies beyond is untouched, so the edge is steep; 2 gives a ramp
+that never leaves a ring, 4 a ring at the bar's end [a model default, open]."""
 
 # Metallicity ([Fe/H], dex; GEN.158, docs/design/globular-clusters.md 5). The
 # disc populations follow a mild radial gradient of -0.06 dex per kpc [recalled,
@@ -934,6 +980,27 @@ below it, by Knuth's method (PERF.60)."""
 # Binary mass ratio q = M2/M1, uniform (Moe & Di Stefano 2017, ApJS 230:15,
 # find it close to flat); the secondary shares the primary's age.
 BINARY_MASS_RATIO_RANGE = (0.1, 1.0)
+
+# The chance of a companion inside 10 AU against the star's own [Fe/H] (GEN.103; Boss, 2026-10-16, 6:12 to 6:15 PM
+# EDT: one pooled trend, every star mass). Moe, Kratter & Badenes 2019, ApJ 875:61 (arXiv 1808.02116), for solar-type
+# primaries (0.6 to 1.5 Msun, periods under 10^4 d): 53 +-12% at [Fe/H] -3.0, 40 +-6% at -1.0, 24 +-4% at -0.2 and
+# 10 +-3% at +0.5. `generation.place_terms.close_companion_factor` reads the straight line through them, held flat
+# past the ends, as `F(fe_h) / F(0)` on the odds of the generator's own close share (Boss, 2026-10-16: the odds, not the chance). The errors are reference values for the check
+# (TEST.196), not inputs.
+CLOSE_BINARY_FRACTION_BY_FE_H = {-3.0: 0.53, -1.0: 0.40, -0.2: 0.24, 0.5: 0.10}
+
+# The semi-major axis at which half of the pairs of age t survive passing stars is
+# `ENCOUNTER_LIMIT_COEFFICIENT * (M1 + M2) * sigma / (G * rho_2 * t)` (Bahcall, Hut & Tremaine 1985, ApJ 290:15, as
+# Jiang & Tremaine 2010, MNRAS 401:977 restate it, arXiv 0907.2952). The coefficient is that source's; what it folds
+# in (the Coulomb logarithm, the encounter integral) was not checked.
+ENCOUNTER_LIMIT_COEFFICIENT = 0.002
+
+# A system drawn with no galaxy placement (a single system from the command line) has no cell to read a density and
+# a dispersion from; it takes the Sun's neighbourhood, the way `constants.GALACTIC_CENTER_DISTANCE_LY` stands for its
+# distance from the centre. Recalled round values (Jiang & Tremaine 2010: 0.1 Msun/pc^3 in mass, a field dispersion
+# of 30 km/s), to verify.
+SOLAR_NEIGHBOURHOOD_MASS_DENSITY_SOLAR_PC3 = 0.1
+SOLAR_NEIGHBOURHOOD_DISPERSION_KMS = 30.0
 
 # --- Planet Classification Data ---
 
@@ -2135,10 +2202,11 @@ MAGNETAR_SPIN_PERIOD_MS_RANGE = (2000.0, 12000.0)
 # so 1e-7 of them. They follow the young population, not the stars, so the
 # rate per star is divided by the young population's share of all stars in
 # a Milky Way-like galaxy (the integral of the young density over that of
-# every component, 0.48%: test_gen_magnetar_scatter checks it); a galaxy
+# every component, 0.44% since GEN.134 made the bulge and bar gap hold
+# fewer young stars: test_gen_magnetar_scatter checks it); a galaxy
 # with a different young share holds proportionally more or fewer.
 MAGNETAR_PER_NEUTRON_STAR = 1.0e-7
-MAGNETAR_YOUNG_STAR_SHARE = 0.0048
+MAGNETAR_YOUNG_STAR_SHARE = 0.0044
 # A scattered magnetar's age: from the first century to the end of its active life.
 MAGNETAR_AGE_RANGE_GY = (1.0e-7, MAGNETAR_ACTIVE_LIFETIME_YR / 1e9)
 

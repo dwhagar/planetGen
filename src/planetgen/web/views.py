@@ -8,11 +8,13 @@ two halves of `browse.py`), and `/search` (was `search.py`).
 
 import re
 
-from flask import flash, get_flashed_messages, redirect, request, url_for
+from flask import abort, flash, get_flashed_messages, redirect, request, url_for
 
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.datatable import Column, Facet, Result, Table, plain
-from planetgen.web.lib.fmt import format_density, format_distance_ly, format_luminosity_sol, format_number
+from planetgen.web.lib.fmt import (
+    format_density, format_distance_ly, format_luminosity_sol, format_members, format_number, format_mass_solar)
+from planetgen.web.scatter_members_view import members_view
 from planetgen.web.maps.galaxymap import sector_quadrant
 
 from planetgen.api.limiter import page_limit
@@ -131,7 +133,7 @@ def _uncharted_row(star, can_generate):
             "label": f"Generate {label} by itself",
             "fields": [[csrf.FIELD_NAME, csrf.csrf_token()]]}}
     return [
-        {"text": label},
+        {"text": label, "href": page_url("uncharted_star", bright_star_id=star["id"])},
         {"text": f"{format_luminosity_sol(star['luminosity_sol'])}"},
         {"text": f"{star['star_type']} ({_POPULATION_LABELS.get(star['population'], star['population'])})"},
         {"text": f"{format_number(round(star['temperature_k']))} K"},
@@ -141,6 +143,7 @@ def _uncharted_row(star, can_generate):
          "href": page_url("galaxy", sector=star["designation"], open="1")},
         {"text": f"{coords} pc"},
         {"text": f"{local} pc"},
+        {"text": format_members(star.get("member_count"), star.get("system_mass_solar"))},
         generate,
     ]
 
@@ -159,7 +162,7 @@ UNCHARTED_SYSTEMS_TABLE = tables.register(Table(
     [Column("name", "Name", sortable=False), Column("luminosity", "Luminosity"), Column("type", "Star"),
      Column("temperature", "Temperature"), Column("age", "Age"), Column("sector", "Sector and cell"),
      Column("position", "Galaxy x, y, z", sortable=False), Column("local", "In the sector x, y, z", sortable=False),
-     Column("generate", "Generate", sortable=False)],
+     Column("members", "Members", sortable=False), Column("generate", "Generate", sortable=False)],
     _uncharted_load, prefix="uncharted_", noun=("uncharted star", "uncharted stars"),
 ))
 
@@ -242,6 +245,46 @@ def systems():
         standalone_url=_standalone_url(),
         standalone_total=_systems_total(sector_id="none"),
         uncharted_total=apiclient.get_uncharted_systems(db_name(), limit=1, offset=0)["total"],
+    )
+
+
+@bp.route("/systems/uncharted/<int:bright_star_id>")
+def uncharted_star(bright_star_id):
+    """
+    One scattered star no system was built around yet (UX.114): its own data, where it is and, for a star with company,
+    its members and total mass. Once a system is built around it the page sends the visitor to that system.
+    """
+    try:
+        detail = apiclient.get_uncharted_system(db_name(), bright_star_id)
+    except apiclient.NotFoundError:
+        abort(404)
+    if detail.get("system_id") is not None:
+        return redirect(page_url("system", system_id=detail["system_id"]), code=302)
+    name = f"Uncharted {detail['star_type']} star {detail['id']}"
+    population = _POPULATION_LABELS.get(detail["population"], detail["population"])
+    fields = [
+        ("Star", f"{detail['star_type']} ({population})"),
+        ("Luminosity", format_luminosity_sol(detail["luminosity_sol"])),
+        ("Temperature", f"{format_number(round(detail['temperature_k']))} K"),
+        ("Mass", format_mass_solar(detail["mass_solar"])),
+        ("Age", f"{detail['age_gy']:.2f} Gyr"),
+        ("Sector cell", f"{detail['designation']} (shell {detail['shell_index']}, band {detail['band_index']}, "
+                        f"wedge {detail['wedge_index']})"),
+        ("Position x, y, z", ", ".join(f"{detail[axis]:.2f}" for axis in ("x", "y", "z")) + " pc"),
+    ]
+    if detail.get("member_count"):
+        fields.insert(4, ("Members", f"{detail['member_count']} (see below)"))
+        fields.insert(5, ("System mass", format_mass_solar(detail["system_mass_solar"])))
+    return render_page(
+        "uncharted_star.html",
+        title=name,
+        section="systems",
+        breadcrumbs=[crumb("Systems", "systems"), crumb("Uncharted stars", "systems", uncharted="1"), crumb(name)],
+        description=f"{name}, scattered across this galaxy and not yet generated.",
+        fields=fields,
+        members=members_view(detail),
+        sector_url=page_url("galaxy", sector=detail["designation"], open="1"),
+        designation=detail["designation"],
     )
 
 

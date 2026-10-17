@@ -139,6 +139,7 @@
   "/api/territories GET",
   "/api/uncharted-phenomena/<int:scatter_id> GET",
   "/api/uncharted-systems GET",
+  "/api/uncharted-systems/<int:bright_star_id> GET",
   "/api/uncharted-systems/<int:bright_star_id>/generate POST",
   "/api/wiki-config GET"
  ]
