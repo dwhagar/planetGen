@@ -5913,7 +5913,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.238, GEN.241, GEN.243, GEN.244, GEN.259, GEN.280,
   GEN.282, GEN.283, GEN.284, GEN.298, UX.116, TEST.159, TEST.160,
   GEN.447, GEN.448, GEN.449, GEN.450, TEST.196, GEN.463, GEN.467,
-  GEN.469, GEN.502, GEN.526, GEN.528, GEN.529, GEN.530.
+  GEN.469, GEN.502, GEN.528, GEN.529, GEN.530.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -7074,6 +7074,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Nadler bracket. Ultra-faint sizes (R13): 15 objects, Plummer r_h 27.7
   to 234 pc, geometric mean 58 pc, sigma 0.29 dex, r_h rises with
   brightness (r = -0.88), so the size is not uncorrelated with M_V.
+  Satellite history (GEN.526 merged #2043, Core 3, squash 9a8f7671,
+  12:16 PM EDT as the lane reported; generator epoch 12 pending,
+  migration 0107): the Large Cloud holds 1.4 percent young and 36
+  percent intermediate stars, the Small Cloud 1.0 and 26 percent,
+  derived with the Kennicutt law from each satellite's age history and
+  gas (the stated 1 and 9 percent stand-in is dropped); about 3.8e4
+  bright stars are placed in the Clouds at the default floor. The
+  calculated satellites of this item re-derive these shares from the
+  halo mass history.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
@@ -13190,43 +13199,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
-- [ ] **GEN.526 Satellites with gas get young and intermediate populations derived from their age history and gas, so the Clouds hold massive stars**
-  Found by Core 3 while measuring GEN.240's yields (merged #1994), filed
-  by the TODO thread. The satellite population built by GEN.324 gives
-  every satellite one old age range and no young share, so at the
-  default floors the Large and Small Magellanic Clouds place 0 stars in
-  the mass pass and no bright star at the 9,000 solar luminosity floor;
-  about 1e6 bright stars appear only at the halo tier's floor of 500
-  (Core 3's rebuilt yields: 1.5e6 in all, halo 3.2e5, LMC 9.4e5, SMC
-  2.0e5, Sagittarius 3.8e4, clusters 1.4e4; black-hole rows 1.1e7;
-  planetary nebulae 2.4e3). The design note's default
-  (`docs/design/intergalactic-and-halo-contents.md`, open question 5,
-  Magellanic mix: 1% young and 9% intermediate until a better source is
-  found) was never built, and the NO FIXED CONTENT rule asks for a
-  derived share anyway. Do: each satellite's young and intermediate
-  shares are derived from its star formation history and gas mass (the
-  satellite's age range, its gas fraction and the same star formation
-  law the disk and the halo use), not from a fixed 1% and 9%; a
-  satellite with no gas keeps none; the stored scatter rows change, so
-  this is a generator epoch change joined to the one rescatter. Done:
-  the Clouds place massive stars in the mass pass and bright stars at
-  the default floor, the shares are calculated with the source named
-  (research first if the satellite history is not in the design notes;
-  lanes verify citations before relying on them), the design note's
-  yield table and open question 5 are updated with the measured values,
-  and `planetgen plan --redo-scatters luminosity mass phenomena`
-  applies. Decided (Boss, 2026-10-17, 7:54 AM EDT, card "How should
-  gas-rich satellites get young and intermediate stars?", tapped "Derive
-  from the law", the recommended option; relayed by the coordinator):
-  the shares are derived from each satellite's age history and gas, not
-  the stated 1% and 9% stand-in, which is dropped. Owner: Core 3
-  (proposed, the GEN.324 and GEN.240 work). The shares are a function of
-  each satellite's age range and gas, so the existing table gives a
-  first answer now and GEN.369's calculated satellites re-derive it;
-  GEN.369 is related, not a blocker.
-  Prerequisites: none. Related: GEN.324, GEN.240, GEN.369, GEN.366,
-  GEN.319.
-
 - [ ] **GEN.527 The second star of a wide pair in a saved runaway system loads back 0.4 m/s off the system's velocity: find the cause instead of loosening the test (bug)**
   Found by Core 1 (2026-10-17, 5:19 AM EDT as the lane reported, #1997),
   relayed by the coordinator, filed by the TODO thread.
@@ -13277,7 +13249,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 2 of 48). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.526. Related: GEN.319, GEN.526, GEN.324, GEN.322.
+  Prerequisites: none. Related: GEN.319, GEN.526, GEN.324, GEN.322.
 
 - [ ] **GEN.529 The pre-main-sequence track takes its Hayashi temperature, birthline radius and energy factor from a sourced table, and the state reaches stars still contracting after 10 Myr**
   Residual of GEN.242 (merged #2009, 7:58 AM EDT as Core 3 reported,
