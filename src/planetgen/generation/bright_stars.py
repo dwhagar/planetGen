@@ -70,7 +70,7 @@ from planetgen.galaxy.spherical import (
     wedge_longitude_bounds,
 )
 from planetgen.galaxy.sector import _sample_poisson_count
-from planetgen.generation import object_first
+from planetgen.generation import object_first, place_terms
 from planetgen.generation.star_population import (
     bright_band_fraction, mass_band_fraction, pick_population, placed_star_fraction, sample_bright_stars,
     sample_mass_band_stars,
@@ -789,6 +789,11 @@ class FillContext:
         self.phenomenon_rows = list(phenomenon_rows or ())
         self.below_cut = below_cut
 
+    @functools.cached_property
+    def place_terms(self):
+        """The profile's density and velocity dispersion for the pair draws (GEN.103, `place_terms.from_profile`)."""
+        return place_terms.from_profile(self.profile)
+
     @property
     def capped(self):
         """Whether the cell expects more systems than the cell star ceiling (GEN.281): it is built from its
@@ -813,6 +818,7 @@ class FillContext:
         """Gives one of the sector's own (dim) systems its population and,
         after a scatter, the luminosity cap."""
         system_config.POPULATION = pick_population(self.densities, rng)
+        system_config.PLACE_TERMS = self.place_terms
         if system_config.POPULATION in ("cluster", "satellite"):
             system_config.FE_H_PEAKS = self.profile.populations[system_config.POPULATION].fe_h
         if self.min_luminosity_sol is not None:

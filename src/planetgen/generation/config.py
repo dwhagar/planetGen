@@ -136,7 +136,7 @@ class SystemConfig:
         stellar-multiplicity statistics for the primary star's own spectral
         type (see `planetgen.tuning.
         BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`, used by
-        `StarSystem._should_generate_binary`) rather than always coming out
+        `StarSystem._companion`) rather than always coming out
         single. Defaults to None.
         """
 
@@ -208,6 +208,13 @@ class SystemConfig:
         tuple or None: `((weight, mean, sigma), ...)`, the [Fe/H] a random primary star of a cluster or satellite is
         drawn from (GEN.237): the sector's own profile gives them, since those populations have no mean at a distance
         from the centre. None draws from the population's mean (`metallicity.mean_fe_h`). Not saved with the config.
+        """
+
+        self.PLACE_TERMS = None
+        """
+        place_terms.PlaceTerms or None: The density and velocity dispersion of the place a galaxy sector's systems are
+        drawn at (GEN.103): the widest axis a wide pair keeps follows from them. None takes the Sun's neighbourhood
+        (`place_terms.SOLAR_NEIGHBOURHOOD`). Not saved with the config.
         """
 
         self.MAX_STAR_LUMINOSITY_SOL = None
