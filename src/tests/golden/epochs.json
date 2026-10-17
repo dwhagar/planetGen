@@ -29,6 +29,12 @@
       "epoch": 6,
       "first_release": "8.0.1686",
       "reason": "The phenomena pass covers the 262 kpc reach in groups of bands, drawing black holes, neutron stars, planetary nebulae, supernova remnants and magnetars beyond the outline from new streams (GEN.323)."
+    },
+    {
+      "epoch": 7,
+      "first_release": null,
+      "pending": true,
+      "reason": "The clusters and the satellite galaxies place their own bright and massive stars and phenomena from their profiles, and bright stars take the satellite population (GEN.324)."
     }
   ]
 }

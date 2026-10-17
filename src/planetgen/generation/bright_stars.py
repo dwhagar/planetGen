@@ -700,6 +700,20 @@ def _draw_groups(shape, groups, high_band, edge_pc, expected_at_density_1, rng, 
             shape, groups, high_band, edge_pc, expected_at_density_1, by_tier, tier_of, rng, skip_addresses,
             check=check, on_candidates=candidates_done, coarse=coarse):
         placed[(tier, population)].append((shell_index, band_index, wedge, point))
+    yield from draw_placed(placed, pass_bands, rng, on_progress, base)
+
+
+def draw_placed(placed, pass_bands, rng, on_progress=None, base=0.0):
+    """
+    The rows of stars already placed: each one's type and luminosity drawn from `rng`, population by population and
+    tier by tier (GEN.322, GEN.324).
+
+    Args:
+        placed (dict): `(tier, population) -> [(shell, band, wedge, point)]`, a key for every tier of `pass_bands` and
+            every population.
+        pass_bands (list): The `PassBand` of each tier.
+        base (float): The progress already reported, so `on_progress` carries on from it.
+    """
     total_placed = sum(len(spots) for spots in placed.values())
     drawn = 0
     for population in POPULATIONS:
@@ -716,7 +730,7 @@ def _draw_groups(shape, groups, high_band, edge_pc, expected_at_density_1, rng, 
                 yield _row(shell_index, band_index, wedge, point, population, params, rng)
 
 
-def _pass_of(tiered, min_luminosity_sol, max_luminosity_sol, mass_range):
+def pass_of(tiered, min_luminosity_sol, max_luminosity_sol, mass_range):
     """`(fractions, pass_bands)` of a pass: the three tiers' `band_fractions` and bands for a `TieredPass`, else the
     one pass's."""
     if tiered is None:
@@ -736,7 +750,7 @@ def scatter_far(shape, first_shell, last_shell, edge_pc, expected_at_density_1, 
     Yields:
         tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order.
     """
-    fractions, pass_bands = _pass_of(tiered, min_luminosity_sol, max_luminosity_sol, mass_range)
+    fractions, pass_bands = pass_of(tiered, min_luminosity_sol, max_luminosity_sol, mass_range)
     groups = object_first.ReachGroups.far(first_shell, last_shell, edge_pc)
     rng = draw.Stream(f"{seed}:objects:far:{first_shell}")
     yield from _draw_groups(shape, groups, -1, edge_pc, expected_at_density_1, rng, skip_addresses or set(),
