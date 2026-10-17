@@ -273,7 +273,7 @@ Solar System rows (Earth, Venus, Titan, Mars, Jupiter) live in test files only; 
 | Acid vapour pressure of H2SO4-H2O | Kulmala-Laaksonen form times Zeleznik activity (stand-in) | Ayers 1980 |
 | N2, O2, Ar, Kr, Xe in comets | seeded log range from the gated rows | none in Mumma and Charnley |
 | Mantle redox rows (AT.a1, a2) | stand-ins | Hirschmann 2012, Gaillard 2021/2022 |
-| Bremen ozone licence; Huggins fit | coarse bins | GEN.500 |
+| Bremen ozone cross sections; Huggins fit | coarse bins | fetched at build time (no licence gate, Boss 2:35 PM EDT) |
 | Kozakis host T_eff; F-star ozone | bracket of section 9 | Kozakis Table 1 |
 | Infrared depth from line absorbers | grey tau0 of part 03 5.4 | correlated-k grids |
 | Wind, cloud efficiency, cover, r_eff | u*/u*_t LU[0.3, 3]; cover [0.1, 1]; r_eff 1 to 20 micron | none in the notes |
