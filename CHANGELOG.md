@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1678] - 2026-10-17
+
+**Headline:** Boss's rule that verified and partly verified research is usable, and the verified source wins in a contradiction, is recorded for the composition tables.
+
+### Changed
+
+- `docs/design/composition-model.md` section 4a item 10 records the rule and section 4b gives the source column its verification states (verified, partly verified with its limit, open, stand-in); GEN.472 and GEN.478 carry the rule.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1677] - 2026-10-17
 
 **Headline:** The NH3 photolysis lifetime figures of the two research lanes are reconciled, and the activity factor becomes a research item.
