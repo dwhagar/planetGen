@@ -20,23 +20,21 @@ supernova remnant, not its edge. Rows come nearest first (ties: system, its
 bodies, facilities, then the phenomena, each by id), and the result pages
 like every list (`limit`, `offset`).
 
-How it stays cheap: the sectors the sphere can reach come from one bounding
-box read of `sectors` (`idx_sectors_center`); systems, rogue objects and
-facilities are read by their indexed sector or system ids, phenomena by
-their own indexed center columns, and exact distances are measured in the
-galaxy frame. A system's bodies are never loaded for the whole sphere: only
-a per-system count is, and the bodies of the systems that fall on the
+How it stays cheap (NAV.60): every positioned table is read by its cell key (`db/region.py`): the sphere becomes at
+most 256 runs of keys (`galaxy/cellkey.py`), joined to the table's covering index `(cell_key, x, y, z)` with the exact
+distance test in the same statement, so the cost follows the rows near the place, never the size of the galaxy, and
+an object with no sector is found like any other. The `sectors` table is not read for the search. A system's bodies
+are never loaded for the whole sphere: only a per-system count is, and the bodies of the systems that fall on the
 requested page are read afterwards.
+
+What has not been generated yet is counted, never listed and never filled: the pre-placed bright stars and the
+scatter objects (`bright_stars` and `phenomenon_scatter` rows whose system or object is not built).
 """
 
 import math
 
-from planetgen import tuning
-from planetgen.db import query
-from planetgen.db.store import get_galaxy_shape
+from planetgen.db import query, region
 from planetgen.galaxy import objectref as object_ref
-from planetgen.galaxy.spherical import enumerate_sectors_within_radius, local_to_galaxy_pc
-from planetgen.physics.units import ly_to_pc, mpc_to_pc
 from planetgen.util import detmath
 
 MAX_DISTANCE_PC = 50.0
@@ -137,54 +135,45 @@ def _ref(kind, object_id):
     return f"{kind}:{object_id}"
 
 
-def _systems_in_reach(conn, center, distance, margin):
+def _systems_in_reach(conn, center, distance):
     """Every placed system whose position is within `distance` of `center`:
-    `{id: {...}}` with `name`, `sector_id`, `sector_name`, `point`, `distance`."""
-    reach = distance + margin
-    rows = conn.execute(
-        """
-        SELECT ss.id, ss.name, ss.sector_id, sec.name AS sector_name,
-               sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc
-        FROM sectors sec JOIN star_systems ss ON ss.sector_id = sec.id
-        WHERE sec.center_x_pc BETWEEN ? AND ? AND sec.center_y_pc BETWEEN ? AND ?
-          AND sec.center_z_pc BETWEEN ? AND ? AND ss.position_x_mpc IS NOT NULL
-        """,
-        (center[0] - reach, center[0] + reach, center[1] - reach, center[1] + reach,
-         center[2] - reach, center[2] + reach),
-    ).fetchall()
+    `{id: {...}}` with `name`, `sector_id`, `point`, `distance`."""
+    columns = "p.id, p.name, p.sector_id, p.galaxy_x_pc, p.galaxy_y_pc, p.galaxy_z_pc"
+    position = ("p.galaxy_x_pc", "p.galaxy_y_pc", "p.galaxy_z_pc")
     found = {}
-    for row in rows:
-        point = local_to_galaxy_pc(
-            (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]),
-            (mpc_to_pc(row["position_x_mpc"]), mpc_to_pc(row["position_y_mpc"]), mpc_to_pc(row["position_z_mpc"])))
+    for row in region.region_rows(conn, "star_systems", columns, position, center, distance):
+        point = (row["galaxy_x_pc"], row["galaxy_y_pc"], row["galaxy_z_pc"])
         away = detmath.dist(center, point)
         if away <= distance:
-            found[row["id"]] = {"name": row["name"], "sector_id": row["sector_id"], "sector_name": row["sector_name"],
-                                "point": point, "distance": away}
+            found[row["id"]] = {"name": row["name"], "sector_id": row["sector_id"], "point": point, "distance": away}
     return found
 
 
-def _sector_counts(conn, center, distance, margin):
-    """`(reached, generated)`: how many grid sectors the sphere touches and
-    how many of them have been generated."""
-    shape = get_galaxy_shape(conn)
-    if shape is None:
-        return 0, 0
-    bounds = query.get_galaxy_bounds(conn)
-    reached = {(shell, band, wedge)
-               for shell, band, wedge, *_rest in enumerate_sectors_within_radius(center, distance, float(shape.edge_pc))
-               if bounds.qualifies(shell, band)}
-    reach = distance + margin
-    rows = conn.execute(
-        """
-        SELECT shell_index, band_index, wedge_index FROM sectors
-        WHERE center_x_pc BETWEEN ? AND ? AND center_y_pc BETWEEN ? AND ? AND center_z_pc BETWEEN ? AND ?
-        """,
-        (center[0] - reach, center[0] + reach, center[1] - reach, center[1] + reach,
-         center[2] - reach, center[2] + reach)).fetchall()
-    made = {(row["shell_index"], row["band_index"], row["wedge_index"]) for row in rows}
-    return len(reached), len(reached & made)
+def _sector_names(conn, sector_ids):
+    """`{id: name}` of the sectors that label the rows of one page (a read of the sectors by id, never a search)."""
+    names = {}
+    for chunk in _chunks(sorted({sector_id for sector_id in sector_ids if sector_id is not None})):
+        for row in conn.execute(f"SELECT id, name FROM sectors WHERE id IN ({_marks(len(chunk))})",
+                                tuple(chunk)).fetchall():
+            names[row["id"]] = row["name"]
+    return names
+
+
+def _unbuilt(conn, center, distance):
+    """`{kind: count}` of what lies in the sphere and is not generated yet: pre-placed bright stars (`bright_star`)
+    and the scatter objects not built (their phenomenon kind), read by the same statement on the scatter tables."""
+    position = ("p.position_x_mpc / 1000.0", "p.position_y_mpc / 1000.0", "p.position_z_mpc / 1000.0")
+    counts = {}
+    runs = None
+    for table, kind, built in (("bright_stars", None, "p.star_system_id IS NULL"),
+                               ("phenomenon_scatter", "p.kind", "p.built_at IS NULL")):
+        columns = ("'bright_star'" if kind is None else kind) + " AS kind, " + ", ".join(
+            f"{axis} AS {name}" for axis, name in zip(position, ("x", "y", "z")))
+        sql, runs = region.region_statement(table, columns, position, center, distance, built, runs)
+        for row in conn.execute(sql).fetchall():
+            if detmath.dist(center, (row["x"], row["y"], row["z"])) <= distance:
+                counts[row["kind"]] = counts.get(row["kind"], 0) + 1
+    return counts
 
 
 def _body_counts(conn, system_ids, wanted):
@@ -232,10 +221,10 @@ def _bodies_of(conn, system_id, system, wanted):
     return rows
 
 
-def _facilities(conn, center, distance, margin, systems):
-    """Facilities within reach: `(distance, id, name, parent, point)`."""
+def _facilities(conn, center, distance, systems):
+    """Facilities within reach: `(distance, id, name, parent, point)`; a standalone one's `parent` carries its
+    `sector_id` until the page names it."""
     found = []
-    reach = distance + margin
     for chunk in _chunks(systems):
         rows = conn.execute(
             f"SELECT id, name, star_system_id FROM facilities WHERE star_system_id IN ({_marks(len(chunk))})",
@@ -245,39 +234,34 @@ def _facilities(conn, center, distance, margin, systems):
             found.append((system["distance"], row["id"], row["name"],
                           {"ref": _ref("system", row["star_system_id"]), "kind": "system", "name": system["name"]},
                           system["point"]))
-    rows = conn.execute(
-        """
-        SELECT f.id, f.name, f.center_x_pc, f.center_y_pc, f.center_z_pc, f.sector_id, sec.name AS sector_name
-        FROM facilities f LEFT JOIN sectors sec ON sec.id = f.sector_id
-        WHERE f.star_system_id IS NULL AND f.center_x_pc BETWEEN ? AND ? AND f.center_y_pc BETWEEN ? AND ?
-          AND f.center_z_pc BETWEEN ? AND ?
-        """,
-        (center[0] - reach, center[0] + reach, center[1] - reach, center[1] + reach,
-         center[2] - reach, center[2] + reach)).fetchall()
-    for row in rows:
+    position = ("p.center_x_pc", "p.center_y_pc", "p.center_z_pc")
+    for row in region.region_rows(conn, "facilities", "p.id, p.name, p.sector_id, p.center_x_pc, p.center_y_pc, p.center_z_pc",
+                                  position, center, distance, where="p.star_system_id IS NULL"):
         point = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
         away = detmath.dist(center, point)
         if away <= distance:
-            parent = ({"ref": _ref("sector", row["sector_id"]), "kind": "sector", "name": row["sector_name"]}
-                      if row["sector_id"] is not None else None)
+            parent = {"ref": _ref("sector", row["sector_id"]), "kind": "sector", "name": None} \
+                if row["sector_id"] is not None else None
             found.append((away, row["id"], row["name"], parent, point))
     return found
 
 
 def _phenomena(conn, center, distance, kinds):
-    """Placed phenomena within `distance` of `center`: `(distance, kind, id, name, parent, point)`."""
+    """Placed phenomena within `distance` of `center`: `(distance, kind, id, name, parent, point)`. Measured to the
+    object's position (a nebula's center), as NAV.43 states; the key finds it by that position."""
     found = []
-    widest = max(query._widest_placed_phenomenon_radius_ly(conn), 0.0)
-    margin = 0.0 if widest <= 0 else ly_to_pc(widest)  #  an extended object's center may lie outside
-    reach = distance + margin
-    box = (center[0], center[1], center[2], reach)
-    for row in query._placed_phenomenon_rows(conn, bbox=box):
-        if row["type"] not in kinds:
+    runs = None
+    position = ("p.center_x_pc", "p.center_y_pc", "p.center_z_pc")
+    for table, type_label, _descriptor, _radius in query._PHENOMENON_TABLES:
+        if type_label not in kinds:
             continue
-        point = (row["x"], row["y"], row["z"])
-        away = detmath.dist(center, point)
-        if away <= distance:
-            found.append((away, row["type"], row["id"], row["name"], None, point))
+        sql, runs = region.region_statement(
+            table, "p.id, p.name, p.center_x_pc, p.center_y_pc, p.center_z_pc", position, center, distance, runs=runs)
+        for row in conn.execute(sql).fetchall():
+            point = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+            away = detmath.dist(center, point)
+            if away <= distance:
+                found.append((away, type_label, row["id"], row["name"], None, point))
     return found
 
 
@@ -296,9 +280,9 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
     Returns:
         dict: `place` (`ref`, `kind`, `name`, `point_pc`), `distance_pc`,
             `total` (rows over all pages), `by_kind` (`{kind: count}`),
-            `limit`, `offset`, `sectors_in_range` and `sectors_generated`
-            (the sectors the sphere reaches and how many of them hold
-            generated stars), and `rows`: each `ref`, `kind`, `id`, `name`,
+            `limit`, `offset`, `not_generated` (`{kind: count}` of the pre-placed
+            bright stars, `bright_star`, and scatter objects in the sphere that are not
+            built yet; counted, never listed), `not_generated_total`, and `rows`: each `ref`, `kind`, `id`, `name`,
             `parent` (`ref`, `kind`, `name`, or `None`), `system_id` (the system
             it is in or is, else `None`) and `distance_pc`.
             The place itself is left out when it is a system or a phenomenon (a
@@ -313,11 +297,8 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
     if limit < 1 or limit > MAX_LIMIT or offset < 0:
         raise NearError(f"limit is 1 to {MAX_LIMIT} and offset is 0 or more")
     center = place["point_pc"]
-    shape = get_galaxy_shape(conn)
-    edge = float(shape.edge_pc) if shape is not None else float(tuning.DEFAULT_SECTOR_EDGE_PC)
-    margin = edge * 1.5  # a system lies inside its sector's cell; allow for the cell's slack
 
-    systems = _systems_in_reach(conn, center, distance, margin)
+    systems = _systems_in_reach(conn, center, distance)
     self_system = place["id"] if place["kind"] == "system" else None
     body_wanted = wanted & set(BODY_KINDS)
     counts = _body_counts(conn, list(systems), body_wanted) if body_wanted else {}
@@ -332,7 +313,7 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
     for system_id in counts:
         entries.append((systems[system_id]["distance"], 1, system_id, "bodies", system_id))
     if FACILITY_KIND in wanted:
-        for away, facility_id, name, parent, point in _facilities(conn, center, distance, margin, systems):
+        for away, facility_id, name, parent, point in _facilities(conn, center, distance, systems):
             entries.append((away, 2, facility_id, FACILITY_KIND, (name, parent)))
     phenomena = _phenomena(conn, center, distance, wanted)
     for away, kind, object_id, name, _parent, _point in phenomena:
@@ -369,7 +350,8 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
         if what == "system":
             system = systems[object_id]
             made = [("system", object_id, system["name"],
-                     {"ref": _ref("sector", system["sector_id"]), "kind": "sector", "name": system["sector_name"]})]
+                     {"ref": _ref("sector", system["sector_id"]), "kind": "sector", "name": None}
+                     if system["sector_id"] is not None else None)]
             home = object_id
         elif what == "bodies":
             made = _bodies_of(conn, object_id, systems[object_id], body_wanted)
@@ -385,10 +367,14 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
                 rows.append({"ref": _ref(kind, row_id), "kind": kind, "id": row_id, "name": name,
                              "parent": parent, "system_id": home, "distance_pc": away})
             position += 1
-    reached, generated = _sector_counts(conn, center, distance, margin)
+    in_sector = [row for row in rows if row["parent"] and row["parent"]["kind"] == "sector"]
+    names = _sector_names(conn, [object_ref.parse(row["parent"]["ref"])[1] for row in in_sector])
+    for row in in_sector:
+        row["parent"]["name"] = names.get(object_ref.parse(row["parent"]["ref"])[1])
+    unbuilt = _unbuilt(conn, center, distance)
     return {
         "place": {"ref": place["ref"], "kind": place["kind"], "name": place["name"],
                   "point_pc": list(center)},
         "distance_pc": distance, "total": total, "by_kind": by_kind, "limit": limit, "offset": offset,
-        "sectors_in_range": reached, "sectors_generated": generated, "rows": rows,
+        "not_generated": unbuilt, "not_generated_total": sum(unbuilt.values()), "rows": rows,
     }
