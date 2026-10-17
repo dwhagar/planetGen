@@ -25,7 +25,7 @@ release is stamped.
 | TEST | TEST.232 |
 | USR | USR.31 |
 | OPS | OPS.62 |
-| DOC | DOC.68 |
+| DOC | DOC.69 |
 | VIEW | VIEW.19 |
 | POP | POP.15 |
 
@@ -655,6 +655,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.65 | Docs: bulk composition, the materials table and how density, mass and gravity follow | none | open |
 | DOC.66 | Docs: the composition model of stars, bodies and atmospheres, the radiation it derives and the sources of every number | none | open |
 | DOC.67 | An architecture map Boss can drill down: project areas, modules and functions with the call flow between them, generated from the code | none | open |
+| DOC.68 | Generate docs/plan/execution-plan.html from scripts/build_todo_docs.py like the other plan pages | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -2255,7 +2256,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.227 | test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone] failed in a loaded browser run and passes alone (bug) | none | open |
 | TEST.228 | test_stars_and_phenomena_fit_within_their_sectors_real_cells compares a dark cloud's centre with its sector's cell, but the cloud is filed by its centroid | none | open |
 | TEST.229 | The browser phase of a gate stalls for minutes at one test with a headless_shell gpu process near 200% CPU (bug) | none | open |
-| TEST.230 | test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing fails in about 10 of 12 runs since the stellar bundle merged (bug) | none | open |
+| TEST.230 | test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing fails in about 10 of 12 runs since the stellar bundle merged (bug) | none | done, PR #2128 |
 | TEST.231 | test_the_wheel_anchors_on_the_star_under_the_pointer_not_the_mesh_behind_it failed alone once in 8 runs (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |

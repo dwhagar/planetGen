@@ -172,7 +172,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.225 | `test_random_start_neighborhood_matches_the_real_skeleton_plan` generated 18,210 systems against a predicted 83,346.6 in one gate run (bug) |  | Bug Hunt: generated 18,210 systems against 83,346.6 predicted, seed A4D8564BFD80DA2331294BD96F547E67. |
 | TEST.227 | test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone] failed in a loaded browser run and passes alone (bug) |  | Core 3 sighting, 6:50 PM EDT. |
 | TEST.231 | test_the_wheel_anchors_on_the_star_under_the_pointer_not_the_mesh_behind_it failed alone once in 8 runs (bug) |  |  |
-| TEST.230 | test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing fails in about 10 of 12 runs since the stellar bundle merged (bug) |  |  |
 | TEST.229 | The browser phase of a gate stalls for minutes at one test with a headless_shell gpu process near 200% CPU (bug) |  |  |
 | GEN.542 | scripts/star_type_by_radius.py fails with a TypeError because the plan arguments now default the disk and arm options to None (bug) |  |  |
 | TEST.220 | test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter finds `neutron-star` inside `magnetar neutron-star` (bug) |  | Core 2 finding, 2026-10-17; Bug Hunt proposed. |
@@ -411,6 +410,7 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 |---|---|---|---|
 | DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | UX.102 |  |
 | DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | PERF.86 |  |
+| DOC.68 | Generate docs/plan/execution-plan.html from scripts/build_todo_docs.py like the other plan pages |  |  |
 | DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | GEN.241, GEN.243 | Whole-sphere build train, Boss 2026-10-15. Step 14. Quality. |
 | DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | GEN.264, TEST.164, GEN.130 | Multi-star systems at scatter time, Boss 2026-10-15. Step 10. Quality. |
 | DOC.51 | Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder |  | Spherical region query, stage C. Step 8. Quality. |
