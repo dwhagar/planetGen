@@ -54,20 +54,21 @@ def _terms(zeta):
     return terms, x
 
 
-def _zeta(fe_h):
+def zeta(fe_h):
+    """`log10(Z / 0.02)` of a star of this [Fe/H]: the metallicity argument of every formula of the paper."""
     return math.log10(tuning.MS_LIFETIME_REFERENCE_Z / HPT_REFERENCE_Z) + fe_h
 
 
 def base_of_giant_branch_gy(mass_sol, fe_h=0.0):
     """The age at which a star of this mass leaves the Hertzsprung gap for the giant branch (eq. 4), Gyr."""
-    (a1, a2, a3, a4, a5, *_rest), _x = _terms(_zeta(fe_h))
+    (a1, a2, a3, a4, a5, *_rest), _x = _terms(zeta(fe_h))
     m = mass_sol
     return (a1 + a2 * m ** 4 + a3 * m ** 5.5 + m ** 7) / (a4 * m ** 2 + a5 * m ** 7) / _MYR_PER_GYR
 
 
 def lifetime_gy(mass_sol, fe_h=0.0):
     """The main-sequence lifetime of a star of this initial mass and [Fe/H], Gyr (eq. 5)."""
-    terms, x = _terms(_zeta(fe_h))
+    terms, x = _terms(zeta(fe_h))
     _a1, _a2, _a3, _a4, _a5, a6, a7, a8, a9, a10 = terms
     hook = max(0.5, 1.0 - 0.01 * max(a6 / mass_sol ** a7, a8 + a9 / mass_sol ** a10))
     return max(hook, x) * base_of_giant_branch_gy(mass_sol, fe_h)

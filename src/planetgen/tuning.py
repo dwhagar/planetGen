@@ -490,17 +490,26 @@ IMF_SLOPES = (1.3, 2.3)
 STAR_FORMATION_AGE_RANGE_GY = (0.0, 10.0)
 
 # Post-main-sequence phases, as multiples of the main-sequence lifetime
-# (physics/ms_lifetime.py, above): subgiant up
-# to 1.1, giant or supergiant up to 1.2, then a remnant. Real post-MS
-# phases take roughly 10-20% of the main-sequence time. A star lighter than
-# HELIUM_FLASH_MASS_SOL burns helium in its core after the red giant branch
-# (the horizontal branch) and then climbs the asymptotic giant branch before
-# it becomes a white dwarf (GEN.286): HORIZONTAL_BRANCH_MS_FRACTION and
-# AGB_MS_FRACTION are added to GIANT_PHASE_END_MS_FRACTION for it.
+# (physics/ms_lifetime.py, above). A star lighter than HELIUM_FLASH_MASS_SOL
+# burns helium in its core after the red giant branch (the horizontal branch)
+# and then climbs the asymptotic giant branch before it becomes a white dwarf
+# (GEN.286). For it the subgiant phase ends at, and the red giant branch ends
+# at, the times of physics/giant_branch.py (GEN.502, Hurley, Pols and Tout
+# 2000: 1.05 and 1.12 of the main-sequence lifetime at a solar mass, from the
+# core-mass-luminosity relation of the branch), and HORIZONTAL_BRANCH_DURATION_GY
+# and AGB_MS_FRACTION are added for it. A heavier star keeps the two figures
+# below, a subgiant phase up to 1.1 and a giant or supergiant phase up to 1.2,
+# then a remnant (real post-MS phases take roughly 10-20% of the
+# main-sequence time) [R]: its core helium burning is not modelled.
 SUBGIANT_PHASE_END_MS_FRACTION = 1.1
 GIANT_PHASE_END_MS_FRACTION = 1.2
 HELIUM_FLASH_MASS_SOL = 2.2
-HORIZONTAL_BRANCH_MS_FRACTION = 0.010
+# Core helium burning lasts the same 100 Myr in every star that ignites it in a
+# flash, since the degenerate core is about 0.5 solar masses whatever the star's
+# mass (Salaris et al. 2004, the 1.44 +- 0.06 horizontal-branch stars to each red
+# giant brighter than the branch in globular clusters, against the 69 Myr the
+# giant branch of physics/giant_branch.py spends there) [R].
+HORIZONTAL_BRANCH_DURATION_GY = 0.100
 AGB_MS_FRACTION = 0.002
 
 # Stars at or above this initial mass end as supergiants and then neutron
@@ -509,30 +518,28 @@ SUPERGIANT_MIN_MASS_SOL = 8.0
 # Giants at or above this initial mass are bright giants (II), not III.
 BRIGHT_GIANT_MIN_MASS_SOL = 4.0
 # Giant-branch luminosities (Lsun) and temperatures (K). A giant lighter than
-# BRIGHT_GIANT_MIN_MASS_SOL is on the red giant branch: it rises from the
-# base (SUBGIANT_MAX_BRIGHTENING times the star's main-sequence luminosity,
-# where its subgiant phase ended) to the tip, and the time it spends at each
-# luminosity falls as L^-GIANT_BRANCH_TIME_SLOPE per unit of ln L (GEN.287).
-# That is the real luminosity function, and it follows from the physics: the
-# helium core grows by the hydrogen shell burning at the star's luminosity, so
-# dt = (X Q / L) dMc, and the luminosity climbs as a power Mc^p of the core
-# mass, which gives dt/dlnL proportional to L^(1/p - 1) [R, Refsdal and Weigert
-# 1970; Salaris and Cassisi 2005; recalled, unconfirmed]. p is about 10 at the
-# base and about 5 at the tip, so the true slope flattens from -0.83 to -0.56
-# along the branch (the core-mass-luminosity fit of arXiv 2503.17772, eq. 1:
-# one data point [P]); one exponent, 0.78, reproduces that fit's share of the
-# branch spent above 50, 100, 500 and 1,000 Lsun (9.6, 5.5, 1.3 and 0.59%)
-# within 15% (stellar tables check, 2026-10-17); the first value, 0.9, undercounted
-# the giants above 500 Lsun by a factor of two. The tip is where the core
-# helium ignites: near 2,500 Lsun for a solar-metallicity star (Serenelli et al.
-# 2017, table 2: 2,410 to 2,450 at Z 0.004), 1,650 to 1,780 at Z 0.0001, so 15 to
-# 50% high for an [Fe/H] -2 halo star [P]; one tip, until the giant knows its [Fe/H].
-# Log-uniform spreading over 50 to 1,000 Lsun, which this replaces, put every
-# giant above 50 Lsun and overstated the bright ones many times against real
-# counts: the real branch spends most of its time near its base (its
-# observed ratio of horizontal-branch stars to red giants brighter than the
-# horizontal branch is 1.44 +- 0.06 for the 41 halo clusters of Salaris et
-# al. 2004, table 2, and 1.51 +- 0.05 for all 57 [P]).
+# HELIUM_FLASH_MASS_SOL is on the red giant branch of physics/giant_branch.py
+# (GEN.502): the helium core grows by the hydrogen shell burning at the star's
+# luminosity, dMc/dt = A_H L, and the luminosity climbs with the core mass as
+# L = min(B Mc^q, D Mc^p) (Hurley, Pols and Tout 2000, eq. 37, p = 6 and q = 3
+# at low mass), so the time at each luminosity, the branch's duration and its
+# tip (where the core helium ignites, about 2,700 Lsun at the reference
+# composition, 1,900 at Z 0.0001 against Serenelli et al. 2017's 1,650 to
+# 1,780) follow from the relation, the slope flattening from -0.83 to -0.67
+# along the branch [V]. It reproduces the paper's Table 1 durations
+# and the observed ratio of horizontal-branch stars to red giants brighter
+# than the horizontal branch, 1.44 +- 0.06 for the 41 halo clusters of Salaris
+# et al. 2004, table 2 (1.51 +- 0.05 for all 57) [P]. The shares of the branch
+# spent above 50, 100, 500 and 1,000 Lsun (8.7, 4.7, 1.0 and 0.42%) are 10 to
+# 30% under the 9.6, 5.5, 1.3 and 0.59% of the fit of arXiv 2503.17772
+# (eq. 1, one data point [P]), whose slope flattens further, to -0.56 at the tip.
+# The two figures below are what is left of the older single-exponent law
+# (GEN.287): the intermediate-mass giants, lighter than
+# BRIGHT_GIANT_MIN_MASS_SOL but not lighter than HELIUM_FLASH_MASS_SOL, rise from
+# SUBGIANT_MAX_BRIGHTENING times the main-sequence luminosity to the tip, the
+# time at each luminosity falling as L^-GIANT_BRANCH_TIME_SLOPE per unit of ln L,
+# and the asymptotic giant branch (AGB_LUMINOSITY_RANGE_SOL) takes the same slope
+# [R, recalled, unconfirmed: Refsdal and Weigert 1970; Salaris and Cassisi 2005].
 GIANT_BRANCH_TIP_LUMINOSITY_SOL = 2500.0
 GIANT_BRANCH_TIME_SLOPE = 0.78
 BRIGHT_GIANT_LUMINOSITY_RANGE_SOL = (1000.0, 10000.0)  # log-uniform

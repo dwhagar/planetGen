@@ -421,13 +421,26 @@ def _remnant_leaf(kind, progenitor, mass, direct=False):
 
 def _youngest_progenitor_sol(age_yr):
     """The lightest star whose giant phases have ended by this age (a star lighter than
-    `HELIUM_FLASH_MASS_SOL` also burns helium on the horizontal branch and climbs the asymptotic giant branch)."""
-    def mass(fraction):
-        return ms_lifetime.mass_for_lifetime_gy(age_yr / 1.0e9 / fraction)
-    light = mass(evolution.remnant_age_fraction(0.0))
-    if light < tuning.HELIUM_FLASH_MASS_SOL:
-        return light
-    return max(mass(tuning.GIANT_PHASE_END_MS_FRACTION), tuning.HELIUM_FLASH_MASS_SOL)
+    `HELIUM_FLASH_MASS_SOL` also burns helium on the horizontal branch and climbs the asymptotic giant branch, and its
+    giant branch has the length of `giant_branch`, GEN.502)."""
+    age_gy = age_yr / 1.0e9
+    flash = tuning.HELIUM_FLASH_MASS_SOL
+
+    def life_gy(mass):
+        return ms_lifetime.lifetime_gy(mass) * evolution.remnant_age_fraction(mass)
+
+    if life_gy(flash * (1.0 - 1.0e-9)) <= age_gy:
+        low, high = ms_lifetime.MIN_MASS_SOL, flash
+        if life_gy(low) <= age_gy:
+            return low
+        for _ in range(50):
+            middle = math.sqrt(low * high)
+            if life_gy(middle) > age_gy:
+                low = middle
+            else:
+                high = middle
+        return high
+    return max(ms_lifetime.mass_for_lifetime_gy(age_gy / tuning.GIANT_PHASE_END_MS_FRACTION), flash)
 
 
 def _remnant(kind, age_yr, lowest, rng, limit_mass=None):

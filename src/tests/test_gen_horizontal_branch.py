@@ -16,11 +16,22 @@ from planetgen import tuning
 from planetgen.generation import multistar
 from planetgen.generation import star_population as sp
 from planetgen.generation.bright_stars import star_fe_h
+from planetgen.physics import giant_branch
 from planetgen.physics import stellar_evolution as se
 
 MASS = 0.95
-"""A halo-age turn-off star: its main sequence lasts 11.4 Gy."""
+"""A halo-age turn-off star: its main sequence lasts 12.5 Gy."""
 T_MS = se.main_sequence_lifetime_gy(MASS)
+SUBGIANT_END = se.subgiant_end_fraction(MASS)
+GIANT_END = se.giant_end_fraction(MASS)
+HORIZONTAL_END = GIANT_END + tuning.HORIZONTAL_BRANCH_DURATION_GY / T_MS
+"""float: The age each of these phases ends, as a multiple of the main-sequence lifetime (GEN.502: the giant branch ends
+at the Hurley, Pols and Tout helium ignition, the horizontal branch lasts a fixed time)."""
+
+SALARIS_R = 1.47
+"""float: The weighted mean of the horizontal-branch to red-giant ratio R of 57 Galactic globular clusters, +-0.025 (its
+standard error; the clusters scatter by 0.36 around it): Salaris et al. 2004, A&A 420, 911, Table 2
+(astro-ph/0403600)."""
 
 FLUX_PER_YEAR_PER_LSUN = 1.7e-11
 """float: The specific evolutionary flux of an old population, stars leaving the main sequence each year for each
@@ -33,8 +44,7 @@ def _state_at(fraction, **kwargs):
 
 def test_a_light_star_has_a_horizontal_branch_and_an_asymptotic_branch_between_its_giant_branch_and_its_white_dwarf():
     pc = tuning
-    giant_end = pc.GIANT_PHASE_END_MS_FRACTION
-    horizontal_end = giant_end + pc.HORIZONTAL_BRANCH_MS_FRACTION
+    giant_end, horizontal_end = GIANT_END, HORIZONTAL_END
     agb_end = horizontal_end + pc.AGB_MS_FRACTION
     sequence = [(giant_end - 0.01, "III", None), (giant_end + 0.1 * (horizontal_end - giant_end), "III", "horizontal-branch"),
                 (horizontal_end + 0.5 * pc.AGB_MS_FRACTION, "III", "asymptotic-giant"), (agb_end + 0.001, "VII", None)]
@@ -47,7 +57,7 @@ def test_a_light_star_has_a_horizontal_branch_and_an_asymptotic_branch_between_i
     assert _state_at(giant_end - 0.01)["lifespan_gy"] == pytest.approx(T_MS * agb_end)
     assert se.remnant_age_fraction(MASS) == pytest.approx(agb_end)
     # The branch lasts a hundred million years and the asymptotic giant branch twenty.
-    assert 0.08 < T_MS * pc.HORIZONTAL_BRANCH_MS_FRACTION < 0.13
+    assert 0.08 < pc.HORIZONTAL_BRANCH_DURATION_GY < 0.13
     assert 0.015 < T_MS * pc.AGB_MS_FRACTION < 0.03
 
 
@@ -92,30 +102,35 @@ def test_the_temperature_of_a_horizontal_branch_star_is_in_its_colours_range():
     rng = random.Random(9)
     for fe_h, colour in ((-2.2, "blue"), (-0.1, "red")):
         low, high = tuning.HORIZONTAL_BRANCH_COLOUR_TEMPERATURE_RANGE_K[colour]
-        temperatures = [se.evolve_star(MASS, T_MS * 1.204, rng, fe_h=fe_h)["temperature_k"] for _ in range(400)]
+        age = T_MS * (GIANT_END + 0.3 * (HORIZONTAL_END - GIANT_END))
+        temperatures = [se.evolve_star(MASS, age, rng, fe_h=fe_h)["temperature_k"] for _ in range(400)]
         inside = sum(low <= value <= high for value in temperatures) / len(temperatures)
         assert inside > (0.7 if colour == "blue" else 0.9), (fe_h, inside)
 
 
 def test_a_horizontal_branch_star_is_a_class_iii_giant_by_luminosity_and_says_so_in_its_type():
-    state = _state_at(1.203, fe_h=-1.5)
+    early = GIANT_END + 0.2 * (HORIZONTAL_END - GIANT_END)
+    state = _state_at(early, fe_h=-1.5)
     low, high = tuning.HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL
     assert state["yerkes_class"] == "III" and low <= state["luminosity_sol"] <= high
-    params = se.star_params(MASS, T_MS * 1.203, state)
+    params = se.star_params(MASS, T_MS * early, state)
     assert "III " in params["type"] and "Horizontal Branch Giant Star" in params["type"]
-    agb = se.star_params(MASS, T_MS * 1.2115, _state_at(1.2115))
+    asymptotic = HORIZONTAL_END + 0.5 * tuning.AGB_MS_FRACTION
+    agb = se.star_params(MASS, T_MS * asymptotic, _state_at(asymptotic))
     assert "Asymptotic Giant Star" in agb["type"] and agb["yerkes_class"] == "III"
-    ordinary = se.star_params(MASS, T_MS * 1.15, _state_at(1.15))
+    ordinary_age = (SUBGIANT_END + GIANT_END) / 2.0
+    ordinary = se.star_params(MASS, T_MS * ordinary_age, _state_at(ordinary_age))
     assert "III " in ordinary["type"] and "Giant Star" in ordinary["type"]
     assert "Horizontal" not in ordinary["type"] and "Asymptotic" not in ordinary["type"]
 
 
 def test_a_horizontal_branch_star_without_an_fe_h_draws_one_and_keeps_it():
-    drawn = _state_at(1.203, population="halo")
+    early = GIANT_END + 0.2 * (HORIZONTAL_END - GIANT_END)
+    drawn = _state_at(early, population="halo")
     assert "metallicity_fe_h" in drawn and -3.5 <= drawn["metallicity_fe_h"] <= 0.6
-    given = _state_at(1.203, fe_h=-0.3)
+    given = _state_at(early, fe_h=-0.3)
     assert "metallicity_fe_h" not in given
-    params = se.star_params(MASS, T_MS * 1.203, drawn)
+    params = se.star_params(MASS, T_MS * early, drawn)
     assert params["metallicity_fe_h"] == drawn["metallicity_fe_h"]
     # A scattered bright star stores the one its colour was drawn from, not a second draw.
     assert star_fe_h("halo", (0, 0, 0), 5, params) == params["metallicity_fe_h"]
@@ -127,8 +142,8 @@ def test_no_horizontal_branch_star_is_brighter_than_the_top_of_its_range_or_a_fl
     assert se.horizontal_branch_bright_chance(top + 1.0) == 0.0
     assert se.horizontal_branch_bright_chance(top - 5.0) > 0.0
     windows = sp._bright_windows(MASS, 100.0)
-    horizontal_start = T_MS * tuning.GIANT_PHASE_END_MS_FRACTION
-    assert all(not (start >= horizontal_start - 1e-9 and end <= horizontal_start + T_MS * tuning.HORIZONTAL_BRANCH_MS_FRACTION
+    horizontal_start = T_MS * GIANT_END
+    assert all(not (start >= horizontal_start - 1e-9 and end <= horizontal_start + tuning.HORIZONTAL_BRANCH_DURATION_GY
                     + 1e-9) for start, end, _chance in windows)
     rng = random.Random(2)
     stars = sp.sample_bright_stars(300, 100.0, "halo", rng)
@@ -140,7 +155,7 @@ def test_no_horizontal_branch_star_is_brighter_than_the_top_of_its_range_or_a_fl
 def test_a_horizontal_branch_star_sits_in_the_luminosity_range_below_every_scatter_floor(population):
     """The branch is 35 to 50 Lsun, so no scatter (floors of 50 Lsun and up) holds one; the star-by-star draws do."""
     low, high = tuning.HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL
-    middle = tuning.GIANT_PHASE_END_MS_FRACTION + 0.5 * tuning.HORIZONTAL_BRANCH_MS_FRACTION
+    middle = (GIANT_END + HORIZONTAL_END) / 2.0
     rng = random.Random(4)
     for _ in range(50):
         state = se.evolve_star(MASS, T_MS * middle, rng, population=population)
@@ -149,23 +164,45 @@ def test_a_horizontal_branch_star_sits_in_the_luminosity_range_below_every_scatt
     assert not any("Horizontal" in star["type"] for star in stars)
 
 
-def test_the_giant_branch_time_law_is_a_power_in_luminosity_between_its_base_and_its_tip():
-    low, high, slope = se.giant_luminosity_law(MASS)
-    assert low == pytest.approx(tuning.SUBGIANT_MAX_BRIGHTENING * se.main_sequence_luminosity_sol(MASS))
-    assert high == tuning.GIANT_BRANCH_TIP_LUMINOSITY_SOL and slope == tuning.GIANT_BRANCH_TIME_SLOPE
+def test_the_giant_branch_is_the_hurley_pols_tout_branch_of_the_star():
+    """Table 1 of Hurley, Pols and Tout 2000 gives the branch's duration, (t_HeI - t_BGB) / t_BGB, as 6.4e-2 at one solar
+    mass, 2.0e-2 at two and 2.4e-3 at five (the two heavier ones only through the same formulae, which the module
+    shares with the light star's)."""
+    branch = giant_branch.branch(1.0)
+    assert branch.duration_myr / branch.start_myr == pytest.approx(6.4e-2, rel=0.05)
+    assert giant_branch.branch(2.0).duration_myr / giant_branch.branch(2.0).start_myr == pytest.approx(2.0e-2, rel=0.1)
+    # The branch of the test star runs from its base to the tip of equation 49, in the module and the sampler alike.
+    branch = giant_branch.branch(MASS)
+    assert branch.base == pytest.approx(se.subgiant_end_luminosity_sol(MASS))
+    assert branch.tip == pytest.approx(giant_branch.tip_luminosity_sol(MASS)) and 2000.0 < branch.tip < 3000.0
+    assert branch.start_myr == pytest.approx(T_MS * 1.0e3 * SUBGIANT_END)
+    assert branch.end_myr == pytest.approx(T_MS * 1.0e3 * GIANT_END)
     # The bright giants (4 solar masses and up) keep a log-uniform spread over their own range.
     assert se.giant_luminosity_law(5.0) == (*tuning.BRIGHT_GIANT_LUMINOSITY_RANGE_SOL, 0.0)
     # The share above a value falls monotonically from 1 at the base to 0 at the tip.
-    values = [low * (high / low) ** (i / 10) for i in range(11)]
+    values = [branch.base * (branch.tip / branch.base) ** (i / 10) for i in range(11)]
     shares = [se.giant_bright_chance(MASS, value) for value in values]
     assert shares[0] == 1.0 and shares[-1] == 0.0 and shares == sorted(shares, reverse=True)
+    # The star climbs quickly at the end: the time per unit of ln L falls from about L^-0.8 at the base to L^-0.6 at the tip.
+    # Compare the time spent in a factor of 1.2 in luminosity near the base and near the tip.
+    near_base = branch.share_above(branch.base * 2.0) - branch.share_above(branch.base * 2.4)
+    near_tip = branch.share_above(branch.tip / 2.4) - branch.share_above(branch.tip / 2.0)
+    assert near_base > 5.0 * near_tip > 0.0
 
 
-def test_sampled_giant_luminosities_follow_the_law():
+def test_the_tip_is_lower_at_low_metallicity_as_the_models_of_a_metal_poor_star_have_it():
+    """Serenelli et al. 2017 (arXiv:1706.07564) find the tip of an old, metal-poor star at 1,650 to 1,780 Lsun; the
+    paper's fit lands within 20% of them at Z = 1e-4 ([Fe/H] = -2.19 against the reference Z of 0.0154)."""
+    tip = giant_branch.tip_luminosity_sol(0.8, fe_h=math.log10(1.0e-4 / tuning.MS_LIFETIME_REFERENCE_Z))
+    assert 1500.0 < tip < 2100.0
+    assert tip < giant_branch.tip_luminosity_sol(0.8, fe_h=0.0)
+
+
+def test_sampled_giant_luminosities_follow_the_branch():
     rng = random.Random(3)
     draws = [se.sample_giant_luminosity_sol(MASS, rng) for _ in range(6000)]
-    low, high, _slope = se.giant_luminosity_law(MASS)
-    assert all(low <= value <= high for value in draws)
+    branch = giant_branch.branch(MASS)
+    assert all(branch.base <= value <= branch.tip for value in draws)
     for threshold in (10.0, 50.0, 200.0):
         expected = se.giant_bright_chance(MASS, threshold)
         found = sum(value >= threshold for value in draws) / len(draws)
@@ -173,18 +210,19 @@ def test_sampled_giant_luminosities_follow_the_law():
     # Most of the branch is spent near its base: the median giant is under 10 solar luminosities.
     assert sorted(draws)[len(draws) // 2] < 10.0
     above = [se.sample_giant_luminosity_sol(MASS, rng, 500.0) for _ in range(200)]
-    assert min(above) >= 500.0 and max(above) <= high
+    assert min(above) >= 500.0 and max(above) <= branch.tip
 
 
 def test_the_horizontal_branch_to_red_giants_above_it_ratio_is_the_observed_one():
-    # Globular clusters have about 1.4 horizontal-branch stars for each red giant brighter than the branch
-    # (Salaris et al. 2004) [R].
+    """The horizontal branch lasts 100 Myr and the red giant branch spends 69 Myr above its luminosity, a ratio of
+    1.45 for every star that ignites its helium in a flash and whose base of the giant branch lies below it; the 57
+    Galactic globular clusters of Salaris et al. 2004 have a weighted mean of 1.47 +- 0.025."""
     level = sum(tuning.HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL) / 2.0
-    above = (tuning.GIANT_PHASE_END_MS_FRACTION - tuning.SUBGIANT_PHASE_END_MS_FRACTION) * se.giant_bright_chance(MASS, level)
-    ratio = tuning.HORIZONTAL_BRANCH_MS_FRACTION / above
-    # The model sits a little under: its whole red giant branch (0.1 of the main-sequence lifetime, 1.1 Gy) is longer
-    # than the observed branch, while the 114 Myr horizontal branch is the observed one.
-    assert 0.8 < ratio < 2.0, ratio
+    for mass in (0.8, MASS, 1.0):
+        branch = giant_branch.branch(mass)
+        above_myr = branch.share_above(level) * branch.duration_myr
+        ratio = tuning.HORIZONTAL_BRANCH_DURATION_GY * 1.0e3 / above_myr
+        assert abs(ratio - SALARIS_R) < 0.05, (mass, ratio)
 
 
 @pytest.mark.parametrize("floor", [100.0, 500.0, 1000.0])
@@ -195,7 +233,7 @@ def test_the_halo_counts_match_the_evolutionary_flux_of_an_old_population(floor)
     rng = random.Random(11)
     total = sum(se.sample_living_star(rng=rng, population="halo")[2]["luminosity_sol"] for _ in range(30000))
     per_lsun = sp.bright_star_fraction(floor, "halo") / (total / 30000)
-    giant_years = T_MS * 1.0e9 * (tuning.GIANT_PHASE_END_MS_FRACTION - tuning.SUBGIANT_PHASE_END_MS_FRACTION)
+    giant_years = T_MS * 1.0e9 * (GIANT_END - SUBGIANT_END)
     years = giant_years * se.giant_bright_chance(MASS, floor) + (
         T_MS * 1.0e9 * tuning.AGB_MS_FRACTION * se.agb_bright_chance(floor))
     expected = FLUX_PER_YEAR_PER_LSUN * years
