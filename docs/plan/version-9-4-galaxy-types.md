@@ -68,7 +68,7 @@ What reads the families.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.386 | Population mix, star-formation history and gas fraction by family: the young share that the nebula and profile rules read | GEN.382, GEN.383, GEN.385, GEN.134, GEN.319, GEN.405, GEN.406 | Step 6 of the galaxy types chain. |
+| GEN.386 | Population mix, star-formation history and gas fraction by family: the young share that the nebula and profile rules read | GEN.382, GEN.383, GEN.385, GEN.319, GEN.405, GEN.406 | Step 6 of the galaxy types chain. |
 
 ### Clusters and the nucleus
 

@@ -42,6 +42,7 @@ from collections import namedtuple
 import numpy as np
 
 from planetgen import tuning
+from planetgen.galaxy import star_formation as starFormation
 from planetgen.util import detmath
 
 GalaxyShape = namedtuple(
@@ -429,7 +430,9 @@ def population_densities(position_pc, shape):
     its own vertical profile (`sech^2(z/2h)/h`, a thinner disk for younger
     stars) and its own arm contrast (`1 + A cos(arm phase)`, strongest for
     young stars). So young stars crowd the arms near the plane, and far
-    off the plane or in the bulge nearly every star is old.
+    off the plane or in the bulge nearly every star is old. The young and intermediate weights also carry the
+    recent star-formation factor of the radius (`galaxy.star_formation`, GEN.134): fewer in the outer disk and in
+    the bar's gap, more at its edge; the three still share the same disk density.
 
     Returns:
         dict: `{"young", "intermediate", "old", "bulge", "halo", "cluster", "satellite", "nuclear_cluster",
@@ -443,12 +446,14 @@ def population_densities(position_pc, shape):
 
     ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
     formation_span = tuning.STAR_FORMATION_AGE_RANGE_GY[1] - tuning.STAR_FORMATION_AGE_RANGE_GY[0]
+    recent = starFormation.recent_factor(detmath.hypot(position_pc[0], position_pc[1]), shape)
     weights = {}
     for name, ratio in tuning.STELLAR_POPULATION_SCALE_HEIGHT_RATIO.items():
         height = shape.disk_scale_height_pc * ratio
         share = (ages[name][1] - ages[name][0]) / formation_span
         weights[name] = (share * _vertical(z, height) / height
-                         * (1 + tuning.STELLAR_POPULATION_ARM_AMPLITUDE[name] * arm_cos))
+                         * (1 + tuning.STELLAR_POPULATION_ARM_AMPLITUDE[name] * arm_cos)
+                         * (recent if name in starFormation.RECENT_POPULATIONS else 1.0))
     total = sum(weights.values())
     if total <= 0.0:
         # Far enough off the plane that every profile underflows: the
@@ -499,12 +504,14 @@ def population_densities_array(x, y, z, shape):
 
     ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
     formation_span = tuning.STAR_FORMATION_AGE_RANGE_GY[1] - tuning.STAR_FORMATION_AGE_RANGE_GY[0]
+    recent = starFormation.recent_factor(r_cyl, shape)
     weights = {}
     for name, ratio in tuning.STELLAR_POPULATION_SCALE_HEIGHT_RATIO.items():
         height = shape.disk_scale_height_pc * ratio
         share = (ages[name][1] - ages[name][0]) / formation_span
         weights[name] = (share * _vertical_any(z, height) / height
-                         * (1 + tuning.STELLAR_POPULATION_ARM_AMPLITUDE[name] * arm_cos))
+                         * (1 + tuning.STELLAR_POPULATION_ARM_AMPLITUDE[name] * arm_cos)
+                         * (recent if name in starFormation.RECENT_POPULATIONS else 1.0))
     total = sum(weights.values())
     # Every profile underflowed: the thickest (old) disk is all that's left.
     empty = total <= 0.0

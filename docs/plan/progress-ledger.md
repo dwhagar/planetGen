@@ -739,3 +739,9 @@ Baseline: PR #1817.
 | GEN.425 | 8.1 | Composition research and design |
 | GEN.372 | 8.3 | Positions as one object |
 | GEN.368 | 8.1 | Components and wanderers |
+| GEN.276 | 8.1 | Region query |
+| GEN.431 | 8.1 | Composition research and design |
+| GEN.432 | 8.1 | Composition research and design |
+| GEN.433 | 8.1 | Composition research and design |
+| GEN.434 | 8.1 | Composition research and design |
+| GEN.134 | 8.1 | Components and wanderers |

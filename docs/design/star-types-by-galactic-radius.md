@@ -1,6 +1,6 @@
 # Star types against distance from the galactic core (GEN.133)
 
-**Status (2026-10-15):** analysis (GEN.133, #807). The proposals at the end are for Boss to choose from; no code changed.
+**Status (2026-10-17):** analysis (GEN.133, #807); proposals 1 and 3 built derived as GEN.134 (see "Built: GEN.134" at the end), proposal 2 not met (see there), proposal 4 already built by GEN.158.
 
 Analysis of 2026-10-09 for Boss: how the generator's star-type rates change with
 galactocentric radius, set against what is observed. Method: `scripts/star_type_by_radius.py`
@@ -117,3 +117,78 @@ what the plausibility test compares the result with.
 
 Boss chose Core 4 to take GEN.134 first and to research the inner-disc dip (2026-10-16, 8:40 PM EDT, card "Core 4 first").
 Core 4 asks Boss only for what it cannot look up or verify.
+
+## Built: GEN.134 (2026-10-17)
+
+`galaxy/star_formation.py` gives the young and intermediate populations a radial factor, applied in
+`density.population_densities` and `population_densities_array`. It is derived from the shape's own disk scale length
+and bulge scale radius. The Milky Way's figures are test targets in `tests/test_star_formation_profile.py`, never inputs.
+
+**The chain.**
+
+1. *The star-formation law.* Rate per area goes as the gas per area to the power n = 1.4 (Kennicutt 1998: 1.4 +/- 0.15
+   over 61 spirals and 36 starbursts, gas 10 to 1e5 solar masses per pc2; other fits 1.3 +/- 0.3 and 1.65 +/- 0.16;
+   resolved data give 1.5 to 2.7 for total gas). The thin disk's stars are the sum of its past rates, so their surface
+   density is `exp(-R/L)`. A gas disk of scale length `g L` makes the present rate fall as `exp(-n R / (g L))` and the
+   *share* of the stars that are recent as `exp(-(n/g - 1) R / L)`. `g` is 1 (`GAS_TO_STELLAR_SCALE_LENGTH_RATIO`, an
+   assumption: the observed gas disk is more extended, which would make the outer disk younger). The Milky Way's own Kennicutt-Schmidt index
+   is lower than the classic one: 1.2 +-0.2 (Luna et al. 2006, molecular gas) and 1.12 +-0.05 (Sofue and Nakanishi 2017), as the
+   Herschel paper below reports them [P: as that paper quotes them]; with them the outer fall would be -0.19 dex per kpc, and the observed -0.28 needs an index of 1.65.
+2. *The bar gap.* A bar drives the gas inside its corotation inward, and what is left is sheared and made turbulent by the bar's
+   shocks, so the star-forming gas in the region the bar sweeps is depleted. What the papers say [P: each read in the paper, 2026-10-17]:
+   in six zoom-in simulations the star formation "desert" either side of the bar lacks stars younger than 10 Myr because, after
+   the bar forms, "gas in these regions is removed on 1 Gyr timescales" ([Donohoe-Keyes et al. 2019](https://arxiv.org/pdf/1908.11119));
+   bars drive gas inflow inside the corotation radius, which raises the central rate, yet disc galaxies with a suppressed centre often host
+   a bar, and the causes are discussed, not settled ([Wang et al. 2020](https://arxiv.org/pdf/2003.05190)); galaxies with bar-driven radial gas flows have
+   suppressed star-formation efficiency with "no indication of depleted gas mass fractions", so gas exhaustion is not the cause there
+   ([ALMaQUEST XIV](https://arxiv.org/pdf/2312.14702)). Observed in the Milky Way: the molecular gas shows "a pronounced deficit at R about 0.5 to 3.5 kpc (a bar gap)", an outer boundary at
+   3.5 kpc that "is consistent with the dynamical estimate of the Galactic bar half-length (Lucey et al. 2023)", with the caveat that axisymmetric distance
+   inversions can partly fill such a gap ([Bar-Informed Kinematic-Distance Mapping](https://arxiv.org/pdf/2603.17341)); the long bar's half-length is
+   5.0 +-0.2 kpc in [Wegg, Gerhard and Portail 2015](https://arxiv.org/pdf/1504.01401), so the estimates differ. The Central Molecular Zone forms stars at
+   a rate at least ten times below what its dense gas predicts ([Kruijssen et al. 2014](https://arxiv.org/pdf/1303.6286), after [Longmore et al.
+   2013](https://arxiv.org/pdf/1208.4256)): episodic, with a raised critical density from the turbulent pressure. The generator's rate is scaled by
+   `S(R) = f + (1 - f) u^p / (1 + u^p)`, `u = R / R_gap`. **The gap radius** is 2.2 bulge scale radii (`BAR_GAP_RADIUS_RATIO`), 3.5 kpc for the default shape, which
+   is the gap's outer edge over the bulge's 1.58 kpc [P for the 3.5 kpc]; **the floor** `f` (0.03) is what 1 Gyr removal leaves after 3.5 Gyr
+   (`exp(-3.5)`), the young and intermediate stars being under 3 Gyr old; that bar epoch is an assumption and the 1 Gyr is a simulated galaxy's, so the floor stays an open default;
+   **the edge power** `p` (4) is a model default (2 never leaves a ring). Fast bars have corotation over bar length of 1.0 to 1.4 (Debattista and Sellwood
+   2000; a search summary, the paper was not opened).
+3. *Normalisation.* The factor is scaled so the stars of the disk, weighted by their own surface density, average 1: the
+   disk makes as many stars over its life as the uniform-in-time populations already assumed. The three disk populations
+   still share the same disk density, so no cell's total changes.
+
+**Result for the default shape** (disk scale length 2.6 kpc, bulge scale radius 1.58 kpc; rate per area, test values):
+
+| Quantity | Derived | Milky Way target |
+|---|---|---|
+| Peak of the rate per area | 3.5 kpc (the gap's edge) | 4 to 5 kpc (molecular ring) |
+| Share of the star formation inside the solar circle | 86% | 84% |
+| Share beyond 13.5 kpc | 1.3% | 1% |
+| Fall beyond the peak | -0.23 dex per kpc (= 1.4 x 0.434 / 2.6) | -0.28 |
+| Share inside 3 kpc | 13% | a dip (not quantified here) |
+| Stars under 5 Gyr in the bar's core (250 to 1000 pc) | 9% to 11% | 3% (HST) to 16 to 23% (microlensing, disputed) |
+
+The young share in the bar's core falls from 2% to under 1%, and the intermediate from 15% to 4%, on an arm crest at 0.25 kpc (the old disk's
+part of the thin disk and the bulge fill the rest).
+
+**Proposal 2 is not met.** The B-star share at the Sun's radius between arms is 0.2% (was 0.17%) and 0.5% in an arm,
+against the note's 0.04%. The derived radial factor is 0.96 at the solar circle (the Sun sits at the disk's average), so
+it cannot lower the local B share. B stars are the stars formed in the last few hundred Myr, so the share follows the
+*recent* rate against the lifetime average: the generator forms stars at a constant rate over 10 Gyr, and a recent rate
+four times lower is a time dependence that the radial factor does not model. The next derived step is the disk's
+star-formation *history* from the same gas law (the rate falls as the gas is used, unless it is replenished), which needs
+an inflow rate that nothing in the shape sets; filed as a follow-up. The 0.04% target also rests on a source this note has
+not opened at the time (Mamajek's memo; read since, see Citations), and is his figure from Hipparcos B types.
+
+**Citations (re-checked against the papers, 2026-10-17, 12:40 AM EDT).** [Kennicutt 1998](https://arxiv.org/pdf/astro-ph/9712213): 61 normal spirals and 36 starbursts, index 1.4 +-0.15, confirmed.
+[The Herschel Hi-GAL study](https://arxiv.org/pdf/2211.05573) (Milky Way star formation 2.0 +-0.7 solar masses per year; a peak at the Central Molecular Zone and another near 5 kpc; beyond 5 kpc
+log(rate per area) falls with a = -0.28 +-0.01 per kpc, an exponential scale length of 1.55 kpc, shorter than the stellar disk's 2.6 kpc; 84% inside the solar circle and 1% beyond 13.5 kpc; half of the star formation in the Molecular Ring): all confirmed, and the 1.55 kpc against 2.6 kpc is the same
+sign as the derived 2.6 / 1.4 = 1.86 kpc. The remaining papers are listed in the chain above with what each says. The B-star target is [Mamajek's memo](https://www.pas.rochester.edu/~emamajek/memo_star_dens.html), read: B stars 3.9e-4 of the stars (1 in 2600; calculated from the Hipparcos (HIP2) B types), A 6.0e-3, O about 5e-7, M dwarfs
+72.5% (RECONS 10 pc, N = 283); the 0.04% is confirmed as his figure, and its completeness limits are his. The numbers marked recalled in `tuning.py` stay so, except the gap edge (3.5 kpc, read).
+
+**Out of scope here.** The Central Molecular Zone (GEN.282), metallicity (GEN.158, done), and the globular clusters.
+
+**The majorant.** The object-first band bound (`generation.object_first._disk_share_bound`) widens the young and
+intermediate weights by the factor's true smallest and largest value over the band's cylindrical radii
+(`recent_factor_range`). The factor is not monotone (it dips a little from the centre, rises to the gap's edge and falls
+beyond), so the extremes are at an end or at one of its two turning points, found by bisection.
+

@@ -2,6 +2,157 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1669] - 2026-10-17
+
+**Headline:** The atmosphere research update, the weighted atmosphere tables and the checks of Boss's research note are merged and filed.
+
+### Changed
+
+The Atmosphere research lane's update (findings 11 to 20, the weighted composition tables of its part 09 with 16 categories and 104 rows, and the 23-claim check of Boss's research note in parts 08A and 08B) is merged into `docs/design/atmosphere-composition.md` and its parts. Filed: the atmosphere possibility tables as the data of the gated loader (GEN.478), a bug for the class atmosphere mixes that contradict the checked chemistry (GEN.479, checked against the code) and the 15 research needs that would replace the rows with no sourced weight (GEN.480 to GEN.494, named AR1 to AR15). Notes on the cold curves, the redox prior, the Rayleigh reference densities, the Parmentier and Guillot formulas, Mars dust and Titan haze, the comet ratios, the radiation weights and the licences are on the items that use them.
+
+TODO items resolved: none / Added: GEN.478, GEN.479, GEN.480, GEN.481, GEN.482, GEN.483, GEN.484, GEN.485, GEN.486, GEN.487, GEN.488, GEN.489, GEN.490, GEN.491, GEN.492, GEN.493, GEN.494
+
+## [8.0.1668] - 2026-10-17
+
+**Headline:** The meaning of a table weight is decided: the odds of picking a possibility.
+
+### Changed
+
+Boss answered at 1:51 AM EDT that the weights of the gated composition rows are the odds of picking a possibility and that the fractions inside the drawn row are normalised separately; both sums are tested. Recorded in `docs/design/composition-model.md` section 4a and on GEN.472 and TEST.214.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1667] - 2026-10-17
+
+**Headline:** Every composition category becomes a gated table of weighted possibilities, filed in the plan.
+
+### Changed
+
+Boss's design requirement for the composition work is recorded in `docs/design/composition-model.md` section 4b: each composition category is a table of possibilities, each row lists the planet or object classes it supports (a class gate), and the draw takes the rows that pass the gate with their weights normalised to 100 percent. The standing columns are possibility, supported classes, weight or weight function, source and licence, and notes. The plan gains the one loader and format (GEN.472) and a test that the gated weights of every registered table add up to 100 percent (TEST.214), and the table and recipe items (GEN.410, GEN.411, GEN.427, GEN.428, GEN.439, GEN.440, GEN.441, GEN.442, GEN.454 to GEN.457, GEN.466) now point at them.
+
+Boss's two further rulings of 1:43 and 1:44 AM EDT are recorded with it: the proportions of a drawn possibility follow the table weights where a sourced kernel exists and a Dirichlet draw around them where only a range is known, and measured Solar System shapes enter only as flagged stand-ins, each with a research item that replaces it (GEN.473 to GEN.476, TEST.215). The body composition research note gains its section 14 on the weighted tables.
+
+Boss's design point of 1:47 AM EDT is recorded too: anything a belt or field can be made of, a planet or moon can be made of, so the materials and components are one shared table gated by class (GEN.427), and the existing belt and field composition draw, which picks four names uniformly from a list of 84, is filed as a bug to replace (GEN.477).
+
+TODO items resolved: none / Added: GEN.472, TEST.214, GEN.473, GEN.474, GEN.475, GEN.476, GEN.477, TEST.215
+
+## [8.0.1666] - 2026-10-17
+
+**Headline:** Boss's research note is checked and its work is placed: a saturation-pressure function, the redox state of rocky planets, and clathrates and brines.
+
+### Added
+
+- Part F of the body composition research (`body-composition-parts/F-boss-note-check.md`): the Feistel and Wagner water-ice form against IAPWS (0.06 percent), the cold-ice polynomials against NIST triple points (within 3 percent, cold end open), Sossi 2020 read, the ICRP 103 and Thorngren corrections.
+- GEN.470 (one saturation-pressure function for the gases and ices, with its tests) and GEN.471 (clathrate hydrates and eutectic brines).
+
+### Changed
+
+- The magma-ocean redox state per rocky planet joins GEN.451 and DB.69; GEN.456 follows GEN.451; the licence column is a requirement of GEN.410, GEN.427 and GEN.438; the checks of Boss's research are noted on GEN.414, GEN.436, GEN.452, GEN.455 and GEN.460. The master of the body composition research is replaced by the lane's updated draft.
+
+TODO items resolved: none / Added: GEN.470, GEN.471
+
+## [8.0.1665] - 2026-10-17
+
+**Headline:** The body composition research is merged into the design documents, with its findings, the five decisions and the work clusters filed as items.
+
+### Added
+
+- `docs/design/body-composition-research.md` and its five parts (`body-composition-parts/`): stars and remnants, rocky planets, volatile-rich worlds and giants, small bodies and moons, and the ground, radiogenic heat and shielding, with the findings against the code, the decisions, the invariants and the sources that still need Boss.
+- GEN.457 (the small bodies and moons design), GEN.458 (each system draws its snow line), GEN.459 (one radiogenic module), GEN.460 (giant and brown-dwarf radius and heavy elements), GEN.461 (the hydrosphere reads the stored water share), GEN.462 (ground albedo by band), GEN.463 (neutron-star radius derived), GEN.464 (the solids law reads Z over Z0), GEN.465 (a second extraction pass), GEN.466 (moons), GEN.467 (main-sequence lifetime derived), GEN.468 (settle the water share), GEN.469 (the disk's star-formation history from the gas law).
+
+### Changed
+
+- Boss's five composition decisions are recorded (composition first, keep the water-share switch, replace the neutron-star radius floor and the 10 Gyr lifetime, 1 bar, Asplund 2021), and the research Boss supplied at 1:22 AM EDT is noted as awaiting verification on the items it touches.
+- GEN.426 to GEN.429, GEN.435, GEN.436, GEN.439 to GEN.442, DB.69, DB.70, TEST.210 and TEST.211 carry what the parts give them; GEN.301 waits for GEN.463, GEN.467 and GEN.469.
+
+TODO items resolved: GEN.432, GEN.433, GEN.434, GEN.134 / Added: GEN.457, GEN.458, GEN.459, GEN.460, GEN.461, GEN.462, GEN.463, GEN.464, GEN.465, GEN.466, GEN.467, GEN.468, GEN.469
+
+## [8.0.1664] - 2026-10-17
+
+**Headline:** The young stars of the disk now follow the galaxy's own star formation by radius: fewer in the outer disk and in the bar's gap, a ring at the bar's end.
+
+### Added
+- `galaxy/star_formation.py`: the share of a place's thin-disk stars that formed recently, derived from the galaxy's shape. The rate per area follows the gas to the power 1.4 (Kennicutt 1998) over a gas disk as long as the stellar one, the bar depletes the gas inside its length (a gap of 2.2 bulge scale radii), and the factor is normalised so the disk makes as many stars as before. Nothing is taken from the Milky Way: its profile is the test target in `tests/test_star_formation_profile.py`.
+- The constants `STAR_FORMATION_LAW_EXPONENT`, `GAS_TO_STELLAR_SCALE_LENGTH_RATIO`, `BAR_GAP_RADIUS_RATIO`, `BAR_GAP_STAR_FORMATION_FLOOR` and `BAR_GAP_EDGE_POWER` in `tuning.py` (the last three are open defaults, named as such there and in the design note).
+
+### Changed
+- The young and intermediate populations carry the factor in `population_densities` and its array form, so sector profiles, the bright-star scatter and the nebula scatter follow it. No cell's total density changes. The sector profile of an inner cell shows fewer young stars (on an arm crest at 0.25 kpc: young 2% to under 1%, intermediate 15% to 4%) and the bar's core holds 9% to 11% of its stars under 5 Gyr.
+- The object-first band bound widens the young and intermediate weights by the factor's true range over each band's radii (`recent_factor_range`).
+- The magnetar rate's young share of all stars in a Milky Way-sized galaxy is 0.44% (was 0.48%): the bulge now holds fewer young stars, and `test_gen_magnetar_scatter` caught the old figure. A full scatter holds about 9% more magnetars per young star.
+- `scripts/star_type_by_radius.py` runs again (it called the retired `--arm-amplitude`).
+- `docs/design/star-types-by-galactic-radius.md` records the derivation, the sources and the result. Proposal 2 (local B stars at 0.04%) is not met and the note says why.
+
+TODO items resolved: GEN.134 (proposals 1 and 3; 2 is left open and described in the note) / Added: the star-formation history of the disk from the gas law (the follow-up to proposal 2)
+
+## [8.0.1663] - 2026-10-17
+
+**Headline:** The atmosphere composition research is merged into the design documents, with the findings filed as items.
+
+### Added
+
+- `docs/design/atmosphere-composition.md` and its seven parts (`atmosphere-composition-parts/`): the gas table and thermodynamics, optics, infrared and greenhouse, photochemistry and escape, mixing ratios by class, condensates and aerosols, and radiation shielding and ground sources, with the sources reached and the list of what Boss must research.
+- GEN.452 (the checked saturation curves replace the two-point condensation table), GEN.453 (the radiation constants are corrected), GEN.454 (giants and brown dwarfs from the equilibrium chemistry sequence), GEN.455 (exospheres and comae), GEN.456 (lava worlds), DB.71 (the added gases are stored).
+
+### Changed
+
+- The composition model and the atmosphere colour notes point to the merged research; GEN.409, GEN.410, GEN.411, GEN.413, GEN.414, GEN.417, GEN.422, GEN.423, GEN.436, GEN.444, GEN.445 and GEN.451 carry what the parts give them.
+
+TODO items resolved: GEN.431 / Added: GEN.452, GEN.453, GEN.454, GEN.455, GEN.456, DB.71
+
+## [8.0.1662] - 2026-10-17
+
+**Headline:** The TEST.193 investigation record and a new loaded-browser flake are filed.
+
+### Added
+
+- TEST.213 (`test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star` fails once in two loaded runs: the wheel loop opens the system before the disc reaches full share), found by Core 1, for Bug Hunt.
+
+### Changed
+
+- TEST.193 carries Core 1's reproduction and fix (a request thread still running when the module fixture drops the database; a bounded drop that names the holders), and says TEST.195's stall was not reproduced and its fetch was removed.
+
+TODO items resolved: none / Added: TEST.213
+
+## [8.0.1661] - 2026-10-17
+
+**Headline:** GEN.323's expected black-hole count is corrected to the measured 9.1 million, accepted by Boss.
+
+### Changed
+
+- GEN.323 and GEN.240 now say about 9.1 million extra black-hole rows beyond the outline (Core 3's measurement; 1.9 million beyond 15 kpc and 7 million in the inner shells), with the cap and the physical weights kept.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1660] - 2026-10-17
+
+**Headline:** Seven test items that Bug Hunt agreed are the same fix as another are merged, and GEN.276 is done.
+
+### Changed
+
+- Merged into the item that holds the fix, with Bug Hunt's agreement: TEST.138 and TEST.144 into TEST.126, TEST.195 into TEST.193, TEST.197 into TEST.174, TEST.173 into TEST.171, TEST.167 into TEST.111, TEST.202 into TEST.172 and TEST.148 into TEST.208. TEST.198 stays separate until a failure text shows the same cause as TEST.174.
+- GEN.276 (`sphere_runs`, the cell-key runs a sphere can hold, #1966) is retired.
+
+TODO items resolved: GEN.276 (#1966); TEST.138, TEST.144, TEST.195, TEST.197, TEST.173, TEST.167, TEST.202, TEST.148 (merged into the items above) / Added: none
+
+## [8.0.1659] - 2026-10-17
+
+**Headline:** A sphere in the galaxy can now be turned into at most 256 runs of cell keys, the first half of searching it by key.
+
+### Added
+- `planetgen.galaxy.cellkey.sphere_runs(center, r, budget=256)`: the ascending, merged runs of cell keys a sphere can hold (an octree cover in numpy and integers, no numba, so the web app can use it), for any stored reach, with a budget of runs. A sphere that reaches past the box gets the runs of the part inside it; one wholly outside gets none. The tests check every point of random spheres, the surface included, against the key of `cell_keys`, and the run list is ascending, not touching, and within the budget.
+
+TODO items resolved: GEN.276 / Added: none
+
+## [8.0.1658] - 2026-10-17
+
+**Headline:** Migration revision 0110 is reserved for GEN.324, and GEN.323's black-hole count is flagged.
+
+### Changed
+
+- GEN.324 takes revision 0110 (after 0105 to 0109 for DB.65, DB.69, DB.67, DB.70, DB.68); GEN.323 records Core 3's measurement of about 9.1 million black-hole rows beyond the outline, pending Boss's answer.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1657] - 2026-10-17
 
 **Headline:** The galaxy-type and planet-class items no longer redo work the galaxy laws and the composition chain already build.

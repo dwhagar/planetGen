@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.136 |
 | MAP | MAP.245 |
 | NAV | NAV.63 |
-| GEN | GEN.452 |
+| GEN | GEN.495 |
 | PERF | PERF.111 |
-| DB | DB.71 |
+| DB | DB.72 |
 | API | API.31 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.213 |
+| TEST | TEST.216 |
 | USR | USR.31 |
 | OPS | OPS.60 |
 | DOC | DOC.67 |
@@ -585,6 +585,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.68 | Planets and moons store the ozone column and the haze, dust and cloud optical depths | none | open |
 | DB.69 | Planets and moons store the composition fractions | none | open |
 | DB.70 | Planets, moons and small bodies store the surface and small-body composition shares | none | open |
+| DB.71 | Planets and moons store the partial pressures of the added gases, not only the ten stored today | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -784,7 +785,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.131 | Bright-star scatter logs how many stars it added to each layer, by type | none | done, PR #805 |
 | GEN.132 | Per-sector regional rates for neutron stars and black holes, extended system-wide where the research supports it | none | done, PR #807 |
 | GEN.133 | Analysis of every star type's rate against its distance from the galactic core | none | done, PR #807 |
-| GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius | none | open |
+| GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius | none | done, PR #1972 |
 | GEN.135 | Deterministic math helpers for every stored float, with a lint and frozen constants | none | done, PR #1927 |
 | GEN.136 | Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests | none | open |
 | GEN.137 | Placed objects move along a galactic orbit but never by velocity times time, and phenomenon_scatter has no plan time (bug) | none | done, PR #843 |
@@ -926,7 +927,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.273 | Young groups and trapezia: the `group` node, offset and velocity columns, a decay age and the remnant draw | none | open |
 | GEN.274 | Cluster-hosted compact binaries and runaway bookkeeping: `runaway_origin` and the compact companion left by a supernova | none | open |
 | GEN.275 | Substellar and circumbinary types: brown-dwarf and planetary-mass companions, circumbinary disks and planets | none | open |
-| GEN.276 | The sphere-to-key-runs cover: `sphere_runs` over the existing cell key (at most 256 merged runs) | none | open |
+| GEN.276 | The sphere-to-key-runs cover: `sphere_runs` over the existing cell key (at most 256 merged runs) | none | done, PR #1966 |
 | GEN.277 | Design note: which of the later phenomena are scattered, backfilled or stay sector-fill-only | none | done, PR #1721 |
 | GEN.278 | Magnetar scatter class: magnetars drawn as scatter rows of young neutron stars | none | done, PR #1805 |
 | GEN.279 | A realistic galactic core from the density and generation model (replaces the dropped one-off nuclear-cluster object GEN.155) | none | done, PR #1728 |
@@ -1081,10 +1082,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.428 | Planets and moons draw their bulk composition fractions instead of carrying a fixed text | none | open |
 | GEN.429 | Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation | none | open |
 | GEN.430 | The planet and moon descriptions state the composition from the stored fractions | none | open |
-| GEN.431 | Research: what is in the atmospheres of every kind of world, and the numbers each compound needs | none | open |
-| GEN.432 | Research: what rocky, icy and giant bodies and their small relatives are made of, and the numbers each material needs | none | open |
-| GEN.433 | Research: what stars and stellar remnants are made of, and the numbers each needs | none | open |
-| GEN.434 | Research: radiation through atmospheres and at the ground, and the numbers it needs | none | open |
+| GEN.431 | Research: what is in the atmospheres of every kind of world, and the numbers each compound needs | none | done, PR #1970 |
+| GEN.432 | Research: what rocky, icy and giant bodies and their small relatives are made of, and the numbers each material needs | none | done, PR #1972 |
+| GEN.433 | Research: what stars and stellar remnants are made of, and the numbers each needs | none | done, PR #1972 |
+| GEN.434 | Research: radiation through atmospheres and at the ground, and the numbers it needs | none | done, PR #1972 |
 | GEN.435 | The stellar composition design: the abundance relations, what is stored and what is derived, and the remnants | none | open |
 | GEN.436 | The radiation design: atmospheric transmission and greenhouse by band, shielding by column, and the ground's own dose | none | open |
 | GEN.437 | The composition model: how the element, compound, material and body tables link, and what is stored against derived | none | open |
@@ -1102,6 +1103,49 @@ Parents marked "new parent" had no old number of their own.
 | GEN.449 | The companion table for mid and early B stars is raised to the observed frequencies | none | open |
 | GEN.450 | The star-formation profile's radial slope: reconcile the Schmidt index with the observed gradient, with the choice named | none | open |
 | GEN.451 | The mantle redox mean follows the meteorite building blocks: a young rocky planet starts reduced, not at the modern Earth's 3.5 above the iron-wuestite buffer | none | open |
+| GEN.452 | The condensation table is replaced by the checked saturation curves: the hydrogen sulphide row is a copy of the sulphur dioxide row, and carbon dioxide, sulphur dioxide and the cold gases are 2 to 20 K off (bug) | none | open |
+| GEN.453 | The radiation constants are corrected: the dipole cutoff scales with moment over radius squared, the dose curve against the column and the field factor follow the measured and simulated tables (bug) | none | open |
+| GEN.454 | Giant planets, ice giants and brown dwarfs draw their atmosphere mixture from the equilibrium chemistry sequence: by temperature, pressure, metallicity and quench | none | open |
+| GEN.455 | Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates | none | open |
+| GEN.456 | Lava worlds and hot rocky planets draw a vapour atmosphere over the magma from the surface composition and temperature: sodium, potassium, silicon monoxide, magnesium, iron and the oxides | none | open |
+| GEN.457 | The small bodies and moons composition design: the taxon and comet draws, compaction, the moon origin types and the ice fraction | none | open |
+| GEN.458 | Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes | none | open |
+| GEN.459 | One radiogenic module: heat from the isotope-wise decay of potassium, thorium, uranium and aluminium-26, drawn from the host star's abundances, replaces the bulk-silicate values that are 37 to 50 percent too high and the separate ground-dose draw (bug) | none | open |
+| GEN.460 | Giant planets and brown dwarfs get their radius and heavy-element content from the checked laws: the heavy-element mass law, the Fortney and Baraffe tables with inflation, and the burning limits shifted by metallicity and helium (bug) | none | open |
+| GEN.461 | The hydrosphere reads the stored water mass fraction: the compressed water-layer depth, the base pressure, the high-pressure ice and the liquidus are recomputed, and the class label follows from the water share (bug) | none | open |
+| GEN.462 | Ground albedo by band: the area-weighted colour of the ground, ice and ocean cover with space weathering, handed to the atmosphere colour once | none | open |
+| GEN.463 | The neutron star's radius is derived from sourced mass-radius relations instead of the fixed range of 10 to 13 km (bug) | none | open |
+| GEN.464 | The disk solids law reads the star's metal mass fraction Z over Z0, not 10 to the power of [Fe/H], which is off by 1.7 to 3 times in metal-poor alpha-enhanced stars | none | open |
+| GEN.465 | A second extraction pass over the sources the body and atmosphere research could not reach and that are reachable now | none | open |
+| GEN.466 | Moons draw their origin type, ice fraction and composition from the parent, the circumplanetary ice line and the age | none | open |
+| GEN.467 | The main-sequence lifetime is derived from sourced stellar relations instead of the fixed 10 Gyr for one solar mass and a power law of -2.5 (bug) | none | open |
+| GEN.468 | Settle the water share beyond the snow line: the Marboeuf-derived 0.14 to 0.39 of the solids against the convention of about 0.5 | none | open |
+| GEN.469 | The disk's star-formation history from the gas law: the local B-star share is 0.2 percent against the observed 0.04 percent | none | open |
+| GEN.470 | One saturation-pressure function p_sat(species, T) for the gases and ices: the Fray and Schmitt polynomials, water by Feistel and Wagner, and its tests | none | open |
+| GEN.471 | Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K | none | open |
+| GEN.472 | One gated possibility-table format and loader: every composition category is a table of possibilities with a class gate and a weight, drawn by the normalised weights of the rows that pass | none | open |
+| GEN.473 | Replace the asteroid taxon shares and the zone kernel, measured in the Solar System belt, by a derived or general distribution | none | open |
+| GEN.474 | Replace the Earth rock-type library, measured on Earth, by ground types derived from the bulk composition and the melting of the mantle | none | open |
+| GEN.475 | Meteorite groups become outputs and not inputs: regions of composition space reachable from the drawn bulk, with the measured groups kept as calibration | none | open |
+| GEN.476 | Aluminium-26 and iron-60 follow from the star's formation environment, not from the Solar System's own value and range | none | open |
+| GEN.477 | The asteroid belt and field composition is drawn from the star, the distance and the belt's mass, not four names drawn uniformly from a list of 84 (bug) | none | open |
+| GEN.478 | The atmosphere possibility tables: the 16 categories and 104 rows of part 09, loaded through the gated table loader, with every row that has no sourced weight flagged and drawn from its bracket | none | open |
+| GEN.479 | The class atmosphere mixes contradict the checked chemistry: classes C, D and S have no mix, free oxygen sits in seven classes with no life rule, class L is 60 percent argon, E and F hold ammonia and methane at 340 to 400 K, N reads reducing and is oxidised, and I, J and T share one mix in every zone (bug) | none | open |
+| GEN.480 | Source the occurrence weights of bare rock, hydrogen-helium envelope and water-rich worlds and of the envelope metal fraction, by radius, mass and insolation (AR1) | none | open |
+| GEN.481 | Source the volatile delivery against formation distance: the water mass fraction by a_form and the snow-line law over time (AR2) | none | open |
+| GEN.482 | Source the magma-ocean fO2 prior against mass and the oxidation law of the later mantle (AR3) | none | open |
+| GEN.483 | Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4) | none | open |
+| GEN.484 | Source the giant planets' C/O distribution and the fraction of carbon-rich hosts (AR5) | none | open |
+| GEN.485 | Source the hot-Jupiter thermochemistry above 2200 K, a Kzz distribution and the edges of the 1500 K and 2200 K regimes (AR6) | none | open |
+| GEN.486 | Source the lava-world vapour regimes and the fraction of lava worlds that keep volatiles (AR7) | none | open |
+| GEN.487 | Source the evolved and frost atmospheres: cold vapour pressures, the habitable-zone coefficients, the occurrence of Titan-, Pluto- and Venus-like bodies and the abiotic O2 frequency (AR8) | none | open |
+| GEN.488 | Source the comet coma classes and their volatile ratios (AR9) | none | open |
+| GEN.489 | Source the white-dwarf and pulsar planet options (AR10) | none | open |
+| GEN.490 | Source the trace-gas presence weights (AR11) | none | open |
+| GEN.491 | Source the cloud and haze windows and yields (AR12) | none | open |
+| GEN.492 | Source the ground radioisotope abundances by host and the potassium depletion by body class (AR13) | none | open |
+| GEN.493 | Source the initial-rotation distribution and the saturation time against stellar mass for the host-star UV regime (AR14) | none | open |
+| GEN.494 | Source the brown-dwarf type against temperature and the T/Y boundary near 500 to 700 K (AR15) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2031,17 +2075,17 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.135 | Big-galaxy query-budget test for the nebula reads | none | open |
 | TEST.136 | A nebula-rate audit test: the nebula counts and fillings stay inside the observed bands | none | done, PR #1239 |
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) | none | open |
-| TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) | none | open |
+| TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) | none | merged into TEST.126 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.139 | Rework, optimise and rebuild the whole test suite so it runs faster and in modules | none | done, PR #1605 |
 | TEST.140 | test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug) | none | open |
 | TEST.141 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug) | none | open |
 | TEST.142 | test_a_table_keeps_its_sort_and_filter_across_a_reload fails on main: its fake get_systems lacks the new `after` argument (bug) | none | done, PR #1313 |
 | TEST.143 | test_install_checkout_leaves_a_current_editable_install_alone fails when the suite runs from a git worktree (bug) | none | done, PR #1313 |
-| TEST.144 | test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug) | none | open |
+| TEST.144 | test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug) | none | merged into TEST.126 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.145 | Subprocess tests must run the checkout under test, not the installed copy of another checkout (bug) | none | done, PR #1367 |
 | TEST.146 | Rate-limit tests fail when the between-test reset wipes every limiter key on the shared Redis (bug) | none | done, PR #1367 |
 | TEST.147 | Two nebula-field table tests fail under load and pass alone (bug) | none | done, PR #1405 |
-| TEST.148 | Investigate resuming a test run where it left off when the build is the same | none | open |
+| TEST.148 | Investigate resuming a test run where it left off when the build is the same | none | merged into TEST.208 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.149 | Two physics tests fail under load and pass alone (bug) | none | done, PR #1405 |
 | TEST.150 | Test run progress log and build id for resuming a run | none | done, PR #1431 |
 | TEST.151 | scripts/test.py --resume: skip the tests that passed in a run of the same build | none | done, PR #1484 |
@@ -2060,13 +2104,13 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | none | open |
 | TEST.165 | Re-measure the region query on a real generated galaxy, warm and cold | none | open |
 | TEST.166 | The cell key follows an object across a cube boundary, and the point columns and the key round-trip bit for bit | none | done, PR #1881 |
-| TEST.167 | test_random_start_mode_respects_min_start_density hit a 900 s timeout in a full run and passes alone (bug) | none | open |
+| TEST.167 | test_random_start_mode_respects_min_start_density hit a 900 s timeout in a full run and passes alone (bug) | none | merged into TEST.111 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.168 | Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs | none | open |
 | TEST.169 | Admin page browser tests: every admin page and task works end to end after the streamline | none | open |
 | TEST.170 | test_math_check::test_whole_run_is_fast and the Galaxy Map breadcrumb folding test fail under full-suite load and pass alone (bug) | none | open |
 | TEST.171 | test_gen_resume::test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards failed once under gate load with no scattered system (0 > 0) and passes alone (bug) | none | open |
 | TEST.172 | test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug) | none | open |
-| TEST.173 | test_gen_bright_scatter_edges::test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star failed once under gate load with an empty ring in _nearest (bug) | none | open |
+| TEST.173 | test_gen_bright_scatter_edges::test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star failed once under gate load with an empty ring in _nearest (bug) | none | merged into TEST.171 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.174 | test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug) | none | open |
 | TEST.175 | Edit everything end to end: the headline scenarios with approval and undo | none | open |
 | TEST.176 | Plan engine properties: any sequence of edits leaves every system valid, and undo restores every row | none | open |
@@ -2088,14 +2132,14 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.192 | The galaxy-grid fuzz test `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on a float cancellation of the halo subtraction far above the disk (bug) | none | done, PR #1883 |
 | TEST.193 | A module fixture's `DROP DATABASE IF EXISTS` blocks for 853 s on a metadata lock that another connection holds, so a browser test hangs in teardown (bug) | none | open |
 | TEST.194 | `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug) | none | open |
-| TEST.195 | `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` timed out at 30 s fetching `/sector/<id>/galaxy` inside a full gate run and passed alone (bug) | none | open |
+| TEST.195 | `test_opening_a_sector_is_one_continuous_view_with_a_filled_panel` timed out at 30 s fetching `/sector/<id>/galaxy` inside a full gate run and passed alone (bug) | none | merged into TEST.193 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.196 | Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged | none | open |
-| TEST.197 | `test_page_is_accessible_and_fits[web.sector-phone-light]` failed under load and passed alone: find the cause and make it robust (bug) | none | open |
+| TEST.197 | `test_page_is_accessible_and_fits[web.sector-phone-light]` failed under load and passed alone: find the cause and make it robust (bug) | none | merged into TEST.174 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.198 | `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug) | none | open |
 | TEST.199 | `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on main for a far-tail case: the halo subtraction loses precision, 2.4e-9 against a 1e-9 tolerance (bug) | none | open |
 | TEST.200 | The nightly local offset limit is documented and pinned by `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point` | none | open |
 | TEST.201 | `block_stats` totals do not depend on the order of the rows: a test | none | open |
-| TEST.202 | `test_galaxy_map_drill_down_by_clicks` failed under load and passed alone: call 28 s to 52 s on a loaded worker (bug) | none | open |
+| TEST.202 | `test_galaxy_map_drill_down_by_clicks` failed under load and passed alone: call 28 s to 52 s on a loaded worker (bug) | none | merged into TEST.172 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.203 | `test_one_worker_leaves_the_runs_own_random_stream_alone` failed once under heavy load with WorkerDied "the task's job ended canceled" and passes alone (bug) | none | open |
 | TEST.204 | Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges | none | open |
 | TEST.205 | `test_no_reserved_word_is_an_unquoted_identifier` fails on main: the DB.18 migration helpers use LOCK in `ALGORITHM=INPLACE, LOCK=NONE` (bug) | none | done, PR #1927 |
@@ -2106,6 +2150,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.210 | A bulk composition sweep over every class: fractions, density, mass, radius and gravity agree | none | open |
 | TEST.211 | A star composition sweep: every kind of star, remnant and brown dwarf, fractions, trends and determinism | none | open |
 | TEST.212 | A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition | none | open |
+| TEST.213 | `test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star` failed in a loaded browser run: the wheel loop opened the system before the disc reached full share (bug) | none | open |
+| TEST.214 | Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence | none | open |
+| TEST.215 | The Solar System calibration rows live in test files only: a flag fences them and a test fails when a generator table reads one | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
