@@ -3827,3 +3827,31 @@ ORBIT_UPDATE_ROW_CEILING = 10_000_000
 are due, the run moves this many (the oldest due of each table first, a share of it per table by how many are due),
 warns with the backlog and leaves the rest due for the next night. 0 moves everything that is due, however many.
 `planetgen.cli.orbits --row-ceiling` sets it for one run. A planetGen default."""
+
+# --- Slow page requests (PERF.105) -------------------------------------------------------------
+
+SLOW_PAGE_ROW_BUDGET = 2_000_000
+"""int: A page request that reads more rows than this is slow (`web/lib/slowpages.py`): the rows are the
+database's own estimate (`information_schema`) of the tables the route reads in full, and are used only until a
+build of that exact request has been timed. A planetGen default."""
+
+SLOW_PAGE_SECONDS = 3.0
+"""float: A page request whose last build took longer than this is slow, whatever its row estimate said. A
+measured time always beats the estimate. A planetGen default."""
+
+SLOW_PAGE_ROWS_PER_SECOND = 250_000
+"""int: How many rows a build reads per second, for the first estimate of how long a request will take, before one
+has been timed. A planetGen default."""
+
+SLOW_PAGE_JOB_SECONDS = 3600
+"""int: How long a slow request's job (its id, progress and finished state) is kept in Redis. A planetGen default."""
+
+SLOW_PAGE_FAILED_SECONDS = 30
+"""int: How long a failed or cancelled job is shown to the visitors who ask for the same request, before the next
+one queues a new job. A planetGen default."""
+
+SLOW_PAGE_ESTIMATE_SECONDS = 60
+"""int: How long a web process keeps the table row estimates before it asks the API again. A planetGen default."""
+
+SLOW_PAGE_TIMING_SECONDS = 7 * 86400
+"""int: How long the build time of a request is remembered in Redis. A planetGen default."""

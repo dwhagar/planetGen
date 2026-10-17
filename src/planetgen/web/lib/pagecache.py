@@ -65,10 +65,11 @@ DEFAULTS = PageCache().model_dump()
 """dict: The model's defaults (`settings.PageCache`), the settings a cache
 built without any uses."""
 
-UNCACHED_PREFIXES = ("/galaxy/changes", "/galaxy/tiles", "/galaxy/stage", "/galaxy/window", "/galaxy/stamp", "/auth", "/admin")
+UNCACHED_PREFIXES = ("/galaxy/changes", "/galaxy/tiles", "/galaxy/stage", "/galaxy/window", "/galaxy/stamp", "/auth", "/admin",
+                     "/table-estimates", "/page-jobs")
 """tuple: Paths never cached here: the stamp itself, the Galaxy Map's tile
-and stage data (`tilecache.py` keeps those on disk), and anything that
-depends on who is asking."""
+and stage data (`tilecache.py` keeps those on disk), anything that
+depends on who is asking, and the slow-page mechanism's own reads (PERF.105)."""
 
 MAX_BODY_FRACTION = 0.25
 """float: One body may use at most this share of `max_mb`, so a single
