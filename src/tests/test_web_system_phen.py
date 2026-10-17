@@ -130,7 +130,7 @@ class FakeData:
         return {"id": 1, "path": path, "title": "x", "url": "https://wiki.example/x"}
 
     def get_phenomena(self, db, limit=None, offset=None, sort=None, descending=False, types=(), descriptors=(),
-                      placed=None, facets=False):
+                      placed=None, facets=False, after=None):
         self.calls.append(("get_phenomena", db, limit, offset))
         self.phenomena_asked.append({"sort": sort, "descending": descending, "types": list(types),
                                      "descriptors": list(descriptors), "placed": placed, "facets": facets})

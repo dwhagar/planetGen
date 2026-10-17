@@ -789,6 +789,21 @@ tbody tr:last-child td {
   font-weight: 600;
 }
 
+/* UX.3: the notice every visitor sees while a background run changes the galaxy */
+.galaxy-banner {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--bg-subtle);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--tier-yellow);
+  border-radius: var(--radius);
+}
+
+.galaxy-banner[hidden] {
+  display: none;
+}
+
 /* The map panels: interactive 3D WebGL scenes (the Galaxy Map's, and the sector
    page's, which is the same engine locked to its sector) */
 .starmap-layout {

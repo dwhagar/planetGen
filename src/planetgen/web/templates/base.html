@@ -96,6 +96,7 @@ subhead (badges or actions under the <h1>). -#}
 {%- endif %}
 <script src="{{ static_url('theme.js') }}"></script>
 <script src="{{ static_url('localtime.js') }}" defer></script>
+<script src="{{ static_url('galaxybanner.js') }}" defer></script>
 <link rel="stylesheet" href="{{ static_url('vendor/shoelace/themes/light.css') }}">
 <link rel="stylesheet" href="{{ static_url('style.css') }}">
 <link rel="stylesheet" href="{{ static_url('shoelace-theme.css') }}">
@@ -167,6 +168,9 @@ subhead (badges or actions under the <h1>). -#}
   {%- if waiting %}
   <p class="error restart-banner inline-links" role="status">Saved settings are waiting for a restart of the web server: {{ waiting | map(attribute=1) | join(', ') }}. <a href="{{ page_url('admin_settings') }}">Settings</a></p>
   {%- endif %}
+  {#- UX.3: shown to every visitor while a background run changes the galaxy; `galaxybanner.js` keeps it current. -#}
+  {%- set changing = galaxy_status() %}
+  <p class="galaxy-banner" role="status" data-status-url="{{ url_for('web.galaxy_status') }}" data-poll-seconds="30"{% if not changing.active %} hidden{% endif %}>{{ changing.text if changing.active }}</p>
   {%- for is_error, text in edit_flashes() %}
   <p class="{{ 'error' if is_error else 'hint' }} edit-message" role="{{ 'alert' if is_error else 'status' }}">{{ text }}</p>
   {%- endfor %}

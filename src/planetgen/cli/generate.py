@@ -1377,28 +1377,6 @@ def build_parser():
     }
 
 
-def reject_lost_option_values(args, parser):
-    """
-    Python 3.9's argparse drops a lone `--` given as an option's value
-    (`--workers=--`) and stores an empty list instead of an error
-    (PERF.27; later versions fix it). Any single-value option holding a
-    list it didn't default to gets the usage error newer versions give.
-
-    Args:
-        args (argparse.Namespace): The parsed arguments.
-        parser (argparse.ArgumentParser): The command's own parser.
-
-    Raises:
-        SystemExit: Through `parser.error`, exit status 2.
-    """
-    for action in parser._actions:
-        if type(action) is not argparse._StoreAction or action.nargs is not None or not action.option_strings:
-            continue
-        value = getattr(args, action.dest, None)
-        if isinstance(value, list) and not isinstance(action.default, list):
-            parser.error(f"argument {'/'.join(action.option_strings)}: expected one argument")
-
-
 def process_args():
     """
     Parses command-line arguments for `planetgen`, then validates
@@ -1413,7 +1391,6 @@ def process_args():
     args = parser.parse_args()
     command_parser = command_parsers[args.command]
 
-    reject_lost_option_values(args, command_parser)
     validate_logging_args(args, command_parser)
 
     # --mysql-port's range (1 to 65535) is checked by its argparse type,
