@@ -8191,7 +8191,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fails when a gas named anywhere in the code is missing from the table;
   every number has a source.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Prerequisites: GEN.409, GEN.437, GEN.438, GEN.472, GEN.500. Related:
+  Prerequisites: GEN.409, GEN.437, GEN.438, GEN.500. Related:
   GEN.208,
   GEN.85,
   GEN.355, GEN.411, GEN.415, DB.71.
@@ -9185,7 +9185,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   phase, the envelopes) with the source and licence column of the F5
   rule, so the bulk recipes of GEN.428 and the taxon rows of GEN.457
   draw only among the materials a class can hold.
-  Prerequisites: GEN.426, GEN.437, GEN.438, GEN.472, GEN.500. Related:
+  Prerequisites: GEN.426, GEN.437, GEN.438, GEN.500. Related:
   GEN.410,
   GEN.428.
   Boss (2026-10-17, 1:47 AM EDT, typed in the body composition thread):
@@ -9305,7 +9305,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test target here and in TEST.210), not 3.9 to 5.4. Core mass fraction
   from the star is 0.2 to 0.47 with the Thiabaud box used only as a
   plausibility box.
-  Prerequisites: GEN.427, GEN.440, GEN.458, GEN.472. Related: GEN.429,
+  Prerequisites: GEN.427, GEN.440, GEN.458. Related: GEN.429,
   DB.69,
   GEN.430.
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
@@ -9796,7 +9796,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that comes from its relation's source with the scatter stated; the
   weights of the rows that pass add up to 100 percent and a row without
   a source is `open`.
-  Prerequisites: GEN.435, GEN.437, GEN.438, GEN.472. Related: GEN.440,
+  Prerequisites: GEN.435, GEN.437, GEN.438. Related: GEN.440,
   GEN.428.
   Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
   answers relayed in words by the coordinator;
@@ -9841,7 +9841,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against [Fe/H], from a cited solar abundance set (the check typed
   Asplund-style values from memory; Lodders 2003 and Asplund 2009 were
   not read).
-  Prerequisites: GEN.439, GEN.472. Related: GEN.428, GEN.446, GEN.158,
+  Prerequisites: GEN.439. Related: GEN.428, GEN.446, GEN.158,
   GEN.242,
   GEN.243, GEN.252, GEN.269, GEN.253, GEN.249.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
@@ -9908,7 +9908,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shares sum to one, agree with its bulk fractions and its temperature,
   and the ground's albedo and radiogenic content can be read from them;
   a test says so for every class.
-  Prerequisites: GEN.428, GEN.429, GEN.459, GEN.461, GEN.472. Related:
+  Prerequisites: GEN.428, GEN.429, GEN.459, GEN.461. Related:
   DB.70,
   GEN.444, GEN.418,
   GEN.412.
@@ -9993,8 +9993,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Class D density replacement (finding F3): rock mass fraction from a
   truncated normal on [0.45, 0.95], a parametrisation to replace when
   sourced. The moons are GEN.466.
-  Prerequisites: GEN.428, GEN.429, GEN.458, GEN.459, GEN.470, GEN.472,
-  GEN.495.
+  Prerequisites: GEN.428, GEN.429, GEN.458, GEN.459, GEN.470, GEN.495.
   Related:
   DB.70,
   GEN.360, GEN.441.
@@ -10714,7 +10713,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (hydrogen, helium and the metals sum to the drawn metallicity), the
   dominant carbon and nitrogen carriers by temperature, and determinism.
   Owner: Core 4 (proposed).
-  Prerequisites: GEN.410, GEN.411, GEN.460, GEN.472, GEN.478. Related:
+  Prerequisites: GEN.410, GEN.411, GEN.460, GEN.478. Related:
   GEN.409,
   GEN.410,
   GEN.411,
@@ -10777,7 +10776,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against the source and loss rates of part 04 within the stated spread,
   and that a body with an atmosphere of any pressure never gets an
   exosphere. Owner: Core 4 (proposed).
-  Prerequisites: GEN.441, GEN.442, GEN.410, GEN.472, GEN.478. Related:
+  Prerequisites: GEN.441, GEN.442, GEN.410, GEN.478. Related:
   GEN.409,
   GEN.410,
   GEN.441, GEN.442, DB.70, GEN.446.
@@ -10850,8 +10849,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   three melt temperatures within the stated spread, that the partials
   sum to the surface pressure, and determinism. Owner: Core 4
   (proposed).
-  Prerequisites: GEN.441, GEN.410, GEN.411, GEN.414, GEN.451, GEN.472,
-  GEN.478, GEN.499.
+  Prerequisites: GEN.441, GEN.410, GEN.411, GEN.414, GEN.451, GEN.478,
+  GEN.499.
   Related:
   GEN.409,
   GEN.410, GEN.411, GEN.414, GEN.418, GEN.441.
@@ -11432,7 +11431,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the parent beyond the ice line in the physical direction, the same
   system gives the same moons at any worker count, and a test says so.
   Owner: Core 4 (proposed, with the composition chain).
-  Prerequisites: GEN.428, GEN.429, GEN.442, GEN.458, GEN.472. Related:
+  Prerequisites: GEN.428, GEN.429, GEN.442, GEN.458. Related:
   GEN.442,
   GEN.457, GEN.461, DB.70.
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
@@ -11761,153 +11760,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   prints the acid vapour pressure: it needs Ayers 1980 (paid) or the
   Kulmala-Laaksonen form already in the files; the stand-in stays.
 
-- [ ] **GEN.472 One gated possibility-table format and loader: every composition category is a table of possibilities with a class gate and a weight, drawn by the normalised weights of the rows that pass**
-  Boss (2026-10-17, 1:40 AM EDT, typed in the project chat): "We have to
-  add to our composition plans that what I'd like to do is for each
-  composition have a list of possibilities with their weighted
-  probabilities (for all compositions, each category will have a table
-  of possibilities and their associated values). So, list items will be
-  gated, each table line has a list of supported planet or object
-  classes and then we draw composition based on the composition
-  probabilities to add up to 100%." The coordinator answered yes in the
-  project chat with two refinements, taken here as the design: a weight
-  may be a function of the star and the formation distance (the route 2
-  draw, Decided 1:21 AM EDT), and every weight carries its source
-  (nothing invented, the standing no-fixed-content rule). Do: one
-  standard row format and one loader that every composition table uses,
-  with the columns possibility, supported classes (the class gate: the
-  planet, moon, star or object classes the row applies to), weight or
-  weight function, source and licence, and notes. The draw takes the
-  rows whose gate passes the body, evaluates each weight (a number, or a
-  function of the star's stored [Fe/H], mass and age and of the
-  formation distance and the snow line), drops rows whose weight is
-  zero, normalises the rest to add up to 100 percent and picks one with
-  the one random wrapper (GEN.56 draw.py) in the table's fixed row
-  order; a row then supplies the ranges its drawn fractions or partial
-  pressures take, and those fractions are normalised by their own item
-  (the mixture in GEN.411, the bulk fractions in GEN.428), so two
-  different sums are checked, the weights of the possibilities and the
-  fractions of the drawn one. A table in which no row passes the gate,
-  or in which every weight is zero, raises an error naming the class and
-  the table: there is no silent fallback to a fixed row. The loader
-  refuses a row without a source and a licence (the F5 rule of the Body
-  composition research lane), and a weight with no source is written
-  `open`: open rows of one gate split their share equally, the loader
-  lists every open weight in one report, and each is replaced when a
-  source or a derivation is found. Adding, removing or reweighting a row
-  changes the draws of every seed in its classes, so each table carries
-  a version and a change to it is a generator epoch bump
-  (src/tests/golden/epochs.json). The tables register themselves with
-  the loader, so a sweep can walk all of them. Done: unit tests on
-  synthetic tables cover the gate, a weight function, normalisation to
-  100 percent within 1e-12, the empty-gate and all-zero errors, the
-  refusal of a row without a source, the open-weight report and
-  determinism at any worker count; the format is written up in
-  docs/design/composition-model.md section 4b and the first real tables
-  (GEN.410, GEN.427, GEN.439) load through it. Owner: Core 4 (proposed,
-  with the composition chain).
-  Prerequisites: GEN.437. Related: GEN.410, GEN.427, GEN.428, GEN.439,
-  GEN.411, GEN.56, GEN.457, GEN.466.
-  Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
-  (1) 1:43 AM EDT, "Weights, Dirichlet where unsure": the mixture
-  proportions of a drawn possibility use the table weights directly
-  where a sourced kernel exists, and a Dirichlet draw around those
-  weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:44 AM EDT, "Stand-in only": measured
-  Solar System shapes (the asteroid taxon shares and the zone kernel,
-  the Earth rock-type library) enter a table only as flagged temporary
-  stand-ins, each with its own research item that replaces it with a
-  derived or general distribution. The loader therefore (1) draws the
-  proportions of a drawn possibility directly from the weights where the
-  row names a sourced kernel, and as a Dirichlet draw around the weights
-  where the row has only a range, with the concentration from the spread
-  and the draw built from the one random wrapper (GEN.56), and (2)
-  carries a second source marker, `stand-in`, next to `open`: a stand-in
-  row names its replacement research item (GEN.473 and GEN.474 today)
-  and the loader lists stand-ins in the same report as the open weights.
-  The tests cover that the Dirichlet fractions add up to one within
-  1e-12, that the mean follows the weights, that the draw is
-  deterministic, and that a stand-in row without a replacement item is
-  refused.
-  Boss (2026-10-17, 1:47 AM EDT, typed in the body composition thread):
-  "basically anything an asteroid field or belt can be made of, a planet
-  or moon can be made of too that was my main point there". So there is
-  one shared materials and components table for every object kind
-  (asteroid, belt, field, comet, moon, planet, dwarf planet), each row
-  gated by class; there are no separate component lists per kind. The
-  loader holds one materials-and-components table that all kinds draw
-  from; a component list owned by one kind is refused.
-  Section 14.6 of the Body composition research lane's note
-  (docs/design/body-composition-research.md; 2026-10-17, 1:48 AM EDT as
-  the lane reported), on Boss's shared-vocabulary point of 1:47 AM EDT,
-  filed by the TODO thread: the gate does the physics and not the object
-  type: a row's gate lists the kinds that can hold it plus condition
-  predicates on stored quantities (the condensation temperature at the
-  formation distance for ices, organics and hydrated silicates; the
-  mantle oxidation state for native iron, sulfides and oxides; the water
-  and carbon inventory for carbonates, clays and serpentine; the star's
-  abundances, for example carbides when C/O is high and rare-earth and
-  uranium minerals only as trace accessories scaled to the star's Eu and
-  Th), so this item includes the one gate evaluator with the condition
-  predicates; the predicates are preferred to class letters because the
-  classes are being reworked.
-  Decided (Boss, 2026-10-17, 1:51 AM EDT, a card, as the coordinator
-  relayed it): the table weights are the odds of picking a possibility,
-  the fractions inside the drawn row are normalised separately, and both
-  sums are tested.
-  Checked by the Body composition research lane against Boss's second
-  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
-  of docs/design/body-composition-research.md; the earlier 'awaiting
-  verification' note on this item is superseded for the body-related
-  claims): (part G4) the licence column is mandatory for every row, and
-  the loader refuses a row without one (the audit is GEN.500).
-  Boss's standing rule (3:02 AM EDT, section 4a item 10 of
-  composition-model.md): everything verified and partially verified is
-  usable as long as it is not contradictory, and the verified source
-  wins in a contradiction; the loader's source column carries the state
-  verified, partly verified (with its limit), open or stand-in, reports
-  the count per table, and the draw uses partly verified rows as
-  sourced-with-limit.
-  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
-  docs/design/tunable-gaps.md): the loader's tunable rows also carry a
-  target-table entry (statistic, value, sigma, source, label, validity
-  range, selection-model id) that the loader checks, built in the
-  harness GEN.503; a knob outside its validity range is a flagged
-  extrapolation.
-  Owner: Blocker 1 (the code lane "Blocker 1 (2026-10-17)", started by
-  Boss at 10:27 AM EDT, typed in the project chat: "Start Blocker thread
-  1, I want you to put GEN.472 and TEST.186 please, then it will go idle
-  until I need it again"; relayed by the coordinator). No lane had
-  started it. This replaces any earlier owner line on this item.
-  Prerequisite GEN.437 (the composition model design note) is still
-  open, and its four design notes GEN.409, GEN.426, GEN.435 and GEN.436
-  are open with Core 4; the format is already Decided in
-  docs/design/composition-model.md sections 4a and 4b, so the lane
-  builds on those sections.
-  Registry hook (2026-10-17, gap-filling plan,
-  docs/design/gap-filling-plan.md, group X1): the loader's `stand-in`
-  and `open` markers carry the plan's stand-in record (section 6.1: fill
-  id, kind D/B/T/P, evidence, source state, assumptions, validity,
-  knobs, falsifier, replaced-by item, epoch), the loader report lists
-  every open fill, and a build check fails on an open fill that has no
-  replacement item. Proposed home `planetgen/fills.py` (data, not
-  behaviour). The plan puts X1 first because every other fill group
-  registers into it.
-  Boss's general rules (typed in the project chat at 12:39 PM EDT on
-  2026-10-17, relayed by the coordinator): when in doubt, verified wins;
-  when two verified sources are in doubt, the newest wins; when two
-  sources are both in question, the one that takes the most permission
-  wins (his words 'most permission take wins'; Boss confirmed by card at
-  1:12 PM EDT, relayed in words, that it means the widest range of the
-  two sources: Decided). At 12:40 PM EDT,
-  by card (relayed in words), his six earlier 'widen and keep both'
-  answers stand; the newest-wins rule applies to every conflict after
-  them. The loader's source-conflict handling follows this: a verified
-  row beats a partly verified or second-hand one, the newest of two
-  verified rows wins and the older stays recorded, and two rows both in
-  question widen to the widest bracket; the six earlier
-  widen-and-keep-both cases keep both.
-
 - [ ] **GEN.473 Replace the asteroid taxon shares and the zone kernel, measured in the Solar System belt, by a derived or general distribution**
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
   (1) 1:43 AM EDT, "Weights, Dirichlet where unsure": the mixture
@@ -12115,7 +11967,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the stored thresholds; a test says so and that the same galaxy gives
   the same belts at any worker count. Owner: Core 4 (proposed, with the
   composition chain and the small bodies of GEN.442).
-  Prerequisites: GEN.442, GEN.457, GEN.458, DB.70, GEN.472. Related:
+  Prerequisites: GEN.442, GEN.457, GEN.458, DB.70. Related:
   GEN.442, GEN.457, GEN.473, GEN.472, GEN.458, DB.70, NAV.62.
   Boss (2026-10-17, 1:47 AM EDT, typed in the body composition thread):
   "basically anything an asteroid field or belt can be made of, a planet
@@ -12181,7 +12033,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the `open` rows are listed with their AR number (GEN.480 to GEN.494),
   and a draw is deterministic at any worker count. Owner: Core 4
   (proposed, with the composition chain).
-  Prerequisites: GEN.472, GEN.410. Related: GEN.472, GEN.410, GEN.411,
+  Prerequisites: GEN.410. Related: GEN.472, GEN.410, GEN.411,
   GEN.413, GEN.414, GEN.451, GEN.454, GEN.455, GEN.456, GEN.479,
   TEST.214, GEN.480, GEN.481, GEN.482, GEN.483, GEN.484, GEN.485,
   GEN.486, GEN.487, GEN.488, GEN.489, GEN.490, GEN.491, GEN.492,
@@ -12852,7 +12704,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the comet volatile draw reads the table, each range carries its source
   and label, and a test checks the ranges and determinism. Owner: Core 4
   (proposed, with the composition chain).
-  Prerequisites: GEN.472, GEN.457. Related: GEN.442, GEN.455, GEN.457,
+  Prerequisites: GEN.457. Related: GEN.442, GEN.455, GEN.457,
   GEN.472, GEN.474.
   Papers list (2026-10-17, filed by the TODO thread;
   docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
@@ -13167,7 +13019,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   refuses a tunable row without a target, and the harness holds no Solar
   System value as a target without the flag. Owner: Core 4 (proposed,
   with the composition chain).
-  Prerequisites: GEN.472, GEN.478. Related: GEN.472, GEN.478, TEST.214,
+  Prerequisites: GEN.478. Related: GEN.472, GEN.478, TEST.214,
   GEN.480, GEN.494.
   Registry hook (2026-10-17, gap-filling plan,
   docs/design/gap-filling-plan.md, group X1): the target table gets the
@@ -18272,6 +18124,20 @@ clears each one.
   `AssertionError: [0]; assert 0 == 1.0 +/- 1.0e-06` (the disc opacity
   read 0, expected 1), not only 'comparison failed'; it passed alone in
   163.73 s on gw0 at load 10.1.
+  Sighting and update (Blocker 1, 2026-10-17, about 1:37 PM EDT as the
+  lane reported, relayed by the coordinator): it FAILS ON MAIN alone,
+  not only under load. A clean worktree of origin/main, run alone at
+  about 1:37 PM EDT, failed with "the system's scene never came in",
+  assert [] at line 231 of `src/tests/test_web_browser_sector_reach.py`;
+  it also failed alone in Blocker 1's second GEN.472 gate (changed gate:
+  14,408 passed, 1 failed). Kind: bug, real or environment failure on
+  main, not a load flake (the earlier 'passes alone' runs were on
+  branches without the current main). Fails on main: yes. Frequency: 2
+  of 2 alone runs at 1:37 PM EDT and in the second gate. Reproducer:
+  `python -m pytest src/tests/test_web_browser_sector_reach.py -k
+  fades_in` on main (about 2.5 minutes). Bug Hunt keeps ownership; the
+  Done line needs the cause found (a fixed wait, a real race or an
+  environment change) before any wait is lengthened.
   Prerequisites: none. Related: TEST.194, TEST.126.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
@@ -18299,7 +18165,7 @@ clears each one.
   table the build has and fails when a weight, a gate or a source is
   broken on purpose in a copy of a table. Owner: Core 4 (proposed, with
   the composition chain).
-  Prerequisites: GEN.472, GEN.410, GEN.427, GEN.439. Related: TEST.211,
+  Prerequisites: GEN.410, GEN.427, GEN.439. Related: TEST.211,
   TEST.210, TEST.209, GEN.428, GEN.411.
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
   (1) 1:43 AM EDT, "Weights, Dirichlet where unsure": the mixture
@@ -18334,7 +18200,7 @@ clears each one.
   item. Done: the test passes on the tables the build has and fails when
   a calibration row is read by a generator table. Owner: unowned
   (research; Boss or a read-only research lane).
-  Prerequisites: GEN.472, TEST.211. Related: TEST.214, TEST.211,
+  Prerequisites: TEST.211. Related: TEST.214, TEST.211,
   GEN.472.
   Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment

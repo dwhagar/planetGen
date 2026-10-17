@@ -83,7 +83,7 @@ The colour shown in the descriptions, on the maps in place of the planet colour,
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.503 | The shared tuning harness: a target table, a simulate-and-compare function and a loader that refuses a tunable row without a target | GEN.472, GEN.478 | Tunable gaps report: The shared tuning harness: a target table, a simulate-and-compare func. |
+| GEN.503 | The shared tuning harness: a target table, a simulate-and-compare function and a loader that refuses a tunable row without a target | GEN.478 | Tunable gaps report: The shared tuning harness: a target table, a simulate-and-compare func. |
 | GEN.504 | The Kepler transit-plus-recovery selection model | GEN.503 | Tunable gaps report: The Kepler transit-plus-recovery selection model. |
 | GEN.505 | The mass-radius sample selection model | GEN.503 | Tunable gaps report: The mass-radius sample selection model. |
 | GEN.506 | The JWST atmosphere target-selection model | GEN.503 | Tunable gaps report: The JWST atmosphere target-selection model. |
