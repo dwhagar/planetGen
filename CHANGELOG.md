@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1614] - 2026-10-17
+
+**Headline:** API.27 and UX.113 (the read-only Sector Profile lookup and the profile panel on the sector page) leave the TODO list.
+
+### Changed
+- API.27 and UX.113 retired on Core 4's merge (#1919); UX.115 no longer waits on them.
+
+TODO items resolved: API.27, UX.113 / Added: none
+
 ## [8.0.1613] - 2026-10-17
 
 **Headline:** Any address in the galaxy now has a page showing what the galaxy's shape says it holds.
