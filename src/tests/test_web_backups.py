@@ -227,8 +227,7 @@ def test_nothing_ticked_and_unknown_names_are_refused(site, config):
     assert site.get("/api/admin/backups/20200101T000000Z.tar.bz2").status_code == 404
     assert site.get("/api/admin/backups/not-an-archive").status_code == 404
     resp = site.get("/admin/settings/backups/20200101T000000Z.tar.bz2")
-    assert resp.status_code == 303
-    assert "There is no such backup." in site.get("/admin/settings/backups").get_data(as_text=True)
+    assert resp.status_code == 404
     flash = _form(site, f"/admin/settings/backups/{name}/restore")
     assert flash.status_code == 303 and "Tick at least one part" in site.get(
         f"/admin/settings/backups/{name}").get_data(as_text=True)
@@ -355,6 +354,12 @@ def test_an_import_reviewed_before_someone_elses_save_is_refused(site, config):
 
 def test_the_new_pages_need_an_admin(site):
     anonymous = site.application.test_client()
-    for path in ("/admin/settings/backups", "/admin/settings/export"):
-        assert anonymous.get(path).status_code == 302
+    assert anonymous.get("/admin/settings/backups").status_code == 302
+    assert anonymous.get("/admin/settings/export").status_code == 403      # a download: a plain 403
     assert "Backups, restore, export and import" in site.get("/admin/settings").get_data(as_text=True)
+
+
+def test_export_with_no_config_file_is_an_empty_export(site, config):
+    config.unlink()
+    body = site.get("/api/admin/settings/export").get_json()
+    assert body == {"config_version": settings_writer.settings.CONFIG_VERSION}

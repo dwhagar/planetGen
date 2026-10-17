@@ -485,10 +485,11 @@ def export_document(role="admin"):
     left at their default are not in the file and so not in the export.
 
     Raises:
-        SettingsWriteError: config.json is missing or damaged.
+        SettingsWriteError: config.json is damaged. A missing file is an export of nothing set.
     """
-    document = read_document()
-    out = {"config_version": document.get("config_version", 1)}
+    data = read_bytes(config_path())
+    document = {} if data is None else _parse(data, config_path())
+    out = {"config_version": document.get("config_version", settings.CONFIG_VERSION if data is None else 1)}
     for option, (_info, meta) in _fields().items():
         if meta["x-secret"] or not allowed(meta, role)[0]:
             continue

@@ -19,7 +19,7 @@ from 8.2); an admin sees why it is not offered.
 
 import json
 
-from flask import make_response, request, url_for
+from flask import abort, make_response, request, url_for
 
 from planetgen.web.lib import apiclient
 
@@ -97,10 +97,10 @@ def admin_backup(archive):
     try:
         data = apiclient.admin_backup(_cookie_header(), archive)
     except apiclient.NotFoundError:
-        return _flash(_see_other(url_for("web.admin_backups")), error="There is no such backup.")
+        abort(404)
     except apiclient.ApiError as exc:
         if getattr(exc, "status_code", 0) == 404:
-            return _flash(_see_other(url_for("web.admin_backups")), error="There is no such backup.")
+            abort(404)
         return _flash(_see_other(url_for("web.admin_backups")), error=_api_message(exc))
     flashed = _take_flash()
     return _detail_page(data, archive, message=flashed.get("message"), error=flashed.get("error"))
@@ -141,7 +141,7 @@ def admin_settings_export():
     """The settings an admin may change as a download."""
     admin, bounce = _require_admin()
     if bounce is not None:
-        return bounce
+        abort(403)   # a file download, not a page: a plain 403 like the other json_only views
     try:
         document = apiclient.admin_settings_export(_cookie_header())
     except apiclient.ApiError as exc:
