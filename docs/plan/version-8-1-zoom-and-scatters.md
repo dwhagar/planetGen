@@ -184,7 +184,8 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | GEN.397 | `planetgen plan` stage 2 prints the progress weight as the number of phenomena to place (bug) |  | Rescatter thread finding, 2026-10-16; any Core lane. |
 | GEN.398 | The massive-star and bright-star passes place more stars than their log lines expect: 70 and 12 percent over (bug) |  | Rescatter thread finding; Core 3 proposed (scatter spine). |
 | DOC.62 | Docs: the generation cost figures and the redo scope are stale (the phenomena cut, rows, bytes and time; `--redo-scatters` leaves satellites and clusters alone) |  | Rescatter thread finding; docs only, any lane. |
-| TEST.207 | The page_targets fixture of the web accessibility tests errors 24 tests: web.admin_backup answers 302 and 404 with the sample database (bug) |  | Core 1 finding, 10:12 PM EDT; fails on main; Settings lane proposed. |
+| TEST.207 | The page_targets fixture of the web accessibility tests errors 24 tests: web.admin_backup answers 302 and 404 with the sample database (bug) |  | Core 1 finding, 10:12 PM EDT; fails on main; Settings lane proposed. Owner changed to Core 2, after GEN.306, ahead of GEN.276 (coordinator 10:20 PM EDT). |
+| GEN.407 | Correct the horizontal-branch and red giant tables to the checked sources: the RGB time law, the evolutionary flux, the HB colour row, the extreme HB luminosity and the tip |  | Stellar tables check, 2026-10-16 10:16 PM EDT; Core 3 proposed. |
 
 ### Nebula data foundations
 
