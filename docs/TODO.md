@@ -13238,43 +13238,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
-- [ ] **GEN.528 The rest of GEN.319: a Magellanic cell shows every class, and the scatter's planetary nebulae are weighted by the old share**
-  Residual of GEN.319 (merged #2003, 6:22 AM EDT as Core 3 reported),
-  filed by the TODO thread from Core 3's report. GEN.319 made the Type
-  Ia share and the old-star share profile fields and had the profile's
-  kind factors read them; two parts of its Done list are not met. (1) A
-  Magellanic cell can show every class: it cannot until the satellites
-  have young and intermediate populations (GEN.526, decided by Boss at
-  7:54 AM EDT: derived from age and gas), so the Clouds still lack the
-  young-star classes until it merges. (2) The
-  scatter's planetary nebulae are not yet weighted by the old share (the
-  profile's factor is), so the stored scatter rows still use the old
-  rate; that changes stored values, so it is a generator epoch change
-  (epoch 8 is pending and rides the next generation change) joined to
-  the one rescatter. Do: after GEN.526, check a cell inside the LMC and
-  the SMC for every class of nebula and remnant the profile allows, and
-  weight the planetary-nebula scatter by the old share the way the
-  profile's factor does. Done: an asked Magellanic cell can show every
-  class, the planetary nebula scatter's yield follows the old share (a
-  test compares a high-old-share cell with a low one), and the epoch
-  rule and `planetgen plan --redo-scatters phenomena` apply. Owner: Core
-  3 (proposed, GEN.319's author).
-  Owner: Core 3 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 2 of 48). This replaces any earlier owner line on this item.
-  Finding from GEN.526 (Core 3, 2026-10-17, 12:16 PM EDT as the lane
-  reported; merged #2043): satellite_young is in
-  system_types.POPULATIONS but no system-type row names it, the
-  system-type tables list only the disk's young population for the
-  young-star types, and the component pass's phenomenon_rates drops the
-  gas and young-star classes for satellites, so the Clouds' young stars
-  do not yet get supernova remnants or magnetars. This is part (1) of
-  this item: after GEN.526, a Magellanic cell still lacks those classes
-  until the rows name satellite_young and the rates keep the gas and
-  young-star classes.
-  Prerequisites: none. Related: GEN.319, GEN.526, GEN.324, GEN.322.
-
 - [ ] **GEN.529 The pre-main-sequence track takes its Hayashi temperature, birthline radius and energy factor from a sourced table, and the state reaches stars still contracting after 10 Myr**
   Residual of GEN.242 (merged #2009, 7:58 AM EDT as Core 3 reported,
   generator epoch 9), filed by the TODO thread from Core 3's finding.
@@ -13707,6 +13670,47 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pending generator epoch and the wiped rescatter. Owner: Core 1 (Boss's
   card, 12:56 PM EDT; GEN.401's author), with GEN.532.
   Prerequisites: none. Related: GEN.401, GEN.532, GEN.378, DB.66.
+
+- [ ] **GEN.534 A satellite's young stars reach the system-type tables: the young-star system types name `satellite_young`**
+  Residual of GEN.528 (merged #2077, 2026-10-17, about 3:02 PM EDT as
+  Core 3 reported), filed by the TODO thread from Core 3's report.
+  GEN.528 built the satellite's gas, remnants, magnetars and planetary
+  nebulae, but not the young stars in the system-type tables:
+  `satellite_young` is in `system_types.POPULATIONS`, yet no system-type
+  row names it and the young-star types list only the disk's young
+  population (finding from GEN.526, Core 3, 12:16 PM EDT). Core 3 left
+  it because nothing in `system_types` keys on `satellite_young` today.
+  Do: let the young-star system types (the types that need a young
+  population) draw from `satellite_young` in a Magellanic cell, with the
+  weight derived from the satellite's young share, not set by hand.
+  Done: a system asked inside the Large Cloud can be a young-star type,
+  a system in a dwarf with no young stars cannot, a test shows both, and
+  the epoch rule applies (a stored-value change joins the pending epoch
+  and the one rescatter). Owner: Core 3 (proposed, GEN.528's author;
+  behind its queue).
+  Prerequisites: none. Related: GEN.528, GEN.526, GEN.319.
+
+- [ ] **GEN.535 Check the Magellanic gas fraction and supernova-remnant count against the observed Clouds, and the dwarfs that still come out with gas (Leo I)**
+  Open inferences of GEN.528 (merged #2077, 2026-10-17, about 3:02 PM
+  EDT as Core 3 reported), filed by the TODO thread from Core 3's
+  report. (1) The gas fraction of a satellite is the young stars'
+  density against the solar circle's through the Schmidt-Kennicutt
+  exponent (0.33 at the Large Cloud's centre, 0.89 at the Small
+  Cloud's), an inference and not a measured gas map. (2) The Large Cloud
+  keeps about 7 of 67 remnant candidates, so its count is low against
+  the real Cloud's roughly 60 remnants. (3) Leo I still comes out with
+  gas, because its recalled mean age is from GEN.369. Do: read the
+  observed gas masses or fractions of the two Clouds and of Leo I
+  (verified sources only, citations checked first), compare them with
+  the generated fractions, and find why the remnant count is low (the
+  kept fraction, the age range of the remnant progenitors or the gas
+  fraction at the radius); fix the derivation if a law explains it, else
+  record the gap in the gap plan with a label. Done: the generated gas
+  fraction and remnant count of each Cloud sit within the observed range
+  (or the gap is labelled and tunable), Leo I's gas follows a verified
+  age, and the research is dated on the goal issue. Owner: unowned
+  (research, then Core 3 for the fix).
+  Prerequisites: none. Related: GEN.528, GEN.369, GEN.526.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
