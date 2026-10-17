@@ -740,3 +740,4 @@ Baseline: PR #1817.
 | GEN.372 | 8.3 | Positions as one object |
 | GEN.368 | 8.1 | Components and wanderers |
 | GEN.276 | 8.1 | Region query |
+| GEN.431 | 8.1 | Composition research and design |

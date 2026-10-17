@@ -29,7 +29,7 @@ Research, designs and tables are building blocks with no behaviour change and si
 
 | Where | Item | What |
 |---|---|---|
-| 8.1 phase 1 | GEN.431 | Research: what is in the atmospheres of every kind of world, and the numbers each compound needs |
+| done | GEN.431 | Research: what is in the atmospheres of every kind of world, and the numbers each compound needs |
 | 8.1 phase 1 | GEN.432 | Research: what rocky, icy and giant bodies and their small relatives are made of, and the numbers each material needs |
 | 8.1 phase 1 | GEN.433 | Research: what stars and stellar remnants are made of, and the numbers each needs |
 | 8.1 phase 1 | GEN.434 | Research: radiation through atmospheres and at the ground, and the numbers it needs |
@@ -73,12 +73,17 @@ Research, designs and tables are building blocks with no behaviour change and si
 | 8.4 phase 2 | GEN.441 | Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air |
 | 8.4 phase 2 | GEN.442 | Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line |
 | 8.4 phase 3 | DB.70 | Planets, moons and small bodies store the surface and small-body composition shares |
+| 8.4 phase 2 | GEN.455 | Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind |
 
 **Atmosphere: mixture, ozone, aerosols**
 
 | Where | Item | What |
 |---|---|---|
 | 8.4 phase 2 | GEN.411 | The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree |
+| 8.4 phase 2 | GEN.452 | The condensation table is replaced by the checked saturation curves (the hydrogen sulphide row is a copy of the sulphur dioxide row) |
+| 8.4 phase 2 | GEN.454 | Giants, ice giants and brown dwarfs draw their mixture from the equilibrium chemistry sequence |
+| 8.4 phase 2 | DB.71 | Planets and moons store the partial pressures of the added gases |
+| 8.4 phase 3 | GEN.456 | Lava worlds and hot rocky planets draw a vapour atmosphere over the magma |
 | 8.4 phase 2 | GEN.422 | Stop the recalculation redraw and order the steps so pressure, mixture and temperature agree after the cold-side freeze-out |
 | 8.4 phase 2 | GEN.423 | Atmosphere density, scale height and the greenhouse multiplier follow from the mixture |
 | 8.4 phase 2 | GEN.424 | The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture |
@@ -111,6 +116,7 @@ Research, designs and tables are building blocks with no behaviour change and si
 | Where | Item | What |
 |---|---|---|
 | 9.0 phase 2 | GEN.443 | Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud |
+| 9.0 phase 2 | GEN.453 | The radiation constants are corrected: cutoff with moment over radius squared, the dose curve and the field factor from the read tables |
 | 9.0 phase 2 | GEN.444 | Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content |
 | 9.0 phase 2 | GEN.445 | Habitability, toxicity and the UV index read the derived radiation instead of the proxies |
 
@@ -133,11 +139,11 @@ Research, designs and tables are building blocks with no behaviour change and si
 
 ## 4. The research lanes
 
-- **Atmosphere research (2026-10-17):** GEN.431, with the re-check of the four sources the first check could not reach.
+- **Atmosphere research (2026-10-17):** GEN.431, with the re-check of the four sources the first check could not reach. Done and merged: [atmosphere-composition.md](atmosphere-composition.md) (the master: findings, design synthesis, sources, what Boss must research) and its seven parts in [atmosphere-composition-parts/](atmosphere-composition-parts/01-gas-table-thermodynamics.md) (gas table and thermodynamics, optics, infrared and greenhouse, photochemistry and escape, mixing ratios by class, condensates and aerosols, radiation shielding and ground sources). Its findings are GEN.452 to GEN.456, DB.71 and the notes on GEN.409 to GEN.411, GEN.413, GEN.414, GEN.417, GEN.422, GEN.423, GEN.436, GEN.444, GEN.445 and GEN.451.
 - **Body composition research (2026-10-17):** GEN.432 (planets, moons, small bodies, giants), then GEN.433 (stars and remnants). GEN.425 (mass-radius and equation-of-state sources) is done, see the sources check.
 - **Radiation research:** GEN.434 is covered by the two lanes above (the coordinator, 12:17 AM EDT); no separate thread unless Boss asks.
 
-Each lane writes its draft to /mnt/project-files/design-drafts/ and reports; the TODO thread merges it into the design documents (atmosphere-composition and body-composition sections, stellar-composition.md, radiation-model.md, bulk-composition.md and atmosphere-colour.md) in a PR, with a dated comment on the goal issue. On 2026-10-17 at 12:02 AM EDT Boss widened the environment's network access, so the sources the first check could not reach can be re-read.
+Each lane writes its draft to /mnt/project-files/design-drafts/ and reports; the TODO thread merges it into the design documents (atmosphere-composition.md and its parts, the body-composition sections, stellar-composition.md, radiation-model.md, bulk-composition.md and atmosphere-colour.md) in a PR, with a dated comment on the goal issue. On 2026-10-17 at 12:02 AM EDT Boss widened the environment's network access, so the sources the first check could not reach can be re-read.
 
 ## 5. What Boss may research for the bodies
 

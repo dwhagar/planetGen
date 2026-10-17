@@ -32,7 +32,8 @@ The radiation derived from the stored composition: the band transmission and gre
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.443 | Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud | GEN.417, GEN.413, GEN.414, GEN.436 | Boss 11:58 PM EDT; band transmission and greenhouse from the mixture. |
-| GEN.444 | Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content | GEN.443, GEN.441, GEN.438 | Boss 11:58 PM EDT; replaces the proxies of physics/radiation.py; generator epoch bump. |
+| GEN.453 | The radiation constants are corrected: the dipole cutoff scales with moment over radius squared, the dose curve against the column and the field factor follow the measured and simulated tables (bug) | GEN.436 | Atmosphere research lane finding 4 (part 07 sections 2.1 and 4); generator epoch bump. Core 4 proposed. |
+| GEN.444 | Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content | GEN.443, GEN.441, GEN.438, GEN.453 | Boss 11:58 PM EDT; replaces the proxies of physics/radiation.py; generator epoch bump. |
 | GEN.445 | Habitability, toxicity and the UV index read the derived radiation instead of the proxies | GEN.444 | Boss 11:58 PM EDT; habitability reads the derived values. |
 
 ## Phase 3: Composition and colour in the product
