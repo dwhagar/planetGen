@@ -293,7 +293,7 @@ The four notes each hold their table. The rule they share: store a value only wh
 
 The designs and the loader change no stored value, so they bump no epoch. The build items do, in the groups the notes name:
 
-- **8.1:** the loader (GEN.472) and the data tables (GEN.410, GEN.427, GEN.438, GEN.439, GEN.440) are building blocks with no behaviour change. GEN.463 and GEN.467 keep their own epochs, joined to the one rescatter. The epoch scope of GEN.427 is open between the item text and section 3 above; the bulk note follows section 3 (a data table bumps nothing by itself) and asks Boss to confirm.
+- **8.1:** the loader (GEN.472) and the data tables (GEN.410, GEN.427, GEN.438, GEN.439, GEN.440) are building blocks with no behaviour change. GEN.463 and GEN.467 keep their own epochs, joined to the one rescatter. The epoch scope of GEN.427 is Decided (Boss, 2:10 PM EDT, card "Data table, no bump", relayed in words): it is a data table that bumps nothing, and the one bump is GEN.428 to GEN.430 plus DB.69 in 8.4 phase 1.
 - **8.4:** one bump for the bulk chain (GEN.428 to GEN.430, DB.69 and the formation items GEN.458 to GEN.460, with the table versions); one for the atmosphere values (GEN.411, GEN.422, GEN.423, GEN.424, GEN.452, GEN.454, GEN.455 with DB.67 and DB.71); one for the added stored values (GEN.413, GEN.414, GEN.456 with DB.68). The revisions take the next free numbers at build time.
 - **9.0:** the colour functions (GEN.416 to GEN.419) are pure functions of stored values and need no migration. The radiation items (GEN.443, GEN.444) replace the dose proxies with a bump and a migration of the dose columns, after GEN.453 has corrected the constants.
 
@@ -316,6 +316,6 @@ Each note ends with its own list of decisions for Boss with a recommendation. Th
 
 1. **The reading of the third conflict rule.** Decided by Boss at 1:12 PM EDT: "most permission take wins" means the widest range of the two sources; both values are kept where a range cannot be widened. Nothing to approve.
 2. **The age gate for the thick disc.** The stellar note moves the gate that replaces a stored population from 3.0 Gy to 8.0 Gy (range 6.5 to 9.5) on the verified thick-disc timing, which bears on the old-disc high-alpha share and on GEN.134.
-3. **The epoch scope of GEN.427,** as above.
+3. **The epoch scope of GEN.427:** Decided (Boss, 2:10 PM EDT, card "Data table, no bump"). Nothing to approve.
 4. **The ozone spread and the thin-air closure** (atmosphere and radiation notes), which the research leaves wider than a single seeded range.
 5. **The giants' heavy-element law:** the newest (Chachan 2025) as the default with Thorngren selectable, by the newest-wins rule.
