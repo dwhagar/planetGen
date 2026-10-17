@@ -44,6 +44,9 @@ KIND_LABELS = {
 }
 """dict: Each searchable kind's plural label."""
 
+UNBUILT_LABELS = {"bright_star": "bright stars"}
+"""dict: The label of a not-yet-generated kind that is not a searchable kind (the pre-placed bright stars, NAV.60)."""
+
 KIND_NAMES = {
     "system": "Star system", "star": "Star", "planet": "Planet", "moon": "Moon", "belt": "Asteroid belt",
     "comet": "Comet", "facility": "Facility", "nebula": "Nebula", "asteroid_field": "Asteroid field",
@@ -153,13 +156,14 @@ def nearby():
     keep = [("place", place_param), ("distance", distance_raw)] + [("kinds", kind) for kind in kinds]
     pages = Markup(render_pagination(request.path, keep, "page", page_number, result["total"],
                                      anchor="nearby-results", label="Nearby pages"))
-    not_generated = result["sectors_in_range"] - result["sectors_generated"]
+    not_generated = [{"label": UNBUILT_LABELS.get(kind) or KIND_LABELS.get(kind, kind.replace("-", " ").replace("_", " ")).lower(), "count": count}
+                     for kind, count in sorted(result["not_generated"].items())]
     counts = [{"label": KIND_LABELS[kind], "count": count} for kind, count in
               sorted(result["by_kind"].items(), key=lambda item: near_search.SEARCH_KINDS.index(item[0]))]
     return render_page(
         "nearby.html", title=f"Within {distance_raw} pc of {place['name']}", place_name=place["name"],
         place_url=_place_url(place), rows=rows, total=result["total"], counts=counts, pages=pages,
-        not_generated=not_generated, sectors_in_range=result["sectors_in_range"], **context,
+        not_generated=not_generated, not_generated_total=result["not_generated_total"], **context,
         **{**page, "breadcrumbs": [crumb("What's nearby", "nearby"), crumb(place["name"])]})
 
 
