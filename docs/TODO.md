@@ -8512,46 +8512,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
   Prerequisites: GEN.410, GEN.411. Related: GEN.411, GEN.423, TEST.209.
 
-- [ ] **GEN.425 Research: verify the mass-radius and equation-of-state sources and say what is missing**
-  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
-  stores the composition of a body and that composition drives the mass
-  calculations and density calculations for gravity and such?" Answer
-  (read-only trace,
-  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
-  main at 8.0.1635): no. `planet.composition` is one fixed text string
-  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
-  fractions exist; the bulk density is a uniform draw per class (500:
-  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
-  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
-  radius and density (528) and the gravity from those; giants take mass
-  and radius from a mass-radius relation (534-557). The chain below
-  makes the composition the cause. Before anything is built, check the
-  real-world sources, in a read-only thread that reads the papers
-  (ar5iv.labs.arxiv.org serves arXiv papers) and writes
-  /mnt/project-files/reports/bulk-composition-sources-check-(date).md,
-  each source marked verified (read), second-hand or not found. To
-  check: (1) mass-radius relations for solid planets with the iron,
-  silicate and water fractions as inputs (Seager et al. 2007, Zeng and
-  Sasselov 2013, Zeng, Sasselov and Jacobsen 2016, Zeng et al. 2019);
-  (2) envelopes: the hydrogen and helium mass fraction against radius
-  and age (Lopez and Fortney 2014) and giant planet radii (Fortney,
-  Marley and Barnes 2007); (3) equations of state: the Vinet or
-  Birch-Murnaghan constants for iron, silicates and the ice phases, and
-  the hydrogen and helium tables (Saumon, Chabrier and van Horn 1995);
-  (4) how the iron, magnesium and silicon abundances of the star set a
-  rocky planet's core fraction (Dorn et al. 2015, Unterborn and Panero,
-  Thiabaud et al. 2015, Santos et al. 2015); (5) the water fraction
-  against formation distance and the snow line, and the compositions of
-  moons; (6) observed ranges as test targets, not presets (Earth, Mars,
-  Venus, the Galilean moons, Titan, Neptune, Kepler-planet densities).
-  Done: the report lists every relation and constant the materials
-  table, the draws and the density derivation need, with its source, and
-  what is still unfound; Boss researches the unfound ones on request.
-  Boss (11:58 PM EDT): the wider survey of what bodies are made of is
-  GEN.432; this check of the mass-radius and equation-of-state sources
-  is part of that lane's work and stays as filed. Now in 8.1 phase 1.
-  Prerequisites: none. Related: GEN.426, GEN.427.
-
 - [ ] **GEN.426 The bulk composition design: the fractions, the equation of state, the draws and the derived density, mass and gravity**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
   stores the composition of a body and that composition drives the mass
@@ -8584,7 +8544,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   targets. Done: the note carries the decisions, a worked example per
   kind of body and the test targets.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
-  Prerequisites: GEN.425, GEN.432. Related: GEN.409, GEN.427, GEN.428,
+  Prerequisites: GEN.432. Related: GEN.409, GEN.427, GEN.428,
   GEN.429.
   Now an 8.1 design (Boss, 11:58 PM EDT): it follows the body survey
   GEN.432 as well as GEN.425, covers surface and small-body composition
@@ -8592,6 +8552,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   drawing the density first and filling in a fitting composition is as
   acceptable as deriving the density from the composition; the design
   picks one per kind of body.
+  Sources check (GEN.425, 2026-10-17,
+  docs/design/bulk-composition-sources-check.md; 12 sources, 8 verified,
+  3 verified with a limit, 1 assembled; 9 corrections): the design fixes
+  the radius reference level once (1 bar is the common one, the sources
+  use 0 pressure, 1 bar, 20 mbar and 1 mbar); decides whether the
+  structure is integrated per body, tabulated once on a grid in mass,
+  core fraction, water fraction and envelope fraction, or a closed form
+  with a stated error (the closed forms disagree by 3 to 4 percent in
+  radius and 10 to 12 percent in density, so it names the source it
+  follows and why); uses the newer water equation of state (Fortney's
+  warm ice is 12 percent larger than Zeng 2016's); and states that Zeng
+  2016's fit is calibrated on Earth's interior, so it is a check, not a
+  source of constants. Boss's list of what the sources could not give is
+  section 5 of the report.
 
 - [ ] **GEN.427 One table of the bulk materials with their equation-of-state constants and the source of each**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -8618,6 +8592,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Now an 8.1 data table (Boss, 11:58 PM EDT): it adds no behaviour until
   GEN.428 reads it; the design is GEN.437's and the molar masses come
   from GEN.438.
+  Sources check (GEN.425): the report's section 3.1 lists the constants
+  to take (Seager 2007 Table 1: epsilon iron 8.30, 156.2, 6.08 Vinet;
+  alpha iron for small bodies; MgSiO3 perovskite and enstatite;
+  (Mg,Fe)SiO3; MgO with the 177 or 161.4 GPa choice cited; FeS; ice VII
+  with two parameter sets that are not interchangeable; graphite and
+  SiC), the validity ranges (BM only to about 2.8e13 Pa,
+  Thomas-Fermi-Dirac above) and what is missing: the low-pressure ices
+  (Ih, III, V, VI), methane, ammonia and carbon dioxide ice densities,
+  porosity, and olivine and enstatite bulk densities for small bodies,
+  which are Boss's to research (GEN.432 surveys them).
   Prerequisites: GEN.426, GEN.437, GEN.438. Related: GEN.410, GEN.428.
 
 - [ ] **GEN.428 Planets and moons draw their bulk composition fractions instead of carrying a fixed text**
@@ -8648,6 +8632,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   composition (GEN.440). Boss (11:58 PM EDT): drawing the density and
   then filling in a fitting composition is acceptable; the design
   GEN.426 says which per kind of body.
+  Sources check (GEN.425): the core mass fraction follows from the
+  star's Fe/Si and Mg/Si (mass ratios; all iron in the core, Mg and Si
+  as oxides: CMF = (Fe/Si) / ((Fe/Si) + silicate mass per gram of Si);
+  the Lodders-2003 Sun gives 0.320 against Earth's 0.325; the stellar
+  range gives about 0.2 to 0.47), so the draw needs the host's Fe, Mg,
+  Si, O and C abundances, not only [Fe/H]; GEN.440 derives them from the
+  stored [Fe/H], age and population (the relations GEN.433 finds, for
+  example Bensby 2005 and Adibekyan 2012, with scatter). The water
+  fraction beyond the snow line is an ice to rock mass ratio of 1 +/-
+  0.5 (all ices; 0.35 +/- 0.25 with refractory organics), the snow line
+  sits at 2.7 AU times the square root of the luminosity (the 170 K
+  blackbody value, derived in the report) with a drawn scatter of about
+  0.2 dex (Mulders 2015), and water inside the line has no source (the
+  existing `water_mass_fraction` draw needs a rule). The bias of 'all
+  iron in the core' (FeO in the mantle, light elements in the core, ten
+  percent or more) is stated or a draw is researched.
   Prerequisites: GEN.427, GEN.440. Related: GEN.429, DB.69, GEN.430.
 
 - [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
@@ -8675,6 +8675,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changing a fraction moves the density as the model says; a test says
   so. Ships with the generator epoch bump of GEN.428.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Sources check (GEN.425, section 3.2): by mass, small bodies below
+  about 0.01 Earth masses take the volume-additive density 1 / sum(w_i /
+  rho0_i) (a derivation, no paper, porosity ignored); solid planets from
+  0.01 to about 100 Earth masses integrate the two- or three-layer
+  structure with the GEN.427 constants (it reproduces Zeng 2016's table
+  to 1 to 4 percent), or interpolate a grid built once with them; the
+  closed forms (Zeng 2016, Fortney 2007, Zeng 2019, Seager) are checks
+  and fallbacks; the envelope comes from the Lopez and Fortney 2014
+  tables (radius at 20 mbar, corrected by the scale-height term to the
+  chosen level); above 20 Earth masses with an envelope the Fortney 2007
+  giant tables apply and the existing giant relation (GEN.34) is not
+  touched. The honest uncertainty from the literature is 3 to 4 percent
+  in radius.
   Prerequisites: GEN.428. Related: GEN.411, GEN.423, DB.69.
 
 - [ ] **GEN.430 The planet and moon descriptions state the composition from the stored fractions**
@@ -8737,6 +8750,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Atmosphere research (2026-10-17) holds this item.
   Owner: the Atmosphere research lane (the coordinator started it at
   Boss's 11:58 PM EDT ask, "Atmosphere research (2026-10-17)").
+  Network (Boss, 2026-10-17, about 12:02 AM EDT): access is widened;
+  arxiv.org itself is reachable, so the four sources the first check
+  could not reach (Peck and Huang 1977, Burkholder and Talukdar 1994,
+  Serdyuchenko 2014, Chandrasekhar 1960) are re-read and the second-hand
+  ones upgraded, in this lane's draft. SCvH 1995 was read from the ADS
+  scan (articles.adsabs.harvard.edu), Lodders 2003 and journal pages
+  behind a bot check were not.
   Prerequisites: none. Related: GEN.409, GEN.410, GEN.434, GEN.437.
 
 - [ ] **GEN.432 Research: what rocky, icy and giant bodies and their small relatives are made of, and the numbers each material needs**
@@ -8779,6 +8799,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.434.
   Owner: the Body composition research lane (the coordinator started it
   at Boss's 11:58 PM EDT ask, "Body composition research (2026-10-17)").
+  Sources check (GEN.425): the low-pressure ices (Ih, III, V, VI),
+  methane, ammonia and carbon dioxide ice densities, porosity of small
+  bodies, olivine and enstatite bulk densities and the water delivered
+  inside the snow line are not in any source read; Chaplin 2012 and
+  Choukroun and Grasset 2007 are the sources Zeng and Sasselov 2013
+  name.
 
 - [ ] **GEN.433 Research: what stars and stellar remnants are made of, and the numbers each needs**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -8814,6 +8840,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.435, GEN.439, GEN.440, GEN.368,
   GEN.405.
   Owner: the Body composition research lane, after GEN.432.
+  Sources check (GEN.425): the survey must supply the trends of Mg, Si,
+  O and C against [Fe/H] (Santos 2015 points to Bensby 2005 and
+  Adibekyan 2012, not read), a cited solar abundance set (Lodders 2003,
+  Asplund 2009), and the iron oxidation and light-element question.
 
 - [ ] **GEN.434 Research: radiation through atmospheres and at the ground, and the numbers it needs**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -8849,8 +8879,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Unowned: any read-only thread.
   Prerequisites: none. Related: GEN.431, GEN.432, GEN.436, GEN.256,
   GEN.317.
-  Owner: unowned; any read-only research thread (the coordinator names
-  it).
+  Owner: the two research lanes above (the coordinator, 12:17 AM EDT).
+  Covered by the two research lanes (the coordinator, 2026-10-17, 12:17
+  AM EDT): the Atmosphere research lane has a part on radiation
+  shielding and ground sources, the Body composition lane one on ground,
+  radiogenic heat and shielding, both in
+  /mnt/project-files/design-drafts/; no separate thread unless Boss
+  asks.
 
 - [ ] **GEN.435 The stellar composition design: the abundance relations, what is stored and what is derived, and the remnants**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -8879,8 +8914,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.269). Done: the note carries the decisions, a worked example per
   kind of star and the test targets (the Sun's composition is a target,
   not a preset).
-  Owner: unowned; Core 3 (the star lane) or Core 4 (proposed, to be
-  confirmed).
+  Owner: Core 4 (Boss tapped Core 4, 2026-10-17, 12:13 AM EDT, a card,
+  for the star composition items together with the other composition
+  design and table items).
   Prerequisites: GEN.433. Related: GEN.439, GEN.440, GEN.407, GEN.269.
 
 - [ ] **GEN.436 The radiation design: atmospheric transmission and greenhouse by band, shielding by column, and the ground's own dose**
@@ -8995,8 +9031,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   [Fe/H] monotonically where the sources say so, and that the Sun's
   measured composition is reproduced at its [Fe/H] and age inside a
   stated tolerance (a target, not a preset).
-  Owner: unowned; Core 3 (the star lane) or Core 4 (proposed, to be
-  confirmed).
+  Owner: Core 4 (Boss tapped Core 4, 2026-10-17, 12:13 AM EDT, a card,
+  for the star composition items together with the other composition
+  design and table items).
   Prerequisites: GEN.435, GEN.437, GEN.438. Related: GEN.440, GEN.428.
 
 - [ ] **GEN.440 Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf**
@@ -9020,8 +9057,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done: the same star gives the same composition at any worker count; a
   test sweeps every kind of star in a generated galaxy and finds
   fractions that sum to one and match GEN.439's relations.
-  Owner: unowned; Core 3 (the star lane) or Core 4 (proposed, to be
-  confirmed).
+  Owner: Core 4 (Boss tapped Core 4, 2026-10-17, 12:13 AM EDT, a card,
+  for the star composition items together with the other composition
+  design and table items).
+  Sources check (GEN.425): it returns the abundances the planet draws
+  need, not only X, Y and Z: the iron, magnesium, silicon, oxygen and
+  carbon ratios (Fe/Si, Mg/Si, C/O) with the scatter of the relations
+  against [Fe/H], from a cited solar abundance set (the check typed
+  Asplund-style values from memory; Lodders 2003 and Asplund 2009 were
+  not read).
   Prerequisites: GEN.439. Related: GEN.428, GEN.446, GEN.158.
 
 - [ ] **GEN.441 Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air**
@@ -10380,6 +10424,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   every row has fractions that sum to one and reproduce its density
   within a stated tolerance.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
+  Sources check (GEN.425): the stored fractions include the envelope
+  fraction and the water fraction, and the radius level of GEN.426 is
+  recorded in the data model; the inverse that fills old rows works from
+  the stored density, mass, radius and class and takes the same 3 to 4
+  percent radius spread as its tolerance.
   Prerequisites: GEN.429. Related: DB.67, DB.68.
 
 - [ ] **DB.70 Planets, moons and small bodies store the surface and small-body composition shares**
@@ -12956,8 +13005,9 @@ clears each one.
   layers; the result is the same at one and at four workers; no star
   lacks a composition. Done: it passes on a generated galaxy and fails
   when any rule is broken (a test that breaks each in turn).
-  Owner: unowned; Core 3 (the star lane) or Core 4 (proposed, to be
-  confirmed).
+  Owner: Core 4 (Boss tapped Core 4, 2026-10-17, 12:13 AM EDT, a card,
+  for the star composition items together with the other composition
+  design and table items).
   Prerequisites: GEN.440. Related: TEST.210, GEN.439.
 
 - [ ] **TEST.212 A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition**

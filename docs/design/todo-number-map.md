@@ -1075,7 +1075,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.422 | Stop the recalculation redraw and order the steps so pressure, mixture and temperature agree after the cold-side freeze-out | none | open |
 | GEN.423 | Atmosphere density, scale height and the greenhouse multiplier follow from the mixture | none | open |
 | GEN.424 | The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture | none | open |
-| GEN.425 | Research: verify the mass-radius and equation-of-state sources and say what is missing | none | open |
+| GEN.425 | Research: verify the mass-radius and equation-of-state sources and say what is missing | none | done, PR #1957 |
 | GEN.426 | The bulk composition design: the fractions, the equation of state, the draws and the derived density, mass and gravity | none | open |
 | GEN.427 | One table of the bulk materials with their equation-of-state constants and the source of each | none | open |
 | GEN.428 | Planets and moons draw their bulk composition fractions instead of carrying a fixed text | none | open |
