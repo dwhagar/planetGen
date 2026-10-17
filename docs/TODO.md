@@ -9271,12 +9271,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   widest-range rule, replaced when a measurement exists. BC11 (volatile
   stripping at ejection, uniform 0 to 1 loss fraction) and BC18 (core
   light elements, Dirichlet over S, Si, O, H).
-  Open Boss decision (bulk-composition.md approve item 7, Decision 28;
-  Blocker 1, 2026-10-17): a planet's mass without a drawn radius. The
-  note's recommendation is the existing class mass ranges as a flagged
-  stand-in at first, then the isolation mass at the formation distance
-  once GEN.509 can tune it; this is the one place the design still leans
-  on class ranges, so it needs Boss's choice, not only approval.
+  Decided (Boss, 2:10 PM EDT, card "Staged", relayed in words; bulk-
+  composition.md approve item 7, Decision 28): a planet's mass without a
+  drawn radius is staged: the existing class mass ranges first as a
+  flagged stand-in, then the isolation mass
+  (formation.isolation_mass_kg) when GEN.509 can tune it.
 
 - [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
