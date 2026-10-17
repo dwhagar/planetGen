@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1715] - 2026-10-17
+
+**Headline:** Boss started the lane Blocker 1 for the composition loader (GEN.472) and the census harness (TEST.186).
+
+### Changed
+
+- GEN.472 and TEST.186 name Blocker 1 as owner (Boss, 10:27 AM EDT); GEN.472 notes that its prerequisite GEN.437 and the four design notes under it are still open with Core 4.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1714] - 2026-10-17
 
 **Headline:** Every open 8.1 item now names the lane that builds it, from Boss's Core 1 to Core 5 lanes.
