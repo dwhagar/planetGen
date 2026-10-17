@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1609] - 2026-10-17
+
+**Headline:** Each galaxy type in 9.4 gets a simple vector outline so the user sees roughly what the model looks like.
+
+### Added
+- UX.135: one hand-drawn static SVG outline per galaxy family (spiral, barred spiral, lenticular, elliptical, irregular, dwarf spheroid) in the icon library, shown on the Generate page and in the Galaxy Map key (UX.134 and MAP.242 now need it).
+
+TODO items resolved: none / Added: UX.135
+
 ## [8.0.1608] - 2026-10-17
 
 **Headline:** A new 9.4 plan for galaxy types: spiral, lenticular, elliptical, irregular and dwarf families drawn from the seed, as a chain of 18 required items.
