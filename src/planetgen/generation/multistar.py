@@ -428,9 +428,14 @@ def _remnant_leaf(kind, progenitor, mass, direct=False):
 
 
 def _youngest_progenitor_sol(age_yr):
-    """The lightest star whose giant phase has ended by this age."""
-    return (tuning.SOLAR_MS_LIFESPAN_GY * tuning.GIANT_PHASE_END_MS_FRACTION * 1.0e9
-            / age_yr) ** (1.0 / -tuning.MS_LIFESPAN_MASS_EXPONENT)
+    """The lightest star whose giant phases have ended by this age (a star lighter than
+    `HELIUM_FLASH_MASS_SOL` also burns helium on the horizontal branch and climbs the asymptotic giant branch)."""
+    def mass(fraction):
+        return (tuning.SOLAR_MS_LIFESPAN_GY * fraction * 1.0e9 / age_yr) ** (1.0 / -tuning.MS_LIFESPAN_MASS_EXPONENT)
+    light = mass(evolution.remnant_age_fraction(0.0))
+    if light < tuning.HELIUM_FLASH_MASS_SOL:
+        return light
+    return max(mass(tuning.GIANT_PHASE_END_MS_FRACTION), tuning.HELIUM_FLASH_MASS_SOL)
 
 
 def _remnant(kind, age_yr, lowest, rng, limit_mass=None):
@@ -761,7 +766,7 @@ def _star_compact_companion(placed, age_yr, rng):
     """The compact companion of a living star, or None (one draw)."""
     table = MEMBER_STATE_BY_PLACED.get(placed_class(placed), {})
     lifetime_yr = (evolution.main_sequence_lifetime_gy(placed.birth_mass_solar)
-                   * tuning.GIANT_PHASE_END_MS_FRACTION * 1.0e9)
+                   * evolution.remnant_age_fraction(placed.birth_mass_solar) * 1.0e9)
     in_window = age_yr >= lifetime_yr * (1.0 - REMNANT_WINDOW_FRACTION)
     pick = rng.random()
     for kind, (default, _low, _high) in table.items():
