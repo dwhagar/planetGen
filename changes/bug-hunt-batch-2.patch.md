@@ -8,6 +8,5 @@
 - Tests: the clean-up of the test Redis leaves a queue whole when it lists a job made in the last 15 minutes, so a second run starting beside a first can no longer delete the first's queued jobs (TEST.203).
 - Tests: the page accessibility test no longer counts a request the page cancelled itself (ERR_ABORTED, the map dropping its tile fetch) as a failed request, as the settings browser test already did (TEST.174, TEST.197).
 - Tests: the nested-nebula containment test draws the outer nebula again until its shape holds the whole neighbourhood the inner one is placed in, so a shape with its only central interior point near the surface no longer leaves the inner nebula's centre outside (about 1 draw in 40, TEST.216).
-- Tests: `moons.evolutionary_speed` joins the columns that may be NULL in every row of the test galaxy, like `life_chemical`, because it is set only on a life-bearing moon and a change of the generator's draws can leave the galaxy without one (TEST.217).
 
-TODO items resolved: TEST.170, TEST.171, TEST.173, TEST.172, TEST.202, TEST.134, TEST.203, TEST.174, TEST.197, TEST.216, TEST.217, TEST.129, TEST.130 (the last two were already fixed on main) / Added: none
+TODO items resolved: TEST.170, TEST.171, TEST.173, TEST.172, TEST.202, TEST.134, TEST.203, TEST.174, TEST.197, TEST.216, TEST.129, TEST.130 (the last two were already fixed on main) / Added: none
