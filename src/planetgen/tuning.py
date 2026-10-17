@@ -2565,6 +2565,18 @@ NEBULA_SEED_MASS_RANGE_SOL = {
 phenomenon mode makes), solar masses, from the IMF: one O or early-B star for
 class C, an O star for D and E, an early B star for G, a B or A star for F."""
 
+PLANETARY_NEBULA_COMPANION_CHANCE = 0.20
+"""float: The share of planetary nebulae whose central star has a close companion (the class table says one is
+"often" there; GEN.320)."""
+
+NEBULA_CLOUD_PROTOSTARS = {"P": {"chance": 0.30}, "Q": {"mean": 2.0}}
+"""dict: The protostars a field cloud holds (GEN.320): a Bok globule (P) one in `chance` of globules, a star-forming
+core (Q) a zero-truncated Poisson count of mean `mean` (one to four are the usual; the draw is capped at 4)."""
+NEBULA_CLOUD_PROTOSTAR_MAX = 4
+NEBULA_CLOUD_CLUMP_FRACTION = 1.0 / 3.0
+"""float: The protostars of a core are scattered about its centre with a Gaussian of this fraction of its radius
+[I: "clumped near the centre"], redrawn if one falls outside the cloud."""
+
 PLANETARY_NEBULA_CENTRAL_STAR_TYPES = ("O3VII", "O5VII", "O7VII", "O9VII", "B0VII")
 """tuple: The central star a planetary nebula is generated around (GEN.10):
 the exposed hot core of a dying 0.8-8 Msun star, 30,000 K and

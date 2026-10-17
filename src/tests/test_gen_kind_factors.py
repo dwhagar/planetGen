@@ -16,7 +16,7 @@ from planetgen import tuning
 from planetgen.galaxy import nebula_field, profile, superbubble_field
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1
-from planetgen.generation import phenomenon_scatter, run_sector
+from planetgen.generation import nebula_contents, phenomenon_scatter, run_sector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import metallicity
@@ -252,10 +252,17 @@ def test_the_hosted_nebula_chance_is_scaled_by_the_nebula_factor(monkeypatch):
     class Star:
         type = "O1V"
         age = 0.0005
+        temperature = 30000.0
+
+        def __init__(self, number):
+            self.mass = 2.0e31 * (1.0 + number * 1e-6)  # each star has its own roll (GEN.320: drawn from the star's own seed)
 
     class Entry:
+        made = 0
+
         def __init__(self):
-            self.star_system = types.SimpleNamespace(stars=[Star()], name="x")
+            Entry.made += 1
+            self.star_system = types.SimpleNamespace(stars=[Star(Entry.made)], name="x")
             self.position = (0.0, 0.0, 0.0)
 
     class Sector:
@@ -269,8 +276,8 @@ def test_the_hosted_nebula_chance_is_scaled_by_the_nebula_factor(monkeypatch):
             self.added += 1
             return nebula
 
-    monkeypatch.setattr(run_sector, "Nebula", lambda config, nebula_class=None, host=None, age_myr=None: types.SimpleNamespace(name="n"))
-    monkeypatch.setattr(run_sector, "choose_weighted_class", lambda classes, label: classes[0])
+    monkeypatch.setattr(nebula_contents, "Nebula", lambda config, nebula_class=None, host=None, age_myr=None: types.SimpleNamespace(name="n", nebula_class="C"))
+    monkeypatch.setattr(nebula_contents, "choose_weighted_class", lambda classes, label: classes[0])
     rates = {}
     for factor in (1.0, 0.4, 0.0):
         draw.set_run_seed(236)
