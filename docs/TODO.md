@@ -6329,6 +6329,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rows at the 500 luminosity floor fall from about 3.8 million to about
   190,000), so a galaxy scattered earlier needs `planetgen plan
   --redo-scatters mass luminosity` (as after GEN.333).
+  Redo scope (rescatter thread finding, 2026-10-16): `--redo-scatters`
+  redoes rows only; satellites and clusters (`galaxy_components`) are
+  drawn only by a full `plan`. DOC.62 puts the line in docs/cli.md.
   Prerequisites: GEN.237. Related: GEN.240.
 
 - [ ] **GEN.323 The phenomena pass runs on the object-first sampler**
@@ -6345,6 +6348,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Redo scope (rescatter thread finding, 2026-10-16): `--redo-scatters`
+  redoes rows only; satellites and clusters (`galaxy_components`) come
+  only from a full `plan`. DOC.62 documents it.
   Prerequisites: GEN.322. Related: GEN.240.
 
 - [ ] **GEN.324 A component pass: clusters, the Clouds and Sagittarius place their stars, and the fill adds the component's density to lambda**
@@ -7855,6 +7861,42 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   applies if the class of any generated star changes. Not Core 3's: it
   left the table alone.
   Prerequisites: none. Related: GEN.286, GEN.287, GEN.259.
+
+- [ ] **GEN.397 `planetgen plan` stage 2 prints the progress weight as the number of phenomena to place (bug)**
+  Rescatter read-only thread (Boss asked 2026-10-16, 9:35 PM EDT;
+  measured 9:37 to 10:07 PM EDT on a 4-core box, main 8.0.1617, default
+  galaxy, seed 0123456789abcdef0123456789abcdef; note
+  /mnt/project-files/reports/rescatter-worth-it-2026-10-16.md). Stage 2
+  prints "Phenomena: about 186,763,602 to place in 3,764 shells". That
+  figure is the progress weight (shell_expected plus BAND_WEIGHT_STARS =
+  5 per band, `run_plan.py` near line 1415); the real expected rows are
+  about 75.5 million (the sum of `phenomenon_scatter.shell_expected`,
+  within 0.1 percent of the rows placed on the chunks checked). Fails on
+  main, every run, default settings. Reproducer: `planetgen plan` on a
+  fresh database and read the first stage-2 line. Done: the line states
+  the expected rows and the progress weight is not shown as a count; a
+  test pins the wording to the sum of `shell_expected`.
+  Prerequisites: none. Related: GEN.240, GEN.323.
+
+- [ ] **GEN.398 The massive-star and bright-star passes place more stars than their log lines expect: 70 and 12 percent over (bug)**
+  Rescatter read-only thread (Boss asked 2026-10-16, 9:35 PM EDT;
+  measured 9:37 to 10:07 PM EDT on a 4-core box, main 8.0.1617, default
+  galaxy, seed 0123456789abcdef0123456789abcdef; note
+  /mnt/project-files/reports/rescatter-worth-it-2026-10-16.md). The
+  massive-star pass logged "about 156,808 stars expected" and placed
+  265,909 (70 percent over; the per-chunk "added N stars" lines sum to
+  265,909); the bright-star pass logged "about 693,089" and placed
+  778,980 (12 percent over). scatter-queue-feasibility.md had the
+  sampler within 1.5 sigma of expected at 8 solar masses. It may be only
+  the coarse WEIGHT_BAND_SAMPLES estimate behind the log line, or the
+  sampler after GEN.333 and GEN.280. Fails on main, every run.
+  Reproducer: `planetgen plan --redo-scatters mass luminosity` on a
+  planned galaxy and compare the two log lines. Done: the cause is named
+  (estimate or sampler); if the sampler is wrong the placed count
+  matches the integral of the density within k Poisson sigma over a
+  small galaxy test, and if only the estimate is coarse the log line
+  uses the better estimate; the test stays.
+  Prerequisites: none. Related: GEN.322, GEN.333, GEN.280, GEN.321.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -12151,6 +12193,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   warning. Done: the migration with an old-schema fixture, the row, the
   record, the check, and tests for an unchanged update, a changed lock
   file and an epoch difference.
+  Rescatter thread finding (2026-10-16): a scatter made before the epoch
+  2 merge (#1927, 9:42 PM EDT) is unlabelled: `generation_runs` carries
+  `planetgen_version` and outcome per run (a redo run is dated), but the
+  galaxy keeps no mark of which epoch or build each scatter pass was
+  made at, so nothing can say a galaxy is epoch 1. This item's record
+  should carry the epoch per pass.
   Prerequisites: OPS.57. Related: OPS.28.
 
 - [ ] **OPS.59 `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug)**
@@ -12607,6 +12655,27 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   is described as the optional overlay it is. Docs only.
   Prerequisites: GEN.395. Related: GEN.391, DOC.52.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
+
+- [ ] **DOC.62 Docs: the generation cost figures and the redo scope are stale (the phenomena cut, rows, bytes and time; `--redo-scatters` leaves satellites and clusters alone)**
+  Rescatter read-only thread (Boss asked 2026-10-16, 9:35 PM EDT;
+  measured 9:37 to 10:07 PM EDT on a 4-core box, main 8.0.1617, default
+  galaxy, seed 0123456789abcdef0123456789abcdef; note
+  /mnt/project-files/reports/rescatter-worth-it-2026-10-16.md).
+  generation-performance-study.md says 161 GB and 2.6 hours for the
+  phenomena scatter at the default scale and
+  phenomenon-scatter-mass-cut.md recommends 20 solar masses (about 2.7e5
+  rows). The built default is a 14 solar mass cut: about 75.5 million
+  rows, 231 bytes a row with two indexes (about 17.5 GB while writing,
+  about 21 GB with the two indexes rebuilt), about 46 minutes of writes
+  at 4 workers (about 23,500 rows a second) plus the unmeasured index
+  builds, nebula field and epoch stamp; the star passes took 1,222.8 s
+  for 1,044,932 rows and under 1 GB. Also docs/cli.md next to the
+  `--redo-scatters` text: it redoes rows only; satellites and clusters
+  (`galaxy_components`) are drawn only by a full `plan`, so a galaxy
+  planned before GEN.159 and GEN.237 has an empty component table until
+  a full plan. Done: the two design notes and cli.md carry the measured
+  table and the one-line scope; nothing else changes.
+  Prerequisites: none. Related: GEN.240, GEN.322, GEN.323.
 
 ## VIEW: The view from a planet
 
