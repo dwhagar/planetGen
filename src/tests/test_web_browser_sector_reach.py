@@ -248,6 +248,57 @@ def test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star(page, base_u
     assert _system_ambient(page) is None
 
 
+def _anchor_under(page, spot):
+    return page.evaluate("(s) => document.querySelector('#galaxymap3d-canvas').galaxyAnchorUnder(...s)", list(spot))
+
+
+def test_the_wheel_anchors_on_the_star_under_the_pointer_not_the_mesh_behind_it(page, base_url, site_app, sample_params):
+    """MAP.245: in the opened sector the point the wheel zooms toward is the star under (or a few pixels from) the
+    pointer, not the sector's choice mesh behind it; a step in toward it ends nearer the star every time and stops
+    short of it, and the eye never goes past the star."""
+    scene = _Scene(page, base_url, site_app, sample_params)
+    page.goto(f"{base_url}/galaxy?sector={scene.code}&open=1", wait_until="load")
+    page.wait_for_selector(CANVAS, state="attached")
+    _ready(page)
+    star, point = _star_point(page, base_url, scene)
+    page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyCentreOn(...p)", list(point))
+    _ready(page)
+    spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(point))
+    position = (spot["x"], spot["y"])
+    for shift in ((0, 0), (5, -4)):
+        anchor = _anchor_under(page, (position[0] + shift[0], position[1] + shift[1]))
+        assert anchor == pytest.approx(list(point), abs=1e-9), (shift, anchor, point)
+    distances = [math.dist(_camera(page)["eye"], point)]
+    for _ in range(12):
+        _wheel(page, position, -60)
+        distances.append(math.dist(_camera(page)["eye"], point))
+        if "system=" in page.url:
+            break
+    assert all(later < earlier for earlier, later in zip(distances, distances[1:])), distances
+    assert distances[-1] > 0
+    # Each tick keeps the star where it is on the screen, at the pointer.
+    after = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(point))
+    assert (after["x"], after["y"]) == pytest.approx(position, abs=2.0)
+
+
+def test_a_double_click_on_empty_space_flies_half_way_toward_it(page, base_url):
+    """MAP.245: on empty space (nothing picked) the flight brings the eye half way to the point under the pointer (the
+    focus plane's, here), which stays where it is on the screen."""
+    page.goto(f"{base_url}/galaxy", wait_until="load")
+    page.wait_for_selector(CANVAS, state="attached")
+    _ready(page)
+    rect = page.evaluate("() => { const r = document.querySelector('#galaxymap3d-canvas').getBoundingClientRect(); return [r.left, r.top, r.width, r.height]; }")
+    empty = (rect[0] + 6, rect[1] + 6)
+    anchor = _anchor_under(page, empty)
+    assert anchor, "no point under the corner of the map"
+    before = _camera(page)
+    page.mouse.dblclick(*empty)
+    after = _landed(page, anchor)
+    assert after["dist"] == pytest.approx(before["dist"] * 0.5, rel=0.05), (before["dist"], after["dist"])
+    spot_after = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(anchor))
+    assert (spot_after["x"], spot_after["y"]) == pytest.approx(empty, abs=2.0)
+
+
 def _fly_setup(page, base_url, site_app, sample_params):
     """The sector opened, and a star of it with a system: the star's point in the map (pc) and where it is on screen."""
     scene = _Scene(page, base_url, site_app, sample_params)
