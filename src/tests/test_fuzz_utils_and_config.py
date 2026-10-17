@@ -812,7 +812,8 @@ def test_probability_tables_are_well_formed():
     for letter, chance in pg.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS.items():
         assert 0 <= chance <= 1, letter
     assert 0 <= pg.WIDE_BINARY_ECCENTRICITY_MAX < 1
-    assert 0 <= pg.WIDE_BINARY_DEFAULT_CHANCE <= 1
+    assert all(len(values) == len(pg.COMPANION_LOG_PERIODS_DAYS) and all(v > 0 for v in values)
+               for _mass, values in pg.COMPANIONS_PER_DECADE_BY_PRIMARY_MASS)
 
 
 def test_lookup_tables_reference_each_other_consistently():

@@ -159,8 +159,8 @@ class SystemConfig:
         binary behavior this generator had before this option existed,
         where the two stars are merged into one effective star
         (`binary.BinaryStarProxy`) for the purposes of planet
-        placement. If None, one of the two is chosen at random (see
-        `program_constants.WIDE_BINARY_DEFAULT_CHANCE`). Defaults to None.
+        placement. If None, one of the two is chosen at random by the primary's companions per
+        decade of period (`generation.companion_classes`). Defaults to None.
         """
 
         self.NUM_ORBITS = None

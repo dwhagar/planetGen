@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import pytest
 
 from planetgen import tuning
-from planetgen.generation import place_terms
+from planetgen.generation import companion_classes, place_terms
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.util import draw
@@ -155,42 +155,66 @@ def _kinds(system, n=3000, seed=11):
     return {kind: count / n for kind, count in counts.items()}
 
 
-@pytest.mark.parametrize("fe_h, expected", [(-3.0, 0.43), (-1.0, 0.36), (-0.2, 0.25), (0.5, 0.12)])
-def test_a_g_dwarfs_close_share_follows_the_pooled_line(fe_h, expected):
-    # Today's table (G 0.44, split half and half) with the factor on the odds: 0.22 moved by F / F(0), against Moe,
-    # Kratter and Badenes' 53, 40, 24 and 10% (+-12, 6, 4, 3).
-    shares = _kinds(_system(fe_h=fe_h, terms=place_terms.PlaceTerms(0.05, 30.0)))
-    assert shares["close"] == pytest.approx(expected, abs=0.035)
+@pytest.mark.parametrize("fe_h", [-3.0, -1.0, -0.2, 0.5])
+def test_a_g_dwarfs_chance_inside_10_au_follows_the_pooled_line_on_the_odds(fe_h):
+    # The factor F(fe_h) / F(0) multiplies the odds of a companion inside 10 AU (GEN.103's rule, now on the close and
+    # inner ranges together, GEN.448): odds(p(fe_h)) / odds(p(0)) = F(fe_h) / F(0).
+    def inside(x):
+        return companion_classes.odds(1.0, 0.44, x, 11_400.0).within_10_au
+
+    def odds_of(p):
+        return p / (1.0 - p)
+    assert odds_of(inside(fe_h)) / odds_of(inside(0.0)) == pytest.approx(place_terms.close_companion_factor(fe_h),
+                                                                         rel=1e-6)
 
 
-def test_the_wide_share_does_not_follow_metallicity():
-    terms = place_terms.PlaceTerms(0.05, 30.0)
-    low, high = (_kinds(_system(fe_h=x, terms=terms))["wide"] for x in (-1.0, 0.5))
-    assert low == pytest.approx(0.22, abs=0.035) and high == pytest.approx(0.22, abs=0.035)
+def test_a_g_dwarfs_chance_inside_10_au_falls_with_metallicity_and_stays_below_moe_kratter_badenes_ranges():
+    # Moe, Kratter & Badenes 2019: 53, 40, 24 and 10% at [Fe/H] -3.0, -1.0, -0.2 and +0.5 (+-12, 6, 4, 3). Moe & Di
+    # Stefano's Table 13 puts 0.15 +-0.03 companions inside logP 3.7 for solar-type stars, so the level is about 0.6 of
+    # the pooled line's (both are in the design note); the shape follows it.
+    found = [companion_classes.odds(1.0, 0.44, x, 11_400.0).within_10_au for x in (-3.0, -1.0, -0.2, 0.5)]
+    assert found == sorted(found, reverse=True)
+    for value, paper in zip(found, (0.53, 0.40, 0.24, 0.10)):
+        assert 0.4 * paper < value < paper
 
 
-def test_every_mass_follows_the_line_and_the_chances_never_pass_one():
-    terms = place_terms.PlaceTerms(0.05, 30.0)
-    o_star = _kinds(_system("O", fe_h=-3.0, terms=terms, mass_sol=30.0, age_gy=0.005))
-    assert o_star[None] == pytest.approx(0.0, abs=0.01)         # the companion chance saturates: one every time
-    assert o_star["close"] == pytest.approx(0.68, abs=0.035)    # the odds form: up from 0.45, not to 1
-    assert o_star["wide"] == pytest.approx(0.32, abs=0.035)     # the wide share gives way where the two pass 1
-    # O stars at [Fe/H] -0.7 change by about 30% at most (the O and early-B surveys find no trend within that).
-    solar = _kinds(_system("O", fe_h=0.0, terms=terms, mass_sol=30.0, age_gy=0.005))["close"]
-    poor = _kinds(_system("O", fe_h=-0.7, terms=terms, mass_sol=30.0, age_gy=0.005))["close"]
-    assert poor / solar < 1.38
-    m_dwarf_low, m_dwarf_high = (_kinds(_system("M", fe_h=x, terms=terms, mass_sol=0.3))["close"] for x in (-1.0, 0.5))
-    assert m_dwarf_low > 3 * m_dwarf_high
+def test_the_wide_share_outside_10_au_does_not_follow_metallicity():
+    low, high = (companion_classes.odds(1.0, 0.44, x, 11_400.0) for x in (-1.0, 0.5))
+    outer = lambda o: o.wide - (o.within_10_au - o.close)    # noqa: E731
+    assert outer(low) == pytest.approx(outer(high), rel=1e-6)
 
 
-def test_a_place_that_keeps_no_wide_pair_dissolves_it():
-    dense = place_terms.PlaceTerms(660.0, 120.0)       # the limit is about 9 AU: under the 50 AU lower edge
+def test_the_chances_never_pass_one_and_a_massive_star_changes_by_the_odds_not_the_chance():
+    saturated = companion_classes.odds(30.0, 0.9, -3.0, 11_400.0)
+    assert saturated.close + saturated.wide <= 1.0 + 1e-12
+    solar = companion_classes.odds(30.0, 0.9, 0.0, 11_400.0).within_10_au
+    poor = companion_classes.odds(30.0, 0.9, -0.7, 11_400.0).within_10_au
+    assert poor / solar < 1.38        # the O and early-B surveys find no change within about 30%
+    m_low, m_high = (companion_classes.odds(0.3, 0.26, x, 11_400.0).within_10_au for x in (-1.0, 0.5))
+    assert m_low > 2 * m_high
+
+
+def test_a_place_that_keeps_no_wide_pair_loses_it_from_the_chances():
+    dense = place_terms.PlaceTerms(660.0, 120.0)       # the limit is under 5 AU: the 0.25 AU edge is all that is left
+    here = companion_classes.odds(1.0, 0.44, 0.0, 0.1)
+    assert here.wide == 0.0 and here.close < 0.44      # nothing above 0.25 AU, and the lost chances are lost
+    assert here.close == pytest.approx(companion_classes.odds(1.0, 0.44, 0.0, 11_400.0).close)
     shares = _kinds(_system(terms=dense))
-    assert shares["wide"] == 0.0
+    assert shares["wide"] < 0.15
     # A forced companion there is a close one; a pair forced wide is wide all the same.
     with draw.bound(3):
-        assert {_system(terms=dense, BINARY_SYSTEM=True)._companion()[0] for _ in range(200)} == {"close"}
+        assert {_system(terms=place_terms.PlaceTerms(60_000.0, 150.0), BINARY_SYSTEM=True)._companion()[0]
+                for _ in range(200)} == {"close"}
         assert {_system(terms=dense, WIDE_BINARY=True, BINARY_SYSTEM=True)._companion()[0] for _ in range(20)} == {"wide"}
+
+
+def test_the_ranges_of_separation_share_the_companions_by_moe_and_di_stefanos_lines():
+    # A solar-type primary with a 1.55 solar mass pair: the lines give about 5% of its companions inside 0.25 AU, 95%
+    # beyond; a massive primary has a larger close share (the lines are higher at log P 1).
+    solar = companion_classes.odds(1.0, 0.44, 0.0, 1.0e6)
+    massive = companion_classes.odds(20.0, 0.9, 0.0, 1.0e6)
+    assert solar.close / (solar.close + solar.wide) == pytest.approx(0.055, abs=0.02)
+    assert massive.close / (massive.close + massive.wide) > solar.close / (solar.close + solar.wide)
 
 
 def test_the_binary_flags_still_force_the_outcome():
