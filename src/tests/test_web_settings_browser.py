@@ -219,3 +219,74 @@ def test_a_bad_value_in_the_browser_is_marked_and_saves_nothing(browser, server,
         context.close()
     assert config.read_bytes() == before
     assert not problems, problems
+
+
+# --- Backups, restore, export and import (ADM.85) ----------------------------------------
+
+@pytest.mark.parametrize("scheme", SCHEMES)
+@pytest.mark.parametrize("viewport", sorted(VIEWPORTS))
+def test_the_backup_pages_are_accessible_and_fit(browser, axe_source, server, config, viewport, scheme):
+    from planetgen import backup
+    from planetgen.util import settings_writer
+    backup.take(who="boss", reason="manual")
+    settings_writer.save({"site_name": "Home", "page_cache.enabled": False}, actor="boss")
+    name = backup.list_archives()[-1].name
+    context, page, problems, base_url = _page(browser, server, viewport, scheme)
+    try:
+        for path in ("/admin/settings/backups", f"/admin/settings/backups/{name}"):
+            response = page.goto(base_url + path, wait_until="load")
+            assert response.status == 200, path
+            problems += [f"{path}: {p}" for p in _overflow(page) + _axe_blocking(page, axe_source)]
+        page.goto(base_url + "/admin/settings/backups", wait_until="load")
+        page.set_input_files("#import-file", {"name": "s.json", "mimeType": "application/json",
+                                              "buffer": json.dumps({"site_name": "Imported"}).encode()})
+        page.click("button:has-text('Check the file')")
+        page.wait_for_selector("table.settings-diff")
+        problems += [f"import review: {p}" for p in _overflow(page) + _axe_blocking(page, axe_source)]
+        problems += [f"CSP violation: {v}" for v in page.evaluate("window.__cspViolations || []")]
+    finally:
+        context.close()
+    assert not problems, f"at {viewport}/{scheme}:\n  " + "\n  ".join(problems)
+
+
+def test_back_up_change_compare_restore_and_import_in_the_browser(browser, server, config):
+    context, page, problems, base_url = _page(browser, server)
+    try:
+        page.goto(base_url + "/admin/settings/backups", wait_until="load")
+        page.click("button:has-text('Back up now')")
+        page.wait_for_selector("text=Backed up Settings in ")
+
+        page.goto(base_url + "/admin/settings", wait_until="load")
+        page.fill("#opt-site_name", "Home")
+        page.fill("#opt-jobs-keep", "7")
+        _save(page, base_url, 2)
+        assert _document(config)["site_name"] == "Home"
+
+        page.goto(base_url + "/admin/settings/backups", wait_until="load")
+        assert page.locator("table.backup-list tbody tr").count() == 2        # Back up now, and the save's own
+        page.locator("a:has-text('Compare and restore')").last.click()        # the oldest: Back up now
+        page.wait_for_selector("table.settings-diff")
+        assert page.locator("table.settings-diff tbody tr").count() == 2
+        page.click("button:has-text('Restore the ticked parts')")
+        page.wait_for_selector("text=Restored settings from")
+        assert _document(config)["site_name"] == "Mine" and _document(config)["jobs"] == {"keep": 12}
+        assert page.locator("text=same as today's").count() == 1
+
+        page.goto(base_url + "/admin/settings/backups", wait_until="load")
+        page.set_input_files("#import-file", {"name": "s.json", "mimeType": "application/json",
+                                              "buffer": json.dumps({"site_name": "Imported"}).encode()})
+        page.click("button:has-text('Check the file')")
+        page.wait_for_selector("table.settings-diff")
+        page.click("button:has-text('Import these settings')")
+        page.wait_for_selector("text=Imported 1 setting.")
+        assert _document(config)["site_name"] == "Imported"
+
+        page.goto(base_url + "/admin/settings/backups", wait_until="load")
+        page.set_input_files("#import-file", {"name": "s.json", "mimeType": "application/json",
+                                              "buffer": json.dumps({"jobs": {"keep": 0}}).encode()})
+        page.click("button:has-text('Check the file')")
+        page.wait_for_selector("text=Nothing was imported")
+        assert _document(config)["jobs"] == {"keep": 12} or "jobs" not in _document(config)
+    finally:
+        context.close()
+    assert not problems, "\n".join(problems)

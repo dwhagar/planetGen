@@ -202,6 +202,7 @@ from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 from planetgen.generation.system import StarSystem
+from planetgen.util import detmath
 
 
 _PHENOMENON_CLASSES_BY_TYPE = {
@@ -251,7 +252,7 @@ def distance_between(a, b):
     # otherwise) without needing to know about it here.
     position_a = a.position if hasattr(a, "position") else a
     position_b = b.position if hasattr(b, "position") else b
-    return math.dist(position_a, position_b)
+    return detmath.dist(position_a, position_b)
 
 
 def hill_radius_ly(obj):
@@ -713,7 +714,7 @@ class SectorPhenomenonEntry(_Placed):
 
 _CLEAR_MARGIN = 1e-9
 """Relative band around a required separation inside which the array check
-defers to `math.dist`, so a borderline accept/reject is decided exactly as
+defers to `detmath.dist`, so a borderline accept/reject is decided exactly as
 the one-by-one check would."""
 
 
@@ -752,7 +753,7 @@ class _NeighborArrays:
     def clear_of(self, sector, candidate, min_separation_ly, hill_new):
         """Whether `candidate` is at least the required distance from every
         massive neighbour, with the result of
-        `math.dist(candidate, position) >= required` for each."""
+        `detmath.dist(candidate, position) >= required` for each."""
         self._refresh(sector)
         n = self.count
         if n == 0:
@@ -768,7 +769,7 @@ class _NeighborArrays:
         if clear.all():
             return True
         for i in np.nonzero(~clear)[0]:
-            if not math.dist(candidate, tuple(positions[i])) >= required[i]:
+            if not detmath.dist(candidate, tuple(positions[i])) >= required[i]:
                 return False
         return True
 
@@ -788,7 +789,7 @@ class _NeighborArrays:
         found = []
         for i in near:
             neighbor_position = tuple(positions[i])
-            if math.dist(position, neighbor_position) < required[i]:
+            if detmath.dist(position, neighbor_position) < required[i]:
                 found.append((neighbor_position, float(required[i])))
         return found
 
@@ -1389,7 +1390,7 @@ class SpaceSector:
             reach = float(distances[row][-1])
             # Everything as near as the farthest one kept, so a tie at the edge resolves as the sort would.
             near = tree.query_ball_point(points[row], reach * (1.0 + 1e-9) + 1e-12)
-            ranked = sorted(((math.dist(entry.position, entries[other].position), other)
+            ranked = sorted(((detmath.dist(entry.position, entries[other].position), other)
                              for other in near if other != row))
             result.append([entries[other] for _distance, other in ranked[:count]])
         return result

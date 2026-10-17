@@ -713,3 +713,18 @@ Baseline: PR #1817.
 | GEN.102 | 8.1 | Components and wanderers |
 | DB.59 | 8.1 | Nebula data foundations |
 | TEST.166 | 8.1 | Whole-sphere audits |
+| TEST.192 | 8.1 | Bugs and flaky tests |
+| GEN.335 | 8.3 | Positions as one object |
+| DB.54 | 8.1 | Galactic core and halo |
+| ADM.50 | 8.1 | Reproducible galaxies |
+| DB.18 | 8.1 | Reproducible galaxies |
+| GEN.333 | 8.1 | Galactic core and halo |
+| GEN.283 | 8.1 | Galactic core and halo |
+| ADM.85 | 8.1 | Settings page |
+| UX.116 | 8.1 | Galactic core and halo |
+| API.27 | 8.1 | Region query |
+| UX.113 | 8.1 | Region query |
+| ADM.43 | 8.1 | Settings page |
+| ADM.44 | 8.1 | Settings page |
+| GEN.135 | 8.1 | Reproducible galaxies |
+| TEST.205 | 8.1 | Bugs and flaky tests |

@@ -29,6 +29,7 @@ comet follows the galaxy's rotation at its own `galactic_orbital_speed_kms`.
 import concurrent.futures
 import multiprocessing
 
+from planetgen.db import point_columns
 from planetgen.galaxy import spherical as geometry
 from planetgen.galaxy.system_position import galactic_velocity_ms
 from planetgen.physics import constants
@@ -97,7 +98,7 @@ def _bodies(conn, sector_id, center):
     """`[(table, id, position_m, velocity_m_s)]` for everything in the sector that gets a path."""
     bodies = []
     for row in conn.execute(
-        "SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, velocity_x_kms, velocity_y_kms, velocity_z_kms"
+        f"SELECT id, {point_columns.LAYOUTS['star_systems'].select('position', 'velocity')}"
         " FROM star_systems WHERE sector_id = ? AND position_x_mpc IS NOT NULL", (sector_id,)
     ).fetchall():
         point = geometry.local_to_galaxy_pc(center, (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0,

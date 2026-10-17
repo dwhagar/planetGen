@@ -37,6 +37,7 @@ from planetgen.generation.evolution import life_stage_from_paragraphs
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.names.wordsalad import generate_phoneme_salad_name
 from planetgen.physics.units import ly_to_pc, pc_to_ly
+from planetgen.util import detmath
 
 _YEARS_PER_UNIT = {"Billion": 1e9, "Million": 1e6}
 
@@ -237,7 +238,7 @@ def add_claims(best, polity_id, capital, reach, systems):
         return
     reach_pc = ly_to_pc(reach)
     for system_id, position in systems.items():
-        distance_pc = math.dist(capital, position)
+        distance_pc = detmath.dist(capital, position)
         if distance_pc > reach_pc:
             continue
         strength = math.inf if distance_pc == 0 else reach_pc / distance_pc
