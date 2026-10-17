@@ -435,7 +435,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                               locate_path="/galaxy/locate", course=None, made=None,
                               territory_path="/galaxy/territories", pick=None, nav_url=None, pinned=None,
                               nebula_shape_path="/galaxy/nebula/{id}/shape", uncharted_scene_url=None,
-                              uncharted_phenomenon_url=None, superbubbles=None):
+                              uncharted_phenomenon_url=None, superbubbles=None, nearby_url=None):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (always
@@ -521,6 +521,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         nav_url (str, optional): The NAV page's URL (`/nav`), for a
             the "Start Here" and "End Here" buttons (NAV.29), which with
             one end chosen open it; without it the panel shows none.
+        nearby_url (str, optional): The What's nearby page's URL (`/nearby`), for
+            the "What's within 10 pc" link of a sector, a cell, a system or a
+            phenomenon (NAV.45, `static/navpick.js` `nearbyLinks`); without it
+            the panel shows none.
         pinned (dict or None): A sector page's map (MAP.68): the one
             sector it is locked to, `{"shell", "band", "wedge", "center_pc"}`
             (`center_pc`: its centre in the galaxy frame). The panel then
@@ -561,6 +565,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "pickOther": pick["other"] if pick else None,
         "pickCancel": pick["cancel"] if pick else None,
         "navUrl": nav_url,
+        "nearbyUrl": nearby_url,
         "sectorUrl": sector_url,
         "unchartedSceneUrl": uncharted_scene_url,
         "unchartedPhenomenonUrl": uncharted_phenomenon_url,
