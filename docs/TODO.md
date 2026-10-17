@@ -10931,6 +10931,9 @@ clears each one.
   the cloud environment cannot be resumed; the browser phase has to be
   rerun alone with `scripts/test.py browser`. Decide whether the build
   id should keep the package list.
+  Boss (2026-10-16, 10:37 PM EDT) wants the reuse to carry across builds
+  when a test's own dependencies are unchanged; filed as TEST.208. The
+  same-build-only rule above is what TEST.208 widens.
   Prerequisites: none. Related: TEST.139 (done, PR #1605).
 
 - [ ] **TEST.155 Wording and index agree: property test**
@@ -11735,6 +11738,37 @@ clears each one.
   cluster and satellite counts must equal the bubble-free control.
   Prerequisites: GEN.394, GEN.395, TEST.186. Related: GEN.391, TEST.204.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
+
+- [ ] **TEST.208 `scripts/test.py --resume` reuses an earlier pass across builds when none of that test's own dependencies changed**
+  Boss (2026-10-16, 10:37 PM EDT, project chat): "are we using resumable
+  tests when things get canceled? That's what they were built for so if
+  the code hasn't changed you can expect the same answer from a test."
+  Core 1 reported (10:40 PM EDT, as the lane reported) that `--resume`
+  (TEST.148 to TEST.152) works only for the identical build id, which
+  hashes the whole checkout, so any merge of main after a cancelled gate
+  starts from zero and costs hours. The tool already records which files
+  each test depends on (the dependency map `scripts/depmap.py` behind
+  `changed`). Do: keep a per-test record of the pass together with a
+  fingerprint of that test's own dependencies (the files the dependency
+  map lists for it, its fixtures, the installed packages, the database
+  and Redis servers and the day), and let `--resume` skip a test whose
+  earlier pass has the same fingerprint, even when the build id differs.
+  A changed dependency file, fixture, package, server or day reruns that
+  test; a change to the environment (packages, servers, day, test
+  command) reruns all. Default taken (the TEST.148 decision stands): the
+  reuse is explicit, behind `--resume`, never automatic and not part of
+  the merge gate; the last line says how many tests were reused and from
+  which run. Done: a cancelled or restarted gate after a merge of main
+  reruns only the tests whose dependencies changed; tests prove that a
+  changed dependency file forces a rerun, an unchanged one is reused,
+  and a changed package, server or day forces all; docs/testing.md and
+  the usage text say so. Fails on main: not a failure, a missing
+  feature. Reproducer: start `scripts/test.py changed`, cancel it, merge
+  main, run it again with `--resume` and see it refuse or start from
+  zero.
+  Owner: Bug Hunt (proposed, as the coordinator suggested; any lane).
+  Prerequisites: none. Related: TEST.148, TEST.150, TEST.151, TEST.152,
+  TEST.139.
 
 ## USR: User accounts
 
