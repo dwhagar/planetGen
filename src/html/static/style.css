@@ -1599,6 +1599,50 @@ a:focus-visible .navmap-point circle {
   }
 }
 
+/* UX.116: a limit slider is a range input with a number box at its end. */
+.limit-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.limit-slider-row input[type="range"] {
+  flex: 1 1 0;
+  width: 0;
+  min-width: 4rem;
+  margin: 0;
+}
+
+.limit-slider-row .range-value {
+  flex: 0 0 8.5rem;
+  width: 8.5rem;
+  text-align: right;
+}
+
+.scatter-segments {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: 0.75rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.limit-segment {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.limit-segment .search-fields {
+  grid-template-columns: minmax(0, 1fr);
+  margin-bottom: 0;
+}
+
+.limit-segment .warning {
+  color: var(--warning, var(--text));
+}
+
 .search-field {
   display: flex;
   flex-direction: column;
@@ -4414,4 +4458,21 @@ p.hint a {
 .settings-diff td {
   text-align: left;
   vertical-align: top;
+}
+
+.settings-image {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--border, #8884);
+  border-radius: 4px;
+  background: var(--surface, transparent);
+}
+
+.pre-line {
+  white-space: pre-line;
+}
+
+.tagline {
+  margin: 0 0 1rem;
+  color: var(--text-muted, inherit);
 }

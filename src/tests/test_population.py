@@ -142,10 +142,14 @@ def test_resolve_claims_strongest_claim_wins():
 
 
 def test_polity_color_and_government_are_stable():
-    assert population.polity_color(7) == population.polity_color(7)
-    assert population.polity_color(7).startswith("#") and len(population.polity_color(7)) == 7
-    assert population.government_for(7) in tuning.GOVERNMENT_FORMS
-    assert population.government_for(7) == population.government_for(7)
+    uid = bytes.fromhex("000010000000004000000002")
+    assert population.polity_color(uid) == population.polity_color(uid)
+    assert population.polity_color(uid).startswith("#") and len(population.polity_color(uid)) == 7
+    assert population.government_for(uid) in tuning.GOVERNMENT_FORMS
+    assert population.government_for(uid) == population.government_for(uid)
+    assert population.polity_color(uid) != population.polity_color(bytes.fromhex("000010000000004000000003"))
+    with pytest.raises(ValueError, match="no unique ID"):
+        population.government_for(None)
 
 
 # ---------------------------------------------------------------------------
@@ -485,12 +489,13 @@ def test_the_pass_draws_tech_levels_once_and_leaves_hand_edits_alone(mysql_confi
         assert rows
         for row in rows:
             indices = {domain: row[f"{domain}_index"] for domain in tech.DOMAINS}
+            uid = conn.execute("SELECT uid FROM planets WHERE id = ?", (row["homeworld_planet_id"],)).fetchone()["uid"]
             assert all(0 <= value <= tech.MAX_INDEX for value in indices.values())
             assert float(row["tech_level"]) == tech.tech_level(indices)
             assert row["tech_source"] == "generated"
             # The draw reads the stream of the homeworld, so it can be redone exactly.
             assert indices == tech.draw_indices(row["civilization_age_years"],
-                                                draw.Stream(f"tech:{row['homeworld_planet_id']}"))
+                                                draw.Stream(f"tech:{population.object_key(uid)}"))
         before = {row["id"]: row["tech_level"] for row in rows}
 
         # A second pass draws nothing new and changes nothing.

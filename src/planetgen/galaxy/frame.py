@@ -14,11 +14,12 @@ Pure geometry: no database, no I/O.
 import math
 
 from planetgen.physics import constants as physical_constants
+from planetgen.util import detmath
 
 
 def cylindrical_radius_pc(position):
     """`sqrt(x^2 + y^2)` -- distance from the galactic axis."""
-    return math.hypot(position[0], position[1])
+    return detmath.hypot(position[0], position[1])
 
 
 def galactic_radius_pc(position):
@@ -49,7 +50,7 @@ def sector_orientation(center_pc):
         tuple: `(local_x, local_y, local_z)`, each a unit `(x, y, z)`.
     """
     x, y, _z = center_pc
-    r = math.hypot(x, y)
+    r = detmath.hypot(x, y)
     if r < 1e-12:
         return (1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0)
     cos_t, sin_t = x / r, y / r

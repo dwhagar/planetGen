@@ -254,6 +254,14 @@ def _alter_item(tokens, j, found):
             found.add(j + 2)
 
 
+def _alter_option(tokens, i):
+    """Whether tokens[i] is an ALTER TABLE option, `ALGORITHM=...` or `LOCK=...`, not a column compared to a value."""
+    tok = tokens[i]
+    if not tok.is_word("ALGORITHM", "LOCK") or i + 2 >= len(tokens) or not any(t.is_word("ALTER") for t in tokens[:i]):
+        return False
+    return tokens[i + 2].is_word("DEFAULT", "NONE", "SHARED", "EXCLUSIVE", "INPLACE", "COPY", "INSTANT")
+
+
 def _identifier_positions(tokens):
     """Indexes of the tokens that can only be an identifier here."""
     found = set()
@@ -315,8 +323,9 @@ def _identifier_positions(tokens):
         ):
             found.add(i + 1)
         # `col = ...`, `col < ...` and the like, but not `CHARACTER SET = x`.
+        # Nor the ALTER TABLE options `ALGORITHM=INPLACE` and `LOCK=NONE` (DB.18).
         if nxt is not None and nxt.text in ("=", "<", ">", "<=", ">=", "<>", "!=", "<=>") \
-                and not tok.is_word("SET", "COLLATE", "CHARSET"):
+                and not tok.is_word("SET", "COLLATE", "CHARSET") and not _alter_option(tokens, i):
             found.add(i)
     return found
 

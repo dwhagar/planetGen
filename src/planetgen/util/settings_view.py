@@ -25,6 +25,10 @@ from planetgen.util import settings, settings_writer
 
 CATEGORY_TITLES = {
     "site": "Site",
+    "web": "Web pages",
+    "icons": "Icons",
+    "seo": "Search engines",
+    "og": "Link previews",
     "security": "Security",
     "database": "Database",
     "cache": "Caches",
@@ -62,7 +66,7 @@ def _limits(info):
     """`{"ge", "gt", "le", "lt", "min_length"}` for the bounds the field declares."""
     found = {}
     for item in info.metadata:
-        for key in ("ge", "gt", "le", "lt", "min_length"):
+        for key in ("ge", "gt", "le", "lt", "min_length", "max_length"):
             value = getattr(item, key, None)
             if value is not None:
                 found[key] = value
@@ -92,7 +96,7 @@ def describe(role="admin", environ=None):
         dict: `file_hash` (what a save sends back as `expect_hash`), `problem` (why the page can't save, or
             `""`), `file_error` (why config.json can't be read, or `""`), `groups` (`[{"category", "title",
             "options"}]`, in page order) and `options`, the same options in one flat list. Each option is
-            `{"path", "section", "name", "title", "description", "category", "kind", "choices", "limits", "unit",
+            `{"path", "section", "name", "title", "description", "category", "kind", "choices", "limits", "unit", "multiline",
             "default", "value", "effective", "is_set", "source", "env", "restart", "secret", "editable",
             "min_role", "allowed", "reason"}`. `value` is what the file holds (the default where it holds
             nothing): what the form edits. `effective` is the value in use, which differs from `value` when an
@@ -136,6 +140,7 @@ def describe(role="admin", environ=None):
             "choices": list(get_args(annotation)) if kind == "choice" else [],
             "limits": _limits(info),
             "unit": meta.get("x-unit") or "",
+            "multiline": bool(meta.get("x-multiline")),
             "default": None if secret else default,
             "value": None if secret else (list(value) if kind == "list" else value),
             "effective": None if secret else (list(effective) if kind == "list" else effective),

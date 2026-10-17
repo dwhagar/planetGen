@@ -136,6 +136,12 @@ prose only) — their searchable columns instead capture the same facts the
 prose always states: `density`, the distance range (`lower_limit_km`/
 `upper_limit_km`), and `composition_summary`.
 
+### The stored point of an object
+
+Every object is one `SpatialPosition3D` (`planetgen/physics/position.py`): a position, a point mass and a movement vector at an epoch (GEN.294). `planetgen/db/point_columns.py` (GEN.335) is the one place that names the columns that hold those four parts, in a `PointLayout` per table: the position columns with their frame (galaxy, sector or system) and unit, the velocity columns (km/s), the mass column and its unit (or the table it is summed from, as a star system's is from its stars), the epoch and the due time. `planets` and `moons` (system frame, km, `mass_kg`), `bright_stars` (galaxy frame, mpc, `mass_kg`), `phenomenon_scatter` (galaxy frame, mpc, `mass_solar`) and `star_systems` (sector frame, mpc, with the galactic pc beside it, mass from `stars`) have all four. The SQL that reads and writes their point takes its column lists from the layout, and `spatial_from_row` / `values_from_spatial` convert a row to a `SpatialPosition3D` and back (a system-frame position is kept exactly as stored, not as a galactic sum).
+
+The other tables that hold an object are on the layout's allow-list, each with the parts it lacks and the item that adds them (GEN.336 for stars, black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae and remnants; GEN.337 for belts, the quasar, comets, facilities and scatter members). `test_point_columns.py` lists every table that holds an object, fails when one is on neither list, and fails when an allow-list entry names a part its table already has, so the list only shrinks and a new kind of object cannot ship without a point, a mass and a vector.
+
 ### Versioning
 
 Two independent version numbers:
@@ -2123,6 +2129,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v101 (DB.54): the scatter limits by place
+
+Migration 0101 adds three columns to `galaxy_shape`: `core_min_luminosity_sol` and `core_mass_limit_sol` (`DOUBLE`, NULL until set, and then the core follows the baseline's limits times 1.1) and `halo_min_luminosity_sol` (`DOUBLE NOT NULL`, default 500 solar luminosities), with the CHECK `chk_galaxy_shape_scatter_limits` (the halo floor at least 50, the core's two more than 0 when set), by which the version is detected. The halo has no mass limit of its own. A galaxy planned before it takes the defaults, which change nothing until GEN.333 reads them. Each step is skipped when it is already done.
 
 ### v100 (GEN.281): the cell star ceiling defaults to 5,000
 

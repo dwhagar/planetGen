@@ -39,7 +39,7 @@ share of the measure, an age inside that phase's bright window and a
 luminosity from the part of the phase's range above the threshold.
 
 White dwarfs are never pre-placed (`WD_LUMINOSITY_RANGE_SOL` tops out at
-100 Lsun), so the threshold must be at least that range's top, and a
+50 Lsun), so the threshold must be at least that range's top, and a
 sector's dim draw keeps every white dwarf whatever the cap.
 
 Mass bands (GEN.187)
@@ -60,8 +60,9 @@ import math
 from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.physics.stellar_evolution import (
-    _power_law_integral, _sample_power_law, evolve_star, giant_bright_chance, main_sequence_lifetime_gy,
-    main_sequence_luminosity_sol, population_age_range_gy, sample_living_star, star_params,
+    _power_law_integral, _sample_power_law, agb_bright_chance, evolve_star, giant_bright_chance,
+    has_core_helium_phases, horizontal_branch_bright_chance, main_sequence_lifetime_gy, main_sequence_luminosity_sol,
+    population_age_range_gy, sample_living_star, star_params,
 )
 from planetgen.util import draw
 
@@ -117,6 +118,15 @@ def _bright_windows(mass_sol, min_luminosity_sol):
     chance = _giant_bright_chance(mass_sol, min_luminosity_sol)
     if chance > 0:
         windows.append((t_sub, t_giant, chance))
+    if has_core_helium_phases(mass_sol):
+        t_horizontal = t_giant + t_ms * pc.HORIZONTAL_BRANCH_MS_FRACTION
+        t_agb = t_horizontal + t_ms * pc.AGB_MS_FRACTION
+        chance = horizontal_branch_bright_chance(min_luminosity_sol)
+        if chance > 0:
+            windows.append((t_giant, t_horizontal, chance))
+        chance = agb_bright_chance(min_luminosity_sol)
+        if chance > 0:
+            windows.append((t_horizontal, t_agb, chance))
     return windows
 
 
@@ -156,9 +166,16 @@ def _bright_measure_bound(low_mass, high_mass, min_luminosity_sol, window):
         return bound + chance * _overlap(t_short, t_long * pc.GIANT_PHASE_END_MS_FRACTION, window)
     if l_max * pc.SUBGIANT_MAX_BRIGHTENING > min_luminosity_sol:
         bound += _overlap(t_short, t_long * pc.SUBGIANT_PHASE_END_MS_FRACTION, window)
-    chance = _giant_bright_chance(low_mass, min_luminosity_sol)
+    # A heavier giant starts its branch higher, so the chance at the cell's top mass bounds the cell's.
+    chance = _giant_bright_chance(high_mass, min_luminosity_sol)
     bound += chance * _overlap(t_short * pc.SUBGIANT_PHASE_END_MS_FRACTION,
                                t_long * pc.GIANT_PHASE_END_MS_FRACTION, window)
+    if has_core_helium_phases(high_mass):
+        horizontal = pc.GIANT_PHASE_END_MS_FRACTION + pc.HORIZONTAL_BRANCH_MS_FRACTION
+        bound += horizontal_branch_bright_chance(min_luminosity_sol) * _overlap(
+            t_short * pc.GIANT_PHASE_END_MS_FRACTION, t_long * horizontal, window)
+        bound += agb_bright_chance(min_luminosity_sol) * _overlap(
+            t_short * horizontal, t_long * (horizontal + pc.AGB_MS_FRACTION), window)
     return bound
 
 
@@ -173,7 +190,7 @@ def _mass_grid(extra_edges=()):
     cells = pc.BRIGHT_STAR_MASS_GRID_CELLS
     edges = {low * (high / low) ** (i / cells) for i in range(cells + 1)}
     edges.update(pc.IMF_BREAKS_SOL)
-    edges.update((pc.BRIGHT_GIANT_MIN_MASS_SOL, pc.SUPERGIANT_MIN_MASS_SOL))
+    edges.update((pc.BRIGHT_GIANT_MIN_MASS_SOL, pc.SUPERGIANT_MIN_MASS_SOL, pc.HELIUM_FLASH_MASS_SOL))
     edges.update(extra_edges)
     edges = sorted(edge for edge in edges if low <= edge <= high)
 
@@ -243,7 +260,7 @@ def _bright_table(min_luminosity_sol, population, mass_range=None):
             running += count * bound
             cells.append((a, b, alpha, bound))
             cumulative.append(running)
-    return {"window": window, "cells": cells, "cumulative": cumulative,
+    return {"window": window, "cells": cells, "cumulative": cumulative, "population": population,
             "fraction": bright / living if living > 0 else 0.0}
 
 
@@ -307,7 +324,7 @@ def _sample_one_bright(table, min_luminosity_sol, rng):
                 break
             pick -= weight
         age = rng.uniform(start, end)
-        state = evolve_star(mass, age, rng, min_luminosity_sol=min_luminosity_sol)
+        state = evolve_star(mass, age, rng, min_luminosity_sol=min_luminosity_sol, population=table["population"])
         # Guards the window edges against rounding (an age landing exactly
         # on a phase boundary).
         if state is not None and state["luminosity_sol"] >= min_luminosity_sol:
@@ -413,7 +430,7 @@ def _mass_band_table(mass_range, population):
             running += count * bound
             cells.append((a, b, alpha, bound))
             cumulative.append(running)
-    return {"window": window, "cells": cells, "cumulative": cumulative,
+    return {"window": window, "cells": cells, "cumulative": cumulative, "population": population,
             "fraction": born / living if living > 0 else 0.0}
 
 
@@ -454,7 +471,7 @@ def _sample_one_in_mass_band(table, max_luminosity_sol, rng):
         if mass >= tuning.SUPERGIANT_MIN_MASS_SOL:
             oldest = min(oldest, main_sequence_lifetime_gy(mass) * tuning.GIANT_PHASE_END_MS_FRACTION)
         age = rng.uniform(window[0], oldest)
-        state = evolve_star(mass, age, rng)
+        state = evolve_star(mass, age, rng, population=table["population"])
         if state is None:
             continue
         if (max_luminosity_sol is not None and state["yerkes_class"] != "VII"

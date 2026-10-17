@@ -40,7 +40,7 @@ import pymysql
 from planetgen.db.store import (
     STATEMENT_TIMEOUT_ERRORS, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
 )
-from planetgen.db import countcache
+from planetgen.db import countcache, point_columns
 from planetgen.physics import constants
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
 from planetgen.physics.habitability_world import EQUIPMENT_LABELS, EQUIPMENT_NAMES
@@ -91,6 +91,7 @@ from planetgen.tuning import (
     NAV_ISLAND_LINKS, PLANET_CLASSES,
 )
 from planetgen.physics.units import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
+from planetgen.util import detmath
 
 
 def open_readonly(config=None, statement_timeout_s=None):
@@ -977,7 +978,7 @@ def _sector_local_positions(conn, sector_id):
 
 
 def _longest_hop(path, positions):
-    return max((math.dist(positions[a], positions[b]) for a, b in zip(path, path[1:])), default=0.0)
+    return max((detmath.dist(positions[a], positions[b]) for a, b in zip(path, path[1:])), default=0.0)
 
 
 def _galaxy_route(conn, origin_position, destination_position, from_key, to_key, adjacency_k, unknown_edges=None):
@@ -999,7 +1000,7 @@ def _galaxy_route(conn, origin_position, destination_position, from_key, to_key,
         tuple: `(positions, found)`: the positions the graph was built from
             (`{node_id: (x, y, z)}`, light-years) and `shortest_path`'s answer.
     """
-    direct_ly = math.dist(origin_position, destination_position)
+    direct_ly = detmath.dist(origin_position, destination_position)
     half_width = min(max(direct_ly * NAV_CORRIDOR_FRACTION, NAV_CORRIDOR_MIN_LY), NAV_CORRIDOR_START_MAX_LY)
     while True:
         positions = positions_near_segment(conn, origin_position, destination_position, half_width)
@@ -1038,7 +1039,7 @@ def _with_stones(conn, path, positions, distance_ly):
         new_path.append(b)
     if not found:
         return path, distance_ly, {}
-    return new_path, sum(math.dist(positions[a], positions[b]) for a, b in zip(new_path, new_path[1:])), found
+    return new_path, sum(detmath.dist(positions[a], positions[b]) for a, b in zip(new_path, new_path[1:])), found
 
 
 def _route_places(conn, path):
@@ -1260,7 +1261,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             if stones and galaxy_frame is not None:
                 path, distance_ly, stops_found = _with_stones(conn, path, positions, distance_ly)
             route_positions = {node_id: positions[node_id] for node_id in path}
-            hops = [{"from": a, "to": b, "distance_ly": math.dist(positions[a], positions[b]),
+            hops = [{"from": a, "to": b, "distance_ly": detmath.dist(positions[a], positions[b]),
                      "unknown_space": False} for a, b in zip(path, path[1:])]
             places = _route_places(conn, path)
             for hop in hops:
@@ -2738,7 +2739,7 @@ def _scattered_built_target(conn, row):
         f"SELECT id, name, center_x_pc, center_y_pc, center_z_pc FROM {table} WHERE sector_id = ? {extra}"
         " AND center_x_pc IS NOT NULL", (sector["id"],)).fetchall()
     best = min(
-        ((math.dist(point, (c["center_x_pc"], c["center_y_pc"], c["center_z_pc"])), c) for c in candidates),
+        ((detmath.dist(point, (c["center_x_pc"], c["center_y_pc"], c["center_z_pc"])), c) for c in candidates),
         key=lambda pair: (pair[0], pair[1]["id"]), default=None)
     if best is None or best[0] > SCATTER_BUILT_MATCH_PC:
         return None
@@ -2861,7 +2862,7 @@ def _sector_reach_pc(sector, edge_pc):
     center = (sector["center_x_pc"], sector["center_y_pc"], sector["center_z_pc"])
     for vertex in sector_cell_vertices_pc(
             sector["shell_index"], sector["band_index"], sector["wedge_index"], edge_pc):
-        reach = max(reach, math.dist(vertex, center))
+        reach = max(reach, detmath.dist(vertex, center))
     return reach
 
 
@@ -3220,7 +3221,7 @@ def _nearest_sector_siblings(system, sibling_rows, count=NEAREST_NEIGHBOR_COUNT)
         position = (row["position_x_mpc"], row["position_y_mpc"], row["position_z_mpc"])
         if row["id"] == system["id"] or any(v is None for v in position):
             continue
-        distance_ly = milliparsecs_to_ly(math.dist(origin, position))
+        distance_ly = milliparsecs_to_ly(detmath.dist(origin, position))
         neighbors.append({"id": row["id"], "name": row["name"], "distance_ly": distance_ly})
     neighbors.sort(key=lambda entry: entry["distance_ly"])
     return neighbors[:count]
@@ -3711,8 +3712,8 @@ def _box_colatitude_range(lo, hi):
     """`(north, south)` colatitudes, radians from galactic north, the box
     `[lo, hi)` spans: the extremes sit at the corners of the box's
     `(distance from the axis, z)` rectangle."""
-    near = math.hypot(min(max(0.0, lo[0]), hi[0]), min(max(0.0, lo[1]), hi[1]))
-    far = math.hypot(max(abs(lo[0]), abs(hi[0])), max(abs(lo[1]), abs(hi[1])))
+    near = detmath.hypot(min(max(0.0, lo[0]), hi[0]), min(max(0.0, lo[1]), hi[1]))
+    far = detmath.hypot(max(abs(lo[0]), abs(hi[0])), max(abs(lo[1]), abs(hi[1])))
     angles = [math.atan2(rho, z) for rho in (near, far) for z in (lo[2], hi[2])]
     return min(angles), max(angles)
 
@@ -3778,17 +3779,39 @@ def bright_star_scatter_status(conn):
 
     Returns:
         dict: `scattered` (bool), `min_luminosity_sol` and `seed` (both
-            `None` until a scatter runs), and `default_min_luminosity_sol`
-            (`BRIGHT_STAR_MIN_LUMINOSITY_SOL`, what a plain plan uses).
+            `None` until a scatter runs), `default_min_luminosity_sol`
+            (`BRIGHT_STAR_MIN_LUMINOSITY_SOL`, what a plain plan uses) and
+            `limits` (UX.116): the settings stored with the plan, `None`
+            without one: `core_min_luminosity_sol` and `core_mass_limit_sol`
+            (what the core takes: the one set, else the galaxy-wide one times
+            `CORE_TIER_FACTOR`), `core_follows` (neither was set),
+            `halo_min_luminosity_sol`, `cell_star_ceiling` and `fill_luminosity_cap_sol`.
     """
     row = conn.execute(
-        "SELECT bright_star_min_luminosity_sol, bright_star_seed FROM galaxy_shape WHERE id = 1").fetchone()
+        "SELECT bright_star_min_luminosity_sol, bright_star_seed, bright_star_mass_limit_sol, core_min_luminosity_sol,"
+        " core_mass_limit_sol, halo_min_luminosity_sol, cell_star_ceiling, fill_luminosity_cap_sol"
+        " FROM galaxy_shape WHERE id = 1").fetchone()
     scattered = row is not None and row["bright_star_min_luminosity_sol"] is not None
+    limits = None
+    if row is not None:
+        level = float(row["bright_star_min_luminosity_sol"]) if scattered else tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL
+        mass = (float(row["bright_star_mass_limit_sol"]) if row["bright_star_mass_limit_sol"] is not None
+                else tuning.PHENOMENON_MIN_MASS_SOLAR)
+        core_floor, core_mass = row["core_min_luminosity_sol"], row["core_mass_limit_sol"]
+        limits = {
+            "core_min_luminosity_sol": float(core_floor) if core_floor is not None else level * tuning.CORE_TIER_FACTOR,
+            "core_mass_limit_sol": float(core_mass) if core_mass is not None else mass * tuning.CORE_TIER_FACTOR,
+            "core_follows": core_floor is None and core_mass is None,
+            "halo_min_luminosity_sol": float(row["halo_min_luminosity_sol"]),
+            "cell_star_ceiling": float(row["cell_star_ceiling"]),
+            "fill_luminosity_cap_sol": float(row["fill_luminosity_cap_sol"]),
+        }
     return {
         "scattered": scattered,
         "min_luminosity_sol": float(row["bright_star_min_luminosity_sol"]) if scattered else None,
         "seed": row["bright_star_seed"] if scattered else None,
         "default_min_luminosity_sol": tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
+        "limits": limits,
     }
 
 
@@ -3936,9 +3959,8 @@ def uncharted_sector_contents(conn, shell_index, band_index, wedge_index):
     except pymysql.err.ProgrammingError:  # no bright_stars table yet (before v43)
         stars = []
     rows = conn.execute(
-        """
-        SELECT id, kind, subtype, mass_solar, position_x_mpc, position_y_mpc, position_z_mpc,
-               velocity_x_kms, velocity_y_kms, velocity_z_kms
+        f"""
+        SELECT id, kind, subtype, mass_solar, {point_columns.LAYOUTS["phenomenon_scatter"].select("position", "velocity")}
         FROM phenomenon_scatter
         WHERE shell_index = ? AND band_index = ? AND wedge_index = ? AND built_at IS NULL
         ORDER BY id
