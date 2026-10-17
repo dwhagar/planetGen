@@ -7063,6 +7063,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and Frenk, subhaloes by Nadler's erf with M50 at 8.5e7 and a hard
   floor at a peak mass of 1e6, scatter 0.5 dex field and 0.19 dex
   satellites.
+  Fills (2026-10-17, gap-filling plan, docs/design/gap-filling-plan.md):
+  the values this item cannot source from a read paper are filled by the
+  plan's section 5 (derived D, bracket B, theory prior T, or labelled
+  placeholder P) and registered in one stand-in registry (plan section
+  6: fill id, kind, evidence label, source state, form, assumptions,
+  validity range, knobs, target id, falsifier test, replaced-by research
+  item, sources, licence, epoch). A lead such as Gemini may only widen a
+  bracket, and on a contradiction the verified source wins. A stand-in
+  replaced later changes stored output and rides the pending epoch.
+  Galaxy gaps for this item: GR13 ultrafaint sizes, GR11 dwarf
+  stellar-to-halo relation and its scatter, GR15 occupation width
+  derived from the verified edges (plan 4.5).
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.370 Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug)**
@@ -7407,6 +7419,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.406's age ranges, with those as prerequisites; it keeps only the
   per-family shares, the gas fraction and the young-share bounds. Core 4
   owns GEN.405.
+  Fills (2026-10-17, gap-filling plan, docs/design/gap-filling-plan.md):
+  the values this item cannot source from a read paper are filled by the
+  plan's section 5 (derived D, bracket B, theory prior T, or labelled
+  placeholder P) and registered in one stand-in registry (plan section
+  6: fill id, kind, evidence label, source state, form, assumptions,
+  validity range, knobs, target id, falsifier test, replaced-by research
+  item, sources, licence, epoch). A lead such as Gemini may only widen a
+  bracket, and on a contradiction the verified source wins. A stand-in
+  replaced later changes stored output and rides the pending epoch.
+  Galaxy gaps for this item: GR6 oldest thick disc and first-disc epoch
+  (class B search, prior over the GR10 epoch), GX2, GX3 (group X5; Boss
+  items 1 and 2 of plan section 8).
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.387 Globular clusters, the nuclear cluster and the central black hole follow the family's spheroid and halo**
@@ -7776,6 +7800,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (3) the tuning.py scale heights (50/300, 150/300, 1) and dispersions
   (15, 25, 50) cannot both hold if height goes as dispersion squared:
   take both from one law (note Q5 and Q3).
+  Fills (2026-10-17, gap-filling plan, docs/design/gap-filling-plan.md):
+  the values this item cannot source from a read paper are filled by the
+  plan's section 5 (derived D, bracket B, theory prior T, or labelled
+  placeholder P) and registered in one stand-in registry (plan section
+  6: fill id, kind, evidence label, source state, form, assumptions,
+  validity range, knobs, target id, falsifier test, replaced-by research
+  item, sources, licence, epoch). A lead such as Gemini may only widen a
+  bracket, and on a contradiction the verified source wins. A stand-in
+  replaced later changes stored output and rides the pending epoch.
+  Galaxy gaps for this item: GR1, GR10, GX5, GR14 (accreted halo
+  integral of plan 4.2, group X3, with the slope test against 0.79), GR3
+  bound and GR4 rule (X2). Order X1, X2, X3.
   Prerequisites: none. Related: GEN.378, GEN.382, GEN.366, GEN.134.
 
 - [ ] **GEN.402 The central black hole mass and the nuclear cluster follow the bulge: the M-bulge and M-sigma relations replace the fixed ranges**
@@ -7816,6 +7852,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 22 of 43). This replaces any earlier owner line on this item.
+  Fills (2026-10-17, gap-filling plan, docs/design/gap-filling-plan.md):
+  the values this item cannot source from a read paper are filled by the
+  plan's section 5 (derived D, bracket B, theory prior T, or labelled
+  placeholder P) and registered in one stand-in registry (plan section
+  6: fill id, kind, evidence label, source state, form, assumptions,
+  validity range, knobs, target id, falsifier test, replaced-by research
+  item, sources, licence, epoch). A lead such as Gemini may only widen a
+  bracket, and on a contradiction the verified source wins. A stand-in
+  replaced later changes stored output and rides the pending epoch.
+  Galaxy gaps for this item: the reading jobs GR5, GR7, GR8, GR13 (group
+  X4) and the priors GX2, GX3, GX4 (X5); each has a fill that ships
+  without the answer.
   Prerequisites: GEN.401. Related: GEN.280, GEN.387, GEN.368.
 
 - [ ] **GEN.403 The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157**
@@ -7864,6 +7912,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cluster system's join between the dwarf and the massive range is an
   unsourced placeholder (requests R7 to R9 on GEN.531). The halo mass
   law above 1e11 is a placeholder (R14).
+  Fills (2026-10-17, gap-filling plan, docs/design/gap-filling-plan.md):
+  the values this item cannot source from a read paper are filled by the
+  plan's section 5 (derived D, bracket B, theory prior T, or labelled
+  placeholder P) and registered in one stand-in registry (plan section
+  6: fill id, kind, evidence label, source state, form, assumptions,
+  validity range, knobs, target id, falsifier test, replaced-by research
+  item, sources, licence, epoch). A lead such as Gemini may only widen a
+  bracket, and on a contradiction the verified source wins. A stand-in
+  replaced later changes stored output and rides the pending epoch.
+  Galaxy gaps for this item: GR7, GR8, GR9b, GR11 (group X4), GR10 age
+  against halo mass and GX1 (X2, X3); the cluster radius GR9a is
+  answered (Jordan 2005).
   Prerequisites: none. Related: GEN.297, GEN.366, GEN.387.
 
 - [ ] **GEN.404 The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position**
@@ -7975,6 +8035,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   population. Conflicts 9 (halo age: the code's 10 to 13 Gyr against
   Harmsen 2023's younger massive haloes) and 10 (the metallicity
   baseline) need a default. GEN.406 no longer blocks this item.
+  Fills (2026-10-17, gap-filling plan, docs/design/gap-filling-plan.md):
+  the values this item cannot source from a read paper are filled by the
+  plan's section 5 (derived D, bracket B, theory prior T, or labelled
+  placeholder P) and registered in one stand-in registry (plan section
+  6: fill id, kind, evidence label, source state, form, assumptions,
+  validity range, knobs, target id, falsifier test, replaced-by research
+  item, sources, licence, epoch). A lead such as Gemini may only widen a
+  bracket, and on a contradiction the verified source wins. A stand-in
+  replaced later changes stored output and rides the pending epoch.
+  Galaxy gaps for this item: the thick-to-thin bound GR3 (plan 4.4) and
+  the star abundance regression BC2 (plan 4.7, Brewer 2016
+  whole-catalogue fit; the builder applies the quality cut).
 
 - [ ] **GEN.409 The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -9846,6 +9918,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ask Core 3 before touching its files. Core 4 takes GEN.447,
   GEN.448 and GEN.449 as one run of PRs, so TEST.196 checks the finished
   tables.
+  Fills (2026-10-17, gap-filling plan, docs/design/gap-filling-plan.md):
+  the values this item cannot source from a read paper are filled by the
+  plan's section 5 (derived D, bracket B, theory prior T, or labelled
+  placeholder P) and registered in one stand-in registry (plan section
+  6: fill id, kind, evidence label, source state, form, assumptions,
+  validity range, knobs, target id, falsifier test, replaced-by research
+  item, sources, licence, epoch). A lead such as Gemini may only widen a
+  bracket, and on a contradiction the verified source wins. A stand-in
+  replaced later changes stored output and rides the pending epoch. GR4
+  (age-velocity normalisation for any disc, plan 4.3, derived and ready,
+  group X2) is the gap GEN.301's own prerequisite line reaches through
+  this item; it has one closure target (the Milky Way, Sharma and Hayden
+  2020 Table 2) and is not yet tested on a second galaxy.
   Prerequisites: none. Related: GEN.103, GEN.373, GEN.406, GEN.269.
 
 - [ ] **GEN.448 Massive stars get binaries between 0.25 and 50 AU, so the metallicity trend reaches the separations where it was measured**
@@ -11196,6 +11281,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are open with Core 4; the format is already Decided in
   docs/design/composition-model.md sections 4a and 4b, so the lane
   builds on those sections.
+  Registry hook (2026-10-17, gap-filling plan,
+  docs/design/gap-filling-plan.md, group X1): the loader's `stand-in`
+  and `open` markers carry the plan's stand-in record (section 6.1: fill
+  id, kind D/B/T/P, evidence, source state, assumptions, validity,
+  knobs, falsifier, replaced-by item, epoch), the loader report lists
+  every open fill, and a build check fails on an open fill that has no
+  replacement item. Proposed home `planetgen/fills.py` (data, not
+  behaviour). The plan puts X1 first because every other fill group
+  registers into it.
 
 - [ ] **GEN.473 Replace the asteroid taxon shares and the zone kernel, measured in the Solar System belt, by a derived or general distribution**
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
@@ -12193,6 +12287,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the composition chain).
   Prerequisites: GEN.472, GEN.478. Related: GEN.472, GEN.478, TEST.214,
   GEN.480, GEN.494.
+  Registry hook (2026-10-17, gap-filling plan,
+  docs/design/gap-filling-plan.md, group X1): the target table gets the
+  fill id and the falsifier test of each stand-in, so a replaced
+  stand-in is checked against the same target (plan section 6.3). Each
+  filled value in the docs carries one line `Fill <id> (<kind>,
+  <evidence>): ...`.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
 - [ ] **GEN.504 The Kepler transit-plus-recovery selection model**
@@ -12906,6 +13006,32 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in it replaces a placeholder until it is checked claim by claim
   against the paper (verified wins on a contradiction). The gap-filling
   thread will say how large the verification job is.
+  Gap-filling plan filed (2026-10-17, about 11:20 AM EDT;
+  docs/design/gap-filling-plan.md), sizing and answers. Gemini batch 1
+  holds about 110 distinct claims, about 45 checkable; the plan checked
+  20 of them: 8 agree with verified sources, 7 are contradicted by a
+  verified figure (the occupation mass, the occupation edges, the
+  thick-disc formula, three age-velocity numbers, the nuclear cluster
+  slope) and 5 are unsupported, misattributed or internally
+  inconsistent. A separate checking thread for the other 25 checkable
+  claims is recommended and waits on Boss's card answer. Already
+  answered by reading: R4 for the Milky Way (age-velocity values, Sharma
+  and Hayden 2020, arXiv:2004.06556, Table 2; other galaxies stay a
+  derived or bracketed fill) and R9a (cluster half-light radius, Jordan
+  2005, astro-ph/0508219, abstract read). Of the 17 lines (R9 splits in
+  three): 2 done (R4 for the Milky Way, R9a), 10 are class A reading
+  jobs a research thread can do (R2, R3 then C, R7, R8, R9b, R9c, R10,
+  R11, R12, R13), 3 are class B searches (R5, R6, R15) and 2 are class C
+  with no public source, so derived or bracketed (R1, R14). No galaxy
+  request needs Boss's own research. Seven items need Boss or a data set
+  (plan section 8): 1 whether the generator has an environment (field,
+  group, cluster); 2 the policy when two verified sources disagree
+  (widen or pick); 3 accepting three labelled placeholders (rogue-planet
+  loss fraction, sub-percent water, haze yield); 4 the licence for
+  downloaded line lists and star catalogues (HITRAN, ExoMol, Brewer
+  2016, Hypatia); 5 papers behind refused publishers; 6 the Courteau
+  2007 64-galaxy table and the Comeron fit equations; 7 external-galaxy
+  thick-disc histories (Pinna 2019 and similar).
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
