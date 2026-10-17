@@ -283,7 +283,7 @@ def generate_activity(star):
     offset = draw.gauss(0.0, DECAY_SIGMA_DEX)
     log_n33 = flare_log_n33(mass_sol, age) + draw.uniform(-FLARE_SCATTER_DEX, FLARE_SCATTER_DEX)
     star.flare_alpha = draw.uniform(*FLARE_ALPHA_RANGE)
-    if yerkes in ("IV", "V", "VI"):
+    if yerkes in ("IV", "V", "VI", "PMS", "protostar"):  # a young star is saturated (GEN.242)
         ratio = lx_lbol_at(age, saturated_lx_lbol(mass_sol), t_sat, decay, offset)
         star.xuv_saturated = age <= t_sat
         star.flare_n33_per_yr = 10 ** log_n33

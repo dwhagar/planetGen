@@ -655,6 +655,49 @@ LIFE_MIN_STAR_AGE_GY = 0.1
 GIANT_ENGULFMENT_RADIUS_FACTOR = 2.0
 WD_PROGENITOR_ENGULFMENT_AU = 1.5
 
+# The pre-main-sequence state (GEN.242, physics/pre_main_sequence.py). A star
+# below PRE_MAIN_SEQUENCE_MAX_MASS_SOL younger than its contraction time is a
+# protostar (Class 0 and I, under PROTOSTAR_MAX_AGE_YR) or a pre-main-sequence
+# star (Class II and III). The track is derived, not tabulated: a convective
+# star (polytrope n = 3/2) holds 3/7 G M^2 / R of energy and a radiative one
+# (n = 3) 3/4 G M^2 / R, it shrinks at the luminosity it radiates, and on its
+# Hayashi line (convective) the effective temperature stays put, so
+# R^-3 grows in step with time. The three numbers below are the inferred part
+# [I]: they were set from the published tracks as remembered (Baraffe et al.
+# 2015, arXiv:1503.04107, could be fetched but not its tables), and a TODO
+# finding asks for a sourced replacement. The state is drawn only under
+# PRE_MAIN_SEQUENCE_MAX_AGE_YR, the age limit of T Tauri and Herbig Ae/Be stars
+# and of planet formation (PLANET_MIN_STAR_AGE_GY): a red dwarf still shrinking
+# towards the main sequence at 100 Myr (the track takes 0.1 solar masses 860
+# Myr) is drawn on it, a known simplification that costs it up to a few times
+# its light.
+PRE_MAIN_SEQUENCE_MAX_MASS_SOL = 8.0
+PRE_MAIN_SEQUENCE_MAX_AGE_YR = 10.0e6
+PROTOSTAR_MAX_AGE_YR = 0.5e6
+HAYASHI_TEMPERATURE_1_SOL_K = 4300.0
+HAYASHI_TEMPERATURE_MASS_EXPONENT = 0.17
+BIRTHLINE_RADIUS_1_SOL_RSUN = 2.5
+BIRTHLINE_RADIUS_MASS_EXPONENT = 1.0 / 3.0
+CONVECTIVE_BINDING_COEFFICIENT = 3.0 / 7.0
+RADIATIVE_BINDING_COEFFICIENT = 3.0 / 4.0
+# Contraction alone, at the luminosity the star radiates, takes a solar-mass star to the main sequence in 12 Myr and
+# a 0.1 solar-mass star in 245 Myr, where the published tracks give about 40 Myr and 1 Gyr: deuterium burning and
+# the heat of the interior pay for part of the light. The time is stretched by this factor [I], set to that one
+# remembered anchor (1 solar mass, 40 Myr); the shape in mass is the derived one.
+PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR = 3.5
+# The disk (VANDAM and the TODO text, GEN.242): Class 0 under 0.15 Myr, I under
+# 0.5, II under 3, and none after; mass 0.01 to 0.3 of the star and outer
+# radius 10 to 300 AU, each log-uniform; the inner edge is where a blackbody
+# grain sublimates (DISK_DUST_SUBLIMATION_K).
+DISK_CLASS_AGES_YR = (("0", 0.15e6), ("I", 0.5e6), ("II", 3.0e6))
+DISK_MASS_FRACTION_RANGE = (0.01, 0.3)
+DISK_OUTER_RADIUS_RANGE_AU = (10.0, 300.0)
+DISK_DUST_SUBLIMATION_K = 1500.0
+# Companions of a protostar: the multiplicity fraction of Perseus' Class 0
+# (0.57) and Class I (0.23) protostars, Tobin et al. 2016 (ApJ 818:73,
+# arXiv:1601.00692, abstract read 2026-10-17).
+PROTOSTAR_MULTIPLICITY_BY_CLASS = {"0": 0.57, "I": 0.23}
+
 # Stellar populations by age (galaxy.density.population_densities,
 # star_population). Each has its own age range (uniform within it); the
 # three disk populations share the disk's star formation evenly in time,

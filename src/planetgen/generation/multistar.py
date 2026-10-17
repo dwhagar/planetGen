@@ -50,7 +50,7 @@ from dataclasses import dataclass
 from statistics import NormalDist
 
 from planetgen import tuning
-from planetgen.physics import constants, roche, stability
+from planetgen.physics import constants, pre_main_sequence, roche, stability
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 
@@ -138,13 +138,6 @@ BROWN_DWARF_DESERT_AU = 5.0
 BROWN_DWARF_DESERT_KEEP = 0.01
 """A brown dwarf inside `BROWN_DWARF_DESERT_AU` of a star is kept in 1% of draws."""
 
-KELVIN_HELMHOLTZ_YR = 31.0e6
-KELVIN_HELMHOLTZ_MAX_YR = 1.0e9
-"""float: The pre-main-sequence time is `KELVIN_HELMHOLTZ_YR * m^-2.5`, capped here: the law gives 10 Gyr
-at 0.1 solar masses, where models give about 1 Gyr (a design default)."""
-PROTOSTAR_MAX_AGE_YR = 0.5e6
-PRE_MAIN_SEQUENCE_RADIUS_FACTOR = 2.0
-PROTOSTAR_RADIUS_FACTOR = 4.0
 BROWN_DWARF_RADIUS_SOL = 0.1
 NEUTRON_STAR_RADIUS_KM = 12.0
 REMNANT_WINDOW_FRACTION = 1.0 / 3.0
@@ -394,12 +387,11 @@ def _star_leaf(initial_mass, age_yr, rng, lighten=True):
     if initial_mass < BROWN_DWARF_MAX_MASS_SOL:
         return _Leaf("brown-dwarf", None, initial_mass, initial_mass,
                      BROWN_DWARF_RADIUS_SOL * constants.SOLAR_RADIUS_M / constants.AU_M)
-    ms_radius_au = evolution.main_sequence_radius_sol(initial_mass) * constants.SOLAR_RADIUS_M / constants.AU_M
-    if age_yr < PROTOSTAR_MAX_AGE_YR:
-        return _Leaf("protostar", "protostar", initial_mass, initial_mass, ms_radius_au * PROTOSTAR_RADIUS_FACTOR)
-    if age_yr < min(KELVIN_HELMHOLTZ_YR * initial_mass ** -2.5, KELVIN_HELMHOLTZ_MAX_YR):
-        return _Leaf("pre-main-sequence", "PMS", initial_mass, initial_mass,
-                     ms_radius_au * PRE_MAIN_SEQUENCE_RADIUS_FACTOR)
+    young = pre_main_sequence.state(initial_mass, age_yr)
+    if young is not None:
+        # GEN.242: still contracting; the radius follows from the track's luminosity and temperature.
+        kind = "protostar" if young["yerkes_class"] == pre_main_sequence.PROTOSTAR else "pre-main-sequence"
+        return _Leaf(kind, young["yerkes_class"], initial_mass, initial_mass, _radius_au(young))
     mass = initial_mass
     while True:
         state = evolution.evolve_star(mass, age_yr / 1.0e9, rng)

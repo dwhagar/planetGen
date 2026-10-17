@@ -26,7 +26,7 @@ from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
 from planetgen.generation import life as planetLife, place_terms, prevalence, validation
-from planetgen.physics import constants, insolation, magnetism, metallicity
+from planetgen.physics import constants, insolation, magnetism, metallicity, pre_main_sequence
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -662,8 +662,13 @@ class StarSystem:
         if config.BINARY_SYSTEM is False:
             return None, None, None
         letter = self.primary_star.type[0] if self.primary_star.type else 'G'
+        field_chance = tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS.get(letter, 0.44)
+        # GEN.242: a protostar has the multiplicity of Perseus' Class 0 and Class I protostars, not the field's.
+        initial_mass = getattr(self.primary_star, "initial_mass_sol", None)
+        protostar_chance = (None if initial_mass is None or self.primary_star.age is None else
+                            pre_main_sequence.companion_chance(initial_mass, self.primary_star.age * 1.0e9))
         chance = prevalence.scaled_chance(config, "binary_system",
-                                           tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS.get(letter, 0.44))
+                                           field_chance if protostar_chance is None else protostar_chance)
         wide_share = prevalence.scaled_chance(config, "wide_binary", tuning.WIDE_BINARY_DEFAULT_CHANCE)
         fe_h = getattr(self.primary_star, "metallicity_fe_h", None)
         close = place_terms.scaled_close_chance(chance * (1.0 - wide_share), fe_h)
@@ -1024,7 +1029,7 @@ class StarSystem:
             if yerkes in ("VII", "D"):
                 if member.initial_mass_sol is not None:
                     radius_au = max(radius_au, tuning.WD_PROGENITOR_ENGULFMENT_AU)
-            elif yerkes not in (None, "V", "VI"):
+            elif yerkes not in (None, "V", "VI", "PMS", "protostar"):
                 radius_au = max(radius_au, tuning.GIANT_ENGULFMENT_RADIUS_FACTOR
                                 * member.radius / constants.AU_TO_KM)
         return radius_au

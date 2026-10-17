@@ -39,6 +39,12 @@
       "epoch": 8,
       "first_release": "8.0.1697",
       "reason": "A sector's supernova remnants are Type Ia with the share of their place (the profile's type_ia_share) instead of the constant, and the planetary nebula factor follows the old-star share (GEN.319)."
+    },
+    {
+      "epoch": 9,
+      "first_release": null,
+      "pending": true,
+      "reason": "A star younger than 10 Myr and under 8 solar masses is a protostar (Class 0 and I) or a pre-main-sequence star drawn from a derived contraction track with a disk descriptor, protostars take Perseus' companion share, and the companions of young systems follow the same track (GEN.242)."
     }
   ]
 }
