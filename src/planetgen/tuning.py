@@ -766,9 +766,10 @@ PROTOSTAR_MULTIPLICITY_BY_CLASS = {"0": 0.57, "I": 0.23}
 
 # Stellar populations by age (galaxy.density.population_densities,
 # star_population). Each has its own age range (uniform within it); the
-# three disk populations share the disk's star formation evenly in time,
-# so each one's share of disk stars is its age range's length over
-# STAR_FORMATION_AGE_RANGE_GY's. Young stars sit close to the plane and
+# three disk populations share the disk's stars in proportion to the star
+# formation that fell in their age range (GEN.469, galaxy.disk_history: the
+# disk's own gas history; it was the range's length over
+# STAR_FORMATION_AGE_RANGE_GY's when the history was flat). Young stars sit close to the plane and
 # crowd the spiral arms; old stars are puffed up by billions of years of
 # scattering and spread evenly in azimuth. Scale heights are relative to
 # the galaxy's own thin-disk scale height, all exponential scale heights
