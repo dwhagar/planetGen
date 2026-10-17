@@ -1016,6 +1016,49 @@ def admin_settings_save(cookie_header, changes, expect_hash=None):
     return body
 
 
+def admin_backups(cookie_header):
+    """`GET /api/admin/backups` -- the backup archives, newest first, with their parts (ADM.85)."""
+    body, _set_cookie_headers = _auth_request("GET", "/admin/backups", cookie_header=cookie_header)
+    return body
+
+
+def admin_backup_take(cookie_header):
+    """`POST /api/admin/backups` -- Back up now: one archive of every part (ADM.85)."""
+    body, _set_cookie_headers = _auth_request("POST", "/admin/backups", cookie_header=cookie_header, json_body={})
+    return body
+
+
+def admin_backup(cookie_header, name):
+    """`GET /api/admin/backups/<name>` -- one archive, whether it verifies, and the diff of its settings part
+    against today's config.json (ADM.85). Raises `NotFoundError` for a name that isn't an archive."""
+    body, _set_cookie_headers = _auth_request(
+        "GET", f"/admin/backups/{urllib.parse.quote(name, safe='')}", cookie_header=cookie_header)
+    return body
+
+
+def admin_backup_restore(cookie_header, name, parts=None, expect_hash=None):
+    """`POST /api/admin/backups/<name>/restore` -- restores the whole archive (`parts` None) or the named parts
+    (ADM.85). A changed settings file or a backup that doesn't fit raises `ApiError` (409)."""
+    body, _set_cookie_headers = _auth_request(
+        "POST", f"/admin/backups/{urllib.parse.quote(name, safe='')}/restore", cookie_header=cookie_header,
+        json_body={"parts": parts, "expect_hash": expect_hash})
+    return body
+
+
+def admin_settings_export(cookie_header):
+    """`GET /api/admin/settings/export` -- the settings an admin may change, without secrets (ADM.85)."""
+    body, _set_cookie_headers = _auth_request("GET", "/admin/settings/export", cookie_header=cookie_header)
+    return body
+
+
+def admin_settings_import(cookie_header, document, expect_hash=None, check_only=False):
+    """`POST /api/admin/settings/import` -- checks (`check_only`) or saves an export (ADM.85)."""
+    body, _set_cookie_headers = _auth_request(
+        "POST", "/admin/settings/import", cookie_header=cookie_header,
+        json_body={"document": document, "expect_hash": expect_hash, "check_only": check_only})
+    return body
+
+
 def admin_set_naming_key(cookie_header, db, key=None, draw=False):
     """`POST /api/admin/naming-key?db=` -- sets the key (8 hex digits) or,
     with `draw`, a fresh random one (GEN.70)."""

@@ -101,6 +101,7 @@
     </ul>
   </nav>
 </section>
+<p class="inline-links"><a href="{{ page_url('admin_backups') }}">Backups, restore, export and import</a></p>
 <form method="post" action="{{ url_for('web.admin_settings') }}" class="settings-form" autocomplete="off">
   {{ csrf_field() }}
   <input type="hidden" name="action" value="review">

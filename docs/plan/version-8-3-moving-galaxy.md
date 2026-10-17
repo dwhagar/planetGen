@@ -53,7 +53,10 @@ Every object as one SpatialPosition3D, the nightly schedule and the movement lay
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs |  | Research: three Sun distances today. |
-| GEN.338 | The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests | GEN.144 | Split from GEN.115. |
+| DB.66 | The shape row carries the galaxy family and one column per density component, as a migration only | GEN.378 | Step 2 of the galaxy types chain (9.4); Core 1 numbers it. |
+| GEN.379 | The density model as a list of components, each with an amplitude that may be 0, and a mass for each component | GEN.378, DB.66 | Step 3 of the galaxy types chain (9.4); GEN.338 reads its component masses. |
+| GEN.338 | The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests | GEN.144, GEN.369, GEN.379 | Split from GEN.115. |
+| GEN.285 | Nuclear mass components in the galactic potential for the orbital update | GEN.338 | Core 3; step 5 of the galactic core note; moved from 8.1 (no potential module until GEN.338); Boss 8:41 PM EDT: stays in 8.3. |
 | GEN.370 | Hill spheres, keep-out spheres and the default tidal distance use the Milky Way's mass and Sol's distance for every galaxy: take the galaxy's own enclosed mass and the cell's own distance (bug) |  | Found by the TODO thread. |
 
 ## Phase 2: The update itself

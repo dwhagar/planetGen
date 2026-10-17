@@ -12,6 +12,7 @@ Rules:
 
 | Issue | State | Goal | Items |
 |---|---|---|---|
+| [#1914](https://github.com/dwhagar/planetGen/issues/1914) | open | Galaxy types: one family per known galaxy type, drawn from the seed (9.4) | DB.66, DOC.59, GEN.378, GEN.379, GEN.380, GEN.381, GEN.382, GEN.383, GEN.384, GEN.385, GEN.386, GEN.387, GEN.388, GEN.389, GEN.390, MAP.242, TEST.204, UX.134, UX.135 |
 | [#1846](https://github.com/dwhagar/planetGen/issues/1846) | open | Map labels: names for stars, systems, sectors, big features and nebulae | MAP.229, MAP.230, MAP.231, MAP.232, MAP.233 |
 | [#1845](https://github.com/dwhagar/planetGen/issues/1845) | open | One configuration file and the settings page (8.1) | ADM.43, ADM.44, ADM.50, ADM.83, ADM.84, ADM.85, ADM.86, ADM.87, ADM.96, GEN.303 |
 | [#1844](https://github.com/dwhagar/planetGen/issues/1844) | open | Backups: the archive, parity data, control database and repair from an archive | ADM.87, ADM.88, ADM.89, ADM.90, ADM.91, DB.40, DB.41, DB.42, DOC.56, OPS.55, TEST.180 |
@@ -27,7 +28,7 @@ Rules:
 | [#1802](https://github.com/dwhagar/planetGen/issues/1802) | open | Galaxy Map forward-to-current test failed once: a click on a block with 0 sectors charted did nothing (TEST.172) | TEST.172 |
 | [#1758](https://github.com/dwhagar/planetGen/issues/1758) | open | test_math_check::test_whole_run_is_fast and the Galaxy Map breadcrumb folding test fail under full-suite load (TEST.170) | TEST.170 |
 | [#1726](https://github.com/dwhagar/planetGen/issues/1726) | open | Interface update: every control works on the whole sphere | UX.115, TEST.168 |
-| [#1694](https://github.com/dwhagar/planetGen/issues/1694) | open | Test failures under parallel load and on MySQL 8.4 | TEST.116, TEST.167, TEST.126, TEST.127, TEST.128, TEST.134, TEST.137, TEST.140, TEST.141, TEST.144, TEST.189, TEST.190, TEST.187, TEST.188, TEST.191, TEST.192, TEST.193, TEST.194, TEST.195, TEST.197, TEST.198, TEST.199 |
+| [#1694](https://github.com/dwhagar/planetGen/issues/1694) | open | Test failures under parallel load and on MySQL 8.4 | TEST.116, TEST.167, TEST.126, TEST.127, TEST.128, TEST.134, TEST.137, TEST.140, TEST.141, TEST.144, TEST.189, TEST.190, TEST.187, TEST.188, TEST.191, TEST.192, TEST.193, TEST.194, TEST.195, TEST.197, TEST.198, TEST.199, TEST.202, TEST.203 |
 | [#1693](https://github.com/dwhagar/planetGen/issues/1693) | open | View from a planet: sky maps and constellations | VIEW.1, VIEW.2, VIEW.3, VIEW.4, VIEW.6, VIEW.7, VIEW.8, VIEW.9, VIEW.10, DB.64, VIEW.11, VIEW.12, VIEW.13, VIEW.14, VIEW.15, VIEW.16, VIEW.17 |
 | [#1691](https://github.com/dwhagar/planetGen/issues/1691) | open | Documentation corrections and the docs index | DOC.4, DOC.21, DOC.24, DOC.52, DOC.53 |
 | [#1690](https://github.com/dwhagar/planetGen/issues/1690) | open | Static help section for the web interface | DOC.6, DOC.7, DOC.8, DOC.9, DOC.10, DOC.11, DOC.12, DOC.13, DOC.14, DOC.15, DOC.16, DOC.18, DOC.57, DOC.58 |
@@ -43,7 +44,7 @@ Rules:
 | [#1680](https://github.com/dwhagar/planetGen/issues/1680) | open | Courses that steer around gravity wells and keep-out spheres | NAV.6, NAV.25, NAV.26, NAV.27, NAV.28, NAV.51, NAV.54, NAV.55, NAV.56, NAV.62 |
 | [#1679](https://github.com/dwhagar/planetGen/issues/1679) | open | Saved courses and waypoints (headline of 8.5) | NAV.4, NAV.5, NAV.17, NAV.18, NAV.19, NAV.21, NAV.22, NAV.23, NAV.36, NAV.39, NAV.49, NAV.58, NAV.59 |
 | [#1678](https://github.com/dwhagar/planetGen/issues/1678) | open | Same seed, same data: determinism, fingerprint and generator version | GEN.55, GEN.57, GEN.135, GEN.136, OPS.15, OPS.28, OPS.37, DB.16, TEST.77, DB.49, GEN.304, GEN.305, GEN.306, GEN.307, OPS.56, OPS.57, OPS.58, TEST.181 |
-| [#1677](https://github.com/dwhagar/planetGen/issues/1677) | open | Later catalogue additions and compact-object details (low priority) | GEN.280, GEN.282, GEN.283, GEN.284, GEN.285, GEN.286, GEN.287, UX.116, GEN.244, GEN.245, GEN.246, GEN.298, GEN.255, GEN.256, GEN.257, DB.54, GEN.333, GEN.24, GEN.364 |
+| [#1677](https://github.com/dwhagar/planetGen/issues/1677) | open | Later catalogue additions and compact-object details (low priority) | GEN.280, GEN.282, GEN.283, GEN.284, GEN.285, GEN.286, GEN.287, UX.116, GEN.244, GEN.245, GEN.246, GEN.298, GEN.255, GEN.256, GEN.257, DB.54, GEN.333, GEN.24, GEN.364, GEN.377 |
 | [#1676](https://github.com/dwhagar/planetGen/issues/1676) | open | One description layer for habitability, units and every object page | GEN.218, GEN.219, GEN.220, GEN.221, UX.32, UX.105, UX.107, UX.108, UX.109, DOC.45, TEST.155, GEN.299, GEN.300, GEN.348, GEN.349, UX.119, UX.120, UX.128 |
 | [#1675](https://github.com/dwhagar/planetGen/issues/1675) | open | Planet classes refactored around the habitability index | GEN.27, GEN.28, GEN.29, GEN.33, GEN.90, GEN.91, GEN.92, GEN.145, GEN.146, GEN.350, GEN.351, GEN.352, GEN.353, GEN.354, GEN.355, GEN.356 |
 | [#1674](https://github.com/dwhagar/planetGen/issues/1674) | open | Fill planning: order, directives, density and sector weeding | GEN.9, GEN.40, GEN.42, GEN.102, GEN.103, GEN.134, GEN.144, GEN.179, GEN.180, GEN.181, PERF.35, PERF.36, GEN.308, GEN.309, TEST.182 |
