@@ -107,6 +107,24 @@ def type_of_mass(mass_sol):
     return min(TYPE_ANCHORS, key=lambda anchor: abs(math.log(mass_sol) - math.log(anchor[1])))[0]
 
 
+def mass_range_of_type(name, upper_sol):
+    """
+    `(low, high)` solar masses of the stars `type_of_mass` names `name`: from the log-midpoint to the next lighter anchor
+    to the one to the next heavier. The hottest anchor reaches `upper_sol` and the coolest `MIN_IONIZING_MASS_SOL`.
+
+    Raises:
+        ValueError: `name` is not an anchor type.
+    """
+    names = [anchor[0] for anchor in TYPE_ANCHORS]
+    if name not in names:
+        raise ValueError(f"{name!r} is not one of {names}")
+    index = names.index(name)
+    mass = TYPE_ANCHORS[index][1]
+    high = upper_sol if index == 0 else math.sqrt(mass * TYPE_ANCHORS[index - 1][1])
+    low = MIN_IONIZING_MASS_SOL if index == len(TYPE_ANCHORS) - 1 else math.sqrt(mass * TYPE_ANCHORS[index + 1][1])
+    return low, high
+
+
 def type_name_of_mass(mass_sol):
     """A main-sequence star's spectral type from its mass, to the nearest anchor type
     (`type_of_mass`) down to B5V, then B8V under 5.5 Msun and A0V under 3.8 Msun."""
