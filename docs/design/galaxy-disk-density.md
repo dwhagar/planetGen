@@ -69,18 +69,25 @@ about 0.01 systems from it. The alternative normalisation to the local density (
 higher) is `tuning.HALO_LOCAL_DENSITY_FRACTION`; `density.halo_local_density_scale` gives the factor. The outline
 (`galaxy/skeleton.py`) reads the disk and bulge only, so the halo adds no cell to it.
 
-## 2. Default shape (`planetgen plan`)
+## 2. The shape (`planetgen plan`)
 
-| Parameter | Default | Basis |
-|---|---|---|
-| `--disk-scale-length-pc` | 2,600 | Thin disk, 2.6 +- 0.5 kpc (BHG16) |
-| `--disk-scale-height-pc` | 300 | Thin disk, 300 +- 50 pc (BHG16) |
-| `--bulge-scale-radius-pc` | 1,580 | Dwek et al. 1995 G2 fit to COBE/DIRBE |
-| `--bulge-amplitude` | 3.11 | Bulge 31% of the stars: 1.4-1.7e10 of 5e10 M_sun (BHG16) |
-| `--arm-count` | 2 | Grand-design spiral |
-| `--pitch-angle-deg` | 15 | Typical grand-design pitch (10-25 degrees) |
-| `--arm-amplitude` | 0.4 | Arm to inter-arm contrast of 2.33 |
-| `--calibration-radius-pc` | 3.15 x scale length | The Sun's radius, 8.2 kpc |
+GEN.401: no shape parameter has a default value any more. `planetgen plan` draws each from the galaxy seed
+(`galaxy/shape_draw.py`, the laws in `intergalactic-and-halo-contents.md` 5.13, rows 4 to 6) unless the option is
+given; an option given replaces its draw, and the bulge's amplitude is solved for the disk actually used.
+
+| Parameter | Where it comes from |
+|---|---|
+| `--disk-scale-length-pc` | Size-mass relation of late-type galaxies (Shen et al. 2003), `R_d = R_50 / 1.678`, log-normal scatter |
+| `--disk-scale-height-pc` | Length over `q = 7.3` with a 0.13 dex scatter (Kregel et al. 2002) |
+| `--bulge-scale-radius-pc` | A third of the bar's length, which is drawn in disk scale lengths by stage (Erwin 2005) |
+| `--bulge-amplitude` | Solved so the bulge's mass is the drawn bulge-to-total of the bulge and disks (Graham and Worley 2008, by stage) |
+| `--arm-count` | Shares of Hart et al. 2017 (two arms in 64.5 percent) |
+| `--pitch-angle-deg` | Falls with stellar mass between Yu and Ho 2018's two binned means, 5.5 degrees of scatter |
+| `--arm-density`, `--interarm-density` | 1.4 and 0.6, the arm contrast (not drawn; no source) |
+| `--calibration-radius-pc` | 3.15 x scale length (`tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH`) |
+
+The Milky Way's measured shape (BHG16: 2,600 pc, 300 pc, 1,580 pc, 3.11, two arms at 15 degrees) is kept only as the
+reference the math check measures the model's machinery against (`physics/mathcheck.py`).
 
 The shape is stored in `galaxy_shape` with `k_norm`.
 
@@ -88,7 +95,7 @@ Sources: Bland-Hawthorn & Gerhard 2016, ARA&A 54:529 ("BHG16"); Dwek et
 al. 1995, ApJ 445:716; Wegg & Gerhard 2013, MNRAS 435:1874.
 `tests/test_galaxy_milky_way.py` and the math check
 (`galaxy_bulge_to_total`, `galaxy_thick_to_thin_disk`) compare the
-defaults with them.
+model with them on the reference shape.
 
 ## 3. Which sectors exist
 

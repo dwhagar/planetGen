@@ -352,26 +352,26 @@ def _reference_checks():
         Check("sun_galactic_year", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[1]",
               lambda: galactic_orbit.calculate_galactic_orbit(gc_ly)[1] * 1000, 230.0, 0.1,
               "the galactic year, about 230 million years", unit="Myr"),
-        Check("galaxy_bulge_to_total", "reference", "galaxyDensity.component_masses(default shape)",
+        Check("galaxy_bulge_to_total", "reference", "galaxyDensity.component_masses(reference shape)",
               lambda: _galaxy_mass_ratio("bulge", ("bulge", "thin_disk", "thick_disk")), 0.31, 0.1,
               "Milky Way bulge 1.4-1.7e10 of 5e10 M_sun of stars (Bland-Hawthorn & Gerhard 2016)"),
-        Check("galaxy_thick_to_thin_disk", "reference", "galaxyDensity.component_masses(default shape)",
+        Check("galaxy_thick_to_thin_disk", "reference", "galaxyDensity.component_masses(reference shape)",
               lambda: _galaxy_mass_ratio("thick_disk", ("thin_disk",)), 0.17, 0.3,
               "Milky Way thick disk 6e9 against thin disk 3.5e10 M_sun (Bland-Hawthorn & Gerhard 2016)"),
-        Check("galaxy_nuclear_cluster_mass", "reference", "galaxyDensity.model_terms(default shape)",
+        Check("galaxy_nuclear_cluster_mass", "reference", "galaxyDensity.model_terms(reference shape)",
               lambda: _nuclear_structure()["cluster_mass_solar"], 2.5e7, 0.15,
               "Milky Way nuclear star cluster 2.0-2.5e7 M_sun (Schodel et al. 2014; recalled)", unit="M_sun"),
-        Check("galaxy_nuclear_cluster_half_light_radius", "reference", "galaxyDensity.model_terms(default shape)",
+        Check("galaxy_nuclear_cluster_half_light_radius", "reference", "galaxyDensity.model_terms(reference shape)",
               lambda: _nuclear_structure()["half_light_radius_pc"], 4.2, 0.15,
               "nuclear star cluster projected half-light radius 4.2 pc (Schodel et al. 2014; recalled)", unit="pc"),
-        Check("galaxy_nuclear_cluster_density_1pc", "reference", "galaxyDensity.model_terms(default shape)",
+        Check("galaxy_nuclear_cluster_density_1pc", "reference", "galaxyDensity.model_terms(reference shape)",
               lambda: math.log10(_nuclear_structure()["density_1pc_solar_pc3"]), math.log10(2.9e5), math.log10(3.0),
               "nuclear cluster mass density 1e5-5e5 M_sun/pc^3 at 1 pc, within a factor 3 (Schodel et al. 2018; "
               "recalled, low confidence); log10 of M_sun/pc^3", mode="abs"),
-        Check("galaxy_nuclear_disc_mass_200pc", "reference", "galaxyDensity.model_terms(default shape)",
+        Check("galaxy_nuclear_disc_mass_200pc", "reference", "galaxyDensity.model_terms(reference shape)",
               lambda: _nuclear_structure()["disc_mass_200pc_solar"], 1.0e9, 0.3,
               "nuclear stellar disc about 1e9 M_sun inside 200 pc (Launhardt et al. 2002; recalled)", unit="M_sun"),
-        Check("galaxy_nuclear_disc_scale_height", "reference", "galaxyDensity.model_terms(default shape)",
+        Check("galaxy_nuclear_disc_scale_height", "reference", "galaxyDensity.model_terms(reference shape)",
               lambda: _nuclear_structure()["disc_height_pc"], 37.5, 0.2,
               "nuclear stellar disc scale height 30-45 pc (Sormani et al. 2022; recalled)", unit="pc"),
         Check("holman_wiegert_s_type_equal_circular", "reference",
@@ -646,8 +646,10 @@ def _point_in_cell_failures():
     return failures
 
 
-def _default_galaxy_shape():
-    """`planetgen plan`'s default galaxy shape."""
+def _reference_galaxy_shape():
+    """The Milky Way's measured shape (BHG16, Dwek et al. 1995), the reference the checks measure the model's machinery
+    against (the nuclear structures, the component masses, the calibration). No generation reads it: `planetgen plan`
+    draws its own shape from the galaxy seed (GEN.401)."""
     return galaxyDensity.build_galaxy_shape(
         disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0,
         bulge_amplitude=3.11, arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4, nuclear_amplitude=1.0)
@@ -657,7 +659,7 @@ def _nuclear_structure():
     """The default galaxy's nuclear cluster and disc in physical units (GEN.280): the model's mass units are
     systems at `tuning.MEAN_SYSTEM_MASS_SOLAR` each, a unit of raw density is the systems a sector holds at
     density 1 per cubic parsec, and `k_norm` turns the raw units into relative density."""
-    shape = _default_galaxy_shape()
+    shape = _reference_galaxy_shape()
     terms = galaxyDensity.model_terms(shape)
     edge_pc = units.ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
     per_unit = (shape.k_norm * spaceSector.SpaceSector(name="mathcheck-nuclear", edge_ly=tuning.DEFAULT_SECTOR_EDGE_LY)
@@ -675,12 +677,12 @@ def _nuclear_structure():
 
 def _galaxy_mass_ratio(part, of):
     """One component's integrated mass over the sum of `of`'s."""
-    masses = galaxyDensity.component_masses(_default_galaxy_shape())
+    masses = galaxyDensity.component_masses(_reference_galaxy_shape())
     return masses[part] / sum(masses[name] for name in of)
 
 
 def _density_at_calibration():
-    shape = _default_galaxy_shape()
+    shape = _reference_galaxy_shape()
     radius = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * shape.disk_scale_length_pc
     theta_arm = (shape.spiral_reference_angle_rad
                  + math.log(radius / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad))
@@ -690,7 +692,7 @@ def _density_at_calibration():
 
 def _population_split_error():
     """`population_densities` must sum to `relative_density` everywhere."""
-    shape = _default_galaxy_shape()
+    shape = _reference_galaxy_shape()
     worst = 0.0
     for r in (0.0, 50.0, 1000.0, 8000.0, 15000.0):
         for z in (0.0, 30.0, 400.0, 3000.0):
@@ -704,7 +706,7 @@ def _population_split_error():
 
 def _non_finite_outputs():
     """How many outputs over a fixed input sweep are NaN or infinite."""
-    shape = _default_galaxy_shape()
+    shape = _reference_galaxy_shape()
     outputs = []
     for m in _log_sweep(0.08, 150.0, 60):
         lum = stellar_evolution.main_sequence_luminosity_sol(m)

@@ -487,9 +487,22 @@ The paper check left these, none of which blocks the rows above:
 3. A reionization cutoff mass and a satellite size-luminosity fit (row 10). The third-party papers read give neither as a number.
 4. The cluster radial profile and the halo metallicity offset (rows 9 and 13).
 5. How the thick disk scales with mass (row 4) and a stellar halo mass fraction against `M*`: Harmsen et al. 2017 give 1 to 6e9 solar masses (2 to 14 percent of the stellar mass) for six Milky Way-mass discs only; no mass-dependent law found. The fixed 1.5e9 anchor stays until one is found.
-6. Morphology fractions by mass bin (GEN.378): Conselice 2006 (fractions in a figure; ellipticals and spirals each about 50 percent at 1e11, spirals about 20 percent below 1e9) and Kelvin et al. 2014 Table 1 hold them; not transcribed.
+6. Morphology fractions by mass bin (GEN.378): Conselice 2006 (fractions in a figure; ellipticals and spirals each about 50 percent at 1e11, spirals about 20 percent below 1e9) and Kelvin et al. 2014 Table 1 hold them; the spiral build (5.13.8) reads Kelvin's cumulative counts as local fractions, a stand-in the per-bin counts (Kelvin et al. 2012, Galaxy Zoo 2) replace.
 7. The arm-direction conflict (row 6) and the Georgiev against Neumayer slope conflict (row 8): a choice between the sources, to make when the row is built.
 8. Population ages and velocity dispersions by component (5.13.3).
+
+#### 5.13.8 What the spiral shape build does (GEN.401)
+
+`galaxy/shape_draw.py` (`draw_galaxy(seed, family)`, only `spiral` so far) runs the mass chain and draws, each link from `unit_seed(seed, "shape", <link>)`: the disk length (Shen 2003 with its mass-dependent scatter, `Rd = R50 / 1.678`), the height (`Rd / 7.3`, 0.13 dex), the stage (early or late; the late share from Kelvin 2014 Table 1), the bulge share (Graham and Worley 2008 Table 4 medians by stage, 0.41 dex), the bar length (Erwin 2005 Table 5 by stage, kept between 0.2 and 3 disk lengths, the upper bound from Gadotti 2011) with the bulge's scale radius a third of it, the arm count (Hart 2017 Table 1 shares) and the pitch angle (Yu and Ho 2018's line, 5.5 degrees of scatter, inside 10 to 40 degrees). The bulge's amplitude is solved from the bulge share for the disks used. `planetgen plan` and the Generate page draw whatever option is left out; an option given replaces its draw.
+
+What the build does not do, with the reason:
+
+- **Bar presence, the bar's axis ratios and its angle** stay the model's constants (`tuning.BULGE_AXIS_RATIO_Y/Z`, `BULGE_BAR_ANGLE_DEG`): the model has one boxy bulge-and-bar component, and storing whether a galaxy has a bar and how it lies needs the shape columns of DB.66 (GEN.378). Every galaxy therefore has the component, sized by the bar length, with the bulge's share of the mass; the bar's own mass (0.09 of the total in barred galaxies, Gadotti 2009) is not added.
+- **The stage rule is a stand-in.** Kelvin's classes (S0-Sa, Sab-Scd) are not Graham and Worley's (T = 1 to 3, T = 6 to 9), and the counts are cumulative above each mass bound. The mass trend of the bulge share comes only through the stage.
+- **Arms**: the two papers on the mass trend disagree (5.13.6 item 7); Yu and Ho's is used because Hart gives no fit, and Hart's shares set the count.
+- **The thick disk** stays the stated ratios of the thin disk (`tuning.THICK_DISK_*`); the arm contrast (1.4, 0.6) and the nuclear amplitude (1) are not drawn.
+
+The research behind it: `/mnt/project-files/reports/gen401-shape-sources-2026-10-17.md` (four arXiv numbers in the first brief named other papers and are corrected there).
 
 #### 5.13.7 Questions for Boss (defaults stand if unanswered)
 
