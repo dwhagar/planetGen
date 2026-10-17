@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1605] - 2026-10-17
+
+**Headline:** ADM.85 (the backups screen, restore, and settings export and import) leaves the TODO list.
+
+### Added
+- TEST.203 (bug): `test_one_worker_leaves_the_runs_own_random_stream_alone` failed once under heavy load with a cancelled job and passes alone (Settings lane).
+
+### Changed
+- ADM.85 retired on the Settings lane's merge (#1905); TEST.199 records a second sighting.
+
+TODO items resolved: ADM.85 / Added: TEST.203
+
 ## [8.0.1604] - 2026-10-17
 
 **Headline:** Every scatter and fill limit on the Generate page is a slider with a number box at its end, in segments for the core, the halo and the crowded cells.
