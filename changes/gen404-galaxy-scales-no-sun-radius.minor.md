@@ -7,7 +7,8 @@
 - **No default distance from the Sun.** `GALACTIC_CENTER_DISTANCE_LY` is removed. A system, star or movement vector with no place in the galaxy is taken at the radius that holds half of an exponential disc's stars, 1.678 scale lengths (`scales.default_galactocentric_pc`), for the Hill sphere, the galactic orbit, the metallicity and the hypervelocity chance. The metallicity gradient's zero point is the reference radius until GEN.405 replaces it.
 - The Einstein radius of a black hole, neutron star or rogue planet (GEN.154) is shown as seen from the reference radius, not from Sol.
 - `SUN_GALACTIC_RADIUS_PC` (the supernova profile in `physics/activity.py`) stays for GEN.405, which owns the rates quoted at the Sun.
-- The generator epoch is 20.
+- **Measured effect:** a galaxy of 5e10 solar masses holds 1.25e11 systems (it held about 3.3e11 with the pinned density); the density at the reference radius is 0.377 of the old pinned value (about 2.6 times sparser) and the reference outline ends at shell 3,147 (was 3,762). The causes are the model's vertical profile, whose sech^2(z/2h) midplane density is half that of the exponential fits for the same column (GEN.544), and the mean system mass of 0.4 solar masses, which is a recalled figure (GEN.545); both are approved follow-ups.
+- The generator epoch is 26.
 generation-output: changed
 
 ### Added
