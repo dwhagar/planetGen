@@ -264,7 +264,7 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet=None, spin=0.0, te
         return StarMakeup(kind, None, None, None, draws, {"hole": sa.black_hole(mass_sol, spin)})
     if kind == NEUTRON_STAR:
         return StarMakeup(kind, None, None, None, draws, _neutron_star_crust(draws),
-                          open_items=("inner crust and core need the equation of state integrated (GEN.463)",))
+                          open_items=("inner crust and core need the equation of state integrated (nothing does yet)",))
     if fe_h is None:
         raise StarMakeupError(f"a {kind} needs a [Fe/H]")
     branch = sa.branch_from_uniform(fe_h, age_gy, draws.u_branch)

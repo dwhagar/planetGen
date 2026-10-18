@@ -526,18 +526,33 @@ def _reset_login_backoff():
     memory_store.clear()
 
 
-@pytest.fixture(autouse=True)
-def _downloaded_data_present(monkeypatch, request):
+_DATASETS_ARE_REAL = False
+"""bool: Whether the running test is marked `real_datasets` (set by `_datasets_are_real`)."""
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _downloaded_data_present():
     """
     Bulk generation refuses to start while a downloaded data file is missing (GEN.590, `run_galaxy.require_datasets`), and a
-    test machine's cache folder is empty (a server's is filled by `update.sh`), so every test sees the check report nothing
-    missing. A test that checks the refusal itself is marked `real_datasets` and gets the real check.
+    test machine's cache folder is empty (a server's is filled by `update.sh`), so for the whole session the check reports
+    nothing missing, including for the module- and session-scoped fixtures that generate a galaxy and for a test that calls
+    `monkeypatch.undo()`. A test marked `real_datasets` gets the real check.
     """
-    if request.node.get_closest_marker("real_datasets"):
-        return
+    from unittest import mock
+
     from planetgen.datasets import catalogue
 
-    monkeypatch.setattr(catalogue, "missing", lambda: [])
+    real = catalogue.missing
+    with mock.patch.object(catalogue, "missing", lambda: real() if _DATASETS_ARE_REAL else []):
+        yield
+
+
+@pytest.fixture(autouse=True)
+def _datasets_are_real(request):
+    global _DATASETS_ARE_REAL
+    _DATASETS_ARE_REAL = request.node.get_closest_marker("real_datasets") is not None
+    yield
+    _DATASETS_ARE_REAL = False
 
 
 @pytest.fixture(autouse=True)

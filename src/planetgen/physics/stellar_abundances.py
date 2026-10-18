@@ -123,7 +123,7 @@ RELATIONS = (
              "datasets.neutron_star_matter); it replaced Chamel and Haensel 2008 Table 2", PARTLY_VERIFIED,
              "one mass model is drawn per star; the unmagnetised files only"),
     Relation("neutron star inner crust and core", "Malik, Pais and Providencia 2024, 21 equations of state, downloaded (SC3)",
-             OPEN, "the tables are on disk and nothing integrates them yet: the radius from an equation of state is GEN.463's"),
+             OPEN, "the tables are on disk and nothing integrates them yet: a star's radius comes from the measured band (physics/neutron_star.py)"),
     Relation("black hole quantities", "Kerr-Newman formulas (Bardeen, Press and Teukolsky 1972); the no-hair theorem "
              "(Chrusciel, Costa and Heusler 2012)", VERIFIED),
     Relation("brown dwarf deuterium limit", "Spiegel, Burrows and Milsom 2011 Table 1", VERIFIED),

@@ -156,7 +156,7 @@ class Located:
     def require(self):
         """Self, or `DataMissing` when the files are missing, for a reader that has no value of its own to give."""
         if self.missing:
-            raise DataMissing(f"{self.label} ({self.reason})")
+            raise DataMissing(f"{self.label} ({self.reason}); setup downloads it ('python3 -m planetgen.cli.datasets fetch')")
         return self
 
     def path(self, name):
