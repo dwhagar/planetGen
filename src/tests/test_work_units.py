@@ -566,3 +566,65 @@ def test_a_tiered_pass_travels_as_json_and_comes_back_equal():
         import json
         sent = json.loads(json.dumps(scatter_limits.tiered_to_json(tiered)))
         assert scatter_limits.tiered_from_json(sent, skeleton) == tiered
+
+
+def test_the_sectors_are_cut_into_the_same_units_whatever_the_worker_count(monkeypatch):
+    import json
+
+    from planetgen.generation import run_galaxy
+    items = [value for sector in range(25) for value in (3, sector % 4 - 1, sector)]
+    params = {"database": {"host": "h", "port": 1, "user": "u", "database": "d"}, "args": {"num_systems": 2},
+              "edge_pc": 10.0, "items": items, "workers": 1}
+    for workers in (1, 8):
+        assert run_galaxy.expand_generate_sectors({**params, "workers": workers}).units \
+            == run_galaxy.expand_generate_sectors(json.loads(json.dumps(params))).units
+    monkeypatch.setattr(run_galaxy, "SECTOR_UNITS_MAX", 4)
+    expansion = run_galaxy.expand_generate_sectors(params)
+    assert len(expansion.units) == 4 and expansion.plan == {"sectors": 25}
+    assert [value for unit_args, _cost in expansion.units for value in unit_args["items"]] == items, "in order, whole"
+    assert sum(cost for _args, cost in expansion.units) == 25
+
+
+def test_the_arguments_of_a_sector_unit_carry_no_credentials_and_round_trip():
+    import argparse
+    import json
+
+    from planetgen.generation import run_galaxy
+    args = argparse.Namespace(num_systems=2, density=None, who="x", mysql_password="secret", mysql_host="h",
+                              mysql_port=3306, mysql_user="u", mysql_database="d", _drawn=object(), tags=["a", 1],
+                              stamp=(1, 2))
+    plain = run_galaxy._sector_args_json(args)
+    assert plain == {"num_systems": 2, "density": None, "who": "x", "tags": ["a", 1], "stamp": [1, 2]}
+    unit_args = json.loads(json.dumps({"args": plain, "database": {"host": "h", "port": 3306, "user": "u",
+                                                                  "database": "d"}}))
+    rebuilt = run_galaxy._sector_args_of(unit_args)
+    assert rebuilt.num_systems == 2 and rebuilt.mysql_password is None and rebuilt.mysql_database == "d"
+    assert "secret" not in json.dumps(unit_args)
+
+
+@pytest.mark.fresh_database
+def test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units(mysql_config, monkeypatch, capsys):
+    from planetgen.db import store
+    from tests.bughunt_support import mysql_argv, run_cli
+    from tests.test_galaxy_gen import _seed_skeleton
+    _seed_skeleton(mysql_config, shells=[(0, 0), (1, 1), (2, 1)])
+    runs = []
+    real = wrapper.run
+    monkeypatch.setattr(wrapper, "run", lambda *args, **kwargs: runs.append(real(*args, **kwargs)) or runs[-1])
+    run_cli("galaxy", ["--shell", "2", "--num-systems", "2", *mysql_argv(mysql_config)])
+    out = capsys.readouterr().out
+    conn = redisqueue.connect()
+    records = [runrecord.read_run(conn, run_id) for run_id in runs]
+    keys = [stage["key"] for record in records for stage in record["stages"]]
+    assert keys.count("sectors") == 1 and "link" in keys and "settle" in keys
+    assert all(record["state"] == "done" for record in records)
+    sectors = next(stage for record in records for stage in record["stages"] if stage["key"] == "sectors")
+    assert sectors["units"] >= 1
+    db = store.get_connection(mysql_config)
+    try:
+        saved = db.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"]
+        paths = db.execute("SELECT COUNT(*) AS n FROM sector_paths").fetchone()["n"]
+    finally:
+        db.close()
+    assert saved > 0 and out.count("Saved sector '") == saved, "each sector logged once, as it was saved"
+    assert paths > 0 and "Linked " in out
