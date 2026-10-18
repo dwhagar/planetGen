@@ -280,17 +280,16 @@ PRESSURE = Ladder(
     nonfinite="Pa",
     zero="Pa",
     rungs=(
-        Rung("nPa", 1e-9, "nanopascals", start=0.0),
-        Rung("µPa", 1e-6, "micropascals"),
-        Rung("mPa", 1e-3, "millipascals"),
-        Rung("Pa", 1.0, "pascals"),
+        Rung("nPa", 1e-9, "nanopascals", start=0.0, systems=(AUTOMATIC, METRIC)),
+        Rung("µPa", 1e-6, "micropascals", systems=(AUTOMATIC, METRIC)),
+        Rung("mPa", 1e-3, "millipascals", systems=(AUTOMATIC, METRIC)),
+        Rung("Pa", 1.0, "pascals", systems=(AUTOMATIC, METRIC)),
         Rung("kPa", 1e3, "kilopascals", systems=(AUTOMATIC, METRIC)),
         Rung("MPa", 1e6, "megapascals", systems=(AUTOMATIC, METRIC)),
         Rung("GPa", 1e9, "gigapascals", systems=(AUTOMATIC, METRIC)),
         Rung("TPa", 1e12, "terapascals", systems=(AUTOMATIC, METRIC)),
-        # Customary: psi from a hundredth of one (69 Pa) up, with atm beside it.
-        Rung("psi", physical_constants.PSI_PA, "pounds per square inch", start=0.01 * physical_constants.PSI_PA,
-             systems=(CUSTOMARY,)),
+        # Customary: psi all the way down (zero reads "0 psi"), with atm beside it.
+        Rung("psi", physical_constants.PSI_PA, "pounds per square inch", start=0.0, systems=(CUSTOMARY,)),
     ),
     companions=(
         Companion("atm", "standard atmospheres", physical_constants.STANDARD_ATMOSPHERE_PA,

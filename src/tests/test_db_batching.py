@@ -100,7 +100,7 @@ def test_ids_come_from_id_blocks_above_existing_rows(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
         with conn:
-            conn.execute("INSERT INTO system_configs (id, markdown) VALUES (5000, 0)")
+            conn.execute("INSERT INTO system_configs (id, name) VALUES (5000, NULL)")
         store.forget_id_blocks(mysql_config._key())
         with conn:
             first = store.insert_system_config(conn, SystemConfig())

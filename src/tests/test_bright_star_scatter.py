@@ -149,7 +149,7 @@ def _plan_args(mysql_config, *extra):
 def _seed_galaxy(mysql_config):
     store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=8,
                           expected_system_count_at_density_1=E_VALUE, config=mysql_config, cell_star_ceiling=1e12,
-                            galaxy_seed=SEED)
+                          galaxy_seed=SEED)
     store.replace_galaxy_shells(EXTENTS, config=mysql_config)
 
 

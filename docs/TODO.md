@@ -488,42 +488,6 @@ with `clamp()`.
   TEST.183) comes after them. Core 5 is the proposed owner.
   Prerequisites: UX.121, UX.122, UX.123, TEST.183. Related: PERF.66.
 
-- [ ] **UX.105 The system page builds every body's detail from the document model as HTML tables**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. Facts table, rating table (with the six symbols UX.101
-  draws), life, orbit and moons, styled like the rest of the site in
-  both themes and every size class, quantities as qty spans so the unit
-  preference applies. Removes web/lib/mdrender.py, GET
-  /api/systems/<id>/sections, render_system_sections, the markdown
-  dependency from the web lock file, and the Markdown tests. The
-  overview stays prose (Boss, 2026-10-10). The one-off system page
-  previews the same HTML for a system that is never saved. This is the
-  build of UX.30, absorbed here; UX.30's text and Boss's 2026-10-01
-  quote are kept below.
-    UX.30, Boss (2026-10-01 23:53Z): "Rework planet information displays
-  to pull away from the markdown render and instead fits with the modern
-  web UI as we've seen it so far." Plan change (Boss, 2026-10-15
-  04:21Z): markdown is no longer the web default for any planet or
-  system text; the richer tables replace it, and markdown and wikitext
-  are generated on the fly only when the user asks.
-  Prerequisites: UX.119, UX.120. Related: UX.30, UX.100, UX.101.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: UX.119, UX.120. A renderer and a page rewrite
-  in one item, plus a removal list that UX.109 repeats: UX.105 'removes
-  web/lib/mdrender.py, GET /api/systems/<id>/sections,
-  render_system_sections, the markdown dependency and the Markdown
-  tests' and UX.109 removes 'the /sections endpoint, mdrender,
-  db/render.py render_system_sections' again.
-  Deletions moved to UX.109 (2026-10-16 review): this item builds the
-  renderer and moves the system page and the one-off page onto it; it
-  removes nothing.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 11 of 54). This replaces any earlier owner line on this item.
-
 - [ ] **UX.107 Units in the description go through the ladders**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
   Owner lane: Foundations Wording (2026-10-15), which writes the code
@@ -544,22 +508,6 @@ with `clamp()`.
   on this item.
   Prerequisites: none. Related: UX.22 (done, PR #1504), UX.81 (done, PR #1504).
 
-- [ ] **UX.108 Describe phenomena, sectors, galaxy and facilities in the same Document**
-  Nebulae, remnants, quasar, rogue planets, asteroid fields, sector
-  summaries and facilities are still described by their own per-class
-  text. Build them into the same document model as UX.104 so one set of
-  renderers (text, HTML tables, Markdown, wikitext) covers everything
-  the program describes. Foundations Wording (filed 05:50Z, split out of
-  API.25 (done, PR #1527), which was too big for one PR).
-  Done also: each kind's text is written in short plain prose as it
-  moves into the Document, so the phenomenon prose is not rewritten
-  twice (GEN.221 drops it).
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 13 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none.
-
 - [ ] **UX.109 Remove the old per-class description text**
   Remove SystemConfig.MARKDOWN, the per-class to_paragraph_list and
   __str__ text, db/render.py render_system_sections, the /sections
@@ -579,23 +527,6 @@ with `clamp()`.
   page's mdrender.py row (`docs/design/architecture.md` line 508 and the
   generated map) goes; the TODO thread removes it with the next
   global-document regeneration, the lane does not touch it.
-  Prerequisites: UX.120, UX.108.
-
-- [ ] **UX.110 The phenomena count on the overview page is wrong (bug)**
-  Boss (2026-10-15 06:41Z): "Add a bug to TODO the phenomena count in
-  the overview page is wrong." The front page (UX.55) shows one count
-  per kind, each linking to its list; the phenomena figure comes from
-  `count_phenomena` in `db/query.py` (cached by `countcache`, PERF.69),
-  and the Phenomena page shows its own total. Done: the overview figure
-  equals the number of rows the Phenomena list shows, for the whole
-  galaxy and after every fill, scatter or edit; a test fails when the
-  two differ. Cause not yet found (it may be a stale cache, a missing
-  table in the union or double counting). Owner: Database
-  (count and cache). Queued behind the Spherical Sector Coordinates stop
-  (Boss, 2026-10-15 06:39Z).
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none.
 
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
@@ -623,46 +554,8 @@ with `clamp()`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 51 of 53). This replaces any earlier owner line on this item.
-  Prerequisites: NAV.61, MAP.243.
+  Prerequisites: NAV.61.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
-
-- [ ] **UX.119 An HTML renderer for the Document: facts, rating and composition tables, with unit spans, in both themes**
-  Split from UX.105 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). Add the fourth renderer beside text,
-  markdown and wikitext in `planetgen/describe/`: the Document's facts,
-  ratings (with the six symbols UX.101 draws), composition, life and
-  orbit-and-moon blocks as HTML tables, every quantity as a `qty` span
-  so the unit preference applies, text escaped, styled like the rest of
-  the site in both themes and every size class. No page changes yet.
-  Done: the renderer with snapshot and escaping tests for every block
-  type, and the CSS, checked in light and dark and at phone width in one
-  browser test over a fixture Document.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 9 of 54). This replaces any earlier owner line on this item.
-  Units (Boss's cards, 11:56 to 11:57 PM EDT, as the coordinator
-  relayed): GEN.574 changes the Document's quantity shape to `{kind,
-  value, unit}` after this renderer exists.
-  Prerequisites: none. Related: UX.105.
-
-- [ ] **UX.120 The system page and the one-off system page use it: every body's detail from the Document**
-  Split from UX.105 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). `web/lib/systempage.py` builds each
-  body's detail (facts table, rating table, life, orbit and moons) from
-  the Document through child a instead of from Markdown; the overview
-  stays prose (Boss, 2026-10-10) but is plain paragraphs, not Markdown;
-  the one-off system page previews the same HTML for a system that is
-  never saved (the Markdown branch of `web/system_page.py` goes).
-  Nothing is deleted here: the deletions are UX.109's. Done: the system
-  page and the one-off page render from the Document; browser tests in
-  light and dark, desktop and phone; no call to `markdown_to_html`
-  remains in the two page modules.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 10 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: UX.119. Related: UX.105.
 
 - [ ] **UX.121 The logging layer and the written standard**
   Split from UX.102 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -837,18 +730,6 @@ with `clamp()`.
   honoured, and a before-and-after screenshot of the main pages is
   attached.
   Prerequisites: UX.131. Related: UX.43.
-
-- [ ] **UX.133 `GET /polities` and `GET /species` answer 404 before the population pass has run: show an empty page instead (bug)**
-  Found by a lane (2026-10-16), filed by the TODO thread. On a galaxy
-  that has had no population pass, `/polities` and `/species` return 404
-  instead of a page. Done: both routes answer 200 with an empty list and
-  a line that says the population pass has not run; the 404 stays for a
-  polity or species id that does not exist. A test covers both routes on
-  a galaxy with no pass. Fails on main: yes. Frequency: always on a
-  galaxy before the first population pass. Reproducer: start a fresh
-  galaxy and request both URLs.
-  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
-  Prerequisites: none.
 
 - [ ] **UX.134 Generate page: the galaxy type shows what the seed drew and can be pinned**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
@@ -2305,88 +2186,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.389, UX.135. Related: MAP.232, MAP.234, MAP.235.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
-- [ ] **MAP.243 The Galaxy Map cannot select or enter anything in the halo: the halo's scatter objects are not pickable at galaxy scale and a zoom toward one stops without opening a view (bug)**
-  Boss (2026-10-16, 9:21 PM EDT): "Bug in the galactic map I cannot
-  select or zoom into sectors in the halo region of the map ... I cannot
-  say zoom in to see the space around a black hole scattered out in the
-  halo region, there's no way to select and zooming in tops out without
-  transitioning." Boss asked that an existing later item not be changed
-  if one covers it; none does (checked 2026-10-16, 9:30 PM EDT by a
-  read-only code survey, nothing run in a browser): MAP.207 only draws
-  satellites, clusters and wanderers as points beyond the outline and
-  says nothing of selecting or entering (8.8); MAP.219 makes stored
-  black holes pickable markers, with no enter step (8.8); MAP.225 zooms
-  toward a picked object but only helps if the object is pickable;
-  GEN.322 is stars only; MAP.210 is star selection inside a sector.
-  Causes found: (1) Blocks, and so every zoom hand-off, exist only
-  inside the outline: `galaxyBlocks` and `windowView`
-  (`galaxystages.js:126-157`) keep a block only if the outline holds it,
-  the outline (`galaxyOutline`, `galaxyprisms.js:936-954`) reaches only
-  the shells whose density passes `sector_min_density`, and
-  `S.sectorStage` returns null outside it (`galaxystages.js:274-277`),
-  so the wheel's hand-off `zoomAcross` (`galaxystageview.js:2163-2205`)
-  finds nothing to open and the zoom stops at its floor. (2) At the
-  whole-galaxy stage only blocks are pickable: the `phenomena` and
-  `clouds` layers are enabled only inside a window (`inContainer`,
-  `galaxystageview.js:2935`), so a black hole is drawn but cannot be
-  clicked until a window is open, and outside the outline there is no
-  window. (3) Tiles deliver scatter rows by position with no sector row
-  (`galaxy_scattered_points_in_box`, `db/query.py:4452-4500`) but the
-  scatter itself stays inside the outline today (`scatter_shell` per
-  outline shell; `hypervelocity_rows` drops landings outside it) and
-  coarse tiles list only the top three classes. (4) Tiles cannot address
-  beyond 32.8 kpc (`TILE_ROOT_EDGE_PC`, MAP.239). (5) The server already
-  opens any address in the reach (`/api/galaxy/uncharted`,
-  `/sector/at/<s>/<b>/<w>` with its profile panel, API.27 and UX.113),
-  but the map's "Show on Galaxy Map" for a halo address ends in "Sector
-  ... is outside the galaxy" (`galaxystageview.js:2636`). What Boss sees
-  before this ships: the halo's objects drawn as points with no
-  selection, the wheel stopping short of any halo cell, and a profile
-  page that cannot be shown on the map. Done: from the whole-galaxy view
-  a click or a wheel run onto an object in the halo (a black hole
-  scattered there) selects it and shows its details; the camera flies to
-  it and a further zoom opens the view of its cell, as an uncharted cell
-  with its profile when nothing is stored (the entering gate is the
-  reach of 262 kpc, not the outline); "Show on Galaxy Map" works for any
-  address in the reach; tiles carry the halo's scatter rows beyond the
-  outline once GEN.322 and GEN.323 produce them; a browser test on a
-  seeded galaxy with a halo black hole selects it, zooms into it and
-  ends in the cell's view with its neighbourhood shown. Owner: Core 2
-  proposed (the map lane that owns the infinite zoom tree and MAP.239),
-  after the tree; the Interface lane may take it with UX.115 if that
-  lane starts first.
-  Prerequisites: none. Related: MAP.207,
-  MAP.219, MAP.210, UX.115, GEN.322, API.27.
-  Second sighting, confirmed (Boss, 2026-10-17, 3:09 PM EDT, screenshots
-  under /mnt/project-files/bugs/galaxy-halo-group-2026-10-17/, folded in
-  from MAP.246): a loose group of stars far above the disc on a fresh
-  galaxy cannot be reached or selected. Bug Hunt reproduced it on Boss's
-  seed 2AFA1AD866D4BEB8646BF53C77A43DD6 (PlanetGen 8.0.1737; run: galaxy
-  --then-scatter --phenomenon-min-mass 14 --compact-min-mass star
-  --bright-star-min-luminosity 9000) at 4:30 PM EDT as the lane
-  reported: the group is one of the 11 satellite galaxies the plan drew,
-  5.7 kpc out and 2.3 kpc above the plane; the disc outline ends at
-  shell 1,511 and the group's stars sit at shells 1,604 to 1,620, so no
-  block or window exists there; the wheel stops at a camera distance of
-  6,912 pc and a click on one of its stars reports "Block 0·0·0, 0
-  sectors charted" instead of the star. This is exactly cause (1) and
-  (2) above; MAP.225's anchor problem is not involved. Screenshot of the
-  reproduction:
-  /mnt/project-files/bugs/galaxy-halo-group-2026-10-17/repro-zoom-stops-at-6911pc.png
-  (Bug Hunt's regeneration was cut off in its last stage, so star counts
-  may differ slightly). A fix lets Boss reach the satellite stars, so a
-  browser test on this seed (or a seeded satellite) selects a satellite
-  star and zooms to it.
-  Order (TODO thread, 2026-10-17, 4:25 PM EDT): this is the only open
-  bug that stops Boss reaching stars he can see, so it is worth taking
-  before the end of the infinite zoom tree. Its one hard prerequisite is
-  MAP.239 (the tile root to the reach: small, no prerequisite, Core 2,
-  queue position 31); the scatter rows beyond the outline of GEN.322 and
-  GEN.323 are only needed for the tile part, not for the pick and the
-  hand-off. It edits the wheel hand-off `zoomAcross` in
-  galaxystageview.js, which MAP.245 is also changing, so one lane should
-  hold both: Core 2 right after MAP.245 merges.
-
 - [ ] **MAP.244 The maps and pages use the atmosphere colour where they showed the planet colour**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/sky-colour-analysis.md): "Sky color should definitely
@@ -2437,7 +2236,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   exists; with a switch on everything of MAP.207, MAP.243 and MAP.239
   works as built in 8.1; a browser test per combination of the switches.
   Owner: Core 2 (proposed).
-  Prerequisites: GEN.538, GEN.539, GEN.540, MAP.243. Related: GEN.538,
+  Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.538,
   GEN.539, GEN.540, MAP.207, MAP.243, MAP.239.
 
 - [ ] **MAP.249 The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug)**
@@ -2556,6 +2355,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reported): in `_top_by_key` in `db/query.py` (halo 1, satellite* 2,
   ahead of `_map_key`); the even-thinning and distance ramps of this
   item go on top of it.
+  Coded (Bug Hunt, 2:37 AM EDT 2026-10-18 as the lane reported; no PR
+  yet): tile lists thin by band with the best tenth kept exact
+  (docs/design/zoom-star-visibility.md section 11). Not covered: stage
+  views, the Sector Map and the client limits, so the lane does not
+  claim to resolve the item; those parts stay open.
   Prerequisites: none. Related: MAP.249, MAP.250.
 
 - [ ] **MAP.252 Viewing only the filled sectors does not dim the phenomena (bug)**
@@ -2623,6 +2427,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   relayed by the coordinator): "I approve all your defaults". This
   approves the default on this item: nebulae are cut with the phenomena
   ramp by their visible size, the same order as MAP.251.
+  Coded (Bug Hunt, 2:37 AM EDT 2026-10-18 as the lane reported; no PR
+  yet): step 1 rides the combined PR with TEST.225; the graded version
+  (the tier on the wire, a keep share per object, the distance rule in
+  the shader) is coded after it.
   Prerequisites: none. Related: MAP.250.
 
 - [ ] **MAP.253 Map and scene read the parent chain: systemscene, body_positions, the browser twin orbitpositions.js and the systemmap branches drop the three origin conventions**
@@ -4714,72 +4522,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.340. Related: GEN.105, PERF.88.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
-- [ ] **GEN.218 One habitability describer, in the short wording**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. Fold physics/protection.paragraph and
-  physics/habitability_explain into one module that returns the rating
-  rows (domain, colour, score, sentence) in Boss's wording from GEN.216 (done, PR #1482)
-  (his example lines are the spec): one number formatter on the ladders,
-  one gas-name table, PHI-6 everywhere, dead code deleted
-  (habitability_explain.factors and helpers unless a row sentence needs
-  them). Keeps GEN.148's temperature behaviour.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 5 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none.
-
-- [ ] **GEN.219 The habitability levels page and tooltips are generated from the limits**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. web/lib/habitability_ref.py reads the protection_limits
-  and habitability constants (adds the chaotropicity, oxygen-high and
-  heat-shielded rows; oxygen is listed under Pressure but scored in Air,
-  fix the page to match the code), a test fails when a number on the
-  page differs from the constant, and the page, chips, tooltips,
-  class_pages.py and docs name PHI-6.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 6 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none.
-
-- [ ] **GEN.220 "Habitable" means the index**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. The system overview counts worlds by their PHI-6 rating
-  (default: potentially habitable = overall Green or Blue; Boss can move
-  the line), the row chip and search facet say what they mean (the
-  rating, or "Habitable class" where it is the class flag), and the
-  class pages label the flag "Habitable class". Touches UX
-  (UX.32 chip decision, UX.101 symbols): coordinate before editing
-  systempage.py.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 12 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.218, UX.120. Related: UX.100, UX.101.
-
-- [ ] **GEN.221 Short plain prose for the fixed text**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. One pass, with Boss's example lines as the model: the
-  planet and moon paragraph (class description, atmosphere, composition;
-  the "of a mix of" run-ons), the gas giant depth sentences (keep the
-  data, drop the jargon), the star age and lifespan sentence and the
-  STAR_EVOLUTION notes (split into a sentence about lifespan and one
-  about life), comet, belt, wide and close binary sentences, the planet
-  class descriptions that claim life or water (tuning.PLANET_CLASSES,
-  class pages), and the phenomenon prose. In-universe wording per UX.42
-  on public pages. Wording moves into the describer as it is rewritten.
-  The phenomenon prose is not part of this item (2026-10-16 review):
-  UX.108 writes it as it moves each kind into the Document.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 14 of 54). This replaces any earlier owner line on this item.
-
 - [ ] **GEN.229 Repair or re-roll the wide binaries that already break the stability rule**
   GEN.228 (PR #1610) makes new wide binaries stable and adds `planetgen
   check-db --deep --wide-binaries`, which counts the existing unstable
@@ -4882,6 +4624,54 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   next free epoch after rebasing (24 is Core 1's GEN.402 if that merges
   first). The 8.4 revision of DB.73 takes the next free number at its
   merge.
+  Progress (Core 3, 12:52 and 12:56 AM EDT 2026-10-18 as the lane
+  reported): coded, gate started 12:56 AM EDT from zero (build 1fe4d597,
+  rebased on main d78c3408). Built: `physics/open_cluster_evolution.py`
+  and `generation/open_clusters.py` (formation efficiency Kruijssen 2012
+  eq. 45, a mass function of M^-2 from 50 to 1e6 solar masses at the
+  widest limit from Lamers 2005 and Lada and Lada 2003, disruption and
+  stellar-evolution loss Lamers 2005 and Lamers, Gieles and Portegies
+  Zwart 2005, size Portegies Zwart 2010, all read); labelled stand-ins:
+  [Fe/H] sigma 0.05, a cap at 1/6 of the Jacobi radius, gas left out of
+  the ambient density. Clusters are `galaxy_components` rows (kind
+  cluster, profile plummer) stored beside the globular clusters; their
+  stars are 12 new age-bin populations open_cluster_00 to
+  open_cluster_11 (migration 0110, schema v110 doc, fixture v109 and
+  migration test done); OB associations stay the disk young population.
+  The design note is a NEW section 5.14 of
+  docs/design/intergalactic-and-halo-contents.md (5.13 was taken) and
+  the later-phenomena row of this item points to it. Finding: counts
+  follow the star formation rate density, so a drawn galaxy gets about
+  5,000 (stellar mass 7e9, scale 4.6 kpc) to 92,000 (1.2e10, 2.4 kpc)
+  clusters and the 40 pc toy of the plan tests got 507,000; Core 3 made
+  `ComponentField.bound`, `high_band` and `_contributions` fast for tens
+  of thousands of components (sorted-radius windows, checked equal to
+  brute force, 2,000 bounds in 0.33 s) and the toy plan helper keeps
+  only clusters above 2e4 solar masses. The epoch in the note reads 24
+  pending and is renumbered at merge (Core 1's GEN.402 and Core 4's
+  bundle also claim 24; the first to merge takes it).
+  Update (Core 3, 1:58 AM EDT 2026-10-18 as the lane reported): the
+  first full run (12:55 AM) was cut at 56 minutes after it found two
+  real faults, a tuning pair that was not ordered and a 60 s hang for a
+  1 pc toy galaxy from millions of drawn open clusters (fixed with a
+  dict and an `OPEN_CLUSTER_MAX_COUNT` of 100,000 as a program limit
+  that raises the low mass); the container's memory limit killed mysqld
+  at 1:50 AM EDT (5:50Z), caused by Core 3's side tests running beside
+  the gate, which polluted about 100 database tests. Rebased on main
+  c3b9ec30 and restarted from zero at 1:55 AM EDT, expected end about
+  3:30 AM EDT. GEN.282 (core gas ring) is coded, tested and committed
+  behind it; GEN.563 is coded with 15 new tests and the old ones
+  updated, in a third worktree; Core 3 plans one stacked gate for
+  GEN.282 and GEN.563, merged in order (the epoch 24 pending rides all
+  three). The core ring's over-production of massive clusters is
+  GEN.589.
+  Migration number (Core 4's description-layer bundle merged as #2206,
+  about 2:50 AM EDT lane clock as the coordinator relayed): Alembic
+  revisions 0110 and 0111 are now taken by that bundle, so the head is
+  0111 and this item's migration takes the next free number at its merge
+  (0112 if nothing else lands first); the schema doc and fixture version
+  follow it. The epoch 24 pending in the epochs file is also claimed by
+  Core 1's GEN.402; the next merger renumbers.
   Prerequisites: none. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -7704,23 +7494,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   position 18 of 43). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.286, GEN.287, GEN.259.
 
-- [ ] **GEN.397 `planetgen plan` stage 2 prints the progress weight as the number of phenomena to place (bug)**
-  Rescatter read-only thread (Boss asked 2026-10-16, 9:35 PM EDT;
-  measured 9:37 to 10:07 PM EDT on a 4-core box, main 8.0.1617, default
-  galaxy, seed 0123456789abcdef0123456789abcdef; note
-  /mnt/project-files/reports/rescatter-worth-it-2026-10-16.md). Stage 2
-  prints "Phenomena: about 186,763,602 to place in 3,764 shells". That
-  figure is the progress weight (shell_expected plus BAND_WEIGHT_STARS =
-  5 per band, `run_plan.py` near line 1415); the real expected rows are
-  about 75.5 million (the sum of `phenomenon_scatter.shell_expected`,
-  within 0.1 percent of the rows placed on the chunks checked). Fails on
-  main, every run, default settings. Reproducer: `planetgen plan` on a
-  fresh database and read the first stage-2 line. Done: the line states
-  the expected rows and the progress weight is not shown as a count; a
-  test pins the wording to the sum of `shell_expected`.
-  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
-  Prerequisites: none. Related: GEN.240, GEN.323.
-
 - [ ] **GEN.398 The massive-star and bright-star passes place more stars than their log lines expect: 70 and 12 percent over (bug)**
   Rescatter read-only thread (Boss asked 2026-10-16, 9:35 PM EDT;
   measured 9:37 to 10:07 PM EDT on a 4-core box, main 8.0.1617, default
@@ -7841,6 +7614,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass slope 0.48 (Neumayer 2020, zero point 6.51 at M* 1e9), against
   Georgiev 1.0 to 1.36: both kept (widened, Boss's decision 2); Gemini's
   0.65 is attributed to Neumayer and is not in the paper.
+  Progress (Core 1, 12:47 AM EDT 2026-10-18 as the lane reported): coded
+  and rebased on main including #2187, epoch 24; changed gate (pid
+  18022) started 12:22 AM EDT, non-browser phase at 47% with no
+  failures, expected end about 2:20 AM EDT; PR and squash follow if
+  green. It resolves this item and adds none.
   Prerequisites: none. Related: GEN.280, GEN.387, GEN.368.
 
 - [ ] **GEN.403 The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157**
@@ -7938,6 +7716,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   gives the default: draw eta over the widest range, 2.9e-5 to 6e-5,
   keep all three sources. Applied by the TODO thread from that rule, not
   a new tap; a card is possible if Boss wants a narrower choice.
+  Decided (Boss, 1:14 AM EDT on 2026-10-18, typed in the project chat,
+  as the coordinator relayed; answering the eta question): 'No, I think
+  we're good for now. We can tune it later.' The cluster system mass
+  fraction eta keeps the widest range, 2.9e-5 to 6e-5 with all three
+  sources, as applied above; no card; he tunes it later.
   Prerequisites: none. Related: GEN.297, GEN.366, GEN.387.
 
 - [ ] **GEN.404 The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position**
@@ -8020,6 +7803,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   once they land, so the "Done" density check here states the factor it
   measures and GEN.544 and GEN.545 bring it back toward the old local
   density. Owner of all three: Core 1.
+  Progress (Core 1, 12:47 AM EDT 2026-10-18 as the lane reported): coded
+  and committed on its own branch; it needs a rebase, epoch 25, a test
+  sweep and its own gate after GEN.402. The Done check states the
+  measured density factor, about 0.38 of the old pinned value before
+  GEN.544 and GEN.545 land (they follow it, Boss 9:00 PM EDT).
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -8583,7 +8371,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in the text is in the stored mixture above a stated threshold, and
   that the text, the composition table and the molar density agree.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Prerequisites: GEN.410, GEN.411, GEN.413, GEN.221. Related: GEN.208,
+  Prerequisites: GEN.410, GEN.411, GEN.413. Related: GEN.208,
   GEN.218,
   TEST.209.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
@@ -9210,7 +8998,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test target here and in TEST.210), not 3.9 to 5.4. Core mass fraction
   from the star is 0.2 to 0.47 with the Thiabaud box used only as a
   plausibility box.
-  Prerequisites: GEN.427, GEN.440, GEN.458, GEN.557. Related: GEN.429,
+  Prerequisites: GEN.427, GEN.458, GEN.557. Related: GEN.429,
   DB.69,
   GEN.430.
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
@@ -9386,7 +9174,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   named in the text is in the stored fractions above a stated share and
   that the shares quoted equal the stored ones.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
-  Prerequisites: GEN.428, GEN.429, GEN.221. Related: GEN.415, GEN.218,
+  Prerequisites: GEN.428, GEN.429. Related: GEN.415, GEN.218,
   GEN.208.
   Section 14.6 of the Body composition research lane's note
   (docs/design/body-composition-research.md; 2026-10-17, 1:48 AM EDT as
@@ -9397,198 +9185,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   code; the planet classes' fixed composition strings are replaced by
   the drawn mixture and the class label becomes a summary derived from
   it.
-
-- [ ] **GEN.439 The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers**
-  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
-  "atmosphere composition and planet/moon/star/everything composition is
-  going to be the joint headline of v9.0 ... we need to know the
-  compounds, minerals, and such make up both atmospheres and stellar
-  bodies of all sorts, what is there and all the stats needed to include
-  it in our calculations. The idea is that every body will have figures
-  on its composition based on actual science and not made up where we
-  can avoid it. I'm perfectly ok with drawing the density and other
-  figures we draw now and then filling in compositions that fit that
-  designation. That is perfectly fine, or we can pick the most basics
-  and build either way works." Plan note:
-  docs/design/composition-model.md. A constants-and-functions module
-  with the relations the design (GEN.435) chose: the mass fractions X, Y
-  and Z and the main element abundances as functions of [Fe/H],
-  [alpha/Fe] and age, the evolutionary changes at the surface, and the
-  layer structure of white dwarfs, neutron stars and brown dwarfs, each
-  with its source. No database access; nothing copied from one star.
-  Done: a test checks that the fractions sum to one, that they follow
-  [Fe/H] monotonically where the sources say so, and that the Sun's
-  measured composition is reproduced at its [Fe/H] and age inside a
-  stated tolerance (a target, not a preset).
-  Owner: Blocker 1 (it is the middle of the chain Boss gave Blocker 1,
-  GEN.438, GEN.439, GEN.440, 2026-10-17, 6:01 PM EDT, typed in the
-  project chat: "Unless it's already started elsewhere blocker can grab
-  whatever items it needs to complete those 3 once the current
-  finishes"; Core 4 confirmed at about 6:10 PM EDT, as the lane
-  reported, that it has not started it; it was Boss's card tap for Core
-  4 of 12:13 AM EDT), after GEN.314 and after GEN.438.
-  Merged research (2026-10-17, TODO thread, from the Body composition
-  research lane: docs/design/body-composition-research.md and its five
-  parts in docs/design/body-composition-parts/). Part A holds the [X/Fe]
-  model (hinge parameters, standard deviations and the Cholesky matrix
-  of its section 2.7), the remnant tables (white-dwarf initial-final
-  mass relation, Chandrasekhar integration reproducing Sirius B to 0.1
-  percent, the neutron-star crust sequence and mass mixture, brown-dwarf
-  burning limits and the BHAC15 radius grid) and the birth Eu, Th, U and
-  K abundances (A-D5, read by GEN.459). The neutron-star radius is
-  GEN.463's, not this table's, until Boss's decided replacement lands.
-  Abundance scale: Asplund 2021 (Decided, 1:24 AM EDT).
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): the abundance relations become gated rows: each row is
-  a population (thin disk, thick disk, halo, bulge, young cluster) and a
-  remnant or star kind, with the supported classes as the gate and a
-  weight or weight function (of [Fe/H], age and galactocentric position)
-  that comes from its relation's source with the scatter stated; the
-  weights of the rows that pass add up to 100 percent and a row without
-  a source is `open`.
-  Prerequisites: none. Related: GEN.440,
-  GEN.428.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/gap-filling-plan.md section 8): BC2 star abundances
-  (Brewer 2016, Hypatia). Data from HITRAN, ExoMol, Brewer 2016 or
-  Hypatia is downloaded at build time and no derived table is stored in
-  the repository, so builds need the network; the design states how
-  tests run offline (fixtures built by the test or a cache of earlier
-  downloads kept outside the repository, plan 6.5), and the data work of
-  group X9 waits on that design, not on the licence read.
-  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
-  downloads this item makes at build time send the standard User-Agent
-  of API.31 (one function builds it).
-  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/stellar-composition.md.
-  Decided (Boss, 2026-10-17, 9:40 to 9:45 PM EDT, cards answered in the
-  project chat, relayed by the coordinator at 9:46 PM EDT): section 14
-  of docs/design/stellar-composition.md is approved as recommended: D9
-  (the branch and four offsets derive from a seeded key, nothing
-  stored), D10 (age gate at 8.0 Gy, range 6.5 to 9.5, the logistic
-  unscaled), D11 (oxygen from the NLTE fit, neon follows oxygen,
-  magnesium a switch), D12 ([Fe/H] independent of age), D13 (the
-  white-dwarf radius law is replaced, the observed neutron-star mass
-  mixture, no black-hole composition; the white-dwarf change is a
-  generator epoch change joined to the one rescatter), D14 (birth
-  composition, no photospheric correction), D15 (no GEN.407 table
-  changes, the tip follows Z through GEN.502), D16 (shared [Fe/H],
-  branch and offsets in groups and clusters, flagged default). Brewer
-  scatter: no, keep part A and carry the 0.1 dex mean difference as
-  uncertainty. Research gap: a build-time download is approved for the
-  isochrone grids, the white-dwarf layers and the neutron-star equation
-  of state (GEN.548). The item builds exactly this; it starts after
-  GEN.438 merges, and the isochrone, white-dwarf and neutron-star data
-  it needs come from GEN.548's build-time downloads (with the stand-in
-  fallback until they land).
-  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
-  coordinator relayed): a download this item makes is a static file
-  fetched at setup by the shared step that GEN.548 builds first
-  (User-Agent, sha256, cache outside the repository, labelled stand-in,
-  offline fixtures), never at run time; a run-time fetch would have to
-  say why the data needs constant updates.
-
-- [ ] **GEN.440 Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf**
-  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
-  "atmosphere composition and planet/moon/star/everything composition is
-  going to be the joint headline of v9.0 ... we need to know the
-  compounds, minerals, and such make up both atmospheres and stellar
-  bodies of all sorts, what is there and all the stats needed to include
-  it in our calculations. The idea is that every body will have figures
-  on its composition based on actual science and not made up where we
-  can avoid it. I'm perfectly ok with drawing the density and other
-  figures we draw now and then filling in compositions that fit that
-  designation. That is perfectly fine, or we can pick the most basics
-  and build either way works." Plan note:
-  docs/design/composition-model.md. A function in the physics layer
-  (`physics/stellar_composition.py`) that returns the composition of any
-  star from the values already stored (GEN.158's [Fe/H], the age, the
-  population and the kind), with no new column and no change to stored
-  values, and that the planet draws (GEN.428, the host's iron, magnesium
-  and silicon), the description layer and the radiation model read.
-  Done: the same star gives the same composition at any worker count; a
-  test sweeps every kind of star in a generated galaxy and finds
-  fractions that sum to one and match GEN.439's relations.
-  Owner: Blocker 1 (Boss, 2026-10-17, 6:01 PM EDT, typed in the project
-  chat: "I want Blocker 1 to set itself up with PERF.118, GEN.438, and
-  GEN.440", after GEN.314 merges, with leave to take what it needs to
-  finish them unless already started elsewhere, 6:01 PM EDT: "Unless
-  it's already started elsewhere blocker can grab whatever items it
-  needs to complete those 3 once the current finishes"; it replaces
-  Boss's card tap for Core 4 of 12:13 AM EDT). The chain is GEN.438, then
-  GEN.439, then this item; GEN.439 moves to Blocker 1 too unless Core 4
-  has started it. Core 4 confirmed at about 6:10 PM EDT, as the lane reported, that it has not started GEN.438, GEN.439 or GEN.440.
-  Sources check (GEN.425): it returns the abundances the planet draws
-  need, not only X, Y and Z: the iron, magnesium, silicon, oxygen and
-  carbon ratios (Fe/Si, Mg/Si, C/O) with the scatter of the relations
-  against [Fe/H], from a cited solar abundance set (the check typed
-  Asplund-style values from memory; Lodders 2003 and Asplund 2009 were
-  not read).
-  Prerequisites: GEN.439. Related: GEN.428, GEN.446, GEN.158,
-  GEN.242,
-  GEN.243, GEN.252, GEN.269, GEN.253, GEN.249.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): it reads each star kind and flag the other items add
-  (pre-main-sequence GEN.242, Wolf-Rayet GEN.243, brown dwarfs GEN.252,
-  the stripped-helium and other kinds of GEN.269, the white-dwarf
-  pollution and carbon-star flags of GEN.253 and GEN.249) instead of
-  contradicting them: a polluted white dwarf reports its debris metals,
-  a carbon star C/O above 1 from its flag. Core 3 owns `evolve_star`
-  edits; ask it first.
-  Merged research (2026-10-17, TODO thread, from the Body composition
-  research lane: docs/design/body-composition-research.md and its five
-  parts in docs/design/body-composition-parts/). The star-side draws are
-  A-D1 (the branch and ratio draw seeded through `draw.py`, correlated
-  residuals, the CEMP branch), A-D2 (X, Y, Z in closed form from [Fe/H]
-  and the ratios, Y = Y_P + 1.68 Z with Y_P = 0.2467), A-D4 (the
-  evolved-star surface shifts after first dredge-up, carbon stars,
-  Wolf-Rayet types, Pop III) and A-D5 (birth radioisotopes); whether any
-  of it is stored is the open point of GEN.435. The disk solids law
-  reads Z / Z0 (GEN.464).
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): the derived star composition draws its row
-  (population, kind) through the loader from the stored [Fe/H], age and
-  population, so the gate is the star's kind and the weight function is
-  the star's own stored values; no new column, and the derived fractions
-  are normalised after the draw.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/gap-filling-plan.md section 8): BC2 star abundances
-  (Brewer 2016, Hypatia). Data from HITRAN, ExoMol, Brewer 2016 or
-  Hypatia is downloaded at build time and no derived table is stored in
-  the repository, so builds need the network; the design states how
-  tests run offline (fixtures built by the test or a cache of earlier
-  downloads kept outside the repository, plan 6.5), and the data work of
-  group X9 waits on that design, not on the licence read.
-  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
-  downloads this item makes at build time send the standard User-Agent
-  of API.31 (one function builds it).
-  Decided (Boss, 2026-10-17, 9:40 to 9:45 PM EDT, cards answered in the
-  project chat, relayed by the coordinator at 9:46 PM EDT): section 14
-  of docs/design/stellar-composition.md is approved as recommended: D9
-  (the branch and four offsets derive from a seeded key, nothing
-  stored), D10 (age gate at 8.0 Gy, range 6.5 to 9.5, the logistic
-  unscaled), D11 (oxygen from the NLTE fit, neon follows oxygen,
-  magnesium a switch), D12 ([Fe/H] independent of age), D13 (the
-  white-dwarf radius law is replaced, the observed neutron-star mass
-  mixture, no black-hole composition; the white-dwarf change is a
-  generator epoch change joined to the one rescatter), D14 (birth
-  composition, no photospheric correction), D15 (no GEN.407 table
-  changes, the tip follows Z through GEN.502), D16 (shared [Fe/H],
-  branch and offsets in groups and clusters, flagged default). Brewer
-  scatter: no, keep part A and carry the 0.1 dex mean difference as
-  uncertainty. Research gap: a build-time download is approved for the
-  isochrone grids, the white-dwarf layers and the neutron-star equation
-  of state (GEN.548). GEN.440 follows GEN.439; the age gate of D10 is
-  8.0 Gy.
-  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
-  coordinator relayed): a download this item makes is a static file
-  fetched at setup by the shared step that GEN.548 builds first
-  (User-Agent, sha256, cache outside the repository, labelled stand-in,
-  offline fixtures), never at run time; a run-time fetch would have to
-  say why the data needs constant updates.
 
 - [ ] **GEN.441 Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9970,7 +9566,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bodies of every kind and checks that every material named is in the
   stored or derived composition above a stated share and that the quoted
   figures equal them.
-  Prerequisites: GEN.440, GEN.441, GEN.442, GEN.444, GEN.445, GEN.221.
+  Prerequisites: GEN.441, GEN.442, GEN.444, GEN.445.
   Related:
   GEN.430, GEN.415, GEN.420, GEN.208.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
@@ -10925,7 +10521,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Th/Fe rises as [Fe/H] falls only inside +/- 0.1 dex of solar (slope
   -0.338 +/- 0.049) and U is not measured in disc stars (part G2), so
   the solids law does not take a Th or U trend from the note.
-  Prerequisites: GEN.440. Related: GEN.405, GEN.435, GEN.439, GEN.440.
+  Prerequisites: none. Related: GEN.405, GEN.435, GEN.439, GEN.440.
 
 - [ ] **GEN.465 A second extraction pass over the sources the body and atmosphere research could not reach and that are reachable now**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -11386,7 +10982,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   environment. Size: medium. Done: a note with the derivation and its
   sources, GEN.459 reading it, and TEST.214 listing no Al-26 stand-in.
   Owner: unowned (research; Boss or a read-only research lane).
-  Prerequisites: GEN.459, GEN.440. Related: GEN.459, GEN.440, GEN.472,
+  Prerequisites: GEN.459. Related: GEN.459, GEN.440, GEN.472,
   TEST.214.
 
 - [ ] **GEN.477 The asteroid belt and field composition is drawn from the star, the distance and the belt's mass, not four names drawn uniformly from a list of 84 (bug)**
@@ -13733,6 +13329,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   datasets here are static (grids and tables that change with a paper,
   not with the clock), so they are fetched at setup and never at run
   time.
+  Progress (Blocker 1, reported about 2:46 AM EDT 2026-10-18 as the lane
+  clock read, through the coordinator): coded; its changed gate started
+  about 2:46 AM EDT. It is the shared setup-time download step:
+  update.sh and install.sh run it, the cache is
+  /var/cache/planetgen/datasets, every file is checked against a sha256,
+  a stand-in is used when a host is down, and it fetches the MIST
+  isochrones, the Bedard white-dwarf sequences and the neutron-star
+  equation of state and crust tables. GEN.439 and GEN.440 merged as
+  #2208 (the open states in their RELATIONS list wait on this step).
+  Detail (Blocker 1, 2:47 AM EDT 2026-10-18 as the lane reported):
+  branch claude/gen548-download-step holds
+  `planetgen/datasets/fetch.py`, the command `python -m
+  planetgen.cli.datasets fetch`, step 3 of update.sh and install.sh, the
+  cache directory override PLANETGEN_DATA_DIR, and the three datasets
+  (MIST main-sequence isochrones SC1, Bedard 2020 white-dwarf sequences
+  SC2, neutron-star equation of state and outer-crust compositions SC3);
+  a real fetch was verified (82 s, 225 MB). The stand-in fills SC1 to
+  SC3 are in gap-filling-plan 6.6 and design note stellar-composition
+  14.1 names the sources. After it merges, Blocker 1 wires the readers
+  into the stellar modules.
   Prerequisites: none. Related: GEN.439, GEN.440, GEN.502, API.31.
 
 - [ ] **GEN.549 L dwarfs hotter than 1,500 K are 2 to 4 times too rare against the 20 pc census: use a cooling track that reaches them (strict expected failure)**
@@ -13971,6 +13587,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its host except through the pair builder, where the primary-first step
   (GEN.581) lives. A wording edit on a table being written anyway; no
   behaviour change.
+  As built so far (Core 4, 12:47 AM EDT 2026-10-18 as the lane reported;
+  coded on a branch, not merged, byte-identical draws proven over 30,000
+  seeds): the host class names are group-node, star-like, remnant,
+  brown-dwarf, planet and moon, with three tables (star-count,
+  remnant-satellites, planet-satellites); `SYSTEM_PASS_ODDS` and
+  `multistar.STAR_COUNT_PROBABILITIES` are gone; it is built in 8.1
+  phase 3 (the unified-objects note said U2 is 8.4, which is wrong: U2
+  is 8.1). Not yet applied by the lane: the System-card rewording above
+  (drop 'moons lowest level', moon and small-body host rows with a
+  `may_host` gate, orbiter mass as a ratio to host mass); it is in this
+  item's text now, so the lane should read it before the merge.
   Prerequisites: none. Related: GEN.550, GEN.315.
 
 - [ ] **GEN.553 One star-like body draw: origin, birth, state and [Fe/H], with the initial-final relation, the remnant mass, radius and age rules in one place**
@@ -14005,7 +13632,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `util/draw.py` (GEN.56), every recalled source verified by a lane
   before use under the standing source rules, and any change to a drawn
   value bumps the generator epoch (OPS.56 rule).
-  Prerequisites: GEN.439, GEN.440. Related: GEN.550, GEN.252,
+  Prerequisites: none. Related: GEN.550, GEN.252,
   GEN.463, GEN.467, GEN.469.
   Back-scatter answer (Boss's back-scatter cards, taps 11:38 to 11:40 PM
   EDT, 2026-10-17, as the coordinator relayed): the relation function
@@ -14303,7 +13930,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merges). Done: the gear class and the equipment label agree for every random and example world. Owner: Core 4 (its own
   queue, after the description-layer bundle, UX.109, UX.107 and DOC.45; its branch note cites GEN.561). Filed by the TODO
   thread at Core 4's request (11:27 PM EDT as the lane reported).
-  Prerequisites: GEN.218. Related: TEST.155, GEN.218, GEN.288.
+  Prerequisites: none. Related: TEST.155, GEN.218, GEN.288.
 
 - [ ] **GEN.562 One function for the white-dwarf initial-final relation and for the neutron star and black hole mass draw, with no change in what any seed generates**
   From Boss's back-scatter cards (Boss's back-scatter cards, taps 11:38
@@ -14791,7 +14418,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it (no backward shim otherwise); `describe/quantity.py` loses its
   `_KM_M`. Done: the Document and API tests pass on the new shape and
   the HTML renderer shows the same text.
-  Prerequisites: GEN.569, UX.107, UX.119. Related: GEN.550, GEN.565,
+  Prerequisites: GEN.569, UX.107. Related: GEN.550, GEN.565,
   DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
@@ -15445,6 +15072,32 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mismatch raises.
   Prerequisites: GEN.586. Related: GEN.550, GEN.568, GEN.569.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.589 Research: the central molecular zone's upper cluster mass and its cloud-shock disruption, so the young clusters of the core match the few that are observed**
+  Finding from Core 3 while building GEN.244 and GEN.282 (1:58 AM EDT
+  2026-10-18 as the lane reported), filed by the TODO thread. Kind:
+  generation result against observation. Object: the central molecular
+  zone ring of a drawn galaxy. Result: 5 to 12 young clusters above 5e3
+  solar masses per galaxy against about 2 observed (Arches and
+  Quintuplet), and 7 to 21 clusters older than 10 Myr above 5e4 against
+  none. Cause as the lane reads it: the cluster mass function M^-2 runs
+  to 1e6 solar masses (the widest limit under Boss's widest-range rule),
+  the ambient density of the disruption law leaves out the gas, and
+  there is no disruption by cloud shocks. Do (research first, nothing
+  built until the sources are read): find a published upper cluster mass
+  for the central molecular zone and a cloud-shock disruption rate (Core
+  3 names Trujillo-Gomez 2019 as a lead; it is a lead until a lane has
+  read it, and a lane verifies each citation before use), say what the
+  sources give, and propose the change to GEN.244's mass function and
+  disruption for the core ring; the fill ships as the labelled stand-in
+  meanwhile. A change to the stored clusters rides the pending epoch and
+  the one wiped rescatter. Done: the note names the sources with their
+  evidence state, gives the upper mass and the disruption law with their
+  scatter, and a test shows the young clusters of the core above 5e3
+  solar masses are few (the observed count is the plausibility target,
+  not a preset). Owner: Core 3 (proposed; it built GEN.244). Not a
+  prerequisite of GEN.301.
+  Prerequisites: GEN.244. Related: GEN.244, GEN.282.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -16114,6 +15767,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
+  Progress (Core 5, 12:47 and 12:58 AM EDT 2026-10-18 as the lane
+  reported): written and committed on claude/core5-perf126, held behind
+  DOC.69 (merged as #2172); nine `check-*` commands run as a CHECK-kind
+  run; it needs Redis now and `--deep` and `--no-check-table` are gone.
+  Merging main, then its gate.
   Prerequisites: PERF.120. Related: PERF.118, PERF.120.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
@@ -16608,7 +16266,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 17 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: DB.50, DB.51, DB.52.
+  Prerequisites: none.
 
 - [ ] **DB.33 MySQL 8.0.46 reflects the foreign keys fk_facilities_type and fk_facility_field_values_field as RESTRICT, so check-db calls a healthy database damaged (bug)**
   Reported by Quality (2026-10-15, 4:56 PM EDT run, relayed by the
@@ -16922,58 +16580,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 5 of 43). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.136.
-
-- [ ] **DB.50 Migration only: structure columns for life and flavour**
-  Split from DB.31 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). One Alembic revision adds, on
-  `planets` and `moons`, the structure that replaces the evolutionary
-  paragraphs (the life stage, the pace and the ages; the PR names the
-  columns) and a flavour key that replaces `flavor_text`. Nothing is
-  dropped. Core 1 owns the migration number. Done: the migration,
-  regenerated models, an old-schema fixture, an idempotent upgrade and a
-  round-trip test; no code reads the columns yet.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 7 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: DB.31.
-
-- [ ] **DB.51 Generation stores structure, not prose; the readers and the string searches go**
-  Split from DB.31 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). Generation writes the stage, pace,
-  ages and flavour key; readers move to them: `db/query._life_stages`,
-  `population/model.py`, `db/edits.py`, `db/fingerprint.py`;
-  `life_stage_from_paragraphs` and the string searches in
-  `decide_flavor_text` are deleted; `hab_note` is computed from the
-  describer's rating rows (GEN.218) instead of stored and parsed by
-  regex in `generation/planet.py`; the run-config
-  `system_configs.markdown` column is no longer read. The fingerprint's
-  content changes, so it bumps the generator epoch if OPS.28 child a has
-  landed (a PR rule, not a build blocker). Draws are unchanged. Done:
-  the same seed gives the same stage, pace, ages and flavour as before
-  the change (a test compares them with the old paragraphs on a fixture
-  galaxy); nothing reads the old columns or tables.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 8 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: DB.50, GEN.218. Related: DB.31.
-
-- [ ] **DB.52 Migration only: drop the prose columns and tables**
-  Split from DB.31 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). One Alembic revision drops
-  `planet_evolutionary_paragraphs`, `moon_evolutionary_paragraphs`,
-  `flavor_text` (keep `flavor_text_count` only if the flavour key logic
-  still reads it), `hab_note` on planets and moons and
-  `system_configs.markdown`. Core 1 owns the number. Done: the
-  migration, regenerated models, the old-schema fixture updated, an
-  idempotent upgrade and a round-trip test; the models and `schema.sql`
-  have none of them.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 16 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: DB.51. Related: DB.31.
 
 - [ ] **DB.56 The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings**
   Split from GEN.143 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -17383,6 +16989,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   rotation period and a* become derived and their columns are dropped in
   this revision with the wobble columns (DB.78) and the kinematic record
   of GEN.584.
+  Revision number (2026-10-18 about 2:50 AM EDT lane clock): the head is
+  0111 after Core 4's description-layer bundle (#2206 took 0110 and
+  0111) and GEN.244 takes the next free one; this item's 8.4 revision
+  takes the next free number at its own merge.
   Prerequisites: none. Related: GEN.550, DB.69, DB.70.
 
 - [ ] **DB.74 One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables**
@@ -18010,6 +17620,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 2, proposed (the interface housekeeping line beside API.15
   and API.26; not asked yet, the coordinator tells Core 2 when it
   reaches the item).
+  Detail (Blocker 1, 2:47 AM EDT 2026-10-18 as the lane reported):
+  GEN.548 adds `planetgen/util/user_agent.py` with `user_agent()`, the
+  one function that builds the identifying User-Agent string; this item
+  reuses it instead of writing a second one (it is on the GEN.548
+  branch, so it is on main once GEN.548 merges).
   Prerequisites: none. Related: API.5, API.15, API.30.
 
 ## ADM: Admin tools
@@ -19101,24 +18716,6 @@ clears each one.
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
   Prerequisites: none. Related: TEST.123, GEN.122.
 
-- [ ] **TEST.134 test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug)**
-  Bugfixes lane 1 (2026-10-10, full local suite 19:41Z to 20:54Z, -n 4):
-  src/tests/test_web_jobs_damage.py::test_many_processes_starting_at_once_start_one_job
-  fails when the suite runs in parallel and passes alone. Done: the
-  cause is found (a shared Redis or database state with the other
-  workers, or a timing limit) and the test is made to pass under -n 4
-  without skipping, disabling or loosening it away from what it checks.
-  Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md): fold
-  into the rebuild, no separate hunt; stage 1 keeps each failure's
-  traceback and re-runs it alone, stage 3 gives each worker its own
-  database; closed after 5 clean full runs after stage 3, or fixed from
-  the captured traceback on recurrence. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Prerequisites: none. Related: TEST.126, TEST.127, TEST.128.
-
 - [ ] **TEST.135 Big-galaxy query-budget test for the nebula reads**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
   by colour or by combined regions; Phase 2 for the feature, foundations
@@ -19209,23 +18806,6 @@ clears each one.
   Reproducer given: SIGTERM to the process group while the 4-core gate
   runs, full gate under load.
   Prerequisites: none. Related: TEST.128, TEST.132 (done, PR #1578), TEST.134.
-
-- [ ] **TEST.155 Wording and index agree: property test**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. A property test over random worlds and the sample
-  systems that fails when a domain's colour, score, the band its
-  sentence names, the gear and the equipment label disagree; when a body
-  has life text but the index gives it no life (check the 130 C case
-  first); when an airless body shows Air as anything but Red (shared
-  with GEN.215, done in PR #1478); and when any quantity in the describer is formatted
-  with a raw :.Nf. Test items are owned by Test Suite Rebuild: that
-  thread approves, Foundations Wording writes it.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 18 of 54). This replaces any earlier owner line on this item.
-  Prerequisite: GEN.218.
 
 - [ ] **TEST.159 Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population**
   Step 15 of the whole-sphere train. Tests: no emission, reflection or
@@ -19461,253 +19041,6 @@ clears each one.
   nothing to the failure rules.
   Prerequisites: ADM.56, TEST.168. Related: TEST.168, ADM.55.
 
-- [ ] **TEST.170 test_math_check::test_whole_run_is_fast and the Galaxy Map breadcrumb folding test fail under full-suite load and pass alone (bug)**
-  Finding from Core 1 (2026-10-15, PR #1757, kind: load flake, fails on
-  main: not seen, how often: once in the 89-minute changed-tests gate
-  each): in the gate run, test_math_check::test_whole_run_is_fast failed
-  (a timing assertion) and
-  test_web_browser_fixture_maps::test_galaxy_breadcrumb_stays_on_one_line_folding_its_middle
-  failed once and passed on rerun; both pass alone. Reproducer:
-  scripts/test.py changed (the full parallel gate), then run each test
-  alone. Done: each test is made robust to load without loosening what
-  it proves (the speed test measures against a relative budget or the
-  work done instead of a wall-clock limit; the breadcrumb test waits for
-  layout to settle before measuring) or its cost is explained, and the
-  same gate shows neither red. Owner: unassigned. Related: TEST.111,
-  TEST.126, TEST.163.
-  Scope after the 2026-10-16 review: only the
-  `test_math_check::test_whole_run_is_fast` timing test (a relative
-  budget); the breadcrumb folding test joins the TEST.126 family.
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Prerequisites: none. Related: TEST.111, TEST.138, TEST.163, TEST.167.
-
-- [ ] **TEST.171 test_gen_resume::test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards failed once under gate load with no scattered system (0 > 0) and passes alone (bug)**
-  Finding from Core 1 (2026-10-16, 3:17 AM EDT, GEN.235 gate, kind:
-  flaky test, fails on main: not checked, how often: once in the 1:47 AM
-  to 3:03 AM EDT gate under load, 9 of 9 passes alone):
-  src/tests/test_gen_resume.py:299 asserted some_scattered > 0 and got 0
-  > 0. Likely cause (Core 1): an unseeded galaxy seed leaves no bright
-  star in the first wedges, so a seed fix is the probable remedy.
-  Reproducer: scripts/test.py changed (the full parallel gate), then run
-  the test alone in a loop with different seeds. Done: the test pins its
-  seed (or builds a guaranteed scatter case) without loosening what it
-  proves, and the same gate shows it green. Owner: unassigned.
-  Owns pinning the random galaxy seed in the shared `_seed_galaxy` test
-  helper (2026-10-16 review); TEST.173 shares the helper.
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
-  reproduce, pinned anyway by Bug Hunt. The test did not fail again. Bug
-  Hunt pinned the failing path with a test in its branch regardless.
-  Needed next time: If it fails again: the text of the failure and
-  whether the pinned test failed with it. The item stays open until Bug
-  Hunt's PR merges. Running log: the comments on issue #1694.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): TEST.173 folded in. Second sighting of the unpinned-seed
-  cause:
-  `test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star`
-  raised `min() iterable argument is empty` in `_nearest` (Core 1,
-  2026-10-16, 7:18 AM EDT; 13 of 13 passes alone) because the sector the
-  backfill reached drew no stars. One pinned seed in `_seed_galaxy`
-  fixes both; optionally `_nearest` handles an empty ring where that is
-  a real edge (the TEST.132 edge). Agreed by Bug Hunt (2026-10-17, 12:33
-  AM EDT as the lane reported).
-  Sighting (Core 3, 2026-10-17, 6:50 PM EDT as the lane reported,
-  GEN.321's second changed gate, ended 6:41 PM EDT: 19,437 passed, 4
-  failed): failed once with `assert some_scattered > 0` (0 stars
-  scattered); passed 7 of 7 alone on Core 3's branch; not reproduced.
-  Fails on main: not run on main. Frequency: 1 gate in this series.
-  Reproducer: run `scripts/test.py changed` while another lane's gate
-  shares the box. Bug Hunt's big branch carries the fix for this item
-  (#1694).
-  Sighting at a second assertion (Core 4, 2026-10-17, 9:25 PM EDT as the
-  lane reported; found inside its GEN.469 gate work, not its chain): the
-  same test failed at `src/tests/test_gen_resume.py:259`, `assert
-  forced["total"] > 0` -> `assert 0 > 0` (the forced bright-star scatter
-  placed 0 stars). Frequency: about 1 of 5 runs inside a full gate (two
-  xdist workers, load about 10), 0 of 5 alone. Fails on main: not
-  checked (line 259 is on main, which has no seed pin yet). Reproducer:
-  run the test alone repeatedly while a gate or the browser phase loads
-  the machine; the seed is not fixed in the test. This is the same
-  unpinned galaxy seed in `_seed_galaxy` as the line 299 sighting, so
-  the pin Bug Hunt has in its #2124 branch should cover it; Bug Hunt is
-  asked to check that the pinned seed gives a nonzero forced total (this
-  assertion) as well as the scattered system count (line 299).
-  Sighting withdrawn (Core 1, 11:40 PM EDT as the lane reported, correcting its 11:20 PM EDT report): the failure at line 299 was its own GEN.532/533 branch's, not main's: it failed 5 of 5 there and passed 3 of 3 on 5c49fc42 (the one earlier failure on that commit was in a worktree checked out from an older commit, probably stale bytecode); its test seed's drawn bar left shell 8 band 0 wedges 0 to 6 without bright stars and the PR fills band 1. The TODO thread's own runs agreed (0 of 3 failures on main). Not a sighting of this item.
-  Prerequisites: none. Related: TEST.170, TEST.111.
-
-- [ ] **TEST.172 test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug)**
-  Finding from Core 3 (2026-10-16, 6:31 AM EDT, kind: browser test,
-  intermittent, fails on main: not checked, how often: once in a
-  12-minute run of the sample-galaxy tests, 469 passed, and 3 of 3
-  passes alone):
-  src/tests/test_web_browser_maps.py::test_galaxy_map_forward_to_current_jumps_to_the_newest_view
-  clicked the Galaxy Map block "Block 15·0·30, longitude 111.3°-115.1°,
-  14578-15550 pc from the core, 0 sectors charted" and nothing happened;
-  the hover picked a rim block with no sectors charted. Possibly related
-  to MAP.210 (nothing selectable on the Galaxy Map), which was not
-  reproduced. Reproducer: run the sample-galaxy browser tests in a loop.
-  Done: the cause is found (the test picks a block that cannot be
-  entered, or the click really does nothing on an empty rim block) and
-  the test or the page is fixed without loosening what the test proves.
-  Owner: unassigned.
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Second sighting (Core 3, 2026-10-16, 8:34 PM EDT, GEN.333 gate: full
-  `changed`, 118 minutes, load 16): failed again under load and passed
-  alone (call 28 s on a loaded worker); the same gate failed
-  `test_galaxy_map_drill_down_by_clicks` (filed as TEST.202).
-  Third sighting (Core 3, 2026-10-16, 8:46 PM EDT, UX.116 gate: full
-  `changed`): failed again under load and passed alone (clicking a block
-  "did nothing", state unchanged, call 27 s), so it has now failed in
-  both the GEN.333 and the UX.116 full runs.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): TEST.202 folded in. Named sighting:
-  `test_galaxy_map_drill_down_by_clicks` failed under load (call 28 s to
-  52 s, Core 3, 2026-10-16, 8:34 PM EDT, GEN.333 gate, full `changed`,
-  118 minutes, load 16) and passed alone; one fix for the
-  click-before-ready failures (the `_wait_settled` wait, 15 s to 90 s).
-  The empty-rim-block question (MAP.210) stays its own sub-check;
-  TEST.194 (system map) and TEST.203 (WorkerDied) stay separate. Agreed
-  by Bug Hunt (2026-10-17, 12:33 AM EDT as the lane reported).
-  Sighting (Core 5, 2026-10-17, about 3:58 PM EDT as the lane reported,
-  PERF.75, UX.3 and DOC.24 gate, 19,333 passed):
-  `test_galaxy_map_drill_down_by_clicks` (the TEST.202 test) failed once
-  in the gate and passed alone on rerun. Checked idle by the TODO thread
-  (4:03 PM EDT, main c4b88dc9, load 0.1 on 4 cores, nothing else
-  running): passed in 106.65 s (one run, not looped, so a rarer failure
-  at idle is not ruled out). Every failure seen so far was in a loaded
-  run. Fails on main: not at idle in one run. Frequency: now 3 loaded
-  gate runs seen for this test (Core 3
-  twice on 2026-10-16, Core 5 once). Reproducer: `PYTHONPATH=src python3
-  -m pytest src/tests/test_web_browser_maps.py -k drill_down_by_clicks`
-  while a gate runs. Bug Hunt owns it.
-  Sighting (Core 2, 2026-10-17, 4:10 PM EDT as the lane reported, UX.118
-  gate, #2089): `test_galaxy_map_drill_down_by_clicks` failed in the
-  loaded browser phase of the gate (box load about 9) and passed on the
-  gate's own re-run alone (load 7 to 8, so not idle). Failure text not
-  captured yet (full reports are in .test-failures.jsonl in Core 2's
-  worktree). Fails on main: not checked. Frequency: now 4 loaded gate
-  runs seen for this test.
-  Sighting (Core 3, 2026-10-17, 6:50 PM EDT as the lane reported,
-  GEN.321's second changed gate, load 8 to 10):
-  `src/tests/test_web_browser_maps.py::test_galaxy_map_drill_down_by_clicks`
-  (the TEST.202 test folded into this item) failed in the browser phase
-  and passed alone. Fails on main: not run on main. Frequency: 1 of this
-  gate; Core 5's gate saw it at about 3:58 PM EDT too. Bug Hunt's big
-  branch carries the fix (#1694).
-  Detail from Core 3 (2026-10-17, 7:09 PM EDT as the lane reported,
-  filed by the TODO thread), on the 6:50 PM EDT sighting of
-  `test_galaxy_map_drill_down_by_clicks` in GEN.321's second gate (ended
-  6:41 PM EDT): it passed alone on the rerun in 10.3 s at load 7.8. The
-  same test passed in Core 3's earlier gate at 4:35 PM EDT. No solo
-  reproducer; it needs another lane's gate running beside it.
-  Sighting with captured failure text (Bug Hunt, 2026-10-17, 7:19 PM EDT
-  as the lane reported, gate 586fdaa6, 6:58 PM EDT, load 11.1):
-  `test_galaxy_map_drill_down_by_clicks` failed after the 2nd Back: the
-  trail shows 'Block 59·1·130 (27)' where the walk recorded 'Block
-  59·1·129 (27)' (`assert _crumbs(page) == steps[at][1]`, line 400,
-  after the 10 s wait loop); alone it passes in 46 s. A wrong block
-  number is not a wait that ran out, so like the breadcrumb test under
-  TEST.126 it may be the MAP.227/MAP.228 trail race (inferred).
-  Frequency: now 6 loaded gate runs seen for this test. Bug Hunt is
-  rerunning the three tests with `--resume`.
-  Sighting that FAILS ALONE (Core 2, 2026-10-17, 9:31 PM EDT as the lane
-  reported; MAP.239's gate 2, `test_galaxy_map_drill_down_by_clicks` in
-  `test_web_browser_maps.py`, call 240 s, load 11.0): the assertion
-  after the 2nd Back, `assert _crumbs(page) == steps[at][1]`, failed
-  with the final page url
-  `/galaxy?cam=-13650.79852,31646.10929,683.93,...`; it failed again
-  when run alone. Same family as the block-number off-by-one sighting
-  above (Bug Hunt, 7:19 PM EDT). Core 2 is checking whether it also
-  fails alone on main. Frequency: now 7 loaded gate runs seen, at least
-  one failing alone.
-  Sighting (Core 1, 2026-10-17, 9:58 PM EDT as the lane reported;
-  GEN.532/533 gate 3 ended 9:39 PM EDT):
-  `test_galaxy_map_forward_to_current_jumps_to_the_newest_view` failed
-  in the gate (the deepest view differed from the view after Back, Back,
-  Current: last two crumb blocks 37.3.74/111.8.223/333.23.669 against
-  37.2.73/111.7.221/335.21.664) and passed alone twice since. Fails on
-  main: not checked. Frequency: 1 in 1 gate on that branch; now 8 loaded
-  gate runs seen across this item. Same crumb-mismatch-after-Back shape
-  as the drill-down sighting (Core 2, 9:31 PM EDT).
-  Check on main (Core 2, 2026-10-17, reported as 10:30 PM EDT on the
-  lane's clock): `test_galaxy_map_drill_down_by_clicks` passed when run
-  alone on a main-based worktree and on the MAP.239 worktree; it failed
-  twice inside full gates under load (MAP.239 gates 1 and 2, with 3
-  other failures each, all passing alone afterwards). So it does not
-  fail alone on main in Core 2's runs and is not MAP.239-specific; the
-  earlier "fails alone" note on this item (9:31 PM EDT) is superseded
-  for the crumbs assertion. Core 3's "fails alone" drill-down failure
-  was a different cause (TEST.236). Not reproduced in a loop, so no loop
-  numbers yet.
-  Another sighting (Core 1, gate 3 of GEN.532/GEN.533, 12:22 AM EDT
-  2026-10-18 as the lane reported):
-  `test_galaxy_map_forward_to_current_jumps_to_the_newest_view` failed
-  once in gate 3, passed in gate 5 and alone twice.
-  Prerequisites: none. Related: MAP.210, TEST.170, TEST.171.
-
-- [ ] **TEST.174 test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug)**
-  Finding from Core 2 (2026-10-16, 7:48 AM EDT, kind: browser test, load
-  flake, fails on main: not checked, how often: once in a GEN.159 gate,
-  load 8.2, passes alone):
-  src/tests/test_web_a11y.py::test_page_is_accessible_and_fits[web.sector-desktop-light]
-  failed under load. The failure text was not captured. Reproducer:
-  scripts/test.py changed (the full parallel gate), then run the test
-  alone. Done: the failure text is captured on the next sighting, the
-  cause is found (a layout or wait timing under load, or a real overflow
-  on the sector page) and the test is made robust without loosening what
-  it proves. Owner: unassigned. Related: TEST.170, TEST.172.
-  Sighting (Core 3, 2026-10-16, 8:40 AM EDT):
-  test_web_a11y.py::test_page_is_accessible_and_fits[web.sector-phone-light]
-  failed once under load in the changed run: a request to /galaxy/tiles
-  aborted (net::ERR), and it passes alone. Same family, a different
-  parametrisation (phone-light).
-  Scope after the 2026-10-16 review: capture the failure text on the
-  next sighting; the phone-light sighting (an aborted `/galaxy/tiles`
-  request) is a page-stat flake of the TEST.126 family.
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): TEST.197 folded in. Named sighting:
-  `test_page_is_accessible_and_fits[web.sector-phone-light]` failed in a
-  full `changed` run (78 minutes, load 9.6, Core 3, 2026-10-16, 6:22 PM
-  EDT) and passed alone; one fix in `test_web_a11y.py` (an ERR_ABORTED
-  of a page-cancelled tile fetch no longer counts). TEST.198 (the
-  prefetch test in `test_web_browser_fixture_maps.py`) stays a separate
-  item until a failure text shows the same cause. Agreed by Bug Hunt
-  (2026-10-17, 12:33 AM EDT as the lane reported).
-  Sighting (Core 3, 2026-10-17, 6:22 AM EDT as the lane reported,
-  GEN.319 gate, load average 8.9):
-  test_page_is_accessible_and_fits[web.sector-phone-light] failed with
-  "/sector/1000000000 at phone/light: request failed:
-  .../galaxy/tiles?tiles=... (net::ERR_ABORTED)"; the gate's own re-run
-  passed in 11.75 s and two runs alone passed (about 50 s each). Fails
-  on main: not checked. Frequency: 1 of 1 gate run. Cause as the lane
-  reads it: all four cores busy, the page is torn down while a tile
-  fetch is in flight, and the test counts an aborted request as a
-  failure. TEST.219 (requests still running 8 s after the server stops)
-  is the same kind of leftover.
-  Sighting (Core 3, 2026-10-17, 7:58 AM EDT as the lane reported,
-  GEN.242 gate, 6:36 to 7:56 AM EDT): the sector a11y flake failed again
-  in the full gate and passed alone. Fails on main: not checked.
-  Frequency: now 2 of 2 of Core 3's full gates (the GEN.319 gate was the
-  first).
-  Sighting (Core 4, 2026-10-17, 9:34 PM EDT as the lane reported, found
-  inside its GEN.469 gate work):
-  `test_page_is_accessible_and_fits[web.sector-phone-dark]` failed once
-  in a loaded gate (load 6.4) with a `/galaxy/tiles` request
-  `net::ERR_ABORTED` and passes alone. Fails on main: not checked.
-  Frequency: one more sighting of the aborted-tile-fetch family in this
-  item (the `ERR_ABORTED` no-longer-counts fix is in Bug Hunt's #2124
-  branch).
-  Prerequisites: none. Related: TEST.170, TEST.172.
-
 - [ ] **TEST.175 Edit everything end to end: the headline scenarios with approval and undo**
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
   has complete control; the world adjusts to what the admin wants, after
@@ -19892,39 +19225,6 @@ clears each one.
   position 50 of 54). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: TEST.159.
 
-- [ ] **TEST.189 A test that runs `migrate` leaves maintenance mode on: restore `state/maintenance.json` in the fixture (bug)**
-  Found by a lane (2026-10-16), filed by the TODO thread. A test that
-  runs the `migrate` command leaves
-  `/var/lib/planetGen/state/maintenance.json` set, so later tests (and
-  the web server on a developer machine) answer with the maintenance
-  page. Done: the fixture that runs migrations restores the maintenance
-  file to its earlier state on exit, whether the test passes or fails,
-  and a test asserts the file is unchanged after a migration test. Fails
-  on main: yes, when that test runs. Frequency: every run of the test.
-  Reproducer: run the migrate test, then `cat
-  /var/lib/planetGen/state/maintenance.json`.
-  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
-  Sighting (2026-10-17, 6:59 PM EDT as Core 2 reported, filed by the
-  TODO thread): on the test container
-  `/var/lib/planetGen/state/maintenance.json` held {"enabled": true,
-  "cause": "update", "since": "2026-10-17T21:21:44Z" (5:21 PM EDT),
-  "by": "migrate"} with no lock holder; it appeared while Core 2's
-  MAP.239 gate was running its first phase (started 5:16 PM EDT).
-  `planetgen plan` then refused with `UpdateRunning: A run can't start:
-  the site is being updated`
-  (`planetgen.admin.updateguard.refuse_while_updating`). Core 2 worked
-  around it with `PLANETGEN_STATE_DIR` pointing at a scratch folder and
-  did not clear the file because its gate was running. This is the cause
-  this item describes: a test that runs `migrate` writes the real state
-  folder. Fails on main: not checked (container state). Frequency: once,
-  first noticed 6:48 PM EDT. Reproducer: `source
-  /etc/profile.d/planetgen-test.sh; planetgen plan --seed
-  2AFA1AD866D4BEB8646BF53C77A43DD6 --workers 1` while the file is set.
-  Done adds: a test that runs any migrate or maintenance path sets
-  `PLANETGEN_STATE_DIR` to a temp folder, so the real folder is never
-  written.
-  Prerequisites: none.
-
 - [ ] **TEST.190 A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug)**
   Found by a lane (2026-10-16), filed by the TODO thread. When a
   session-scoped fixture (for example the browser-test server) fails to
@@ -20040,35 +19340,6 @@ clears each one.
   comments on issue #1694.
   Prerequisites: none.
 
-- [ ] **TEST.199 `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on main for a far-tail case: the halo subtraction loses precision, 2.4e-9 against a 1e-9 tolerance (bug)**
-  Found by Core 2 (2026-10-16, 7:27 PM EDT, in its ADM.50 gate), filed
-  by the TODO thread. Kind: test, deterministic for the shrunk case.
-  `src/tests/test_fuzz_galaxy_grid.py::test_skeleton_bound_is_an_upper_bound_at_every_angle`
-  failed once in an 88 minute `changed` run, found by hypothesis, and
-  fails on main. Failure text: `assert (1.4882030977187565e-12 -
-  1.488203070457534e-12) <= ((2.7261222351049663e-20 * (1 + 1e-09)) +
-  1e-300)`. Reproducer:
-  `shape=build_galaxy_shape(disk_scale_length_pc=50.0,
-  disk_scale_height_pc=259.0, bulge_scale_radius_pc=10.0,
-  bulge_amplitude=0.0, arm_count=1, pitch_angle_rad=1.0,
-  arm_amplitude=0.0)`, `r_cyl=0.0`, `z=36706.0`, `theta=0.0`: `k_norm *
-  _raw_density` minus `halo_density` is 2.7261222417e-20 against a
-  skeleton bound of 2.7261222351e-20, a relative gap of 2.4e-9 against
-  the 1e-9 tolerance, so subtracting the halo from a sum two orders of
-  magnitude larger loses precision in the far tail. Done: the cause is
-  settled (a cancellation in the subtraction: compute the component
-  density without subtracting the halo from a total, or state the
-  tolerance the cancellation allows and why), the bound holds for this
-  case and a test pins it, and hypothesis finds no further case in a
-  full run; no quarantine, no loosened tolerance without the stated
-  reason. It is also a precision finding, so it is attached to GEN.372
-  (the precision audit). Related: TEST.192 (an earlier fuzz bound).
-  Second sighting (Settings lane, 2026-10-16, 4:57 PM EDT, reported again at 8:45 PM EDT
-  from its ADM.85 full run): the same test failed in that run too.
-  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT); the
-  GEN.372 audit stays with Core 1.
-  Prerequisites: none. Related: GEN.372, TEST.192, GEN.301.
-
 - [ ] **TEST.200 The nightly local offset limit is documented and pinned by `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point`**
   From the GEN.372 precision audit (Core 1,
   docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
@@ -20094,22 +19365,6 @@ clears each one.
   dependent. Compensated sums for the long accumulations wait for
   GEN.109 (Boss card): see the note on GEN.109. Owner: Core 1.
   Prerequisites: none. Related: GEN.372, GEN.109.
-
-- [ ] **TEST.203 `test_one_worker_leaves_the_runs_own_random_stream_alone` failed once under heavy load with WorkerDied "the task's job ended canceled" and passes alone (bug)**
-  Found by the Settings lane (2026-10-16, 8:45 PM EDT, in its ADM.85
-  full `changed` run: 133 minutes, two full runs on the machine), filed
-  by the TODO thread.
-  `src/tests/test_parallel_generation.py::test_one_worker_leaves_the_runs_own_random_stream_alone`
-  failed once with `WorkerDied` "the task's job ended canceled" under
-  heavy load and passes alone. Fails on main: not checked under load.
-  Frequency: once in two runs. Reproducer: none beyond a loaded full
-  run. Done: the cause is found (the RQ job is cancelled by a timeout or
-  by a worker restart under load, or the test races the worker), the
-  test waits on the condition it needs or the job is not cancelled, it
-  passes under the same load, and no quarantine. Likely related to the
-  load flakes of TEST.197 and TEST.202. Owner: Bug Hunt (proposed,
-  Boss's lane started 10:20 PM EDT).
-  Prerequisites: none. Related: TEST.174, TEST.172, TEST.193.
 
 - [ ] **TEST.204 Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
@@ -20143,45 +19398,6 @@ clears each one.
   position 40 of 43). This replaces any earlier owner line on this item.
   Prerequisites: GEN.394, GEN.395. Related: GEN.391, TEST.204.
   Design: [docs/design/superbubble-density.md](design/superbubble-density.md)
-
-- [ ] **TEST.208 `scripts/test.py --resume` reuses an earlier pass across builds when none of that test's own dependencies changed**
-  Boss (2026-10-16, 10:37 PM EDT, project chat): "are we using resumable
-  tests when things get canceled? That's what they were built for so if
-  the code hasn't changed you can expect the same answer from a test."
-  Core 1 reported (10:40 PM EDT, as the lane reported) that `--resume`
-  (TEST.148 to TEST.152) works only for the identical build id, which
-  hashes the whole checkout, so any merge of main after a cancelled gate
-  starts from zero and costs hours. The tool already records which files
-  each test depends on (the dependency map `scripts/depmap.py` behind
-  `changed`). Do: keep a per-test record of the pass together with a
-  fingerprint of that test's own dependencies (the files the dependency
-  map lists for it, its fixtures, the installed packages, the database
-  and Redis servers and the day), and let `--resume` skip a test whose
-  earlier pass has the same fingerprint, even when the build id differs.
-  A changed dependency file, fixture, package, server or day reruns that
-  test; a change to the environment (packages, servers, day, test
-  command) reruns all. Default taken (the TEST.148 decision stands): the
-  reuse is explicit, behind `--resume`, never automatic and not part of
-  the merge gate; the last line says how many tests were reused and from
-  which run. Done: a cancelled or restarted gate after a merge of main
-  reruns only the tests whose dependencies changed; tests prove that a
-  changed dependency file forces a rerun, an unchanged one is reused,
-  and a changed package, server or day forces all; docs/testing.md and
-  the usage text say so. Fails on main: not a failure, a missing
-  feature. Reproducer: start `scripts/test.py changed`, cancel it, merge
-  main, run it again with `--resume` and see it refuse or start from
-  zero.
-  Owner: Bug Hunt (proposed, as the coordinator suggested; any lane).
-  Prerequisites: none. Related: TEST.150, TEST.151, TEST.152, TEST.139.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): TEST.148 folded in. TEST.148 was the investigation of
-  resuming a run (its builds TEST.150, TEST.151 and TEST.152 are done;
-  the options are in
-  /mnt/project-files/test-suite-rebuild/resume-a-run-options.md); this
-  item widens the same-build-only rule across builds. Its
-  restart-in-the-cloud note ('packages changed since' refusal after a
-  container restart) is tested here. Agreed by Bug Hunt (2026-10-17,
-  12:33 AM EDT as the lane reported).
 
 - [ ] **TEST.209 One consistency sweep over every planet and moon class: composition, density, temperature, ozone, aerosols and text all agree**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -20289,7 +19505,7 @@ clears each one.
   star-composition rows that pass a star's gate add up to 100 percent;
   the check is TEST.214's registry walk and this sweep adds the
   star-specific cases.
-  Prerequisites: GEN.440. Related: TEST.210, GEN.439.
+  Prerequisites: none. Related: TEST.210, GEN.439.
 
 - [ ] **TEST.212 A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -20347,7 +19563,7 @@ clears each one.
   table the build has and fails when a weight, a gate or a source is
   broken on purpose in a copy of a table. Owner: Core 4 (proposed, with
   the composition chain).
-  Prerequisites: GEN.410, GEN.427, GEN.439. Related: TEST.211,
+  Prerequisites: GEN.410, GEN.427. Related: TEST.211,
   TEST.210, TEST.209, GEN.428, GEN.411.
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
   (1) 1:43 AM EDT, "Weights, Dirichlet where unsure": the mixture
@@ -20388,45 +19604,6 @@ clears each one.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 52 of 54). This replaces any earlier owner line on this item.
-
-- [ ] **TEST.216 `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed in the full parallel gate: the nested system's `inside_nebula_id` was None, and it passes alone (bug)**
-  Found by Core 4 (2026-10-17, 2:44 AM EDT as the lane reported, in the
-  full gate of UX.114: build 07b08de92ff11081 started 1:18 AM EDT, FAIL
-  in 78 min 4 s with 18,654 passed, 12 failed and 104 skipped; the other
-  ten failures were UX.114's own and are fixed in its branch), filed by
-  the TODO thread. Kind: test. Test:
-  `src/tests/test_db_persistence.py::test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins`.
-  Failure: line 1259 `assert nested["inside_nebula_id"] == big` gave
-  `assert None == 1`. Fails on main: no (it passes alone on origin/main
-  8ff6f33 and alone on the UX.114 branch, 42 s, idle). Frequency: 1 of 1
-  full gate runs; it passed in the earlier GEN.134 gate of 12:04 AM EDT.
-  Reproducer: only under the full parallel run (4 workers and browsers);
-  the test it may collide with is unknown, likely a shared-table race
-  with another database test. Not reproduced in isolation, so it is
-  flagged as needing the full-run reproduction first. Done: the cause is
-  found (a shared table or fixture another database test writes, or a
-  real ordering bug in the nebula membership write), the test passes in
-  the full parallel run, with no quarantine. Owner: Bug Hunt (proposed).
-  Investigation record (Bug Hunt, 3:13 AM EDT as the lane reported):
-  REPRODUCED solo and idle, 1 failure in 40 runs (2:58 to 3:02 AM EDT;
-  assert None == 1, 2.5 percent), so the earlier reading as a
-  full-parallel-run race is wrong. Cause: the test places the big nebula
-  so the system point is one of its random interior points, and the
-  small nebula's centre then lies outside it when the only interior
-  point was the grid fallback near its surface (about 1 draw in 40).
-  Fix: `_placed_nebula(holds_ly=6)` redraws until the 27 points around
-  the system point are inside; 80 of 80 solo runs passed (3:03 to 3:12
-  AM EDT). Retires on Bug Hunt's merge.
-  Occurrence record (Core 4, UX.114 PR #1989, merged 4:01 AM EDT as the
-  lane reported): it did not recur in the second UX.114 gate (build
-  49bf9a8656ac115e, 2:42 to 3:58 AM EDT, 18,849 passed, 1 failed, the
-  round-trip column of TEST.217), consistent with a 1 in 40 draw. Bug
-  Hunt's `_placed_nebula(holds_ly=6)` fix is still the open fix.
-  Sighting (Core 4, 2026-10-17, 5:34 AM EDT as the lane reported): the
-  nebula persistence failure did not recur in UX.114's gate 2 (2:42 to
-  3:58 AM EDT) or in the NAV.45 gate (4:01 to 5:21 AM EDT, 18866 passed,
-  1 failed, the disc-fade test of TEST.213).
-  Prerequisites: none. Related: TEST.213, TEST.194, TEST.208.
 
 - [ ] **TEST.218 `test_first_control_connections_at_once` leaves 3 idle connections open on `planetgen_test_*` when its fixture ends: the test should close its own connections (bug)**
   Found by Core 1 (2026-10-17, 5:19 AM EDT as the lane reported, #1997
@@ -20632,6 +19809,14 @@ clears each one.
   failed in the gate with 0 stars stored and passed alone 2 of 2 on both the old base and origin/main. Same
   family as the cap suspected above (a capped cell stores fewer stars than the test predicts); not confirmed
   as the same cause (inferred from the failure text only). Fails on main alone: no (2 of 2).
+  Plan (Bug Hunt, 12:50 AM EDT 2026-10-18 as the lane reported): one
+  combined PR with OPS.60, OPS.61, MAP.252 step 1 and TEST.236 under one
+  shared gate, built on main in a side worktree after #2124 merges;
+  TEST.236 retires when this PR merges, not before.
+  Status (Bug Hunt, 2:37 AM EDT 2026-10-18 as the lane reported):
+  TEST.225 and TEST.236 are coded on branch bughunt-test225 with OPS.60,
+  OPS.61 and MAP.252 step 1, no PR yet; the last #2124 gate (3a852818)
+  failed only TEST.245 and TEST.235.
   Prerequisites: none. Related: TEST.213, GEN.76.
 
 - [ ] **TEST.226 Tests for the plan configuration and its two switches: the interior is identical with each combination, off generates nothing beyond the boundaries, addresses outside them are refused, the 8.1 sphere is the all-on case**
@@ -20821,6 +20006,23 @@ clears each one.
   its first PERF.118 gate): the `[light-phone]` variant failed once
   there too and passes alone. Now seen by Core 5, Bug Hunt (both
   `[light]` cases) and Blocker 1.
+  Sighting (Core 2, MAP.243's full gate, #2199, merged 12:58 AM EDT
+  10-18 as the coordinator relayed; the lane clock read 12:59): the
+  whole suite gave 19,591 passed and this one failed in the loaded gate,
+  and it passes alone. Core 2 is fixing it in its own small PR; this
+  item retires with that PR.
+  Sighting 2 (Core 2, MAP.243's full gate, #2199, 12:58 AM EDT
+  2026-10-18 as the lane reported): the [dark] variant failed this time
+  (`assert _status_line(page).startswith("Stopped waiting.")`, the
+  status line was 'About 30% (an estimate: 300 of 1,000 rows), about 5 s
+  left.', page /phenomena, call 0.46 s on gw0, box load 10.0), where the
+  earlier sighting was [light]; Core 4's gate and Bug Hunt's re-gate
+  (12:20 AM EDT) also saw it, each passing alone. Cause as Core 2 reads
+  it: the test reads the status line once right after `.click()` before
+  the page applied the stop. Core 2 fixes it in its own small PR (wait
+  for the status text instead of reading it once); this item retires
+  with that PR. Frequency: 1 of 2 full gates for [light] and [dark]
+  together.
   Prerequisites: none. Related: TEST.227, UX.118.
 
 - [ ] **TEST.236 test_galaxy_map_drill_down_by_clicks rejects a window address with a negative band, because its regex allows a minus sign only on the wedge (bug)**
@@ -20902,6 +20104,8 @@ clears each one.
   runs. Core 3's reading: load-sensitive, probably the `_ready()` wait
   before the pointer sample. Fails on main: not in an unloaded run.
   Owner stays with whoever takes TEST.237.
+  Core 5 still owes the failure text (as the lane reported at 12:47 AM
+  EDT 2026-10-18); it comes with its next report.
   Prerequisites: none. Related: TEST.231, TEST.126.
 
 - [ ] **TEST.238 test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it fails in a gate with no hypervelocity-star stored, and passes alone (bug)**
@@ -20940,6 +20144,14 @@ clears each one.
   and passed 3 of 3 alone on its branch and on main). The fix is in the
   test: pin a seed that places one or tie the expectation to the count.
   Reproducer: loop the test 20 times from src/.
+  Sighting (Core 4, its description-layer gate, 12:47 AM EDT 2026-10-18
+  as the lane reported): failed in the gate with 'hypervelocity-star' in
+  the stored kinds, which is the toy-galaxy case this item already
+  explains (reach 36 pc, the hypervelocity count 0 in about 1 run in 6);
+  Core 4 was checking whether its own change contributed and none is
+  known.
+  Status (Bug Hunt, 2:37 AM EDT 2026-10-18 as the lane reported): the
+  hypervelocity count flake is not started; TEST.243 is not started.
   Prerequisites: none. Related: TEST.220, TEST.224.
 
 - [ ] **TEST.239 Tests for the unified chain: determinism by host, representation counts per kind and level, rogue and comet rates, derived remnant shares**
@@ -21145,6 +20357,36 @@ clears each one.
   Prerequisites: GEN.576, GEN.578, GEN.581, GEN.583. Related: GEN.550,
   GEN.565, GEN.576, GEN.578.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **TEST.245 test_generate_sector_real_capacity_overflow_returns_a_partial_sector fails in about 1 run in 100 because it draws an unseeded sector, so the draw sometimes fits all 120 systems (bug)**
+  Found by Core 5 (the `changed` gate of DOC.69, #2172, 12:58 AM EDT
+  2026-10-18 as the lane reported, box load about 9), filed by the TODO
+  thread after measuring it on main. Test:
+  `src/tests/test_sector_gen.py::test_generate_sector_real_capacity_overflow_returns_a_partial_sector`.
+  Failure text: `assert 0 < len(sector.entries) < 120` -> `assert 120 <
+  120` (test_sector_gen.py:382). Cause (measured, not inferred): the
+  test builds its arguments with no seed (`_real_sector_args` leaves
+  `seed` as None), so every run draws a different sector; in 390 runs on
+  an idle main (TODO thread, 2026-10-18, 1:08 to 1:12 AM EDT; 13.0 ly
+  cube, 120 systems requested, galaxy mass pinned at 1.15e12) the sector
+  held between 43 and 120 systems and 4 of the 390 runs fitted all 120,
+  so the test fails about 1 run in 100 whatever the load. Fails on main:
+  yes, by chance, 4 of 390 idle runs. Frequency: 1 in 1 gate of Core 5;
+  any gate that runs the test has about a 1% chance. Reproducer: loop
+  `generate_sector` on `_real_sector_args(120,
+  'RealCapacityOverflowSector', planets=False)` with the galaxy mass
+  pinned and count the runs with 120 entries. Do: make the overflow
+  certain, by pinning the seed (and the cube size or the count so that
+  the chosen seed overflows) or by asking for enough systems that no
+  draw can fit them all, and keep the assertion that a partial sector is
+  returned. Done: 500 runs of the test pass, or the seed is pinned and
+  the test states why that seed overflows. Owner: Bug Hunt (proposed;
+  strictly a test bug).
+  Fix coded (Bug Hunt, 2:37 AM EDT 2026-10-18 as the lane reported; not
+  yet a PR, it rides the combined PR with TEST.225 and TEST.236): the
+  test galaxy mass is 1.15e11 so the overflow is certain, measured 200
+  of 200 draws overflow where 4 of 390 fitted before.
+  Prerequisites: none. Related: TEST.243, TEST.235.
 
 
 ## USR: User accounts
@@ -21901,19 +21143,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   position 9 of 43). This replaces any earlier owner line on this item.
   Prerequisites: OPS.57. Related: OPS.28.
 
-- [ ] **OPS.59 `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug)**
-  Found by a lane (2026-10-16), filed by the TODO thread. Sending
-  SIGTERM to the `generate galaxy --shell 0` command leaves its busy
-  `worker --burst` child running and the parent a zombie, so a stopped
-  run still holds Redis jobs and the database. Done: the command handles
-  SIGTERM, forwards it to the worker child, waits for it and exits with
-  the signal status; a test starts a run, sends SIGTERM and shows no
-  process is left. Fails on main: yes. Frequency: every SIGTERM during a
-  run. Reproducer: start the command, `kill -TERM` it, then `ps` for the
-  child.
-  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
-  Prerequisites: none.
-
 - [ ] **OPS.60 The admin commands that did two things by flag: `lockouts` lists or lifts, `version_history --list` repeats `planetgen versions`**
   Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
   we can build whatever sequences we want" (the principle of 4:18 PM
@@ -22179,7 +21408,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 20 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: UX.105, GEN.218, GEN.219.
+  Prerequisites: none.
 
 - [ ] **DOC.48 Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes**
   Step 14 of the whole-sphere train.
@@ -22425,63 +21654,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   DB.70.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
-
-- [ ] **DOC.69 Global documents are regenerated only by the TODO thread: a stale generated page never fails a lane's gate and a lane's PR never touches one**
-  Boss, 2026-10-17, 11:25 PM EDT (as the coordinator relayed): "TODO
-  should be the only one who regenerates global documents". Why now:
-  DOC.68 made a stale `docs/plan` page fail `build_todo_docs.py --check`
-  and `src/tests/test_todo_docs.py`, and the architecture map
-  (`docs/design/architecture-map.html`, DOC.67) goes stale whenever any
-  lane adds a module (`physics.brown_dwarf` did; PERF.127 regenerated it
-  in #2166), so every lane PR that adds a module regenerates a 3 MB page
-  and every two such PRs conflict. Global documents are the generated
-  pages that span the project: the architecture map, `docs/index.html`
-  and every `docs/plan/*.html`. Plan (TODO thread's proposal, with Core
-  5, which owns DOC.67 and DOC.68, to settle the details): (1) a pytest
-  marker `globaldocs` on the freshness tests
-  (`test_architecture_map.py::test_the_page_lists_every_module_of_the_package`,
-  `test_docs_index.py::test_the_index_is_up_to_date` and
-  `test_every_html_page_under_docs_is_listed_with_a_description`,
-  `test_todo_docs.py::test_pages_are_up_to_date`);
-  `src/tests/conftest.py` leaves them out of every run unless
-  `PLANETGEN_GLOBAL_DOCS=1` or `-m globaldocs` is given, so
-  `scripts/test.py changed`, `quick` and a lane's gate never run them;
-  (2) one script, `scripts/build_global_docs.py` (with `--check`), runs
-  the three builders, and `scripts/test.py globaldocs` runs the marked
-  tests with the variable set; the TODO flow runs it after every merge
-  batch and `full --check` at a release stamp runs it, so a stale page
-  fails there and nowhere a lane sees it; (3) the builders stay as they
-  are and the generated files are never in a lane PR (the lane's own
-  docs, such as a design note and its entry in `docs/design/README.md`,
-  stay lane work); (4) the rule is written in the process docs
-  (`docs/plan/execution-notes.md`, `CLAUDE.md` or the contributor doc
-  that carries the lane rules, and the briefs) and the execution plan
-  page shows it. Done: a lane that adds a module and does not touch a
-  global document passes its changed gate; the marked tests fail on a
-  stale page when run with the variable, and the TODO flow and the
-  release stamp run them; the rule is in the process docs. Order on Core
-  5's lane (coordinator, 11:25 PM EDT): first, ahead of PERF.126, so
-  other lanes do not hit conflicts. Owner: Core 5 (proposed by the
-  coordinator; it owns DOC.67 and DOC.68). Open point for Core 5:
-  whether `test_todo_docs.py`'s other checks (the ledger counts, the
-  order check) stay in the lane gate, since they read TODO.md which
-  lanes never edit.
-  Core 5's build, PR #2172 (11:40 PM EDT as the lane reported, gate
-  running), differs from the plan above in four details, all accepted:
-  the marker `globaldocs` is on six tests (architecture map module list
-  and its --check test, docs index 'is up to date', 'every page is
-  listed' and 'links resolve', todo_docs test_pages_are_up_to_date; the
-  'every page has a description' and 'links back to the index' checks
-  stay in every gate); todo_docs' other checks (ledger counts, order
-  check, the execution plan built from its sources) stay in the lane
-  gate because they read TODO.md and the notes, not the committed pages;
-  there is no new `scripts/test.py` subcommand, `scripts/test.py
-  <command> --global-docs` sets PLANETGEN_GLOBAL_DOCS=1 for any command
-  and the stamp runs `scripts/test.py full --check --global-docs`;
-  `python scripts/build_global_docs.py [--check]` rebuilds or checks the
-  architecture map, the docs/plan pages and the docs index in that
-  order. Both `warm_map` docstrings are fixed in it.
-  Prerequisites: none. Related: DOC.67, DOC.68, DOC.47.
 
 - [ ] **DOC.70 Docs for the unit registry: units-and-number-formatting.md and database-schema.md updated, the unit rules in the registry's file header**
   Part of the unified orbited-body plan (GEN.550; design note

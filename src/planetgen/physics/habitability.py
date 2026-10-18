@@ -4,7 +4,7 @@
 The planetary habitability index (GEN.84): the reference maths of
 docs/design/habitability-index.md section 7, every constant with its source.
 
-Two layers, as Boss chose (2026-10-07 17:11Z): the PHI-4 display -- since
+Two layers, as Boss chose (2026-10-07 17:11Z): the PHI-6 display -- since
 GEN.207 six domains (Pressure, Temperature, Air, Water, Radiation and
 Suitability, the long-term one), each a score in [0, 1] and a colour tier
 (Blue, Green, Yellow, Red) for a human visitor, and an overall score that
@@ -60,6 +60,10 @@ WET_BULB_CRIT_C = limit("wet_bulb_c")
 # log10 (pressures, doses, partial pressures spanning decades).
 
 TIERS = ("Blue", "Green", "Yellow", "Red")
+
+POTENTIALLY_HABITABLE_TIERS = ("Blue", "Green")
+"""tuple: The overall PHI-6 colours a world can have and still count as "potentially habitable" in a system's overview
+(GEN.220; Decided default, Boss can move the line)."""
 
 PRESSURE_BAND = (limit("pressure_low_outer_kpa"), ARMSTRONG_KPA, limit("mask_min_kpa"), limit("pressure_no_gear_kpa"),
                  limit("pressure_blue_max_kpa"), limit("pressure_narcosis_kpa"), limit("pressure_hyperbaric_max_kpa"),
@@ -326,7 +330,7 @@ class World:
         return sv / SV_PER_GY
 
 
-# --- PHI-4 display ---------------------------------------------------------------------------
+# --- PHI-6 display ---------------------------------------------------------------------------
 
 _EDGE_SCORES = (0.0, 0.4, 0.75, 1.0)
 """The score at the outer red, yellow, green and blue edges: Blue scores 1,
@@ -335,7 +339,7 @@ red edge, linear in between."""
 
 
 def band_score(x, band, log=False):
-    """The PHI-4 score of `x` in `band` (see the band constants): 1 inside
+    """The PHI-6 score of `x` in `band` (see the band constants): 1 inside
     Blue, falling linearly (in log10 for a log band) through 0.75 at the
     green edge and 0.4 at the yellow edge to 0 at the outer red edge."""
     t = (lambda v: math.log10(v) if v and v > 0 else -math.inf) if log else (lambda v: v)
@@ -410,7 +414,7 @@ def inspired_o2_kpa(world, limits=HUMAN):
 
 def gas_inputs(world):
     """`[(gas, partial kPa, band)]` for the gases the filter rules read (CO2, CO, H2S, SO2): the value
-    and the log band `band_score` scores it in. Shared with the explanation (`habitability_explain`)."""
+    and the log band `band_score` scores it in. Shared with the describer (`protection`)."""
     chronic, acute = GAS_LIMITS_KPA["CO2"]
     inputs = [("CO2", world.partial_kpa("CO2"), (None, None, None, None, chronic, CO2_GREEN_KPA, acute, acute * 10))]
     for gas in ("CO", "H2S", "SO2"):
@@ -439,7 +443,7 @@ def _gas_scores(world, limits=HUMAN):
 
 def water_inputs(world):
     """`[(label, value, band)]` for the liquid water's acidity, activity and chaotropicity, `[]` when there
-    is no water to drink. Shared with the explanation (`habitability_explain`)."""
+    is no water to drink. Shared with the describer (`protection`)."""
     if world.solvent != "water" or world.ph is None:
         return []
     return [("pH", world.ph, (0.0, 1.0, 5.0, 6.0, 8.5, 9.5, 11.5, 14.0)),
@@ -602,8 +606,8 @@ def overall_score(scores):
 
 
 def phi4(world, limits=HUMAN):
-    """`{domain: (score, tier)}` for the six domains and `"PHI-4"`, the overall score
-    (`overall_score`; stored as `phi4`, the name it had with four domains). `limits` are the `Bands` of
+    """`{domain: (score, tier)}` for the six domains and `"PHI-4"`, the overall PHI-6 score
+    (`overall_score`; the key and the stored name `phi4` are the ones it had with four domains). `limits` are the `Bands` of
     whoever is scored: the human visitor unless a species' (POP.12)."""
     core = core_scores(world, limits)
     domains = {**core, "Suitability": suitability_score(world, core, limits)}

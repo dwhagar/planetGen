@@ -36,7 +36,7 @@ section 8):
   an icy surface or shell, "vapour" for a steam world, "hydrated" for a dry
   body with water in its rock, else vapour in the air or none.
 * **Life** (GEN.207). The food rung of Suitability reads the most advanced native
-  life as `life_stage` (`life_stage`): none, microbial, macroscopic (the first
+  life as `native_life` (`native_life`): none, microbial, macroscopic (the first
   flora and fauna) or a full biosphere, from the body's life chemistry and the
   milestone its evolutionary timeline reached. Life that lives only in an ocean
   under ice is out of reach of a person (`life_on_surface` false). Life is drawn after
@@ -55,6 +55,8 @@ from planetgen import tuning
 from planetgen.physics import atmosphere, constants, habitability
 
 TIER_INDEX = {"Blue": 0, "Green": 1, "Yellow": 2, "Red": 3}
+TIER_NAMES = tuple(TIER_INDEX)
+"""tuple: The tier colours by `tier_<domain>` number."""
 """dict: A domain's colour as stored (`tier_<domain>`): 0 is best."""
 
 EQUIPMENT_NAMES = (
@@ -77,7 +79,7 @@ CORE_DOMAINS = tuple(name.lower() for name in habitability.CORE_DOMAINS)
 BODY_FIELDS = (
     "phi4", *(f"phi4_{domain}" for domain in DOMAINS), *(f"tier_{domain}" for domain in DOMAINS),
     "phi_bio", "phi_cpx", "phi_tech", "l_solv", "l_chem", "l_ener", "l_rad",
-    "equipment_tier", "hab_note", "energy_flux_w_m2", "flux_variation",
+    "equipment_tier", "energy_flux_w_m2", "flux_variation",
 )
 """tuple: What `generate` sets on a planet or moon, as stored in `planets` and
 `moons` (`energy_flux_w_m2` and `flux_variation` are the inputs the score keeps: the
@@ -156,7 +158,8 @@ def values_from_body(body):
         "surface_dose_msv_yr": getattr(body, "surface_dose_msv_yr", None),
         "dose_ground_msv_yr": getattr(body, "dose_ground_msv_yr", None),
         "energy_flux_w_m2": getattr(body, "energy_flux_w_m2", None),
-        "life_stage": life_stage(getattr(body, "life_chemical", None), getattr(body, "evolutionary_data", None)),
+        "native_life": native_life(getattr(body, "life_chemical", None), getattr(body, "life_stage", None),
+                                   getattr(body, "evolutionary_pace", None) is not None),
         "flux_variation": getattr(body, "flux_variation", None),
     }
     for field in atmosphere.PARTIAL_PRESSURE_FIELDS:
@@ -164,30 +167,27 @@ def values_from_body(body):
     return values
 
 
-_STAGE_OF_MILESTONE = (
-    ("technological_civilization", "biosphere"), ("multicellularity", "macroscopic"),
-    ("complex_cells", "microbial"), ("photosynthesis", "microbial"), ("abiogenesis", "microbial"),
-)
-"""tuple: `(evolutionary milestone, life stage)`, most advanced first."""
+_STAGE_OF_MILESTONE = {
+    "technological_civilization": "biosphere", "multicellularity": "macroscopic", "complex_cells": "microbial",
+    "photosynthesis": "microbial", "abiogenesis": "microbial",
+}
+"""dict: `{evolutionary milestone: life stage}`."""
 
 
-def life_stage(life_chemical, paragraphs):
+def native_life(life_chemical, milestone, has_timeline):
     """
     The `habitability.LIFE_STAGES` stage of a body's native life, from its life
-    chemistry (`None` for none) and the paragraphs of its evolutionary timeline
-    (the text of the latest milestone reached, `tuning.EVOLUTIONARY_TEXT`). Life
-    with no timeline (a moon, or a world outside the habitable zone) is microbial;
-    a timeline that has reached no milestone yet is none.
+    chemistry (`None` for none), the latest evolutionary milestone its timeline
+    reached (`life_stage` on the body, `None` for none) and whether it has a
+    timeline (`evolutionary_pace` is set). Life with no timeline (a moon, or a
+    world outside the habitable zone) is microbial; a timeline that has reached
+    no milestone yet is none.
     """
     if not life_chemical:
         return "none"
-    text = " ".join(paragraphs or ())
-    if not text:
+    if not has_timeline:
         return "microbial"
-    for milestone, stage in _STAGE_OF_MILESTONE:
-        if tuning.EVOLUTIONARY_TEXT[milestone] in text:
-            return stage
-    return "none"
+    return _STAGE_OF_MILESTONE.get(milestone, "none")
 
 
 def saturation_kpa(temperature_c):
@@ -305,7 +305,7 @@ def world_from(values, lethal_host=None):
         surface_dose_sv_yr=surface_dose,
         habitat_dose_sv_yr=habitat_dose,
         water_source=water_source(values),
-        life_stage=values.get("life_stage") or "none",
+        life_stage=values.get("native_life") or "none",
         life_on_surface=values.get("hydrosphere") != "ice-covered ocean",
     )
 
@@ -326,21 +326,28 @@ def compute(values, compact_host=None):
     out = {"phi4": result["PHI-4"], "phi_bio": result["PHI_bio"], "phi_cpx": result["PHI_cpx"],
            "phi_tech": result["Phi_tech"], "l_solv": result["L_solv"], "l_chem": result["L_chem"],
            "l_ener": result["L_ener"], "l_rad": result["L_rad"]}
-    limits = []
     for domain in DOMAINS:
         score, colour = result[domain.capitalize()]
         out[f"phi4_{domain}"] = score
         out[f"tier_{domain}"] = TIER_INDEX[colour]
-        if colour != "Blue":
-            limits.append(f"{domain.capitalize()} {colour}")
     out["equipment_tier"] = EQUIPMENT_NAMES.index(result["equipment"])
     if compact_host:
-        out["hab_note"] = (f"Planet of a {compact_host}: lethal radiation, rated as {LETHAL_DOSE_SV_YR:,.0f} "
-                           f"Sv/yr at the surface")
         out["equipment_tier"] = len(EQUIPMENT_NAMES) - 1
-    else:
-        out["hab_note"] = ", ".join(limits) if limits else "All six domains Blue"
     return out
+
+
+def note(tiers, compact_host=None):
+    """
+    The short note that says what limits a scored body (a tooltip's second sentence): the domains that are not
+    Blue with their colours, or that all six are Blue, from `tiers` (`tier_<domain>` by domain name, 0 Blue to 3
+    Red); a planet of a compact object says so and its lethal dose. Worked out from the stored tiers, not stored.
+    """
+    if compact_host:
+        return (f"Planet of a {compact_host}: lethal radiation, rated as {LETHAL_DOSE_SV_YR:,.0f} "
+                f"Sv/yr at the surface")
+    limits = [f"{domain.capitalize()} {TIER_NAMES[tiers[f'tier_{domain}']]}" for domain in DOMAINS
+              if tiers.get(f"tier_{domain}")]
+    return ", ".join(limits) if limits else "All six domains Blue"
 
 
 def compact_host_name(star):
@@ -369,7 +376,7 @@ def harshness(values):
 
 
 def rescore(body):
-    """Recomputes a scored body's `SCORE_FIELDS` once its life is known (`life_stage`
+    """Recomputes a scored body's `SCORE_FIELDS` once its life is known (`native_life`
     is part of the score's inputs and life is drawn after it). A gas giant, or a body
     that was not scored, is left alone."""
     if body.body_type == "g" or getattr(body, "surface_temperature", None) is None:

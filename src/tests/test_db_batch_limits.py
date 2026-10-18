@@ -83,9 +83,9 @@ def test_a_batch_bigger_than_max_allowed_packet_is_split(mysql_config):
     try:
         packet = _max_allowed_packet(conn)
         text = "x" * TEXT_MAX
-        # Four full TEXT columns a row: comfortably past the packet within
+        # Three full TEXT columns a row: comfortably past the packet within
         # one `_BATCH_ROWS` statement on a 16 MB (MariaDB) or 64 MB (MySQL 8) server.
-        count = packet // (4 * TEXT_MAX) + 2
+        count = packet // (3 * TEXT_MAX) + 2
         if count > store._BATCH_ROWS:
             pytest.skip(f"max_allowed_packet {packet} is too large to pass in one {store._BATCH_ROWS}-row statement")
         system_id = template["star_systems"]["id"]
@@ -93,15 +93,15 @@ def test_a_batch_bigger_than_max_allowed_packet_is_split(mysql_config):
             with conn.batched():
                 ids = [
                     _insert(conn, template, "planets", name=f"Bulk {n}", orbital_index=100 + n, description=text,
-                            atmosphere=text, composition=text, flavor_text=text)
+                            atmosphere=text, composition=text)
                     for n in range(count)
                 ]
         rows = conn.execute(
             "SELECT id, star_system_id, LENGTH(description) + LENGTH(atmosphere) + LENGTH(composition)"
-            " + LENGTH(flavor_text) AS size FROM planets WHERE name LIKE ? ORDER BY id", ("Bulk %",)
+            " AS size FROM planets WHERE name LIKE ? ORDER BY id", ("Bulk %",)
         ).fetchall()
         assert [r["id"] for r in rows] == ids
-        assert {r["size"] for r in rows} == {4 * TEXT_MAX}
+        assert {r["size"] for r in rows} == {3 * TEXT_MAX}
         assert {r["star_system_id"] for r in rows} == {system_id}
         assert sum(r["size"] for r in rows) > packet
     finally:

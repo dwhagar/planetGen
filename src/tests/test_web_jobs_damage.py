@@ -12,6 +12,7 @@ No database: the steps are tiny Python one-liners, like
 `test_web_generate.py`'s job tests.
 """
 
+import glob
 import json
 import os
 import signal
@@ -96,6 +97,7 @@ STARTER = r"""
 import os, sys, time
 from planetgen.web import jobs
 go = sys.argv[1]
+open(go + "." + str(os.getpid()), "w").close()  # imported and waiting
 while not os.path.exists(go):
     time.sleep(0.001)
 try:
@@ -113,7 +115,12 @@ def test_many_processes_starting_at_once_start_one_job(jobs_root, tmp_path):
     procs = [subprocess.Popen([PY, "-c", STARTER, go], env=env, cwd=REPO,
                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
              for _ in range(6)]
-    time.sleep(1.0)  # let them all import and wait
+    # Wait for every process to have imported and be waiting (TEST.134: a fixed second was not enough on a loaded
+    # machine, and a process that came late found the first job's owner gone and its lock stale, and started a second).
+    deadline = time.monotonic() + 120
+    while len(glob.glob(go + ".*")) < len(procs):
+        assert time.monotonic() < deadline, "the starters did not all get ready"
+        time.sleep(0.05)
     open(go, "w").close()
     outputs = [proc.communicate(timeout=60) for proc in procs]
     lines = [out.strip() for out, _err in outputs]

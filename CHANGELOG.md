@@ -2,6 +2,193 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1794] - 2026-10-18
+
+**Headline:** Any star's composition can now be worked out from what the generator already stores for it.
+
+### Added
+- **A star's composition, derived and not stored (GEN.440).** `physics/stellar_composition.py` gives the composition of any star, brown dwarf or remnant from its kind, its stored [Fe/H], its age and mass, and a key. The star's own random numbers come from a stream of their own keyed on the star, always drawn in the same order, so the same star has the same composition however many workers ran the galaxy, editing a star's metallicity or age works it out again with nothing to repair, and the members of a multi-star system or a cluster share their sequence and element pattern while each keeps its own phase. A red giant has its first dredge-up, a brown dwarf its deuterium, lithium and hydrogen limits at its mass and metal content, a white dwarf its core, atmosphere and radius, a neutron star its outer crust, a black hole its horizon quantities, and every kind lists what the design leaves open. No column is added and no stored value changes.
+
+TODO items resolved: GEN.440. Added: none.
+
+## [8.0.1793] - 2026-10-18
+
+**Headline:** The generator now has the relations that say what a star is made of, ready for the composition of every star to be derived from them.
+
+### Added
+- **The stellar composition relations (GEN.439).** `physics/stellar_abundances.py` turns a star's [Fe/H], age and branch into its hydrogen, helium and metal fractions and the mass fraction of each of fourteen elements, on the Asplund 2021 scale (the Sun is the zero point and a test target, not a preset). A star younger than 8 Gy is thin-disc; older ones follow the thin or the alpha-rich sequence by the Bensby fit, each with its own oxygen, magnesium, silicon, carbon and calcium pattern and the scatter between them, so metal-poor stars come out with more metal for their iron, less iron per silicon and more magnesium, as observed. The same module has the iron, magnesium, silicon and carbon ratios the planets inherit, the changes at the surface of a red giant, the birth europium, thorium and uranium, the white dwarf mass-radius table (Sirius B to 0.1 percent), the neutron star's outer crust, the black hole's quantities and the brown dwarf's limits and radius. Every relation lists its source and whether it is verified, partly verified, open or a stand-in. Nothing the generator stores changes.
+
+TODO items resolved: GEN.439. Added: none.
+
+## [8.0.1792] - 2026-10-18
+
+**Headline:** The system page and the one-off system page now show every body's detail from the system's description, not from Markdown.
+
+### Changed
+- The system page reads `GET /api/systems/<id>/description` and splits the Document per body (`describe.model.split_by_body`); each row, the star notes and the overview are written as HTML by `describe.html` (`blocks_html`), with a body's name linking to its row. `GET /api/systems/<id>/sections` and `db.render.render_system_sections` are removed, and `/description` now answers printed object IDs in every `ref`.
+- The one-off system page (`/admin/generate/system`) shows the HTML page, with a Download button for Markdown, wikitext and plain text instead of a Markdown code box and preview. The command line gains `--format document` (the Document as JSON), which the page runs.
+- Neither page module calls `markdown_to_html` any more.
+
+TODO items resolved: UX.120, UX.105 / Added: none
+
+## [8.0.1791] - 2026-10-18
+
+**Headline:** A system's description can now be written as HTML tables, ready for the system page to use in the next change.
+
+### Changed
+- New `planetgen/describe/html.py`, the fourth renderer beside text, Markdown and wikitext: the Document's facts, ratings, composition and prose as HTML, every ladder quantity a `qty` span so the reader's unit choice applies, every piece of text escaped, and references linked through a function the page supplies. Tier names read in words and colours (`tier-blue` to `tier-red`); the six symbols arrive with UX.101. No page uses it yet (UX.120).
+- `style.css` styles it from the site's colour tokens, so both themes and the `data-theme` override follow, and on a phone its tables scroll inside their section. `tests/test_describe_html.py` snapshots every block type and checks escaping; `tests/test_web_browser_document.py` checks contrast in the four theme combinations and that nothing runs past a 390 px screen.
+
+TODO items resolved: UX.119 / Added: none
+
+## [8.0.1790] - 2026-10-18
+
+**Headline:** A stored black hole or neutron star system is described as what it is, and every phenomenon now has a description in the same Document.
+
+### Changed
+- A system anchored by a black hole or neutron star was described as a main-sequence star ("is now a white dwarf", a habitable zone of 10^-21 km, no event horizon, spin, disk, field or beam). The Document now gives it its own section (`black-hole`, `neutron-star`) with the old data table and the formation, disk and pulsar sentences in short plain prose, and the overview no longer talks of a stellar wind a remnant does not blow. Wikitext uses the Black Hole Data and Neutron Star Data templates again.
+- `describe.describe_phenomenon` describes a nebula, quasar, rogue planet, interstellar comet, asteroid field, supernova remnant (its compact remnant as a child section), black hole or neutron star: a facts table, a few sentences, every number a typed quantity. Wikitext files a phenomenon under `Category:Phenomena`.
+- Sector summaries are log lines (UX.121) and a facility's description is entered text, so neither has per-class prose to move.
+
+TODO items resolved: UX.108 / Added: none
+
+## [8.0.1789] - 2026-10-18
+
+**Headline:** A property test now keeps the habitability words and the habitability index saying the same thing, and the cooling-garment sentence reads "are needed" and the airless pressure reads like every other figure.
+
+### Changed
+- New `tests/test_wording_agrees_with_the_index.py`: over random worlds, the example worlds and generated systems, a row's colour is its score's band and any "inside the X band" in its sentence names that colour, the gear the sentences ask for is the stored kit, an airless body is Red in Air, a body whose text claims life has life in the index, a ratings block equals the stored scores, and no quantity in the describer or `protection` is written with a raw `:.Nf`.
+- `protection` wrote the airless pressure as `0.0 kPa` and "cooling garments is needed"; it now uses the unit ladder (`0 kPa`) and "are needed".
+- One finding stays a strict expected failure in that test: the words ask for an environment suit in a Yellow heat (45 to 122 C), a Yellow cold or a Yellow oxygen excess, where the stored kit (`equipment_tier`) is a mask or nothing. Changing the stored kit moves stored values (a generator epoch), so Boss decides which side moves.
+
+TODO items resolved: TEST.155 / Added: the words and the stored kit disagree in a Yellow heat, cold or oxygen excess (strict expected failure in tests/test_wording_agrees_with_the_index.py)
+
+## [8.0.1788] - 2026-10-18
+
+**Headline:** The text the program writes about stars, worlds, gas giants, comets and life is shorter and plainer, and no longer claims life or "Earth-like" for a world the habitability index rates differently.
+
+### Changed
+- The star paragraph is two short sentences: "The star is about 13.8 Gyr old and should last about 1,321 Gyr." and one about life from `STAR_EVOLUTION`, whose notes are now full sentences with no claim about the universe ("the longest-lived star in the universe" is gone).
+- The class texts no longer claim life, vegetation, a percentage of water or "Earth-like": F is "a volcanic world with shallow seas", G "a rocky, barren world", H "a desert world with little liquid water", L "a marginally habitable world", M "a temperate terrestrial world", O "an ocean world with most of its surface covered in liquid water". Because the text is the same whatever the index allows, `NO_LIFE_CLASS_DESCRIPTIONS`, `MICROBIAL_ONLY_CLASS_DESCRIPTIONS` and the moon re-wording in `life._set_description` are gone; the life sentences say what the index allows.
+- The life sentences read "Life based on melanin could arise on this planet, and it would evolve at a normal pace." and "In visible light that life would look charcoal-black." (it was "look none (charcoal-black)"); the gas giant depth sentences drop the polytrope jargon; the evolutionary timeline is written in the describer from the stored state with its ages through the Gyr ladder (it said "13.80 Billion Years"); comet and binary sentences are shorter.
+- New tests: the star sentence, the timeline and the class texts claim nothing the index can contradict.
+
+TODO items resolved: GEN.221
+
+## [8.0.1787] - 2026-10-18
+
+**Headline:** A system's overview now counts potentially habitable worlds by their habitability rating, and the "Habitable" chips say they mean the planet's class.
+
+### Changed
+- The overview counts a rocky planet or moon as potentially habitable when its overall PHI-6 colour is Blue or Green (`habitability.POTENTIALLY_HABITABLE_TIERS`, one place to move the line), instead of counting the class flag. The sentence no longer talks about class M worlds, and the planet count is always listed.
+- The row chips read "Habitable class" and "Habitable-class moon", the class pages label the flag "Habitable class", and the levels page explains that the equipment level beside the chip is the rating.
+- `GET /api/systems/<id>/description` is cached under the system's tags in place of the removed `sections`.
+
+TODO items resolved: GEN.220 / Added: none
+
+## [8.0.1786] - 2026-10-18
+
+**Headline:** The habitability levels page now takes every number from the limits the score uses, so it cannot say one thing while the rating does another.
+
+### Changed
+- `web/lib/habitability_ref.py` builds the Pressure, Temperature, Air, Water and Radiation tables from `habitability.HUMAN` (the `protection_limits` values) and the gas, water and chaotropicity constants. A test fails when a number on the page differs from its constant, and when a changed limit does not move the page.
+- Oxygen moves from Pressure to Air, where the score reads it, and is split into too little (a mask works) and too much (50 to 160 kPa). Carbon monoxide, hydrogen sulfide and sulfur dioxide each get their own row with their own numbers, water gets a chaotropicity row, and the equipment rule names the 140 C heat-shielded-suit limit.
+- Docstrings that called the overall rating PHI-4 say PHI-6; the stored key `"PHI-4"` and the `phi4` columns stay.
+
+TODO items resolved: GEN.219 / Added: none
+
+## [8.0.1785] - 2026-10-18
+
+**Headline:** The habitability wording now comes from one module: the second explainer, which nothing used, is gone, and the numbers in the sentences use the unit ladders' own formatter.
+
+### Changed
+- `physics/protection.py` is the one describer of the six PHI-6 categories (rows of domain, colour, score and sentence, the paragraph, and the gear). `physics/habitability_explain.py` (its `factors` and helpers were used by one test only, its `paragraphs` was a one-line wrapper) is deleted; `Planet` calls `protection.paragraph` directly and the useful tests moved to `tests/test_protection.py`.
+- The sentences print numbers through `util/format.three_figures_or_tiny` (the formatter the ladders use; it was private) and name gases from `atmosphere.SPECIES_NAMES`, so there is one number formatter and one gas-name table. A very small dose now reads "2.00 × 10⁻⁷ Sv a year" instead of "2.0e-07".
+- The docstrings of `habitability.py` and `physics/__init__.py`, `docs/html-interface.md` and `docs/design/architecture.md` say PHI-6 and no longer name the deleted module. The stored names (`phi4`, the `"PHI-4"` key) stay.
+
+TODO items resolved: GEN.218 / Added: `docs/design/architecture.html` still lists `habitability_explain.py` (generated page, DOC.67 owns it)
+
+## [8.0.1784] - 2026-10-18
+
+**Headline:** The stored evolutionary paragraphs, flavour text and habitability note are gone from the database, replaced by the structured columns added earlier.
+
+### Changed
+- Migration 0111 (schema v111) drops `planet_evolutionary_paragraphs` and `moon_evolutionary_paragraphs`, `flavor_text` and `hab_note` of `planets` and `moons`, and `system_configs.markdown`. Nothing reads or writes them since DB.51; the life stage, pace and ages, the flavour key and the stored tiers carry what they said. `flavor_text_count` stays.
+- The old-schema fixture for v110, the schema reference and the column coverage tests follow.
+
+TODO items resolved: DB.52, DB.31 / Added: none
+
+## [8.0.1783] - 2026-10-18
+
+**Headline:** Generation now keeps a world's life stage, pace, ages and flavour line as data instead of prose, and nothing reads the old prose back.
+
+### Changed
+- `life.apply_life_data` draws the timeline as a state (`evolution.get_evolutionary_state`: the pace, the latest milestone, the ages) and stores it in the DB.50 columns; `decide_flavor_text` stores `flavor_key`. The draws are unchanged. `Planet.evolutionary_data` and `Planet.flavor_text` are now read from those columns, and `life_stage_from_paragraphs`, the paragraph and keyword searches in `decide_flavor_text`, `population.parse_timeline` (now `timeline_of`, exact ages instead of rounded text) and the paragraph-reading habitability life stage (`habitability_world.native_life`) are gone.
+- `hab_note` is no longer stored or parsed by regex: the tooltip note is worked out from the stored tiers (`habitability_world.note`) and a compact object's planet finds its host from the star (`store.compact_host_of_star`). `system_configs.markdown` is no longer read or written. The evolutionary paragraph tables and the prose columns are no longer touched (DB.52 drops them).
+- The stored values change (exact ages, no paragraphs, no note), so this rides the pending generator epoch.
+
+generation-output: changed
+
+TODO items resolved: DB.51 / Added: none
+
+## [8.0.1782] - 2026-10-18
+
+**Headline:** A planet's or moon's life stage, pace, ages and flavour line get columns of their own, ready for generation to stop storing them as prose.
+
+### Changed
+- Migration 0110 adds `life_stage`, `evolutionary_pace`, `life_milestone_age_gyr`, `life_system_age_gyr` and `flavor_key` to `planets` and `moons`. Nothing is dropped, no row is touched and no code reads the columns yet (DB.51 does); an old-schema fixture (v109), an idempotent-upgrade test and a round-trip test cover it.
+
+TODO items resolved: DB.50 / Added: none
+
+## [8.0.1781] - 2026-10-18
+
+**Headline:** `scripts/test.py --resume` now continues a cancelled gate after main was merged in, rerunning only the tests whose files changed.
+
+### Changed
+- `--resume` reuses a pass from an earlier run, of any build, when the environment is the same and none of the files that differ between the two trees is a file the test used; a changed environment now runs every test and says why instead of refusing (TEST.208).
+- The progress log header carries a manifest of the files (path and hash), and every passed test of a `changed` run leaves a `deps` line with the files it used, so a cancelled run keeps both; reused passes are copied into the new log and counted by the next resume.
+
+TODO items resolved: TEST.208 / Added: none
+
+## [8.0.1780] - 2026-10-18
+
+**Headline:** Four load-sensitive tests no longer fail for reasons that are not in the code they check.
+
+### Changed
+- Tests: `test_whole_run_is_fast` measures the process's CPU time, not the clock, so a loaded machine cannot fail it (TEST.170).
+- Tests: the shared bright-star scatter galaxy is seeded with a fixed galaxy seed, so the forced-scatter and backfill tests cannot draw a galaxy whose first wedges hold no star (TEST.171, TEST.173).
+- Tests: the Galaxy Map click waits up to 90 s for the software-drawn map to answer instead of 15 s, which a loaded machine passed and then reported "did nothing" (TEST.172, TEST.202).
+- Tests: the process-race test waits until every starter has imported before it lets them go, so a starter that came more than 15 s late on a loaded machine no longer finds the first job's lock stale and starts a second (TEST.134).
+- Tests: the clean-up of the test Redis leaves a queue whole when it lists a job made in the last 15 minutes, so a second run starting beside a first can no longer delete the first's queued jobs (TEST.203).
+- Tests: the page accessibility test no longer counts a request the page cancelled itself (ERR_ABORTED, the map dropping its tile fetch) as a failed request, as the settings browser test already did (TEST.174, TEST.197).
+- Tests: the nested-nebula containment test draws the outer nebula again until its shape holds the whole neighbourhood the inner one is placed in, so a shape with its only central interior point near the surface no longer leaves the inner nebula's centre outside (about 1 draw in 40, TEST.216).
+
+TODO items resolved: TEST.170, TEST.171, TEST.173, TEST.172, TEST.202, TEST.134, TEST.203, TEST.174, TEST.197, TEST.216, TEST.129, TEST.130 (the last two were already fixed on main) / Added: none
+
+## [8.0.1779] - 2026-10-18
+
+**Headline:** Stopping a run now stops its workers, the Home page shows a phenomena count that follows scatters, and the species and polity lists open before the population pass.
+
+### Changed
+- A SIGTERM, Ctrl+C or exit during a parallel run now stops the run's workers and the tasks they are running (a second stop signal takes the work horse down) instead of waiting for them to finish; no worker or horse is left behind (OPS.59).
+- The stored Phenomena count (Home and the Phenomena list) is kept under a stamp that also follows the phenomenon tables and the scatter's class totals, so a scatter, a fill that builds scattered phenomena or a saved phenomenon shows at once instead of after hours; Home shows a capped count with the same "+" as the lists (UX.110).
+- `/species` and `/polities` answer with an empty page that says the population pass has not run, instead of a 404; a species or polity id that does not exist is still a 404 (UX.133).
+- `planetgen plan` stage 2 prints the number of phenomena expected, no longer the progress bar's weight (GEN.397).
+- Tests: the migrate-step test keeps the test state folders, so it no longer turns on the real `maintenance.json` (TEST.189); the far-tail skeleton bound case is pinned as an example (TEST.199).
+
+TODO items resolved: OPS.59, UX.110, UX.133, GEN.397, TEST.189, TEST.199 / Added: none
+
+## [8.0.1778] - 2026-10-18
+
+**Headline:** Only the TODO thread regenerates the global documents, and a stale one no longer fails a lane's tests.
+
+### Changed
+- **The global documents are TODO's (DOC.69; Boss, 2026-10-18, 11:24 PM EDT).** The architecture map, the plan pages and the docs index are built from the whole repository, so any lane's merge made them stale and every lane regenerated them. `python scripts/build_global_docs.py` now rebuilds all three in order (`--check` names the stale ones); the TODO thread runs it after a batch of merges, and a lane's pull request never contains a regenerated global file.
+- **The tests that compare each with its source are marked `globaldocs` and left out of every run** unless `PLANETGEN_GLOBAL_DOCS=1` (`scripts/test.py <command> --global-docs` sets it): the architecture map's module list (two tests), the docs index (three), and the plan pages (one). The release stamp runs `scripts/test.py full --check --global-docs`. Tests of the pages' own rules (a description on every page, a link back to the index, what the generators produce) still run.
+- **Two stale docstrings now name `planetgen warm`** (`admin/maintenance.py`, `cli/__init__.py`), and `docs/testing.md` and `docs/design/architecture.md` describe the rule.
+
+TODO items resolved: DOC.69. Added: none.
+
 ## [8.0.1777] - 2026-10-18
 
 **Headline:** Stars and objects beyond the galaxy's outline (the halo, the satellite galaxies) can now be picked on the whole-galaxy view and zoomed into with the wheel, down to a window of their own.

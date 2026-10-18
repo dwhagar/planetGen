@@ -19,8 +19,9 @@ render and instead fits with the modern web UI." The system overview stays prose
   moons), `AsteroidBelt`, `Comet`, `StarSystem.summary_paragraph`, and six phenomenon classes, each in
   `to_paragraph_list()`. The output format is a mutable flag on the shared config (`SystemConfig.MARKDOWN`), flipped
   around each render by `db/render.py`, and saved in the run-config row (`markdown` column).
-- The web's expanded body rows are that Markdown, split per body by `/api/systems/<id>/sections`, then converted to HTML
-  by `web/lib/mdrender.py` (the Python `markdown` package cut down to headers, pipe tables and `<sup>`).
+- The web's expanded body rows were that Markdown, split per body by `/api/systems/<id>/sections`, then converted to HTML
+  by `web/lib/mdrender.py` (the Python `markdown` package cut down to headers, pipe tables and `<sup>`). Since UX.120 the
+  system page reads `/description` and splits the Document per body (`describe.model.split_by_body`); `/sections` is gone.
 - Units, header levels, wikitext template names and sentences live in the model classes. Quantities in sentences are
   formatted by four different helpers and bypass the unit ladders (`util/ladders.py`).
 - Life timelines (`*_evolutionary_paragraphs`), `flavor_text` and `hab_note` are stored as finished prose, and the code
@@ -140,7 +141,7 @@ current wording; GEN.218 replaces the wording.
 
 | Renderer | Where | Output |
 |---|---|---|
-| HTML | `web/lib/` (from JSON) | A body's detail is: a facts table (`<table>` in the site's `table-scroll` wrapper), the ratings table with chips and symbols, the composition bars, prose paragraphs, then its moons. Quantities are `<span class="qty" data-q="..." data-si="...">`. Same tables, chips and both themes as the rest of the site; no header levels or Markdown, so no `mdrender`. |
+| HTML | `describe/html.py` (UX.119; the page passes it the links of its own routes) | A body's detail is: a facts table (`<table>` in the site's `table-scroll` wrapper), the ratings table with chips and symbols, the composition bars, prose paragraphs, then its moons. Quantities are `<span class="qty" data-q="..." data-si="...">`. Same tables, chips and both themes as the rest of the site; no header levels or Markdown, so no `mdrender`. |
 | Markdown | `describe/markdown.py` | Today's layout: `# system`, `## planet`, `### moon`, `Property | Value` pipe tables, bold rating lines. Quantities through the text ladder; superscripts as `<sup>` as now. |
 | wikitext | `describe/wikitext.py` | Today's layout: `= system =`, the Planet Data template (Class Data for moons), the Exp template for powers of ten, `[[Category:Star Systems]]`. |
 | text | `describe/text.py` | Plain tables and sentences for the terminal (Unicode superscripts, no markup). The command line default. |
@@ -158,7 +159,7 @@ one-off page all go through the same code with no second row shape. Each body ke
 Section's `ref` matches the row the page links to. The habitability rows read the same column-named values the stored
 scores come from (`habitability_world.values_from_body`).
 
-Cost: the page already loads the graph for `/sections`; the Document replaces that call, so there is no extra load. The
+Cost: the page already loaded the graph for `/sections`; the Document replaced that call, so there is no extra load. The
 Document is not cached in the database; the page cache (`web/lib/pagecache.py`) already covers repeat views.
 
 ## 6. Wording rules (the style the sentences are written to)
@@ -195,8 +196,8 @@ old columns, tables and the parsing helpers with it.
 ## 8. API and command line
 
 - `GET /api/systems/<id>/description` returns the Document (JSON). `GET /api/systems/<id>/text?format=markdown|wikitext|text`
-  renders it. `GET /api/systems/<id>/sections` and `render_system_sections` are removed with `mdrender.py` and the
-  `markdown` dependency of the web app. `docs/api.md` documents both.
+  renders it. `GET /api/systems/<id>/sections` and `render_system_sections` are removed (UX.120); `mdrender.py` and the
+  `markdown` dependency of the web app go with UX.109. `docs/api.md` documents both.
 - CLI: `--markdown` on `system`, `sector`, `galaxy` and the phenomenon commands becomes `--format text|markdown|wikitext`
   (default `text`; Decided default). `--output FILE` writes whichever format was asked. `-` is stdout.
 - The wiki upload (`wiki/`) renders wikitext or Markdown from the Document when an admin uploads, as now.

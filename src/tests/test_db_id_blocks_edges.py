@@ -42,7 +42,7 @@ def _sector(name, system_names):
 def _insert_configs(conn, count):
     """`count` new `system_configs` rows in one transaction; their ids."""
     with conn:
-        return [conn.execute("INSERT INTO system_configs (markdown) VALUES (?)", (0,)).lastrowid
+        return [conn.execute("INSERT INTO system_configs (name) VALUES (?)", (None,)).lastrowid
                 for _ in range(count)]
 
 
@@ -135,7 +135,7 @@ def test_a_hand_inserted_high_id_is_never_handed_out_again(mysql_config):
         assert first == [1]
         # One id just past this process's cached block, one further on.
         with other.cursor() as cur:
-            cur.execute("INSERT INTO system_configs (id, markdown) VALUES (65, 0), (300, 0)")
+            cur.execute("INSERT INTO system_configs (id, name) VALUES (65, NULL), (300, NULL)")
         other.commit()
         allocated = first + _insert_configs(conn, 200)
     finally:
@@ -156,14 +156,14 @@ def test_a_rolled_back_transaction_leaves_a_gap_never_a_reused_id(mysql_config):
         with pytest.raises(RuntimeError):
             with conn:
                 for _ in range(3):
-                    conn.execute("INSERT INTO system_configs (markdown) VALUES (?)", (0,))
+                    conn.execute("INSERT INTO system_configs (name) VALUES (?)", (None,))
                 raise RuntimeError("roll back")
         # Held back in a batch and never written: still a gap.
         with pytest.raises(RuntimeError):
             with conn:
                 with conn.batched():
                     for _ in range(2):
-                        conn.execute("INSERT INTO system_configs (markdown) VALUES (?)", (0,))
+                        conn.execute("INSERT INTO system_configs (name) VALUES (?)", (None,))
                     raise RuntimeError("roll back")
         after = _insert_configs(conn, 1)
         # A fresh cache (a restarted process) starts past the whole

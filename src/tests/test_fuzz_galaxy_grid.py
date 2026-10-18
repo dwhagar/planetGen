@@ -555,6 +555,12 @@ def test_shape_is_calibrated_to_one_at_its_interarm_point(shape):
     assert value == pytest.approx(1.0, rel=1e-9)
 
 
+@example(
+    # TEST.199: the far tail, where the halo is nearly all of the density and the remainder is two orders of
+    # magnitude below the two numbers it is taken from (their rounding error tops the 1e-9 relative tolerance).
+    galaxyDensity.build_galaxy_shape(disk_scale_length_pc=50.0, disk_scale_height_pc=259.0, bulge_scale_radius_pc=10.0,
+                                     bulge_amplitude=0.0, arm_count=1, pitch_angle_rad=1.0, arm_amplitude=0.0),
+    0.0, 36706.0, 0.0)
 @given(SHAPES, st.floats(0, 1e5), st.floats(-1e5, 1e5), st.floats(0, 2 * math.pi))
 def test_skeleton_bound_is_an_upper_bound_at_every_angle(shape, r_cyl, z, theta):
     point = (r_cyl * math.cos(theta), r_cyl * math.sin(theta), z)

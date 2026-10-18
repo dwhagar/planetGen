@@ -242,7 +242,7 @@ The TODO thread numbers them and assigns lanes. "8.4" means the composition and 
 | # | Item | Needs | Owner (proposed) | Version |
 |---|---|---|---|---|
 | U1 | Approve this note and the cards of section 6 | none | Boss | before any build |
-| U2 | Host registry: replace `system_model` by orbiter-table pointers; the orbiter tables as gated tables (GEN.472 format) with their sources and states; no behaviour change | U1, GEN.472 (built) | Core 4 | 8.4 phase 1 |
+| U2 | Host registry: replace `system_model` by orbiter-table pointers; the orbiter tables as gated tables (GEN.472 format) with their sources and states; no behaviour change | U1, GEN.472 (built) | Core 4 | 8.1 phase 3 (back-scatter, Boss's card 11:38 to 11:40 PM EDT on 2026-10-17; filed as GEN.552) |
 | U3 | GEN.315 as filed, with a host-neutral interface | none | Core 3 | 8.1 (unchanged) |
 | U4 | One star-like body draw: origin, birth, state, [Fe/H]; the initial-final relation, remnant mass, radius and age rules in one place; the free-floating brown dwarf moves in | U1, GEN.252 (merged), GEN.439, GEN.440 | Core 4 | 8.4 phase 1 |
 | U5 | Remnant counts derived from the mass function and star formation history, kick step on `remnant_distribution`, Boss's densities as tests; verified progenitor maps first | U4, GEN.463, GEN.467, GEN.469 (merged), D2 | Core 4 | 8.4 phase 1 |
