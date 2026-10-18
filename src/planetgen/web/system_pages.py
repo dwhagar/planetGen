@@ -31,7 +31,7 @@ from planetgen.web.lib.fmt import (
     distance_km_html, distance_ly_html, format_distance_km, format_members, format_number, linkify_nearest,
     nearest_systems_html, period_years_html, quantity_html, runaway_text, speed_kms_html,
 )
-from planetgen.web.lib.datatable import Column, Facet, Result, Table
+from planetgen.web.lib.datatable import Column, Facet, Result, Table, read_from_start
 from planetgen.web.maps.starmap import HYPERVELOCITY_EXPECTED_STAR
 from planetgen.web.scatter_members_view import members_view
 from planetgen.web.maps.phenomenonmap import render_phenomenon_map_panel
@@ -466,9 +466,11 @@ def _phenomena_load(state, limit, offset, want_facets, after=None):
     """The Phenomena table's page of rows (`lib/datatable.Result`); `next` is the last scattered row's id when the
     page ends inside the scattered tail, which every page after it is read from by key (PERF.75)."""
     filters = {"types": state.filters["type"], "descriptors": state.filters["descriptor"]}
-    envelope = apiclient.get_phenomena(
-        db_name(), limit=limit, offset=offset, sort=state.sort, descending=state.descending,
-        facets=want_facets, after=after, **filters)
+    envelope, note = read_from_start(
+        lambda start: apiclient.get_phenomena(
+            db_name(), limit=limit, offset=offset, sort=state.sort, descending=state.descending,
+            facets=want_facets, after=after, start=start, **filters),
+        state.start)
     rows = [[
         {"text": row["name"], "href": page_url("uncharted_phenomenon", scatter_id=row["scatter_id"])}
         if row["scattered"] else
@@ -491,7 +493,7 @@ def _phenomena_load(state, limit, offset, want_facets, after=None):
         }
     last = envelope["items"][-1] if envelope["items"] else None
     return Result(rows, envelope["total"], facets, envelope.get("total_capped", False),
-                  last["scatter_id"] if last and last["scattered"] else None)
+                  last["scatter_id"] if last and last["scattered"] else None, note)
 
 
 PHENOMENA_TABLE = tables.register(Table(
@@ -502,6 +504,7 @@ PHENOMENA_TABLE = tables.register(Table(
     _phenomena_load,
     facets=[Facet("type", "Type"), Facet("descriptor", "Descriptor")],
     noun=("phenomenon", "phenomena"), keyset=True,
+    jump={"name": "A scattered phenomenon's number, such as 5000"},
 ))
 
 
