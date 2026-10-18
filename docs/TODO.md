@@ -538,6 +538,10 @@ with `clamp()`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 19 of 54). This replaces any earlier owner line on this item.
+  Units (Boss's cards, 11:56 to 11:57 PM EDT, as the coordinator
+  relayed): UX.139 moves the ladders onto the registry and GEN.574 moves
+  `qty()` onto the Quantity class; Core 4 owns all three, and both wait
+  on this item.
   Prerequisites: none. Related: UX.22 (done, PR #1504), UX.81 (done, PR #1504).
 
 - [ ] **UX.108 Describe phenomena, sectors, galaxy and facilities in the same Document**
@@ -637,6 +641,9 @@ with `clamp()`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 9 of 54). This replaces any earlier owner line on this item.
+  Units (Boss's cards, 11:56 to 11:57 PM EDT, as the coordinator
+  relayed): GEN.574 changes the Document's quantity shape to `{kind,
+  value, unit}` after this renderer exists.
   Prerequisites: none. Related: UX.105.
 
 - [ ] **UX.120 The system page and the one-off system page use it: every body's detail from the Document**
@@ -936,6 +943,58 @@ with `clamp()`.
   a lane before use under the standing source rules, and any change to a
   drawn value bumps the generator epoch (OPS.56 rule).
   Prerequisites: GEN.558, GEN.559. Related: GEN.550, GEN.446, TEST.159.
+
+- [ ] **UX.139 Display reads the registry: ladder rungs take their symbol and factor from it, and the 21 format wrappers become one format_quantity entry**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 4, one owner with UX.107
+  (Core 4 owns the description layer, whose call sites move with this
+  item). Do: `util/ladders.py` and `html/static/unitladder.js` keep
+  their rung order, thresholds, asides and preference systems as display
+  data and take `symbol` and `factor` from the registry; the 21
+  `format_*` wrappers in `util/format.py` (about 230 lines) become one
+  `format_quantity(Quantity)` entry plus thin names where call sites
+  need them. Nothing the site shows changes. Done: the rendered pages
+  are identical, a factor is stated once, and the generated ladder table
+  is current.
+  Prerequisites: GEN.569, UX.107. Related: GEN.550, GEN.565, DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **UX.140 Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 2 (browser). Do: generate
+  the registry to JS as `build_unit_ladders.py` does for the ladders,
+  with a test that fails when the committed file is stale (as
+  `test_unit_ladders.py`); remove the three `AU_KM = 149597870.7`
+  declarations (`orbitpositions.js`, `systemview3d.js`,
+  `galaxysystem.js`) and the `KM_PER_PC` of `galaxysystem.js`. Done:
+  Python and JS agree on every factor by test, and no browser file
+  declares one.
+  Prerequisites: GEN.568. Related: GEN.550, GEN.565, DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -13855,6 +13914,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   table), U13a TEST.240 (round-trip and registry tests), U15a GEN.566
   (size-frequency research), and the stable object IDs DB.75 (a
   prerequisite of GEN.564).
+  Units (Boss, 11:51 PM EDT, 2026-10-17; his six cards 11:56 to 11:57 PM
+  EDT, as the coordinator relayed): the plan gains the unit registry and
+  Quantity class (docs/design/unified-unit-quantity.md): UN1 GEN.568,
+  UN2 GEN.569, UN3 GEN.570, UN4 DB.76, UN5 GEN.571, UN5x GEN.572, UN6
+  UX.139, UN7 UX.140, UN8 GEN.573, UN9 GEN.574, UN10 DB.77, UN11 DOC.70,
+  UN12 GEN.575. Owners are proposed in each item (Core 1 for the column
+  registry and precision table, Core 4 for the field table, position
+  class, describe and display, Core 2 for the browser table, Core 5 for
+  the registry, Quantity, sweeps and docs). None blocks 8.1 or GEN.301;
+  GEN.572 changes a nebula's stored radius and so needs an epoch and a
+  rescatter.
 
 - [ ] **GEN.552 Host registry: the five fixed `system_model` values become pointers to one gated orbiter table per host class, with no change in behaviour**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -14343,6 +14413,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1.
   Prerequisites: none. Related: GEN.550, GEN.553, GEN.557, GEN.556,
   GEN.552.
+  Units (Boss's cards Q1 to Q6, 11:56 to 11:57 PM EDT, as the
+  coordinator relayed): its field table gets a declared kind and native
+  unit per field in GEN.570, after the registry GEN.568 and the Quantity
+  class GEN.569; this item does not wait on them (it is a prerequisite
+  of GEN.570), but building the registry first avoids declaring the
+  table twice. The unit-suffixed attributes are swept in GEN.575.
 
 - [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
   Part of the unified orbited-body chain (GEN.550; design note
@@ -14416,6 +14492,239 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (Core 3).
   Prerequisites: GEN.560. Related: GEN.563, GEN.560, GEN.554, GEN.377,
   GEN.327.
+
+- [ ] **GEN.568 One registry of every unit the project uses**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 5 (the note offers Core 5
+  or Core 4). Do: one module with every unit, built from
+  `physics/constants.py` (which stays the home of the exact numbers),
+  each with its kind (length, mass, duration, instant, speed,
+  temperature, delta temperature, angle, power, pressure, density, flux
+  and the others the ladders carry), its dimension, factor, offset,
+  symbol, ASCII key, name, the allowed range (finite, mass at least 0,
+  speed below c) and the declared relations (mass and mu, radius and
+  diameter, period and frequency). It is new code and touches no
+  existing file; the old duplicate names stay until GEN.571 removes
+  them. Keep it free of an astropy import. Done: tests of every factor
+  against the exact definition, compound units agree with their parts
+  (km/s is km over s), round trips, and a file header that states the
+  unit rules.
+  Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.569 The Quantity value class: the number as given, every other unit answered on first read and kept, declared relations, checks**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 5 (or Core 4). Do:
+  `Quantity(kind, value, unit)` that keeps the truth as given and never
+  converts it (Q1 and the point class's rule); other forms are `value *
+  factor_given / factor_wanted` from the truth on first read and cached,
+  marked stale by `set`; `__slots__`; declared relations (the point
+  class's `mass_kg` and `mu` becomes the first one); finite, sign and
+  range checks and a clear error for a unit of another kind; `to_dict`
+  giving `{kind, value, unit}`; temperature offsets, with a temperature
+  difference as its own kind. Generation kernels stay on plain floats
+  (Q2), so a PERF check on the sector fill benchmark is part of GEN.570.
+  Done: tests of every form in step after any set, the relations, the
+  refusals and that a conversion between units whose ratio is a power of
+  ten stays exact in the common range.
+  Prerequisites: GEN.568. Related: GEN.550, GEN.565, DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.570 Field declaration: every unit-valued field of the mass object classes declares its kind and native unit, and the one field table serves the serializer**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 4. Waits on GEN.568,
+  GEN.569 and GEN.565 (the mass object core, which Core 4 builds after
+  Core 3's GEN.315 and GEN.264). Do: a `Field(kind, native)` declaration
+  for `mass`, `radius`, `age`, `spin`, the parent-relative state vector
+  and galactic motion on the core and every profile field (luminosity,
+  temperature, surface gravity, pressure, diameter); the instance holds
+  a plain float in the native unit (Q2) and `obj.quantity(name)` builds
+  the Quantity; the table-driven serializer of GEN.565 reads name, kind,
+  native unit and column from it. Includes the sector-fill benchmark
+  check. Done: the sector fill time stays inside its PERF budget, the
+  serialized rows are bit-identical, and a test fails when a unit-valued
+  field has no declaration.
+  Prerequisites: GEN.568, GEN.569, GEN.565. Related: GEN.550, GEN.565,
+  DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.571 Replace the ad-hoc unit conversions with the registry, by file group, bit-identical on the golden set**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 5 (small sweeps). Do: the
+  re-declared factors outside `constants.py` (`_AU_PER_LY` and
+  `AU_PER_LY`, `LY_PER_PC`, `KM_PER_PC`, `_LY_TO_AU_FALLBACK`,
+  `MPC_PER_PC`, `BAR_TO_PA`, `ERG_PER_J`, `MINUTES_PER_YEAR`,
+  `_KM_PER_S_TO_AU_PER_S`), the 96 bare `* 1000` and `/ 1000.0` sites
+  beside a unit name, the 16 `physics/units.py` calls and the describe
+  constant `_KM_M`. Sweep one file group at a time, and only when no
+  lane has an open PR on it (the TODO thread sequences the groups by
+  file group, 517 lines in 70 files plus 385 in tests); every sweep is
+  bit-identical on the golden set. Last step, after the final sweep
+  merges: remove the duplicate constant names in `constants.py`
+  (`AU_TO_M`, `LY_TO_M`, `KM_TO_M_FACTOR`, the second spelling of c, and
+  the copy of c in `position.py`) and `physics/units.py`, with no shim
+  left. The two rounded factors are not changed here: GEN.572 does that
+  as its own epoch-changing change. Done: no unit factor is declared
+  outside the registry (a test greps for it).
+  Prerequisites: GEN.568. Related: GEN.550, GEN.565, DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.572 The two rounded unit factors become exact: 63241.077 AU per light-year and 3.26156 light-years per parsec, as one epoch-changing change**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Q6 as the first sweep's one epoch-changing change. Proposed owner, not
+  assigned by a card: Core 5 with GEN.571, grouped with another
+  epoch-changing item so it takes a pending epoch with it. The rounded
+  values sit in `generation/phenomena/asteroid_field.py:35`,
+  `generation/phenomena_plausibility.py:79` and `physics/hii.py:40`;
+  they differ from the exact ones by 1.3e-9 and 1.2e-6 in relative size.
+  Found while filing (TODO thread, 2026-10-17): `hii.region` returns
+  `radius * LY_PER_PC` as the radius in light-years of an H II region,
+  which `generation/phenomena/nebula.py:273` stores, so the exact factor
+  changes a nebula's stored radius in the last digits, and that is a
+  scatter output (a phenomenon scatter row), which needs the generator
+  epoch bump and another full wiped rescatter, not only a refill; the
+  other two sites only decide a size digit at its floor boundary. If
+  this lands after the 8.1 rescatter it costs a second one. The three
+  constants change at once, nothing else. Done: the three sites read the
+  registry's exact factors, the golden digest changes with the epoch
+  entry, and the tests that pin nebula radii are regenerated.
+  Prerequisites: GEN.568. Related: GEN.550, GEN.565, DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.573 The position class reads its units from the registry: length unit by key, no bare 1000 or copy of c, mass and mu a declared relation**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 4 (the point in space,
+  with the mass object core). Do: `physics/position.py` takes
+  `length_unit` by registry key instead of `length_unit_m`, loses its
+  own `SPEED_OF_LIGHT_MS` and the bare `1000.0` in `set_velocity_kms`,
+  and its `mass_kg` and `mu` pair becomes the first declared relation of
+  the Quantity class. Nothing in the point class's frames or forms
+  changes. Done: position tests unchanged and bit-identical.
+  Prerequisites: GEN.568, GEN.569. Related: GEN.550, GEN.565, DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.574 Describe and API: qty() builds a Quantity and the {kind, si} shape becomes {kind, value, unit}**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 4 (the description
+  layer). Waits on UX.107 and UX.119, which it ties to. Do:
+  `describe/model.py` `qty()` builds a `Quantity`; the shape becomes
+  `{kind, value, unit}`, keeping `si` only where an API consumer needs
+  it (no backward shim otherwise); `describe/quantity.py` loses its
+  `_KM_M`. Done: the Document and API tests pass on the new shape and
+  the HTML renderer shows the same text.
+  Prerequisites: GEN.569, UX.107, UX.119. Related: GEN.550, GEN.565,
+  DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.575 Sweep the mass object classes: the 35 unit-suffixed attributes and every quantity held under two units get one declared native unit**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 4, inside GEN.565's
+  sweep. Waits on GEN.565 and GEN.570. Do: the 35 of 127 attributes in
+  the 8 class files that carry a unit only in their name, and the same
+  quantity under several units (mass as `mass_kg`, `mass_solar`,
+  `initial_mass_sol`, `primary_mass_kg`, `primary_mass_solar`; angles
+  `_deg` and `_rad`; time `_years`, `_gy`, `_hours`, `_ms`; length
+  `_km`, `_au`, `_ly`), unified by the hybrid core: one declared native
+  unit and the other form derived. Done: no class holds one quantity
+  under two units and the suffix test of DB.76 passes.
+  Prerequisites: GEN.565, GEN.570. Related: GEN.550, GEN.565, DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -16378,6 +16687,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   generic path, the per-site lists are gone, `schema.sql`, `models.py`
   and the migration test are updated. Owner: Core 1 (Boss's card D7),
   8.4 phase 1, with DB.73.
+  Units (Boss's cards, 11:56 to 11:57 PM EDT, as the coordinator
+  relayed): the column list it drives from is the column registry of
+  DB.76 (Core 1); the two share one list.
   Prerequisites: DB.73, GEN.565. Related: GEN.550, DB.73, DB.67, DB.70.
 
 - [ ] **DB.75 Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID**
@@ -16413,6 +16725,61 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   keeps its ID, and a planet that leaves its star keeps its ID. Owner:
   Core 1 (proposed: the identity chain), 8.4 phase 1.
   Prerequisites: none. Related: GEN.564, GEN.556, GEN.291, DB.73.
+
+- [ ] **DB.76 Column registry: every numeric column declares its table, kind and stored unit, loaded and stored through one list**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 1 (storage, sequenced
+  after its current storage item; it touches `point_columns.py` and the
+  tables Core 1 changes in the identity and repair chains). Do:
+  generalise `db/point_columns.py` to every numeric column (926
+  declarations, 422 with a unit in the name): `column -> (table, kind,
+  stored unit)` generated from one list, `PointLayout` becomes a thin
+  client, and the stored unit is declared per column for precision (Q3;
+  galaxy pc, sector mpc, system km or au stay). No data migration:
+  values and units stay as stored, only declarations are added (a column
+  later unified is a normal migration). Done: a test like
+  `test_point_columns.py` that fails when a numeric column has no
+  declaration, and a test that each unit suffix equals the declared unit
+  (Q4). Fits the load and insert of DB.74.
+  Prerequisites: GEN.568. Related: GEN.550, GEN.565, DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **DB.77 Precision table: each length column declares its reference frame and the largest distance at which a 10 m body keeps a metre**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 1, after DB.76. Do: for
+  every length column declare the reference frame and the largest
+  distance for which a 10 m body keeps a metre, from the spacing of a
+  double (1 AU 3.1e-5 m, 10,000 AU 0.25 m, 1 pc 4 m, 8 kpc 32,768 m), so
+  a body farther than about 10,000 AU from its parent is parent-relative
+  in a wider frame or a wanderer with its own galactic frame at lower
+  precision. Done: a test reads the table and fails when a column with a
+  10 m floor body exceeds its limit.
+  Prerequisites: DB.76. Related: GEN.550, GEN.565, DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
 ## API: The JSON API
 
@@ -21150,6 +21517,29 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   architecture map, the docs/plan pages and the docs index in that
   order. Both `warm_map` docstrings are fixed in it.
   Prerequisites: none. Related: DOC.67, DOC.68, DOC.47.
+
+- [ ] **DOC.70 Docs for the unit registry: units-and-number-formatting.md and database-schema.md updated, the unit rules in the registry's file header**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 5. Do: update
+  `docs/design/units-and-number-formatting.md` and
+  `docs/design/database-schema.md` for the registry, Quantity, Field and
+  column registry; the unit rules in the registry file header. Done: the
+  docs gate passes and no page describes a second unit table.
+  Prerequisites: GEN.568, GEN.569, DB.76. Related: GEN.550, GEN.565,
+  DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
 ## VIEW: The view from a planet
 
