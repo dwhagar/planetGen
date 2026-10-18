@@ -176,7 +176,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.235 | test_stop_waiting_stops_the_polling_and_check_again_picks_it_up[light] failed once in a loaded gate and passes alone (bug) |  |  |
 | TEST.234 | test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug) |  |  |
 | TEST.233 | test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug) |  |  |
-| TEST.232 | The a11y page_targets fixture fails 199 browser tests when /search answers 202 (slow-page job) under load (bug) |  |  |
 | TEST.229 | The browser phase of a gate stalls for minutes at one test with a headless_shell gpu process near 200% CPU (bug) |  |  |
 | GEN.542 | scripts/star_type_by_radius.py fails with a TypeError because the plan arguments now default the disk and arm options to None (bug) |  |  |
 | TEST.220 | test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter finds `neutron-star` inside `magnetar neutron-star` (bug) |  | Core 2 finding, 2026-10-17; Bug Hunt proposed. |
