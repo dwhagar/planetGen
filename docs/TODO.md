@@ -2425,7 +2425,151 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: MAP.154, MAP.158, MAP.195, MAP.243,
   MAP.248, GEN.537, PERF.129, PERF.130, PERF.131, PERF.132, PERF.133,
   PERF.134.
+  Amendment (Boss, 2026-10-17, 7:45 PM and 7:46 PM EDT, relayed by the
+  coordinator): this item's tier order (satellite galaxies, then halo,
+  then the rest) is steps 1 and 2 of the full order; the rest of the
+  order (two ramps, small phenomena to large by mass and small dim stars
+  to large bright stars, with distance removing the farther ones sooner)
+  now comes from MAP.251, which builds on this item. See MAP.251.
   Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
+
+- [ ] **MAP.251 When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug)**
+  Boss (2026-10-17, 7:38 PM EDT, typed in the project chat, relayed by
+  the coordinator): "BUG: The system needs to choose what stars or
+  objects to drop evenly across the viewing space rather than just
+  truncating off the data, always most massive / brightest within the
+  galaxy go last, halo and satellite galaxies go first." Today a budget
+  that is exceeded truncates its ranked list, so the dropped stars come
+  from one region (the tail of the ordering) and leave holes. The rule:
+  when a budget cuts, the removed stars are spread evenly over the
+  visible volume (for example a thinning by a fixed per-star random
+  number inside each rank tier, the hash thinning of
+  docs/design/zoom-star-visibility.md, so a cut thins every region by
+  the same fraction and the nested lists stay subsets); the order of
+  what goes last is the most massive and brightest stars of the galaxy;
+  what goes first is, per MAP.250 (Decided, Boss 6:57 PM EDT),
+  satellite-galaxy stars, then halo stars, then everything else. This is
+  the thinning rule inside each tier that MAP.250 puts in front of the
+  luminosity key, so it edits the same star-budget code as MAP.250 (Core
+  2, coded on branch map250) and as MAP.249 (the galaxy map lag): Bug
+  Hunt builds on MAP.250 once it merges and does not edit the budget
+  code before. Applies to every place that spends a star or object
+  budget (the tile lists, the nested lists, the 70,000-star view cap,
+  the stage views, the Sector Map, the phenomena lists). Done: one
+  function holds the order and the even thinning, every budget reads it
+  and none keeps its own; a test fills a budget-limited view with stars
+  over a wide area and checks the dropped stars are spread over every
+  region by about the same fraction, that no more massive or brighter
+  star is dropped while a less massive one of the same tier is shown,
+  and that satellite and halo stars go first; the rule is written in
+  docs/design/zoom-star-visibility.md. Owner: Bug Hunt (Boss, 7:38 PM
+  EDT).
+  Checked with Core 2 (2026-10-17, 7:43 PM EDT as the lane reported):
+  MAP.250 is only the tier order. Inside each tier a full list keeps the
+  top N by the brightness key and drops the rest wherever they lie, so
+  the uneven truncation this item describes is still there after MAP.250
+  and MAP.251 stays as filed, not narrowed. Bug Hunt is designing it
+  while it waits for the MAP.250 merge (7:45 PM EDT as the lane
+  reported).
+  Amendment, Decided (Boss, 2026-10-17, 7:45 PM EDT and 7:46 PM EDT,
+  typed in the project chat, relayed by the coordinator): "amendment so
+  MAP.251 and MAP.252, dim order: Satellite Galaxies, Halo. The
+  following 2 should happen at the same [time]: Small phenomena (by mass
+  excluding nebulae) <-> Large phenomena (by mass excluding nebulae);
+  Small dim stars to Large bright stars." And: "Then also incorporated
+  is distance, the farther away it is the faster it should be removed."
+  So the dim and drop order, first to last, is (1) satellite-galaxy
+  stars, (2) halo stars, then (3) two ramps that run at the same time:
+  phenomena from small to large by mass (nebulae are left out of the
+  mass ranking), and stars from small dim ones to large bright ones; the
+  most massive and the brightest go last. Distance from the viewer is
+  part of it: the farther an object is, the sooner it is removed.
+  Default for Bug Hunt's design (stands unless Boss overrules): distance
+  moves each object's place on its ramp earlier the farther it is (the
+  ramp position is the object's rank by mass or brightness shifted
+  toward the front by its distance), within the satellite and halo tiers
+  first; nebulae are not ranked by mass, so they are cut with the
+  phenomena ramp by their visible size until Boss says otherwise.
+  MAP.251 thins evenly in space inside this order (a cut removes the
+  same fraction in every region), and the order above decides who goes
+  first within each region.
+  The distance default above is now Decided (Boss, 2026-10-17, 7:46 PM
+  EDT, replying to the coordinator's post of that default: "That is
+  exactly what I mean, thank you"): distance moves each object earlier
+  on its ramp the farther it is, and the brightest and most massive near
+  objects still go last. Design constraint (Core 2, 7:48 PM EDT as the
+  lane reported): the server tile build knows no viewer (tiles are a
+  pure function of key and database, cached by key and stamp), so the
+  distance rule lives in the per-level tile budgets
+  (GALAXY_TILE_BRIGHT_BUDGET, GALAXY_TILE_STAR_BUDGET and
+  GALAXY_TILE_POINT_BUDGET falling with distance, nested), in the cut's
+  reach (viewport.fetch_cut_tiles and distance_cut_tiles) and in the
+  client's per-frame limit (starfade.js, starmagnitude.js), never in the
+  tile query.
+  Prerequisites: MAP.250. Related: MAP.249, MAP.250.
+
+- [ ] **MAP.252 Viewing only the filled sectors does not dim the phenomena (bug)**
+  Boss (2026-10-17, 7:38 PM EDT, typed in the project chat, relayed by
+  the coordinator): "BUG: When trying to view only filled sectors,
+  phenomena don't dim." With the view set to show only filled sectors,
+  the stars and sectors that are not filled dim, but the phenomena
+  (nebulae, clusters, remnants) in unfilled space stay at full
+  brightness. Fails on main: reported by Boss on his own server, not yet
+  reproduced by the TODO thread. Frequency: every time, as reported.
+  Reproducer: on the Galaxy Map choose the filled-sectors-only view and
+  look at a phenomenon in an unfilled sector. Do: find the control and
+  the place that dims stars, make the phenomena read the same filled
+  state (the same dim factor and the same rule as the stars), and test
+  it. Done: a browser test with a phenomenon in a filled and in an
+  unfilled sector checks the unfilled one is dimmed and the filled one
+  is not, and the same on the Sector Map if it has the view. Owner: Bug
+  Hunt (Boss, 7:38 PM EDT).
+  Cause found and coded (Bug Hunt, 2026-10-17, 7:45 PM EDT as the lane
+  reported; branch bughunt-dim, commit b59d4102, not gated or pushed
+  yet): `galaxymap3d.js` set `starUncharted` to 0 for every phenomenon
+  (`star.generated || star.phenomenon || star.charted ? 0 : 1`), so the
+  shader never dimmed them; the control is the Menu entry "Charted only"
+  (`data-action="charted-only"`, MAP.111, `setChartedOnly` in
+  `galaxymap3d.js`). The fix: scattered tile points now carry `charted`
+  (built_at set) from `query.galaxy_scattered_points_in_box`, and the
+  map dims the unbuilt ones (a new `isUncharted()` in `starpoint.js`,
+  with node and python tests). It goes in its own PR after #2124 merges.
+  Amendment, Decided (Boss, 2026-10-17, 7:45 PM EDT and 7:46 PM EDT,
+  typed in the project chat, relayed by the coordinator): "amendment so
+  MAP.251 and MAP.252, dim order: Satellite Galaxies, Halo. The
+  following 2 should happen at the same [time]: Small phenomena (by mass
+  excluding nebulae) <-> Large phenomena (by mass excluding nebulae);
+  Small dim stars to Large bright stars." And: "Then also incorporated
+  is distance, the farther away it is the faster it should be removed."
+  So the dim and drop order, first to last, is (1) satellite-galaxy
+  stars, (2) halo stars, then (3) two ramps that run at the same time:
+  phenomena from small to large by mass (nebulae are left out of the
+  mass ranking), and stars from small dim ones to large bright ones; the
+  most massive and the brightest go last. Distance from the viewer is
+  part of it: the farther an object is, the sooner it is removed.
+  Default for Bug Hunt's design (stands unless Boss overrules): distance
+  moves each object's place on its ramp earlier the farther it is (the
+  ramp position is the object's rank by mass or brightness shifted
+  toward the front by its distance), within the satellite and halo tiers
+  first; nebulae are not ranked by mass, so they are cut with the
+  phenomena ramp by their visible size until Boss says otherwise. For
+  MAP.252 the same order is the dim order: the objects that go first
+  when dropping are the ones that dim first when the view shows charted
+  sectors only, so the dimming and the dropping read one ranking.
+  The distance default above is now Decided (Boss, 2026-10-17, 7:46 PM
+  EDT, replying to the coordinator's post of that default: "That is
+  exactly what I mean, thank you"): distance moves each object earlier
+  on its ramp the farther it is, and the brightest and most massive near
+  objects still go last. Design constraint (Core 2, 7:48 PM EDT as the
+  lane reported): the server tile build knows no viewer (tiles are a
+  pure function of key and database, cached by key and stamp), so the
+  distance rule lives in the per-level tile budgets
+  (GALAXY_TILE_BRIGHT_BUDGET, GALAXY_TILE_STAR_BUDGET and
+  GALAXY_TILE_POINT_BUDGET falling with distance, nested), in the cut's
+  reach (viewport.fetch_cut_tiles and distance_cut_tiles) and in the
+  client's per-frame limit (starfade.js, starmagnitude.js), never in the
+  tile query.
+  Prerequisites: none. Related: MAP.250.
 
 
 ## NAV: Navigation and courses
@@ -3833,7 +3977,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.311, GEN.312, MAP.213, GEN.313, GEN.314.
+  Prerequisites: GEN.311, GEN.312, MAP.213, GEN.313.
 
 - [ ] **GEN.130 Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes**
   Boss (GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778)): "We need to add exotic star systems that
@@ -6067,35 +6211,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   line on this item.
   Prerequisites: GEN.311. Related: GEN.129.
 
-- [ ] **GEN.314 Planet zones in a hierarchy and flux sums: S-type and P-type windows per node (Holman-Wiegert) and the flux a planet receives from every member**
-  Split from GEN.129 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). A planet's stable orbits in a
-  tree: an S-type limit around each star (the sibling subtree as a point
-  mass, lower limit the engulfment floor), a P-type window around each
-  pair node (lower limit Holman-Wiegert, upper limit the S-type limit of
-  the pair against its own sibling), all capped at the disk size, plus
-  the summed flux of every member for the habitability inputs (design
-  multistar-and-compact-systems.md 5.6 and 6.5). A pure function over an
-  OrbitNode tree (physics/, numpy only), using the existing
-  holman_wiegert functions of physics/orbits.py. This is the one place
-  the zones are worked out; GEN.264:a, GEN.130 and GEN.275:b call it.
-  Done: the windows for N=2 equal today's circumbinary and wide-pair
-  limits, the table of 5.6 (S-type windows above 0.3 AU: 77% at N=2
-  falling to 13% at N=7) is reproduced on a seeded draw, and a planet's
-  flux sums over all members.
-  The zone function is shared: GEN.264 stage C, GEN.130 (pulsar and
-  white-dwarf rows) and GEN.275 (circumbinary planets) call it and
-  compute no zones of their own.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Owner: Blocker 1 (Boss, 2026-10-17, 3:47 PM EDT, card answer relayed
-  in words by the coordinator: GEN.314 goes to Blocker 1 after GEN.289;
-  Core 3 confirmed it was never started and dropped it from its queue).
-  This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: GEN.129.
-
 - [ ] **GEN.315 A fill builds a system from its stored members and nodes; the system pass keeps only planets, moons, belts and disks**
   Split from GEN.264 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). StarSystem(member_tree=...) skips
@@ -6114,7 +6229,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.311, GEN.314. Related: GEN.264.
+  Prerequisites: GEN.311. Related: GEN.264.
 
 - [ ] **GEN.316 Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired**
   Split from GEN.264 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6151,7 +6266,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.314. Related: GEN.130, GEN.436, GEN.444.
+  Prerequisites: none. Related: GEN.130, GEN.436, GEN.444.
 
 - [ ] **GEN.318 White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk**
   Split from GEN.130 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6170,7 +6285,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.314. Related: GEN.130.
+  Prerequisites: none. Related: GEN.130.
 
 - [ ] **GEN.321 Emission regions D and E: the ionizing members of a young cluster in a Plummer sphere, cut by sector cube**
   Split from GEN.241 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6338,7 +6453,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.314, GEN.315. Related: GEN.275.
+  Prerequisites: GEN.315. Related: GEN.275.
 
 - [ ] **GEN.334 Pair closest-approach library: sweep, pair windows, window cap and chunking**
   Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
@@ -7964,6 +8079,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fractions, outer)`; GEN.322's plan test uses a luminosity floor of
   2500 (30,000 gave only 284 stars at GEN.134's young share, none in the
   high-extent shells beyond the outline).
+  Decided (Boss, 2026-10-17, tapped on a card in Core 1's thread,
+  reported by Core 1 at 8:36 PM EDT as the lane reported and relayed by
+  the coordinator at 8:37 PM EDT): "Mass sets count" for the density
+  source. The star count comes from the galaxy's stellar mass (not from
+  a stored local density at a Sun radius); a Milky Way-sized galaxy is
+  therefore about 2.6 times sparser at the reference radius than the old
+  fixed calibration, until the disc vertical profile is revisited. Core
+  1 builds on this option (GEN.402/404 coded in its own worktree during
+  the GEN.532/533 gate, 72% at 8:33 PM EDT with no failures, as the lane
+  reported). The 2.6 factor is a consequence Boss accepted, not a
+  defect: the test of the density against the old model at the reference
+  radius (Done above) then checks the law and states the factor instead
+  of expecting agreement within the scatter.
+  Core 1's findings while building this item (8:33 PM EDT as the lane
+  reported): the vertical profile is filed as GEN.544 and the mean
+  system mass as GEN.545; the Einstein radius is now
+  shown "seen from the reference radius" (see VIEW.1). The O-star test
+  failure it also saw is TEST.230's cause (retired, #2128); Core 1 fixes
+  the assert in this branch to look for an O5V entry anywhere in the
+  nebula's hosts.
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -13657,6 +13792,83 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed).
   Prerequisites: none. Related: GEN.133, GEN.134.
 
+- [ ] **GEN.543 Define "usable" for a P-type window so the design table's pair-node row (34% falling to 18%) can be reproduced**
+  Open question from GEN.314 (Blocker 1, merged #2125, 2026-10-17;
+  reported 7:38 PM EDT through the coordinator):
+  `docs/design/multistar-and-compact-systems.md` 5.6 gives "Pair nodes
+  with a usable P-type window" as 34%, 35%, 28%, 23%, 20%, 18% for N = 2
+  to 7, but does not define "usable" past the window being there.
+  GEN.314's width test (window wider than 0.3 AU) gives 45%, 48%, 43%,
+  37%, 35%, 30%, above the table. The S-type row is reproduced within 7
+  points. Default (stands as Decided unless Boss says otherwise): try
+  two candidate definitions on the same seeded draw of the generator's
+  trees, (a) width above 0.3 AU and an outer edge at least twice the
+  inner edge, (b) width above 0.3 AU and the window overlaps the host's
+  habitable zone, and keep the one that lands the table's row within 7
+  points at every N; if neither does, keep the measured numbers, label
+  the table's row as the earlier estimate and say so on the design page.
+  Nothing waits on it. Done: the definition is written next to the
+  table, a test pins the share, and the table's row is either reproduced
+  or relabelled. Owner: Blocker 1 (proposed, after PERF.118, GEN.438 to
+  GEN.440).
+  Prerequisites: none. Related: GEN.314, GEN.264.
+
+- [ ] **GEN.544 Revisit the disc's vertical profile: the sech-squared core has half the midplane density of the exponential fits its scale heights come from**
+  Found by Core 1 while building GEN.404 (2026-10-17, 8:33 PM EDT as the
+  lane reported), filed by the TODO thread. Design gap, a consequence of
+  GEN.404's "Mass sets count" decision (Boss, card in Core 1's thread):
+  `galaxy/density.py` `_vertical` uses sech^2(z / 2h), and with the
+  density normalised to the galaxy's mass the reference structure (5e10
+  solar masses) has 0.037 systems per pc^3 at the reference radius, 0.38
+  of the old pinned local density (0.0985). The thin disc holds the
+  right column there (about 30 solar masses per pc^2 against 35
+  observed), but a sech^2 core has half the midplane density of the
+  exponential fits the scale heights were measured against, so the
+  midplane is too sparse and the 2.6 times sparser result of GEN.404 is
+  partly this profile and not only the mass law. Fails on main: no (it
+  appears with GEN.404's normalisation). Frequency: every galaxy.
+  Reproducer: `build_galaxy_shape` with the BHG16 shape,
+  `relative_density` at 3.15 scale lengths. Do: decide the profile with
+  the sources the scale heights come from (an exponential or a sum of
+  thin populations by age, GEN.134's young share and the thick disc
+  ratios decide the sum), keep the column density, change the midplane,
+  and say in the design note what the old and new local density are.
+  Default (stands unless Boss overrules): keep the column (about 30
+  against 35 observed) and match the midplane of the exponential fits,
+  with the thin populations summed if one profile cannot do both. Done:
+  the midplane density at the reference radius matches the fits within
+  the derived scatter, the column density does not move, and a test pins
+  both. A change that alters the generator output follows the epoch
+  rule. Owner: Core 1 proposed (it owns the code GEN.404 changes), after
+  GEN.404 merges.
+  Prerequisites: GEN.404. Related: GEN.404, GEN.134, GEN.401.
+
+- [ ] **GEN.545 The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution**
+  Found by Core 1 while building GEN.404 (2026-10-17, 8:33 PM EDT as the
+  lane reported), filed by the TODO thread.
+  `tuning.MEAN_SYSTEM_MASS_SOLAR = 0.4` is documented as "recalled,
+  within a factor of 1.5"; today it only turns unresolved mass into a
+  system count (`generation/place_terms.py`, `galaxy/resolution.py`),
+  but with GEN.404's mass-normalised density it becomes the divisor of
+  the stellar mass for every galaxy (stellar mass over 0.4 gives the
+  system count), so a factor of 1.5 here moves every galaxy's star count
+  by up to 50 percent. Boss's rule is no fixed content. Fails on main:
+  no (the constant matters once GEN.404 merges). Frequency: every
+  galaxy. Reproducer: change the constant by 1.5 in `tuning.py` and
+  compare the system count of one seed. Do: compute the mean mass of a
+  system from the generator's own stellar mass function and multiplicity
+  (GEN.103's pooled Moe trend, the IMF in use) so the constant goes, or,
+  if the integral cannot be done in closed form, a seeded measurement at
+  build time; where a source is needed, GEN.366 or the next research
+  pass names it and the lane verifies the citation first. Default
+  (stands unless Boss overrules): derive it from the generator's own
+  distribution, no new constant. Done: no code reads
+  `MEAN_SYSTEM_MASS_SOLAR`, a test checks the derived mean against a
+  seeded draw of systems within the scatter, and the design note says
+  where the number comes from. Owner: Core 1 proposed, after GEN.404
+  merges.
+  Prerequisites: GEN.404. Related: GEN.404, GEN.103, GEN.366.
+
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -17079,6 +17291,12 @@ clears each one.
   a reproduction). Fails on main: not run on main. Frequency: now 3
   loaded gate runs for the breadcrumb test (4:10 PM, 5:13 PM, 7:08 PM
   EDT).
+  Sighting (Core 1, 2026-10-17, 7:40 PM EDT as the lane reported):
+  `test_galaxy_breadcrumb_always_matches_the_view_its_url_names` failed
+  in the full browser phase of GEN.532/533's gate 2 (build a725802e,
+  5:54 to 7:37 PM EDT) and passed alone on the retry (99.28 s on gw1,
+  load 9.9). Fails on main: not tried. Frequency: now 4 loaded gate runs
+  for this test (4:10 PM, 5:13 PM, 7:08 PM and about 7:30 PM EDT).
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
@@ -18712,6 +18930,129 @@ clears each one.
   gate. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.126, TEST.171, TEST.172, TEST.227.
 
+- [ ] **TEST.231 test_the_wheel_anchors_on_the_star_under_the_pointer_not_the_mesh_behind_it failed alone once in 8 runs (bug)**
+  Found by Blocker 1 (2026-10-17, about 7:38 PM EDT, relayed by the
+  coordinator), filed by the TODO thread.
+  `src/tests/test_web_browser_sector_reach.py::test_the_wheel_anchors_on_the_star_under_the_pointer_not_the_mesh_behind_it`
+  (MAP.245's test) failed `assert the wheel anchor is (0, 0, 0)`, got
+  0.031 on two axes, once in 8 runs on Blocker 1's branch, 0 of 8 on
+  main, and 4 passes after. Fails on main: not in 8 runs. Frequency: 1
+  of 8 runs on one branch. Reproducer: run the test alone 8 times. A
+  rare flake: a small anchor offset is a numeric tolerance or a frame
+  that was not settled, not a missing wait. Do: find whether the anchor
+  reads the camera before it has settled, and fix the cause in the test
+  or the page. Done: the cause is on this item and the test passes 30 of
+  30 runs. Owner: Core 2 (owns the test, MAP.245).
+  Failure text (Blocker 1, 2026-10-17, 7:41 PM EDT as the lane
+  reported): `assert [0.0312965870..., -0.0312965870..., 0] ==
+  approx([0.0, 0.0, 0.0])`, case (5, -4); once in 8 alone runs on a
+  branch that cannot touch the test and once inside a changed gate under
+  load 9; 0 of 8 alone runs on main. Cause found (Core 2, 2026-10-17,
+  7:43 PM EDT as the lane reported): the test reads the star's screen
+  spot right after `galaxyCentreOn` (a camera flight), so under load the
+  spot is stale when the anchor is asked and the anchor falls back to
+  the focus-plane point (0.031 away). Fix coded in Core 2's branch
+  map247 (the test waits until the spot holds still for 3 reads, and the
+  same helper is applied to the system-disc test); it goes in the
+  MAP.247 PR and resolves this item when merged.
+  Prerequisites: none. Related: MAP.245, TEST.126.
+
+- [ ] **TEST.232 The a11y page_targets fixture fails 199 browser tests when /search answers 202 (slow-page job) under load (bug)**
+  Found by Core 3 (2026-10-17, about 8:28 PM EDT as the lane reported;
+  GEN.321's third gate, browser phase, load 6 to 10, between about 7:30
+  and 8:06 PM EDT), filed by the TODO thread. 199 tests errored in setup
+  with `web.search: GET /search answered 202 (anonymous) / 202 (admin)
+  with the sample database` (`src/tests/test_web_a11y.py`, the module
+  fixture `page_targets`, which asks every page for a 200 once). Core 3
+  suspected a Redis or search index shared by two gates running at once;
+  reading the code does not support that: the module's database is
+  `planetgen_a11y_<uuid>`, and every slow-page key
+  (`planetgen:slowtime:`, `planetgen:slowpath:` in `queue/pagejobs.py`)
+  holds that name, so another gate cannot reach them. What the code does
+  show: `/search` is a `@slow_route` page (`web/views.py:316`) that asks
+  the API for several answers; the first build that takes over
+  `tuning.SLOW_PAGE_SECONDS` (3.0 s) is timed (`apiclient._body_of` into
+  `pagejobs.record_duration`), and `slowpages.cost` then calls every
+  other request on that route slow (`slowest_recent_duration`, 600 s)
+  and `pagejobs.ensure` queues it, so the page answers `202` with the
+  loading state. On a loaded box the first build is slow enough to do
+  that; on an idle one it never is. The fixture never waits for a page
+  job, so the status stays 202 and `pytest.fail` follows. Reproduced by
+  the TODO thread (2026-10-17, 8:40 PM EDT): with
+  `tuning.SLOW_PAGE_SECONDS = 0.001` set before `pytest.main` on
+  `src/tests/test_web_a11y.py -k search` the fixture fails alone with
+  `web.phenomena: GET /phenomena answered 202 (anonymous) / 202 (admin)
+  with the sample database` (the first slow-route page it asks;
+  `/search` is the second). Fails on main: yes, when the threshold is
+  lowered; not run on main loaded. Frequency: once (one gate, about 36
+  minutes of the browser phase, 199 tests of the module). Reproducer:
+  `python3 -c "import pytest; from planetgen import tuning;
+  tuning.SLOW_PAGE_SECONDS = 0.001; pytest.main(['-n0',
+  'src/tests/test_web_a11y.py', '-k', 'search'])"` with
+  `PYTHONPATH=src`. Do: make the fixture independent of load (pin the
+  slow-page rule off for this module's app, as the slow-page tests pin
+  it on, or follow the 202 to its finished page) and check the other
+  module-scoped fixtures that ask a `@slow_route` page for a 200
+  (`/phenomena` too). Done: the fixture passes with `SLOW_PAGE_SECONDS`
+  at 0.01 and the cause is on this item. Owner: Core 2 (owns UX.118 and
+  the slow pages; proposed).
+  Prerequisites: none. Related: UX.118, PERF.105, TEST.223.
+
+- [ ] **TEST.233 test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug)**
+  Found by Core 3 (2026-10-17, about 8:28 PM EDT as the lane reported;
+  GEN.321's third gate), filed by the TODO thread.
+  `src/tests/test_prevalence.py::test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30]`
+  failed once with a share of 0.752 against 0.7891 within 0.0365 (the
+  band is 4 standard deviations of 2,000 systems). The TODO thread
+  (2026-10-17, 8:31 to 8:38 PM EDT) ran it alone 13 times with different
+  hash seeds (13 passed) and measured the unchanged asteroid-belt share
+  over 6 seeds of 2,000 systems at 0.6088 against
+  `PREVALENCE_BASE_SHARES` 0.607 (one standard deviation of the mean
+  0.0045), so the generator did not drift. The cause of the
+  irreproducibility: the test seeds its run with `hash((feature,
+  percent)) % 1000`, and `hash()` of a tuple holding a string differs in
+  every Python process (hash randomisation), so each run draws a
+  different sample from the 4-sigma band and a failure cannot be
+  replayed. A 4-sigma miss on one sample is rare (about 6 in 100,000 per
+  test per run) but there are 7 such cases in the file and every gate
+  runs them. Fails on main: not run on main. Frequency: once in about 14
+  runs seen. Reproducer: none for the failing sample; the seed is not
+  recorded. Do: seed every case with a stable value (for example
+  `zlib.crc32(f"{feature}:{percent}".encode()) % 1000`) so a failure
+  repeats, and print the seed in the assert message; if the stable seeds
+  all pass keep the 4-sigma band, and if one lands outside it re-measure
+  that feature's response to the percentage (a belt share at +30% may
+  not be exactly 1.3 times the base). Done: the seeds are stable, the
+  assert names its seed, and each case passes 30 of 30 runs. Owner: Core
+  3 (found it; proposed).
+  Prerequisites: none. Related: GEN.448.
+
+- [ ] **TEST.234 test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug)**
+  Found by Core 3 (2026-10-17, about 8:28 PM EDT as the lane reported;
+  GEN.321's third gate, loaded browser phase), filed by the TODO thread.
+  `src/tests/test_web_settings_browser.py::test_the_review_and_error_pages_are_accessible[admin]`
+  failed `_overflow` (scrollWidth 606 against a 390 px viewport, the
+  widest element `sl-dropdown.site-gear`) once; the same file's other
+  roles and a rerun passed (Core 3 had not rerun it alone at the time of
+  the report). The overflow is read straight after
+  `wait_for_selector("table.settings-diff")`, with no wait for the
+  Shoelace components to be defined; a `sl-dropdown` that is not
+  upgraded yet lays its slotted content out inline, which is as wide as
+  a menu (inferred from the element named, not reproduced). Fails on
+  main: not run on main. Frequency: once. Reproducer: not known; run the
+  test under load (`stress` on the box) or add a `page.route` that
+  delays the Shoelace script by 2 s. Do: wait for
+  `customElements.whenDefined('sl-dropdown')` (or the page's own ready
+  flag) before `_overflow`, in this test and in the shared `_page`
+  helper if other tests read layout before the components load; if the
+  width still shows with the components defined, the gear dropdown is a
+  real overflow on the review page at 390 px and the CSS is the fix.
+  Done: the cause is on this item and the test passes 30 of 30 runs with
+  the Shoelace script delayed by 2 s. Owner: Core 3 (found it;
+  proposed), or Core 5 (owns the TEST/DOC small items) if Core 3 is
+  busy.
+  Prerequisites: none. Related: TEST.126, TEST.223.
+
 
 ## USR: User accounts
 
@@ -20052,6 +20393,27 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   298; the owner line above is no longer only proposed.
   Prerequisites: none. Related: DOC.47, DOC.52, DOC.18.
 
+- [ ] **DOC.68 Generate docs/plan/execution-plan.html from scripts/build_todo_docs.py like the other plan pages**
+  Asked by Core 5 through the coordinator (2026-10-17, 7:51 PM EDT),
+  filed by the TODO thread. The execution plan page is the only page in
+  docs/plan/ with no generator in the repo: the TODO thread rebuilt it
+  on 2026-10-17 with a script that lives outside the repo, from
+  docs/TODO.md and the lane report in /mnt/project-files, and
+  tests/test_docs_index.py (Core 5's DOC.67 branch) checks that the page
+  keeps its `<meta name="description">` and its "Docs index" link, which
+  a regeneration can drop. Do: move the generator into
+  scripts/todo_docs/ with a template, in the same pass as todo-tree.html
+  and version-plan.html (lanes board from a file in the repo, for
+  example docs/plan/lanes.md that the TODO lane keeps, headline panel,
+  open items by version and phase, goal issues table, conflicts and
+  needs-Boss lists), keep the meta description and the Docs index link
+  in the template, and add the page to the freshness test that covers
+  the other generated pages. Done: `python3 scripts/build_todo_docs.py`
+  writes the page, a test fails when the committed page differs from the
+  generated one, and tests/test_docs_index.py passes on it. Owner: Core
+  5 (proposed, it owns the docs index work, DOC.67).
+  Prerequisites: none. Related: DOC.67.
+
 ## VIEW: The view from a planet
 
 - [ ] **VIEW.1 View from a planet**
@@ -20202,6 +20564,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     Decided (2026-10-10): Boss (19:16Z, Accept all): constellation names
     use the name codec (the 2026-10-07 plan stands); the licensing,
     transliteration and uniqueness questions are moot.
+  Note (Core 1, 2026-10-17, 8:33 PM EDT as the lane reported, GEN.404):
+  there is no home position, so the Einstein radius GEN.154 shows is now
+  "seen from the reference radius" (3.15 scale lengths of the galaxy).
+  When the view from a planet has a real observer (this item), the
+  Einstein radius and any other figure that assumes an observer's place
+  should read that observer instead of the reference radius.
 
 - [ ] **VIEW.6 Settle the handedness of the generated galaxy before mapping real sky coordinates**
   The generated galaxy rotates counterclockwise about +Z and the real

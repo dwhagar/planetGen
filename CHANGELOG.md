@@ -2,6 +2,24 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1756] - 2026-10-17
+
+**Headline:** The O-star nebula test no longer fails on the hotter cluster stars that now live as long as real ones do.
+
+### Changed
+- **`test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing` (TEST.230).** It assumed the stars of a class D or E region begin with the nebula's own O5V. Since the stellar bundle (#2112, GEN.467) a star's life follows the sourced stellar tables, so at 4 million years the cluster behind the host still holds O3V and O5V stars (an O3V or O5V lives about 4 million years; the old law gave them under 1) and the host list may begin with a hotter type or count several O5V. The test now asks that the host is among the stars, and that a class C nebula (the host alone) lists exactly `O5V x1`. The generator is unchanged.
+
+TODO items resolved: TEST.230. Added: none.
+
+## [8.0.1755] - 2026-10-17
+
+**Headline:** One function now works out where a planet can stay in a hierarchy of stars and how much light it gets there.
+
+### Added
+- **Planet zones in a hierarchy, and the flux a planet receives from every member (GEN.314).** `physics/planet_zones.py` gives an S-type window round every member (the Holman and Wiegert limit or the Hill radius against the sibling subtree as a point mass, whichever is tighter, from the member's engulfment floor) and a P-type window round every pair node (the circumbinary fit or the highest floor of a member below it, up to the pair's own S-type limit against its sibling), all capped at 100 AU (`PLANET_ZONE_DISK_CAP_AU`). For two stars the windows are the ones `Star.a_crit_au` and `StarSystem._orbit_floor_au` hold. `flux_at` sums the host's own light and every other member's at the time-averaged inverse square of the node they meet at. On a seeded draw of the generator's trees the share of stars with an S-type window above 0.3 AU falls from 73% at two stars to 15% at seven, the design table's row within 7 points. GEN.264 stage C, GEN.130 and GEN.275 call it and work out no zones of their own.
+
+TODO items resolved: GEN.314. Added: none.
+
 ## [8.0.1754] - 2026-10-17
 
 **Headline:** The track of a young star now takes its numbers from published tables, and red dwarfs stay young stars for as long as the tables say.

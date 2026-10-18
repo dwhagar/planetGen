@@ -120,6 +120,11 @@ DISK_MASS_STELLAR_MASS_EXPONENT = 1.8
 # `StarSystem._estimate_max_objects_from_disk_physics`.
 DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER = 18
 
+# The farthest a planet zone in a hierarchy of stars reaches (GEN.314,
+# `physics.planet_zones`): a protoplanetary disk around a star or a pair is
+# not larger than this, whatever the stability limit allows.
+PLANET_ZONE_DISK_CAP_AU = 100.0
+
 # The disk-physics walk (`StarSystem._estimate_max_objects_from_disk_physics`)
 # first counts how many isolation-mass "oligarchs" (Kokubo & Ida
 # 2000/2002) the disk's solid budget can support, spaced by their own
