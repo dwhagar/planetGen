@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1833] - 2026-10-18
+
+**Headline:** The query-count test for the sector and system pages no longer fails when the two random systems differ in how many stars have planets.
+
+### Changed
+- Tests: `test_sector_and_system_pages_use_a_fixed_number_of_queries` compared the statement count of two random systems, but `system_detail` sends one host lookup (`compact_host_of_star`) for each star that has planets, by design ("one lookup per host star, not per planet"), so a system whose planets orbit one star sent one more than a system with none, and the test failed 5 runs in 40 on an idle machine (12 against 11 statements; the differing statement in every failing run was that lookup). The count now leaves out one statement per star that has planets, which keeps what the test is for: no statement grows with the number of planets or moons.
+
+TODO items resolved: TEST.249 / Added: none
+
 ## [8.0.1832] - 2026-10-18
 
 **Headline:** The dense-core case of the neighbourhood test runs in about three minutes instead of up to ten, so it no longer times out in a loaded gate.
