@@ -30,6 +30,7 @@ from planetgen.physics import constants, insolation, magnetism, metallicity, pre
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
+from planetgen.generation import pulsar_planets
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
 from planetgen.physics.formation import (
@@ -814,6 +815,9 @@ class StarSystem:
                  `self.secondary_planets` -- the caller assigns the result
                  to whichever one applies.
         """
+        if pulsar_planets.applies(star):
+            return pulsar_planets.generate(self.system_config, star, habitable_zone, orbit_ceiling_au)
+
         planets = []
         system_objects = self.estimate_num_objects(star)
 

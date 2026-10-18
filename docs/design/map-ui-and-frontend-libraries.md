@@ -508,7 +508,7 @@ benchmark varies up to about 30% between runs [C, `pickbench.mjs`].
 | `Raycaster` on `Points` | 5.1 ms | 7-13 ms | 56-91 ms | Threshold in world units, not pixels |
 | `PointsBVH` (three-mesh-bvh 0.9.16) | 2.0 ms | 1.3-1.6 ms | 3.6-3.9 ms | Build 0.6 s at 70k, 0.5-0.7 s at 100k, 3.5-4.4 s at 1M, on the main thread |
 
-- With the 70,000-star cap per view (MAP.109), 5 ms on a click is fine, and the
+- With the 70,000-star cap per view (MAP.109; 45,000 since MAP.249), 5 ms on a click is fine, and the
   pick runs on a press, not every move. For hover, throttle to one query per
   frame while the pointer is still, or show the tooltip for the nearest star
   within reach after the pointer rests for 80 ms.

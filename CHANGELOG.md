@@ -2,6 +2,41 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1828] - 2026-10-18
+
+**Headline:** A millisecond pulsar's planets are the carbon-rich worlds of a disrupted white dwarf's disc, in the pulsar's own wind.
+
+### Added
+- **Pulsar planets (GEN.317).** The 0.7% of millisecond pulsars that hold planets now draw an origin from the four known systems: the fallback disc of a disrupted white dwarf (a quarter), a giant captured in a globular cluster (a quarter) and the stripped core of an ablated companion (half). The disc origin is built: one to three airless, carbon-rich planets between 0.1 and 0.6 AU, masses log-uniform from 0.01 up to the most the carbon-rich class holds (about 3.3 Earth masses; the design's 10 waits for a larger class), each period near 4:3, 3:2, 5:3 or 2:1 to the one inside it, with no moons. Their radiation always rates in the lowest tier. The other two origins give the pulsar no planets until their kinds exist (the cluster giant switch GEN.163 stays off; the companion is a pair member for the pair builder GEN.555).
+- A pulsing neutron star has a spin-down power (`spin_down_power_w`), and the wind it drives presses on a planet with `xi Edot / (4 pi r^2 c)`: 6.2e-4 Pa at PSR B1257+12's 0.19 AU, about 280,000 times the Sun's wind at 1 AU. A planet's magnetopause reads it instead of the solar wind's pressure.
+
+### Changed
+- A millisecond pulsar no longer gets the planets of an ordinary star (up to 14 planets, belts and giants): its planets are the disc's or none.
+
+generation-output: changed
+
+## [8.0.1827] - 2026-10-18
+
+**Headline:** Zooming the Galaxy Map asks the server for about half as many tiles, so it lags far less.
+
+### Changed
+- **The Galaxy Map's distance cut is coarser and narrower (MAP.249).** A zoom step used to ask for about 450 tiles (up to 3.2 MB packed, tens of seconds cold on the server). The cut now splits a tile while its edge is more than 3 times its distance (was 2) and keeps a 50 degree half-angle cone (was 70), so a view needs 213 to 271 tiles. The per-tile budgets are unchanged, so each tile is as full as before; the view simply holds fewer tiles, and `GALAXY_VIEW_MAX_STARS` falls from 70,000 to 45,000. The browser twins (`galaxytilecut.js`, `starfade.js`) carry the same numbers.
+- **Stars drawn at each zoom level, before and after, on the scaled probe galaxy (the real galaxy was not available, so these are indicative):** 100,000 pc 3,000 to 3,900 (+30%); 30,000 pc 5,126 to 4,813 (-6%); 10,000 pc 19,686 to 9,392 (-52%); 3,000 pc 18,229 to 13,268 (-27%); 1,000 pc 17,511 to 12,075 (-31%); 100 pc 16,154 to 9,608 (-41%); 30 pc 15,969 to 9,325 (-42%). Tiles fell from 414 to 478 down to 213 to 271, packed bytes by 10% to 48% (3.20 to 1.88 MB at 1,000 pc), and the cold server build at 1,000 pc from about 62 s to about 37 s. `docs/design/fly-through-view-distance.md` lists the knobs for tuning the star count back up.
+
+### Added
+- Nothing.
+
+TODO items resolved: MAP.249 (payload cut; the cache-warming half, PERF.130 to 132, follows in its own change) / Added: none
+
+## [8.0.1826] - 2026-10-18
+
+**Headline:** The Stop waiting button on a page that is being built now works from the moment it appears.
+
+### Fixed
+- `static/slowload.js` awaited two dynamic imports (the number and duration formatters, loaded by the script's own version) at the top of the module, so its click handlers were attached only after both had arrived, while the page already showed the button. A click in that gap did nothing: the status line kept its estimate and the page went on polling. The buttons are now wired at once, the formatters load alongside, and the polling starts when they have arrived (Stop waiting, Check again and Try again act on the first click). Found as `test_stop_waiting_stops_the_polling_and_check_again_picks_it_up[dark-phone]` and `[light-phone]` failing under load while passing alone; the click event reached the button in every failing run (recorded), and the handler had not been attached. With the fix the test passed 80 runs in 80 under 12 busy loops (about one invocation in five failed before).
+
+TODO items resolved: TEST.248 / Added: none
+
 ## [8.0.1825] - 2026-10-18
 
 **Headline:** A stage on the work queue now records its own time, a killed worker fails its run at once, and a hung unit ends on a time limit that fits its stage.
