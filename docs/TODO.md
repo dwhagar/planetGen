@@ -1727,7 +1727,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the disk finds the Magellanic Clouds where the data puts them, and
   nothing is drawn for the empty halo cells. Owner: Interface. Nebulae hosted by pre-placed stars show through the nebula
   items (MAP.172 to MAP.181) from their scatter rows (GEN.241).
-  Prerequisites: GEN.238.
+  Prerequisites: none.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **MAP.209 Opening a sector from the Galaxy Map flashes one view, reloads into another, and leaves the details panel empty (bug)**
@@ -4725,43 +4725,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   position 40 of 54). This replaces any earlier owner line on this item.
   Prerequisites: GEN.310, UX.127. Related: GEN.101, MAP.120.
 
-- [ ] **GEN.238 Wanderers: hypervelocity stars reach out to the grid, and kicked neutron stars and black holes are an ejecta population**
-  Part of step 6 of the whole-sphere train. Hypervelocity stars keep
-  their pre-placement (direction uniform on the sphere, distance uniform
-  to the reach, density falling as r^-2, speed 500 to 1,000 km/s) but
-  lose the outline test; the code's 1e3 to 1e4 total is read as "out to
-  100 kpc", which puts 84% of them beyond the disk. Kicked neutron stars
-  (20% to 40% of the isolated ones) and black holes (about 2%) are an
-  `ejecta` population: density N / (4 pi r^2 v T) out to v T, speeds 300
-  to 500 km/s above escape, random direction. They are not pre-placed
-  (about 1e7 rows inside 262 kpc, 1e-8 per cell): they join the cell's
-  `lambda` for neutron stars and black holes in the profile and are
-  drawn at fill. Positions carry epoch and velocity, so the nightly
-  update (GEN.223) moves them like everything else. Done: placement is a
-  pure function of the seed, none is redrawn for landing outside the
-  outline, and the counts per radius match the law. Owner: Core
-  (2026-10-15), after GEN.232 (a fast body's path integration runs for
-  minutes until it is capped).
-  Built-on note (Core 1, 2026-10-16, 12:03 PM EDT, GEN.236 merged as
-  #1824, no migration): SectorProfile.kind_factors carries one factor
-  per rare kind (supernova remnant = gas fraction; molecular cloud =
-  cold gas times the young share against the solar circle's; hosted
-  nebulae = cold gas alone; rogue planet and comet = planet occurrence
-  at the place's [Fe/H]; bound remnants, planetary nebulae and brown
-  dwarfs = 1; no magnetar factor, GEN.278 gates it); the fill and the
-  scatters apply them; metal-poor stars cap their object count at
-  ceil(16 x occurrence) below [Fe/H] -0.5 and thin gas giants.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 25 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: GEN.223, GEN.240.
-  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
-
 - [ ] **GEN.239 High-velocity clouds and the Magellanic Stream as placed gas clouds (later)**
   Step 10 of the whole-sphere train. High-velocity clouds are the one
   gas item in the halo worth rows: a few hundred, placed like the
@@ -5872,37 +5835,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   about 350 in host luminosity, not 10^5.
   Prerequisites: none. Related: GEN.160, GEN.237, GEN.162.
 
-- [ ] **GEN.298 Remnants read the superbubble: the remnant size at build and the remnant factor use the bubble a supernova sits in**
-  Follow-up from Core 3 (2026-10-16, 8:40 AM EDT, GEN.254 superbubble
-  field merged as #1814, route GET /api/galaxy/superbubbles): the
-  supernova remnant size at build (the density-dependent Sedov-Taylor
-  law of GEN.151) and the remnant factor do not yet read the superbubble
-  a star sits in, so a remnant inside a bubble is sized as if in the
-  ambient gas. Also noted: clouds that fall inside a bubble are lost
-  (the CLI step --redo-nebula-field apply removes stored ones). Done: a
-  remnant inside a bubble uses the bubble's interior density in its size
-  law, with a test over a seeded bubble, and the design note records the
-  rule. Owner: unassigned (Core 3's area).
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Superbubble density (2026-10-16, 9:27 PM EDT): GEN.391 to GEN.395
-  shape the young and intermediate star density by the bubble; the
-  remnant reading of the bubble interior stays this item's, and GEN.391
-  checks that neither counts the other twice.
-  Finding (2026-10-17, 9:55 AM EDT, the read-only study "8.1 completion
-  estimate"
-  (/mnt/project-files/reports/8-1-completion-estimate-2026-10-17.md,
-  relayed at about 9:55 AM EDT by the coordinator's clock)): the owner
-  line reads unassigned (Core 3's area) and the item gates GEN.301; it
-  needs a named owner.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 26 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: GEN.254, GEN.151, GEN.256.
-
 - [ ] **GEN.299 The Quantity class (the unit class): one value, every unit version always available, all conversions and the shared ladders**
   Boss (2026-10-16, 11:35 AM EDT, project chat): "Add new item to Phase
   3, a "unit" class, similar to what we do with the Point in space
@@ -5985,7 +5917,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.238, GEN.241, GEN.243, GEN.244, GEN.282, GEN.284,
+  Prerequisites: GEN.241, GEN.243, GEN.244, GEN.282, GEN.284,
   GEN.298, TEST.159, TEST.160, GEN.450, TEST.196, GEN.469, GEN.530.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -14023,6 +13955,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the big tables, and any other table or API list route that still pages by OFFSET (not rechecked here). The Sectors table stays dropped from this item (the TODO
   thread's default of 2:25 PM EDT; it stores only generated sectors, so
   a deep OFFSET stays cheap).
+  Core 5's gate 7 (started 9:03 PM EDT as the lane reported, relayed by
+  the coordinator) carries the Systems "Starting at" jump box (a letter
+  or a sector). The Uncharted stars and Phenomena tables have numeric or
+  scatter-id sorts and get no box there: filed as PERF.135 with a
+  default. The Sectors table stays dropped.
   Prerequisites: none. Related: PERF.64, PERF.70, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
@@ -14973,6 +14910,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that rule bumps the tile cache stamp and the cached tiles are rebuilt
   once. The galaxy map lag Boss reported at the same time is MAP.249; if
   its cause is the missing cache, this item is brought forward.
+
+- [ ] **PERF.135 The Uncharted stars and Phenomena tables get a jump-by-value box for their numeric and scatter-id sorts**
+  Asked by Core 5 through the coordinator (2026-10-17, relayed about
+  9:04 PM EDT), filed by the TODO thread. PERF.75's jump box ("Starting
+  at") is built for the Systems table, whose sort is a name. The
+  Uncharted stars and Phenomena tables sort by numbers (brightness,
+  mass, distance) or by scatter id, so a letter box does not fit and
+  they get no box in PERF.75's gate. Default (stands unless Boss
+  overrules): each of those tables gets the same "Starting at" box,
+  taking a value in the unit of the column the table is sorted by (a
+  number, with its unit shown next to the box) or, for the scatter-id
+  sort, a scatter id; the table lands on the first row at or after the
+  value by the existing keyset paging (`after=<sort key, id>`), and a
+  value past the end lands on the last page with a line saying so. Done:
+  both tables show the box for every sort they offer, a browser test
+  types a value in each and checks the first row shown, and a test
+  checks the plan stays an index range on MariaDB and MySQL (the OR form
+  PERF.75 requires). Owner: Core 5 (proposed), after PERF.75.
+  Prerequisites: PERF.75. Related: PERF.75, PERF.71.
 
 ## DB: Database and schema
 
