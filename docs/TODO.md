@@ -8192,6 +8192,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (User-Agent, sha256, cache outside the repository, labelled stand-in,
   offline fixtures), never at run time; a run-time fetch would have to
   say why the data needs constant updates.
+  Download policy note (Blocker 1, reported 9:46 AM EDT 2026-10-18;
+  Boss's 'Require the data' answer, 9:38 AM EDT, covers star composition
+  only, GEN.590): the shared download catalogue now treats every dataset
+  as required, so this item's design should say whether a missing file
+  refuses to start or falls back to a labelled stand-in, and why.
   Related: GEN.87, GEN.189, DB.68.
 
 - [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
@@ -8313,6 +8318,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (User-Agent, sha256, cache outside the repository, labelled stand-in,
   offline fixtures), never at run time; a run-time fetch would have to
   say why the data needs constant updates.
+  Download policy note (Blocker 1, reported 9:46 AM EDT 2026-10-18;
+  Boss's 'Require the data' answer, 9:38 AM EDT, covers star composition
+  only, GEN.590): the shared download catalogue now treats every dataset
+  as required, so this item's design should say whether a missing file
+  refuses to start or falls back to a labelled stand-in, and why.
 
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8636,6 +8646,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (User-Agent, sha256, cache outside the repository, labelled stand-in,
   offline fixtures), never at run time; a run-time fetch would have to
   say why the data needs constant updates.
+  Download policy note (Blocker 1, reported 9:46 AM EDT 2026-10-18;
+  Boss's 'Require the data' answer, 9:38 AM EDT, covers star composition
+  only, GEN.590): the shared download catalogue now treats every dataset
+  as required, so this item's design should say whether a missing file
+  refuses to start or falls back to a labelled stand-in, and why.
 
 - [ ] **GEN.423 Atmosphere density, scale height and the greenhouse multiplier follow from the mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -8724,6 +8739,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (User-Agent, sha256, cache outside the repository, labelled stand-in,
   offline fixtures), never at run time; a run-time fetch would have to
   say why the data needs constant updates.
+  Download policy note (Blocker 1, reported 9:46 AM EDT 2026-10-18;
+  Boss's 'Require the data' answer, 9:38 AM EDT, covers star composition
+  only, GEN.590): the shared download catalogue now treats every dataset
+  as required, so this item's design should say whether a missing file
+  refuses to start or falls back to a labelled stand-in, and why.
 
 - [ ] **GEN.424 The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -11385,6 +11405,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (User-Agent, sha256, cache outside the repository, labelled stand-in,
   offline fixtures), never at run time; a run-time fetch would have to
   say why the data needs constant updates.
+  Download policy note (Blocker 1, reported 9:46 AM EDT 2026-10-18;
+  Boss's 'Require the data' answer, 9:38 AM EDT, covers star composition
+  only, GEN.590): the shared download catalogue now treats every dataset
+  as required, so this item's design should say whether a missing file
+  refuses to start or falls back to a labelled stand-in, and why.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.486 Source the lava-world vapour regimes and the fraction of lava worlds that keep volatiles (AR7)**
@@ -11933,6 +11958,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (User-Agent, sha256, cache outside the repository, labelled stand-in,
   offline fixtures), never at run time; a run-time fetch would have to
   say why the data needs constant updates.
+  Download policy note (Blocker 1, reported 9:46 AM EDT 2026-10-18;
+  Boss's 'Require the data' answer, 9:38 AM EDT, covers star composition
+  only, GEN.590): the shared download catalogue now treats every dataset
+  as required, so this item's design should say whether a missing file
+  refuses to start or falls back to a labelled stand-in, and why.
 
 - [ ] **GEN.501 Source the activity factor of the NH3 photolysis rate from the Huebner and Mukherjee rate tables**
   Body composition research lane reconciliation of the NH3 photolysis
@@ -13186,6 +13216,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   checks the age histogram follows the history's rate across it, the
   design note says so, and the star-type share test is rerun. Owner:
   Core 4 (proposed; it built GEN.469), with Core 3 asked first.
+  Core 4's report (reported at 9:46 AM EDT 2026-10-18 as the lane
+  reported, filed by the TODO thread; its gate `scripts/test.py changed`
+  is running, PR follows when it passes): the design is
+  `galaxy/age_law.py` with an `AgeLaw`, threaded through the star
+  population, the scatter, both backfills and the fill context
+  (`SystemConfig.AGE_LAW`); the bulge, the halo, the clusters and the
+  satellites stay even, as the item says. Generator epoch 29 is pending
+  (28 is stamped); GEN.404 and GEN.244 want it too, so the next merger
+  renumbers. The local B-star share between the arms falls from 0.069
+  percent to 0.050 percent against 0.04 percent observed, and the strict
+  expected failure `test_the_local_b_share_reaches_the_observed_one` was
+  removed. `docs/design/disk-star-formation-history.md` still shows
+  GEN.469's 0.12 percent and is updated after the merge.
   Prerequisites: none. Related: GEN.469, GEN.134, GEN.301.
 
 - [ ] **GEN.547 The local B-star share is 0.12 percent against 0.04 observed: find what keeps it three times too high (strict expected failure)**
@@ -13208,6 +13251,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   observed one's uncertainty from the derivation, the strict expected
   failure is removed, or the item says which input is unknown and Boss
   has decided. Owner: Core 4 (proposed), after the age item.
+  Core 4's report (reported at 9:46 AM EDT 2026-10-18 as the lane
+  reported, filed by the TODO thread): GEN.546's age law brings the
+  local B-star share to 0.050 percent against 0.04 percent observed and
+  the strict expected failure is removed, so Core 4 lists this item as
+  resolved with GEN.546 (retire both when its PR merges). Core 4 offers
+  to reopen it if Boss wants the Kroupa and binary analysis anyway; that
+  stays a Boss call.
   Prerequisites: GEN.546. Related: GEN.469, GEN.134, GEN.546.
 
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
@@ -14830,6 +14880,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dataset and says which setup command fetches it (no silent stand-in),
   and the offline tests use the fixtures of GEN.548. Blocker 1 does the
   wiring.
+  Blocker 1 confirmed the reading and built more (reported 9:46 AM EDT
+  2026-10-18, real clock; changed gate started 9:12 AM EDT, about 56% at
+  9:40 AM, PR follows when it passes): star composition raises a plain
+  error naming the dataset and why it is missing, with no stand-in
+  value; the offline tests use the GEN.548 fixtures; bulk generation
+  (galaxy, plan, population, `sector` with more than one sector, the
+  Sector page neighbourhood button) also refuses to start with the same
+  message; Generate page jobs get a second step 'Check the data' before
+  the reset. Still stand-ins because the data cannot replace them: the
+  brown-dwarf radius and hydrogen limit against metallicity (MIST starts
+  at 0.1 solar masses) and the neutron-star radius from an equation of
+  state (GEN.463). Boss's answer covers star composition only.
   Prerequisites: none. Related: GEN.548, GEN.543, GEN.439, GEN.440.
 
 - [ ] **GEN.591 An elliptical comet's aphelion can exceed its star's Hill sphere in about 10% of runs: the comet bound test fails on main (bug)**
