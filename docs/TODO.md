@@ -13908,6 +13908,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   gaps (phenomena built flags, sector-less uncharted systems, population
   rerun, body UIDs shifting when counts change), filed as GEN.564.
   Migration without a wipe: yes (details on DB.73).
+  Mass object class (design docs/design/mass-object-class.md, decided:
+  Boss's cards, as the coordinator relayed with the wake times
+  converted: E2 tapped 'Representability floor' at 11:46 PM EDT; E1
+  typed 'ok, I approve in the hybrid approach you outlined, let it to
+  TODO and ship to into the plan' in the unified star-like objects
+  thread at 11:48 PM EDT; E3 tapped 'Inside host chain' at 11:48 PM EDT;
+  E4 tapped 'Plan only' at 11:49 PM EDT; the object-ID card 'IDs stay
+  stable' at 11:49 PM EDT (2026-10-17)): the hybrid of three family
+  classes with state and parent as data, one core table plus three
+  profile tables, a 10 m representability floor, built inside the host
+  chain, ships and stations planned for 9.3 and not built. Items: U4a
+  GEN.565 (core and family classes; a prerequisite of GEN.556 and
+  GEN.557), U11a DB.74 (generic insert and load, kind registry, core
+  table), U13a TEST.240 (round-trip and registry tests), U15a GEN.566
+  (size-frequency research), and the stable object IDs DB.75 (a
+  prerequisite of GEN.564).
 
 - [ ] **GEN.552 Host registry: the five fixed `system_model` values become pointers to one gated orbiter table per host class, with no change in behaviour**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -13975,6 +13991,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   black hole mass draw moves to 8.1 as GEN.562 with no behaviour change;
   the rest of this item (the five-step body draw, the free brown dwarf,
   ages from the population) stays in 8.4.
+  The object classes this draw feeds (GEN.565, the mass object core and
+  its three family classes) are built with this item (card E3, 11:48 PM
+  EDT as relayed).
 
 - [ ] **GEN.554 Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -14073,7 +14092,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the one wrapper `util/draw.py` (GEN.56), every recalled source
   verified by a lane before use under the standing source rules, and any
   change to a drawn value bumps the generator epoch (OPS.56 rule).
-  Prerequisites: GEN.552, GEN.315, GEN.555. Related: GEN.550, GEN.264,
+  Prerequisites: GEN.552, GEN.315, GEN.555, GEN.565. Related: GEN.550,
+  GEN.264,
   GEN.315, GEN.346.
 
 - [ ] **GEN.557 Wanderers: a rogue planet becomes a planet with no parent, drawn by the one body chain with an origin table, a notional formation host, the population's age and motion**
@@ -14108,7 +14128,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `util/draw.py` (GEN.56), every recalled source verified by a lane
   before use under the standing source rules, and any change to a drawn
   value bumps the generator epoch (OPS.56 rule).
-  Prerequisites: GEN.553, DB.73. Related: GEN.550, GEN.142, GEN.428,
+  Prerequisites: GEN.553, DB.73, GEN.565. Related: GEN.550, GEN.142,
+  GEN.428,
   GEN.458, GEN.291.
 
 - [ ] **GEN.558 Moons of wanderers: ejection survivors and isolated-disk moons are table rows, and the fixed 20% boolean is gone**
@@ -14201,6 +14222,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the coordinator relays them. The other research parts of this item
   (moons of ejected planets, disks of isolated planetary-mass objects,
   the interstellar size law) have no lane yet.
+  Extension (U15a, GEN.566): the size-frequency law of belts, Kuiper
+  belt objects and comets joins the interstellar size law of this item's
+  research list.
   Prerequisites: none. Related: GEN.550.
 
 - [ ] **GEN.561 The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own**
@@ -14329,7 +14353,96 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fill of the same seed, without touching a scatter row, and says what
   it did per sector. Owner: Core 1 (proposed; it owns the identity and
   repair chain and the regenerate path), 8.4 phase 1.
-  Prerequisites: none. Related: GEN.550, GEN.315, DB.73.
+  Boss tapped 'IDs stay stable' (11:49 PM EDT, 2026-10-17, as the
+  coordinator relayed): gap (D) is closed by DB.75, a prerequisite of
+  this item: a refill must not renumber the bodies of a system whose
+  planet or moon count changes, and a body that changes parent keeps its
+  ID.
+  Prerequisites: DB.75. Related: GEN.550, GEN.315, DB.73.
+
+- [ ] **GEN.565 The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes**
+  Part of the unified orbited-body chain (GEN.550; design note
+  docs/design/mass-object-class.md, decided: Boss's cards, as the
+  coordinator relayed with the wake times converted: E2 tapped
+  'Representability floor' at 11:46 PM EDT; E1 typed 'ok, I approve in
+  the hybrid approach you outlined, let it to TODO and ship to into the
+  plan' in the unified star-like objects thread at 11:48 PM EDT; E3
+  tapped 'Inside host chain' at 11:48 PM EDT; E4 tapped 'Plan only' at
+  11:49 PM EDT; the object-ID card 'IDs stay stable' at 11:49 PM EDT
+  (2026-10-17)). Owners follow Boss's card D7 (Core 4 chain and classes,
+  Core 1 storage). U4a of the design. Do: a `MassObject` core holding
+  what every body has (identity and ID, name, mass, radius, state vector
+  relative to its parent with `parent_type` and `parent_id`, age, spin,
+  galactic motion, sector and place, timestamps, serialization from one
+  field table), and three family classes under it where behaviour lives:
+  `StellarObject` (`Star`, `CompactRemnant`, `BlackHole`, `NeutronStar`
+  and the brown dwarf fold into it as states: protostar,
+  pre-main-sequence, main sequence, giant, white dwarf, neutron star,
+  black hole, brown dwarf; the `_skip_property_init` workaround goes),
+  `PlanetaryObject` (`Planet` with its `is_moon`, `RoguePlanet` and the
+  brown dwarf row: a moon is a planetary object whose parent is a
+  planet, a rogue planet one with no parent), `SmallBody` (`Comet`,
+  `InterstellarComet`, belt and field members). Rule: subclass only
+  where behaviour differs and the object never changes kind; anything
+  that can change or is a matter of degree is state or parent data.
+  Groups (the nodes of a multi-star tree) are not bodies and stay
+  `OrbitNode`. The floor (E2): the class can represent any body of 10 m
+  diameter (5 m radius) or more across about 34 orders of magnitude of
+  mass (1.05e6 kg for a 10 m rock to the 2.0e40 kg black hole), with
+  every position relative to the parent, never galaxy-absolute (10 m at
+  262 kpc is a relative precision of 1e-21, beyond a double); rows are
+  generated from each population's own cut (a planet or moon always, a
+  comet above its size cut, belt members on demand: the k-th largest
+  member of a belt is a pure function of the belt's seed and k, nothing
+  stored). E4: the core is planned to take ships and stations
+  (`facilities` has no mass or size column) in 9.3, and nothing is built
+  for them now. E3: built inside the host chain, not as a separate
+  refactor; it removes the 17 copies of five rules (the white dwarf
+  initial-final relation in four places, the NS/BH mass in five, three
+  age rules, two Schwarzschild formulas, two Burrows luminosities) with
+  GEN.553, and the serializers and constructor boilerplate of the nine
+  classes (about 300 to 360 and 170 to 350 lines; whole net saving about
+  800 to 1,800 of about 9,000 lines touched, the design thread's own
+  estimate and not measured by running anything). Risk to watch: the
+  orbital update steps planets and moons as state vectors, stars and
+  wanderers by galactic-orbit phase, comets by their own Kepler state,
+  and the nightly batch order is the easiest place to break
+  reproducibility; one state vector for all is a real saving that was
+  not measured. Done: the nine classes are gone with no shim, every kind
+  loads and stores through the core and its profile, and the golden
+  output is unchanged by the refactor itself (it bumps no epoch unless
+  folded into GEN.553's changes). Owner: Core 4 (Boss's card D7, 11:28
+  to 11:31 PM EDT as relayed), built with GEN.553 and GEN.557; 8.4 phase
+  1.
+  Prerequisites: none. Related: GEN.550, GEN.553, GEN.557, GEN.556,
+  GEN.552.
+
+- [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
+  Part of the unified orbited-body chain (GEN.550; design note
+  docs/design/mass-object-class.md, decided: Boss's cards, as the
+  coordinator relayed with the wake times converted: E2 tapped
+  'Representability floor' at 11:46 PM EDT; E1 typed 'ok, I approve in
+  the hybrid approach you outlined, let it to TODO and ship to into the
+  plan' in the unified star-like objects thread at 11:48 PM EDT; E3
+  tapped 'Inside host chain' at 11:48 PM EDT; E4 tapped 'Plan only' at
+  11:49 PM EDT; the object-ID card 'IDs stay stable' at 11:49 PM EDT
+  (2026-10-17)). Owners follow Boss's card D7 (Core 4 chain and classes,
+  Core 1 storage). U15a of the design. The on-demand belt members need
+  the cumulative size law (an illustration with assumed inputs, not a
+  result: a belt of 1e6 bodies above 1 km with a cumulative law falling
+  as D^-2 to D^-2.7 holds 1e10 to 1e12 bodies above 10 m), and the comet
+  size cut of GEN.559 needs the law for interstellar objects, which
+  GEN.560 already lists. Do: find, read and verify the sources for the
+  size-frequency law of asteroid belts, Kuiper belt objects and comets
+  and for the interstellar objects, with the standing source rules
+  (verified wins, the newest verified wins, widest permission between
+  two in doubt; recalled and unverified: Jewitt and Seligman 2023, Do,
+  Tucker and Tonry 2018); a paper only Boss can supply is a request to
+  him. Done: a note in docs/design/ lists each source with its verified
+  numbers and what is missing; GEN.559 and the belt member draw read
+  from it. Owner: a read-only research lane (proposed, none assigned),
+  8.4 phase 1, no behaviour change.
+  Prerequisites: none. Related: GEN.550, GEN.560, GEN.559, GEN.522.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -16263,6 +16376,70 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `tests/fixtures/old_schemas/schema_v109.sql.gz` and a
   `test_migration_*.py`. Migration without a wipe: yes.
   Prerequisites: none. Related: GEN.550, DB.69, DB.70.
+
+- [ ] **DB.74 One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables**
+  Part of the unified orbited-body chain (GEN.550; design note
+  docs/design/mass-object-class.md, decided: Boss's cards, as the
+  coordinator relayed with the wake times converted: E2 tapped
+  'Representability floor' at 11:46 PM EDT; E1 typed 'ok, I approve in
+  the hybrid approach you outlined, let it to TODO and ship to into the
+  plan' in the unified star-like objects thread at 11:48 PM EDT; E3
+  tapped 'Inside host chain' at 11:48 PM EDT; E4 tapped 'Plan only' at
+  11:49 PM EDT; the object-ID card 'IDs stay stable' at 11:49 PM EDT
+  (2026-10-17)). Owners follow Boss's card D7 (Core 4 chain and classes,
+  Core 1 storage). U11a of the design (card D1, option 2, and E1). Today
+  ten insert functions of 558 lines (`store.py`: star 60, planet 37,
+  moon 34, belt 58, comet 64, black hole 85, neutron star 65, rogue
+  planet 41, interstellar comet 49, asteroid field 65) and the same list
+  of kind tables written out 22 times in 9 files for `rogue_planets`
+  alone (`store.py` seven times, `query.py`, `edits.py`,
+  `fingerprint.py`, `point_columns.py`, `sector_paths.py`, `api/ids.py`,
+  `cli/orbits.py`, `web/lib/slowpages.py`); the ten kind tables take 910
+  lines of `schema.sql` with 518 column declarations, 274 of them in 49
+  columns that three or more tables share. Do: one shared core table
+  (the 49 shared columns once) plus three profile tables (stellar,
+  planetary, small body) joined to it, one generic insert and load
+  driven by the column list, one registry of kind tables replacing the
+  per-site lists. The revision is the one 8.4 revision that DB.73 and
+  DB.67 to DB.71 share. Done: every kind stores and loads through the
+  generic path, the per-site lists are gone, `schema.sql`, `models.py`
+  and the migration test are updated. Owner: Core 1 (Boss's card D7),
+  8.4 phase 1, with DB.73.
+  Prerequisites: DB.73, GEN.565. Related: GEN.550, DB.73, DB.67, DB.70.
+
+- [ ] **DB.75 Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID**
+  Part of the unified orbited-body chain (GEN.550; design note
+  docs/design/mass-object-class.md, decided: Boss's cards, as the
+  coordinator relayed with the wake times converted: E2 tapped
+  'Representability floor' at 11:46 PM EDT; E1 typed 'ok, I approve in
+  the hybrid approach you outlined, let it to TODO and ship to into the
+  plan' in the unified star-like objects thread at 11:48 PM EDT; E3
+  tapped 'Inside host chain' at 11:48 PM EDT; E4 tapped 'Plan only' at
+  11:49 PM EDT; the object-ID card 'IDs stay stable' at 11:49 PM EDT
+  (2026-10-17)). Owners follow Boss's card D7 (Core 4 chain and classes,
+  Core 1 storage). Boss tapped 'IDs stay stable' on the object-ID card
+  at 11:49 PM EDT (2026-10-17, as the coordinator relayed with the wake
+  time converted): object IDs (public in URLs) survive a refill that
+  changes how many planets or moons a system gets, and a body that
+  changes parent (a planet that leaves its star) keeps its ID; IDs
+  cannot follow insertion order. Why: Core 1's audit of main at 5c49fc42
+  (11:50 PM EDT as the lane reported) found object UIDs issued in
+  insertion order (`store.py` 7737 and after), so any 8.4 change to a
+  system's body counts, or a refill that draws a different number,
+  renumbers the bodies after it. No existing item covers this (GEN.401
+  and the identity chain are about the galaxy's identity, not body
+  numbers). Do: a body's number comes from its place in the host chain
+  (the host's seed and the orbit slot of GEN.556) instead of an
+  insertion counter, so a body keeps its number when its siblings
+  change; a body that moves parent keeps its ID and its number; the
+  96-bit scheme (body number 0 for the head of a system or a wanderer, 1
+  and up for the rest) is kept or the number space widened if the slot
+  path needs it; Core 1 designs and confirms (this slot-path route is
+  the TODO thread's suggestion, inferred, not decided). Done: a test
+  refills a system whose planet count changes and every surviving body
+  keeps its ID, and a planet that leaves its star keeps its ID. Owner:
+  Core 1 (proposed: the identity chain), 8.4 phase 1.
+  Prerequisites: none. Related: GEN.564, GEN.556, GEN.291, DB.73.
 
 ## API: The JSON API
 
@@ -19645,6 +19822,24 @@ clears each one.
   value bumps the generator epoch (OPS.56 rule).
   Prerequisites: GEN.554, GEN.558, GEN.559. Related: GEN.550, TEST.159,
   TEST.160, TEST.162, TEST.211.
+
+- [ ] **TEST.240 Round-trip and registry tests for the mass object core: every kind's stored row round-trips, and no kind table is named in a list the registry should own**
+  Part of the unified orbited-body chain (GEN.550; design note
+  docs/design/mass-object-class.md, decided: Boss's cards, as the
+  coordinator relayed with the wake times converted: E2 tapped
+  'Representability floor' at 11:46 PM EDT; E1 typed 'ok, I approve in
+  the hybrid approach you outlined, let it to TODO and ship to into the
+  plan' in the unified star-like objects thread at 11:48 PM EDT; E3
+  tapped 'Inside host chain' at 11:48 PM EDT; E4 tapped 'Plan only' at
+  11:49 PM EDT; the object-ID card 'IDs stay stable' at 11:49 PM EDT
+  (2026-10-17)). Owners follow Boss's card D7 (Core 4 chain and classes,
+  Core 1 storage). U13a of the design. Do: a test that every kind's
+  stored row round-trips through the core and its profile (store, load,
+  equal), and a test that fails if a kind table is named in a list that
+  the kind registry should own (a grep-style check over the modules that
+  held the 22-site lists). Done: both exist and run in the normal suite.
+  Owner: Core 4 with the test lane (Boss's card D7), 8.4 phase 4.
+  Prerequisites: GEN.565, DB.74. Related: GEN.550, TEST.239.
 
 
 ## USR: User accounts
