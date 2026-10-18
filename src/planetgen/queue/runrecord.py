@@ -85,6 +85,9 @@ class Stage:
             the ETA's fallback while the stage reports nothing.
         prior_rate (float, optional): Cost units per second recorded for this kind of work (`R0`).
         workers (int): Workers the stage runs on, for the ETA's time constant.
+        row (dict, optional): The `generation_stage_runs` row the unit that completes the stage writes (PERF.106:
+            `command`, `n`, `total`, `label` and `settings`; `generation.stages.hand_over_open_stage`); none for a
+            stage that stores no row.
     """
 
     key: str
@@ -94,6 +97,7 @@ class Stage:
     expected_seconds: float = None
     prior_rate: float = None
     workers: int = 1
+    row: dict = None
 
 
 def _k(*parts):

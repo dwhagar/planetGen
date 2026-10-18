@@ -162,6 +162,49 @@ def test_a_stage_of_no_units_ends_at_once(monkeypatch, conn):
     assert results == {} and runrecord.read_run(conn, run_id)["state"] == "done"
 
 
+def test_a_units_time_limit_is_a_multiple_of_its_stages_expected_time_and_never_none(monkeypatch, conn):
+    assert units.unit_timeout(None) == units.unit_timeout(0) == units.UNIT_TIMEOUT_SECONDS
+    assert units.unit_timeout(1000) == 10_000 and units.unit_timeout(1) == units.MIN_UNIT_TIMEOUT_SECONDS
+    assert units.unit_timeout(10 ** 9) == units.UNIT_TIMEOUT_SECONDS
+    _handlers(monkeypatch, test=_square)
+    run_id = runrecord.start_run(conn, "T", [runrecord.Stage("a", "A", units=1), runrecord.Stage("b", "B", units=1)])
+    units.enqueue_units(conn, run_id, 0, "test", [({"n": 1}, 1.0)], expected_seconds=2000)
+    units.enqueue_units(conn, run_id, 1, "test", [({"n": 2}, 1.0)])
+    jobs = {job.id: job for job in redisqueue.queue(redisqueue.BULK_QUEUE, conn).jobs}
+    assert {job.timeout for job in jobs.values()} == {20_000, units.UNIT_TIMEOUT_SECONDS}
+
+
+def test_a_stage_with_a_recorded_time_gets_it_as_its_expected_seconds_and_its_units_a_limit_from_it(monkeypatch, conn):
+    _handlers(monkeypatch, test=_square)
+    monkeypatch.setattr(wrapper, "expected_seconds", lambda step, row: 3000.0 if row else None)
+    row = {"command": "plan", "n": 1, "total": 1, "label": "A test stage", "settings": {"workers": 1}}
+    seen, real = [], units.enqueue_units
+    monkeypatch.setattr(units, "enqueue_units", lambda *args, **kwargs: seen.append(kwargs) or real(*args, **kwargs))
+    run_id = wrapper.run("T", [_step(1)], lambda index, plan: None, lambda index, unit, result: None, rows={"test": row})
+    stage = runrecord.read_run(conn, run_id)["stages"][0]
+    assert stage["expected_seconds"] == 3000.0 and stage["row"] == row
+    assert seen == [{"expected_seconds": 3000.0}]
+
+
+def test_a_killed_worker_process_fails_its_run_at_once_naming_the_unit(monkeypatch, conn):
+    _handlers(monkeypatch, test=_square)
+    run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=3)])
+    units.enqueue_units(conn, run_id, 0, "test", [({"n": n}, 1.0) for n in range(3)])
+    job = redisqueue.queue(redisqueue.BULK_QUEUE, conn).jobs[1]
+    units.horse_killed(job, 4242, -9, None)
+    run = runrecord.read_run(conn, run_id)
+    assert run["state"] == "failed" and "unit 1 of stage 0 was killed" in run["error"] and "4242" in run["error"]
+    assert runrecord.active_run(conn) is None, "the machine is free at once"
+    from planetgen.queue import workers
+    workers.ensure_workers(redisqueue.BULK_QUEUE, conn)             # RQ's retry finds the run over and does nothing
+    assert runrecord.read_run(conn, run_id)["stages"][0]["done"] == 0
+
+
+def test_a_killed_job_that_is_not_a_unit_is_left_to_rq(conn):
+    other = type("Job", (), {"func_name": "planetgen.somewhere.else", "args": ("x", 1, 2), "connection": conn})()
+    units.horse_killed(other, 1, -9, None)               # no run to fail, nothing raised
+
+
 def test_more_units_than_the_cap_are_refused(monkeypatch, conn):
     _handlers(monkeypatch, test=_square)
     monkeypatch.setattr(units, "MAX_UNITS", 2)
@@ -263,6 +306,42 @@ def test_the_luminosity_pass_and_the_band_give_the_same_stars_at_any_worker_coun
         assert run["state"] == "done" and run["stages"][0]["done"] == run["stages"][0]["units"] > 0
     monkeypatch.setattr(wrapper, "run", real)
     assert _scatter_then_band(mysql_config, 4) == (scattered, banded)
+
+
+@pytest.mark.fresh_database
+def test_a_scatter_stage_is_stored_once_by_the_unit_that_completes_it_with_its_speeds(mysql_config, monkeypatch):
+    from planetgen.db import store
+    from planetgen.generation import run_plan, stages
+    from planetgen.generation import stats as generation_stats
+    from tests.test_bright_star_scatter import _plan_args, _seed_galaxy
+    store.get_control_connection(mysql_config, ensure_schema=True).close()
+    monkeypatch.setenv(store.CONTROL_DB_ENV_VAR, mysql_config.database)
+    monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
+    _seed_galaxy(mysql_config)
+    args = _plan_args(mysql_config, "--bright-stars-only", "--workers", "2")
+    stages.begin(stages.for_command("plan", args), args, "plan")
+    summary = run_plan.scatter_bright_stars(args)
+    stages.finish()
+    conn = store.get_control_connection(mysql_config)
+    try:
+        history = generation_stats.stage_history(conn)
+        job = generation_stats.stage_history(conn, stages.JOB_KEY)
+        kinds = {kind for kind, _workers, _bucket in generation_stats.GenerationStats(
+            store.control_mysql_config(mysql_config)).buckets}
+    finally:
+        conn.close()
+    by_key = {}
+    for run in history:
+        by_key.setdefault(run["stage_key"], []).append(run)
+    assert {key: len(rows) for key, rows in by_key.items() if key in ("mass", "luminosity")} == {"mass": 1, "luminosity": 1}
+    mass, light = by_key["mass"][0], by_key["luminosity"][0]
+    assert mass["settings"]["workers"] == 2 and mass["seconds"] > 0 and not mass["skipped"]
+    assert (mass["stage_n"], mass["stage_total"]) == (1, 2) and (light["stage_n"], light["stage_total"]) == (2, 2)
+    assert mass["metrics"]["objects"] + light["metrics"]["objects"] == summary["total"] > 20
+    assert mass["metrics"]["shells"] > 0 and 0 < mass["metrics"]["shells_modified"] <= mass["metrics"]["shells"]
+    assert mass["metrics"]["seconds_per_shell"] == pytest.approx(mass["seconds"] / mass["metrics"]["shells"])
+    assert {"scatter-mass", "scatter-bright"} <= kinds, "each unit's speed is recorded under its pass's kind"
+    assert job and job[0]["metrics"]["shells"] > 0, "the whole job's totals are still the starter's"
 
 
 @pytest.mark.fresh_database

@@ -29,13 +29,17 @@ class CommandSpec:
     """
     A registered command. `unit` and `expand` are `(module, function)` pairs (what Redis holds can pick a command
     but never names a function): `unit(args, report)` does one unit and returns a JSON-able result; `expand(params)`
-    returns the `Expansion` of the command's stage. A command with no `unit` is inline.
+    returns the `Expansion` of the command's stage; `finish(params, plan, results, seconds)`, when given, is called
+    once by the unit that completes the stage (PERF.106) with the step's parameters, the stage's plan, every unit's
+    result in unit order and the seconds the stage took, records what the command's speed statistics need and returns
+    the metrics the stage's row is stored with. A command with no `unit` is inline.
     """
 
     kind: str
     summary: str
     unit: tuple = None
     expand: tuple = None
+    finish: tuple = None
 
     @property
     def inline(self):
@@ -81,16 +85,19 @@ def _commands(*specs):
 REGISTRY = _commands(
     CommandSpec("scatter-mass", "Scatter the massive stars: one unit per run of shells",
                 unit=("planetgen.generation.run_plan", "scatter_shells_unit"),
-                expand=("planetgen.generation.run_plan", "expand_scatter_mass")),
+                expand=("planetgen.generation.run_plan", "expand_scatter_mass"),
+                finish=("planetgen.generation.run_plan", "finish_scatter")),
     CommandSpec("plan-skeleton", "Plan the galaxy's density skeleton"),
     CommandSpec("scatter-phenomena", "Scatter the phenomena"),
     CommandSpec("scatter-luminosity", "Scatter the bright stars: one unit per run of shells",
                 unit=("planetgen.generation.run_plan", "scatter_shells_unit"),
-                expand=("planetgen.generation.run_plan", "expand_scatter_luminosity")),
+                expand=("planetgen.generation.run_plan", "expand_scatter_luminosity"),
+                finish=("planetgen.generation.run_plan", "finish_scatter")),
     CommandSpec("scatter-backfill", "Scatter the massive stars from the neighborhood"),
     CommandSpec("scatter-band", "Add the dimmer band of bright stars: one unit per run of shells",
                 unit=("planetgen.generation.run_plan", "scatter_shells_unit"),
-                expand=("planetgen.generation.run_plan", "expand_scatter_band")),
+                expand=("planetgen.generation.run_plan", "expand_scatter_band"),
+                finish=("planetgen.generation.run_plan", "finish_scatter")),
     CommandSpec("fill-map-luminosity", "Fill the map luminosity"),
     CommandSpec("rescore-habitability", "Re-score the habitability"),
     CommandSpec("clean-nebula-field", "Clean up the nebula field"),
@@ -197,6 +204,17 @@ def unit_function(kind):
     if command.unit is None:
         raise ValueError(f"command {kind!r} is inline: it has no units yet")
     return _function(command.unit)
+
+
+def finish_function(kind):
+    """The function the unit that completes a stage of `kind` calls with its results, or `None` for a command that
+    has none (`CommandSpec.finish`).
+
+    Raises:
+        KeyError: No such command.
+    """
+    command = REGISTRY[kind]
+    return None if command.finish is None else _function(command.finish)
 
 
 def expand_function(kind):
