@@ -2,6 +2,76 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1777] - 2026-10-18
+
+**Headline:** Stars and objects beyond the galaxy's outline (the halo, the satellite galaxies) can now be picked on the whole-galaxy view and zoomed into with the wheel, down to a window of their own.
+
+### Changed
+- A window of the map and a sector's address now hold every cell the grid names (out to the designation's last shell, all bands), not only those inside the galaxy's density outline (`REACH_OUTLINE` in `galaxyprisms.js`; `windowView`, `sectorStage` and `sectorAtPoint` in `galaxystages.js` lose their outline argument). The whole-galaxy view still draws the real outline's blocks and the block totals still come from the stored outline. Before, the wheel stopped at 6,912 pc over a halo star and a click read "Block 0·0·0, 0 sectors charted", because no block or window existed there.
+- The wheel on the whole-galaxy view hands off, beyond the outline, to the window round the cell that holds the star or phenomenon in front (else the point being zoomed toward), and on through the windows (81, 27, 9, 3 cells) as it does for a block of the disc.
+- `docs/design/fly-through-view-distance.md` says what is built.
+
+### Added
+- A `halo` pick layer on the whole-galaxy view: a star beyond the outline is picked within 10 px (its position, brightness and distance from the core shown), a phenomenon there as inside a window.
+- `canvasEl.galaxyOutsideOutline` for the browser tests, the `halo_site` fixture (a loose group of stars and a black hole beyond the outline) and two browser tests: a black hole in the halo is picked, and a star in the halo is picked and the wheel carries the view down through four windows round it.
+
+TODO items resolved: MAP.243 (and MAP.246 folded in) / Added: none
+
+## [8.0.1776] - 2026-10-18
+
+**Headline:** Every galaxy draws its own thick disk, bar and stellar halo from its seed, and one heating law sets the heights and motions of all its stars.
+
+### Changed
+- **The thick disk, the bar and the stellar halo are drawn from the galaxy seed, not copied from the Milky Way** (`galaxy/structure.py`, `galaxy/structure_draw.py`). The structure is rebuilt from the seed on every load and stored nowhere (`galaxy_shape` gains no column; DB.66 keeps storing the drawn values in 8.3). A shape built without a seed uses `REFERENCE_STRUCTURE`, the published Milky Way values, as a check target and not as a generator default.
+  - Circular speed comes from the baryonic Tully-Fisher relation (McGaugh 2012, 0.0375 dex) until the potential gives it.
+  - Thick disk: the mass ratio sits between Yoachim and Dalcanton and Comeron 2018 with 0.268 dex of scatter, the length ratio follows Comeron 2018, the height ratio is 2.5 to 4.2, and the amplitude is worked out from the three, replacing the fixed 0.04.
+  - Stellar halo: the share of the stars is `0.05 (M*/5e10)^0.79` with 1.01 dex of scatter (a stand-in until the halo research lands), cut to 0.1% to 30%.
+  - Bar (GEN.533, sources in `docs/design/gen533-bar-sources.md`): presence from Erwin 2018 by stellar mass, the in-plane axis ratio from Diaz-Garcia 2016, a boxy or thin vertical ratio, an angle uniform on 0 to 180 degrees, and the unbarred bulge's axis ratios from Costantin 2018. A galaxy without a bar has no bar gap in its star formation.
+- **One law sets the scale heights and the velocity dispersions of the disc populations** (the dispersion of the gas the stars are born from, 6.5 +/- 1 km/s as a molecular stand-in until GEN.536 reads the CO values, a central disc dispersion of 0.248 Vc, an age exponent of 0.44), replacing the fixed height ratios and dispersions of the young, intermediate and old discs, the halo and the bulge. The reference check puts the old disc 32% under Sharma and Hayden's 21.1 km/s at the Sun (inside the plan's 35%) and the young disc at 0.22 of the old disc's height (65 pc for 300 pc; observed about 50 pc). The atomic gas's 10 km/s (Tamburro 2009) gave 0.40 and twice the molecular clouds the catalogues hold, so it is not used.
+- Removed from `tuning.py`: the thick-disk, bulge axis, bar angle, halo mass and system-fraction constants and the fixed height ratios and dispersions the draw replaces.
+- The generator epoch is 23.
+generation-output: changed
+
+### Added
+- `tests/test_structure_draw.py` (13 tests): determinism, load equals plan, the Tully-Fisher draw, the thick-disk bracket and bound, the halo law, the bar's ranges, barred against unbarred, the one-law heights and dispersions, and that the stored row gains nothing. The skeleton tests in `tests/test_galaxy_gen.py` store a fixed seed and build the toy shape with its drawn structure.
+
+TODO items resolved: GEN.532, GEN.533. Added: none.
+
+## [8.0.1775] - 2026-10-18
+
+**Headline:** The generator now has one table of the elements and their isotopes, with their sources.
+
+### Added
+- **One table of the elements and their isotopes (GEN.438).** `physics/elements.py` holds the atomic weights of the 118 elements (CIAAW's Atomic Weights 2021), the masses and natural abundances of the isotopes (NIST), the half-lives, decay modes and branchings of the radioactive ones (NUBASE2020), the energy each releases per decay (Lugaro and others 2018) and the decay chains of uranium-238, uranium-235 and thorium-232 down to lead, with the energy of every step. `molar_mass("CaSO4.2H2O")` gives any compound's molar mass from its atoms, and the gas, materials and stellar tables will take theirs from it. The radiogenic heat, activity and mass fraction of an isotope are there for the heat and dose items to use; the heat of uranium and thorium reproduces Dye's published table to 0.3 percent. Every data file states its sources and licence and the loader refuses one that does not.
+
+TODO items resolved: GEN.438. Added: none.
+
+## [8.0.1774] - 2026-10-18
+
+**Headline:** Very massive stars now end their lives as Wolf-Rayet stars, and 40% of those blow a ring nebula around themselves.
+
+### Added
+- **The Wolf-Rayet state (GEN.243).** A star of at least 25 solar masses at the Sun's metallicity (35 at half and 56 at a fifth of it, from the winds that strip it) is a Wolf-Rayet star for the last 0.3 Myr of its life, in place of the end of its supergiant phase, and never for more than half of that phase. It has 40% to 60% of its birth mass, a luminosity of 100,000 to 1,000,000 solar and a temperature of 30,000 to 200,000 K by subtype: nitrogen-rich (WN) for the first 60% of the phase, carbon-rich (WC) for the next 30% and oxygen-rich (WO, stars of 40 solar masses and up) for the last 10%. Its type reads like `WN6 Blue Wolf-Rayet Star`, its Yerkes class is `W`, and the luminosity-class reference page lists it. The bright and mass passes that already place the massive stars draw them with no rate of their own: the Milky Way's star formation, the repository's IMF and this phase give about 1,130 Wolf-Rayet stars in the Galaxy against the 1,200 known, and none can appear in a population older than 10 Myr.
+- **Their companions.** A Wolf-Rayet star has a companion in 52% (WN) or 90% (WC and WO) of cases (Dsilva et al.), in place of the field's rate.
+- **The Wolf-Rayet ring nebula (class X).** A Wolf-Rayet star lights a ring nebula in 40% of cases, centred on it, 2 to 35 parsecs in radius, for as long as the star is under 10 Myr old. The star at its centre is the nebula's one host (`WN6 x1`). The class is never drawn free: only a Wolf-Rayet star lights one, so the shares of the other classes are unchanged. The map draws it as the nebula mesh it already uses, solid, without the hollow interior.
+
+### Changed
+- A massive star within 0.3 Myr of collapse is a Wolf-Rayet star where it was a supergiant, so its type, luminosity and temperature differ.
+
+generation-output: changed
+
+## [8.0.1773] - 2026-10-18
+
+**Headline:** The cache warm-up is one command per cache family, and `update.sh` hands the list of them to the wrapper.
+
+### Changed
+- **Each cache family is its own command (PERF.127).** `warm-galaxy-map`, `warm-lists`, `warm-sectors`, `warm-systems`, `warm-phenomena` and `warm-search` each warm that family and nothing else, take only their own settings (the site's database and, for the pages of objects, the most to warm) and run alone (`planetgen command-run`); `end-map-rebuild-maintenance` opens the site after the sector-grid switch closed it. `planetgen commands` lists them. The choice and the order live only in the wrapper's list (`commands.build_steps("warm", ...)`).
+- **`planetgen warm [FAMILY ...] [--cap N]` replaces `python3 -m planetgen.cli.warm_map`.** It builds that list (every family in order, or the ones named; a list of every family ends with the command that opens the site), hands it to the wrapper and prints one line per family. `--only`, `--no-rq` and `--timeout` are gone with no replacement: the choice is the families named, Redis is required as for every run, and `update.sh` still stops the run after 30 minutes. The run stops at the first command that fails, where the families used to run side by side as separate jobs, one failing not holding up the others. `update.sh` and `scripts/deploy-common.sh` call `planetgen warm` (`python3 -m planetgen.cli.generate warm` as the web server's user).
+- **A run has a kind, and the warm-up is a maintenance run.** A generation run owns the machine and shows the visitors' banner, as before. A maintenance run takes a place of its own in Redis (`planetgen:run:active:maintenance`), so it does not wait for a generation run, holds none up and never shows the "galaxy is being changed" banner; only one runs at a time. The Queue page still reads the old job tree, so until it reads the run record (PERF.99) it no longer lists the cache warm-up; the log of `planetgen warm` and the activity log (`GEN warm.family`, `GEN warm.failed`) have every line.
+- **`docs/cli.md`, `docs/design/cache-warm-up.md`, `docs/design/command-inventory.md`, `docs/design/redis-and-the-work-queue.md`, `docs/design/architecture.md` and `INSTALL.md` describe it, and the architecture map is rebuilt.**
+
+TODO items resolved: PERF.127. Added: none.
+
 ## [8.0.1772] - 2026-10-18
 
 **Headline:** The black holes' share of the wide-pair perturber mass is checked against four papers: the generator's black hole count and masses lie inside the published ranges, so the remnants stay in.

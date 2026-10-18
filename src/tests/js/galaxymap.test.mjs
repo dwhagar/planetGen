@@ -543,7 +543,7 @@ test("?sector= opens the stage around that sector with it selected", async () =>
   const designation = S.sectorDesignation(d.shell, d.band, d.wedge);
   const m = await start("http://localhost/galaxy?sector=" + designation);
   const outline = S.galaxyOutline(F.edgePc, F.shape, F.galaxyRadius);
-  assert.deepEqual(m.view.stage(), S.sectorStage(d.shell, d.band, d.wedge, outline));
+  assert.deepEqual(m.view.stage(), S.sectorStage(d.shell, d.band, d.wedge));
   const crumbs = crumbLabels(m);
   assert.equal(crumbs[crumbs.length - 1], "Sector " + S.blockLabel(d) + " (1)");
   assert.equal(m.calls.cells.length, 1, "the sector's panel is shown");
@@ -1051,7 +1051,7 @@ test("the breadcrumb and the header name the cell the camera's middle is in (MAP
   const outline = S.galaxyOutline(F.edgePc, F.shape, F.galaxyRadius);
   const stage = m.view.stage();
   const here = P.sectorPositionPc(d.shell, d.band, d.wedge, F.edgePc);
-  assert.equal(S.sectorAtPoint(here, outline, F.edgePc).wedge, d.wedge);
+  assert.equal(S.sectorAtPoint(here, F.edgePc).wedge, d.wedge);
   assert.equal(S.stageAtPoint(stage, here, outline, F.edgePc), stage, "in its own cell the stage stands");
   assert.equal(m.els.where.textContent, "In Sector " + S.blockLabel(d));
   assert.equal(m.els.where.hidden, false);

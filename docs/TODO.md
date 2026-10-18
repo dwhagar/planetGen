@@ -538,6 +538,10 @@ with `clamp()`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 19 of 54). This replaces any earlier owner line on this item.
+  Units (Boss's cards, 11:56 to 11:57 PM EDT, as the coordinator
+  relayed): UX.139 moves the ladders onto the registry and GEN.574 moves
+  `qty()` onto the Quantity class; Core 4 owns all three, and both wait
+  on this item.
   Prerequisites: none. Related: UX.22 (done, PR #1504), UX.81 (done, PR #1504).
 
 - [ ] **UX.108 Describe phenomena, sectors, galaxy and facilities in the same Document**
@@ -570,6 +574,11 @@ with `clamp()`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 15 of 54). This replaces any earlier owner line on this item.
+  Global document note (Core 4, 11:27 PM EDT as the lane reported): this
+  item deletes `web/lib/mdrender.py`, so when it merges the architecture
+  page's mdrender.py row (`docs/design/architecture.md` line 508 and the
+  generated map) goes; the TODO thread removes it with the next
+  global-document regeneration, the lane does not touch it.
   Prerequisites: UX.120, UX.108.
 
 - [ ] **UX.110 The phenomena count on the overview page is wrong (bug)**
@@ -632,6 +641,9 @@ with `clamp()`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 9 of 54). This replaces any earlier owner line on this item.
+  Units (Boss's cards, 11:56 to 11:57 PM EDT, as the coordinator
+  relayed): GEN.574 changes the Document's quantity shape to `{kind,
+  value, unit}` after this renderer exists.
   Prerequisites: none. Related: UX.105.
 
 - [ ] **UX.120 The system page and the one-off system page use it: every body's detail from the Document**
@@ -911,6 +923,78 @@ with `clamp()`.
   deleted; the command line and the API set them through the same
   commands. Owner: Core 2 (proposed).
   Prerequisites: GEN.539, GEN.540. Related: GEN.539, GEN.540, UX.116.
+
+- [ ] **UX.138 Pages, symbols and descriptions for the new rows: moons of wanderers, free brown dwarfs as stars, unbound comets**
+  Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
+  the coordinator relayed). Design draft
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U12 of the draft. The class pages, the
+  map symbols (a moon of a rogue is new; the 'Mark Rogue Planets'
+  setting and the rogue display follow the new rows) and the
+  descriptions for what U4, U8, U9 and U10 produce; GEN.446's text for
+  stars, surfaces and small bodies covers the composition sentences. Do:
+  a rogue planet page lists its moons, a free brown dwarf reads as a
+  star, an unbound comet page shows its size, composition and activity.
+  Done: each new row has a page, a symbol and a description in every
+  output, with the representation audit TEST.159 counting them. Owner: proposed, not assigned by D7 (the draft proposes the interface lane), 8.4 phase 4.
+  Standing rules for the whole chain: NO FIXED CONTENT (nothing copied
+  from the Solar System or the Milky Way), the database schema is not a
+  constraint, no backward-compatibility shims, every draw through the
+  one wrapper `util/draw.py` (GEN.56), every recalled source verified by
+  a lane before use under the standing source rules, and any change to a
+  drawn value bumps the generator epoch (OPS.56 rule).
+  Prerequisites: GEN.558, GEN.559. Related: GEN.550, GEN.446, TEST.159.
+
+- [ ] **UX.139 Display reads the registry: ladder rungs take their symbol and factor from it, and the 21 format wrappers become one format_quantity entry**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 4, one owner with UX.107
+  (Core 4 owns the description layer, whose call sites move with this
+  item). Do: `util/ladders.py` and `html/static/unitladder.js` keep
+  their rung order, thresholds, asides and preference systems as display
+  data and take `symbol` and `factor` from the registry; the 21
+  `format_*` wrappers in `util/format.py` (about 230 lines) become one
+  `format_quantity(Quantity)` entry plus thin names where call sites
+  need them. Nothing the site shows changes. Done: the rendered pages
+  are identical, a factor is stated once, and the generated ladder table
+  is current.
+  Prerequisites: GEN.569, UX.107. Related: GEN.550, GEN.565, DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **UX.140 Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 2 (browser). Do: generate
+  the registry to JS as `build_unit_ladders.py` does for the ladders,
+  with a test that fails when the committed file is stale (as
+  `test_unit_ladders.py`); remove the three `AU_KM = 149597870.7`
+  declarations (`orbitpositions.js`, `systemview3d.js`,
+  `galaxysystem.js`) and the `KM_PER_PC` of `galaxysystem.js`. Done:
+  Python and JS agree on every factor by test, and no browser file
+  declares one.
+  Prerequisites: GEN.568. Related: GEN.550, GEN.565, DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -2541,6 +2625,47 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ramp by their visible size, the same order as MAP.251.
   Prerequisites: none. Related: MAP.250.
 
+- [ ] **MAP.253 Map and scene read the parent chain: systemscene, body_positions, the browser twin orbitpositions.js and the systemmap branches drop the three origin conventions**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  on the System design, as the coordinator relayed with the wake times
+  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
+  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
+  stay binary'), every one the recommended option: S1 a member's stored
+  orbit is its barycentre about the central object (a planet's stored
+  state is the barycentre of the planet and its moons), S2 the central
+  object's offset is derived on read and never stored (the wobble
+  columns go), S3 the most massive member is the central object and
+  comparable-mass pairs stay binary nodes, S4 a system node takes a
+  central child and any number of members, S5 a stand-in size cut of 1
+  km diameter for hosting satellites plus fit and stability checks, S6
+  moons may have satellites through the same gate with a tidal-survival
+  gate row first (the odds start at zero; this supersedes 'moons are the
+  lowest level'), S7 the point class's system frame measures from the
+  top-level barycentre with a new local frame from the immediate
+  parent's barycentre, S8 the stored values change in the 8.4 revision
+  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
+  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
+  2026-10-18 (project chat): a System is unified rules around the
+  central object (as binary stars are done now); every object other than
+  the central object can be another system with that object as its
+  central object, down to small objects that get no satellites; all
+  objects follow the same physics, so the origin of the system's space
+  is the gravitational center and the central object may move around it.
+  Item SY7 of the note. Proposed owner, not assigned by a card: Core 2
+  for the browser and Core 4 for the Python. Do:
+  `web/maps/systemscene._star_around` (three branches),
+  `physics/body_positions.positions_at`, its browser twin
+  `html/static/orbitpositions.js` and the `systemmap.py` branches use
+  the parent chain and `system(host)`; the single star, close binary and
+  wide binary conventions go. The Python and the JS must stay in step
+  (`tests/test_js_unit.py` checks them against each other). Done: the
+  system map draws the same scene and the Python and JS positions agree
+  by test.
+  Prerequisites: GEN.576, DB.78, GEN.577. Related: GEN.550, GEN.552,
+  GEN.315, GEN.565.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
 
 ## NAV: Navigation and courses
 
@@ -4081,7 +4206,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
   lane queue); a line here that named Core 4 was the TODO thread's
   counting error, corrected 2026-10-16, 4:50 PM EDT.
-  Prerequisites: GEN.317, GEN.318.
+  Prerequisites: GEN.317, GEN.318, GEN.552.
 
 - [ ] **GEN.136 Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests**
   GEN.58 as built hashes floats exactly; the research recommends
@@ -4170,6 +4295,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and mass columns and the rogue sector-relative offsets come from the
   second and third children of GEN.294. Needs GEN.294:b, placed after
   them.
+  Unified orbited-body design (GEN.550, design draft
+  /mnt/project-files/design-drafts/unified-star-like-objects.md,
+  coordinator 2026-10-17, 11:29 PM EDT as relayed): superseded by
+  GEN.557: the wanderer's motion (population dispersion plus an ejection
+  speed) is a step of the body draw. Fold this item into it when the
+  design is approved; it is not retired yet.
   Prerequisites: none.
   Design: [docs/design/collisions-and-mergers.md](design/collisions-and-mergers.md)
 
@@ -4442,6 +4573,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `store._next_body_numbers`; a deleted ID is never reused). Needs
   DB.56. GEN.110 writes through it instead of defining its own event
   rows, and GEN.291 turns its "event log" half into calls to it.
+  8.3 note (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT, 2026-10-18,
+  as the coordinator relayed; docs/design/unified-system-barycentre.md,
+  item SY16): the orbital update reads a body's state as
+  `advance(relative state, mu, t - epoch)` along the chain of parents,
+  lazily, writes nothing but the top barycentre's point, and runs
+  `primary_first` (GEN.581) and `reparent` (GEN.583) only at events
+  (merger, capture, ejection); masses are constant between events so no
+  per-step check is needed. Spin changes (tidal evolution, magnetic
+  braking) are not modelled in the update and stay a later research
+  item.
   Prerequisites: DB.56. Related: GEN.105, GEN.143, GEN.170.
 
 - [ ] **GEN.198 The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential**
@@ -4706,75 +4847,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.202, GEN.241.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **GEN.243 Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X**
-  Step 13 of the whole-sphere train (design note section 5.11; GEN.113's
-  Tier 2 item 3, never built because the star model has no W state). The
-  star: a star of initial mass 25 solar masses or more (solar
-  metallicity) is Wolf-Rayet during the last 0.3 Myr of its life
-  (`WR_MIN_INITIAL_MASS_SOL = 25`, `WR_PHASE_MYR`, at most half the life
-  for the heaviest) instead of a supergiant, at 40% to 60% of its
-  initial mass, 30,000 to 200,000 K and 1e5 to 1e6 solar luminosities;
-  subtype WN for the first 60% of the phase, WC for the next 30%, WO for
-  the last 10% (the heaviest only), as spectral text `WN6`, `WC8` and
-  Yerkes class `W`. The threshold rises as metallicity falls (about 35
-  at half solar, 56 at a fifth), so it is a population field in the
-  profile, not a constant. The bright and mass passes already place the
-  massive stars and then draw the state through `evolve_star`, so
-  Wolf-Rayet stars come out of them without a new rate; none exists in
-  any population older than about 10 Myr (halo, clusters, old
-  satellites, bulge). The nebula: new class `X` in `NEBULA_CLASSES`,
-  family emission, radius 2 to 35 pc, a thin shell with a hollow
-  interior on the existing `nebula_shape` mesh, host rule `("W", 0, 9,
-  ("X",), 0.4)` in `NEBULA_HOST_RULES` and
-  `NEBULA_CLASS_MAX_AGE_MYR["X"] = 5.0`; its one required star is the W
-  star at the centre, a real system (GEN.241), and after the phase the
-  star becomes the core-collapse remnants the generator already makes.
-  The Wolf-Rayet row of `anomalies.md` becomes a pointer here. Done: the
-  Milky Way disk holds 1,200 +- 300 Wolf-Rayet stars at the default
-  scale, none in an old population, every class X nebula holds a W star,
-  and the star and nebula pages and the map show them. Owner: Core
-  (2026-10-15); the map marker (MAP.132) is Interface's. Decided (Boss,
-  2026-10-15): the research note's recommendation stands: reach 262 kpc
-  (65,535 shells), 96-bit object IDs, one rule set everywhere with
-  per-sector parameters, nothing generated unless asked, and an asked
-  sector always generated and saved.
-  Systems around Wolf-Rayet stars (design note section 5.12, answering
-  Boss's 2026-10-15 question). A W star is a state of an ordinary star,
-  so it gets an ordinary system with no special path. No planets (the
-  same age cut as above; no planet is known around one), belts allowed.
-  Companions come from the normal binary machinery with the W star's own
-  fractions: 50% for WN and 90% for WC (the surveyed 0.96 capped), the
-  companion an O or B star or a compact object, the period drawn from
-  the WN law (mostly short, like O stars) or the WC law (peak near 5,000
-  days). After GEN.129 the same fractions apply to trees. A planetary
-  nebula's central white dwarf is already an ordinary system, so planets
-  there are possible and engulfment removes the inner ones. Done also
-  means: a W star's system carries its companions at those fractions and
-  no planets. Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and
-  backscatters get no systems, planets or moons, so bright stars,
-  massive stars, neutron stars, black holes and the other scattered
-  objects are bare rows; planets and moons are made only when a sector
-  is being filled with everything; a sector fill must represent every
-  kind of object, and when a fill meets a phenomenon that can have a
-  system (or makes one that can) it generates that system if the
-  real-world probabilities give it one; nebulae need stars and
-  phenomena, not planets. For this item: a Wolf-Rayet star's companions
-  and belts come when its sector fills; the pre-placed or scattered row
-  carries none.
-  Catalogue (Boss 2026-10-15 6:08 PM EDT;
-  docs/design/multi-star-systems.md sections 13 to 16): the Wolf-Rayet
-  binary row of section 13.2 (WN 52%, WC 90%) and the kind `wolf-rayet`
-  in the star model are built by GEN.269 and GEN.270 on this item's W
-  state.
-  Owns the Wolf-Rayet companion fractions (the WN and WC companion
-  rates); GEN.270 drops its Wolf-Rayet row (2026-10-16 review).
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Prerequisites: none. Related: GEN.113, MAP.132, MAP.176.
-  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
-
 - [ ] **GEN.244 Young open clusters and OB associations as components (later)**
   Design note 5.12. A component of the same table as the globular
   clusters (GEN.237): a Plummer profile, age under 1 Gyr, disk-bound,
@@ -4803,6 +4875,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   association is this item's component; the bubble field (GEN.391)
   carries only the shell enhancement and the interior suppression, so
   the association is not counted twice. GEN.391 states the split.
+  Core 3 (12:18 AM EDT 2026-10-18 as the lane reported): coded, 12
+  age-bin populations, in test; it takes Alembic revision 0110 (Core 1
+  confirmed it free). The lane said its epoch was 23 pending: epoch 23
+  was stamped by release 8.0.1776 (GEN.532/GEN.533), so it takes the
+  next free epoch after rebasing (24 is Core 1's GEN.402 if that merges
+  first). The 8.4 revision of DB.73 takes the next free number at its
+  merge.
   Prerequisites: none. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -4835,7 +4914,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/later-phenomena-scatter-rules.md (section 8)): states of
   stars the passes place; the ejecta nebula is hosted at fill; no
   scatter work.
-  Prerequisite: GEN.243. Related: GEN.241.
+  Prerequisites: none. Related: GEN.241.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.247 Accreting white dwarf binaries: novae, cataclysmic and symbiotic variables, Type Ia progenitors (later)**
@@ -4916,7 +4995,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.318 (Core 3)). Core 4 asks Core 3
   before touching stellar evolution constants in tuning.py. A line here
   that named Core 3 or Core 4 earlier is replaced by this one.
-  Prerequisites: GEN.318.
+  Prerequisites: GEN.318, GEN.562.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.255 Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes**
@@ -4950,7 +5029,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/later-phenomena-scatter-rules.md (section 8)): reads
   scatter rows through the stage C region query; it needs the magnetar
   rows (GEN.278) to see the 10 pc flag before the fill.
-  Prerequisite: GEN.243. Related: GEN.113, GEN.436, GEN.444.
+  Prerequisites: none. Related: GEN.113, GEN.436, GEN.444.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.257 A Fermi-bubble overlay on the Galaxy Map**
@@ -5048,6 +5127,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
   lane queue); a line here that named Core 4 was the TODO thread's
   counting error, corrected 2026-10-16, 4:50 PM EDT.
+  System design (Boss's cards S1 to S9, 12:10 to 12:15 AM EDT,
+  2026-10-18, as the coordinator relayed): see the note on GEN.315
+  (offsets through one generalised function, states relative to the
+  parent link).
+  Convention added (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT,
+  2026-10-18, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md): see the note on GEN.315
+  (heaviest first at every node, no new copy of the swap).
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.267 A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars**
@@ -5515,6 +5602,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The unbind and capture test and the rogue-planet conversion; its
   "event log" half is calls to `record_event` (ejection, capture)
   (2026-10-16 review).
+  Unified orbited-body design (GEN.550, design draft
+  /mnt/project-files/design-drafts/unified-star-like-objects.md,
+  coordinator 2026-10-17, 11:29 PM EDT as relayed): gets simpler: with
+  one body model a planet that leaves its star changes its parent and
+  keeps its row, ID and moons; there is no second `rogue-planet` table
+  row to create (the design is approved, Boss's cards of 11:28 to 11:31 PM EDT).
 
 - [ ] **GEN.292 Run the orbital update for a stated span in one go from the command line (elapsed years)**
   Finding (orbital-encounters research, 2026-10-15, kind: gap in
@@ -5775,8 +5868,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.243, GEN.244, GEN.282, GEN.284, TEST.159,
-  TEST.160, GEN.450, TEST.196, GEN.530.
+  Prerequisites: GEN.244, GEN.282, GEN.284, TEST.159, TEST.160, GEN.450,
+  TEST.196, GEN.530, GEN.563, GEN.572.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -5814,6 +5907,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.537 design, GEN.538, MAP.248, UX.137, TEST.226, goal #2095). The
   whole-sphere audits of 8.1 (TEST.159, TEST.160, TEST.185) will run
   with the switch on once it exists.
+  Boss (12:04 AM EDT, 2026-10-18, card 'Pull into 8.1', as the
+  coordinator relayed): GEN.572, the exact AU per light-year and
+  light-year per parsec, joins the 8.1 changes before the one rescatter
+  (it changes a nebula's stored radius).
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -6019,6 +6116,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Unified orbited-body design (GEN.550, design draft
+  /mnt/project-files/design-drafts/unified-star-like-objects.md,
+  coordinator 2026-10-17, 11:29 PM EDT as relayed): this item is U3 of
+  the draft and stays a prerequisite, in 8.1, unchanged. Ask: keep its
+  interface host-neutral, a function that takes a stored tree and
+  returns bodies, at no extra cost, so the later `populate(host)`
+  (GEN.556) can call the same code. Owner Core 3 as before.
+  System design (Boss's cards S1 to S9, 12:10 to 12:15 AM EDT,
+  2026-10-18, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md, item SY1): return each
+  body's state relative to its parent link plus the node, and compute
+  offsets through ONE function, `physics/system_tree.member_offsets_au`
+  generalised so a node can hold a central child and several members (n
+  = 1 is today's pair, bit for bit; the most massive member is the
+  central object and comparable-mass pairs stay binary nodes, card S3).
+  Keep the `orbit_nodes` copy as it is. No behaviour change, no epoch.
+  Owner Core 3.
+  Convention added (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT,
+  2026-10-18, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md, section 12.2 point 1): the
+  fill builds stars from the stored members already ordered heaviest
+  first at every node (slot 0 = the heavier branch, as the tree builder
+  writes it) and adds no fifth copy of the swap. No behaviour change, no
+  epoch. Owner Core 3.
   Prerequisites: GEN.311. Related: GEN.264.
 
 - [ ] **GEN.316 Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired**
@@ -6037,6 +6158,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Convention added (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT,
+  2026-10-18, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md, section 12.2 point 1):
+  retiring the two-star classes removes three of the four copies of the
+  heavier-star swap (`generation/system.py:299-308`,
+  `generation/wide_binary.py:119-121`, `generation/binary.py`), leaving
+  only the tree's copy in `multistar._Builder.place`, which becomes a
+  caller of `primary_first` (GEN.581) later. No new copy is added.
   Prerequisites: GEN.315. Related: GEN.264.
 
 - [ ] **GEN.317 Pulsar planets and the radiation environment of neutron stars**
@@ -6056,7 +6185,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: none. Related: GEN.130, GEN.436, GEN.444.
+  Prerequisites: GEN.552. Related: GEN.130, GEN.436, GEN.444.
 
 - [ ] **GEN.318 White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk**
   Split from GEN.130 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6137,7 +6266,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its values, and this item writes `dynamical` into it. Core 3 may carry
   the two in one PR; check that the column is in DB.53's remaining
   slices.
-  Prerequisites: GEN.329. Related: GEN.273.
+  Prerequisites: GEN.329, GEN.562. Related: GEN.273.
 
 - [ ] **GEN.328 Groups at fill in star-forming cores and OB regions**
   Split from GEN.273 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6216,6 +6345,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Unified orbited-body design (GEN.550, design draft
+  /mnt/project-files/design-drafts/unified-star-like-objects.md,
+  coordinator 2026-10-17, 11:29 PM EDT as relayed): its 'rogue planet
+  pairs' are the pair builder with planets (GEN.555); it stays, as a row
+  and a builder of the unified chain.
   Prerequisites: GEN.315. Related: GEN.275.
 
 - [ ] **GEN.334 Pair closest-approach library: sweep, pair windows, window cap and chunking**
@@ -6433,6 +6567,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   through the
   update to a field, a merged giant and a star, each in the event
   record.
+  Unified orbited-body design (GEN.550, design draft
+  /mnt/project-files/design-drafts/unified-star-like-objects.md,
+  coordinator 2026-10-17, 11:29 PM EDT as relayed): gets simpler in the
+  same way as GEN.291: an unbinding changes the parent link only
+  (storage item DB.73).
   Prerequisites: GEN.345, GEN.334, GEN.341, GEN.142, DB.56, GEN.197.
   Related: GEN.110.
 
@@ -7048,7 +7187,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Changed behaviour recorded with GEN.333: the brightest white dwarf is
   now 50 solar luminosities (it was 100), so the luminosity floors and
   caps may go as low as 50. Owner: Core 3.
-  Prerequisites: none. Related: GEN.333, GEN.283, UX.116, GEN.301.
+  Prerequisites: GEN.562. Related: GEN.333, GEN.283, UX.116, GEN.301.
 
 - [ ] **GEN.378 The galaxy type families: the checked design with its scaling relation table and the draw order**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
@@ -7788,6 +7927,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   widest-range rule, replaced when a measurement exists. GR7, the radius
   ratio of the blue to the red cluster system, stays widened with both
   papers kept (11:19 AM EDT answer).
+  Open choice check (2026-10-18, 12:45 AM EDT): the halo-mass law is
+  decided (Boss, 10:11 PM EDT on 2026-10-16). The one choice with no
+  Boss tap on file is the cluster system mass fraction eta of the halo
+  (row 9 of docs/design/intergalactic-and-halo-contents.md): 2.9e-5
+  (Harris, Blakeslee and Harris 2017, computed value), 4e-5 (Hudson
+  2014, verified) and 6e-5 (Harris, Harris and Alessi 2013, verified).
+  His standing source rule (12:39 PM EDT on 2026-10-17: when two sources
+  are in question the most permission wins, meaning the widest range)
+  gives the default: draw eta over the widest range, 2.9e-5 to 6e-5,
+  keep all three sources. Applied by the TODO thread from that rule, not
+  a new tap; a card is possible if Boss wants a narrower choice.
   Prerequisites: none. Related: GEN.297, GEN.366, GEN.387.
 
 - [ ] **GEN.404 The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position**
@@ -7974,7 +8124,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fails when a gas named anywhere in the code is missing from the table;
   every number has a source.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Prerequisites: GEN.438. Related:
+  Prerequisites: none. Related:
   GEN.208,
   GEN.85,
   GEN.355, GEN.411, GEN.415, DB.71.
@@ -8089,6 +8239,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the program stays free forever. The source and licence column
   stays as a record; write 'open' where none is found (the loader of
   GEN.472 already accepts that).
+  Blocker 1 (GEN.438, 12:20 AM EDT 2026-10-18 as the lane reported): the
+  molar masses in `habitability_world.MOLAR_KG` (SO2 and CH4) sit about
+  1.9e-4 above the sums of the element table of GEN.438
+  (`physics.elements.molar_mass`); it left them because changing them
+  would alter derived values. This table should take its molar masses
+  from `physics.elements.molar_mass`.
   Related: DB.71.
 
 - [ ] **GEN.411 The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree**
@@ -8286,6 +8442,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The paper states no validity range; its Table 2 total 2.247 does not
   equal its 15 rows (2.2537). The infrared opacity grids (correlated-k)
   stay a build-time download job from the line lists.
+  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
+  coordinator relayed): a download this item makes is a static file
+  fetched at setup by the shared step that GEN.548 builds first
+  (User-Agent, sha256, cache outside the repository, labelled stand-in,
+  offline fixtures), never at run time; a run-time fetch would have to
+  say why the data needs constant updates.
   Related: GEN.87, GEN.189, DB.68.
 
 - [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
@@ -8401,6 +8563,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The paper states no validity range; its Table 2 total 2.247 does not
   equal its 15 rows (2.2537). The infrared opacity grids (correlated-k)
   stay a build-time download job from the line lists.
+  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
+  coordinator relayed): a download this item makes is a static file
+  fetched at setup by the shared step that GEN.548 builds first
+  (User-Agent, sha256, cache outside the repository, labelled stand-in,
+  offline fixtures), never at run time; a run-time fetch would have to
+  say why the data needs constant updates.
 
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8718,6 +8886,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and 930 nm bands, read from a figure). Uranus methane bracket 1.4 to 4
   percent (Karkoschka and Tomasko 2009: 1.4 to 3.2; the 4 is Voyager
   Model F or Sromovsky 2011).
+  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
+  coordinator relayed): a download this item makes is a static file
+  fetched at setup by the shared step that GEN.548 builds first
+  (User-Agent, sha256, cache outside the repository, labelled stand-in,
+  offline fixtures), never at run time; a run-time fetch would have to
+  say why the data needs constant updates.
 
 - [ ] **GEN.423 Atmosphere density, scale height and the greenhouse multiplier follow from the mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -8800,6 +8974,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is labelled 'digitized from Figures 12 to 14', never the paper's
   table. Titan haze (Tomasko 2008) is paid and not uploaded: that
   stand-in stays.
+  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
+  coordinator relayed): a download this item makes is a static file
+  fetched at setup by the shared step that GEN.548 builds first
+  (User-Agent, sha256, cache outside the repository, labelled stand-in,
+  offline fixtures), never at run time; a run-time fetch would have to
+  say why the data needs constant updates.
 
 - [ ] **GEN.424 The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -8888,7 +9068,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   phase, the envelopes) with the source and licence column of the F5
   rule, so the bulk recipes of GEN.428 and the taxon rows of GEN.457
   draw only among the materials a class can hold.
-  Prerequisites: GEN.438. Related:
+  Prerequisites: none. Related:
   GEN.410,
   GEN.428.
   Boss (2026-10-17, 1:47 AM EDT, typed in the body composition thread):
@@ -8949,6 +9129,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the program stays free forever. The source and licence column
   stays as a record; write 'open' where none is found (the loader of
   GEN.472 already accepts that).
+  Blocker 1 (GEN.438, 12:20 AM EDT 2026-10-18 as the lane reported): the
+  bulk materials' molar masses should come from
+  `physics.elements.molar_mass`; `habitability_world.MOLAR_KG` (SO2 and
+  CH4) is about 1.9e-4 above the element sums and is left for the table
+  items (see GEN.410).
 
 - [ ] **GEN.428 Planets and moons draw their bulk composition fractions instead of carrying a fixed text**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -9025,7 +9210,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test target here and in TEST.210), not 3.9 to 5.4. Core mass fraction
   from the star is 0.2 to 0.47 with the Thiabaud box used only as a
   plausibility box.
-  Prerequisites: GEN.427, GEN.440, GEN.458. Related: GEN.429,
+  Prerequisites: GEN.427, GEN.440, GEN.458, GEN.557. Related: GEN.429,
   DB.69,
   GEN.430.
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
@@ -9112,6 +9297,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   drawn radius is staged: the existing class mass ranges first as a
   flagged stand-in, then the isolation mass
   (formation.isolation_mass_kg) when GEN.509 can tune it.
+  Unified orbited-body design (GEN.550, design draft
+  /mnt/project-files/design-drafts/unified-star-like-objects.md,
+  coordinator 2026-10-17, 11:29 PM EDT as relayed): the wanderer item
+  GEN.557 (rogue planets and brown dwarfs as bodies of the one chain) is
+  built before or together with this item, or the rogue composition draw
+  is built twice, because a `RoguePlanet` is not a `Planet`. The same
+  holds for GEN.429, GEN.442, GEN.458, GEN.466, GEN.495, DB.69 and
+  DB.70. GEN.557 is a prerequisite since 11:31 PM EDT (see the decided order below).
+  Decided order (coordinator, 2026-10-17, 11:31 PM EDT, after Boss's
+  eight cards on the unified chain, taps 11:28 to 11:31 PM EDT): this
+  item follows or joins GEN.557 (wanderers); GEN.557 is now one of its
+  prerequisites. It may be built in one go with GEN.557 by the same lane
+  (Core 4).
 
 - [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -9200,78 +9398,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the drawn mixture and the class label becomes a summary derived from
   it.
 
-- [ ] **GEN.438 One table of the elements and their isotopes: atomic data and the radioactive isotopes' half-lives and decay energies**
-  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
-  "atmosphere composition and planet/moon/star/everything composition is
-  going to be the joint headline of v9.0 ... we need to know the
-  compounds, minerals, and such make up both atmospheres and stellar
-  bodies of all sorts, what is there and all the stats needed to include
-  it in our calculations. The idea is that every body will have figures
-  on its composition based on actual science and not made up where we
-  can avoid it. I'm perfectly ok with drawing the density and other
-  figures we draw now and then filling in compositions that fit that
-  designation. That is perfectly fine, or we can pick the most basics
-  and build either way works." Plan note:
-  docs/design/composition-model.md. A constants module for the elements
-  that matter (atomic number, symbol, molar mass, and the stable and
-  long-lived radioactive isotopes with their half-lives, decay energies
-  and decay chains: potassium-40, thorium-232, uranium-235 and -238,
-  aluminium-26 and the rest the research lists), the one table the gas,
-  materials and stellar tables take their molar masses from, and the
-  ground's radiogenic heat and dose read. Atomic physics only; no
-  abundance pattern lives here. Done: a test checks the molar mass of
-  every compound in the gas and materials tables against the sum of its
-  elements; every number has a source.
-  Owner: Blocker 1 (Boss, 2026-10-17, 6:01 PM EDT, typed in the project
-  chat: "I want Blocker 1 to set itself up with PERF.118, GEN.438, and
-  GEN.440", after GEN.314 merges; it was proposed for Core 4 and never
-  started there; Core 4 confirmed at about 6:10 PM EDT, as the lane reported, that it has not started it).
-  Part F of the Body composition research lane
-  (docs/design/body-composition-parts/F-boss-note-check.md; 2026-10-17,
-  1:28 AM EDT as the lane reported; checks Boss's research note of 1:22
-  AM EDT), filed by the TODO thread. Item F5: every data file the loader
-  reads (NIST, PubChem and USGS public domain; published compilations
-  with a citation) states its source and licence, and the loader refuses
-  a row without one; the licence question of the cross-section files
-  (Mainz, Serdyuchenko, Heays 2017, Huebner 2015) is closed (Boss, 2:35 PM
-  EDT: every acquired paper and dataset is usable; was master
-  section 6 item 13 of docs/design/atmosphere-composition.md).
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): the element table is a constants table, not a draw: it
-  has no weights and no class gate (it gains the source and licence
-  columns of the format); the weights that use it are the abundance rows
-  of GEN.439 and the recipes above it, which is why it is not a
-  possibility table itself.
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the dataset licence table
-  (see GEN.410) for the licence column.
-  Prerequisites: none. Related: GEN.410, GEN.427, GEN.439,
-  GEN.444.
-  Checked by the Body composition research lane against Boss's second
-  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
-  of docs/design/body-composition-research.md; the earlier 'awaiting
-  verification' note on this item is superseded for the body-related
-  claims): (part G4) licences: NIST SRD is copyrighted, JPL 19-5 is not
-  public domain, only the 2013 Mainz snapshot states CC BY 4.0, Leiden,
-  Bremen and Karkoschka state none; the licence column is mandatory (it
-  takes 'open' where none is found) and the audit (GEN.500) was removed by
-  Boss (2:35 PM EDT).
-  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/composition-model.md. Approved by Boss as recommended
-  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
-  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
-  Decided (Boss, 2026-10-17, 2:35 PM EDT, typed in the project chat,
-  GEN.500 removed): every paper and dataset Boss acquired was obtained
-  legally and is usable, so no licence audit gates this table and no
-  permission list is needed. The raw papers and downloaded datasets stay
-  out of the public repository and are never redistributed or sold; the
-  research results and the values derived from them are fine to publish,
-  and the program stays free forever. The source and licence column
-  stays as a record; write 'open' where none is found (the loader of
-  GEN.472 already accepts that).
-
 - [ ] **GEN.439 The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -9321,7 +9447,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that comes from its relation's source with the scatter stated; the
   weights of the rows that pass add up to 100 percent and a row without
   a source is `open`.
-  Prerequisites: GEN.438. Related: GEN.440,
+  Prerequisites: none. Related: GEN.440,
   GEN.428.
   Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
   answers relayed in words by the coordinator;
@@ -9356,6 +9482,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.438 merges, and the isochrone, white-dwarf and neutron-star data
   it needs come from GEN.548's build-time downloads (with the stand-in
   fallback until they land).
+  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
+  coordinator relayed): a download this item makes is a static file
+  fetched at setup by the shared step that GEN.548 builds first
+  (User-Agent, sha256, cache outside the repository, labelled stand-in,
+  offline fixtures), never at run time; a run-time fetch would have to
+  say why the data needs constant updates.
 
 - [ ] **GEN.440 Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9451,6 +9583,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   isochrone grids, the white-dwarf layers and the neutron-star equation
   of state (GEN.548). GEN.440 follows GEN.439; the age gate of D10 is
   8.0 Gy.
+  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
+  coordinator relayed): a download this item makes is a static file
+  fetched at setup by the shared step that GEN.548 builds first
+  (User-Agent, sha256, cache outside the repository, labelled stand-in,
+  offline fixtures), never at run time; a run-time fetch would have to
+  say why the data needs constant updates.
 
 - [ ] **GEN.441 Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9709,7 +9847,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stated tolerance, the Moon and Mars the measured values, an airless
   ice moon almost no radiogenic dose; a test fails when a proxy comes
   back.
-  Prerequisites: GEN.443, GEN.441, GEN.438, GEN.453, GEN.459, GEN.478.
+  Prerequisites: GEN.443, GEN.441, GEN.453, GEN.459, GEN.478.
   Related:
   GEN.445,
   GEN.256, GEN.317, GEN.87, GEN.453.
@@ -10537,7 +10675,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tolerance (as test targets, not presets), that heat and ground dose of
   one body read the same concentrations, and that the old constants are
   gone. Owner: Core 4 (proposed, with the composition chain).
-  Prerequisites: GEN.428, GEN.438. Related: GEN.427, GEN.428, GEN.438,
+  Prerequisites: GEN.428. Related: GEN.427, GEN.428, GEN.438,
   GEN.440, GEN.442, GEN.444, GEN.441, DB.69.
   Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
   composition thread and routed by the coordinator to the Atmosphere
@@ -11689,6 +11827,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
   downloads this item makes at build time send the standard User-Agent
   of API.31 (one function builds it).
+  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
+  coordinator relayed): a download this item makes is a static file
+  fetched at setup by the shared step that GEN.548 builds first
+  (User-Agent, sha256, cache outside the repository, labelled stand-in,
+  offline fixtures), never at run time; a run-time fetch would have to
+  say why the data needs constant updates.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.486 Source the lava-world vapour regimes and the fraction of lava worlds that keep volatiles (AR7)**
@@ -12231,6 +12375,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
   downloads this item makes at build time send the standard User-Agent
   of API.31 (one function builds it).
+  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
+  coordinator relayed): a download this item makes is a static file
+  fetched at setup by the shared step that GEN.548 builds first
+  (User-Agent, sha256, cache outside the repository, labelled stand-in,
+  offline fixtures), never at run time; a run-time fetch would have to
+  say why the data needs constant updates.
 
 - [ ] **GEN.501 Source the activity factor of the NH3 photolysis rate from the Huebner and Mukherjee rate tables**
   Body composition research lane reconciliation of the NH3 photolysis
@@ -13127,147 +13277,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   visible, methane 5.0 to 5.5 micron, and the 1e-5 floor below 450 nm.
   The Oxford page says 'not yet fully verified' and states no licence.
 
-- [ ] **GEN.532 The galaxy shape's thick disk, scale heights and stellar halo come from the research laws instead of the tuning.py numbers (the GEN.401 follow-up)**
-  Found by Core 1 while finishing GEN.401 (2026-10-17, 12:51 PM EDT as
-  the lane reported; GEN.401 merged as #2051), filed by the TODO thread.
-  GEN.401 now draws disk length and height, bulge radius and amplitude,
-  arm count and pitch angle from the seed. What it left, from the
-  GEN.406 research (docs/design/galaxy-laws-research.md) and the gap
-  plan (docs/design/gap-filling-plan.md): (1) the thick disk: the mass
-  ratio against Vc is widened between 0.53 (Vc/100)^-2.3 (Yoachim and
-  Dalcanton) and 0.87 (Vc/100)^-1.09 (Comeron 2018), both kept, the
-  length ratio is 1.15 (Vc/100)^-0.2 and the height ratio is drawn from
-  2.5 to 4.2 (Boss's card, 12:02 PM EDT, widen and keep both), replacing
-  the tuning ratios `THICK_DISK_*` (0.769 and 3, which are Milky Way
-  star-count numbers); the hot-component bound test applies to the mean
-  relation or carries a margin of 0.13 dex; (2) the scale heights
-  (50/300, 150/300, 1) and the dispersions (15, 25, 50) in `tuning.py`
-  come from one law, not two that cannot both hold; (3) the stellar halo
-  anchor 1.4e9 solar masses, about 2 percent of the galaxy (Deason
-  2019), replaces `HALO_MASS_SOLAR` 1.5e9, and the halo law for 3e9 to
-  2e11 solar masses is the labelled placeholder f = 0.05 (M*/5e10)^0.79
-  with 0.33 dex scatter (request R1 on GEN.531); (4) the Courteau
-  scatter of 0.097 dex (gap plan 4.9 and 7.2a) replaces the 0.09 dex
-  stand-in as a new stand-in version. Plan options already default to
-  'drawn' (done in #2051). Each value is registered in the stand-in
-  registry with its fill id and source state; the newest verified source
-  wins on a new conflict (Boss, 12:39 PM EDT) and the six
-  widen-and-keep-both answers stand. This changes numbers in `tuning.py`
-  and stored output, so it is a generator epoch change and rides the
-  pending epoch. Done: the thick-disk ratios, heights, dispersions and
-  halo anchor in `tuning.py` are replaced by the laws above with their
-  sources named in the code, the laws over many seeds follow the stated
-  trends, the same seed gives the same shape, the bound test passes, and
-  the epoch rule applies. Owner: Core 1 (proposed, GEN.401's author).
-  The stage rule of GEN.401 (Kelvin cumulative counts read as local
-  fractions) stays a listed stand-in (design note 5.13.8 and 5.13.6 item
-  6). Scope from Core 1 (12:58 PM EDT, its real clock; it sends the
-  final scope before building, after GEN.527 and before GEN.402): the
-  size-mass scatter in the shape draw becomes the Courteau 0.097 dex
-  (replacing the Shen sigma_ln between 0.47 and 0.34), and the Comeron
-  2018 fit replaces the Kregel q = 7.3 draw where it applies; the Boss
-  papers report (GR4, GR6, GR15) and the VizieR numbers are read for it.
-  Bar presence, axis ratios and angle are GEN.533, which Boss moved into
-  8.1 (card, 12:56 PM EDT): drawn from the seed and rebuilt each time,
-  not stored in a column, so nothing in 8.1 needs DB.66; the DB.66
-  wording in the GEN.401 note and docstring should read 'stored by
-  DB.66', not a dependency.
-  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): Rule outcomes for this item: halo scatter draw width 1.01 dex
-  (Dragonfly, the widest of two sources both in question; Boss 1:12 PM
-  EDT), Harmsen 0.33 dex stays in the record; thick-to-thin length ratio
-  against Vc by Comeron 2018 (newer than Yoachim and Dalcanton 2006, two verified
-  sources: newest wins), not one of the six widen-and-keep answers.
-  Citations: the pitch-angle paper is Yu and Ho 2019 (ApJ 871, 194), and
-  'Hart 2017' is MNRAS 472, 2263
-  (arXiv:1708.04628, arm shares and pitch angles; Core 1 checked it at
-  1:19 PM EDT as the lane reported), not MNRAS 468, 1850 (star formation
-  against arm number). It holds no bulge result: the bulge share cites
-  Graham and Worley 2008 and Erwin 2005 for the bar.
-  FINAL SCOPE (Core 1, 2026-10-17, 3:12 PM EDT as the lane reported;
-  built on one branch with GEN.533, one epoch bump; this replaces the
-  12:58 PM EDT scope above). Two corrections: (a) the Courteau 0.097 dex
-  is the scatter of the bulge Vc/sigma0 law (gap plan GR5), not the
-  size-mass scatter, so the Shen scatter of the shape draw stays; the
-  bulge dispersion is Vc/sigma0 = 2 (1 - B/T) scattered 0.097 dex; (b)
-  nothing replaces the Kregel q = 7.3 draw (Comeron 2018's height ratio
-  is the thick-to-thin one), so the Kregel line of the earlier scope is
-  dropped. Built in new modules galaxy/structure.py and
-  galaxy/structure_draw.py as a non-stored `structure` field on
-  GalaxyShape, drawn from the seed and rebuilt on load, nothing added to
-  the galaxy_shape row: (1) circular speed Vc from the baryonic
-  Tully-Fisher M_b = 47 Vf^4 (McGaugh 2012), M_b = M*, 0.0375 dex
-  scatter, a STAND-IN until GEN.338's potential gives Vc; (2) thick
-  disk: mass ratio log-uniform between Yoachim and Dalcanton 0.53
-  (Vc/100)^-2.3 and Comeron 2018 10^2.113 Vc^-1.086, scatter 0.268 dex,
-  length ratio Comeron 2018 10^(-1.638 + 0.817 log Vc), 0.316 dex
-  (newest wins over Yoachim's 1.15 (Vc/100)^-0.2, which stays in the
-  record), height ratio log-uniform 2.5 to 4.2, 0.13 dex; the thick
-  amplitude is derived from the mass ratio (replaces
-  THICK_DISK_LOCAL_DENSITY_RATIO 0.04); the hot-component bound (Comeron
-  2021 Eq. 1) is a test on the mean relation with the 0.13 dex margin;
-  (3) stellar halo: f = 0.05 (M*/5e10)^0.79 placeholder, scatter 1.01
-  dex (Dragonfly, the widest), cut to 0.1 to 30 percent of the stars,
-  reference anchor 1.4e9 (replaces HALO_MASS_SOLAR 1.5e9); (4) heights
-  and dispersions from one law: gas dispersion 10 +/- 2 km/s (Tamburro
-  2009), disc central vertical dispersion 0.248 Vc +/- 15 percent
-  (Martinsson 2013), heating exponent 0.441 +/- 0.03 (Sharma and Hayden
-  2020); a population's scale height is its squared vertical dispersion
-  over the old disc's; the profile dispersion is the three-axis total;
-  the halo dispersion comes from the Jeans equation (sqrt(3/3.5) Vc),
-  the bulge's from Courteau. Milky Way check: the old disc sigma_z at
-  the Sun is 16 km/s against Sharma and Hayden's 21.1, 24 percent low,
-  inside the plan's 35 percent. Caution to record: the young scale
-  height comes out 0.40 of the old disc's (116 pc for a 300 pc disc)
-  against the observed about 50 pc, because the 10 km/s is the HI
-  dispersion and molecular gas is colder (not read); it stays a STAND-IN
-  until a measured CO dispersion in a nearby-spiral sample replaces it
-  (filed as GEN.536, research). Hart 2017 and Yu and Ho 2019 citations
-  are also fixed in shape_draw.
-  Prerequisites: none. Related: GEN.401, GEN.402, GEN.531.
-
-- [ ] **GEN.533 The galaxy shape draws bar presence, axis ratios and angle from the seed, rebuilt each time and not stored in a column**
-  Found by Core 1 while finishing GEN.401 (2026-10-17, 12:51 PM EDT as
-  the lane reported; merged #2051), filed by the TODO thread. GEN.401
-  did not draw the bar: bar presence, the bar's axis ratios and its
-  angle stayed the model's constants because storing them needs the
-  DB.66 columns. Decided (Boss, 2026-10-17, 12:56 PM EDT, card "Draw it
-  in 8.1", relayed in words by the coordinator): draw them in 8.1 from
-  the seed, rebuilt each time and not stored in a column, so DB.66 stays
-  in 8.3 and later stores the drawn values (the card named Erwin and
-  Gadotti's statistics; the laws table,
-  docs/design/intergalactic-and-halo-contents.md section 5.13, holds the
-  bar fraction by stage). Do: the draw decides from the seed whether the
-  galaxy has a bar, its length, axis ratios and angle, and the density
-  model reads them; the drawn values replace
-  `tuning.BULGE_AXIS_RATIO_Y/Z` and `BULGE_BAR_ANGLE_DEG`. Done: the
-  same seed gives the same bar, the bar fraction over many seeds follows
-  the stated trend by stage, every parameter is inside its stated range,
-  nothing is added to the stored shape row, and the change rides the
-  pending generator epoch and the wiped rescatter. Owner: Core 1 (Boss's
-  card, 12:56 PM EDT; GEN.401's author), with GEN.532.
-  FINAL SCOPE (Core 1, 2026-10-17, 3:12 PM EDT as the lane reported;
-  built with GEN.532, one branch, one epoch bump). The sources were read
-  by a research worker and are filed as
-  docs/design/gen533-bar-sources.md (Core 1's PR lists it in
-  docs/design/README.md). Bar present with Erwin 2018 Eq. 6 (logistic
-  quadratic in log M*; 0.69 at 3e9, 0.58 at 10^10.5, 0.21 at 2e11; the
-  S4G early and late split, 0.63 against 0.66, is 1.1 sigma, so no split
-  by stage); in-plane axis ratio 1 - e with e ~ N(0.53, 0.15)
-  (Diaz-Garcia 2016); vertical axis ratio of a boxy or peanut bar (Erwin
-  and Debattista 2017 logistic; 0.23 +/- 0.06, a STAND-IN) or of a thin
-  bar (Luetticke 2000, 0.071 +/- 0.02); unbarred bulge axis ratios 0.83
-  +/- 0.21 and 0.54 +/- 0.19 (Costantin 2018, computed from its Table
-  C.1); bar angle uniform 0 to 180 degrees (a STAND-IN). Newest verified
-  wins: Erwin 2018 is used over the SDSS strong-bar fraction of 29
-  percent, because the model's bar is any bar, so the strong-only 0.29
-  of the laws table is not used. An unbarred galaxy has no bar gap in
-  its star formation. The Done line's 'fraction follows the stated trend
-  by stage' is replaced by 'follows the Erwin 2018 relation in stellar
-  mass'. No part needs a stored column.
-  Prerequisites: none. Related: GEN.401, GEN.532, GEN.378, DB.66.
-
 - [ ] **GEN.534 A satellite's young stars reach the system-type tables: the young-star system types name `satellite_young`**
   Residual of GEN.528 (merged #2077, 2026-10-17, about 3:02 PM EDT as
   Core 3 reported), filed by the TODO thread from Core 3's report.
@@ -13708,6 +13717,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-17, 9:54 PM EDT, typed in the project chat,
   relayed by the coordinator): "I approve all your defaults". Everything
   else on this item stands as its default.
+  Decided: Boss tapped 'Shared step first' on the GEN.548 card at 12:46
+  AM EDT on 2026-10-18 (as the coordinator relayed): GEN.548 builds the
+  shared download step first (standard User-Agent of API.31, sha256
+  check, cache outside the repository in a folder `update.sh` fills, a
+  labelled stand-in when the host is down, offline fixtures for the
+  tests) and then its three datasets; AD1 to AD8 and the other download
+  jobs reuse that one step. No download step is merged yet: AD1 methane
+  is only a design and a source check so far. Standing rule: Downloads
+  of static files take place at setup (the step `update.sh` runs, into a
+  cache folder outside the repository) unless the data needs to be
+  constantly updated; any code that fetches data at run time must say in
+  its design why the data needs constant updates (Boss, 12:47 AM EDT on
+  2026-10-18, project chat, as the coordinator relayed). The three
+  datasets here are static (grids and tables that change with a paper,
+  not with the clock), so they are fetched at setup and never at run
+  time.
   Prerequisites: none. Related: GEN.439, GEN.440, GEN.502, API.31.
 
 - [ ] **GEN.549 L dwarfs hotter than 1,500 K are 2 to 4 times too rare against the 20 pc census: use a cooling track that reaches them (strict expected failure)**
@@ -13737,6 +13762,1689 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the design note names the track. Owner: Core 4 (proposed; it built
   GEN.252), after the description layer.
   Prerequisites: none. Related: GEN.252, GEN.301.
+
+- [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
+  Boss's request (2026-10-17, 11:19 PM EDT, project chat, and an
+  addendum typed in the design thread at 11:21 PM EDT, both as the
+  coordinator relayed): "I want to unify generation of stars and
+  star-like objects (former stars, including stellar black holes and
+  neutron stars as well as brown dwarfs, etc). Then use the same
+  generation chain we use for sector fill that we do with stars. We then
+  use sector fill for unbound comets, rogue planets (which should have
+  the chance to get moons)." and "basically I want to unify the process
+  of anything that can have something else orbiting it. Planets have
+  moons at the lowest level, highest level a 7-star-like-object group
+  with each having star systems. Then star system creation is
+  recursive." Filed by the TODO thread as a placeholder only: no
+  breakdown, version or lane is decided. The read-only design thread
+  'Unify star-like objects (2026-10-17)' maps the current code and
+  proposes the chain and the item breakdown; its findings go into this
+  item and its children when they arrive. Overlaps to settle in that
+  design (built, so context only): GEN.447 to GEN.449 (binaries, gas
+  law), GEN.463 and GEN.467 (neutron star radius, main-sequence
+  lifetime), GEN.469 (disk star-formation history), GEN.252 (brown
+  dwarfs as stars, #2164), GEN.541 (black hole perturber check, #2164)
+  and the earlier phenomenon scatter below the stellar mass cut. Open
+  items that touch the same ground: GEN.301 (the 8.1 headline, the
+  scatters; whether this waits on it or reshapes it is for the design),
+  GEN.377 (scatter limits by place for the neutron star and black hole
+  scatter), GEN.129 (multi-star systems of up to twelve stars: DECIDED, Boss
+  tapped 'Keep 12' at 12:44 AM EDT on 2026-10-18 as the coordinator
+  relayed: the standing cap of 12 stays and his 'a group of up to 7
+  star-like objects' is read as a typical group, not a limit), GEN.130 (compact-remnant systems at fill), GEN.142
+  (peculiar velocity for rogue planets), GEN.264 and GEN.315 (the fill
+  builds a system from its stored members), GEN.332 (circumbinary
+  planets and rogue planet pairs), GEN.291 (a bound planet becomes a
+  rogue planet), GEN.457 and GEN.466 (moon origin and composition),
+  GEN.442 (comets). The design must hold to NO FIXED CONTENT, GEN.56
+  (draw.py is the one random wrapper) and the standing rule that the
+  database schema is not a constraint. Changes stored values, so it
+  bumps the generator epoch (OPS.56 rule) and decides its place in the
+  one full rescatter. Version: proposed 8.4 (new worlds) as a holding
+  place, not decided; it can move once the design lands. Done: the
+  design note is approved item by item on cards and this umbrella is
+  replaced by its children. Owner: Core 4 for the chain, Core 3 for the pair builder, Core 1 for storage (Boss's card D7, 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed); the design thread's work is done.
+  Prerequisites: none. Related: GEN.301, GEN.377, GEN.129, GEN.130,
+  GEN.142, GEN.264, GEN.315, GEN.332, GEN.291, GEN.457, GEN.466,
+  GEN.442.
+  Design thread findings (relayed by the coordinator, 2026-10-17, 11:29
+  PM EDT as the coordinator reported): draft
+  /mnt/project-files/design-drafts/unified-star-like-objects.md.
+  Children filed at 11:30 PM EDT: U1 GEN.551 (approval and
+  cards D1 to D8), U2 GEN.552, U3 is GEN.315 as filed (Core 3, 8.1; keep
+  its interface host-neutral: a function that takes a tree and returns
+  bodies), U4 GEN.553, U5 GEN.554, U6 GEN.555, U7 GEN.556, U8 GEN.557,
+  U9 GEN.558, U10 GEN.559, U11 DB.73, U12 UX.138, U13 TEST.239, U14
+  PERF.136, U15 GEN.560. Draft order: U1, then U15 and U3 in parallel
+  with U2; then U4, U6, U11; then U5; then U7 and U8 together; then U9,
+  U10; then U12 to U14. Everything except GEN.315 is 8.4 and changes
+  stored values (epoch bump); GEN.301 gets no new prerequisite. Kept and
+  become rows or builders: GEN.331, GEN.332, GEN.327, GEN.273, GEN.269
+  to GEN.271, GEN.129; GEN.142 is superseded by GEN.557; GEN.291 and
+  GEN.346 get simpler (a planet that leaves its star changes its parent
+  and keeps its row, ID and moons); GEN.250 and GEN.251 are extended
+  (the `system_model` column is replaced, stage C absorbed). Verified
+  facts from the design thread's read of main at bc97f75: `StarSystem`
+  still builds 2 stars with the `_companion` roll at fill;
+  `multistar.draw_member_tree` is scatter-only; `orbit_nodes` and
+  `stars.parent_node_id` are never written; a rogue's `has_moons` is a
+  boolean (20%) with no moon object; the default mass cut in code is 14
+  Msun while parts of `phenomenon-scatter-mass-cut.md` still print 20
+  and 8. The group cap stays 12 unless Boss says otherwise (the design
+  reads his 7 as the largest group the generator makes). Version holding
+  place: 8.4; card D6 decides.
+  Decided (Boss, eight cards D1 to D8, taps 11:28 to 11:31 PM EDT,
+  2026-10-17, as the coordinator relayed; each the draft's
+  recommendation): D1 a shared parent link, the kind tables stay; D2
+  derive the NS and BH counts from the mass function and verified
+  explosion maps, his densities become test targets; D3 rogue moons from
+  both origins; D4 rogue composition from a notional formation host; D5
+  comets as rows above a size cut with a computed count; D6 a new part
+  of 8.4 for the chain; D7 Core 4 for the chain, Core 3 for the pair
+  builder, Core 1 for storage; D8 rogue-with-moons on by default after a
+  PERF measurement. The design note is
+  docs/design/unified-star-like-objects.md (plan). GEN.551 is done by
+  these answers. GEN.560 (research) moves to 8.1 phase 1 with no
+  behaviour change, at Boss's ask for foundations (11:33 PM EDT).
+  Back-scatter of the 8.4 items against 8.1 is in progress at Boss's ask
+  (11:33 PM EDT).
+  Back-scatter result (Boss's back-scatter cards, taps 11:38 to 11:40 PM
+  EDT, 2026-10-17, as the coordinator relayed): GEN.552 (host registry)
+  moves to 8.1 phase 3 ahead of GEN.317 and GEN.130; new 8.1 items
+  GEN.562 (one relation function, no behaviour change) and GEN.563
+  (black hole density only, needs GEN.560, a prerequisite of GEN.301);
+  one 8.4 revision carries DB.73 and DB.67 to DB.71 (order agreed by
+  Cores 1 and 4); nothing else of the chain moves. Core 1 is asked to
+  confirm that a refill, not a rescatter, is enough for every fill-level
+  8.4 item (answer pending).
+  Refill answer (Core 1's read-only code audit of main at 5c49fc42
+  (11:50 PM EDT as the lane reported; a helper read it, Core 1 did not
+  re-verify each line, no code was run)): a refill, not a rescatter, is
+  enough for every fill-level 8.4 item (stars, systems, planets, moons,
+  belts, comets, rogue planets, free brown dwarfs), and no scatter row
+  depends on fill draws; but the existing regenerate path leaves four
+  gaps (phenomena built flags, sector-less uncharted systems, population
+  rerun, body UIDs shifting when counts change), filed as GEN.564.
+  Migration without a wipe: yes (details on DB.73).
+  Mass object class (design docs/design/mass-object-class.md, decided:
+  Boss's cards, as the coordinator relayed with the wake times
+  converted: E2 tapped 'Representability floor' at 11:46 PM EDT; E1
+  typed 'ok, I approve in the hybrid approach you outlined, let it to
+  TODO and ship to into the plan' in the unified star-like objects
+  thread at 11:48 PM EDT; E3 tapped 'Inside host chain' at 11:48 PM EDT;
+  E4 tapped 'Plan only' at 11:49 PM EDT; the object-ID card 'IDs stay
+  stable' at 11:49 PM EDT (2026-10-17)): the hybrid of three family
+  classes with state and parent as data, one core table plus three
+  profile tables, a 10 m representability floor, built inside the host
+  chain, ships and stations planned for 9.3 and not built. Items: U4a
+  GEN.565 (core and family classes; a prerequisite of GEN.556 and
+  GEN.557), U11a DB.74 (generic insert and load, kind registry, core
+  table), U13a TEST.240 (round-trip and registry tests), U15a GEN.566
+  (size-frequency research), and the stable object IDs DB.75 (a
+  prerequisite of GEN.564).
+  Units (Boss, 11:51 PM EDT, 2026-10-17; his six cards 11:56 to 11:57 PM
+  EDT, as the coordinator relayed): the plan gains the unit registry and
+  Quantity class (docs/design/unified-unit-quantity.md): UN1 GEN.568,
+  UN2 GEN.569, UN3 GEN.570, UN4 DB.76, UN5 GEN.571, UN5x GEN.572, UN6
+  UX.139, UN7 UX.140, UN8 GEN.573, UN9 GEN.574, UN10 DB.77, UN11 DOC.70,
+  UN12 GEN.575. Owners are proposed in each item (Core 1 for the column
+  registry and precision table, Core 4 for the field table, position
+  class, describe and display, Core 2 for the browser table, Core 5 for
+  the registry, Quantity, sweeps and docs). None blocks 8.1 or GEN.301;
+  GEN.572 changes a nebula's stored radius and so needs an epoch and a
+  rescatter.
+  Boss (12:04 AM EDT, 2026-10-18, card 'Pull into 8.1', as the
+  coordinator relayed): GEN.572 (the exact unit factors, no
+  dependencies) is built in 8.1 before the one wiped rescatter and is a
+  prerequisite of GEN.301.
+  System design (Boss, 12:03 AM EDT, 2026-10-18; his nine cards S1 to
+  S9, 12:10 to 12:15 AM EDT, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md): one System rule with the
+  barycentre as the origin. Filed: SY1 as text edits to GEN.552, GEN.315
+  and GEN.264 (8.1, no new item), SY2 TEST.241, SY3 GEN.576, SY4 DB.78,
+  SY5 GEN.577, SY6 GEN.578, SY7 MAP.253, SY8 GEN.579, SY9 GEN.580, SY10
+  TEST.242, SY11 DOC.71. Moons are no longer the lowest level (card S6);
+  the group cap of 12 is unchanged. Only TEST.241 (a test) is new in
+  8.1; the stored-value changes ride the 8.4 revision with DB.73.
+  System design extended (Boss's cards S10 to S18, 12:30 to 12:32 AM
+  EDT, 2026-10-18, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md): SY12 to SY17 filed as SY12
+  GEN.581, SY13 GEN.582, SY14 GEN.583, SY15 TEST.244, SY17 GEN.584 (SY6
+  expanded as GEN.578; SY16 is the 8.3 note on GEN.197). The 8.1 effect
+  is conventions only: GEN.315, GEN.264, GEN.316, GEN.552, GEN.555,
+  GEN.556 and TEST.241 changed in text, no new 8.1 item.
+  Unit relations decided (Boss's cards R1 to R4 on the unit relations
+  (docs/design/unified-unit-quantity.md section 11), tapped 12:41 to
+  12:43 AM EDT on 2026-10-18 (as the coordinator relayed with the wake
+  times converted), every one the recommended option: R1 dimensions in
+  the registry plus named relations with a dimension test, plain floats
+  in the kernels, no operator arithmetic on Quantity in the kernels; R2
+  relations declared as data (name, input kinds, output kind, formula)
+  with the fast float kernel and the Quantity wrapper generated from the
+  one declaration; R3 SI inside the kernels, the other unit systems (AU,
+  year, solar mass) generated from the registry where a kernel wants
+  them, so 4 pi squared comes from G's dimension and is no longer typed;
+  R4 the relations replace the hand-written laws with the UN5 sweep,
+  file group by file group, and only where the golden set is
+  bit-identical): filed as GEN.585 (dimensions and unit systems),
+  GEN.586 (relations module), GEN.587 (replace the hand-written sites)
+  and GEN.588 (optional operator arithmetic, unscheduled).
+  Group cap decided (Boss's card 'Keep 12', 12:44 AM EDT on 2026-10-18,
+  as the coordinator relayed): the existing multi-star cap of 12 stays
+  everywhere in this plan (the tree builder, the host chain, GEN.552,
+  GEN.576); 'a group of up to 7 star-like objects' in his first message
+  is read as a typical group, not a limit.
+
+- [ ] **GEN.552 Host registry: the five fixed `system_model` values become pointers to one gated orbiter table per host class, with no change in behaviour**
+  Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
+  the coordinator relayed). Design draft
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U2 of the draft (section 7).
+  `phenomena/registry.py` (GEN.250, built) has a `system_model` column
+  with five values (`none`, `star-system`, `central-star`, `rogue-moon`,
+  `remnant-planets`). Replace it with one row per host class (group
+  node, star-like object, remnant, brown dwarf, planet bound or free,
+  moon) pointing to a companion table and a satellite table in the
+  gated-table format of GEN.472 (built): rows with classes, weights, a
+  source state and a zone rule (section 3.3 of the draft). A host class row exists for a moon and for a small body too (Boss's cards S5 and S6 on the System design, 12:10 to 12:13 AM EDT, 2026-10-18, as the coordinator relayed, superseding 'moons are the lowest level'): each row carries a `may_host` gate, a small body's orbiter table is empty by that gate, and a moon's has no rows until the tidal-survival gate row of GEN.579 exists; the recursion of the later `populate(host)` ends by the gate, not by a depth of three. This
+  step only moves what the code does into tables; the drawn values do
+  not change, so it does not bump the epoch. Do: the registry column and
+  the tables, each row labelled with its source state; the stage C
+  system pass reads them (its `SYSTEM_PASS_ODDS` becomes rows). Done: a
+  fill with the tables gives byte-identical systems to one without.
+  Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed). Moved to 8.1 phase 3 (Boss's back-scatter cards, taps 11:38 to 11:40 PM EDT, 2026-10-17, as the coordinator relayed, card 'Add to 8.1': always in 8.1 before GEN.317 and GEN.130, even if it delays Core 4's other 8.1 work); it is a prerequisite of GEN.317 and GEN.130 so they are written once against the host tables, not twice against the five fixed values. No epoch. Standing
+  rules for the whole chain: NO FIXED CONTENT (nothing copied from the
+  Solar System or the Milky Way), the database schema is not a
+  constraint, no backward-compatibility shims, every draw through the
+  one wrapper `util/draw.py` (GEN.56), every recalled source verified by
+  a lane before use under the standing source rules, and any change to a
+  drawn value bumps the generator epoch (OPS.56 rule).
+  System design (Boss's cards S5 and S6, 12:10 to 12:13 AM EDT,
+  2026-10-18, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md, item SY1): the text above
+  now has a moon host row and a small-body host row with a `may_host`
+  gate. Owner Core 4.
+  Convention added (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT,
+  2026-10-18, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md, section 12.2 point 2): host
+  rows express an orbiter's mass as a ratio to the host's mass where the
+  source gives a ratio, so the draw cannot make an orbiter heavier than
+  its host except through the pair builder, where the primary-first step
+  (GEN.581) lives. A wording edit on a table being written anyway; no
+  behaviour change.
+  Prerequisites: none. Related: GEN.550, GEN.315.
+
+- [ ] **GEN.553 One star-like body draw: origin, birth, state and [Fe/H], with the initial-final relation, the remnant mass, radius and age rules in one place**
+  Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
+  the coordinator relayed). Design draft
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U4 of the draft. Today the white dwarf
+  initial-final relation is applied in four files (`stellar_evolution`,
+  `multistar`, `scatter_companions`, `place_terms`), the neutron star
+  and black hole mass in five, the Schwarzschild radius in two, and the
+  age rule in three; a hot central star uses a separate Gaussian and a
+  cool one a uniform draw; a free-floating brown dwarf is a
+  `RoguePlanet` row with a canned composition sentence and an age
+  uniform in 0.1 to 10 Gy that ignores the population (all read from the
+  repository by the design thread). Do: one body draw with five steps,
+  each on a stream derived from the body's seed
+  (`Stream(f"{seed}:birth")` and so on): origin (a gated table: formed
+  in a system, formed in isolation, ejected from a system, remnant of a
+  star), birth (IMF continued below 0.08 Msun by the brown-dwarf mass
+  function; birth time from the star formation history of GEN.469,
+  merged; [Fe/H] from the population and place, GEN.158, merged), state
+  at the present (`evolve_star`, the neutron star radius law,
+  `brown_dwarf.state` of GEN.252), composition (GEN.439 and GEN.440),
+  motion (the population's dispersion plus a kick for remnants). The
+  free-floating brown dwarf moves into it and leaves `rogue_planets`;
+  the rogue surface module's duplicated Burrows constants are replaced
+  by the `brown_dwarf` module. Done: each rule lives in one function,
+  the duplicated copies are gone with no shim, a brown dwarf takes the
+  population's age, and the tests for each kind pass. Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built), 8.4 phase 1. Standing rules for
+  the whole chain: NO FIXED CONTENT (nothing copied from the Solar
+  System or the Milky Way), the database schema is not a constraint, no
+  backward-compatibility shims, every draw through the one wrapper
+  `util/draw.py` (GEN.56), every recalled source verified by a lane
+  before use under the standing source rules, and any change to a drawn
+  value bumps the generator epoch (OPS.56 rule).
+  Prerequisites: GEN.439, GEN.440. Related: GEN.550, GEN.252,
+  GEN.463, GEN.467, GEN.469.
+  Back-scatter answer (Boss's back-scatter cards, taps 11:38 to 11:40 PM
+  EDT, 2026-10-17, as the coordinator relayed): the relation function
+  for the white dwarf initial-final relation and the neutron star and
+  black hole mass draw moves to 8.1 as GEN.562 with no behaviour change;
+  the rest of this item (the five-step body draw, the free brown dwarf,
+  ages from the population) stays in 8.4.
+  The object classes this draw feeds (GEN.565, the mass object core and
+  its three family classes) are built with this item (card E3, 11:48 PM
+  EDT as relayed).
+
+- [ ] **GEN.554 Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets**
+  Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
+  the coordinator relayed). Design draft
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U5 of the draft. A neutron star or
+  black hole becomes a star-like object whose state is 'remnant', with a
+  progenitor mass and a birth time like every other star. Quick check by
+  the design thread (its own computation with the generator's IMF breaks
+  0.08, 0.5, 150 Msun and slopes 1.3, 2.3, not sourced): 0.45% of stars
+  born above 0.08 Msun have progenitors in 8 to 20 Msun, 0.53% in 8 to
+  30 Msun and 0.17% in 20 to 100 Msun, against the generator's fixed
+  0.4% for neutron stars and 0.05% for black holes (densities 5.6e-4 and
+  7e-5 per pc^3). So the neutron star count is already the right size
+  and the black hole count needs a verified failed-supernova and
+  direct-collapse share and a kick-escape share (about 40% of neutron
+  stars and 2% of black holes leave the galaxy per
+  `compact-remnant-regions.md`). Do: derive the counts from the body
+  draw's origin row 'remnant of a star'; `remnant_distribution.py` keeps
+  its role as the placement of the kick (thicker layer, black hole core
+  excess, the Lorimer pulsar profile); a remnant above the mass cut
+  (default 14 Msun in code) is still a scatter row and one below is
+  still drawn at fill (the GEN.168 pattern); intermediate and
+  supermassive black holes keep their own origin rows. The progenitor
+  ranges 8 to 30 and 20 to 100 and the explosion maps need verified
+  sources first (recalled and unverified: O'Connor and Ott 2011,
+  Sukhbold et al. 2016, Fryer et al. 2012). Decided (card D2): derive the counts from the mass function and the verified explosion maps, Boss's densities become test targets, and the black hole share needs a verified source first. Done:
+  counts are outputs, the old densities are tests with the gap shown,
+  each source is verified or the row is labelled a placeholder. Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built), 8.4 phase 1. Standing rules
+  for the whole chain: NO FIXED CONTENT (nothing copied from the Solar
+  System or the Milky Way), the database schema is not a constraint, no
+  backward-compatibility shims, every draw through the one wrapper
+  `util/draw.py` (GEN.56), every recalled source verified by a lane
+  before use under the standing source rules, and any change to a drawn
+  value bumps the generator epoch (OPS.56 rule).
+  Prerequisites: GEN.553. Related: GEN.550, GEN.463, GEN.467, GEN.469,
+  GEN.377.
+  Back-scatter answer (Boss's back-scatter cards, taps 11:38 to 11:40 PM
+  EDT, 2026-10-17, as the coordinator relayed): the black hole density
+  constant alone moves to 8.1 as GEN.563 (needs GEN.560); the derived
+  counts for every remnant, the kick step and the rest of this item stay
+  in 8.4; the neutron star count already matches and does not change.
+
+- [ ] **GEN.555 The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test**
+  Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
+  the coordinator relayed). Design draft
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U6 of the draft. `multistar._Builder`
+  already draws periods, eccentricities and orientations from a law per
+  pair kind and checks stability (60 tries per pair, with the
+  Mardling-Aarseth, Eggleton-Kiseleva and Kozai screens). Make it
+  host-neutral: a pair kind for planet with planet (double planets,
+  GEN.332's rogue planet pairs) and for brown dwarf with brown dwarf or
+  a planetary-mass companion (GEN.331), laws from sources a lane
+  verifies; a planet with a moon is the same hierarchical pair at an
+  extreme mass ratio, so the Hill-fraction test
+  (`MOON_PROGRADE_STABLE_HILL_FRACTION`, 0.4895) is shared with the node
+  builder. The tree builder's output format does not change, so the
+  decision that companions of stars and star-like objects are made at
+  scatter time and planets, moons and belts at sector fill (Boss,
+  2026-10-15, 5:51 PM EDT) stands. Done: planet and brown dwarf pairs
+  come out of the builder with sourced laws and the one stability test,
+  and the existing trees are unchanged for the same seeds. Owner: Core 3 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built),
+  8.4 phase 1. Standing rules for the whole chain: NO FIXED CONTENT
+  (nothing copied from the Solar System or the Milky Way), the database
+  schema is not a constraint, no backward-compatibility shims, every
+  draw through the one wrapper `util/draw.py` (GEN.56), every recalled
+  source verified by a lane before use under the standing source rules,
+  and any change to a drawn value bumps the generator epoch (OPS.56
+  rule).
+  Prerequisites: GEN.315, GEN.331, GEN.332, GEN.581. Related: GEN.550,
+  GEN.331, GEN.332, GEN.129, GEN.327.
+  Amended (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT, 2026-10-18,
+  as the coordinator relayed; docs/design/unified-system-barycentre.md):
+  the primary-first step (GEN.581) is the first action of its
+  validation. Done also requires: a pair re-primaried gives identical
+  absolute positions.
+
+- [ ] **GEN.556 `populate(host)`: planets, belts, comets and moons come from the class tables by one recursive routine, and the system pass is absorbed**
+  Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
+  the coordinator relayed). Design draft
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U7 of the draft. One routine for any
+  host: draw its companion nodes when its table has them and depth
+  allows, draw the orbiters of every satellite row that passes the gate
+  inside the zone rule (engulfment and Roche limit to the Holman-Wiegert
+  limit for a binary or the Hill sphere in the galaxy for a single star;
+  for a planet, the Roche limit to 0.4895 of the Hill radius, prograde),
+  and call itself for each orbiter that has a table. Every orbiter is
+  built from `Stream(f"{host_seed}:orbit:{slot}")`, so building a system
+  from stored members (GEN.264 and GEN.315: the stars of a built system
+  equal the stored members) is the same call from a different starting
+  point, and a fill in any order gives the same system. It replaces the
+  host logic of `StarSystem._generate_planets`, `generate_moons` and the
+  stage C system pass (`SYSTEM_PASS_ODDS`). The fill keeps its stage
+  letters and one random stream per stage (GEN.251), so no other stage's
+  draw moves. A star system is then the recursion: group, member,
+  planet, moon. Done: a system rebuilt from its stored members and seeds
+  equals the stored one at every depth, and the old system pass is gone
+  with no shim. Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built), 8.4
+  phase 2. Standing rules for the whole chain: NO FIXED CONTENT (nothing
+  copied from the Solar System or the Milky Way), the database schema is
+  not a constraint, no backward-compatibility shims, every draw through
+  the one wrapper `util/draw.py` (GEN.56), every recalled source
+  verified by a lane before use under the standing source rules, and any
+  change to a drawn value bumps the generator epoch (OPS.56 rule).
+  Prerequisites: GEN.552, GEN.315, GEN.555, GEN.565, GEN.581. Related:
+  GEN.550,
+  GEN.264,
+  GEN.315, GEN.346.
+  System design (Boss's card S6, 12:10 to 12:13 AM EDT, 2026-10-18, as
+  the coordinator relayed): the recursion of `populate(host)` ends by
+  the hosting gate (GEN.579), not by a depth of three; moons may have
+  satellites once the gate allows it.
+  Amended (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT, 2026-10-18,
+  as the coordinator relayed; docs/design/unified-system-barycentre.md):
+  the primary-first step (GEN.581) is the first action of its
+  validation. Done also requires: a pair re-primaried gives identical
+  absolute positions.
+
+- [ ] **GEN.557 Wanderers: a rogue planet becomes a planet with no parent, drawn by the one body chain with an origin table, a notional formation host, the population's age and motion**
+  Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
+  the coordinator relayed). Design draft
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U8 of the draft; closes GEN.142
+  (peculiar velocity for rogue planets). Stage E becomes 'wanderers',
+  the bodies whose origin row says 'ejected from a system' or 'formed in
+  isolation', counted per star as in the code (Poisson, mean rate per
+  star times the realised star count times a factor; the cited 5.8 rogue
+  planets and 0.214 brown dwarfs per star stay as inputs: Mroz 2017 and
+  2020, Johnson 2020). Do: an origin table by mass bin (weights where a
+  kernel is sourced, a Dirichlet draw where only a range is known); a
+  notional formation host for an ejected planet (a host mass from the
+  IMF at its population, a formation distance, a snow line, abundances
+  from the population's [Fe/H], stored only as inputs on the planet's
+  seed, card D4); the age from the population's star formation history,
+  not uniform 0.1 to 10 Gy; velocity from the population's dispersion
+  plus an ejection speed, replacing the rogue-only solar-circle
+  shortcut; composition by the bound-planet code. CONFLICT TO ORDER
+  (design thread, relayed by the coordinator): GEN.428, GEN.429,
+  GEN.442, GEN.458, GEN.466, GEN.495, DB.69 and DB.70 (Core 4, held for
+  8.4) write composition for `Planet` objects and a `RoguePlanet` is not
+  one, so this item is built before or together with GEN.428, or the
+  rogue draw is built twice; so it carries no prerequisite on GEN.428.
+  Decided (cards D3 and D4): rogue moons from both origins, and a rogue's composition from a notional formation host through the bound-planet code. Order (coordinator, 11:31 PM EDT): GEN.428 follows or joins this item. Done: no `RoguePlanet` class draws its own
+  composition, age or velocity, GEN.142 is closed, and a rogue's
+  composition comes from the shared code. Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built), 8.4 phase 1 or 2 with GEN.428. Standing rules for
+  the whole chain: NO FIXED CONTENT (nothing copied from the Solar
+  System or the Milky Way), the database schema is not a constraint, no
+  backward-compatibility shims, every draw through the one wrapper
+  `util/draw.py` (GEN.56), every recalled source verified by a lane
+  before use under the standing source rules, and any change to a drawn
+  value bumps the generator epoch (OPS.56 rule).
+  Prerequisites: GEN.553, DB.73, GEN.565. Related: GEN.550, GEN.142,
+  GEN.428,
+  GEN.458, GEN.291.
+
+- [ ] **GEN.558 Moons of wanderers: ejection survivors and isolated-disk moons are table rows, and the fixed 20% boolean is gone**
+  Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
+  the coordinator relayed). Design draft
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U9 of the draft, card D3 (Decided: both mechanisms, as origin rows by mass bin). A
+  moon of a free planet is the ordinary moon routine with a different
+  outer limit. For an ejected planet only moons that were inside a
+  smaller fraction of the Hill radius at ejection survive (recalled and
+  unverified: Debes and Sigurdsson 2007; Hong et al. 2018), so the draw
+  takes the notional formation distance and gives a smaller zone and
+  fewer, tighter moons; for a planet formed in isolation the zone comes
+  from its circumplanetary disk (size limit from its rotation and tidal
+  radius, a source to verify). `has_moons` (one boolean at 20%, today
+  only a tidal-heating term and one sentence) and
+  `SYSTEM_PASS_ODDS["rogue-planet"]` are removed; the chance of at least
+  one moon becomes an output, with 20% a test target only until a source
+  replaces it. About 58 rogue planets per local sector at 20% is about
+  12 moon systems per sector, so cost is unmeasured (U14). Done: a rogue
+  planet's moons are Moon rows with a parent, the boolean is gone with
+  no shim, and each source is verified or the row is labelled a
+  placeholder. Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built), 8.4
+  phase 2. Standing rules for the whole chain: NO FIXED CONTENT (nothing
+  copied from the Solar System or the Milky Way), the database schema is
+  not a constraint, no backward-compatibility shims, every draw through
+  the one wrapper `util/draw.py` (GEN.56), every recalled source
+  verified by a lane before use under the standing source rules, and any
+  change to a drawn value bumps the generator epoch (OPS.56 rule).
+  Prerequisites: GEN.556, GEN.557, GEN.466. Related: GEN.550, GEN.457.
+
+- [ ] **GEN.559 Unbound comets: a size law and a cut, composition from the comet table, derived activity and velocity**
+  Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
+  the coordinator relayed). Design draft
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U10 of the draft, card D5 (Decided: rows above a size cut, the rest a computed count).
+  An interstellar comet today is a descriptive row: a diameter, a speed
+  and three components from a list of ten, activity a 50% coin, at a
+  design rate of 0.007 per pc^3 against a real 1e12 per pc^3 (range 1e11
+  to 1e14), so most cannot be rows. Use the device of the remnant mass
+  cut: a lowest size, rows above it drawn at fill from the cell's
+  stream, the count below it stays a computed figure on the sector page
+  (`interstellar_debris_count` exists). The size-frequency law and the
+  cut are a research item (candidates: Jewitt and Seligman 2023, already
+  cited in `tuning.py`, and, recalled and unverified, Do, Tucker and
+  Tonry 2018); the 0.007 rate is a labelled placeholder until then. A
+  comet is a small body with a parent or none: origin 'ejected from a
+  system' (most) or 'formed in isolation' (weight 0 until a source says
+  otherwise); mass and size from the law; composition from the comet
+  table (GEN.495, GEN.442; the two interstellar objects bracket the
+  offset, GEN.520); activity derived from composition, size and distance
+  to the nearest star; velocity from the population plus ejection speed.
+  Done: the coin and the fixed list are gone, comets above the cut are
+  rows, the count below is shown. Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built), 8.4 phase 2. Standing rules for the whole chain: NO
+  FIXED CONTENT (nothing copied from the Solar System or the Milky Way),
+  the database schema is not a constraint, no backward-compatibility
+  shims, every draw through the one wrapper `util/draw.py` (GEN.56),
+  every recalled source verified by a lane before use under the standing
+  source rules, and any change to a drawn value bumps the generator
+  epoch (OPS.56 rule).
+  Prerequisites: GEN.557, GEN.495, GEN.442. Related: GEN.550, GEN.520.
+
+- [ ] **GEN.560 Research list for the chain: ejection survival of moons, circumplanetary disks of isolated planetary-mass objects, failed-supernova and direct-collapse shares, the size law of interstellar objects**
+  Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
+  the coordinator relayed). Design draft
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U15 of the draft, a read-only research
+  item with no behaviour change. For each: find the source, read it,
+  verify the citation and the number before any lane uses it (the
+  standing source rules: verified wins, the newest verified wins, the
+  widest permission wins between two in doubt). Recalled and still
+  unverified: Debes and Sigurdsson 2007 and Hong et al. 2018 (moons of
+  ejected planets), O'Connor and Ott 2011, Sukhbold et al. 2016 and
+  Fryer et al. 2012 (explosion and remnant maps, failed-supernova and
+  direct-collapse shares), Do, Tucker and Tonry 2018 and Jewitt and
+  Seligman 2023 (the interstellar object density and size law); a paper
+  only Boss can supply is a request to him (the network refuses ADS,
+  Science, OUP, ScienceDirect and A&A; arXiv, doi.org, NTRS and Crossref
+  are open). Done: a note under docs/design/ lists each source with its
+  verified numbers and what is still missing, and U5, U9 and U10 read
+  from it. Owner: proposed, not assigned by D7 (the draft proposes a read-only research lane), 8.1 phase 1, no behaviour change (the coordinator, 11:31 PM EDT, relaying Boss's wish for foundations in 8.1). Standing rules for the whole chain: NO
+  FIXED CONTENT (nothing copied from the Solar System or the Milky Way),
+  the database schema is not a constraint, no backward-compatibility
+  shims, every draw through the one wrapper `util/draw.py` (GEN.56),
+  every recalled source verified by a lane before use under the standing
+  source rules, and any change to a drawn value bumps the generator
+  epoch (OPS.56 rule).
+  Lane (coordinator, 11:44 PM EDT as relayed): a read-only research
+  thread 'Black hole formation research (2026-10-18)' (effort high) runs
+  the black hole part first, because GEN.563 and so GEN.301 wait on it;
+  its findings go to
+  /mnt/project-files/handoffs/gen560-black-hole-formation-2026-10-18.md
+  and the coordinator relays them. The other research parts of this item
+  (moons of ejected planets, disks of isolated planetary-mass objects,
+  the interstellar size law) have no lane yet.
+  Extension (U15a, GEN.566): the size-frequency law of belts, Kuiper
+  belt objects and comets joins the interstellar size law of this item's
+  research list.
+  Finding (research thread 'Black hole formation research (2026-10-18)',
+  11:55 PM EDT as the lane reported; note
+  docs/design/black-hole-formation-sources.md): O'Connor and Ott 2011
+  (ApJ 730, 70), Sukhbold et al. 2016 (ApJ 821, 38) and Fryer et al.
+  2012 (ApJ 749, 91) are verified (arXiv text read, Crossref DOIs
+  checked; Fryer's published text not compared with arXiv v1); also
+  read: Ebinger et al. 2020, Neustadt et al. 2021, Byrne and Fraser 2022
+  (text), Maltsev 2025, Luo 2025, Zapartas 2021, Patton and Sukhbold
+  2020 (abstract level for the last three). The failed-supernova share
+  of stars of 8 to 150 Msun is 0 to 45% (solar metallicity: 0 to 7%
+  O'Connor and Ott, 5 to 21% Ebinger, 26 to 45% Sukhbold; low
+  metallicity 15 to 32%; observations allow 0 to about 0.4), more at low
+  metallicity, so the black hole share of stars born is 0 to 0.29% and
+  the density 0 to 4.0e-4 per pc^3; no single central value exists. The
+  present 7e-5 per pc^3 (0.05%) equals f = 7.8%: inside the verified
+  range, near its low end. Remnant: birth baryonic mass 2.1 to 2.5 Msun,
+  then 7.7 to 9.2 Msun (helium core) or 13.2 to 13.8 Msun (whole star)
+  on average (Sukhbold); gravitational mass 0.9 of baryonic (Fryer). The
+  0.17% in the design thread's quick check counted every progenitor of
+  20 to 100 Msun, not a failed-supernova share. Still not verified: the
+  kick-escape share, Zhang 2008, Smartt 2009, Kochanek 2015, Ugliano
+  2012. This item stays open for the moons, isolated-disk and size-law
+  parts.
+  Prerequisites: none. Related: GEN.550.
+
+- [ ] **GEN.561 The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own**
+  Failure (Core 4, 11:41 PM EDT as the lane reported; found in its TEST.155 branch, whose finding text is in
+  `changes/test155-wording-agrees-with-the-index.patch.md` there, merging with the description-layer bundle): the
+  description (`protection.requirements`) asks for an environment suit in a Yellow heat (air temperature above the
+  `heat_garment_c` limit, 45 to 122 C), a Yellow cold (below `cold_suit_c`) or an inspired oxygen above the chronic
+  limit, while `habitability.equipment`, stored as `equipment_tier`, returns a mask or ideal there. The strict expected
+  failure is `test_the_gear_and_the_equipment_label_agree_in_a_yellow_heat_cold_or_oxygen_excess` in
+  `tests/test_wording_agrees_with_the_index.py`. Decided (Boss, card "Which wins when the gear sentence and the stored
+  kit disagree in a Yellow heat?", tapped "Kit follows words", option A, 10:55 PM EDT as the lane reported; the other
+  options were "Words follow kit" and "Leave it"): the sentence wins and the kit follows it. Do: `habitability.equipment`
+  returns "environment suit" when `temperature_c` is outside [`cold_suit_c`, `heat_garment_c`] or the inspired oxygen
+  exceeds `o2_chronic`; the strict expected failure becomes a passing test. Stored `equipment_tier` of such worlds rises, so
+  it is a generator epoch change (epoch 23 pending on Core 4's branch as the lane reported; the number follows the order of
+  merges). Done: the gear class and the equipment label agree for every random and example world. Owner: Core 4 (its own
+  queue, after the description-layer bundle, UX.109, UX.107 and DOC.45; its branch note cites GEN.561). Filed by the TODO
+  thread at Core 4's request (11:27 PM EDT as the lane reported).
+  Prerequisites: GEN.218. Related: TEST.155, GEN.218, GEN.288.
+
+- [ ] **GEN.562 One function for the white-dwarf initial-final relation and for the neutron star and black hole mass draw, with no change in what any seed generates**
+  From Boss's back-scatter cards (Boss's back-scatter cards, taps 11:38
+  to 11:40 PM EDT, 2026-10-17, as the coordinator relayed) on the
+  unified orbited-body design (docs/design/unified-star-like-objects.md,
+  GEN.550). Boss's card: add to 8.1. Today the white dwarf initial-final
+  relation is applied in four files (`stellar_evolution`, `multistar`,
+  `scatter_companions`, `place_terms`) and the neutron star and black
+  hole mass draw in five (design thread's read of main at bc97f75), with
+  a separate Gaussian for a hot central star and a uniform draw for a
+  cool one. Do: one function (one module) each for the white dwarf final
+  mass from the progenitor and for the neutron star and black hole mass,
+  every caller uses it, the copies go with no shim; the output of every
+  seed stays the same, so no generator epoch bump and the golden files
+  do not change. Why in 8.1: GEN.327, GEN.253 and GEN.377 (and GEN.273
+  behind GEN.327) draw these values, so they call one function from the
+  start and a later change (the 8.4 body draw, GEN.553) is one edit.
+  Done: one definition of each rule, the callers use it, the golden
+  digest is unchanged. Owner: Core 4 (proposed: it owns the body draw by
+  Boss's card D7; the callers in `multistar` and `scatter_companions`
+  are Core 3's files, so the two lanes agree who edits them).
+  Prerequisites: none. Related: GEN.553, GEN.327, GEN.253, GEN.377,
+  GEN.273, GEN.550.
+  Owner confirmed (coordinator, 11:44 PM EDT as relayed): Core 4.
+  Core 3 (12:18 AM EDT 2026-10-18 as the lane reported, answering the
+  question owed since GEN.243): GEN.243 did not touch the planetary
+  nebula central star. It is still drawn by
+  `scatter_companions._planetary_nebula_star` (a progenitor from
+  `WHITE_DWARF_PROGENITOR_SOL` through `sample_imf_mass_sol`, the linear
+  initial-final relation `WD_IFMR_SLOPE` and `WD_IFMR_INTERCEPT` clamped
+  to `WD_MASS_RANGE_SOL`, age = the progenitor's main-sequence life); it
+  does not call `evolve_star`, so the hot and cool Gaussian-uniform
+  draws are not in that path. This item replaces that relation line, so
+  the 8.4 unification of that star is a small edit here.
+
+- [ ] **GEN.563 The black hole density depends on metallicity and is capped by the neutron star budget: the failed-supernova share of the stars born replaces the one constant 7e-5 per pc^3, and every scatter class gets its own random stream**
+  From Boss's back-scatter cards on the unified orbited-body design
+  (docs/design/unified-star-like-objects.md, GEN.550): 'BH density only'
+  at 11:38 to 11:40 PM EDT, 'Metallicity-dependent' at 11:51 PM EDT
+  (2026-10-17), and his seven cards on the design note
+  docs/design/black-hole-density.md, tapped 12:33 to 12:35 AM EDT on
+  2026-10-18 (as the design lane reported; relayed by the coordinator):
+  BH1 widest verified range with two ordered draws per galaxy, BH2
+  linear in Z held at the solar value above solar, BH3 density only with
+  no new column (GEN.553 draws a remnant's birth [Fe/H] in 8.4), BH4
+  intermediate-mass holes keep today's rate of 1.5e-9 per star (about
+  440 in the default galaxy), BH5 NOT the recommended option: cap f so
+  neutron stars plus black holes fit the massive-star share, BH6 the
+  mass law stays for GEN.553 and GEN.554 in 8.4 (masses unchanged in the
+  8.1 rescatter), BH7 the mass islands are recorded for GEN.554. Do (the
+  note's sections 1 to 9): the density at a place is the stars born
+  there times the IMF share of 8 to 150 Msun (0.6372% of stars, derived
+  from the generator's own IMF) times the share that stays (0.98) times
+  the sum over populations of w_p x C_p x F_p, where F_p is the mean of
+  f(Z) over the population's [Fe/H] at the place
+  (`metallicity.expected_factor`, the GEN.158/159 peaks) and C_p is 0.79
+  for the young window and 1 elsewhere (own computation); replace
+  `PHENOMENON_DENSITY_PC3["black-hole"]` and
+  `phenomenon_rate_per_star("black-hole")` (about 10 functions in
+  `tuning`, `phenomenon_scatter`, `phenomenon_reach`, `galaxy/profile`,
+  `galaxy/ejecta_field` and the rolled path in `run_sector`; the neutron
+  star classes read none of this). The two numbers per galaxy: `f_cap =
+  1 - NS_formed / IMF_SHARE` with `NS_formed` the neutron star rate per
+  star (4.0e-3) times (1 + the galaxy's neutron star unbound share,
+  drawn first from the seed in 0.2 to 0.4), so `f_cap` is 12.1% to
+  24.7%; `f_sun ~ U(0, min(0.45, f_cap))`; `f_low = max(min(U(0.15,
+  0.32), f_cap), f_sun)`; `f(Z) = f_low + (f_sun - f_low) x
+  min(10^[Fe/H], 1)`. The cap overrides the widest verified range (solar
+  values above 25% and metal-free values above the cap are never
+  reached), so label the cap derived and the truncated ranges verified
+  but cut by Boss's card 5; GEN.554 revisits it when the neutron star
+  rate follows the mass function. Result: holes range 0.5 to 3.1 times
+  today's count, mean 1.5 times (2.2e8 in the default galaxy).
+  Intermediate-mass holes: their rate per star is 3e-6 x 5.0e-4 =
+  1.5e-9, independent of f(Z). Streams: every shell draws all scatter
+  classes from one stream in `SCATTER_CLASSES` order, black holes first
+  (`phenomenon_scatter.py:63-68`), so changing black hole counts moves
+  the realised neutron star, planetary nebula and supernova remnant
+  rows; give each class its own stream
+  (`{seed}:phenomena:shell:{shell}:{kind}:{subtype}`), a one-time change
+  inside the wiped rescatter that also makes 'neutron stars unchanged'
+  testable bit-identical. Source states: IMF share, C_p and the cap
+  derived; the f ranges verified; the uniform shape, the f_low >= f_sun
+  ordering and the linear-in-Z shape stand-ins; the 0.98 retention
+  verified through a secondary note (the primary, Sweeney et al., was
+  not opened). Effect on GEN.301: it changes scatter output, so it bumps
+  the generator epoch (the next free) and joins the one wiped rescatter,
+  and stays a prerequisite of GEN.301; every scatter class's rows are
+  redrawn once because of the per-class streams; masses are unchanged.
+  Tests of the note: T1 the density against the derived share at three
+  places with pinned draws, T2 neutron star rows bit-identical across a
+  black hole change, T3 monotone in [Fe/H], T4 7e-5 lies inside the new
+  range and the ratio is printed (f = 7.8% reproduces it), T5 bound plus
+  ejected equals the galaxy total formed with 2% ejected, T6 the `check`
+  flag of `_group_rows` raises on no group at the lowest and highest
+  draws, T7 over 1,000 seeds f_sun in 0 to min(45%, f_cap), f_low >=
+  f_sun, f_low <= max(f_cap, f_sun), f_cap in 12.1% to 24.7%, a seed
+  reproduces its pair, T8 intermediate-mass holes stay near 440 in the
+  default galaxy, T9 neutron stars plus black holes formed never exceed
+  the 8 to 150 Msun share in any galaxy and the count stays 0.5 to 3.1
+  times the old constant. Owner: Core 3 (proposed; it owns the scatter
+  rates and GEN.377), after GEN.243 (done), GEN.244 and GEN.282.
+  Prerequisites: GEN.560. Related: GEN.560, GEN.554, GEN.377, GEN.301.
+
+- [ ] **GEN.564 A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter**
+  Filed proposed, not assigned, from Core 1's read-only code audit of
+  main at 5c49fc42 (11:50 PM EDT as the lane reported; a helper read it,
+  Core 1 did not re-verify each line, no code was run), answering the
+  back-scatter question whether a refill is enough for the fill-level
+  8.4 changes (unified chain GEN.553 to GEN.559, the composition chain,
+  DB.73 and DB.67 to DB.71). Result: yes for stars, systems, planets,
+  moons, belts and comets; not yet for scattered phenomena. What exists:
+  `POST /api/sectors/<id>/regenerate` (`api/edits.py`, job
+  `regenerate_sector`, `queue/api_jobs.py` about 270 to 300) calls
+  `delete_sector_with_contents` (`db/edits.py` 346 to 375) then
+  `run_galaxy.ensure_sector_generated`; it deletes a sector's star
+  systems (planets, moons, stars, belts and comets by cascade) and its
+  stand-alone phenomenon rows (black holes, neutron stars, nebulae,
+  supernova remnants, rogue planets, interstellar comets, asteroid
+  fields, quasars), facilities and nearest systems, and keeps
+  `phenomenon_scatter`, `scatter_members`, `scatter_nodes`,
+  `nebula_field` and `bright_stars` (foreign key ON DELETE SET NULL, so
+  they become unbuilt and rebuild). Gaps a bulk job must close: (A) the
+  delete does not reset `phenomenon_scatter.built_at` or
+  `phenomenon_scatter_classes.built` (only `mark_phenomena_built` writes
+  `built_at`, `store.py` 6212 to 6223, and the fill reads `built_at IS
+  NULL`, 6204 to 6209), so scattered black holes, neutron stars,
+  remnants, planetary nebulae, hypervelocity stars and the nucleus would
+  vanish and not come back: the job resets them for the cell (a write to
+  a scatter table, no redraw); (B) systems built from one bright star
+  with no sector (`generate_uncharted_system_job`, `api/routes.py` 1245
+  to 1272) are missed by a sector-keyed clear: select them through
+  `bright_stars.star_system_id`; (C) `species.homeworld_planet_id` and
+  facilities cascade, so the population and sector paths rerun; (D)
+  object UIDs are issued in insertion order (`store.py` 7737 and after)
+  and are public in URLs, so if 8.4 changes how many planets or moons a
+  system gets, body UIDs shift: a decision for Boss and the identity
+  chain (it bears on 'a planet that leaves its star keeps its ID'); (E)
+  the generator epoch is never compared at runtime
+  (`util/generator_epoch.py` feeds the estimate cache key and the
+  bump_version check only, no database column stores it; each sector
+  records `version_key` and `planetgen_version`), so a job needs a way
+  to tell which sectors are old. Findings on dependence: the fill copies
+  scatter values in and links back, so a changed fill draw breaks no
+  link; nothing in `generation/` or `db/store.py` reads
+  `scatter_members`, `scatter_nodes` or `member_count` today, and the
+  planned 'fill builds from stored members' (GEN.264, GEN.315, 8.1)
+  would make a clear lose the stored trees, so a refill after GEN.315
+  must keep or rebuild them. Do: a bulk job (CLI and queue command)
+  that, for every sector or a chosen range, clears the fill-level rows,
+  resets the phenomena built flags, handles the sector-less uncharted
+  systems, reruns population, and rebuilds; it refuses when a sector's
+  version marks it current. Done: after an epoch bump that changes only
+  fill output, the job brings a test galaxy to the same rows as a fresh
+  fill of the same seed, without touching a scatter row, and says what
+  it did per sector. Owner: Core 1 (proposed; it owns the identity and
+  repair chain and the regenerate path), 8.4 phase 1.
+  Boss tapped 'IDs stay stable' (11:49 PM EDT, 2026-10-17, as the
+  coordinator relayed): gap (D) is closed by DB.75, a prerequisite of
+  this item: a refill must not renumber the bodies of a system whose
+  planet or moon count changes, and a body that changes parent keeps its
+  ID.
+  Prerequisites: DB.75. Related: GEN.550, GEN.315, DB.73.
+
+- [ ] **GEN.565 The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes**
+  Part of the unified orbited-body chain (GEN.550; design note
+  docs/design/mass-object-class.md, decided: Boss's cards, as the
+  coordinator relayed with the wake times converted: E2 tapped
+  'Representability floor' at 11:46 PM EDT; E1 typed 'ok, I approve in
+  the hybrid approach you outlined, let it to TODO and ship to into the
+  plan' in the unified star-like objects thread at 11:48 PM EDT; E3
+  tapped 'Inside host chain' at 11:48 PM EDT; E4 tapped 'Plan only' at
+  11:49 PM EDT; the object-ID card 'IDs stay stable' at 11:49 PM EDT
+  (2026-10-17)). Owners follow Boss's card D7 (Core 4 chain and classes,
+  Core 1 storage). U4a of the design. Do: a `MassObject` core holding
+  what every body has (identity and ID, name, mass, radius, state vector
+  relative to its parent with `parent_type` and `parent_id`, age, spin,
+  galactic motion, sector and place, timestamps, serialization from one
+  field table), and three family classes under it where behaviour lives:
+  `StellarObject` (`Star`, `CompactRemnant`, `BlackHole`, `NeutronStar`
+  and the brown dwarf fold into it as states: protostar,
+  pre-main-sequence, main sequence, giant, white dwarf, neutron star,
+  black hole, brown dwarf; the `_skip_property_init` workaround goes),
+  `PlanetaryObject` (`Planet` with its `is_moon`, `RoguePlanet` and the
+  brown dwarf row: a moon is a planetary object whose parent is a
+  planet, a rogue planet one with no parent), `SmallBody` (`Comet`,
+  `InterstellarComet`, belt and field members). Rule: subclass only
+  where behaviour differs and the object never changes kind; anything
+  that can change or is a matter of degree is state or parent data.
+  Groups (the nodes of a multi-star tree) are not bodies and stay
+  `OrbitNode`. The floor (E2): the class can represent any body of 10 m
+  diameter (5 m radius) or more across about 34 orders of magnitude of
+  mass (1.05e6 kg for a 10 m rock to the 2.0e40 kg black hole), with
+  every position relative to the parent, never galaxy-absolute (10 m at
+  262 kpc is a relative precision of 1e-21, beyond a double); rows are
+  generated from each population's own cut (a planet or moon always, a
+  comet above its size cut, belt members on demand: the k-th largest
+  member of a belt is a pure function of the belt's seed and k, nothing
+  stored). E4: the core is planned to take ships and stations
+  (`facilities` has no mass or size column) in 9.3, and nothing is built
+  for them now. E3: built inside the host chain, not as a separate
+  refactor; it removes the 17 copies of five rules (the white dwarf
+  initial-final relation in four places, the NS/BH mass in five, three
+  age rules, two Schwarzschild formulas, two Burrows luminosities) with
+  GEN.553, and the serializers and constructor boilerplate of the nine
+  classes (about 300 to 360 and 170 to 350 lines; whole net saving about
+  800 to 1,800 of about 9,000 lines touched, the design thread's own
+  estimate and not measured by running anything). Risk to watch: the
+  orbital update steps planets and moons as state vectors, stars and
+  wanderers by galactic-orbit phase, comets by their own Kepler state,
+  and the nightly batch order is the easiest place to break
+  reproducibility; one state vector for all is a real saving that was
+  not measured. Done: the nine classes are gone with no shim, every kind
+  loads and stores through the core and its profile, and the golden
+  output is unchanged by the refactor itself (it bumps no epoch unless
+  folded into GEN.553's changes). Owner: Core 4 (Boss's card D7, 11:28
+  to 11:31 PM EDT as relayed), built with GEN.553 and GEN.557; 8.4 phase
+  1.
+  Prerequisites: none. Related: GEN.550, GEN.553, GEN.557, GEN.556,
+  GEN.552.
+  Units (Boss's cards Q1 to Q6, 11:56 to 11:57 PM EDT, as the
+  coordinator relayed): its field table gets a declared kind and native
+  unit per field in GEN.570, after the registry GEN.568 and the Quantity
+  class GEN.569; this item does not wait on them (it is a prerequisite
+  of GEN.570), but building the registry first avoids declaring the
+  table twice. The unit-suffixed attributes are swept in GEN.575.
+  Decided (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT, 2026-10-18,
+  as the coordinator relayed; docs/design/unified-system-barycentre.md,
+  cards S16 and S17): the core's point is the kinematic record of
+  GEN.584 (position, velocity, spin axis and rate in rad/s, mass with
+  mu, epoch and next-due), with identity, radius and age beside it; this
+  item declares the fields.
+
+- [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
+  Part of the unified orbited-body chain (GEN.550; design note
+  docs/design/mass-object-class.md, decided: Boss's cards, as the
+  coordinator relayed with the wake times converted: E2 tapped
+  'Representability floor' at 11:46 PM EDT; E1 typed 'ok, I approve in
+  the hybrid approach you outlined, let it to TODO and ship to into the
+  plan' in the unified star-like objects thread at 11:48 PM EDT; E3
+  tapped 'Inside host chain' at 11:48 PM EDT; E4 tapped 'Plan only' at
+  11:49 PM EDT; the object-ID card 'IDs stay stable' at 11:49 PM EDT
+  (2026-10-17)). Owners follow Boss's card D7 (Core 4 chain and classes,
+  Core 1 storage). U15a of the design. The on-demand belt members need
+  the cumulative size law (an illustration with assumed inputs, not a
+  result: a belt of 1e6 bodies above 1 km with a cumulative law falling
+  as D^-2 to D^-2.7 holds 1e10 to 1e12 bodies above 10 m), and the comet
+  size cut of GEN.559 needs the law for interstellar objects, which
+  GEN.560 already lists. Do: find, read and verify the sources for the
+  size-frequency law of asteroid belts, Kuiper belt objects and comets
+  and for the interstellar objects, with the standing source rules
+  (verified wins, the newest verified wins, widest permission between
+  two in doubt; recalled and unverified: Jewitt and Seligman 2023, Do,
+  Tucker and Tonry 2018); a paper only Boss can supply is a request to
+  him. Done: a note in docs/design/ lists each source with its verified
+  numbers and what is missing; GEN.559 and the belt member draw read
+  from it. Owner: a read-only research lane (proposed, none assigned),
+  8.4 phase 1, no behaviour change.
+  Prerequisites: none. Related: GEN.550, GEN.560, GEN.559, GEN.522.
+
+- [ ] **GEN.568 One registry of every unit the project uses**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 5 (the note offers Core 5
+  or Core 4). Do: one module with every unit, built from
+  `physics/constants.py` (which stays the home of the exact numbers),
+  each with its kind (length, mass, duration, instant, speed,
+  temperature, delta temperature, angle, power, pressure, density, flux
+  and the others the ladders carry), its dimension, factor, offset,
+  symbol, ASCII key, name, the allowed range (finite, mass at least 0,
+  speed below c) and the declared relations (mass and mu, radius and
+  diameter, period and frequency). It is new code and touches no
+  existing file; the old duplicate names stay until GEN.571 removes
+  them. Keep it free of an astropy import. Done: tests of every factor
+  against the exact definition, compound units agree with their parts
+  (km/s is km over s), round trips, and a file header that states the
+  unit rules.
+  Registry additions (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT,
+  2026-10-18, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md, section 13.5): the kinds
+  angular rate (unit rad/s, period forms shown through the time ladder)
+  and angular momentum (kg m^2/s), with dimensions. The relations module
+  also needs `rotation_period <-> angular_rate`, `obliquity(axis,
+  orbit_normal)`, `breakup_rate(mass, radius)` and
+  `galactic_orbit(position, velocity)`; Boss's relation cards R1 to R4 are decided (12:41 to 12:43 AM EDT, 2026-10-18, as the coordinator relayed): dimensions are required in the registry (GEN.585) and the relations module is GEN.586.
+  Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.569 The Quantity value class: the number as given, every other unit answered on first read and kept, declared relations, checks**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 5 (or Core 4). Do:
+  `Quantity(kind, value, unit)` that keeps the truth as given and never
+  converts it (Q1 and the point class's rule); other forms are `value *
+  factor_given / factor_wanted` from the truth on first read and cached,
+  marked stale by `set`; `__slots__`; declared relations (the point
+  class's `mass_kg` and `mu` becomes the first one); finite, sign and
+  range checks and a clear error for a unit of another kind; `to_dict`
+  giving `{kind, value, unit}`; temperature offsets, with a temperature
+  difference as its own kind. Generation kernels stay on plain floats
+  (Q2), so a PERF check on the sector fill benchmark is part of GEN.570.
+  Done: tests of every form in step after any set, the relations, the
+  refusals and that a conversion between units whose ratio is a power of
+  ten stays exact in the common range.
+  Prerequisites: GEN.568. Related: GEN.550, GEN.565, DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.570 Field declaration: every unit-valued field of the mass object classes declares its kind and native unit, and the one field table serves the serializer**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 4. Waits on GEN.568,
+  GEN.569 and GEN.565 (the mass object core, which Core 4 builds after
+  Core 3's GEN.315 and GEN.264). Do: a `Field(kind, native)` declaration
+  for `mass`, `radius`, `age`, `spin`, the parent-relative state vector
+  and galactic motion on the core and every profile field (luminosity,
+  temperature, surface gravity, pressure, diameter); the instance holds
+  a plain float in the native unit (Q2) and `obj.quantity(name)` builds
+  the Quantity; the table-driven serializer of GEN.565 reads name, kind,
+  native unit and column from it. Includes the sector-fill benchmark
+  check. Done: the sector fill time stays inside its PERF budget, the
+  serialized rows are bit-identical, and a test fails when a unit-valued
+  field has no declaration.
+  Prerequisites: GEN.568, GEN.569, GEN.565. Related: GEN.550, GEN.565,
+  DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.571 Replace the ad-hoc unit conversions with the registry, by file group, bit-identical on the golden set**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 5 (small sweeps). Do: the
+  re-declared factors outside `constants.py` (`_AU_PER_LY` and
+  `AU_PER_LY`, `LY_PER_PC`, `KM_PER_PC`, `_LY_TO_AU_FALLBACK`,
+  `MPC_PER_PC`, `BAR_TO_PA`, `ERG_PER_J`, `MINUTES_PER_YEAR`,
+  `_KM_PER_S_TO_AU_PER_S`), the 96 bare `* 1000` and `/ 1000.0` sites
+  beside a unit name, the 16 `physics/units.py` calls and the describe
+  constant `_KM_M`. Sweep one file group at a time, and only when no
+  lane has an open PR on it (the TODO thread sequences the groups by
+  file group, 517 lines in 70 files plus 385 in tests); every sweep is
+  bit-identical on the golden set. Last step, after the final sweep
+  merges: remove the duplicate constant names in `constants.py`
+  (`AU_TO_M`, `LY_TO_M`, `KM_TO_M_FACTOR`, the second spelling of c, and
+  the copy of c in `position.py`) and `physics/units.py`, with no shim
+  left. The two rounded factors are not changed here: GEN.572 does that
+  as its own epoch-changing change. Done: no unit factor is declared
+  outside the registry (a test greps for it).
+  Boss (12:04 AM EDT, 2026-10-18, as the coordinator relayed): the exact
+  AU per light-year and light-year per parsec moved to GEN.572 in 8.1;
+  this sweep keeps every other factor bit-identical and runs after
+  GEN.572 where they touch the same files (`hii.py`,
+  `asteroid_field.py`, `phenomena_plausibility.py`).
+  Relations (Boss's cards R1 to R4 on the unit relations
+  (docs/design/unified-unit-quantity.md section 11), tapped 12:41 to
+  12:43 AM EDT on 2026-10-18 (as the coordinator relayed with the wake
+  times converted), every one the recommended option: R1 dimensions in
+  the registry plus named relations with a dimension test, plain floats
+  in the kernels, no operator arithmetic on Quantity in the kernels; R2
+  relations declared as data (name, input kinds, output kind, formula)
+  with the fast float kernel and the Quantity wrapper generated from the
+  one declaration; R3 SI inside the kernels, the other unit systems (AU,
+  year, solar mass) generated from the registry where a kernel wants
+  them, so 4 pi squared comes from G's dimension and is no longer typed;
+  R4 the relations replace the hand-written laws with the UN5 sweep,
+  file group by file group, and only where the golden set is
+  bit-identical): the hand-written law sites (Schwarzschild, surface
+  gravity, density, luminosity, Kepler, escape speed, the typed G and
+  the bare 1000 juggle) are replaced by GEN.587 in the same file groups,
+  so a file group is swept for factors and laws in one pass where no
+  lane has it open; each sweep stays bit-identical on the golden set.
+  Prerequisites: GEN.568. Related: GEN.550, GEN.565, DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.572 The two rounded unit factors become exact before the one rescatter: 63241.077 AU per light-year and 3.26156 light-years per parsec**
+  Part of the unified orbited-body plan (GEN.550;
+  docs/design/unified-unit-quantity.md, Boss's cards Q5 and Q6, 11:56 to
+  11:57 PM EDT, 2026-10-17, as the coordinator relayed). Boss tapped
+  'Pull into 8.1' on the card for this item at 12:04 AM EDT, 2026-10-18
+  (as the coordinator relayed), so it is built in 8.1, before the one
+  full wiped rescatter, and is a prerequisite of GEN.301. Owner: Core 5
+  (proposed). It needs no unit registry: the three sites read the exact
+  `AU_M`, `LIGHTYEAR_M` and `PARSEC_M` of `physics/constants.py`. The
+  rounded values sit in `generation/phenomena/asteroid_field.py:35`,
+  `generation/phenomena_plausibility.py:79` and `physics/hii.py:40`;
+  they differ from the exact ones by 1.3e-9 and 1.2e-6 in relative size.
+  Why it is a rescatter item (found by the TODO thread, 2026-10-17):
+  `hii.region` returns `radius * LY_PER_PC` as the radius in light-years
+  of an H II region, which `generation/phenomena/nebula.py:273` stores,
+  so the exact factor changes a nebula's stored radius in the last
+  digits; that is a scatter output (a phenomenon scatter row), so the
+  item takes the next generator epoch and joins the list of changes the
+  one wiped rescatter carries (a refill would not be enough). The other
+  two sites only decide a size digit at its floor boundary. The three
+  constants change at once and nothing else; the later sweep of the
+  other ad-hoc factors is GEN.571 and stays bit-identical. Done: the
+  three sites read the exact factors, the golden digest changes with the
+  epoch entry, and the tests that pin nebula radii are regenerated.
+  Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.573 The position class reads its units from the registry: length unit by key, no bare 1000 or copy of c, mass and mu a declared relation**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 4 (the point in space,
+  with the mass object core). Do: `physics/position.py` takes
+  `length_unit` by registry key instead of `length_unit_m`, loses its
+  own `SPEED_OF_LIGHT_MS` and the bare `1000.0` in `set_velocity_kms`,
+  and its `mass_kg` and `mu` pair becomes the first declared relation of
+  the Quantity class. Nothing in the point class's frames or forms
+  changes. Done: position tests unchanged and bit-identical.
+  Prerequisites: GEN.568, GEN.569. Related: GEN.550, GEN.565, DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.574 Describe and API: qty() builds a Quantity and the {kind, si} shape becomes {kind, value, unit}**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 4 (the description
+  layer). Waits on UX.107 and UX.119, which it ties to. Do:
+  `describe/model.py` `qty()` builds a `Quantity`; the shape becomes
+  `{kind, value, unit}`, keeping `si` only where an API consumer needs
+  it (no backward shim otherwise); `describe/quantity.py` loses its
+  `_KM_M`. Done: the Document and API tests pass on the new shape and
+  the HTML renderer shows the same text.
+  Prerequisites: GEN.569, UX.107, UX.119. Related: GEN.550, GEN.565,
+  DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.575 Sweep the mass object classes: the 35 unit-suffixed attributes and every quantity held under two units get one declared native unit**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 4, inside GEN.565's
+  sweep. Waits on GEN.565 and GEN.570. Do: the 35 of 127 attributes in
+  the 8 class files that carry a unit only in their name, and the same
+  quantity under several units (mass as `mass_kg`, `mass_solar`,
+  `initial_mass_sol`, `primary_mass_kg`, `primary_mass_solar`; angles
+  `_deg` and `_rad`; time `_years`, `_gy`, `_hours`, `_ms`; length
+  `_km`, `_au`, `_ly`), unified by the hybrid core: one declared native
+  unit and the other form derived. Done: no class holds one quantity
+  under two units and the suffix test of DB.76 passes.
+  Prerequisites: GEN.565, GEN.570. Related: GEN.550, GEN.565, DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.576 system(host): the one function that groups bodies by their parent link and returns the barycentre sums, the central object's offset and the valid-system check**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  on the System design, as the coordinator relayed with the wake times
+  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
+  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
+  stay binary'), every one the recommended option: S1 a member's stored
+  orbit is its barycentre about the central object (a planet's stored
+  state is the barycentre of the planet and its moons), S2 the central
+  object's offset is derived on read and never stored (the wobble
+  columns go), S3 the most massive member is the central object and
+  comparable-mass pairs stay binary nodes, S4 a system node takes a
+  central child and any number of members, S5 a stand-in size cut of 1
+  km diameter for hosting satellites plus fit and stability checks, S6
+  moons may have satellites through the same gate with a tidal-survival
+  gate row first (the odds start at zero; this supersedes 'moons are the
+  lowest level'), S7 the point class's system frame measures from the
+  top-level barycentre with a new local frame from the immediate
+  parent's barycentre, S8 the stored values change in the 8.4 revision
+  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
+  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
+  2026-10-18 (project chat): a System is unified rules around the
+  central object (as binary stars are done now); every object other than
+  the central object can be another system with that object as its
+  central object, down to small objects that get no satellites; all
+  objects follow the same physics, so the origin of the system's space
+  is the gravitational center and the central object may move around it.
+  Item SY3 of the note (sections 4.1 to 4.3 and 4.6). Proposed owner,
+  not assigned by a card: Core 4, with the mass object core (GEN.565).
+  Do: `system(host)` groups the rows that share a parent link and
+  returns the cached `SystemSummary` (total mass, the sum of
+  mass-weighted relative positions, member count) and, on read, the
+  central object's offset `-sum(M_i rel_i) / M_total` and every member's
+  position, derived and cached, marked stale up the parent chain when a
+  member is added, removed or changes parent (the state is then
+  re-expressed about the new parent so no position jumps) or its mass
+  changes; it generalises `physics/system_tree.member_offsets_au` to a
+  central child plus n members (n = 1 is today's binary formula, bit for
+  bit); `valid_system(host)` checks every member is at most the
+  mass-ratio limit of the central object or is a binary node. Sums are
+  formed from relative numbers only (a double at 8 kpc has a spacing of
+  32,768 m). Done: the invariants of TEST.242 pass.
+  Prerequisites: GEN.565, GEN.315. Related: GEN.550, GEN.552, GEN.315,
+  GEN.565.
+  Amended by Boss's cards S10 to S18, 12:30 to 12:32 AM EDT, 2026-10-18,
+  as the coordinator relayed; docs/design/unified-system-barycentre.md:
+  the central object is the heaviest member by the total mass of each
+  branch (a sub-system counts as the sum of its parts; a tie under 1e-9
+  relative keeps the draw order); the same sum gives the central
+  object's velocity `-sum(M_i v_rel_i) / M_total` and a body's velocity
+  in any ancestor's frame is the sum of the hops, leaf first, each hop
+  advanced from its own epoch (analytic two-body orbit with mu = G
+  (M_central + M_member); the outer system's tide is a stability gate,
+  not a force). The step that makes the heaviest primary is GEN.581.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **GEN.577 Stored planet and moon states become the state of the barycentre of the body and its own members**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  on the System design, as the coordinator relayed with the wake times
+  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
+  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
+  stay binary'), every one the recommended option: S1 a member's stored
+  orbit is its barycentre about the central object (a planet's stored
+  state is the barycentre of the planet and its moons), S2 the central
+  object's offset is derived on read and never stored (the wobble
+  columns go), S3 the most massive member is the central object and
+  comparable-mass pairs stay binary nodes, S4 a system node takes a
+  central child and any number of members, S5 a stand-in size cut of 1
+  km diameter for hosting satellites plus fit and stability checks, S6
+  moons may have satellites through the same gate with a tidal-survival
+  gate row first (the odds start at zero; this supersedes 'moons are the
+  lowest level'), S7 the point class's system frame measures from the
+  top-level barycentre with a new local frame from the immediate
+  parent's barycentre, S8 the stored values change in the 8.4 revision
+  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
+  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
+  2026-10-18 (project chat): a System is unified rules around the
+  central object (as binary stars are done now); every object other than
+  the central object can be another system with that object as its
+  central object, down to small objects that get no satellites; all
+  objects follow the same physics, so the origin of the system's space
+  is the gravitational center and the central object may move around it.
+  Item SY5 of the note (card S1). Proposed owner, not assigned by a
+  card: Core 4. Do: a re-expression of existing rows so a planet's
+  stored state is the orbit of the barycentre of the planet and its
+  moons about the central object, the same rule at every level as the
+  scatter tree already stores; values change in the last digits, so it
+  is one epoch with DB.78. Consumers that need the true separation
+  (insolation, Hill sphere, tidal locking) keep reading the stored
+  relative vector, so they do not change. Done: moon and planet
+  positions agree with the old ones to the precision of the sum and the
+  golden digest changes with the epoch entry.
+  Prerequisites: GEN.576. Related: GEN.550, GEN.552, GEN.315, GEN.565.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **GEN.578 The point class gets the local frame and the barycentre system frame, and the system anchor is no longer the nearest star**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  on the System design, as the coordinator relayed with the wake times
+  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
+  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
+  stay binary'), every one the recommended option: S1 a member's stored
+  orbit is its barycentre about the central object (a planet's stored
+  state is the barycentre of the planet and its moons), S2 the central
+  object's offset is derived on read and never stored (the wobble
+  columns go), S3 the most massive member is the central object and
+  comparable-mass pairs stay binary nodes, S4 a system node takes a
+  central child and any number of members, S5 a stand-in size cut of 1
+  km diameter for hosting satellites plus fit and stability checks, S6
+  moons may have satellites through the same gate with a tidal-survival
+  gate row first (the odds start at zero; this supersedes 'moons are the
+  lowest level'), S7 the point class's system frame measures from the
+  top-level barycentre with a new local frame from the immediate
+  parent's barycentre, S8 the stored values change in the 8.4 revision
+  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
+  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
+  2026-10-18 (project chat): a System is unified rules around the
+  central object (as binary stars are done now); every object other than
+  the central object can be another system with that object as its
+  central object, down to small objects that get no satellites; all
+  objects follow the same physics, so the origin of the system's space
+  is the gravitational center and the central object may move around it.
+  Item SY6 of the note (section 4.3, card S7). Proposed owner, not
+  assigned by a card: Core 4 (with the position-class sweep of GEN.573).
+  Do: in `physics/position.py`, the system frame becomes the offset from
+  the barycentre of the top-level system of the body (was the nearest
+  star) and a new local frame is the offset from the immediate parent's
+  barycentre, both derived by walking the parent chain with the same
+  lazy forms as the sector and galactic frames; nothing else in the
+  class changes. Done: the point class's tests pass and a body's
+  absolute position equals the top barycentre plus the sum of the
+  offsets down its chain.
+  Prerequisites: GEN.576, GEN.569, GEN.573. Related: GEN.550, GEN.552,
+  GEN.315, GEN.565.
+  Scope expanded (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT,
+  2026-10-18, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md, item SY6 expanded in section
+  12.1 and 13.5): the point holds a live parent link to its parent's
+  point and no copied anchors (`_sector_center`, `_star_center`,
+  `_star_velocity` and the three `carry_anchors`, `carry_star_center`
+  and `carry_sector_center` entry points go: 3 call sites, 37 `.spatial`
+  uses in 5 files); each system point caches the central object's
+  offset, versioned (any change to a member bumps the version and
+  everything derived is recomputed on first read);
+  `point.coordinates(frame, form)` where the frame is `galactic`,
+  `sector`, `top`, `local` or any other point (found through the lowest
+  common ancestor), `point.velocity(frame)`, `point.set(frame, form,
+  values, unit)` and `point.reparent(new_parent)` (GEN.583); hops are
+  summed leaf first so a moon in its planet's frame never touches the
+  large galactic numbers; all frames are non-rotating and share the
+  galactic axes; spin axis and rate are held and read in those axes
+  (intrinsic, so a frame change is the identity). About +200 and -150
+  lines for the class plus about +80 for spin and velocity; the largest
+  single change in the note. The record the point holds is GEN.584.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **GEN.579 The hosting gate: can_host(body) in three parts and the gated table of the satellite share by size class, as labelled stand-in rows**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  on the System design, as the coordinator relayed with the wake times
+  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
+  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
+  stay binary'), every one the recommended option: S1 a member's stored
+  orbit is its barycentre about the central object (a planet's stored
+  state is the barycentre of the planet and its moons), S2 the central
+  object's offset is derived on read and never stored (the wobble
+  columns go), S3 the most massive member is the central object and
+  comparable-mass pairs stay binary nodes, S4 a system node takes a
+  central child and any number of members, S5 a stand-in size cut of 1
+  km diameter for hosting satellites plus fit and stability checks, S6
+  moons may have satellites through the same gate with a tidal-survival
+  gate row first (the odds start at zero; this supersedes 'moons are the
+  lowest level'), S7 the point class's system frame measures from the
+  top-level barycentre with a new local frame from the immediate
+  parent's barycentre, S8 the stored values change in the 8.4 revision
+  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
+  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
+  2026-10-18 (project chat): a System is unified rules around the
+  central object (as binary stars are done now); every object other than
+  the central object can be another system with that object as its
+  central object, down to small objects that get no satellites; all
+  objects follow the same physics, so the origin of the system's space
+  is the gravitational center and the central object may move around it.
+  Item SY8 of the note (section 4.4, cards S5 and S6). Proposed owner,
+  not assigned by a card: Core 4. Depends on GEN.552 and GEN.472
+  (built). Do: `can_host(body)` in three parts, in order: a satellite
+  must fit (the 10 m floor, the mass-ratio limit, equal-mass pairs only
+  as binary nodes), a stable orbit must exist (inside 0.4895 Hill radius
+  at pericentre, outside the host plus satellite radius and the Roche
+  limit for a fluid body, and the existing hierarchical checks
+  `is_triple_stable`), and a chance that one exists at all: a gated
+  table (GEN.472 format) of the share of bodies of each size class that
+  have satellites, shipped as labelled stand-in rows with a size cut of
+  1 km diameter (a tunable placeholder, replaced when GEN.580 or GEN.566
+  gives a verified law). A moon host starts with zero rows and a
+  tidal-survival gate row that must exist before any sub-satellite is
+  drawn. The recursion ends because the gate says no, not because of a
+  level counter. Done: a body below the cut has no satellites, a moon
+  host draws none until its rows exist, and every row carries its source
+  state.
+  Prerequisites: GEN.552. Related: GEN.550, GEN.552, GEN.315, GEN.565.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **GEN.580 Research: the binary and satellite fraction of small bodies by size, and the survival of sub-satellites of moons, to replace the stand-in cut of the hosting gate**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  on the System design, as the coordinator relayed with the wake times
+  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
+  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
+  stay binary'), every one the recommended option: S1 a member's stored
+  orbit is its barycentre about the central object (a planet's stored
+  state is the barycentre of the planet and its moons), S2 the central
+  object's offset is derived on read and never stored (the wobble
+  columns go), S3 the most massive member is the central object and
+  comparable-mass pairs stay binary nodes, S4 a system node takes a
+  central child and any number of members, S5 a stand-in size cut of 1
+  km diameter for hosting satellites plus fit and stability checks, S6
+  moons may have satellites through the same gate with a tidal-survival
+  gate row first (the odds start at zero; this supersedes 'moons are the
+  lowest level'), S7 the point class's system frame measures from the
+  top-level barycentre with a new local frame from the immediate
+  parent's barycentre, S8 the stored values change in the 8.4 revision
+  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
+  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
+  2026-10-18 (project chat): a System is unified rules around the
+  central object (as binary stars are done now); every object other than
+  the central object can be another system with that object as its
+  central object, down to small objects that get no satellites; all
+  objects follow the same physics, so the origin of the system's space
+  is the gravitational center and the central object may move around it.
+  Item SY9 of the note (sections 4.4 and 4.5). Proposed owner, not
+  assigned by a card: a read-only research lane, joining GEN.566 (the
+  size-frequency research). Verify first the three items the note
+  recalled and did not verify: the binary fraction of small asteroids by
+  size (the note recalls about 15% of near-Earth asteroids above 0.3 km,
+  from Margot et al. 2002 and Pravec et al. 2006), radiation torques
+  (YORP) spinning small bodies up and shedding satellites, and tidal
+  stripping of sub-satellites of moons by the planet (the timescale).
+  Done: a handoff note with verified citations and numbers (or a
+  statement that none was found), the size cut and the satellite-share
+  rows it supports, and a list of what stays a stand-in; raw papers stay
+  out of the repo.
+  Prerequisites: none. Related: GEN.550, GEN.552, GEN.315, GEN.565.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **GEN.581 primary_first(members): before a system is validated the heaviest branch becomes the primary and the others are recalculated, one function for the tree, the fill, moons and free pairs**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  S10 to S18 on the primary-first rule, the point-in-space frames and
+  motion and spin, tapped between 12:30 and 12:32 AM EDT on 2026-10-18
+  (as the coordinator relayed with the wake times converted), every one
+  the recommended option: S10 the original values are the origin values
+  (birth mass, age, [Fe/H], composition, formation distance) plus the
+  orbit-geometry draws, and the present state is recomputed about the
+  new primary; S11 the heaviest is found by the total mass of each
+  branch (a sub-system counts as the sum of its parts), ties under 1e-9
+  relative keep the draw order; S12 when the heaviest changes in
+  simulated time the step runs once at the event (merger, capture,
+  ejection), state-preserving, so no body jumps; S13 trajectories are an
+  analytic two-body orbit per frame with mu including the member's own
+  mass, and the outer system's tide is a stability gate (Hill fraction,
+  triple and Kozai screens); S14 a frame request names any of the named
+  frames or any other point, found through the lowest common ancestor;
+  S15 a point has a live parent link with a versioned cache and the
+  copied anchors and the three `carry_*` calls go; S16 the point holds a
+  kinematic record (position, velocity, spin axis and rate, mass with
+  mu, epoch and next-due) with identity, radius and age beside it in the
+  core; S17 spin is a unit axis plus an angular rate in rad/s; S18
+  speed, axial tilt, galactic orbital period and phase, rotation period
+  and a* become derived and their columns are dropped in the 8.4
+  revision with DB.73). Boss's refinements of 12:23, 12:24 and 12:25 AM
+  EDT, 2026-10-18 (project chat, as the coordinator relayed): any two
+  objects that orbit each other follow one rule; before a system is
+  validated the heaviest object becomes the primary and the others are
+  recalculated from their original values; the barycentre is always the
+  origin; coordinates are relative at every level, so a moon follows its
+  planet and the planet follows the star; the point-in-space object
+  updates the relative coordinates, knows its centre's position in wider
+  space and gives converted coordinates for any frame on demand; and it
+  also stores the vector of motion, the spin and the other attributes of
+  the object with a mass classification. Item SY12 of the note (sections
+  10.2 to 10.6). Proposed owner, not assigned by a card: Core 3 for the
+  function and the pair builder (GEN.555) with Core 4 for `populate`
+  (GEN.556). Do: one function `primary_first(members)` in the host
+  chain: collect the members with their original values, rank them by
+  total branch mass (a sub-system counts as the sum of its parts; a tie
+  under 1e-9 relative keeps the draw order, so the step is stable and
+  idempotent and does not depend on the order members are listed), nest
+  by distance (members inside the demoted body's stable zone stay with
+  it as a sub-system, members outside the pair's orbit orbit the pair's
+  barycentre, members in the unstable gap are moved or dropped by the
+  existing outermost-first rule), recompute everything that depends on
+  the primary from the original values, then validate. Two bodies:
+  re-primarying a pair is a relabel plus a sign (the relative position
+  is negated, the phase moves by 180 degrees, the elements and the
+  barycentre are unchanged) and every absolute position is identical.
+  The four copies of the swap retire to it: `multistar._Builder.place`
+  (line 620), `generation/system.py:299-308`,
+  `generation/wide_binary.py:119-121` and `generation/binary.py`
+  (GEN.316 already retires the two-star classes). GEN.555 and GEN.556
+  need it. Done: a pair re-primaried gives identical absolute positions,
+  the step from the originals is idempotent and independent of listing
+  order, and no second copy of the swap is left.
+  Prerequisites: GEN.315. Related: GEN.550, GEN.565, GEN.576, GEN.578.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **GEN.582 Origin and present-state split: fields marked origin or state in the Field table, the draw record held until validation finishes, and the zone and class re-run from the seed**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  S10 to S18 on the primary-first rule, the point-in-space frames and
+  motion and spin, tapped between 12:30 and 12:32 AM EDT on 2026-10-18
+  (as the coordinator relayed with the wake times converted), every one
+  the recommended option: S10 the original values are the origin values
+  (birth mass, age, [Fe/H], composition, formation distance) plus the
+  orbit-geometry draws, and the present state is recomputed about the
+  new primary; S11 the heaviest is found by the total mass of each
+  branch (a sub-system counts as the sum of its parts), ties under 1e-9
+  relative keep the draw order; S12 when the heaviest changes in
+  simulated time the step runs once at the event (merger, capture,
+  ejection), state-preserving, so no body jumps; S13 trajectories are an
+  analytic two-body orbit per frame with mu including the member's own
+  mass, and the outer system's tide is a stability gate (Hill fraction,
+  triple and Kozai screens); S14 a frame request names any of the named
+  frames or any other point, found through the lowest common ancestor;
+  S15 a point has a live parent link with a versioned cache and the
+  copied anchors and the three `carry_*` calls go; S16 the point holds a
+  kinematic record (position, velocity, spin axis and rate, mass with
+  mu, epoch and next-due) with identity, radius and age beside it in the
+  core; S17 spin is a unit axis plus an angular rate in rad/s; S18
+  speed, axial tilt, galactic orbital period and phase, rotation period
+  and a* become derived and their columns are dropped in the 8.4
+  revision with DB.73). Boss's refinements of 12:23, 12:24 and 12:25 AM
+  EDT, 2026-10-18 (project chat, as the coordinator relayed): any two
+  objects that orbit each other follow one rule; before a system is
+  validated the heaviest object becomes the primary and the others are
+  recalculated from their original values; the barycentre is always the
+  origin; coordinates are relative at every level, so a moon follows its
+  planet and the planet follows the star; the point-in-space object
+  updates the relative coordinates, knows its centre's position in wider
+  space and gives converted coordinates for any frame on demand; and it
+  also stores the vector of motion, the spin and the other attributes of
+  the object with a mass classification. Item SY13 of the note (section
+  10.3, card S10). Proposed owner, not assigned by a card: Core 4. Do:
+  mark every `Planet`, `Moon` and `Star` field in the `Field` table of
+  GEN.565 as origin (birth mass, age, [Fe/H], composition drawn first,
+  formation distance, orbit-geometry draws: semi-major axis,
+  eccentricity, inclination, node, argument of periapsis, phase at the
+  epoch) or present state (present mass and radius, class, zone,
+  temperature, tidal locking, spin, atmosphere retention, period, speed,
+  state vector, Hill radius, stability limits, insolation); hold the
+  draw record in memory until `validate_system` finishes (the stored
+  result stays the state vector, GEN.289, so no new column is needed;
+  the scatter tree already keeps full elements per node);
+  `reconcile_zone_and_class` re-runs from the seed instead of
+  regenerating. Done: a body re-primaried keeps its origin values
+  exactly and its present state equals a fresh computation about the new
+  primary.
+  Prerequisites: GEN.565, GEN.570. Related: GEN.550, GEN.565, GEN.576,
+  GEN.578.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **GEN.583 reparent: the state-preserving change of a body's parent, shared by re-primary at an event, an ejection, a capture and a merger**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  S10 to S18 on the primary-first rule, the point-in-space frames and
+  motion and spin, tapped between 12:30 and 12:32 AM EDT on 2026-10-18
+  (as the coordinator relayed with the wake times converted), every one
+  the recommended option: S10 the original values are the origin values
+  (birth mass, age, [Fe/H], composition, formation distance) plus the
+  orbit-geometry draws, and the present state is recomputed about the
+  new primary; S11 the heaviest is found by the total mass of each
+  branch (a sub-system counts as the sum of its parts), ties under 1e-9
+  relative keep the draw order; S12 when the heaviest changes in
+  simulated time the step runs once at the event (merger, capture,
+  ejection), state-preserving, so no body jumps; S13 trajectories are an
+  analytic two-body orbit per frame with mu including the member's own
+  mass, and the outer system's tide is a stability gate (Hill fraction,
+  triple and Kozai screens); S14 a frame request names any of the named
+  frames or any other point, found through the lowest common ancestor;
+  S15 a point has a live parent link with a versioned cache and the
+  copied anchors and the three `carry_*` calls go; S16 the point holds a
+  kinematic record (position, velocity, spin axis and rate, mass with
+  mu, epoch and next-due) with identity, radius and age beside it in the
+  core; S17 spin is a unit axis plus an angular rate in rad/s; S18
+  speed, axial tilt, galactic orbital period and phase, rotation period
+  and a* become derived and their columns are dropped in the 8.4
+  revision with DB.73). Boss's refinements of 12:23, 12:24 and 12:25 AM
+  EDT, 2026-10-18 (project chat, as the coordinator relayed): any two
+  objects that orbit each other follow one rule; before a system is
+  validated the heaviest object becomes the primary and the others are
+  recalculated from their original values; the barycentre is always the
+  origin; coordinates are relative at every level, so a moon follows its
+  planet and the planet follows the star; the point-in-space object
+  updates the relative coordinates, knows its centre's position in wider
+  space and gives converted coordinates for any frame on demand; and it
+  also stores the vector of motion, the spin and the other attributes of
+  the object with a mass classification. Item SY14 of the note (sections
+  10.4 and 11.2, card S12). Proposed owner, not assigned by a card: Core
+  4. Depends on the point class (GEN.578). Do:
+  `point.reparent(new_parent)` keeps the absolute position and velocity
+  and re-expresses the relative state about the new parent; the step of
+  the primary-first rule at a simulated event (merger, capture,
+  ejection; it runs once at the event and not at every update step,
+  because masses are constant between events), and the operation GEN.291
+  needs for a bound planet that becomes free; if the central object is
+  ejected the remaining members re-rank and the heaviest remaining
+  becomes central without any body moving. Done: absolute position and
+  velocity, total linear momentum and the orbital angular momentum about
+  the barycentre are unchanged by `reparent`.
+  Prerequisites: GEN.578. Related: GEN.550, GEN.565, GEN.576, GEN.578.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **GEN.584 The core's kinematic record: velocity, spin axis and rate, mass and epoch in the point, and the derived columns dropped**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  S10 to S18 on the primary-first rule, the point-in-space frames and
+  motion and spin, tapped between 12:30 and 12:32 AM EDT on 2026-10-18
+  (as the coordinator relayed with the wake times converted), every one
+  the recommended option: S10 the original values are the origin values
+  (birth mass, age, [Fe/H], composition, formation distance) plus the
+  orbit-geometry draws, and the present state is recomputed about the
+  new primary; S11 the heaviest is found by the total mass of each
+  branch (a sub-system counts as the sum of its parts), ties under 1e-9
+  relative keep the draw order; S12 when the heaviest changes in
+  simulated time the step runs once at the event (merger, capture,
+  ejection), state-preserving, so no body jumps; S13 trajectories are an
+  analytic two-body orbit per frame with mu including the member's own
+  mass, and the outer system's tide is a stability gate (Hill fraction,
+  triple and Kozai screens); S14 a frame request names any of the named
+  frames or any other point, found through the lowest common ancestor;
+  S15 a point has a live parent link with a versioned cache and the
+  copied anchors and the three `carry_*` calls go; S16 the point holds a
+  kinematic record (position, velocity, spin axis and rate, mass with
+  mu, epoch and next-due) with identity, radius and age beside it in the
+  core; S17 spin is a unit axis plus an angular rate in rad/s; S18
+  speed, axial tilt, galactic orbital period and phase, rotation period
+  and a* become derived and their columns are dropped in the 8.4
+  revision with DB.73). Boss's refinements of 12:23, 12:24 and 12:25 AM
+  EDT, 2026-10-18 (project chat, as the coordinator relayed): any two
+  objects that orbit each other follow one rule; before a system is
+  validated the heaviest object becomes the primary and the others are
+  recalculated from their original values; the barycentre is always the
+  origin; coordinates are relative at every level, so a moon follows its
+  planet and the planet follows the star; the point-in-space object
+  updates the relative coordinates, knows its centre's position in wider
+  space and gives converted coordinates for any frame on demand; and it
+  also stores the vector of motion, the spin and the other attributes of
+  the object with a mass classification. Item SY17 of the note (section
+  13.3, cards S16 to S18). Proposed owner, not assigned by a card: Core
+  4 with Core 1 for the storage. Depends on the point class (GEN.578),
+  GEN.565 and DB.73. Do: GEN.565 declares the fields of the kinematic
+  record, all relative to the parent link in the shared non-rotating
+  (galactic) axes: position, velocity, spin unit axis and spin rate in
+  rad/s (zero when not rotating; replacing `rotation_period_hours`,
+  `spin_period_ms` and the dimensionless `spin` a*), mass with `mu`,
+  epoch and next-due; identity, radius and age sit in the core beside
+  it. The 15 velocity triples, 8 spin triples, 6 rotation periods,
+  `spin_period_ms`, `spin` and the 16 galactic orbit columns collapse to
+  one set of core columns, and `orbital_speed_kms` (4 tables),
+  `axial_tilt_deg` (8) and the galactic orbit columns (16) are dropped
+  as derived in the DB.73 revision with the wobble columns of DB.78
+  (about 50 declarations): speed is the length of the velocity, tilt is
+  the angle between the spin axis and the orbit normal
+  (`spin.obliquity_between`), rotation period is 2 pi over the rate,
+  galactic period and phase come from `galactic_orbit.py` on the top
+  point, a black hole's a* from the angular momentum, and a tidally
+  locked body's rate is its orbital mean motion. `spin.set_spin` and
+  `spin_values` move onto the point. A neutron star's magnetic field is
+  profile data, not core. A moment of inertia and oblateness are not
+  modelled and the profiles leave room. Done: no consumer reads a
+  dropped column and every derived value equals the old stored one to
+  the precision of the computation.
+  Prerequisites: GEN.578, GEN.565, DB.73. Related: GEN.550, GEN.565,
+  GEN.576, GEN.578.
+  Relations: the derived columns (speed, axial tilt, galactic orbital
+  period and phase, rotation period, a*) are computed through the
+  declared kernels of GEN.586 (`obliquity`, `breakup_rate`,
+  `galactic_orbit`, `rotation_period <-> angular_rate`), per Boss's
+  cards R1 to R4 (12:41 to 12:43 AM EDT, 2026-10-18, as the coordinator
+  relayed). The kernels are SI floats; GEN.586 is not a hard
+  prerequisite, write the same formulas once if it is not yet merged and
+  let GEN.587 move them.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **GEN.585 Dimensions and unit systems in the registry: every unit carries its exponent vector, the derived kinds are listed, and a constant's number in any coherent system follows from its dimension**
+  Part of the unified orbited-body plan (GEN.550;
+  docs/design/unified-unit-quantity.md section 11, UN13). Decided:
+  Boss's cards R1 to R4 on the unit relations
+  (docs/design/unified-unit-quantity.md section 11), tapped 12:41 to
+  12:43 AM EDT on 2026-10-18 (as the coordinator relayed with the wake
+  times converted), every one the recommended option: R1 dimensions in
+  the registry plus named relations with a dimension test, plain floats
+  in the kernels, no operator arithmetic on Quantity in the kernels; R2
+  relations declared as data (name, input kinds, output kind, formula)
+  with the fast float kernel and the Quantity wrapper generated from the
+  one declaration; R3 SI inside the kernels, the other unit systems (AU,
+  year, solar mass) generated from the registry where a kernel wants
+  them, so 4 pi squared comes from G's dimension and is no longer typed;
+  R4 the relations replace the hand-written laws with the UN5 sweep,
+  file group by file group, and only where the golden set is
+  bit-identical. Boss's question (12:09 AM EDT): do we need converters
+  from one type of unit to another by putting two or more units together
+  in the right order. Proposed owner, not assigned by a card: Core 5
+  (the owner proposed for GEN.568). Do: extend the registry of GEN.568
+  so the dimension (exponent vector over mass, length, time and
+  temperature; angle and counts stay dimensionless kinds) is required on
+  every unit and kind, and list the derived kinds the code uses with
+  their dimensions and display units: density, acceleration, energy,
+  force, mass flow, flux, number density, angular momentum and angular
+  rate. Add named unit systems, each a list of base units (SI; AU, year
+  and solar mass): the number of any constant (G, c, sigma) in a system
+  is computed from its dimension and the base units, so the 4 pi squared
+  of `kepler.AU3_PER_YR2_PER_SOLAR_MASS` and the other typed shortcuts
+  are generated and tested. About 100 to 150 lines, no run-time cost.
+  Done: every unit and kind has a dimension and a test fails without
+  one; compound units agree with their parts; G, c and sigma in
+  AU-year-solar-mass equal the typed values (4 pi squared for G) to the
+  last digit or the difference is stated; a constant in a system is
+  computed, never typed.
+  Prerequisites: GEN.568. Related: GEN.550, GEN.565, GEN.568, GEN.569.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.586 physics/relations.py: the named laws declared once as data, with a fast float kernel in SI and a Quantity wrapper generated from the same declaration, and a dimension test in the mathcheck gate**
+  Part of the unified orbited-body plan (GEN.550;
+  docs/design/unified-unit-quantity.md section 11, UN14). Decided:
+  Boss's cards R1 to R4 on the unit relations
+  (docs/design/unified-unit-quantity.md section 11), tapped 12:41 to
+  12:43 AM EDT on 2026-10-18 (as the coordinator relayed with the wake
+  times converted), every one the recommended option: R1 dimensions in
+  the registry plus named relations with a dimension test, plain floats
+  in the kernels, no operator arithmetic on Quantity in the kernels; R2
+  relations declared as data (name, input kinds, output kind, formula)
+  with the fast float kernel and the Quantity wrapper generated from the
+  one declaration; R3 SI inside the kernels, the other unit systems (AU,
+  year, solar mass) generated from the registry where a kernel wants
+  them, so 4 pi squared comes from G's dimension and is no longer typed;
+  R4 the relations replace the hand-written laws with the UN5 sweep,
+  file group by file group, and only where the golden set is
+  bit-identical. Proposed owner, not assigned by a card: Core 4 (the
+  note offers Core 4). Do: one module where each relation is declared
+  once: its name, its input kinds, its output kind and a formula written
+  with `+ - * / **` (a `relations.sqrt` accepts the probe objects). Two
+  entry points come from each declaration: a float kernel in SI for
+  generation (`surface_gravity(mass_kg, radius_m)`) and a Quantity
+  wrapper for the edges (`surface_gravity(Quantity, Quantity)` returns a
+  Quantity of kind acceleration, every unit and the Earth multiple
+  answered). About 15 relations cover the hand-written laws
+  (Schwarzschild radius, surface gravity, density and sphere volume,
+  luminosity from radius and temperature and equilibrium temperature,
+  Kepler's third law and mean motion, escape speed, break-up speed and
+  vis-viva) plus Hill radius, Roche limit, inverse-square flux and mass
+  flow; the System plan adds `rotation_period <-> angular_rate`,
+  `obliquity(axis, orbit_normal)`, `breakup_rate(mass, radius)` and
+  `galactic_orbit(position, velocity)` (GEN.584 reads them for the
+  derived columns). The dimension test runs each formula once on probe
+  objects that carry a dimension and checks the result has the declared
+  output dimension, in the `physics/mathcheck.py` invariant group
+  (TEST.65); a km where m was meant or a missing square fails the gate,
+  nothing is checked at run time. About 250 to 350 lines with tests.
+  Done: each relation has a kernel, a wrapper and a dimension test; a
+  deliberately wrong formula fails the gate; kernel and wrapper agree
+  bit for bit on the golden inputs; the module header states the unit
+  rules and that kernels take plain SI floats.
+  Prerequisites: GEN.585, GEN.569. Related: GEN.550, GEN.565, GEN.568,
+  GEN.569.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.587 Replace the hand-written relation sites with the relations module, by file group, bit-identical on the golden set**
+  Part of the unified orbited-body plan (GEN.550;
+  docs/design/unified-unit-quantity.md section 11, UN15). Decided:
+  Boss's cards R1 to R4 on the unit relations
+  (docs/design/unified-unit-quantity.md section 11), tapped 12:41 to
+  12:43 AM EDT on 2026-10-18 (as the coordinator relayed with the wake
+  times converted), every one the recommended option: R1 dimensions in
+  the registry plus named relations with a dimension test, plain floats
+  in the kernels, no operator arithmetic on Quantity in the kernels; R2
+  relations declared as data (name, input kinds, output kind, formula)
+  with the fast float kernel and the Quantity wrapper generated from the
+  one declaration; R3 SI inside the kernels, the other unit systems (AU,
+  year, solar mass) generated from the registry where a kernel wants
+  them, so 4 pi squared comes from G's dimension and is no longer typed;
+  R4 the relations replace the hand-written laws with the UN5 sweep,
+  file group by file group, and only where the golden set is
+  bit-identical. Proposed owner, not assigned by a card: Core 5, in file
+  groups with GEN.571 and in files no lane has open. Do: replace the
+  roughly 50 sites that write one of the six laws by hand with the
+  kernels of GEN.586, per the table in section 11.2 of the note:
+  Schwarzschild radius (7 lines in 6 files), surface gravity (5 in 4),
+  density and sphere volume (11 in 6), luminosity, radius and
+  temperature (9 in 8), Kepler's third law and mean motion (13 in 8
+  files, in three unit systems that become one law with three views),
+  escape and break-up speed (3 in 3), G (45 lines in 26 files), and the
+  `radius_km * 1000.0` juggle (24 lines) and the 15 divisions by Earth's
+  gravity outside `constants.py`. A relation replaces a site only where
+  the golden set is unchanged; a site whose last digit differs because
+  the operation order changed goes with an epoch-changing change and the
+  one wiped rescatter if it touches scatter output, and is listed in the
+  PR. About 60 to 120 lines removed. Done: no file outside the relations
+  module writes these laws, a test greps for the typed 4 pi squared and
+  the bare 1000 beside a radius, the three Kepler unit systems are one
+  law, and every sweep is bit-identical on the golden set or carries its
+  epoch.
+  Prerequisites: GEN.586. Related: GEN.550, GEN.565, GEN.568, GEN.569.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.588 Optional: operator arithmetic on Quantity for the edges (mass divided by volume gives a density), unscheduled**
+  Part of the unified orbited-body plan (GEN.550;
+  docs/design/unified-unit-quantity.md section 11, UN16). OPTIONAL and
+  unscheduled: Boss chose option 1 on card R1 (12:41 AM EDT on
+  2026-10-18, as the coordinator relayed), which keeps operator
+  arithmetic out of the kernels; this item exists only so the second
+  option stays on the list, and nothing waits on it. If it is ever
+  built: `mass / volume` gives a Quantity whose kind is found by
+  dimension (density if it matches a listed kind, else an anonymous
+  derived unit) and adding mismatched dimensions raises, for describe,
+  the API, one-off values and tests only (about 150 lines). The kernels
+  stay plain floats because a Quantity round trip costs 22 to 37
+  microseconds against 0.17 to 0.5 for a float operation (note section
+  4.4). Proposed owner: Core 5. Done: the operators exist on Quantity,
+  the kernels do not use them (a test greps the physics kernels), and a
+  mismatch raises.
+  Prerequisites: GEN.586. Related: GEN.550, GEN.568, GEN.569.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -14409,28 +16117,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: PERF.120. Related: PERF.118, PERF.120.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
-- [ ] **PERF.127 `warm_map`: each cache family is its own command and `update.sh` builds the list**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/command-inventory.md. Today `python3 -m
-  planetgen.cli.warm_map` builds the Galaxy Map opening view, every
-  list, every sector, system and phenomenon page and the search in one
-  command, picked with `--only FAMILY`. Done: each family (the Galaxy
-  Map view, the lists, the sector pages, the system pages, the
-  phenomenon pages, the search) is its own command with its own
-  parameters, runnable alone; the step list of all of them is what
-  `update.sh` hands to the wrapper after an update; `--only` is gone
-  with no shim. Owner: Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.120. Related: PERF.118, PERF.120,
-  PERF.104.
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Design: [docs/design/command-inventory.md](design/command-inventory.md)
-
 - [ ] **PERF.128 `benchmark` is a step list handed to the wrapper, not a sequence of its own**
   Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
   we can build whatever sequences we want" (the principle of 4:18 PM
@@ -14483,7 +16169,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.239 (the tile root rises to the reach, which changes every level's
   geometry, so the build waits for it), MAP.195 (finer tiles leave out
   what a coarser tile sent, which changes what a tile holds), PERF.127
-  (warm_map: the tile build is one of its families, each its own
+  (`planetgen warm`: the tile build is one of its families, each its own
   command, PERF.120), and the plan commands (a regenerated galaxy
   changes tile content, so the build is a step the wrapper lists after
   the generation commands, never a part of one). Owner: Core 2
@@ -14528,7 +16214,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with progress bars of what it will build; a second run builds nothing
   that is current; a browser test opens the map at each built level and
   finds every tile a cache hit. Owner: Core 2 (proposed).
-  Prerequisites: PERF.127. Related: PERF.129,
+  Prerequisites: none. Related: PERF.129,
   PERF.127, PERF.104, MAP.239.
   Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
   stored here are built with halo and satellite-galaxy stars ranked
@@ -14696,6 +16382,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that rule bumps the tile cache stamp and the cached tiles are rebuilt
   once. The galaxy map lag Boss reported at the same time is MAP.249; if
   its cause is the missing cache, this item is brought forward.
+
+- [ ] **PERF.136 Measure the fill with wanderers and their moons, and decide whether the rogue cost is on by default**
+  Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
+  the coordinator relayed). Design draft
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U14 of the draft, card D8 (Decided: on by default, after a PERF measurement shows the fill stays inside the budget). Rogue planets outnumber stars about 5 to 1 and about
+  12 moon systems per sector are expected, so this may be the heaviest
+  new part of the fill; no measurement exists. Do: measure the fill and
+  the tile build with the PERF harness on the sample galaxy and on a
+  large one, with and without wanderer moons, and record the numbers.
+  Done: the measurement is in the item and the default is on if it is inside the budget. Owner: proposed, not assigned by D7 (the draft proposes Core 5), 8.4
+  phase 4. Standing rules for the whole chain: NO FIXED CONTENT (nothing
+  copied from the Solar System or the Milky Way), the database schema is
+  not a constraint, no backward-compatibility shims, every draw through
+  the one wrapper `util/draw.py` (GEN.56), every recalled source
+  verified by a lane before use under the standing source rules, and any
+  change to a drawn value bumps the generator epoch (OPS.56 rule).
+  Prerequisites: GEN.558, GEN.559. Related: GEN.550.
 
 ## DB: Database and schema
 
@@ -15618,6 +17321,237 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   stored. Owner: Core 4 (proposed, with the atmosphere chain).
   Prerequisites: GEN.411, GEN.410, DB.67. Related: DB.67, DB.68,
   GEN.411, GEN.413, GEN.415.
+
+- [ ] **DB.73 Storage for one orbited-body model: a shared parent link for every kind, free parents, the orbit node table filled, moons storable under a rogue**
+  Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
+  the coordinator relayed). Design draft
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U11 of the draft, card D1 (Decided: option 2, code plus one shared parent link, the kind tables keep their own columns). The object ID is unchanged (body
+  number 0 for the head of a system or a wanderer, 1 and up for the rest
+  on one counter; a planet leaving its star keeps its ID and changes its
+  parent). Do: widen `parent_type` and `parent_id` (on `planets` and
+  `moons` since migrations 0102 and 0109) to every orbiter and add
+  `node` (using `orbit_nodes`, which GEN.315 begins to fill) and the
+  free case (no parent); let `moons` point at free planets and brown
+  dwarfs (`moons.star_system_id` and `planet_id` stop being NOT NULL, or
+  a rogue gets a system id of its own); the build that turns a scatter
+  row into a system deletes its `scatter_members` and `scatter_nodes` in
+  its own transaction and the same rule applies to every wanderer's
+  stored seed; `rogue_planets` and `interstellar_comets` rows are
+  regenerated (wiped rescatter), not converted. The Alembic revision is
+  numbered at merge (head 0109 at 6:20 PM EDT on 2026-10-17). Done: a
+  moon of a free planet stores and loads, a planet's parent change keeps
+  its row and ID, and the schema doc is updated. Owner: Core 1 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built), 8.4 phase
+  1. Standing rules for the whole chain: NO FIXED CONTENT (nothing
+  copied from the Solar System or the Milky Way), the database schema is
+  not a constraint, no backward-compatibility shims, every draw through
+  the one wrapper `util/draw.py` (GEN.56), every recalled source
+  verified by a lane before use under the standing source rules, and any
+  change to a drawn value bumps the generator epoch (OPS.56 rule).
+  Back-scatter answer (Boss's back-scatter cards, taps 11:38 to 11:40 PM
+  EDT, 2026-10-17, as the coordinator relayed): ONE 8.4 revision carries
+  this item and DB.67 to DB.71, in the order Cores 1 and 4 agree;
+  nothing of it moves to 8.1.
+  Migration facts from Core 1's read-only code audit of main at 5c49fc42
+  (11:50 PM EDT as the lane reported; a helper read it, Core 1 did not
+  re-verify each line, no code was run): relaxing `moons.planet_id` and
+  `star_system_id` (NOT NULL, ON DELETE CASCADE, with KEYs) is a plain
+  MODIFY COLUMN ... BIGINT UNSIGNED NULL with rows kept (precedents
+  0108, 0099, 0107, 0078); `parent_type`, `parent_id` and
+  `dynamical_state` already exist on planets and moons (0102;
+  `parent_id` nullable, no foreign key, no index); head is 0109, so the
+  next revision is 0110; widening the `chk_moons_parent_type` CHECK is
+  DROP CHECK plus MODIFY (precedent 0099, 0107; verify on MariaDB); new
+  albedo and greenhouse columns (DB.67) are ADD COLUMN NULL. Not
+  trivial: the `sector_objects` view (`schema.sql` 4122 to 4128)
+  inner-joins moons on `star_system_id`, so moons with NULL there vanish
+  from it; `parent_id` has no foreign key, so dropping the two foreign
+  keys loses the system and planet cascades (keep the foreign keys on
+  the nullable columns or add explicit deletes at `db/edits.py` 100,
+  `api/routes.py` 2072 and `delete_sector_with_contents`); code reading
+  the old columns: `db/query.py` 824 to 828, 3140, 5119, 5968 to 5974,
+  `db/near.py` 209, `db/store.py` 8702 and 9410 to 9426, `db/edits.py`
+  95 to 100 and 201, `db/check.py` 95, `db/fingerprint.py` 50 (a NULL
+  `star_system_id` drops out of sector digests), `insert_moon`
+  (`store.py` 2977 to 2986); it needs an index on `parent_id`; per
+  revision housekeeping: the `schema.sql` header, `db/models.py`,
+  `_VERSION_MARKERS` (`store.py` 1526 and after), a
+  `tests/fixtures/old_schemas/schema_v109.sql.gz` and a
+  `test_migration_*.py`. Migration without a wipe: yes.
+  Decided (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT, 2026-10-18,
+  as the coordinator relayed; docs/design/unified-system-barycentre.md,
+  card S18): speed, axial tilt, galactic orbital period and phase,
+  rotation period and a* become derived and their columns are dropped in
+  this revision with the wobble columns (DB.78) and the kinematic record
+  of GEN.584.
+  Prerequisites: none. Related: GEN.550, DB.69, DB.70.
+
+- [ ] **DB.74 One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables**
+  Part of the unified orbited-body chain (GEN.550; design note
+  docs/design/mass-object-class.md, decided: Boss's cards, as the
+  coordinator relayed with the wake times converted: E2 tapped
+  'Representability floor' at 11:46 PM EDT; E1 typed 'ok, I approve in
+  the hybrid approach you outlined, let it to TODO and ship to into the
+  plan' in the unified star-like objects thread at 11:48 PM EDT; E3
+  tapped 'Inside host chain' at 11:48 PM EDT; E4 tapped 'Plan only' at
+  11:49 PM EDT; the object-ID card 'IDs stay stable' at 11:49 PM EDT
+  (2026-10-17)). Owners follow Boss's card D7 (Core 4 chain and classes,
+  Core 1 storage). U11a of the design (card D1, option 2, and E1). Today
+  ten insert functions of 558 lines (`store.py`: star 60, planet 37,
+  moon 34, belt 58, comet 64, black hole 85, neutron star 65, rogue
+  planet 41, interstellar comet 49, asteroid field 65) and the same list
+  of kind tables written out 22 times in 9 files for `rogue_planets`
+  alone (`store.py` seven times, `query.py`, `edits.py`,
+  `fingerprint.py`, `point_columns.py`, `sector_paths.py`, `api/ids.py`,
+  `cli/orbits.py`, `web/lib/slowpages.py`); the ten kind tables take 910
+  lines of `schema.sql` with 518 column declarations, 274 of them in 49
+  columns that three or more tables share. Do: one shared core table
+  (the 49 shared columns once) plus three profile tables (stellar,
+  planetary, small body) joined to it, one generic insert and load
+  driven by the column list, one registry of kind tables replacing the
+  per-site lists. The revision is the one 8.4 revision that DB.73 and
+  DB.67 to DB.71 share. Done: every kind stores and loads through the
+  generic path, the per-site lists are gone, `schema.sql`, `models.py`
+  and the migration test are updated. Owner: Core 1 (Boss's card D7),
+  8.4 phase 1, with DB.73.
+  Units (Boss's cards, 11:56 to 11:57 PM EDT, as the coordinator
+  relayed): the column list it drives from is the column registry of
+  DB.76 (Core 1); the two share one list.
+  Prerequisites: DB.73, GEN.565. Related: GEN.550, DB.73, DB.67, DB.70.
+
+- [ ] **DB.75 Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID**
+  Part of the unified orbited-body chain (GEN.550; design note
+  docs/design/mass-object-class.md, decided: Boss's cards, as the
+  coordinator relayed with the wake times converted: E2 tapped
+  'Representability floor' at 11:46 PM EDT; E1 typed 'ok, I approve in
+  the hybrid approach you outlined, let it to TODO and ship to into the
+  plan' in the unified star-like objects thread at 11:48 PM EDT; E3
+  tapped 'Inside host chain' at 11:48 PM EDT; E4 tapped 'Plan only' at
+  11:49 PM EDT; the object-ID card 'IDs stay stable' at 11:49 PM EDT
+  (2026-10-17)). Owners follow Boss's card D7 (Core 4 chain and classes,
+  Core 1 storage). Boss tapped 'IDs stay stable' on the object-ID card
+  at 11:49 PM EDT (2026-10-17, as the coordinator relayed with the wake
+  time converted): object IDs (public in URLs) survive a refill that
+  changes how many planets or moons a system gets, and a body that
+  changes parent (a planet that leaves its star) keeps its ID; IDs
+  cannot follow insertion order. Why: Core 1's audit of main at 5c49fc42
+  (11:50 PM EDT as the lane reported) found object UIDs issued in
+  insertion order (`store.py` 7737 and after), so any 8.4 change to a
+  system's body counts, or a refill that draws a different number,
+  renumbers the bodies after it. No existing item covers this (GEN.401
+  and the identity chain are about the galaxy's identity, not body
+  numbers). Do: a body's number comes from its place in the host chain
+  (the host's seed and the orbit slot of GEN.556) instead of an
+  insertion counter, so a body keeps its number when its siblings
+  change; a body that moves parent keeps its ID and its number; the
+  96-bit scheme (body number 0 for the head of a system or a wanderer, 1
+  and up for the rest) is kept or the number space widened if the slot
+  path needs it; Core 1 designs and confirms (this slot-path route is
+  the TODO thread's suggestion, inferred, not decided). Done: a test
+  refills a system whose planet count changes and every surviving body
+  keeps its ID, and a planet that leaves its star keeps its ID. Owner:
+  Core 1 (proposed: the identity chain), 8.4 phase 1.
+  Prerequisites: none. Related: GEN.564, GEN.556, GEN.291, DB.73.
+
+- [ ] **DB.76 Column registry: every numeric column declares its table, kind and stored unit, loaded and stored through one list**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 1 (storage, sequenced
+  after its current storage item; it touches `point_columns.py` and the
+  tables Core 1 changes in the identity and repair chains). Do:
+  generalise `db/point_columns.py` to every numeric column (926
+  declarations, 422 with a unit in the name): `column -> (table, kind,
+  stored unit)` generated from one list, `PointLayout` becomes a thin
+  client, and the stored unit is declared per column for precision (Q3;
+  galaxy pc, sector mpc, system km or au stay). No data migration:
+  values and units stay as stored, only declarations are added (a column
+  later unified is a normal migration). Done: a test like
+  `test_point_columns.py` that fails when a numeric column has no
+  declaration, and a test that each unit suffix equals the declared unit
+  (Q4). Fits the load and insert of DB.74.
+  Prerequisites: GEN.568. Related: GEN.550, GEN.565, DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **DB.77 Precision table: each length column declares its reference frame and the largest distance at which a 10 m body keeps a metre**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 1, after DB.76. Do: for
+  every length column declare the reference frame and the largest
+  distance for which a 10 m body keeps a metre, from the spacing of a
+  double (1 AU 3.1e-5 m, 10,000 AU 0.25 m, 1 pc 4 m, 8 kpc 32,768 m), so
+  a body farther than about 10,000 AU from its parent is parent-relative
+  in a wider frame or a wanderer with its own galactic frame at lower
+  precision. Done: a test reads the table and fails when a column with a
+  10 m floor body exceeds its limit.
+  Prerequisites: DB.76. Related: GEN.550, GEN.565, DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **DB.78 Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  on the System design, as the coordinator relayed with the wake times
+  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
+  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
+  stay binary'), every one the recommended option: S1 a member's stored
+  orbit is its barycentre about the central object (a planet's stored
+  state is the barycentre of the planet and its moons), S2 the central
+  object's offset is derived on read and never stored (the wobble
+  columns go), S3 the most massive member is the central object and
+  comparable-mass pairs stay binary nodes, S4 a system node takes a
+  central child and any number of members, S5 a stand-in size cut of 1
+  km diameter for hosting satellites plus fit and stability checks, S6
+  moons may have satellites through the same gate with a tidal-survival
+  gate row first (the odds start at zero; this supersedes 'moons are the
+  lowest level'), S7 the point class's system frame measures from the
+  top-level barycentre with a new local frame from the immediate
+  parent's barycentre, S8 the stored values change in the 8.4 revision
+  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
+  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
+  2026-10-18 (project chat): a System is unified rules around the
+  central object (as binary stars are done now); every object other than
+  the central object can be another system with that object as its
+  central object, down to small objects that get no satellites; all
+  objects follow the same physics, so the origin of the system's space
+  is the gravitational center and the central object may move around it.
+  Item SY4 of the note (section 4.1). Proposed owner, not assigned by a
+  card: Core 1 for the storage and Core 4 for the physics. Do, in the
+  8.4 revision shared with DB.73 and DB.67 to DB.71 (one revision, order
+  agreed by Cores 1 and 4): remove `stars.reflex_offset_*` and
+  `planets.reflex_offset_*` (6 columns),
+  `orbits.calculate_reflex_offset`, the correlated SQL updates in
+  `store.advance_orbital_phases`, and the nine
+  `binary_{primary,secondary,mutual}_position_*_km` columns of
+  `star_systems` plus the `orbit_nodes` copy that the parent links
+  replace; their values become reads of `system(host)`. A read of a
+  star's position gives the same number the wobble columns held, to the
+  precision of the sum. Stored values change in low digits: bumps the
+  generator epoch, one epoch with GEN.577. Done: no consumer reads a
+  removed column and the maps show the same positions to the precision
+  of the sum.
+  Prerequisites: GEN.576, DB.73. Related: GEN.550, GEN.552, GEN.315,
+  GEN.565.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
 ## API: The JSON API
 
@@ -17602,6 +19536,7 @@ clears each one.
   the pin Bug Hunt has in its #2124 branch should cover it; Bug Hunt is
   asked to check that the pinned seed gives a nonzero forced total (this
   assertion) as well as the scattered system count (line 299).
+  Sighting withdrawn (Core 1, 11:40 PM EDT as the lane reported, correcting its 11:20 PM EDT report): the failure at line 299 was its own GEN.532/533 branch's, not main's: it failed 5 of 5 there and passed 3 of 3 on 5c49fc42 (the one earlier failure on that commit was in a worktree checked out from an older commit, probably stale bytecode); its test seed's drawn bar left shell 8 band 0 wedges 0 to 6 without bright stars and the PR fills band 1. The TODO thread's own runs agreed (0 of 3 failures on main). Not a sighting of this item.
   Prerequisites: none. Related: TEST.170, TEST.111.
 
 - [ ] **TEST.172 test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug)**
@@ -17710,6 +19645,10 @@ clears each one.
   for the crumbs assertion. Core 3's "fails alone" drill-down failure
   was a different cause (TEST.236). Not reproduced in a loop, so no loop
   numbers yet.
+  Another sighting (Core 1, gate 3 of GEN.532/GEN.533, 12:22 AM EDT
+  2026-10-18 as the lane reported):
+  `test_galaxy_map_forward_to_current_jumps_to_the_newest_view` failed
+  once in gate 3, passed in gate 5 and alone twice.
   Prerequisites: none. Related: MAP.210, TEST.170, TEST.171.
 
 - [ ] **TEST.174 test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug)**
@@ -17929,7 +19868,7 @@ clears each one.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 49 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.243. Related: TEST.159.
+  Prerequisites: none. Related: TEST.159.
 
 - [ ] **TEST.185 Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius**
   Split from TEST.159 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -18749,6 +20688,10 @@ clears each one.
   itself is still not relayed (it is in Core 3's
   `.test-failures.jsonl`). Fails on main: not run on main. No solo
   reproducer.
+  Another sighting (Blocker 1, GEN.438 gate, 12:20 AM EDT 2026-10-18 as
+  the lane reported):
+  `test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone]`
+  failed under load and passed alone.
   Prerequisites: none. Related: TEST.126, TEST.172, TEST.213.
 
 - [ ] **TEST.228 test_stars_and_phenomena_fit_within_their_sectors_real_cells compares a dark cloud's centre with its sector's cell, but the cloud is filed by its centroid**
@@ -18768,7 +20711,7 @@ clears each one.
   main: no (not reached by the current seeds). Frequency: about 1 run in
   3 once GEN.532 is merged, until Core 1's exclusion lands. Reproducer:
   run the test with random seeds on GEN.532's branch.
-  Prerequisites: GEN.532. Related: GEN.532.
+  Prerequisites: none. Related: GEN.532.
 
 - [ ] **TEST.229 The browser phase of a gate stalls for minutes at one test with a headless_shell gpu process near 200% CPU (bug)**
   Found by Blocker 1 (2026-10-17, 7:02 PM EDT as the lane reported,
@@ -18910,6 +20853,13 @@ clears each one.
   Fix coded (Bug Hunt, 2026-10-17, 10:15 PM EDT as the lane reported):
   the `-?` moved to the band on branch bughunt-test225; it rides the
   TEST.225 PR, which retires this item when it merges.
+  Sighting (Core 4, 11:09 PM EDT as the lane reported; its
+  GEN.252/GEN.541 gate):
+  `test_web_browser_maps.py::test_galaxy_map_drill_down_by_clicks`
+  failed once in the gate and passed alone (8.2 s). Fits this item (a
+  negative band drawn in the sample galaxy), failure text not sent;
+  unconfirmed. Fixed on Bug Hunt's branch bughunt-test225 once that PR
+  merges.
   Prerequisites: none. Related: TEST.172, TEST.202.
 
 - [ ] **TEST.237 The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug)**
@@ -18941,6 +20891,17 @@ clears each one.
   and passes alone; Bug Hunt's gate d784f21a saw it too (passes alone
   under load 8.8 to 9.2). Neither lane's tree is stated to carry #2147,
   so these may predate the fix.
+  Another sighting (Core 3, GEN.243 gate, 10:10 to 11:40 PM EDT
+  2026-10-17 as the lane reported; relayed by Core 3 to the TODO thread
+  at 11:53 PM EDT): it failed in the 2-worker browser phase and failed
+  again in the alone-rerun at box load 9.6 (the anchor came back
+  (0.02996, -0.02996, 0) for the (5, -4) pixel shift instead of the star
+  at 0, 0, 0). Passes alone at low load on Core 3's branch (53 s) and on
+  main 9a879bb0 (280 s, under load). Frequency: 1 of 1 at load about 9,
+  0 of 2 at load under 3. Reproducer: run it alone while another gate
+  runs. Core 3's reading: load-sensitive, probably the `_ready()` wait
+  before the pointer sample. Fails on main: not in an unloaded run.
+  Owner stays with whoever takes TEST.237.
   Prerequisites: none. Related: TEST.231, TEST.126.
 
 - [ ] **TEST.238 test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it fails in a gate with no hypervelocity-star stored, and passes alone (bug)**
@@ -18970,7 +20931,220 @@ clears each one.
   generator dropped them; fix without loosening what the test proves.
   Done: the cause is on this item and the test passes 30 of 30 fresh
   draws. Owner: Bug Hunt (proposed; it saw it first).
+  Cause (Core 1, 12:22 AM EDT 2026-10-18 as the lane reported; relayed
+  to the TODO thread): the toy galaxy's reach is about 36 pc, so the
+  hypervelocity count `round(log-uniform(1e3, 1e4) x 36 / 100000)` is 0
+  in about 1 run in 6 depending on the scatter seed; this is a
+  test-assumption flake and it fails on main by chance (not seen in 4
+  runs there; it failed once in a batch run and once alone for Core 1
+  and passed 3 of 3 alone on its branch and on main). The fix is in the
+  test: pin a seed that places one or tie the expectation to the count.
+  Reproducer: loop the test 20 times from src/.
   Prerequisites: none. Related: TEST.220, TEST.224.
+
+- [ ] **TEST.239 Tests for the unified chain: determinism by host, representation counts per kind and level, rogue and comet rates, derived remnant shares**
+  Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
+  the coordinator relayed). Design draft
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U13 of the draft. Determinism by host:
+  a system rebuilt from its seeds and stored members equals the stored
+  one at every depth. Representation: counts per kind and per level
+  (TEST.159, TEST.160), the multiplicity audit for planet and moon
+  levels (TEST.162), the star composition sweep including the brown
+  dwarf and remnant branches (TEST.211). Rates: rogue and comet rates
+  against the cited ones, and the derived remnant shares against Boss's
+  densities (U5) as targets that show the gap. Done: each test exists
+  and passes, none is skipped or loosened. Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built) with the test lane, 8.4 phase 4. Standing rules
+  for the whole chain: NO FIXED CONTENT (nothing copied from the Solar
+  System or the Milky Way), the database schema is not a constraint, no
+  backward-compatibility shims, every draw through the one wrapper
+  `util/draw.py` (GEN.56), every recalled source verified by a lane
+  before use under the standing source rules, and any change to a drawn
+  value bumps the generator epoch (OPS.56 rule).
+  Prerequisites: GEN.554, GEN.558, GEN.559. Related: GEN.550, TEST.159,
+  TEST.160, TEST.162, TEST.211.
+
+- [ ] **TEST.240 Round-trip and registry tests for the mass object core: every kind's stored row round-trips, and no kind table is named in a list the registry should own**
+  Part of the unified orbited-body chain (GEN.550; design note
+  docs/design/mass-object-class.md, decided: Boss's cards, as the
+  coordinator relayed with the wake times converted: E2 tapped
+  'Representability floor' at 11:46 PM EDT; E1 typed 'ok, I approve in
+  the hybrid approach you outlined, let it to TODO and ship to into the
+  plan' in the unified star-like objects thread at 11:48 PM EDT; E3
+  tapped 'Inside host chain' at 11:48 PM EDT; E4 tapped 'Plan only' at
+  11:49 PM EDT; the object-ID card 'IDs stay stable' at 11:49 PM EDT
+  (2026-10-17)). Owners follow Boss's card D7 (Core 4 chain and classes,
+  Core 1 storage). U13a of the design. Do: a test that every kind's
+  stored row round-trips through the core and its profile (store, load,
+  equal), and a test that fails if a kind table is named in a list that
+  the kind registry should own (a grep-style check over the modules that
+  held the 22-site lists). Done: both exist and run in the normal suite.
+  Owner: Core 4 with the test lane (Boss's card D7), 8.4 phase 4.
+  Prerequisites: GEN.565, DB.74. Related: GEN.550, TEST.239.
+
+- [ ] **TEST.241 Test: no absolute position is stored for anything inside a system, so every 8.1 item that stores a position stores it parent-relative**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  on the System design, as the coordinator relayed with the wake times
+  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
+  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
+  stay binary'), every one the recommended option: S1 a member's stored
+  orbit is its barycentre about the central object (a planet's stored
+  state is the barycentre of the planet and its moons), S2 the central
+  object's offset is derived on read and never stored (the wobble
+  columns go), S3 the most massive member is the central object and
+  comparable-mass pairs stay binary nodes, S4 a system node takes a
+  central child and any number of members, S5 a stand-in size cut of 1
+  km diameter for hosting satellites plus fit and stability checks, S6
+  moons may have satellites through the same gate with a tidal-survival
+  gate row first (the odds start at zero; this supersedes 'moons are the
+  lowest level'), S7 the point class's system frame measures from the
+  top-level barycentre with a new local frame from the immediate
+  parent's barycentre, S8 the stored values change in the 8.4 revision
+  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
+  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
+  2026-10-18 (project chat): a System is unified rules around the
+  central object (as binary stars are done now); every object other than
+  the central object can be another system with that object as its
+  central object, down to small objects that get no satellites; all
+  objects follow the same physics, so the origin of the system's space
+  is the gravitational center and the central object may move around it.
+  Item SY2 of the note (section 5 point 3), an 8.1 convention with a
+  test. Proposed owner, not assigned by a card: Core 1 (it owns
+  `point_columns.py`). Do: write the rule into docs/design and the
+  header of `physics/position.py` (never store an absolute sector or
+  galactic position for anything inside a system; store the
+  parent-relative state and let the barycentre be the system's row
+  point; this is already how the scatter rows and the planets are
+  stored), and add a test that lists every table that stores a body
+  position and fails if one stores an absolute position of a body inside
+  a system. It protects GEN.317, GEN.130, GEN.327 and GEN.273. No
+  behaviour change and no epoch. Done: the test passes on main and fails
+  on a table given an absolute position.
+  Convention extended (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT,
+  2026-10-18, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md, sections 12.2 point 4 and
+  13.5): a stored state (position and velocity) is always
+  parent-relative about the parent's central object, in a non-rotating
+  frame whose axes are the galactic axes, with its epoch; a stored spin
+  is a unit axis in those axes plus a rate in rad/s. Nothing in 8.1
+  stores a state about a barycentre, in a rotating frame, or a spin in
+  another form; GEN.104 (built) and GEN.142 (superseded by GEN.557) stay
+  as they are.
+  Prerequisites: none. Related: GEN.550, GEN.552, GEN.315, GEN.565.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **TEST.242 Tests: invariants for any system at any time: zero mass-weighted offset sum, add and remove returns exactly, a parent change keeps every absolute position, one member equals the binary formula bit for bit**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  on the System design, as the coordinator relayed with the wake times
+  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
+  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
+  stay binary'), every one the recommended option: S1 a member's stored
+  orbit is its barycentre about the central object (a planet's stored
+  state is the barycentre of the planet and its moons), S2 the central
+  object's offset is derived on read and never stored (the wobble
+  columns go), S3 the most massive member is the central object and
+  comparable-mass pairs stay binary nodes, S4 a system node takes a
+  central child and any number of members, S5 a stand-in size cut of 1
+  km diameter for hosting satellites plus fit and stability checks, S6
+  moons may have satellites through the same gate with a tidal-survival
+  gate row first (the odds start at zero; this supersedes 'moons are the
+  lowest level'), S7 the point class's system frame measures from the
+  top-level barycentre with a new local frame from the immediate
+  parent's barycentre, S8 the stored values change in the 8.4 revision
+  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
+  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
+  2026-10-18 (project chat): a System is unified rules around the
+  central object (as binary stars are done now); every object other than
+  the central object can be another system with that object as its
+  central object, down to small objects that get no satellites; all
+  objects follow the same physics, so the origin of the system's space
+  is the gravitational center and the central object may move around it.
+  Item SY10 of the note. Proposed owner, not assigned by a card: Core 4,
+  with GEN.576. Do: tests that `sum(M_i r_i) = 0` about the barycentre;
+  adding a member and removing it returns the other positions exactly; a
+  parent change leaves every absolute position unchanged; a sub-system's
+  barycentre does not move when its members orbit; the single-member
+  case equals the existing close-pair formula of `system_tree.py` bit
+  for bit; and a 10 m body 10,000 AU from its parent keeps its metre in
+  the sums. Done: all pass at several depths.
+  Prerequisites: GEN.576. Related: GEN.550, GEN.552, GEN.315, GEN.565.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **TEST.243 Two test_web_browser_units tests errored in setup, one after 1041 s in pymysql (bug)**
+  Found by Core 1 (gate 5 of GEN.532/GEN.533, 12:22 AM EDT 2026-10-18 as
+  the lane reported; gate on its branch before the merge of #2186),
+  filed by the TODO thread. Test:
+  `src/tests/test_web_browser_units.py::test_the_server_text_is_the_automatic_text`
+  and `::test_a_saved_preference_is_applied_on_load`. Failure: both
+  errored in setup, not in the test body; the first after 1041 s with
+  `pymysql converters.py:60 Failed`, which is the per-test time limit
+  expiring while the setup waited on the database. Both pass alone.
+  Gate: the browser phase with 2 workers, box load 1.9. Fails on main:
+  not seen (not run on main separately). Frequency: once in 1 gate of
+  that lane; other loaded-browser failures (TEST.227, TEST.235) may be the same family (inferred, not checked). Reproducer: run
+  `pytest src/tests/test_web_browser_units.py` while a full gate runs,
+  and watch the setup time of the database fixture. Do: find what the
+  setup waited on (a lock or a slow fixture) and fix the cause. Done:
+  the cause is on this item and the two tests set up inside their limit
+  in 5 loaded runs. Owner: Bug Hunt (proposed; it owns the browser flake
+  family).
+  Prerequisites: none. Related: TEST.227, TEST.235, TEST.172.
+
+- [ ] **TEST.244 Tests: re-primary and reparent invariants, frame round trips, momentum conservation, a moon's velocity as the sum of its hops, a locked body's rate follows a primary change**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  S10 to S18 on the primary-first rule, the point-in-space frames and
+  motion and spin, tapped between 12:30 and 12:32 AM EDT on 2026-10-18
+  (as the coordinator relayed with the wake times converted), every one
+  the recommended option: S10 the original values are the origin values
+  (birth mass, age, [Fe/H], composition, formation distance) plus the
+  orbit-geometry draws, and the present state is recomputed about the
+  new primary; S11 the heaviest is found by the total mass of each
+  branch (a sub-system counts as the sum of its parts), ties under 1e-9
+  relative keep the draw order; S12 when the heaviest changes in
+  simulated time the step runs once at the event (merger, capture,
+  ejection), state-preserving, so no body jumps; S13 trajectories are an
+  analytic two-body orbit per frame with mu including the member's own
+  mass, and the outer system's tide is a stability gate (Hill fraction,
+  triple and Kozai screens); S14 a frame request names any of the named
+  frames or any other point, found through the lowest common ancestor;
+  S15 a point has a live parent link with a versioned cache and the
+  copied anchors and the three `carry_*` calls go; S16 the point holds a
+  kinematic record (position, velocity, spin axis and rate, mass with
+  mu, epoch and next-due) with identity, radius and age beside it in the
+  core; S17 spin is a unit axis plus an angular rate in rad/s; S18
+  speed, axial tilt, galactic orbital period and phase, rotation period
+  and a* become derived and their columns are dropped in the 8.4
+  revision with DB.73). Boss's refinements of 12:23, 12:24 and 12:25 AM
+  EDT, 2026-10-18 (project chat, as the coordinator relayed): any two
+  objects that orbit each other follow one rule; before a system is
+  validated the heaviest object becomes the primary and the others are
+  recalculated from their original values; the barycentre is always the
+  origin; coordinates are relative at every level, so a moon follows its
+  planet and the planet follows the star; the point-in-space object
+  updates the relative coordinates, knows its centre's position in wider
+  space and gives converted coordinates for any frame on demand; and it
+  also stores the vector of motion, the spin and the other attributes of
+  the object with a mass classification. Item SY15 of the note (sections
+  12.1 and 13.5). Proposed owner, not assigned by a card: Core 4, with
+  GEN.576 and GEN.578. Do: tests that a pair re-primaried gives
+  identical absolute positions; the step from the originals is
+  idempotent and independent of the order members are listed; `reparent`
+  preserves absolute position and velocity; frame round trips (body to
+  planet frame to galactic and back) agree to the spacing of a double at
+  the top; the mass-weighted offsets sum to zero at every level; a 10 m
+  body 10,000 AU from its parent keeps its metre; total linear momentum
+  and the orbital angular momentum about the barycentre are unchanged by
+  `primary_first` and by `reparent`; a moon's velocity in the star's
+  frame equals the sum of its hops; a locked body's rate follows a
+  primary change. Do not test that the central object is the closest to
+  the barycentre (it is not always: a light member on a tight orbit can
+  be nearer); test that it is the heaviest. Done: all pass at several
+  depths.
+  Prerequisites: GEN.576, GEN.578, GEN.581, GEN.583. Related: GEN.550,
+  GEN.565, GEN.576, GEN.578.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
 
 ## USR: User accounts
@@ -20027,7 +22201,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 47 of 48). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.243.
+  Prerequisites: none.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **DOC.50 Docs: the schema, the multi-star note and the catalogue say where the members live**
@@ -20251,6 +22425,123 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   DB.70.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
+
+- [ ] **DOC.69 Global documents are regenerated only by the TODO thread: a stale generated page never fails a lane's gate and a lane's PR never touches one**
+  Boss, 2026-10-17, 11:25 PM EDT (as the coordinator relayed): "TODO
+  should be the only one who regenerates global documents". Why now:
+  DOC.68 made a stale `docs/plan` page fail `build_todo_docs.py --check`
+  and `src/tests/test_todo_docs.py`, and the architecture map
+  (`docs/design/architecture-map.html`, DOC.67) goes stale whenever any
+  lane adds a module (`physics.brown_dwarf` did; PERF.127 regenerated it
+  in #2166), so every lane PR that adds a module regenerates a 3 MB page
+  and every two such PRs conflict. Global documents are the generated
+  pages that span the project: the architecture map, `docs/index.html`
+  and every `docs/plan/*.html`. Plan (TODO thread's proposal, with Core
+  5, which owns DOC.67 and DOC.68, to settle the details): (1) a pytest
+  marker `globaldocs` on the freshness tests
+  (`test_architecture_map.py::test_the_page_lists_every_module_of_the_package`,
+  `test_docs_index.py::test_the_index_is_up_to_date` and
+  `test_every_html_page_under_docs_is_listed_with_a_description`,
+  `test_todo_docs.py::test_pages_are_up_to_date`);
+  `src/tests/conftest.py` leaves them out of every run unless
+  `PLANETGEN_GLOBAL_DOCS=1` or `-m globaldocs` is given, so
+  `scripts/test.py changed`, `quick` and a lane's gate never run them;
+  (2) one script, `scripts/build_global_docs.py` (with `--check`), runs
+  the three builders, and `scripts/test.py globaldocs` runs the marked
+  tests with the variable set; the TODO flow runs it after every merge
+  batch and `full --check` at a release stamp runs it, so a stale page
+  fails there and nowhere a lane sees it; (3) the builders stay as they
+  are and the generated files are never in a lane PR (the lane's own
+  docs, such as a design note and its entry in `docs/design/README.md`,
+  stay lane work); (4) the rule is written in the process docs
+  (`docs/plan/execution-notes.md`, `CLAUDE.md` or the contributor doc
+  that carries the lane rules, and the briefs) and the execution plan
+  page shows it. Done: a lane that adds a module and does not touch a
+  global document passes its changed gate; the marked tests fail on a
+  stale page when run with the variable, and the TODO flow and the
+  release stamp run them; the rule is in the process docs. Order on Core
+  5's lane (coordinator, 11:25 PM EDT): first, ahead of PERF.126, so
+  other lanes do not hit conflicts. Owner: Core 5 (proposed by the
+  coordinator; it owns DOC.67 and DOC.68). Open point for Core 5:
+  whether `test_todo_docs.py`'s other checks (the ledger counts, the
+  order check) stay in the lane gate, since they read TODO.md which
+  lanes never edit.
+  Core 5's build, PR #2172 (11:40 PM EDT as the lane reported, gate
+  running), differs from the plan above in four details, all accepted:
+  the marker `globaldocs` is on six tests (architecture map module list
+  and its --check test, docs index 'is up to date', 'every page is
+  listed' and 'links resolve', todo_docs test_pages_are_up_to_date; the
+  'every page has a description' and 'links back to the index' checks
+  stay in every gate); todo_docs' other checks (ledger counts, order
+  check, the execution plan built from its sources) stay in the lane
+  gate because they read TODO.md and the notes, not the committed pages;
+  there is no new `scripts/test.py` subcommand, `scripts/test.py
+  <command> --global-docs` sets PLANETGEN_GLOBAL_DOCS=1 for any command
+  and the stamp runs `scripts/test.py full --check --global-docs`;
+  `python scripts/build_global_docs.py [--check]` rebuilds or checks the
+  architecture map, the docs/plan pages and the docs index in that
+  order. Both `warm_map` docstrings are fixed in it.
+  Prerequisites: none. Related: DOC.67, DOC.68, DOC.47.
+
+- [ ] **DOC.70 Docs for the unit registry: units-and-number-formatting.md and database-schema.md updated, the unit rules in the registry's file header**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
+  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
+  coordinator relayed, each the recommended option: Q1 other units
+  worked out on first read and kept after, Q2 a plain float in the
+  field's declared unit with a Quantity at the edges, Q3 each column's
+  stored unit declared for precision (not forced to SI), Q4 unit
+  suffixes stay in names with a test that the suffix equals the
+  declaration, Q5 rolled out inside the host chain items with
+  bit-identical sweeps, Q6 the two rounded factors become exact in the
+  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
+  one unit code that stores any kind of unit the project uses and
+  answers in every other form, as the point in space does for position.
+  Proposed owner, not assigned by a card: Core 5. Do: update
+  `docs/design/units-and-number-formatting.md` and
+  `docs/design/database-schema.md` for the registry, Quantity, Field and
+  column registry; the unit rules in the registry file header. Done: the
+  docs gate passes and no page describes a second unit table.
+  Prerequisites: GEN.568, GEN.569, DB.76. Related: GEN.550, GEN.565,
+  DB.74.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **DOC.71 Docs for the System rule: database-schema.md, the system view in docs/design and the header of system_tree.py**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  on the System design, as the coordinator relayed with the wake times
+  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
+  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
+  stay binary'), every one the recommended option: S1 a member's stored
+  orbit is its barycentre about the central object (a planet's stored
+  state is the barycentre of the planet and its moons), S2 the central
+  object's offset is derived on read and never stored (the wobble
+  columns go), S3 the most massive member is the central object and
+  comparable-mass pairs stay binary nodes, S4 a system node takes a
+  central child and any number of members, S5 a stand-in size cut of 1
+  km diameter for hosting satellites plus fit and stability checks, S6
+  moons may have satellites through the same gate with a tidal-survival
+  gate row first (the odds start at zero; this supersedes 'moons are the
+  lowest level'), S7 the point class's system frame measures from the
+  top-level barycentre with a new local frame from the immediate
+  parent's barycentre, S8 the stored values change in the 8.4 revision
+  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
+  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
+  2026-10-18 (project chat): a System is unified rules around the
+  central object (as binary stars are done now); every object other than
+  the central object can be another system with that object as its
+  central object, down to small objects that get no satellites; all
+  objects follow the same physics, so the origin of the system's space
+  is the gravitational center and the central object may move around it.
+  Item SY11 of the note. Proposed owner, not assigned by a card: Core 5.
+  Do: update `docs/design/database-schema.md` for the removed columns
+  and the parent link, write the system view into docs/design (one rule
+  instead of four origin conventions), and rewrite the header of
+  `physics/system_tree.py`. Done: the docs gate passes and no page
+  describes a second origin convention.
+  Prerequisites: GEN.576, DB.78, GEN.578. Related: GEN.550, GEN.552,
+  GEN.315, GEN.565.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
 ## VIEW: The view from a planet
 

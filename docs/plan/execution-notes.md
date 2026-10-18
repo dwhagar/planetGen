@@ -15,6 +15,7 @@ The head on main is 0109 (0107 GEN.526, 0108 DB.72, 0109 GEN.289); the next free
 
 - **Galaxy Map files and the star-budget ranking:** Core 2 owns MAP.243, MAP.247 and MAP.249 (galaxy map lag); MAP.239 and MAP.250 (satellite-galaxy stars are cut first, then halo stars, then everything else) are merged, and Bug Hunt builds MAP.251 and MAP.252 on top of MAP.250 in `_top_by_key` in `db/query.py`; no other lane edits the star-budget code.
 - **The gates share four cores:** a gate that sees load can fail slow browser tests (TEST.126, TEST.171, TEST.172, TEST.227); those are filed on goal #1694 and owned by Bug Hunt.
+- **Global documents (Boss, 11:25 PM EDT):** only the TODO thread regenerates the generated pages that span the project (the architecture map, `docs/index.html`, `docs/plan/*.html`); a lane's PR never touches or regenerates one, and a stale page must never fail a lane's gate. DOC.69 builds the mechanism (Core 5, first on its lane); until it merges, a lane whose gate fails only on a stale global page says so and the TODO thread regenerates it.
 - **The test container state:** a test that runs `migrate` can leave `state/maintenance.json` set (TEST.189); a lane that finds it works round it with `PLANETGEN_STATE_DIR`.
 
 ## Needs Boss
@@ -24,4 +25,4 @@ The head on main is 0109 (0107 GEN.526, 0108 DB.72, 0109 GEN.289); the next free
 - **GEN.537:** the plan configuration design cards (8.5).
 - **The 9.0 major version:** the `.major.md` note and the hand version bump need Boss's word.
 - **AD1:** the ammonia and water papers in the visible, and the paid ones (Karkoschka and Tomasko, Fray and Schmitt, Ayers 1980) and the ICRP 103 pages (sections 4 and 5.10) the radiation note asks for.
-- **PERF.41:** the cold-rebuild time of `warm_map`.
+- **PERF.41:** the cold-rebuild time of `planetgen warm` (was `warm_map`).

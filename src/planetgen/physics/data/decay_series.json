@@ -1,0 +1,425 @@
+{
+ "retrieved": "2026-10-17",
+ "licence": "open",
+ "title": "The decay chains of 238U, 235U and 232Th (GEN.438)",
+ "sources": [
+  "NUBASE2020 (doi:10.1088/1674-1137/abddae): the decay modes and branchings, followed from the parent down every branch of at least 0.005% to the stable lead isotope",
+  "q_kev is the energy of the step computed from the mass excesses of NUBASE2020 (the atomic mass evaluation AME2020): for alpha decay ME(parent) - ME(daughter) - ME(4He), otherwise ME(parent) - ME(daughter); for electron capture and beta-plus that is the electron-capture Q value"
+ ],
+ "notes": "Steps are between ground states; an isomer fed by a step (234mPa) is not listed, the chain's totals are the decay_energy_j of the parent in isotopes.json.",
+ "licence_note": "Computed here from the open NUBASE2020 file.",
+ "series": [
+  {
+   "parent": "U-238",
+   "end": "Pb-206",
+   "members": [
+    "U-238",
+    "Th-234",
+    "Pa-234",
+    "U-234",
+    "Th-230",
+    "Ra-226",
+    "Rn-222",
+    "Po-218",
+    "At-218",
+    "Pb-214",
+    "Bi-214",
+    "Po-214",
+    "Tl-210",
+    "Pb-210",
+    "Bi-210",
+    "Po-210",
+    "Pb-206"
+   ],
+   "steps": [
+    {
+     "from": "U-238",
+     "to": "Th-234",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 4269.784
+    },
+    {
+     "from": "Th-234",
+     "to": "Pa-234",
+     "mode": "beta-",
+     "percent": 100.0,
+     "q_kev": 274.0
+    },
+    {
+     "from": "Pa-234",
+     "to": "U-234",
+     "mode": "beta-",
+     "percent": 100.0,
+     "q_kev": 2194.0
+    },
+    {
+     "from": "U-234",
+     "to": "Th-230",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 4857.584
+    },
+    {
+     "from": "Th-230",
+     "to": "Ra-226",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 4769.984
+    },
+    {
+     "from": "Ra-226",
+     "to": "Rn-222",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 4870.684
+    },
+    {
+     "from": "Rn-222",
+     "to": "Po-218",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 5590.384
+    },
+    {
+     "from": "Po-218",
+     "to": "Pb-214",
+     "mode": "alpha",
+     "percent": 99.98,
+     "q_kev": 6114.784
+    },
+    {
+     "from": "Po-218",
+     "to": "At-218",
+     "mode": "beta-",
+     "percent": 0.02,
+     "q_kev": 256.7
+    },
+    {
+     "from": "Pb-214",
+     "to": "Bi-214",
+     "mode": "beta-",
+     "percent": 100.0,
+     "q_kev": 1018.0
+    },
+    {
+     "from": "At-218",
+     "to": "Bi-214",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 6876.084
+    },
+    {
+     "from": "Bi-214",
+     "to": "Tl-210",
+     "mode": "alpha",
+     "percent": 0.021,
+     "q_kev": 5621.084
+    },
+    {
+     "from": "Bi-214",
+     "to": "Po-214",
+     "mode": "beta-",
+     "percent": 99.979,
+     "q_kev": 3269.0
+    },
+    {
+     "from": "Tl-210",
+     "to": "Pb-210",
+     "mode": "beta-",
+     "percent": 100.0,
+     "q_kev": 5481.4
+    },
+    {
+     "from": "Po-214",
+     "to": "Pb-210",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 7833.484
+    },
+    {
+     "from": "Pb-210",
+     "to": "Bi-210",
+     "mode": "beta-",
+     "percent": 100.0,
+     "q_kev": 63.5
+    },
+    {
+     "from": "Bi-210",
+     "to": "Po-210",
+     "mode": "beta-",
+     "percent": 100.0,
+     "q_kev": 1161.2
+    },
+    {
+     "from": "Po-210",
+     "to": "Pb-206",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 5407.484
+    }
+   ]
+  },
+  {
+   "parent": "U-235",
+   "end": "Pb-207",
+   "members": [
+    "U-235",
+    "Th-231",
+    "Pa-231",
+    "Ac-227",
+    "Th-227",
+    "Fr-223",
+    "Ra-223",
+    "At-219",
+    "Rn-219",
+    "Bi-215",
+    "Po-215",
+    "Pb-211",
+    "Bi-211",
+    "Po-211",
+    "Tl-207",
+    "Pb-207"
+   ],
+   "steps": [
+    {
+     "from": "U-235",
+     "to": "Th-231",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 4678.084
+    },
+    {
+     "from": "Th-231",
+     "to": "Pa-231",
+     "mode": "beta-",
+     "percent": 100.0,
+     "q_kev": 391.5
+    },
+    {
+     "from": "Pa-231",
+     "to": "Ac-227",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 5149.884
+    },
+    {
+     "from": "Ac-227",
+     "to": "Fr-223",
+     "mode": "alpha",
+     "percent": 1.38,
+     "q_kev": 5042.284
+    },
+    {
+     "from": "Ac-227",
+     "to": "Th-227",
+     "mode": "beta-",
+     "percent": 98.62,
+     "q_kev": 44.7
+    },
+    {
+     "from": "Fr-223",
+     "to": "At-219",
+     "mode": "alpha",
+     "percent": 0.006,
+     "q_kev": 5561.384
+    },
+    {
+     "from": "Fr-223",
+     "to": "Ra-223",
+     "mode": "beta-",
+     "percent": 99.994,
+     "q_kev": 1149.1
+    },
+    {
+     "from": "Th-227",
+     "to": "Ra-223",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 6146.684
+    },
+    {
+     "from": "At-219",
+     "to": "Bi-215",
+     "mode": "alpha",
+     "percent": 93.6,
+     "q_kev": 6342.084
+    },
+    {
+     "from": "At-219",
+     "to": "Rn-219",
+     "mode": "beta-",
+     "percent": 6.4,
+     "q_kev": 1566.7
+    },
+    {
+     "from": "Ra-223",
+     "to": "Rn-219",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 5978.984
+    },
+    {
+     "from": "Bi-215",
+     "to": "Po-215",
+     "mode": "beta-",
+     "percent": 100.0,
+     "q_kev": 2170.8
+    },
+    {
+     "from": "Rn-219",
+     "to": "Po-215",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 6946.184
+    },
+    {
+     "from": "Po-215",
+     "to": "Pb-211",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 7526.284
+    },
+    {
+     "from": "Pb-211",
+     "to": "Bi-211",
+     "mode": "beta-",
+     "percent": 100.0,
+     "q_kev": 1366.0
+    },
+    {
+     "from": "Bi-211",
+     "to": "Tl-207",
+     "mode": "alpha",
+     "percent": 99.724,
+     "q_kev": 6750.084
+    },
+    {
+     "from": "Bi-211",
+     "to": "Po-211",
+     "mode": "beta-",
+     "percent": 0.276,
+     "q_kev": 573.5
+    },
+    {
+     "from": "Tl-207",
+     "to": "Pb-207",
+     "mode": "beta-",
+     "percent": 100.0,
+     "q_kev": 1418.0
+    },
+    {
+     "from": "Po-211",
+     "to": "Pb-207",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 7594.584
+    }
+   ]
+  },
+  {
+   "parent": "Th-232",
+   "end": "Pb-208",
+   "members": [
+    "Th-232",
+    "Ra-228",
+    "Ac-228",
+    "Th-228",
+    "Ra-224",
+    "Rn-220",
+    "Po-216",
+    "Pb-212",
+    "Bi-212",
+    "Po-212",
+    "Tl-208",
+    "Pb-208"
+   ],
+   "steps": [
+    {
+     "from": "Th-232",
+     "to": "Ra-228",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 4081.584
+    },
+    {
+     "from": "Ra-228",
+     "to": "Ac-228",
+     "mode": "beta-",
+     "percent": 100.0,
+     "q_kev": 45.5
+    },
+    {
+     "from": "Ac-228",
+     "to": "Th-228",
+     "mode": "beta-",
+     "percent": 100.0,
+     "q_kev": 2123.8
+    },
+    {
+     "from": "Th-228",
+     "to": "Ra-224",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 5520.184
+    },
+    {
+     "from": "Ra-224",
+     "to": "Rn-220",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 5788.884
+    },
+    {
+     "from": "Rn-220",
+     "to": "Po-216",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 6404.784
+    },
+    {
+     "from": "Po-216",
+     "to": "Pb-212",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 6906.284
+    },
+    {
+     "from": "Pb-212",
+     "to": "Bi-212",
+     "mode": "beta-",
+     "percent": 100.0,
+     "q_kev": 569.0
+    },
+    {
+     "from": "Bi-212",
+     "to": "Tl-208",
+     "mode": "alpha",
+     "percent": 35.94,
+     "q_kev": 6207.284
+    },
+    {
+     "from": "Bi-212",
+     "to": "Po-212",
+     "mode": "beta-",
+     "percent": 64.06,
+     "q_kev": 2251.5
+    },
+    {
+     "from": "Tl-208",
+     "to": "Pb-208",
+     "mode": "beta-",
+     "percent": 100.0,
+     "q_kev": 4998.4
+    },
+    {
+     "from": "Po-212",
+     "to": "Pb-208",
+     "mode": "alpha",
+     "percent": 100.0,
+     "q_kev": 8954.184
+    }
+   ]
+  }
+ ]
+}
