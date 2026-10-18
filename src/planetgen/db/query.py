@@ -4213,6 +4213,19 @@ bring the top of each population to about the same key (400 x 2,500 =
 child tile lists every star its parent listed inside the child's box."""
 
 
+LOWEST_PRIORITY_TIER = {"halo": 1, "satellite": 2, "satellite_young": 2, "satellite_intermediate": 2}
+"""dict: The tier of the populations every map lists last (MAP.250); a population not here is tier 0. Stars of the
+stellar halo (tier 1) and of the satellite galaxies (tier 2) are the lowest priority of any star budget: a list that
+cannot hold every star drops the satellite galaxies' first, then the halo's, and only then a star of the disc, the
+bulge, the nuclei or a globular cluster, whatever the brightness. The tier comes before `_map_key`, so the order is
+still one for every tile level and the lists stay nested."""
+
+
+def _map_tier(star):
+    """A bright star's tier (`LOWEST_PRIORITY_TIER`): 0 listed first, the larger last."""
+    return LOWEST_PRIORITY_TIER.get(star["population"], 0)
+
+
 def _map_key(star):
     """A bright star's rank key (`BRIGHT_STAR_POPULATION_WEIGHT`), larger is listed first."""
     return star["luminosity_sol"] * BRIGHT_STAR_POPULATION_WEIGHT.get(star["population"], 1.0)
@@ -4220,12 +4233,11 @@ def _map_key(star):
 
 def _top_by_key(stars, limit):
     """
-    At most `limit` of `stars`, the highest `_map_key` first (ties by
-    descending id). The same key at every tile level, so the list of a tile
-    inside a bigger one holds all of the bigger one's stars inside it (as long
-    as its own limit is no smaller).
+    At most `limit` of `stars`: the lowest `_map_tier` first (the halo and the satellite galaxies come last), then
+    the highest `_map_key` first (ties by descending id). The same order at every tile level, so the list of a
+    tile inside a bigger one holds all of the bigger one's stars inside it (as long as its own limit is no smaller).
     """
-    return sorted(stars, key=lambda star: (-_map_key(star), -star["id"]))[:limit]
+    return sorted(stars, key=lambda star: (_map_tier(star), -_map_key(star), -star["id"]))[:limit]
 
 
 def galaxy_brightest_stars(conn, count=GALAXY_TILE_BRIGHTEST_SAMPLE):
