@@ -132,7 +132,7 @@ def _in_rung(rung, value):
     number = (value - rung.offset) / rung.factor
     if rung.whole_from is not None and abs(value) >= rung.whole_from:
         return f"{format_number(number)} {rung.symbol}"
-    text = _three_figures_or_tiny(number)
+    text = three_figures_or_tiny(number)
     return f"{text} {rung.singular if rung.singular and text == '1' else rung.symbol}"
 
 
@@ -204,7 +204,7 @@ def _companion_applies(companion, value):
 def _companion_number(companion, value):
     """`value` in a companion unit, without the symbol."""
     number = (value - companion.offset) / companion.factor
-    return _whole_or_tenths(number) if companion.whole else _three_figures_or_tiny(number)
+    return _whole_or_tenths(number) if companion.whole else three_figures_or_tiny(number)
 
 
 def _aside_symbol(ladder, value):
@@ -341,7 +341,7 @@ def format_temperature_k(kelvin, companions=True):
     return format_quantity(ladders.TEMPERATURE, kelvin, companions)
 
 
-def _three_figures_or_tiny(value):
+def three_figures_or_tiny(value):
     """`_three_figures`, but scientific below a thousandth, where a
     unit would otherwise run to a row of zeros (UX.81)."""
     if value != 0 and abs(value) < ladders.TINY_NUMBER:
@@ -401,7 +401,7 @@ def format_gravity_g_short(gravity_g):
     gravity_g = float(gravity_g)
     if not math.isfinite(gravity_g):
         return "–" if math.isnan(gravity_g) else f"{gravity_g:g} g"
-    return f"{_three_figures_or_tiny(gravity_g)} g"
+    return f"{three_figures_or_tiny(gravity_g)} g"
 
 
 def format_mass_kg(kilograms):

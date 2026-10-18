@@ -1,8 +1,11 @@
 # planetgen/physics/protection.py
 
 """
-The protective gear a visitor needs on a world, and the paragraph that says where each
-habitability category falls and why (GEN.208).
+The one habitability describer (GEN.218): the protective gear a visitor needs on a world, and the rows and the
+paragraph that say where each of the six PHI-6 categories falls and why (GEN.208, GEN.216), in Boss's short wording.
+`rating` returns the rows (domain, colour, score, sentence) that `describe` shows as a table; `paragraph` is the
+same rows as one paragraph for the text formats. Numbers go through `util/format.three_figures_or_tiny`, the
+formatter the unit ladders use, and the gases are named by `atmosphere.SPECIES_NAMES`.
 
 The gear ladder is the research notes' (Environmental.Extremes.and.Protection.Research.md,
 Thermal.Respiratory.Protection.Research.md): modular gear (clothing, masks), intermediate
@@ -15,22 +18,21 @@ and solar-storm doses need a shelter, not a suit.
 Everything here is a pure function of a `habitability.World`.
 """
 
-from planetgen.physics import habitability
+from planetgen.physics import atmosphere, habitability
 from planetgen.physics.habitability import (
     ARMSTRONG_KPA, GAS_LIMITS_KPA, MASK_MIN_KPA, TIERS, gas_inputs, inspired_o2_kpa, tier, water_inputs, wet_bulb_c)
 from planetgen.physics.protection_limits import limit
+from planetgen.util.format import three_figures_or_tiny
 
 SUIT_RANK = {"none": 0, "mask": 1, "scrubber": 2, "garment": 3, "suit": 4, "hardened": 5}
 """dict: How heavy a class of gear is, lightest first: nothing, a breathing mask, a mask with a
 scrubber, clothing or garments for the weather, an environment suit, a hardened habitat (no suit helps)."""
 
-GAS_NAMES = {"CO2": "carbon dioxide", "CO": "carbon monoxide", "H2S": "hydrogen sulfide", "SO2": "sulfur dioxide"}
 
 
-def _num(value):
-    if abs(value) >= 1000.0:
-        return f"{value:,.0f}"
-    return f"{value:.3g}" if abs(value) >= 0.001 or value == 0 else f"{value:.1e}"
+def _gas(symbol):
+    """A gas in a sentence: `CO2` is "carbon dioxide" (`atmosphere.SPECIES_NAMES`)."""
+    return atmosphere.SPECIES_NAMES[symbol.lower()]
 
 
 def _join(items, conjunction="and"):
@@ -40,15 +42,15 @@ def _join(items, conjunction="and"):
 
 
 def _kpa(value):
-    return f"{_num(value)} kPa"
+    return f"{three_figures_or_tiny(value)} kPa"
 
 
 def _celsius(value):
-    return f"{_num(value)} C"
+    return f"{three_figures_or_tiny(value)} C"
 
 
 def _dose(sv_yr):
-    return f"{_num(sv_yr)} Sv a year" if sv_yr >= 1.0 else f"{_num(sv_yr * 1000.0)} mSv a year"
+    return f"{three_figures_or_tiny(sv_yr)} Sv a year" if sv_yr >= 1.0 else f"{three_figures_or_tiny(sv_yr * 1000.0)} mSv a year"
 
 
 def pressure_need(world):
@@ -103,7 +105,7 @@ def air_need(world):
         need = ("suit", "an environment suit with its own air", f"{_kpa(o2)} of oxygen reaches the lungs, more than months of breathing allow")
     too_much = [(gas, kpa) for gas, kpa, band in gas_inputs(world) if habitability.band_score(kpa, band, log=True) < 1.0]
     if too_much:
-        names = " and ".join(GAS_NAMES[gas] for gas, _kpa_value in too_much)
+        names = " and ".join(_gas(gas) for gas, _kpa_value in too_much)
         worst_score = min(habitability.band_score(kpa, band, log=True) for _g, kpa, band in gas_inputs(world))
         if worst_score < 0.4:
             return "suit", "an environment suit with its own air", f"{names} is far past what a filter can take out"

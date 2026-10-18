@@ -26,7 +26,7 @@ import math
 
 from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import atmosphere, constants, habitability_explain, habitability_world, hydrosphere, magnetism, planets as planetPhysics, radiation
+from planetgen.physics import atmosphere, constants, habitability_world, hydrosphere, magnetism, planets as planetPhysics, protection, radiation
 from planetgen.physics.position import HoldsOrbitPosition, axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
@@ -588,7 +588,7 @@ class Planet(HoldsOrbitPosition):
             return []
         world, host = scored
         bold = (lambda text: f"**{text}**") if self.system_config.MARKDOWN else (lambda text: f"'''{text}'''")
-        return habitability_explain.paragraphs(world, bold, compact_host=host)
+        return [protection.paragraph(world, bold, compact_host=host)]
 
     def to_paragraph_list(self):
         """
