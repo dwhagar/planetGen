@@ -23,9 +23,10 @@ from planetgen.galaxy.skeleton import (
     shell_candidate_counts,
     shell_candidate_sector_count,
 )
+from tests.toy_shape import toy_shape
 
 EDGE_PC = 4.0
-SMALL = build_galaxy_shape(
+SMALL = toy_shape(
     disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0, bulge_amplitude=2.0,
     arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4)
 MILKY_WAY = build_galaxy_shape(

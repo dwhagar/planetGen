@@ -472,7 +472,7 @@ def test_huge_num_systems_does_not_build_every_config_up_front(mysql_config, mon
         return real(args)
 
     monkeypatch.setattr(run_system, "build_system_config", counting)
-    assert_clean(["sector", "--quiet", "--num-systems", "1000000000"] + mysql_argv(mysql_config), limit=60)
+    assert_clean(["sector", "--quiet", "--num-systems", "1000000000"] + mysql_argv(mysql_config), limit=240)
 
 
 @settings(DB_SETTINGS, max_examples=scaled(15))

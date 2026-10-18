@@ -22,10 +22,11 @@ from planetgen.generation import bright_stars as brightStars, run_galaxy
 from planetgen.generation.star_population import placed_star_fraction
 from planetgen.physics import constants
 from planetgen.physics.units import ly_to_pc
+from tests.toy_shape import toy_shape
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 SEED = bytes(range(16))
-SHAPE = build_galaxy_shape(
+SHAPE = toy_shape(
     disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
     bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
     structure=structure_draw.draw_structure(SEED),   # a stored shape carries no structure: its seed draws it
