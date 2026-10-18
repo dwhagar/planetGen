@@ -139,6 +139,21 @@
       "epoch": 28,
       "first_release": "8.0.1813",
       "reason": "A brown dwarf's temperature, radius and luminosity follow the cooling track of Baraffe et al. (2015) in place of a single old-age power law, so the heaviest brown dwarfs stay as hot L dwarfs and a free-floating brown dwarf's radius, flux and surface change with its drawn age (GEN.549)."
+    },
+    {
+      "epoch": 29,
+      "first_release": "8.0.1819",
+      "reason": "A generated galaxy draws its young open clusters from its disk's star formation history (GEN.244): they are stored with the globular clusters, add their density to their cell in one of twelve age-bin populations, and the component pass draws their bright and massive stars, so a new galaxy's stars, systems and sector profiles differ near them."
+    },
+    {
+      "epoch": 30,
+      "first_release": "8.0.1820",
+      "reason": "A barred galaxy's centre has a gas ring fed by its bar that forms young stars and clusters (GEN.282)."
+    },
+    {
+      "epoch": 31,
+      "first_release": "8.0.1821",
+      "reason": "The black holes follow the stars' metals with a share of failed supernovae drawn from the seed, every scattered class on a stream of its own (GEN.563)."
     }
   ]
 }
