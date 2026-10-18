@@ -8099,6 +8099,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   failure it also saw is TEST.230's cause (retired, #2128); Core 1 fixes
   the assert in this branch to look for an O5V entry anywhere in the
   nebula's hosts.
+  Boss (2026-10-17, 9:00 PM EDT, relayed by the coordinator) approved
+  GEN.544 (vertical profile: keep the column, match the midplane) and
+  GEN.545 (mean system mass derived from the generator's own
+  distribution) with their defaults and expects them to fix the star
+  count drop: the 2.6 times sparser figure above is expected to shrink
+  once they land, so the "Done" density check here states the factor it
+  measures and GEN.544 and GEN.545 bring it back toward the old local
+  density. Owner of all three: Core 1.
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -13841,6 +13849,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   both. A change that alters the generator output follows the epoch
   rule. Owner: Core 1 proposed (it owns the code GEN.404 changes), after
   GEN.404 merges.
+  Decided (Boss, 2026-10-17, 9:00 PM EDT, typed in the project chat,
+  relayed by the coordinator): "No that is approved, sounds like the two
+  new items will fix the star count drop". The default on this item
+  stands as the decision; Boss expects GEN.544 and GEN.545 together to
+  undo most of the star count drop GEN.404 causes. Owner: Core 1 (they
+  follow GEN.404).
   Prerequisites: GEN.404. Related: GEN.404, GEN.134, GEN.401.
 
 - [ ] **GEN.545 The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution**
@@ -13867,6 +13881,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   seeded draw of systems within the scatter, and the design note says
   where the number comes from. Owner: Core 1 proposed, after GEN.404
   merges.
+  Decided (Boss, 2026-10-17, 9:00 PM EDT, typed in the project chat,
+  relayed by the coordinator): "No that is approved, sounds like the two
+  new items will fix the star count drop". The default on this item
+  stands as the decision; Boss expects GEN.544 and GEN.545 together to
+  undo most of the star count drop GEN.404 causes. Owner: Core 1 (they
+  follow GEN.404).
   Prerequisites: GEN.404. Related: GEN.404, GEN.103, GEN.366.
 
 
