@@ -1137,7 +1137,7 @@ def expand_scatter_band(params):
                       scatter_limits.band_pass(newer, older), params["seed"], "band", {"own": len(own)})
 
 
-def _scatter_on_queue(args, mysql_config, key, label, params, seed):
+def _scatter_on_queue(args, mysql_config, key, label, params, seed, own_row=True):
     """
     A shell scatter pass on the new queue (PERF.97, PERF.106, PERF.118): the wrapper (`queue/wrapper.py`) selects the
     stage's command (`scatter-mass`, `scatter-luminosity` or `scatter-band`) from this run's steps, records the run,
@@ -1147,6 +1147,9 @@ def _scatter_on_queue(args, mysql_config, key, label, params, seed):
 
     Args:
         key (str): The stage (`mass`, `luminosity` or `band`).
+        own_row (bool): Whether the pass is the whole stage, so the unit that completes it stores the stage's row
+            (`stages.hand_over_open_stage`); false when the starter still does more inside the stage (the band tops up
+            backfilled sectors), so the starter stores the row for all of it.
         params (dict): What the command's expansion reads besides the database (`expand_scatter_mass` and the others).
 
     Returns:
@@ -1155,7 +1158,7 @@ def _scatter_on_queue(args, mysql_config, key, label, params, seed):
     workers = run_common._worker_count(args)
     step, listing = wrapper.step_for(args, key, label, {**params, "seed": seed, "workers": workers,
                                                         "database": wrapper.database_args(mysql_config)})
-    row = stages.hand_over_open_stage()
+    row = stages.hand_over_open_stage() if own_row else None
     held = {}
     with _ShellBars(args, label, STATS_KIND_OF_STAGE[key], workers) as bars:
         def on_plan(_index, plan):
@@ -1247,7 +1250,7 @@ def add_bright_star_band(args):
         t0 = time.perf_counter()
         counts = _scatter_on_queue(args, mysql_config, "band", f"Bright stars {target:g}-{current:g} L_sun", {
             "target_luminosity_sol": target, "current_luminosity_sol": current,
-            "mass_limit_sol": None if mass_limit is None else float(mass_limit)}, seed)
+            "mass_limit_sol": None if mass_limit is None else float(mass_limit)}, seed, own_row=False)
         floors = {address: newer.level_at(address[0], address[1]) for address in own}
         topped = sorted(address for address, level in own.items() if address not in filled and level > floors[address]
                         and floors[address] < older.level_at(address[0], address[1]))

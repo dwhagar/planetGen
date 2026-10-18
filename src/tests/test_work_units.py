@@ -345,6 +345,29 @@ def test_a_scatter_stage_is_stored_once_by_the_unit_that_completes_it_with_its_s
 
 
 @pytest.mark.fresh_database
+def test_the_band_stage_is_stored_once_by_the_starter_because_it_tops_up_after_its_units(mysql_config, monkeypatch):
+    from planetgen.db import store
+    from planetgen.generation import run_plan, stages
+    from planetgen.generation import stats as generation_stats
+    from tests.test_bright_star_scatter import _plan_args, _seed_galaxy
+    store.get_control_connection(mysql_config, ensure_schema=True).close()
+    monkeypatch.setenv(store.CONTROL_DB_ENV_VAR, mysql_config.database)
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
+    run_plan.run_plan(_plan_args(mysql_config, "--bright-stars-down-to", "100", "--workers", "2"))
+    conn = store.get_control_connection(mysql_config)
+    try:
+        bands = [run for run in generation_stats.stage_history(conn) if run["stage_key"] == "band"]
+        kinds = {kind for kind, _workers, _bucket in generation_stats.GenerationStats(
+            store.control_mysql_config(mysql_config)).buckets}
+    finally:
+        conn.close()
+    assert len(bands) == 1 and bands[0]["seconds"] > 0 and bands[0]["settings"]["workers"] == 2
+    assert "scatter-bright" in kinds, "the band's units still record their speeds"
+
+
+@pytest.mark.fresh_database
 def test_a_unit_of_the_mass_scatter_runs_alone_from_its_json_arguments(mysql_config):
     import json
 

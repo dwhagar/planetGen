@@ -78,12 +78,13 @@ def _expand(conn, run_id, index):
     stages = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))
     key = stages[index]["key"]
     step = next(commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id) if item["key"] == key)
+    started = time.time()       # the stage's time counts from before it was cut: reading the galaxy is part of it
     expansion = commands.expand_function(step.kind)(step.params)
     cost = sum(unit_cost for _args, unit_cost in expansion.units)
     runrecord.set_stage_plan(conn, run_id, index, len(expansion.units), cost,
                              {"kind": step.kind, "units": len(expansion.units), "cost": cost,
                               "detail": expansion.plan})
-    runrecord.begin_stage(conn, run_id, index)
+    runrecord.begin_stage(conn, run_id, index, now=started)
     units.enqueue_units(conn, run_id, index, step.kind, expansion.units,
                         expected_seconds=json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))[index]
                         .get("expected_seconds"))
