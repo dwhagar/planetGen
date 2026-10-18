@@ -815,3 +815,9 @@ Baseline: PR #1817.
 | TEST.230 | 8.1 | Bugs and flaky tests |
 | GEN.238 | 8.1 | Components and wanderers |
 | GEN.298 | 8.1 | Components and wanderers |
+| GEN.469 | 8.1 | Components and wanderers |
+| GEN.321 | 8.1 | Components and wanderers |
+| GEN.241 | 8.1 | Components and wanderers |
+| TEST.231 | 8.1 | Bugs and flaky tests |
+| TEST.232 | 8.1 | Bugs and flaky tests |
+| MAP.239 | 8.1 | Fly-through map |

@@ -19,6 +19,8 @@ Status: research, 2026-10-09; the recommendation is mine. **Superseded in part b
 
 ### 1.1 The ladder
 
+*MAP.239: the tile root is now the grid's whole reach, 524,288 pc, three levels above the 65,536 pc root this ladder was written for. Every tile level below is three higher in the keys (a 16 pc tile is level 15, a 256 pc tile level 11), with the same edge and the same budgets; the three new coarsest levels (0 to 2) take the coarsest level's bright-star budget and list no generated stars.*
+
 The camera orbit radius `R` sets a view radius `1.6 R`; the tile level is `floor(log2(65536 / view radius))` clamped to 0 to 12, so the level changes every time `R` halves [S: `galaxymap3d.js` `tileLevelForRadius`, `neededTiles`; `FETCH_RADIUS_FACTOR` 1.6]. Each level has fixed limits [S: `db/query.py` `generated_star_floor_sol`, `GALAXY_TILE_STAR_BUDGET`, `GALAXY_TILE_MAX_BRIGHT_STARS`, `GALAXY_TILE_POINT_BUDGET`]:
 
 | Level | Tile edge (pc) | Camera radius served (pc) | Generated-star floor (L_sun) | Generated stars per tile | Bright stars per tile | Point objects per tile |

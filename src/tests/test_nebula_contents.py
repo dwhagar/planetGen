@@ -43,6 +43,15 @@ def test_a_star_rolls_the_same_nebula_wherever_it_is_made():
     assert (first is None) == (after_other_draws is None)
 
 
+def test_a_whole_kelvin_temperature_rolls_the_same_as_its_float():
+    """A star made in a fill holds 36900 and its stored row gives back 36900.0: the roll must not tell them apart."""
+    whole, stored = _star(5), _star(5)
+    whole.temperature, stored.temperature = 36900, 36900.0
+    assert nebula_contents.hosted_seed(whole) == nebula_contents.hosted_seed(stored)
+    first, second = nebula_contents.hosted_nebula_of(whole), nebula_contents.hosted_nebula_of(stored)
+    assert (first is None) == (second is None)
+
+
 def test_the_hosted_chance_is_the_rules_and_the_profile_scales_it():
     stars = [_star(n) for n in range(1500)]
     hits = sum(nebula_contents.hosted_nebula_of(star, 1.0) is not None for star in stars) / len(stars)

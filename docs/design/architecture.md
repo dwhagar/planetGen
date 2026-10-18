@@ -103,6 +103,7 @@ flowchart LR
 | [`scripts/test.py`](../../scripts/test.py) | Picks and runs a slice of the test suite (`changed`, `quick`, `full --check`, `budget`, ...; TEST.139). See [testing.md](../testing.md). |
 | `scripts/generate_db_models.py` | Writes `planetgen/db/models.py` (SQLAlchemy `Table` declarations) from `schema.sql` (DB.11). |
 | `scripts/check_redis_settings.py` | Warns about Redis server settings that do not suit planetGen (OPS.48); run by `install.sh` and `update.sh`. |
+| [`scripts/build_architecture_map.py`](../../scripts/build_architecture_map.py) | Writes `docs/design/architecture-map.html`, the code map that drills down from the project's areas to a function's source with the calls between them (DOC.67); `--check` fails when a module of the package is missing from the page. Its page shell is `scripts/architecture_map/template.html`. |
 | `scripts/build_unit_ladders.py` | Writes the browser's copy of the unit ladders (`static/unitladders.js`) from `planetgen/util/ladders.py` (UX.23). |
 | `scripts/vendor_shoelace.py` | Copies the parts of Shoelace the site uses into `static/vendor/shoelace/`. |
 | `scripts/build_todo_docs.py`, `scripts/todo_docs/` | Builds the three browsable TODO pages from the TODO sources. |
@@ -262,7 +263,7 @@ The galaxy: sector grid, density, outline, seeds, object IDs, navigation. The se
 | [`version_check.py`](../../src/planetgen/galaxy/version_check.py) | The mixed-version warning (DB.7): a galaxy extended by a different release holds sectors made by more than one version, and reproduces only sector by sector. |
 | [`version_history.py`](../../src/planetgen/galaxy/version_history.py) | The version keys an update has run under (OPS.13; docs/design/reproducible-galaxies.md). |
 | [`version_key.py`](../../src/planetgen/galaxy/version_key.py) | The version key (DB.6; docs/design/reproducible-galaxies.md, section 4): 22 uppercase hex digits naming exactly what a galaxy seed needs to make the same galaxy again -- the PlanetGen release and the environment it ran in. |
-| [`viewport.py`](../../src/planetgen/galaxy/viewport.py) | The Galaxy Map's cube-tile arithmetic (the octree of 16 pc to 65,536 pc cubes, tile keys) and viewport queries. |
+| [`viewport.py`](../../src/planetgen/galaxy/viewport.py) | The Galaxy Map's cube-tile arithmetic (the octree of 16 pc to 524,288 pc cubes, the grid's whole reach, tile keys) and viewport queries. |
 | [`window.py`](../../src/planetgen/galaxy/window.py) | The Galaxy Map's data windows (MAP.151): `g` cells across, a ball of the centre block's size, found in closed form per shell. |
 
 #### src/planetgen/population/

@@ -2,6 +2,117 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1766] - 2026-10-18
+
+**Headline:** The Systems table has a "Starting at" box that begins the list at a typed letter, name or sector without paging down to it.
+
+### Changed
+- **The Systems table jumps by value (PERF.75).** Under the name sort and the sector sort a "Starting at" box begins the list at the first name, or the first sector, from the typed text on: `M` starts at the first name from M, and under a descending sort the names that begin with M come first and the list runs down from them. The count line says how many systems are left ("30 systems from “Drifting 100”"), the page address carries the text (`systems_from`), the scroll bar and the pager count from it, and another sort drops it and hides the box. It works with scripts off as a plain form. The jump is one more condition on the same read, so a jump deep into millions of systems costs what the first page does.
+- **`GET /api/systems` takes `from=<text>`** with the same meaning (`total` counts the systems from there; `offset` and `after` count from there). The other sorts ignore it. `docs/api.md` and `docs/design/slow-reads-and-timeouts.md` describe it.
+
+TODO items resolved: PERF.75. Added: none.
+
+## [8.0.1765] - 2026-10-18
+
+**Headline:** The Uncharted systems table no longer counts every row of the galaxy to show its total.
+
+### Changed
+- **`count_uncharted_systems` answers from the stored counts (PERF.112).** The total behind the Uncharted systems table and `/api/systems/uncharted` went through a full `COUNT(*)` over the stars-without-a-system join on every request. It now uses the same stored count as the other tables (`db/countcache.py`): the last answer is served at once while a background recount refreshes it, and a galaxy with no stored answer yet gets a capped estimate (`total_capped` is true in the API and the page shows "more than N"). The count is stamped with the galaxy's content stamp, so it is recounted when the galaxy changes.
+
+TODO items resolved: PERF.112. Added: none.
+
+## [8.0.1764] - 2026-10-18
+
+**Headline:** The architecture has a code map you can open in a browser and drill down from the project's areas to a function's source, with what calls what, generated from the code.
+
+### Changed
+- **`docs/design/architecture-map.html` (DOC.67).** One self-contained page, no network. The project map shows the areas (web, api, queue, generation, galaxy, population, physics, describe, db, admin, backup, wiki, cli, names, util, tuning and the tests) with the imports between them; an area lists its modules, what each imports and what imports it; a module lists its classes and functions with the first line of each docstring; a function shows its source, the functions it calls and the functions that call it, each a link. Calls the map cannot place (a method on a value of unknown type, a library call) are listed as unresolved, and a call resolved only because the name is unique is marked probable. A flow view traces six paths end to end from named entry functions through the calls the code makes (generating a galaxy, a scatter pass, a page request, an API job through the work queue, a map tile read and a backup). Search finds a module or a function by name, and every view has a stable `#/...` anchor.
+- **`scripts/build_architecture_map.py` writes it from `src/planetgen` with the `ast` module** and nothing is imported or run. `--check` fails when a module of the package is missing from the page or the page names one that is gone, and a test (`test_architecture_map.py`) fails with the command to run; adding a test file needs no regeneration. `--check --full` compares the whole page and is for the release stamp.
+
+TODO items resolved: DOC.67. Added: none.
+
+## [8.0.1763] - 2026-10-18
+
+**Headline:** The docs have one index page that lists every HTML page with what it contains and links back from each.
+
+### Changed
+- **`docs/index.html` (DOC.52).** One entry per HTML page under `docs/` (the execution plan, the version plan, the TODO tree and reference, the release roadmap, the architecture page and the architecture map) with its title, a one- or two-sentence description of what it holds and who it is for, and a relative link, so it opens offline. It also lists the reference notes (`docs/*.md`, each with its first sentence), the design notes' index, the goal issues' note and the GitHub issue list. Each page now carries a `<meta name="description">` and a "Docs index" link in its header, in the TODO page templates too.
+- **`scripts/build_docs_index.py` writes it from the pages themselves**, so a new page cannot be forgotten: `src/tests/test_docs_index.py` fails with the command to run when a page is missing from the index, has no description or has no link back, or when the index is out of date. Run `python scripts/build_docs_index.py` after adding a page.
+
+TODO items resolved: DOC.52. Added: none.
+
+## [8.0.1762] - 2026-10-18
+
+**Headline:** The Galaxy Map's tile grid now covers the whole 262 kpc reach, so a tile exists for every address the grid can hold, in the halo and beyond the disc.
+
+### Changed
+- `TILE_ROOT_EDGE_PC` in `galaxy/viewport.py` is twice the reach (`cellkey.REACH_PC`), 524,288 pc, where it was 65,536 pc (nothing was tiled beyond 32.8 kpc). The finest tile is still 16 pc, now level 15 (`TILE_MAX_LEVEL`, derived from the two). The browser takes the root and the finest level from the page data; its fallbacks were changed to match.
+- A tile of a given size is three levels deeper in its key than it was. The per-level budgets in `db/query.py` (generated stars, bright stars, point phenomena) and `POINT_PHENOMENON_MIN_LEVEL` are shifted by `TILE_ROOT_EXTRA_LEVELS`, so each size keeps its budget; the three new coarsest levels take the coarsest level's bright-star budget and list no generated stars. The tile cache starts a new generation with the release, as it does for any release, so no old key is read as a new one.
+- `docs/api.md`, the architecture document, the precision audit (item 5.6) and the zoom-star ladder say so.
+
+### Added
+- `test_tiles_cover_the_reach`: every corner of the reach, to its last representable value, is in one tile of every level, and nothing beyond it is.
+- The tests that named a tile level now name it through `TILE_MAX_LEVEL` and `TILE_ROOT_EXTRA_LEVELS`.
+
+TODO items resolved: MAP.239 / Added: none
+
+## [8.0.1761] - 2026-10-18
+
+**Headline:** The accessibility tests no longer fail on a loaded machine when the first build of a page takes longer than the slow-page limit.
+
+### Changed
+- `tests/test_web_a11y.py` pins the slow-page rule off for its module (`pages_are_never_slow`, an autouse module fixture setting `tuning.SLOW_PAGE_SECONDS` to infinity). On a loaded run the first build of `/search` or `/phenomena` took over 3 s, the cost rule marked the route slow, and the next request was queued and answered 202 with the loading state instead of the page, which failed the `page_targets` fixture for 199 tests in one gate. These tests check each page's layout and accessibility, not the slow-page answer, which `tests/test_slowpages.py` covers.
+
+### Added
+- Nothing.
+
+TODO items resolved: TEST.232 / Added: none
+
+## [8.0.1760] - 2026-10-18
+
+**Headline:** The wheel-anchor, system-disc and breadcrumb browser tests wait for the camera and the address to stop changing before reading them, so they no longer fail when a loaded machine is slow.
+
+### Changed
+- `tests/test_web_browser_sector_reach.py`: `test_the_wheel_anchors_on_the_star_under_the_pointer_not_the_mesh_behind_it` and `test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star` read the star's screen spot right after `galaxyCentreOn`, a camera flight. On a slow run the star had moved on by the time the anchor was asked for, so the anchor fell back to the focus plane's point (0.031 pc off the star on two axes) and the test failed alone in two of nine runs. They now read the spot with `_still_spot`: the same place on three reads 100 ms apart.
+
+- `tests/test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names` reads the page's URL only once it has stopped changing (`_url_settled`; TEST.126). The map writes the camera into the address 350 ms after it last moved, in its frame loop, so on a loaded run the scale bar held still before the address named where the camera ended and a fresh load of the stale address showed another sector (`Sector 1·0·2` against `Sector 1·0·1`, seen in four gates). Three runs at load 14 to 16 pass with it; the failure came in one of four runs without it.
+
+- `test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star` (TEST.213) stopped its wheel loop at a share of 0.999 and then asked for 1.0 within 1e-6, so it failed whenever the last step landed between the two (0.99975 in a loaded run). It now asks for the share it stopped at: at least 0.999, whole.
+
+- The same anchor test clicked 5 px right and 4 px up of the star as its second try, and the sector's stars are drawn from the database, so now and then another star lay nearer to that spot and the wheel (rightly) anchored on it. The offset is now picked from a short list as one at which no other star of the scene is nearer to the pointer than the target (`_shift_nearest_to`). Six runs in a row pass, against about one failure in four before.
+
+### Added
+- Nothing.
+
+TODO items resolved: TEST.231, TEST.213 (and the breadcrumb sighting on TEST.126; its other sightings and TEST.172 stay open) / Added: none
+
+## [8.0.1759] - 2026-10-18
+
+**Headline:** The big H II regions (classes D and E) now hold the real O and B stars that light them, placed in a cluster around the seed star.
+
+### Added
+- **The ionizing members of an emission region (GEN.321).** A class D or E region lists its stars of 5.5 solar masses and up by spectral type; those stars are now real systems, a mass in each type's range from the IMF, the nebula's age, and a place in a Plummer sphere of half-mass radius 1 pc (D) or 2 pc (E) about the seed star, inside the nebula's radius. The members depend only on the galaxy, the nebula and the seed star's point, so a region that spans sectors gives the same members from every sector that reaches it, and each sector builds the ones that fall in its cube. A sector finds the regions that the pre-placed hot stars of its neighbours light from their stored rows, built or not.
+
+### Changed
+- A star's hosted-nebula roll takes its mass, age and temperature as floats, so a star made in a fill (a whole-kelvin integer temperature) and the same star read back from its stored row roll the same nebula.
+- Only the ionizing members are real; the rest of the cluster stays the sector's ordinary background density. A hot star the scatter did not place lights a region whose members fall in its own sector alone.
+
+generation-output: changed
+
+## [8.0.1758] - 2026-10-18
+
+**Headline:** A disk's young, middle-aged and old stars now follow its own gas history, so light galaxies hold more young stars and heavy ones fewer, where every disk used to form stars at one rate for ten billion years.
+
+### Changed
+- The thin disk's share of young (under 0.1 Gy), intermediate (0.1 to 3 Gy) and old (3 to 10 Gy) stars is what its star formation history puts in those windows, not the windows' lengths. The history is gas continuity per ring: the Kennicutt-Schmidt law (n 1.4) uses the gas up, the return fraction comes from the generator's own mass function (0.37; the same code gives Madau and Dickinson's 0.27 for a Salpeter slope), and the gas comes in as fast as the stars the galaxy's halo builds (Fakhouri, Ma and Boylan-Kolchin 2010 halo growth, Moster, Naab and White 2013 stellar-to-halo relation moving with redshift). New `galaxy/disk_history.py`; `docs/design/disk-star-formation-history.md` names every source.
+- A galaxy of 5e10 solar masses holds 0.39% young, 19% intermediate and 81% old disk stars (flat history: 1%, 29%, 70%); one of 1e10 holds 2.9%, 62% and 35%. Its present star formation is 0.38 of its ten-Gy mean (the Milky Way's is about 0.2) and the local B-star share between the arms falls from 0.19% to 0.12% (observed 0.04%, still a strict expected failure in `tests/test_disk_history.py`). Ages stay uniform inside a window.
+- `GalaxyShape.masses` carries the galaxy's stellar and halo mass (drawn again from its seed in `db.store.get_galaxy_shape`, set by `shape_draw`); a shape without them takes the median galaxy of its disk size. `density.population_densities`, its array form and the sampler's band bound (`generation/object_first._disk_share_bound`) read the shares through `star_formation.disk_population_share`.
+- `MAGNETAR_YOUNG_STAR_SHARE` is 0.0019 (was 0.0044), the young share of a galaxy of 5e10 solar masses; a galaxy with more young stars now holds proportionally more magnetars.
+
+generation-output: changed
+
+TODO items resolved: GEN.469 / Added: the local B-star share is still 3 times the observed one (tests/test_disk_history.py, strict expected failure); ages inside a window are uniform though the rate varies across it (follow-up in the sampler)
+
 ## [8.0.1757] - 2026-10-18
 
 **Headline:** Hypervelocity stars, kicked neutron stars and ejected black holes now stream through the whole galaxy and out to the grid's reach, on straight lines, instead of stopping at the disk's outline.

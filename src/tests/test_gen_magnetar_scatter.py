@@ -10,7 +10,7 @@ import numpy as np
 import pytest
 
 from planetgen import tuning
-from planetgen.galaxy import density
+from planetgen.galaxy import density, mass_chain
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1
 from planetgen.generation import phenomenon_scatter as scatter
@@ -24,6 +24,7 @@ MAGNETAR = ("neutron-star", scatter.MAGNETAR_SUBTYPE)
 MILKY_WAY = build_galaxy_shape(
     disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0,
     bulge_amplitude=3.11, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
+    masses=(5.0e10, mass_chain.median_halo_mass(5.0e10)),
 )
 TOY = build_galaxy_shape(
     disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
