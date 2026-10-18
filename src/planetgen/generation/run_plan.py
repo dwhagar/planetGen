@@ -1832,93 +1832,166 @@ def map_luminosity_sql(column="mass_solar"):
     return "CASE " + " ".join(clauses) + " END"
 
 
+def _id_batches(top, size):
+    """`(low, high)` id ranges of `size` ids covering 1 to `top`, in order: the cut of a batch fill, the same at any
+    worker count."""
+    return [(low, min(low + size - 1, top)) for low in range(1, top + 1, size)]
+
+
+def expand_fill_map_luminosity(params):
+    """The `fill-map-luminosity` command's stage (PERF.106): a unit per id range of `MAP_LUMINOSITY_BATCH_IDS` of
+    `phenomenon_scatter`, its cost the ids it covers; `detail` holds the highest id and the rows still empty."""
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
+        top = int(conn.execute("SELECT COALESCE(MAX(id), 0) AS n FROM phenomenon_scatter").fetchone()["n"])
+        remaining = int(conn.execute("SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE mass_solar IS NOT NULL"
+                                     " AND map_luminosity_sol IS NULL").fetchone()["n"])
+    finally:
+        conn.close()
+    return commands.Expansion(
+        [({"database": params["database"], "low": low, "high": high}, float(high - low + 1))
+         for low, high in _id_batches(top, MAP_LUMINOSITY_BATCH_IDS)], {"top": top, "remaining": remaining})
+
+
+def fill_map_luminosity_unit(params, report):
+    """
+    The `fill-map-luminosity` command's unit: `phenomenon_scatter.map_luminosity_sol` (DB.23, GEN.201) for the rows
+    of ids `low` to `high` that have a mass and no value yet, one short statement and one commit, so readers never
+    wait. It only touches rows still empty, so a stopped run carries on where it was. The values are
+    `stellar_evolution.map_luminosity_sol` of the stored mass, worked out by the same pieces in SQL and stored as
+    FLOAT, so a row agrees with the one a new scatter writes to float precision.
+
+    Returns:
+        dict: `filled`, the rows filled, and `ids`, how many ids the unit covered (for the bar).
+    """
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
+        cursor = conn.execute(
+            f"UPDATE phenomenon_scatter SET map_luminosity_sol = {map_luminosity_sql()}"
+            " WHERE id BETWEEN ? AND ? AND mass_solar IS NOT NULL AND map_luminosity_sol IS NULL",
+            (params["low"], params["high"]))
+        conn.commit()
+        return {"filled": cursor.rowcount, "ids": params["high"] - params["low"] + 1}
+    finally:
+        conn.close()
+
+
+def _batches_on_queue(args, key, label, params, bar_label, on_plan_line, noun):
+    """
+    A stage of batch units on the new queue (PERF.106): the wrapper selects the stage's command from this run's
+    steps and cuts and queues the units, this process follows their results with a bar of the ids they cover and
+    stores the stage's row through the unit that completes it.
+
+    Args:
+        key (str): The stage (`map-luminosity` or `habitability`).
+        bar_label (str): The bar's text.
+        on_plan_line (callable): `on_plan_line(detail)` gives the line to log when the stage is cut.
+        noun (str): What the units' `filled` or `updated` result counts, the result key.
+
+    Returns:
+        int: The sum of the units' counts.
+    """
+    mysql_config = store.mysql_config_from_args(args)
+    workers = run_common._worker_count(args)
+    step, listing = wrapper.step_for(args, key, label, {**params, "workers": workers,
+                                                        "database": wrapper.database_args(mysql_config)})
+    row = stages.hand_over_open_stage()
+    total = [0]
+    with run_common._generation_progress() as progress:
+        log.set_console(progress.console)
+        try:
+            with steps.Step(bar_label, key, 1, args=args, progress=progress, workers=workers) as bar:
+                def on_plan(_index, plan):
+                    log.normal(on_plan_line(plan["detail"]))
+                    bar.update(total=max(plan["detail"]["top"], 1))
+
+                def on_result(_index, _unit, result):
+                    total[0] += result[noun]
+                    bar.update(advance=result["ids"])
+
+                try:
+                    wrapper.run(label, [step], on_plan, on_result, workers_count=workers,
+                                who=getattr(args, "who", None), database=mysql_config.database,
+                                argv=getattr(args, "argv", None), seed=None, listing=listing,
+                                rows=None if row is None else {key: row})
+                finally:
+                    run_common._finish_stats(args)
+        finally:
+            log.reset_console()
+    return total[0]
+
+
 def fill_map_luminosity(args):
     """
-    Fills `phenomenon_scatter.map_luminosity_sol` (DB.23, GEN.201) for the rows that have a mass and no value yet,
-    in id-range batches of `MAP_LUMINOSITY_BATCH_IDS`, each its own short statement and commit. It only touches
-    rows still empty, so a stopped run carries on where it was. The values are `stellar_evolution.map_luminosity_sol`
-    of the stored mass, worked out by the same pieces in SQL and stored as FLOAT, so a row agrees with the one a
-    new scatter writes to float precision.
+    Fills `phenomenon_scatter.map_luminosity_sol` for the rows that have a mass and no value yet, on the new queue:
+    the `fill-map-luminosity` command, a unit per id range (`fill_map_luminosity_unit`).
 
     Returns:
         int: The rows filled.
     """
-    expression = map_luminosity_sql()
-    conn = store.get_connection(store.mysql_config_from_args(args))
-    try:
-        top = int(conn.execute("SELECT COALESCE(MAX(id), 0) AS n FROM phenomenon_scatter").fetchone()["n"])
-        remaining = conn.execute("SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE mass_solar IS NOT NULL"
-                                 " AND map_luminosity_sol IS NULL").fetchone()["n"]
-        log.normal(f"Map luminosity: {remaining:,} scattered rows have a mass and no value yet.")
-        filled = 0
-        with run_common._generation_progress() as progress:
-            log.set_console(progress.console)
-            try:
-                with steps.Step("Filling the map luminosity", "map-luminosity", max(top, 1), args=args,
-                                progress=progress) as bar:
-                    for low in range(1, top + 1, MAP_LUMINOSITY_BATCH_IDS):
-                        high = min(low + MAP_LUMINOSITY_BATCH_IDS - 1, top)
-                        cursor = conn.execute(
-                            f"UPDATE phenomenon_scatter SET map_luminosity_sol = {expression}"
-                            " WHERE id BETWEEN ? AND ? AND mass_solar IS NOT NULL AND map_luminosity_sol IS NULL",
-                            (low, high))
-                        conn.commit()
-                        filled += cursor.rowcount
-                        bar.update(advance=high - low + 1)
-            finally:
-                log.reset_console()
-        log.normal(f"Filled the map luminosity of {filled:,} scattered rows.")
-        return filled
-    finally:
-        conn.close()
+    filled = _batches_on_queue(
+        args, "map-luminosity", "Map luminosity", {}, "Filling the map luminosity",
+        lambda detail: f"Map luminosity: {detail['remaining']:,} scattered rows have a mass and no value yet.", "filled")
+    log.normal(f"Filled the map luminosity of {filled:,} scattered rows.")
+    return filled
 
 
 HABITABILITY_BATCH_SYSTEMS = 500
 """int: Systems per batch of the habitability fill: one transaction each, so readers never wait."""
 
 
+def expand_rescore_habitability(params):
+    """The `rescore-habitability` command's stage (PERF.106): a unit per id range of `HABITABILITY_BATCH_SYSTEMS`
+    of `star_systems`, its cost the ids it covers; `detail` holds the highest id and the systems to re-score."""
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
+        top = int(conn.execute("SELECT COALESCE(MAX(id), 0) AS n FROM star_systems").fetchone()["n"])
+        total = int(conn.execute("SELECT COUNT(*) AS n FROM star_systems").fetchone()["n"])
+    finally:
+        conn.close()
+    return commands.Expansion(
+        [({"database": params["database"], "low": low, "high": high}, float(high - low + 1))
+         for low, high in _id_batches(top, HABITABILITY_BATCH_SYSTEMS)], {"top": top, "total": total})
+
+
+def rescore_habitability_unit(params, report):
+    """
+    The `rescore-habitability` command's unit: re-derives the stored habitability numbers of the systems of ids `low`
+    to `high` (GEN.217) from each body's stored conditions (`store.refresh_habitability`): the flux swing of a body in
+    a double-star system and the whole score (index, six domains, tiers, equipment, note). For a galaxy generated
+    before a change to the rules (GEN.148, GEN.207, GEN.215), so the planet chip, the search page and the facet counts
+    agree with the description, which is always worked out from the same conditions when the page is drawn. Nothing but
+    those columns is touched. The unit is one transaction, and the recomputation is the same whenever it is run, so a
+    stopped run is started again and ends in the same place.
+
+    Returns:
+        dict: `updated`, the bodies updated, and `ids`, how many ids the unit covered (for the bar).
+    """
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
+        updated = 0
+        for row in conn.execute("SELECT id FROM star_systems WHERE id BETWEEN ? AND ? ORDER BY id",
+                                (params["low"], params["high"])).fetchall():
+            updated += store.refresh_habitability(conn, row["id"])
+        conn.commit()
+        return {"updated": updated, "ids": params["high"] - params["low"] + 1}
+    finally:
+        conn.close()
+
+
 def fill_habitability(args):
     """
-    Re-derives the stored habitability numbers of an existing galaxy (GEN.217) from each body's stored conditions
-    (`store.refresh_habitability`): the flux swing of a body in a double-star system and the whole score (index,
-    six domains, tiers, equipment, note). For a galaxy generated before a change to the rules (GEN.148, GEN.207,
-    GEN.215), so the planet chip, the search page and the facet counts agree with the description, which is always
-    worked out from the same conditions when the page is drawn. Nothing but those columns is touched. Each batch of
-    `HABITABILITY_BATCH_SYSTEMS` systems is its own transaction, in id order, and the recomputation is the same
-    whenever it is run, so a stopped run is started again and ends in the same place.
+    Re-derives the stored habitability numbers of an existing galaxy (GEN.217) on the new queue: the
+    `rescore-habitability` command, a unit per id range of systems (`rescore_habitability_unit`).
 
     Returns:
         int: The bodies updated.
     """
-    conn = store.get_connection(store.mysql_config_from_args(args))
-    try:
-        top = int(conn.execute("SELECT COALESCE(MAX(id), 0) AS n FROM star_systems").fetchone()["n"])
-        total = conn.execute("SELECT COUNT(*) AS n FROM star_systems").fetchone()["n"]
-        log.normal(f"Habitability: {total:,} systems to re-score.")
-        updated = 0
-        with run_common._generation_progress() as progress:
-            log.set_console(progress.console)
-            try:
-                with steps.Step("Re-scoring habitability", "habitability", max(top, 1), args=args,
-                                progress=progress) as bar:
-                    low = 0
-                    while True:
-                        ids = [row["id"] for row in conn.execute(
-                            "SELECT id FROM star_systems WHERE id > ? ORDER BY id LIMIT ?",
-                            (low, HABITABILITY_BATCH_SYSTEMS)).fetchall()]
-                        if not ids:
-                            break
-                        for system_id in ids:
-                            updated += store.refresh_habitability(conn, system_id)
-                        conn.commit()
-                        bar.update(advance=ids[-1] - low)
-                        low = ids[-1]
-            finally:
-                log.reset_console()
-        log.normal(f"Re-scored the habitability of {updated:,} bodies.")
-        return updated
-    finally:
-        conn.close()
+    updated = _batches_on_queue(
+        args, "habitability", "Habitability", {}, "Re-scoring habitability",
+        lambda detail: f"Habitability: {detail['total']:,} systems to re-score.", "updated")
+    log.normal(f"Re-scored the habitability of {updated:,} bodies.")
+    return updated
 
 
 def redo_nebula_field(args):

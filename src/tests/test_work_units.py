@@ -544,6 +544,44 @@ def test_the_skeleton_stage_is_stored_once_by_its_unit(control_database, monkeyp
     assert len(rows) == 1 and rows[0]["seconds"] > 0 and rows[0]["settings"]["workers"] == 2
 
 
+def test_the_batch_fills_are_units_of_id_ranges_recorded_as_their_commands(mysql_config, monkeypatch):
+    from planetgen.generation import run_plan
+    from tests.test_map_luminosity import _seed_galaxy
+    from tests.test_phenomenon_scatter import _plan_args
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    monkeypatch.setattr(run_plan, "MAP_LUMINOSITY_BATCH_IDS", 5000)
+    monkeypatch.setattr(run_plan, "HABITABILITY_BATCH_SYSTEMS", 1)
+    runs = []
+    real = wrapper.run
+    monkeypatch.setattr(wrapper, "run", lambda *args, **kwargs: runs.append(real(*args, **kwargs)) or runs[-1])
+    for flag, fill in (("--fill-map-luminosity", run_plan.fill_map_luminosity),
+                       ("--fill-habitability", run_plan.fill_habitability)):
+        fill(_plan_args(mysql_config, flag))
+    conn = redisqueue.connect()
+    kinds = [[step["kind"] for step in runrecord.read_steps(conn, run)] for run in runs]
+    assert kinds == [["fill-map-luminosity"], ["rescore-habitability"]]
+    stage = runrecord.read_run(conn, runs[0])["stages"][0]
+    top = run_plan.expand_fill_map_luminosity(
+        {"database": wrapper.database_args(mysql_config)}).plan["top"]
+    assert stage["units"] == -(-top // 5000) > 1
+
+
+def test_a_batch_fill_unit_runs_alone_from_its_json_arguments(mysql_config):
+    import json
+
+    from planetgen.generation import run_plan
+    from tests.test_map_luminosity import _seed_galaxy
+    from tests.test_phenomenon_scatter import _plan_args
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    params = json.loads(json.dumps({"database": wrapper.database_args(mysql_config)}))
+    expansion = run_plan.expand_fill_map_luminosity(params)
+    assert sum(cost for _args, cost in expansion.units) == expansion.plan["top"]
+    result = commands.run_alone("fill-map-luminosity", json.loads(json.dumps(expansion.units[0][0])))
+    assert result["ids"] == expansion.units[0][1] and result["filled"] == 0
+
+
 def test_the_shells_are_cut_into_the_same_units_whatever_the_worker_count():
     from planetgen.generation import run_plan
     rows = [(shell, 3, 1.0 + shell % 5) for shell in range(300)]
