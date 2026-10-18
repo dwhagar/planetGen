@@ -7,8 +7,11 @@ when the test's database goes and a patch the test made reaches the units. The w
 credentials from the settings, so the environment carries the test server's. Nothing is patched, and nothing is
 touched on Redis, without a Redis server.
 
-The autouse fixture of `conftest.py` applies it to every test; a fixture of wider scope than a test (a module's galaxy,
-built by `run_cli`) runs before that one, so `bughunt_support.run_cli` applies it itself.
+The autouse fixture of `conftest.py` applies it to every test, through the test's own `monkeypatch`, so a patch the
+test makes over it is undone before it (TEST.250: the context's own patcher was undone before the test's, which put
+the stand-in back after the test and left it in place for the module that follows, `test_workers.py` among them). A
+fixture of wider scope than a test (a module's galaxy, built by `run_cli`) runs before that one, so
+`bughunt_support.run_cli` applies it itself.
 """
 
 import contextlib
@@ -25,8 +28,14 @@ def _server():
 
 
 @contextlib.contextmanager
-def inline_queue():
-    """The units of a run started inside the context run in this process, on a queue of the context's own."""
+def inline_queue(patch=None):
+    """
+    The units of a run started inside the context run in this process, on a queue of the context's own.
+
+    Args:
+        patch: The test's `monkeypatch`; its patches are undone in the order they were made, so a patch the test
+            makes over this one is undone first. Without one the context patches and restores on its own.
+    """
     url = os.environ.get("PLANETGEN_REDIS_URL")
     if not url or _active:
         yield
@@ -52,7 +61,9 @@ def inline_queue():
     server = _server()
     _active.append(True)
     try:
-        with pytest.MonkeyPatch.context() as patch:
+        with contextlib.ExitStack() as stack:
+            if patch is None:
+                patch = stack.enter_context(pytest.MonkeyPatch.context())
             patch.setattr(runrecord, "PREFIX", prefix)
             patch.setattr(redisqueue, "BULK_QUEUE", queue_name)
             patch.setattr(workers, "ensure_workers", run_waiting_units)
