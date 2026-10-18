@@ -49,3 +49,15 @@ def test_the_lock_hash_is_the_files_sha256(tmp_path):
     assert version_history.requirements_sha256(str(lock)) == hashlib.sha256(b"pin==1\n").hexdigest()
     assert version_history.requirements_sha256(str(tmp_path / "missing")) is None
 
+
+
+def test_the_command_only_records_and_has_no_list_option(monkeypatch, capsys):
+    """OPS.60: `planetgen versions` lists; `cli.version_history` records."""
+    import sys
+    import pytest
+    from planetgen.cli import version_history as command
+    monkeypatch.setattr(sys, "argv", ["version_history", "--list"])
+    with pytest.raises(SystemExit) as stopped:
+        command.main()
+    assert stopped.value.code == 2
+    assert "unrecognized arguments: --list" in capsys.readouterr().err
