@@ -25,7 +25,18 @@ The host classes:
   `multistar` from `MEMBER_STATE_BY_PLACED`.
 * **brown-dwarf**: holds nothing yet (GEN.331 and the disk-limited planets of U7 will add rows).
 * **planet**: a planet, bound or free. Satellite table `planet-satellites` (a free planet's captured companion).
-* **moon**: the lowest level; it holds nothing (Boss).
+* **moon**: holds nothing until the tidal-survival gate row of GEN.579 exists (Boss's cards S5 and S6, 12:10 to
+  12:13 AM EDT, 2026-10-18, as the coordinator relayed, which superseded "moons are the lowest level"). Its satellite
+  table `moon-satellites` has only the `no satellites` row.
+* **small-body**: a comet or an asteroid field. Its `may_host` gate is closed, so it has no satellite table (its orbiter
+  table is empty by the gate).
+
+Every class carries a `may_host` gate: whether anything may orbit it at all. The recursion of the later `populate(host)`
+ends by that gate and the satellite table's rows, not by a depth of three.
+
+A row that draws an orbiter's mass states it as a ratio to the host's mass where the source gives a ratio (a moon to its
+planet, a planet to its star), so a draw cannot make an orbiter heavier than its host except through the pair builder,
+where the primary-first step lives (GEN.581). No row has a mass yet; the convention is for the rows U7 adds.
 
 `SATELLITES` and `COMPANIONS` are looked up by name at call time, so a test can swap a table (`reweighted`).
 """
@@ -53,6 +64,8 @@ class HostClass:
         satellites (str or None): The name of its satellite table, or `None` (it holds nothing, or the table is not
             built yet: see `built_by`).
         built_by (str): What makes the parts that no table holds yet.
+        may_host (bool): The gate: whether anything may orbit an object of this class at all. A closed gate means no
+            satellite table.
     """
 
     name: str
@@ -60,6 +73,7 @@ class HostClass:
     companions: str | None
     satellites: str | None
     built_by: str
+    may_host: bool = True
 
 
 class ClassWeight:
@@ -168,7 +182,16 @@ PLANET_SATELLITES = pt.REGISTRY.register(pt.Table(
                state=pt.STAND_IN, replacement="GEN.466")],
     description="Whether a planet holds a moon, by the planet's object key."))
 
-REGISTRY_TABLES = {table.name: table for table in (STAR_COUNT, REMNANT_SATELLITES, PLANET_SATELLITES)}
+MOON_SATELLITES = pt.REGISTRY.register(pt.Table(
+    "moon-satellites", 1, [
+        pt.Row(NO_SATELLITES, (pt.ANY_CLASS,), 1.0,
+               source="no row yet: the tidal-survival gate row of GEN.579 will add the moon of a moon", licence="open",
+               state=pt.STAND_IN, replacement="GEN.579",
+               notes="A moon may host through the same gate as any body (Boss's cards S5 and S6); until a sourced "
+                     "row passes it, no moon holds anything.")],
+    description="Whether a moon holds anything: empty until GEN.579 adds the tidal-survival row."))
+
+REGISTRY_TABLES = {table.name: table for table in (STAR_COUNT, REMNANT_SATELLITES, PLANET_SATELLITES, MOON_SATELLITES)}
 """dict: The host tables by name; a test swaps one with `monkeypatch.setitem` (`reweighted`)."""
 
 HOSTS = (
@@ -181,7 +204,10 @@ HOSTS = (
     HostClass("brown-dwarf", "a brown dwarf", None, None, "nothing yet: holds no companion or satellite"),
     HostClass("planet", "a planet, bound or free", None, "planet-satellites",
               "RoguePlanet and StarSystem (a bound planet's moons: generate_moons)"),
-    HostClass("moon", "a moon, the lowest level", None, None, "nothing: a moon holds nothing"),
+    HostClass("moon", "a moon", None, "moon-satellites",
+              "nothing yet: the tidal-survival gate row of GEN.579 adds what a moon holds"),
+    HostClass("small-body", "a comet or an asteroid field", None, None, "nothing: the gate is closed",
+              may_host=False),
 )
 """tuple: The host classes, in the order of the design note's table."""
 

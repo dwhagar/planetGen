@@ -21,12 +21,25 @@ def test_every_kind_names_a_host_class_or_none_and_every_class_has_its_tables():
     for host in hosts.HOSTS:
         for name in (host.companions, host.satellites):
             assert name is None or name in pt.REGISTRY, (host.name, name)
-    assert hosts.BY_NAME["moon"].companions is None and hosts.BY_NAME["moon"].satellites is None
-    assert hosts.host_of("comet") is None and hosts.host_of("neutron-star").name == "remnant"
+    assert hosts.BY_NAME["moon"].companions is None and hosts.BY_NAME["moon"].satellites == "moon-satellites"
+    assert hosts.host_of("nebula") is None and hosts.host_of("neutron-star").name == "remnant"
+
+
+def test_a_moon_and_a_small_body_have_host_rows_gated_by_may_host():
+    """Boss's cards S5 and S6: moons are no longer the lowest level. A small body's gate is closed and it has no table; a
+    moon's table has only the empty row until GEN.579's tidal-survival row, so neither holds anything today."""
+    small = hosts.BY_NAME["small-body"]
+    assert not small.may_host and small.satellites is None
+    assert hosts.host_of("comet") is small and hosts.host_of("asteroid-field") is small
+    moon = hosts.BY_NAME["moon"]
+    assert moon.may_host
+    assert [row.name for row in hosts.REGISTRY_TABLES["moon-satellites"].rows] == [hosts.NO_SATELLITES]
+    assert not hosts.holds("moon-satellites", "moon") and hosts.chance("moon-satellites", "moon") == 0.0
+    assert all(host.satellites is None or host.may_host for host in hosts.HOSTS)
 
 
 def test_the_tables_are_registered_and_each_row_says_where_its_weight_comes_from():
-    for name in ("star-count", "remnant-satellites", "planet-satellites"):
+    for name in ("star-count", "remnant-satellites", "planet-satellites", "moon-satellites"):
         table = pt.REGISTRY.get(name)
         assert table is hosts.REGISTRY_TABLES[name]
         for row in table.rows:
