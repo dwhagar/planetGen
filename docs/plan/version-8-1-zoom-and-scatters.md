@@ -21,8 +21,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) |  | Research follow-up to PERF.25 (built). |
 | PERF.135 | The Uncharted stars and Phenomena tables get a jump-by-value box for their numeric and scatter-id sorts |  |  |
 | PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply |  |  |
-| PERF.118 | Generation as commands: every stage is its own command, and one wrapper builds the command list and queues each command as one queue item |  | Boss, 2026-10-17, 4:12 PM EDT: the wrapper builds the command list, each command is one queue item. |
-| PERF.106 | The plan command on the run record, with stage timing, the killed-worker handler and job timeouts | PERF.118 | Split from PERF.98. |
+| PERF.106 | The plan command on the run record, with stage timing, the killed-worker handler and job timeouts |  | Split from PERF.98. |
 | PERF.107 | The sector units and the stages around them: start, neighborhood, sectors, link, population and settle | PERF.106 | Split from PERF.98. |
 | PERF.108 | The backfill as queue units: chunks of at least 10,000 cells, one enumeration (folds in PERF.18) | PERF.107 | Split from PERF.98. |
 | PERF.113 | The neighbour link of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | PERF.107 | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
@@ -31,15 +30,15 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | PERF.116 | The habitability re-score (`plan --habitability`): measure it, and split it into chunks of systems if the time warrants | PERF.106 | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
 | PERF.117 | The map-luminosity fill (`plan --map-luminosity`): measure it, and split it into id-range chunks if the time warrants | PERF.106 | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
 | PERF.98 | Work queue step 4: the remaining stages and the sector and backfill units on the new queue | PERF.106, PERF.107, PERF.108 | PERF.86 step 4 |
-| PERF.119 | The Generate page, the API and the one-off sector and system commands start their runs through the wrapper | PERF.98, PERF.118 | Boss, 2026-10-17, 4:12 PM EDT: every start path uses the wrapper. |
-| PERF.120 | Every command does one thing: the umbrella for reshaping every command and entry point | PERF.118 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
+| PERF.119 | The Generate page, the API and the one-off sector and system commands start their runs through the wrapper | PERF.98 | Boss, 2026-10-17, 4:12 PM EDT: every start path uses the wrapper. |
+| PERF.120 | Every command does one thing: the umbrella for reshaping every command and entry point |  | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | PERF.121 | `plan` does only the skeleton, and the scatters become one `scatter` command with exactly one kind per run (mass, luminosity, phenomena, nebula field, band) | PERF.106, PERF.120 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | PERF.122 | The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags | PERF.106, PERF.120 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | PERF.123 | `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds | PERF.107, PERF.108, PERF.121 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | PERF.124 | `sector` and `phenomenon` only generate: the population pass leaves `sector` and the settle leaves `phenomenon` | PERF.123 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | PERF.125 | The population pass and the territories pass are separate commands | PERF.107, PERF.120 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
-| PERF.126 | `check-db`: each check is its own command and the report is the list the wrapper runs | PERF.118, PERF.120 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
-| PERF.127 | `warm_map`: each cache family is its own command and `update.sh` builds the list | PERF.118, PERF.120 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
+| PERF.126 | `check-db`: each check is its own command and the report is the list the wrapper runs | PERF.120 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
+| PERF.127 | `warm_map`: each cache family is its own command and `update.sh` builds the list | PERF.120 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | PERF.128 | `benchmark` is a step list handed to the wrapper, not a sequence of its own | PERF.123 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | OPS.60 | The admin commands that did two things by flag: `lockouts` lists or lifts, `version_history --list` repeats `planetgen versions` |  | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | OPS.61 | Remove the one-off tools `cli.render_parity` and `cli.dedupe`: they check and fix a schema and a naming rule that migrated long ago |  | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
