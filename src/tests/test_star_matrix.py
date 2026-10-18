@@ -23,7 +23,8 @@ import pytest
 
 from planetgen.describe import build as describe_build
 from planetgen.describe.quantity import inline_text as describe_inline
-from planetgen.galaxy import mass_chain
+from planetgen.galaxy import mass_chain, scales
+from planetgen.physics.units import pc_to_ly
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star, _sample_evolved_star_mass_sol
 from planetgen.physics import constants as pc, ms_lifetime
@@ -273,12 +274,13 @@ def test_gravitational_sphere_of_influence_scales_with_mass_cube_root():
     for r in ratios[1:]:
         assert r == pytest.approx(ratios[0], rel=1e-6)
 
-    def per_cube_root_mass(central_kg):
-        return (pc.GALACTIC_CENTER_DISTANCE_LY * pc.LY_TO_M / pc.AU_TO_M
+    def per_cube_root_mass(central_kg, distance_ly=None):
+        return ((distance_ly or scales.default_galactocentric_ly()) * pc.LY_TO_M / pc.AU_TO_M
                 * (pc.SOLAR_MASS_TO_KG / (3.0 * central_kg)) ** (1 / 3))
 
     assert ratios[0] == pytest.approx(per_cube_root_mass(mass_chain.current_central_mass_kg()), rel=1e-9)
-    assert 80_000 <= per_cube_root_mass(1.15e12 * pc.SOLAR_MASS_TO_KG) <= 250_000
+    # At the Milky Way's 8.2 kpc and virial mass, the reference the plausibility range is set for.
+    assert 80_000 <= per_cube_root_mass(1.15e12 * pc.SOLAR_MASS_TO_KG, pc_to_ly(8200.0)) <= 250_000
 
 
 @pytest.mark.parametrize("star_type", ALL_STAR_TYPES)
@@ -297,7 +299,7 @@ def test_galactic_orbit_is_independent_of_stellar_mass():
     mass), circular orbital speed/period around the galactic center depends
     only on distance from the galactic center -- every star type generated
     without an explicit `galactic_center_dist_ly` falls back to the same
-    fixed `physical_constants.GALACTIC_CENTER_DISTANCE_LY`, so its
+    the same default distance (`galaxy.scales`), so its
     galactic-orbit values should be identical (not just proportional)
     across wildly different masses.
     """
@@ -315,14 +317,14 @@ def test_galactic_orbit_is_independent_of_stellar_mass():
 
 def test_sun_like_star_galactic_orbit_matches_real_measurements():
     """
-    Falling back to the fixed `GALACTIC_CENTER_DISTANCE_LY` (Sol's own
-    galactocentric distance), a generated star's circular orbital
+    At the Sun's own galactocentric distance (8.2 kpc), a star's circular orbital
     speed/period should land near the Sun's own measured values: ~220-240
     km/s circular velocity and a ~225-250 million-year "galactic year".
     """
     s = make_star("G2V")
-    assert 150 <= s.galactic_orbital_speed_kms <= 260
-    assert 0.15 <= s.galactic_orbital_period_gy <= 0.30
+    speed_kms, period_gy = s.calculate_galactic_orbit(pc_to_ly(8200.0))
+    assert 150 <= speed_kms <= 260
+    assert 0.15 <= period_gy <= 0.30
 
 
 _MAIN_SEQUENCE_ONLY_NOTE_FRAGMENTS = [

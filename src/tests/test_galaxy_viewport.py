@@ -33,11 +33,12 @@ from planetgen.galaxy.viewport import (
     planned_slots_in_view,
     qualifying_threshold_star_count,
 )
+from tests.toy_shape import toy_shape
 
 EDGE_LY = 11.5
 EDGE_PC = 3.526
 
-SHAPE = build_galaxy_shape(
+SHAPE = toy_shape(
     disk_scale_length_pc=40.0,
     disk_scale_height_pc=12.0,
     bulge_scale_radius_pc=10.0,

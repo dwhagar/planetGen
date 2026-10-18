@@ -30,6 +30,7 @@ from planetgen.physics import constants, insolation, magnetism, metallicity, pre
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
+from planetgen.generation import pulsar_planets
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
 from planetgen.physics.formation import (
@@ -195,8 +196,8 @@ class StarSystem:
                 straight through to every `Star`/`BinaryStarProxy` this
                 system creates (see `Star.calculate_system_perimeter`'s
                 docstring). `None` (the default) leaves every constituent
-                star's Hill-sphere calculation on the fixed
-                `constants.GALACTIC_CENTER_DISTANCE_LY` constant --
+                star's Hill-sphere calculation on the radius that holds half of the
+                galaxy's disc stars (`galaxy.scales`) --
                 the correct behavior for a system with no galaxy placement
                 (e.g. `generation/run_sector.py`'s own standalone CLI).
             compact_remnant (BlackHole or NeutronStar, optional): A
@@ -814,6 +815,9 @@ class StarSystem:
                  `self.secondary_planets` -- the caller assigns the result
                  to whichever one applies.
         """
+        if pulsar_planets.applies(star):
+            return pulsar_planets.generate(self.system_config, star, habitable_zone, orbit_ceiling_au)
+
         planets = []
         system_objects = self.estimate_num_objects(star)
 

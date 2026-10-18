@@ -52,10 +52,15 @@ relative_density = k_norm * (bulge + thin * arm_factor + thick)
 (`_sech_squared`), because `1 / cosh(x)^2` overflows once `|x|` passes about
 710.
 
-**Normalization.** `build_galaxy_shape` computes `k_norm` so
-`relative_density = 1.0` in the plane, at the inter-arm minimum, at
-`calibration_radius_pc`. That defaults to `R0` (8,200 pc at the default
-shape). The model's fixed parts are ratios to the shape's own lengths,
+**Normalization (GEN.404).** `build_galaxy_shape` computes `k_norm` so the density, in units of the real local
+stellar density (`LOCAL_STELLAR_DENSITY_LY3`), integrates to the systems the galaxy's stellar mass makes
+(`structure.stellar_mass_solar` over `tuning.MEAN_SYSTEM_MASS_SOLAR`, 0.4): `density.total_mass` is the integral of the
+unnormalized model (the thin and thick disks, the bulge, the nuclear cluster and disc and the stellar halo, each in
+closed form). No point of the galaxy is the calibration point and no Sun position is read. A galaxy of the reference
+structure (5e10 solar masses) holds 1.25e11 systems, and the density at the reference radius is 0.38 of the local
+density the earlier calibration pinned there (2.6 times sparser): the model's disc is a `sech^2` sheet whose midplane
+density is lower than the exponential fits quote for the same column, a gap a revision of the vertical profile
+closes, not this constant. The model's fixed parts are ratios to the shape's own lengths,
 so the same formulas work for a galaxy of any size.
 
 **Stellar halo** (GEN.234). A spheroid with a broken power law, `A * (max(m, core) / break) ** -n`, where
@@ -87,7 +92,6 @@ given; an option given replaces its draw, and the bulge's amplitude is solved fo
 | `--arm-count` | Shares of Hart et al. 2017 (two arms in 64.5 percent) |
 | `--pitch-angle-deg` | Falls with stellar mass between Yu and Ho 2019's two binned means (earlier notes say 2018; Crossref gives ApJ 871, 194, 2019 for the pitch-angle paper), 5.5 degrees of scatter |
 | `--arm-density`, `--interarm-density` | 1.4 and 0.6, the arm contrast (not drawn; no source) |
-| `--calibration-radius-pc` | 3.15 x scale length (`tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH`) |
 
 The Milky Way's measured shape (BHG16: 2,600 pc, 300 pc, 1,580 pc, 3.11, two arms at 15 degrees) is kept only as the
 reference the math check measures the model's machinery against (`physics/mathcheck.py`).
@@ -198,8 +202,8 @@ rejected, and what the backfill and a fill of the sparse outer rim cost, are in
 - It described the shell grid (`shell_index`, `shell_slot_index`,
   Fibonacci slots), which 6.0.0 replaced with rings, layers and slots.
 - It used `E = 4.32` for an 11.5 ly sector; the 4 pc sector gives 6.31.
-- It calibrated at `R_sun` from `GALACTIC_CENTER_DISTANCE_LY`; the code
-  calibrates at a fixed ratio of the scale length (3.15 since GEN.118).
+- It calibrated at `R_sun` from the Sun's distance; the code calibrated at a fixed ratio of the scale length (3.15
+  since GEN.118) until GEN.404 normalized the whole galaxy to its stellar mass.
 - It pointed to `galaxyGen.py`, `galaxyPlan.py`, `sectorGen.py` and SQLite,
   none of which are used now.
 

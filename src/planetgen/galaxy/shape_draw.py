@@ -292,7 +292,6 @@ def plan_shape(args, galaxy_seed):
         arm_amplitude=arm_amplitude,
         arm_level=arm_level,
         nuclear_amplitude=args.nuclear_amplitude,
-        calibration_radius_pc=args.calibration_radius_pc,
         masses=(drawn.chain.stellar_mass_solar, drawn.chain.halo_mass_solar),
         structure=drawn.structure,
     )

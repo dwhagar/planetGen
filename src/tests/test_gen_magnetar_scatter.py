@@ -19,6 +19,7 @@ from planetgen.generation.phenomena import registry
 from planetgen.generation.phenomena.compact_remnant import NeutronStar
 from planetgen.generation.system import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
+from tests.toy_shape import toy_shape
 
 MAGNETAR = ("neutron-star", scatter.MAGNETAR_SUBTYPE)
 MILKY_WAY = build_galaxy_shape(
@@ -26,7 +27,7 @@ MILKY_WAY = build_galaxy_shape(
     bulge_amplitude=3.11, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
     masses=(5.0e10, mass_chain.median_halo_mass(5.0e10)),
 )
-TOY = build_galaxy_shape(
+TOY = toy_shape(
     disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
     bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
 )
@@ -83,7 +84,7 @@ def test_a_milky_way_holds_about_a_hundred_magnetars():
     young, _every = _young_and_total_integrals(MILKY_WAY)
     e_value = expected_system_count_at_density_1(tuning.DEFAULT_SECTOR_EDGE_LY)
     expected = scatter.class_rate_per_star(*MAGNETAR) * e_value * young / EDGE_PC ** 3
-    assert 60.0 <= expected <= 250.0     # about 100 active, 30 to 600 (Olausen & Kaspi 2014)
+    assert 30.0 <= expected <= 250.0     # about 100 active, 30 to 600 (Olausen & Kaspi 2014)
     # Against the neutron stars the same arithmetic gives the 1e9 of the Galaxy.
     stars = e_value * (young / tuning.MAGNETAR_YOUNG_STAR_SHARE) / EDGE_PC ** 3
     assert 3.0e8 <= scatter.class_rate_per_star("neutron-star", None) * stars <= 3.0e9

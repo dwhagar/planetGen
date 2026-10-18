@@ -51,6 +51,7 @@ Earth's) or multipolar (`f_dip` under 0.5).
 
 import math
 
+from planetgen import tuning
 from planetgen.physics import activity, constants
 from planetgen.util import draw
 
@@ -265,8 +266,21 @@ def generate_induced_field(moon, parent):
         parent_moment, moon.distance * constants.AU_TO_M, synodic, radius_m, conductivity * depth_m, shell_radius_m)[0]
 
 
+PULSING_TYPES = ("young", "millisecond", "magnetar")
+
+
+def pulsar_wind_pressure_pa(edot_w, distance_au):
+    """The momentum flux of a pulsar wind that carries a spin-down power `edot_w`, Pa, at `distance_au`:
+    `xi Edot / (4 pi r^2 c)` (GEN.317)."""
+    distance_m = distance_au * constants.AU_TO_M
+    return tuning.PULSAR_WIND_XI * edot_w / (4 * math.pi * distance_m ** 2 * constants.SPEED_OF_LIGHT_M_S)
+
+
 def wind_pressure_pa(star, distance_au):
-    """The stellar wind's pressure at `distance_au` (rule 5)."""
+    """The stellar wind's pressure at `distance_au` (rule 5); a pulsing neutron star's is its pulsar wind's
+    (`pulsar_wind_pressure_pa`)."""
+    if getattr(star, "pulsar_type", None) in PULSING_TYPES and distance_au:
+        return pulsar_wind_pressure_pa(activity.neutron_star_spin_down_w(star), distance_au)
     if (getattr(star, "radius", None) is None or getattr(star, "luminosity", None) is None
             or getattr(star, "log_lx_lbol", None) is None):
         return EARTH_WIND_PA / distance_au ** 2

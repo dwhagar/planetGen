@@ -71,7 +71,8 @@ def test_a_young_rich_place_makes_fewer_planetary_nebulae_than_an_old_one_in_eve
 
 def test_a_clouds_young_stars_give_it_gas_and_a_dwarf_without_young_stars_has_none():
     assert nebula_field.gas_factor(LMC.center_pc, WITH_SATELLITES) > 0.1
-    assert nebula_field.gas_factor(SMC.center_pc, WITH_SATELLITES) > nebula_field.gas_factor(LMC.center_pc, WITH_SATELLITES)
+    # (both Clouds sit at the cap now that the disk holds its galaxy's mass, so the tracer is compared, not the factor)
+    assert nebula_field._gas_tracer(SMC.center_pc, WITH_SATELLITES) > nebula_field._gas_tracer(LMC.center_pc, WITH_SATELLITES)
     assert nebula_field.gas_factor(FORNAX.center_pc, WITH_SATELLITES) == 0.0
     # Away from every satellite nothing changes: the disk's tracer is the same with the components in or out.
     assert nebula_field.gas_factor(SUN, WITH_SATELLITES) == nebula_field.gas_factor(SUN, SHAPE)
@@ -146,7 +147,7 @@ def test_a_satellites_remnants_are_kept_where_its_gas_is(monkeypatch):
     # Kept ones crowd the centre, where the gas is: the median kept radius is under the median of all the satellite's.
     assert np.median(distance) < SMC.half_mass_radius_pc * 1.3
     # The kept count is the candidates (full * seeds) times the mean gas fraction over the profile, well under the whole.
-    assert len(rows) < 0.5 * full * len(seeds)
+    assert len(rows) < 0.75 * full * len(seeds)
 
 
 def test_a_satellite_without_gas_has_no_remnants_or_magnetars(monkeypatch):

@@ -22,6 +22,7 @@ from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronSta
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
+from tests.toy_shape import toy_shape
 
 
 def _sector(edge_ly=100.0):
@@ -256,8 +257,10 @@ def test_the_system_is_the_same_from_the_same_seed_and_in_any_order(certain):
                                               for planet in entry.star_system.planets]
                 for entry in sector.entries}
 
-    forward, backward = planets([3, 5]), planets([5, 3])
-    assert forward == backward and len(forward) >= 1
+    # Only a disc origin (a quarter of the pulsars that roll planets, GEN.317) leaves a system: take two seeds that do.
+    first, second = [seed for seed in range(1, 60) if planets([seed])][:2]
+    forward, backward = planets([first, second]), planets([second, first])
+    assert forward == backward and len(forward) == 2
 
 
 def test_a_roll_that_misses_leaves_the_bare_object(recycled, monkeypatch):
@@ -327,7 +330,7 @@ def test_a_rogue_planet_keeps_its_moon_at_the_chance_of_the_table(monkeypatch):
 # --- A scattered fill ----------------------------------------------------------------------------------------------
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
-SHAPE = build_galaxy_shape(disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
+SHAPE = toy_shape(disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
                            bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4)
 
 

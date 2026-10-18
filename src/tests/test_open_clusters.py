@@ -24,7 +24,7 @@ E1 = 6.3
 def _shape(found=()):
     shape = galaxyDensity.build_galaxy_shape(
         disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=700.0, bulge_amplitude=2.0,
-        arm_count=2, pitch_angle_rad=math.radians(12.0), arm_amplitude=0.3, calibration_radius_pc=8000.0)
+        arm_count=2, pitch_angle_rad=math.radians(12.0), arm_amplitude=0.3)
     if found:
         shape = shape._replace(components=component_field.ComponentField(found, EDGE, E1))
     return shape

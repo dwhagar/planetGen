@@ -451,9 +451,8 @@ stage and the arm count and pitch angle from the arm statistics
 ([`design/intergalactic-and-halo-contents.md`](design/intergalactic-and-halo-contents.md),
 section 5.13, rows 4 to 6). The plan prints what was drawn. `--arm-density` (1.4) and
 `--interarm-density` (0.6) set the arms' contrast, `--nuclear-amplitude` (1: the nuclear star
-cluster and nuclear stellar disc at the centre, scaled to the bulge; 0 is none) and
-`--calibration-radius-pc` (the Sun's radius, 3.15 times the disk scale length)
-for where relative density 1.0 sits. `--max-shell` caps how far out the
+cluster and nuclear stellar disc at the centre, scaled to the bulge; 0 is none).
+The galaxy holds the systems its stellar mass makes (no point of it is pinned to the local density, GEN.404). `--max-shell` caps how far out the
 shells are walked (100,000 by default) and `--seed <32 hex digits>` sets the
 galaxy seed. `--workers` is how many shells of bright stars are drawn at
 once.

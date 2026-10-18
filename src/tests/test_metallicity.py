@@ -11,12 +11,13 @@ import statistics
 import pytest
 
 from planetgen import tuning
+from planetgen.galaxy import scales
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
 from planetgen.physics import constants, formation, metallicity
 from planetgen.util import draw
 
-SUN = constants.GALACTIC_CENTER_DISTANCE_LY
+SUN = scales.reference_radius_pc() * 3.2615637771674337   # the zero point of the disc gradient, light-years
 KPC = constants.KILOPARSEC_M / constants.LY_TO_M
 
 

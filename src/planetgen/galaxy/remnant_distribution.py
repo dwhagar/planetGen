@@ -15,7 +15,7 @@ right on average but not by region. The research in
   peaks near 3 to 4 kpc and is far thinner than the stars in the inner galaxy.
 
 Each factor multiplies the density a remnant is placed by, so it moves where
-remnants are without changing the rate per star at the Sun's own radius and
+remnants are without changing the rate per star at the reference radius and
 height. Every size here is an estimate from those trends, not a measurement:
 the sources give shapes, not percentages.
 """
@@ -25,6 +25,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
+from planetgen.galaxy import scales
 from planetgen.util import detmath
 
 
@@ -96,14 +97,15 @@ def radial_factor_array(kind, radius_pc):
 def pulsar_radial_factor(radius_pc):
     """
     Active radio pulsars against stars at galactocentric `radius_pc`, 1 at
-    the Sun: the Lorimer et al. (2006) profile `(R/R0)^a exp(-b (R-R0)/R0)`
-    (`tuning.PULSAR_RADIAL_A`, `_B`) over the stellar disk's own exponential.
-    About 0.1 at 1 kpc, 0.4 at 3 kpc, 0.8 near 15 kpc. Capped at 2.
+    the reference radius: the Lorimer et al. (2006) profile `(R/R0)^a exp(-b (R-R0)/R0)`
+    (`tuning.PULSAR_RADIAL_A`, `_B`) over the stellar disk's own exponential, with R0 the galaxy's reference radius
+    and the disk's scale length the galaxy's (`galaxy.scales`, GEN.404). For the Milky Way's scales: about 0.1 at
+    1 kpc, 0.4 at 3 kpc, 0.8 near 15 kpc. Capped at 2.
     """
-    sun = tuning.GALAXY_SUN_RADIUS_PC
+    reference = scales.reference_radius_pc()
     if radius_pc <= 0.0:
         return 0.0
-    pulsars = (radius_pc / sun) ** tuning.PULSAR_RADIAL_A * math.exp(
-        -tuning.PULSAR_RADIAL_B * (radius_pc - sun) / sun)
-    stars = math.exp(-(radius_pc - sun) / tuning.GALAXY_DISK_SCALE_LENGTH_PC)
+    pulsars = (radius_pc / reference) ** tuning.PULSAR_RADIAL_A * math.exp(
+        -tuning.PULSAR_RADIAL_B * (radius_pc - reference) / reference)
+    stars = math.exp(-(radius_pc - reference) / scales.disk_scale_length_pc())
     return min(pulsars / stars, 2.0)
