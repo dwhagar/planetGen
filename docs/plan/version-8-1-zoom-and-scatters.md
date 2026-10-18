@@ -36,7 +36,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | PERF.123 | `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds | PERF.107, PERF.108, PERF.121 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | PERF.124 | `sector` and `phenomenon` only generate: the population pass leaves `sector` and the settle leaves `phenomenon` | PERF.123 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | PERF.125 | The population pass and the territories pass are separate commands | PERF.107, PERF.120 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
-| PERF.126 | `check-db`: each check is its own command and the report is the list the wrapper runs | PERF.120 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | PERF.128 | `benchmark` is a step list handed to the wrapper, not a sequence of its own | PERF.123 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | OPS.60 | The admin commands that did two things by flag: `lockouts` lists or lifts, `version_history --list` repeats `planetgen versions` |  | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | OPS.61 | Remove the one-off tools `cli.render_parity` and `cli.dedupe`: they check and fix a schema and a naming rule that migrated long ago |  | Boss, 2026-10-17, 4:19 PM EDT (all commands). |

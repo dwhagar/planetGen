@@ -14370,6 +14370,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   other ad-hoc factors is GEN.571 and stays bit-identical. Done: the
   three sites read the exact factors, the golden digest changes with the
   epoch entry, and the tests that pin nebula radii are regenerated.
+  Progress (Core 5, 2:54 AM EDT 2026-10-18 as the lane reported): coded;
+  its changed gate started 2:53 AM EDT, and it takes epoch 25 (epoch 24
+  is pending for GEN.402, GEN.244 or the next of them to merge; the
+  later merger renumbers). PR follows when the gate is green.
   Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
@@ -15747,32 +15751,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
-  Design: [docs/design/command-inventory.md](design/command-inventory.md)
-
-- [ ] **PERF.126 `check-db`: each check is its own command and the report is the list the wrapper runs**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/command-inventory.md. Today `planetgen
-  check-db` runs the schema revision check, the table health check, the
-  rows-without-parents check and, with `--deep`, the sector and
-  wide-binary checks, picked by flags. Done: each check is its own
-  read-only command with its own parameters (the scope, `--deep`
-  becoming its own check), a wrapper step list of all of them gives
-  today's report and the same exit codes (1 on damage, 2 when a check
-  could not run), and the flags that grouped them are gone with no shim.
-  Owner: Core 5 (proposed; the PERF.118 chain).
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Progress (Core 5, 12:47 and 12:58 AM EDT 2026-10-18 as the lane
-  reported): written and committed on claude/core5-perf126, held behind
-  DOC.69 (merged as #2172); nine `check-*` commands run as a CHECK-kind
-  run; it needs Redis now and `--deep` and `--no-check-table` are gone.
-  Merging main, then its gate.
-  Prerequisites: PERF.120. Related: PERF.118, PERF.120.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.128 `benchmark` is a step list handed to the wrapper, not a sequence of its own**
