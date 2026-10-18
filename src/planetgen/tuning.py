@@ -822,7 +822,8 @@ STELLAR_POPULATION_AGE_RANGES_GY = {
     "nuclear_cluster": (3.0, 12.0), "nuclear_disc": (4.0, 12.0),
     "satellite_young": (0.0, 0.1), "satellite_intermediate": (0.1, 3.0),
 }
-STELLAR_POPULATION_SCALE_HEIGHT_RATIO = {"young": 50 / 300, "intermediate": 150 / 300, "old": 1.0}
+# The three thin-disc populations' scale heights over the old one's come from the galaxy's own dispersions
+# (`galaxy.structure.population_height_ratios`, GEN.532), not from a table here.
 STELLAR_POPULATION_ARM_AMPLITUDE = {"young": 0.9, "intermediate": 0.4, "old": 0.0}
 
 # How much of the thin disk's recent star formation a place holds (GEN.134, `galaxy.star_formation`): derived from the
@@ -994,19 +995,12 @@ CLUSTER_GRID_PC = 1024.0
 # R0 = 8.2 kpc, L = 2.6 kpc (BHG16). The calibration point (relative
 # density 1.0) sits here by default, and the bar is angled from it.
 GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH = 8200.0 / 2600.0
-# The thick disk (BHG16): scale height 900 pc and scale length 2.0 kpc
-# against the thin disk's 300 pc and 2.6 kpc, and 4% of the thin disk's
-# density in the plane at the Sun. That makes it ~18% of the thin disk's
-# mass (BHG16: 6e9 against 3.5e10 Msun).
-THICK_DISK_SCALE_HEIGHT_RATIO = 900.0 / 300.0
-THICK_DISK_SCALE_LENGTH_RATIO = 2000.0 / 2600.0
-THICK_DISK_LOCAL_DENSITY_RATIO = 0.04
-# The bulge is the bar's boxy/peanut core, as COBE/DIRBE sees it edge-on:
-# Dwek et al. 1995's G2 fit, rho = exp(-r_s^2 / 2) with r_s^4 =
-# ((x/x0)^2 + (y/y0)^2)^2 + (z/z0)^4, x0 = 1.58, y0 = 0.62, z0 = 0.43 kpc.
-# `bulge_scale_radius_pc` is x0 (along the bar); these are y0/x0 and z0/x0.
-BULGE_AXIS_RATIO_Y = 620.0 / 1580.0
-BULGE_AXIS_RATIO_Z = 430.0 / 1580.0
+# The thick disk's mass, length and height, the bulge's axes and angle, and the stellar halo's share are drawn
+# from the galaxy seed (`galaxy.structure_draw`, GEN.532, GEN.533); the Milky Way's published ones (BHG16: a thick
+# disk of 900 pc and 2.0 kpc against the thin disk's 300 pc and 2.6 kpc; Dwek et al. 1995's G2 bulge fit with
+# y0/x0 = 0.392 and z0/x0 = 0.272) are `galaxy.structure.REFERENCE_STRUCTURE`, a check target. The bulge is the bar's
+# boxy/peanut core, as COBE/DIRBE sees it edge-on: rho = exp(-r_s^2 / 2) with r_s^4 =
+# ((x/x0)^2 + (y/y0)^2)^2 + (z/z0)^4; `bulge_scale_radius_pc` is x0 (along the bar).
 
 # The nuclear star cluster and the nuclear stellar disc (GEN.280, docs/design/realistic-galactic-core.md 3), the
 # two structures at the real centre, are density terms of the model. Both are ratios to the galaxy's own bulge, so
@@ -1031,10 +1025,8 @@ NUCLEAR_RESOLUTION_PC = 2.0
 """float: The radius of the grid's core ball (shell 0, half the 4 pc shell depth). The cluster's cusp is held below
 the radius at which its density equals the ball's mean, so the ball's cell holds exactly the cluster's mass inside
 2 pc and no cell is asked for a density the grid cannot hold (`galaxy.density.model_terms`)."""
-# The bar's long axis leads the Sun-center line by 27 degrees in the
-# direction of rotation (its near end at positive galactic longitude;
-# Wegg & Gerhard 2013, BHG16: 28-33 for the long bar).
-BULGE_BAR_ANGLE_DEG = 27.0
+# The bar's long axis leads the Sun-center line by an angle drawn from the seed (`galaxy.structure_draw.draw_bar`);
+# the Milky Way's is 27 degrees (its near end at positive galactic longitude; Wegg & Gerhard 2013, BHG16: 28-33).
 
 # The stellar halo (GEN.234, docs/design/intergalactic-and-halo-contents.md 2.1 and 4) replaces the flat
 # floor GEN.78 put under the density (0.1% of the local density everywhere, half the real halo at the Sun
@@ -1052,25 +1044,21 @@ HALO_CORE_RATIO = 500.0 / HALO_SCALE_LENGTH_PC
 HALO_INNER_SLOPE = 2.5
 HALO_OUTER_SLOPE = 4.5
 HALO_AXIS_RATIO = 0.7
-HALO_MEAN_SYSTEM_MASS_SOLAR = 0.4
-"""float: Solar masses a halo system holds on average (docs/design/globular-clusters.md)."""
-HALO_MASS_SOLAR = 1.5e9
-"""float: The Milky Way's stellar halo (Deason et al. 2019), 3% of the visible mass."""
-HALO_SYSTEM_FRACTION = HALO_MASS_SOLAR / HALO_MEAN_SYSTEM_MASS_SOLAR / 3.0e11
-"""float: The halo's systems over the visible systems (bulge, thin and thick disk): 3.75e9 against the default
-galaxy's 3.0e11, 1.25%. It is the halo's amount for a galaxy of any size; the amplitude is solved from it like
-`k_norm` (`galaxy.density.halo_terms`)."""
+# The halo's amount is the galaxy's own (`galaxy.structure.stellar_halo_system_fraction`, GEN.532): its mass over
+# the galaxy's stellar mass drawn from the placeholder law of `galaxy.structure_draw`; the amplitude is solved from it
+# like `k_norm` (`galaxy.density.halo_terms`).
 HALO_LOCAL_DENSITY_FRACTION = 5.0e-3
 """float: The alternative normalisation the note keeps (Juric et al. 2008): the halo at the Sun is 0.5% of the
 local density, about 2.7 times what `HALO_SYSTEM_FRACTION` gives (0.185%). Not used by the generator;
 `halo_local_density_scale` is the factor that would switch to it."""
 
 # The sector profile (GEN.235, docs/design/intergalactic-and-halo-contents.md 5.3): what a place sets for the
-# rules that never change by place. A first model, not a fit, in the design note's order. Velocity dispersions
-# are the middle of the note's ranges (old disc 40 to 60 km/s, bulge 100 to 140, a cluster 1 to 15 inside and its
-# orbit outside); `rotation` says what the population's net motion follows. [Recalled, to verify.]
+# rules that never change by place. A first model, not a fit, in the design note's order. The thin disc's, the
+# bulge's and the halo's velocity dispersions are the galaxy's own (`galaxy.structure`, GEN.532); the rest are the
+# middle of the note's ranges (a cluster 1 to 15 km/s inside and its orbit outside); `rotation` says what the
+# population's net motion follows. [Recalled, to verify.]
 STELLAR_POPULATION_DISPERSION_KMS = {
-    "young": 15.0, "intermediate": 25.0, "old": 50.0, "bulge": 120.0, "halo": 120.0, "cluster": 8.0,
+    "cluster": 8.0,
     "satellite": 25.0,       # the dwarfs' and Clouds' own 20 to 30 km/s (design note 5.3)
     "satellite_young": 25.0, "satellite_intermediate": 25.0,       # the same satellite, so the same motion (GEN.526)
     "nuclear_cluster": 150.0, "nuclear_disc": 80.0,

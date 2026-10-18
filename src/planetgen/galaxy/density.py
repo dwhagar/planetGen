@@ -44,6 +44,7 @@ import numpy as np
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField
 from planetgen.galaxy import star_formation as starFormation
+from planetgen.galaxy import structure as galaxyStructure
 from planetgen.util import detmath
 
 GalaxyShape = namedtuple(
@@ -53,9 +54,9 @@ GalaxyShape = namedtuple(
         "bulge_scale_radius_pc", "bulge_amplitude",
         "arm_count", "pitch_angle_rad", "arm_amplitude", "arm_level", "nuclear_amplitude",
         "spiral_reference_radius_pc", "spiral_reference_angle_rad",
-        "k_norm", "components", "masses",
+        "k_norm", "components", "masses", "structure",
     ],
-    defaults=(None, None),
+    defaults=(None, None, galaxyStructure.REFERENCE_STRUCTURE),
 )
 """A galaxy's disk/bulge/spiral shape, at whatever physical scale the
 caller chooses -- see `GalaxyShape.build` to construct one with `k_norm`
@@ -63,8 +64,9 @@ computed automatically rather than guessed. `components` is the galaxy's
 `galaxy.component_field.ComponentField` (GEN.160, GEN.237: its globular clusters and satellite galaxies), `None` for a
 galaxy without; it is not part of the stored shape row. `masses` is `(stellar mass, halo mass)` in solar masses, the
 galaxy's own (`galaxy.mass_chain`; GEN.469), which its disk's star formation history is worked out from; `None` takes the
-median galaxy of the disk's size (`galaxy.disk_history.population_shares`). It is not part of the stored row either: it
-is drawn again from the galaxy's seed."""
+median galaxy of the disk's size (`galaxy.disk_history.population_shares`). `structure` is the galaxy's thick disk, bar,
+stellar halo and population motions (`galaxy.structure`, GEN.532, GEN.533). Neither is part of the stored row: both are
+drawn again from the galaxy's seed; a shape built with no seed has the Milky Way's published structure."""
 
 
 def _sech_squared(x):
@@ -115,6 +117,36 @@ def _vertical_any(z, scale_height_pc):
     return np.minimum(1.0, 4.0 * e / (1.0 + e) ** 2)
 
 
+def thick_disk_amplitude(shape):
+    """The thick disk's density at the centre, in the plane, against the thin disk's 1 (raw, before the arm level):
+    its mass is `structure.thick_mass_ratio` of the thin disk's (`arm_level` times `2 pi L^2 x 4 h`), so with its own
+    length and height (the structure's ratios to the thin disk's) the amplitude is the mass ratio over the product
+    of the squared length ratio and the height ratio, times the arm level."""
+    structure = shape.structure
+    return structure.thick_mass_ratio * shape.arm_level / (structure.thick_length_ratio ** 2 * structure.thick_height_ratio)
+
+
+def population_height_ratios(shape):
+    """The scale height of each thin-disc population over the old one's, for this galaxy (`galaxy.structure`): a dict
+    of "young", "intermediate" and "old" (1)."""
+    return _height_ratios(shape.structure)
+
+
+@functools.lru_cache(maxsize=64)
+def _height_ratios(structure):
+    return galaxyStructure.population_height_ratios(structure)
+
+
+def bulge_to_total(shape):
+    """The bulge's mass over the bulge's and the thin and thick disks', in the model's units (the share
+    `shape_draw.bulge_amplitude_for` solves the bulge's amplitude from)."""
+    terms = model_terms(shape)
+    thin = shape.arm_level * 2.0 * math.pi * shape.disk_scale_length_pc ** 2 * 4.0 * shape.disk_scale_height_pc
+    thick = (terms["thick_disk_amplitude"] * 2.0 * math.pi * terms["thick_disk_scale_length_pc"] ** 2
+             * 4.0 * terms["thick_disk_scale_height_pc"])
+    return terms["bulge_mass"] / (terms["bulge_mass"] + thin + thick)
+
+
 @functools.lru_cache(maxsize=64)
 def model_terms(shape):
     """
@@ -137,12 +169,14 @@ def model_terms(shape):
             `nuclear_disc_height_pc` and `nuclear_disc_density` (the disc's centre).
     """
     length = shape.disk_scale_length_pc
+    structure = shape.structure
     solar_radius = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * length
-    thick_length = tuning.THICK_DISK_SCALE_LENGTH_RATIO * length
+    thick_length = structure.thick_length_ratio * length
+    thick_height = structure.thick_height_ratio * shape.disk_scale_height_pc
     solar_angle = _interarm_angle(solar_radius, shape)
-    bar_angle = solar_angle + math.radians(tuning.BULGE_BAR_ANGLE_DEG)
-    scale_y = tuning.BULGE_AXIS_RATIO_Y * shape.bulge_scale_radius_pc
-    scale_z = tuning.BULGE_AXIS_RATIO_Z * shape.bulge_scale_radius_pc
+    bar_angle = solar_angle + math.radians(structure.bar_angle_deg)
+    scale_y = structure.bar_axis_ratio_y * shape.bulge_scale_radius_pc
+    scale_z = structure.bar_axis_ratio_z * shape.bulge_scale_radius_pc
     bulge_mass = shape.bulge_amplitude * shape.bulge_scale_radius_pc * scale_y * scale_z * BULGE_UNIT_INTEGRAL
     cluster_mass = max(shape.nuclear_amplitude, 0.0) * tuning.NUCLEAR_CLUSTER_BULGE_RATIO * bulge_mass
     cluster_scale = tuning.NUCLEAR_CLUSTER_SCALE_RATIO * shape.bulge_scale_radius_pc
@@ -150,10 +184,9 @@ def model_terms(shape):
     disc_length = tuning.NUCLEAR_DISC_LENGTH_RATIO * shape.bulge_scale_radius_pc
     disc_height = tuning.NUCLEAR_DISC_HEIGHT_RATIO * shape.bulge_scale_radius_pc
     return {
-        "thick_disk_amplitude": tuning.THICK_DISK_LOCAL_DENSITY_RATIO
-        * math.exp(solar_radius / thick_length - solar_radius / length),
+        "thick_disk_amplitude": thick_disk_amplitude(shape),
         "thick_disk_scale_length_pc": thick_length,
-        "thick_disk_scale_height_pc": tuning.THICK_DISK_SCALE_HEIGHT_RATIO * shape.disk_scale_height_pc,
+        "thick_disk_scale_height_pc": thick_height,
         "bulge_scale_y_pc": scale_y,
         "bulge_scale_z_pc": scale_z,
         "bar_angle_rad": bar_angle,
@@ -229,8 +262,9 @@ def halo_terms(shape):
     The stellar halo's parameters for `shape` (GEN.234): a spheroid with a broken power law, `amplitude *
     (max(m, core) / break) ** -slope`, `m = sqrt(R**2 + (z / axis_ratio)**2)`, the slope `halo_inner_slope`
     inside `halo_break_pc` and `halo_outer_slope` beyond. The radii are `tuning`'s ratios to the disk scale
-    length. The amplitude is solved, like `k_norm`, so the halo's integral is `tuning.HALO_SYSTEM_FRACTION` of
-    the visible components' (`component_masses`), in the model's unnormalized density.
+    length. The amplitude is solved, like `k_norm`, so the halo's integral is the galaxy's stellar halo share
+    (`galaxy.structure.stellar_halo_system_fraction`, GEN.532) of the visible components' (`component_masses`), in the
+    model's unnormalized density.
 
     Returns:
         dict: `halo_amplitude`, `halo_core_pc`, `halo_break_pc`, `halo_axis_ratio`, `halo_inner_slope`,
@@ -242,7 +276,7 @@ def halo_terms(shape):
                                tuning.HALO_AXIS_RATIO)
     visible = sum(component_masses(shape, steps=HALO_MASS_STEPS).values())
     return {
-        "halo_amplitude": tuning.HALO_SYSTEM_FRACTION * visible / unit,
+        "halo_amplitude": galaxyStructure.stellar_halo_system_fraction(shape.structure) * visible / unit,
         "halo_core_pc": core, "halo_break_pc": break_pc, "halo_axis_ratio": tuning.HALO_AXIS_RATIO,
         "halo_inner_slope": tuning.HALO_INNER_SLOPE, "halo_outer_slope": tuning.HALO_OUTER_SLOPE,
     }
@@ -285,7 +319,7 @@ def shape_with_terms(shape):
     """`shape`'s fields and its `model_terms` and `halo_terms` in one plain dict: what the
     Galaxy Map's prisms read (`db.query.galaxy_density_shape`)."""
     fields = shape._asdict()
-    del fields["components"], fields["masses"]
+    del fields["components"], fields["masses"], fields["structure"]
     return {**fields, **model_terms(shape), **halo_terms(shape)}
 
 
@@ -342,7 +376,7 @@ def nuclear_bound(r_cyl, z, shape):
 
 
 def _bulge(x, y, z, shape, terms):
-    """The boxy bar bulge (Dwek et al. 1995 G2; see `tuning.BULGE_*`):
+    """The bulge, a bar when the galaxy has one (`galaxy.structure`; the form of Dwek et al. 1995 G2):
     `bulge_amplitude * exp(-r_s^2 / 2)`, `r_s^4 = ((x'/x0)^2 +
     (y'/y0)^2)^2 + (z/z0)^4` in the bar's own frame."""
     cos_a, sin_a = terms["bar_cos"], terms["bar_sin"]
@@ -365,7 +399,7 @@ def bulge_bound(r_cyl, z, shape):
 
 
 def _thick_disk(r_cyl, z, shape, terms):
-    """The thick disk (BHG16; see `tuning.THICK_DISK_*`), unnormalized."""
+    """The thick disk (`galaxy.structure`), unnormalized."""
     return (terms["thick_disk_amplitude"] * math.exp(-r_cyl / terms["thick_disk_scale_length_pc"])
             * _vertical(z, terms["thick_disk_scale_height_pc"]))
 
@@ -450,7 +484,7 @@ def population_densities(position_pc, shape):
 
     recent = starFormation.recent_factor(detmath.hypot(position_pc[0], position_pc[1]), shape)
     weights = {}
-    for name, ratio in tuning.STELLAR_POPULATION_SCALE_HEIGHT_RATIO.items():
+    for name, ratio in population_height_ratios(shape).items():
         height = shape.disk_scale_height_pc * ratio
         share = starFormation.disk_population_share(name, shape)
         weights[name] = (share * _vertical(z, height) / height
@@ -506,7 +540,7 @@ def population_densities_array(x, y, z, shape):
 
     recent = starFormation.recent_factor(r_cyl, shape)
     weights = {}
-    for name, ratio in tuning.STELLAR_POPULATION_SCALE_HEIGHT_RATIO.items():
+    for name, ratio in population_height_ratios(shape).items():
         height = shape.disk_scale_height_pc * ratio
         share = starFormation.disk_population_share(name, shape)
         weights[name] = (share * _vertical_any(z, height) / height
@@ -580,7 +614,7 @@ def component_masses(shape, steps=40):
 
 def halo_mass(shape):
     """The halo's share of the model's stars (the units of `component_masses`), in closed form: the halo
-    term integrated over all space, `tuning.HALO_SYSTEM_FRACTION` of the visible components' by construction."""
+    term integrated over all space, the stellar halo share of the visible components' by construction."""
     terms = halo_terms(shape)
     return terms["halo_amplitude"] * _halo_unit_integral(
         terms["halo_inner_slope"], terms["halo_outer_slope"], terms["halo_core_pc"], terms["halo_break_pc"],
@@ -680,6 +714,7 @@ def build_galaxy_shape(
     arm_level=1.0,
     nuclear_amplitude=0.0,
     masses=None,
+    structure=galaxyStructure.REFERENCE_STRUCTURE,
 ):
     """
     Builds a `GalaxyShape` with `k_norm` computed automatically, rather
@@ -708,6 +743,8 @@ def build_galaxy_shape(
         nuclear_amplitude (float): How much of the observed nuclear star cluster and nuclear stellar disc
             the centre holds (GEN.280): 1 is the observed pair, scaled to the bulge, 0 is none.
         masses (tuple, optional): The galaxy's `(stellar mass, halo mass)`, solar masses (`GalaxyShape.masses`).
+        structure (galaxy.structure.Structure): The galaxy's thick disk, bar, stellar halo and population motions
+            (GEN.532, GEN.533); the Milky Way's published one when none is given.
 
     Returns:
         GalaxyShape: With `k_norm` filled in.
@@ -729,6 +766,7 @@ def build_galaxy_shape(
         spiral_reference_angle_rad=spiral_reference_angle_rad,
         k_norm=1.0,
         masses=None if masses is None else (float(masses[0]), float(masses[1])),
+        structure=structure,
     )
 
     theta_interarm = _interarm_angle(calibration_radius_pc, unnormalized)

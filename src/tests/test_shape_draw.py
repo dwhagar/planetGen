@@ -107,7 +107,7 @@ def test_the_bulge_amplitude_gives_the_drawn_bulge_to_total_in_the_models_own_ma
         d = shape_draw.draw_galaxy(_seed(number))
         shape = density.build_galaxy_shape(
             d.disk_scale_length_pc, d.disk_scale_height_pc, d.bulge_scale_radius_pc, d.bulge_amplitude,
-            d.arm_count, math.radians(d.pitch_angle_deg), 0.4)
+            d.arm_count, math.radians(d.pitch_angle_deg), 0.4, structure=d.structure)
         masses = density.component_masses(shape)
         total = masses["bulge"] + masses["thin_disk"] + masses["thick_disk"]
         assert masses["bulge"] / total == pytest.approx(d.bulge_to_total, rel=0.02)
