@@ -35,11 +35,11 @@ def test_a_v109_database_gains_the_columns_and_keeps_its_rows(mysql_config):
     try:
         for table in ("planets", "moons"):
             assert set(NAMES) <= _columns(conn, table)
-        row = conn.execute("SELECT flavor_text, evolutionary_speed, " + ", ".join(NAMES) + " FROM planets").fetchone()
+        row = conn.execute("SELECT evolutionary_speed, " + ", ".join(NAMES) + " FROM planets").fetchone()
         assert store.detect_schema_version(conn) == store.SCHEMA_VERSION
     finally:
         conn.close()
-    assert (row["flavor_text"], row["evolutionary_speed"]) == ("a quiet shore", "Standard")
+    assert row["evolutionary_speed"] == "Standard"
     assert all(row[name] is None for name in NAMES)  # nothing reads or writes them yet
 
 

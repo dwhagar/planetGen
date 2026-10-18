@@ -670,19 +670,6 @@ interstellar_comets = sa.Table(
 )
 
 
-moon_evolutionary_paragraphs = sa.Table(
-    'moon_evolutionary_paragraphs',
-    metadata,
-    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
-    sa.Column('moon_id', mysql.BIGINT(unsigned=True), nullable=False),
-    sa.Column('position', mysql.INTEGER(), nullable=False),
-    sa.Column('paragraph', sa.Text(), nullable=False),
-    sa.Index('idx_moon_evolutionary_paragraphs_moon_id', 'moon_id'),
-    sa.ForeignKeyConstraint(['moon_id'], ['moons.id'], name='fk_moon_evolutionary_paragraphs_moon', ondelete='CASCADE'),
-    mysql_engine="InnoDB",
-)
-
-
 moon_reflection_spectrum = sa.Table(
     'moon_reflection_spectrum',
     metadata,
@@ -731,7 +718,6 @@ moons = sa.Table(
     sa.Column('habitable_zone_outer_km', mysql.DOUBLE(), nullable=False),
     sa.Column('life_chemical', sa.String(64), nullable=True),
     sa.Column('evolutionary_speed', sa.String(64), nullable=True),
-    sa.Column('flavor_text', sa.Text(), nullable=True),
     sa.Column('flavor_text_count', mysql.INTEGER(), server_default=sa.text("'0'"), nullable=False),
     sa.Column('life_stage', sa.String(32), nullable=True),
     sa.Column('evolutionary_pace', sa.String(16), nullable=True),
@@ -813,7 +799,6 @@ moons = sa.Table(
     sa.Column('l_ener', mysql.DOUBLE(), nullable=True),
     sa.Column('l_rad', mysql.DOUBLE(), nullable=True),
     sa.Column('equipment_tier', mysql.TINYINT(), nullable=True),
-    sa.Column('hab_note', sa.String(255), nullable=True),
     sa.Column('energy_flux_w_m2', mysql.DOUBLE(), nullable=True),
     sa.Column('flux_variation', mysql.DOUBLE(), nullable=True),
     sa.Column('uid', mysql.BINARY(12), nullable=True),
@@ -1157,19 +1142,6 @@ phenomenon_scatter_classes = sa.Table(
 )
 
 
-planet_evolutionary_paragraphs = sa.Table(
-    'planet_evolutionary_paragraphs',
-    metadata,
-    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
-    sa.Column('planet_id', mysql.BIGINT(unsigned=True), nullable=False),
-    sa.Column('position', mysql.INTEGER(), nullable=False),
-    sa.Column('paragraph', sa.Text(), nullable=False),
-    sa.Index('idx_planet_evolutionary_paragraphs_planet_id', 'planet_id'),
-    sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_planet_evolutionary_paragraphs_planet', ondelete='CASCADE'),
-    mysql_engine="InnoDB",
-)
-
-
 planet_reflection_spectrum = sa.Table(
     'planet_reflection_spectrum',
     metadata,
@@ -1217,7 +1189,6 @@ planets = sa.Table(
     sa.Column('habitable_zone_outer_km', mysql.DOUBLE(), nullable=False),
     sa.Column('life_chemical', sa.String(64), nullable=True),
     sa.Column('evolutionary_speed', sa.String(64), nullable=True),
-    sa.Column('flavor_text', sa.Text(), nullable=True),
     sa.Column('flavor_text_count', mysql.INTEGER(), server_default=sa.text("'0'"), nullable=False),
     sa.Column('life_stage', sa.String(32), nullable=True),
     sa.Column('evolutionary_pace', sa.String(16), nullable=True),
@@ -1299,7 +1270,6 @@ planets = sa.Table(
     sa.Column('l_ener', mysql.DOUBLE(), nullable=True),
     sa.Column('l_rad', mysql.DOUBLE(), nullable=True),
     sa.Column('equipment_tier', mysql.TINYINT(), nullable=True),
-    sa.Column('hab_note', sa.String(255), nullable=True),
     sa.Column('energy_flux_w_m2', mysql.DOUBLE(), nullable=True),
     sa.Column('flux_variation', mysql.DOUBLE(), nullable=True),
     sa.Column('reflex_offset_x_km', mysql.DOUBLE(), nullable=True),
@@ -1951,7 +1921,6 @@ system_configs = sa.Table(
     'system_configs',
     metadata,
     sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
-    sa.Column('markdown', mysql.TINYINT(), server_default=sa.text("'0'"), nullable=False),
     sa.Column('habitable_world', mysql.TINYINT(), nullable=True),
     sa.Column('asteroid_belt', mysql.TINYINT(), nullable=True),
     sa.Column('comets', mysql.TINYINT(), nullable=True),
@@ -1976,18 +1945,17 @@ system_configs = sa.Table(
     sa.Column('prevalence_binary_system', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
     sa.Column('prevalence_wide_binary', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
     sa.Column('prevalence_planets', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
-    sa.CheckConstraint('(`markdown` in (0,1))', name='system_configs_chk_1'),
-    sa.CheckConstraint('(`intelligent_life` in (0,1))', name='system_configs_chk_10'),
-    sa.CheckConstraint('(`binary_system` in (0,1))', name='system_configs_chk_11'),
-    sa.CheckConstraint('(`wide_binary` in (0,1))', name='system_configs_chk_12'),
-    sa.CheckConstraint('(`habitable_world` in (0,1))', name='system_configs_chk_2'),
-    sa.CheckConstraint('(`asteroid_belt` in (0,1))', name='system_configs_chk_3'),
-    sa.CheckConstraint('(`comets` in (0,1))', name='system_configs_chk_4'),
-    sa.CheckConstraint('(`large_star` in (0,1))', name='system_configs_chk_5'),
-    sa.CheckConstraint('(`moons` in (0,1))', name='system_configs_chk_6'),
-    sa.CheckConstraint('(`max_planets` in (0,1))', name='system_configs_chk_7'),
-    sa.CheckConstraint('(`planets` in (0,1))', name='system_configs_chk_8'),
-    sa.CheckConstraint("(`age` in (_utf8mb4'young',_utf8mb4'old'))", name='system_configs_chk_9'),
+    sa.CheckConstraint('(`habitable_world` in (0,1))', name='system_configs_chk_1'),
+    sa.CheckConstraint('(`binary_system` in (0,1))', name='system_configs_chk_10'),
+    sa.CheckConstraint('(`wide_binary` in (0,1))', name='system_configs_chk_11'),
+    sa.CheckConstraint('(`asteroid_belt` in (0,1))', name='system_configs_chk_2'),
+    sa.CheckConstraint('(`comets` in (0,1))', name='system_configs_chk_3'),
+    sa.CheckConstraint('(`large_star` in (0,1))', name='system_configs_chk_4'),
+    sa.CheckConstraint('(`moons` in (0,1))', name='system_configs_chk_5'),
+    sa.CheckConstraint('(`max_planets` in (0,1))', name='system_configs_chk_6'),
+    sa.CheckConstraint('(`planets` in (0,1))', name='system_configs_chk_7'),
+    sa.CheckConstraint("(`age` in (_utf8mb4'young',_utf8mb4'old'))", name='system_configs_chk_8'),
+    sa.CheckConstraint('(`intelligent_life` in (0,1))', name='system_configs_chk_9'),
     mysql_engine="InnoDB",
 )
 

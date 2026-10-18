@@ -5,8 +5,7 @@ Tier 1 bug-hunt coverage: exhaustive, column-level round-trip checks for
 the `schema.sql` tables confirmed (by cross-referencing every table
 name against `src/tests/*.py` -- see the bug-hunt plan) to have **zero**
 existing direct test coverage: `system_config_slots`,
-`planet_evolutionary_paragraphs`, `planet_reflection_spectrum`,
-`moon_evolutionary_paragraphs`, `moon_reflection_spectrum`, and
+`planet_reflection_spectrum`, `moon_reflection_spectrum`, and
 `asteroid_belt_composition`.
 
 Every other table already has direct coverage in `test_db_persistence.py`/
@@ -179,8 +178,6 @@ def test_planet_life_structure_and_reflection_spectrum_round_trip(mysql_config):
         stored = conn.execute(f"SELECT {', '.join(LIFE_COLUMNS)} FROM planets WHERE id = ?", (planet_id,)).fetchone()
         assert {name: stored[name] for name in LIFE_COLUMNS} == {name: getattr(planet, name) for name in LIFE_COLUMNS}
         assert stored["evolutionary_pace"] is not None
-        assert conn.execute("SELECT COUNT(*) AS n FROM planet_evolutionary_paragraphs WHERE planet_id = ?",
-                            (planet_id,)).fetchone()["n"] == 0
 
         for spectrum_type, expected in (
             ("visible", planet.reflection_spectrum_visible),
@@ -334,15 +331,9 @@ def test_deleting_a_system_cascades_to_every_child_table(mysql_config):
 
         for planet_id in planet_ids:
             assert conn.execute(
-                "SELECT COUNT(*) AS n FROM planet_evolutionary_paragraphs WHERE planet_id = ?", (planet_id,)
-            ).fetchone()["n"] == 0
-            assert conn.execute(
                 "SELECT COUNT(*) AS n FROM planet_reflection_spectrum WHERE planet_id = ?", (planet_id,)
             ).fetchone()["n"] == 0
         for moon_id in moon_ids:
-            assert conn.execute(
-                "SELECT COUNT(*) AS n FROM moon_evolutionary_paragraphs WHERE moon_id = ?", (moon_id,)
-            ).fetchone()["n"] == 0
             assert conn.execute(
                 "SELECT COUNT(*) AS n FROM moon_reflection_spectrum WHERE moon_id = ?", (moon_id,)
             ).fetchone()["n"] == 0

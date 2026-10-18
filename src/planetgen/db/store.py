@@ -565,8 +565,7 @@ know their parents' ids before anything is written, and `cur.lastrowid`
 still answers as before."""
 
 BATCH_CHILD_TABLES = frozenset((
-    "system_config_slots", "planet_evolutionary_paragraphs", "moon_evolutionary_paragraphs",
-    "planet_reflection_spectrum", "moon_reflection_spectrum", "asteroid_belt_composition",
+    "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "asteroid_belt_composition",
     "comet_composition", "interstellar_comet_composition", "asteroid_field_composition",
 ))
 """frozenset: Child tables nothing refers to by id, so `Connection.batched`
@@ -1524,6 +1523,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (111, lambda shape: ("planets", "flavor_text") not in shape["columns"]),
     (110, lambda shape: ("planets", "life_stage") in shape["columns"]),
     (109, lambda shape: ("planets", "orbital_phase_deg") not in shape["columns"]),
     (108, _type_marker("bright_stars", "band_index", "int")),

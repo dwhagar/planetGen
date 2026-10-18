@@ -62,3 +62,4 @@ Commit each file came from:
 - v107: 9a8f7671 (GEN.526 satellite young and intermediate populations, before DB.72 band_index INT)
 - v108: 039042e (DB.72 band_index INT, before GEN.289 planet state vectors)
 - v109: 6d0c7d3 (GEN.289 planet state vectors, before DB.50 life structure columns)
+- v110: a8946a3 (DB.50 life structure columns, before DB.52 drops the prose; taken from the branch, as no commit of main carries it alone)

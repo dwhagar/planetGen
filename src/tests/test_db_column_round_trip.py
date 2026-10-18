@@ -66,12 +66,6 @@ NULL_IN_THIS_GALAXY = {
     **{("moons", column): CHANCE for column in
        ("atm_density", "atm_molar_density", "scale_height_km", "life_chemical", "evolutionary_speed",
         "life_stage", "evolutionary_pace", "life_milestone_age_gyr", "life_system_age_gyr")},
-    # DB.51 stopped writing the prose (the life structure replaced it); DB.52 drops the columns and tables.
-    **{(table, column): "no longer written (DB.51), dropped by DB.52" for table, column in (
-        ("planets", "flavor_text"), ("moons", "flavor_text"), ("planets", "hab_note"), ("moons", "hab_note"))},
-    **{(table, column): "no longer written (DB.51), dropped by DB.52" for table in
-       ("planet_evolutionary_paragraphs", "moon_evolutionary_paragraphs")
-       for column in ("id", "planet_id" if table.startswith("planet") else "moon_id", "position", "paragraph")},
     **{("moon_reflection_spectrum", column): CHANCE for column in
        ("id", "moon_id", "spectrum_type", "position", "value")},
     # The CLI places an interstellar comet near the galaxy's sectors only sometimes.
@@ -115,17 +109,16 @@ NEVER_READ = {
     # Row order in a child table: the loaders read them ORDER BY position.
     **{(table, "position"): "sort key" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
-        "interstellar_comet_composition", "planet_evolutionary_paragraphs", "planet_reflection_spectrum",
-        "moon_evolutionary_paragraphs", "moon_reflection_spectrum")},
+        "interstellar_comet_composition", "planet_reflection_spectrum", "moon_reflection_spectrum")},
     # Child tables' own ids and parent keys: matched in the WHERE clause.
     **{(table, "id"): "child row id" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
-        "interstellar_comet_composition", "planet_evolutionary_paragraphs", "planet_reflection_spectrum",
-        "moon_evolutionary_paragraphs", "moon_reflection_spectrum", "system_config_slots", "system_configs")},
+        "interstellar_comet_composition", "planet_reflection_spectrum", "moon_reflection_spectrum",
+        "system_config_slots", "system_configs")},
     **{(table, parent): "parent key" for table, parent in (
         ("comet_composition", "comet_id"), ("interstellar_comet_composition", "comet_id"),
-        ("asteroid_field_composition", "field_id"), ("planet_evolutionary_paragraphs", "planet_id"),
-        ("planet_reflection_spectrum", "planet_id"), ("moon_evolutionary_paragraphs", "moon_id"),
+        ("asteroid_field_composition", "field_id"),
+        ("planet_reflection_spectrum", "planet_id"),
         ("moon_reflection_spectrum", "moon_id"), ("system_config_slots", "config_id"),
         ("system_owners", "star_system_id"), ("nebula_shape_balls", "nebula_id"))},
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
@@ -141,10 +134,6 @@ NEVER_READ = {
         ("star_systems", "epoch_unix"), ("star_systems", "next_update_due"),
         ("star_systems", "binary_epoch_unix"), ("star_systems", "binary_next_update_due"),
         ("facilities", "epoch_unix"), ("facilities", "next_update_due"))},
-    ("system_configs", "markdown"): "no longer read or written (DB.51), dropped by DB.52",
-    # The prose tables are no longer read or written (DB.51); DB.52 drops them.
-    ("planet_evolutionary_paragraphs", "paragraph"): "no longer read (DB.51), dropped by DB.52",
-    ("moon_evolutionary_paragraphs", "paragraph"): "no longer read (DB.51), dropped by DB.52",
     ("moon_reflection_spectrum", "spectrum_type"): CHANCE, ("moon_reflection_spectrum", "value"): CHANCE,
     **{(table, stamp): "row timestamps (the Galaxy Map's change feed reads modified_at in bulk)"
        for table in ("star_systems", "facilities") for stamp in ("created_at", "modified_at")},
