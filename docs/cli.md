@@ -20,6 +20,9 @@ planetgen fingerprint [options] # a digest of the generated content, to compare 
 planetgen check-db [options]    # look for damage in the database (writes nothing)
 planetgen versions              # the version keys the updates recorded
 planetgen benchmark [options]   # time where generation spends its time, in scratch databases
+planetgen warm [FAMILY ...]     # build the site's caches ahead of the first visit
+planetgen commands              # every command the work queue can run
+planetgen command-run KIND ARGS # one unit of one of them, alone
 ```
 
 Run `planetgen <command> --help` for that command's own full option list. `system`, `sector`, `galaxy`, `plan`, `phenomenon` and `population` save what they generate to the database. `check-math`, `fingerprint`, `check-db` and `versions` write nothing, and `benchmark` writes only to scratch databases of its own.
@@ -607,14 +610,23 @@ planetgen benchmark --sectors 20 --workers 1,2,4 --profile --output bench.json
 *   `--workers N[,N...]`: the worker counts to run at, one run each (1 by default).
 *   `--profile`: also profiles one single-worker fill and lists its costliest functions. `--keep`: leaves the scratch databases in place. `--output FILE`: writes the results to `FILE` as JSON.
 
+## Warm the caches
+
+`planetgen warm` builds the site's caches so the first visitor after a release does not wait for them (MAP.134, PERF.104, PERF.127; design in [cache-warm-up.md](design/cache-warm-up.md)). `update.sh` runs it in the background after every update; run it by hand after clearing a cache, as the web server's user so Apache can read what it writes. Each cache family is a command of its own, listed by `planetgen commands` and runnable alone with `planetgen command-run KIND ARGS`: `warm-galaxy-map` (the opening tiles and stage, the shape, the sector and phenomena lists), `warm-lists` (the first page of every list and its counts), `warm-sectors`, `warm-systems` and `warm-phenomena` (every page of that kind, nearest the galaxy centre first, up to `page_cache.warm_max_objects` of each) and `warm-search`. `planetgen warm` only builds the list of them (every family in that order, or the families named) and hands it to the wrapper, which queues them one after the other on the Redis queue as a maintenance run: it does not wait for a generation run, holds none up and shows no banner to visitors. A list of every family ends with `end-map-rebuild-maintenance`, which opens the site if the sector-grid switch closed it (UX.112). It waits for a running update to finish, prints one line per family (how many pages it warmed, how many answers it built, how many were already cached and how many the cap left out), and exits 1 naming the command that failed, or when Redis does not answer or another warm-up is running; there is no silent skip.
+
+```bash
+planetgen warm [FAMILY ...] [--cap N]
+```
+
+`FAMILY` is any of `galaxy-map`, `lists`, `sectors`, `systems`, `phenomena` and `search` (the list is those, in order, whatever order they are named in); `--cap` overrides `page_cache.warm_max_objects`.
+
 ## Helper tools
 
-Besides `planetgen`, a few modules run on their own with `python3 -m`. Run them as the account that owns the install (the web server's user for `warm_map`, so Apache can read what it writes). `orbits`, `query`, `migrate`, `reset`, `forget_devices` and `reset_two_factor` take the same five database options: `--mysql-host`, `--mysql-port`, `--mysql-user`, `--mysql-password` and `--mysql-database`, each defaulting to its `PLANETGEN_MYSQL_*` variable (see [config.md](config.md)). `warm_map` reads the database from `config.json`; `worker`, `config`, `lockouts` and `lift_lockout` take no database options. `orbits` and `query` also take `--version`.
+Besides `planetgen`, a few modules run on their own with `python3 -m`. Run them as the account that owns the install (the web server's user for `planetgen warm`, so Apache can read what it writes). `orbits`, `query`, `migrate`, `reset`, `forget_devices` and `reset_two_factor` take the same five database options: `--mysql-host`, `--mysql-port`, `--mysql-user`, `--mysql-password` and `--mysql-database`, each defaulting to its `PLANETGEN_MYSQL_*` variable (see [config.md](config.md)). `worker`, `config`, `lockouts` and `lift_lockout` take no database options. `orbits` and `query` also take `--version`.
 
 | Command | What it is for |
 |---|---|
 | `python3 -m planetgen.cli.orbits` | Moves every object that is due along its orbit. |
-| `python3 -m planetgen.cli.warm_map` | Builds the site's caches ahead of the first visit: the Galaxy Map's opening view, the lists, the sector, system and phenomenon pages and the search. |
 | `python3 -m planetgen.cli.worker` | Runs one queue worker. |
 | `python3 -m planetgen.cli.query` | Lists what is stored. |
 | `python3 -m planetgen.cli.migrate` | Brings the database up to the current schema. |
@@ -633,16 +645,6 @@ The positional update. Each planet, moon, star, binary pair, comet, facility and
 ```bash
 python3 -m planetgen.cli.orbits
 ```
-
-### warm_map
-
-Builds the site's caches so the first visitor after a release does not wait for them (MAP.134, PERF.104; design in [cache-warm-up.md](design/cache-warm-up.md)). `update.sh` runs it in the background after every update; run it by hand after clearing a cache. It has six families, each a job of its own on the Redis queue and so a row on the admin runs page (`/admin/queue`, kind "Cache warm-up") with its state and a result line: `galaxy-map` (the opening tiles and stage, the shape, the sector and phenomena lists), `lists` (the first page of every list and its counts), `sectors`, `systems` and `phenomena` (every page of that kind, nearest the galaxy centre first, up to `page_cache.warm_max_objects` of each) and `search`. The script waits for a running update to finish, queues the jobs, and prints one line per family: how many it warmed, how many answers it built, how many were already cached and how many the cap left out. It exits 1 and names the family if any failed, could not be queued (no Redis, an update running) or ran past `--timeout`; there is no silent skip. When every family succeeds it ends the sector-switch maintenance (UX.112).
-
-```bash
-python3 -m planetgen.cli.warm_map [--only FAMILY ...] [--cap N] [--no-rq] [--timeout SECONDS]
-```
-
-`--only` warms just those families (repeatable), `--cap` overrides `page_cache.warm_max_objects`, `--no-rq` runs the families in the script one after the other instead of queueing them, and `--timeout` is how long to wait for the queued jobs (default 30 minutes).
 
 ### worker
 

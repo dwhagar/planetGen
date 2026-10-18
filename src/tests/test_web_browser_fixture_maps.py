@@ -25,7 +25,10 @@ Image = pytest.importorskip("PIL.Image")
 
 from planetgen.galaxy.viewport import TILE_MAX_LEVEL  # noqa: E402
 from planetgen.galaxy.spherical import provisional_sector_designation  # noqa: E402
-from tests.map_site_support import PHENOMENA, POINT_FIELD, SECTOR_ID, SECTORS, SYSTEMS, UNCHARTED_CELL, map_site  # noqa: E402,F401 -- fixture
+from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
+    HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD, SECTOR_ID, SECTORS, SYSTEMS, UNCHARTED_CELL, halo_site,
+    map_site,
+)
 
 PRIME_CODE = provisional_sector_designation(1, 0, 1)
 """The designation of the fixture's Fixture Prime (shell 1, band 0, wedge 1)."""
@@ -2696,3 +2699,67 @@ def test_galaxy_map_wheel_carries_the_zoom_down_through_the_windows_and_back_up(
     assert _wheel_until(page, 400, lambda: parse_qs(_query(page)).get("win", [""])[0] != inside, ticks=120), "the wheel never came back out"
     _settle(page)
     assert parse_qs(_query(page))["win"][0].startswith("243."), "back out on the parent window, the 243-shell blocks"
+
+
+# --- The halo beyond the outline (MAP.243) -----------------------------------------------
+
+def _tooltip(page):
+    return page.evaluate("() => { const tip = document.querySelector('#galaxymap3d-tooltip'); return tip.hidden ? '' : tip.textContent; }")
+
+
+def _hover_spot(page, point):
+    """Moves the pointer over the point of the scene `point` and returns where it is on the page, once the tooltip
+    names something (the map takes a moment after its tiles arrive)."""
+    for _ in range(40):
+        spot = _screen_of(page, point)
+        assert spot, f"{point} is not on the map"
+        page.mouse.move(spot[0] + 1, spot[1] + 1)
+        page.mouse.move(*spot)
+        if _tooltip(page):
+            return spot
+        page.wait_for_timeout(250)
+    pytest.fail(f"nothing under the pointer at {point}")
+
+
+def test_a_black_hole_in_the_halo_is_picked_on_the_whole_galaxy_view(page, halo_site):
+    """MAP.243: beyond the galaxy's outline no block is under the pointer; a phenomenon there is picked on the screen
+    like one inside a window, its details shown."""
+    _open_galaxy(page, halo_site)
+    black_hole = HALO_POINTS[0]
+    point = (black_hole["x"], black_hole["y"], black_hole["z"])
+    assert page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyOutsideOutline(...p)", list(point))
+    spot = _hover_spot(page, point)
+    assert "Fixture Outlier" in _tooltip(page)
+    page.mouse.click(*spot)
+    page.wait_for_function("() => { const h = document.querySelector('#galaxymap3d-info h3'); return h && h.textContent.includes('Fixture Outlier'); }")
+
+
+def test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it(page, halo_site):
+    """MAP.243: a star of a loose group beyond the outline is picked (its position and brightness shown), and the
+    wheel run toward it hands off to a window round the cell that holds it, where there was no block to open before."""
+    _open_galaxy(page, halo_site)
+    star = HALO_STARS[0]
+    point = (star["x"], star["y"], star["z"])
+    assert page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyOutsideOutline(...p)", list(point))
+    spot = _hover_spot(page, point)
+    assert "Star beyond the galaxy's outline" in _tooltip(page)
+    page.mouse.click(*spot)
+    page.wait_for_function("() => { const h = document.querySelector('#galaxymap3d-info h3'); return h && h.textContent.includes('Star beyond'); }")
+    assert _crumbs(page) == ["Galaxy"]
+    # The wheel toward the star hands off to the window round the cell that holds it, and on, level by level. Once
+    # the star is out of the visible part of the page the wheel goes on at the middle of what is shown.
+    viewport = page.viewport_size
+    for _ in range(24):
+        spot = _screen_of(page, point)
+        if not spot or not (0 <= spot[0] < viewport["width"] and 0 <= spot[1] < viewport["height"]):
+            spot = page.evaluate("() => { const r = document.querySelector('#galaxymap3d-canvas').getBoundingClientRect(); return [r.left + r.width / 2, Math.min(r.top + r.height / 2, innerHeight - 10)]; }")
+        page.mouse.move(*spot)
+        page.mouse.wheel(0, -400)
+        page.wait_for_timeout(1000)  # past the wheel's cooldown between one stage and the next
+        if len(_crumbs(page)) >= 6:
+            break
+    _settle(page)
+    crumbs = _crumbs(page)
+    assert len(crumbs) >= 6 and crumbs[0] == "Galaxy", crumbs
+    camera = _camera(page)
+    assert math.dist(camera["target"], point) < 2000.0, (camera["target"], point)

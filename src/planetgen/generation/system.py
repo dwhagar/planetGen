@@ -26,7 +26,7 @@ from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
 from planetgen.generation import companion_classes, life as planetLife, multistar, place_terms, prevalence, validation
-from planetgen.physics import constants, insolation, magnetism, metallicity, pre_main_sequence
+from planetgen.physics import constants, insolation, magnetism, metallicity, pre_main_sequence, wolf_rayet
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -676,8 +676,12 @@ class StarSystem:
         initial_mass = getattr(self.primary_star, "initial_mass_sol", None)
         protostar_chance = (None if initial_mass is None or self.primary_star.age is None else
                             pre_main_sequence.companion_chance(initial_mass, self.primary_star.age * 1.0e9))
-        chance = prevalence.scaled_chance(config, "binary_system",
-                                           field_chance if protostar_chance is None else protostar_chance)
+        # GEN.243: a Wolf-Rayet star has a companion in 52% (WN) or 90% (WC and WO) of cases, not the field's rate.
+        special_chance = protostar_chance if protostar_chance is not None else (
+            wolf_rayet.companion_chance(self.primary_star.type)
+            if getattr(self.primary_star, "yerkes_class", None) == wolf_rayet.CLASS
+            else None)
+        chance = prevalence.scaled_chance(config, "binary_system", field_chance if special_chance is None else special_chance)
         fe_h = getattr(self.primary_star, "metallicity_fe_h", None)
         terms = getattr(config, "PLACE_TERMS", None) or place_terms.SOLAR_NEIGHBOURHOOD
         limit = place_terms.wide_axis_limit_au(

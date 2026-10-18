@@ -15,7 +15,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.db import store
-from planetgen.galaxy import scatter_limits
+from planetgen.galaxy import scatter_limits, structure_draw
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.scatter_limits import BASELINE, CORE, HALO, ScatterLimits
 from planetgen.galaxy.spherical import band_range
@@ -36,7 +36,9 @@ def _shape(nuclear_amplitude=1.0):
     )
 
 
-SHAPE = _shape()
+# A seed whose drawn structure keeps the toy galaxy's three shells in the tiers they are named for (core, mixed, disc).
+SEED = bytes([12]) * 16
+SHAPE = _shape()._replace(structure=structure_draw.draw_structure(SEED))   # a stored shape's seed draws its structure
 CORE_SHELL, MIXED_SHELL, DISC_SHELL = 1, 800, 40
 """A shell in the nuclear cluster, one the halo reaches near its poles and the disc crosses, and one in the disc."""
 
@@ -123,9 +125,9 @@ def test_a_band_reads_its_own_tiers_limits_from_the_address():
     assert limits.level_at(None, None) == FLOOR and limits.mass_limit_at(None, None) == MASS
 
 
-def _drawn(shell, tiered, **kwargs):
+def _drawn(shell, tiered, seed="tiers", **kwargs):
     high = _high(shell)
-    rows = list(brightStars.scatter_shell(SHAPE, shell, high, EDGE_PC, E_VALUE, FLOOR, "tiers", tiered=tiered,
+    rows = list(brightStars.scatter_shell(SHAPE, shell, high, EDGE_PC, E_VALUE, FLOOR, seed, tiered=tiered,
                                           check=True, **kwargs))
     tiers = scatter_limits.tier_indices(SHAPE, shell, high, EDGE_PC)
     by_tier = collections.defaultdict(list)
@@ -153,7 +155,11 @@ def test_the_luminosity_pass_draws_each_band_down_to_its_tiers_floor():
     assert len(mixed[HALO]) > 3 * len(mixed[BASELINE])      # the halo's low floor takes many dimmer giants (red giants stop at 2,500 solar, GEN.286)
     halo_lowest = min(_watts(row) for row in mixed[HALO]) / constants.SOLAR_LUMINOSITY
     assert tuning.HALO_MIN_LUMINOSITY_SOL * (1 - 1e-9) <= halo_lowest < FLOOR
-    assert min(_watts(row) for row in mixed[BASELINE]) / constants.SOLAR_LUMINOSITY >= FLOOR * (1 - 1e-9)
+    # The baseline bands of this shell hold about one star that bright, so several draws are looked at.
+    baseline = [row for seed in ("tiers", "tiers-b", "tiers-c", "tiers-d", "tiers-e", "tiers-f")
+                for row in _drawn(MIXED_SHELL, tiered, seed=seed)[BASELINE]]
+    assert baseline
+    assert min(_watts(row) for row in baseline) / constants.SOLAR_LUMINOSITY >= FLOOR * (1 - 1e-9)
 
 
 def test_a_halo_floor_of_fifty_draws_down_to_fifty():
@@ -217,7 +223,7 @@ def test_the_weights_count_each_bands_own_tier():
 @pytest.mark.db
 def test_the_marks_the_fills_and_the_clears_read_each_bands_tier(mysql_config):
     store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=MIXED_SHELL + 1,
-                            expected_system_count_at_density_1=E_VALUE, config=mysql_config)
+                            expected_system_count_at_density_1=E_VALUE, config=mysql_config, galaxy_seed=SEED)
     conn = store.get_connection(mysql_config)
     try:
         skeleton = store.get_galaxy_shape(conn)
@@ -239,7 +245,7 @@ def test_the_marks_the_fills_and_the_clears_read_each_bands_tier(mysql_config):
 @pytest.mark.db
 def test_the_marks_skip_a_sector_by_its_own_tiers_limits(mysql_config):
     store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=MIXED_SHELL + 1,
-                            expected_system_count_at_density_1=E_VALUE, config=mysql_config)
+                            expected_system_count_at_density_1=E_VALUE, config=mysql_config, galaxy_seed=SEED)
     conn = store.get_connection(mysql_config)
     try:
         limits = store.scatter_limits_of(conn, store.get_galaxy_shape(conn))
@@ -270,7 +276,7 @@ def test_the_marks_skip_a_sector_by_its_own_tiers_limits(mysql_config):
 @pytest.mark.db
 def test_clearing_one_pass_tells_apart_the_stars_between_the_tiers_mass_limits(mysql_config):
     store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=MIXED_SHELL + 1,
-                            expected_system_count_at_density_1=E_VALUE, config=mysql_config)
+                            expected_system_count_at_density_1=E_VALUE, config=mysql_config, galaxy_seed=SEED)
     conn = store.get_connection(mysql_config)
     try:
         skeleton = store.get_galaxy_shape(conn)
@@ -303,7 +309,7 @@ def test_clearing_one_pass_tells_apart_the_stars_between_the_tiers_mass_limits(m
 def test_the_api_names_a_sectors_tier_and_its_limits(mysql_config):
     from planetgen.api import routes
     store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=MIXED_SHELL + 1,
-                            expected_system_count_at_density_1=E_VALUE, config=mysql_config)
+                            expected_system_count_at_density_1=E_VALUE, config=mysql_config, galaxy_seed=SEED)
     detail = {"placed": True, "shell_index": CORE_SHELL, "band_index": 0, "wedge_index": 0}
     conn = store.get_connection(mysql_config)
     try:

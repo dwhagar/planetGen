@@ -11,6 +11,8 @@ Every note in this folder, with what it is about and where it stands. The status
 
 A note's own status line, at its top, is the authority; this page only points at it. A test (`src/tests/test_docs_links.py`) fails when a note here is missing from this page. The architecture of the whole program is [architecture.md](architecture.md); the decisions behind it are in [design-decisions.md](design-decisions.md).
 
+**Standing rule for downloaded data (Boss, 12:47 AM EDT on 2026-10-18):** Downloads of static files take place at setup (the step `update.sh` runs, into a cache folder outside the repository) unless the data needs to be constantly updated; any code that fetches data at run time must say in its design why the data needs constant updates (Boss, 12:47 AM EDT on 2026-10-18, project chat, as the coordinator relayed). The shared step is GEN.548; the rule and its offline test design are in [gap-filling-plan.md](gap-filling-plan.md) section 6.5.
+
 ## The whole program
 
 | Note | What it covers | Status |
@@ -60,6 +62,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [globular-clusters.md](globular-clusters.md) | Globular clusters in generation | partly built (GEN.159: cluster table, King tables, generator; GEN.160: cluster density in the sector gate) |
 | [intergalactic-and-halo-contents.md](intergalactic-and-halo-contents.md) | What fills the sphere off the disk: the stellar halo, satellites, ejected stars, gas, and how to give every cell contents | research (reach approved; build plan for TODO) |
 | [galaxy-laws-research.md](galaxy-laws-research.md) | The sourced ranges and laws for the stellar halo, the population ages and dispersions, the thick disk, the dwarf and satellite sizes and the cluster system (GEN.406), with the fifteen open requests | research |
+| [gen533-bar-sources.md](gen533-bar-sources.md) | The sources read for the bar and the unbarred bulge (GEN.533): bar fraction against mass and stage, bar and bulge axis ratios, bar angle, with the conflicts and the rule that picked each draw | research |
 | [gap-filling-plan.md](gap-filling-plan.md) | How the open gaps are filled where the public record is silent: the 57 gaps with a derived, bracketed, theory or placeholder fill, the stand-in registry convention, the first Gemini batch (unverified) and the work order | research |
 | [papers-to-fetch.md](papers-to-fetch.md) | The papers behind refused publishers that Boss downloads himself, and the arXiv papers a research thread reads instead, with Crossref citations (gap-filling plan section 8, GEN.531) | reference |
 | [vizier-courteau-comeron.md](vizier-courteau-comeron.md) | The VizieR search for the Courteau 2007 scatter (GR5) and the Comeron thick-disc tables (GR3): the Comeron 2018 fit, the raw Vc/sigma0 scatter and the corrected references | research |
@@ -72,6 +75,13 @@ A note's own status line, at its top, is the authority; this page only points at
 | [phenomena-catalogue-and-fill.md](phenomena-catalogue-and-fill.md) | The master list of every phenomenon kind: observed rate, system odds, required contents, profile gate, scatter or fill, and the fill rules and audit | design (rules of 2026-10-15; items for TODO) |
 | [multi-star-systems.md](multi-star-systems.md) | Multi-star and star-like systems at scatter time: the census, limits and probabilities, the stored member tree, motion, and the catalogue of about sixty observed and theoretical system types | design (plan of 2026-10-15; nothing built yet) |
 | [disk-star-formation-history.md](disk-star-formation-history.md) | The thin disk's young, middle-aged and old star shares from its own gas history | built |
+| [brown-dwarf-state.md](brown-dwarf-state.md) | A brown dwarf as a star: its L, T or Y type, temperature and radius from the cooling laws and the 20 pc census | built |
+| [black-hole-formation-sources.md](black-hole-formation-sources.md) | The verified failed-supernova and direct-collapse shares and black hole remnant masses behind the black hole density (GEN.560, GEN.563) | research |
+| [black-hole-density.md](black-hole-density.md) | The metallicity-dependent black hole density: the failed-supernova share f(Z) as two drawn anchors, the place factor, the rate sites, the tests and the seven open cards | plan |
+| [unified-star-like-objects.md](unified-star-like-objects.md) | One recursive chain for anything that can be orbited: stars and star-like objects, planets, moons, rogue planets, free brown dwarfs and unbound comets, built through sector fill | plan |
+| [unified-unit-quantity.md](unified-unit-quantity.md) | One registry of units, one Quantity value class and one declaration of every field's and column's quantity, copying the point-in-space class | plan |
+| [unified-system-barycentre.md](unified-system-barycentre.md) | One System rule: a central object, members that can be systems themselves, the barycentre as the origin, derived offsets, and the hosting gate | plan |
+| [mass-object-class.md](mass-object-class.md) | One master mass-object class: three family classes under it, state and parent as data, one core table plus three profile tables, a 10 m representability floor, the measured code savings | plan |
 | [star-types-by-galactic-radius.md](star-types-by-galactic-radius.md) | How star types change with distance from the core | research (proposals for Boss) |
 | [compact-remnant-regions.md](compact-remnant-regions.md) | Where neutron stars and black holes are observed | reference (feeds GEN.100) |
 

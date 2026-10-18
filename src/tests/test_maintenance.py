@@ -180,7 +180,7 @@ def test_a_switch_in_a_root_owned_folder_says_what_to_do_and_the_admin_page_warn
 @needs_root
 def test_the_web_user_turns_it_on_and_off_in_the_folder_create_cache_dir_makes(install_root, monkeypatch):
     """What `update.sh` does: the migration (root) switches it on, `create-cache-dir.sh` gives the folder to
-    Apache's user, then the admin page and `warm_map` (the web user) switch it off."""
+    Apache's user, then the admin page and `planetgen warm` (the web user) switch it off."""
     state = os.path.join(install_root, "state")
     monkeypatch.delenv(maintenance.FILE_ENV, raising=False)
     monkeypatch.setenv(maintenance.STATE_DIR_ENV, state)
@@ -209,25 +209,21 @@ def _denied(*args, **kwargs):
     raise PermissionError(13, "Permission denied")
 
 
-def test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly(state_file, monkeypatch, capsys):
-    from planetgen.cli import warm_map
+def test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly(state_file, monkeypatch, caplog, redis_server):
+    from planetgen.cli import generate as generate_cli
+    from planetgen.cli import warm as warm_cli
+    from planetgen.web import warmup
 
     maintenance.turn_on(by="migration", cause=maintenance.SECTOR_SWITCH)
     monkeypatch.setattr(maintenance.tempfile, "mkstemp", _denied)
-
-    class _App:
-        def app_context(self):
-            import contextlib
-            return contextlib.nullcontext()
-
-    monkeypatch.setattr(warm_map.warmup, "build_app", lambda config=None: _App())
-    monkeypatch.setattr(warm_map, "db_name", lambda: "x")
-    monkeypatch.setattr(warm_map.warmup, "run_family_job", lambda db, family, cap=None, config=None: {"line": f"{family}: ok"})
+    monkeypatch.setattr(warm_cli, "_site_database", lambda: "x")
+    monkeypatch.setattr(warmup, "warm_family", lambda db, family, cap=None, app=None, config=None: {
+        "family": family, "warmed": 1, "left_out": 0, "seconds": 0.0, "line": f"{family}: ok"})
+    parser, _parsers = generate_cli.build_parser()
     with pytest.raises(SystemExit) as exit_info:
-        warm_map.main(["--no-rq"])
+        warm_cli.run_warm(parser.parse_args(["warm"]))
     assert exit_info.value.code == 1
-    err = capsys.readouterr().err
-    assert "still in maintenance mode" in err and "update.sh" in err
+    assert "MaintenanceWriteError" in caplog.text and "update.sh" in caplog.text
     assert maintenance.is_on()
 
 

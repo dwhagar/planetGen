@@ -312,6 +312,6 @@ def population_shares(shape):
     thin_share = masses["thin_disk"] / (masses["thin_disk"] + masses["thick_disk"] + masses["bulge"])
     found = history(stellar_mass * thin_share, length, halo_mass)
     ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
-    shares = {name: found.share_between(*ages[name]) for name in tuning.STELLAR_POPULATION_SCALE_HEIGHT_RATIO}
+    shares = {name: found.share_between(*ages[name]) for name in tuning.STELLAR_POPULATION_ARM_AMPLITUDE}
     total = sum(shares.values())
     return {name: value / total for name, value in shares.items()}

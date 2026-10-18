@@ -32,10 +32,12 @@ relative_density = k_norm * (bulge + thin * arm_factor + thick)
 - **Thin disk.** `disk_scale_height_pc` is the exponential scale height
   surveys quote: `sech^2(z/2h)` falls off as `exp(-|z|/h)` away from the
   plane. Only the thin disk carries the arms.
-- **Thick disk** (`tuning.THICK_DISK_*`). Scale height 3 times and scale
-  length 0.77 times the thin disk's, and 4% of the thin disk's density in
-  the plane at the Sun, so `a_T = 0.04 * exp(R0/L_T - R0/L)`. It holds
-  about 18% as many stars as the thin disk.
+- **Thick disk** (`shape.structure`, `galaxy/structure_draw.py`, GEN.532). Its mass, scale length and scale height are
+  ratios to the thin disk's drawn from the galaxy seed: the mass (0.14 to 0.99 at the circular speeds of 3e9 to 2e11
+  solar masses of stars) between the fits of Yoachim and Dalcanton 2006 and Comeron et al. 2018, the length by Comeron
+  2018 and the height from 2.5 to 4.2. The amplitude is derived from the mass ratio:
+  `a_T = ratio * arm_level / (length_ratio^2 * height_ratio)`. The Milky Way's published values (900 pc, 2.0 kpc, 4% of
+  the thin disk's density at the Sun, 18% of its mass; BHG16) are `structure.REFERENCE_STRUCTURE`, a check target.
 - **Bulge** (`tuning.BULGE_*`). The bar's boxy/peanut core as COBE/DIRBE
   sees it edge on: Dwek et al. 1995's G2 model. `bulge_amplitude` is its
   central density over the thin disk's. Its long axis leads the Sun by 27
@@ -60,8 +62,9 @@ so the same formulas work for a galaxy of any size.
 `m = sqrt(R^2 + (z / q)^2)`: inner slope 2.5, outer slope 4.5, break at 25 kpc (9.6 disk scale lengths), axis ratio
 `q = 0.7`, flat inside 500 pc (`tuning.HALO_*`; sources and the numbers it gives are in
 [intergalactic-and-halo-contents.md](intergalactic-and-halo-contents.md) sections 2.1 and 4). The radii are ratios to the
-disk scale length, and the amplitude is solved like `k_norm`: the halo holds `tuning.HALO_SYSTEM_FRACTION` (1.25%, the
-Milky Way's 1.5e9 solar masses at 0.4 solar masses a system against its 3.0e11 systems) of the visible components'
+disk scale length, and the amplitude is solved like `k_norm`: the halo holds the galaxy's own share (`structure.stellar_halo_system_fraction`, GEN.532: its drawn
+halo mass over its stellar mass, scaled to the model's counts; 1.17% for the Milky Way's 1.4e9 solar masses of 5e10 at 0.4 solar
+masses a system against 3.0e11 systems) of the visible components'
 stars (`density.halo_terms`). It replaces the flat floor GEN.78 put under the density (0.1% of the local density
 everywhere, which was half the real halo at the Sun and 200 to 340,000 times too much at 50 to 262 kpc). The halo is
 0.19% of the local density at the Sun and 3e-9 at 262 kpc, and no cell beyond 8.7 kpc from the center expects more than
@@ -124,9 +127,8 @@ intermediate, old disk, bulge, halo and cluster populations. The bulge term is t
 population, the halo term the halo population (10 to 13 Gyr, [Fe/H] about -1.6 inside 25 kpc and -2.2 outside) and the
 thick disk is old. The cluster population (10 to 13 Gyr) is 0 until the cluster components (GEN.237) add their
 density. The thin disk is shared by each population's share of star
-formation, its own scale height (`STELLAR_POPULATION_SCALE_HEIGHT_RATIO`,
-thinner for younger stars: 50, 150 and 300 pc exponential at the default
-shape) and its own arm contrast
+formation, its own scale height (`structure.population_height_ratios`, GEN.532: the squared vertical
+dispersion of the population over the old disc's, thinner for younger stars) and its own arm contrast
 (`STELLAR_POPULATION_ARM_AMPLITUDE`, strongest for young stars). The parts
 always sum to `relative_density`. Each system in a galaxy sector draws its
 star's population from this mix, so O and B stars and supergiants gather in

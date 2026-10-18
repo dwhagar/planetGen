@@ -17,7 +17,7 @@ const {
   DEFAULT_WINDOW, DRILL_LEVELS, WINDOW_WIDTHS, bandRange, bandColatitudeBounds, boundsContain, cellAt, cellCenter, cellExists,
   cellPositionPc, drillBandCount, drillBlockBounds, drillBlockHolds, drillBlockTotal, drillChainOf, drillParent,
   drillWedgeCount, formatDrillKey, galaxyOutline, isBlock, outlineHigh, parseSectorDesignation, sameBlock,
-  sectorAddressAt, sectorDesignation, sectorInOutline, wedgeCount, windowCells,
+  REACH_OUTLINE, sectorAddressAt, sectorDesignation, sectorInOutline, wedgeCount, windowCells,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 
 // The flight's zoom/pan trade-off (van Wijk and Nuij's rho), and its
@@ -144,12 +144,12 @@ export function galaxyBlocks(outline, edgePc) {
   return blocks;
 }
 
-// The window's blocks with their bounds (those that can hold no sector are left out), as galaxyBlocks makes the
-// galaxy's.
-export function windowView(win, outline, edgePc) {
+// The window's blocks with their bounds, as galaxyBlocks makes the galaxy's. Every cell the grid names is there
+// (MAP.243), not just those inside the galaxy's outline: the halo and the satellite galaxies can be reached.
+export function windowView(win, edgePc) {
   const blocks = [];
   windowCells(win.centre, edgePc, win.g).forEach(function (block) {
-    if (!drillBlockHolds(block, outline)) return;
+    if (!drillBlockHolds(block, REACH_OUTLINE)) return;
     block.bounds = drillBlockBounds(block, edgePc);
     blocks.push(block);
   });
@@ -172,7 +172,7 @@ export function resolveStage(stage, outline, edgePc) {
     const blocks = galaxyBlocks(outline, edgePc);
     return { stage: stage, view: { win: null, blocks: blocks }, kind: "cell", options: cellOptions(blocks), problem: null };
   }
-  const view = windowView(stage.win, outline, edgePc);
+  const view = windowView(stage.win, edgePc);
   if (!view.blocks.length) {
     return { stage: stage, problem: "Nothing of the galaxy lies around " + windowLabel(stage.win) + "." };
   }
@@ -264,15 +264,15 @@ export function parentStage(stage, outline, edgePc) {
   return null;
 }
 
-// Whether sector (shell, band, wedge) can hold anything under `outline`.
-function sectorInGalaxy(shell, band, wedge, outline) {
-  return sectorInOutline(shell, band, wedge, outline);
+// Whether sector (shell, band, wedge) is an address the grid names (MAP.243: not only inside the outline).
+function sectorInGalaxy(shell, band, wedge) {
+  return sectorInOutline(shell, band, wedge, REACH_OUTLINE);
 }
 
 // The stage that shows a sector among its neighbours (MAP.26): the window of
 // sectors centred on it. Null when the sector is outside the galaxy.
-export function sectorStage(shell, band, wedge, outline) {
-  if (!sectorInGalaxy(shell, band, wedge, outline)) return null;
+export function sectorStage(shell, band, wedge) {
+  if (!sectorInGalaxy(shell, band, wedge)) return null;
   return windowStage({ m: 1, shell: shell, band: band, wedge: wedge }, DEFAULT_WINDOW);
 }
 
@@ -284,7 +284,7 @@ export function sectorStage(shell, band, wedge, outline) {
 export function courseStage(sectors, outline, edgePc) {
   const galaxy = galaxyStage();
   if (!sectors || !sectors.length) return galaxy;
-  const stops = sectors.filter(function (s) { return sectorInGalaxy(s.shell, s.band, s.wedge, outline); });
+  const stops = sectors.filter(function (s) { return sectorInGalaxy(s.shell, s.band, s.wedge); });
   if (stops.length !== sectors.length) return galaxy;
   const middle = [0, 0, 0];
   stops.forEach(function (s) {
@@ -504,7 +504,7 @@ const OBJECT_REF = /^(?:star|planet|moon|belt|comet):[0-9A-Fa-f]+(?:-[0-9A-Fa-f]
 // What a URL's query asks for: {camera, sector, open, system, object, problem}. `camera` ({target, dist, quat},
 // MAP.228) is set by ?cam= and the caller works its stage out (it needs the outline and the view's size);
 // `sector` ({shell, band, wedge}) by ?sector=<designation>, whose stage the caller works out too (sectorStage
-// needs the outline); `open` by &open=1 with it, the sector opened in place (MAP.66) and not only selected, and
+// is the grid's own); `open` by &open=1 with it, the sector opened in place (MAP.66) and not only selected, and
 // `system` (&system=<id>, with open, and &object=<ref> a body of it) the system of it opened in place too
 // (MAP.125). Anything malformed, and the windows, arcs, slabs and blocks of the links before MAP.228, opens the
 // galaxy; `problem` says why for a bad ?cam= or ?sector=.
@@ -572,10 +572,10 @@ export function stageAtPoint(stage, point, outline, edgePc) {
   return resolveStage(next, outline, edgePc).problem ? stage : next;
 }
 
-// The sector holding `point` as {shell, band, wedge}, or null when the galaxy has none there (outside its outline).
-export function sectorAtPoint(point, outline, edgePc) {
+// The sector holding `point` as {shell, band, wedge}, or null when the grid names none there (past its reach).
+export function sectorAtPoint(point, edgePc) {
   const at = sectorAddressAt(point[0], point[1], point[2], edgePc);
-  return sectorInOutline(at.shell, at.band, at.wedge, outline) ? at : null;
+  return sectorInOutline(at.shell, at.band, at.wedge, REACH_OUTLINE) ? at : null;
 }
 
 // Degrees counterclockwise from +X, as the longitude labels read.

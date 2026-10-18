@@ -46,7 +46,7 @@
     <a class="datatable-jump-clear" href="{{ t.jump.clear_href }}"{% if not t.jump.start %} hidden{% endif %}>Back to the top</a>
   </form>
   {%- endif %}
-  <p class="datatable-count-line" role="status" aria-live="polite">{{ num(t.total) }}{% if t.capped %}+{% endif %} {{ t.noun_many if t.total != 1 or t.capped else t.noun_one }}{% if t.filtered %} match{% endif %}{% if t.jump and t.jump.start %} from “{{ t.jump.start }}”{% endif %}</p>
+  <p class="datatable-count-line" role="status" aria-live="polite">{{ num(t.total) }}{% if t.capped %}+{% endif %} {{ t.noun_many if t.total != 1 or t.capped else t.noun_one }}{% if t.filtered %} match{% endif %}{% if t.jump and t.jump.start and not t.note %} from “{{ t.jump.start }}”{% endif %}{% if t.note %}. {{ t.note }}{% endif %}</p>
   <p class="datatable-busy" role="status" aria-live="polite" hidden>The database is busy. Showing the rows loaded so far; trying again.</p>
   <div class="table-scroll datatable-scroll" role="region" aria-label="{{ t.label }} table" tabindex="0">
     <table aria-rowcount="{{ t.total + 1 }}">

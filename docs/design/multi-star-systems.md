@@ -475,7 +475,7 @@ Contact, Algol, post-common-envelope and accreting fractions come out of the per
 
 **Star model** (`physics/stellar_evolution.py`, `Star`, `star_labels.py`; these are also the TODO items 13 to 16 below):
 
-1. **New `kind`s**: `pre-main-sequence` (GEN.242), `protostar`, `brown-dwarf` with L, T, Y states (GEN.252), `stripped-helium` (hot subdwarf, helium star, helium donor), `thorne-zytkow`, `wolf-rayet` (GEN.243), `white-dwarf` subtypes (normal, polluted, merger-product, helium) and the compact kinds already there.
+1. **New `kind`s**: `pre-main-sequence` (GEN.242), `protostar`, `brown-dwarf` with L, T, Y states (GEN.252, built: `brown-dwarf-state.md`), `stripped-helium` (hot subdwarf, helium star, helium donor), `thorne-zytkow`, `wolf-rayet` (GEN.243), `white-dwarf` subtypes (normal, polluted, merger-product, helium) and the compact kinds already there.
 2. **Interaction state on a pair** (`scatter_nodes.interaction` and `orbit_nodes.interaction`): `detached`, `semi-detached`, `contact`, `accreting`, `post-common-envelope`, `merger-product`.
 3. **Per-member flags** (`scatter_members.flags`): `mass_reversed`, `mass_gainer`, `merger_product`, `be`, `runaway_origin` (none, supernova, dynamical), `fragile` (ultra-wide), `theoretical`.
 4. **Roche geometry and accretion luminosity**: Roche-lobe radius (Eggleton formula) and filling factor, mass-transfer luminosity `L = eta Mdot c^2` for accreting pairs (GEN.130 slice c), Eddington limit for the accretor.

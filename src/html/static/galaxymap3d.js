@@ -452,6 +452,21 @@ function showPointInfo(point) {
   }, phenomenonActions(point)));
 }
 
+// MAP.243: a star beyond the galaxy's outline (the halo, a satellite galaxy), where no block or sector of the
+// whole-galaxy view holds it: what is known of it and where it is.
+function showHaloStarInfo(star) {
+  showInfo({
+    title: "Star beyond the galaxy's outline",
+    fields: [
+      ["Luminosity", formatLuminositySol(star.luminosity_sol)],
+      ["Temperature", star.temperature_k != null ? formatNumber(star.temperature_k) + " K" : null],
+      ["Class", star.star_type || null],
+      ["Position x, y, z", [star.x, star.y, star.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"],
+      ["Distance from core", formatDistancePc(Math.hypot(star.x, star.y, star.z))],
+    ],
+  });
+}
+
 function rgba(hex, alpha) {
   var n = parseInt(hex.slice(1), 16);
   return "rgba(" + (n >> 16) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + alpha + ")";
@@ -1529,6 +1544,8 @@ function initGalaxyMap3d(canvasEl, data) {
   // A click within this many pixels of a black hole, neutron star or
   // quasar's center picks it (stars themselves are never picked, MAP.101).
   var POINT_PICK_PX = 7;
+  // MAP.243: how near the pointer must be to a star beyond the outline to pick it (a star is a faint point).
+  var HALO_PICK_PX = 10;
   // Stars new to the view fade in over this long (MAP.48: nothing pops
   // in); with reduced motion they just appear.
   var STAR_FADE_IN_MS = reducedMotion ? 0 : 300;
@@ -3161,6 +3178,27 @@ function initGalaxyMap3d(canvasEl, data) {
     select: function (point) {
       highlightPosition(point.x, point.y, point.z);
       showPointInfo(point);
+    },
+  });
+
+  // MAP.243: on the whole-galaxy view the halo and the satellite galaxies lie beyond the outline, where no block
+  // is, so a click would find nothing. A star or a phenomenon there is picked on the screen like a phenomenon
+  // inside a window (a double click flies to it; the wheel then opens the window round its cell).
+  picker.addLayer({
+    name: "halo",
+    enabled: function () { return !stageView.inContainer(); },
+    points: function () { return starList; },
+    reach: function () { return HALO_PICK_PX; },
+    accept: function (star) { return stageView.outsideOutline(star); },
+    lastWins: true,
+    tooltip: function (point) {
+      return point.phenomenon ? (point.name ? point.name + ", " : "") + pointTypeLabel(point) : "Star beyond the galaxy's outline";
+    },
+    hover: phenomenonHover,
+    select: function (point) {
+      highlightPosition(point.x, point.y, point.z);
+      if (point.phenomenon) showPointInfo(point);
+      else showHaloStarInfo(point);
     },
   });
 
