@@ -16,6 +16,7 @@ import pytest
 from planetgen.db import store
 from planetgen.describe import describe, model
 from planetgen.describe import build
+from planetgen.describe.quantity import inline_text
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.system import StarSystem
@@ -83,12 +84,54 @@ def test_every_variant_gives_a_checked_json_document(overrides):
         assert json.loads(json.dumps(document, allow_nan=False)) == document
 
 
-def test_a_system_anchored_by_a_compact_remnant_is_described():
-    for remnant_class in (BlackHole, NeutronStar):
+@pytest.mark.parametrize("remnant_class, kind", [(BlackHole, "black-hole"), (NeutronStar, "neutron-star")])
+def test_a_system_anchored_by_a_compact_remnant_is_described_as_one(remnant_class, kind):
+    for seed in range(6):
+        draw.set_run_seed(seed)
         config = SystemConfig()
-        document = describe(StarSystem(system_config=config, compact_remnant=remnant_class(config)))
+        remnant = remnant_class(config)
+        document = describe(StarSystem(system_config=config, compact_remnant=remnant))
         model.check(document)
-        assert any(section["kind"] == "star" for section in model.sections(document))
+        section = next(s for s in model.sections(document) if s["kind"] == kind)
+        assert set(remnant.get_table_properties()) <= _fact_keys(section)
+        text = " ".join(inline_text(sentence) for block in section["blocks"] if block["type"] == "prose"
+                        for sentence in block["text"])
+        assert "white dwarf" not in text and "main sequence" not in text
+        overview = " ".join(inline_text(sentence) for sentence in document["sections"][0]["blocks"][0]["text"])
+        assert "heliosphere" not in overview and "0 km" not in overview
+
+
+def test_a_black_hole_says_how_it_formed_and_whether_it_feeds():
+    for seed in range(12):
+        draw.set_run_seed(seed)
+        config = SystemConfig()
+        hole = BlackHole(config)
+        section = next(s for s in model.sections(describe(StarSystem(system_config=config, compact_remnant=hole)))
+                       if s["kind"] == "black-hole")
+        text = " ".join(inline_text(sentence) for block in section["blocks"] if block["type"] == "prose"
+                        for sentence in block["text"])
+        if hole.mass_class == "supermassive":
+            assert "centre of the galaxy" in text
+        else:
+            assert ("collapsed core" in text) or ("intermediate-mass" in text)
+            assert ("accretion disk of infalling matter" in text) == bool(hole.has_accretion_disk)
+
+
+def test_a_neutron_star_names_its_pulsar_type():
+    seen = set()
+    for seed in range(60):
+        draw.set_run_seed(seed)
+        config = SystemConfig()
+        star = NeutronStar(config)
+        section = next(s for s in model.sections(describe(StarSystem(system_config=config, compact_remnant=star)))
+                       if s["kind"] == "neutron-star")
+        text = " ".join(inline_text(sentence) for block in section["blocks"] if block["type"] == "prose"
+                        for sentence in block["text"])
+        expected = {"magnetar": "It is a magnetar", "non-pulsing": "no longer sweeps"}.get(
+            star.pulsar_type, f"It is a {star.pulsar_type} pulsar")
+        assert expected in text
+        seen.add(star.pulsar_type)
+    assert len(seen) >= 2
 
 
 def test_no_markup_reaches_the_document():

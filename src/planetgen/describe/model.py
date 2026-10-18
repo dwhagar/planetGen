@@ -25,7 +25,8 @@ OTHER_KINDS = ("radius", "luminosity", "dose", "flux", "ratio", "angle", "densit
 
 KINDS = LADDER_KINDS + OTHER_KINDS
 
-SECTION_KINDS = ("system", "star", "pair", "planet", "moon", "belt", "comet")
+SECTION_KINDS = ("system", "star", "black-hole", "neutron-star", "pair", "planet", "moon", "belt", "comet", "nebula",
+                 "quasar", "rogue-planet", "interstellar-comet", "asteroid-field", "supernova-remnant")
 BLOCK_TYPES = ("facts", "ratings", "composition", "prose")
 PROSE_ROLES = ("overview", "summary", "description", "depth", "life", "timeline", "flavour")
 

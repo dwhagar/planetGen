@@ -140,7 +140,81 @@ def _star_age_sentence(star):
     return inline(sentence, ".")
 
 
+def _galactic_orbit_or_centre(star):
+    if star.galactic_orbital_period_gy is None:
+        return inline("None (the galaxy's centre)")
+    return _galactic_orbit(star.galactic_orbital_speed_kms, star.galactic_orbital_period_gy)
+
+
+def _wobble_row(star):
+    if star.reflex_offset_x or star.reflex_offset_y or star.reflex_offset_z:
+        offset = _offset_km(star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z)
+        return [fact("wobble", "Planetary Wobble", _km(offset), " from its nominal position, pulled by its own planets")]
+    return []
+
+
+def _black_hole_blocks(hole):
+    rows = [
+        fact("type", "Type", hole.type),
+        fact("mass", "Mass", _mass(hole.mass, solar=True)),
+        fact("event_horizon", "Event Horizon Radius", _radius_km(hole.radius)),
+        fact("spin", "Spin Parameter", qty("ratio", hole.spin)),
+        fact("disk", "Accretion Disk", "Active accretion disk detected" if hole.has_accretion_disk else "None detected"),
+        fact("orbit", "Galactic Orbit", _galactic_orbit_or_centre(hole)),
+        *_wobble_row(hole),
+        fact("loc", "Location", hole.name),
+    ]
+    glow = _kelvin(hole.temperature, companions=False)
+    if hole.mass_class == "supermassive":
+        sentences = [inline("It is the supermassive black hole at the centre of the galaxy, and every star in the galaxy "
+                            "orbits it in the end."),
+                     inline("Its nucleus is quiet: a thin, hot accretion flow feeds it at a tiny fraction of its Eddington "
+                            "limit and glows at about ", glow, ".")]
+    else:
+        if hole.mass_class == "intermediate":
+            origin = inline("It is an intermediate-mass black hole, heavier than any one star could leave behind, probably "
+                            "grown in a dense star cluster ", _gy(hole.age), " ago.")
+        else:
+            origin = inline("It is the collapsed core of a massive star, formed in a supernova ", _gy(hole.age), " ago.")
+        disk = (inline("A faint accretion disk of infalling matter surrounds it, its inner edge glowing at about ", glow, ".")
+                if hole.has_accretion_disk else
+                inline("No companion star or debris disk remains, so only its gravity shows it is there."))
+        sentences = [origin, inline("Nothing, not even light, escapes from inside its event horizon."), disk]
+    return [facts("Black hole", rows), prose("summary", *sentences)]
+
+
+def _neutron_star_blocks(star):
+    spin = qty("time", star.spin_period_ms / 1000.0)
+    rows = [
+        fact("type", "Type", star.type),
+        fact("mass", "Mass", _mass(star.mass, solar=True)),
+        fact("radius", "Radius", _radius_km(star.radius)),
+        fact("spin_period", "Spin Period", spin),
+        fact("magnetic_field", "Magnetic Field", qty("magnetic field", star.magnetic_field_gauss * 1e-4)),
+        fact("surface_temp", "Surface Temperature", _kelvin(star.surface_temperature_k, companions=False)),
+        fact("orbit", "Galactic Orbit", _galactic_orbit_or_centre(star)),
+        *_wobble_row(star),
+        fact("loc", "Location", star.name),
+    ]
+    sentences = [inline("It is a neutron star, the collapsed core of a massive star left by a supernova ", _gy(star.age),
+                        " ago. It holds more mass than the Sun in a sphere ", _radius_km(star.radius), " in radius.")]
+    if star.pulsar_type == "magnetar":
+        sentences.append(inline("It is a magnetar, one of the rarest objects in the galaxy. Its magnetic field of ",
+                                qty("magnetic field", star.magnetic_field_gauss * 1e-4), " is among the strongest known, it "
+                                "turns once every ", spin, ", and it is young enough to erupt in giant flares."))
+    elif star.pulsar_type != "non-pulsing":
+        sentences.append(inline(f"It is a {star.pulsar_type} pulsar and sweeps a beam of radiation past any observer once "
+                                "every ", spin, "."))
+    else:
+        sentences.append(inline("Its beam no longer sweeps across this vantage point."))
+    return [facts("Neutron star", rows), prose("summary", *sentences)]
+
+
 def _star_section(star, children=()):
+    if star.yerkes_class == "BH":
+        return section("black-hole", _ref("star", star), star.name, _black_hole_blocks(star), children)
+    if star.yerkes_class == "NS":
+        return section("neutron-star", _ref("star", star), star.name, _neutron_star_blocks(star), children)
     return section("star", _ref("star", star), star.name, [_star_facts(star), prose("summary", _star_age_sentence(star))],
                    children)
 
@@ -396,18 +470,24 @@ def _overview_sentences(system):
 
     star = system.star
     cloud = getattr(system, "surrounding_cloud", None)
+    wind = star.heliosphere_radius > 0
     compressed = (compressed_heliosphere_radius(star.heliosphere_radius, cloud["density_cm3"], cloud["temperature_k"])
-                  if cloud else None)
+                  if cloud and wind else None)
     if compressed is not None and compressed < star.heliosphere_radius * HELIOSPHERE_COMPRESSION_NOTED:
         sentences.append(inline(
             "The star's stellar wind creates a bubble, known as the heliosphere, which would extend out to approximately ",
             _au(star.heliosphere_radius), f" in open space, but the gas of {cloud['name']} around the system presses it in "
             "to approximately ", _au(compressed), "."))
-    else:
+    elif wind:
         sentences.append(inline("The star's stellar wind creates a bubble, known as the heliosphere, which extends out "
                                 "to approximately ", _au(star.heliosphere_radius), "."))
-    sentences.append(inline("Beyond this, the star's gravitational influence extends out to a distance of ",
-                            _au(star.system_perimeter), ", marking the ultimate edge of the system."))
+    if wind:
+        sentences.append(inline("Beyond this, the star's gravitational influence extends out to a distance of ",
+                                _au(star.system_perimeter), ", marking the ultimate edge of the system."))
+    else:
+        # A black hole or neutron star blows no stellar wind: only its gravity bounds the system.
+        sentences.append(inline("The star's gravitational influence extends out to a distance of ",
+                                _au(star.system_perimeter), ", marking the edge of the system."))
     return sentences
 
 
