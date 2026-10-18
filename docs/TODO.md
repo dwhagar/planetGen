@@ -508,27 +508,6 @@ with `clamp()`.
   on this item.
   Prerequisites: none. Related: UX.22 (done, PR #1504), UX.81 (done, PR #1504).
 
-- [ ] **UX.109 Remove the old per-class description text**
-  Remove SystemConfig.MARKDOWN, the per-class to_paragraph_list and
-  __str__ text, db/render.py render_system_sections, the /sections
-  endpoint and mdrender, once nothing reads them. Foundations Wording
-  (filed 05:50Z, split out of API.25, done PR #1527).
-  Owns the one deletion of the Markdown machinery
-  (`web/lib/mdrender.py`, the `/sections` route,
-  `render_system_sections`, the markdown dependency and the Markdown
-  tests) that UX.105 also listed; UX.105 now builds only the renderer
-  and the page move (2026-10-16 review).
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 15 of 54). This replaces any earlier owner line on this item.
-  Global document note (Core 4, 11:27 PM EDT as the lane reported): this
-  item deletes `web/lib/mdrender.py`, so when it merges the architecture
-  page's mdrender.py row (`docs/design/architecture.md` line 508 and the
-  generated map) goes; the TODO thread removes it with the next
-  global-document regeneration, the lane does not touch it.
-  Prerequisites: none.
-
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
   update on everything once this is done so all the controls work
@@ -4693,6 +4672,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is stamped (release 8.0.1801, GEN.402, #2224); this item takes the
   next free epoch after GEN.404 and GEN.572 at its merge, so the 'epoch
   24 pending' above is out of date.
+  Gate update (Core 3, reported 5:57 AM EDT 2026-10-18 on the lane's
+  clock): the 1:55 AM EDT changed gate ended red at 3:48 AM EDT (19,899
+  passed, 8 failed, 1 error). One cause was this item's own and is
+  fixed: every page read loaded all stored components (a galaxy holds up
+  to 100,000 open clusters), 1.3 s a request and browser tests ten times
+  slower, so `db/store.py` now caches the component field by the table
+  signature (count, first and last id, mass sum, database). Four other
+  failures pass alone and the three browser map failures are filed apart
+  (see TEST.223 and PERF.138). GEN.244, GEN.282 and GEN.563 are rebased
+  as one stack on main d576474b: GEN.244 takes Alembic 0112 and fixture
+  schema_v111, all three ride epoch 26 (pending; GEN.404 and Core 4's
+  UX.107 bundle also claim 26, so the next merger renumbers). One
+  stacked changed gate started 5:55 AM EDT on the GEN.563 tip (expected
+  end about 7:50 AM EDT); merge order 244, 282, 563.
   Prerequisites: none. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -13094,33 +13087,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed).
   Prerequisites: none. Related: GEN.133, GEN.134.
 
-- [ ] **GEN.543 Define "usable" for a P-type window so the design table's pair-node row (34% falling to 18%) can be reproduced**
-  Open question from GEN.314 (Blocker 1, merged #2125, 2026-10-17;
-  reported 7:38 PM EDT through the coordinator):
-  `docs/design/multistar-and-compact-systems.md` 5.6 gives "Pair nodes
-  with a usable P-type window" as 34%, 35%, 28%, 23%, 20%, 18% for N = 2
-  to 7, but does not define "usable" past the window being there.
-  GEN.314's width test (window wider than 0.3 AU) gives 45%, 48%, 43%,
-  37%, 35%, 30%, above the table. The S-type row is reproduced within 7
-  points. Default (stands as Decided unless Boss says otherwise): try
-  two candidate definitions on the same seeded draw of the generator's
-  trees, (a) width above 0.3 AU and an outer edge at least twice the
-  inner edge, (b) width above 0.3 AU and the window overlaps the host's
-  habitable zone, and keep the one that lands the table's row within 7
-  points at every N; if neither does, keep the measured numbers, label
-  the table's row as the earlier estimate and say so on the design page.
-  Nothing waits on it. Done: the definition is written next to the
-  table, a test pins the share, and the table's row is either reproduced
-  or relabelled. Owner: Blocker 1 (proposed, after PERF.118, GEN.438 to
-  GEN.440).
-  Decided (Boss, 2026-10-17, 9:54 PM EDT, typed in the project chat,
-  relayed by the coordinator): "I approve all your defaults". This
-  approves the default on this item (two candidate definitions of
-  "usable" tried on the same seeded draw, the one that lands the table's
-  row within 7 points at every N kept, else the measured numbers kept
-  and the table's row relabelled).
-  Prerequisites: none. Related: GEN.314, GEN.264.
-
 - [ ] **GEN.544 Revisit the disc's vertical profile: the sech-squared core has half the midplane density of the exponential fits its scale heights come from**
   Found by Core 1 while building GEN.404 (2026-10-17, 8:33 PM EDT as the
   lane reported), filed by the TODO thread. Design gap, a consequence of
@@ -13233,81 +13199,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   failure is removed, or the item says which input is unknown and Boss
   has decided. Owner: Core 4 (proposed), after the age item.
   Prerequisites: GEN.546. Related: GEN.469, GEN.134, GEN.546.
-
-- [ ] **GEN.548 Build-time downloads for the isochrone grids, the white-dwarf layers and the neutron-star equation of state, each with a checksum and a labelled stand-in until it lands**
-  Boss (2026-10-17, 9:40 to 9:45 PM EDT, card answer relayed by the
-  coordinator at 9:46 PM EDT): the research gap in
-  docs/design/stellar-composition.md section 14 is closed by a
-  build-time download for the isochrone grids (luminosity, temperature
-  and lifetime against Z), the white-dwarf layers and the neutron-star
-  equation of state, as in D6 and the AD1 methane pattern
-  (docs/design/gap-filling-plan.md section 8: data is downloaded at
-  build time, no derived table is stored in the repository, the design
-  says how tests run offline). Filed by the TODO thread. Do: for each of
-  the three, name the dataset and its verified source (the lane verifies
-  each citation before use, the standing source rules apply), fetch an
-  extract with its sha256 at build time with the standard User-Agent of
-  API.31, keep a labelled stand-in as the fallback when the network is
-  down (the AD1 methane build does this), and let GEN.439 and GEN.440
-  read the result through one function per dataset. Network note: arXiv,
-  doi.org, NTRS, NIST, PubChem, USGS, HITRAN, Crossref, Zenodo, Nature
-  and PMC are reachable from the project environment; ADS, Science, OUP,
-  ScienceDirect, A&A, Annual Reviews, Europe PMC and LPI are refused, so
-  a dataset that lives only there is fetched from a Zenodo or arXiv copy
-  or Boss supplies it. Raw papers and downloaded datasets stay out of
-  the repository (Boss, 2:35 PM EDT, 2026-10-17: results and derived
-  values may be committed; the program stays free). Default (stands
-  unless Boss overrules): the three datasets are separate small pieces,
-  so GEN.439 can use the stand-ins first and swap each in as it lands.
-  Done: each dataset has a function, a checksum and a stand-in labelled
-  as one in the stand-in registry (gap plan section 6), a test builds a
-  fixture offline, and the design note names the three sources. Owner:
-  Blocker 1 (proposed, with GEN.439).
-  Decided (Boss, 2026-10-17, 9:54 PM EDT, typed in the project chat,
-  relayed by the coordinator): "I approve all your defaults". Everything
-  else on this item stands as its default.
-  Decided: Boss tapped 'Shared step first' on the GEN.548 card at 12:46
-  AM EDT on 2026-10-18 (as the coordinator relayed): GEN.548 builds the
-  shared download step first (standard User-Agent of API.31, sha256
-  check, cache outside the repository in a folder `update.sh` fills, a
-  labelled stand-in when the host is down, offline fixtures for the
-  tests) and then its three datasets; AD1 to AD8 and the other download
-  jobs reuse that one step. No download step is merged yet: AD1 methane
-  is only a design and a source check so far. Standing rule: Downloads
-  of static files take place at setup (the step `update.sh` runs, into a
-  cache folder outside the repository) unless the data needs to be
-  constantly updated; any code that fetches data at run time must say in
-  its design why the data needs constant updates (Boss, 12:47 AM EDT on
-  2026-10-18, project chat, as the coordinator relayed). The three
-  datasets here are static (grids and tables that change with a paper,
-  not with the clock), so they are fetched at setup and never at run
-  time.
-  Progress (Blocker 1, reported about 2:46 AM EDT 2026-10-18 as the lane
-  clock read, through the coordinator): coded; its changed gate started
-  about 2:46 AM EDT. It is the shared setup-time download step:
-  update.sh and install.sh run it, the cache is
-  /var/cache/planetgen/datasets, every file is checked against a sha256,
-  a stand-in is used when a host is down, and it fetches the MIST
-  isochrones, the Bedard white-dwarf sequences and the neutron-star
-  equation of state and crust tables. GEN.439 and GEN.440 merged as
-  #2208 (the open states in their RELATIONS list wait on this step).
-  Detail (Blocker 1, 2:47 AM EDT 2026-10-18 as the lane reported):
-  branch claude/gen548-download-step holds
-  `planetgen/datasets/fetch.py`, the command `python -m
-  planetgen.cli.datasets fetch`, step 3 of update.sh and install.sh, the
-  cache directory override PLANETGEN_DATA_DIR, and the three datasets
-  (MIST main-sequence isochrones SC1, Bedard 2020 white-dwarf sequences
-  SC2, neutron-star equation of state and outer-crust compositions SC3);
-  a real fetch was verified (82 s, 225 MB). The stand-in fills SC1 to
-  SC3 are in gap-filling-plan 6.6 and design note stellar-composition
-  14.1 names the sources. After it merges, Blocker 1 wires the readers
-  into the stellar modules.
-  Gate update (Blocker 1, relayed by the coordinator at about 4:26 AM
-  EDT 2026-10-18, lane clock): the gate that started about 2:46 AM EDT
-  was killed by the container restart at about 3:55 AM EDT; it restarted
-  at 4:26 AM EDT on the rebased branch. This replaces the earlier note
-  that it was alive in its browser phase.
-  Prerequisites: none. Related: GEN.439, GEN.440, GEN.502, API.31.
 
 - [ ] **GEN.549 L dwarfs hotter than 1,500 K are 2 to 4 times too rare against the 20 pc census: use a cooling track that reaches them (strict expected failure)**
   Follow-up of GEN.252 (merged #2164, Core 4, 2026-10-17, 11:09 PM EDT
@@ -14983,6 +14874,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   prerequisite of GEN.301.
   Prerequisites: GEN.244. Related: GEN.244, GEN.282.
 
+- [ ] **GEN.590 Wire the downloaded isochrones, white-dwarf sequences and neutron-star tables into star composition (after Boss answers the Require / Stand-in card)**
+  GEN.548 merged (#2236, release 8.0.1807; reported by Blocker 1 at 6:05
+  AM EDT on the lane's clock): the shared setup-time download step
+  (`planetgen/datasets/`, `planetgen/cli/datasets`,
+  `planetgen/util/user_agent.py`) and its three readers for the MIST
+  isochrones (SC1), the Bedard white-dwarf sequences (SC2) and the
+  neutron-star equation of state and crust (SC3). Nothing reads them
+  yet: `stellar_abundances` and `stellar_composition` still use their
+  stand-ins. Do: wire the three readers into the stellar abundances and
+  star composition, once Boss answers the card Blocker 1 holds in its
+  own thread (options: Require the data, Stand-in fallback, Not yet;
+  Blocker 1 recommends Require the data). Done: star composition reads
+  the downloaded files by way of the three reader functions, the
+  behaviour when a file is missing is the one Boss chose and a test pins
+  it offline with the fixtures, and the stand-in registry (gap plan
+  section 6) lists what is still a stand-in. Filed by the TODO thread at
+  Blocker 1's request (6:05 AM EDT as the lane reported). Owner: Blocker
+  1 (proposed). Boss's answer is not recorded yet.
+  Prerequisites: none. Related: GEN.548, GEN.543, GEN.439, GEN.440.
+
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -15942,6 +15853,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy. Owner: Core 5 (proposed, it found the list and wrote the
   PERF.126 and PERF.127 commands); low priority, no version blocker.
   Prerequisites: none. Related: PERF.75, PERF.135.
+
+- [ ] **PERF.138 The nuclear cluster term made the extent majorant about 1000 times looser: the shell scatter takes over 250 s, not 5.6 s (bug)**
+  Found by Core 3 (reported 5:57 AM EDT 2026-10-18 on the lane's clock),
+  filed by the TODO thread. Since GEN.402 (#2224)
+  `object_first.extent_majorants` returns a bound about 1000 times
+  larger for the groups beside the galaxy centre (the nuclear cluster
+  term): shell 5 of the tier test's toy galaxy (`tiers.SHAPE`) has a
+  bound of 8.9e6 where it was 3.7e3, so
+  `phenomenon_reach.scatter_shell(tiers.SHAPE, 5, -1, tiers.EDGE_PC,
+  4000.0, 5, min_mass_solar=1.0, check=True)` takes over 250 s where it
+  took 5.6 s (224,000 rows) on 2bd9bfad. The bound is the nuclear
+  cluster's `_nuclear_cluster_array` majorant at the group's nearest
+  point times `fractions["nuclear_cluster"]`. A loose majorant makes the
+  scatter draw and thin that many more candidates, so this is a likely
+  real performance cliff for every scatter that rides the nuclear term,
+  not only a slow test: `test_gen_phenomenon_reach.py` now takes about
+  15 minutes under `-n 4`. Fails on main: slow, not red (Core 3's count
+  on 390fb54e). The TODO thread's re-run on main dfe8351f from 6:00 AM
+  EDT (gate load, four cores shared) was still running after 14 minutes
+  and was stopped. Frequency: every run. Reproducer: `PYTHONPATH=src
+  python3` with `from tests import test_gen_scatter_tiers as tiers` and
+  `list(phenomenon_reach.scatter_shell(...))` with the arguments above,
+  timed on 2bd9bfad and on main. Do: find why the nuclear cluster
+  majorant grew (the group's nearest point can sit inside the cluster's
+  core radius, where the profile peaks), tighten it to the real maximum
+  over the group's extent or split the nearest groups, and keep the
+  one-sided bound the thinning needs. Done: the shell-5 call is back
+  near its old time with the same rows (the rows must not change, so no
+  epoch), and `test_gen_phenomenon_reach.py` runs in minutes again.
+  Owner: Core 1 (GEN.402's author; proposed, Core 3 and Core 4 touch the
+  same module).
+  Prerequisites: none. Related: GEN.402, GEN.322, PERF.106.
 
 ## DB: Database and schema
 
@@ -19599,6 +19542,20 @@ clears each one.
   galaxy-map drill-down test failed again in the changed gate and passes
   alone. Consistent with the crumb-read-mid-flight cause above; it goes
   with Bug Hunt's fix.
+  Sighting (Core 3, reported 5:57 AM EDT 2026-10-18 on the lane's
+  clock): `test_galaxy_map_drill_down_by_clicks` failed 1 of 3 alone
+  runs on a clean main and 1 of 3 on Core 3's tree, with the trail after
+  Back naming 'Block 175·22·348 (27)' where the walk saw 'Block
+  174·20·348 (27)', and
+  `test_galaxy_map_forward_to_current_jumps_to_the_newest_view` showed
+  the same one-cell drift in a gate. Both match the
+  crumb-read-mid-flight cause above and go with Bug Hunt's fix. The one
+  `win=81.10.-15.4` failure came from a tree that still had the old
+  window regex; main's regex (#2227) allows a negative band and accepts
+  it. Core 3's third note
+  (test_generate_sector_real_capacity_overflow... failed once under gate
+  load with 120 of 120 fitting) is the TEST.245 case already fixed by
+  the lighter test galaxy in #2227.
   Prerequisites: none. Related: TEST.213, TEST.194.
 
 - [ ] **TEST.224 `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed once in a full gate: the nested system's inside_nebula_id was None (bug)**

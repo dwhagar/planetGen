@@ -146,3 +146,24 @@ def test_the_share_of_stars_with_an_s_type_window_falls_as_the_design_table_says
                 wide += found.width_au > 0.3
     assert total >= 0.8 * stars * DRAWS
     assert wide / total == pytest.approx(TABLE_S_TYPE[stars], abs=0.07)
+
+
+# GEN.543: "usable" is a width above 0.3 AU, as for the S-type row; the design table's own row (34% falling to 18%) was
+# an earlier estimate that neither of two candidate definitions reproduced (docs/design/multistar-and-compact-systems.md 5.6).
+MEASURED_P_TYPE = {2: 0.45, 3: 0.48, 4: 0.43, 5: 0.37, 6: 0.35, 7: 0.30}
+"""dict: Pair nodes with a P-type window above 0.3 AU, by number of stars, on the same seeded draw."""
+
+
+@pytest.mark.parametrize("stars", sorted(MEASURED_P_TYPE))
+def test_the_share_of_pair_nodes_with_a_p_type_window_is_the_measured_one(stars):
+    wide = total = 0
+    for seed in range(DRAWS):
+        tree = multistar.draw_member_tree(multistar.Placed("star", 1.0), 5e9, draw.Stream(seed), n_stars=stars)
+        if tree.member_count != stars:
+            continue
+        for found in pz.planet_zones(tree.nodes, tree.members):
+            if found.kind == pz.P_TYPE:
+                total += 1
+                wide += found.width_au > 0.3
+    assert total >= 0.8 * (stars - 1) * DRAWS
+    assert wide / total == pytest.approx(MEASURED_P_TYPE[stars], abs=0.03)

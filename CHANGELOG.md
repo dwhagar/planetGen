@@ -2,6 +2,36 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1808] - 2026-10-18
+
+**Headline:** The design page now says what a usable circumbinary window is and which numbers are measured
+
+### Changed
+
+The multi-star design page's table of pair nodes with a usable P-type window had no definition behind it. Two definitions were tried on the same seeded draw of the generator's trees (width above 0.3 AU with an outer edge twice the inner, and width above 0.3 AU overlapping the pair's habitable zone); neither matched the table within 7 points at every number of stars, so a P-type window counts as usable when it is wider than 0.3 AU, like the S-type row, the table's old row is marked as the earlier estimate, and a test pins the measured share. No generated value changes.
+
+## [8.0.1807] - 2026-10-18
+
+**Headline:** The generator's stellar isochrone grid, white-dwarf models and neutron-star matter tables are downloaded once at setup and checked
+
+### Changed
+
+`update.sh` and `install.sh` now run one shared download step (`python3 -m planetgen.cli.datasets fetch`) that fetches static data files into `/var/cache/planetgen/datasets`, outside the checkout. Each request sends the standard `User-Agent` (software, release and API version), is retried if the host does not answer, and each file must match the size and sha256 the catalogue states, otherwise it is not kept. A host that does not answer only prints a warning; the generator then uses a stand-in that says it is one. Nothing downloads while the site or the generator runs.
+
+Three datasets use it: the MIST v1.2 main-sequence isochrones (luminosity, temperature and radius against mass, age and [Fe/H], and main-sequence lifetimes; a 221 MB archive reduced once to 5 MB), the Bédard et al. 2020 white-dwarf cooling sequences (radius and layer masses), and 21 neutron-star equations of state with the outer-crust composition for 20 nuclear mass models. Each has a reader in `planetgen.datasets`; the first download is about 225 MB and takes a minute or two.
+
+## [8.0.1806] - 2026-10-18
+
+**Headline:** The old per-class description text, the Markdown renderer and the `markdown` dependency are gone; every page and download now comes from the one description Document.
+
+### Changed
+- Removed the old description path: each body's `to_paragraph_list` and `__str__`, the `MARKDOWN` text, `web/lib/mdrender.py`, and the `markdown` package from `setup.py` and the lock files.
+- The `markdown` recipe key of a system run is gone (`docs/api.md`, `docs/system-file-format.md`); Markdown, wikitext and text are written from the Document.
+- Tests that read the old text now read the Document through `tests/render_support.py`; `test_mdrender.py` is removed.
+- The docs no longer describe `mdrender`; the Document HTML renderer escapes every string it writes.
+
+TODO items resolved: UX.109
+
 ## [8.0.1805] - 2026-10-18
 
 **Headline:** With the cursor over empty space the wheel now zooms toward where the stars thicken along the cursor's ray, not toward a flat plane through the middle of the view.

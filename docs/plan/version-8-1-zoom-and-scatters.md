@@ -89,7 +89,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.561 | The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own |  |  |
-| UX.109 | Remove the old per-class description text |  |  |
 | DB.31 | Store structure, not prose, for life and flavour |  |  |
 | UX.107 | Units in the description go through the ladders |  |  |
 | DOC.45 | Reference docs follow the description layer |  |  |
@@ -236,7 +235,6 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | GEN.470 | One saturation-pressure function p_sat(species, T) for the gases and ices: the Fray and Schmitt polynomials, water by Feistel and Wagner, and its tests | GEN.410, GEN.427 | Body composition research lane part F items F1 and F1t; no behaviour change until GEN.452 reads it. Core 4 proposed. |
 | GEN.498 | One oxygen-fugacity scale for the generator: the reference fixed, delta-IW stored on it, and the buffers converted |  | Body lane G-4 (part G3): one IW reference scale (Hirschmann 2021), delta-IW stored on it. Core 4 proposed. |
 | GEN.497 | The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve | GEN.470 | Body lane G-3 (part G4): the corrected cold-end tables and Span and Wagner CO2 extend GEN.470. Core 4 proposed. |
-| GEN.548 | Build-time downloads for the isochrone grids, the white-dwarf layers and the neutron-star equation of state, each with a checksum and a labelled stand-in until it lands |  |  |
 
 
 ## Phase 3: New scatters: stars, nebulae and the region query
@@ -255,7 +253,8 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 | TEST.241 | Test: no absolute position is stored for anything inside a system, so every 8.1 item that stores a position stores it parent-relative |  |  |
 | GEN.317 | Pulsar planets and the radiation environment of neutron stars |  | Split from GEN.130. |
 | GEN.318 | White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk |  | Split from GEN.130. |
-| GEN.543 | Define "usable" for a P-type window so the design table's pair-node row (34% falling to 18%) can be reproduced |  |  |
+| PERF.138 | The nuclear cluster term made the extent majorant about 1000 times looser: the shell scatter takes over 250 s, not 5.6 s (bug) |  |  |
+| GEN.590 | Wire the downloaded isochrones, white-dwarf sequences and neutron-star tables into star composition (after Boss answers the Require / Stand-in card) |  |  |
 | GEN.130 | Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes | GEN.317, GEN.318 | Phenomena catalogue, Boss 2026-10-15. Step 3, rescoped. Core. |
 | GEN.263 | Promote every bound compact pair to the scatter, whatever its mass |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 4. Core. |
 | GEN.315 | A fill builds a system from its stored members and nodes; the system pass keeps only planets, moons, belts and disks | GEN.311 | Split from GEN.264. |
