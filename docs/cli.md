@@ -451,9 +451,8 @@ stage and the arm count and pitch angle from the arm statistics
 ([`design/intergalactic-and-halo-contents.md`](design/intergalactic-and-halo-contents.md),
 section 5.13, rows 4 to 6). The plan prints what was drawn. `--arm-density` (1.4) and
 `--interarm-density` (0.6) set the arms' contrast, `--nuclear-amplitude` (1: the nuclear star
-cluster and nuclear stellar disc at the centre, scaled to the bulge; 0 is none) and
-`--calibration-radius-pc` (the Sun's radius, 3.15 times the disk scale length)
-for where relative density 1.0 sits. `--max-shell` caps how far out the
+cluster and nuclear stellar disc at the centre, scaled to the bulge; 0 is none).
+The galaxy holds the systems its stellar mass makes (no point of it is pinned to the local density, GEN.404). `--max-shell` caps how far out the
 shells are walked (100,000 by default) and `--seed <32 hex digits>` sets the
 galaxy seed. `--workers` is how many shells of bright stars are drawn at
 once.
@@ -617,13 +616,13 @@ planetgen benchmark --sectors 20 --workers 1,2,4 --profile --output bench.json
 
 ## Warm the caches
 
-`planetgen warm` builds the site's caches so the first visitor after a release does not wait for them (MAP.134, PERF.104, PERF.127; design in [cache-warm-up.md](design/cache-warm-up.md)). `update.sh` runs it in the background after every update; run it by hand after clearing a cache, as the web server's user so Apache can read what it writes. Each cache family is a command of its own, listed by `planetgen commands` and runnable alone with `planetgen command-run KIND ARGS`: `warm-galaxy-map` (the opening tiles and stage, the shape, the sector and phenomena lists), `warm-lists` (the first page of every list and its counts), `warm-sectors`, `warm-systems` and `warm-phenomena` (every page of that kind, nearest the galaxy centre first, up to `page_cache.warm_max_objects` of each) and `warm-search`. `planetgen warm` only builds the list of them (every family in that order, or the families named) and hands it to the wrapper, which queues them one after the other on the Redis queue as a maintenance run: it does not wait for a generation run, holds none up and shows no banner to visitors. A list of every family ends with `end-map-rebuild-maintenance`, which opens the site if the sector-grid switch closed it (UX.112). It waits for a running update to finish, prints one line per family (how many pages it warmed, how many answers it built, how many were already cached and how many the cap left out), and exits 1 naming the command that failed, or when Redis does not answer or another warm-up is running; there is no silent skip.
+`planetgen warm` builds the site's caches so the first visitor after a release does not wait for them (MAP.134, PERF.104, PERF.127; design in [cache-warm-up.md](design/cache-warm-up.md)). `update.sh` runs it in the background after every update; run it by hand after clearing a cache, as the web server's user so Apache can read what it writes. Each cache family is a command of its own, listed by `planetgen commands` and runnable alone with `planetgen command-run KIND ARGS`: `warm-galaxy-map` (the opening tiles and stage, the shape, the sector and phenomena lists), `warm-galaxy-tiles` (the Galaxy Map's tiles: the first `tile_cache.warm_levels` levels of the tile octree in full, then the zoom run in to the galaxy's centre down to level `tile_cache.warm_zoom_levels`, cut into chunks of 128 tiles that the workers build; PERF.130), `warm-lists` (the first page of every list and its counts), `warm-sectors`, `warm-systems` and `warm-phenomena` (every page of that kind, nearest the galaxy centre first, up to `page_cache.warm_max_objects` of each) and `warm-search`. `planetgen warm` only builds the list of them (every family in that order, or the families named) and hands it to the wrapper, which queues them one after the other on the Redis queue as a maintenance run: it does not wait for a generation run, holds none up and shows no banner to visitors. A list of every family ends with `end-map-rebuild-maintenance`, which opens the site if the sector-grid switch closed it (UX.112). It waits for a running update to finish, prints one line per family (how many pages it warmed, how many answers it built, how many were already cached and how many the cap left out), and exits 1 naming the command that failed, or when Redis does not answer or another warm-up is running; there is no silent skip.
 
 ```bash
 planetgen warm [FAMILY ...] [--cap N]
 ```
 
-`FAMILY` is any of `galaxy-map`, `lists`, `sectors`, `systems`, `phenomena` and `search` (the list is those, in order, whatever order they are named in); `--cap` overrides `page_cache.warm_max_objects`.
+`FAMILY` is any of `galaxy-map`, `galaxy-tiles`, `lists`, `sectors`, `systems`, `phenomena` and `search` (the list is those, in order, whatever order they are named in); `--cap` overrides `page_cache.warm_max_objects`.
 
 ## Helper tools
 

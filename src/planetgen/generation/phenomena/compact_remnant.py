@@ -482,6 +482,12 @@ class NeutronStar(CompactRemnant):
         """`spin_period_ms` in hours."""
         return self.spin_period_ms / 3.6e6
 
+    @property
+    def spin_down_power_w(self):
+        """The magnetic-dipole spin-down power, W (`activity.neutron_star_spin_down_w`), the pulsar wind's power
+        and the source of its X-rays (GEN.317)."""
+        return activity.neutron_star_spin_down_w(self)
+
     def _xuv_w(self):
         """Thermal X-rays or spin-down X-rays (`activity.neutron_star_xuv_w`)."""
         return activity.neutron_star_xuv_w(self)

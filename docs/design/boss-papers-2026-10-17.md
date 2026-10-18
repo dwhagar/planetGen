@@ -217,7 +217,7 @@ Everything else compared agreed: all crust oxides, Th, U and K in the parts file
 
 ## 5. Papers still missing
 
-**Paid-only, from Boss's 12:11 PM EDT list, not uploaded, and what each gates:**
+**Paid-only, from Boss's 12:11 PM EDT list, not uploaded, and what each gates** (Boss, 3:07 PM EDT 2026-10-18: he has already provided all the AD1 data he can; none of these is a request to him now, each gap stays a labelled stand-in until a measurement is found):
 
 | Paper | Gates |
 |---|---|

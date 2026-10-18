@@ -940,6 +940,36 @@
           "x-restart": false,
           "x-secret": false,
           "x-unit": "MB"
+        },
+        "warm_levels": {
+          "default": 8,
+          "description": "How many levels of the Galaxy Map's tile octree `planetgen warm` builds in full, coarsest first (level 8 is tiles 2,048 pc across; every level is eight times the tiles of the one above; 0 builds none).",
+          "maximum": 15,
+          "minimum": 0,
+          "title": "Warm Levels",
+          "type": "integer",
+          "x-category": "cache",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-unit": "levels"
+        },
+        "warm_zoom_levels": {
+          "default": 14,
+          "description": "Finest tile level of the zoom run `planetgen warm` builds from the opening view in to the galaxy's centre, on top of the levels above (level 14 is tiles 32 pc across and the finest the map's cut uses; at most 15; 0 builds no run).",
+          "maximum": 15,
+          "minimum": 0,
+          "title": "Warm Zoom Levels",
+          "type": "integer",
+          "x-category": "cache",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-unit": "levels"
         }
       },
       "title": "TileCache",
@@ -1339,7 +1369,9 @@
       "$ref": "#/$defs/TileCache",
       "default": {
         "dir": "",
-        "max_mb": 200.0
+        "max_mb": 200.0,
+        "warm_levels": 8,
+        "warm_zoom_levels": 14
       }
     },
     "web": {

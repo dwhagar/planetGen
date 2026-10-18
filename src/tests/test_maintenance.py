@@ -212,6 +212,7 @@ def _denied(*args, **kwargs):
 def test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly(state_file, monkeypatch, caplog, redis_server):
     from planetgen.cli import generate as generate_cli
     from planetgen.cli import warm as warm_cli
+    from planetgen.queue import commands
     from planetgen.web import warmup
 
     maintenance.turn_on(by="migration", cause=maintenance.SECTOR_SWITCH)
@@ -219,6 +220,9 @@ def test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly(state_file, mo
     monkeypatch.setattr(warm_cli, "_site_database", lambda: "x")
     monkeypatch.setattr(warmup, "warm_family", lambda db, family, cap=None, app=None, config=None: {
         "family": family, "warmed": 1, "left_out": 0, "seconds": 0.0, "line": f"{family}: ok"})
+    monkeypatch.setattr(warmup, "expand_warm_galaxy_tiles", lambda params: commands.Expansion(
+        [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
+    monkeypatch.setattr(warmup, "warm_galaxy_tiles_unit", lambda args, report: warmup._warm_unit("galaxy-tiles", args))
     parser, _parsers = generate_cli.build_parser()
     with pytest.raises(SystemExit) as exit_info:
         warm_cli.run_warm(parser.parse_args(["warm"]))

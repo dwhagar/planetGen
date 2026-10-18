@@ -27,6 +27,7 @@ section.
 
 import math
 
+from planetgen.galaxy import scales
 from planetgen.physics import constants, giant_branch, metallicity, ms_lifetime, remnant_mass, wolf_rayet
 from planetgen import tuning
 from planetgen.util import draw
@@ -135,11 +136,11 @@ def population_age_range_gy(population=None):
                          f"{sorted(tuning.STELLAR_POPULATION_AGE_RANGES_GY)} or None") from None
 
 
-def sample_star_age_gy(age_bias=None, rng=draw, population=None):
-    """A star's age, uniform over its population's age range
-    (`population_age_range_gy`), biased by `age_bias`."""
+def sample_star_age_gy(age_bias=None, rng=draw, population=None, age_law=None):
+    """A star's age over its population's age range (`population_age_range_gy`), biased by `age_bias`: uniform, or with
+    the density of `age_law` (a `galaxy.age_law.AgeLaw` over that range, GEN.546) when given."""
     low, high = age_window_gy(*population_age_range_gy(population), age_bias)
-    return rng.uniform(low, high)
+    return rng.uniform(low, high) if age_law is None else age_law.sample(low, high, rng)
 
 
 def _piecewise_luminosity_sol(pieces, mass_sol):
@@ -480,7 +481,7 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
         if fe_h is None:
             # A cluster or satellite star with no distribution of its own is drawn as the halo's.
             origin = "halo" if population in ("cluster", "satellite", "satellite_young", "satellite_intermediate") and not fe_h_peaks else population
-            fe_h = metallicity.sample_fe_h(origin, constants.GALACTIC_CENTER_DISTANCE_LY, rng, peaks=fe_h_peaks)
+            fe_h = metallicity.sample_fe_h(origin, scales.default_galactocentric_ly(), rng, peaks=fe_h_peaks)
             state["metallicity_fe_h"] = fe_h
         colour = sample_horizontal_branch_colour(fe_h, age_gy, rng)
         state.update(yerkes_class="III", phase="horizontal-branch",
@@ -510,7 +511,7 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
 
 
 def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=False,
-                       population=None, max_luminosity_sol=None, max_mass_sol=None, fe_h_peaks=None):
+                       population=None, max_luminosity_sol=None, max_mass_sol=None, fe_h_peaks=None, age_law=None):
     """
     Draws `(initial_mass_sol, age_gy, state)` for a random star that hasn't
     collapsed (see `evolve_star`), redrawing mass and age together until it
@@ -528,7 +529,9 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
     sector's dim stars, once its bright ones were pre-placed); likewise
     `max_mass_sol` redraws any star born with at least that mass (the stars
     the scatter's mass pass placed). `fe_h_peaks` is the place's [Fe/H]
-    distribution (`evolve_star`), for a horizontal-branch star's colour.
+    distribution (`evolve_star`), for a horizontal-branch star's colour. `age_law` (a `galaxy.age_law.AgeLaw` over the
+    population's range, GEN.546) spreads the age inside that range by the disk's star formation rate instead of
+    evenly; it goes with the population, so a fallback to the whole disk's ages drops it.
     """
     pc = tuning
     if large_star and population is not None:
@@ -538,9 +541,9 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
             # Every star this massive in so old a population has died; a
             # large star is asked for anyway (+large_star), so it keeps the
             # whole disk's ages rather than fail.
-            population = None
+            population, age_law = None, None
     if habitable_host and population is not None and population_age_range_gy(population)[1] <= pc.LIFE_MIN_STAR_AGE_GY:
-        population = None  # likewise, no star this young can host life yet
+        population, age_law = None, None  # likewise, no star this young can host life yet
     for _ in range(pc.STAR_MODEL_MAX_REDRAWS):
         if large_star:
             mass = sample_imf_mass_sol(min_mass_sol=pc.LARGE_STAR_MIN_MASS_SOL, rng=rng)
@@ -550,14 +553,15 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
             high = min(high, main_sequence_lifetime_gy(mass) * remnant_age_fraction(mass))
             if high <= low:
                 continue  # an old population has no living star this massive
-            age = rng.uniform(*age_window_gy(low, high, age_bias))
+            low, high = age_window_gy(low, high, age_bias)
+            age = rng.uniform(low, high) if age_law is None else age_law.sample(low, high, rng)
         else:
             mass = sample_imf_mass_sol(rng=rng)
             if large_star is False and mass >= pc.LARGE_STAR_MIN_MASS_SOL:
                 continue
             if max_mass_sol is not None and mass >= max_mass_sol:
                 continue
-            age = sample_star_age_gy(age_bias, rng, population)
+            age = sample_star_age_gy(age_bias, rng, population, age_law)
         if habitable_host and age < pc.LIFE_MIN_STAR_AGE_GY:
             continue
         state = evolve_star(mass, age, rng, population=population, fe_h_peaks=fe_h_peaks)

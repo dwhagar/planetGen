@@ -210,6 +210,13 @@ class SystemConfig:
         disk's history. Not saved with the config: the star keeps its age.
         """
 
+        self.AGE_LAW = None
+        """
+        galaxy.age_law.AgeLaw or None: How a random primary star's age is spread inside its population's age range
+        (GEN.546): by the disk's star formation rate, from `galaxy.disk_history.population_age_laws`. None spreads it
+        evenly. A galaxy sector sets it with `POPULATION`. Not saved with the config: the star keeps its age.
+        """
+
         self.FE_H_PEAKS = None
         """
         tuple or None: `((weight, mean, sigma), ...)`, the [Fe/H] a random primary star of a cluster or satellite is

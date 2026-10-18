@@ -108,7 +108,7 @@ def test_check_mode_runs_whole_shells_without_the_majorant_being_exceeded():
 
 
 def test_the_mean_count_matches_the_expected_count():
-    fractions = brightStars.band_fractions(THRESHOLD)
+    fractions = brightStars.band_fractions(THRESHOLD, age_laws=brightStars.age_laws_of(SHAPE))
     expected = _shell_means(SHAPE, 4, 3, fractions)
     counts = [len(_scatter(SHAPE, 4, 3, seed)) for seed in range(60)]
     assert expected > 5
@@ -118,7 +118,7 @@ def test_the_mean_count_matches_the_expected_count():
 
 
 def test_the_stars_fall_in_the_shells_and_populations_the_density_gives():
-    fractions = brightStars.band_fractions(THRESHOLD)
+    fractions = brightStars.band_fractions(THRESHOLD, age_laws=brightStars.age_laws_of(SHAPE))
     per_shell = {shell: _shell_means(SHAPE, shell, high, fractions) for shell, high in EXTENTS}
     rows = [row for seed in range(120) for row in brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, THRESHOLD, seed)]
     seen = collections.Counter(row[0] for row in rows)
@@ -145,7 +145,7 @@ def test_a_sector_takes_several_stars_up_to_its_capacity_where_the_density_is_hi
     rows = list(brightStars.scatter_shell(SHAPE, 3, 3, EDGE_PC, e_value, THRESHOLD, 11))
     per_sector = collections.Counter((row[0], row[1], row[2]) for row in rows)
     assert max(per_sector.values()) > 1
-    fractions = brightStars.band_fractions(THRESHOLD)
+    fractions = brightStars.band_fractions(THRESHOLD, age_laws=brightStars.age_laws_of(SHAPE))
     for (shell, band, wedge), held in per_sector.items():
         centre = brightStars._densities(brightStars.sector_position_pc(shell, band, wedge, EDGE_PC), SHAPE)
         expected = (e_value * brightStars.volume_ratio(shell, band, EDGE_PC)

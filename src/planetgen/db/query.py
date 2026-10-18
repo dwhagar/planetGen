@@ -2834,8 +2834,9 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
 
     Returns:
         dict: Every column of the phenomenon's own row, plus `type`,
-            `sector_name` (`None` if it has no `sector_id`) and `nearest`
-            (its stored nearest star systems, see `nearest_systems`). An
+            `sector_name` (`None` if it has no `sector_id`), `nearest`
+            (its stored nearest star systems, see `nearest_systems`) and, for a black hole, neutron star or rogue
+            planet in a charted galaxy, `reference_radius_pc` (the observer its Einstein radius is worked out for). An
             asteroid field also gets `composition` (`[{"component",
             "concentration"}]`, from `asteroid_field_composition`) and an
             interstellar comet `composition` (its components, from
@@ -2866,6 +2867,11 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
     if table == "rogue_planets":
         detail["gravity_g"] = rogue_planet_gravity_g(detail.get("mass_kg"), detail.get("radius_km"))
     detail["nearest"] = nearest_systems(conn, table, [phenomenon_id]).get(phenomenon_id, [])
+    if phenomenon_type in ("black_hole", "neutron_star", "rogue_planet"):
+        # The Einstein radius (GEN.154) is seen from the galaxy's reference radius: no home position is stored (GEN.404).
+        skeleton = get_galaxy_shape(conn)
+        if skeleton is not None:
+            detail["reference_radius_pc"] = tuning.REFERENCE_RADIUS_SCALE_LENGTHS * skeleton.shape.disk_scale_length_pc
     # DB.2: the composition rows saved beside an asteroid field or an
     # interstellar comet, in their saved order (`composition_summary` is
     # the same list written out as a phrase).
@@ -4638,7 +4644,7 @@ of that level lists (MAP.116); a finest tile lists up to
 where the budget reaches it."""
 
 
-GALAXY_VIEW_MAX_STARS = 70000
+GALAXY_VIEW_MAX_STARS = 45000
 """int: MAP.109's stated cap on the stars (pre-placed and generated) one
 view's tiles can carry (MAP.157: about 19 MB of JSON before compression at the
 old 270 bytes a star, about 100 bytes a star trimmed). It holds by
@@ -4646,7 +4652,9 @@ construction -- every tile's lists are capped (`GALAXY_TILE_BRIGHT_BUDGET`,
 `GALAXY_TILE_STAR_BUDGET`, `GALAXY_TILE_MAX_DETAIL_STARS`) -- and
 `galaxy_view_star_cap` adds those caps up over a view's tiles, so a test
 fails when a budget is raised past it. A real view carries far less: the
-caps are for a tile packed with stars, and most of the galaxy's tiles are not."""
+caps are for a tile packed with stars, and most of the galaxy's tiles are not.
+70,000 until MAP.249, whose coarser, narrower distance cut fetches about half
+the tiles (the worst of the sample cameras fell from about 63,000 to 40,000)."""
 
 
 def galaxy_tile_star_cap(level):

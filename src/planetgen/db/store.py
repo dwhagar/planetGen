@@ -72,7 +72,7 @@ from planetgen.admin import activity_log
 from planetgen.db import alembic_runner, login, point_columns, scatter_systems
 from planetgen.names import object_id as objectId
 from planetgen import tuning
-from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
+from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, spin
 from planetgen.util import log
 from planetgen.util.settings import env_name, get_settings
@@ -3328,9 +3328,11 @@ def _placement_values(placement):
         placement.get("center_z_pc"), placement.get("galactic_radius_pc"),
     )
 
-_DEFAULT_PLACE_PC = (ly_to_pc(physical_constants.GALACTIC_CENTER_DISTANCE_LY), 0.0, 0.0)
-"""tuple: Where an object with no place in the galaxy is taken to be for its movement vector: the Sun's distance from the
-centre on the +x axis, the place `galactic_orbit.generate_galactic_orbit_fields` works its speed out for."""
+def _default_place_pc():
+    """tuple: Where an object with no place in the galaxy is taken to be for its movement vector: the radius that
+    holds half of the galaxy's disc stars on the +x axis (`galaxy.scales`), the place
+    `galactic_orbit.generate_galactic_orbit_fields` works its speed out for."""
+    return (scales.default_galactocentric_pc(), 0.0, 0.0)
 
 
 def _speed_kms(row):
@@ -3345,13 +3347,13 @@ def _speed_kms(row):
 def _free_vector(phenomenon, placement):
     """`(vx, vy, vz)`, km/s, galactic axes: the movement a free object is stored with (GEN.336) -- its
     `galactic_orbital_speed_kms` along the tangent of the galaxy's rotation at its place (`galactic_velocity_ms`), or at
-    `_DEFAULT_PLACE_PC` when it has none (a phenomenon never put in the galaxy). A remnant the galaxy ejected (GEN.238)
+    `_default_place_pc()` when it has none (a phenomenon never put in the galaxy). A remnant the galaxy ejected (GEN.238)
     carries the velocity it was given."""
     ejected = getattr(phenomenon, "ejecta_velocity_kms", None)
     if ejected is not None:
         return tuple(ejected)
     if not placement or placement.get("center_x_pc") is None:
-        point = _DEFAULT_PLACE_PC
+        point = _default_place_pc()
     else:
         point = (placement["center_x_pc"], placement["center_y_pc"], placement["center_z_pc"])
     return tuple(c / 1000.0 for c in galactic_velocity_ms(point, phenomenon.galactic_orbital_speed_kms))
@@ -4001,12 +4003,12 @@ def _system_velocity_kms(conn, star_system, sector_id, position_pc):
     The galactic velocity, km/s, `star_system` has at `position_pc`
     (`(x, y, z)` parsecs from the center of sector `sector_id`): the rotation
     curve's tangent at its place plus its runaway motion
-    (`system_position.system_velocity_ms`). While it has no place it is taken at `_DEFAULT_PLACE_PC`, where the
+    (`system_position.system_velocity_ms`). While it has no place it is taken at `_default_place_pc()`, where the
     generators draw its speed, so its vector keeps that speed.
     """
     center = None if sector_id is None or position_pc is None else _sector_center_pc(conn, sector_id)
     if center is None:
-        place = _DEFAULT_PLACE_PC
+        place = _default_place_pc()
     else:
         place = tuple(c + offset for c, offset in zip(center, position_pc))
     return tuple(v / 1000.0 for v in system_velocity_ms(star_system, place))

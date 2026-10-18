@@ -23,9 +23,11 @@ from hypothesis import assume, example, given, settings
 from hypothesis import strategies as st
 
 from planetgen import tuning
+from planetgen.physics import constants as physical_constants
 from planetgen.galaxy import (
     density as galaxyDensity, skeleton as galaxySkeleton, spherical, viewport as gv,
 )
+from planetgen.physics.units import ly_to_pc
 from tests.fuzz_support import finite
 
 EDGES = st.sampled_from([4.0, 1.0, 0.5, 3.26156, 10.0, 7.0])
@@ -546,13 +548,11 @@ def test_relative_density_is_finite_and_never_negative(shape, point):
 
 
 @given(SHAPES)
-def test_shape_is_calibrated_to_one_at_its_interarm_point(shape):
-    # The calibration point: the solar radius (3.15 scale lengths) out, between two arms.
-    r = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * shape.disk_scale_length_pc
-    theta_arm = shape.spiral_reference_angle_rad + math.log(r / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad)
-    theta = theta_arm + math.pi / shape.arm_count
-    value = galaxyDensity.relative_density((r * math.cos(theta), r * math.sin(theta), 0.0), shape)
-    assert value == pytest.approx(1.0, rel=1e-9)
+def test_shape_holds_the_systems_its_stellar_mass_makes(shape):
+    # GEN.404: the normalization is the galaxy's mass, not a density at some point.
+    local_per_pc3 = physical_constants.LOCAL_STELLAR_DENSITY_LY3 / ly_to_pc(1.0) ** 3
+    systems = shape.k_norm * local_per_pc3 * galaxyDensity.total_mass(shape)
+    assert systems == pytest.approx(shape.structure.stellar_mass_solar / tuning.MEAN_SYSTEM_MASS_SOLAR, rel=1e-9)
 
 
 @example(

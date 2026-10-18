@@ -434,6 +434,17 @@ def _toy_galaxies_scatter_inside_their_outline(monkeypatch):
     yield
 
 
+@pytest.fixture
+def unit_density_plans(monkeypatch):
+    """A test that plans a toy galaxy (a disk of a few dozen parsecs) from the command line gets it in relative units,
+    density 1 at its reference radius (`tests/toy_shape.py`): the plan's own shape would hold the stellar mass its seed
+    draws in that tiny volume (GEN.404)."""
+    from planetgen.galaxy import shape_draw
+    from tests import toy_shape
+    monkeypatch.setattr(shape_draw, "plan_shape", toy_shape.plan_at_unit_density(shape_draw.plan_shape))
+    yield
+
+
 @pytest.fixture(autouse=True)
 def _settle_jobs_run_inline(monkeypatch):
     """A sector generated on the spot queues a settle job (GEN.126:
@@ -556,7 +567,7 @@ def _datasets_are_real(request):
 
 
 @pytest.fixture(autouse=True)
-def _run_queue_inline(request):
+def _run_queue_inline(monkeypatch, request):
     """
     A stage on the new work queue (PERF.97, `planetgen/queue/units.py`) queues its units on Redis and has workers
     run them. A test gets a queue and a key prefix of its own, so parallel tests (pytest-xdist) neither share the
@@ -569,7 +580,7 @@ def _run_queue_inline(request):
     if request.node.get_closest_marker("real_queue"):
         yield
         return
-    with inline_queue.inline_queue():
+    with inline_queue.inline_queue(monkeypatch):
         yield
 
 

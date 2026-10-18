@@ -14,8 +14,9 @@ import pytest
 
 from planetgen.galaxy.density import build_galaxy_shape, halo_density, relative_density
 from planetgen.galaxy.skeleton import bound_relative_density_at, expected_system_count_at_density_1
+from tests.toy_shape import toy_shape
 
-SHAPE = build_galaxy_shape(
+SHAPE = toy_shape(
     disk_scale_length_pc=40.0,
     disk_scale_height_pc=12.0,
     bulge_scale_radius_pc=10.0,

@@ -25,8 +25,15 @@ def _server():
 
 
 @contextlib.contextmanager
-def inline_queue():
-    """The units of a run started inside the context run in this process, on a queue of the context's own."""
+def inline_queue(monkeypatch=None):
+    """
+    The units of a run started inside the context run in this process, on a queue of the context's own.
+
+    Args:
+        monkeypatch (pytest.MonkeyPatch, optional): The test's own `monkeypatch` fixture, which then undoes the patches
+            too, in the order they were made: a test that patches the same names after this has the fixture put back
+            what it found, and a patch undone earlier would leave that behind. By default the context has its own.
+    """
     url = os.environ.get("PLANETGEN_REDIS_URL")
     if not url or _active:
         yield
@@ -52,7 +59,8 @@ def inline_queue():
     server = _server()
     _active.append(True)
     try:
-        with pytest.MonkeyPatch.context() as patch:
+        with contextlib.ExitStack() as stack:
+            patch = monkeypatch or stack.enter_context(pytest.MonkeyPatch.context())
             patch.setattr(runrecord, "PREFIX", prefix)
             patch.setattr(redisqueue, "BULK_QUEUE", queue_name)
             patch.setattr(workers, "ensure_workers", run_waiting_units)

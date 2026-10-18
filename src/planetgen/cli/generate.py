@@ -912,9 +912,6 @@ def add_plan_arguments(parser):
                              help="How much of the observed nuclear star cluster (2.5e7 solar masses within a few "
                                   "parsecs) and nuclear stellar disc (1.5e9, 90 pc long) the galactic centre holds, "
                                   "scaled to the bulge: 1 is the observed pair, 0 is none. Default: 1.")
-    shape_group.add_argument('--calibration-radius-pc', type=finite_float, default=None,
-                             help="In-plane radius the relative_density=1.0 calibration point sits at. "
-                                  "Defaults to 3.15x the disk scale length.")
 
     parser.add_argument('--seed', type=_galaxy_seed_arg, default=None, metavar="HEX",
                         help="The galaxy's 128-bit seed, as 32 hex digits: the same seed makes the same galaxy "
@@ -1063,10 +1060,7 @@ def validate_plan_args(args, parser):
         parser.error("--arm-count must be a positive integer.")
     if args.pitch_angle_deg is not None and not 0 < abs(args.pitch_angle_deg) <= 90:
         parser.error("--pitch-angle-deg must be non-zero and at most 90 degrees in magnitude.")
-    if args.calibration_radius_pc is not None and args.calibration_radius_pc <= 0:
-        parser.error("--calibration-radius-pc must be a positive number.")
-    # Anything else that still can't be normalized (e.g. a calibration
-    # radius so far out the density there underflows to zero).
+    # Anything else that still can't be normalized.
     try:
         shape, _drawn = shapeDraw.plan_shape(args, args.seed)
     except (ArithmeticError, ValueError) as exc:

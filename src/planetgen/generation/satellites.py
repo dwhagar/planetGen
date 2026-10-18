@@ -45,7 +45,7 @@ MILKY_WAY_SATELLITES = (
 """tuple: The Milky Way's satellites (recalled from McConnachie 2012, unchecked: see the module docstring)."""
 
 
-def sun_frame(solar_radius_pc, solar_angle_rad):
+def sun_frame(frame_radius_pc, frame_angle_rad):
     """`(sun, ex, ey, ez)`: the Sun's position in the galaxy frame and the unit vectors of the galactic coordinates there.
 
     `ex` points from the Sun to the galactic centre (longitude 0, latitude 0), `ey` towards longitude 90 degrees (the
@@ -53,15 +53,15 @@ def sun_frame(solar_radius_pc, solar_angle_rad):
     galactic frame has its north pole towards -z: `satellite_position_pc` takes a latitude `b` as a height of
     `-sin(b)` in the galaxy frame.
     """
-    cos_a, sin_a = math.cos(solar_angle_rad), math.sin(solar_angle_rad)
-    sun = (solar_radius_pc * cos_a, solar_radius_pc * sin_a, 0.0)
+    cos_a, sin_a = math.cos(frame_angle_rad), math.sin(frame_angle_rad)
+    sun = (frame_radius_pc * cos_a, frame_radius_pc * sin_a, 0.0)
     return sun, (-cos_a, -sin_a, 0.0), (-sin_a, cos_a, 0.0), (0.0, 0.0, 1.0)
 
 
-def satellite_position_pc(longitude_deg, latitude_deg, distance_pc, solar_radius_pc, solar_angle_rad):
+def satellite_position_pc(longitude_deg, latitude_deg, distance_pc, frame_radius_pc, frame_angle_rad):
     """The position in the galaxy frame (pc, the galactic centre at the origin) of an object seen from the Sun at this
     galactic longitude and latitude and this distance."""
-    sun, ex, ey, ez = sun_frame(solar_radius_pc, solar_angle_rad)
+    sun, ex, ey, ez = sun_frame(frame_radius_pc, frame_angle_rad)
     longitude, latitude = math.radians(longitude_deg), -math.radians(latitude_deg)
     along = (math.cos(latitude) * math.cos(longitude), math.cos(latitude) * math.sin(longitude), math.sin(latitude))
     return tuple(sun[i] + distance_pc * (along[0] * ex[i] + along[1] * ey[i] + along[2] * ez[i]) for i in range(3))
@@ -72,15 +72,15 @@ def _seed(galaxy_seed, name):
     return draw.Stream(f"satellite:{text}:{name}").getrandbits(63)
 
 
-def place_satellites(galaxy_seed, solar_radius_pc, solar_angle_rad, epoch_unix=0.0, scale=1.0):
+def place_satellites(galaxy_seed, frame_radius_pc, frame_angle_rad, epoch_unix=0.0, scale=1.0):
     """
     The Milky Way's satellites as components of a galaxy.
 
     Args:
         galaxy_seed (bytes or int): The galaxy's seed, from which each satellite's own seed (the one its stars are drawn
             from) comes.
-        solar_radius_pc (float): The Sun's distance from the galactic centre in this galaxy's frame.
-        solar_angle_rad (float): The Sun's azimuth in that frame.
+        frame_radius_pc (float): The catalogue's observer's distance from the galactic centre in this galaxy's frame (the reference radius).
+        frame_angle_rad (float): The Sun's azimuth in that frame.
         epoch_unix (float): When the positions hold.
         scale (float): How much larger than the Milky Way the galaxy is, by its disk scale length: the satellites'
             distances from the Sun are multiplied by it, as the clusters' are, so a toy galaxy keeps its satellites
@@ -92,7 +92,7 @@ def place_satellites(galaxy_seed, solar_radius_pc, solar_angle_rad, epoch_unix=0
     found = []
     for row in MILKY_WAY_SATELLITES:
         position = satellite_position_pc(
-            row.longitude_deg, row.latitude_deg, row.distance_kpc * 1000.0 * scale, solar_radius_pc, solar_angle_rad)
+            row.longitude_deg, row.latitude_deg, row.distance_kpc * 1000.0 * scale, frame_radius_pc, frame_angle_rad)
         found.append(components.Component(
             kind="satellite", name=row.name, source="catalogue", center_pc=position, velocity_kms=(0.0, 0.0, 0.0),
             epoch_unix=epoch_unix, mass_solar=row.stellar_mass_sol,

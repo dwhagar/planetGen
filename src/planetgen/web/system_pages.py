@@ -701,7 +701,7 @@ def _comet_composition_text(components):
 _SPEED = ("galactic_orbital_speed_kms", "Galactic Orbital Speed", speed_kms_html)
 _PERIOD = ("galactic_orbital_period_gy", "Galactic Orbital Period", lambda v: period_years_html(v * 1e9))
 
-_EINSTEIN_RADIUS = ("einstein_radius_m", "Einstein Radius (seen from Sol, against the galactic centre)",
+_EINSTEIN_RADIUS = ("einstein_radius_m", "Einstein Radius (seen from the reference radius, against the galactic centre)",
                     _quantity("length"))
 """The derived row of a compact object's page (GEN.154): see `_derived_fields`."""
 
@@ -831,8 +831,8 @@ def _with_galactic_speed(detail):
 def _with_derived_fields(phenomenon_type, detail):
     """`detail` plus the values worked out from it rather than stored: the
     Einstein radius (GEN.154) of a black hole, neutron star or rogue planet
-    that has a galactic position, left out for a lens beyond Sol's distance
-    from the centre (`physics/lensing.py`)."""
+    that has a galactic position, left out for a lens beyond the galaxy's reference radius from the centre
+    (`physics/lensing.py`, GEN.404)."""
     if phenomenon_type in ("black_hole", "neutron_star"):
         mass_kg = (detail.get("mass_solar") or 0) * physical_constants.SOLAR_MASS_TO_KG
     elif phenomenon_type == "rogue_planet":
@@ -840,9 +840,10 @@ def _with_derived_fields(phenomenon_type, detail):
     else:
         return detail
     radius_pc = detail.get("galactic_radius_pc")
-    if radius_pc is None:
+    observer_pc = detail.get("reference_radius_pc")
+    if radius_pc is None or observer_pc is None:
         return detail
-    einstein_m = einstein_radius_against_galactic_centre_m(mass_kg, radius_pc)
+    einstein_m = einstein_radius_against_galactic_centre_m(mass_kg, radius_pc, observer_pc)
     if einstein_m is None:
         return detail
     return {**detail, "einstein_radius_m": einstein_m}
