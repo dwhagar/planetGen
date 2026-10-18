@@ -26,7 +26,9 @@ def _quantity(quantity):
     kind, value = quantity["kind"], quantity["si"]
     if kind in LADDER_BY_KIND and value is not None and math.isfinite(value):
         companions = quantity.get("companions", True)
-        text = _powers(html.escape(format_quantity(LADDER_BY_KIND[kind], value, companions=companions)), "markdown")
+        # Plain text inside the span, as `web/lib/fmt.quantity_html` writes it: `static/units.js` rewrites the span's
+        # text, with Unicode superscripts, in the reader's units.
+        text = html.escape(format_quantity(LADDER_BY_KIND[kind], value, companions=companions))
         return (f'<span class="qty" data-q="{html.escape(kind)}" data-si="{value!r}"'
                 f'{"" if companions else " data-nc"}>{text}</span>')
     return _powers(html.escape(quantity_text(quantity)), "markdown")

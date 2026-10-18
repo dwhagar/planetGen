@@ -3254,8 +3254,11 @@ def system_detail(conn, system_id):
     ).fetchall():
         moons_by_planet.setdefault(moon["planet_id"], []).append(moon)
     planets = []
+    hosts = {}  # one lookup per host star, not per planet
     for planet in planet_rows:
-        host = compact_host_of_star(conn, planet["star_id"])
+        if planet["star_id"] not in hosts:
+            hosts[planet["star_id"]] = compact_host_of_star(conn, planet["star_id"])
+        host = hosts[planet["star_id"]]
         planet_dict = _with_life_fields(_with_printed_uid(planet), colonized["planets"], host)
         planet_dict["moons"] = [_with_life_fields(_with_printed_uid(m), colonized["moons"], host)
                                 for m in moons_by_planet.get(planet["id"], [])]

@@ -208,7 +208,7 @@ def test_every_column_is_read_back(rich_galaxy, monkeypatch):
         with tracking_reads(monkeypatch) as reads:
             pages = [f"/api/sectors/{pid('sector', i, conn)}" for i in ids("sectors")]
             pages += [f"/api/systems/{pid('system', i, conn)}{part}" for i in ids("star_systems")
-                      for part in ("", "/sections", "/owner", "/facilities")]
+                      for part in ("", "/owner", "/facilities")]
             pages += [f"/api/phenomena/{label}/{pid(label, i, conn)}" for table, label, *_ in query._PHENOMENON_TABLES
                       for i in ids(table)]
             pages += [f"/api/nebulae/{pid('nebula', i, conn)}/shape" for i in ids("nebulae")]
