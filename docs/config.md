@@ -312,6 +312,8 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 | `proxy_fix.x_host` | whole number | 0 | after a restart | command line only | `PLANETGEN_PROXY_FIX_X_HOST` | Reverse proxies to trust for X-Forwarded-Host (0 = off). |
 | `tile_cache.dir` | text | empty | at once | command line only | `PLANETGEN_TILE_CACHE_DIR` | Where the Galaxy Map's tiles are cached on disk; empty means /var/cache/planetgen/tiles. |
 | `tile_cache.max_mb` | number (MB) | 200 | at once | any admin | `PLANETGEN_TILE_CACHE_MAX_MB` | Roughly how big the tile cache may grow before its oldest files are pruned (0 turns the disk cache off). |
+| `tile_cache.warm_levels` | whole number (levels) | 8 | at once | any admin | none | How many levels of the Galaxy Map's tile octree `planetgen warm` builds in full, coarsest first (level 8 is tiles 2,048 pc across; every level is eight times the tiles of the one above; 0 builds none). |
+| `tile_cache.warm_zoom_levels` | whole number (levels) | 14 | at once | any admin | none | Finest tile level of the zoom run `planetgen warm` builds from the opening view in to the galaxy's centre, on top of the levels above (level 14 is tiles 32 pc across and the finest the map's cut uses; at most 15; 0 builds no run). |
 | `page_cache.enabled` | true or false | true | after a restart | any admin | `PLANETGEN_PAGE_CACHE` | Keep the API's public answers in memory, per WSGI process. |
 | `page_cache.max_entries` | whole number | 2000 | after a restart | any admin | none | Most answers kept. |
 | `page_cache.max_mb` | number (MB) | 64 | after a restart | any admin | none | Most memory the answers may take. |
