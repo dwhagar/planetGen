@@ -124,10 +124,10 @@ def _star_count_row(count):
         name=f"{count} star{'s' if count > 1 else ''}", classes=tuple(by_class),
         weight=ClassWeight(by_class, _prevalence_for_five_or_more if count >= FIVE_OR_MORE else None),
         source="docs/design/multistar-and-compact-systems.md 3.3; B-mid and B-early from Moe & Di Stefano 2017 "
-               "(ApJS 230:15) Table 13 (GEN.449)",
+               "(ApJS 230:15) Table 13 (the B-mid and B-early rows)",
         licence="open", state=pt.PARTLY_VERIFIED,
         limit="the A to M rows are the design note's and were moved here unchanged; they were not rechecked against "
-              "Raghavan 2010 or Duchene & Kraus 2013 in GEN.552",
+              "Raghavan 2010 or Duchene & Kraus 2013 when the tables were built",
         notes="A system of 7 stars may have more (`multistar.TAIL_RATIOS`, to 12); the five-or-more columns are scaled by "
               "the subject's `prevalence`.")
 
@@ -161,7 +161,7 @@ REMNANT_SATELLITES = pt.REGISTRY.register(pt.Table(
                source="Wolszczan & Frail 1992 (Nature 355:145); Wolszczan 2012 (Acta Astronomica 62:3)", licence="open",
                state=pt.PARTLY_VERIFIED,
                limit="the 0.7% is the share of known millisecond pulsars with planets; a recalled figure, not "
-                     "rechecked against the papers in GEN.552",
+                     "rechecked against the papers when the tables were built",
                notes="Zone rule: the planet model's orbit ceiling (the object's galactic Hill sphere), "
                      "`StarSystem(compact_remnant=...)`; a hit whose model puts no planet in the system stays bare."),
         pt.Row(NO_SATELLITES, (pt.ANY_CLASS,), _no_satellites_weight("remnant-satellites"),
@@ -174,22 +174,22 @@ PLANET_SATELLITES = pt.REGISTRY.register(pt.Table(
     "planet-satellites", 1, [
         pt.Row("captured moon", ("rogue-planet",), ROGUE_PLANET_MOON,
                source="design default (docs/design/phenomena-catalogue-and-fill.md section 5)", licence="open",
-               state=pt.STAND_IN, replacement="GEN.466",
+               state=pt.STAND_IN, replacement="a captured-moon rate derived from ejection survival (docs/design/unified-star-like-objects.md 3.5)",
                notes="Zone rule: Roche limit to 0.4895 of the Hill radius, prograde; for a free planet its history "
-                     "sets the limit (GEN.466). Today the moon is a flag (`has_moons`)."),
+                     "sets the limit (derived from ejection survival). Today the moon is a flag (`has_moons`)."),
         pt.Row(NO_SATELLITES, (pt.ANY_CLASS,), _no_satellites_weight("planet-satellites"),
                source="the rest of the row above (1 minus the chance of a moon)", licence="open",
-               state=pt.STAND_IN, replacement="GEN.466")],
+               state=pt.STAND_IN, replacement="a captured-moon rate derived from ejection survival (docs/design/unified-star-like-objects.md 3.5)")],
     description="Whether a planet holds a moon, by the planet's object key."))
 
 MOON_SATELLITES = pt.REGISTRY.register(pt.Table(
     "moon-satellites", 1, [
         pt.Row(NO_SATELLITES, (pt.ANY_CLASS,), 1.0,
-               source="no row yet: the tidal-survival gate row of GEN.579 will add the moon of a moon", licence="open",
-               state=pt.STAND_IN, replacement="GEN.579",
+               source="no row yet: the tidal-survival gate row of the System design (docs/design/unified-system-barycentre.md) will add the moon of a moon", licence="open",
+               state=pt.STAND_IN, replacement="the tidal-survival gate row (docs/design/unified-system-barycentre.md)",
                notes="A moon may host through the same gate as any body (Boss's cards S5 and S6); until a sourced "
                      "row passes it, no moon holds anything.")],
-    description="Whether a moon holds anything: empty until GEN.579 adds the tidal-survival row."))
+    description="Whether a moon holds anything: empty until the tidal-survival row is added."))
 
 REGISTRY_TABLES = {table.name: table for table in (STAR_COUNT, REMNANT_SATELLITES, PLANET_SATELLITES, MOON_SATELLITES)}
 """dict: The host tables by name; a test swaps one with `monkeypatch.setitem` (`reweighted`)."""
@@ -205,7 +205,7 @@ HOSTS = (
     HostClass("planet", "a planet, bound or free", None, "planet-satellites",
               "RoguePlanet and StarSystem (a bound planet's moons: generate_moons)"),
     HostClass("moon", "a moon", None, "moon-satellites",
-              "nothing yet: the tidal-survival gate row of GEN.579 adds what a moon holds"),
+              "nothing yet: the tidal-survival gate row adds what a moon holds"),
     HostClass("small-body", "a comet or an asteroid field", None, None, "nothing: the gate is closed",
               may_host=False),
 )
