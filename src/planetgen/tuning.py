@@ -633,6 +633,38 @@ BLUE_SUPERGIANT_TEMPERATURE_RANGE_K = (9000.0, 35000.0)
 # first threshold IB, then IAB, IA, and 0 (hypergiant) at the top.
 SUPERGIANT_YERKES_THRESHOLDS_SOL = {"IAB": 10000.0, "IA": 50000.0, "0": 500000.0}
 
+# Wolf-Rayet stars (GEN.243, docs/design/intergalactic-and-halo-contents.md 5.11): a very massive star
+# stripped to its hot helium core in the last stretch of its life, in place of the end of its supergiant phase.
+WR_MIN_INITIAL_MASS_SOL = 25.0
+"""float: The least initial mass of a star that ends as a Wolf-Rayet star at the Sun's metallicity, solar masses
+(the Galactic Wolf-Rayet census against the Galactic birth rate gives about 25 [R]; the count check in
+`tests/test_wolf_rayet.py` is the test of it)."""
+WR_THRESHOLD_METALLICITY_EXPONENT = 0.5
+"""float: The threshold rises as Z^-0.5: the winds that strip the star weaken with metals [R], so 25 solar masses at
+the Sun's metallicity is 35 at half and 56 at a fifth of it [I]."""
+WR_PHASE_MYR = 0.3
+"""float: How long a Wolf-Rayet star stays one, Myr (the last stretch of its life) [R]."""
+WR_MAX_SUPERGIANT_SHARE = 0.5
+"""float: The phase never takes more than this share of the supergiant window it replaces, so the heaviest stars,
+whose whole post-main-sequence life is short, still pass through a supergiant phase first."""
+WR_PRESENT_MASS_FRACTION_RANGE = (0.4, 0.6)
+"""tuple: The present mass of a Wolf-Rayet star over its initial mass, drawn uniformly [R]."""
+WR_SUBTYPE_PHASE_SHARES = (("WN", 0.6), ("WC", 0.3), ("WO", 0.1))
+"""tuple: The subtype by the share of the phase gone: nitrogen-rich first, then carbon-rich, then the oxygen-rich last
+tenth (only for stars of `WO_MIN_INITIAL_MASS_SOL` or more; lighter ones stay WC to the end)."""
+WO_MIN_INITIAL_MASS_SOL = 40.0
+"""float: The least initial mass that reaches the oxygen-rich WO stage [I]."""
+WR_TEMPERATURE_RANGE_K = {"WN": (30000.0, 100000.0), "WC": (40000.0, 120000.0), "WO": (150000.0, 200000.0)}
+"""dict: The effective temperature of each subtype, K, drawn uniformly: the whole 30,000 to 200,000 K of the design
+note, split by subtype [R, I]."""
+WR_SUBCLASS_RANGE = {"WN": (2, 9), "WC": (4, 9), "WO": (1, 4)}
+"""dict: The subclass numbers of each subtype, hottest first (WN2 to WN9, WC4 to WC9, WO1 to WO4)."""
+WR_LUMINOSITY_RANGE_SOL = (1.0e5, 1.0e6)
+"""tuple: The luminosity of a Wolf-Rayet star, solar luminosities, log-uniform [R]."""
+WR_COMPANION_CHANCE = {"WN": 0.52, "WC": 0.90, "WO": 0.90}
+"""dict: The share of Wolf-Rayet stars with a companion, by subtype (Dsilva et al., a spectroscopic multiplicity survey of
+Galactic Wolf-Rayet stars: 52% of WN, 96% of WC, capped at 0.9 as in the phenomena catalogue; WO takes WC's)."""
+
 # Piecewise main-sequence mass-luminosity relation, L = coeff * M^exponent
 # (Lsun, Msun), each piece for M below its max_mass_sol and the last one
 # open-ended (Duric 2004; Salaris & Cassisi 2005).

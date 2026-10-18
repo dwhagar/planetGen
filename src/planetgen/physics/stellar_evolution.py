@@ -27,7 +27,7 @@ section.
 
 import math
 
-from planetgen.physics import constants, giant_branch, metallicity, ms_lifetime
+from planetgen.physics import constants, giant_branch, metallicity, ms_lifetime, wolf_rayet
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -37,6 +37,7 @@ YERKES_CLASS_NAMES = {
     "IAB": "Intermediate-size Luminous Supergiant", "IB": "Less Luminous Supergiant",
     "II": "Bright Giant", "III": "Giant", "IV": "Subgiant", "V": "Main Sequence",
     "VI": "Subdwarf", "VII": "White Dwarf", "D": "White Dwarf",  # D is an alias for VII
+    "W": "Wolf-Rayet",
 }
 """Display name of each Yerkes luminosity class, used in `Star.type`."""
 
@@ -441,12 +442,16 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
     t_eff_ms = effective_temperature_k(l_ms, main_sequence_radius_sol(mass_sol))
     state = {"mass_sol": mass_sol, "radius_km": None, "lifespan_gy": t_agb}
 
+    wr_start = wolf_rayet.start_gy(mass_sol, t_ms, t_giant, fe_h) if massive else None
     young = pre_main_sequence.state(mass_sol, age_gy * 1.0e9)
     if young is not None:
         # GEN.242: still contracting, a protostar (Class 0 and I) or a pre-main-sequence star.
         state.update(young)
     elif age_gy < t_ms:
         state.update(yerkes_class="V", luminosity_sol=l_ms, temperature_k=t_eff_ms, phase_end_gy=t_ms)
+    elif wr_start is not None and wr_start <= age_gy < t_giant:
+        # GEN.243: the last stretch of a very massive star's life, in place of the end of its supergiant window.
+        state.update(wolf_rayet.state(mass_sol, age_gy, wr_start, t_giant, rng, min_luminosity_sol))
     elif massive and age_gy < t_giant:
         growth_low, growth_high = pc.SUPERGIANT_LUMINOSITY_GROWTH_RANGE
         if min_luminosity_sol is not None:
@@ -594,7 +599,11 @@ def star_params(initial_mass_sol, age_gy, state):
                                               * temperature ** 4)) / constants.KM_TO_M_FACTOR
     yerkes = state["yerkes_class"]
     color = constants.SPECTRAL_CLASS_COLORS[spectral_class]
-    if yerkes in pre_main_sequence.STAGE_CLASSES:
+    if yerkes == wolf_rayet.CLASS:
+        # GEN.243: the spectral text is the subtype and subclass (WN6), in place of a letter, and the class says Wolf-Rayet.
+        subtype = state["wr_subtype"]
+        star_type = f"{subtype}{wolf_rayet.subclass(subtype, temperature)} {color} {wolf_rayet.CLASS_NAME} Star"
+    elif yerkes in pre_main_sequence.STAGE_CLASSES:
         # No Yerkes numeral: a contracting star is named for its stage, and a protostar for its Class.
         name = (f"Class {state['disk_class']} Protostar" if yerkes == pre_main_sequence.PROTOSTAR
                 else pre_main_sequence.CLASS_NAMES[yerkes])
