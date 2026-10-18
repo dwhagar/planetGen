@@ -12,8 +12,18 @@
 // The progress is an estimate, not a count (the answer is one query), and the text says so.
 
 const VERSION_QUERY = new URL(import.meta.url).search;
-const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
-const { formatDurationSeconds } = await import(`./unitladder.js${VERSION_QUERY}`);
+// The formatters load by the script's own version (a static import cannot carry it). The buttons are wired at once
+// and the polling starts when they have arrived: a top-level `await` here left Stop waiting on the screen, clicked
+// and doing nothing, until both had loaded (TEST.248).
+let formatNumber = null;
+let formatDurationSeconds = null;
+const formatters = Promise.all([
+  import(`./numberformat.js${VERSION_QUERY}`),
+  import(`./unitladder.js${VERSION_QUERY}`),
+]).then(function ([numbers, ladder]) {
+  formatNumber = numbers.formatNumber;
+  formatDurationSeconds = ladder.formatDurationSeconds;
+});
 
 const POLL_MS = 1000;
 const RETRY_HEADER = "X-Slow-Retry";
@@ -200,7 +210,7 @@ function resume() {
   stopped = false;
   show("resume", false);
   show("stop", true);
-  poll();
+  formatters.then(poll);
 }
 
 if (panel) {
@@ -210,8 +220,8 @@ if (panel) {
     stopped = false;
     show("retry", false);
     setText("status", STATE_TEXT.queued);
-    bring(true);
+    formatters.then(function () { bring(true); });
   });
   const failedAtStart = panel.dataset.state === "failed" || panel.dataset.state === "cancelled";
-  if (!failedAtStart) schedule();
+  if (!failedAtStart) formatters.then(schedule);
 }
