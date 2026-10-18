@@ -3456,9 +3456,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its last update (one day of real time is one day of orbit), and an
   option advances it by a stated extra span in one go. Done when its
   subitems are.
-  Boss statement (2026-10-18, 5:24 PM EDT), UNVERIFIED against the
-  design until the read-only "Orbital update check (2026-10-18)" note
-  lands: "And let's also double-check that the orbital motion updates:
+  Boss statement (2026-10-18, 5:24 PM EDT): "And let's also double-check that the orbital motion updates:
   1. Checks for whatever records require an update. 2. New records
   without a next update field will always get an update, where the next
   update field will be set. 3. Calculate any required position changes
@@ -3471,15 +3469,58 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   object to update its motion vector. Based on speed the system will
   then set an entry in the database for that object for when it next
   needs a position or motion update. According to the floor, it is
-  already approved". The last sentence is unclear ("the floor" is not
-  a term in the design or in an earlier answer); recorded as stated,
-  not interpreted. The four steps are the order of one run: due records
-  first (a record with no next-update value is always due and gets one),
-  positions, then velocities from the influence set (GEN.341, GEN.342)
-  plus the galactic gradient, then the next-update value from speed
-  (GEN.139). The check compares this order with orbital-updates.md and
-  reports where the design differs; the 8.3 items change only after it
-  lands.
+  already approved". The
+  read-only check is [docs/design/orbital-update-check-2026-10-18.md](design/orbital-update-check-2026-10-18.md).
+  The four steps are the order of one run: find the due records (a
+  record with no next-update value is always due), advance each due
+  object's position, change its motion vector from the influence set
+  and the galactic gradient, then set its next-update value from its
+  speed.
+  Decided (Boss, card taps of 2026-10-18, 5:30 to 5:33 PM EDT, as the coordinator reported them (the cards are in the project chat; the tap results are not readable by this thread)). F1 search
+  radius: the largest Hill radius of any object in the galaxy, one
+  stored number, Sgr A* left out of that maximum (it is in the smooth
+  potential); the nearest 64 are summed exactly and the rest as one
+  point mass per sector; GEN.370 first so the radius uses the galaxy's
+  own enclosed mass. F2: step 4 runs for every object through the one
+  core function (amends card S13: a bound planet or moon works in its
+  host's frame with the host's pull taken out; the tide screens stay as
+  validity checks). F3 order: per object steps, each object moves and
+  then gets its vector in turn, not two phases; Boss's "position
+  changes first" is read as position before vector within each object,
+  so later objects see a mix of old and new positions of the others
+  (the result depends on the order rows are visited, so the order must
+  be fixed and tested). F4 next due: the speed from the new vector,
+  capped at the time for the influence set to change. F5 new records:
+  always visited, the position advances only from the record's own
+  epoch, then the next-update value is set. The last card, "Is the
+  orbital motion update (your four steps) approved to build as
+  written?", was answered "Approved as the cards say": the orbital
+  motion update with F1 to F5 is APPROVED to build. That answers
+  his unclear last sentence ("According to the floor, it is already
+  approved"), whose meaning stays unknown. Where this note and older
+  text on GEN.109, GEN.139, GEN.290, GEN.340, GEN.341, GEN.342 or
+  orbital-updates.md differ, this note wins; those items are reworded
+  as their lanes pick them up. Owner lane: Core 3, after its 8.1 queue,
+  in the order GEN.370, GEN.341, GEN.342.
+  Decided (Boss, 2026-10-18; his words 5:38 PM EDT, card tap "Tier first,
+  then mass" as the coordinator reported it, 5:41 PM EDT): the order of
+  the due objects is a stable sort on (tier, mass heaviest first, ties
+  by id). Boss: "Overall this should support our most massive to least
+  massive. Even within the galactic span high-mass objects are moved
+  before low-mass objects. Objects in the galactic frame of reference
+  ... such as a rogue planet, an interstellar comet, or a single primary
+  star, should all be moved before anything inside a system." Tier is
+  the number of hops from the galactic frame, derived from the parent
+  link and not stored; the names are labels only: tier 0 (his
+  "primary") is every top-level object (rogues, interstellar comets,
+  single stars, each system's primary), tier 1 ("secondary") is planets
+  and companion stars, tier 2 ("tertiary") is moons, tier 3 ("quinary")
+  is small moon satellites; a rogue planet's moon is tier 1. Rows run in
+  ordered chunks (tier, then mass band), each seeing the state at its
+  start. A planet heavier than a companion star stays in its tier and is
+  ordered by mass there (the "bizarre quirk" he accepts); a capture in
+  the middle of a run takes effect in the next run's order. Open
+  measurement: the sort cost on millions of due rows is not measured yet.
   Headline: 8.3 (the orbital update system).
   Prerequisites: GEN.290, GEN.291.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
@@ -4030,11 +4071,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   closed-form step on read, and the thresholds only schedule
   perturbation re-fits; GEN.289 replaces the phase columns that the
   earlier wording relied on.
-  Boss (2026-10-18, 5:24 PM EDT): a new record with no next-update
-  value is always updated and the value is then set, and the value is
-  set from the object's speed after the velocity change; full wording on
-  GEN.105 (unverified against the design until the orbital update check
-  lands).
+  Decided (Boss, 2026-10-18, F4 and F5, approved to build; card taps as
+  the coordinator reported them, 5:32 PM EDT): the next-update value
+  comes from the speed of the new vector after step 4, capped at the
+  time for the influence set to change; a new record with no
+  next-update value is always visited, its position advances only from
+  its own epoch (generation stamps the epoch), then the value is set.
+  Full wording on GEN.105.
   Prerequisites: none.
   Design: [docs/design/orbital-solvers-and-integrators.md](design/orbital-solvers-and-integrators.md)
 
@@ -6123,7 +6166,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   at the core, mid radius, the rim, the top and bottom layers and across
   the slot-0 seam, the exact pairwise Hill criterion, a negative control
   without the margin, the cap, and a seed-reproducibility test.
-  Prerequisites: none. Related: GEN.109.
+  Decided (Boss, 2026-10-18, F1, approved to build; card tap as the
+  coordinator reported it, 5:30 PM EDT): the search radius is the
+  largest Hill radius of any object in the galaxy (one stored number,
+  Sgr A* left out of the maximum), which replaces the largest-nearby-
+  object scan and its cover lists; the cap of 64 exact members with one
+  point mass per sector for the rest stays. GEN.370 comes first. Full
+  wording on GEN.105.
+  Prerequisites: GEN.370. Related: GEN.109.
 
 - [ ] **GEN.342 The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6142,10 +6192,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The force on a body comes from the shared field kernel (PERF.88); this
   item adds the influence-set term, the galactic gradient hook and the
   velocity update (2026-10-16 review).
-  Boss (2026-10-18, 5:24 PM EDT): the kernel is evaluated at the exact
-  location of each updated object, with the largest Hill radius in the
-  galaxy as the search radius, after the position change; see GEN.105
-  (unverified against the design until the orbital update check lands).
+  Decided (Boss, 2026-10-18, F2 and F3, approved to build; card taps as
+  the coordinator reported them, 5:31 and 5:32 PM EDT): the kernel runs
+  for every object, evaluated at the object's own location right after
+  its position change, in per object order; later objects see a mix of
+  old and new positions. Full wording on GEN.105.
+  Decided (Boss, 2026-10-18, 5:38 PM EDT words, tap 5:41 PM EDT as the
+  coordinator reported it): due objects are visited in the order of
+  GEN.105's tier-then-mass sort (a stable sort on tier, heaviest first,
+  ties by id); tier names are labels only. Sort cost on millions of due
+  rows is an open measurement.
   Prerequisites: GEN.341, GEN.338, GEN.340. Related: GEN.109.
 
 - [ ] **GEN.343 The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter**
