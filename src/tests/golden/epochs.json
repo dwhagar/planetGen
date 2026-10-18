@@ -92,8 +92,7 @@
     },
     {
       "epoch": 19,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1758",
       "reason": "The disk's young, intermediate and old star shares come from its own gas history (the Kennicutt-Schmidt law fed by the stars its halo builds), so a light galaxy holds more young stars and a heavy one fewer than the flat ten-billion-year history, and the magnetar rate reads the new young share (GEN.469)."
     }
   ]

@@ -2,6 +2,20 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1758] - 2026-10-18
+
+**Headline:** A disk's young, middle-aged and old stars now follow its own gas history, so light galaxies hold more young stars and heavy ones fewer, where every disk used to form stars at one rate for ten billion years.
+
+### Changed
+- The thin disk's share of young (under 0.1 Gy), intermediate (0.1 to 3 Gy) and old (3 to 10 Gy) stars is what its star formation history puts in those windows, not the windows' lengths. The history is gas continuity per ring: the Kennicutt-Schmidt law (n 1.4) uses the gas up, the return fraction comes from the generator's own mass function (0.37; the same code gives Madau and Dickinson's 0.27 for a Salpeter slope), and the gas comes in as fast as the stars the galaxy's halo builds (Fakhouri, Ma and Boylan-Kolchin 2010 halo growth, Moster, Naab and White 2013 stellar-to-halo relation moving with redshift). New `galaxy/disk_history.py`; `docs/design/disk-star-formation-history.md` names every source.
+- A galaxy of 5e10 solar masses holds 0.39% young, 19% intermediate and 81% old disk stars (flat history: 1%, 29%, 70%); one of 1e10 holds 2.9%, 62% and 35%. Its present star formation is 0.38 of its ten-Gy mean (the Milky Way's is about 0.2) and the local B-star share between the arms falls from 0.19% to 0.12% (observed 0.04%, still a strict expected failure in `tests/test_disk_history.py`). Ages stay uniform inside a window.
+- `GalaxyShape.masses` carries the galaxy's stellar and halo mass (drawn again from its seed in `db.store.get_galaxy_shape`, set by `shape_draw`); a shape without them takes the median galaxy of its disk size. `density.population_densities`, its array form and the sampler's band bound (`generation/object_first._disk_share_bound`) read the shares through `star_formation.disk_population_share`.
+- `MAGNETAR_YOUNG_STAR_SHARE` is 0.0019 (was 0.0044), the young share of a galaxy of 5e10 solar masses; a galaxy with more young stars now holds proportionally more magnetars.
+
+generation-output: changed
+
+TODO items resolved: GEN.469 / Added: the local B-star share is still 3 times the observed one (tests/test_disk_history.py, strict expected failure); ages inside a window are uniform though the rate varies across it (follow-up in the sampler)
+
 ## [8.0.1757] - 2026-10-18
 
 **Headline:** Hypervelocity stars, kicked neutron stars and ejected black holes now stream through the whole galaxy and out to the grid's reach, on straight lines, instead of stopping at the disk's outline.
