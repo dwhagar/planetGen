@@ -134,3 +134,18 @@ def young_density_array(r_cyl, z, core):
     e = np.exp(-2.0 * np.minimum(np.abs(np.asarray(z, dtype=float)) / (2.0 * core.height_pc), 350.0))
     vertical = np.minimum(1.0, 4.0 * e / (1.0 + e) ** 2)
     return core.young_density * np.exp(-0.5 * ((r_cyl - core.radius_pc) / core.sigma_pc) ** 2) * vertical
+
+
+def young_bound(inner, outer, z_near, core):
+    """
+    An upper bound on `young_density` in a region whose cylindrical radius runs from `inner` to `outer` and whose nearest
+    `|z|` is `z_near` (arrays): the Gaussian ring's peak where the region holds the ring's radius, else its value at
+    the nearer edge, times the vertical profile at the nearest height.
+    """
+    inner, outer, z_near = (np.asarray(value, dtype=float) for value in (inner, outer, z_near))
+    if not core.young_density:
+        return np.zeros(np.broadcast(inner, outer, z_near).shape)
+    gap = np.maximum(np.maximum(inner - core.radius_pc, core.radius_pc - outer), 0.0)
+    e = np.exp(-2.0 * np.minimum(z_near / (2.0 * core.height_pc), 350.0))
+    vertical = np.minimum(1.0, 4.0 * e / (1.0 + e) ** 2)
+    return core.young_density * np.exp(-0.5 * (gap / core.sigma_pc) ** 2) * vertical

@@ -126,3 +126,18 @@ def test_the_circular_speed_of_the_centre_is_that_of_the_nucleus_inside_the_radi
     speed = open_clusters._circular_speed_kms(np.array([10.0, 100.0, 200.0]), _shape())
     assert np.all(speed > 30.0) and np.all(speed < 250.0)
     assert speed[1] == pytest.approx(150.0, rel=0.4)
+
+
+def test_the_young_stars_bound_covers_the_rings_young_stars():
+    """The scatter's majorant for the young population has to hold where the ring's stars were moved into it."""
+    from planetgen.generation import object_first
+    shape = _shape()
+    ring = core_gas.core_gas(shape)
+    fractions = {name: 0.0 for name in profile.POPULATIONS}
+    fractions["young"] = 1.0
+    for radius in (0.5 * ring.radius_pc, ring.radius_pc, 1.5 * ring.radius_pc):
+        point = (radius, 0.0, 0.0)
+        young = galaxyDensity.population_densities(point, shape)["young"]
+        bound = object_first.extent_majorants(shape, np.array([0.9 * radius]), np.array([0.0]), np.array([5.0]),
+                                              fractions, np.array([1.1 * radius]))
+        assert young <= bound[0]
