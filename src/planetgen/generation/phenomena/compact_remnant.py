@@ -49,6 +49,7 @@ from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.generation.star import Star
+from planetgen.galaxy import shape_draw as shapeDraw, structure as galaxyStructure
 from planetgen.galaxy.remnant_distribution import pulsar_radial_factor
 from planetgen.galaxy.galactic_orbit import generate_galactic_orbit_fields
 from planetgen.physics.orbits import calculate_habitable_zone
@@ -80,7 +81,7 @@ def hawking_luminosity_w(mass_solar):
 def infer_black_hole_mass_class(mass_solar):
     """The mass class a black hole of `mass_solar` falls in, for rows
     saved before `mass_class` was stored (schema v36)."""
-    if mass_solar >= tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR[0]:
+    if mass_solar >= tuning.BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR:
         return "supermassive"
     if mass_solar >= tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[0]:
         return "intermediate"
@@ -270,7 +271,7 @@ class BlackHole(CompactRemnant):
                              f"got {mass_class!r}")
         if mass_class == "supermassive":
             self.mass_class = "supermassive"
-            self.mass_solar = mass_solar or log_uniform(*tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR)
+            self.mass_solar = mass_solar or shapeDraw.random_nucleus_mass_solar()
         else:
             if mass_class is None:
                 intermediate = draw.random() < tuning.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE
@@ -339,7 +340,7 @@ class BlackHole(CompactRemnant):
             # sphere of influence (G*M / sigma^2), not a galactic Hill sphere.
             (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
              self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = None, None, None, None
-            sigma_m_s = tuning.BLACK_HOLE_SUPERMASSIVE_VELOCITY_DISPERSION_KMS * 1000
+            sigma_m_s = galaxyStructure.black_hole_dispersion_kms(self.mass_solar) * 1000
             self.system_perimeter = constants.G * self.mass / sigma_m_s ** 2 / constants.AU_TO_M
 
     @property

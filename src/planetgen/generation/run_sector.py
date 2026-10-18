@@ -462,7 +462,7 @@ for an active nucleus (see `add_galactic_nucleus`); in a galaxy whose
 phenomenon scatter ran, the nucleus is a scatter row instead."""
 
 
-def add_galactic_nucleus(sector, args, galactic_center_dist_ly):
+def add_galactic_nucleus(sector, args, galactic_center_dist_ly, mass_solar=None):
     """
     Adds the galaxy's central supermassive black hole to `sector` at the
     galactic center: an active `Quasar` with
@@ -484,6 +484,8 @@ def add_galactic_nucleus(sector, args, galactic_center_dist_ly):
         args (argparse.Namespace): Parsed arguments (none is read here).
         galactic_center_dist_ly (float): The sector center's distance from
             the galactic center, in light-years.
+        mass_solar (float, optional): The central black hole's mass (`density.central_black_hole_mass_solar`,
+            GEN.402); without a stored galaxy, a galaxy is drawn for it.
 
     Returns:
         SectorPhenomenonEntry: The quasar's or the black hole's entry.
@@ -493,9 +495,10 @@ def add_galactic_nucleus(sector, args, galactic_center_dist_ly):
     with fill_stages.stage(sector, fill_stages.FLAGS, "nucleus"):
         if draw.random() < program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE:
             fill_stages.count(sector, fill_stages.FLAGS, "quasar")
-            return sector.add_phenomenon(Quasar(nucleus_config), "quasar", position=position)
+            return sector.add_phenomenon(Quasar(nucleus_config, black_hole_mass_solar=mass_solar), "quasar",
+                                         position=position)
         log.debug(f"Sector {sector.name!r}: galactic nucleus is quiescent (supermassive black hole, no quasar)")
-        black_hole = BlackHole(nucleus_config, mass_class="supermassive")
+        black_hole = BlackHole(nucleus_config, mass_class="supermassive", mass_solar=mass_solar)
         fill_stages.count(sector, fill_stages.FLAGS, "black-hole")
         return sector.add_phenomenon(black_hole, "black-hole", position=position)
 
@@ -569,7 +572,8 @@ def _build_scattered(sector, args, row, position, dist_ly, min_mass_solar=None, 
         nebula = Nebula(config, nebula_type="planetary")
         return _add_planetary_nebula(sector, args, nebula, dist_ly, position=position)
     if kind == "quasar":
-        return sector.add_phenomenon(Quasar(config), "quasar", position=position)
+        return sector.add_phenomenon(Quasar(config, black_hole_mass_solar=row["mass_solar"]), "quasar",
+                                     position=position)
     if kind == "black-hole":
         black_hole = BlackHole(config, galactic_center_dist_ly=dist_ly, mass_class=row["subtype"],
                                mass_solar=row["mass_solar"],

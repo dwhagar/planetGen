@@ -14,7 +14,7 @@ from planetgen.generation import run_plan
 from planetgen.generation import phenomenon_scatter as scatter
 from planetgen.physics import stellar_evolution
 
-from tests.test_phenomenon_scatter import _plan_args, _seed_galaxy
+from tests.test_phenomenon_scatter import SHAPE, _plan_args, _seed_galaxy
 
 pytestmark = pytest.mark.db
 
@@ -38,7 +38,7 @@ def test_the_columns_include_the_map_luminosity():
 
 def test_a_scatter_row_carries_the_luminosity_of_its_mass():
     rows = [dict(zip(scatter.PHENOMENON_SCATTER_COLUMNS, row)) for row in scatter.special_rows(
-        [(0, 6)], 4.0, 5)] + [dict(zip(scatter.PHENOMENON_SCATTER_COLUMNS, scatter.nucleus_row(seed)))
+        [(0, 6)], 4.0, 5, SHAPE)] + [dict(zip(scatter.PHENOMENON_SCATTER_COLUMNS, scatter.nucleus_row(seed, SHAPE)))
                               for seed in range(30)]
     assert rows
     for row in rows:

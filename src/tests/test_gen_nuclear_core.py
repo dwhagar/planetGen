@@ -12,6 +12,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.galaxy import density, resolution
+from planetgen.galaxy import structure as galaxyStructure
 from planetgen.galaxy.profile import profile_at
 from planetgen.galaxy.spherical import cell_volume
 from planetgen.generation import object_first
@@ -35,7 +36,13 @@ def test_the_bulges_unit_integral_matches_the_numerical_one():
 def test_the_masses_follow_the_bulge_and_the_amplitude():
     shape = _shape()
     terms = density.model_terms(shape)
-    assert terms["nuclear_cluster_mass"] == pytest.approx(tuning.NUCLEAR_CLUSTER_BULGE_RATIO * terms["bulge_mass"])
+    structure = shape.structure
+    model_per_solar = galaxyStructure.MODEL_SYSTEMS_PER_STELLAR_MASS * galaxyStructure.MEAN_SYSTEM_MASS_SOLAR
+    ratio = structure.nuclear_cluster_mass_solar / (model_per_solar * density.bulge_to_total(shape) * structure.stellar_mass_solar)
+    assert terms["nuclear_cluster_mass"] == pytest.approx(ratio * terms["bulge_mass"])
+    # On the reference structure the default model's cluster is near the Milky Way's 2.5e7 solar masses (a plausibility
+    # target: the model's mass units are not physical to better than a third).
+    assert terms["nuclear_cluster_mass"] == pytest.approx(2.5e7, rel=0.35)
     assert terms["nuclear_disc_mass"] == pytest.approx(tuning.NUCLEAR_DISC_CLUSTER_MASS_RATIO * terms["nuclear_cluster_mass"])
     half = density.model_terms(_shape(nuclear=0.5))
     assert half["nuclear_cluster_mass"] == pytest.approx(0.5 * terms["nuclear_cluster_mass"])
@@ -88,8 +95,9 @@ def test_the_cell_at_the_centre_resolves_about_the_clusters_systems():
                          volume_pc3=cell_volume(0, 0, 0, EDGE_PC))
     assert profile.region == "nuclear"
     systems = resolution.expected_in_cell(profile)
-    # 6.0e6 solar masses inside 2 pc at 0.4 a system is 1.5e7 systems; the bulge and the disc add a little.
-    assert systems == pytest.approx(1.5e7, rel=0.05)
+    # The reference cluster (1.8e7 solar masses, the model's units) holds 4.4e6 inside 2 pc, 1.1e7 systems at 0.4 a
+    # system; the softened cusp and the bulge bring the cell to 1.6e7.
+    assert systems == pytest.approx(1.58e7, rel=0.05)
     assert profile.mix["nuclear_cluster"] > 0.95 * profile.density
 
 

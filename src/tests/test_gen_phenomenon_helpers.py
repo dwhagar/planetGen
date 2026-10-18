@@ -173,7 +173,7 @@ def test_infer_remnant_class(morphology, progenitor, age, expected):
 # --- black hole -----------------------------------------------------------
 
 def test_black_hole_mass_class_boundaries():
-    smbh_low = PC.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR[0]
+    smbh_low = PC.BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR
     imbh_low = PC.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[0]
     assert infer_black_hole_mass_class(smbh_low) == "supermassive"
     assert infer_black_hole_mass_class(smbh_low * 0.999) == "intermediate"

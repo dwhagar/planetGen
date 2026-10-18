@@ -627,7 +627,7 @@ planetgen warm [FAMILY ...] [--cap N]
 
 ## Helper tools
 
-Besides `planetgen`, a few modules run on their own with `python3 -m`. Run them as the account that owns the install (the web server's user for `planetgen warm`, so Apache can read what it writes). `orbits`, `query`, `migrate`, `reset`, `dedupe` and `lockouts` (for its device and two-factor options) take the same five database options: `--mysql-host`, `--mysql-port`, `--mysql-user`, `--mysql-password` and `--mysql-database`, each defaulting to its `PLANETGEN_MYSQL_*` variable (see [config.md](config.md)). `worker` and `config` take no database options. `orbits` and `query` also take `--version`.
+Besides `planetgen`, a few modules run on their own with `python3 -m`. Run them as the account that owns the install (the web server's user for `planetgen warm`, so Apache can read what it writes). `orbits`, `query`, `migrate`, `reset`, `forget_devices` and `reset_two_factor` take the same five database options: `--mysql-host`, `--mysql-port`, `--mysql-user`, `--mysql-password` and `--mysql-database`, each defaulting to its `PLANETGEN_MYSQL_*` variable (see [config.md](config.md)). `worker`, `config`, `lockouts` and `lift_lockout` take no database options. `orbits` and `query` also take `--version`.
 
 | Command | What it is for |
 |---|---|
@@ -636,8 +636,10 @@ Besides `planetgen`, a few modules run on their own with `python3 -m`. Run them 
 | `python3 -m planetgen.cli.query` | Lists what is stored. |
 | `python3 -m planetgen.cli.migrate` | Brings the database up to the current schema. |
 | `python3 -m planetgen.cli.reset` | Empties the galaxy. |
-| `python3 -m planetgen.cli.lockouts` | Lists and lifts login lockouts. |
-| `python3 -m planetgen.cli.dedupe` | Renames duplicate sector and system names. |
+| `python3 -m planetgen.cli.lockouts` | Lists the login lockouts. |
+| `python3 -m planetgen.cli.lift_lockout` | Lifts a login lockout. |
+| `python3 -m planetgen.cli.forget_devices` | Revokes an admin's trusted-device cookies. |
+| `python3 -m planetgen.cli.reset_two_factor` | Turns off an admin's two-factor sign-in. |
 | `python3 -m planetgen.cli.config` | Checks, documents and edits the settings. |
 | `python3 -m planetgen.cli.backup` | Takes, lists, verifies and restores backup archives. |
 
@@ -694,28 +696,33 @@ python3 -m planetgen.cli.reset --dry-run
 
 ### lockouts
 
-For an admin locked out of the site. With no option it lists what is locked; the lockouts live in Redis, on the rate-limit storage (`ratelimit.storage_uri`, else `redis.url`). One of these lifts or resets:
+For an admin locked out of the site. It lists what is locked and does nothing else; the lockouts live in Redis, on the rate-limit storage (`ratelimit.storage_uri`, else `redis.url`).
+
+```bash
+python3 -m planetgen.cli.lockouts
+```
+
+### lift_lockout
+
+Lifts login lockouts, on the same storage. One of these is needed:
 
 *   `--ip ADDRESS`: lift one address (an IPv6 address by its /64).
 *   `--user NAME`: lift one username.
 *   `--all`: lift every lockout.
-*   `--forget-devices USER`: that admin's browsers lose their trusted-device cookies.
-*   `--reset-two-factor USER`: turn off that admin's two-factor sign-in (for a lost phone and lost recovery codes).
 
 Each lift is written to the activity log as `DB lockout.lift`.
 
 ```bash
-python3 -m planetgen.cli.lockouts
-python3 -m planetgen.cli.lockouts --ip 203.0.113.5
+python3 -m planetgen.cli.lift_lockout --ip 203.0.113.5
 ```
 
-### dedupe
+### forget_devices
 
-A one-off clean-up for a database made before names were kept unique: it finds sector and system names that duplicate each other, within or across the two levels, and renames them with the same Greek/Roman and diminutive decoration new rows get, sectors first. A planet's or moon's name follows its system. Running it again changes nothing once the names are clean. It needs only ordinary `SELECT`, `INSERT` and `UPDATE` grants.
+`forget_devices USER`: that admin's browsers lose their trusted-device cookies, so the next sign-in asks for the two-factor code again. Written to the activity log as `DB devices.revoke`.
 
-```bash
-python3 -m planetgen.cli.dedupe
-```
+### reset_two_factor
+
+`reset_two_factor USER`: turns off that admin's two-factor sign-in, for a lost phone and lost recovery codes. The admin signs in with the password and can set it up again. Written to the activity log as `DB totp.reset`.
 
 ### config
 

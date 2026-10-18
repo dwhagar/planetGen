@@ -360,9 +360,9 @@ def test_generate_sector_real_capacity_overflow_returns_a_partial_sector(monkeyp
     # all 60 (sampled fills run about 20-59). -planets keeps this fast (skips
     # planet/moon generation) without touching the real placement logic
     # this test actually cares about. The spacing follows the galaxy's virial mass
-    # (GEN.400): a galaxy of 1.15e12 solar masses (a test value) keeps it wide
-    # enough for the overflow whatever mass a seed draws.
-    monkeypatch.setattr(mass_chain, "current_central_mass_kg", lambda: 1.15e12 * constants.SOLAR_MASS_TO_KG)
+    # (GEN.400), wider the lighter the galaxy: at 1.15e12 solar masses 4 of 390 draws still fit all 120 (TEST.245), at
+    # 1.15e11 (a test value) 200 of 200 held 8 to 26, so the overflow does not depend on the draw.
+    monkeypatch.setattr(mass_chain, "current_central_mass_kg", lambda: 1.15e11 * constants.SOLAR_MASS_TO_KG)
     args = _real_sector_args(120, "RealCapacityOverflowSector", planets=False)
     _sector_name, sector = run_sector.generate_sector(args)
 
