@@ -834,3 +834,4 @@ Baseline: PR #1817.
 | PERF.135 | 8.1 | Queue, caches and performance |
 | PERF.127 | 8.1 | Queue, caches and performance |
 | GEN.551 | 8.4 | Bulk composition |
+| GEN.243 | 8.1 | Nebula and young stars |

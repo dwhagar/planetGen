@@ -4737,75 +4737,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.202, GEN.241.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **GEN.243 Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X**
-  Step 13 of the whole-sphere train (design note section 5.11; GEN.113's
-  Tier 2 item 3, never built because the star model has no W state). The
-  star: a star of initial mass 25 solar masses or more (solar
-  metallicity) is Wolf-Rayet during the last 0.3 Myr of its life
-  (`WR_MIN_INITIAL_MASS_SOL = 25`, `WR_PHASE_MYR`, at most half the life
-  for the heaviest) instead of a supergiant, at 40% to 60% of its
-  initial mass, 30,000 to 200,000 K and 1e5 to 1e6 solar luminosities;
-  subtype WN for the first 60% of the phase, WC for the next 30%, WO for
-  the last 10% (the heaviest only), as spectral text `WN6`, `WC8` and
-  Yerkes class `W`. The threshold rises as metallicity falls (about 35
-  at half solar, 56 at a fifth), so it is a population field in the
-  profile, not a constant. The bright and mass passes already place the
-  massive stars and then draw the state through `evolve_star`, so
-  Wolf-Rayet stars come out of them without a new rate; none exists in
-  any population older than about 10 Myr (halo, clusters, old
-  satellites, bulge). The nebula: new class `X` in `NEBULA_CLASSES`,
-  family emission, radius 2 to 35 pc, a thin shell with a hollow
-  interior on the existing `nebula_shape` mesh, host rule `("W", 0, 9,
-  ("X",), 0.4)` in `NEBULA_HOST_RULES` and
-  `NEBULA_CLASS_MAX_AGE_MYR["X"] = 5.0`; its one required star is the W
-  star at the centre, a real system (GEN.241), and after the phase the
-  star becomes the core-collapse remnants the generator already makes.
-  The Wolf-Rayet row of `anomalies.md` becomes a pointer here. Done: the
-  Milky Way disk holds 1,200 +- 300 Wolf-Rayet stars at the default
-  scale, none in an old population, every class X nebula holds a W star,
-  and the star and nebula pages and the map show them. Owner: Core
-  (2026-10-15); the map marker (MAP.132) is Interface's. Decided (Boss,
-  2026-10-15): the research note's recommendation stands: reach 262 kpc
-  (65,535 shells), 96-bit object IDs, one rule set everywhere with
-  per-sector parameters, nothing generated unless asked, and an asked
-  sector always generated and saved.
-  Systems around Wolf-Rayet stars (design note section 5.12, answering
-  Boss's 2026-10-15 question). A W star is a state of an ordinary star,
-  so it gets an ordinary system with no special path. No planets (the
-  same age cut as above; no planet is known around one), belts allowed.
-  Companions come from the normal binary machinery with the W star's own
-  fractions: 50% for WN and 90% for WC (the surveyed 0.96 capped), the
-  companion an O or B star or a compact object, the period drawn from
-  the WN law (mostly short, like O stars) or the WC law (peak near 5,000
-  days). After GEN.129 the same fractions apply to trees. A planetary
-  nebula's central white dwarf is already an ordinary system, so planets
-  there are possible and engulfment removes the inner ones. Done also
-  means: a W star's system carries its companions at those fractions and
-  no planets. Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and
-  backscatters get no systems, planets or moons, so bright stars,
-  massive stars, neutron stars, black holes and the other scattered
-  objects are bare rows; planets and moons are made only when a sector
-  is being filled with everything; a sector fill must represent every
-  kind of object, and when a fill meets a phenomenon that can have a
-  system (or makes one that can) it generates that system if the
-  real-world probabilities give it one; nebulae need stars and
-  phenomena, not planets. For this item: a Wolf-Rayet star's companions
-  and belts come when its sector fills; the pre-placed or scattered row
-  carries none.
-  Catalogue (Boss 2026-10-15 6:08 PM EDT;
-  docs/design/multi-star-systems.md sections 13 to 16): the Wolf-Rayet
-  binary row of section 13.2 (WN 52%, WC 90%) and the kind `wolf-rayet`
-  in the star model are built by GEN.269 and GEN.270 on this item's W
-  state.
-  Owns the Wolf-Rayet companion fractions (the WN and WC companion
-  rates); GEN.270 drops its Wolf-Rayet row (2026-10-16 review).
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Prerequisites: none. Related: GEN.113, MAP.132, MAP.176.
-  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
-
 - [ ] **GEN.244 Young open clusters and OB associations as components (later)**
   Design note 5.12. A component of the same table as the globular
   clusters (GEN.237): a Plummer profile, age under 1 Gyr, disk-bound,
@@ -4866,7 +4797,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/later-phenomena-scatter-rules.md (section 8)): states of
   stars the passes place; the ejecta nebula is hosted at fill; no
   scatter work.
-  Prerequisite: GEN.243. Related: GEN.241.
+  Prerequisites: none. Related: GEN.241.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.247 Accreting white dwarf binaries: novae, cataclysmic and symbiotic variables, Type Ia progenitors (later)**
@@ -4981,7 +4912,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/later-phenomena-scatter-rules.md (section 8)): reads
   scatter rows through the stage C region query; it needs the magnetar
   rows (GEN.278) to see the 10 pc flag before the fill.
-  Prerequisite: GEN.243. Related: GEN.113, GEN.436, GEN.444.
+  Prerequisites: none. Related: GEN.113, GEN.436, GEN.444.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.257 A Fermi-bubble overlay on the Galaxy Map**
@@ -5812,7 +5743,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.243, GEN.244, GEN.282, GEN.284, TEST.159, TEST.160,
+  Prerequisites: GEN.244, GEN.282, GEN.284, TEST.159, TEST.160,
   GEN.450, TEST.196, GEN.530, GEN.563.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -14292,48 +14223,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.273, GEN.550.
   Owner confirmed (coordinator, 11:44 PM EDT as relayed): Core 4.
 
-- [ ] **GEN.563 The black hole density follows the mass function and the verified failed-supernova share: one constant changes, the neutron star density stays**
-  From Boss's back-scatter cards (Boss's back-scatter cards, taps 11:38
-  to 11:40 PM EDT, 2026-10-17, as the coordinator relayed) on the
-  unified orbited-body design (docs/design/unified-star-like-objects.md,
-  GEN.550). Boss's card 'BH density only': only the black hole density
-  constant joins 8.1, once GEN.560 verifies the failed-supernova (direct
-  collapse) share; the neutron star density already matches (design
-  thread's quick computation: 0.45% of stars born above 0.08 Msun have
-  progenitors in 8 to 20 Msun against the generator's 0.4%, its own
-  computation and not sourced), so it does not change. The black hole
-  share is about 0.17% from the mass function for progenitors of 20 to
-  100 Msun against the fixed 0.05% (density 7e-5 per pc^3); the figure
-  that replaces it comes from the verified share and the kick-escape
-  share, not from this note. The rest of GEN.553 and GEN.554 (the
-  derived counts for every remnant, the kick step, the body draw) stays
-  in 8.4. Do: replace the black hole density in the phenomenon scatter
-  rates with the verified value, label its source state, keep the
-  density as a test target against the derived share. It changes the
-  scatter's output, so it bumps the generator epoch and joins the one
-  full rescatter, which is why it must be built before GEN.301 closes.
-  Gated on GEN.560 (the research that verifies the explosion-map
-  sources: recalled and unverified are O'Connor and Ott 2011, Sukhbold
-  et al. 2016, Fryer et al. 2012). If the share cannot be verified, the
-  value stays and this item closes with that finding. Done: the black
-  hole density has a verified source or a labelled placeholder, the test
-  shows the gap to the derived share. Owner: Core 3 (proposed: it owns
-  the scatter rates and GEN.377); the verification is the research
-  lane's, GEN.560.
-  Owner confirmed (coordinator, 11:44 PM EDT as relayed): Core 3.
-  Research result (GEN.560, 11:55 PM EDT as the lane reported): the
-  verified failed-supernova share is 0 to 45% of stars of 8 to 150 Msun,
-  giving 0 to 4.0e-4 per pc^3, and the present 7e-5 per pc^3 is inside
-  it (f = 7.8%); no single central value exists. The 0.17% figure above
-  is the share of all 20 to 100 Msun progenitors, not a failed-supernova
-  share. Boss has a card (keep 7e-5 labelled 'inside the verified 0 to
-  45% range', recommended, or a metallicity-dependent density from
-  Ebinger's table and O'Connor and Ott's 15% at low metallicity); if he
-  keeps it, this item closes with that finding, bumps no epoch, and
-  drops out of GEN.301's prerequisites; if he chooses the metallicity
-  dependence it is real work with an epoch bump, built before the one
-  rescatter.
-  Prerequisites: GEN.560. Related: GEN.560, GEN.554, GEN.377, GEN.301.
+- [ ] **GEN.563 The black hole density depends on metallicity: the verified failed-supernova share of the stars born replaces the one constant 7e-5 per pc^3**
+  From Boss's back-scatter cards on the unified orbited-body design (docs/design/unified-star-like-objects.md, GEN.550): 'BH density only' at 11:38 to 11:40 PM EDT, then Boss tapped 'Metallicity-dependent' on the GEN.563 card at 11:51 PM EDT (2026-10-17, as the coordinator relayed with the wake time converted): the black hole share is metallicity-dependent, not a kept 7e-5. Research: docs/design/black-hole-formation-sources.md (GEN.560, 11:55 PM EDT as the lane reported): the verified failed-supernova share is 0 to 45% of stars of 8 to 150 Msun (more at low metallicity), so black holes are 0 to 4.0e-4 per pc^3 and the present 7e-5 is inside the range (f = 7.8%). Scope: only the black hole density changes; the neutron star density (5.6e-4, already matching), the black hole mass law and every other kind stay as they are (a change of the mass law is for GEN.553 and GEN.554, and means a second rescatter for black hole masses unless Boss decides otherwise). Do, as the design note of GEN.567 settles it: the density at a place is the stars born there (the population mix at the place) times the IMF share of 8 to 150 Msun (0.637% of stars, from the generator's own IMF) times f(Z) of the population's [Fe/H] at that place (the galaxy's metallicity law, `metallicity.mean_fe_h` and the component peaks, GEN.158 and GEN.159) times the share that stays in the galaxy, replacing `PHENOMENON_RATES["black-hole"]`; label every number's source state (verified range, derived, or placeholder) and keep the old 7e-5 and the derived share as test targets that show the gap. It changes the scatter's output, so it bumps the generator epoch and joins the one full rescatter, which is why it is a prerequisite of GEN.301. Done: the black hole count follows the metallicity at three test places (a metal-rich disk, a metal-poor halo, a cluster), the neutron star count is unchanged, and the golden digest changes with the epoch bump. Owner: Core 3 (proposed; it owns the scatter rates and GEN.377; Boss's card D7 owners do not cover it), after GEN.243 and GEN.244/282 and after GEN.567.
+  Prerequisites: GEN.560, GEN.567. Related: GEN.560, GEN.554, GEN.377, GEN.301.
 
 - [ ] **GEN.564 A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter**
   Filed proposed, not assigned, from Core 1's read-only code audit of
@@ -14478,6 +14370,52 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from it. Owner: a read-only research lane (proposed, none assigned),
   8.4 phase 1, no behaviour change.
   Prerequisites: none. Related: GEN.550, GEN.560, GEN.559, GEN.522.
+
+- [ ] **GEN.567 Design note: the metallicity-dependent black hole density: the form of f(Z), the birth [Fe/H] of a remnant, and what the scatter reads**
+  Boss tapped 'Metallicity-dependent' on the GEN.563 card at 11:51 PM
+  EDT (2026-10-17, as the coordinator relayed with the wake time
+  converted). Read-only design step before GEN.563 is coded; no code.
+  Inputs: docs/design/black-hole-formation-sources.md (GEN.560,
+  verified): failed-supernova share f of stars of 8 to 150 Msun is 0 to
+  45% overall, solar metallicity 0 to 7% (O'Connor and Ott 2011), 5 to
+  21% (Ebinger et al. 2020, two calibrations), 26 to 45% (Sukhbold et
+  al. 2016, four calibrations); low metallicity (1e-4 solar or zero) 15%
+  (O'Connor and Ott), 18 to 32% (Ebinger); more at low metallicity; the
+  generator's IMF share of 8 to 150 Msun is 0.637% of stars (own
+  computation from its Kroupa breaks and slopes). To settle: (1) the
+  form of f(Z) between the sourced anchors under the standing rule that
+  the widest verified range wins and a range-only parameter is a draw,
+  not a point (a per-galaxy draw inside the range, or an envelope); (2)
+  which [Fe/H] a remnant carries: it was born at the end of its
+  progenitor's few Myr, in the population the place's stars were born
+  into, so the birth [Fe/H] is the population's at that place and epoch
+  (`metallicity.mean_fe_h`, `metallicity.sample_fe_h`, the cluster and
+  satellite peaks of `component_field.fe_h_peaks`, all GEN.158 and
+  GEN.159, merged), not the present gas; (3) how the density at a place
+  is built: stars born per volume (the population mix of
+  `galaxyDensity.population_densities`) times the IMF share times f(Z of
+  that population) times what stays (kick retention: about 2% of black
+  holes leave the galaxy per `compact-remnant-regions.md`), replacing
+  the single `PHENOMENON_RATES["black-hole"] = 7e-5` and keeping the
+  neutron star rate as it is (it already matches); (4) how the scatter
+  tiers and the below-cut draw (GEN.377) and the group-node remnant draw
+  (GEN.327) read it; (5) whether the black hole mass law changes now
+  (today uniform 5 to 20 Msun; the verified average is 7.7 to 9.2 Msun
+  for the helium core or 13.2 to 13.8 Msun for the whole star) or stays
+  for GEN.553 and GEN.554 in 8.4: Boss chose the density only, so a mass
+  change now is a further card, and leaving it means a second rescatter
+  for black hole masses; (6) the mass-island structure (which progenitor
+  masses fail: islands from about 20 Msun, mostly failure above 35 Msun
+  at low Z, per Sukhbold, O'Connor and Ott and Maltsev et al. 2025) is
+  optional here and a candidate for GEN.554. Done: a note
+  docs/design/black-hole-density.md that fixes (1) to (5), names the
+  source state of every number, and lists the tests (density against the
+  derived share at three metallicities, the neutron star count
+  unchanged); Boss approves the open choices on cards. Owner: a
+  read-only design thread (the coordinator starts it), then GEN.563
+  (Core 3).
+  Prerequisites: GEN.560. Related: GEN.563, GEN.560, GEN.554, GEN.377,
+  GEN.327.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -18787,7 +18725,7 @@ clears each one.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 49 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.243. Related: TEST.159.
+  Prerequisites: none. Related: TEST.159.
 
 - [ ] **TEST.185 Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius**
   Split from TEST.159 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -20931,7 +20869,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 47 of 48). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.243.
+  Prerequisites: none.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **DOC.50 Docs: the schema, the multi-star note and the catalogue say where the members live**
