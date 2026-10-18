@@ -804,7 +804,7 @@ def _invariant_checks():
               mode="max", unit="failures"),
         Check("galaxy_holds_its_stellar_mass", "invariant", "galaxyDensity.build_galaxy_shape",
               _stellar_mass_held_error, 1.0, 2e-3,
-              "definition (GEN.404): the density integrates to the systems the stellar mass makes at "
+              "definition: the density integrates to the systems the stellar mass makes at "
               "tuning.MEAN_SYSTEM_MASS_SOLAR a system, to the numerical grid's accuracy"),
         Check("population_densities_sum", "invariant", "galaxyDensity.population_densities",
               _population_split_error, 1e-12, 0.0, f"{exact}: the populations add up to relative_density",

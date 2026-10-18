@@ -49,6 +49,8 @@ from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.db import store
 from planetgen.generation import limits
 from planetgen import tuning
+from planetgen.galaxy import scales
+from planetgen.physics.units import pc_to_ly
 from planetgen.util import log
 from planetgen.galaxy.density import _raw_density, build_galaxy_shape
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1
@@ -443,14 +445,20 @@ def test_sector_runs_clean(mysql_config, argv, seed):
     assert_clean(argv + mysql_argv(mysql_config), seed=seed)
 
 
+def _sector_at_the_old_default_distance(monkeypatch):
+    """A sector with no galaxy is taken at the galaxy's half-mass radius (GEN.404), nearer the centre than the 8,200 pc
+    it was, where the stars' Hill spheres are smaller and a full cube holds three times the systems: minutes of work
+    for a test that is about stopping, so it keeps the old distance."""
+    monkeypatch.setattr(scales, "default_galactocentric_ly", lambda: pc_to_ly(8200.0))
+
+
 @settings(DB_SETTINGS, max_examples=scaled(3))
 @given(density=st.sampled_from(["inf", "1e300", "1e308"]))
-def test_sector_with_absurd_density_stops_when_full(mysql_config, density):
+def test_sector_with_absurd_density_stops_when_full(mysql_config, monkeypatch, density):
     """An infinite/astronomical --density must not try to generate
     ~infinity systems: placement stops once the cube is full."""
-    # (a full cube of systems is a few minutes of work where the galaxy puts the default sector, a place nearer the
-    # centre since GEN.404; the limit is for a hang)
-    assert_clean(["sector", "--quiet", "--density", density] + mysql_argv(mysql_config), limit=240)
+    _sector_at_the_old_default_distance(monkeypatch)
+    assert_clean(["sector", "--quiet", "--density", density] + mysql_argv(mysql_config), limit=90)
 
 
 def test_sector_density_nan_does_not_hang(mysql_config):
@@ -462,6 +470,7 @@ class _TooManyConfigs(Exception):
 
 
 def test_huge_num_systems_does_not_build_every_config_up_front(mysql_config, monkeypatch):
+    _sector_at_the_old_default_distance(monkeypatch)
     real = run_system.build_system_config
     calls = []
 
@@ -472,7 +481,7 @@ def test_huge_num_systems_does_not_build_every_config_up_front(mysql_config, mon
         return real(args)
 
     monkeypatch.setattr(run_system, "build_system_config", counting)
-    assert_clean(["sector", "--quiet", "--num-systems", "1000000000"] + mysql_argv(mysql_config), limit=240)
+    assert_clean(["sector", "--quiet", "--num-systems", "1000000000"] + mysql_argv(mysql_config), limit=60)
 
 
 @settings(DB_SETTINGS, max_examples=scaled(15))
