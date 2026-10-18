@@ -7,4 +7,6 @@
 - Every host class carries a `may_host` gate (Boss's cards S5 and S6, 12:10 to 12:13 AM EDT, 2026-10-18, as the coordinator relayed, which superseded "moons are the lowest level"): a small body (comet, asteroid field) has the gate closed and no satellite table; a moon has a `moon-satellites` table with only the empty row until the tidal-survival row of GEN.579. A row states an orbiter's mass as a ratio to its host's where the source gives a ratio. The later recursion ends by the gate, not by a depth of three.
 - Left for the item that builds them (U7 of `docs/design/unified-star-like-objects.md`): the star-like object's planets and belts, a brown dwarf's satellites and a planet's bound moons are still made by `StarSystem` and `generate_moons`.
 
+- The scatter summary test (`test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter`) compares whole labels: a magnetar line contains the text of the plain neutron-star label and failed some seeds.
+
 TODO items resolved: GEN.552 / Added: none
