@@ -4573,6 +4573,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `store._next_body_numbers`; a deleted ID is never reused). Needs
   DB.56. GEN.110 writes through it instead of defining its own event
   rows, and GEN.291 turns its "event log" half into calls to it.
+  8.3 note (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT, 2026-10-18,
+  as the coordinator relayed; docs/design/unified-system-barycentre.md,
+  item SY16): the orbital update reads a body's state as
+  `advance(relative state, mu, t - epoch)` along the chain of parents,
+  lazily, writes nothing but the top barycentre's point, and runs
+  `primary_first` (GEN.581) and `reparent` (GEN.583) only at events
+  (merger, capture, ejection); masses are constant between events so no
+  per-step check is needed. Spin changes (tidal evolution, magnetic
+  braking) are not modelled in the update and stay a later research
+  item.
   Prerequisites: DB.56. Related: GEN.105, GEN.143, GEN.170.
 
 - [ ] **GEN.198 The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential**
@@ -5121,6 +5131,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-18, as the coordinator relayed): see the note on GEN.315
   (offsets through one generalised function, states relative to the
   parent link).
+  Convention added (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT,
+  2026-10-18, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md): see the note on GEN.315
+  (heaviest first at every node, no new copy of the swap).
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.267 A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars**
@@ -6119,6 +6133,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   central object and comparable-mass pairs stay binary nodes, card S3).
   Keep the `orbit_nodes` copy as it is. No behaviour change, no epoch.
   Owner Core 3.
+  Convention added (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT,
+  2026-10-18, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md, section 12.2 point 1): the
+  fill builds stars from the stored members already ordered heaviest
+  first at every node (slot 0 = the heavier branch, as the tree builder
+  writes it) and adds no fifth copy of the swap. No behaviour change, no
+  epoch. Owner Core 3.
   Prerequisites: GEN.311. Related: GEN.264.
 
 - [ ] **GEN.316 Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired**
@@ -6137,6 +6158,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Convention added (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT,
+  2026-10-18, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md, section 12.2 point 1):
+  retiring the two-star classes removes three of the four copies of the
+  heavier-star swap (`generation/system.py:299-308`,
+  `generation/wide_binary.py:119-121`, `generation/binary.py`), leaving
+  only the tree's copy in `multistar._Builder.place`, which becomes a
+  caller of `primary_first` (GEN.581) later. No new copy is added.
   Prerequisites: GEN.315. Related: GEN.264.
 
 - [ ] **GEN.317 Pulsar planets and the radiation environment of neutron stars**
@@ -13802,6 +13831,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TEST.242, SY11 DOC.71. Moons are no longer the lowest level (card S6);
   the group cap of 12 is unchanged. Only TEST.241 (a test) is new in
   8.1; the stored-value changes ride the 8.4 revision with DB.73.
+  System design extended (Boss's cards S10 to S18, 12:30 to 12:32 AM
+  EDT, 2026-10-18, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md): SY12 to SY17 filed as SY12
+  GEN.581, SY13 GEN.582, SY14 GEN.583, SY15 TEST.244, SY17 GEN.584 (SY6
+  expanded as GEN.578; SY16 is the 8.3 note on GEN.197). The 8.1 effect
+  is conventions only: GEN.315, GEN.264, GEN.316, GEN.552, GEN.555,
+  GEN.556 and TEST.241 changed in text, no new 8.1 item.
 
 - [ ] **GEN.552 Host registry: the five fixed `system_model` values become pointers to one gated orbiter table per host class, with no change in behaviour**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -13831,6 +13867,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/unified-system-barycentre.md, item SY1): the text above
   now has a moon host row and a small-body host row with a `may_host`
   gate. Owner Core 4.
+  Convention added (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT,
+  2026-10-18, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md, section 12.2 point 2): host
+  rows express an orbiter's mass as a ratio to the host's mass where the
+  source gives a ratio, so the draw cannot make an orbiter heavier than
+  its host except through the pair builder, where the primary-first step
+  (GEN.581) lives. A wording edit on a table being written anyway; no
+  behaviour change.
   Prerequisites: none. Related: GEN.550, GEN.315.
 
 - [ ] **GEN.553 One star-like body draw: origin, birth, state and [Fe/H], with the initial-final relation, the remnant mass, radius and age rules in one place**
@@ -13944,8 +13988,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   source verified by a lane before use under the standing source rules,
   and any change to a drawn value bumps the generator epoch (OPS.56
   rule).
-  Prerequisites: GEN.315, GEN.331, GEN.332. Related: GEN.550,
+  Prerequisites: GEN.315, GEN.331, GEN.332, GEN.581. Related: GEN.550,
   GEN.331, GEN.332, GEN.129, GEN.327.
+  Amended (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT, 2026-10-18,
+  as the coordinator relayed; docs/design/unified-system-barycentre.md):
+  the primary-first step (GEN.581) is the first action of its
+  validation. Done also requires: a pair re-primaried gives identical
+  absolute positions.
 
 - [ ] **GEN.556 `populate(host)`: planets, belts, comets and moons come from the class tables by one recursive routine, and the system pass is absorbed**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -13974,13 +14023,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the one wrapper `util/draw.py` (GEN.56), every recalled source
   verified by a lane before use under the standing source rules, and any
   change to a drawn value bumps the generator epoch (OPS.56 rule).
-  Prerequisites: GEN.552, GEN.315, GEN.555, GEN.565. Related: GEN.550,
+  Prerequisites: GEN.552, GEN.315, GEN.555, GEN.565, GEN.581. Related:
+  GEN.550,
   GEN.264,
   GEN.315, GEN.346.
   System design (Boss's card S6, 12:10 to 12:13 AM EDT, 2026-10-18, as
   the coordinator relayed): the recursion of `populate(host)` ends by
   the hosting gate (GEN.579), not by a depth of three; moons may have
   satellites once the gate allows it.
+  Amended (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT, 2026-10-18,
+  as the coordinator relayed; docs/design/unified-system-barycentre.md):
+  the primary-first step (GEN.581) is the first action of its
+  validation. Done also requires: a pair re-primaried gives identical
+  absolute positions.
 
 - [ ] **GEN.557 Wanderers: a rogue planet becomes a planet with no parent, drawn by the one body chain with an origin table, a notional formation host, the population's age and motion**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -14331,6 +14386,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class GEN.569; this item does not wait on them (it is a prerequisite
   of GEN.570), but building the registry first avoids declaring the
   table twice. The unit-suffixed attributes are swept in GEN.575.
+  Decided (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT, 2026-10-18,
+  as the coordinator relayed; docs/design/unified-system-barycentre.md,
+  cards S16 and S17): the core's point is the kinematic record of
+  GEN.584 (position, velocity, spin axis and rate in rad/s, mass with
+  mu, epoch and next-due), with identity, radius and age beside it; this
+  item declares the fields.
 
 - [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
   Part of the unified orbited-body chain (GEN.550; design note
@@ -14442,6 +14503,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against the exact definition, compound units agree with their parts
   (km/s is km over s), round trips, and a file header that states the
   unit rules.
+  Registry additions (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT,
+  2026-10-18, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md, section 13.5): the kinds
+  angular rate (unit rad/s, period forms shown through the time ladder)
+  and angular momentum (kg m^2/s), with dimensions. The relations module
+  also needs `rotation_period <-> angular_rate`, `obliquity(axis,
+  orbit_normal)`, `breakup_rate(mass, radius)` and
+  `galactic_orbit(position, velocity)`; Boss's relation cards R1 to R4
+  were open at 12:32 AM EDT as the coordinator reported.
   Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
@@ -14689,6 +14759,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   32,768 m). Done: the invariants of TEST.242 pass.
   Prerequisites: GEN.565, GEN.315. Related: GEN.550, GEN.552, GEN.315,
   GEN.565.
+  Amended by Boss's cards S10 to S18, 12:30 to 12:32 AM EDT, 2026-10-18,
+  as the coordinator relayed; docs/design/unified-system-barycentre.md:
+  the central object is the heaviest member by the total mass of each
+  branch (a sub-system counts as the sum of its parts; a tie under 1e-9
+  relative keeps the draw order); the same sum gives the central
+  object's velocity `-sum(M_i v_rel_i) / M_total` and a body's velocity
+  in any ancestor's frame is the sum of the hops, leaf first, each hop
+  advanced from its own epoch (analytic two-body orbit with mu = G
+  (M_central + M_member); the outer system's tide is a stability gate,
+  not a force). The step that makes the heaviest primary is GEN.581.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
 - [ ] **GEN.577 Stored planet and moon states become the state of the barycentre of the body and its own members**
@@ -14770,6 +14850,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   offsets down its chain.
   Prerequisites: GEN.576, GEN.569, GEN.573. Related: GEN.550, GEN.552,
   GEN.315, GEN.565.
+  Scope expanded (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT,
+  2026-10-18, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md, item SY6 expanded in section
+  12.1 and 13.5): the point holds a live parent link to its parent's
+  point and no copied anchors (`_sector_center`, `_star_center`,
+  `_star_velocity` and the three `carry_anchors`, `carry_star_center`
+  and `carry_sector_center` entry points go: 3 call sites, 37 `.spatial`
+  uses in 5 files); each system point caches the central object's
+  offset, versioned (any change to a member bumps the version and
+  everything derived is recomputed on first read);
+  `point.coordinates(frame, form)` where the frame is `galactic`,
+  `sector`, `top`, `local` or any other point (found through the lowest
+  common ancestor), `point.velocity(frame)`, `point.set(frame, form,
+  values, unit)` and `point.reparent(new_parent)` (GEN.583); hops are
+  summed leaf first so a moon in its planet's frame never touches the
+  large galactic numbers; all frames are non-rotating and share the
+  galactic axes; spin axis and rate are held and read in those axes
+  (intrinsic, so a frame change is the identity). About +200 and -150
+  lines for the class plus about +80 for spin and velocity; the largest
+  single change in the note. The record the point holds is GEN.584.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
 - [ ] **GEN.579 The hosting gate: can_host(body) in three parts and the gated table of the satellite share by size class, as labelled stand-in rows**
@@ -14859,6 +14959,237 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rows it supports, and a list of what stays a stand-in; raw papers stay
   out of the repo.
   Prerequisites: none. Related: GEN.550, GEN.552, GEN.315, GEN.565.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **GEN.581 primary_first(members): before a system is validated the heaviest branch becomes the primary and the others are recalculated, one function for the tree, the fill, moons and free pairs**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  S10 to S18 on the primary-first rule, the point-in-space frames and
+  motion and spin, tapped between 12:30 and 12:32 AM EDT on 2026-10-18
+  (as the coordinator relayed with the wake times converted), every one
+  the recommended option: S10 the original values are the origin values
+  (birth mass, age, [Fe/H], composition, formation distance) plus the
+  orbit-geometry draws, and the present state is recomputed about the
+  new primary; S11 the heaviest is found by the total mass of each
+  branch (a sub-system counts as the sum of its parts), ties under 1e-9
+  relative keep the draw order; S12 when the heaviest changes in
+  simulated time the step runs once at the event (merger, capture,
+  ejection), state-preserving, so no body jumps; S13 trajectories are an
+  analytic two-body orbit per frame with mu including the member's own
+  mass, and the outer system's tide is a stability gate (Hill fraction,
+  triple and Kozai screens); S14 a frame request names any of the named
+  frames or any other point, found through the lowest common ancestor;
+  S15 a point has a live parent link with a versioned cache and the
+  copied anchors and the three `carry_*` calls go; S16 the point holds a
+  kinematic record (position, velocity, spin axis and rate, mass with
+  mu, epoch and next-due) with identity, radius and age beside it in the
+  core; S17 spin is a unit axis plus an angular rate in rad/s; S18
+  speed, axial tilt, galactic orbital period and phase, rotation period
+  and a* become derived and their columns are dropped in the 8.4
+  revision with DB.73). Boss's refinements of 12:23, 12:24 and 12:25 AM
+  EDT, 2026-10-18 (project chat, as the coordinator relayed): any two
+  objects that orbit each other follow one rule; before a system is
+  validated the heaviest object becomes the primary and the others are
+  recalculated from their original values; the barycentre is always the
+  origin; coordinates are relative at every level, so a moon follows its
+  planet and the planet follows the star; the point-in-space object
+  updates the relative coordinates, knows its centre's position in wider
+  space and gives converted coordinates for any frame on demand; and it
+  also stores the vector of motion, the spin and the other attributes of
+  the object with a mass classification. Item SY12 of the note (sections
+  10.2 to 10.6). Proposed owner, not assigned by a card: Core 3 for the
+  function and the pair builder (GEN.555) with Core 4 for `populate`
+  (GEN.556). Do: one function `primary_first(members)` in the host
+  chain: collect the members with their original values, rank them by
+  total branch mass (a sub-system counts as the sum of its parts; a tie
+  under 1e-9 relative keeps the draw order, so the step is stable and
+  idempotent and does not depend on the order members are listed), nest
+  by distance (members inside the demoted body's stable zone stay with
+  it as a sub-system, members outside the pair's orbit orbit the pair's
+  barycentre, members in the unstable gap are moved or dropped by the
+  existing outermost-first rule), recompute everything that depends on
+  the primary from the original values, then validate. Two bodies:
+  re-primarying a pair is a relabel plus a sign (the relative position
+  is negated, the phase moves by 180 degrees, the elements and the
+  barycentre are unchanged) and every absolute position is identical.
+  The four copies of the swap retire to it: `multistar._Builder.place`
+  (line 620), `generation/system.py:299-308`,
+  `generation/wide_binary.py:119-121` and `generation/binary.py`
+  (GEN.316 already retires the two-star classes). GEN.555 and GEN.556
+  need it. Done: a pair re-primaried gives identical absolute positions,
+  the step from the originals is idempotent and independent of listing
+  order, and no second copy of the swap is left.
+  Prerequisites: GEN.315. Related: GEN.550, GEN.565, GEN.576, GEN.578.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **GEN.582 Origin and present-state split: fields marked origin or state in the Field table, the draw record held until validation finishes, and the zone and class re-run from the seed**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  S10 to S18 on the primary-first rule, the point-in-space frames and
+  motion and spin, tapped between 12:30 and 12:32 AM EDT on 2026-10-18
+  (as the coordinator relayed with the wake times converted), every one
+  the recommended option: S10 the original values are the origin values
+  (birth mass, age, [Fe/H], composition, formation distance) plus the
+  orbit-geometry draws, and the present state is recomputed about the
+  new primary; S11 the heaviest is found by the total mass of each
+  branch (a sub-system counts as the sum of its parts), ties under 1e-9
+  relative keep the draw order; S12 when the heaviest changes in
+  simulated time the step runs once at the event (merger, capture,
+  ejection), state-preserving, so no body jumps; S13 trajectories are an
+  analytic two-body orbit per frame with mu including the member's own
+  mass, and the outer system's tide is a stability gate (Hill fraction,
+  triple and Kozai screens); S14 a frame request names any of the named
+  frames or any other point, found through the lowest common ancestor;
+  S15 a point has a live parent link with a versioned cache and the
+  copied anchors and the three `carry_*` calls go; S16 the point holds a
+  kinematic record (position, velocity, spin axis and rate, mass with
+  mu, epoch and next-due) with identity, radius and age beside it in the
+  core; S17 spin is a unit axis plus an angular rate in rad/s; S18
+  speed, axial tilt, galactic orbital period and phase, rotation period
+  and a* become derived and their columns are dropped in the 8.4
+  revision with DB.73). Boss's refinements of 12:23, 12:24 and 12:25 AM
+  EDT, 2026-10-18 (project chat, as the coordinator relayed): any two
+  objects that orbit each other follow one rule; before a system is
+  validated the heaviest object becomes the primary and the others are
+  recalculated from their original values; the barycentre is always the
+  origin; coordinates are relative at every level, so a moon follows its
+  planet and the planet follows the star; the point-in-space object
+  updates the relative coordinates, knows its centre's position in wider
+  space and gives converted coordinates for any frame on demand; and it
+  also stores the vector of motion, the spin and the other attributes of
+  the object with a mass classification. Item SY13 of the note (section
+  10.3, card S10). Proposed owner, not assigned by a card: Core 4. Do:
+  mark every `Planet`, `Moon` and `Star` field in the `Field` table of
+  GEN.565 as origin (birth mass, age, [Fe/H], composition drawn first,
+  formation distance, orbit-geometry draws: semi-major axis,
+  eccentricity, inclination, node, argument of periapsis, phase at the
+  epoch) or present state (present mass and radius, class, zone,
+  temperature, tidal locking, spin, atmosphere retention, period, speed,
+  state vector, Hill radius, stability limits, insolation); hold the
+  draw record in memory until `validate_system` finishes (the stored
+  result stays the state vector, GEN.289, so no new column is needed;
+  the scatter tree already keeps full elements per node);
+  `reconcile_zone_and_class` re-runs from the seed instead of
+  regenerating. Done: a body re-primaried keeps its origin values
+  exactly and its present state equals a fresh computation about the new
+  primary.
+  Prerequisites: GEN.565, GEN.570. Related: GEN.550, GEN.565, GEN.576,
+  GEN.578.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **GEN.583 reparent: the state-preserving change of a body's parent, shared by re-primary at an event, an ejection, a capture and a merger**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  S10 to S18 on the primary-first rule, the point-in-space frames and
+  motion and spin, tapped between 12:30 and 12:32 AM EDT on 2026-10-18
+  (as the coordinator relayed with the wake times converted), every one
+  the recommended option: S10 the original values are the origin values
+  (birth mass, age, [Fe/H], composition, formation distance) plus the
+  orbit-geometry draws, and the present state is recomputed about the
+  new primary; S11 the heaviest is found by the total mass of each
+  branch (a sub-system counts as the sum of its parts), ties under 1e-9
+  relative keep the draw order; S12 when the heaviest changes in
+  simulated time the step runs once at the event (merger, capture,
+  ejection), state-preserving, so no body jumps; S13 trajectories are an
+  analytic two-body orbit per frame with mu including the member's own
+  mass, and the outer system's tide is a stability gate (Hill fraction,
+  triple and Kozai screens); S14 a frame request names any of the named
+  frames or any other point, found through the lowest common ancestor;
+  S15 a point has a live parent link with a versioned cache and the
+  copied anchors and the three `carry_*` calls go; S16 the point holds a
+  kinematic record (position, velocity, spin axis and rate, mass with
+  mu, epoch and next-due) with identity, radius and age beside it in the
+  core; S17 spin is a unit axis plus an angular rate in rad/s; S18
+  speed, axial tilt, galactic orbital period and phase, rotation period
+  and a* become derived and their columns are dropped in the 8.4
+  revision with DB.73). Boss's refinements of 12:23, 12:24 and 12:25 AM
+  EDT, 2026-10-18 (project chat, as the coordinator relayed): any two
+  objects that orbit each other follow one rule; before a system is
+  validated the heaviest object becomes the primary and the others are
+  recalculated from their original values; the barycentre is always the
+  origin; coordinates are relative at every level, so a moon follows its
+  planet and the planet follows the star; the point-in-space object
+  updates the relative coordinates, knows its centre's position in wider
+  space and gives converted coordinates for any frame on demand; and it
+  also stores the vector of motion, the spin and the other attributes of
+  the object with a mass classification. Item SY14 of the note (sections
+  10.4 and 11.2, card S12). Proposed owner, not assigned by a card: Core
+  4. Depends on the point class (GEN.578). Do:
+  `point.reparent(new_parent)` keeps the absolute position and velocity
+  and re-expresses the relative state about the new parent; the step of
+  the primary-first rule at a simulated event (merger, capture,
+  ejection; it runs once at the event and not at every update step,
+  because masses are constant between events), and the operation GEN.291
+  needs for a bound planet that becomes free; if the central object is
+  ejected the remaining members re-rank and the heaviest remaining
+  becomes central without any body moving. Done: absolute position and
+  velocity, total linear momentum and the orbital angular momentum about
+  the barycentre are unchanged by `reparent`.
+  Prerequisites: GEN.578. Related: GEN.550, GEN.565, GEN.576, GEN.578.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **GEN.584 The core's kinematic record: velocity, spin axis and rate, mass and epoch in the point, and the derived columns dropped**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  S10 to S18 on the primary-first rule, the point-in-space frames and
+  motion and spin, tapped between 12:30 and 12:32 AM EDT on 2026-10-18
+  (as the coordinator relayed with the wake times converted), every one
+  the recommended option: S10 the original values are the origin values
+  (birth mass, age, [Fe/H], composition, formation distance) plus the
+  orbit-geometry draws, and the present state is recomputed about the
+  new primary; S11 the heaviest is found by the total mass of each
+  branch (a sub-system counts as the sum of its parts), ties under 1e-9
+  relative keep the draw order; S12 when the heaviest changes in
+  simulated time the step runs once at the event (merger, capture,
+  ejection), state-preserving, so no body jumps; S13 trajectories are an
+  analytic two-body orbit per frame with mu including the member's own
+  mass, and the outer system's tide is a stability gate (Hill fraction,
+  triple and Kozai screens); S14 a frame request names any of the named
+  frames or any other point, found through the lowest common ancestor;
+  S15 a point has a live parent link with a versioned cache and the
+  copied anchors and the three `carry_*` calls go; S16 the point holds a
+  kinematic record (position, velocity, spin axis and rate, mass with
+  mu, epoch and next-due) with identity, radius and age beside it in the
+  core; S17 spin is a unit axis plus an angular rate in rad/s; S18
+  speed, axial tilt, galactic orbital period and phase, rotation period
+  and a* become derived and their columns are dropped in the 8.4
+  revision with DB.73). Boss's refinements of 12:23, 12:24 and 12:25 AM
+  EDT, 2026-10-18 (project chat, as the coordinator relayed): any two
+  objects that orbit each other follow one rule; before a system is
+  validated the heaviest object becomes the primary and the others are
+  recalculated from their original values; the barycentre is always the
+  origin; coordinates are relative at every level, so a moon follows its
+  planet and the planet follows the star; the point-in-space object
+  updates the relative coordinates, knows its centre's position in wider
+  space and gives converted coordinates for any frame on demand; and it
+  also stores the vector of motion, the spin and the other attributes of
+  the object with a mass classification. Item SY17 of the note (section
+  13.3, cards S16 to S18). Proposed owner, not assigned by a card: Core
+  4 with Core 1 for the storage. Depends on the point class (GEN.578),
+  GEN.565 and DB.73. Do: GEN.565 declares the fields of the kinematic
+  record, all relative to the parent link in the shared non-rotating
+  (galactic) axes: position, velocity, spin unit axis and spin rate in
+  rad/s (zero when not rotating; replacing `rotation_period_hours`,
+  `spin_period_ms` and the dimensionless `spin` a*), mass with `mu`,
+  epoch and next-due; identity, radius and age sit in the core beside
+  it. The 15 velocity triples, 8 spin triples, 6 rotation periods,
+  `spin_period_ms`, `spin` and the 16 galactic orbit columns collapse to
+  one set of core columns, and `orbital_speed_kms` (4 tables),
+  `axial_tilt_deg` (8) and the galactic orbit columns (16) are dropped
+  as derived in the DB.73 revision with the wobble columns of DB.78
+  (about 50 declarations): speed is the length of the velocity, tilt is
+  the angle between the spin axis and the orbit normal
+  (`spin.obliquity_between`), rotation period is 2 pi over the rate,
+  galactic period and phase come from `galactic_orbit.py` on the top
+  point, a black hole's a* from the angular momentum, and a tidally
+  locked body's rate is its orbital mean motion. `spin.set_spin` and
+  `spin_values` move onto the point. A neutron star's magnetic field is
+  profile data, not core. A moment of inertia and oblateness are not
+  modelled and the profiles leave room. Done: no consumer reads a
+  dropped column and every derived value equals the old stored one to
+  the precision of the computation.
+  Prerequisites: GEN.578, GEN.565, DB.73. Related: GEN.550, GEN.565,
+  GEN.576, GEN.578.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
 
@@ -16792,6 +17123,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `_VERSION_MARKERS` (`store.py` 1526 and after), a
   `tests/fixtures/old_schemas/schema_v109.sql.gz` and a
   `test_migration_*.py`. Migration without a wipe: yes.
+  Decided (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT, 2026-10-18,
+  as the coordinator relayed; docs/design/unified-system-barycentre.md,
+  card S18): speed, axial tilt, galactic orbital period and phase,
+  rotation period and a* become derived and their columns are dropped in
+  this revision with the wobble columns (DB.78) and the kinematic record
+  of GEN.584.
   Prerequisites: none. Related: GEN.550, DB.69, DB.70.
 
 - [ ] **DB.74 One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables**
@@ -20429,6 +20766,16 @@ clears each one.
   a system. It protects GEN.317, GEN.130, GEN.327 and GEN.273. No
   behaviour change and no epoch. Done: the test passes on main and fails
   on a table given an absolute position.
+  Convention extended (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT,
+  2026-10-18, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md, sections 12.2 point 4 and
+  13.5): a stored state (position and velocity) is always
+  parent-relative about the parent's central object, in a non-rotating
+  frame whose axes are the galactic axes, with its epoch; a stored spin
+  is a unit axis in those axes plus a rate in rad/s. Nothing in 8.1
+  stores a state about a barycentre, in a rotating frame, or a spin in
+  another form; GEN.104 (built) and GEN.142 (superseded by GEN.557) stay
+  as they are.
   Prerequisites: none. Related: GEN.550, GEN.552, GEN.315, GEN.565.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
@@ -20489,6 +20836,61 @@ clears each one.
   in 5 loaded runs. Owner: Bug Hunt (proposed; it owns the browser flake
   family).
   Prerequisites: none. Related: TEST.227, TEST.235, TEST.172.
+
+- [ ] **TEST.244 Tests: re-primary and reparent invariants, frame round trips, momentum conservation, a moon's velocity as the sum of its hops, a locked body's rate follows a primary change**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  S10 to S18 on the primary-first rule, the point-in-space frames and
+  motion and spin, tapped between 12:30 and 12:32 AM EDT on 2026-10-18
+  (as the coordinator relayed with the wake times converted), every one
+  the recommended option: S10 the original values are the origin values
+  (birth mass, age, [Fe/H], composition, formation distance) plus the
+  orbit-geometry draws, and the present state is recomputed about the
+  new primary; S11 the heaviest is found by the total mass of each
+  branch (a sub-system counts as the sum of its parts), ties under 1e-9
+  relative keep the draw order; S12 when the heaviest changes in
+  simulated time the step runs once at the event (merger, capture,
+  ejection), state-preserving, so no body jumps; S13 trajectories are an
+  analytic two-body orbit per frame with mu including the member's own
+  mass, and the outer system's tide is a stability gate (Hill fraction,
+  triple and Kozai screens); S14 a frame request names any of the named
+  frames or any other point, found through the lowest common ancestor;
+  S15 a point has a live parent link with a versioned cache and the
+  copied anchors and the three `carry_*` calls go; S16 the point holds a
+  kinematic record (position, velocity, spin axis and rate, mass with
+  mu, epoch and next-due) with identity, radius and age beside it in the
+  core; S17 spin is a unit axis plus an angular rate in rad/s; S18
+  speed, axial tilt, galactic orbital period and phase, rotation period
+  and a* become derived and their columns are dropped in the 8.4
+  revision with DB.73). Boss's refinements of 12:23, 12:24 and 12:25 AM
+  EDT, 2026-10-18 (project chat, as the coordinator relayed): any two
+  objects that orbit each other follow one rule; before a system is
+  validated the heaviest object becomes the primary and the others are
+  recalculated from their original values; the barycentre is always the
+  origin; coordinates are relative at every level, so a moon follows its
+  planet and the planet follows the star; the point-in-space object
+  updates the relative coordinates, knows its centre's position in wider
+  space and gives converted coordinates for any frame on demand; and it
+  also stores the vector of motion, the spin and the other attributes of
+  the object with a mass classification. Item SY15 of the note (sections
+  12.1 and 13.5). Proposed owner, not assigned by a card: Core 4, with
+  GEN.576 and GEN.578. Do: tests that a pair re-primaried gives
+  identical absolute positions; the step from the originals is
+  idempotent and independent of the order members are listed; `reparent`
+  preserves absolute position and velocity; frame round trips (body to
+  planet frame to galactic and back) agree to the spacing of a double at
+  the top; the mass-weighted offsets sum to zero at every level; a 10 m
+  body 10,000 AU from its parent keeps its metre; total linear momentum
+  and the orbital angular momentum about the barycentre are unchanged by
+  `primary_first` and by `reparent`; a moon's velocity in the star's
+  frame equals the sum of its hops; a locked body's rate follows a
+  primary change. Do not test that the central object is the closest to
+  the barycentre (it is not always: a light member on a tight orbit can
+  be nearer); test that it is the heaviest. Done: all pass at several
+  depths.
+  Prerequisites: GEN.576, GEN.578, GEN.581, GEN.583. Related: GEN.550,
+  GEN.565, GEN.576, GEN.578.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
 
 ## USR: User accounts
