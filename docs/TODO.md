@@ -4810,7 +4810,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/multi-star-systems.md sections 13 to 16): the young
   non-hierarchical groups and trapezia of section 13.1 are built by
   GEN.273 on this item's cores.
-  Prerequisites: GEN.321. Related: MAP.172, GEN.150,
+  Prerequisites: none. Related: MAP.172, GEN.150,
   GEN.202, GEN.99. Built-on note (Core 1, 2026-10-16, 8:41 AM EDT,
   GEN.251 merged as #1815): the stage F required stars (the stars a
   nebula needs as real systems) are not built by GEN.251; fill stages
@@ -4923,7 +4923,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   association is this item's component; the bubble field (GEN.391)
   carries only the shell enhancement and the interior suppression, so
   the association is not counted twice. GEN.391 states the split.
-  Prerequisites: GEN.241, GEN.321. Related: GEN.158.
+  Prerequisites: GEN.241. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.245 Debris disks around A and F stars (later)**
@@ -5925,8 +5925,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.241, GEN.243, GEN.244, GEN.282, GEN.284, GEN.298,
-  TEST.159, TEST.160, GEN.450, TEST.196, GEN.530.
+  Prerequisites: GEN.241, GEN.243, GEN.244, GEN.282, GEN.284, TEST.159,
+  TEST.160, GEN.450, TEST.196, GEN.530.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -6227,33 +6227,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   line on this item.
   Prerequisites: none. Related: GEN.130.
 
-- [ ] **GEN.321 Emission regions D and E: the ionizing members of a young cluster in a Plummer sphere, cut by sector cube**
-  Split from GEN.241 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Classes D and E get the seed star
-  plus the cluster's ionizing members (stars of 5.5 solar masses and up
-  still alive: 42 on average for D, 549 for E) in a Plummer sphere of
-  half-mass radius 1 pc (D) and 2 pc (E) clipped to the nebula radius,
-  derived from the nebula's own seed and placed by position so each
-  sector generates only the members whose positions fall in its cube.
-  Use the Plummer profile and sampler of GEN.237, not a second one.
-  Default as the parent says: only the ionizing members are real;
-  filling the whole cluster is a setting. Done: every D or E region
-  holds its members inside its radius, a nebula across sectors needs no
-  coordination (two sectors give the same members), and an asked massive
-  complex costs about 270 extra systems and 7 seconds.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Boss answered a card at 6:10 PM EDT (relayed by the coordinator, as
-  the card tap cannot be attached): GEN.321 stays with Core 3, which has
-  it in its gate (the second `changed` gate from 5:21 PM EDT); Blocker 1
-  does not take it. Blocker 1's order is GEN.314, PERF.118, GEN.438,
-  GEN.439, GEN.440. GEN.321 rides epoch 17 if that epoch is still
-  unstamped when it merges, else the next free one; `bump_version.py
-  --check-pr origin/main` decides.
-  Prerequisites: none. Related: GEN.241.
-
 - [ ] **GEN.325 Planet cull in dense components by the survival formula and the metallicity factor**
   Split from GEN.162 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). Giant-planet probability is
@@ -6328,7 +6301,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.327, GEN.321. Related: GEN.273.
+  Prerequisites: GEN.327. Related: GEN.273.
 
 - [ ] **GEN.329 Runaway bookkeeping: runaway_origin and the compact companion left by a supernova**
   Split from GEN.274 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -17661,7 +17634,7 @@ clears each one.
   on the census harness (the new first item of the Whole-sphere audits
   thread); TEST.161, TEST.162 and TEST.164 add their checks to it, not
   counters of their own.
-  Prerequisites: GEN.282, GEN.321.
+  Prerequisites: GEN.282.
   Finding (2026-10-17, 9:55 AM EDT, the read-only study "8.1 completion
   estimate"
   (/mnt/project-files/reports/8-1-completion-estimate-2026-10-17.md,
@@ -18245,7 +18218,7 @@ clears each one.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 50 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.321. Related: TEST.159.
+  Prerequisites: none. Related: TEST.159.
 
 - [ ] **TEST.189 A test that runs `migrate` leaves maintenance mode on: restore `state/maintenance.json` in the fixture (bug)**
   Found by a lane (2026-10-16), filed by the TODO thread. A test that
@@ -18858,6 +18831,15 @@ clears each one.
   main: not checked. Frequency: now 2 of 2 gate runs seen (Core 2's and
   Core 1's). Core 1's fix idea matches the Done line: match the label
   after a count (a digit, a space, then the label).
+  Sighting (Core 3, 2026-10-17, 10:09 PM EDT as the lane reported;
+  GEN.321 branch after its final rebase onto GEN.469, 10:05 to 10:08 PM
+  EDT):
+  `test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter`
+  failed once under `pytest -n 4` (208 passed, 1 failed across nine
+  scatter and nebula test files) and passed 7 of 7 alone. Fails on main:
+  not run. Frequency: one more draw-dependent sighting, which fits the
+  substring cause above (a run that places a magnetar and no plain
+  neutron star).
   Prerequisites: none. Related: TEST.213.
 
 - [ ] **TEST.222 Remove the NumPy 2.5 deprecation filter around the skimage marching-cubes call once scikit-image stops raising it**
@@ -19220,6 +19202,35 @@ clears each one.
   test passes 30 of 30 runs at load 12. Owner: Core 2 (owns UX.118 and
   TEST.227; proposed).
   Prerequisites: none. Related: TEST.227, UX.118.
+
+- [ ] **TEST.236 test_galaxy_map_drill_down_by_clicks rejects a window address with a negative band, because its regex allows a minus sign only on the wedge (bug)**
+  Found by Core 3 (2026-10-17, 10:09 PM EDT as the lane reported, its
+  GEN.321 gate: the test failed alone), filed by the TODO thread.
+  `src/tests/test_web_browser_maps.py:371` asserts
+  `re.fullmatch(r"win=(81|27|9|3|1)\.\d+\.\d+\.-?\d+", query)`; the
+  failure text is `AssertionError: win=81.13.-21.4`. The address is
+  `win=m.shell.band.wedge` (the helper in
+  `src/tests/test_web_browser_fixture_maps.py:425` builds it that way),
+  and the band is the signed field (a block below the plane), so the
+  third number is the one that can be negative, but the regex puts the
+  `-?` on the fourth. The fixture-galaxy test beside it
+  (`test_web_browser_fixture_maps.py:705`) has it right:
+  `win=(81|27|9|3|1)\.\d+\.-?\d+\.\d+`. Core 3's report said groups 2
+  and 3; the code says only the band (group 3) is signed, which the TODO
+  thread checked against the helper. Fails on main: yes by reading (main
+  at 5c49fc42 still has the old regex); whether it fires depends on the
+  sample galaxy's drawn block reaching a band below the plane, so it is
+  intermittent. Frequency: once in Core 3's gate and again alone; an
+  earlier sighting of this test on TEST.172 failed on a different
+  assertion (the crumbs after the 2nd Back), so this is a second,
+  separate cause. Reproducer: run the test alone repeatedly, or click
+  down into a block with a negative band. Do: move the `-?` to the band
+  (group 3), as in the fixture test, and check the same regex does not
+  appear in other browser tests. Done: the test passes 30 of 30 runs
+  alone with the draw forced to a negative band. Owner: Bug Hunt
+  (proposed; it owns TEST.172 and the drill-down test, and a one-line
+  fix can ride its #2124 branch or the next small PR).
+  Prerequisites: none. Related: TEST.172, TEST.202.
 
 
 ## USR: User accounts
