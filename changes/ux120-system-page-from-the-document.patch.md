@@ -5,4 +5,4 @@
 - The one-off system page (`/admin/generate/system`) shows the HTML page, with a Download button for Markdown, wikitext and plain text instead of a Markdown code box and preview. The command line gains `--format document` (the Document as JSON), which the page runs.
 - Neither page module calls `markdown_to_html` any more.
 
-TODO items resolved: UX.120 / Added: none
+TODO items resolved: UX.120, UX.105 / Added: none
