@@ -350,22 +350,24 @@ def tiles_intersecting_sphere(level, center_pc, radius_pc):
     return [key for _distance, key in found]
 
 
-DISTANCE_CUT_EDGES = 2.0
+DISTANCE_CUT_EDGES = 3.0
 """float: A tile of the distance cut is split while its edge is more than
 this many times its distance from the camera (MAP.152,
 docs/design/fly-through-view-distance.md section 4.5). A tile is never
 more than about half an edge from the camera before it is replaced by its
-eight halves, so near space is fine and far space coarse."""
+eight halves, so near space is fine and far space coarse. 2 until MAP.249, which
+made the cut coarser (3) to halve the tiles a view needs."""
 
 DISTANCE_CUT_FINEST_LEVEL = TILE_MAX_LEVEL - 1
 """int: The finest level the distance cut itself reaches. The finest tiles
 (`TILE_MAX_LEVEL`, every star of a sector) are the detail tiles the map
 adds only around its target."""
 
-DISTANCE_CUT_HALF_ANGLE_DEG = 70.0
+DISTANCE_CUT_HALF_ANGLE_DEG = 50.0
 """float: Half the angle of the cone the cut covers, round the direction the
 camera looks in. The screen's own half-diagonal is about 45 degrees; the
-rest is room to turn before the next tiles arrive."""
+rest is room to turn before the next tiles arrive (70 until MAP.249, 50
+since: a view's tiles and bytes fell by about 40%)."""
 
 DISTANCE_CUT_MAX_TILES = 512
 """int: Most tiles one distance cut returns, the nearest first."""
