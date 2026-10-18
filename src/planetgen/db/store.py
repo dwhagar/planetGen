@@ -3355,7 +3355,11 @@ def _speed_kms(row):
 def _free_vector(phenomenon, placement):
     """`(vx, vy, vz)`, km/s, galactic axes: the movement a free object is stored with (GEN.336) -- its
     `galactic_orbital_speed_kms` along the tangent of the galaxy's rotation at its place (`galactic_velocity_ms`), or at
-    `_DEFAULT_PLACE_PC` when it has none (a phenomenon never put in the galaxy)."""
+    `_DEFAULT_PLACE_PC` when it has none (a phenomenon never put in the galaxy). A remnant the galaxy ejected (GEN.238)
+    carries the velocity it was given."""
+    ejected = getattr(phenomenon, "ejecta_velocity_kms", None)
+    if ejected is not None:
+        return tuple(ejected)
     if not placement or placement.get("center_x_pc") is None:
         point = _DEFAULT_PLACE_PC
     else:
@@ -5458,11 +5462,20 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
                 continue
             elapsed_years = (clock.end_unix - epoch) / seconds_per_year
             clocks.append((elapsed_years, clock.end_unix, clock.end_unix + interval, row["id"]))
-            angle = _galactic_turn(elapsed_years, row["galactic_orbital_period_gy"])
-            if angle == 0.0 or row["center_x_pc"] is None:
+            # A black hole or neutron star with a velocity and no galactic orbit is one the galaxy ejected (GEN.238):
+            # a straight line, like a hypervelocity star's (GEN.137). The galaxy's own black hole has no velocity.
+            ballistic = (table in ("black_holes", "neutron_stars") and not row["galactic_orbital_period_gy"]
+                         and bool(_speed_kms(row)))
+            angle = None if ballistic else _galactic_turn(elapsed_years, row["galactic_orbital_period_gy"])
+            if angle == 0.0 or row["center_x_pc"] is None or (elapsed_years <= 0 and ballistic):
                 continue
-            point = _rotate_about_axis((row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]), angle)
-            velocity = _rotate_about_axis((row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]), angle)
+            velocity = (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
+            if ballistic:
+                point = straight_line_position_pc((row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]), velocity,
+                                                  clock.end_unix - epoch)
+            else:
+                point = _rotate_about_axis((row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]), angle)
+                velocity = _rotate_about_axis(velocity, angle)
             radius = math.sqrt(sum(c * c for c in point))
             moved += 1
             sector_id = index.sector_at(point, row["sector_id"]) if row["sector_id"] is not None else None

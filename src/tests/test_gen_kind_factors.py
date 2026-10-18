@@ -119,7 +119,7 @@ def test_a_superbubble_zeroes_the_clouds_and_nebulae_but_not_the_remnants(monkey
     assert open_sky.kind_factors["nebula"] > 0.0
     bubble = SimpleNamespace(ambient_density_cm3=0.003)
     monkeypatch.setattr(superbubble_field, "containing", lambda seed, shape, position: bubble)
-    inside = profile.profile_at(SUN, SHAPE, EDGE_PC, E_VALUE, galaxy_seed=b"seed")
+    inside = profile.profile_at(SUN, SHAPE, EDGE_PC, E_VALUE, galaxy_seed=bytes(range(16)))
     assert inside.gas.superbubble is bubble
     assert inside.kind_factors["molecular-cloud"] == 0.0
     assert inside.kind_factors["nebula"] == 0.0
