@@ -4583,7 +4583,7 @@ of that level lists (MAP.116); a finest tile lists up to
 where the budget reaches it."""
 
 
-GALAXY_VIEW_MAX_STARS = 70000
+GALAXY_VIEW_MAX_STARS = 45000
 """int: MAP.109's stated cap on the stars (pre-placed and generated) one
 view's tiles can carry (MAP.157: about 19 MB of JSON before compression at the
 old 270 bytes a star, about 100 bytes a star trimmed). It holds by
@@ -4591,7 +4591,9 @@ construction -- every tile's lists are capped (`GALAXY_TILE_BRIGHT_BUDGET`,
 `GALAXY_TILE_STAR_BUDGET`, `GALAXY_TILE_MAX_DETAIL_STARS`) -- and
 `galaxy_view_star_cap` adds those caps up over a view's tiles, so a test
 fails when a budget is raised past it. A real view carries far less: the
-caps are for a tile packed with stars, and most of the galaxy's tiles are not."""
+caps are for a tile packed with stars, and most of the galaxy's tiles are not.
+70,000 until MAP.249, whose coarser, narrower distance cut fetches about half
+the tiles (the worst of the sample cameras fell from about 63,000 to 40,000)."""
 
 
 def galaxy_tile_star_cap(level):
