@@ -4700,7 +4700,7 @@ GALAXY_TILE_MAX_SCATTERED_POINTS = 60
 
 
 def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
-    """The scattered black holes, neutron stars and quasars (`phenomenon_scatter`, not yet built into a sector) whose position lies in the box `[lo, hi)`, biggest class first, at most `limit` -- drawn as poi"""
+    """The scattered black holes, neutron stars and quasars (`phenomenon_scatter`, not yet built into a sector) whose position lies in the box `[lo, hi)`, biggest class first, at most `limit` -- drawn as points before their sector is filled (MAP.164). Each point has `charted`: true once its sector is built (a coarse tile lists those too), so "Charted only" dims the others (MAP.111)."""
     classes = SCATTERED_POINT_CLASSES[:SCATTERED_POINT_COARSE_CLASSES] if coarse else SCATTERED_POINT_CLASSES
     bands, _share = _bright_star_bands(conn, lo, hi, edge_pc)
     if not bands:
@@ -4737,6 +4737,7 @@ def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
         points.append({
             "type": map_type, "id": f"s{row['id']}", "name": f"{label} (uncharted)" if row["built_at"] is None else label,
             "descriptor": row["subtype"] or "scattered", "luminosity_sol": 0.0, "scattered": True, "size": size,
+            "charted": row["built_at"] is not None,
             "map_luminosity_sol": float("%.4g" % phenomenon_map_luminosity_sol(map_type, row["mass_solar"])),
             "mass_solar": None if row["mass_solar"] is None else float("%.4g" % row["mass_solar"]),
             "x": round(row["position_x_mpc"] / MPC_PER_PC, 3), "y": round(row["position_y_mpc"] / MPC_PER_PC, 3),
