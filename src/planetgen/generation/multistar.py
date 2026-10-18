@@ -51,7 +51,8 @@ from statistics import NormalDist
 
 from planetgen import tuning
 from planetgen.generation.phenomena import hosts
-from planetgen.physics import brown_dwarf, constants, ms_lifetime, neutron_star, pre_main_sequence, roche, stability
+from planetgen.physics import (
+    brown_dwarf, constants, ms_lifetime, neutron_star, pre_main_sequence, remnant_mass, roche, stability)
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 
@@ -455,11 +456,8 @@ def _remnant(kind, age_yr, lowest, rng, limit_mass=None):
         return None
     progenitor = evolution.sample_imf_mass_sol(low, high, rng)
     if kind == "white-dwarf":
-        mass = min(max(tuning.WD_IFMR_SLOPE * progenitor + tuning.WD_IFMR_INTERCEPT_SOL, tuning.WD_MASS_RANGE_SOL[0]),
-                   tuning.WD_MASS_RANGE_SOL[1])
-        return _remnant_leaf(kind, progenitor, mass)
-    mass_range = tuning.NEUTRON_STAR_MASS_RANGE_SOLAR if kind == "neutron-star" else tuning.BLACK_HOLE_MASS_RANGE_SOLAR
-    mass = rng.uniform(*mass_range)
+        return _remnant_leaf(kind, progenitor, remnant_mass.white_dwarf_mass_sol(progenitor))
+    mass = remnant_mass.draw_mass_sol(kind, rng=rng)
     if limit_mass is not None:
         mass = min(mass, limit_mass)
     return _remnant_leaf(kind, progenitor, mass, direct=kind == "black-hole" and progenitor >= DIRECT_COLLAPSE_PROGENITOR_SOL)
