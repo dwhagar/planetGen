@@ -102,8 +102,7 @@
     },
     {
       "epoch": 21,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1771",
       "reason": "A free-floating brown dwarf's mass follows the 20 pc census's mass function and its radius the cooling laws' (0.07 to 0.14 solar radii), so its temperature, flux and surface change, and a brown dwarf member of a multi-star tree has a spectral type as its state and the radius the laws give at the system's age (GEN.252)."
     }
   ]
