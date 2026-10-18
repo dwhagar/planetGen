@@ -268,18 +268,19 @@ def _state(page):
     return _query(page), _crumbs(page)
 
 
-def _flying(page):
-    """Whether the Galaxy Map's camera is still on a flight: the trail follows the camera (MAP.227), and the
-    software-drawn map's frames can be more than 250 ms apart, so a flight in the air can leave the URL and the steps
-    unchanged for that long and then move them to the cell it lands in (TEST.223)."""
+def _moving(page):
+    """Whether the Galaxy Map's camera is still on its way to a stage, waiting for the stage's data or flying: the
+    trail follows the camera (MAP.227), a click opens the new stage's address at once and the camera leaves for it
+    only when its data has loaded, and the software-drawn map's frames can be more than 250 ms apart, so the address
+    and the trail can hold still for that long and then move to the cell the camera lands in (TEST.223)."""
     return page.evaluate("""() => {
         const canvas = document.querySelector('#galaxymap3d-canvas');
-        return !!(canvas && canvas.galaxyFlying && canvas.galaxyFlying());
+        return !!(canvas && canvas.galaxyMoving && canvas.galaxyMoving());
     }""")
 
 
 def _wait_settled(page, before=None, timeout_s=90.0):
-    """Waits until the URL and the steps have held still for 250 ms with no camera flight running
+    """Waits until the URL and the steps have held still for 250 ms with the camera not on its way
     (and, given `before`, moved off it). TEST.89: a fixed 250 ms wait
     read the map mid-change under a loaded parallel run. The limit is a ceiling (the wait returns the moment the
     map has settled): the software-drawn map took longer than 15 s to answer a click on a loaded machine, and the
@@ -290,7 +291,7 @@ def _wait_settled(page, before=None, timeout_s=90.0):
     while time.monotonic() < deadline:
         page.wait_for_timeout(50)
         now = _state(page)
-        if now != last or _flying(page):
+        if now != last or _moving(page):
             last, since = now, time.monotonic()
         elif (before is None or now != before) and time.monotonic() - since >= 0.25:
             return
