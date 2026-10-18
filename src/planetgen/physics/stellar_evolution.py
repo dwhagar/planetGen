@@ -27,7 +27,7 @@ section.
 
 import math
 
-from planetgen.physics import constants, metallicity
+from planetgen.physics import constants, giant_branch, metallicity, ms_lifetime
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -49,8 +49,9 @@ HORIZONTAL_BRANCH_COLOURS = ("blue", "rr-lyrae", "red", "extreme")
 
 
 def main_sequence_lifetime_gy(mass_sol):
-    """t_MS = 10 Gy * M^-2.5, the same law the rest of the generator uses."""
-    return tuning.SOLAR_MS_LIFESPAN_GY * mass_sol ** tuning.MS_LIFESPAN_MASS_EXPONENT
+    """The main-sequence lifetime, Gy, from `ms_lifetime` (Hurley, Pols and Tout 2000, GEN.467), the one the rest of
+    the generator uses."""
+    return ms_lifetime.lifetime_gy(mass_sol)
 
 
 def sample_imf_mass_sol(min_mass_sol=None, max_mass_sol=None, rng=draw):
@@ -233,12 +234,11 @@ def spectral_letter_and_subclass(temperature_k):
 
 def giant_luminosity_law(mass_sol):
     """
-    The luminosity law of a giant of initial mass `mass_sol` as `(low, high,
-    slope)` (Lsun): the time it spends per unit of ln L falls as L^-slope
-    between `low` and `high` (GEN.287). A giant lighter than
-    `BRIGHT_GIANT_MIN_MASS_SOL` is on the red giant branch: from the base
-    (`SUBGIANT_MAX_BRIGHTENING` times its main-sequence luminosity, where its
-    subgiant phase ended) to the branch tip, slope `GIANT_BRANCH_TIME_SLOPE`. A
+    The luminosity law of an intermediate-mass or heavier giant of initial mass `mass_sol` as `(low, high, slope)`
+    (Lsun): the time it spends per unit of ln L falls as L^-slope between `low` and `high` (GEN.287). Not used below
+    `HELIUM_FLASH_MASS_SOL`, whose red giant branch is `giant_branch.branch` (GEN.502). A giant lighter than
+    `BRIGHT_GIANT_MIN_MASS_SOL` is on the red giant branch: from the base (`SUBGIANT_MAX_BRIGHTENING` times its
+    main-sequence luminosity, where its subgiant phase ended) to the branch tip, slope `GIANT_BRANCH_TIME_SLOPE`. A
     bright giant is spread log-uniform (slope 0) over its own range.
     """
     pc = tuning
@@ -272,19 +272,50 @@ def luminosity_law_quantile(low, high, slope, fraction, min_luminosity_sol=None)
     return (low ** -slope - fraction * (low ** -slope - high ** -slope)) ** (-1.0 / slope)
 
 
-def giant_bright_chance(mass_sol, min_luminosity_sol):
-    """The chance a giant's luminosity (`giant_luminosity_law`) is at
-    least `min_luminosity_sol`."""
+def giant_bright_chance(mass_sol, min_luminosity_sol, fe_h=0.0):
+    """The chance a giant's luminosity is at least `min_luminosity_sol`: the share of the red giant branch above it
+    for a star lighter than `HELIUM_FLASH_MASS_SOL` (`giant_branch`, GEN.502), else of `giant_luminosity_law`."""
+    if has_core_helium_phases(mass_sol):
+        return giant_branch.branch(mass_sol, fe_h).share_above(min_luminosity_sol)
     return luminosity_law_share_above(*giant_luminosity_law(mass_sol), min_luminosity_sol)
 
 
-def sample_giant_luminosity_sol(mass_sol, rng=draw, min_luminosity_sol=None):
+def sample_giant_luminosity_sol(mass_sol, rng=draw, min_luminosity_sol=None, fe_h=0.0):
     """
-    A giant's luminosity from `giant_luminosity_law`, or from its part
-    at or above `min_luminosity_sol` (clamped to the top when none is).
+    A giant's luminosity from its red giant branch (`giant_branch`) below `HELIUM_FLASH_MASS_SOL`, else from
+    `giant_luminosity_law`, or from its part at or above `min_luminosity_sol` (clamped to the top when none is).
     One `rng.random()` draw.
     """
+    if has_core_helium_phases(mass_sol):
+        return giant_branch.branch(mass_sol, fe_h).quantile(rng.random(), min_luminosity_sol)
     return luminosity_law_quantile(*giant_luminosity_law(mass_sol), rng.random(), min_luminosity_sol)
+
+
+def subgiant_end_luminosity_sol(mass_sol):
+    """The luminosity a star of initial mass `mass_sol` reaches as its subgiant phase ends: the base of its red giant
+    branch below `HELIUM_FLASH_MASS_SOL` (`giant_branch`, GEN.502), else `SUBGIANT_MAX_BRIGHTENING` times its
+    main-sequence luminosity."""
+    l_ms = main_sequence_luminosity_sol(mass_sol)
+    if has_core_helium_phases(mass_sol):
+        return max(giant_branch.base_luminosity_sol(mass_sol), 1.01 * l_ms)
+    return tuning.SUBGIANT_MAX_BRIGHTENING * l_ms
+
+
+def subgiant_end_fraction(mass_sol):
+    """The age a star of initial mass `mass_sol` leaves the Hertzsprung gap, as a multiple of its main-sequence
+    lifetime: the paper's time to the base of the giant branch below `HELIUM_FLASH_MASS_SOL` (GEN.502), else
+    `SUBGIANT_PHASE_END_MS_FRACTION`."""
+    if has_core_helium_phases(mass_sol):
+        return giant_branch.subgiant_end_fraction(mass_sol)
+    return tuning.SUBGIANT_PHASE_END_MS_FRACTION
+
+
+def giant_end_fraction(mass_sol):
+    """The age the giant phase ends (helium ignition below `HELIUM_FLASH_MASS_SOL`, GEN.502), as a multiple of the
+    main-sequence lifetime; `GIANT_PHASE_END_MS_FRACTION` for the heavier stars."""
+    if has_core_helium_phases(mass_sol):
+        return giant_branch.giant_end_fraction(mass_sol)
+    return tuning.GIANT_PHASE_END_MS_FRACTION
 
 
 def horizontal_branch_bright_chance(min_luminosity_sol):
@@ -314,7 +345,8 @@ def remnant_age_fraction(mass_sol):
     asymptotic giant branch."""
     pc = tuning
     if has_core_helium_phases(mass_sol):
-        return pc.GIANT_PHASE_END_MS_FRACTION + pc.HORIZONTAL_BRANCH_MS_FRACTION + pc.AGB_MS_FRACTION
+        return (giant_end_fraction(mass_sol) + pc.HORIZONTAL_BRANCH_DURATION_GY / main_sequence_lifetime_gy(mass_sol)
+                + pc.AGB_MS_FRACTION)
     return pc.GIANT_PHASE_END_MS_FRACTION
 
 
@@ -398,11 +430,11 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
     """
     pc = tuning
     t_ms = main_sequence_lifetime_gy(mass_sol)
-    t_sub = t_ms * pc.SUBGIANT_PHASE_END_MS_FRACTION
-    t_giant = t_ms * pc.GIANT_PHASE_END_MS_FRACTION
+    t_sub = t_ms * subgiant_end_fraction(mass_sol)
+    t_giant = t_ms * giant_end_fraction(mass_sol)
     t_horizontal = t_agb = t_giant
     if has_core_helium_phases(mass_sol):
-        t_horizontal = t_giant + t_ms * pc.HORIZONTAL_BRANCH_MS_FRACTION
+        t_horizontal = t_giant + pc.HORIZONTAL_BRANCH_DURATION_GY
         t_agb = t_horizontal + t_ms * pc.AGB_MS_FRACTION
     massive = mass_sol >= pc.SUPERGIANT_MIN_MASS_SOL
     l_ms = main_sequence_luminosity_sol(mass_sol)
@@ -430,13 +462,13 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
         progress = (age_gy - t_ms) / (t_sub - t_ms)
         end_temperature = min(t_eff_ms, pc.SUBGIANT_END_TEMPERATURE_K)
         state.update(yerkes_class="IV",
-                     luminosity_sol=l_ms * (1 + (pc.SUBGIANT_MAX_BRIGHTENING - 1) * progress),
+                     luminosity_sol=l_ms + (subgiant_end_luminosity_sol(mass_sol) - l_ms) * progress,
                      temperature_k=t_eff_ms + (end_temperature - t_eff_ms) * progress,
                      phase_end_gy=t_sub)
     elif age_gy < t_giant:
         bright = mass_sol >= pc.BRIGHT_GIANT_MIN_MASS_SOL
         state.update(yerkes_class="II" if bright else "III",
-                     luminosity_sol=sample_giant_luminosity_sol(mass_sol, rng, min_luminosity_sol),
+                     luminosity_sol=sample_giant_luminosity_sol(mass_sol, rng, min_luminosity_sol, fe_h or 0.0),
                      temperature_k=rng.uniform(*pc.GIANT_TEMPERATURE_RANGE_K),
                      phase_end_gy=t_giant)
     elif age_gy < t_horizontal:

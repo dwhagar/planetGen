@@ -107,12 +107,21 @@ def test_the_nucleus_is_a_quasar_or_the_supermassive_black_hole_at_the_origin(mo
     assert scatter.nucleus_row(9) == scatter.nucleus_row(9)
 
 
+REACH_SHELL = 65_535
+"""int: The grid's default reach, 262 kpc at the default edge."""
+REACH_PC = (REACH_SHELL + 0.5) * EDGE_PC
+
+
+def _hypervelocity(seed, extents=EXTENTS, reach_shell=REACH_SHELL):
+    return [_as_dict(row) for row in scatter.hypervelocity_rows(extents, EDGE_PC, seed, reach_shell)]
+
+
 def test_hypervelocity_stars_fly_outward_from_the_center_at_their_speed():
-    rows = list(scatter.hypervelocity_rows(EXTENTS, EDGE_PC, 4))
-    low, high = tuning.HYPERVELOCITY_STARS_PER_GALAXY
-    assert low <= len(rows) <= high
-    assert rows == list(scatter.hypervelocity_rows(EXTENTS, EDGE_PC, 4))
-    outer = dict(EXTENTS)
+    rows = list(scatter.hypervelocity_rows(EXTENTS, EDGE_PC, 4, REACH_SHELL))
+    low, high = (n * REACH_PC / (tuning.HYPERVELOCITY_COUNT_RADIUS_KPC * 1000.0)
+                 for n in tuning.HYPERVELOCITY_STARS_PER_GALAXY)
+    assert low - 1 <= len(rows) <= high + 1
+    assert rows == list(scatter.hypervelocity_rows(EXTENTS, EDGE_PC, 4, REACH_SHELL))
     speeds = tuning.HYPERVELOCITY_STAR_SPEED_RANGE_KMS
     for row in map(_as_dict, rows[:300]):
         point = (row["position_x_mpc"], row["position_y_mpc"], row["position_z_mpc"])
@@ -122,7 +131,27 @@ def test_hypervelocity_stars_fly_outward_from_the_center_at_their_speed():
         assert sum(p * v for p, v in zip(point, velocity)) >= 0.0
         address = sector_address_at(tuple(value / 1000 for value in point), EDGE_PC)
         assert address == (row["shell_index"], row["band_index"], row["wedge_index"])
-        assert abs(address[1]) <= outer[address[0]]
+
+
+def test_hypervelocity_stars_are_placed_by_the_seed_alone_none_redrawn_for_the_outline():
+    """GEN.238: the outline test is gone, so the number placed is the number wanted (a function of the seed and the
+    reach), the stars lie uniformly in distance out to the reach, and almost all of them are beyond the outline."""
+    rows = _hypervelocity(4)
+    assert len(rows) == len(_hypervelocity(4, extents=[(0, 0)]))      # the disk's outline no longer matters
+    assert len(rows) == len(_hypervelocity(4, extents=[(0, 0), (1, 1)], reach_shell=REACH_SHELL))
+    distances = sorted(math.sqrt(row["position_x_mpc"] ** 2 + row["position_y_mpc"] ** 2 + row["position_z_mpc"] ** 2)
+                       / 1000.0 for row in rows)
+    count = len(distances)
+    assert count > 1000 and distances[-1] <= REACH_PC
+    # Uniform in distance: the share within each quarter of the reach is a quarter, to four standard errors.
+    for quarter in (1, 2, 3):
+        share = sum(d <= quarter * REACH_PC / 4 for d in distances) / count
+        assert abs(share - quarter / 4) < 4 * math.sqrt(0.25 * 0.75 / count)
+    outside = sum(row["shell_index"] > max(shell for shell, _ in EXTENTS) for row in rows)
+    assert outside / count > 0.99
+    # A different reach is a different, proportionally larger count: the density falls as r^-2.
+    half = _hypervelocity(4, reach_shell=REACH_SHELL // 2)
+    assert 0.35 < len(half) / count < 0.65
 
 
 def test_the_special_rows_leave_out_filled_cells():
@@ -509,7 +538,9 @@ def test_a_scatter_with_no_stored_cut_draws_nothing_below_one(mysql_config, monk
     address = (1, 0, 1)
     _id, _name, sector = run_galaxy.generate_and_save_sector_at(
         args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
-    assert not [entry for entry in sector.phenomena if entry.phenomenon_type == "neutron-star"]
+    # The galaxy's ejected neutron stars (GEN.238) are drawn in every cell whatever the scatter's cut.
+    assert not [entry for entry in sector.phenomena if entry.phenomenon_type == "neutron-star"
+                and getattr(entry.phenomenon, "ejecta_velocity_kms", None) is None]
 
 
 def test_the_phenomenon_scatter_has_a_bar_that_ends_full(mysql_config, tmp_path, monkeypatch):

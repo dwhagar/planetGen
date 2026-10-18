@@ -43,7 +43,7 @@ first version.
 import math
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import activity, constants, spin
+from planetgen.physics import activity, constants, neutron_star, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -128,6 +128,28 @@ class CompactRemnant(Star):
         """
         super().__init__(system_config, name=name, _skip_property_init=True)
         self.galactic_center_dist_ly = galactic_center_dist_ly
+
+    ejecta_velocity_kms = None
+    """tuple or None: The galactic-axes velocity of a remnant the galaxy ejected (`eject`, GEN.238), km/s; `None` for a
+    remnant that orbits the galaxy."""
+
+    def eject(self, velocity_kms):
+        """
+        Makes this remnant one the galaxy ejected (GEN.238): it moves on a straight line at `velocity_kms`, galactic
+        axes, and has no galactic orbit, so its orbit fields are `None`, as the galaxy's central black hole's are.
+        """
+        self.ejecta_velocity_kms = tuple(velocity_kms)
+        self.galactic_orbital_speed_kms = self.galactic_orbital_period_gy = None
+        self.galactic_orbital_phase_deg = self.galactic_min_update_interval_years = None
+
+    def _orbit_string(self):
+        """The remnant's galactic orbit as the property table words it."""
+        if self.ejecta_velocity_kms is not None:
+            speed = math.sqrt(sum(component * component for component in self.ejecta_velocity_kms))
+            return f"Ejected from the galaxy, leaving at {speed:.0f} km/s on a straight line"
+        if self.galactic_orbital_period_gy is None:
+            return "None (the galaxy's center)"
+        return format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)
 
     def _generate_remnant_age_and_lifespan(self):
         """
@@ -380,10 +402,7 @@ class BlackHole(CompactRemnant):
             tuning.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
             tuning.ROUND_RADIUS_KM, tuning.SCIENTIFIC_NOTATION_DECIMAL_PLACES,
         )
-        orbit_string = (
-            "None (the galaxy's center)" if self.galactic_orbital_period_gy is None
-            else format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)
-        )
+        orbit_string = self._orbit_string()
         properties = {
             "type": self.type,
             "mass": mass_string,
@@ -504,7 +523,7 @@ class NeutronStar(CompactRemnant):
 
         self.mass_solar = mass_solar or draw.uniform(*_within(tuning.NEUTRON_STAR_MASS_RANGE_SOLAR, mass_range))
         self.mass = self.mass_solar * constants.SOLAR_MASS_TO_KG
-        self.radius = draw.uniform(*tuning.NEUTRON_STAR_RADIUS_RANGE_KM)
+        self.radius = neutron_star.radius_km(self.mass_solar, draw.gauss())
         self.surface_temperature_k = draw.uniform(*tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K)
         self.temperature = self.surface_temperature_k
         if age_gy is None and magnetar:
@@ -591,10 +610,7 @@ class NeutronStar(CompactRemnant):
             tuning.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
             tuning.ROUND_RADIUS_KM, tuning.SCIENTIFIC_NOTATION_DECIMAL_PLACES,
         )
-        orbit_string = (
-            "None (the galaxy's center)" if self.galactic_orbital_period_gy is None
-            else format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)
-        )
+        orbit_string = self._orbit_string()
         properties = {
             "type": self.type,
             "mass": mass_string,

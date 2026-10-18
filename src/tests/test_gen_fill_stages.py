@@ -246,7 +246,7 @@ def test_the_system_is_the_same_from_the_same_seed_and_in_any_order(certain):
         for entry, s in zip(entries, order):
             entry.system_seed = s
         system_pass.run(sector, _args(), entries)
-        return {entry.star_system.star.mass: [(planet.name, round(planet.distance, 9))
+        return {entry.star_system.star.mass: [(type(planet).__name__, round(planet.distance, 9))
                                               for planet in entry.star_system.planets]
                 for entry in sector.entries}
 

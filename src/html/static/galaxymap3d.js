@@ -907,8 +907,8 @@ function initGalaxyMap3d(canvasEl, data) {
   // change the history can't account for (a deleted sector, a new
   // release, a stamp older than the history) drops every cached tile.
 
-  var TILE_ROOT = data.tileRootEdgePc || 65536;
-  var TILE_MAX_LEVEL = data.tileMaxLevel != null ? data.tileMaxLevel : 12;
+  var TILE_ROOT = data.tileRootEdgePc || 524288;
+  var TILE_MAX_LEVEL = data.tileMaxLevel != null ? data.tileMaxLevel : 15;
   var FETCH_RADIUS_FACTOR = data.fetchRadiusFactor || 1.6;
   var MAX_TILES_PER_REQUEST = data.maxTilesPerRequest || 128;
 

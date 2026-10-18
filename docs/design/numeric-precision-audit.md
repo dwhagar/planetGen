@@ -118,7 +118,7 @@ Verdict key: **OK** float64 is enough as the code stands. **WATCH** enough, but 
 | Depth buffer | `logarithmicDepthBuffer: true`; far plane about 6 times the view radius | | z-fighting at the far plane | OK | none |
 | GLSL precision | no `precision` or `highp` declarations in `nearfield.js` | float32 on most GPUs, mediump on some phones | star shader at near range | WATCH | none (not testable without a device) |
 | Tile wire format (`web/lib/tilepack.py`) | per axis a float64 min and step plus 16-bit codes: step = (max - min) / 65,535; luminosity 16 bits over log10 -8 to 8; temperature and radius 8 bits | at the finest 16 pc tile 2.4e-4 pc (computed) | star position shown 0.0002 pc off | OK for display | `test_tile_quantisation_error_below_half_a_step` |
-| Tile root | plus or minus 32,768 pc | | nothing is tiled beyond 32.8 kpc | WORK: item 5.6 | `test_tiles_cover_the_reach` |
+| Tile root | plus or minus 262,144 pc (524,288 pc edge, MAP.239) | | every address in the reach is in a tile | OK |  `test_tiles_cover_the_reach` |
 | Tile cache `_trim_star` | x, y, z to 3 decimals (1 mpc), luminosity 4 digits, radius 3 digits, temperature 10 K | 1 mpc is 3.1e10 km, larger than any threshold | stars closer than 1 mpc merge in the cache | OK (display) | none |
 | API rounding (`api/routes.py`, `db/query.py`, `web/maps`) | 1 to 5 decimals, `%.3g`, `%.4g` | | a displayed number, never stored | OK | none |
 | JSON numbers | Flask `jsonify` writes the shortest round-trip text; a JavaScript Number is the same double | lossless | none | OK | none |
@@ -158,7 +158,7 @@ Boss decided four of them on cards at 7:36 PM to 7:38 PM EDT on 2026-10-16: 5.1 
 | 5.3 | Browser float32 attributes hold absolute coordinates for territory dots, superbubbles, the "made" rings, block prisms, stage views and the system view | **Decided: fix now (map lane).** Render them camera-relative like the stars (subtract a rounded camera target in double precision when the buffer is built, move the object by that target) | browser test reading the attribute range |
 | 5.4 | Phase and Kepler differ between Python, SQL and JavaScript (section 2, item 7; tolerances 1e-10 against 1e-14) | One reduce-first form everywhere, and a JavaScript tolerance of 1e-12 | `test_phase_forms_agree_for_a_long_elapsed_time`, `test_js_kepler_matches_python_to_a_kilometre` |
 | 5.5 | `orbital-updates.md` and `orbital-solvers-and-integrators.md` state 32.8 km at 8.128 kpc and integer milliparsecs | Done in this change: both now state the figures of section 1 and point here | |
-| 5.6 | The map tile root covers only 32.8 kpc | **Decided: raise `TILE_ROOT` and `viewport.py` to the reach** (map lane) | `test_tiles_cover_the_reach` |
+| 5.6 | The map tile root covers only 32.8 kpc | **Done (MAP.239): the root is the reach, `TILE_ROOT_EDGE_PC` = 2 × `cellkey.REACH_PC` in `viewport.py`; the browser takes it from the page data** (map lane) | `test_tiles_cover_the_reach` |
 | 5.7 | The cell key wraps just under the reach | **Done (DB.65, migration 0106):** the index is clamped to `2^21 - 1` in `cell_index`, `cell_keys` and the SQL generated expression | `test_cell_key_at_the_reach_edge` |
 | 5.8 | The region test uses the law of cosines | Haversine form for angles under 1e-3 rad | `test_region_radius_of_one_parsec_at_the_reach` |
 

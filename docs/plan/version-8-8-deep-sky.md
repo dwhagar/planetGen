@@ -44,7 +44,7 @@ Nebula drawing, clusters and satellites on the map, and the later stellar phenom
 | GEN.239 | High-velocity clouds and the Magellanic Stream as placed gas clouds (later) |  | Whole-sphere build train, Boss 2026-10-15. Step 10. Core, later. |
 | GEN.248 | Tidal streams as placed components of the halo (later) |  | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.296 | The uncharted-star information panel shows the star's metallicity [Fe/H], which is already stored on bright_stars |  |  |
-| MAP.207 | The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline | GEN.238 | Whole-sphere build train, Boss 2026-10-15. Step 9. Interface. |
+| MAP.207 | The Galaxy Map draws satellites, clusters and wanderers as points beyond the disk outline |  | Whole-sphere build train, Boss 2026-10-15. Step 9. Interface. |
 | MAP.232 | Names for the big features: spiral arms, bar, bulge, halo, satellites and clusters | MAP.229, MAP.207 | Map labels, Boss 2:30 PM EDT. |
 | GEN.367 | The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae |  | Finding from Core 3. |
 

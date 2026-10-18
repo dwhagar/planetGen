@@ -7,11 +7,13 @@ See that module's own docstring for the tiers (placed/planned) this
 covers the pure, database-free "planned" half of, plus the cube tiles.
 """
 
+import itertools
 import math
 import random
 
 import pytest
 
+from planetgen.galaxy.cellkey import REACH_PC
 from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count
 from planetgen.galaxy.spherical import enumerate_sectors_within_radius
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1
@@ -20,6 +22,7 @@ from planetgen.galaxy.viewport import (
     PLANNED_TILE_MAX_EDGE_PC,
     TILE_MAX_LEVEL,
     TILE_ROOT_EDGE_PC,
+    TILE_ROOT_EXTRA_LEVELS,
     parse_tile_key,
     planned_slots_in_tile,
     tile_bounds_pc,
@@ -200,6 +203,18 @@ def test_tile_keys_containing_gives_one_holding_tile_per_level():
     assert tile_keys_containing((TILE_ROOT_EDGE_PC, 0.0, 0.0)) == []
 
 
+def test_tiles_cover_the_reach():
+    # MAP.239: the root is the grid's whole reach, so every address in it, to its very edge, is in a tile of every level.
+    reach = REACH_PC
+    assert TILE_ROOT_EDGE_PC == 2 * reach
+    below = math.nextafter(reach, 0.0)
+    for corner in itertools.product((-reach, below), repeat=3):
+        keys = tile_keys_containing(corner)
+        assert len(keys) == TILE_MAX_LEVEL + 1, corner
+    assert tile_keys_containing((reach, 0.0, 0.0)) == []
+    assert tile_keys_containing((0.0, -reach - 1.0, 0.0)) == []
+
+
 def test_tiles_intersecting_sphere_covers_the_sphere():
     rng = random.Random(3)
     center = (-40.0, 25.0, 3.0)
@@ -265,9 +280,10 @@ def test_planned_slots_in_tile_stay_inside_the_galaxy_outline():
 
 
 def test_planned_slots_skip_big_tiles_and_tiny_sectors():
-    assert planned_slots_in_tile(TILE_MAX_LEVEL - 1, 2047, 2047, 2047, EDGE_PC, None, None, set()) == []
+    half = 2 ** (TILE_MAX_LEVEL - 1)
+    assert planned_slots_in_tile(TILE_MAX_LEVEL - 1, half - 1, half - 1, half - 1, EDGE_PC, None, None, set()) == []
     # A 0.5 pc sector edge would put thousands of slots in a 16 pc tile.
-    assert planned_slots_in_tile(TILE_MAX_LEVEL, 2048, 2048, 2048, 0.5, None, None, set()) == []
+    assert planned_slots_in_tile(TILE_MAX_LEVEL, half, half, half, 0.5, None, None, set()) == []
 
 
 # --- The distance cut (MAP.152) ---------------------------------------------
@@ -298,7 +314,7 @@ def test_the_distance_cut_covers_the_bounds_once_with_smaller_tiles_nearer():
         else:
             assert level == DISTANCE_CUT_FINEST_LEVEL
     levels = [p[0] for p in parsed]
-    assert max(levels) == DISTANCE_CUT_FINEST_LEVEL and min(levels) <= 3
+    assert max(levels) == DISTANCE_CUT_FINEST_LEVEL and min(levels) <= 3 + TILE_ROOT_EXTRA_LEVELS
 
 
 def test_the_distance_cut_is_nearest_first_and_capped():
@@ -343,4 +359,4 @@ def test_a_camera_far_out_needs_a_handful_of_coarse_tiles():
 
     keys = distance_cut_tiles((34000.0, -20000.0, 28000.0), (0.0, 0.0, 0.0), CUT_BOUNDS)
     assert 1 <= len(keys) <= 20
-    assert max(parse_tile_key(key)[0] for key in keys) <= 4
+    assert max(parse_tile_key(key)[0] for key in keys) <= 4 + TILE_ROOT_EXTRA_LEVELS

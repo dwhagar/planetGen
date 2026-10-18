@@ -56,12 +56,10 @@ def _disk_share_bound(shape, z_near, z_far, fractions, rho_near, rho_far):
     fraction of the weights, so over the box of their ranges it peaks at a corner.
     """
     recent_low, recent_high = starFormation.recent_factor_range(rho_near, rho_far, shape)
-    ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
-    span = tuning.STAR_FORMATION_AGE_RANGE_GY[1] - tuning.STAR_FORMATION_AGE_RANGE_GY[0]
     ranges, f = [], []
     for name, ratio in tuning.STELLAR_POPULATION_SCALE_HEIGHT_RATIO.items():
         height = shape.disk_scale_height_pc * ratio
-        share = (ages[name][1] - ages[name][0]) / span
+        share = starFormation.disk_population_share(name, shape)
         arm = abs(tuning.STELLAR_POPULATION_ARM_AMPLITUDE[name])
         low = share * _vertical(z_far, height) / height * max(1.0 - arm, 0.0)
         high = share * _vertical(z_near, height) / height * (1.0 + arm)

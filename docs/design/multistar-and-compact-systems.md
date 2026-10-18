@@ -420,6 +420,8 @@ test [C]:
 About 75 to 80% of systems at every N have a habitable-zone-sized stable window
 somewhere: higher N removes zones around single stars but rarely all of them.
 
+**As built (GEN.314).** `physics/planet_zones.py` is the one place these windows are worked out: `planet_zones(nodes, members, floors_au, disk_cap_au)` over the nodes and members of a tree (`OrbitNode` and `TreeMember`, or the generator's `Node` and `Member`) gives an S-type window for every member and a P-type window for every pair node, and `flux_at(zone, distance_au, luminosities, nodes, members)` sums the light on a planet of a window's host (6.5). The S-type ceiling is the Holman and Wiegert limit or the star's Hill radius in the pair, whichever is tighter, so two stars give exactly what `Star.a_crit_au` has always held, and a pair node's lower limit is the circumbinary fit or the highest engulfment floor of a member below it, which is `StarSystem._orbit_floor_au`. The disk cap is `tuning.PLANET_ZONE_DISK_CAP_AU`. On the generator's own trees (300 draws for each N, seeded) the share of stars with an S-type window wider than 0.3 AU is 73%, 39%, 27%, 21%, 15% and 15% for N = 2 to 7, the table above within 7 points at every N. The same count for pair nodes (width above 0.3 AU alone) gives 45%, 48%, 43%, 37%, 35% and 30%, above the table's 34% to 18%: the table's "usable" P-type window was not defined past the width, so the test holds only the S-type row.
+
 ## 6. Data model, naming, maps and updates
 
 ### 6.1 Tree of pairs

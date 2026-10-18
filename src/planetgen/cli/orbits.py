@@ -29,10 +29,9 @@ first, from the last run's time (`orbit_simulation_state.last_updated_at`,
 which `finish_orbit_update` sets at the end of a run).
 
 `planetgen.db.store.advance_orbital_phases` moves planets and moons (their
-own orbit) and binary pairs' mutual orbits: a set-based `UPDATE` per table,
-driven by each body's stored `period_years`. `position_x/y/z_km` are
-recomputed in lockstep with `orbital_phase_deg` (position is a pure
-function of distance/inclination/ascending-node/phase).
+own orbit) and binary pairs' mutual orbits. A planet or moon is its state
+vector (GEN.289): `kepler.universal_step` moves `position_x/y/z_km` and
+`velocity_x/y/z_kms` from the body's own epoch, with no stored phase.
 `orbital_inclination_deg`/`orbital_ascending_node_deg`/`orbital_speed_kms`
 (fixed at generation time) and `rotation_period_hours` (a static
 descriptive stat -- this generator doesn't track rotational phase) are

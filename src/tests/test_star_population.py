@@ -18,6 +18,7 @@ import pytest
 from planetgen.physics import constants as phys_c
 from planetgen import tuning as prog_c
 from planetgen.physics import stellar_evolution as se
+from planetgen.generation import star_population as sp
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import STAR_TYPE_PATTERN, Star
 from planetgen.generation.system import StarSystem
@@ -63,9 +64,9 @@ EXPECTED_SHARES = [
     ("A dwarf", 0.4, 1.2),
     ("B dwarf", 0.1, 0.4),
     ("white dwarf", 4.0, 7.0),
-    ("subgiant", 0.15, 0.6),
+    ("subgiant", 0.08, 0.3),  # GEN.502: a light star's subgiant phase is 5% of its main sequence, not 10%
     ("giant", 0.12, 0.5),
-    ("pre-main-sequence", 0.02, 0.2),
+    ("pre-main-sequence", 2.0, 6.0),  # GEN.529: a red dwarf is still contracting for 0.1 to 0.7 Gy
 ]
 
 
@@ -208,3 +209,26 @@ def test_from_params_rebuilds_a_star_without_rolling():
 
     system = StarSystem(system_config=SystemConfig(), primary_star_params=params)
     assert system.primary_star.mass == params["mass_kg"] or getattr(system, "secondary_star", system.primary_star).mass == params["mass_kg"]
+
+
+@pytest.mark.parametrize("population, floor", [("old", 1000.0), ("halo", 50.0)])
+def test_a_light_stars_cell_bound_holds_and_is_tight_enough_to_draw(population, floor):
+    """GEN.502: the phase fractions of a light star move with its mass, so a cell's bound takes them over its own
+    masses; a bound over every light star accepted one draw in a hundred."""
+    table = sp._bright_table(floor, population)
+    window = table["window"]
+    cumulative = table["cumulative"]
+    rng = random.Random(3)
+    accepted = 0.0
+    previous = 0.0
+    for index, (low, high, alpha, bound) in enumerate(table["cells"]):
+        share = (cumulative[index] - previous) / cumulative[-1]
+        previous = cumulative[index]
+        measures = []
+        for _ in range(6):
+            mass = sp._sample_power_law(low, high, alpha, rng)
+            measures.append(sum(max(0.0, min(end, window[1]) - max(start, window[0])) * chance
+                                for start, end, chance in sp._bright_windows(mass, floor)))
+        assert max(measures) <= bound * (1 + 1e-9), (low, high)
+        accepted += share * sum(measures) / len(measures) / bound
+    assert accepted > 0.05, accepted

@@ -72,7 +72,10 @@ def test_the_scene_has_every_body_with_orbit_elements(saved):
     assert star["ref"].startswith("star:") and star["position_km"] == [0.0, 0.0, 0.0] and star["color"].startswith("#")
     planet = scene["planets"][0]
     assert planet["ref"].startswith("planet:") and planet["orbit"]["around"] == star["ref"]
-    assert set(planet["orbit"]) >= {"distance_km", "period_years", "inclination_deg", "ascending_node_deg", "phase_deg"}
+    assert set(planet["orbit"]) >= {"distance_km", "period_years", "inclination_deg", "ascending_node_deg",
+                                    "position_km", "velocity_kms", "epoch_unix"}
+    assert "phase_deg" not in planet["orbit"]  # GEN.289: a planet is its state vector, not a phase
+    assert planet["orbit"]["position_km"] == planet["position_km"] and len(planet["orbit"]["velocity_kms"]) == 3
     assert len(planet["position_km"]) == 3 and planet["radius_km"] > 0 and planet["color"].startswith("#")
     moon = next(m for p in scene["planets"] for m in p["moons"])
     assert moon["ref"].startswith("moon:") and moon["orbit"]["around"] == moon["parent"]

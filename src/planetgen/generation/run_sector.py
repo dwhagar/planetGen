@@ -24,8 +24,8 @@ from planetgen.generation import fill_stages
 from planetgen.generation import nebula_contents
 from planetgen.generation import system_pass
 from planetgen.generation import bright_stars as brightStars
-from planetgen.galaxy import nebula_field
-from planetgen.galaxy.frame import galaxy_to_local_pc
+from planetgen.galaxy import ejecta_field, nebula_field
+from planetgen.galaxy.frame import galaxy_to_local_pc, local_to_galaxy_pc
 from planetgen.galaxy.system_position import random_unit_vector
 from planetgen.physics import constants, stellar_evolution
 from planetgen import tuning as program_constants
@@ -138,7 +138,7 @@ def sector_star_count(sector):
 
 
 def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_field=None, scattered=False,
-                              kind_factors=None, type_ia_share=None):
+                              kind_factors=None, type_ia_share=None, ambient_density_cm3=None, neighbour_hosts=()):
     """
     Populates an already-built `sector` with its exotic phenomena, each
     kind in `SECTOR_PHENOMENON_KINDS` sampled independently by a Poisson
@@ -182,11 +182,18 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
             (GEN.168), so none is rolled here.
         type_ia_share (float, optional): The sector profile's `type_ia_share` (GEN.319): the share of this sector's
             supernova remnants that are Type Ia. `None`: the solar circle's.
+        ambient_density_cm3 (float, optional): The interior density of the superbubble the sector's profile places it
+            in (`GasProfile.superbubble`, GEN.298): the supernova remnants it rolls are sized by it. `None`: outside a
+            bubble, each remnant's own class density.
         kind_factors (dict, optional): The sector profile's `kind_factors`
             (GEN.236): each kind's mean is its rate per star times the star
             count times its factor, and the star-hosted nebulae's chance is
             scaled by the `"nebula"` factor. A kind without one, and a
             sector with none given (a standalone sector), keeps factor 1.
+
+        neighbour_hosts (iterable): The emission regions (D and E) lit by pre-placed hot stars in the neighbouring sectors,
+            `(nebula, host_name, host_position_pc)` each (`FillContext.emission_hosts`, GEN.321): this sector builds the
+            ionizing members of each whose points fall inside it.
 
     Returns:
         list: The newly created `SectorPhenomenonEntry` instances. May hold
@@ -218,6 +225,7 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
                 phenomenon_config = SystemConfig()
                 phenomenon_config.MARKDOWN = args.markdown
                 phenomenon_config.TYPE_IA_SHARE = type_ia_share
+                phenomenon_config.AMBIENT_DENSITY_CM3 = ambient_density_cm3
                 phenomenon = factory(phenomenon_config, galactic_center_dist_ly)
                 if kind == "planetary-nebula":
                     entry = _add_planetary_nebula(sector, args, phenomenon, galactic_center_dist_ly)
@@ -237,13 +245,17 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
                     # phenomenon type, or the whole sector.
                     continue
 
+    own_hosts = []
     with fill_stages.stage(sector, fill_stages.NEBULAE, "hosted"):
-        hosted = add_star_hosted_nebulae(sector, args, chance_factor=kind_factors.get("nebula", 1.0))
+        hosted = add_star_hosted_nebulae(sector, args, chance_factor=kind_factors.get("nebula", 1.0),
+                                         hosts_out=own_hosts)
     fill_stages.count(sector, fill_stages.NEBULAE, "nebula", len(hosted))
     new_entries.extend(hosted)
     if cloud_field is not None:
         with fill_stages.stage(sector, fill_stages.NEBULAE, "protostars"):
             add_cloud_protostars(sector, args, cloud_field, galactic_center_dist_ly)
+        with fill_stages.stage(sector, fill_stages.NEBULAE, "emission-members"):
+            add_emission_members(sector, args, cloud_field, own_hosts, neighbour_hosts, galactic_center_dist_ly)
     return new_entries
 
 
@@ -277,7 +289,7 @@ def _add_planetary_nebula(sector, args, nebula, galactic_center_dist_ly=None, po
     return sector.add_phenomenon(nebula, "nebula", position=system_entry.position)
 
 
-def add_star_hosted_nebulae(sector, args, chance_factor=1.0):
+def add_star_hosted_nebulae(sector, args, chance_factor=1.0, hosts_out=None):
     """
     Grows emission and reflection nebulae around `sector`'s own hot
     stars (GEN.10, GEN.150): each system whose primary is a main-sequence
@@ -292,6 +304,8 @@ def add_star_hosted_nebulae(sector, args, chance_factor=1.0):
         args (argparse.Namespace): Parsed arguments; only `args.markdown` is read.
         chance_factor (float): The sector profile's `"nebula"` factor (GEN.236, the cold gas fraction): the rules'
             chances are scaled by it, so a star in a gas-poor place stays bare.
+        hosts_out (list, optional): Receives `(nebula, host_name, local_position_ly)` for each nebula made, the seed
+            star of an emission region being where its members are placed from (GEN.321).
 
     Returns:
         list: The new nebulae's `SectorPhenomenonEntry` instances.
@@ -307,6 +321,40 @@ def add_star_hosted_nebulae(sector, args, chance_factor=1.0):
         log.debug(f"Sector {sector.name!r}: {_spectral_code(stars[0])} star {system_entry.star_system.name!r} "
                   f"lights class {nebula.nebula_class} nebula {nebula.name!r}")
         entries.append(sector.add_phenomenon(nebula, "nebula", position=system_entry.position))
+        if hosts_out is not None:
+            hosts_out.append((nebula, nebula_contents.host_name_of(stars[0]), system_entry.position))
+    return entries
+
+
+def _add_members(sector, args, members, center_pc, galactic_center_dist_ly, label):
+    """
+    Builds the `members` (`nebula_contents.CloudMember`s) whose points fall inside `sector`, each as an ordinary young
+    system at its point from its own seed. A member that finds the sector's cell closed to it is skipped, not the
+    nebula.
+
+    Returns:
+        list: The new systems' `SectorSystemEntry` instances.
+    """
+    entries = []
+    for member in members:
+        local = tuple(pc_to_ly(value) for value in galaxy_to_local_pc(center_pc, member.position_pc))
+        if not sector.contains(local):
+            continue
+        config = run_system.build_system_config(args)
+        config.POPULATION = "young"
+        age_gy = member.age_yr / 1.0e9
+        with draw.bound(member.seed):
+            params = stellar_evolution.star_params(member.mass_sol, age_gy,
+                                                   stellar_evolution.evolve_star(member.mass_sol, age_gy))
+            system = StarSystem(system_config=config, galactic_center_dist_ly=galactic_center_dist_ly,
+                                primary_star_params=params)
+        try:
+            entry = sector.add_preplaced_system(system, local, system_config=config)
+        except ValueError:
+            continue
+        entry.system_seed = member.seed
+        fill_stages.count(sector, fill_stages.NEBULAE, label)
+        entries.append(entry)
     return entries
 
 
@@ -314,8 +362,7 @@ def add_cloud_protostars(sector, args, cloud_field, galactic_center_dist_ly=None
     """
     Builds the protostars of the field clouds that reach `sector` (GEN.320): each Bok globule (P) and star-forming core
     (Q) draws its members from its own seed (`nebula_contents.cloud_members`), and the sector builds the ones whose
-    points fall inside it, each as an ordinary young system at its point. A member that finds the sector's cell closed
-    to it is skipped, not the cloud.
+    points fall inside it, each as an ordinary young system at its point (`_add_members`).
 
     Args:
         sector (SpaceSector): The populated sector, with `field_nebulae` set.
@@ -329,25 +376,38 @@ def add_cloud_protostars(sector, args, cloud_field, galactic_center_dist_ly=None
     galaxy_seed, _shape, center_pc, _reach = cloud_field
     entries = []
     for nebula, cloud_center in sector.field_nebulae:
-        for member in nebula_contents.cloud_members(galaxy_seed, nebula, cloud_center):
-            local = tuple(pc_to_ly(value) for value in galaxy_to_local_pc(center_pc, member.position_pc))
-            if not sector.contains(local):
-                continue
-            config = run_system.build_system_config(args)
-            config.POPULATION = "young"
-            age_gy = member.age_yr / 1.0e9
-            with draw.bound(member.seed):
-                params = stellar_evolution.star_params(member.mass_sol, age_gy,
-                                                       stellar_evolution.evolve_star(member.mass_sol, age_gy))
-                system = StarSystem(system_config=config, galactic_center_dist_ly=galactic_center_dist_ly,
-                                    primary_star_params=params)
-            try:
-                entry = sector.add_preplaced_system(system, local, system_config=config)
-            except ValueError:
-                continue
-            entry.system_seed = member.seed
-            fill_stages.count(sector, fill_stages.NEBULAE, "protostar")
-            entries.append(entry)
+        entries.extend(_add_members(sector, args, nebula_contents.cloud_members(galaxy_seed, nebula, cloud_center),
+                                    center_pc, galactic_center_dist_ly, "protostar"))
+    return entries
+
+
+def add_emission_members(sector, args, cloud_field, own_hosts, neighbour_hosts=(), galactic_center_dist_ly=None):
+    """
+    Builds the ionizing members of the emission regions (D and E) that reach `sector` (GEN.321): those lit by a star in
+    this sector (`own_hosts`, `add_star_hosted_nebulae`'s `hosts_out`, the star's point sector-local) and those lit by a
+    pre-placed star in a neighbouring one (`neighbour_hosts`, galaxy-frame points). Each region's members are
+    `nebula_contents.emission_members` of its seed star's point, the same in every sector that reaches it, and the sector
+    builds the ones whose points fall inside it. The seed star itself is the host and already real.
+
+    Args:
+        sector (SpaceSector): The populated sector.
+        args (argparse.Namespace): Parsed arguments.
+        cloud_field (tuple): `(galaxy_seed, shape, center_pc, reach_pc)` as `generate_sector_phenomena` took it.
+        own_hosts (list): `(nebula, host_name, local_position_ly)` for this sector's own hosted nebulae.
+        neighbour_hosts (iterable): `(nebula, host_name, host_position_pc)` for the regions of other sectors' stars.
+        galactic_center_dist_ly (float, optional): As in `generate_sector`.
+
+    Returns:
+        list: The new systems' `SectorSystemEntry` instances.
+    """
+    galaxy_seed, _shape, center_pc, _reach = cloud_field
+    regions = [(nebula, name, local_to_galaxy_pc(center_pc, tuple(ly_to_pc(value) for value in local)))
+               for nebula, name, local in own_hosts]
+    regions.extend(neighbour_hosts)
+    entries = []
+    for nebula, host_name, host_position_pc in regions:
+        members = nebula_contents.emission_members(galaxy_seed, nebula, host_name, host_position_pc)
+        entries.extend(_add_members(sector, args, members, center_pc, galactic_center_dist_ly, "emission-member"))
     return entries
 
 
@@ -478,7 +538,7 @@ def add_scattered_phenomena(sector, args, fill):
         cut = fill.below_cut.min_mass_solar if fill.below_cut is not None else None
         type_ia_share = getattr(getattr(fill, "profile", None), "type_ia_share", None)
         entry = _seeded_build(row["seed"], lambda: _build_scattered(sector, args, row, position, dist_ly, cut,
-                                                                    type_ia_share))
+                                                                    type_ia_share, _bubble_density(fill)))
         if entry is None:
             continue
         entry.scatter_id = row["id"]
@@ -489,17 +549,27 @@ def add_scattered_phenomena(sector, args, fill):
     return new_entries
 
 
-def _build_scattered(sector, args, row, position, dist_ly, min_mass_solar=None, type_ia_share=None):
+def _bubble_density(fill):
+    """The interior density, cm^-3, of the superbubble the fill's sector profile places the sector in (GEN.298), or
+    `None` outside a bubble or without a profile (a standalone sector)."""
+    bubble = getattr(getattr(getattr(fill, "profile", None), "gas", None), "superbubble", None)
+    return None if bubble is None else bubble.ambient_density_cm3
+
+
+def _build_scattered(sector, args, row, position, dist_ly, min_mass_solar=None, type_ia_share=None,
+                     ambient_density_cm3=None):
     """One scatter row built into `sector` at `position` (sector-local
     light-years): its entry, or `None` when a planetary nebula's central
     system found no room. A neutron star's or black hole's mass is drawn
     at or above the scatter's cut `min_mass_solar` (GEN.166; `None`: the
     whole range). A supernova remnant is Type Ia with the share `type_ia_share` (GEN.319; `None`: the solar
-    circle's)."""
+    circle's). A supernova remnant is sized by `ambient_density_cm3` where the sector lies in a superbubble (GEN.298;
+    `None`: its own class density)."""
     kind = row["kind"]
     config = SystemConfig()
     config.MARKDOWN = args.markdown
     config.TYPE_IA_SHARE = type_ia_share
+    config.AMBIENT_DENSITY_CM3 = ambient_density_cm3
     if kind == "hypervelocity-star":
         return _add_hypervelocity_star(sector, args, row, position, dist_ly)
     if kind == "planetary-nebula":
@@ -560,6 +630,41 @@ def add_below_cut_remnants(sector, args, fill, galactic_center_dist_ly=None):
                 entry.system_seed = f"{below_cut.seed}:{made}"
                 entries.append(entry)
                 fill_stages.count(sector, fill_stages.BELOW_CUT, kind)
+    return entries
+
+
+def add_ejecta(sector, args, fill, galactic_center_dist_ly=None):
+    """
+    The neutron stars and black holes the galaxy ejected that stream through this sector (GEN.238): per kind, a Poisson
+    count with the mean of the sector's profile (`SectorProfile.ejecta`, `ejecta_field`), each remnant built like any
+    other (a stellar-mass black hole), placed like a rolled one (anywhere in the cube clear of the Hill spheres already
+    there), and given a velocity of its own (`ejecta_field.draw_velocity_kms`) in place of an orbit. They carry no
+    planets: a kick that unbinds a star strips them. A sector with no profile (a standalone one) has none.
+
+    Returns:
+        list: The new `SectorPhenomenonEntry` instances (one that found no room is skipped).
+    """
+    profile = getattr(fill, "profile", None)
+    expected = getattr(profile, "ejecta", None) or {}
+    entries = []
+    for kind in ejecta_field.KINDS:
+        mean = expected.get(kind, 0.0)
+        if mean <= 0.0:
+            continue
+        with fill_stages.stage(sector, fill_stages.EJECTA, kind):
+            for _ in range(_sample_poisson_count(mean)):
+                config = SystemConfig()
+                config.MARKDOWN = args.markdown
+                if kind == "black-hole":
+                    remnant = BlackHole(config, galactic_center_dist_ly=galactic_center_dist_ly, mass_class="stellar")
+                else:
+                    remnant = NeutronStar(config, galactic_center_dist_ly=galactic_center_dist_ly)
+                remnant.eject(ejecta_field.draw_velocity_kms())
+                try:
+                    entries.append(sector.add_phenomenon(remnant, kind))
+                except ValueError:
+                    continue  # no room clear of the Hill spheres already placed
+                fill_stages.count(sector, fill_stages.EJECTA, kind)
     return entries
 
 
@@ -728,12 +833,15 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
         generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly,
                                   cloud_field=cloud_field, scattered=scattered,
                                   kind_factors=getattr(getattr(fill, "profile", None), "kind_factors", None),
-                                  type_ia_share=getattr(getattr(fill, "profile", None), "type_ia_share", None))
+                                  type_ia_share=getattr(getattr(fill, "profile", None), "type_ia_share", None),
+                                  ambient_density_cm3=_bubble_density(fill),
+                                  neighbour_hosts=getattr(fill, "emission_hosts", ()))
         if scattered and fill.below_cut is not None:
             with fill_stages.stage(sector, fill_stages.BELOW_CUT):
                 below_cut_entries = add_below_cut_remnants(sector, args, fill, galactic_center_dist_ly)
             with fill_stages.stage(sector, fill_stages.SYSTEM_PASS, "below-cut"):
                 system_pass.run(sector, args, below_cut_entries, galactic_center_dist_ly)
+        add_ejecta(sector, args, fill, galactic_center_dist_ly)
         with fill_stages.stage(sector, fill_stages.FLAGS, "fast-stars"):
             flagged = flag_fast_stars(sector, galactic_center_dist_ly=galactic_center_dist_ly, scattered=scattered)
         fill_stages.count(sector, fill_stages.FLAGS, "fast-star", flagged)

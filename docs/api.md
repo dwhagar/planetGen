@@ -364,8 +364,8 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/galaxy/tiles?tiles=<key>,<key>,...` — the 3D
   Galaxy Map's data, one fixed cube of space ("tile") at a time
   (`queryDb.galaxy_tiles`). Space is an octree: level 0 is one cube
-  65,536 pc on a side centered on the galactic origin, each level halves
-  the edge down to 16 pc at level 12, and a key is `level/ix/iy/iz`
+  524,288 pc on a side centered on the galactic origin (the grid's whole 262 kpc reach either side, MAP.239), each level halves
+  the edge down to 16 pc at level 15, and a key is `level/ix/iy/iz`
   (`ix` counts cubes along x from the root cube's −x face). A part that took
   too long is left empty and named in the tile's `incomplete` list. Returns
   `{"tiles": {"<key>": {"placed": [...], "planned": [...], "sector_count": n,

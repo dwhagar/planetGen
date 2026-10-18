@@ -79,6 +79,26 @@
       "epoch": 16,
       "first_release": "8.0.1746",
       "reason": "Mid-B stars (5 to 9 solar masses at birth) have a companion with chance 0.76 and early-B stars (9 to 16) 0.84, against 0.65 for every B star, and their star counts follow Moe and Di Stefano's Table 13 single, binary and multiple fractions, so which massive stars have companions, and how many, differ (GEN.449)."
+    },
+    {
+      "epoch": 17,
+      "first_release": "8.0.1750",
+      "reason": "A star younger than its contraction time and under 8 solar masses is a pre-main-sequence star at any age (the 10 Myr cap is gone) on the BHAC15 track (GEN.529), a star lives its main sequence by the Hurley, Pols and Tout lifetime (GEN.467), a neutron star's radius follows its mass in the Miller et al. band (GEN.463), and a star lighter than 2.2 solar masses has the Hurley giant branch and a 100 Myr horizontal branch (GEN.502), and an intermediate-mass black hole is 3e-6 of black holes in place of 0.1% (GEN.259), so the ages, phases and luminosities of stars and the scatter rows change."
+    },
+    {
+      "epoch": 18,
+      "first_release": "8.0.1757",
+      "reason": "Hypervelocity stars are placed out to the grid's reach with no outline test and their count scales with the reach, neutron stars and black holes the galaxy ejected stream through every sector as their own stage on straight lines, and a supernova remnant in a superbubble is sized by the cavity's interior density (GEN.238, GEN.298), so the scatter rows and the sector fills change."
+    },
+    {
+      "epoch": 19,
+      "first_release": "8.0.1758",
+      "reason": "The disk's young, intermediate and old star shares come from its own gas history (the Kennicutt-Schmidt law fed by the stars its halo builds), so a light galaxy holds more young stars and a heavy one fewer than the flat ten-billion-year history, and the magnetar rate reads the new young share (GEN.469)."
+    },
+    {
+      "epoch": 20,
+      "first_release": "8.0.1759",
+      "reason": "The ionizing members of a class D or E emission region are real stars placed in a Plummer sphere about its seed star, and a star's hosted-nebula roll reads its mass, age and temperature as floats, so some stars roll a different nebula (GEN.321)."
     }
   ]
 }

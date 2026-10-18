@@ -186,7 +186,7 @@ def test_pages_link_to_objects_by_id_and_never_by_row_number(bodies):
 
 def test_the_galaxy_stage_and_tiles_carry_sector_ids_the_map_can_open(mysql_config):
     """The Galaxy Map opens `/sector/<id>/scene` with the ids from the stage payload and the tiles."""
-    from planetgen.galaxy.viewport import tiles_intersecting_sphere
+    from planetgen.galaxy.viewport import TILE_ROOT_EXTRA_LEVELS, tiles_intersecting_sphere
     from tests.test_api import _generated_sectors, _rebuild_block_stats
 
     _generated_sectors(mysql_config, [0.5, 5.0, 40.0])
@@ -200,7 +200,7 @@ def test_the_galaxy_stage_and_tiles_carry_sector_ids_the_map_can_open(mysql_conf
     app = create_app(TestConfig)
     app.testing = True
     client = app.test_client()
-    keys = tiles_intersecting_sphere(9, (60.0, 60.0, 60.0), 130.0)
+    keys = tiles_intersecting_sphere(9 + TILE_ROOT_EXTRA_LEVELS, (60.0, 60.0, 60.0), 130.0)
     tiles = client.get("/api/galaxy/tiles?tiles=" + ",".join(keys)).get_json()["tiles"]
     placed = [row for tile in tiles.values() for row in tile["placed"]]
     assert placed and all(isinstance(row["id"], str) for row in placed)
