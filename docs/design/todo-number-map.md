@@ -1707,7 +1707,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.124 | `sector` and `phenomenon` only generate: the population pass leaves `sector` and the settle leaves `phenomenon` | none | open |
 | PERF.125 | The population pass and the territories pass are separate commands | none | open |
 | PERF.126 | `check-db`: each check is its own command and the report is the list the wrapper runs | none | open |
-| PERF.127 | `warm_map`: each cache family is its own command and `update.sh` builds the list | none | open |
+| PERF.127 | `warm_map`: each cache family is its own command and `update.sh` builds the list | none | done, PR #2166 |
 | PERF.128 | `benchmark` is a step list handed to the wrapper, not a sequence of its own | none | open |
 | PERF.129 | Robust tile caching: the first zoom levels built ahead, tiles stored compressed, built proactively around every visit, kept until the data changes | none | open |
 | PERF.130 | Build the first several zoom levels of the Galaxy Map ahead of the first visitor: the opening view and every level down to a chosen depth | none | open |
