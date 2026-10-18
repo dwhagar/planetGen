@@ -18984,52 +18984,6 @@ clears each one.
   gate. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.126, TEST.171, TEST.172, TEST.227.
 
-- [ ] **TEST.232 The a11y page_targets fixture fails 199 browser tests when /search answers 202 (slow-page job) under load (bug)**
-  Found by Core 3 (2026-10-17, about 8:28 PM EDT as the lane reported;
-  GEN.321's third gate, browser phase, load 6 to 10, between about 7:30
-  and 8:06 PM EDT), filed by the TODO thread. 199 tests errored in setup
-  with `web.search: GET /search answered 202 (anonymous) / 202 (admin)
-  with the sample database` (`src/tests/test_web_a11y.py`, the module
-  fixture `page_targets`, which asks every page for a 200 once). Core 3
-  suspected a Redis or search index shared by two gates running at once;
-  reading the code does not support that: the module's database is
-  `planetgen_a11y_<uuid>`, and every slow-page key
-  (`planetgen:slowtime:`, `planetgen:slowpath:` in `queue/pagejobs.py`)
-  holds that name, so another gate cannot reach them. What the code does
-  show: `/search` is a `@slow_route` page (`web/views.py:316`) that asks
-  the API for several answers; the first build that takes over
-  `tuning.SLOW_PAGE_SECONDS` (3.0 s) is timed (`apiclient._body_of` into
-  `pagejobs.record_duration`), and `slowpages.cost` then calls every
-  other request on that route slow (`slowest_recent_duration`, 600 s)
-  and `pagejobs.ensure` queues it, so the page answers `202` with the
-  loading state. On a loaded box the first build is slow enough to do
-  that; on an idle one it never is. The fixture never waits for a page
-  job, so the status stays 202 and `pytest.fail` follows. Reproduced by
-  the TODO thread (2026-10-17, 8:40 PM EDT): with
-  `tuning.SLOW_PAGE_SECONDS = 0.001` set before `pytest.main` on
-  `src/tests/test_web_a11y.py -k search` the fixture fails alone with
-  `web.phenomena: GET /phenomena answered 202 (anonymous) / 202 (admin)
-  with the sample database` (the first slow-route page it asks;
-  `/search` is the second). Fails on main: yes, when the threshold is
-  lowered; not run on main loaded. Frequency: once (one gate, about 36
-  minutes of the browser phase, 199 tests of the module). Reproducer:
-  `python3 -c "import pytest; from planetgen import tuning;
-  tuning.SLOW_PAGE_SECONDS = 0.001; pytest.main(['-n0',
-  'src/tests/test_web_a11y.py', '-k', 'search'])"` with
-  `PYTHONPATH=src`. Do: make the fixture independent of load (pin the
-  slow-page rule off for this module's app, as the slow-page tests pin
-  it on, or follow the 202 to its finished page) and check the other
-  module-scoped fixtures that ask a `@slow_route` page for a 200
-  (`/phenomena` too). Done: the fixture passes with `SLOW_PAGE_SECONDS`
-  at 0.01 and the cause is on this item. Owner: Core 2 (owns UX.118 and
-  the slow pages; proposed).
-  Fix coded (Core 2, 2026-10-17, 9:15 PM EDT as the lane reported):
-  branch test232 pins `SLOW_PAGE_SECONDS` off for the a11y fixture's
-  app. It waits for Core 2's gates in order (TEST.231 first).
-  TEST.231 merged as #2147 (Core 2, 10:23 PM EDT as the lane reported);
-  the TEST.232 PR is next, then MAP.239.
-  Prerequisites: none. Related: UX.118, PERF.105, TEST.223.
-
 - [ ] **TEST.233 test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug)**
   Found by Core 3 (2026-10-17, about 8:28 PM EDT as the lane reported;
   GEN.321's third gate), filed by the TODO thread.
