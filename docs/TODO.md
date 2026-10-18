@@ -623,7 +623,7 @@ with `clamp()`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 51 of 53). This replaces any earlier owner line on this item.
-  Prerequisites: NAV.61, MAP.243.
+  Prerequisites: NAV.61.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
 
 - [ ] **UX.119 An HTML renderer for the Document: facts, rating and composition tables, with unit spans, in both themes**
@@ -2305,88 +2305,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.389, UX.135. Related: MAP.232, MAP.234, MAP.235.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
-- [ ] **MAP.243 The Galaxy Map cannot select or enter anything in the halo: the halo's scatter objects are not pickable at galaxy scale and a zoom toward one stops without opening a view (bug)**
-  Boss (2026-10-16, 9:21 PM EDT): "Bug in the galactic map I cannot
-  select or zoom into sectors in the halo region of the map ... I cannot
-  say zoom in to see the space around a black hole scattered out in the
-  halo region, there's no way to select and zooming in tops out without
-  transitioning." Boss asked that an existing later item not be changed
-  if one covers it; none does (checked 2026-10-16, 9:30 PM EDT by a
-  read-only code survey, nothing run in a browser): MAP.207 only draws
-  satellites, clusters and wanderers as points beyond the outline and
-  says nothing of selecting or entering (8.8); MAP.219 makes stored
-  black holes pickable markers, with no enter step (8.8); MAP.225 zooms
-  toward a picked object but only helps if the object is pickable;
-  GEN.322 is stars only; MAP.210 is star selection inside a sector.
-  Causes found: (1) Blocks, and so every zoom hand-off, exist only
-  inside the outline: `galaxyBlocks` and `windowView`
-  (`galaxystages.js:126-157`) keep a block only if the outline holds it,
-  the outline (`galaxyOutline`, `galaxyprisms.js:936-954`) reaches only
-  the shells whose density passes `sector_min_density`, and
-  `S.sectorStage` returns null outside it (`galaxystages.js:274-277`),
-  so the wheel's hand-off `zoomAcross` (`galaxystageview.js:2163-2205`)
-  finds nothing to open and the zoom stops at its floor. (2) At the
-  whole-galaxy stage only blocks are pickable: the `phenomena` and
-  `clouds` layers are enabled only inside a window (`inContainer`,
-  `galaxystageview.js:2935`), so a black hole is drawn but cannot be
-  clicked until a window is open, and outside the outline there is no
-  window. (3) Tiles deliver scatter rows by position with no sector row
-  (`galaxy_scattered_points_in_box`, `db/query.py:4452-4500`) but the
-  scatter itself stays inside the outline today (`scatter_shell` per
-  outline shell; `hypervelocity_rows` drops landings outside it) and
-  coarse tiles list only the top three classes. (4) Tiles cannot address
-  beyond 32.8 kpc (`TILE_ROOT_EDGE_PC`, MAP.239). (5) The server already
-  opens any address in the reach (`/api/galaxy/uncharted`,
-  `/sector/at/<s>/<b>/<w>` with its profile panel, API.27 and UX.113),
-  but the map's "Show on Galaxy Map" for a halo address ends in "Sector
-  ... is outside the galaxy" (`galaxystageview.js:2636`). What Boss sees
-  before this ships: the halo's objects drawn as points with no
-  selection, the wheel stopping short of any halo cell, and a profile
-  page that cannot be shown on the map. Done: from the whole-galaxy view
-  a click or a wheel run onto an object in the halo (a black hole
-  scattered there) selects it and shows its details; the camera flies to
-  it and a further zoom opens the view of its cell, as an uncharted cell
-  with its profile when nothing is stored (the entering gate is the
-  reach of 262 kpc, not the outline); "Show on Galaxy Map" works for any
-  address in the reach; tiles carry the halo's scatter rows beyond the
-  outline once GEN.322 and GEN.323 produce them; a browser test on a
-  seeded galaxy with a halo black hole selects it, zooms into it and
-  ends in the cell's view with its neighbourhood shown. Owner: Core 2
-  proposed (the map lane that owns the infinite zoom tree and MAP.239),
-  after the tree; the Interface lane may take it with UX.115 if that
-  lane starts first.
-  Prerequisites: none. Related: MAP.207,
-  MAP.219, MAP.210, UX.115, GEN.322, API.27.
-  Second sighting, confirmed (Boss, 2026-10-17, 3:09 PM EDT, screenshots
-  under /mnt/project-files/bugs/galaxy-halo-group-2026-10-17/, folded in
-  from MAP.246): a loose group of stars far above the disc on a fresh
-  galaxy cannot be reached or selected. Bug Hunt reproduced it on Boss's
-  seed 2AFA1AD866D4BEB8646BF53C77A43DD6 (PlanetGen 8.0.1737; run: galaxy
-  --then-scatter --phenomenon-min-mass 14 --compact-min-mass star
-  --bright-star-min-luminosity 9000) at 4:30 PM EDT as the lane
-  reported: the group is one of the 11 satellite galaxies the plan drew,
-  5.7 kpc out and 2.3 kpc above the plane; the disc outline ends at
-  shell 1,511 and the group's stars sit at shells 1,604 to 1,620, so no
-  block or window exists there; the wheel stops at a camera distance of
-  6,912 pc and a click on one of its stars reports "Block 0·0·0, 0
-  sectors charted" instead of the star. This is exactly cause (1) and
-  (2) above; MAP.225's anchor problem is not involved. Screenshot of the
-  reproduction:
-  /mnt/project-files/bugs/galaxy-halo-group-2026-10-17/repro-zoom-stops-at-6911pc.png
-  (Bug Hunt's regeneration was cut off in its last stage, so star counts
-  may differ slightly). A fix lets Boss reach the satellite stars, so a
-  browser test on this seed (or a seeded satellite) selects a satellite
-  star and zooms to it.
-  Order (TODO thread, 2026-10-17, 4:25 PM EDT): this is the only open
-  bug that stops Boss reaching stars he can see, so it is worth taking
-  before the end of the infinite zoom tree. Its one hard prerequisite is
-  MAP.239 (the tile root to the reach: small, no prerequisite, Core 2,
-  queue position 31); the scatter rows beyond the outline of GEN.322 and
-  GEN.323 are only needed for the tile part, not for the pick and the
-  hand-off. It edits the wheel hand-off `zoomAcross` in
-  galaxystageview.js, which MAP.245 is also changing, so one lane should
-  hold both: Core 2 right after MAP.245 merges.
-
 - [ ] **MAP.244 The maps and pages use the atmosphere colour where they showed the planet colour**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/sky-colour-analysis.md): "Sky color should definitely
@@ -2437,7 +2355,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   exists; with a switch on everything of MAP.207, MAP.243 and MAP.239
   works as built in 8.1; a browser test per combination of the switches.
   Owner: Core 2 (proposed).
-  Prerequisites: GEN.538, GEN.539, GEN.540, MAP.243. Related: GEN.538,
+  Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.538,
   GEN.539, GEN.540, MAP.207, MAP.243, MAP.239.
 
 - [ ] **MAP.249 The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug)**
@@ -4882,6 +4800,47 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   next free epoch after rebasing (24 is Core 1's GEN.402 if that merges
   first). The 8.4 revision of DB.73 takes the next free number at its
   merge.
+  Progress (Core 3, 12:52 and 12:56 AM EDT 2026-10-18 as the lane
+  reported): coded, gate started 12:56 AM EDT from zero (build 1fe4d597,
+  rebased on main d78c3408). Built: `physics/open_cluster_evolution.py`
+  and `generation/open_clusters.py` (formation efficiency Kruijssen 2012
+  eq. 45, a mass function of M^-2 from 50 to 1e6 solar masses at the
+  widest limit from Lamers 2005 and Lada and Lada 2003, disruption and
+  stellar-evolution loss Lamers 2005 and Lamers, Gieles and Portegies
+  Zwart 2005, size Portegies Zwart 2010, all read); labelled stand-ins:
+  [Fe/H] sigma 0.05, a cap at 1/6 of the Jacobi radius, gas left out of
+  the ambient density. Clusters are `galaxy_components` rows (kind
+  cluster, profile plummer) stored beside the globular clusters; their
+  stars are 12 new age-bin populations open_cluster_00 to
+  open_cluster_11 (migration 0110, schema v110 doc, fixture v109 and
+  migration test done); OB associations stay the disk young population.
+  The design note is a NEW section 5.14 of
+  docs/design/intergalactic-and-halo-contents.md (5.13 was taken) and
+  the later-phenomena row of this item points to it. Finding: counts
+  follow the star formation rate density, so a drawn galaxy gets about
+  5,000 (stellar mass 7e9, scale 4.6 kpc) to 92,000 (1.2e10, 2.4 kpc)
+  clusters and the 40 pc toy of the plan tests got 507,000; Core 3 made
+  `ComponentField.bound`, `high_band` and `_contributions` fast for tens
+  of thousands of components (sorted-radius windows, checked equal to
+  brute force, 2,000 bounds in 0.33 s) and the toy plan helper keeps
+  only clusters above 2e4 solar masses. The epoch in the note reads 24
+  pending and is renumbered at merge (Core 1's GEN.402 and Core 4's
+  bundle also claim 24; the first to merge takes it).
+  Update (Core 3, 1:58 AM EDT 2026-10-18 as the lane reported): the
+  first full run (12:55 AM) was cut at 56 minutes after it found two
+  real faults, a tuning pair that was not ordered and a 60 s hang for a
+  1 pc toy galaxy from millions of drawn open clusters (fixed with a
+  dict and an `OPEN_CLUSTER_MAX_COUNT` of 100,000 as a program limit
+  that raises the low mass); the container's memory limit killed mysqld
+  at 1:50 AM EDT (5:50Z), caused by Core 3's side tests running beside
+  the gate, which polluted about 100 database tests. Rebased on main
+  c3b9ec30 and restarted from zero at 1:55 AM EDT, expected end about
+  3:30 AM EDT. GEN.282 (core gas ring) is coded, tested and committed
+  behind it; GEN.563 is coded with 15 new tests and the old ones
+  updated, in a third worktree; Core 3 plans one stacked gate for
+  GEN.282 and GEN.563, merged in order (the epoch 24 pending rides all
+  three). The core ring's over-production of massive clusters is
+  GEN.589.
   Prerequisites: none. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -7841,6 +7800,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass slope 0.48 (Neumayer 2020, zero point 6.51 at M* 1e9), against
   Georgiev 1.0 to 1.36: both kept (widened, Boss's decision 2); Gemini's
   0.65 is attributed to Neumayer and is not in the paper.
+  Progress (Core 1, 12:47 AM EDT 2026-10-18 as the lane reported): coded
+  and rebased on main including #2187, epoch 24; changed gate (pid
+  18022) started 12:22 AM EDT, non-browser phase at 47% with no
+  failures, expected end about 2:20 AM EDT; PR and squash follow if
+  green. It resolves this item and adds none.
   Prerequisites: none. Related: GEN.280, GEN.387, GEN.368.
 
 - [ ] **GEN.403 The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157**
@@ -7938,6 +7902,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   gives the default: draw eta over the widest range, 2.9e-5 to 6e-5,
   keep all three sources. Applied by the TODO thread from that rule, not
   a new tap; a card is possible if Boss wants a narrower choice.
+  Decided (Boss, 1:14 AM EDT on 2026-10-18, typed in the project chat,
+  as the coordinator relayed; answering the eta question): 'No, I think
+  we're good for now. We can tune it later.' The cluster system mass
+  fraction eta keeps the widest range, 2.9e-5 to 6e-5 with all three
+  sources, as applied above; no card; he tunes it later.
   Prerequisites: none. Related: GEN.297, GEN.366, GEN.387.
 
 - [ ] **GEN.404 The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position**
@@ -8020,6 +7989,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   once they land, so the "Done" density check here states the factor it
   measures and GEN.544 and GEN.545 bring it back toward the old local
   density. Owner of all three: Core 1.
+  Progress (Core 1, 12:47 AM EDT 2026-10-18 as the lane reported): coded
+  and committed on its own branch; it needs a rebase, epoch 25, a test
+  sweep and its own gate after GEN.402. The Done check states the
+  measured density factor, about 0.38 of the old pinned value before
+  GEN.544 and GEN.545 land (they follow it, Boss 9:00 PM EDT).
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -9488,6 +9462,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (User-Agent, sha256, cache outside the repository, labelled stand-in,
   offline fixtures), never at run time; a run-time fetch would have to
   say why the data needs constant updates.
+  Progress (Blocker 1, 12:47 AM EDT 2026-10-18 as the lane reported):
+  GEN.439 and GEN.440 are one branch (claude/gen439-stellar-relations,
+  rebased on main at 12:19 AM EDT after #2184) and one PR; changed gate
+  started 12:20 AM EDT (pid 7278), 61% at 12:47 and 74% at 12:50 AM EDT.
+  Built: `physics/stellar_abundances.py` (Asplund 2021 scale, the age
+  gate 8.0 Gy and the Bensby logistic as the gated row table
+  'stellar-abundance-branch', hinge [X/Fe] fits with Cholesky residuals,
+  CEMP, X, Y and Z and element fractions, the Fe/Si, Mg/Si and C/O
+  ratios, first dredge-up, birth Eu, Th and U, the white-dwarf
+  mass-radius table in `physics/data/white_dwarf_mass_radius.json` built
+  by `scripts/build_white_dwarf_table.py`, the neutron-star outer crust,
+  black-hole formulas, brown-dwarf limits and radius, and a RELATIONS
+  list with source and state per relation; fit constants in tuning.py).
+  New modules for the architecture page:
+  `planetgen.physics.stellar_abundances`,
+  `planetgen.physics.stellar_composition` (and
+  `planetgen.physics.elements`, `planetgen.queue.commands`,
+  `planetgen.queue.wrapper`, already merged). Open states left in
+  RELATIONS (neon follows O or Mg, white-dwarf layers, neutron-star
+  inner crust and core, the brown-dwarf radius and hydrogen limit
+  against Z) wait on GEN.548.
+  Update (Blocker 1, 1:13 AM EDT 2026-10-18 as the lane reported): the
+  first gate had one real failure (the tuning pair test:
+  `STELLAR_NS_MASS_HEAVIEST_SOL` was a (mean, sigma) tuple and is now
+  two constants) plus the three architecture-page tests, which are
+  opt-in since DOC.69; rebased on main 6ed27d7, second changed gate
+  started 1:12 AM EDT. A fourth new module for the architecture page:
+  `planetgen.physics.wolf_rayet`.
 
 - [ ] **GEN.440 Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9589,6 +9591,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (User-Agent, sha256, cache outside the repository, labelled stand-in,
   offline fixtures), never at run time; a run-time fetch would have to
   say why the data needs constant updates.
+  Progress: built with GEN.439 as one PR
+  (`physics/stellar_composition.py`: `star_makeup` from kind, [Fe/H],
+  age, mass and a key, drawing from the stream abundance:{key}); in the
+  gate with it. See GEN.439.
 
 - [ ] **GEN.441 Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -13971,6 +13977,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its host except through the pair builder, where the primary-first step
   (GEN.581) lives. A wording edit on a table being written anyway; no
   behaviour change.
+  As built so far (Core 4, 12:47 AM EDT 2026-10-18 as the lane reported;
+  coded on a branch, not merged, byte-identical draws proven over 30,000
+  seeds): the host class names are group-node, star-like, remnant,
+  brown-dwarf, planet and moon, with three tables (star-count,
+  remnant-satellites, planet-satellites); `SYSTEM_PASS_ODDS` and
+  `multistar.STAR_COUNT_PROBABILITIES` are gone; it is built in 8.1
+  phase 3 (the unified-objects note said U2 is 8.4, which is wrong: U2
+  is 8.1). Not yet applied by the lane: the System-card rewording above
+  (drop 'moons lowest level', moon and small-body host rows with a
+  `may_host` gate, orbiter mass as a ratio to host mass); it is in this
+  item's text now, so the lane should read it before the merge.
   Prerequisites: none. Related: GEN.550, GEN.315.
 
 - [ ] **GEN.553 One star-like body draw: origin, birth, state and [Fe/H], with the initial-final relation, the remnant mass, radius and age rules in one place**
@@ -15446,6 +15463,32 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.586. Related: GEN.550, GEN.568, GEN.569.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
+- [ ] **GEN.589 Research: the central molecular zone's upper cluster mass and its cloud-shock disruption, so the young clusters of the core match the few that are observed**
+  Finding from Core 3 while building GEN.244 and GEN.282 (1:58 AM EDT
+  2026-10-18 as the lane reported), filed by the TODO thread. Kind:
+  generation result against observation. Object: the central molecular
+  zone ring of a drawn galaxy. Result: 5 to 12 young clusters above 5e3
+  solar masses per galaxy against about 2 observed (Arches and
+  Quintuplet), and 7 to 21 clusters older than 10 Myr above 5e4 against
+  none. Cause as the lane reads it: the cluster mass function M^-2 runs
+  to 1e6 solar masses (the widest limit under Boss's widest-range rule),
+  the ambient density of the disruption law leaves out the gas, and
+  there is no disruption by cloud shocks. Do (research first, nothing
+  built until the sources are read): find a published upper cluster mass
+  for the central molecular zone and a cloud-shock disruption rate (Core
+  3 names Trujillo-Gomez 2019 as a lead; it is a lead until a lane has
+  read it, and a lane verifies each citation before use), say what the
+  sources give, and propose the change to GEN.244's mass function and
+  disruption for the core ring; the fill ships as the labelled stand-in
+  meanwhile. A change to the stored clusters rides the pending epoch and
+  the one wiped rescatter. Done: the note names the sources with their
+  evidence state, gives the upper mass and the disruption law with their
+  scatter, and a test shows the young clusters of the core above 5e3
+  solar masses are few (the observed count is the plausibility target,
+  not a preset). Owner: Core 3 (proposed; it built GEN.244). Not a
+  prerequisite of GEN.301.
+  Prerequisites: GEN.244. Related: GEN.244, GEN.282.
+
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -16114,6 +16157,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
+  Progress (Core 5, 12:47 and 12:58 AM EDT 2026-10-18 as the lane
+  reported): written and committed on claude/core5-perf126, held behind
+  DOC.69 (merged as #2172); nine `check-*` commands run as a CHECK-kind
+  run; it needs Redis now and `--deep` and `--no-check-table` are gone.
+  Merging main, then its gate.
   Prerequisites: PERF.120. Related: PERF.118, PERF.120.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
@@ -19923,6 +19971,15 @@ clears each one.
   Done adds: a test that runs any migrate or maintenance path sets
   `PLANETGEN_STATE_DIR` to a temp folder, so the real folder is never
   written.
+  Sighting (Core 2, 1:21 AM EDT 2026-10-18 as the lane reported): in
+  Core 2's lane container (the test install, hostname vm)
+  `/var/lib/planetGen/state/maintenance.json` stayed set ('by':
+  'migrate', 'cause': 'update') from a test run's `migrate`, since 5:21
+  PM EDT 10-17; it is not Boss's server and nothing is for Boss to do.
+  Tests that run `migrate` must not write the real state directory (the
+  fixture must point `PLANETGEN_STATE_DIR` at a temporary one and
+  restore it); Core 2 works around it with `PLANETGEN_STATE_DIR`
+  meanwhile.
   Prerequisites: none.
 
 - [ ] **TEST.190 A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug)**
@@ -20632,6 +20689,10 @@ clears each one.
   failed in the gate with 0 stars stored and passed alone 2 of 2 on both the old base and origin/main. Same
   family as the cap suspected above (a capped cell stores fewer stars than the test predicts); not confirmed
   as the same cause (inferred from the failure text only). Fails on main alone: no (2 of 2).
+  Plan (Bug Hunt, 12:50 AM EDT 2026-10-18 as the lane reported): one
+  combined PR with OPS.60, OPS.61, MAP.252 step 1 and TEST.236 under one
+  shared gate, built on main in a side worktree after #2124 merges;
+  TEST.236 retires when this PR merges, not before.
   Prerequisites: none. Related: TEST.213, GEN.76.
 
 - [ ] **TEST.226 Tests for the plan configuration and its two switches: the interior is identical with each combination, off generates nothing beyond the boundaries, addresses outside them are refused, the 8.1 sphere is the all-on case**
@@ -20821,6 +20882,23 @@ clears each one.
   its first PERF.118 gate): the `[light-phone]` variant failed once
   there too and passes alone. Now seen by Core 5, Bug Hunt (both
   `[light]` cases) and Blocker 1.
+  Sighting (Core 2, MAP.243's full gate, #2199, merged 12:58 AM EDT
+  10-18 as the coordinator relayed; the lane clock read 12:59): the
+  whole suite gave 19,591 passed and this one failed in the loaded gate,
+  and it passes alone. Core 2 is fixing it in its own small PR; this
+  item retires with that PR.
+  Sighting 2 (Core 2, MAP.243's full gate, #2199, 12:58 AM EDT
+  2026-10-18 as the lane reported): the [dark] variant failed this time
+  (`assert _status_line(page).startswith("Stopped waiting.")`, the
+  status line was 'About 30% (an estimate: 300 of 1,000 rows), about 5 s
+  left.', page /phenomena, call 0.46 s on gw0, box load 10.0), where the
+  earlier sighting was [light]; Core 4's gate and Bug Hunt's re-gate
+  (12:20 AM EDT) also saw it, each passing alone. Cause as Core 2 reads
+  it: the test reads the status line once right after `.click()` before
+  the page applied the stop. Core 2 fixes it in its own small PR (wait
+  for the status text instead of reading it once); this item retires
+  with that PR. Frequency: 1 of 2 full gates for [light] and [dark]
+  together.
   Prerequisites: none. Related: TEST.227, UX.118.
 
 - [ ] **TEST.236 test_galaxy_map_drill_down_by_clicks rejects a window address with a negative band, because its regex allows a minus sign only on the wedge (bug)**
@@ -20902,6 +20980,8 @@ clears each one.
   runs. Core 3's reading: load-sensitive, probably the `_ready()` wait
   before the pointer sample. Fails on main: not in an unloaded run.
   Owner stays with whoever takes TEST.237.
+  Core 5 still owes the failure text (as the lane reported at 12:47 AM
+  EDT 2026-10-18); it comes with its next report.
   Prerequisites: none. Related: TEST.231, TEST.126.
 
 - [ ] **TEST.238 test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it fails in a gate with no hypervelocity-star stored, and passes alone (bug)**
@@ -20940,6 +21020,12 @@ clears each one.
   and passed 3 of 3 alone on its branch and on main). The fix is in the
   test: pin a seed that places one or tie the expectation to the count.
   Reproducer: loop the test 20 times from src/.
+  Sighting (Core 4, its description-layer gate, 12:47 AM EDT 2026-10-18
+  as the lane reported): failed in the gate with 'hypervelocity-star' in
+  the stored kinds, which is the toy-galaxy case this item already
+  explains (reach 36 pc, the hypervelocity count 0 in about 1 run in 6);
+  Core 4 was checking whether its own change contributed and none is
+  known.
   Prerequisites: none. Related: TEST.220, TEST.224.
 
 - [ ] **TEST.239 Tests for the unified chain: determinism by host, representation counts per kind and level, rogue and comet rates, derived remnant shares**
@@ -21145,6 +21231,32 @@ clears each one.
   Prerequisites: GEN.576, GEN.578, GEN.581, GEN.583. Related: GEN.550,
   GEN.565, GEN.576, GEN.578.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **TEST.245 test_generate_sector_real_capacity_overflow_returns_a_partial_sector fails in about 1 run in 100 because it draws an unseeded sector, so the draw sometimes fits all 120 systems (bug)**
+  Found by Core 5 (the `changed` gate of DOC.69, #2172, 12:58 AM EDT
+  2026-10-18 as the lane reported, box load about 9), filed by the TODO
+  thread after measuring it on main. Test:
+  `src/tests/test_sector_gen.py::test_generate_sector_real_capacity_overflow_returns_a_partial_sector`.
+  Failure text: `assert 0 < len(sector.entries) < 120` -> `assert 120 <
+  120` (test_sector_gen.py:382). Cause (measured, not inferred): the
+  test builds its arguments with no seed (`_real_sector_args` leaves
+  `seed` as None), so every run draws a different sector; in 390 runs on
+  an idle main (TODO thread, 2026-10-18, 1:08 to 1:12 AM EDT; 13.0 ly
+  cube, 120 systems requested, galaxy mass pinned at 1.15e12) the sector
+  held between 43 and 120 systems and 4 of the 390 runs fitted all 120,
+  so the test fails about 1 run in 100 whatever the load. Fails on main:
+  yes, by chance, 4 of 390 idle runs. Frequency: 1 in 1 gate of Core 5;
+  any gate that runs the test has about a 1% chance. Reproducer: loop
+  `generate_sector` on `_real_sector_args(120,
+  'RealCapacityOverflowSector', planets=False)` with the galaxy mass
+  pinned and count the runs with 120 entries. Do: make the overflow
+  certain, by pinning the seed (and the cube size or the count so that
+  the chosen seed overflows) or by asking for enough systems that no
+  draw can fit them all, and keep the assertion that a partial sector is
+  returned. Done: 500 runs of the test pass, or the seed is pinned and
+  the test states why that seed overflows. Owner: Bug Hunt (proposed;
+  strictly a test bug).
+  Prerequisites: none. Related: TEST.243, TEST.235.
 
 
 ## USR: User accounts
@@ -22425,63 +22537,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   DB.70.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
-
-- [ ] **DOC.69 Global documents are regenerated only by the TODO thread: a stale generated page never fails a lane's gate and a lane's PR never touches one**
-  Boss, 2026-10-17, 11:25 PM EDT (as the coordinator relayed): "TODO
-  should be the only one who regenerates global documents". Why now:
-  DOC.68 made a stale `docs/plan` page fail `build_todo_docs.py --check`
-  and `src/tests/test_todo_docs.py`, and the architecture map
-  (`docs/design/architecture-map.html`, DOC.67) goes stale whenever any
-  lane adds a module (`physics.brown_dwarf` did; PERF.127 regenerated it
-  in #2166), so every lane PR that adds a module regenerates a 3 MB page
-  and every two such PRs conflict. Global documents are the generated
-  pages that span the project: the architecture map, `docs/index.html`
-  and every `docs/plan/*.html`. Plan (TODO thread's proposal, with Core
-  5, which owns DOC.67 and DOC.68, to settle the details): (1) a pytest
-  marker `globaldocs` on the freshness tests
-  (`test_architecture_map.py::test_the_page_lists_every_module_of_the_package`,
-  `test_docs_index.py::test_the_index_is_up_to_date` and
-  `test_every_html_page_under_docs_is_listed_with_a_description`,
-  `test_todo_docs.py::test_pages_are_up_to_date`);
-  `src/tests/conftest.py` leaves them out of every run unless
-  `PLANETGEN_GLOBAL_DOCS=1` or `-m globaldocs` is given, so
-  `scripts/test.py changed`, `quick` and a lane's gate never run them;
-  (2) one script, `scripts/build_global_docs.py` (with `--check`), runs
-  the three builders, and `scripts/test.py globaldocs` runs the marked
-  tests with the variable set; the TODO flow runs it after every merge
-  batch and `full --check` at a release stamp runs it, so a stale page
-  fails there and nowhere a lane sees it; (3) the builders stay as they
-  are and the generated files are never in a lane PR (the lane's own
-  docs, such as a design note and its entry in `docs/design/README.md`,
-  stay lane work); (4) the rule is written in the process docs
-  (`docs/plan/execution-notes.md`, `CLAUDE.md` or the contributor doc
-  that carries the lane rules, and the briefs) and the execution plan
-  page shows it. Done: a lane that adds a module and does not touch a
-  global document passes its changed gate; the marked tests fail on a
-  stale page when run with the variable, and the TODO flow and the
-  release stamp run them; the rule is in the process docs. Order on Core
-  5's lane (coordinator, 11:25 PM EDT): first, ahead of PERF.126, so
-  other lanes do not hit conflicts. Owner: Core 5 (proposed by the
-  coordinator; it owns DOC.67 and DOC.68). Open point for Core 5:
-  whether `test_todo_docs.py`'s other checks (the ledger counts, the
-  order check) stay in the lane gate, since they read TODO.md which
-  lanes never edit.
-  Core 5's build, PR #2172 (11:40 PM EDT as the lane reported, gate
-  running), differs from the plan above in four details, all accepted:
-  the marker `globaldocs` is on six tests (architecture map module list
-  and its --check test, docs index 'is up to date', 'every page is
-  listed' and 'links resolve', todo_docs test_pages_are_up_to_date; the
-  'every page has a description' and 'links back to the index' checks
-  stay in every gate); todo_docs' other checks (ledger counts, order
-  check, the execution plan built from its sources) stay in the lane
-  gate because they read TODO.md and the notes, not the committed pages;
-  there is no new `scripts/test.py` subcommand, `scripts/test.py
-  <command> --global-docs` sets PLANETGEN_GLOBAL_DOCS=1 for any command
-  and the stamp runs `scripts/test.py full --check --global-docs`;
-  `python scripts/build_global_docs.py [--check]` rebuilds or checks the
-  architecture map, the docs/plan pages and the docs index in that
-  order. Both `warm_map` docstrings are fixed in it.
-  Prerequisites: none. Related: DOC.67, DOC.68, DOC.47.
 
 - [ ] **DOC.70 Docs for the unit registry: units-and-number-formatting.md and database-schema.md updated, the unit rules in the registry's file header**
   Part of the unified orbited-body plan (GEN.550; design note

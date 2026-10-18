@@ -189,19 +189,24 @@ def index():
     """Home, the front door (UX.55): the counts of what is here, each a link
     to its list, and the Galaxy Map, NAV and Search."""
     db = db_name()
+    sectors = apiclient.get_sectors(db, limit=1, offset=0)
+    systems = apiclient.get_systems(db, limit=1, offset=0)
+    phenomena = apiclient.get_phenomena(db, limit=1, offset=0)
+    standalone = apiclient.get_systems(db, limit=1, offset=0, sector_id="none")
+    # A count the API stopped at its cap (`total_capped`) is shown "9,999+", as the lists show it (UX.110).
     counts = [
-        (apiclient.get_sectors(db, limit=1, offset=0)["total"], ("sector", "sectors"), page_url("sectors")),
-        (_systems_total(), ("system", "systems"), page_url("systems")),
-        (apiclient.get_phenomena(db, limit=1, offset=0)["total"], ("phenomenon", "phenomena"),
-         page_url("phenomena")),
-        (_systems_total(sector_id="none"), ("standalone system", "standalone systems"), _standalone_url()),
+        (sectors, ("sector", "sectors"), page_url("sectors")),
+        (systems, ("system", "systems"), page_url("systems")),
+        (phenomena, ("phenomenon", "phenomena"), page_url("phenomena")),
+        (standalone, ("standalone system", "standalone systems"), _standalone_url()),
     ]
     return render_page(
         "index.html",
         title="Home",
         description="Every sector, star system and phenomenon in this charted galaxy.",
-        counts=[{"total": total, "noun": nouns[0] if total == 1 else nouns[1], "url": url}
-                for total, nouns, url in counts],
+        counts=[{"total": envelope["total"], "capped": bool(envelope.get("total_capped")), "url": url,
+                 "noun": nouns[0] if envelope["total"] == 1 and not envelope.get("total_capped") else nouns[1]}
+                for envelope, nouns, url in counts],
         tools=[{"label": "Galaxy Map", "hint": "Fly through the whole galaxy.", "url": page_url("galaxy")},
                {"label": "Navigate", "hint": "Plan a route between two places.", "url": page_url("nav")},
                {"label": "Search", "hint": "Find a sector, system, star, planet or moon by name.",

@@ -268,10 +268,12 @@ def _state(page):
     return _query(page), _crumbs(page)
 
 
-def _wait_settled(page, before=None, timeout_s=15.0):
+def _wait_settled(page, before=None, timeout_s=90.0):
     """Waits until the URL and the steps have held still for 250 ms
     (and, given `before`, moved off it). TEST.89: a fixed 250 ms wait
-    read the map mid-change under a loaded parallel run."""
+    read the map mid-change under a loaded parallel run. The limit is a ceiling (the wait returns the moment the
+    map has settled): the software-drawn map took longer than 15 s to answer a click on a loaded machine, and the
+    caller then read the unchanged state and reported "did nothing" (TEST.172, TEST.202)."""
     deadline = time.monotonic() + timeout_s
     page.wait_for_timeout(100)
     last, since = _state(page), time.monotonic()

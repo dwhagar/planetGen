@@ -2,6 +2,55 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1781] - 2026-10-18
+
+**Headline:** `scripts/test.py --resume` now continues a cancelled gate after main was merged in, rerunning only the tests whose files changed.
+
+### Changed
+- `--resume` reuses a pass from an earlier run, of any build, when the environment is the same and none of the files that differ between the two trees is a file the test used; a changed environment now runs every test and says why instead of refusing (TEST.208).
+- The progress log header carries a manifest of the files (path and hash), and every passed test of a `changed` run leaves a `deps` line with the files it used, so a cancelled run keeps both; reused passes are copied into the new log and counted by the next resume.
+
+TODO items resolved: TEST.208 / Added: none
+
+## [8.0.1780] - 2026-10-18
+
+**Headline:** Four load-sensitive tests no longer fail for reasons that are not in the code they check.
+
+### Changed
+- Tests: `test_whole_run_is_fast` measures the process's CPU time, not the clock, so a loaded machine cannot fail it (TEST.170).
+- Tests: the shared bright-star scatter galaxy is seeded with a fixed galaxy seed, so the forced-scatter and backfill tests cannot draw a galaxy whose first wedges hold no star (TEST.171, TEST.173).
+- Tests: the Galaxy Map click waits up to 90 s for the software-drawn map to answer instead of 15 s, which a loaded machine passed and then reported "did nothing" (TEST.172, TEST.202).
+- Tests: the process-race test waits until every starter has imported before it lets them go, so a starter that came more than 15 s late on a loaded machine no longer finds the first job's lock stale and starts a second (TEST.134).
+- Tests: the clean-up of the test Redis leaves a queue whole when it lists a job made in the last 15 minutes, so a second run starting beside a first can no longer delete the first's queued jobs (TEST.203).
+- Tests: the page accessibility test no longer counts a request the page cancelled itself (ERR_ABORTED, the map dropping its tile fetch) as a failed request, as the settings browser test already did (TEST.174, TEST.197).
+- Tests: the nested-nebula containment test draws the outer nebula again until its shape holds the whole neighbourhood the inner one is placed in, so a shape with its only central interior point near the surface no longer leaves the inner nebula's centre outside (about 1 draw in 40, TEST.216).
+
+TODO items resolved: TEST.170, TEST.171, TEST.173, TEST.172, TEST.202, TEST.134, TEST.203, TEST.174, TEST.197, TEST.216, TEST.129, TEST.130 (the last two were already fixed on main) / Added: none
+
+## [8.0.1779] - 2026-10-18
+
+**Headline:** Stopping a run now stops its workers, the Home page shows a phenomena count that follows scatters, and the species and polity lists open before the population pass.
+
+### Changed
+- A SIGTERM, Ctrl+C or exit during a parallel run now stops the run's workers and the tasks they are running (a second stop signal takes the work horse down) instead of waiting for them to finish; no worker or horse is left behind (OPS.59).
+- The stored Phenomena count (Home and the Phenomena list) is kept under a stamp that also follows the phenomenon tables and the scatter's class totals, so a scatter, a fill that builds scattered phenomena or a saved phenomenon shows at once instead of after hours; Home shows a capped count with the same "+" as the lists (UX.110).
+- `/species` and `/polities` answer with an empty page that says the population pass has not run, instead of a 404; a species or polity id that does not exist is still a 404 (UX.133).
+- `planetgen plan` stage 2 prints the number of phenomena expected, no longer the progress bar's weight (GEN.397).
+- Tests: the migrate-step test keeps the test state folders, so it no longer turns on the real `maintenance.json` (TEST.189); the far-tail skeleton bound case is pinned as an example (TEST.199).
+
+TODO items resolved: OPS.59, UX.110, UX.133, GEN.397, TEST.189, TEST.199 / Added: none
+
+## [8.0.1778] - 2026-10-18
+
+**Headline:** Only the TODO thread regenerates the global documents, and a stale one no longer fails a lane's tests.
+
+### Changed
+- **The global documents are TODO's (DOC.69; Boss, 2026-10-18, 11:24 PM EDT).** The architecture map, the plan pages and the docs index are built from the whole repository, so any lane's merge made them stale and every lane regenerated them. `python scripts/build_global_docs.py` now rebuilds all three in order (`--check` names the stale ones); the TODO thread runs it after a batch of merges, and a lane's pull request never contains a regenerated global file.
+- **The tests that compare each with its source are marked `globaldocs` and left out of every run** unless `PLANETGEN_GLOBAL_DOCS=1` (`scripts/test.py <command> --global-docs` sets it): the architecture map's module list (two tests), the docs index (three), and the plan pages (one). The release stamp runs `scripts/test.py full --check --global-docs`. Tests of the pages' own rules (a description on every page, a link back to the index, what the generators produce) still run.
+- **Two stale docstrings now name `planetgen warm`** (`admin/maintenance.py`, `cli/__init__.py`), and `docs/testing.md` and `docs/design/architecture.md` describe the rule.
+
+TODO items resolved: DOC.69. Added: none.
+
 ## [8.0.1777] - 2026-10-18
 
 **Headline:** Stars and objects beyond the galaxy's outline (the halo, the satellite galaxies) can now be picked on the whole-galaxy view and zoomed into with the wheel, down to a window of their own.

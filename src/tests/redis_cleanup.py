@@ -17,12 +17,17 @@ limiter counts of every test expire on their own).
 
 Because a run queue of the application has the same name as a test's, `clean` does nothing while a worker has
 sent a heartbeat in the last `WORKER_GRACE_SECONDS`: a real worker may be running jobs on this server.
+
+A queue with a job made in the last `YOUNG_JOB_SECONDS` is left whole, too: a second run that starts while the first
+is queueing jobs for workers that have not yet sent a heartbeat would otherwise delete those jobs under it, and the
+test would end with `WorkerDied: the task's job ended canceled` (TEST.203).
 """
 
 import datetime
 import os
 
 WORKER_GRACE_SECONDS = 90
+YOUNG_JOB_SECONDS = 900
 TEST_KEY_PATTERNS = ("planetgen-test:*", "*planetgen-api-test-*", "rq:*:planetgen-run-*", "rq:*:test-*")
 REGISTRIES = ("finished", "failed", "canceled", "started", "deferred", "scheduled")
 QUEUE_PREFIX = "rq:queue:"
@@ -60,6 +65,27 @@ def _job_ids(client, key):
     return [i.decode() if isinstance(i, bytes) else i for i in found]
 
 
+def _queue_of(key):
+    """The queue a `rq:` key belongs to (`rq:finished:NAME`, `rq:queue:NAME`), or None for any other key."""
+    parts = key.split(":", 2)
+    return parts[2] if len(parts) == 3 and parts[0] == "rq" and parts[1] != "job" and parts[1] != "results" else None
+
+
+def _made_lately(client, job, now):
+    """Whether `job`'s record says it was made less than `YOUNG_JOB_SECONDS` ago (a record that cannot be read counts as lately)."""
+    created = client.hget(f"rq:job:{job}", "created_at")
+    if created is None:
+        return False
+    created = created.decode() if isinstance(created, bytes) else created
+    try:
+        when = datetime.datetime.fromisoformat(created.replace("Z", "+00:00"))
+    except ValueError:
+        return True
+    if when.tzinfo is None:
+        when = when.replace(tzinfo=datetime.timezone.utc)
+    return (now - when).total_seconds() < YOUNG_JOB_SECONDS
+
+
 def _delete(client, keys):
     keys = list(keys)
     return sum(client.delete(*keys[start:start + _BATCH]) for start in range(0, len(keys), _BATCH))
@@ -89,6 +115,12 @@ def clean(url=None, client=None, now=None):
             keys.update(k.decode() if isinstance(k, bytes) else k for k in client.scan_iter(match=pattern, count=1000))
         jobs = set()
         queues = set()
+        listed = {}  # queue name -> the job ids its keys list
+        for key in keys:
+            if key.startswith(tuple(f"rq:{name}:" for name in REGISTRIES)) or key.startswith(QUEUE_PREFIX):
+                listed.setdefault(_queue_of(key), set()).update(_job_ids(client, key))
+        busy = {name for name, ids in listed.items() if any(_made_lately(client, job, now) for job in ids)}
+        keys = {key for key in keys if _queue_of(key) not in busy}
         for key in keys:
             if key.startswith(QUEUE_PREFIX):
                 queues.add(key)
