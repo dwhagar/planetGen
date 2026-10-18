@@ -14,18 +14,18 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.141 |
-| MAP | MAP.253 |
+| MAP | MAP.254 |
 | NAV | NAV.63 |
-| GEN | GEN.576 |
+| GEN | GEN.581 |
 | PERF | PERF.137 |
-| DB | DB.78 |
+| DB | DB.79 |
 | API | API.32 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.241 |
+| TEST | TEST.243 |
 | USR | USR.31 |
 | OPS | OPS.62 |
-| DOC | DOC.71 |
+| DOC | DOC.72 |
 | VIEW | VIEW.19 |
 | POP | POP.15 |
 
@@ -593,6 +593,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.75 | Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID | none | open |
 | DB.76 | Column registry: every numeric column declares its table, kind and stored unit, loaded and stored through one list | none | open |
 | DB.77 | Precision table: each length column declares its reference frame and the largest distance at which a 10 m body keeps a metre | none | open |
+| DB.78 | Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -663,6 +664,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.68 | Generate docs/plan/execution-plan.html from scripts/build_todo_docs.py like the other plan pages | none | done, PR #2157 |
 | DOC.69 | Global documents are regenerated only by the TODO thread: a stale generated page never fails a lane's gate and a lane's PR never touches one | none | open |
 | DOC.70 | Docs for the unit registry: units-and-number-formatting.md and database-schema.md updated, the unit rules in the registry's file header | none | open |
+| DOC.71 | Docs for the System rule: database-schema.md, the system view in docs/design and the header of system_tree.py | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -1238,6 +1240,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.573 | The position class reads its units from the registry: length unit by key, no bare 1000 or copy of c, mass and mu a declared relation | none | open |
 | GEN.574 | Describe and API: qty() builds a Quantity and the {kind, si} shape becomes {kind, value, unit} | none | open |
 | GEN.575 | Sweep the mass object classes: the 35 unit-suffixed attributes and every quantity held under two units get one declared native unit | none | open |
+| GEN.576 | system(host): the one function that groups bodies by their parent link and returns the barycentre sums, the central object's offset and the valid-system check | none | open |
+| GEN.577 | Stored planet and moon states become the state of the barycentre of the body and its own members | none | open |
+| GEN.578 | The point class gets the local frame and the barycentre system frame, and the system anchor is no longer the nearest star | none | open |
+| GEN.579 | The hosting gate: can_host(body) in three parts and the gated table of the satellite share by size class, as labelled stand-in rows | none | open |
+| GEN.580 | Research: the binary and satellite fraction of small bodies by size, and the survival of sub-satellites of moons, to replace the stand-in cut of the hosting gate | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1490,6 +1497,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.250 | When a map chooses which stars to show, halo and satellite-galaxy stars are the lowest priority and are always cut first, before anything else | none | done, PR #2155 |
 | MAP.251 | When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug) | none | open |
 | MAP.252 | Viewing only the filled sectors does not dim the phenomena (bug) | none | open |
+| MAP.253 | Map and scene read the parent chain: systemscene, body_positions, the browser twin orbitpositions.js and the systemmap branches drop the three origin conventions | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2311,6 +2319,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.238 | test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it fails in a gate with no hypervelocity-star stored, and passes alone (bug) | none | open |
 | TEST.239 | Tests for the unified chain: determinism by host, representation counts per kind and level, rogue and comet rates, derived remnant shares | none | open |
 | TEST.240 | Round-trip and registry tests for the mass object core: every kind's stored row round-trips, and no kind table is named in a list the registry should own | none | open |
+| TEST.241 | Test: no absolute position is stored for anything inside a system, so every 8.1 item that stores a position stores it parent-relative | none | open |
+| TEST.242 | Tests: invariants for any system at any time: zero mass-weighted offset sum, add and remove returns exactly, a parent change keeps every absolute position, one member equals the binary formula bit for bit | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
