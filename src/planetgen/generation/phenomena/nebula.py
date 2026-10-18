@@ -22,7 +22,7 @@ from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
 from planetgen.names.wordsalad import LazySaladName
-from planetgen.physics import hii, stellar_evolution
+from planetgen.physics import hii, stellar_evolution, wolf_rayet
 from planetgen.util.format import format_distance_ly, format_number, format_number_density_cm3
 from planetgen.util.random import log_uniform
 
@@ -31,7 +31,12 @@ NEBULA_CLASS_LETTERS = tuple(
     letter for letter, data in tuning.NEBULA_CLASSES.items()
     if data["family"] != "supernova-remnant"
 )
-"""tuple: The nebula classes (A-Q); R-W are supernova remnants."""
+"""tuple: The nebula classes (A-Q and X); R-W are supernova remnants."""
+
+FREE_CLASS_LETTERS = tuple(letter for letter in NEBULA_CLASS_LETTERS
+                           if not tuning.NEBULA_CLASSES[letter].get("host_only"))
+"""tuple: The classes a nebula drawn with no host is given: all but the `host_only` ones (the Wolf-Rayet ring X, only a
+Wolf-Rayet star lights one, GEN.243)."""
 
 IONIZED_CLASS_LETTERS = ("C", "D", "E", "G")
 """tuple: The classes an H II region's size follows from its stars' photons
@@ -108,10 +113,10 @@ def infer_nebula_class(nebula_type, radius_ly):
     that family whose radius range holds `radius_ly`, else the family's
     most common class.
     """
-    candidates = [letter for letter in NEBULA_CLASS_LETTERS
+    candidates = [letter for letter in FREE_CLASS_LETTERS
                   if tuning.NEBULA_CLASSES[letter]["family"] == nebula_type]
     if not candidates:
-        candidates = list(NEBULA_CLASS_LETTERS)
+        candidates = list(FREE_CLASS_LETTERS)
     by_frequency = sorted(candidates, key=lambda letter: -tuning.NEBULA_CLASSES[letter]["frequency"])
     for letter in by_frequency:
         low, high = tuning.NEBULA_CLASSES[letter]["radius_range_ly"]
@@ -193,6 +198,7 @@ class Nebula(LazySaladName):
             host (tuple, optional): The `(letter, subclass)` of the main-sequence
                 star the nebula is built around (`("O", 5)` for an O5V star), for a
                 class that has hosts (C to G); one is drawn from the IMF if omitted.
+                For a Wolf-Rayet ring (X) it is the star's subtype and subclass (`("WN", 6)`).
             age_myr (float, optional): The nebula's age in Myr (its host star's);
                 drawn up to the class's limit if omitted.
         """
@@ -209,7 +215,7 @@ class Nebula(LazySaladName):
         else:
             if nebula_type is not None and nebula_type not in tuning.NEBULA_FAMILIES:
                 raise ValueError(f"nebula_type must be one of {list(tuning.NEBULA_FAMILIES)}, got {nebula_type!r}")
-            letters = tuple(letter for letter in NEBULA_CLASS_LETTERS
+            letters = tuple(letter for letter in FREE_CLASS_LETTERS
                             if nebula_type is None
                             or tuning.NEBULA_CLASSES[letter]["family"] == nebula_type)
             self.nebula_class = choose_weighted_class(letters, "Nebula class")
@@ -242,6 +248,10 @@ class Nebula(LazySaladName):
         """
         letter = self.nebula_class
         self.age_myr = age_myr if age_myr is not None else draw.uniform(0.0, tuning.NEBULA_CLASS_MAX_AGE_MYR[letter])
+        if tuning.NEBULA_CLASSES[letter].get("host_only"):
+            # GEN.243: a Wolf-Rayet ring has the one star at its centre and no photon sizing (its radius is the class's).
+            self.hosts = f"{host[0]}{host[1]} x1" if host is not None else f"{wolf_rayet.drawn_type()} x1"
+            return
         if host is not None:
             name, seed_log_q = f"{host[0]}{host[1]}V", hii.log_q_of_type(*host)
         else:

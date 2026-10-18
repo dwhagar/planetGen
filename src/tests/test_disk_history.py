@@ -32,7 +32,7 @@ SHAPE = _shape(stellar_mass=MILKY_WAY_MASS)
 HALO = mass_chain.median_halo_mass(MILKY_WAY_MASS)
 FLAT = {name: (high - low) / (tuning.STAR_FORMATION_AGE_RANGE_GY[1] - tuning.STAR_FORMATION_AGE_RANGE_GY[0])
         for name, (low, high) in ((n, tuning.STELLAR_POPULATION_AGE_RANGES_GY[n])
-                                  for n in tuning.STELLAR_POPULATION_SCALE_HEIGHT_RATIO)}
+                                  for n in tuning.STELLAR_POPULATION_ARM_AMPLITUDE)}
 
 
 def test_the_cosmology_makes_the_universe_as_old_as_the_tuning_says():
@@ -94,7 +94,7 @@ def test_the_gas_left_at_the_suns_radius_is_a_fraction_of_its_stars():
 
 def test_the_shares_add_up_and_differ_from_the_flat_history():
     shares = disk_history.population_shares(SHAPE)
-    assert set(shares) == set(tuning.STELLAR_POPULATION_SCALE_HEIGHT_RATIO)
+    assert set(shares) == set(tuning.STELLAR_POPULATION_ARM_AMPLITUDE)
     assert sum(shares.values()) == pytest.approx(1.0)
     assert all(share > 0.0 for share in shares.values())
     # A galaxy this massive formed its stars early: fewer recent ones than a flat history gives.

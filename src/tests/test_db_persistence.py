@@ -1735,6 +1735,66 @@ def test_bright_stars_are_listed_by_luminosity_times_population_weight(mysql_con
         conn.close()
 
 
+def test_halo_and_satellite_stars_are_listed_last_whatever_their_brightness(mysql_config):
+    """MAP.250: a list that cannot hold every star drops the satellite galaxies' first, then the halo's, and only then
+    a star of the disc or the bulge -- in a tile that reads its own addresses, one that walks the luminosity index and
+    the galaxy-wide sample, and the lists stay nested."""
+    from planetgen.db import query as queryDb
+
+    conn = store.get_connection(mysql_config)
+    try:
+        _bright_galaxy(conn)
+
+        def row(z_pc, luminosity_sol, population, slot):
+            stored = list(_bright_row_at(z_pc, luminosity_sol, slot))
+            stored[6] = population
+            return tuple(stored)
+
+        with conn:
+            # Brighter than every star of the disc and the bulge: only the tier keeps them last.
+            rows = [row(4.0 * n, 2.0e6 + 1000.0 * n, "halo", 6) for n in range(15)]
+            rows += [row(4.0 * n, 3.0e6 + 1000.0 * n, "satellite", 7) for n in range(15)]
+            rows += [row(4.0 * n, 3.5e6 + 1000.0 * n, "satellite_young", 8) for n in range(5)]
+            store.insert_bright_stars(conn, rows)
+        lows = {"halo": 1, "satellite": 2, "satellite_young": 2, "satellite_intermediate": 2}
+        boxes = [((0.0, 0.0, -1000.0), (100.0, 100.0, 1000.0)), ((-5000.0, -5000.0, -1000.0), (5000.0, 5000.0, 1000.0)),
+                 ((0.0, 0.0, 300.0), (100.0, 100.0, 1000.0))]
+
+        def assert_lowest_last(listed, everything, limit):
+            tiers = [lows.get(s["population"], 0) for s in listed]
+            assert tiers == sorted(tiers), "the halo and the satellite galaxies come after every other star"
+            first_low = next((i for i, t in enumerate(tiers) if t), len(tiers))
+            others = [s["id"] for s in everything if s["population"] not in lows]
+            assert {s["id"] for s in listed[:first_low]} == {s["id"] for s in listed if s["population"] not in lows}
+            if first_low < len(listed):
+                assert len(others) <= limit and set(others) <= {s["id"] for s in listed}, \
+                    "a disc or bulge star was dropped while a halo or satellite star was listed"
+            else:
+                assert len(listed) == min(limit, len(others))
+
+        for lo, hi in boxes:
+            everything = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, 4.0, limit=1000)
+            for limit in (5, 12, 40, 70, 90):
+                listed = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, 4.0, limit=limit)
+                assert_lowest_last(listed, everything, limit)
+        everything = queryDb.galaxy_bright_stars_in_box(conn, boxes[1][0], boxes[1][1], 4.0, limit=1000)
+        assert any(s["population"] == "halo" for s in everything) and any(s["population"] == "satellite" for s in everything)
+        sample = queryDb.galaxy_brightest_stars(conn, 80)
+        assert_lowest_last(sample, queryDb.galaxy_brightest_stars(conn, 1000), 80)
+        old_budget = queryDb.GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET
+        queryDb.GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET = 0
+        try:
+            lo, hi = boxes[0]
+            everything = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, 4.0, limit=1000)
+            sampled = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, 4.0, limit=60,
+                                                         brightest=lambda: queryDb.galaxy_brightest_stars(conn, 120))
+            assert_lowest_last(sampled, everything, 60)
+        finally:
+            queryDb.GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET = old_budget
+    finally:
+        conn.close()
+
+
 def test_a_child_tile_lists_every_star_of_its_parent_inside_it(mysql_config):
     """MAP.154: the bright lists are nested -- walking down a chain of boxes, each box lists all
     the stars of the one around it that lie inside it (the budget never falls)."""

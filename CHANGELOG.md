@@ -2,6 +2,168 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1776] - 2026-10-18
+
+**Headline:** Every galaxy draws its own thick disk, bar and stellar halo from its seed, and one heating law sets the heights and motions of all its stars.
+
+### Changed
+- **The thick disk, the bar and the stellar halo are drawn from the galaxy seed, not copied from the Milky Way** (`galaxy/structure.py`, `galaxy/structure_draw.py`). The structure is rebuilt from the seed on every load and stored nowhere (`galaxy_shape` gains no column; DB.66 keeps storing the drawn values in 8.3). A shape built without a seed uses `REFERENCE_STRUCTURE`, the published Milky Way values, as a check target and not as a generator default.
+  - Circular speed comes from the baryonic Tully-Fisher relation (McGaugh 2012, 0.0375 dex) until the potential gives it.
+  - Thick disk: the mass ratio sits between Yoachim and Dalcanton and Comeron 2018 with 0.268 dex of scatter, the length ratio follows Comeron 2018, the height ratio is 2.5 to 4.2, and the amplitude is worked out from the three, replacing the fixed 0.04.
+  - Stellar halo: the share of the stars is `0.05 (M*/5e10)^0.79` with 1.01 dex of scatter (a stand-in until the halo research lands), cut to 0.1% to 30%.
+  - Bar (GEN.533, sources in `docs/design/gen533-bar-sources.md`): presence from Erwin 2018 by stellar mass, the in-plane axis ratio from Diaz-Garcia 2016, a boxy or thin vertical ratio, an angle uniform on 0 to 180 degrees, and the unbarred bulge's axis ratios from Costantin 2018. A galaxy without a bar has no bar gap in its star formation.
+- **One law sets the scale heights and the velocity dispersions of the disc populations** (the dispersion of the gas the stars are born from, 6.5 +/- 1 km/s as a molecular stand-in until GEN.536 reads the CO values, a central disc dispersion of 0.248 Vc, an age exponent of 0.44), replacing the fixed height ratios and dispersions of the young, intermediate and old discs, the halo and the bulge. The reference check puts the old disc 32% under Sharma and Hayden's 21.1 km/s at the Sun (inside the plan's 35%) and the young disc at 0.22 of the old disc's height (65 pc for 300 pc; observed about 50 pc). The atomic gas's 10 km/s (Tamburro 2009) gave 0.40 and twice the molecular clouds the catalogues hold, so it is not used.
+- Removed from `tuning.py`: the thick-disk, bulge axis, bar angle, halo mass and system-fraction constants and the fixed height ratios and dispersions the draw replaces.
+- The generator epoch is 23.
+generation-output: changed
+
+### Added
+- `tests/test_structure_draw.py` (13 tests): determinism, load equals plan, the Tully-Fisher draw, the thick-disk bracket and bound, the halo law, the bar's ranges, barred against unbarred, the one-law heights and dispersions, and that the stored row gains nothing. The skeleton tests in `tests/test_galaxy_gen.py` store a fixed seed and build the toy shape with its drawn structure.
+
+TODO items resolved: GEN.532, GEN.533. Added: none.
+
+## [8.0.1775] - 2026-10-18
+
+**Headline:** The generator now has one table of the elements and their isotopes, with their sources.
+
+### Added
+- **One table of the elements and their isotopes (GEN.438).** `physics/elements.py` holds the atomic weights of the 118 elements (CIAAW's Atomic Weights 2021), the masses and natural abundances of the isotopes (NIST), the half-lives, decay modes and branchings of the radioactive ones (NUBASE2020), the energy each releases per decay (Lugaro and others 2018) and the decay chains of uranium-238, uranium-235 and thorium-232 down to lead, with the energy of every step. `molar_mass("CaSO4.2H2O")` gives any compound's molar mass from its atoms, and the gas, materials and stellar tables will take theirs from it. The radiogenic heat, activity and mass fraction of an isotope are there for the heat and dose items to use; the heat of uranium and thorium reproduces Dye's published table to 0.3 percent. Every data file states its sources and licence and the loader refuses one that does not.
+
+TODO items resolved: GEN.438. Added: none.
+
+## [8.0.1774] - 2026-10-18
+
+**Headline:** Very massive stars now end their lives as Wolf-Rayet stars, and 40% of those blow a ring nebula around themselves.
+
+### Added
+- **The Wolf-Rayet state (GEN.243).** A star of at least 25 solar masses at the Sun's metallicity (35 at half and 56 at a fifth of it, from the winds that strip it) is a Wolf-Rayet star for the last 0.3 Myr of its life, in place of the end of its supergiant phase, and never for more than half of that phase. It has 40% to 60% of its birth mass, a luminosity of 100,000 to 1,000,000 solar and a temperature of 30,000 to 200,000 K by subtype: nitrogen-rich (WN) for the first 60% of the phase, carbon-rich (WC) for the next 30% and oxygen-rich (WO, stars of 40 solar masses and up) for the last 10%. Its type reads like `WN6 Blue Wolf-Rayet Star`, its Yerkes class is `W`, and the luminosity-class reference page lists it. The bright and mass passes that already place the massive stars draw them with no rate of their own: the Milky Way's star formation, the repository's IMF and this phase give about 1,130 Wolf-Rayet stars in the Galaxy against the 1,200 known, and none can appear in a population older than 10 Myr.
+- **Their companions.** A Wolf-Rayet star has a companion in 52% (WN) or 90% (WC and WO) of cases (Dsilva et al.), in place of the field's rate.
+- **The Wolf-Rayet ring nebula (class X).** A Wolf-Rayet star lights a ring nebula in 40% of cases, centred on it, 2 to 35 parsecs in radius, for as long as the star is under 10 Myr old. The star at its centre is the nebula's one host (`WN6 x1`). The class is never drawn free: only a Wolf-Rayet star lights one, so the shares of the other classes are unchanged. The map draws it as the nebula mesh it already uses, solid, without the hollow interior.
+
+### Changed
+- A massive star within 0.3 Myr of collapse is a Wolf-Rayet star where it was a supergiant, so its type, luminosity and temperature differ.
+
+generation-output: changed
+
+## [8.0.1773] - 2026-10-18
+
+**Headline:** The cache warm-up is one command per cache family, and `update.sh` hands the list of them to the wrapper.
+
+### Changed
+- **Each cache family is its own command (PERF.127).** `warm-galaxy-map`, `warm-lists`, `warm-sectors`, `warm-systems`, `warm-phenomena` and `warm-search` each warm that family and nothing else, take only their own settings (the site's database and, for the pages of objects, the most to warm) and run alone (`planetgen command-run`); `end-map-rebuild-maintenance` opens the site after the sector-grid switch closed it. `planetgen commands` lists them. The choice and the order live only in the wrapper's list (`commands.build_steps("warm", ...)`).
+- **`planetgen warm [FAMILY ...] [--cap N]` replaces `python3 -m planetgen.cli.warm_map`.** It builds that list (every family in order, or the ones named; a list of every family ends with the command that opens the site), hands it to the wrapper and prints one line per family. `--only`, `--no-rq` and `--timeout` are gone with no replacement: the choice is the families named, Redis is required as for every run, and `update.sh` still stops the run after 30 minutes. The run stops at the first command that fails, where the families used to run side by side as separate jobs, one failing not holding up the others. `update.sh` and `scripts/deploy-common.sh` call `planetgen warm` (`python3 -m planetgen.cli.generate warm` as the web server's user).
+- **A run has a kind, and the warm-up is a maintenance run.** A generation run owns the machine and shows the visitors' banner, as before. A maintenance run takes a place of its own in Redis (`planetgen:run:active:maintenance`), so it does not wait for a generation run, holds none up and never shows the "galaxy is being changed" banner; only one runs at a time. The Queue page still reads the old job tree, so until it reads the run record (PERF.99) it no longer lists the cache warm-up; the log of `planetgen warm` and the activity log (`GEN warm.family`, `GEN warm.failed`) have every line.
+- **`docs/cli.md`, `docs/design/cache-warm-up.md`, `docs/design/command-inventory.md`, `docs/design/redis-and-the-work-queue.md`, `docs/design/architecture.md` and `INSTALL.md` describe it, and the architecture map is rebuilt.**
+
+TODO items resolved: PERF.127. Added: none.
+
+## [8.0.1772] - 2026-10-18
+
+**Headline:** The black holes' share of the wide-pair perturber mass is checked against four papers: the generator's black hole count and masses lie inside the published ranges, so the remnants stay in.
+
+### Changed
+- `docs/design/placement-by-population.md` records the check of GEN.541: the share of core-collapse stars that leave a hole (0.29, against 0.26 to 0.45 in Sukhbold et al. 2016), the mean hole mass (12.5 against 9 to 14 there and 11.7 to 14.2 in Olejak et al. 2020) and the number for a galaxy of 5e10 solar masses (1.6e8 to 2.5e8 against Olejak et al.'s 1.3e8 and the older 1e8 to 1e9). By the widest-range rule the draw stays; the perturber mass, 1.44 solar masses (stars alone 0.55), would be 0.75 to 1.34 for the other published count and mass shapes, with the holes carrying 0.2 to 0.6 of the second moment.
+- The note's two stale figures (0.594 and 1.46, from before the Hurley, Pols and Tout lifetimes) are 0.553 and 1.44.
+- `tests/test_place_terms.py` records the three ranges that hold and the two perturber masses.
+
+TODO items resolved: GEN.541 / Added: none
+
+## [8.0.1771] - 2026-10-18
+
+**Headline:** A brown dwarf now has the spectral type, temperature and radius its mass and age give (late M, L, T or Y), where a free-floating one had only a random size and a multi-star member had no state.
+
+### Changed
+- New `physics/brown_dwarf.py`: Burrows et al. 2001's two cooling laws (luminosity `t^-1.3 M^2.64`, temperature `t^-0.32 M^0.83`) fix the temperature and the radius, and Kirkpatrick et al. 2021's Table 13 (525 L, T and Y dwarfs within 20 pc) turns the temperature into a type: L0 at 2,238 K, T0 at 1,255 K, Y0 at 461 K, late M above. `docs/design/brown-dwarf-state.md` names every source and what is left out.
+- A free-floating brown dwarf's mass is drawn from the census's `dN/dM ~ M^-0.6` between 13 and 80 Jupiter masses (it was log-uniform) and its radius follows the laws, 0.07 to 0.14 solar radii (it was Jupiter's times a random 0.75 to 1.1). Its page names its type ("a free-floating T5 brown dwarf", "Rogue Brown Dwarf, Type T5"), read from its stored temperature.
+- A brown dwarf member of a multi-star tree has its type as the member's `state` (it was empty) and the radius the laws give at the system's age (it was 0.1 solar radii for all); the scatter row's members list reads "Brown dwarf (T5)". The brown dwarf class page gives the temperatures where L, T and Y begin.
+- Temperatures of the hot L dwarfs are 2 to 4 times too few against the census (a strict expected failure in `tests/test_brown_dwarf.py`).
+
+generation-output: changed
+
+TODO items resolved: GEN.252 / Added: hot L dwarfs (above 1,500 K) come out 2 to 4 times too rare because the old-age power law is too cool for the heaviest brown dwarfs (a Baraffe or ATMO 2020 track would close it)
+
+## [8.0.1770] - 2026-10-18
+
+**Headline:** The Uncharted stars and Phenomena tables have a "Starting at" box too, so a deep list is reached by a value instead of by paging.
+
+### Changed
+- **The Uncharted stars table jumps by value under every sort (PERF.135).** The box takes the unit its column shows: solar luminosities, kelvin, Gyr, a shell number, or the start of a star type. The list begins at the first star at or after the value in the sort's direction (brightest first for luminosity, so `25` starts at the stars of 25 solar luminosities and dimmer), the count line says how many are left, and the page address carries the text (`uncharted_from`). Text the sort cannot read (a word for a temperature) shows the list from the top with a line saying why. A value past the last star shows the last page of the sort with a line saying nothing came after it.
+- **The Phenomena table jumps into the scattered tail by number (PERF.135).** Under the name sort the box takes a scattered phenomenon's number, the one in the address of its page, and lists the unbuilt scattered phenomena from it on (the built ones come before the tail and are not listed from a start). A number past the end shows the last page of the tail, with the same line.
+- **`GET /api/uncharted-systems` and `GET /api/phenomena` take `from=<value>`** with those meanings; a value they cannot read is a 400, and a start past the end answers the last page with `past_end` true and `total` the page's length. `total` counts from the start, kept as a stored count for each start. `docs/api.md` and `docs/design/slow-reads-and-timeouts.md` describe them. The `/table/<name>` routes also answer a `note` for the line.
+
+TODO items resolved: PERF.135. Added: none.
+
+## [8.0.1769] - 2026-10-18
+
+**Headline:** A generate run now lists the commands it will run, and the massive-star scatter is the first one the queue runs as separate commands.
+
+### Changed
+- **Every stage of `planetgen galaxy` and `planetgen plan` is a registered command, and one wrapper turns the request into the list that runs (PERF.118).** `planetgen commands` lists them. The wrapper (`queue/wrapper.py`) takes the arguments, selects only the commands that will run (a stage you did not ask for is not in the list), writes the run record with that list, queues the first stage's units and lets the unit that finishes a stage queue the next, reading the order from the list and not from any command. The massive-star scatter is built and queued this way: it draws the same stars at any worker count and as before, each of its units can run alone with `planetgen command-run scatter-mass ARGS`, and the run record keeps the list and the cut of the stage. The other stages still run in the process that started the run until the next items give them units.
+
+TODO items resolved: PERF.118. Added: none.
+
+## [8.0.1768] - 2026-10-18
+
+**Headline:** The execution plan page is built by the repository's own script from files in the repository, so a test can tell when it is stale.
+
+### Changed
+- **`docs/plan/execution-plan.html` is generated by `scripts/build_todo_docs.py` (DOC.68).** It was the one plan page with no generator in the repository: it was rebuilt by a script kept outside it, from the lane report in the shared folder and from lists written inside that script, and a rebuild could drop the description and the "Docs index" link that `tests/test_docs_index.py` needs. The page now comes from `docs/TODO.md` (the headline panel, open items by version and phase, goal issues), the lanes board `docs/plan/lanes.md` (the table, the stamp and the merged line), the conflicts and needs-Boss sections `docs/plan/execution-notes.md`, the older decisions `scripts/todo_docs/execution-history.snippet.html` and the template `scripts/todo_docs/execution-plan.template.html`, which holds the description and the link. The page reads nothing from the clock, so `python3 scripts/build_todo_docs.py --check` and `src/tests/test_todo_docs.py` fail with the command to run when it is out of date. The TODO lane keeps `lanes.md` and `execution-notes.md`.
+
+TODO items resolved: DOC.68. Added: none.
+
+## [8.0.1767] - 2026-10-18
+
+**Headline:** When the Galaxy Map has room for only some of the stars, the stars of the halo and of the satellite galaxies are always the ones left out first.
+
+### Changed
+- Every bright-star list ranks by a tier before the MAP.154 brightness key: the disc, the bulge, the nuclei and the globular clusters first, then the stellar halo, then the satellite galaxies (`LOWEST_PRIORITY_TIER`, `_top_by_key` in `planetgen/db/query.py`). Before, a halo or satellite star was ranked by brightness like any other, so a tile over a loose group could list its stars ahead of the disc's. The order is the same at every tile level, so a child tile still lists every star of its parent inside it.
+- It covers the tile lists (all three ways `galaxy_bright_stars_in_box` reads), the galaxy-wide sample that answers the biggest tiles, the finest tiles' detail lists and the stars round a nebula.
+- `docs/design/zoom-star-visibility.md` says what is built, and what is not covered and why (generated stars carry no population and their sectors lie inside the outline; a sector page cuts no star).
+
+### Added
+- `test_halo_and_satellite_stars_are_listed_last_whatever_their_brightness` (`tests/test_db_persistence.py`): halo and satellite stars brighter than every disc and bulge star are listed after them, the satellite galaxies' last, and no disc or bulge star is left out while any of them is listed, in a tile that reads its addresses, one that walks the luminosity index and the sample.
+
+TODO items resolved: MAP.250 / Added: none
+
+## [8.0.1766] - 2026-10-18
+
+**Headline:** The Systems table has a "Starting at" box that begins the list at a typed letter, name or sector without paging down to it.
+
+### Changed
+- **The Systems table jumps by value (PERF.75).** Under the name sort and the sector sort a "Starting at" box begins the list at the first name, or the first sector, from the typed text on: `M` starts at the first name from M, and under a descending sort the names that begin with M come first and the list runs down from them. The count line says how many systems are left ("30 systems from “Drifting 100”"), the page address carries the text (`systems_from`), the scroll bar and the pager count from it, and another sort drops it and hides the box. It works with scripts off as a plain form. The jump is one more condition on the same read, so a jump deep into millions of systems costs what the first page does.
+- **`GET /api/systems` takes `from=<text>`** with the same meaning (`total` counts the systems from there; `offset` and `after` count from there). The other sorts ignore it. `docs/api.md` and `docs/design/slow-reads-and-timeouts.md` describe it.
+
+TODO items resolved: PERF.75. Added: none.
+
+## [8.0.1765] - 2026-10-18
+
+**Headline:** The Uncharted systems table no longer counts every row of the galaxy to show its total.
+
+### Changed
+- **`count_uncharted_systems` answers from the stored counts (PERF.112).** The total behind the Uncharted systems table and `/api/systems/uncharted` went through a full `COUNT(*)` over the stars-without-a-system join on every request. It now uses the same stored count as the other tables (`db/countcache.py`): the last answer is served at once while a background recount refreshes it, and a galaxy with no stored answer yet gets a capped estimate (`total_capped` is true in the API and the page shows "more than N"). The count is stamped with the galaxy's content stamp, so it is recounted when the galaxy changes.
+
+TODO items resolved: PERF.112. Added: none.
+
+## [8.0.1764] - 2026-10-18
+
+**Headline:** The architecture has a code map you can open in a browser and drill down from the project's areas to a function's source, with what calls what, generated from the code.
+
+### Changed
+- **`docs/design/architecture-map.html` (DOC.67).** One self-contained page, no network. The project map shows the areas (web, api, queue, generation, galaxy, population, physics, describe, db, admin, backup, wiki, cli, names, util, tuning and the tests) with the imports between them; an area lists its modules, what each imports and what imports it; a module lists its classes and functions with the first line of each docstring; a function shows its source, the functions it calls and the functions that call it, each a link. Calls the map cannot place (a method on a value of unknown type, a library call) are listed as unresolved, and a call resolved only because the name is unique is marked probable. A flow view traces six paths end to end from named entry functions through the calls the code makes (generating a galaxy, a scatter pass, a page request, an API job through the work queue, a map tile read and a backup). Search finds a module or a function by name, and every view has a stable `#/...` anchor.
+- **`scripts/build_architecture_map.py` writes it from `src/planetgen` with the `ast` module** and nothing is imported or run. `--check` fails when a module of the package is missing from the page or the page names one that is gone, and a test (`test_architecture_map.py`) fails with the command to run; adding a test file needs no regeneration. `--check --full` compares the whole page and is for the release stamp.
+
+TODO items resolved: DOC.67. Added: none.
+
+## [8.0.1763] - 2026-10-18
+
+**Headline:** The docs have one index page that lists every HTML page with what it contains and links back from each.
+
+### Changed
+- **`docs/index.html` (DOC.52).** One entry per HTML page under `docs/` (the execution plan, the version plan, the TODO tree and reference, the release roadmap, the architecture page and the architecture map) with its title, a one- or two-sentence description of what it holds and who it is for, and a relative link, so it opens offline. It also lists the reference notes (`docs/*.md`, each with its first sentence), the design notes' index, the goal issues' note and the GitHub issue list. Each page now carries a `<meta name="description">` and a "Docs index" link in its header, in the TODO page templates too.
+- **`scripts/build_docs_index.py` writes it from the pages themselves**, so a new page cannot be forgotten: `src/tests/test_docs_index.py` fails with the command to run when a page is missing from the index, has no description or has no link back, or when the index is out of date. Run `python scripts/build_docs_index.py` after adding a page.
+
+TODO items resolved: DOC.52. Added: none.
+
 ## [8.0.1762] - 2026-10-18
 
 **Headline:** The Galaxy Map's tile grid now covers the whole 262 kpc reach, so a tile exists for every address the grid can hold, in the halo and beyond the disc.

@@ -153,10 +153,20 @@ connectivity to that specific schema rather than the default one.
   (the exact figure follows once the background count finishes). `after=<system
   ID>` starts the page after that system in the name sort and ignores
   `offset`, so page 40,000 costs what page 1 does (an unknown ID is a 400);
+  `from=<text>` (PERF.75, the Systems table's jump-by-value box) begins the
+  list at the first name from that text on under the name sort (`M` starts
+  at the first name from M; under `order=desc` the names that begin with M
+  come first and the list runs down from them) or at the first sector from
+  it on under the sector sort (systems with no sector still come last),
+  `total` counts the systems from there, and `offset` and `after` count from
+  there; the other sorts ignore it;
   a bad `sort`, `order`, `binary` or `placement` is a 400.
-- `GET /api/uncharted-systems?sort=<luminosity|temperature|type|sector|age>&order=asc|desc&limit=<n>&offset=<n>&after=<star id>` —
+- `GET /api/uncharted-systems?sort=<luminosity|temperature|type|sector|age>&order=asc|desc&limit=<n>&offset=<n>&after=<star id>&from=<value>` —
   (`after` starts the page after that star in the sort and ignores `offset`, PERF.75; equal sort values are ordered by id in the
-  sort's own direction, so the luminosity and sector sorts walk their index with no sort; a non-number is a 400)
+  sort's own direction, so the luminosity and sector sorts walk their index with no sort; a non-number is a 400;
+  `from=<value>`, PERF.135, begins the list at the first star at or after a luminosity in solar luminosities, a temperature in kelvin, an age in Gyr, a
+  shell number or the start of a star type, in the sort's direction, `total` counts from there and `offset` and `after` count from there; a value
+  the sort cannot read is a 400, and one past the last star answers the last page, `past_end` true and `total` its length)
   the stars the brightness scatter placed that have no system yet (UX.87:
   `bright_stars` rows with a NULL `star_system_id`, so both the mass-limit
   and luminosity passes count). Each item has `id`, `designation`,
@@ -467,7 +477,9 @@ connectivity to that specific schema rather than the default one.
   about once a minute and deletes only the listed tiles, and passes the
   list on to the map's browser cache.
 - `GET /api/phenomena?limit=<n>&offset=<n>&after=<scatter id>` — every exotic phenomenon (`after`, the `scatter_id` of a scattered
-  row, starts the page after it in the tail of unbuilt scattered phenomena and ignores `offset`, PERF.75; a non-number is a 400),
+  row, starts the page after it in the tail of unbuilt scattered phenomena and ignores `offset`, PERF.75; a non-number is a 400;
+  `from=<scatter id>`, PERF.135, lists that tail from the row with that id on, `total` counting from there; a value that is not a whole number from 1 up
+  is a 400, and one past the end answers the last page of the tail, `past_end` true and `total` its length),
   across every sector and regardless of galaxy placement (unlike
   `/api/galaxy/phenomena`, which only returns the galaxy-placed subset) —
   paginated the same way `/api/sectors`/`/api/systems` are (`items`,

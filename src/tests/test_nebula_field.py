@@ -13,9 +13,10 @@ import pytest
 from planetgen.util import draw
 from planetgen.generation import run_galaxy
 from planetgen.db import store as _db
-from planetgen.galaxy import mass_chain, nebula_field
+from planetgen.galaxy import mass_chain, nebula_field, structure_draw
 from planetgen import tuning
 from planetgen.galaxy.density import build_galaxy_shape
+from planetgen.galaxy.structure import REFERENCE_STRUCTURE
 from planetgen.galaxy.spherical import sector_address_at, sector_position_pc, shell_bounds_pc, wedge_count
 from planetgen.physics.units import ly_to_pc
 
@@ -25,8 +26,9 @@ from tests.bughunt_support import forced_system_config
 SEED = bytes(range(16))
 _CHAIN = mass_chain.draw_mass_chain(SEED)
 SHAPE = build_galaxy_shape(2800.0, 350.0, 200.0, 1.0, 2, math.radians(15.0), 0.4,
-                           masses=(_CHAIN.stellar_mass_solar, _CHAIN.halo_mass_solar))
-"""A stored galaxy's shape carries the masses its seed draws (`db.store.get_galaxy_shape`), and the clouds read them."""
+                           masses=(_CHAIN.stellar_mass_solar, _CHAIN.halo_mass_solar),
+                           structure=structure_draw.draw_structure(SEED))
+"""A stored galaxy's shape carries the masses and structure its seed draws (`db.store.get_galaxy_shape`), and the clouds read them."""
 SOLAR_RADIUS_PC = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * SHAPE.disk_scale_length_pc
 ARM_ANGLE = math.log(SOLAR_RADIUS_PC / SHAPE.disk_scale_length_pc) / math.tan(SHAPE.pitch_angle_rad)
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
@@ -43,12 +45,14 @@ def _key(cloud):
 
 
 def test_gas_is_densest_on_the_arms_and_near_the_plane():
-    arm = nebula_field.gas_factor(_on_ring(ARM_ANGLE), SHAPE)
-    between = nebula_field.gas_factor(_on_ring(ARM_ANGLE + math.pi / 2), SHAPE)
-    high = nebula_field.gas_factor(_on_ring(ARM_ANGLE, z=300.0), SHAPE)
+    # The Milky Way's own structure: a galaxy with a lower circular speed has a puffier young disc.
+    shape = SHAPE._replace(structure=REFERENCE_STRUCTURE)
+    arm = nebula_field.gas_factor(_on_ring(ARM_ANGLE), shape)
+    between = nebula_field.gas_factor(_on_ring(ARM_ANGLE + math.pi / 2), shape)
+    high = nebula_field.gas_factor(_on_ring(ARM_ANGLE, z=300.0), shape)
     assert arm > 1.5 > 1.0 > between > 0.0
-    assert high < 0.05 * arm
-    assert nebula_field.gas_factor((10.0, 10.0, 0.0), SHAPE) <= tuning.NEBULA_FIELD_MAX_GAS_FACTOR
+    assert high < 0.1 * arm  # the heating law's young disc is 65 pc thick (observed about 50), so 300 pc keeps 6%
+    assert nebula_field.gas_factor((10.0, 10.0, 0.0), shape) <= tuning.NEBULA_FIELD_MAX_GAS_FACTOR
 
 
 def test_only_dark_family_clouds_and_the_same_ones_every_time():

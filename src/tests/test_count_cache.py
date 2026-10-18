@@ -12,7 +12,7 @@ import pytest
 
 from planetgen.admin import activity_log
 from planetgen.db import countcache, query, store
-from tests.test_api import _place_sector
+from tests.test_api import _place_sector, _scatter_stars
 
 
 @pytest.fixture
@@ -129,3 +129,75 @@ def test_a_statement_that_hits_the_time_limit_is_named_in_the_activity_log(mysql
         conn.close()
     assert events and events[0][0][:2] == ("DB", "statement_timeout")
     assert "SLEEP(5)" in events[0][1]["sql"] and float(events[0][1]["seconds"]) < 4
+
+
+# --- The uncharted-star count (PERF.112) ------------------------------------------------------------------------
+
+
+def _uncharted(mysql_config):
+    conn = query.open_readonly(mysql_config)
+    try:
+        return query.count_uncharted_systems(conn)
+    finally:
+        conn.close()
+
+
+def _write(mysql_config, work):
+    conn = store.get_connection(mysql_config)
+    try:
+        work(conn)
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def test_the_uncharted_count_is_exact_first_and_read_from_the_stored_answer_after(counting, mysql_config):
+    _scatter_stars(mysql_config)
+    assert _uncharted(mysql_config) == 3
+    conn = query.open_readonly(mysql_config)
+    seen = []
+    real = conn.execute
+    conn.execute = lambda sql, params=(): seen.append(" ".join(sql.split())) or real(sql, params)
+    try:
+        assert query.count_uncharted_systems(conn) == 3 and query.count_uncharted_systems(conn) == 3
+    finally:
+        conn.close()
+    assert not [sql for sql in seen if "star_system_id IS NULL" in sql], "the scatter table was scanned again"
+
+
+def test_a_request_without_a_stored_answer_scans_at_most_the_cap(counting, mysql_config, monkeypatch):
+    _scatter_stars(mysql_config)
+    monkeypatch.setattr(countcache, "WAIT_SECONDS", 0.0)
+    monkeypatch.setattr(countcache, "_start", lambda *a: None)
+    conn = query.open_readonly(mysql_config)
+    seen = []
+    real = conn.execute
+    conn.execute = lambda sql, params=(): seen.append(" ".join(sql.split())) or real(sql, params)
+    try:
+        assert query.count_uncharted_systems(conn) == 3
+    finally:
+        conn.close()
+    scans = [sql for sql in seen if "star_system_id IS NULL" in sql]
+    assert scans and all("LIMIT" in sql for sql in scans)
+
+
+def test_the_uncharted_count_drops_after_a_star_is_built_into_a_system(counting, mysql_config):
+    ids = _scatter_stars(mysql_config)
+    assert _uncharted(mysql_config) == 3
+    system_id = _place_sector(mysql_config, "Built", (5.0, 5.0, 5.0))
+    _write(mysql_config, lambda conn: store.mark_bright_star_filled(
+        conn, ids[0], conn.execute("SELECT MAX(id) AS n FROM star_systems").fetchone()["n"]))
+    assert _until(lambda: _uncharted(mysql_config) == 2)
+    assert system_id
+
+
+def test_the_uncharted_count_follows_a_rescatter_and_a_reset(counting, mysql_config):
+    _scatter_stars(mysql_config)
+    assert _uncharted(mysql_config) == 3
+    _write(mysql_config, store.clear_bright_stars)
+    assert _until(lambda: _uncharted(mysql_config) == 0)
+    _scatter_stars(mysql_config, (800, 600, 900, 700, 500))
+    _write(mysql_config, lambda conn: store.record_bright_star_scatter(conn, 1.0e4, 7))
+    assert _until(lambda: _uncharted(mysql_config) == 5)
+    _write(mysql_config, store.clear_bright_stars)
+    assert _until(lambda: _uncharted(mysql_config) == 0)

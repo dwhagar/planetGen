@@ -633,6 +633,38 @@ BLUE_SUPERGIANT_TEMPERATURE_RANGE_K = (9000.0, 35000.0)
 # first threshold IB, then IAB, IA, and 0 (hypergiant) at the top.
 SUPERGIANT_YERKES_THRESHOLDS_SOL = {"IAB": 10000.0, "IA": 50000.0, "0": 500000.0}
 
+# Wolf-Rayet stars (GEN.243, docs/design/intergalactic-and-halo-contents.md 5.11): a very massive star
+# stripped to its hot helium core in the last stretch of its life, in place of the end of its supergiant phase.
+WR_MIN_INITIAL_MASS_SOL = 25.0
+"""float: The least initial mass of a star that ends as a Wolf-Rayet star at the Sun's metallicity, solar masses
+(the Galactic Wolf-Rayet census against the Galactic birth rate gives about 25 [R]; the count check in
+`tests/test_wolf_rayet.py` is the test of it)."""
+WR_THRESHOLD_METALLICITY_EXPONENT = 0.5
+"""float: The threshold rises as Z^-0.5: the winds that strip the star weaken with metals [R], so 25 solar masses at
+the Sun's metallicity is 35 at half and 56 at a fifth of it [I]."""
+WR_PHASE_MYR = 0.3
+"""float: How long a Wolf-Rayet star stays one, Myr (the last stretch of its life) [R]."""
+WR_MAX_SUPERGIANT_SHARE = 0.5
+"""float: The phase never takes more than this share of the supergiant window it replaces, so the heaviest stars,
+whose whole post-main-sequence life is short, still pass through a supergiant phase first."""
+WR_PRESENT_MASS_FRACTION_RANGE = (0.4, 0.6)
+"""tuple: The present mass of a Wolf-Rayet star over its initial mass, drawn uniformly [R]."""
+WR_SUBTYPE_PHASE_SHARES = (("WN", 0.6), ("WC", 0.3), ("WO", 0.1))
+"""tuple: The subtype by the share of the phase gone: nitrogen-rich first, then carbon-rich, then the oxygen-rich last
+tenth (only for stars of `WO_MIN_INITIAL_MASS_SOL` or more; lighter ones stay WC to the end)."""
+WO_MIN_INITIAL_MASS_SOL = 40.0
+"""float: The least initial mass that reaches the oxygen-rich WO stage [I]."""
+WR_TEMPERATURE_RANGE_K = {"WN": (30000.0, 100000.0), "WC": (40000.0, 120000.0), "WO": (150000.0, 200000.0)}
+"""dict: The effective temperature of each subtype, K, drawn uniformly: the whole 30,000 to 200,000 K of the design
+note, split by subtype [R, I]."""
+WR_SUBCLASS_RANGE = {"WN": (2, 9), "WC": (4, 9), "WO": (1, 4)}
+"""dict: The subclass numbers of each subtype, hottest first (WN2 to WN9, WC4 to WC9, WO1 to WO4)."""
+WR_LUMINOSITY_RANGE_SOL = (1.0e5, 1.0e6)
+"""tuple: The luminosity of a Wolf-Rayet star, solar luminosities, log-uniform [R]."""
+WR_COMPANION_CHANCE = {"WN": 0.52, "WC": 0.90, "WO": 0.90}
+"""dict: The share of Wolf-Rayet stars with a companion, by subtype (Dsilva et al., a spectroscopic multiplicity survey of
+Galactic Wolf-Rayet stars: 52% of WN, 96% of WC, capped at 0.9 as in the phenomena catalogue; WO takes WC's)."""
+
 # Piecewise main-sequence mass-luminosity relation, L = coeff * M^exponent
 # (Lsun, Msun), each piece for M below its max_mass_sol and the last one
 # open-ended (Duric 2004; Salaris & Cassisi 2005).
@@ -790,7 +822,8 @@ STELLAR_POPULATION_AGE_RANGES_GY = {
     "nuclear_cluster": (3.0, 12.0), "nuclear_disc": (4.0, 12.0),
     "satellite_young": (0.0, 0.1), "satellite_intermediate": (0.1, 3.0),
 }
-STELLAR_POPULATION_SCALE_HEIGHT_RATIO = {"young": 50 / 300, "intermediate": 150 / 300, "old": 1.0}
+# The three thin-disc populations' scale heights over the old one's come from the galaxy's own dispersions
+# (`galaxy.structure.population_height_ratios`, GEN.532), not from a table here.
 STELLAR_POPULATION_ARM_AMPLITUDE = {"young": 0.9, "intermediate": 0.4, "old": 0.0}
 
 # How much of the thin disk's recent star formation a place holds (GEN.134, `galaxy.star_formation`): derived from the
@@ -962,19 +995,12 @@ CLUSTER_GRID_PC = 1024.0
 # R0 = 8.2 kpc, L = 2.6 kpc (BHG16). The calibration point (relative
 # density 1.0) sits here by default, and the bar is angled from it.
 GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH = 8200.0 / 2600.0
-# The thick disk (BHG16): scale height 900 pc and scale length 2.0 kpc
-# against the thin disk's 300 pc and 2.6 kpc, and 4% of the thin disk's
-# density in the plane at the Sun. That makes it ~18% of the thin disk's
-# mass (BHG16: 6e9 against 3.5e10 Msun).
-THICK_DISK_SCALE_HEIGHT_RATIO = 900.0 / 300.0
-THICK_DISK_SCALE_LENGTH_RATIO = 2000.0 / 2600.0
-THICK_DISK_LOCAL_DENSITY_RATIO = 0.04
-# The bulge is the bar's boxy/peanut core, as COBE/DIRBE sees it edge-on:
-# Dwek et al. 1995's G2 fit, rho = exp(-r_s^2 / 2) with r_s^4 =
-# ((x/x0)^2 + (y/y0)^2)^2 + (z/z0)^4, x0 = 1.58, y0 = 0.62, z0 = 0.43 kpc.
-# `bulge_scale_radius_pc` is x0 (along the bar); these are y0/x0 and z0/x0.
-BULGE_AXIS_RATIO_Y = 620.0 / 1580.0
-BULGE_AXIS_RATIO_Z = 430.0 / 1580.0
+# The thick disk's mass, length and height, the bulge's axes and angle, and the stellar halo's share are drawn
+# from the galaxy seed (`galaxy.structure_draw`, GEN.532, GEN.533); the Milky Way's published ones (BHG16: a thick
+# disk of 900 pc and 2.0 kpc against the thin disk's 300 pc and 2.6 kpc; Dwek et al. 1995's G2 bulge fit with
+# y0/x0 = 0.392 and z0/x0 = 0.272) are `galaxy.structure.REFERENCE_STRUCTURE`, a check target. The bulge is the bar's
+# boxy/peanut core, as COBE/DIRBE sees it edge-on: rho = exp(-r_s^2 / 2) with r_s^4 =
+# ((x/x0)^2 + (y/y0)^2)^2 + (z/z0)^4; `bulge_scale_radius_pc` is x0 (along the bar).
 
 # The nuclear star cluster and the nuclear stellar disc (GEN.280, docs/design/realistic-galactic-core.md 3), the
 # two structures at the real centre, are density terms of the model. Both are ratios to the galaxy's own bulge, so
@@ -999,10 +1025,8 @@ NUCLEAR_RESOLUTION_PC = 2.0
 """float: The radius of the grid's core ball (shell 0, half the 4 pc shell depth). The cluster's cusp is held below
 the radius at which its density equals the ball's mean, so the ball's cell holds exactly the cluster's mass inside
 2 pc and no cell is asked for a density the grid cannot hold (`galaxy.density.model_terms`)."""
-# The bar's long axis leads the Sun-center line by 27 degrees in the
-# direction of rotation (its near end at positive galactic longitude;
-# Wegg & Gerhard 2013, BHG16: 28-33 for the long bar).
-BULGE_BAR_ANGLE_DEG = 27.0
+# The bar's long axis leads the Sun-center line by an angle drawn from the seed (`galaxy.structure_draw.draw_bar`);
+# the Milky Way's is 27 degrees (its near end at positive galactic longitude; Wegg & Gerhard 2013, BHG16: 28-33).
 
 # The stellar halo (GEN.234, docs/design/intergalactic-and-halo-contents.md 2.1 and 4) replaces the flat
 # floor GEN.78 put under the density (0.1% of the local density everywhere, half the real halo at the Sun
@@ -1020,25 +1044,21 @@ HALO_CORE_RATIO = 500.0 / HALO_SCALE_LENGTH_PC
 HALO_INNER_SLOPE = 2.5
 HALO_OUTER_SLOPE = 4.5
 HALO_AXIS_RATIO = 0.7
-HALO_MEAN_SYSTEM_MASS_SOLAR = 0.4
-"""float: Solar masses a halo system holds on average (docs/design/globular-clusters.md)."""
-HALO_MASS_SOLAR = 1.5e9
-"""float: The Milky Way's stellar halo (Deason et al. 2019), 3% of the visible mass."""
-HALO_SYSTEM_FRACTION = HALO_MASS_SOLAR / HALO_MEAN_SYSTEM_MASS_SOLAR / 3.0e11
-"""float: The halo's systems over the visible systems (bulge, thin and thick disk): 3.75e9 against the default
-galaxy's 3.0e11, 1.25%. It is the halo's amount for a galaxy of any size; the amplitude is solved from it like
-`k_norm` (`galaxy.density.halo_terms`)."""
+# The halo's amount is the galaxy's own (`galaxy.structure.stellar_halo_system_fraction`, GEN.532): its mass over
+# the galaxy's stellar mass drawn from the placeholder law of `galaxy.structure_draw`; the amplitude is solved from it
+# like `k_norm` (`galaxy.density.halo_terms`).
 HALO_LOCAL_DENSITY_FRACTION = 5.0e-3
 """float: The alternative normalisation the note keeps (Juric et al. 2008): the halo at the Sun is 0.5% of the
 local density, about 2.7 times what `HALO_SYSTEM_FRACTION` gives (0.185%). Not used by the generator;
 `halo_local_density_scale` is the factor that would switch to it."""
 
 # The sector profile (GEN.235, docs/design/intergalactic-and-halo-contents.md 5.3): what a place sets for the
-# rules that never change by place. A first model, not a fit, in the design note's order. Velocity dispersions
-# are the middle of the note's ranges (old disc 40 to 60 km/s, bulge 100 to 140, a cluster 1 to 15 inside and its
-# orbit outside); `rotation` says what the population's net motion follows. [Recalled, to verify.]
+# rules that never change by place. A first model, not a fit, in the design note's order. The thin disc's, the
+# bulge's and the halo's velocity dispersions are the galaxy's own (`galaxy.structure`, GEN.532); the rest are the
+# middle of the note's ranges (a cluster 1 to 15 km/s inside and its orbit outside); `rotation` says what the
+# population's net motion follows. [Recalled, to verify.]
 STELLAR_POPULATION_DISPERSION_KMS = {
-    "young": 15.0, "intermediate": 25.0, "old": 50.0, "bulge": 120.0, "halo": 120.0, "cluster": 8.0,
+    "cluster": 8.0,
     "satellite": 25.0,       # the dwarfs' and Clouds' own 20 to 30 km/s (design note 5.3)
     "satellite_young": 25.0, "satellite_intermediate": 25.0,       # the same satellite, so the same motion (GEN.526)
     "nuclear_cluster": 150.0, "nuclear_disc": 80.0,
@@ -2463,7 +2483,7 @@ NEBULA_FAMILIES = {
 # Nebula and supernova remnant classes, one letter each like
 # PLANET_CLASSES (GEN.11; reasoning, sources and the family tables in
 # docs/design/nebula-and-asteroid-field-classes.md). I and O are unused so
-# they aren't read as 1 and 0; X-Z are reserved. A-Q are nebulae, R-W are
+# they aren't read as 1 and 0; Y and Z are reserved. A-Q and X (the Wolf-Rayet ring, GEN.243) are nebulae, R-W are
 # supernova remnants ("stellar remnants" means supernova remnants only,
 # Boss 2026-09-30; compact objects keep their own tables).
 #
@@ -2473,6 +2493,7 @@ NEBULA_FAMILIES = {
 # `extinction_range_av` (optical extinction in magnitudes, log-uniform
 # unless the low end is 0), `center` (the central-object rule of GEN.10
 # builds on), and `frequency` (relative weight within its family group).
+# A class with `host_only` is never drawn free (by family or frequency): only a star of its kind lights one (X).
 # Nebulae also carry `radius_range_ly`; a remnant's radius comes from its
 # age (Sedov-Taylor, below), so remnants carry `morphology` (the Vink 2012
 # shell/plerion/composite shape), `age_range_years` and `compact` (which
@@ -2513,6 +2534,11 @@ NEBULA_CLASSES = {
           "radius_range_ly": (2.0, 20.0), "density_range_cm3": (1e2, 1e3),
           "temperature_range_k": (50.0, 10000.0), "extinction_range_av": (0.5, 3.0),
           "center": "an early-B star", "frequency": 1.0},
+    "X": {"name": "Wolf-Rayet ring nebula", "family": "emission",
+          "species": "ionized hydrogen and helium in a thin swept-up shell around a hollow interior",
+          "radius_range_ly": (6.5, 114.0), "density_range_cm3": (10.0, 1e3),
+          "temperature_range_k": (8000.0, 12000.0), "extinction_range_av": (0.0, 1.0),
+          "center": "a Wolf-Rayet star (required)", "frequency": 1.0, "host_only": True},
     "H": {"name": "Young planetary nebula", "family": "planetary",
           "species": "ionized hydrogen, carbon, nitrogen, oxygen and neon",
           "radius_range_ly": (0.1, 0.5), "density_range_cm3": (1e4, 1e5),
@@ -2656,6 +2682,7 @@ NEBULA_HOST_RULES = (
     ("B", 0, 2, ("C", "G"), 0.25),
     ("B", 3, 9, ("F",), 0.05),
     ("A", 0, 9, ("F",), 0.01),
+    ("W", 0, 9, ("X",), 0.4),
 )
 """tuple: Nebulae a sector grows around its own stars (GEN.10), as
 `(spectral letter, lowest subclass, highest subclass, classes, chance)`
@@ -2678,10 +2705,11 @@ reflection nebula (F) when a dusty cloud happens to be near (van den Bergh
 the cloud. The class is drawn among the classes the star is young enough
 for, by NEBULA_CLASSES frequency."""
 
-NEBULA_CLASS_MAX_AGE_MYR = {"C": 1.0, "D": 10.0, "E": 20.0, "F": 50.0, "G": 5.0}
+NEBULA_CLASS_MAX_AGE_MYR = {"C": 1.0, "D": 10.0, "E": 20.0, "F": 50.0, "G": 5.0, "X": 10.0}
 """dict: The oldest a host star can be and still sit in a nebula of the class, Myr
 (design note, "Lifetimes by class": C 0.1 to 1, D 3 to 10, E 5 to 20, F 1 to 50, G 1
-to 5). Only the upper limits are used: the lower ones come out of the physics, a
+to 5; X: the longest a Wolf-Rayet star's life runs, 8.5 Myr at the threshold mass, GEN.243).
+Only the upper limits are used: the lower ones come out of the physics, a
 young region has not grown to the class's radius (`physics.hii`)."""
 
 NEBULA_CLUSTER_MASS_RANGE_SOL = {"D": (300.0, 1.0e4), "E": (1.0e4, 1.0e5)}
@@ -2862,6 +2890,39 @@ ROGUE_MAX_EFFECTIVE_TEMPERATURE_K = 2800.0
 shrunken body; a brown dwarf younger than a few hundred million years is
 still puffed up, so the law (with today's radius) overshoots. Young brown
 dwarfs near the hydrogen-burning limit are late-M dwarfs, ~2,800 K."""
+
+# Brown dwarfs as stars (GEN.252, docs/design/brown-dwarf-state.md). The luminosity law is the ROGUE_BROWN_DWARF_*
+# pair above; these are the rest of Burrows et al. 2001's (Rev. Mod. Phys. 73:719, eqs. 1 and 2, read, arXiv
+# astro-ph/0103383) pair of power laws, the mass function and the map from temperature to spectral type.
+BROWN_DWARF_TEMPERATURE_AT_1_GY_K = 1550.0
+"""float: A 0.05 solar mass brown dwarf's effective temperature at 1 Gy (Burrows et al. 2001, eq. 2, solar
+metallicity)."""
+
+BROWN_DWARF_TEMPERATURE_AGE_EXPONENT = -0.32
+"""float: Burrows et al. 2001, eq. 2: `Teff` falls as `t^-0.32`. With the luminosity's `t^-1.3` it leaves the radius
+nearly constant (`t^-0.01`), which the radius uses (a young brown dwarf is larger; `ROGUE_MAX_EFFECTIVE_TEMPERATURE_K`
+caps the overshoot)."""
+
+BROWN_DWARF_TEMPERATURE_MASS_EXPONENT = 0.83
+"""float: Burrows et al. 2001, eq. 2: `Teff` grows as `M^0.83`. With the luminosity's `M^2.64` the radius falls as
+`M^-0.34` (0.088 solar radii at 0.05 solar masses)."""
+
+BROWN_DWARF_MASS_FUNCTION_SLOPE = 0.6
+"""float: The substellar mass function `dN/dM ~ M^-0.6` (Kirkpatrick et al. 2021, ApJS 253:7, arXiv 2011.11616, read:
+alpha = 0.6 +- 0.1 from the 20 pc census of 525 L, T and Y dwarfs). It is drawn between
+`ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER`; the generator's own stellar mass function is not continued below
+`IMF_BREAKS_SOL[0]`, since continuing it would give 0.7 brown dwarfs per star against the census's 0.2 (the
+free-floating rate `PHENOMENON_DENSITY_PC3["brown-dwarf"]`)."""
+
+BROWN_DWARF_SPECTRAL_TYPE_FITS = (
+    (0.0, 8.75, (2237.5, -144.96, 4.0301), 134.0),
+    (8.75, 14.75, (1437.9, -18.309, 0.0), 79.0),
+    (14.75, 22.0, (5141.3, -368.65, 6.7301), 79.0),
+)
+"""tuple: Kirkpatrick et al. 2021 Table 13 (read): `Teff` (K) as a polynomial in the spectral subclass number
+(0 = L0, 10 = T0, 20 = Y0), per range of that number: `(low, high, coefficients c0 + c1 x + c2 x^2, rms K)` (T0 to T6 is a straight line, so its c2 is 0). The
+scatter is the fit's, the measurement's, and is not drawn. Y0 falls at 461 K, inside the 371 to 510 K the paper
+measured."""
 
 ROGUE_GIANT_PHOTOSPHERE_PRESSURE_BAR = 0.3
 """float: Where a Jupiter-gravity giant's photosphere (optical depth 2/3)

@@ -15,10 +15,16 @@ Keys (`PREFIX` is `planetgen`; the tests give it a prefix of their own):
 * `<PREFIX>:run:<id>:s<k>:results`   hash: unit -> the JSON result it returned (PERF.97), written before the unit
                                   joins the done set, so a unit found done has its result.
 * `<PREFIX>:run:<id>:s<k>:progress`  hash: unit -> `"done,estimate"`, a unit's work so far while it runs (PERF.97).
+* `<PREFIX>:run:<id>:s<k>:plan`      string: the JSON summary the stage's command gave when it was expanded into
+                                  units (PERF.118): what any process following the run needs to read the units'
+                                  results. Written before the stage's units are queued.
 * `<PREFIX>:run:<id>:banner`     string: the whole hours the site banner shows for the run (UX.3), so every visitor
                                   sees one figure; expires a day after it is written.
 * `<PREFIX>:run:<id>:events`     stream: the log and timeline, `XADD` with `MAXLEN ~ EVENTS_MAXLEN`.
 * `<PREFIX>:run:active`          string: the run that owns the machine, `SET NX`, so a second run gets "busy".
+* `<PREFIX>:run:active:maintenance`  string: the same for a run of `MAINTENANCE` kind (the cache warm-up, PERF.127):
+                                  it does not own the machine, so it neither blocks a generation run nor shows the
+                                  galaxy-changing banner, and only one runs at a time.
 
 A unit that finishes calls `unit_done`, one script run by Redis: it adds the index to the done set (a unit that
 runs twice counts once), updates the counters and the decayed sums, and, for the unit that makes the set
@@ -43,6 +49,12 @@ KEEP_SECONDS = 30 * 86400
 
 EVENTS_MAXLEN = 100_000
 """int: The event stream's approximate length limit."""
+
+GENERATION = "generation"
+MAINTENANCE = "maintenance"
+KINDS = (GENERATION, MAINTENANCE)
+"""A run changes the galaxy (`GENERATION`, owns the machine) or only keeps the site in order (`MAINTENANCE`, PERF.127:
+building caches changes nothing a visitor reads)."""
 
 LIVE_STATES = ("running", "cancelling")
 FINAL_STATES = ("done", "failed", "cancelled")
@@ -112,12 +124,17 @@ def progress_key(run_id, index):
     return _k("run", run_id, f"s{index}", "progress")
 
 
+def plan_key(run_id, index):
+    return _k("run", run_id, f"s{index}", "plan")
+
+
 def banner_key(run_id):
     return _k("run", run_id, "banner")
 
 
-def active_key():
-    return _k("run", "active")
+def active_key(kind=GENERATION):
+    """The key that names the live run of `kind`."""
+    return _k("run", "active") if kind == GENERATION else _k("run", "active", kind)
 
 
 def new_run_id(now=None):
@@ -191,45 +208,81 @@ class UnitDone:
     done: int
 
 
-def active_run(conn):
-    """The id of the run that owns the machine, or `None`."""
-    value = conn.get(active_key())
+def active_run(conn, kind=GENERATION):
+    """The id of the live run of `kind` (by default the one that owns the machine), or `None`."""
+    value = conn.get(active_key(kind))
     return _s(value) if value else None
 
 
-def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=None, seed=None, now=None):
+def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=None, seed=None, now=None,
+              steps=None, kind=GENERATION):
     """
-    Records a new run and takes the machine for it.
+    Records a new run and takes the machine for it (a `MAINTENANCE` run takes only its own place, so a generation
+    run and a maintenance run may be live together).
 
     Args:
+        kind (str): `GENERATION` or `MAINTENANCE`.
         stages (list[Stage]): The run's stages, in order (at least one).
+        steps (list[dict], optional): The wrapper's step list (`queue.commands.Step.as_dict`), one per stage; the
+            unit that completes a stage reads the next one from here (PERF.118).
 
     Returns:
         str: The run id.
 
     Raises:
-        Busy: Another run owns the machine.
+        Busy: Another run of that kind is running.
     """
     if not stages:
         raise ValueError("a run has at least one stage")
+    if kind not in KINDS:
+        raise ValueError(f"a run is one of {KINDS}")
     now = _now(now)
     run_id = run_id or new_run_id(now)
-    if not conn.set(active_key(), run_id, nx=True):
-        raise Busy(f"run {active_run(conn)} is running")
+    if not conn.set(active_key(kind), run_id, nx=True):
+        raise Busy(f"run {active_run(conn, kind)} is running")
     declared = [asdict(stage) for stage in stages]
     for stage in declared:
         stage["cost"] = float(stage["units"] if stage["cost"] is None else stage["cost"])
     pipe = conn.pipeline()
     pipe.hset(run_key(run_id), mapping={
-        "title": title, "who": who or "", "database": database or "", "argv": json.dumps(argv or []),
+        "title": title, "kind": kind, "who": who or "", "database": database or "", "argv": json.dumps(argv or []),
         "seed": "" if seed is None else str(seed), "state": "running", "stages": json.dumps(declared),
-        "current": 0, "created": now, "started": now, "updated": now, "finished": "", "error": ""})
+        "steps": json.dumps(steps or []), "current": 0, "created": now, "started": now, "updated": now,
+        "finished": "", "error": ""})
     for index, stage in enumerate(declared):
         pipe.hset(stage_key(run_id, index), mapping={"units": stage["units"], "cost_total": stage["cost"], "done": 0,
                                                      "cost_done": 0, "seconds": 0})
     pipe.execute()
     log(conn, run_id, f"run started: {title}", kind="run.start", now=now)
     return run_id
+
+
+def read_steps(conn, run_id):
+    """The step list `start_run` stored (`[]` for a run started without one)."""
+    return json.loads(_s(conn.hget(run_key(run_id), "steps")) or "[]")
+
+
+def set_stage_plan(conn, run_id, index, units, cost, plan, now=None):
+    """
+    Records what stage `index` turned out to be when its command was expanded (PERF.118): `units` units of total
+    predicted `cost`, and `plan`, the JSON summary a process following the run reads its results by. Called once,
+    before the units are queued, so no unit can finish against the old count.
+    """
+    now = _now(now)
+    declared = json.loads(_s(conn.hget(run_key(run_id), "stages")))
+    declared[index]["units"] = int(units)
+    declared[index]["cost"] = float(cost)
+    pipe = conn.pipeline()
+    pipe.hset(run_key(run_id), mapping={"stages": json.dumps(declared), "updated": now})
+    pipe.hset(stage_key(run_id, index), mapping={"units": int(units), "cost_total": float(cost)})
+    pipe.set(plan_key(run_id, index), json.dumps(plan))
+    pipe.execute()
+
+
+def read_plan(conn, run_id, index):
+    """Stage `index`'s plan (`set_stage_plan`), or `None` while the stage has not been expanded."""
+    raw = conn.get(plan_key(run_id, index))
+    return None if raw is None else json.loads(_s(raw))
 
 
 def begin_stage(conn, run_id, index, now=None):
@@ -295,14 +348,15 @@ def finish_run(conn, run_id, state="done", error=None, now=None):
     if _s(conn.hget(run_key(run_id), "state")) not in LIVE_STATES:
         return False
     conn.hset(run_key(run_id), mapping={"state": state, "finished": now, "updated": now, "error": error or ""})
-    conn.register_script(_RELEASE)(keys=[active_key()], args=[run_id])
+    kind = _s(conn.hget(run_key(run_id), "kind")) or GENERATION
+    conn.register_script(_RELEASE)(keys=[active_key(kind)], args=[run_id])
     log(conn, run_id, error or f"run {state}", kind=f"run.{state}", level="error" if state == "failed" else "info",
         now=now)
     stages = len(json.loads(conn.hget(run_key(run_id), "stages")))
     keys = [run_key(run_id), events_key(run_id)]
     for index in range(stages):
         keys += [stage_key(run_id, index), done_key(run_id, index), advanced_key(run_id, index),
-                 results_key(run_id, index), progress_key(run_id, index)]
+                 results_key(run_id, index), progress_key(run_id, index), plan_key(run_id, index)]
     pipe = conn.pipeline()
     for key in keys:
         pipe.expire(key, KEEP_SECONDS)
@@ -354,7 +408,7 @@ _STAGE_NUMBERS = ("units", "done", "cost_total", "cost_done", "seconds", "starte
 
 def read_run(conn, run_id):
     """
-    The run as one dict for pages and the ETA (`runeta.estimate`): the record (`id`, `title`, `who`, `database`,
+    The run as one dict for pages and the ETA (`runeta.estimate`): the record (`id`, `title`, `kind`, `who`, `database`,
     `state`, `current`, `created`, `started`, `updated`, `finished`, `error`) and `stages`, each the declared
     stage with its counters merged in (numbers, `None` where not set yet). `None` for an unknown run.
     """
@@ -367,7 +421,8 @@ def read_run(conn, run_id):
     pipe = conn.pipeline()
     for index in range(len(declared)):
         pipe.hgetall(stage_key(run_id, index))
-    run = {"id": run_id, "title": record["title"], "who": record["who"], "database": record["database"],
+    run = {"id": run_id, "title": record["title"], "kind": record.get("kind") or GENERATION, "who": record["who"],
+           "database": record["database"],
            "state": record["state"], "error": record["error"] or None, "current": int(float(record["current"])),
            "stages": []}
     for name in ("created", "started", "updated", "finished"):
@@ -406,6 +461,6 @@ def recent_runs(conn, limit=20):
     return sorted(found, reverse=True)[:limit]
 
 
-__all__ = ["Busy", "Stage", "UnitDone", "active_run", "begin_stage", "finish_run", "is_cancelling", "is_stale",
-           "log", "new_run_id", "read_events", "read_run", "recent_runs", "request_cancel", "start_run",
-           "unit_done", "write_log_file"]
+__all__ = ["GENERATION", "KINDS", "MAINTENANCE", "Busy", "Stage", "UnitDone", "active_run", "begin_stage", "finish_run", "is_cancelling", "is_stale",
+           "log", "new_run_id", "read_events", "read_plan", "read_run", "read_steps", "recent_runs", "request_cancel",
+           "set_stage_plan", "start_run", "unit_done", "write_log_file"]
