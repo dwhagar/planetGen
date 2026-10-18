@@ -214,8 +214,7 @@ def test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star(page, base_u
     page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyCentreOn(...p)", list(point))
     _ready(page)
     assert _system_ambient(page) is None
-    spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(point))
-    position = (spot["x"], spot["y"])
+    position = _still_spot(page, point)
     shares = []
     for _ in range(80):
         _wheel(page, position, -60)
@@ -252,6 +251,22 @@ def _anchor_under(page, spot):
     return page.evaluate("(s) => document.querySelector('#galaxymap3d-canvas').galaxyAnchorUnder(...s)", list(spot))
 
 
+def _still_spot(page, point):
+    """Where `point` is on the screen once the camera has stopped moving (the centring is a flight): the same place
+    on three reads 100 ms apart. Read at once, a loaded machine gives a spot the star has left by the time the
+    anchor is asked for (TEST.231)."""
+    last, steady = None, 0
+    for _ in range(100):
+        spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(point))
+        here = (spot["x"], spot["y"]) if spot else None
+        steady = steady + 1 if here and last and math.dist(here, last) < 0.25 else 0
+        if steady >= 3:
+            return here
+        last = here
+        page.wait_for_timeout(100)
+    pytest.fail(f"the camera never stopped: {point} was at {last}")
+
+
 def test_the_wheel_anchors_on_the_star_under_the_pointer_not_the_mesh_behind_it(page, base_url, site_app, sample_params):
     """MAP.245: in the opened sector the point the wheel zooms toward is the star under (or a few pixels from) the
     pointer, not the sector's choice mesh behind it; a step in toward it ends nearer the star every time and stops
@@ -263,8 +278,7 @@ def test_the_wheel_anchors_on_the_star_under_the_pointer_not_the_mesh_behind_it(
     star, point = _star_point(page, base_url, scene)
     page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyCentreOn(...p)", list(point))
     _ready(page)
-    spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(point))
-    position = (spot["x"], spot["y"])
+    position = _still_spot(page, point)
     for shift in ((0, 0), (5, -4)):
         anchor = _anchor_under(page, (position[0] + shift[0], position[1] + shift[1]))
         assert anchor == pytest.approx(list(point), abs=1e-9), (shift, anchor, point)
