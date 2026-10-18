@@ -13,7 +13,7 @@ with the admin's expected finish time when one was given.
 The state is one small JSON file, `maintenance.json`, in the state folder
 (`/var/lib/planetGen/state`, `PLANETGEN_STATE_DIR` overrides it, and
 `PLANETGEN_MAINTENANCE_FILE` names the file itself). The web user writes it
-(the admin page, and `warm_map` when the map is rebuilt), so the installer
+(the admin page, and `planetgen warm` when the map is rebuilt), so the installer
 gives that folder to Apache's user (`examples/apache/create-cache-dir.sh`, run
 by `install.sh` and `update.sh`): the install folder above it is root's, and a
 file written there from the web app fails with "Permission denied". It needs
