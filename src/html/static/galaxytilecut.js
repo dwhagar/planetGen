@@ -14,8 +14,8 @@
 // (a test holds them equal); not imported, since a module may not import a sibling
 // without its version query.
 export const FADE_BAND = 1.15;
-export const DISTANCE_CUT_EDGES = 2;
-export const DISTANCE_CUT_HALF_ANGLE_DEG = 70;
+export const DISTANCE_CUT_EDGES = 3;
+export const DISTANCE_CUT_HALF_ANGLE_DEG = 50;
 export const DISTANCE_CUT_MAX_TILES = 512;
 const SQRT3_HALF = Math.sqrt(3) / 2;
 

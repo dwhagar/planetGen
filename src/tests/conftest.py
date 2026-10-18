@@ -527,7 +527,7 @@ def _reset_login_backoff():
 
 
 @pytest.fixture(autouse=True)
-def _run_queue_inline(request, monkeypatch):
+def _run_queue_inline(monkeypatch, request):
     """
     A stage on the new work queue (PERF.97, `planetgen/queue/units.py`) queues its units on Redis and has workers
     run them. A test gets a queue and a key prefix of its own, so parallel tests (pytest-xdist) neither share the
@@ -536,8 +536,6 @@ def _run_queue_inline(request, monkeypatch):
     test's database goes. The workers read the MySQL server's credentials from the settings, so the environment
     carries the test server's. Nothing is patched, and nothing is touched on Redis, without a Redis server.
     A test that starts real workers or reads the shared queues' names is marked `real_queue` and gets none of this.
-    The patches go through the test's `monkeypatch`, so one the test makes over them (`ensure_workers`) is undone
-    before them and not after (TEST.250).
     """
     if request.node.get_closest_marker("real_queue"):
         yield

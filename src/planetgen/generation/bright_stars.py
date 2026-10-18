@@ -57,6 +57,7 @@ from planetgen.physics import constants, metallicity
 from planetgen import tuning
 from planetgen.galaxy import scatter_limits as scatterLimits
 from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
+from planetgen.galaxy import disk_history
 from planetgen.galaxy import skeleton as galaxySkeleton
 from planetgen.galaxy.density import halo_density, population_densities, population_densities_array
 from planetgen.galaxy.spherical import (
@@ -303,10 +304,17 @@ def scatter(shape, extents, edge_pc, expected_at_density_1, min_luminosity_sol, 
             on_shell(done, len(extents))
 
 
-def band_fractions(min_luminosity_sol, max_luminosity_sol=None, mass_range=None):
+def age_laws_of(shape):
+    """How each disk population's ages are spread inside its window in the galaxy of `shape` (GEN.546,
+    `galaxy.disk_history.population_age_laws`): what every draw and every share of this module must use together, so
+    the scatter and the sectors it leaves to their own draw agree."""
+    return disk_history.population_age_laws(shape)
+
+
+def band_fractions(min_luminosity_sol, max_luminosity_sol=None, mass_range=None, age_laws=None):
     """Per population, the share of its stars in the scatter's band
-    (`bright_band_fraction`)."""
-    return {population: bright_band_fraction(min_luminosity_sol, max_luminosity_sol, population, mass_range)
+    (`bright_band_fraction`), with the ages spread by `age_laws` (`age_laws_of`; evenly when `None`)."""
+    return {population: bright_band_fraction(min_luminosity_sol, max_luminosity_sol, population, mass_range, age_laws)
             for population in POPULATIONS}
 
 
@@ -329,11 +337,11 @@ WEIGHT_ANGLE_BINS = 8
 """int: Angle bins per sampled band in `shell_weight`."""
 
 
-def tier_fractions_of(tiered):
+def tier_fractions_of(tiered, age_laws=None):
     """The three `band_fractions` of a `TieredPass` (the core's, the baseline's and the halo's), a tier that
     draws nothing counting as none."""
     return [{population: 0.0 for population in POPULATIONS} if band is None
-            else band_fractions(band.min_luminosity_sol, band.max_luminosity_sol, band.mass_range)
+            else band_fractions(band.min_luminosity_sol, band.max_luminosity_sol, band.mass_range, age_laws)
             for band in tiered.bands]
 
 
@@ -706,10 +714,10 @@ def _draw_groups(shape, groups, high_band, edge_pc, expected_at_density_1, rng, 
             shape, groups, high_band, edge_pc, expected_at_density_1, by_tier, tier_of, rng, skip_addresses,
             check=check, on_candidates=candidates_done, coarse=coarse):
         placed[(tier, population)].append((shell_index, band_index, wedge, point))
-    yield from draw_placed(placed, pass_bands, rng, on_progress, base)
+    yield from draw_placed(placed, pass_bands, rng, on_progress, base, age_laws_of(shape))
 
 
-def draw_placed(placed, pass_bands, rng, on_progress=None, base=0.0):
+def draw_placed(placed, pass_bands, rng, on_progress=None, base=0.0, age_laws=None):
     """
     The rows of stars already placed: each one's type and luminosity drawn from `rng`, population by population and
     tier by tier (GEN.322, GEN.324).
@@ -719,6 +727,7 @@ def draw_placed(placed, pass_bands, rng, on_progress=None, base=0.0):
             every population.
         pass_bands (list): The `PassBand` of each tier.
         base (float): The progress already reported, so `on_progress` carries on from it.
+        age_laws (dict, optional): `age_laws_of` the galaxy; the ages are spread evenly without it.
     """
     total_placed = sum(len(spots) for spots in placed.values())
     drawn = 0
@@ -728,7 +737,8 @@ def draw_placed(placed, pass_bands, rng, on_progress=None, base=0.0):
             if not spots:
                 continue
             stars = sample_bright_stars(len(spots), band.min_luminosity_sol, population, rng,
-                                        max_luminosity_sol=band.max_luminosity_sol, mass_range=band.mass_range)
+                                        max_luminosity_sol=band.max_luminosity_sol, mass_range=band.mass_range,
+                                        age_laws=age_laws)
             for (shell_index, band_index, wedge, point), params in zip(spots, stars):
                 drawn += 1
                 if on_progress is not None:
@@ -736,13 +746,13 @@ def draw_placed(placed, pass_bands, rng, on_progress=None, base=0.0):
                 yield _row(shell_index, band_index, wedge, point, population, params, rng)
 
 
-def pass_of(tiered, min_luminosity_sol, max_luminosity_sol, mass_range):
+def pass_of(tiered, min_luminosity_sol, max_luminosity_sol, mass_range, age_laws=None):
     """`(fractions, pass_bands)` of a pass: the three tiers' `band_fractions` and bands for a `TieredPass`, else the
     one pass's."""
     if tiered is None:
-        return (band_fractions(min_luminosity_sol, max_luminosity_sol, mass_range),
+        return (band_fractions(min_luminosity_sol, max_luminosity_sol, mass_range, age_laws),
                 [scatterLimits.PassBand(min_luminosity_sol, max_luminosity_sol, mass_range)])
-    return tier_fractions_of(tiered), list(tiered.bands)
+    return tier_fractions_of(tiered, age_laws), list(tiered.bands)
 
 
 def scatter_far(shape, first_shell, last_shell, edge_pc, expected_at_density_1, min_luminosity_sol, seed,
@@ -756,7 +766,7 @@ def scatter_far(shape, first_shell, last_shell, edge_pc, expected_at_density_1, 
     Yields:
         tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order.
     """
-    fractions, pass_bands = pass_of(tiered, min_luminosity_sol, max_luminosity_sol, mass_range)
+    fractions, pass_bands = pass_of(tiered, min_luminosity_sol, max_luminosity_sol, mass_range, age_laws_of(shape))
     groups = object_first.ReachGroups.far(first_shell, last_shell, edge_pc)
     rng = draw.Stream(f"{seed}:objects:far:{first_shell}")
     yield from _draw_groups(shape, groups, -1, edge_pc, expected_at_density_1, rng, skip_addresses or set(),
@@ -793,12 +803,13 @@ def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1,
     """
     rng = draw.Stream(f"{seed}:objects:shell:{shell_index}")
     skip_addresses = skip_addresses or set()
+    age_laws = age_laws_of(shape)
     if tiered is None:
-        fractions = band_fractions(min_luminosity_sol, max_luminosity_sol, mass_range)
+        fractions = band_fractions(min_luminosity_sol, max_luminosity_sol, mass_range, age_laws)
         tiers = None
         pass_bands = [scatterLimits.PassBand(min_luminosity_sol, max_luminosity_sol, mass_range)]
     else:
-        fractions = tier_fractions_of(tiered)
+        fractions = tier_fractions_of(tiered, age_laws)
         tiers = tiered.tiers_in(shell_index, high_band)
         pass_bands = list(tiered.bands)
     placed = {(tier, population): [] for population in SCATTERED_POPULATIONS for tier in range(len(pass_bands))}
@@ -820,7 +831,8 @@ def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1,
             if not spots:
                 continue
             stars = sample_bright_stars(len(spots), band.min_luminosity_sol, population, rng,
-                                        max_luminosity_sol=band.max_luminosity_sol, mass_range=band.mass_range)
+                                        max_luminosity_sol=band.max_luminosity_sol, mass_range=band.mass_range,
+                                        age_laws=age_laws)
             for (band_index, wedge, point), params in zip(spots, stars):
                 drawn += 1
                 if on_progress is not None:
@@ -865,7 +877,8 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
         tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order.
     """
     bands = canonical_bands(min_luminosity_sol, max_luminosity_sol)
-    shares = {(k, population): bright_band_fraction(low, high, population, mass_range)
+    age_laws = age_laws_of(shape)
+    shares = {(k, population): bright_band_fraction(low, high, population, mass_range, age_laws)
               for k, low, high in bands for population in SCATTERED_POPULATIONS}
     for shell_index, band_index, wedge in addresses:
         center = sector_position_pc(shell_index, band_index, wedge, edge_pc)
@@ -884,7 +897,7 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
                 if not count:
                     continue
                 for params in sample_bright_stars(count, low, population, rng, max_luminosity_sol=high,
-                                                mass_range=mass_range):
+                                                  mass_range=mass_range, age_laws=age_laws):
                     for _ in range(SLOT_REDRAWS):
                         point = _point_in_cell(rng, shell_index, band_index, wedge, edge_pc)
                         if point is not None:
@@ -1078,7 +1091,8 @@ def backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target
         tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order.
     """
     bands = canonical_mass_bands(target_mass_sol, held_mass_sol, edges)
-    shares = {(low, population): mass_band_fraction(low, high, max_luminosity_sol, population)
+    age_laws = age_laws_of(shape)
+    shares = {(low, population): mass_band_fraction(low, high, max_luminosity_sol, population, age_laws)
               for low, high in bands for population in SCATTERED_POPULATIONS}
     for shell_index, band_index, wedge in addresses:
         center = sector_position_pc(shell_index, band_index, wedge, edge_pc)
@@ -1097,7 +1111,7 @@ def backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target
                 if not count:
                     continue
                 for params in sample_mass_band_stars(count, low, high, population, rng,
-                                                     max_luminosity_sol=max_luminosity_sol):
+                                                     max_luminosity_sol=max_luminosity_sol, age_laws=age_laws):
                     for _ in range(SLOT_REDRAWS):
                         point = _point_in_cell(rng, shell_index, band_index, wedge, edge_pc)
                         if point is not None:
@@ -1213,13 +1227,16 @@ class FillContext:
         total = sum(self.densities.values())
         if total <= 0.0:
             return 0.0
-        return sum(density * placed_star_fraction(self.min_luminosity_sol, self.star_mass_limit_sol, population)
+        age_laws = age_laws_of(self.shape)
+        return sum(density * placed_star_fraction(self.min_luminosity_sol, self.star_mass_limit_sol, population,
+                                                  age_laws)
                    for population, density in self.densities.items()) / total
 
     def apply(self, system_config, rng=draw):
         """Gives one of the sector's own (dim) systems its population and,
         after a scatter, the luminosity cap."""
         system_config.POPULATION = pick_population(self.densities, rng)
+        system_config.AGE_LAW = age_laws_of(self.shape).get(system_config.POPULATION)
         system_config.PLACE_TERMS = self.place_terms
         if system_config.POPULATION in POPULATIONS_IN_THE_GATE:
             system_config.FE_H_PEAKS = self.profile.populations[system_config.POPULATION].fe_h

@@ -310,15 +310,19 @@ def _set_remnant(star, l_xuv_w, age_gy):
     star.xuv_fluence_j = l_xuv_w * age_gy * 1e9 * constants.SECONDS_PER_YEAR
 
 
-def neutron_star_xuv_w(neutron_star):
-    """A neutron star's XUV, W: its thermal surface output or
-    `DIPOLE_EDOT_TO_LX` of its magnetic-dipole spin-down power
-    (`B^2 R^6 Omega^4 / 6 c^3`, cgs), whichever is larger."""
+def neutron_star_spin_down_w(neutron_star):
+    """A neutron star's magnetic-dipole spin-down power, W (`B^2 R^6 Omega^4 / 6 c^3`, cgs)."""
     radius_cm = neutron_star.radius * 1e5
     omega = 2 * math.pi / (neutron_star.spin_period_ms / 1000.0)
     c_cm = constants.SPEED_OF_LIGHT_M_S * 100.0
     edot_erg = neutron_star.magnetic_field_gauss ** 2 * radius_cm ** 6 * omega ** 4 / (6 * c_cm ** 3)
-    return max(neutron_star.luminosity, DIPOLE_EDOT_TO_LX * edot_erg / ERG_PER_J)
+    return edot_erg / ERG_PER_J
+
+
+def neutron_star_xuv_w(neutron_star):
+    """A neutron star's XUV, W: its thermal surface output or `DIPOLE_EDOT_TO_LX` of its spin-down power
+    (`neutron_star_spin_down_w`), whichever is larger."""
+    return max(neutron_star.luminosity, DIPOLE_EDOT_TO_LX * neutron_star_spin_down_w(neutron_star))
 
 
 def generate_remnant_activity(remnant, l_xuv_w):
