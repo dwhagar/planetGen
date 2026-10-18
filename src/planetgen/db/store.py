@@ -1524,6 +1524,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (110, lambda shape: ("planets", "life_stage") in shape["columns"]),
     (109, lambda shape: ("planets", "orbital_phase_deg") not in shape["columns"]),
     (108, _type_marker("bright_stars", "band_index", "int")),
     (107, _check_marker("chk_bright_stars_population", "satellite_young")),

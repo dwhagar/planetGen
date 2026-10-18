@@ -1339,6 +1339,10 @@
 --   velocity, mass, epoch, parent and dynamical state, the columns of v102) and moves by `kepler.universal_step`; the
 --   phase was a second record of the same place on a circle. A circumbinary planet's parent is its system.
 --
+-- v110 (DB.50): `planets` and `moons` gain `life_stage`, `evolutionary_pace`, `life_milestone_age_gyr`, `life_system_age_gyr` and
+--   `flavor_key`, the structure that replaces the evolutionary paragraphs and `flavor_text`. NULL until generation writes them
+--   (DB.51); nothing is dropped.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1981,6 +1985,11 @@ CREATE TABLE IF NOT EXISTS planets (
     evolutionary_speed        VARCHAR(64),
     flavor_text               TEXT,
     flavor_text_count         INT NOT NULL DEFAULT 0,
+    life_stage                VARCHAR(32),      -- v110 (DB.50): a MILESTONE_KEYS key, NULL before any milestone
+    evolutionary_pace         VARCHAR(16),      -- v110: the timeline scale (fast, normal, slow)
+    life_milestone_age_gyr    DOUBLE,           -- v110: the age of that milestone, Gy
+    life_system_age_gyr       DOUBLE,           -- v110: the age of the system the timeline was written at, Gy
+    flavor_key                VARCHAR(32),      -- v110: which flavour line (replaces flavor_text)
     -- Orbital motion (v9, see header comment) -- inclination/ascending
     -- node are fixed at generation time. rotation_period_hours is a
     -- separate, static "day length" stat. There is no stored phase (v109,
@@ -2181,6 +2190,11 @@ CREATE TABLE IF NOT EXISTS moons (
     evolutionary_speed        VARCHAR(64),
     flavor_text               TEXT,
     flavor_text_count         INT NOT NULL DEFAULT 0,
+    life_stage                VARCHAR(32),      -- v110 (DB.50): a MILESTONE_KEYS key, NULL before any milestone
+    evolutionary_pace         VARCHAR(16),      -- v110: the timeline scale (fast, normal, slow)
+    life_milestone_age_gyr    DOUBLE,           -- v110: the age of that milestone, Gy
+    life_system_age_gyr       DOUBLE,           -- v110: the age of the system the timeline was written at, Gy
+    flavor_key                VARCHAR(32),      -- v110: which flavour line (replaces flavor_text)
     -- Orbital motion (v9, see header comment) -- inclination/ascending
     -- node are fixed at generation time. rotation_period_hours is a
     -- separate, static "day length" stat. There is no stored phase (v109,
