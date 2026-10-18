@@ -88,10 +88,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.561 | The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own |  |  |
 | DB.31 | Store structure, not prose, for life and flavour |  |  |
-| UX.107 | Units in the description go through the ladders |  |  |
-| DOC.45 | Reference docs follow the description layer |  |  |
 
 ### Admin and API housekeeping
 

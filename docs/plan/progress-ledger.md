@@ -884,3 +884,6 @@ Baseline: PR #1817.
 | UX.109 | 8.1 | Description layer |
 | GEN.548 | 8.1 | Composition tables |
 | GEN.543 | 8.1 | Multi-star and compact systems |
+| GEN.561 | 8.1 | Description layer |
+| UX.107 | 8.1 | Description layer |
+| DOC.45 | 8.1 | Description layer |
