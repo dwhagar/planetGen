@@ -527,7 +527,8 @@ def reach_bounds(shape, groups, by_tier, coarse=False):
         return np.zeros(0)
     if len(by_tier) == 1 or coarse:
         merged = {population: max(item[population] for item in by_tier) for population in SCATTERED_POPULATIONS}
-        return object_first.extent_majorants(shape, groups.inner, groups.z_near, groups.z_far, merged, groups.r_out)
+        return object_first.extent_majorants(shape, groups.inner, groups.z_near, groups.z_far, merged, groups.r_out,
+                                             r_near=groups.r_in)
     near, far = groups.probes()
     near_tier = scatterLimits.probe_densities(shape, *near)[1]
     far_tier = scatterLimits.probe_densities(shape, *far)[1]
@@ -539,7 +540,8 @@ def reach_bounds(shape, groups, by_tier, coarse=False):
             continue
         mask = (near_tier == pair[0]) & (far_tier == pair[1])
         bounds[mask] = object_first.extent_majorants(
-            shape, groups.inner[mask], groups.z_near[mask], groups.z_far[mask], merged, groups.r_out[mask])
+            shape, groups.inner[mask], groups.z_near[mask], groups.z_far[mask], merged, groups.r_out[mask],
+            r_near=groups.r_in[mask])
     return bounds
 
 

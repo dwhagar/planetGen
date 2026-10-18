@@ -6,6 +6,9 @@
 
 Tags: [M] measured here by counting the repository; [E] my estimate (judgment, shown with its arithmetic); [R] recalled, not verified.
 
+
+**Standing design rule (Boss, 5:20 PM EDT on 2026-10-18, typed in the project chat, relayed by the coordinator):** "For all objects are objects with mass in the system. I want to make sure that galactic motion is not the only thing that they handle because the trajectory of all motion, including planetary and lunar, should both be built into the object mass functions (since they're all the same rules)". So the mass object core and its family classes carry the trajectory of every kind of motion with one set of rules: galactic motion, a planet's and a moon's orbit about its parent, a comet's Kepler state and a star's orbit about a barycentre are all the same state vector relative to the parent (see the kinematic record of GEN.584), advanced by the same functions. GEN.565a (#2274) moved only the galactic-motion fields and the save and load into the core; GEN.565b and GEN.584 must bring the planetary and lunar trajectory into the same functions, not leave it in the family classes or the orbital update.
+
 ## 1. Short answer
 
 - **Net lines saved: about 800 to 1,800, which is 10 to 20% of the roughly 9,000 lines the change touches** [E]. Most of the textual duplication is not in the classes themselves (under 10% of their code lines repeat across files [M]); it is in the serializers, the insert functions, the nine near-identical table definitions and the per-kind lists and branches scattered through 24 files.
