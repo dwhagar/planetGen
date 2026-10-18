@@ -17899,6 +17899,16 @@ clears each one.
   TEST.126 it may be the MAP.227/MAP.228 trail race (inferred).
   Frequency: now 6 loaded gate runs seen for this test. Bug Hunt is
   rerunning the three tests with `--resume`.
+  Sighting that FAILS ALONE (Core 2, 2026-10-17, 9:31 PM EDT as the lane
+  reported; MAP.239's gate 2, `test_galaxy_map_drill_down_by_clicks` in
+  `test_web_browser_maps.py`, call 240 s, load 11.0): the assertion
+  after the 2nd Back, `assert _crumbs(page) == steps[at][1]`, failed
+  with the final page url
+  `/galaxy?cam=-13650.79852,31646.10929,683.93,...`; it failed again
+  when run alone. Same family as the block-number off-by-one sighting
+  above (Bug Hunt, 7:19 PM EDT). Core 2 is checking whether it also
+  fails alone on main. Frequency: now 7 loaded gate runs seen, at least
+  one failing alone.
   Prerequisites: none. Related: MAP.210, TEST.170, TEST.171.
 
 - [ ] **TEST.174 test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug)**
@@ -18780,6 +18790,9 @@ clears each one.
   is slow under load; the cause is not established. Both passed alone
   (load 10.4 and 10.7, 15.73 s and 16.36 s on gw1); none relates to Core
   1's diffs, which touched no map or camera code.
+  Sighting (Core 2, 2026-10-17, 9:31 PM EDT as the lane reported;
+  MAP.239's gate 2): `test_galaxy_map_free_camera_from_a_window_down`
+  failed in the gate (call 136 s, load 10.3) and passes alone.
   Prerequisites: none. Related: TEST.213, TEST.194.
 
 - [ ] **TEST.224 `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed once in a full gate: the nested system's inside_nebula_id was None (bug)**
@@ -18976,6 +18989,9 @@ clears each one.
   for the MAP.247 PR. Its small gate starts when MAP.239's gate 2 ends
   (gates run one at a time), then PR and merge; Core 2 tells the TODO
   thread and Bug Hunt at merge.
+  Sighting (Core 2, 2026-10-17, 9:31 PM EDT as the lane reported;
+  MAP.239's gate 2): failed again inside the gate and passes alone; the
+  fix is in Core 2's branch test231 (small PR next).
   Prerequisites: none. Related: MAP.245, TEST.126.
 
 - [ ] **TEST.232 The a11y page_targets fixture fails 199 browser tests when /search answers 202 (slow-page job) under load (bug)**
@@ -19076,6 +19092,26 @@ clears each one.
   proposed), or Core 5 (owns the TEST/DOC small items) if Core 3 is
   busy.
   Prerequisites: none. Related: TEST.126, TEST.223.
+
+- [ ] **TEST.235 test_stop_waiting_stops_the_polling_and_check_again_picks_it_up[light] failed once in a loaded gate and passes alone (bug)**
+  Found by Core 2 (2026-10-17, 9:31 PM EDT as the lane reported,
+  MAP.239's gate 2 ended 9:28 PM EDT: `scripts/test.py changed`, 6,817
+  passed, 4 failed, load 11.7), filed by the TODO thread.
+  `src/tests/test_web_browser_slow_pages.py:218` asserted
+  `_status_line(page).startswith("Stopped waiting.")` and got 'About 30%
+  (an estimate: 300 of 1,000 rows), about 5 s left.': the page still
+  showed the progress line when the assert ran, so the stop had not
+  taken effect yet (inferred: a status line read before the page applied
+  the click, as with TEST.227 in the same file). Passes alone in 0.37 s.
+  Fails on main: not checked. Frequency: once in this gate. Reproducer:
+  run `scripts/test.py changed` with another lane's gate on the box; the
+  test alone does not fail. Do: wait for the status line to change with
+  a bounded wait instead of reading it once, in this test and the other
+  tests in the file that read `_status_line` right after a click
+  (TEST.227 is the same shape). Done: the cause is on this item and the
+  test passes 30 of 30 runs at load 12. Owner: Core 2 (owns UX.118 and
+  TEST.227; proposed).
+  Prerequisites: none. Related: TEST.227, UX.118.
 
 
 ## USR: User accounts
