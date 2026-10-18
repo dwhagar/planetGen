@@ -558,6 +558,11 @@ class _Placed:
             set_system_epoch(system, self.spatial.epoch_unix)
         else:
             phenomenon = getattr(self, "phenomenon", None)
+            ejected = getattr(phenomenon, "ejecta_velocity_kms", None)
+            if ejected is not None:
+                # A remnant the galaxy ejected (GEN.238) moves on its own velocity, not the rotation curve's.
+                self.spatial.set_velocity_cartesian(*(component * 1000.0 for component in ejected))
+                return
             self.spatial.set_velocity_cartesian(*galactic_velocity_ms(
                 self.spatial.get_coordinates("galactic", "cartesian"),
                 getattr(phenomenon, "galactic_orbital_speed_kms", None)))

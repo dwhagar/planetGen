@@ -192,3 +192,10 @@ intermediate weights by the factor's true smallest and largest value over the ba
 (`recent_factor_range`). The factor is not monotone (it dips a little from the centre, rises to the gap's edge and falls
 beyond), so the extremes are at an end or at one of its two turning points, found by bisection.
 
+
+## Built: GEN.469 (2026-10-17)
+
+The disk-wide shares of the young, intermediate and old populations, which GEN.134's radial factor multiplies, now come
+from the disk's own gas history (`galaxy/disk_history.py`, [disk-star-formation-history.md](disk-star-formation-history.md))
+instead of the age windows' lengths over ten Gy. For a galaxy of 5e10 solar masses the local B-star share between the
+arms falls from 0.19% to 0.12%; the observed 0.04% stays a test target and a strict expected failure.

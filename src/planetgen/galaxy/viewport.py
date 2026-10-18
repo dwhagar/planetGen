@@ -39,6 +39,7 @@ own placed-sector rows.
 import heapq
 import math
 
+from planetgen.galaxy.cellkey import REACH_PC
 from planetgen.galaxy.density import predicted_star_count, relative_density
 from planetgen.galaxy.spherical import enumerate_sectors_within_radius, provisional_sector_designation
 
@@ -203,13 +204,21 @@ def _planned_entry(slot, distance_pc=None):
 # clouds are a fixed point count.
 # ---------------------------------------------------------------------
 
-TILE_ROOT_EDGE_PC = 65536.0
-"""float: Edge of the level-0 cube, parsecs -- comfortably larger than
-any galaxy this project generates (the default is 15,000 pc in radius),
-and a power of two so every level's edge is an exact float."""
+TILE_ROOT_EDGE_PC = 2.0 * REACH_PC
+"""float: Edge of the level-0 cube, parsecs: the grid's whole 262 kpc reach either side of the origin (MAP.239), so
+every address the grid can hold, in the halo and beyond the disc's outline, falls in a tile. A power of two, so
+every level's edge is an exact float."""
 
-TILE_MAX_LEVEL = 12
-"""int: Finest tile level -- `TILE_ROOT_EDGE_PC / 2**12` = 16 pc."""
+TILE_FINEST_EDGE_PC = 16.0
+"""float: Edge of the finest tile, parsecs: a few sectors."""
+
+TILE_MAX_LEVEL = int(round(math.log2(TILE_ROOT_EDGE_PC / TILE_FINEST_EDGE_PC)))
+"""int: Finest tile level -- `TILE_ROOT_EDGE_PC / 2**15` = 16 pc."""
+
+TILE_ROOT_EXTRA_LEVELS = int(round(math.log2(TILE_ROOT_EDGE_PC / 65536.0)))
+"""int: How many levels the root has above the 65,536 pc one it had before the reach (MAP.239): a tile of a given
+size is this many levels deeper than it was, and the per-level budgets in `db.query` are shifted by it so each size
+keeps its budget."""
 
 PLANNED_TILE_MAX_EDGE_PC = 16.0
 """float: Planned slots are only listed in tiles at most this big. A

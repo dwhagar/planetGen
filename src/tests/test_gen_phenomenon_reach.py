@@ -167,8 +167,13 @@ def test_a_plan_scatter_covers_the_reach_and_leaves_the_outline_as_it_was(mysql_
     high = dict(EXTENTS)
     inside = lambda row: row["shell_index"] in high and abs(row["band_index"]) <= high[row["shell_index"]]
     assert plain and all(row["shell_index"] in high for row in plain)
-    assert [row for row in full if inside(row)] == [row for row in plain if inside(row)]
+    # The hypervelocity stars are drawn to the reach (GEN.238), so a wider reach draws more of them, each at a distance
+    # uniform to it: every other kind keeps its rows.
+    others = lambda rows: [row for row in rows if row["kind"] != "hypervelocity-star"]
+    assert others(row for row in full if inside(row)) == others(row for row in plain if inside(row))
     beyond = [row for row in full if not inside(row)]
     assert beyond and max(row["shell_index"] for row in beyond) > 8
     assert all(row["shell_index"] <= 12 for row in full)
-    assert full_summary["total"] == plain_summary["total"] + len(beyond)
+    hypervelocity = lambda rows: len([row for row in rows if row["kind"] == "hypervelocity-star"])
+    assert full_summary["total"] - hypervelocity(full) == plain_summary["total"] - hypervelocity(plain) + len(others(beyond))
+    assert hypervelocity(full) > hypervelocity(plain)

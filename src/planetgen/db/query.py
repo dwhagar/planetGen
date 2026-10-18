@@ -65,6 +65,7 @@ from planetgen.names import naming_key
 from planetgen.galaxy.sector import classify_octant
 from planetgen.galaxy.viewport import (
     TILE_MAX_LEVEL,
+    TILE_ROOT_EXTRA_LEVELS,
     parse_tile_key,
     planned_slots_in_tile,
     tile_bounds_pc,
@@ -4340,7 +4341,8 @@ k-th, by a hash of the id) instead, so the request stays bounded; zooming in rea
 tiles small enough to read all of them."""
 
 
-GALAXY_TILE_STAR_BUDGET = {3: 30, 4: 40, 5: 40, 6: 60, 7: 80, 8: 100, 9: 100, 10: 130, 11: 160}
+GALAXY_TILE_STAR_BUDGET = {level + TILE_ROOT_EXTRA_LEVELS: stars for level, stars in
+                           {3: 30, 4: 40, 5: 40, 6: 60, 7: 80, 8: 100, 9: 100, 10: 130, 11: 160}.items()}
 """dict: How many generated stars a Galaxy Map tile lists, by tile level
 (MAP.116, refit by MAP.152 for tiles chosen by distance), the brightest
 first and with no brightness floor: a tile is as sparse or as full as its
@@ -4349,10 +4351,13 @@ or two tiles of the coarsest levels and up to about sixty of each level
 finer, so the budgets are set (nearer, finer tiles list the most) until
 the cut's caps add up to under `GALAXY_VIEW_MAX_STARS`
 (`galaxy_view_star_cap`). Tiles coarser than
-level 3 list none: the pre-placed bright stars show everything that bright.
+8,192 pc (level 3 of the 65,536 pc root this was set for; the keys are shifted by `TILE_ROOT_EXTRA_LEVELS`, MAP.239) list none: the pre-placed bright stars show everything that bright.
 A finest tile lists up to `GALAXY_TILE_MAX_DETAIL_STARS` instead."""
 
-GALAXY_TILE_BRIGHT_BUDGET = {0: 300, 1: 300, 2: 300, 3: 300, 4: 120, 5: 100, 6: 60, 7: 50, 8: 40, 9: 40, 10: 40, 11: 40}
+GALAXY_TILE_BRIGHT_BUDGET = {**dict.fromkeys(range(TILE_ROOT_EXTRA_LEVELS), 300),
+                             **{level + TILE_ROOT_EXTRA_LEVELS: stars for level, stars in
+                                {0: 300, 1: 300, 2: 300, 3: 300, 4: 120, 5: 100, 6: 60, 7: 50, 8: 40, 9: 40, 10: 40,
+                                 11: 40}.items()}}
 """dict: Most pre-placed bright stars (`bright_stars`, v43) a tile lists by
 level, the most luminous first (MAP.152 settles the old flat 400 a tile,
 which a cut of hundreds of tiles cannot afford). The map draws each as a
@@ -4367,7 +4372,8 @@ the tile, its brightest, so one dense sector can't take the whole budget
 while a sparse sector, which has fewer stars than that, keeps all it has
 and the leftover room goes to the brighter stars of the dense ones."""
 
-GALAXY_TILE_POINT_BUDGET = {8: 30, 9: 40, 10: 40, 11: 100}
+GALAXY_TILE_POINT_BUDGET = {level + TILE_ROOT_EXTRA_LEVELS: points for level, points in
+                            {8: 30, 9: 40, 10: 40, 11: 100}.items()}
 """dict: Most point phenomena (black holes, neutron stars, quasars) a tile
 of that level lists (MAP.116); a finest tile lists up to
 `GALAXY_TILE_MAX_POINTS`. The most luminous come first, so a remnant shows
@@ -4505,10 +4511,10 @@ def _generated_star_entry(row):
     }
 
 
-POINT_PHENOMENON_MIN_LEVEL = 8
-"""int: The coarsest tile level (160 pc tiles) that lists the point-like
+POINT_PHENOMENON_MIN_LEVEL = 8 + TILE_ROOT_EXTRA_LEVELS
+"""int: The coarsest tile level (256 pc tiles) that lists the point-like
 phenomena -- black holes, neutron stars (pulsars) and quasars (MAP.80).
-Since MAP.155 that is level 8, not 10: a black hole or neutron star comes
+Since MAP.155 that is 256 pc, not 64 pc: a black hole or neutron star comes
 in with the stars around it, through its tile's share (`static/starfade.js`),
 instead of appearing all at once at sector depth. Tiles coarser than this list only
 the biggest scattered classes (`SCATTERED_POINT_COARSE_CLASSES`)."""
