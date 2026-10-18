@@ -14225,6 +14225,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Extension (U15a, GEN.566): the size-frequency law of belts, Kuiper
   belt objects and comets joins the interstellar size law of this item's
   research list.
+  Finding (research thread 'Black hole formation research (2026-10-18)',
+  11:55 PM EDT as the lane reported; note
+  docs/design/black-hole-formation-sources.md): O'Connor and Ott 2011
+  (ApJ 730, 70), Sukhbold et al. 2016 (ApJ 821, 38) and Fryer et al.
+  2012 (ApJ 749, 91) are verified (arXiv text read, Crossref DOIs
+  checked; Fryer's published text not compared with arXiv v1); also
+  read: Ebinger et al. 2020, Neustadt et al. 2021, Byrne and Fraser 2022
+  (text), Maltsev 2025, Luo 2025, Zapartas 2021, Patton and Sukhbold
+  2020 (abstract level for the last three). The failed-supernova share
+  of stars of 8 to 150 Msun is 0 to 45% (solar metallicity: 0 to 7%
+  O'Connor and Ott, 5 to 21% Ebinger, 26 to 45% Sukhbold; low
+  metallicity 15 to 32%; observations allow 0 to about 0.4), more at low
+  metallicity, so the black hole share of stars born is 0 to 0.29% and
+  the density 0 to 4.0e-4 per pc^3; no single central value exists. The
+  present 7e-5 per pc^3 (0.05%) equals f = 7.8%: inside the verified
+  range, near its low end. Remnant: birth baryonic mass 2.1 to 2.5 Msun,
+  then 7.7 to 9.2 Msun (helium core) or 13.2 to 13.8 Msun (whole star)
+  on average (Sukhbold); gravitational mass 0.9 of baryonic (Fryer). The
+  0.17% in the design thread's quick check counted every progenitor of
+  20 to 100 Msun, not a failed-supernova share. Still not verified: the
+  kick-escape share, Zhang 2008, Smartt 2009, Kochanek 2015, Ugliano
+  2012. This item stays open for the moons, isolated-disk and size-law
+  parts.
   Prerequisites: none. Related: GEN.550.
 
 - [ ] **GEN.561 The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own**
@@ -14298,6 +14321,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the scatter rates and GEN.377); the verification is the research
   lane's, GEN.560.
   Owner confirmed (coordinator, 11:44 PM EDT as relayed): Core 3.
+  Research result (GEN.560, 11:55 PM EDT as the lane reported): the
+  verified failed-supernova share is 0 to 45% of stars of 8 to 150 Msun,
+  giving 0 to 4.0e-4 per pc^3, and the present 7e-5 per pc^3 is inside
+  it (f = 7.8%); no single central value exists. The 0.17% figure above
+  is the share of all 20 to 100 Msun progenitors, not a failed-supernova
+  share. Boss has a card (keep 7e-5 labelled 'inside the verified 0 to
+  45% range', recommended, or a metallicity-dependent density from
+  Ebinger's table and O'Connor and Ott's 15% at low metallicity); if he
+  keeps it, this item closes with that finding, bumps no epoch, and
+  drops out of GEN.301's prerequisites; if he chooses the metallicity
+  dependence it is real work with an epoch bump, built before the one
+  rescatter.
   Prerequisites: GEN.560. Related: GEN.560, GEN.554, GEN.377, GEN.301.
 
 - [ ] **GEN.564 A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter**
