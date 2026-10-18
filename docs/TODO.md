@@ -488,42 +488,6 @@ with `clamp()`.
   TEST.183) comes after them. Core 5 is the proposed owner.
   Prerequisites: UX.121, UX.122, UX.123, TEST.183. Related: PERF.66.
 
-- [ ] **UX.105 The system page builds every body's detail from the document model as HTML tables**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. Facts table, rating table (with the six symbols UX.101
-  draws), life, orbit and moons, styled like the rest of the site in
-  both themes and every size class, quantities as qty spans so the unit
-  preference applies. Removes web/lib/mdrender.py, GET
-  /api/systems/<id>/sections, render_system_sections, the markdown
-  dependency from the web lock file, and the Markdown tests. The
-  overview stays prose (Boss, 2026-10-10). The one-off system page
-  previews the same HTML for a system that is never saved. This is the
-  build of UX.30, absorbed here; UX.30's text and Boss's 2026-10-01
-  quote are kept below.
-    UX.30, Boss (2026-10-01 23:53Z): "Rework planet information displays
-  to pull away from the markdown render and instead fits with the modern
-  web UI as we've seen it so far." Plan change (Boss, 2026-10-15
-  04:21Z): markdown is no longer the web default for any planet or
-  system text; the richer tables replace it, and markdown and wikitext
-  are generated on the fly only when the user asks.
-  Prerequisites: UX.119, UX.120. Related: UX.30, UX.100, UX.101.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: UX.119, UX.120. A renderer and a page rewrite
-  in one item, plus a removal list that UX.109 repeats: UX.105 'removes
-  web/lib/mdrender.py, GET /api/systems/<id>/sections,
-  render_system_sections, the markdown dependency and the Markdown
-  tests' and UX.109 removes 'the /sections endpoint, mdrender,
-  db/render.py render_system_sections' again.
-  Deletions moved to UX.109 (2026-10-16 review): this item builds the
-  renderer and moves the system page and the one-off page onto it; it
-  removes nothing.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 11 of 54). This replaces any earlier owner line on this item.
-
 - [ ] **UX.107 Units in the description go through the ladders**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
   Owner lane: Foundations Wording (2026-10-15), which writes the code
@@ -544,22 +508,6 @@ with `clamp()`.
   on this item.
   Prerequisites: none. Related: UX.22 (done, PR #1504), UX.81 (done, PR #1504).
 
-- [ ] **UX.108 Describe phenomena, sectors, galaxy and facilities in the same Document**
-  Nebulae, remnants, quasar, rogue planets, asteroid fields, sector
-  summaries and facilities are still described by their own per-class
-  text. Build them into the same document model as UX.104 so one set of
-  renderers (text, HTML tables, Markdown, wikitext) covers everything
-  the program describes. Foundations Wording (filed 05:50Z, split out of
-  API.25 (done, PR #1527), which was too big for one PR).
-  Done also: each kind's text is written in short plain prose as it
-  moves into the Document, so the phenomenon prose is not rewritten
-  twice (GEN.221 drops it).
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 13 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none.
-
 - [ ] **UX.109 Remove the old per-class description text**
   Remove SystemConfig.MARKDOWN, the per-class to_paragraph_list and
   __str__ text, db/render.py render_system_sections, the /sections
@@ -579,7 +527,7 @@ with `clamp()`.
   page's mdrender.py row (`docs/design/architecture.md` line 508 and the
   generated map) goes; the TODO thread removes it with the next
   global-document regeneration, the lane does not touch it.
-  Prerequisites: UX.120, UX.108.
+  Prerequisites: none.
 
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
@@ -608,44 +556,6 @@ with `clamp()`.
   position 51 of 53). This replaces any earlier owner line on this item.
   Prerequisites: NAV.61.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
-
-- [ ] **UX.119 An HTML renderer for the Document: facts, rating and composition tables, with unit spans, in both themes**
-  Split from UX.105 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). Add the fourth renderer beside text,
-  markdown and wikitext in `planetgen/describe/`: the Document's facts,
-  ratings (with the six symbols UX.101 draws), composition, life and
-  orbit-and-moon blocks as HTML tables, every quantity as a `qty` span
-  so the unit preference applies, text escaped, styled like the rest of
-  the site in both themes and every size class. No page changes yet.
-  Done: the renderer with snapshot and escaping tests for every block
-  type, and the CSS, checked in light and dark and at phone width in one
-  browser test over a fixture Document.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 9 of 54). This replaces any earlier owner line on this item.
-  Units (Boss's cards, 11:56 to 11:57 PM EDT, as the coordinator
-  relayed): GEN.574 changes the Document's quantity shape to `{kind,
-  value, unit}` after this renderer exists.
-  Prerequisites: none. Related: UX.105.
-
-- [ ] **UX.120 The system page and the one-off system page use it: every body's detail from the Document**
-  Split from UX.105 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). `web/lib/systempage.py` builds each
-  body's detail (facts table, rating table, life, orbit and moons) from
-  the Document through child a instead of from Markdown; the overview
-  stays prose (Boss, 2026-10-10) but is plain paragraphs, not Markdown;
-  the one-off system page previews the same HTML for a system that is
-  never saved (the Markdown branch of `web/system_page.py` goes).
-  Nothing is deleted here: the deletions are UX.109's. Done: the system
-  page and the one-off page render from the Document; browser tests in
-  light and dark, desktop and phone; no call to `markdown_to_html`
-  remains in the two page modules.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 10 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: UX.119. Related: UX.105.
 
 - [ ] **UX.121 The logging layer and the written standard**
   Split from UX.102 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -4612,72 +4522,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.340. Related: GEN.105, PERF.88.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
-- [ ] **GEN.218 One habitability describer, in the short wording**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. Fold physics/protection.paragraph and
-  physics/habitability_explain into one module that returns the rating
-  rows (domain, colour, score, sentence) in Boss's wording from GEN.216 (done, PR #1482)
-  (his example lines are the spec): one number formatter on the ladders,
-  one gas-name table, PHI-6 everywhere, dead code deleted
-  (habitability_explain.factors and helpers unless a row sentence needs
-  them). Keeps GEN.148's temperature behaviour.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 5 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none.
-
-- [ ] **GEN.219 The habitability levels page and tooltips are generated from the limits**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. web/lib/habitability_ref.py reads the protection_limits
-  and habitability constants (adds the chaotropicity, oxygen-high and
-  heat-shielded rows; oxygen is listed under Pressure but scored in Air,
-  fix the page to match the code), a test fails when a number on the
-  page differs from the constant, and the page, chips, tooltips,
-  class_pages.py and docs name PHI-6.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 6 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none.
-
-- [ ] **GEN.220 "Habitable" means the index**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. The system overview counts worlds by their PHI-6 rating
-  (default: potentially habitable = overall Green or Blue; Boss can move
-  the line), the row chip and search facet say what they mean (the
-  rating, or "Habitable class" where it is the class flag), and the
-  class pages label the flag "Habitable class". Touches UX
-  (UX.32 chip decision, UX.101 symbols): coordinate before editing
-  systempage.py.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 12 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.218, UX.120. Related: UX.100, UX.101.
-
-- [ ] **GEN.221 Short plain prose for the fixed text**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. One pass, with Boss's example lines as the model: the
-  planet and moon paragraph (class description, atmosphere, composition;
-  the "of a mix of" run-ons), the gas giant depth sentences (keep the
-  data, drop the jargon), the star age and lifespan sentence and the
-  STAR_EVOLUTION notes (split into a sentence about lifespan and one
-  about life), comet, belt, wide and close binary sentences, the planet
-  class descriptions that claim life or water (tuning.PLANET_CLASSES,
-  class pages), and the phenomenon prose. In-universe wording per UX.42
-  on public pages. Wording moves into the describer as it is rewritten.
-  The phenomenon prose is not part of this item (2026-10-16 review):
-  UX.108 writes it as it moves each kind into the Document.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 14 of 54). This replaces any earlier owner line on this item.
-
 - [ ] **GEN.229 Repair or re-roll the wide binaries that already break the stability rule**
   GEN.228 (PR #1610) makes new wide binaries stable and adds `planetgen
   check-db --deep --wide-binaries`, which counts the existing unstable
@@ -4821,6 +4665,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.282 and GEN.563, merged in order (the epoch 24 pending rides all
   three). The core ring's over-production of massive clusters is
   GEN.589.
+  Migration number (Core 4's description-layer bundle merged as #2206,
+  about 2:50 AM EDT lane clock as the coordinator relayed): Alembic
+  revisions 0110 and 0111 are now taken by that bundle, so the head is
+  0111 and this item's migration takes the next free number at its merge
+  (0112 if nothing else lands first); the schema doc and fixture version
+  follow it. The epoch 24 pending in the epochs file is also claimed by
+  Core 1's GEN.402; the next merger renumbers.
   Prerequisites: none. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -8520,7 +8371,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in the text is in the stored mixture above a stated threshold, and
   that the text, the composition table and the molar density agree.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Prerequisites: GEN.410, GEN.411, GEN.413, GEN.221. Related: GEN.208,
+  Prerequisites: GEN.410, GEN.411, GEN.413. Related: GEN.208,
   GEN.218,
   TEST.209.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
@@ -9323,7 +9174,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   named in the text is in the stored fractions above a stated share and
   that the shares quoted equal the stored ones.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
-  Prerequisites: GEN.428, GEN.429, GEN.221. Related: GEN.415, GEN.218,
+  Prerequisites: GEN.428, GEN.429. Related: GEN.415, GEN.218,
   GEN.208.
   Section 14.6 of the Body composition research lane's note
   (docs/design/body-composition-research.md; 2026-10-17, 1:48 AM EDT as
@@ -9939,7 +9790,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bodies of every kind and checks that every material named is in the
   stored or derived composition above a stated share and that the quoted
   figures equal them.
-  Prerequisites: GEN.440, GEN.441, GEN.442, GEN.444, GEN.445, GEN.221.
+  Prerequisites: GEN.440, GEN.441, GEN.442, GEN.444, GEN.445.
   Related:
   GEN.430, GEN.415, GEN.420, GEN.208.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
@@ -14283,7 +14134,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merges). Done: the gear class and the equipment label agree for every random and example world. Owner: Core 4 (its own
   queue, after the description-layer bundle, UX.109, UX.107 and DOC.45; its branch note cites GEN.561). Filed by the TODO
   thread at Core 4's request (11:27 PM EDT as the lane reported).
-  Prerequisites: GEN.218. Related: TEST.155, GEN.218, GEN.288.
+  Prerequisites: none. Related: TEST.155, GEN.218, GEN.288.
 
 - [ ] **GEN.562 One function for the white-dwarf initial-final relation and for the neutron star and black hole mass draw, with no change in what any seed generates**
   From Boss's back-scatter cards (Boss's back-scatter cards, taps 11:38
@@ -14771,7 +14622,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it (no backward shim otherwise); `describe/quantity.py` loses its
   `_KM_M`. Done: the Document and API tests pass on the new shape and
   the HTML renderer shows the same text.
-  Prerequisites: GEN.569, UX.107, UX.119. Related: GEN.550, GEN.565,
+  Prerequisites: GEN.569, UX.107. Related: GEN.550, GEN.565,
   DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
@@ -16619,7 +16470,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 17 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: DB.50, DB.51, DB.52.
+  Prerequisites: none.
 
 - [ ] **DB.33 MySQL 8.0.46 reflects the foreign keys fk_facilities_type and fk_facility_field_values_field as RESTRICT, so check-db calls a healthy database damaged (bug)**
   Reported by Quality (2026-10-15, 4:56 PM EDT run, relayed by the
@@ -16933,58 +16784,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 5 of 43). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.136.
-
-- [ ] **DB.50 Migration only: structure columns for life and flavour**
-  Split from DB.31 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). One Alembic revision adds, on
-  `planets` and `moons`, the structure that replaces the evolutionary
-  paragraphs (the life stage, the pace and the ages; the PR names the
-  columns) and a flavour key that replaces `flavor_text`. Nothing is
-  dropped. Core 1 owns the migration number. Done: the migration,
-  regenerated models, an old-schema fixture, an idempotent upgrade and a
-  round-trip test; no code reads the columns yet.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 7 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: DB.31.
-
-- [ ] **DB.51 Generation stores structure, not prose; the readers and the string searches go**
-  Split from DB.31 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). Generation writes the stage, pace,
-  ages and flavour key; readers move to them: `db/query._life_stages`,
-  `population/model.py`, `db/edits.py`, `db/fingerprint.py`;
-  `life_stage_from_paragraphs` and the string searches in
-  `decide_flavor_text` are deleted; `hab_note` is computed from the
-  describer's rating rows (GEN.218) instead of stored and parsed by
-  regex in `generation/planet.py`; the run-config
-  `system_configs.markdown` column is no longer read. The fingerprint's
-  content changes, so it bumps the generator epoch if OPS.28 child a has
-  landed (a PR rule, not a build blocker). Draws are unchanged. Done:
-  the same seed gives the same stage, pace, ages and flavour as before
-  the change (a test compares them with the old paragraphs on a fixture
-  galaxy); nothing reads the old columns or tables.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 8 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: DB.50, GEN.218. Related: DB.31.
-
-- [ ] **DB.52 Migration only: drop the prose columns and tables**
-  Split from DB.31 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). One Alembic revision drops
-  `planet_evolutionary_paragraphs`, `moon_evolutionary_paragraphs`,
-  `flavor_text` (keep `flavor_text_count` only if the flavour key logic
-  still reads it), `hab_note` on planets and moons and
-  `system_configs.markdown`. Core 1 owns the number. Done: the
-  migration, regenerated models, the old-schema fixture updated, an
-  idempotent upgrade and a round-trip test; the models and `schema.sql`
-  have none of them.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 16 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: DB.51. Related: DB.31.
 
 - [ ] **DB.56 The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings**
   Split from GEN.143 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -17394,6 +17193,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   rotation period and a* become derived and their columns are dropped in
   this revision with the wobble columns (DB.78) and the kinematic record
   of GEN.584.
+  Revision number (2026-10-18 about 2:50 AM EDT lane clock): the head is
+  0111 after Core 4's description-layer bundle (#2206 took 0110 and
+  0111) and GEN.244 takes the next free one; this item's 8.4 revision
+  takes the next free number at its own merge.
   Prerequisites: none. Related: GEN.550, DB.69, DB.70.
 
 - [ ] **DB.74 One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables**
@@ -19202,23 +19005,6 @@ clears each one.
   Reproducer given: SIGTERM to the process group while the 4-core gate
   runs, full gate under load.
   Prerequisites: none. Related: TEST.128, TEST.132 (done, PR #1578), TEST.134.
-
-- [ ] **TEST.155 Wording and index agree: property test**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. A property test over random worlds and the sample
-  systems that fails when a domain's colour, score, the band its
-  sentence names, the gear and the equipment label disagree; when a body
-  has life text but the index gives it no life (check the 130 C case
-  first); when an airless body shows Air as anything but Red (shared
-  with GEN.215, done in PR #1478); and when any quantity in the describer is formatted
-  with a raw :.Nf. Test items are owned by Test Suite Rebuild: that
-  thread approves, Foundations Wording writes it.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 18 of 54). This replaces any earlier owner line on this item.
-  Prerequisite: GEN.218.
 
 - [ ] **TEST.159 Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population**
   Step 15 of the whole-sphere train. Tests: no emission, reflection or
@@ -21821,7 +21607,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 20 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: UX.105, GEN.218, GEN.219.
+  Prerequisites: none.
 
 - [ ] **DOC.48 Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes**
   Step 14 of the whole-sphere train.
