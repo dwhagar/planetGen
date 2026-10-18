@@ -14,6 +14,7 @@ from planetgen._version import VersionAction, version_banner
 from planetgen.api import ids
 from planetgen.db.query import list_moons, list_planets, list_sectors, list_systems, open_readonly
 from planetgen.db import near
+from planetgen.util.format import format_distance_km, format_distance_ly, format_distance_pc
 from planetgen.db.store import add_mysql_connection_args, mysql_config_from_args
 
 
@@ -105,7 +106,7 @@ def main():
                 return
             for sector in sectors:
                 print(f"[{_printed(conn, 'sector', sector['id'])}] {sector['name']} "
-                      f"(edge {sector['edge_ly']:.2f} ly, {sector['system_count']} systems)")
+                      f"(edge {format_distance_ly(sector['edge_ly'])}, {sector['system_count']} systems)")
 
         elif args.command == 'systems':
             systems = list_systems(conn, star_type_prefix=args.star_type, sector_id=_row(conn, "sector", args.sector_id))
@@ -137,7 +138,7 @@ def main():
                 print(f"Nothing within {args.distance:g} pc of {place['name']}.")
             for row in result["rows"]:
                 parent = f" -- {row['parent']['name']}" if row["parent"] else ""
-                print(f"[{row['ref']}] {row['name']}{parent} -- {row['distance_pc']:.2f} pc")
+                print(f"[{row['ref']}] {row['name']}{parent} -- {format_distance_pc(row['distance_pc'])}")
             print(f"{result['total']} found; {result['not_generated_total']} more in range are not generated yet.")
 
         elif args.command == 'planets':
@@ -151,7 +152,7 @@ def main():
                 return
             for planet in planets:
                 print(f"[{_printed(conn, 'planet', planet['id'])}] {planet['name']} (Class {planet['planet_class']}, "
-                      f"{planet['radius_km']:.0f} km) -- {planet['system_name']}")
+                      f"{format_distance_km(planet['radius_km'])}) -- {planet['system_name']}")
 
         elif args.command == 'moons':
             moons = list_moons(
@@ -164,7 +165,7 @@ def main():
                 return
             for moon in moons:
                 print(f"[{_printed(conn, 'moon', moon['id'])}] {moon['name']} (Class {moon['planet_class']}, "
-                      f"{moon['radius_km']:.0f} km) -- {moon['system_name']} / {moon['planet_name']}")
+                      f"{format_distance_km(moon['radius_km'])}) -- {moon['system_name']} / {moon['planet_name']}")
     finally:
         conn.close()
 
