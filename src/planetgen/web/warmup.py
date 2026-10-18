@@ -6,16 +6,16 @@ docs/design/cache-warm-up.md), so the first visit after a release, or after a ca
 cleared, finds the Galaxy Map, any sector, any system, the lists and the search already
 there instead of waiting for the database.
 
-The work is split into families (`FAMILIES`), each of which runs as a job of its own
-(`run_family_job`, an RQ job on the interactive queue, so it is a node on the admin runs page
-with its state and a line of result), or inline (`warm_family`). A family warms by visiting
+The work is split into families (`FAMILIES`), each of which is a command of its own on the work queue
+(`warm-galaxy-map`, `warm-lists`, ... `queue/commands.py`; PERF.127) whose unit is the function here, or runs
+inline (`warm_family`). `planetgen warm` hands the list of them to the wrapper. A family warms by visiting
 the pages the way a visitor does, through the site's own Flask app, so what it caches is
 exactly what the page asks for and the two can't drift apart; the answers go to the shared
 page cache in Redis (`web/lib/pagecache.py`), the counts to `db/countcache.py`, the Galaxy
 Map's tiles to the disk cache (`web/lib/tilecache.py`).
 
 `opening_request` is the one place that says which tiles the Galaxy Map's first frame needs;
-the `/galaxy` page asks for exactly them. `python -m planetgen.cli.warm_map` runs it all.
+the `/galaxy` page asks for exactly them. `planetgen warm` runs it all.
 """
 
 import time
@@ -24,7 +24,7 @@ from planetgen.admin import activity_log
 from planetgen.api.config import Config
 from planetgen.api.limiter import PAGE_LIMITS_OFF
 from planetgen.physics.units import ly_to_pc
-from planetgen.queue import work as workQueue
+from planetgen.queue import commands
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.util.settings import get_settings
 from planetgen.web.lib import apiclient
@@ -235,30 +235,72 @@ def warm_family(db, family, cap=None, app=None, config=None):
     return result
 
 
-def run_family_job(db, family, cap=None, config=None):
-    """
-    The RQ job for one family (`planetgen.queue.api_jobs.submit`): a node on the admin runs page that ends in the
-    family's result line, and a line in the activity log. Raises `WarmupFailed` for a family that did not warm,
-    which RQ records as a failed job and the node as failed.
-
-    Args:
-        db (str): The database the site shows.
-        family (str): A key of `FAMILIES`.
-        cap (int, optional): See `warm_family`.
-        config (MySQLConfig, optional): The database and control database to use; the site's own when not given.
-
-    Returns:
-        dict: `warm_family`'s result.
-    """
-    title = f"Cache warm-up: {family} ({FAMILIES.get(family, 'unknown')})"
-    with workQueue.job_node("warm", title, config, database=db) as node:
-        try:
-            result = warm_family(db, family, cap, config=config)
-        except Exception as exc:
-            workQueue.record_task(node, "warm-line", f"{family}: {exc}", state="failed", error=str(exc))
-            activity_log.event("GEN", "warm.failed", db=db, family=family, error=str(exc)[:300])
-            raise
-        workQueue.record_task(node, "warm-line", result["line"], seconds=result["seconds"])
-        activity_log.event("GEN", "warm.family", db=db, family=family, warmed=result["warmed"],
-                           left_out=result["left_out"], seconds=round(result["seconds"], 1))
+def _warm_unit(family, args):
+    """One family's unit of a warm run: warms it and leaves a line in the activity log, the result's line of it."""
+    try:
+        result = warm_family(args["database"], family, args.get("cap"))
+    except Exception as exc:
+        activity_log.event("GEN", "warm.failed", db=args["database"], family=family, error=str(exc)[:300])
+        raise
+    activity_log.event("GEN", "warm.family", db=args["database"], family=family, warmed=result["warmed"],
+                       left_out=result["left_out"], seconds=round(result["seconds"], 1))
     return result
+
+
+def _expand_family(params):
+    """The one unit of a family's stage: the site's database and the cap, as the step gave them."""
+    return commands.Expansion([({"database": params["database"], "cap": params.get("cap")}, 1.0)], {})
+
+
+def warm_galaxy_map_unit(args, report):
+    """The unit of the `warm-galaxy-map` command (PERF.127): the Galaxy Map's opening view, shape, sectors and phenomena."""
+    return _warm_unit("galaxy-map", args)
+
+
+def warm_lists_unit(args, report):
+    """The unit of the `warm-lists` command: the first page of every list, and its counts."""
+    return _warm_unit("lists", args)
+
+
+def warm_sectors_unit(args, report):
+    """The unit of the `warm-sectors` command: every sector page, up to `args["cap"]`."""
+    return _warm_unit("sectors", args)
+
+
+def warm_systems_unit(args, report):
+    """The unit of the `warm-systems` command: every system page, up to `args["cap"]`."""
+    return _warm_unit("systems", args)
+
+
+def warm_phenomena_unit(args, report):
+    """The unit of the `warm-phenomena` command: every phenomenon page, up to `args["cap"]`."""
+    return _warm_unit("phenomena", args)
+
+
+def warm_search_unit(args, report):
+    """The unit of the `warm-search` command: the search page."""
+    return _warm_unit("search", args)
+
+
+expand_warm_galaxy_map = expand_warm_lists = expand_warm_sectors = _expand_family
+expand_warm_systems = expand_warm_phenomena = expand_warm_search = _expand_family
+
+
+def end_map_rebuild_unit(args, report):
+    """
+    The unit of the `end-map-rebuild-maintenance` command: opens the site if the sector-grid switch closed it
+    (`maintenance.SECTOR_SWITCH`, UX.112), the Galaxy Map being back on the new grid. An admin's own maintenance, and one
+    with another cause, stays.
+
+    Raises:
+        planetgen.admin.maintenance.MaintenanceWriteError: The site could not be opened; the run fails with it.
+    """
+    from planetgen.admin import maintenance
+    if maintenance.turn_off_for(maintenance.SECTOR_SWITCH, by="map rebuild"):
+        return {"reopened": True, "line": "Maintenance mode is off: the Galaxy Map is rebuilt."}
+    return {"reopened": False, "line": "Maintenance mode was not the map rebuild's, so it is left as it is."}
+
+
+def expand_end_map_rebuild(params):
+    """The one unit of the stage that opens the site."""
+    return commands.Expansion([({}, 1.0)], {})

@@ -1,27 +1,26 @@
 # tests/test_cache_warmup.py
 
 """
-PERF.104: the warm-up (`planetgen/web/warmup.py`, `planetgen/cli/warm_map.py`) fills the shared
-caches so the first visit answers from them, one family per job, loudly.
+PERF.104, PERF.127: the warm-up (`planetgen/web/warmup.py`, `planetgen warm`) fills the shared
+caches so the first visit answers from them, one command per family, loudly.
 
 The families visit the pages of a real app on a throwaway database; a second, separate app
 (a web worker that never saw the warm-up) is then asked for the same pages with a spy on the API
-calls, to show nothing is rebuilt. The queue is real for the job test and faked for the
-script's waiting.
+calls, to show nothing is rebuilt. The wrapper's list of the commands runs on the real Redis queue (the
+tests' workers run the units here), with the families themselves faked where only the list is under test.
 """
 
-import secrets
-import time
+import contextlib
 
 import pytest
 
-from planetgen.admin import auth as adminAuth
 from planetgen.admin import maintenance
 from planetgen.api.config import Config
-from planetgen.cli import warm_map
+from planetgen.cli import generate as generate_cli
+from planetgen.cli import warm as warm_cli
 from planetgen.db import dataversion, store
 from planetgen.galaxy.sector import SpaceSector
-from planetgen.queue import api_jobs, redisclient, work as workQueue
+from planetgen.queue import commands, redisclient, redisqueue, runrecord, units, wrapper
 from planetgen.web import warmup
 from planetgen.web.app import create_app
 from planetgen.web.lib import apiclient, tilecache
@@ -183,31 +182,50 @@ def test_changing_one_sector_after_the_warm_up_rebuilds_only_it(galaxy, spy):
     assert f"/sectors/{galaxy.other_pid}" in spy and f"/sectors/{galaxy.sector_pid}" not in spy
 
 
-# --- The job on the admin runs page ---------------------------------------------------------------
+# --- The commands ----------------------------------------------------------------------------------
 
-def test_a_family_runs_as_a_queued_job_that_shows_on_the_runs_page(galaxy):
-    adminAuth.bootstrap_control_schema(galaxy.config)
-    job_id = api_jobs.submit(warmup.run_family_job, galaxy.config.database, "search", None, galaxy.config)
-    deadline = time.monotonic() + 120
-    while time.monotonic() < deadline:
-        job = api_jobs.status(job_id)
-        if job["state"] in ("succeeded", "failed"):
-            break
-        time.sleep(0.3)
-    assert job["state"] == "succeeded", job
-    assert job["result"]["family"] == "search" and job["result"]["line"].startswith("search: 1 pages warmed")
-    conn = store.get_connection(galaxy.config)
-    try:
-        roots, _total = workQueue.list_roots(conn)
-        [node] = [root for root in roots if root["kind"] == "warm"]
-        assert node["title"].startswith("Cache warm-up: search") and node["status"] == "done"
-        tree = workQueue.load_tree(conn, node["id"])
-        assert any(task["kind"] == "warm-line" and "search: 1 pages warmed" in task["task_key"] for task in tree["tasks"])
-    finally:
-        conn.close()
+def test_a_family_command_runs_alone_and_warms_only_its_family(galaxy, monkeypatch):
+    real = warmup.build_app
+    monkeypatch.setattr(warmup, "build_app", lambda config=None: real(galaxy.config))
+    result = commands.run_alone("warm-search", {"database": galaxy.config.database, "cap": None})
+    assert result["family"] == "search" and result["line"].startswith("search: 1 pages warmed")
+    with pytest.raises(ValueError, match="cannot be cut"):
+        commands.expand_function("scatter-luminosity")
 
 
-# --- The script ------------------------------------------------------------------------------------
+def test_every_cache_family_is_its_own_registered_command_with_one_unit():
+    assert list(commands.KIND_OF_WARM_FAMILY) == list(warmup.FAMILIES)
+    for family, kind in commands.KIND_OF_WARM_FAMILY.items():
+        assert not commands.spec(kind).inline
+        expansion = commands.expand_function(kind)({"database": "x", "cap": 4})
+        assert expansion.units == [({"database": "x", "cap": 4}, 1.0)], "one unit that warms that family and no other"
+    assert commands.spec(commands.END_MAP_REBUILD).summary
+
+
+def _args(*argv):
+    parser, _parsers = generate_cli.build_parser()
+    args = parser.parse_args(["warm", *argv])
+    args.database = "x"
+    return args
+
+
+def test_the_list_is_every_family_in_order_and_then_the_command_that_opens_the_site():
+    steps = wrapper.steps_for("warm", _args())
+    assert [step.kind for step in steps] == [f"warm-{family}" for family in warmup.FAMILIES] + [commands.END_MAP_REBUILD]
+    assert [step.key for step in steps][:-1] == list(warmup.FAMILIES)
+    assert all(step.params == {"database": "x", "cap": None} for step in steps[:-1])
+    assert steps == wrapper.steps_for("warm", _args()), "the same arguments give the same list"
+
+
+def test_a_part_of_the_families_is_in_the_order_of_the_families_and_does_not_open_the_site():
+    steps = wrapper.steps_for("warm", _args("search", "lists", "--cap", "7"))
+    assert [step.kind for step in steps] == ["warm-lists", "warm-search"]
+    assert all(step.params == {"database": "x", "cap": 7} for step in steps)
+    with pytest.raises(ValueError, match="no such cache family 'nonsense'"):
+        wrapper.steps_for("warm", _args("nonsense"))
+
+
+# --- `planetgen warm` ------------------------------------------------------------------------------
 
 @pytest.fixture
 def state_file(tmp_path, monkeypatch):
@@ -217,103 +235,140 @@ def state_file(tmp_path, monkeypatch):
 
 
 @pytest.fixture
-def script(monkeypatch):
-    """`warm_map.main` with the app and the database faked and families that succeed or fail as told."""
+def script(monkeypatch, redis_server):
+    """`planetgen warm` with the site's database named and the families that succeed or fail as told."""
     class Plan:
         failing = {}
         ran = []
+        owners = []
 
-    def run(db, family, cap=None, config=None):
-        Plan.ran.append((family, cap))
+    def warm_family(db, family, cap=None, app=None, config=None):
+        conn = redisqueue.connect(redis_server)
+        Plan.owners.append((runrecord.active_run(conn), runrecord.active_run(conn, runrecord.MAINTENANCE)))
+        Plan.ran.append((family, cap, db))
         if family in Plan.failing:
             raise warmup.WarmupFailed(Plan.failing[family])
-        return {"family": family, "line": f"{family}: 3 pages warmed (0 answers built, 3 already cached, 0 left out by the cap) in 0.1 s"}
+        return {"family": family, "warmed": 3, "left_out": 0, "seconds": 0.1,
+                "line": f"{family}: 3 pages warmed (0 answers built, 3 already cached, 0 left out by the cap) in 0.1 s"}
 
-    class App:
-        def app_context(self):
-            import contextlib
-            return contextlib.nullcontext()
-
-    monkeypatch.setattr(warm_map.warmup, "build_app", lambda config=None: App())
-    monkeypatch.setattr(warm_map, "db_name", lambda: "x")
-    monkeypatch.setattr(warm_map.warmup, "run_family_job", run)
-    Plan.ran = []
-    Plan.failing = {}
+    monkeypatch.setattr(warm_cli, "_site_database", lambda: "x")
+    monkeypatch.setattr(warmup, "warm_family", warm_family)
+    Plan.ran, Plan.failing, Plan.owners = [], {}, []
     return Plan
 
 
 def test_the_script_prints_one_line_per_family(script, capsys):
-    warm_map.main(["--no-rq"])
+    warm_cli.run_warm(_args())
     out = capsys.readouterr().out
-    assert [family for family, _cap in script.ran] == list(warmup.FAMILIES)
+    assert [family for family, _cap, _db in script.ran] == list(warmup.FAMILIES)
+    assert {db for _family, _cap, db in script.ran} == {"x"}
     for family in warmup.FAMILIES:
         assert f"{family}: 3 pages warmed" in out
-    assert "Cache warm-up done: 6 families." in out
+    assert "Maintenance mode was not the map rebuild's" in out and "Cache warm-up done: 6 families." in out
 
 
-def test_the_script_exits_non_zero_and_names_the_family_that_failed(script, capsys):
+def test_a_failing_command_stops_the_list_exits_non_zero_and_is_named(script, caplog):
     script.failing = {"systems": "2 of 9 pages did not answer"}
     with pytest.raises(SystemExit) as exit_info:
-        warm_map.main(["--no-rq"])
+        warm_cli.run_warm(_args())
     assert exit_info.value.code == 1
-    err = capsys.readouterr().err
-    assert "systems was not warmed: 2 of 9 pages did not answer" in err
-    assert [family for family, _cap in script.ran] == list(warmup.FAMILIES), "the other families still ran"
+    err = caplog.text
+    assert "the cache warm-up stopped: unit 0 of stage 3 failed: WarmupFailed: 2 of 9 pages did not answer" in err
+    assert [family for family, _cap, _db in script.ran] == ["galaxy-map", "lists", "sectors", "systems"], \
+        "the wrapper's list stops at the failing command"
 
 
-def test_only_and_cap_are_passed_on(script, capsys):
-    warm_map.main(["--no-rq", "--only", "sectors", "--only", "lists", "--cap", "7"])
-    assert script.ran == [("sectors", 7), ("lists", 7)]
+def test_the_families_and_the_cap_are_passed_on(script):
+    warm_cli.run_warm(_args("sectors", "lists", "--cap", "7"))
+    assert [(family, cap) for family, cap, _db in script.ran] == [("lists", 7), ("sectors", 7)]
+
+
+def test_an_unknown_family_is_an_error_before_anything_runs(script):
+    with pytest.raises(SystemExit, match="no such cache family 'nonsense'"):
+        warm_cli.run_warm(_args("nonsense"))
+    assert script.ran == []
 
 
 def test_a_part_of_the_warm_up_does_not_reopen_the_site(script, state_file, capsys):
     maintenance.turn_on(by="migration", cause=maintenance.SECTOR_SWITCH)
-    warm_map.main(["--no-rq", "--only", "lists"])
+    warm_cli.run_warm(_args("lists"))
     assert maintenance.is_on()
-    warm_map.main(["--no-rq"])
+    warm_cli.run_warm(_args())
     assert not maintenance.is_on()
+    assert "Maintenance mode is off: the Galaxy Map is rebuilt." in capsys.readouterr().out
 
 
 def test_a_failed_warm_up_leaves_the_site_closed(script, state_file, capsys):
     maintenance.turn_on(by="migration", cause=maintenance.SECTOR_SWITCH)
     script.failing = {"search": "x"}
     with pytest.raises(SystemExit):
-        warm_map.main(["--no-rq"])
+        warm_cli.run_warm(_args())
     assert maintenance.is_on()
 
 
-def test_the_queued_script_reports_each_job_and_fails_on_a_lost_one(script, monkeypatch, capsys):
-    states = {"a": [{"state": "running"}, {"state": "succeeded", "result": {"line": "lists: ok"}}],
-              "b": [{"state": "failed", "error": "boom"}], "c": [None]}
-    monkeypatch.setattr(warm_map.api_jobs, "submit", lambda function, db, family, cap: {"lists": "a", "search": "b", "sectors": "c"}[family])
-    monkeypatch.setattr(warm_map.api_jobs, "status", lambda job_id: states[job_id].pop(0) if len(states[job_id]) > 1 else states[job_id][0])
-    monkeypatch.setattr(warm_map, "POLL_SECONDS", 0.0)
-    monkeypatch.setattr(warm_map.updateguard, "is_updating", lambda: False)
+def test_the_warm_up_is_a_maintenance_run_that_leaves_the_machine_free(script, redis_server):
+    conn = redisqueue.connect(redis_server)
+    generating = runrecord.start_run(conn, "A generation run", [runrecord.Stage("a", "A")])
+    warm_cli.run_warm(_args("lists"))
+    assert script.owners == [(generating, script.owners[0][1])] and script.owners[0][1] is not None, \
+        "the generation run keeps the machine and the warm-up has a place of its own"
+    [warm_id] = [run_id for run_id in runrecord.recent_runs(conn) if run_id != generating]
+    run = runrecord.read_run(conn, warm_id)
+    assert run["kind"] == runrecord.MAINTENANCE and run["state"] == "done"
+    assert runrecord.active_run(conn) == generating and runrecord.active_run(conn, runrecord.MAINTENANCE) is None
+    from planetgen.web.lib import galaxystatus
+    assert galaxystatus.compute(conn, "x")["active"] is True, "the banner is the generation run's"
+    runrecord.finish_run(conn, generating)
+    assert galaxystatus.compute(conn, "x")["active"] is False
+
+
+def test_a_second_warm_up_while_one_runs_is_refused(script, redis_server, caplog):
+    conn = redisqueue.connect(redis_server)
+    runrecord.start_run(conn, "A warm-up", [runrecord.Stage("a", "A")], kind=runrecord.MAINTENANCE)
     with pytest.raises(SystemExit) as exit_info:
-        warm_map.main(["--only", "lists", "--only", "search", "--only", "sectors"])
-    assert exit_info.value.code == 1
-    captured = capsys.readouterr()
-    assert "lists: ok" in captured.out
-    assert "search was not warmed: boom" in captured.err and "sectors was not warmed: the job disappeared" in captured.err
+        warm_cli.run_warm(_args("lists"))
+    assert exit_info.value.code == 1 and "is running" in caplog.text
+    assert script.ran == []
 
 
-def test_the_queued_script_stops_waiting_at_its_timeout(script, monkeypatch, capsys):
-    monkeypatch.setattr(warm_map.api_jobs, "submit", lambda function, db, family, cap: "slow")
-    monkeypatch.setattr(warm_map.api_jobs, "status", lambda job_id: {"state": "running"})
-    monkeypatch.setattr(warm_map, "POLL_SECONDS", 0.0)
-    monkeypatch.setattr(warm_map.updateguard, "is_updating", lambda: False)
-    with pytest.raises(SystemExit):
-        warm_map.main(["--only", "lists", "--timeout", "0"])
-    assert "lists was not warmed: still running after 0 s" in capsys.readouterr().err
-
-
-def test_no_queue_is_an_error_not_a_silent_skip(script, monkeypatch, capsys):
-    def refuse(function, db, family, cap):
-        raise api_jobs.NoQueue("no Redis server answers")
-    monkeypatch.setattr(warm_map.api_jobs, "submit", refuse)
-    monkeypatch.setattr(warm_map.updateguard, "is_updating", lambda: False)
+def test_no_redis_is_an_error_not_a_silent_skip(script, monkeypatch, caplog):
+    monkeypatch.setattr(redisqueue, "redis_url", lambda: "redis://127.0.0.1:1/0")
     with pytest.raises(SystemExit) as exit_info:
-        warm_map.main(["--only", "lists"])
+        warm_cli.run_warm(_args("lists"))
     assert exit_info.value.code == 1
-    err = capsys.readouterr().err
-    assert "could not be queued" in err and "--no-rq" in err
+    assert "no Redis server answers" in caplog.text and script.ran == []
+
+
+def test_the_script_waits_for_an_update_and_gives_up_after_the_wait(monkeypatch):
+    states = iter([True, True, False])
+    monkeypatch.setattr(warm_cli.updateguard, "is_updating", lambda: next(states))
+    monkeypatch.setattr(warm_cli.time, "sleep", lambda seconds: None)
+    warm_cli._wait_for_update()
+    monkeypatch.setattr(warm_cli.updateguard, "is_updating", lambda: True)
+    monkeypatch.setattr(warm_cli, "UPDATE_WAIT_SECONDS", -1)
+    with pytest.raises(warm_cli.Failed, match="still running"):
+        warm_cli._wait_for_update()
+
+
+def test_a_sigterm_ends_the_run_as_cancelled_not_stranded(script, redis_server, monkeypatch):
+    """SIGTERM (the update guard's cancel, update.sh's timeout) reaches the starter as Ctrl+C does, and the run ends
+    as cancelled in Redis, freeing its place."""
+    import os
+    import signal
+    original = signal.getsignal(signal.SIGTERM)
+    warm_cli._stop_on_sigterm()
+    try:
+        with pytest.raises(KeyboardInterrupt):
+            os.kill(os.getpid(), signal.SIGTERM)
+    finally:
+        signal.signal(signal.SIGTERM, original)
+
+    def interrupted(*args, **kwargs):
+        raise KeyboardInterrupt
+
+    monkeypatch.setattr(units, "follow_stage", interrupted)
+    with pytest.raises(KeyboardInterrupt):
+        warm_cli.run_warm(_args("lists"))
+    conn = redisqueue.connect(redis_server)
+    assert runrecord.read_run(conn, runrecord.recent_runs(conn)[0])["state"] == "cancelled"
+    assert runrecord.active_run(conn, runrecord.MAINTENANCE) is None

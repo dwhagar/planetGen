@@ -69,7 +69,7 @@ class FakeData:
         return body
 
     def get_systems(self, db, star_type=None, sector_id=None, limit=None, offset=None, sort=None,
-                    descending=False, binary=None, placement=None, octants=(), facets=False, after=None):
+                    descending=False, binary=None, placement=None, octants=(), facets=False, after=None, start=None):
         self.calls.append(("get_systems", db, sector_id, limit, offset))
         self.asked.append(("systems", sort, descending, binary, placement, list(octants)))
         body = {"items": self.systems[offset:offset + limit], "total": len(self.systems),
@@ -80,7 +80,7 @@ class FakeData:
                               "octant": [{"value": "I", "count": 2}]}
         return body
 
-    def get_uncharted_systems(self, db, limit=None, offset=None, sort=None, descending=False, after=None):
+    def get_uncharted_systems(self, db, limit=None, offset=None, sort=None, descending=False, after=None, start=None):
         self.calls.append(("get_uncharted_systems", db, limit, offset))
         self.asked.append(("uncharted", sort, descending))
         return {"items": self.uncharted[offset or 0:(offset or 0) + (limit or 50)], "total": len(self.uncharted),

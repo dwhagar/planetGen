@@ -69,7 +69,7 @@ def table_data(name):
     `?sort=&order=&<filters>&offset=&limit=` (limit at most one page; a keyset table also takes `after=`, the `next`
     of the page before, PERF.75), and
     `facets=1` to add the filter menus' option counts. Answers
-    `{"rows", "total", "capped", "next", "facets"}`; rows are lists of cells (see
+    `{"rows", "total", "capped", "next", "facets", "note"}`; rows are lists of cells (see
     `lib/datatable.py`). An unknown table is a 404, a read that hit the database's statement time limit a 504
     with `Retry-After` (and `"busy": true`, so the table keeps its rows and asks again), and any other API
     failure a 502, all as `{"error": ...}`.
@@ -94,7 +94,7 @@ def table_data(name):
         log.exception(f"API error while loading the {name} table: {exc}")
         return _json_error("The table could not be loaded. Please try again shortly.", 502)
     response = jsonify({"rows": result.rows, "total": result.total, "capped": bool(result.capped), "next": result.next,
-                       "facets": result.facets})
+                       "facets": result.facets, "note": result.note})
     response.headers["Cache-Control"] = "no-store"
     return response
 

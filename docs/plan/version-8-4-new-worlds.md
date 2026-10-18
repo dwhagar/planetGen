@@ -19,9 +19,49 @@ The composition fractions that drive density, mass and gravity, stored and descr
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.458 | Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes |  | Body composition research lane finding F8, cluster 3; generator epoch bump. Core 4 proposed. |
-| GEN.428 | Planets and moons draw their bulk composition fractions instead of carrying a fixed text | GEN.427, GEN.440, GEN.458 | Boss 11:49 PM EDT; generator epoch bump. Core 4 proposed. |
+| GEN.428 | Planets and moons draw their bulk composition fractions instead of carrying a fixed text | GEN.427, GEN.440, GEN.458, GEN.557 | Boss 11:49 PM EDT; generator epoch bump. Core 4 proposed. |
+| DB.75 | Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID |  |  |
+| GEN.566 | Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560 |  |  |
+| DB.74 | One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables | DB.73, GEN.565 |  |
+| GEN.570 | Field declaration: every unit-valued field of the mass object classes declares its kind and native unit, and the one field table serves the serializer | GEN.568, GEN.569, GEN.565 |  |
+| GEN.575 | Sweep the mass object classes: the 35 unit-suffixed attributes and every quantity held under two units get one declared native unit | GEN.565, GEN.570 |  |
+| GEN.565 | The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes |  |  |
+| GEN.584 | The core's kinematic record: velocity, spin axis and rate, mass and epoch in the point, and the derived columns dropped | GEN.578, GEN.565, DB.73 |  |
+| TEST.244 | Tests: re-primary and reparent invariants, frame round trips, momentum conservation, a moon's velocity as the sum of its hops, a locked body's rate follows a primary change | GEN.576, GEN.578, GEN.581, GEN.583 |  |
+| GEN.583 | reparent: the state-preserving change of a body's parent, shared by re-primary at an event, an ejection, a capture and a merger | GEN.578 |  |
+| GEN.582 | Origin and present-state split: fields marked origin or state in the Field table, the draw record held until validation finishes, and the zone and class re-run from the seed | GEN.565, GEN.570 |  |
+| GEN.581 | primary_first(members): before a system is validated the heaviest branch becomes the primary and the others are recalculated, one function for the tree, the fill, moons and free pairs | GEN.315 |  |
+| DOC.71 | Docs for the System rule: database-schema.md, the system view in docs/design and the header of system_tree.py | GEN.576, DB.78, GEN.578 |  |
+| TEST.242 | Tests: invariants for any system at any time: zero mass-weighted offset sum, add and remove returns exactly, a parent change keeps every absolute position, one member equals the binary formula bit for bit | GEN.576 |  |
+| GEN.580 | Research: the binary and satellite fraction of small bodies by size, and the survival of sub-satellites of moons, to replace the stand-in cut of the hosting gate |  |  |
+| GEN.579 | The hosting gate: can_host(body) in three parts and the gated table of the satellite share by size class, as labelled stand-in rows | GEN.552 |  |
+| MAP.253 | Map and scene read the parent chain: systemscene, body_positions, the browser twin orbitpositions.js and the systemmap branches drop the three origin conventions | GEN.576, DB.78, GEN.577 |  |
+| GEN.578 | The point class gets the local frame and the barycentre system frame, and the system anchor is no longer the nearest star | GEN.576, GEN.569, GEN.573 |  |
+| GEN.577 | Stored planet and moon states become the state of the barycentre of the body and its own members | GEN.576 |  |
+| DB.78 | Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go | GEN.576, DB.73 |  |
+| GEN.576 | system(host): the one function that groups bodies by their parent link and returns the barycentre sums, the central object's offset and the valid-system check | GEN.565, GEN.315 |  |
+| GEN.568 | One registry of every unit the project uses |  |  |
+| GEN.585 | Dimensions and unit systems in the registry: every unit carries its exponent vector, the derived kinds are listed, and a constant's number in any coherent system follows from its dimension | GEN.568 |  |
+| GEN.586 | physics/relations.py: the named laws declared once as data, with a fast float kernel in SI and a Quantity wrapper generated from the same declaration, and a dimension test in the mathcheck gate | GEN.585, GEN.569 |  |
+| GEN.587 | Replace the hand-written relation sites with the relations module, by file group, bit-identical on the golden set | GEN.586 |  |
+| GEN.569 | The Quantity value class: the number as given, every other unit answered on first read and kept, declared relations, checks | GEN.568 |  |
+| DB.76 | Column registry: every numeric column declares its table, kind and stored unit, loaded and stored through one list | GEN.568 |  |
+| GEN.571 | Replace the ad-hoc unit conversions with the registry, by file group, bit-identical on the golden set | GEN.568 |  |
+| UX.139 | Display reads the registry: ladder rungs take their symbol and factor from it, and the 21 format wrappers become one format_quantity entry | GEN.569, UX.107 |  |
+| UX.140 | Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed | GEN.568 |  |
+| GEN.573 | The position class reads its units from the registry: length unit by key, no bare 1000 or copy of c, mass and mu a declared relation | GEN.568, GEN.569 |  |
+| GEN.574 | Describe and API: qty() builds a Quantity and the {kind, si} shape becomes {kind, value, unit} | GEN.569, UX.107, UX.119 |  |
+| DB.77 | Precision table: each length column declares its reference frame and the largest distance at which a 10 m body keeps a metre | DB.76 |  |
+| DOC.70 | Docs for the unit registry: units-and-number-formatting.md and database-schema.md updated, the unit rules in the registry's file header | GEN.568, GEN.569, DB.76 |  |
+| GEN.564 | A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter | DB.75 |  |
+| GEN.557 | Wanderers: a rogue planet becomes a planet with no parent, drawn by the one body chain with an origin table, a notional formation host, the population's age and motion | GEN.553, DB.73, GEN.565 |  |
+| DB.73 | Storage for one orbited-body model: a shared parent link for every kind, free parents, the orbit node table filled, moons storable under a rogue |  |  |
+| GEN.555 | The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test | GEN.315, GEN.331, GEN.332, GEN.581 |  |
+| GEN.554 | Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets | GEN.553 |  |
+| GEN.553 | One star-like body draw: origin, birth, state and [Fe/H], with the initial-final relation, the remnant mass, radius and age rules in one place | GEN.439, GEN.440 |  |
+| GEN.550 | Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system |  |  |
 | GEN.429 | Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation | GEN.428 | Boss 11:49 PM EDT; the atmosphere chain reads this gravity. Core 4 proposed. |
-| GEN.459 | One radiogenic module: heat from the isotope-wise decay of potassium, thorium, uranium and aluminium-26, drawn from the host star's abundances, replaces the bulk-silicate values that are 37 to 50 percent too high and the separate ground-dose draw (bug) | GEN.428, GEN.438 | Body composition research lane findings F1 and F2, cluster 4; generator epoch bump. Core 4 proposed. |
+| GEN.459 | One radiogenic module: heat from the isotope-wise decay of potassium, thorium, uranium and aluminium-26, drawn from the host star's abundances, replaces the bulk-silicate values that are 37 to 50 percent too high and the separate ground-dose draw (bug) | GEN.428 | Body composition research lane findings F1 and F2, cluster 4; generator epoch bump. Core 4 proposed. |
 | GEN.460 | Giant planets and brown dwarfs get their radius and heavy-element content from the checked laws: the heavy-element mass law, the Fortney and Baraffe tables with inflation, and the burning limits shifted by metallicity and helium (bug) | GEN.427, GEN.428 | Body composition research lane finding F7, cluster 6 (parts A and C); generator epoch bump. Core 4 proposed. |
 | DB.69 | Planets and moons store the composition fractions | GEN.429, GEN.458, GEN.459, GEN.460, GEN.498 | Boss 11:49 PM EDT; migration revision after DB.67. Core 4 proposed. |
 | GEN.430 | The planet and moon descriptions state the composition from the stored fractions | GEN.428, GEN.429, GEN.221 | Boss 11:49 PM EDT; the description side. Core 4 proposed. |
@@ -51,6 +91,9 @@ The ground's composition and the small bodies' composition from the bulk model, 
 | GEN.495 | The comet population table: species ranges and log-normal scatters replace the draw centred on one comet, with a carbon-chain-depleted flag | GEN.457 | Body lane G-1 (2:43 AM EDT as the lane reported): the comet population table replaces the 67P-centred draw. Core 4 proposed. |
 | GEN.442 | Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line | GEN.428, GEN.429, GEN.458, GEN.459, GEN.470, GEN.495 | Boss 11:58 PM EDT; small bodies; generator epoch bump. |
 | GEN.466 | Moons draw their origin type, ice fraction and composition from the parent, the circumplanetary ice line and the age | GEN.428, GEN.429, GEN.442, GEN.458 | Body composition research lane part D sections 2.8 to 2.11; generator epoch bump. Core 4 proposed. |
+| GEN.559 | Unbound comets: a size law and a cut, composition from the comet table, derived activity and velocity | GEN.557, GEN.495, GEN.442 |  |
+| GEN.558 | Moons of wanderers: ejection survivors and isolated-disk moons are table rows, and the fixed 20% boolean is gone | GEN.556, GEN.557, GEN.466 |  |
+| GEN.556 | `populate(host)`: planets, belts, comets and moons come from the class tables by one recursive routine, and the system pass is absorbed | GEN.552, GEN.315, GEN.555, GEN.565, GEN.581 |  |
 | GEN.455 | Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates | GEN.441, GEN.442, GEN.410, GEN.478 | Atmosphere research lane new work 6 (parts 04 section 5 and 05); generator epoch bump. Core 4 proposed. |
 
 ### Mixture and stored values
@@ -107,6 +150,10 @@ The columns for ozone and the aerosols, the atmosphere text written from the mix
 | GEN.415 | Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture | GEN.410, GEN.411, GEN.413, GEN.221 | Boss 11:24 PM EDT; the description side of consistency. Core 4 proposed (Boss, 11:41 PM EDT). |
 | TEST.209 | One consistency sweep over every planet and moon class: composition, density, temperature, ozone, aerosols and text all agree | GEN.411, GEN.412, GEN.413, GEN.414, GEN.415, DB.67, DB.68, GEN.422, GEN.423, GEN.424 | Boss 11:24 PM EDT; the proof. |
 | TEST.210 | A bulk composition sweep over every class: fractions, density, mass, radius and gravity agree | GEN.428, GEN.429, GEN.430, DB.69, GEN.441, GEN.442, DB.70, GEN.458, GEN.459, GEN.460, GEN.461, GEN.462, GEN.466 | Boss 11:49 PM EDT; the proof. |
+| TEST.240 | Round-trip and registry tests for the mass object core: every kind's stored row round-trips, and no kind table is named in a list the registry should own | GEN.565, DB.74 |  |
+| PERF.136 | Measure the fill with wanderers and their moons, and decide whether the rogue cost is on by default | GEN.558, GEN.559 |  |
+| TEST.239 | Tests for the unified chain: determinism by host, representation counts per kind and level, rogue and comet rates, derived remnant shares | GEN.554, GEN.558, GEN.559 |  |
+| UX.138 | Pages, symbols and descriptions for the new rows: moons of wanderers, free brown dwarfs as stars, unbound comets | GEN.558, GEN.559 |  |
 | DOC.63 | Docs: the atmosphere data model, the gas table and how the values agree | TEST.209 | Boss 11:24 PM EDT; docs only. |
 | DOC.65 | Docs: bulk composition, the materials table and how density, mass and gravity follow | TEST.210 | Boss 11:49 PM EDT; docs only. |
 

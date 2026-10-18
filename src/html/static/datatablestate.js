@@ -9,7 +9,8 @@
 export var PAGE_SIZE = 50;
 
 // The query pairs for a state: `sort`/`order` (after the table's `prefix`,
-// for a page with several tables), one pair per chosen filter value.
+// for a page with several tables), `from` (the jump-by-value box's `start`, PERF.75) and one pair per chosen filter
+// value.
 // `defaultSort` leaves the sort out when it is the page's default (so the
 // address bar stays short).
 export function stateParams(state, defaultSort, prefix) {
@@ -20,6 +21,9 @@ export function stateParams(state, defaultSort, prefix) {
   }
   if (state.descending) {
     pairs.push([prefix + "order", "desc"]);
+  }
+  if (state.start) {
+    pairs.push([prefix + "from", state.start]);
   }
   Object.keys(state.filters || {}).forEach(function (param) {
     (state.filters[param] || []).forEach(function (value) {
@@ -112,7 +116,7 @@ export function fetchWhileBusy(request, wanted, onBusy, sleep) {
 }
 
 // The rows fetched so far, by page. `fetchPage(page, generation)` returns a
-// promise of `{rows, total, facets, next}`; its third argument is the `next`
+// promise of `{rows, total, facets, next, note}`; its third argument is the `next`
 // of the page before, when that page was fetched. `reset()` forgets everything (the
 // sort or a filter changed) and makes every answer still on its way stale,
 // so a slow old answer can't land in the new table.
@@ -124,6 +128,7 @@ export function createPageStore(pageSize, fetchPage) {
   var store = {
     total: 0,
     capped: false,
+    note: "",
     facets: null,
     reset: function () {
       generation += 1;
@@ -132,6 +137,7 @@ export function createPageStore(pageSize, fetchPage) {
       pending = new Map();
       store.total = 0;
       store.capped = false;
+      store.note = "";
       store.facets = null;
     },
     // True when an answer fetched for `generation` is no longer wanted (the table was reset since).
@@ -165,6 +171,7 @@ export function createPageStore(pageSize, fetchPage) {
         }
         store.total = body.total;
         store.capped = Boolean(body.capped);
+        store.note = body.note || "";
         if (body.facets) {
           store.facets = body.facets;
         }

@@ -147,7 +147,9 @@ function enhance(root) {
   const defaultSort = root.dataset.defaultSort;
   const prefix = root.dataset.prefix || "";
   const iconUrl = root.dataset.icons || "";
-  const owned = [`${prefix}sort`, `${prefix}order`, `${prefix}page`]
+  const jumpForm = root.querySelector(".datatable-jump");
+  const jumpHints = jumpForm ? JSON.parse(jumpForm.dataset.hints || "{}") : {};
+  const owned = [`${prefix}sort`, `${prefix}order`, `${prefix}page`, `${prefix}from`]
     .concat(facetNodes.map((node) => node.dataset.param));
   let rowHeight = ROW_HEIGHT_ESTIMATE;
 
@@ -195,13 +197,18 @@ function enhance(root) {
     return Array.from(node.querySelectorAll("input[type=checkbox]:checked")).map((input) => input.value);
   }
 
+  // The jump-by-value box (PERF.75): where the list begins, in the sort it was typed under; another sort drops it.
+  let startValue = root.dataset.start || "";
+  let startSort = root.dataset.sort;
+
   function currentState() {
     const sorting = tableState.sorting[0] || { id: defaultSort, desc: false };
     const filters = {};
     tableState.columnFilters.forEach((filter) => {
       filters[filter.id] = filter.value;
     });
-    return { sort: sorting.id, descending: Boolean(sorting.desc), filters };
+    const start = startValue && startSort === sorting.id && jumpHints[sorting.id] ? startValue : "";
+    return { sort: sorting.id, descending: Boolean(sorting.desc), filters, start };
   }
 
   // --- Fetched pages -----------------------------------------------------
@@ -327,13 +334,28 @@ function enhance(root) {
       th.setAttribute("aria-sort", active ? (state.descending ? "descending" : "ascending") : "none");
       link.querySelector(".datatable-arrow").textContent = active ? (state.descending ? "▼" : "▲") : "";
     });
+    showJump(state);
+  }
+
+  // The jump box shows under the sorts that have one, with that sort's hint, holding the start that applies.
+  function showJump(state) {
+    if (!jumpForm) {
+      return;
+    }
+    const hint = jumpHints[state.sort];
+    jumpForm.hidden = !hint;
+    const input = jumpForm.querySelector("input[type=text]");
+    input.placeholder = hint || "";
+    input.value = state.start;
+    jumpForm.querySelector(".datatable-jump-clear").hidden = !state.start;
   }
 
   function showCount() {
     const state = currentState();
     const filtered = Object.keys(state.filters).some((param) => state.filters[param].length > 0);
     const more = root.dataset.capped === "true" || store.capped ? "+" : "";
-    countLine.textContent = `${formatNumber(store.total)}${more} ${noun(store.total + (more ? 1 : 0))}${filtered ? " match" : ""}`;
+    countLine.textContent = `${formatNumber(store.total)}${more} ${noun(store.total + (more ? 1 : 0))}${filtered ? " match" : ""}` +
+      (store.note ? `. ${store.note}` : state.start ? ` from \u201c${state.start}\u201d` : "");
     if (clearLink) {
       clearLink.hidden = !filtered;
     }
@@ -465,6 +487,26 @@ function enhance(root) {
     event.preventDefault();
     table.getColumn(link.closest("th").dataset.col).toggleSorting(undefined, false);
   });
+
+  function startAt(text) {
+    startValue = text;
+    startSort = currentState().sort;
+    stateChanged();
+  }
+
+  if (jumpForm) {
+    jumpForm.addEventListener("submit", (event) => {
+      if (root.dataset.enhanced !== "true") {
+        return;
+      }
+      event.preventDefault();
+      startAt(jumpForm.querySelector("input[type=text]").value.trim());
+    });
+    jumpForm.querySelector(".datatable-jump-clear").addEventListener("click", (event) => {
+      event.preventDefault();
+      startAt("");
+    });
+  }
 
   function filtersFromForm() {
     table.setColumnFilters(facetNodes.map((node) => ({ id: node.dataset.param, value: checkedValues(node) }))

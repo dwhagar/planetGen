@@ -35,6 +35,8 @@ def star_label(star_type, yerkes_class):
         return "white dwarf", "white dwarfs"
     if yerkes_class == "protostar":
         return "protostar", "protostars"
+    if yerkes_class == "W":
+        return "Wolf-Rayet star", "Wolf-Rayet stars"
     if yerkes_class == "PMS":
         return "pre-main-sequence star", "pre-main-sequence stars"
     if yerkes_class == "BH":

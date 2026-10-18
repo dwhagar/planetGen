@@ -57,7 +57,7 @@ def _disk_share_bound(shape, z_near, z_far, fractions, rho_near, rho_far):
     """
     recent_low, recent_high = starFormation.recent_factor_range(rho_near, rho_far, shape)
     ranges, f = [], []
-    for name, ratio in tuning.STELLAR_POPULATION_SCALE_HEIGHT_RATIO.items():
+    for name, ratio in density.population_height_ratios(shape).items():
         height = shape.disk_scale_height_pc * ratio
         share = starFormation.disk_population_share(name, shape)
         arm = abs(tuning.STELLAR_POPULATION_ARM_AMPLITUDE[name])

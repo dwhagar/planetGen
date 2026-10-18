@@ -20,15 +20,22 @@ _ORBIT_LABELS = {"close": "Close pair", "wide": "Wide pair", "compact": "Compact
 """dict: `scatter_nodes.kind` -> its label."""
 
 
+def _member_label(row):
+    """The kind's label, with a brown dwarf's L, T or Y type after it (GEN.252): "Brown dwarf (T5)"."""
+    label = _KIND_LABELS.get(row["kind"], row["kind"].replace("-", " ").capitalize())
+    if row["kind"] == "brown-dwarf" and row.get("state"):
+        label += f" ({row['state']})"
+    return label
+
+
 def members_view(tree):
     """
     The page rows for a `scatter_member_tree` (or a detail that carries one): `members` (number, kind, mass) and
     `orbits` (number, what it joins, separation, period, eccentricity), as lists of strings. Both are empty for a
     single object.
     """
-    members = [[str(row["member_no"] + 1),
-                _KIND_LABELS.get(row["kind"], row["kind"].replace("-", " ").capitalize()),
-                format_mass_solar(row["mass_solar"])] for row in tree.get("members") or []]
+    members = [[str(row["member_no"] + 1), _member_label(row), format_mass_solar(row["mass_solar"])]
+               for row in tree.get("members") or []]
     orbits = [[str(row["node_no"] + 1),
                _ORBIT_LABELS.get(row["kind"], row["kind"].capitalize()),
                format_distance_au(row["separation_au"]), format_period_years(row["period_years"]),

@@ -53,6 +53,8 @@ setup(
         'planetgen.db': ['schema.sql', 'control_schema.sql', 'migrations/*.py', 'migrations/*.mako', 'migrations/*.md',
                          'migrations/versions/*.py'],
         'planetgen.names': ['offensive_words.txt'],
+        # The element and isotope tables (planetgen.physics.elements, GEN.438).
+        'planetgen.physics': ['data/*.json'],
     },
     entry_points={
         'console_scripts': [

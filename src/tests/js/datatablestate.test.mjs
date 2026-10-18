@@ -28,6 +28,15 @@ test("values are percent-encoded", () => {
   assert.equal(dataQuery(state, 0, 50, false), "sort=name&descriptor=a%20b%26c&offset=0&limit=50");
 });
 
+test("the jump-by-value start rides in the data query as from, and in a prefixed address as the table's own from (PERF.75)", () => {
+  const state = { sort: "name", descending: false, filters: {}, start: "Be a&b" };
+  assert.equal(dataQuery(state, 0, 50, false), "sort=name&from=Be%20a%26b&offset=0&limit=50");
+  assert.deepEqual(stateParams(state, "name", "systems_"), [["systems_from", "Be a&b"]]);
+  assert.deepEqual(stateParams({ ...state, start: "" }, "name", "systems_"), []);
+  assert.equal(pageAddress("/systems", "?x=1&systems_from=old", state, "name", "systems_", ["systems_sort", "systems_order", "systems_page", "systems_from"]),
+    "/systems?x=1&systems_from=Be%20a%26b");
+});
+
 const OWNED = ["sort", "order", "page", "type", "descriptor"];
 
 test("the page address is the path with the same pairs the no-script links use", () => {
@@ -147,4 +156,16 @@ test("the store knows an answer for an older generation is stale", () => {
   assert.equal(store.stale(0), false);
   store.reset();
   assert.equal(store.stale(0), true);
+});
+
+test("the store keeps the note of the page it fetched and forgets it on reset (PERF.135)", async () => {
+  const store = createPageStore(2, () => Promise.resolve({ rows: [{ text: "x" }], total: 1, note: "Nothing from “9” on; showing the last 1." }));
+  assert.equal(store.note, "");
+  await store.ensure(0);
+  assert.equal(store.note, "Nothing from “9” on; showing the last 1.");
+  store.reset();
+  assert.equal(store.note, "");
+  const plain = createPageStore(2, () => Promise.resolve({ rows: [{ text: "x" }], total: 1 }));
+  await plain.ensure(0);
+  assert.equal(plain.note, "");
 });

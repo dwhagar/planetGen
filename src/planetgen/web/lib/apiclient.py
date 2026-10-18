@@ -416,7 +416,7 @@ def get_sector(db, sector_id):
 
 
 def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sort=None, descending=False,
-                binary=None, placement=None, octants=(), facets=False, after=None):
+                binary=None, placement=None, octants=(), facets=False, after=None, start=None):
     """
     Returns `GET /api/systems`'s full paginated envelope.
 
@@ -429,22 +429,25 @@ def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sor
             filters (UX.41).
         after: The system ID the previous page ended on (PERF.75); with the name sort the page starts after
             it and `offset` is ignored.
+        start: The jump-by-value box's text (PERF.75, the API's `from`): the list begins at the first name (name
+            sort) or sector (sector sort) from it on.
     """
     _require_db(db)
     params = [("db", db), ("star_type", star_type), ("sector_id", sector_id), ("limit", limit),
-              ("offset", offset), ("after", after), ("sort", sort), ("order", "desc" if descending else None),
+              ("offset", offset), ("after", after), ("from", start or None), ("sort", sort), ("order", "desc" if descending else None),
               ("binary", None if binary is None else ("yes" if binary else "no")), ("placement", placement)]
     params += [("octant", value) for value in octants] + [("facets", "1" if facets else None)]
     return _request("/systems", [(key, value) for key, value in params if value is not None])
 
 
-def get_uncharted_systems(db, limit=None, offset=None, sort=None, descending=False, after=None):
+def get_uncharted_systems(db, limit=None, offset=None, sort=None, descending=False, after=None, start=None):
     """Returns `GET /api/uncharted-systems`'s envelope (UX.87): a page of
     the scattered stars no system was built around yet, with the `total`
     waiting. `sort` is one of `db.query.UNCHARTED_SYSTEM_SORTS`; `after` is the star id the previous page
-    ended on (PERF.75)."""
+    ended on (PERF.75); `start` is the jump-by-value box's text (PERF.135, the API's `from`): the list begins at the
+    first star at or after that value in the sort."""
     _require_db(db)
-    params = [("db", db), ("limit", limit), ("offset", offset), ("after", after), ("sort", sort),
+    params = [("db", db), ("limit", limit), ("offset", offset), ("after", after), ("from", start or None), ("sort", sort),
               ("order", "desc" if descending else "asc" if sort else None)]
     return _request("/uncharted-systems", [(key, value) for key, value in params if value is not None])
 
@@ -780,14 +783,15 @@ def get_galaxy_changes(db, since=None):
     return _request("/galaxy/changes", {"db": db, "since": since})
 
 def get_phenomena(db, limit=None, offset=None, sort=None, descending=False, types=(), descriptors=(),
-                  placed=None, facets=False, after=None):
+                  placed=None, facets=False, after=None, start=None):
     """Returns `GET /api/phenomena`'s full paginated envelope
     (`items`/`total`/`limit`/`offset`, plus `facets` when asked) -- see
     `db.query.list_phenomena`'s docstring for the shape. `sort`, `types`,
     `descriptors` and `placed` (True/False) are the table's sort and
-    filters (UX.41); `after` is the `scatter_id` the previous page ended on, inside the scattered tail (PERF.75)."""
+    filters (UX.41); `after` is the `scatter_id` the previous page ended on, inside the scattered tail (PERF.75);
+    `start` is the jump-by-value box's scatter id (PERF.135, the API's `from`): the scattered tail from that id on."""
     _require_db(db)
-    params = [("db", db), ("limit", limit), ("offset", offset), ("after", after), ("sort", sort),
+    params = [("db", db), ("limit", limit), ("offset", offset), ("after", after), ("from", start or None), ("sort", sort),
               ("order", "desc" if descending else None)]
     params += [("type", value) for value in types] + [("descriptor", value) for value in descriptors]
     params += [("placed", None if placed is None else ("yes" if placed else "no")),

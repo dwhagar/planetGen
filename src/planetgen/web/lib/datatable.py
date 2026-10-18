@@ -37,6 +37,7 @@ from urllib.parse import urlencode
 
 from markupsafe import Markup
 
+from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import utc_time_html
 from planetgen.web.lib.pagination import PAGE_SIZE, parse_page, render_pagination
 from planetgen.web.lib.tabledisplay import to_plain_text
@@ -53,14 +54,42 @@ Column = namedtuple("Column", "key label sortable", defaults=(True,))
 Facet = namedtuple("Facet", "param label")
 """A filter menu: the query parameter its checked values travel in, and its name."""
 
-Result = namedtuple("Result", "rows total facets capped next", defaults=(None, False, None))
+Result = namedtuple("Result", "rows total facets capped next note", defaults=(None, False, None, ""))
 """One loaded page: `rows` (lists of cells), the `total` rows that pass the
 filters and `facets` (`{param: [{"value", "label", "count"}]}`, or None when
 not asked for); `capped` says there are more rows than `total` (shown "300+"); `next` is the key a keyset
-table (PERF.75) gives the page after this one (`after=`), else None."""
+table (PERF.75) gives the page after this one (`after=`), else None; `note` is a line shown after the count ("" for
+none), such as a jump-by-value start that lay past the end (PERF.135)."""
 
-State = namedtuple("State", "sort descending filters page")
-"""What a visitor chose: the sort key, its direction, `{param: [values]}` and the page."""
+def read_from_start(fetch, start):
+    """
+    Read a page of a table with a jump-by-value box (PERF.135) and the line to show with it.
+
+    Args:
+        fetch (callable): `fetch(start)` -> the API's envelope for that start (`""` for none).
+        start (str): The box's text.
+
+    Returns:
+        tuple[dict, str]: The envelope and the note: "" when the start fit, else that the start lay past the last
+        row (the API answers the last page, `past_end`) or that it is not a value for the sort (a 400: the list is
+        read from the top).
+    """
+    if not start:
+        return fetch(""), ""
+    try:
+        envelope = fetch(start)
+    except apiclient.ApiError as exc:
+        if exc.status_code != 400:
+            raise
+        return fetch(""), f"\u201c{start}\u201d is not a value for this sort; showing the list from the top."
+    if envelope.get("past_end"):
+        return envelope, f"Nothing from \u201c{start}\u201d on; showing the last {len(envelope['items'])}."
+    return envelope, ""
+
+
+State = namedtuple("State", "sort descending filters page start", defaults=("",))
+"""What a visitor chose: the sort key, its direction, `{param: [values]}`, the page and the jump-by-value `start` (the
+text the list begins at, PERF.75; empty for the top)."""
 
 
 class Table:
@@ -80,10 +109,14 @@ class Table:
         noun (tuple[str, str]): Singular and plural for the count line.
         keyset (bool): `load` also takes `after=` (the key the previous page ended on) and gives `Result.next`,
             so a page far down is read without skipping the rows before it (PERF.75).
+        jump (dict[str, str]): The sort keys that have a jump-by-value box (PERF.75), each with the hint the box shows
+            under that sort: a text box that begins the list at the first name, sector ... from the typed text on in
+            that sort, read from the `<prefix>from` parameter into `State.start` (which `load` passes on) and ignored
+            under any other sort.
     """
 
     def __init__(self, name, label, columns, load, facets=(), prefix="", noun=("row", "rows"), default_sort=None,
-                 keyset=False):
+                 keyset=False, jump=None):
         self.name = name
         self.label = label
         self.columns = list(columns)
@@ -92,13 +125,14 @@ class Table:
         self.prefix = prefix
         self.noun = noun
         self.keyset = keyset
+        self.jump = dict(jump or {})
         self.default_sort = default_sort or next((column.key for column in columns if column.sortable), None)
 
     def owned_params(self):
         """The page query parameters this table reads; every other one belongs to the page or
         another table and is carried along unchanged."""
         return {f"{self.prefix}sort", f"{self.prefix}order", f"{self.prefix}page",
-                *(facet.param for facet in self.facets)}
+                *((f"{self.prefix}from",) if self.jump else ()), *(facet.param for facet in self.facets)}
 
     def sort_keys(self):
         return [column.key for column in self.columns if column.sortable]
@@ -127,14 +161,16 @@ def parse_state(table, args, prefix=None):
             if value and value not in values:
                 values.append(value)
         filters[facet.param] = values[:MAX_FILTER_VALUES]
-    return State(sort, args.get(f"{prefix}order") == "desc", filters, parse_page(args.get(f"{prefix}page")))
+    start = args.get(f"{prefix}from", "").strip()[:MAX_VALUE_LENGTH] if sort in table.jump else ""
+    return State(sort, args.get(f"{prefix}order") == "desc", filters, parse_page(args.get(f"{prefix}page")), start)
 
 
 def state_params(table, state, page=None, sort=None, descending=None, extra=()):
     """
     The query pairs that put `state` (with optional overrides) back in a URL.
     A default sort order is left out; `page` is added only above 1; `extra`
-    (the page's other parameters) is added last.
+    (the page's other parameters) is added last. The jump-by-value `start` stays
+    only while the sort stays: it names a place in that sort.
     """
     sort = state.sort if sort is None else sort
     descending = state.descending if descending is None else descending
@@ -143,6 +179,8 @@ def state_params(table, state, page=None, sort=None, descending=None, extra=()):
         pairs.append((f"{table.prefix}sort", sort))
     if descending:
         pairs.append((f"{table.prefix}order", "desc"))
+    if state.start and sort == state.sort and sort in table.jump:
+        pairs.append((f"{table.prefix}from", state.start))
     for facet in table.facets:
         pairs.extend((facet.param, value) for value in state.filters.get(facet.param, ()))
     if page is not None and page > 1:
@@ -199,12 +237,18 @@ def view(table, state, result, path, source, anchor=None, extra=()):
         "rows": result.rows,
         "total": result.total,
         "capped": result.capped,
+        "note": result.note,
         "noun_one": table.noun[0],
         "noun_many": table.noun[1],
         "facets": facets,
         "filtered": any(state.filters.get(facet.param) for facet in table.facets),
         "sort": state.sort,
         "descending": state.descending,
+        "jump": {"param": f"{table.prefix}from", "hints": table.jump, "start": state.start, "hint": table.jump.get(state.sort, ""),
+                 "active": state.sort in table.jump,
+                 "fields": state_params(table, state._replace(start=""), extra=extra),
+                 "clear_href": _href(path, state_params(table, state._replace(start=""), extra=extra), anchor)
+                 } if table.jump else None,
         "default_sort": table.default_sort,
         "prefix": table.prefix,
         "sort_fields": state_params(table, state._replace(filters={}), extra=extra),
