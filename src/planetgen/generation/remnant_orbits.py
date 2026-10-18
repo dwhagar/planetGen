@@ -62,18 +62,27 @@ def formation_mass_kg(star):
     return sum(mass_loss.member_formation_mass_kg(member) for member in _members(star))
 
 
-def widen_for_mass_loss(planets, star):
+def widen_for_mass_loss(planets, star, explicit_request=False):
     """
     Moves the planets and belts of `planets` out, in place, by the mass `star` lost: each orbit grows by `(M_formation +
-    M_p) / (M_now + M_p)`. A star that lost nothing is left as it is.
+    M_p) / (M_now + M_p)`. A star that lost nothing is left as it is, and so is a forced-type white dwarf (no model
+    progenitor) when a habitable world or a `SLOTS` list is asked for (`explicit_request`), whose planets were placed
+    where the request needs them.
 
     Args:
         planets (list): The `Planet` and `AsteroidBelt` instances around `star`, after the engulfed ones are removed.
         star (Star): The star or close pair's proxy they orbit.
+        explicit_request (bool): Whether a habitable world or `SLOTS` is asked for.
+
+    Returns:
+        bool: Whether any orbit moved (the caller spaces them again: the Hill radii are over the lighter star).
     """
+    if explicit_request and any(getattr(member, "yerkes_class", None) in ("VII", "D")
+                                and member.initial_mass_sol is None for member in _members(star)):
+        return False
     formed = formation_mass_kg(star)
-    if formed <= star.mass * (1.0 + 1e-9):
-        return
+    if formed <= star.mass * (1.0 + 1e-9) or not planets:
+        return False
     for body in planets:
         if body.body_type == 'a':
             factor = mass_loss.expansion_factor(formed, star.mass)
@@ -85,3 +94,4 @@ def widen_for_mass_loss(planets, star):
         validation.reconcile_moved_planet(body)
     log.debug(f"White dwarf planets widened by {mass_loss.expansion_factor(formed, star.mass):.3g} for the mass the "
               f"star lost ({formed:.3g} to {star.mass:.3g} kg)")
+    return True
