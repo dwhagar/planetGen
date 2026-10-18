@@ -358,6 +358,29 @@ def test_habitability_levels_page_explains_the_five_levels_and_the_six_domains(c
     assert "pulsar" in html and "1,000 Sv a year" in html
 
 
+def test_the_habitability_levels_numbers_are_the_constants_the_score_uses(client):
+    """GEN.219: no number on the page is typed in; it is the limit the score reads."""
+    from planetgen.physics import habitability
+    from planetgen.physics.protection_limits import limit
+    from planetgen.web.lib import habitability_ref
+
+    rows = {variable: cells for _domain, table in habitability_ref.domains() for variable, *cells in table}
+    assert rows["Air pressure"] == ["50 to 250 kPa", "14.3 to 400 kPa", "6.3 to 10,000 kPa"]
+    assert rows["Air temperature"] == ["0 to 31 C", "-20 to 45 C", "-50 to 122 C"]
+    assert rows["Carbon dioxide"][0] == f"under {habitability.GAS_LIMITS_KPA['CO2'][0]:g} kPa"
+    assert rows["Chaotropicity (how strongly dissolved salts pull the water's structure apart)"][0] == (
+        f"under {habitability.CHAOTROPICITY_CRIT_KJ_KG:g} kJ/kg")
+    assert rows["Water activity (how freely water is available)"][2] == f"{habitability.WATER_ACTIVITY_CRIT:g} or more"
+    assert f"{limit('heat_shielded_c'):g} C" in habitability_ref.EQUIPMENT_RULE
+    # A changed limit moves the page.
+    wide = habitability.bands({"pressure_no_gear_kpa": 60.0, "dose_blue_sv_yr": 0.03})
+    moved = {variable: cells for _domain, table in habitability_ref.domains(wide) for variable, *cells in table}
+    assert moved["Air pressure"][0] == "60 to 250 kPa" and moved["Dose per year"][0] == "under 0.03 Sv"
+    html = _html(client, "/classes/habitability")
+    for text in ("Chaotropicity", "too much", "too little", "Hydrogen sulfide"):
+        assert text in html
+
+
 def test_the_class_index_and_the_system_list_link_to_the_habitability_levels(client):
     assert 'href="/classes/habitability"' in _html(client, "/classes")
     system = _system()
