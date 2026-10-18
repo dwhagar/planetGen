@@ -491,33 +491,32 @@ def nucleus_row(seed):
                 mass_solar=log_uniform(*tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR, rng=rng))
 
 
-def hypervelocity_rows(extents, edge_pc, seed):
+def hypervelocity_rows(extents, edge_pc, seed, reach_shell=None):
     """
-    The galaxy's hypervelocity stars: `tuning.HYPERVELOCITY_STARS_PER_GALAXY`
-    (log-uniform between its two ends) stars, each ejected from the central
-    black hole in a random direction at `HYPERVELOCITY_STAR_SPEED_RANGE_KMS`
-    and placed along that ray, moving outward. One that would land outside
-    the outline is redrawn nearer in.
+    The galaxy's hypervelocity stars (GEN.238): `tuning.HYPERVELOCITY_STARS_PER_GALAXY` (log-uniform between its two
+    ends, read as the number out to `HYPERVELOCITY_COUNT_RADIUS_KPC`) stars out to the grid's reach, each ejected from
+    the central black hole in a random direction at `HYPERVELOCITY_STAR_SPEED_RANGE_KMS`, at a distance uniform to
+    the reach (a density that falls as r^-2) and moving outward. None is redrawn for landing outside the disk's
+    outline: they are wanderers, and every cell of the sphere is a place for one.
 
     Args:
-        extents (list): `(shell_index, high_band)` per shell.
+        extents (list): `(shell_index, high_band)` per shell of the outline.
         edge_pc (float): The sector edge.
         seed (int): The scatter's seed.
+        reach_shell (int, optional): The grid's outermost shell; the outline's when not given.
 
     Yields:
         tuple: One row per star, in `PHENOMENON_SCATTER_COLUMNS` order.
     """
-    high_bands = dict(extents)
-    if not high_bands:
-        return
+    if reach_shell is None:
+        if not extents:
+            return
+        reach_shell = max(shell for shell, _band in extents)
     rng = draw.Stream(f"{seed}:phenomena:{HYPERVELOCITY_STREAM}")
     low, high = tuning.HYPERVELOCITY_STARS_PER_GALAXY
-    wanted = int(round(log_uniform(low, high, rng=rng)))
-    reach_pc = (max(high_bands) + 0.5) * edge_pc
-    placed = 0
-    attempts = 0
-    while placed < wanted and attempts < wanted * HYPERVELOCITY_ATTEMPTS:
-        attempts += 1
+    reach_pc = (reach_shell + 0.5) * edge_pc
+    wanted = int(round(log_uniform(low, high, rng=rng) * reach_pc / (tuning.HYPERVELOCITY_COUNT_RADIUS_KPC * 1000.0)))
+    for _ in range(wanted):
         z = rng.uniform(-1.0, 1.0)
         phi = rng.uniform(0.0, 2.0 * math.pi)
         planar = math.sqrt(1.0 - z * z)
@@ -525,21 +524,14 @@ def hypervelocity_rows(extents, edge_pc, seed):
         distance = reach_pc * rng.random()
         point = tuple(round(component * distance * MPC_PER_PC) for component in direction)
         address = sector_address_at(tuple(value / MPC_PER_PC for value in point), edge_pc)
-        if abs(address[1]) > high_bands.get(address[0], -1):
-            continue
         speed = log_uniform(*tuning.HYPERVELOCITY_STAR_SPEED_RANGE_KMS, rng=rng)
         yield _row(*address, HYPERVELOCITY_KIND, point, rng,
                    velocity=tuple(speed * component for component in direction))
-        placed += 1
 
 
-def special_rows(extents, edge_pc, seed, filled=()):
-    """The nucleus and the hypervelocity stars, minus any in a cell
+def special_rows(extents, edge_pc, seed, filled=(), reach_shell=None):
+    """The nucleus and the hypervelocity stars (to the grid's `reach_shell`), minus any in a cell
     already `filled`: the rows no shell draws."""
-    rows = [nucleus_row(seed)] + list(hypervelocity_rows(extents, edge_pc, seed))
+    rows = [nucleus_row(seed)] + list(hypervelocity_rows(extents, edge_pc, seed, reach_shell))
     return [row for row in rows if tuple(row[:3]) not in filled]
 
-
-HYPERVELOCITY_ATTEMPTS = 50
-"""int: Draws per wanted star before giving up on one (most land inside
-the outline; a thin galaxy loses the ones that fly out of its disk)."""

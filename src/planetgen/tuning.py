@@ -3432,10 +3432,35 @@ HYPERVELOCITY_STAR_SPEED_RANGE_KMS = (500.0, 1000.0)
 """tuple: A hypervelocity star's speed, km/s (Brown 2015)."""
 
 HYPERVELOCITY_STARS_PER_GALAXY = (1e3, 1e4)
-"""tuple: How many hypervelocity stars a galaxy's scatter places, drawn
-log-uniformly between the two ends (Boss 2026-10-08: "about 1e3 to 1e4
-galaxy-wide"; Brown 2015). Each starts at the central black hole and moves
-outward at `HYPERVELOCITY_STAR_SPEED_RANGE_KMS`."""
+"""tuple: How many hypervelocity stars a galaxy's scatter places out to `HYPERVELOCITY_COUNT_RADIUS_KPC`, drawn
+log-uniformly between the two ends (Boss 2026-10-08: "about 1e3 to 1e4 galaxy-wide"; Brown 2015). Each starts at the
+central black hole and moves outward at `HYPERVELOCITY_STAR_SPEED_RANGE_KMS`; their density falls as r^-2, so the
+count out to a reach is this number times the reach over that radius (GEN.238)."""
+
+NEUTRON_STAR_UNBOUND_FRACTION_RANGE = (0.2, 0.4)
+"""tuple: The share of a galaxy's neutron stars a birth kick sends out of it, drawn once per galaxy from its seed
+(GEN.238; 20% to 40% of the isolated ones: Hobbs et al. 2005's kick distribution against the escape speed)
+[S, recalled; to verify]."""
+
+BLACK_HOLE_UNBOUND_FRACTION = 0.02
+"""float: The share of a galaxy's black holes that are ejected (GEN.238; about 2%) [S, recalled; to verify]."""
+
+EJECTA_SPEED_RANGE_KMS = (300.0, 500.0)
+"""tuple: The speed a kicked neutron star or black hole has far out, above the galaxy's escape speed, km/s (GEN.238)
+[I]. The population's density takes the middle of it; each object draws its own, uniform."""
+
+EJECTA_AGE_GY = 10.0
+"""float: How long the ejecta of a galaxy have been leaving, Gyr: with `EJECTA_SPEED_RANGE_KMS` it sets where the
+population ends, at `v T` (3 to 5 Mpc, far beyond any grid's reach) (GEN.238) [I]."""
+
+EJECTA_MAX_PER_CELL = 50.0
+"""float: The most ejected objects of one kind a cell draws (GEN.238), a program limit: the draw is O(mean), and a galaxy
+shaped to hold astronomically many systems in a few cells would otherwise draw more than a cell has room for. The real
+galaxy's densest cells draw far fewer."""
+
+HYPERVELOCITY_COUNT_RADIUS_KPC = 100.0
+"""float: The radius the count `HYPERVELOCITY_STARS_PER_GALAXY` is read to: "galaxy-wide" is taken as out to 100 kpc,
+the halo's extent (docs/design/intergalactic-and-halo-contents.md 2.3) [I]."""
 
 
 PHENOMENON_MIN_MASS_PRESETS = (8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0)
