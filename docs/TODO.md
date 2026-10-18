@@ -2237,7 +2237,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2's updated recommendation is tile cache warming first (PERF.130 to
   PERF.132), then trimming the cone and budgets only if a view is still
   heavy. Boss's card was replaced with the three options (warm the cache
-  first, cut the payload first, both); his choice is not recorded yet.
+  first, cut the payload first, both); his choice is recorded below (Both, cut payload first).
+  Decided (Boss, 2026-10-18, tapped on the card at about 8:54 AM EDT, as
+  the coordinator relayed): "Both, cut payload first". Cut the payload
+  first (fewer tiles per view, smaller star and point budgets, about 2
+  MB a view), then warm the tile cache ahead of the zoom path (PERF.130
+  to PERF.132, which follow the payload cut). Core 2 builds it and
+  states in the PR how many stars the cut loses.
 
 - [ ] **MAP.251 When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug)**
   Boss (2026-10-17, 7:38 PM EDT, typed in the project chat, relayed by
@@ -15653,6 +15659,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that rule bumps the tile cache stamp and the cached tiles are rebuilt
   once. The galaxy map lag Boss reported at the same time is MAP.249; if
   its cause is the missing cache, this item is brought forward.
+  Decided (Boss, 2026-10-18, tapped 'Both, cut payload first' on the
+  MAP.249 card at about 8:54 AM EDT, as the coordinator relayed): the
+  tile cache work follows MAP.249's payload cut, so it starts after Core
+  2's payload PR (about 2 MB a view) and is sized for the reduced tiles.
 
 - [ ] **PERF.131 Store the tiles compressed and serve the stored bytes with their encoding, so a request does no compression**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -15694,6 +15704,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that rule bumps the tile cache stamp and the cached tiles are rebuilt
   once. The galaxy map lag Boss reported at the same time is MAP.249; if
   its cause is the missing cache, this item is brought forward.
+  Decided (Boss, 2026-10-18, tapped 'Both, cut payload first' on the
+  MAP.249 card at about 8:54 AM EDT, as the coordinator relayed): the
+  tile cache work follows MAP.249's payload cut, so it starts after Core
+  2's payload PR (about 2 MB a view) and is sized for the reduced tiles.
   Prerequisites: none. Related: PERF.129, MAP.159, MAP.158.
 
 - [ ] **PERF.132 Build proactively on a visit: the surrounding tiles and the next zoom levels are built and cached in the background**
@@ -15735,6 +15749,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that rule bumps the tile cache stamp and the cached tiles are rebuilt
   once. The galaxy map lag Boss reported at the same time is MAP.249; if
   its cause is the missing cache, this item is brought forward.
+  Decided (Boss, 2026-10-18, tapped 'Both, cut payload first' on the
+  MAP.249 card at about 8:54 AM EDT, as the coordinator relayed): the
+  tile cache work follows MAP.249's payload cut, so it starts after Core
+  2's payload PR (about 2 MB a view) and is sized for the reduced tiles.
 
 - [ ] **PERF.133 Keep every tile until the data changes: invalidate by what changed, rebuild what a change touched, and never evict a valid tile for size**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
