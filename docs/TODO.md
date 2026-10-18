@@ -570,6 +570,11 @@ with `clamp()`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 15 of 54). This replaces any earlier owner line on this item.
+  Global document note (Core 4, 11:27 PM EDT as the lane reported): this
+  item deletes `web/lib/mdrender.py`, so when it merges the architecture
+  page's mdrender.py row (`docs/design/architecture.md` line 508 and the
+  generated map) goes; the TODO thread removes it with the next
+  global-document regeneration, the lane does not touch it.
   Prerequisites: UX.120, UX.108.
 
 - [ ] **UX.110 The phenomena count on the overview page is wrong (bug)**
@@ -14161,6 +14166,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch (OPS.56 rule).
   Prerequisites: none. Related: GEN.550.
 
+- [ ] **GEN.561 The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own**
+  Core 4's report to the TODO thread (11:27 PM EDT as the lane
+  reported): on a card at 10:55 PM EDT as the lane reported, Boss chose
+  'kit follows words' for the gear and equipment tier of the
+  habitability description. This resolves the kit-versus-words finding
+  that Core 4 recorded with TEST.155 (the wording and index property
+  test: the colour, score, band sentence, gear and equipment label must
+  agree; the finding itself is in Core 4's description-layer PR and was
+  not in docs/TODO.md at the time of filing, so the TODO thread has
+  asked Core 4 for its text). Meaning, as the lane gave it: where the
+  gear or equipment label and the sentence the describer writes
+  disagree, the label is derived from the sentence's tier and the
+  sentence is the source. Filed by the TODO thread as its own small item
+  as Core 4 asked; the Do and Done lines are completed from Core 4's
+  finding. Do: derive the kit label from the sentence tier in the one
+  habitability describer (GEN.218); remove any separate draw or table
+  that can disagree. Done: TEST.155's property test passes for the gear
+  and equipment label on random worlds and the sample systems. Changes
+  only description text, so it bumps no generator epoch unless the label
+  is stored. Owner: Core 4 (its own queue, after the description-layer
+  bundle, UX.109, UX.107 and DOC.45).
+  Prerequisites: GEN.218. Related: TEST.155, GEN.218, GEN.288.
+
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -20781,6 +20809,21 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   whether `test_todo_docs.py`'s other checks (the ledger counts, the
   order check) stay in the lane gate, since they read TODO.md which
   lanes never edit.
+  Core 5's build, PR #2172 (11:40 PM EDT as the lane reported, gate
+  running), differs from the plan above in four details, all accepted:
+  the marker `globaldocs` is on six tests (architecture map module list
+  and its --check test, docs index 'is up to date', 'every page is
+  listed' and 'links resolve', todo_docs test_pages_are_up_to_date; the
+  'every page has a description' and 'links back to the index' checks
+  stay in every gate); todo_docs' other checks (ledger counts, order
+  check, the execution plan built from its sources) stay in the lane
+  gate because they read TODO.md and the notes, not the committed pages;
+  there is no new `scripts/test.py` subcommand, `scripts/test.py
+  <command> --global-docs` sets PLANETGEN_GLOBAL_DOCS=1 for any command
+  and the stamp runs `scripts/test.py full --check --global-docs`;
+  `python scripts/build_global_docs.py [--check]` rebuilds or checks the
+  architecture map, the docs/plan pages and the docs index in that
+  order. Both `warm_map` docstrings are fixed in it.
   Prerequisites: none. Related: DOC.67, DOC.68, DOC.47.
 
 ## VIEW: The view from a planet

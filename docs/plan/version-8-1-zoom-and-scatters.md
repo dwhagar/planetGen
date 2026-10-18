@@ -93,6 +93,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.218 | One habitability describer, in the short wording |  |  |
+| GEN.561 | The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own | GEN.218 |  |
 | GEN.219 | The habitability levels page and tooltips are generated from the limits |  |  |
 | DB.50 | Migration only: structure columns for life and flavour |  | Split from DB.31. Core 1 owns migrations. |
 | DB.51 | Generation stores structure, not prose; the readers and the string searches go | DB.50, GEN.218 | Split from DB.31. Core 1 owns migrations. |
