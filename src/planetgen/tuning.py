@@ -489,7 +489,7 @@ MULTIPLICITY_BY_PRIMARY_MASS_BIN = {
 by primary mass bin (solar masses). `multiplicity`: companions per primary with q above 0.1; `close`: companions
 per primary inside log P (days) 3.7; `single`, `binary`, `multiple`: the fractions of primaries with no companion, one,
 and two or more (triples and quadruples). The chance of a companion is 1 - `single`. The rows of
-`generation.multistar.STAR_COUNT_PROBABILITIES` for mid and early B stars are rederived from these (GEN.449)."""
+`generation.phenomena.hosts.STAR_COUNT_PROBABILITIES` for mid and early B stars are rederived from these (GEN.449)."""
 
 B_SUBCLASS_LOWER_MASS_SOL = (("B-early", 9.0), ("B-mid", 5.0))
 """tuple: The birth mass at which the B-star sub-classes begin, heaviest first (Table 13's bins); a B star below the
@@ -2946,21 +2946,6 @@ ROGUE_ACTIVE_HEAT_FLUX_W_M2 = 0.04
 """float: A rocky rogue whose heat flow reaches this is still geologically
 active (`has_internal_heat`): Earth flows 0.087 W/m^2, Mars about 0.02
 (a default between them). A giant always is."""
-SYSTEM_PASS_ODDS = {
-    "neutron-star:millisecond": {"planets": 0.007},
-    "rogue-planet": {"moons": 0.2},
-}
-"""dict: The odds of what hangs on an object beyond its stars (GEN.251; docs/design/phenomena-catalogue-and-fill.md
-section 5), by object key: the kind, and for a neutron star `neutron-star:` and its pulsar type, for a black hole
-`black-hole:` and its mass class. Each value maps what the object may hold (`planets`, `moons`, `belts`, `disk`) to the
-chance it holds it. `generation.system_pass` rolls the entries of a scattered or below-cut remnant at fill, on its own
-seed; the rogue planet's moon is rolled when the planet is made. A key that is absent has nothing: white dwarfs and
-stars take their planets from the star model, magnetars, intermediate-mass and supermassive holes, brown dwarfs,
-comets and asteroid fields hold none. A millisecond pulsar's planets are the 0.7% of PSR B1257+12-like systems
-(Wolszczan & Frail 1992; Wolszczan 2012). The stellar companions of compact objects are not here: they are drawn at
-scatter time from `multistar.MEMBER_STATE_BY_PLACED` (white dwarf 30%, young neutron star 2%, millisecond pulsar 78%,
-stellar black hole 1.25%, planetary-nebula central star 20%). A rogue planet's moon is the chance a generated rogue
-planet kept a captured companion. (Whether it keeps internal heat is no longer a roll: `rogueSurface` computes it.)"""
 
 # Interstellar object hyperbolic excess speed range, in km/s -- both
 # confirmed interstellar visitors, 1I/'Oumuamua and 2I/Borisov, were

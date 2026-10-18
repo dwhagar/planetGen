@@ -17,7 +17,7 @@ from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import fill_stages, run_galaxy, run_plan, run_sector, system_pass
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.phenomena import registry
+from planetgen.generation.phenomena import hosts, registry
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 from planetgen.physics.units import ly_to_pc
@@ -164,9 +164,14 @@ def recycled(monkeypatch):
     monkeypatch.setattr(tuning, "PULSAR_RECYCLED_CHANCE", 1.0)
 
 
+def _reweigh(monkeypatch, table, row, weight):
+    """Gives the row of a host table another weight for one test."""
+    monkeypatch.setitem(hosts.REGISTRY_TABLES, table, hosts.reweighted(hosts.REGISTRY_TABLES[table], row, weight))
+
+
 @pytest.fixture
 def certain(monkeypatch, recycled):
-    monkeypatch.setitem(tuning.SYSTEM_PASS_ODDS, "neutron-star:millisecond", {"planets": 1.0})
+    _reweigh(monkeypatch, "remnant-satellites", "planets", 1.0)
 
 
 def _with_pulsar(seed, system_seed=None, scatter_id=None, sector=None):
@@ -190,21 +195,22 @@ def test_an_object_key_names_the_kind_and_for_a_remnant_its_type(recycled):
     assert system_pass.object_key(sector.add_phenomenon(InterstellarComet(config), "comet")) == "comet"
 
 
-def test_the_odds_are_a_table_of_chances_for_things_a_kind_can_hold():
-    for key, odds in tuning.SYSTEM_PASS_ODDS.items():
-        assert key.split(":")[0] in registry.BY_KIND
-        assert odds and set(odds) <= {"planets", "moons", "belts", "disk"}
-        assert all(0.0 <= chance <= 1.0 for chance in odds.values())
-    assert tuning.SYSTEM_PASS_ODDS["neutron-star:millisecond"]["planets"] == 0.007
-    assert tuning.SYSTEM_PASS_ODDS["rogue-planet"]["moons"] == 0.2
-    for key in tuning.SYSTEM_PASS_ODDS:
-        assert registry.BY_KIND[key.split(":")[0]].system_model in registry.SYSTEM_MODELS
-    assert registry.BY_KIND["neutron-star"].system_model == "remnant-planets"
+def test_the_odds_are_the_rows_of_the_host_tables():
+    for table_name in ("remnant-satellites", "planet-satellites"):
+        table = hosts.REGISTRY_TABLES[table_name]
+        assert table.row(hosts.NO_SATELLITES)
+        for row in table.rows:
+            assert row.state in ("partly verified", "stand-in") and row.source
+    assert hosts.chance("remnant-satellites", "neutron-star:millisecond") == pytest.approx(0.007)
+    assert hosts.chance("planet-satellites", "rogue-planet") == pytest.approx(0.2)
+    assert registry.BY_KIND["neutron-star"].host == "remnant" and registry.BY_KIND["rogue-planet"].host == "planet"
+    for host in hosts.HOSTS:
+        assert all(name is None or name in hosts.REGISTRY_TABLES for name in (host.companions, host.satellites))
 
 
 def test_the_share_of_millisecond_pulsars_that_roll_planets_is_the_table_within_poisson_bounds():
     key, seeds = "neutron-star:millisecond", 100_000
-    expected = seeds * tuning.SYSTEM_PASS_ODDS[key]["planets"]
+    expected = seeds * hosts.chance("remnant-satellites", key)
     hits = sum(system_pass.hit(key, seed) for seed in range(seeds))
     assert abs(hits - expected) < 4 * math.sqrt(expected), (hits, expected)
 
@@ -212,7 +218,7 @@ def test_the_share_of_millisecond_pulsars_that_roll_planets_is_the_table_within_
 def test_a_kind_without_odds_never_rolls_planets():
     for key in ("neutron-star:magnetar", "neutron-star:young", "black-hole:stellar", "black-hole:intermediate",
                 "black-hole:supermassive", "comet", "asteroid-field", "brown-dwarf"):
-        assert key not in tuning.SYSTEM_PASS_ODDS
+        assert hosts.chance("remnant-satellites", key) == 0.0
         assert not any(system_pass.hit(key, seed) for seed in range(2000))
 
 
@@ -255,7 +261,7 @@ def test_the_system_is_the_same_from_the_same_seed_and_in_any_order(certain):
 
 
 def test_a_roll_that_misses_leaves_the_bare_object(recycled, monkeypatch):
-    monkeypatch.setitem(tuning.SYSTEM_PASS_ODDS, "neutron-star:millisecond", {"planets": 0.0})
+    _reweigh(monkeypatch, "remnant-satellites", "planets", 0.0)
     sector, entry = _with_pulsar(9)
     assert system_pass.run(sector, _args(), [entry]) == []
     assert sector.phenomena == [entry] and sector.entries == []
@@ -284,7 +290,6 @@ def test_compact_remnants_are_rolled_before_the_rest(certain, monkeypatch):
     sector, pulsar = _with_pulsar(3)
     comet = sector.add_phenomenon(InterstellarComet(SystemConfig()), "comet")
     comet.system_seed = 4
-    monkeypatch.setitem(tuning.SYSTEM_PASS_ODDS, "comet", {"planets": 0.0})
     rolled = []
     monkeypatch.setattr(system_pass, "object_key", lambda entry: rolled.append(entry.phenomenon_type) or
                         ("neutron-star:millisecond" if entry is pulsar else "comet"))
@@ -311,10 +316,10 @@ def test_replacing_a_phenomenon_keeps_the_neighbour_check_current():
 
 
 def test_a_rogue_planet_keeps_its_moon_at_the_chance_of_the_table(monkeypatch):
-    monkeypatch.setitem(tuning.SYSTEM_PASS_ODDS, "rogue-planet", {"moons": 1.0})
+    _reweigh(monkeypatch, "planet-satellites", "captured moon", 1.0)
     with draw.bound(1):
         assert all(RoguePlanet(SystemConfig()).has_moons for _ in range(5))
-    monkeypatch.setitem(tuning.SYSTEM_PASS_ODDS, "rogue-planet", {"moons": 0.0})
+    _reweigh(monkeypatch, "planet-satellites", "captured moon", 0.0)
     with draw.bound(1):
         assert not any(RoguePlanet(SystemConfig()).has_moons for _ in range(5))
 

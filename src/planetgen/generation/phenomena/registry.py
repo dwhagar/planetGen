@@ -43,7 +43,8 @@ Columns (`Kind`):
         order).
     builder: A `module:attr` path to what makes the kind. Every
         `sector_roll` builder takes `(config, galactic_center_dist_ly)`.
-    system_model: A key of `SYSTEM_MODELS`: the system the kind gets today.
+    host: The kind's host class (a name in `phenomena/hosts.py`): what can accompany and orbit it (GEN.552), or `None`
+        for a kind that holds nothing (a nebula, a comet, a quasar).
     carries: Kinds the object holds inside it, by registry kind.
     id_code: The 6-bit type code of the object ID (`names/object_id`), or
         `None` when the kind's objects take their `phenomenon_type`'s code.
@@ -59,15 +60,6 @@ import importlib
 from dataclasses import dataclass
 
 
-SYSTEM_MODELS = {
-    "none": "No system: the object stands alone.",
-    "star-system": "An ordinary star system: companion, planets, belts and moons by the star model.",
-    "central-star": "Its own new hot white dwarf system, made with the object.",
-    "rogue-moon": "One captured moon with the chance of SYSTEM_PASS_ODDS['rogue-planet'].",
-    "remnant-planets": "Planets around a compact remnant at the odds of SYSTEM_PASS_ODDS, rolled by the fill's system pass.",
-}
-"""dict: Every system model a row may name, with what it builds."""
-
 MODES = ("scatter", "fill", "field", "flag", "component")
 """tuple: The valid `Kind.mode` values."""
 
@@ -81,7 +73,7 @@ GATES = ("stellar density", "nebula field", "hot stars", "young stars", "none")
 """tuple: The valid `Kind.gate` values."""
 
 COLUMNS = ("kind", "family", "status", "rate", "gate", "mode", "scatter_pass", "sector_roll", "builder",
-           "system_model", "carries", "id_code", "page_class", "marker", "phenomenon_type", "evidence_note")
+           "host", "carries", "id_code", "page_class", "marker", "phenomenon_type", "evidence_note")
 """tuple: Every column of a row, in order; the completeness test reads it."""
 
 
@@ -97,7 +89,7 @@ class Kind:
     scatter_pass: str | None
     sector_roll: bool
     builder: str | None
-    system_model: str
+    host: str | None
     carries: tuple
     id_code: int | None
     page_class: str | None
@@ -111,56 +103,56 @@ _S = "planetgen.generation.run_sector:"
 
 KINDS = (
     Kind("star-system", "star", "built", None, "stellar density", "fill", None, False,
-         "planetgen.generation.system:StarSystem", "star-system", (), None, None, None, None,
+         "planetgen.generation.system:StarSystem", "star-like", (), None, None, None, None,
          "The ordinary system every star gets; docs/design/phenomena-catalogue-and-fill.md 4.1."),
     Kind("bright-star", "star", "built", None, "stellar density", "scatter", "bright-star", False,
-         _S + "_add_preplaced_systems", "star-system", (), 9, None, None, None,
+         _S + "_add_preplaced_systems", "star-like", (), 9, None, None, None,
          "The bright and massive stars placed by the bright-star scatter (bright_stars.py)."),
     Kind("black-hole", "compact-remnant", "built", "black-hole", "stellar density", "scatter", "band-density",
-         True, _P + "build_black_hole", "none", (), 2, "black-hole", None, "black-hole",
+         True, _P + "build_black_hole", "remnant", (), 2, "black-hole", None, "black-hole",
          "About 1e8 in the Galaxy; tuning.PHENOMENON_DENSITY_PC3."),
     Kind("neutron-star", "compact-remnant", "built", "neutron-star", "stellar density", "scatter", "band-density",
-         True, _P + "build_neutron_star", "remnant-planets", (), 3, None, None, "neutron-star",
+         True, _P + "build_neutron_star", "remnant", (), 3, None, None, "neutron-star",
          "About 1e9 in the Galaxy; tuning.PHENOMENON_DENSITY_PC3."),
     Kind("black-hole-core", "compact-remnant", "built", None, "none", "component", None, False,
-         None, "none", (), 10, None, None, None,
+         None, None, (), 10, None, None, None,
          "The collapsed core of a core-collapse supernova remnant (a name of its own)."),
     Kind("neutron-star-core", "compact-remnant", "built", None, "none", "component", None, False,
-         None, "none", (), 11, None, None, None,
+         None, None, (), 11, None, None, None,
          "The collapsed core of a core-collapse supernova remnant (a name of its own)."),
     Kind("nebula", "nebula", "built", None, "hot stars", "fill", None, False,
-         _P + "build_nebula", "none", (), 4, "nebula", None, "nebula",
+         _P + "build_nebula", None, (), 4, "nebula", None, "nebula",
          "Emission and reflection nebulae grow around a sector's own hot stars (add_star_hosted_nebulae)."),
     Kind("planetary-nebula", "nebula", "built", "planetary-nebula", "stellar density", "scatter", "band-density",
-         True, _P + "build_planetary_nebula", "central-star", ("star-system",), None, None, None, "nebula",
+         True, _P + "build_planetary_nebula", "star-like", ("star-system",), None, None, None, "nebula",
          "About 20,000 in the Galaxy (Frew & Parker 2010); built around its own white dwarf."),
     Kind("molecular-cloud", "nebula", "built", "molecular-cloud", "nebula field", "field", None, True,
-         _P + "build_molecular_cloud", "none", (), None, None, None, "nebula",
+         _P + "build_molecular_cloud", None, (), None, None, None, "nebula",
          "Giant molecular clouds (Kennicutt & Evans 2012), from the seeded nebula field."),
     Kind("supernova-remnant", "nebula", "built", "supernova-remnant", "stellar density", "scatter", "band-density",
-         True, _P + "build_supernova_remnant", "none", ("neutron-star-core", "black-hole-core"), 5,
+         True, _P + "build_supernova_remnant", None, ("neutron-star-core", "black-hole-core"), 5,
          "supernova-remnant", None, "supernova-remnant",
          "About 3,000 in the Galaxy (Green 2019); a core-collapse remnant may hold a compact core."),
     Kind("rogue-planet", "small-body", "built", "rogue-planet", "stellar density", "fill", None, True,
-         _P + "build_rogue_planet", "rogue-moon", (), 1, "rogue-planet", None, "rogue-planet",
+         _P + "build_rogue_planet", "planet", (), 1, "rogue-planet", None, "rogue-planet",
          "Mroz et al. 2017 limit for giants; six mass bins (tuning.ROGUE_PLANET_MASS_BINS)."),
     Kind("brown-dwarf", "small-body", "built", "brown-dwarf", "stellar density", "fill", None, True,
-         _P + "build_brown_dwarf", "none", (), None, None, None, "rogue-planet",
+         _P + "build_brown_dwarf", "brown-dwarf", (), None, None, None, "rogue-planet",
          "0.025 to 0.035 per pc^3 (Kirkpatrick et al. 2021); saved as a rogue planet of the brown-dwarf bin."),
     Kind("comet", "small-body", "built", "comet", "stellar density", "fill", None, True,
-         _P + "build_comet", "none", (), 7, "comet", None, "comet",
+         _P + "build_comet", None, (), 7, "comet", None, "comet",
          "Notable interstellar comets kept as rows, a design rate."),
     Kind("asteroid-field", "small-body", "built", "asteroid-field", "none", "fill", None, True,
-         _P + "build_asteroid_field", "none", (), 8, "asteroid-field", None, "asteroid-field",
+         _P + "build_asteroid_field", None, (), 8, "asteroid-field", None, "asteroid-field",
          "Rate 0: free fields disperse in 1e6 to 1e7 years (Raymond et al. 2020); hand-made only."),
     Kind("quasar", "nucleus", "built", None, "none", "scatter", "nucleus", False,
-         _P + "build_quasar", "none", (), 6, None, None, "quasar",
+         _P + "build_quasar", None, (), 6, None, None, "quasar",
          "One per galaxy, at the nucleus, with QUASAR_ACTIVE_NUCLEUS_CHANCE."),
     Kind("runaway-star", "star", "built", "runaway-star", "stellar density", "flag", None, False,
-         _S + "flag_fast_stars", "star-system", (), None, None, None, None,
+         _S + "flag_fast_stars", "star-like", (), None, None, None, None,
          "Stars above 30 km/s, 1 to 2% (Tauris 2015); a flag on an ordinary system."),
     Kind("hypervelocity-star", "star", "built", "hypervelocity-star", "stellar density", "scatter", "wanderer",
-         False, _S + "_add_hypervelocity_star", "star-system", (), None, None, None, None,
+         False, _S + "_add_hypervelocity_star", "star-like", (), None, None, None, None,
          "Stars above 500 km/s ejected by the central black hole (Brown 2015); an ordinary young system at fill."),
 )
 """tuple: The registry, one `Kind` per kind, in the order the generators draw
