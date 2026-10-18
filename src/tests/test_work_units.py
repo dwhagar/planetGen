@@ -223,7 +223,7 @@ def test_only_the_table_names_what_a_unit_runs():
     for kind in ("scatter-luminosity", "scatter-band", "scatter-phenomena", "plan-skeleton"):
         assert callable(commands.unit_function(kind)) and callable(commands.expand_function(kind))
     with pytest.raises(ValueError, match="inline"):
-        commands.unit_function("scatter-backfill")
+        commands.unit_function("run-population")
 
 
 # --- The massive-star scatter on the new queue (the stage PERF.97 moves, the wrapper queues, PERF.118) ----------
