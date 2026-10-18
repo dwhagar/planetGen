@@ -177,8 +177,7 @@
     },
     {
       "epoch": 36,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1843",
       "reason": "A free-floating brown dwarf's age is a star's: the age window of the population its place gives it, spread by that population's star formation rate, instead of an even draw over 0.1 to 10 Gy, so a seed gives its brown dwarfs different ages, radii and temperatures (GEN.553)."
     }
   ]
