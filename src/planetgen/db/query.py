@@ -38,12 +38,13 @@ import time
 import pymysql
 
 from planetgen.db.store import (
-    STATEMENT_TIMEOUT_ERRORS, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
+    STATEMENT_TIMEOUT_ERRORS, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
 )
 from planetgen.db import countcache, point_columns
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
+from planetgen.physics import habitability_world
 from planetgen.physics.habitability_world import EQUIPMENT_LABELS, EQUIPMENT_NAMES
 from planetgen import tuning
 from planetgen.population import facility_ratings, facility_types
@@ -86,7 +87,6 @@ from planetgen.galaxy.navigation import (
     warp_travel_times,
 )
 from planetgen.physics.constants import SPECTRAL_CLASS_COLORS
-from planetgen.generation.evolution import life_stage_from_paragraphs
 from planetgen.tuning import (
     DEFAULT_SECTOR_EDGE_LY, HABITABLE_PLANET_CLASSES, NAV_ADJACENCY_K, NAV_CORRIDOR_FRACTION, NAV_CORRIDOR_MAX_LY,
     NAV_BYPASS_MAX_EDGES, NAV_CORRIDOR_MAX_SYSTEMS, NAV_CORRIDOR_MIN_LY, NAV_CORRIDOR_START_MAX_LY,
@@ -3247,8 +3247,6 @@ def system_detail(conn, system_id):
     planet_rows = conn.execute(
         "SELECT * FROM planets WHERE star_system_id = ? ORDER BY orbital_index", (system_id,)
     ).fetchall()
-    planet_stages = _life_stages(conn, "planet_evolutionary_paragraphs", "planet_id", "planets", system_id)
-    moon_stages = _life_stages(conn, "moon_evolutionary_paragraphs", "moon_id", "moons", system_id)
     colonized = colonized_body_ids(conn, system_id)
     moons_by_planet = {}
     for moon in conn.execute(
@@ -3257,8 +3255,9 @@ def system_detail(conn, system_id):
         moons_by_planet.setdefault(moon["planet_id"], []).append(moon)
     planets = []
     for planet in planet_rows:
-        planet_dict = _with_life_fields(_with_printed_uid(planet), planet_stages, colonized["planets"])
-        planet_dict["moons"] = [_with_life_fields(_with_printed_uid(m), moon_stages, colonized["moons"])
+        host = compact_host_of_star(conn, planet["star_id"])
+        planet_dict = _with_life_fields(_with_printed_uid(planet), colonized["planets"], host)
+        planet_dict["moons"] = [_with_life_fields(_with_printed_uid(m), colonized["moons"], host)
                                 for m in moons_by_planet.get(planet["id"], [])]
         planets.append(planet_dict)
 
@@ -3323,31 +3322,15 @@ def system_detail(conn, system_id):
     }
 
 
-def _life_stages(conn, paragraph_table, id_column, body_table, system_id):
-    """
-    `{body id: life stage}` for every planet (or moon) in one system that
-    has an evolutionary timeline -- see `evolution.life_stage_from_paragraphs`.
-    One query for the whole system rather than one per body.
-    """
-    rows = conn.execute(
-        f"SELECT p.{id_column} AS body_id, p.paragraph FROM {paragraph_table} p"
-        f" JOIN {body_table} b ON b.id = p.{id_column}"
-        f" WHERE b.star_system_id = ? ORDER BY p.{id_column}, p.position",
-        (system_id,),
-    ).fetchall()
-    paragraphs = {}
-    for row in rows:
-        paragraphs.setdefault(row["body_id"], []).append(row["paragraph"])
-    return {body_id: life_stage_from_paragraphs(texts) for body_id, texts in paragraphs.items()}
-
-
-def _with_life_fields(body, stages, colonized=()):
+def _with_life_fields(body, colonized=(), compact_host=None):
     """
     Adds the system page's per-body life summary to one `planets`/`moons`
     row dict: `habitable` (its class is one of
     `tuning.HABITABLE_PLANET_CLASSES`, the same test
     `StarSystem.count_habitable` uses), `life_stage` (the most advanced
-    evolutionary milestone its timeline reached, or `None`) and
+    evolutionary milestone its timeline reached, or `None`: the stored column, kept for a habitable class only),
+    `hab_note` (what limits its rating, worked out from the stored tiers and `compact_host`, the pulsar, neutron
+    star or black hole it orbits) and
     `inhabited` (habitable and reached a technological civilization --
     the page only ever describes a timeline for a habitable class, see
     `Planet._generate_life_and_flavor_paragraphs` -- or a colony stands on
@@ -3355,7 +3338,9 @@ def _with_life_fields(body, stages, colonized=()):
     v42).
     """
     body["habitable"] = body["planet_class"] in HABITABLE_PLANET_CLASSES
-    body["life_stage"] = stages.get(body["id"]) if body["habitable"] else None
+    body["life_stage"] = body["life_stage"] if body["habitable"] else None
+    body["compact_host"] = compact_host
+    body["hab_note"] = habitability_world.note(body, compact_host) if body.get("equipment_tier") is not None else None
     body["inhabited"] = body["life_stage"] == "technological_civilization" or body["id"] in colonized
     return body
 

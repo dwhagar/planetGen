@@ -129,7 +129,7 @@ def test_system_config_slots_empty_when_no_slots_given(mysql_config):
         conn.close()
 
 
-# --- planet/moon evolutionary_paragraphs + reflection_spectrum -------------
+# --- planet/moon life structure + reflection_spectrum -------------
 
 def _generate_habitable_system_with_moons():
     cfg = _make_config()
@@ -144,16 +144,18 @@ def _generate_habitable_system_with_moons():
 
 def _first_planet_with_life_data(system):
     for obj in system.planets:
-        if getattr(obj, "life_chemical", None) and getattr(obj, "evolutionary_data", None):
+        if getattr(obj, "life_chemical", None) and getattr(obj, "evolutionary_pace", None):
             return obj
     return None
 
 
-def test_planet_evolutionary_paragraphs_and_reflection_spectrum_round_trip(mysql_config):
-    """A habitable, intelligent-life planet's evolutionary_data (a list
-    of paragraph strings) and reflection_spectrum_visible/non_visible
-    (each a list of values) must land verbatim, in order, in their own
-    child tables."""
+LIFE_COLUMNS = ("life_stage", "evolutionary_pace", "life_milestone_age_gyr", "life_system_age_gyr", "flavor_key")
+
+
+def test_planet_life_structure_and_reflection_spectrum_round_trip(mysql_config):
+    """A habitable, intelligent-life planet's life stage, pace and ages (DB.51: no paragraphs are stored) land in
+    its own columns, and reflection_spectrum_visible/non_visible (each a list of values) land verbatim, in
+    order, in their own child table."""
     conn = store.get_connection(mysql_config)
     try:
         found = False
@@ -174,12 +176,11 @@ def test_planet_evolutionary_paragraphs_and_reflection_spectrum_round_trip(mysql
         ).fetchone()
         planet_id = planet_row["id"]
 
-        paragraphs = conn.execute(
-            "SELECT position, paragraph FROM planet_evolutionary_paragraphs "
-            "WHERE planet_id = ? ORDER BY position",
-            (planet_id,),
-        ).fetchall()
-        assert [r["paragraph"] for r in paragraphs] == list(planet.evolutionary_data)
+        stored = conn.execute(f"SELECT {', '.join(LIFE_COLUMNS)} FROM planets WHERE id = ?", (planet_id,)).fetchone()
+        assert {name: stored[name] for name in LIFE_COLUMNS} == {name: getattr(planet, name) for name in LIFE_COLUMNS}
+        assert stored["evolutionary_pace"] is not None
+        assert conn.execute("SELECT COUNT(*) AS n FROM planet_evolutionary_paragraphs WHERE planet_id = ?",
+                            (planet_id,)).fetchone()["n"] == 0
 
         for spectrum_type, expected in (
             ("visible", planet.reflection_spectrum_visible),
@@ -196,15 +197,14 @@ def test_planet_evolutionary_paragraphs_and_reflection_spectrum_round_trip(mysql
         conn.close()
 
 
-def test_moon_evolutionary_paragraphs_and_reflection_spectrum_round_trip(mysql_config):
+def test_moon_life_structure_round_trips(mysql_config):
     """Same check as the planet test above, for a moon with life data --
-    moon_evolutionary_paragraphs/moon_reflection_spectrum are a completely
-    separate table pair from the planet ones, so this isn't redundant.
+    a moon's columns are a separate pair from the planet's, so this isn't redundant.
 
     A moon that generates its own life data is too rare to wait for (none
     in hundreds of systems; this test used to skip almost every run), so
-    a generated moon is given a life-bearing planet's paragraphs: the
-    child-table write is what's under test, not how often moons get life."""
+    a generated moon is given a life-bearing planet's timeline: the
+    column write is what's under test, not how often moons get life."""
     conn = store.get_connection(mysql_config)
     try:
         found_moon = None
@@ -218,7 +218,8 @@ def test_moon_evolutionary_paragraphs_and_reflection_spectrum_round_trip(mysql_c
                 break
         assert found_moon is not None, "no seed in 0-39 gave a life-bearing planet and a moon"
         found_moon.life_chemical = planet.life_chemical
-        found_moon.evolutionary_data = list(planet.evolutionary_data)
+        for name in LIFE_COLUMNS[:4]:
+            setattr(found_moon, name, getattr(planet, name))
 
         system_id = store.insert_star_system(conn, system, system.system_config)
         conn.commit()
@@ -229,11 +230,9 @@ def test_moon_evolutionary_paragraphs_and_reflection_spectrum_round_trip(mysql_c
         ).fetchone()
         moon_id = moon_row["id"]
 
-        paragraphs = conn.execute(
-            "SELECT position, paragraph FROM moon_evolutionary_paragraphs WHERE moon_id = ? ORDER BY position",
-            (moon_id,),
-        ).fetchall()
-        assert [r["paragraph"] for r in paragraphs] == list(found_moon.evolutionary_data)
+        stored = conn.execute(f"SELECT {', '.join(LIFE_COLUMNS[:4])} FROM moons WHERE id = ?", (moon_id,)).fetchone()
+        assert {name: stored[name] for name in LIFE_COLUMNS[:4]} == {
+            name: getattr(planet, name) for name in LIFE_COLUMNS[:4]}
     finally:
         conn.close()
 

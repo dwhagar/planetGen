@@ -39,30 +39,11 @@ _MILESTONE_DISPLAY_NAMES = {
 }
 
 
-def life_stage_from_paragraphs(paragraphs):
+def get_evolutionary_state(star, planet_class=None, max_stage=None):
     """
-    Recovers the milestone `get_evolutionary_timeline` chose from the
-    paragraph it wrote -- the only place it's recorded, stored as-is in
-    `planet_evolutionary_paragraphs`/`moon_evolutionary_paragraphs`.
-
-    Args:
-        paragraphs (list[str]): A body's evolutionary paragraphs.
-
-    Returns:
-        str or None: One of `MILESTONE_KEYS`, or `None` when no milestone
-            has been reached (or the body has no timeline at all).
-    """
-    for paragraph in paragraphs:
-        for key, display_name in _MILESTONE_DISPLAY_NAMES.items():
-            if f"would have been {display_name} at " in paragraph:
-                return key
-    return None
-
-
-def get_evolutionary_timeline(star, planet_class=None, max_stage=None):
-    """
-    Generates a speculative evolutionary timeline for a planet based on its
-    host star's spectral class.
+    Draws the speculative evolutionary state of a planet from its
+    host star's spectral class: the timeline scale, the latest milestone reached and the ages (DB.51). This
+    is the structure the stored columns hold; `timeline_paragraphs` writes it as prose.
 
     This function takes a `Star` object as input and uses its spectral class
     to determine the appropriate evolutionary timeline. The timelines are
@@ -93,8 +74,8 @@ def get_evolutionary_timeline(star, planet_class=None, max_stage=None):
             (GEN.206), so its timeline stops at "photosynthesis".
 
     Returns:
-        list: A list of strings, where each string is a paragraph describing
-              the speculative evolutionary timeline for a planet orbiting the star.
+        dict: `scale` (a `tuning.EVOLUTIONARY_TIMELINES` key), `stage` (a `MILESTONE_KEYS` key, `None` when no
+            milestone has been reached), `milestone_age_gyr` (`None` with no stage) and `system_age_gyr`.
     """
     # Uses get_star_evolutionary_profile rather than a raw STAR_EVOLUTION[spectral_class]
     # lookup so giants/supergiants/white dwarfs etc. (whose spectral letter reflects
@@ -194,28 +175,42 @@ def get_evolutionary_timeline(star, planet_class=None, max_stage=None):
             f"exceeding its own cap {MILESTONE_KEYS[max_index]!r}"
         )
 
-    most_recent_milestone_name = (
-        _MILESTONE_DISPLAY_NAMES[most_recent_key] if most_recent_key is not None
-        else "No significant evolutionary milestone"
-    )
+    return {"scale": evolutionary_scale, "stage": most_recent_key,
+            "milestone_age_gyr": most_recent_milestone_age if most_recent_key is not None else None,
+            "system_age_gyr": current_system_age}
 
-    # Constructing the paragraph output
+
+def timeline_paragraphs(state):
+    """
+    The evolutionary timeline paragraph of a `get_evolutionary_state` (or of the stored `life_stage`,
+    `evolutionary_pace`, `life_milestone_age_gyr` and `life_system_age_gyr`, under the same keys).
+
+    Returns:
+        list: One paragraph, in a list.
+    """
+    timeline = tuning.EVOLUTIONARY_TIMELINES[state["scale"]]
+    key = state["stage"]
     output_sentences = []
 
     output_sentences.append(
         f"A speculative evolutionary timeline for a planet orbiting this star indicates a {timeline['evolutionary_pace'].lower()} evolutionary pace. "
-        f"The current estimated age of the system is {format_age_string(current_system_age)}."
+        f"The current estimated age of the system is {format_age_string(state['system_age_gyr'])}."
     )
 
-    if most_recent_milestone_age > -1.0:
+    if key is not None:
+        name = _MILESTONE_DISPLAY_NAMES[key]
         output_sentences.append(
             f"The most recent significant evolutionary milestone prior to this age would have been "
-            f"{most_recent_milestone_name} at {format_age_string(most_recent_milestone_age)}. {tuning.EVOLUTIONARY_TEXT[most_recent_milestone_name.lower().replace(' ', '_')]}"
+            f"{name} at {format_age_string(state['milestone_age_gyr'])}. {tuning.EVOLUTIONARY_TEXT[key]}"
         )
     else:
         output_sentences.append(
             "No significant evolutionary milestones are predicted to have occurred yet at this system's age."
         )
 
-    # Join the sentences into a single paragraph
     return [to_paragraph(output_sentences)]
+
+
+def get_evolutionary_timeline(star, planet_class=None, max_stage=None):
+    """The paragraph of a freshly drawn `get_evolutionary_state` (see there for the arguments)."""
+    return timeline_paragraphs(get_evolutionary_state(star, planet_class, max_stage))

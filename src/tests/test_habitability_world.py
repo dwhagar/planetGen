@@ -29,7 +29,7 @@ def _earth(**changes):
         "p_o2_kpa": 21.2, "p_n2_kpa": 78.0, "p_ar_kpa": 0.9, "p_co2_kpa": 0.04, "p_h2o_kpa": 1.2,
         "hydrosphere": "surface ocean", "ocean_class": "neutral", "ocean_ph": 8.1, "water_activity": 0.98,
         "phosphorus": "limited", "water_mass_fraction": 2.34e-4, "surface_dose_msv_yr": 2.4,
-        "dose_ground_msv_yr": 0.5, "energy_flux_w_m2": 82.0, "life_stage": "biosphere",
+        "dose_ground_msv_yr": 0.5, "energy_flux_w_m2": 82.0, "native_life": "biosphere",
     }
     values.update(changes)
     return values
@@ -41,13 +41,13 @@ def test_earth_is_blue_everywhere_and_needs_no_kit():
     assert [scored[f"tier_{domain}"] for domain in hw.DOMAINS] == [0] * 6
     assert scored["phi4"] == pytest.approx(1.0)
     assert scored["phi_bio"] > 0.8 and scored["phi_cpx"] > 0.8 and scored["phi_tech"] > 0.95
-    assert scored["hab_note"] == "All six domains Blue"
+    assert hw.note(scored) == "All six domains Blue"
 
 
 def test_the_air_decides_the_kit():
     carbon_dioxide = hw.compute(_earth(p_co2_kpa=3.0))
     assert carbon_dioxide["equipment_tier"] == 2  # mask and scrubber
-    assert "Air" in carbon_dioxide["hab_note"]
+    assert "Air" in hw.note(carbon_dioxide)
     thin = hw.compute(_earth(atmospheric_pressure_pa=30000.0, p_o2_kpa=6.0, p_n2_kpa=23.5))
     assert thin["equipment_tier"] == 1  # a mask: enough pressure, too little oxygen
     vacuum = hw.compute(_earth(atmospheric_pressure_pa=0.0, **{f"p_{g}_kpa": 0.0 for g in ("o2", "n2", "ar", "co2", "h2o")}))
@@ -168,7 +168,8 @@ def test_a_neutron_stars_planets_get_the_lowest_tier():
                 continue
             seen += 1
             assert body.equipment_tier == 4 and body.tier_radiation == 3
-            assert body.hab_note.startswith(("Planet of a pulsar", "Planet of a neutron star"))
+            assert hw.compact_host_name(body.star) in ("pulsar", "neutron star")
+            assert hw.note({}, hw.compact_host_name(body.star)).startswith(("Planet of a pulsar", "Planet of a neutron star"))
     assert seen
 
 
@@ -179,7 +180,7 @@ def test_hosts_are_named_by_their_class_and_a_black_hole_planet_is_lethal():
     assert hw.compact_host_name(types.SimpleNamespace(yerkes_class="V")) is None
     lethal = hw.compute(_earth(), compact_host="black hole")
     assert lethal["equipment_tier"] == 4 and lethal["tier_radiation"] == 3
-    assert lethal["phi_bio"] == 0.0 and "black hole" in lethal["hab_note"]
+    assert lethal["phi_bio"] == 0.0 and "black hole" in hw.note(lethal, "black hole")
 
 
 def _system_with_rocky_worlds():
@@ -294,29 +295,26 @@ def test_harshness_follows_the_worst_domain_and_defaults_to_the_middle():
 
 # --- GEN.207: Suitability reads the native life -------------------------------------------
 
-def test_the_life_stage_is_the_latest_milestone_the_timeline_reached():
-    from planetgen import tuning
-    text = tuning.EVOLUTIONARY_TEXT
-    assert hw.life_stage(None, [text["technological_civilization"]]) == "none"
-    assert hw.life_stage("Chlorophyll", None) == "microbial"  # life with no timeline (a moon)
-    assert hw.life_stage("Chlorophyll", []) == "microbial"
-    assert hw.life_stage("Chlorophyll", ["No significant evolutionary milestones are predicted"]) == "none"
+def test_the_native_life_is_the_latest_milestone_the_timeline_reached():
+    assert hw.native_life(None, "technological_civilization", True) == "none"
+    assert hw.native_life("Chlorophyll", None, False) == "microbial"  # life with no timeline (a moon)
+    assert hw.native_life("Chlorophyll", None, True) == "none"  # a timeline that has reached no milestone
     for key, stage in (("abiogenesis", "microbial"), ("photosynthesis", "microbial"), ("complex_cells", "microbial"),
                        ("multicellularity", "macroscopic"), ("technological_civilization", "biosphere")):
-        assert hw.life_stage("Chlorophyll", ["A timeline. " + text[key]]) == stage, key
+        assert hw.native_life("Chlorophyll", key, True) == stage, key
 
 
 def test_suitability_follows_the_native_life_and_the_ocean_under_ice_has_no_food_to_reach():
     for stage, expected in (("none", 0.2), ("microbial", 0.5), ("macroscopic", 0.85), ("biosphere", 1.0)):
-        scored = hw.compute(_earth(life_stage=stage))
+        scored = hw.compute(_earth(native_life=stage))
         assert scored["phi4_suitability"] == pytest.approx(expected)
-    buried = hw.compute(_earth(hydrosphere="ice-covered ocean", life_stage="biosphere"))
+    buried = hw.compute(_earth(hydrosphere="ice-covered ocean", native_life="biosphere"))
     assert buried["phi4_suitability"] == pytest.approx(0.2) and buried["tier_suitability"] == 3
 
 
 def test_a_dry_world_has_red_water_and_red_suitability_and_an_overall_at_most_yellow():
     dry = hw.compute(_earth(hydrosphere="dry", ocean_ph=None, water_activity=None, p_h2o_kpa=0.0,
-                            water_mass_fraction=0.0, life_stage="biosphere"))
+                            water_mass_fraction=0.0, native_life="biosphere"))
     assert dry["tier_water"] == 3 and dry["phi4_water"] == 0.0
     assert dry["tier_suitability"] == 3
     assert hw.TIER_INDEX["Yellow"] == 2 and 0.4 <= dry["phi4"] < 0.75
@@ -332,7 +330,7 @@ def test_life_is_drawn_after_the_score_and_the_score_is_redone_with_it():
         for body in _bodies(system):
             if body.body_type == "g":
                 continue
-            stage = hw.life_stage(body.life_chemical, body.evolutionary_data)
+            stage = hw.native_life(body.life_chemical, body.life_stage, body.evolutionary_pace is not None)
             stages.add(stage)
             food = hw.habitability.FOOD_SCORE[stage if body.hydrosphere != "ice-covered ocean" else "none"]
             assert body.phi4_suitability <= food + 1e-9, (body.name, stage)

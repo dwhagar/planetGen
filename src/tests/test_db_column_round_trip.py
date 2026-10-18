@@ -64,9 +64,14 @@ NULL_IN_THIS_GALAXY = {
         "galactic_radius_pc")},
     # A life-bearing moon (rare) and its paragraphs and spectrum.
     **{("moons", column): CHANCE for column in
-       ("atm_density", "atm_molar_density", "scale_height_km", "life_chemical", "evolutionary_speed")},
-    **{("moon_evolutionary_paragraphs", column): CHANCE for column in
-       ("id", "moon_id", "position", "paragraph")},
+       ("atm_density", "atm_molar_density", "scale_height_km", "life_chemical", "evolutionary_speed",
+        "life_stage", "evolutionary_pace", "life_milestone_age_gyr", "life_system_age_gyr")},
+    # DB.51 stopped writing the prose (the life structure replaced it); DB.52 drops the columns and tables.
+    **{(table, column): "no longer written (DB.51), dropped by DB.52" for table, column in (
+        ("planets", "flavor_text"), ("moons", "flavor_text"), ("planets", "hab_note"), ("moons", "hab_note"))},
+    **{(table, column): "no longer written (DB.51), dropped by DB.52" for table in
+       ("planet_evolutionary_paragraphs", "moon_evolutionary_paragraphs")
+       for column in ("id", "planet_id" if table.startswith("planet") else "moon_id", "position", "paragraph")},
     **{("moon_reflection_spectrum", column): CHANCE for column in
        ("id", "moon_id", "spectrum_type", "position", "value")},
     # The CLI places an interstellar comet near the galaxy's sectors only sometimes.
@@ -136,8 +141,10 @@ NEVER_READ = {
         ("star_systems", "epoch_unix"), ("star_systems", "next_update_due"),
         ("star_systems", "binary_epoch_unix"), ("star_systems", "binary_next_update_due"),
         ("facilities", "epoch_unix"), ("facilities", "next_update_due"))},
-    # Empty unless a moon bears life (see NULL_IN_THIS_GALAXY).
-    ("moon_evolutionary_paragraphs", "paragraph"): CHANCE,
+    ("system_configs", "markdown"): "no longer read or written (DB.51), dropped by DB.52",
+    # The prose tables are no longer read or written (DB.51); DB.52 drops them.
+    ("planet_evolutionary_paragraphs", "paragraph"): "no longer read (DB.51), dropped by DB.52",
+    ("moon_evolutionary_paragraphs", "paragraph"): "no longer read (DB.51), dropped by DB.52",
     ("moon_reflection_spectrum", "spectrum_type"): CHANCE, ("moon_reflection_spectrum", "value"): CHANCE,
     **{(table, stamp): "row timestamps (the Galaxy Map's change feed reads modified_at in bulk)"
        for table in ("star_systems", "facilities") for stamp in ("created_at", "modified_at")},

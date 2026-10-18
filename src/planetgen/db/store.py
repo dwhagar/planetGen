@@ -1873,14 +1873,13 @@ def insert_system_config(conn, config: SystemConfig) -> int:
     cur = conn.execute(
         """
         INSERT INTO system_configs (
-            markdown, habitable_world, asteroid_belt, comets, large_star, moons,
+            habitable_world, asteroid_belt, comets, large_star, moons,
             max_planets, planets, star_type, name, age, intelligent_life,
             binary_system, wide_binary, num_orbits, {prevalence_columns}
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {prevalence_marks})
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {prevalence_marks})
         """.format(prevalence_columns=", ".join(f"prevalence_{feature}" for feature in PREVALENCE_FEATURES),
                    prevalence_marks=", ".join("?" for _ in PREVALENCE_FEATURES)),
         (
-            int(bool(config.MARKDOWN)),
             _tristate(config.HABITABLE_WORLD),
             _tristate(config.ASTEROID_BELT),
             _tristate(config.COMETS),
@@ -2806,21 +2805,10 @@ def insert_star(conn, star, star_system_id, role) -> int:
     return cur.lastrowid
 
 
-def _insert_paragraphs(conn, table, id_column, owner_id, paragraphs):
-    """Shared body for `planet_evolutionary_paragraphs`/
-    `moon_evolutionary_paragraphs` -- identical shape, different owning
-    table/column. `table`/`id_column` are always one of this module's own
-    literal constants below, never request-derived, so the f-string is safe."""
-    for position, paragraph in enumerate(paragraphs or []):
-        conn.execute(
-            f"INSERT INTO {table} ({id_column}, position, paragraph) VALUES (?, ?, ?)",
-            (owner_id, position, paragraph),
-        )
-
-
 def _insert_reflection_spectrum(conn, table, id_column, owner_id, visible, non_visible):
     """Shared body for `planet_reflection_spectrum`/
-    `moon_reflection_spectrum` -- see `_insert_paragraphs`."""
+    `moon_reflection_spectrum` -- identical shape, different owning
+    table/column (always this module's own literal constants, never request-derived)."""
     for spectrum_type, values in (("visible", visible), ("non_visible", non_visible)):
         for position, value in enumerate(values or []):
             conn.execute(
@@ -2836,7 +2824,8 @@ _BODY_COLUMNS = (
     "atm_density", "atm_molar_density", "atmospheric_pressure_pa", "composition",
     "scale_height_km", "hill_radius_km", "min_orbit_distance_km",
     "habitable_zone_inner_km", "habitable_zone_outer_km",
-    "life_chemical", "evolutionary_speed", "flavor_text", "flavor_text_count",
+    "life_chemical", "evolutionary_speed", "life_stage", "evolutionary_pace", "life_milestone_age_gyr",
+    "life_system_age_gyr", "flavor_key", "flavor_text_count",
     "orbital_inclination_deg", "orbital_ascending_node_deg",
     *point_columns.LAYOUTS["planets"].position, "orbital_speed_kms", *point_columns.LAYOUTS["planets"].velocity,
     "min_update_interval_years",
@@ -2878,7 +2867,8 @@ def body_row_values(body):
         body.habitable_zone[0] * physical_constants.AU_TO_KM,
         body.habitable_zone[1] * physical_constants.AU_TO_KM,
         body.life_chemical, body.evolutionary_speed,
-        body.flavor_text, body.flavor_text_count,
+        body.life_stage, body.evolutionary_pace, body.life_milestone_age_gyr, body.life_system_age_gyr,
+        body.flavor_key, body.flavor_text_count,
         body.orbital_inclination_deg, body.orbital_ascending_node_deg,
         body.position_x * physical_constants.AU_TO_KM,
         body.position_y * physical_constants.AU_TO_KM,
@@ -2904,10 +2894,8 @@ def body_row_values(body):
 
 
 def body_child_rows(conn, body, body_id):
-    """Writes a planet's or moon's evolutionary paragraphs and reflection
-    spectrum rows (after any old ones were deleted)."""
+    """Writes a planet's or moon's reflection spectrum rows (after any old ones were deleted)."""
     prefix, id_column = ("moon", "moon_id") if body.is_moon else ("planet", "planet_id")
-    _insert_paragraphs(conn, f"{prefix}_evolutionary_paragraphs", id_column, body_id, body.evolutionary_data)
     _insert_reflection_spectrum(
         conn, f"{prefix}_reflection_spectrum", id_column, body_id,
         body.reflection_spectrum_visible, body.reflection_spectrum_non_visible,
@@ -4467,28 +4455,37 @@ def refresh_system_dose(conn, system_id):
         _refresh_cloud_doses(conn, [(system_id, row["inside_nebula_id"], row["inside_remnant_id"])])
 
 
-def _stored_life_stage(conn, table, row):
+def compact_host_of_star(conn, star_id):
+    """The `habitability_world.COMPACT_HOSTS` name (`pulsar` for a pulsing neutron star) of the star `star_id`
+    when it is a neutron star or black hole, else `None`: the host a planet of it is rated against."""
+    if star_id is None:
+        return None
+    row = conn.execute(
+        "SELECT st.yerkes_class, (SELECT ns.pulsar_type FROM neutron_stars ns WHERE ns.star_id = st.id LIMIT 1)"
+        " AS pulsar_type FROM stars st WHERE st.id = ?", (star_id,)).fetchone()
+    if row is None:
+        return None
+    return habitability_world.compact_host_name(
+        SimpleNamespace(yerkes_class=row["yerkes_class"], pulsar_type=row["pulsar_type"] or "non-pulsing"))
+
+
+def _stored_native_life(row):
     """The `habitability.LIFE_STAGES` stage of a stored planet or moon `row` (`planets` or `moons`), read
-    from its life chemistry and evolutionary paragraphs (`habitability_world.life_stage`), for a re-score."""
-    prefix, id_column = ("moon", "moon_id") if table == "moons" else ("planet", "planet_id")
-    paragraphs = [r["paragraph"] for r in conn.execute(
-        f"SELECT paragraph FROM {prefix}_evolutionary_paragraphs WHERE {id_column} = ? ORDER BY position",
-        (row["id"],)).fetchall()]
-    return habitability_world.life_stage(row["life_chemical"], paragraphs)
+    from its life chemistry and the milestone its timeline reached (`habitability_world.native_life`), for a re-score."""
+    return habitability_world.native_life(row["life_chemical"], row["life_stage"], row["evolutionary_pace"] is not None)
 
 
 def stored_world(conn, table, row, with_life=True):
     """
     The `habitability.World` of a stored rocky planet or moon `row` (`planets` or `moons`), as its stored score
     was worked out (a pulsar's, neutron star's or black hole's planet at its lethal dose), or `None` for a gas
-    giant or a body saved without a score (POP.12). `with_life` false leaves out the evolutionary paragraphs
+    giant or a body saved without a score (POP.12). `with_life` false leaves out the body's native life
     (two queries a body) when only the physical conditions matter.
     """
     if row["body_type"] == "g" or row["surface_temperature_k"] is None or row["energy_flux_w_m2"] is None:
         return None
-    values = {**dict(row), "life_stage": _stored_life_stage(conn, table, row) if with_life else "none"}
-    host = re.match(r"Planet of an? ([a-z ]+):", row["hab_note"] or "")
-    return habitability_world.world_from(values, lethal_host=host.group(1) if host else None)
+    values = {**dict(row), "native_life": _stored_native_life(row) if with_life else "none"}
+    return habitability_world.world_from(values, lethal_host=compact_host_of_star(conn, row["star_id"]))
 
 
 def _refresh_cloud_doses(conn, system_changes):
@@ -4533,7 +4530,7 @@ def _refresh_cloud_doses(conn, system_changes):
                     # GEN.89: the dose is one of the score's inputs. (A compact host's planet is
                     # rated at a lethal dose whatever the cosmic rays do.)
                     scores = habitability_world.compute({**dict(row), "surface_dose_msv_yr": total,
-                                                         "life_stage": _stored_life_stage(conn, table, row)})
+                                                         "native_life": _stored_native_life(row)})
                     scored = tuple(scores[name] for name in habitability_world.SCORE_FIELDS)
                 rows.append((row["id"], multiplier, total, *scored))
             if rows:
@@ -4550,11 +4547,11 @@ def refresh_habitability(conn, system_id):
     """
     GEN.217: re-derives the stored habitability numbers of every scored rocky planet and moon of one system from
     its stored conditions: `flux_variation` and the `habitability_world.SCORE_FIELDS` (the index, the six domains
-    with their tiers, the equipment tier and the note). It is how a body saved before a change to the rules
+    with their tiers and the equipment tier). It is how a body saved before a change to the rules
     (GEN.148's flux swing, GEN.207's six domains, GEN.215's airless Air) gets the numbers a new one would, without
     regenerating it. A system of one star has no swing (0); a system of two is loaded and its swing worked out as
-    generation does (`insolation.refresh_system`). A planet of a pulsar, neutron star or black hole keeps the host
-    its note names. A gas giant, and a body saved before v76 (no `energy_flux_w_m2`), are left alone.
+    generation does (`insolation.refresh_system`). A planet of a pulsar, neutron star or black hole is rated against
+    its host (`compact_host_of_star`). A gas giant, and a body saved before v76 (no `energy_flux_w_m2`), are left alone.
 
     Args:
         conn (Connection): Part of the caller's transaction.
@@ -4581,10 +4578,9 @@ def refresh_habitability(conn, system_id):
                 f"SELECT * FROM {table} WHERE star_system_id = ? AND energy_flux_w_m2 IS NOT NULL AND body_type <> 'g'",
                 (system_id,)).fetchall():
             swing = swings.get((table, row["id"]), 0.0)
-            host = re.match(r"Planet of an? ([a-z ]+):", row["hab_note"] or "")
             scores = habitability_world.compute(
-                {**dict(row), "flux_variation": swing, "life_stage": _stored_life_stage(conn, table, row)},
-                host.group(1) if host else None)
+                {**dict(row), "flux_variation": swing, "native_life": _stored_native_life(row)},
+                compact_host_of_star(conn, row["star_id"]))
             rows.append((row["id"], *(scores[name] for name in habitability_world.SCORE_FIELDS), swing))
         if rows:
             _update_by_id(conn, table, columns, rows, touch=True)
@@ -8134,7 +8130,6 @@ def load_system_config(conn, config_id) -> SystemConfig:
             }
 
     return SystemConfig.from_dict({
-        "markdown": bool(row["markdown"]),
         "habitable_world": _tristate_from_db(row["habitable_world"]),
         "asteroid_belt": _tristate_from_db(row["asteroid_belt"]),
         "comets": _tristate_from_db(row["comets"]),
@@ -8387,8 +8382,7 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
     Maps a `planets` or `moons` row (identical column shape -- see
     `schema.sql`'s "v2" header note) to `Planet.from_dict`'s expected dict
     shape, inverting every unit conversion `insert_planet`/`insert_moon`
-    apply and pulling in the row's evolutionary-paragraph and
-    reflection-spectrum child rows.
+    apply and pulling in the row's reflection-spectrum child rows.
 
     Args:
         conn (Connection): An open, schema-initialized connection.
@@ -8403,11 +8397,6 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
     table_prefix = "moon" if is_moon else "planet"
     id_column = "moon_id" if is_moon else "planet_id"
 
-    paragraph_rows = conn.execute(
-        f"SELECT paragraph FROM {table_prefix}_evolutionary_paragraphs "
-        f"WHERE {id_column} = ? ORDER BY position",
-        (row["id"],),
-    ).fetchall()
     spectrum_rows = conn.execute(
         f"SELECT spectrum_type, value FROM {table_prefix}_reflection_spectrum "
         f"WHERE {id_column} = ? ORDER BY position",
@@ -8446,8 +8435,11 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         "evolutionary_speed": row["evolutionary_speed"],
         "reflection_spectrum_visible": visible or None,
         "reflection_spectrum_non_visible": non_visible or None,
-        "evolutionary_data": [r["paragraph"] for r in paragraph_rows],
-        "flavor_text": row["flavor_text"],
+        "life_stage": row["life_stage"],
+        "evolutionary_pace": row["evolutionary_pace"],
+        "life_milestone_age_gyr": row["life_milestone_age_gyr"],
+        "life_system_age_gyr": row["life_system_age_gyr"],
+        "flavor_key": row["flavor_key"],
         "flavor_text_count": row["flavor_text_count"],
         "habitable_zone": [
             row["habitable_zone_inner_km"] / physical_constants.AU_TO_KM,

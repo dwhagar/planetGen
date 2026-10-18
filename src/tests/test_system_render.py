@@ -18,7 +18,6 @@ from planetgen.db import store
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
-from planetgen.generation.evolution import life_stage_from_paragraphs
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
 from planetgen.db.render import render_star_system, render_system_sections, render_system_text
@@ -151,16 +150,6 @@ def test_sections_split_the_page_per_body(mysql_config):
     assert len(sections["moons"]) == sum(len(p.moons) for p in planets)
 
 
-
-
-def test_life_stage_is_read_back_from_the_timeline_paragraph():
-    paragraph = (
-        "A speculative evolutionary timeline ... would have been Technological Civilization at "
-        "4.50 Billion Years. The planet boasts a fully mature biosphere."
-    )
-    assert life_stage_from_paragraphs([paragraph]) == "technological_civilization"
-    assert life_stage_from_paragraphs(["No significant evolutionary milestones are predicted."]) is None
-    assert life_stage_from_paragraphs([]) is None
 
 
 def test_parity_check_sorts_differences():

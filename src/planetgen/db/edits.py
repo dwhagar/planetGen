@@ -70,7 +70,7 @@ def _star_ids(conn, system_id, system):
 
 def _update_body(conn, table, body, assignments, key_values):
     """UPDATEs one `planets`/`moons` row from `body` and rewrites its
-    paragraph and spectrum rows."""
+    reflection spectrum rows."""
     columns = list(assignments) + list(store._BODY_COLUMNS)
     if table == "planets":
         columns += list(store._PLANET_ONLY_COLUMNS)
@@ -82,7 +82,6 @@ def _update_body(conn, table, body, assignments, key_values):
         (*values, body.db_id),
     )
     prefix, id_column = ("moon", "moon_id") if table == "moons" else ("planet", "planet_id")
-    conn.execute(f"DELETE FROM {prefix}_evolutionary_paragraphs WHERE {id_column} = ?", (body.db_id,))
     conn.execute(f"DELETE FROM {prefix}_reflection_spectrum WHERE {id_column} = ?", (body.db_id,))
     store.body_child_rows(conn, body, body.db_id)
 

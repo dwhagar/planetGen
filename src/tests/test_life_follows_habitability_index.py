@@ -10,7 +10,6 @@ import pytest
 from planetgen import tuning
 from planetgen.generation import life as planetLife
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.evolution import life_stage_from_paragraphs
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
@@ -66,7 +65,7 @@ def test_a_world_the_index_allows_only_microbial_life_stops_its_timeline_before_
         planet = _planet(host_star, cls)
         planet.phi_bio, planet.phi_cpx = 0.6, 0.0
         planetLife.apply_life_data(planet)
-        assert life_stage_from_paragraphs(planet.evolutionary_data) in (None, "abiogenesis", "photosynthesis")
+        assert planet.life_stage in (None, "abiogenesis", "photosynthesis")
         assert not COMPLEX_WORDS.search(planet.description), planet.description
         assert not COMPLEX_WORDS.search(" ".join(planet.evolutionary_data)), planet.evolutionary_data
 
@@ -118,6 +117,6 @@ def test_no_generated_description_contradicts_its_own_habitability_index():
                     assert not LIFE_WORDS.search(body.description), (body.name, body.description)
                 elif ceiling == "microbial":
                     microbial_only += 1
-                    assert life_stage_from_paragraphs(body.evolutionary_data) in (None, "abiogenesis", "photosynthesis")
+                    assert body.life_stage in (None, "abiogenesis", "photosynthesis")
                     assert not COMPLEX_WORDS.search(body.description), (body.name, body.description)
     assert lifeless > 0 and microbial_only >= 0

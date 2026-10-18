@@ -1328,7 +1328,7 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `scale_height_km`, `hill_radius_km`, `min_orbit_distance_km` | DOUBLE | nullable | |
 | `habitable_zone_inner_km`, `_outer_km` | DOUBLE | NOT NULL | Copied from the host star at generation time, never recomputed. |
 | `life_chemical`, `evolutionary_speed` | TEXT | nullable | Set by life-data generation, if any. |
-| `flavor_text` | TEXT | nullable | |
+| `flavor_text` | TEXT | nullable | No longer written (DB.51): the line is `flavor_key`, and `Planet.flavor_text` reads it back. Dropped by DB.52. |
 | `flavor_text_count` | INTEGER | NOT NULL, default 0 | |
 | `orbital_inclination_deg`, `orbital_ascending_node_deg` | DOUBLE | NOT NULL | Added in v9. Fixed at generation time — together they orient this (circular) orbital plane in 3D. |
 | `position_x_km`, `_y_km`, `_z_km` | DOUBLE | NOT NULL | Added in v11. This body's Cartesian position relative to its orbital anchor — the star (or a binary's combined center) for a planet — derived from `distance_km` and the three orbital-motion columns above (`orbits.orbital_position_au`). `planetgen.cli.orbits` moves it by `kepler.universal_step` (v109: there is no stored phase; the phase is derived from this position). |
@@ -1353,7 +1353,7 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `tier_pressure`, `tier_temperature`, `tier_air`, `tier_radiation` | TINYINT | nullable | Added in v76 (GEN.89); `tier_chemistry` was renamed `tier_air` in v87. Each domain's colour: 0 Blue, 1 Green, 2 Yellow, 3 Red. |
 | `equipment_tier` | TINYINT | nullable | Added in v76 (GEN.89). The kit a human needs: 0 ideal (named shirtsleeve before 2026-10-10), 1 breathing mask, 2 mask with scrubber, 3 environment suit, 4 full life support with radiation hardening. A pulsar's, neutron star's or black hole's planet is always 4. |
 | `phi_bio`, `phi_cpx`, `phi_tech`, `l_solv`, `l_chem`, `l_ener`, `l_rad` | DOUBLE | nullable | Added in v76 (GEN.89). The Xenobiology numbers: microbial life (the product of the four likelihoods `l_solv` solvent, `l_chem` chemistry, `l_ener` energy and `l_rad` radiation), complex life (`phi_bio` times the metazoa's gas tolerance) and human operability with equipment (`phi_tech`, the geometric mean of the pressure, temperature, water and radiation mitigation factors). |
-| `hab_note` | VARCHAR(255) | nullable | Added in v76 (GEN.89). The domains short of Blue ("Pressure Red, Radiation Yellow"), "All four domains Blue", or "Planet of a pulsar, neutron star or black hole: lethal radiation, rated as 1,000 Sv/yr at the surface". |
+| `hab_note` | VARCHAR(255) | nullable | Added in v76 (GEN.89). No longer written (DB.51): the note is worked out from the stored `tier_<domain>` columns by `habitability_world.note`, and a planet of a pulsar, neutron star or black hole is found from its host star (`store.compact_host_of_star`). Dropped by DB.52. |
 | `energy_flux_w_m2` | DOUBLE | nullable | Added in v76 (GEN.89). The light or chemical power life can use: 6% of the starlight, or 1% of the body's own heat flow, whichever is more (the heat only, under an ice lid). The one input the score keeps, so the dose refresh can re-score from the row. |
 | `flux_variation` | DOUBLE | nullable | Added in v87 (DB.26, GEN.148). The relative swing of the stellar flux over the orbit or pair cycle; 0 is steady. NULL until regenerated. |
 | `induced_moment_a_m2` | DOUBLE | nullable | Added in v87 (DB.26, GEN.178), placed after `dipole_class`. The induced magnetic moment in A m2; NULL when not computed or none. |
@@ -1361,6 +1361,8 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `tier_water`, `tier_suitability` | TINYINT | nullable | Added in v87 (DB.26, GEN.207). The colour of each, 0 Blue to 3 Red like the other tiers. |
 
 ### `planet_evolutionary_paragraphs`
+
+No longer written or read (DB.51): the timeline is the `life_stage`, `evolutionary_pace`, `life_milestone_age_gyr` and `life_system_age_gyr` columns of `planets` and `moons`, and `evolution.timeline_paragraphs` writes the paragraph from them. DB.52 drops the table.
 
 Child table for a planet's variable-length evolutionary narrative
 (`Planet.evolutionary_data`).
@@ -2130,7 +2132,7 @@ relationship.
 
 ### v110 (DB.50): structure columns for life and flavour
 
-Migration 0110 adds five nullable columns to `planets` and `moons`, after `flavor_text_count`: `life_stage` (VARCHAR(32), a `generation.evolution.MILESTONE_KEYS` key, NULL before any milestone), `evolutionary_pace` (VARCHAR(16), the timeline scale `fast`, `normal` or `slow`), `life_milestone_age_gyr` and `life_system_age_gyr` (DOUBLE, the age of the milestone and the age of the system the timeline was written at, Gy) and `flavor_key` (VARCHAR(32), which flavour line, replacing `flavor_text`). They replace what is only recoverable now by reading the evolutionary paragraphs and `flavor_text`. Nothing is dropped and no row is touched; the columns stay NULL until generation writes them (DB.51), and the prose columns go in DB.52. A column that is already there is skipped, so a stopped run can be started again. The version is detected from `planets.life_stage`.
+Migration 0110 adds five nullable columns to `planets` and `moons`, after `flavor_text_count`: `life_stage` (VARCHAR(32), a `generation.evolution.MILESTONE_KEYS` key, NULL before any milestone), `evolutionary_pace` (VARCHAR(16), the timeline scale `fast`, `normal` or `slow`), `life_milestone_age_gyr` and `life_system_age_gyr` (DOUBLE, the age of the milestone and the age of the system the timeline was written at, Gy) and `flavor_key` (VARCHAR(32), which flavour line, replacing `flavor_text`). They replace what is only recoverable now by reading the evolutionary paragraphs and `flavor_text`. Nothing is dropped and no row is touched. Generation writes the columns from DB.51 on (`life.apply_life_data` and `decide_flavor_text`, which draw as before), the loaders and `Planet.evolutionary_data`/`flavor_text` read them back, and the prose columns and tables are no longer written or read; DB.52 drops them. `flavor_key` is `category:index` into the `tuning` flavour list the line was drawn from (`habitable`, `planet` or `orbital`), so reordering a list changes the lines of stored bodies. `system_configs.markdown` is no longer read or written either. A column that is already there is skipped, so a stopped run can be started again. The version is detected from `planets.life_stage`.
 
 ### v109 (GEN.289): a planet or moon is its state vector
 
