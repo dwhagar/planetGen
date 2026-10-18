@@ -4680,6 +4680,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch 27 is stamped (release 8.0.1812, GEN.572, #2243), so this item
   takes the next free epoch at its merge (28 unless another lane merges
   first); the epoch 26 or 27 named above is out of date.
+  Epoch update (9:25 AM EDT 2026-10-18, from the epochs file on main):
+  epoch 28 is stamped (release 8.0.1813, GEN.549, #2247), so this item
+  takes the next free epoch at its merge (29 unless another lane merges
+  first); the epoch 27 or 28 named above is out of date.
   Prerequisites: none. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -7756,6 +7760,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch 27 is stamped (release 8.0.1812, GEN.572, #2243), so this item
   takes the next free epoch at its merge (28 unless another lane merges
   first); the epoch 26 or 27 named above is out of date.
+  Epoch update (9:25 AM EDT 2026-10-18, from the epochs file on main):
+  epoch 28 is stamped (release 8.0.1813, GEN.549, #2247), so this item
+  takes the next free epoch at its merge (29 unless another lane merges
+  first); the epoch 27 or 28 named above is out of date.
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -13202,38 +13210,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   has decided. Owner: Core 4 (proposed), after the age item.
   Prerequisites: GEN.546. Related: GEN.469, GEN.134, GEN.546.
 
-- [ ] **GEN.549 L dwarfs hotter than 1,500 K are 2 to 4 times too rare against the 20 pc census: use a cooling track that reaches them (strict expected failure)**
-  Follow-up of GEN.252 (merged #2164, Core 4, 2026-10-17, 11:09 PM EDT
-  as the lane reported), filed by the TODO thread from Core 4's report
-  and `docs/design/brown-dwarf-state.md`. GEN.252 gives a brown dwarf
-  its type, temperature and radius from the Burrows et al. 2001 old-age
-  power laws (Teff = 1550 K (t/1 Gy)^-0.32 (M/0.05 Msun)^0.83, capped at
-  2,800 K). That law is too cool for the heaviest brown dwarfs, so L
-  dwarfs hotter than 1,500 K come out at 0.2 to 0.5 of the census's
-  share (the 20 pc census of Kirkpatrick et al. 2021 counts 0.5 to 0.8
-  per 1e-3 pc^3 in every 150 K bin above 1,500 K);
-  `tests/test_brown_dwarf.py::test_the_hot_l_dwarfs_reach_the_censuss_share`
-  keeps the gap as a strict expected failure so it fails loudly when
-  closed. The census share stays a test target and never an input (NO
-  FIXED CONTENT). Do: replace the law above 1,500 K with a cooling track
-  that reaches those temperatures, from the sources read first (Baraffe
-  et al. 2003 or Phillips et al. 2020, the ATMO 2020 grids, are the ones
-  the design note names; the lane verifies each citation before use, the
-  standing source rules apply, and a paper only Boss can supply is a
-  research request to him), keep the radius law consistent with it, and
-  remove the expected failure. Changes stored values, so it bumps the
-  generator epoch (OPS.56 rule); default (stands unless Boss overrules):
-  not a prerequisite of GEN.301, and it rides the one full rescatter
-  only if it merges before it. Done: L dwarfs above 1,500 K reach the
-  census's share in the test, the strict expected failure is gone, and
-  the design note names the track. Owner: Core 4 (proposed; it built
-  GEN.252), after the description layer.
-  Epoch update (8:08 AM EDT 2026-10-18, from the epochs file on main):
-  epoch 27 is stamped (release 8.0.1812, GEN.572, #2243), so this item
-  takes the next free epoch at its merge (28 unless another lane merges
-  first); the epoch 26 or 27 named above is out of date.
-  Prerequisites: none. Related: GEN.252, GEN.301.
-
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
   Boss's request (2026-10-17, 11:19 PM EDT, project chat, and an
   addendum typed in the design thread at 11:21 PM EDT, both as the
@@ -14877,6 +14853,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Epoch note (8:08 AM EDT 2026-10-18): if a generator cap changes values
   this item takes the epoch after GEN.404's and GEN.549's (29 or later;
   27 is stamped).
+  Epoch note (9:25 AM EDT 2026-10-18): 28 is stamped by GEN.549, so a
+  generator cap that changes values takes the epoch after GEN.404's and
+  GEN.244's (30 or later).
   Prerequisites: none. Related: GEN.182, GEN.400, GEN.402.
 
 - [ ] **GEN.592 A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced)**
@@ -19868,6 +19847,15 @@ clears each one.
   stored kinds (seedless galaxy, random scatter seed), and passed 12 of
   12 reruns on main and on the branch; frequency about 1 in 13. Same
   cause as above (the unseeded galaxy); it goes with Bug Hunt's fix.
+  Sibling sighting (Core 4, reported 9:24 AM EDT 2026-10-18 on the
+  lane's clock; its GEN.549 gate):
+  `test_phenomenon_scatter.py::test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it`
+  failed once more (no hypervelocity star among 39,757 rows; the whole
+  file passes alone, 80 tests) and
+  `test_a_fill_builds_its_rows_at_their_stored_points_and_rolls_none_of_those_kinds`
+  failed once (113 neutron stars against 112 wanted). Both are in the
+  same file as the unseeded galaxy and go with Bug Hunt's fix; the
+  second needs its own look at whether the expected count is exact.
   Prerequisites: none. Related: TEST.220, TEST.224.
 
 - [ ] **TEST.239 Tests for the unified chain: determinism by host, representation counts per kind and level, rogue and comet rates, derived remnant shares**

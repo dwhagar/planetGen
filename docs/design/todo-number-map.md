@@ -1213,7 +1213,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.546 | Draw a disk star's age from the star formation history inside its window, not uniformly | none | open |
 | GEN.547 | The local B-star share is 0.12 percent against 0.04 observed: find what keeps it three times too high (strict expected failure) | none | open |
 | GEN.548 | Build-time downloads for the isochrone grids, the white-dwarf layers and the neutron-star equation of state, each with a checksum and a labelled stand-in until it lands | none | done, PR #2236 |
-| GEN.549 | L dwarfs hotter than 1,500 K are 2 to 4 times too rare against the 20 pc census: use a cooling track that reaches them (strict expected failure) | none | open |
+| GEN.549 | L dwarfs hotter than 1,500 K are 2 to 4 times too rare against the 20 pc census: use a cooling track that reaches them (strict expected failure) | none | done, PR #2247 |
 | GEN.550 | Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system | none | open |
 | GEN.551 | Approve the unified orbited-body design note and its eight cards (D1 to D8) before any build of the chain | none | done, PR #2171 |
 | GEN.552 | Host registry: the five fixed `system_model` values become pointers to one gated orbiter table per host class, with no change in behaviour | none | done, PR #2214 |
