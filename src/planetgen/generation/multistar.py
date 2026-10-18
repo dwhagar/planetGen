@@ -52,7 +52,7 @@ from statistics import NormalDist
 from planetgen import tuning
 from planetgen.generation.phenomena import hosts
 from planetgen.physics import (
-    brown_dwarf, constants, ms_lifetime, neutron_star, pre_main_sequence, remnant_mass, roche, stability)
+    brown_dwarf, constants, mass_loss, ms_lifetime, neutron_star, pre_main_sequence, remnant_mass, roche, stability)
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 
@@ -548,7 +548,8 @@ class _Builder:
             donor_fill = fill_b if accretor_a else fill_a
             if donor_fill >= 1.0:
                 return "accreting", {}
-            if (a.kind == "white-dwarf" or b.kind == "white-dwarf") and axis < tuning.WD_PROGENITOR_ENGULFMENT_AU:
+            dwarf = a if a.kind == "white-dwarf" else b if b.kind == "white-dwarf" else None
+            if dwarf is not None and axis < mass_loss.engulfment_radius_au(dwarf.initial):
                 return "post-common-envelope", {}
             return "detached", {}
         if accretor_a:

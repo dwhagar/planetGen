@@ -26,11 +26,11 @@ from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
 from planetgen.generation import companion_classes, life as planetLife, multistar, place_terms, prevalence, validation
-from planetgen.physics import constants, insolation, magnetism, metallicity, pre_main_sequence, wolf_rayet
+from planetgen.physics import constants, insolation, magnetism, mass_loss, metallicity, pre_main_sequence, wolf_rayet
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
-from planetgen.generation import pulsar_planets
+from planetgen.generation import pulsar_planets, remnant_orbits
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
 from planetgen.physics.formation import (
@@ -358,6 +358,8 @@ class StarSystem:
                 # body's own final position.
                 self._trim_to_orbit_ceiling(self.planets, primary_ceiling_au)
                 self._apply_star_history(self.planets, self.star)
+                remnant_orbits.widen_for_mass_loss(self.planets, self.star)  # GEN.318: a white dwarf's survivors
+                self._trim_to_orbit_ceiling(self.planets, primary_ceiling_au)
 
                 self.secondary_planets = []
                 if self.binary_type == "wide":
@@ -369,6 +371,8 @@ class StarSystem:
                     self.validate_system(self.secondary_planets)
                     self._trim_to_orbit_ceiling(self.secondary_planets, secondary_ceiling_au)
                     self._apply_star_history(self.secondary_planets, self.secondary_star)
+                    remnant_orbits.widen_for_mass_loss(self.secondary_planets, self.secondary_star)
+                    self._trim_to_orbit_ceiling(self.secondary_planets, secondary_ceiling_au)
                     # Runs last, once both lists reflect their own truly final
                     # (post-validate_system, post-trim) positions -- see this
                     # method's own docstring.
@@ -393,6 +397,9 @@ class StarSystem:
         if self.unmet_requirements:
             log.debug(f"Planet generation gave up after {tuning.MAX_SYSTEM_GENERATION_ATTEMPTS} attempts "
                       f"without {' or '.join(self.unmet_requirements)}")
+
+        if remnant_orbits.is_post_agb_pair(self.star):
+            remnant_orbits.post_agb_disk(self.primary_star, self._orbit_floor_au(self.star))
 
         # A pair's two stars share one age (GEN.53): a close pair's proxy
         # settles it for both, a wide pair's from both stars' own planets.
@@ -823,6 +830,8 @@ class StarSystem:
         """
         if pulsar_planets.applies(star):
             return pulsar_planets.generate(self.system_config, star, habitable_zone, orbit_ceiling_au)
+        if remnant_orbits.is_post_agb_pair(star):
+            return []  # a planetary nebula's close pair holds a circumbinary disk and no planets (GEN.318)
 
         planets = []
         system_objects = self.estimate_num_objects(star)
@@ -1028,17 +1037,18 @@ class StarSystem:
         """
         The distance (AU) inside which `star`'s history has removed every
         planet: `GIANT_ENGULFMENT_RADIUS_FACTOR` times the present radius of
-        a subgiant, giant or supergiant, and `WD_PROGENITOR_ENGULFMENT_AU`
-        around a population-model white dwarf (whose progenitor's giant
-        phases reached that far). A close binary's proxy takes the larger of
-        its two stars. 0 for anything else.
+        a subgiant, giant or supergiant, and the progenitor's engulfment radius
+        (`mass_loss.engulfment_radius_au`, GEN.318) around a white dwarf (whose
+        progenitor's giant phases reached that far). A close binary's proxy takes
+        the larger of its two stars. 0 for anything else.
         """
         radius_au = 0.0
         for member in getattr(star, "stars", None) or [star]:
             yerkes = getattr(member, "yerkes_class", None)
             if yerkes in ("VII", "D"):
-                if member.initial_mass_sol is not None:
-                    radius_au = max(radius_au, tuning.WD_PROGENITOR_ENGULFMENT_AU)
+                progenitor_sol = mass_loss.progenitor_mass_sol(member.mass / constants.SOLAR_MASS_TO_KG,
+                                                               member.initial_mass_sol)
+                radius_au = max(radius_au, mass_loss.engulfment_radius_au(progenitor_sol))
             elif yerkes not in (None, "V", "VI", "PMS", "protostar"):
                 radius_au = max(radius_au, tuning.GIANT_ENGULFMENT_RADIUS_FACTOR
                                 * member.radius / constants.AU_TO_KM)
