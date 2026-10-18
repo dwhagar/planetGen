@@ -1,8 +1,8 @@
 # tests/test_db_check_deep.py
 
 """
-The deep database check's per-system pass (DB.21): it validates every star
-system, says how long it expects to take, and asks before it starts.
+The systems check (DB.21, PERF.126): it validates every star system, says how long it expects to take, and asks before
+it starts; the thorough table check is its companion in a deep check.
 """
 
 import json
@@ -12,26 +12,34 @@ import pytest
 from planetgen.cli import generate
 from planetgen.db import check, store
 from planetgen.generation import run_common, steps
+from planetgen.queue import commands
 from tests.test_db_check import _heal_key, _run, _sql, _status, saved  # noqa: F401  (the `saved` fixture)
 
 
 def _argv(config, *extra):
     return ["generate", "check-db", "--mysql-host", config.host, "--mysql-port", str(config.port),
             "--mysql-user", config.user, "--mysql-password", config.password,
-            "--mysql-database", config.database, "--no-check-table", *extra]
+            "--mysql-database", config.database, *extra]
 
 
-def test_the_systems_pass_runs_only_when_deep(saved):
+def test_the_systems_pass_is_not_in_the_default_list(saved):
     _heal_key(saved)
+    assert "systems" not in commands.DEFAULT_CHECKS and "systems" in commands.DEEP_CHECKS
+    assert "tables-extended" in commands.DEEP_CHECKS and "tables-extended" not in commands.DEFAULT_CHECKS
     assert "systems" not in _status(_run(saved))
-    report = _run(saved, deep=True, check_table=False)
+    report = _run(saved, ["systems"])
     assert _status(report)["systems"] == check.PASS, "\n".join(report.lines())
+
+
+def test_the_extended_table_check_is_its_own_check(saved):
+    report = _run(saved, ["tables-extended"])
+    assert _status(report) == {"tables (extended)": check.PASS}, "\n".join(report.lines())
 
 
 def test_a_system_that_fails_validation_is_named(saved):
     _heal_key(saved)
     _sql(saved, "UPDATE stars SET mass_kg = -1")
-    report = _run(saved, deep=True, check_table=False)
+    report = _run(saved, ["systems"])
     assert _status(report)["systems"] == check.FAIL
     assert any("star system" in line for line in report.lines())
 
@@ -64,7 +72,7 @@ def test_the_pass_has_a_registered_step_kind():
 
 
 def test_estimate_only_prints_the_line_and_checks_nothing(saved, capsys, monkeypatch):
-    monkeypatch.setattr("sys.argv", _argv(saved, "--deep", "--estimate-only"))
+    monkeypatch.setattr("sys.argv", _argv(saved, "systems", "--estimate-only"))
     generate.main()
     line = [l for l in capsys.readouterr().out.splitlines() if l.startswith(run_common.ESTIMATE_PREFIX)][0]
     assert json.loads(line[len(run_common.ESTIMATE_PREFIX):])["deep_check"] is True
@@ -72,25 +80,25 @@ def test_estimate_only_prints_the_line_and_checks_nothing(saved, capsys, monkeyp
 
 def test_a_deep_check_off_a_terminal_needs_yes(saved, monkeypatch):
     monkeypatch.setattr(run_common, "_interactive", lambda: False)
-    monkeypatch.setattr("sys.argv", _argv(saved, "--deep"))
+    monkeypatch.setattr("sys.argv", _argv(saved, "systems"))
     with pytest.raises(SystemExit) as raised:
         generate.main()
     assert raised.value.code == check.EXIT_UNCHECKED
     _heal_key(saved)
-    monkeypatch.setattr("sys.argv", _argv(saved, "--deep", "--yes"))
+    monkeypatch.setattr("sys.argv", _argv(saved, "systems", "--yes"))
     generate.main()
 
 
-def test_on_a_terminal_it_asks_and_no_checks_nothing(saved, monkeypatch):
+def test_on_a_terminal_it_asks_and_no_checks_nothing(saved, capsys, monkeypatch):
     monkeypatch.setattr(run_common, "_interactive", lambda: True)
     monkeypatch.setattr(run_common, "_ask", lambda default, prompt: "n")
-    monkeypatch.setattr("sys.argv", _argv(saved, "--deep"))
-    with pytest.raises(SystemExit) as raised:
-        generate.main()
-    assert raised.value.code == 0
+    monkeypatch.setattr("sys.argv", _argv(saved, "systems"))
+    generate.main()
+    out = capsys.readouterr().out
+    assert "Nothing was checked." in out and "passed every check" not in out
 
 
-def test_estimate_only_needs_deep(saved, monkeypatch):
+def test_estimate_only_needs_the_systems_check(saved, monkeypatch):
     monkeypatch.setattr("sys.argv", _argv(saved, "--estimate-only"))
     with pytest.raises(SystemExit):
         generate.main()
@@ -113,7 +121,7 @@ def test_the_wide_binaries_scope_counts_only_wide_binaries(saved):
     assert count(check.Scope()) == everything
 
 
-def test_wide_binaries_needs_deep(saved, monkeypatch):
-    monkeypatch.setattr("sys.argv", _argv(saved, "--wide-binaries"))
+def test_wide_binaries_needs_the_systems_check(saved, monkeypatch):
+    monkeypatch.setattr("sys.argv", _argv(saved, "ids", "--wide-binaries"))
     with pytest.raises(SystemExit):
         generate.main()

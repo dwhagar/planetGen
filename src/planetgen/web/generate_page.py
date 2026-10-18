@@ -58,6 +58,7 @@ from flask import (Response, abort, current_app, jsonify, make_response, redirec
 from pydantic import Field, TypeAdapter, ValidationError
 
 from planetgen.queue import api_jobs, progress_rate
+from planetgen.queue.commands import DEEP_CHECKS
 from planetgen.web import limit_sliders
 from planetgen.web.lib import apiclient, estimatecache
 from planetgen.web.lib.fmt import utc_time_html
@@ -912,7 +913,7 @@ def _build_job_steps(action, form, edge_pc=None):
         return "reset", "Reset the galaxy", [reset_step]
     if action == "check_db":
         deep = bool(form.get("deep"))
-        argv = generate + ["check-db"] + (["--deep", "--yes"] if deep else [])
+        argv = generate + ["check-db"] + (list(DEEP_CHECKS) + ["--yes"] if deep else [])
         title = "Check the database (deep)" if deep else "Check the database"
         return "check_db", title, [{"label": title, "argv": argv}]
     raise FormError("Unknown action.")

@@ -21,6 +21,7 @@ import time
 import pytest
 
 from planetgen import tuning
+from planetgen.queue.commands import DEEP_CHECKS
 from planetgen.web.app import create_app
 from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.api.config import Config
@@ -657,10 +658,10 @@ def test_a_deep_check_shows_its_time_before_starting(site, client, no_spawn, mon
     assert resp.status_code == 200 and no_spawn == []
     html = resp.get_data(as_text=True)
     assert "1,200" in html and "rough guess" in html and 'name="estimate_ok" value="1"' in html
-    assert asked[0][-2:] == ["--deep", "--yes"]
+    assert asked[0][-len(DEEP_CHECKS) - 1:] == [*DEEP_CHECKS, "--yes"]
     assert _post(client, action="check_db", deep="1", estimate_ok="1").status_code == 303
     (job,) = no_spawn
-    assert [_argv(step) for step in job["steps"]] == [["check-db", "--deep", "--yes"]]
+    assert [_argv(step) for step in job["steps"]] == [["check-db", *DEEP_CHECKS, "--yes"]]
 
 
 def test_dimmer_layer_needs_a_level(site, client, no_spawn):

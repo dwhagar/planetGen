@@ -1,14 +1,16 @@
 # tests/test_db_check.py
 
 """
-The database check (DB.8, `planetgen.db.check`): a healthy saved sector
-passes, and each kind of damage is found and named; nothing is written.
+The database check (DB.8, `planetgen.db.check`, PERF.126): a healthy saved sector passes, and each kind of damage is
+found and named; nothing is written. Each check is a command of its own (`check-<name>`): the tests run the unit of
+each, and the whole list through `planetgen check-db`.
 """
 
 import pytest
 
 from planetgen.cli import generate
 from planetgen.db import check, store
+from planetgen.queue import commands, runrecord, wrapper
 from tests.test_object_uids import PLACE, _sector
 
 
@@ -18,12 +20,14 @@ def saved(mysql_config):
     return mysql_config
 
 
-def _run(config, **kwargs):
-    conn = store.get_connection(config, ensure_schema=False)
-    try:
-        return check.run_checks(conn, config, **kwargs)
-    finally:
-        conn.close()
+def _run(config, names=commands.DEFAULT_CHECKS, scope=None):
+    """The `Report` of the units of the checks `names`, run the way a worker runs them."""
+    scope = scope or check.Scope()
+    args = {"database": wrapper.database_args(config), "shells": list(scope.shells),
+            "addresses": [list(a) for a in scope.addresses], "wide_binaries": scope.wide_binaries}
+    results = [check.CheckResult.from_dict(getattr(check, f"check_{name.replace('-', '_')}_unit")(args, None))
+               for name in names]
+    return check.Report(results)
 
 
 def _sql(config, *statements):
@@ -115,8 +119,8 @@ def test_a_schema_that_disagrees_with_the_code_is_found(saved):
 def test_a_check_that_cannot_run_is_not_called_damage(saved, monkeypatch):
     def broken(ctx):
         raise KeyError("boom")
-    monkeypatch.setattr(check, "CHECKS", (("ids", broken),))
-    report = _run(saved)
+    monkeypatch.setitem(check.BY_NAME, "ids", check.Check("ids", "ids", broken))
+    report = _run(saved, ["ids"])
     assert report.exit_code() == check.EXIT_UNCHECKED and not report.damaged
     assert report.results[0].status == check.ERROR
 
@@ -143,13 +147,63 @@ def _rows(config, sql):
         conn.close()
 
 
+def _command_argv(config, *extra):
+    return ["generate", "check-db", "--mysql-host", config.host, "--mysql-port", str(config.port),
+            "--mysql-user", config.user, "--mysql-password", config.password, "--mysql-database", config.database,
+            *extra]
+
+
 def test_the_command_exits_one_on_damage_and_zero_when_clean(saved, capsys, monkeypatch):
     _heal_key(saved)
-    argv = ["check-db", "--mysql-host", saved.host, "--mysql-port", str(saved.port), "--mysql-user", saved.user,
-            "--mysql-password", saved.password, "--mysql-database", saved.database, "--no-check-table"]
-    monkeypatch.setattr("sys.argv", ["generate"] + argv)
+    monkeypatch.setattr("sys.argv", _command_argv(saved))
     generate.main()
     _sql(saved, "UPDATE planets SET radius_km = -5")
     with pytest.raises(SystemExit) as raised:
         generate.main()
     assert raised.value.code == check.EXIT_DAMAGED
+
+
+def test_naming_the_checks_runs_only_those(saved, capsys, monkeypatch):
+    _sql(saved, "UPDATE planets SET radius_km = -5")
+    monkeypatch.setattr("sys.argv", _command_argv(saved, "ids", "orphans"))
+    generate.main()
+    text = capsys.readouterr().out
+    assert "pass: ids" in text and "pass: orphans" in text and "values" not in text
+
+
+def test_the_list_is_the_checks_in_order(saved):
+    args = generate.build_parser()[0].parse_args(_command_argv(saved, "systems", "ids")[1:])
+    args.database = wrapper.database_args(saved)
+    assert [step.key for step in wrapper.steps_for("check-db", args)] == ["ids", "systems"]
+    assert [step.kind for step in wrapper.steps_for("check-db", args)] == ["check-ids", "check-systems"]
+    args.checks = []
+    assert [step.key for step in wrapper.steps_for("check-db", args)] == list(commands.DEFAULT_CHECKS)
+
+
+def test_a_check_that_does_not_exist_is_refused(saved, monkeypatch):
+    monkeypatch.setattr("sys.argv", _command_argv(saved, "nonsense"))
+    with pytest.raises(SystemExit) as raised:
+        generate.main()
+    assert "no such check" in str(raised.value)
+
+
+def test_every_check_is_a_registered_command():
+    assert set(commands.KIND_OF_CHECK) == {c.name for c in check.CHECKS}
+    for name, kind in commands.KIND_OF_CHECK.items():
+        assert kind in commands.REGISTRY, name
+    assert set(commands.DEFAULT_CHECKS) | set(commands.DEEP_CHECKS) <= set(commands.KIND_OF_CHECK)
+
+
+def test_a_check_run_does_not_take_the_generation_slot(saved, monkeypatch):
+    seen = []
+    real = wrapper.run
+
+    def spy(*args, **kwargs):
+        seen.append(kwargs.get("kind"))
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(wrapper, "run", spy)
+    _heal_key(saved)
+    monkeypatch.setattr("sys.argv", _command_argv(saved))
+    generate.main()
+    assert seen == [runrecord.CHECK]

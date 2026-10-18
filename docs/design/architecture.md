@@ -362,7 +362,7 @@ The content database: writing, reading, migrating and checking it. `schema.sql` 
 | [`__init__.py`](../../src/planetgen/db/__init__.py) | The content database (MySQL): writing, reading, migrating and checking it. |
 | [`alembic_runner.py`](../../src/planetgen/db/alembic_runner.py) | Runs the Alembic revisions in `planetgen/db/migrations/` against a planetGen content database (DB.11). |
 | [`migrations/helpers.py`](../../src/planetgen/db/migrations/helpers.py) | What a revision uses on a big table: instant columns, online indexes, updates in committed pages with progress, and the existence checks (DB.18). |
-| [`check.py`](../../src/planetgen/db/check.py) | `planetgen check-db` (and the Admin dashboard's "Check the database" button, which runs it as a job) looks for damage in a galaxy database and changes nothing. |
+| [`check.py`](../../src/planetgen/db/check.py) | The database checks `planetgen check-db` runs (and the Generate page's "Check the database" button, which runs it as a job): each is a command of its own (`check-revision` ... `check-systems`) that looks for damage in a galaxy database and changes nothing. |
 | [`corridor.py`](../../src/planetgen/db/corridor.py) | The objects near a straight segment of the galaxy, for routing and course steering. |
 | [`countcache.py`](../../src/planetgen/db/countcache.py) | Counts and filter-menu totals that are too big to take inside a web request (PERF.64). |
 | [`edits.py`](../../src/planetgen/db/edits.py) | Writes an admin's edits back to the content database (TODO ADM.1): a star system changed in memory (a body regenerated, removed, reclassified, or a new star), a phenomenon regenerated in place, and a sector deleted with everything in it. |
@@ -400,6 +400,7 @@ The command-line tools, each run as `python3 -m planetgen.cli.<name>` (the gener
 |---|---|
 | [`__init__.py`](../../src/planetgen/cli/__init__.py) | The command-line tools. |
 | [`benchmark.py`](../../src/planetgen/cli/benchmark.py) | `planetgen benchmark` (PERF.31): where a generation run spends its time, from the plan to a finished fill. |
+| [`checkdb.py`](../../src/planetgen/cli/checkdb.py) | `planetgen check-db` (PERF.126): builds the list of the database-check commands (one per check) for the wrapper to run as a check run, and prints the report: one pass or fail line per check, exit 1 on damage and 2 when a check could not run. |
 | [`config.py`](../../src/planetgen/cli/config.py) | Checks and documents the settings (`planetgen.cli.config`). |
 | [`dedupe.py`](../../src/planetgen/cli/dedupe.py) | One-off backfill that resolves duplicate sector and system names in an older database with the same decoration `store.py` applies on save. |
 | [`generate.py`](../../src/planetgen/cli/generate.py) | `planetgen`: the single entry point for every generator, dispatched by subcommand. |
