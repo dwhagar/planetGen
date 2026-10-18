@@ -385,3 +385,36 @@ def test_a_systems_galaxy_point_and_cell_key_follow_every_save_and_move(mysql_co
     finally:
         conn.close()
     assert center  # the sector was placed
+
+
+def test_a_neutron_star_the_galaxy_ejected_flies_in_a_straight_line_and_the_nucleus_stays(mysql_config):
+    """GEN.238: a black hole or neutron star with a velocity and no galactic orbit moves like a hypervelocity star, by
+    its velocity from its epoch, and keeps the velocity; the galaxy's own black hole has neither and stays."""
+    from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+    sector, position = _place(3, [(0.0, 0.0, 0.0)], "Ejected")
+    sector_id = store.save_sector(sector, config=mysql_config, galaxy_position=position)
+    center = (position["center_x_pc"], position["center_y_pc"], position["center_z_pc"])
+    placement = {"center_x_pc": center[0], "center_y_pc": center[1], "center_z_pc": center[2],
+                 "galactic_radius_pc": math.hypot(*center)}
+    velocity = (300.0, -120.0, 200.0)
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            neutron_star = NeutronStar(SystemConfig(), galactic_center_dist_ly=pc_to_ly(math.hypot(*center)))
+            neutron_star.eject(velocity)
+            star_id = store.insert_neutron_star(conn, neutron_star, sector_id=sector_id, placement=placement)
+            hole = BlackHole(SystemConfig(), mass_class="supermassive")
+            hole_id = store.insert_black_hole(conn, hole, sector_id=sector_id, placement=placement)
+            store.advance_galactic_positions(conn, store.orbit_clock(conn, 1e6))
+        row = conn.execute("SELECT center_x_pc, center_y_pc, center_z_pc, velocity_x_kms, velocity_y_kms, velocity_z_kms,"
+                           " galactic_orbital_period_gy FROM neutron_stars WHERE id = ?", (star_id,)).fetchone()
+        assert row["galactic_orbital_period_gy"] is None
+        expected = straight_line_position_pc(center, velocity, 1e6 * physical_constants.SECONDS_PER_YEAR)
+        assert (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]) == pytest.approx(expected, rel=1e-9)
+        assert math.dist(expected, center) > 100.0       # 300 km/s for a million years is hundreds of parsecs
+        assert (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]) == pytest.approx(velocity)
+        still = conn.execute("SELECT center_x_pc, center_y_pc, center_z_pc FROM black_holes WHERE id = ?",
+                             (hole_id,)).fetchone()
+        assert (still["center_x_pc"], still["center_y_pc"], still["center_z_pc"]) == pytest.approx(center)
+    finally:
+        conn.close()

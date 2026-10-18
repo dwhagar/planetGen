@@ -23,6 +23,7 @@ import pytest
 sync_api = pytest.importorskip("playwright.sync_api")
 Image = pytest.importorskip("PIL.Image")
 
+from planetgen.galaxy.viewport import TILE_MAX_LEVEL  # noqa: E402
 from planetgen.galaxy.spherical import provisional_sector_designation  # noqa: E402
 from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
     HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD, SECTOR_ID, SECTORS, SYSTEMS, UNCHARTED_CELL, halo_site,
@@ -1908,11 +1909,11 @@ def test_galaxy_map_fetches_the_finest_tiles_around_a_sector_it_shows(page, map_
     page.wait_for_timeout(2500)
     requests = [[int(key.split("/")[0]) for key in parse_qs(urlparse(url).query)["tiles"][0].split(",")]
                 for url in urls]
-    # The finest tiles (12) around the sector are asked for first, and only
-    # then (the rest of the view is the distance cut, which stops at 11).
-    assert requests[0][0] == 12, requests
-    assert any(11 in levels for levels in requests), requests
-    assert not any(12 in levels for levels in requests[1:]), requests
+    # The finest tiles around the sector are asked for first, and only then
+    # (the rest of the view is the distance cut, which stops one level short).
+    assert requests[0][0] == TILE_MAX_LEVEL, requests
+    assert any(0 < min(levels) < TILE_MAX_LEVEL - 1 for levels in requests), requests
+    assert not any(TILE_MAX_LEVEL in levels for levels in requests[1:]), requests
 
 
 def _point_colored_spots(page, selector, limit=80):
@@ -2063,7 +2064,9 @@ def test_galaxy_map_stars_fade_in_with_the_zoom(page, map_site):
     here = page.evaluate(opacity, 1.0)
     camera = here["camera"]
     assert here["count"] > 0 and here["camera"] > 0, here
-    steps = [camera * 2 ** (k / 8) for k in range(-8, 9)]
+    # Out to 1.4 times the camera's distance: further out the cut would hand the stars over to coarser tiles (the
+    # tile root reaches 262 kpc, MAP.239) that this view has not fetched, so the loaded tiles alone fade out there.
+    steps = [camera * 2 ** (k / 8) for k in range(-8, 5)]
     sums = [page.evaluate(opacity, r)["sum"] for r in steps]
     assert all(0 <= s <= here["count"] + 1e-6 for s in sums), sums
     for before, after in zip(sums, sums[1:]):
@@ -2178,8 +2181,25 @@ def test_sector_map_click_on_the_selected_nebula_clears_it(page, map_site):
     assert _info_title(page) == nebula["name"], "and a click selects it again"
 
 
+def _url_settled(page, quiet_ms=900):
+    """The page's URL once it has stopped changing. The map writes the camera into the address 350 ms after the
+    camera last moved, in its frame loop, so on a loaded machine the scale bar can hold still (`_settle`) before
+    the address names where the camera ended (TEST.126)."""
+    last, held = None, 0
+    for _ in range(200):
+        if page.url == last:
+            held += 100
+            if held >= quiet_ms:
+                return last
+        else:
+            last, held = page.url, 0
+        page.wait_for_timeout(100)
+    return page.url
+
+
 def _crumbs_on_a_fresh_load(page):
     """The steps a new page shows for this page's URL."""
+    _url_settled(page)
     other = page.context.new_page()
     try:
         other.goto(page.url)
@@ -2198,6 +2218,7 @@ def test_galaxy_breadcrumb_always_matches_the_view_its_url_names(page, map_site)
 
     def in_sync(label):
         _settle(page)
+        _url_settled(page)
         live = _crumbs(page)
         assert live == _crumbs_on_a_fresh_load(page), (label, page.url, live)
         checked.append(label)
@@ -2606,7 +2627,7 @@ def test_galaxy_map_prefetches_only_the_way_in_and_only_when_still(page, map_sit
         eye = [target[i] + (camera[i] - target[i]) * scale for i in range(3)]
         return set(fetch_cut_tiles(eye, target, bounds))
 
-    asked = {key for _at, keys in requests for key in keys if not key.startswith("12/")}
+    asked = {key for _at, keys in requests for key in keys if not key.startswith(f"{TILE_MAX_LEVEL}/")}
     here, in_one, out_one = cut_at(1.0), cut_at(1.0 / 3.0), cut_at(3.0)
     way_out = out_one - here - in_one
     assert way_out, "the way out needs tiles of its own for this test to mean anything"

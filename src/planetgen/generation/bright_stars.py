@@ -1166,10 +1166,14 @@ class FillContext:
             lighter stars. `None` when nothing was placed by mass.
         resolution (CellResolution or None): What the cell resolves (GEN.281), `None` when no ceiling applies. A
             capped cell (`capped`) holds its pre-placed stars down to the fill luminosity cap and no others.
+        emission_hosts (tuple): The emission regions (D and E) that pre-placed hot stars in the neighbouring sectors
+            light (GEN.321), `(nebula, host_name, host_position_pc)` each: the sector builds the ionizing members whose
+            points fall inside it.
     """
 
     def __init__(self, profile, bright_rows=(), min_luminosity_sol=None, phenomenon_rows=None,
-                 below_cut=None, star_mass_limit_sol=None, resolution=None):
+                 below_cut=None, star_mass_limit_sol=None, resolution=None, emission_hosts=()):
+        self.emission_hosts = tuple(emission_hosts)
         self.resolution = resolution
         self.star_mass_limit_sol = star_mass_limit_sol
         self.profile = profile

@@ -12,24 +12,48 @@ import math
 
 import pytest
 
+from planetgen.physics import constants
 from planetgen.physics.body_positions import AU_KM, positions_at
+from planetgen.physics.orbits import circular_orbital_velocity_au_per_year, orbital_position_au
+
+KMS_PER_AU_YR = constants.AU_TO_KM / constants.SECONDS_PER_YEAR
 
 
 def circular(around, distance_au, period, incl, node, phase, **extra):
+    """A circular orbit by its phase: how a pair's second star is described."""
     return dict({"around": around, "distance_km": distance_au * AU_KM, "period_years": period,
                  "inclination_deg": incl, "ascending_node_deg": node, "phase_deg": phase}, **extra)
 
 
+def state_orbit(around, distance_au, period, incl, node, phase, epoch_unix=None):
+    """A planet's or moon's orbit as the scene gives it (GEN.289): the elements it keeps and the state vector it is,
+    here the one a circular orbit has at `phase`."""
+    return {"around": around, "distance_km": distance_au * AU_KM, "period_years": period,
+            "inclination_deg": incl, "ascending_node_deg": node,
+            "position_km": [c * AU_KM for c in orbital_position_au(distance_au, incl, node, phase)],
+            "velocity_kms": [c * KMS_PER_AU_YR for c in
+                             circular_orbital_velocity_au_per_year(distance_au, incl, node, phase, period)],
+            "epoch_unix": epoch_unix}
+
+
+SCENE_EPOCH = 1_760_000_000.0
+"""float: The sample scene's epoch (unix seconds): the time its bodies' stored states are taken to hold at."""
+
+LATE_BY_S = 40 * 86400.0
+"""float: How long before the scene epoch the sample scene's second planet and moon were last stepped."""
+
+
 def sample_scene():
     return {
+        "epoch_unix": SCENE_EPOCH,
         "stars": [
             {"ref": "star:1", "orbit": None},
             {"ref": "star:2", "orbit": circular("barycenter", 0.3, 0.2, 20.0, 40.0, 100.0, secondary_mass_fraction=0.25)},
         ],
         "planets": [
-            {"ref": "planet:1", "orbit": circular("barycenter", 1.5, 1.8, 3.0, 80.0, 10.0),
-             "moons": [{"ref": "moon:1", "orbit": circular("planet:1", 0.002, 0.03, 5.0, 10.0, 200.0)}]},
-            {"ref": "planet:2", "orbit": circular("barycenter", 5.0, 11.0, 0.0, 0.0, 300.0), "moons": []},
+            {"ref": "planet:1", "orbit": state_orbit("barycenter", 1.5, 1.8, 3.0, 80.0, 10.0),
+             "moons": [{"ref": "moon:1", "orbit": state_orbit("planet:1", 0.002, 0.03, 5.0, 10.0, 200.0, SCENE_EPOCH - 3 * 86400.0)}]},
+            {"ref": "planet:2", "orbit": state_orbit("barycenter", 5.0, 11.0, 0.0, 0.0, 300.0, SCENE_EPOCH - LATE_BY_S), "moons": []},
         ],
         "comets": [
             {"ref": "comet:1", "orbit": {"around": "barycenter", "type": "elliptical", "kepler": {
@@ -103,6 +127,19 @@ def test_a_parabolic_comet_passes_perihelion_at_the_right_time():
     years_to_perihelion = 3.0 / rate
     assert norm(positions_at(scene, years_to_perihelion)["comet:2"]) == pytest.approx(2.0 * AU_KM, rel=1e-9)
     assert norm(positions_at(scene, 0.0)["comet:2"]) > 2.0 * AU_KM
+
+
+def test_a_body_last_stepped_before_the_scene_epoch_is_carried_on_to_it():
+    scene = sample_scene()
+    stamped = scene["planets"][1]["orbit"]
+    assert stamped["epoch_unix"] == SCENE_EPOCH - LATE_BY_S
+    here = positions_at(scene, 0.0)["planet:2"]
+    unstamped = sample_scene()
+    unstamped["planets"][1]["orbit"]["epoch_unix"] = None
+    carried = positions_at(unstamped, LATE_BY_S / constants.SECONDS_PER_YEAR)["planet:2"]
+    assert here == pytest.approx(carried, rel=1e-9, abs=1.0)
+    assert here != pytest.approx(positions_at(unstamped, 0.0)["planet:2"], rel=1e-3)
+    assert norm(here) == pytest.approx(5.0 * AU_KM, rel=1e-9)
 
 
 def test_the_scene_positions_at_the_epoch_match_the_stored_ones(mysql_config):

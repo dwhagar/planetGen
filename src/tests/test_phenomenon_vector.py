@@ -72,7 +72,8 @@ def test_every_row_sits_in_its_own_cell_with_a_mass_above_the_cut():
         if row["kind"] == "black-hole":
             assert row["mass_solar"] >= 10.0
         elif row["kind"] == "neutron-star":
-            assert row["mass_solar"] is None or row["mass_solar"] >= 10.0
+            # A magnetar ignores the mass cut (GEN.278): it follows the young stars, whatever the cut leaves.
+            assert row["subtype"] == scatter.MAGNETAR_SUBTYPE or row["mass_solar"] is None or row["mass_solar"] >= 10.0
         else:
             assert row["mass_solar"] is None
 

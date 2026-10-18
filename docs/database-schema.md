@@ -601,8 +601,7 @@ the empty `generation_runs` table (DB.6).
 **Velocity (v60, GEN.121).** `planets`, `moons` and `comets` each gain
 `velocity_x_kms`, `velocity_y_kms` and `velocity_z_kms`: the body's velocity,
 km/s, relative to its orbital anchor and on the same axes as its
-`position_x/y/z_km`. `advance_orbital_phases` (planets and moons, from the
-new phase) and `advance_comet_orbits` (Kepler or Barker) move it with the
+`position_x/y/z_km`. `advance_orbital_phases` (planets and moons, by `kepler.universal_step` on the state) and `advance_comet_orbits` (Kepler or Barker) move it with the
 position. `_migrate_v59_to_v60` works it out for rows saved before.
 
 **A system's galactic velocity (v61, GEN.121).** `star_systems` gains
@@ -1087,7 +1086,7 @@ anything there, so a sector is never placed outside the galaxy.
 
 Singleton row (same pattern as `galaxy_shape` above) added in v9, tracking
 when `planetgen.cli.orbits` last advanced every planet's/moon's
-`orbital_phase_deg` in this database — absent entirely until that
+state vector in this database — absent entirely until that
 script's first run against a given database (it creates this row
 itself). `planetgen.db.store.get_orbit_update_elapsed_years` reads it
 (via `TIMESTAMPDIFF` against `NOW()`, server-side, rather than trusting
@@ -1332,9 +1331,8 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `flavor_text` | TEXT | nullable | |
 | `flavor_text_count` | INTEGER | NOT NULL, default 0 | |
 | `orbital_inclination_deg`, `orbital_ascending_node_deg` | DOUBLE | NOT NULL | Added in v9. Fixed at generation time — together they orient this (circular) orbital plane in 3D. |
-| `orbital_phase_deg` | DOUBLE | NOT NULL | Added in v9. This body's current position angle around its orbit — the one orbital-motion column that changes over time, advanced in place by `planetgen.cli.orbits` (see `orbit_simulation_state` below). |
-| `position_x_km`, `_y_km`, `_z_km` | DOUBLE | NOT NULL | Added in v11. This body's Cartesian position relative to its orbital anchor — the star (or a binary's combined center) for a planet — derived from `distance_km` and the three orbital-motion columns above (`orbits.orbital_position_au`). Changes in lockstep with `orbital_phase_deg` as `planetgen.cli.orbits` advances it. |
-| `velocity_x_kms`, `_y_kms`, `_z_kms` | DOUBLE | NOT NULL, default 0 | Added in v60 (GEN.121). This body's velocity, km/s, relative to its orbital anchor and on the same axes as `position_x/y/z_km`: the tangent of its circular orbit at `orbital_phase_deg`, `orbital_speed_kms` long (`orbits.circular_orbital_velocity_au_per_year`). `advance_orbital_phases` moves it with the position. |
+| `position_x_km`, `_y_km`, `_z_km` | DOUBLE | NOT NULL | Added in v11. This body's Cartesian position relative to its orbital anchor — the star (or a binary's combined center) for a planet — derived from `distance_km` and the three orbital-motion columns above (`orbits.orbital_position_au`). `planetgen.cli.orbits` moves it by `kepler.universal_step` (v109: there is no stored phase; the phase is derived from this position). |
+| `velocity_x_kms`, `_y_kms`, `_z_kms` | DOUBLE | NOT NULL, default 0 | Added in v60 (GEN.121). This body's velocity, km/s, relative to its orbital anchor and on the same axes as `position_x/y/z_km`: the tangent of its circular orbit where the position is, `orbital_speed_kms` long (`orbits.circular_orbital_velocity_au_per_year`). `advance_orbital_phases` moves it with the position. |
 | `epoch_unix`, `next_update_due` | DOUBLE | nullable, `next_update_due` indexed | Added in v66 (GEN.106). When the stored position holds and when the body will have moved 0.01 AU (100,000 km for a moon) at its orbital speed; see `orbit_simulation_state`. An edit that changes the orbit sets `next_update_due` back to NULL. |
 | `orbital_speed_kms` | DOUBLE | NOT NULL | Added in v11. Constant circular-orbit speed (`orbits.circular_orbital_speed_kms`, `v = 2*pi*r/T`). Only changes if `distance_km`/`period_years` do (e.g. `StarSystem.validate_system` resolving an orbital overlap at generation time), never from phase advancing alone. |
 | `min_update_interval_years` | DOUBLE | NOT NULL | Added in v12; not read by the update since v66 (`next_update_due` decides). Not a narrative stat -- a floating-point update guard: the shortest `elapsed_years` worth calling it for, below which the phase delta added is smaller than `orbital_phase_deg`'s own double-precision resolution and so is guaranteed to be a no-op write (`orbits.minimum_update_interval_years`, `period_years * math.ulp(360.0) / 360`). Like `orbital_speed_kms`, only changes if `distance_km`/`period_years` do. |
@@ -2130,6 +2128,10 @@ relationship.
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
 
+### v109 (GEN.289): a planet or moon is its state vector
+
+Migration 0109 drops `orbital_phase_deg` from `planets` and `moons`. The position, velocity, mass, epoch, parent and dynamical state of v102 hold the body whole: `advance_orbital_phases` moves a due planet or moon with `kepler.universal_step` (a compiled batch step, `physics/state_kernel.py`, written back in one `UPDATE ... JOIN VALUES` per batch), taking `mu` from the stored `distance_km` and `period_years`, and the next due time from the speed the new state has. The phase a page or the generator needs is read from the position (`body_state.argument_of_latitude_deg`). `insert_planet` and `insert_moon` now fill `parent_type` and `parent_id` (a circumbinary planet's parent is its system, and the migration sets that for rows saved before). The system scene carries each body's `position_km`, `velocity_kms` and `epoch_unix` in place of `phase_deg`, and `orbitpositions.js` steps that state with the same algorithm. A column that is already gone is skipped, so a stopped run can be started again. The version is detected from `planets.orbital_phase_deg` being absent.
+
 ### v108 (DB.72): band numbers are INT in the scatter tables
 
 Migration 0108 widens `band_index` from SMALLINT to INT in `bright_stars`, `sector_stats` and `phenomenon_scatter`. A shell's bands run from `-(h + 1)` to `h + 1`, which passes SMALLINT's 32,767 at shell 20,861 and reaches 102,942 at shell 65,535, the outer shell of the 262 kpc reach, so the whole-sphere scatter stopped at 97 percent with "Out of range value for column 'band_index'". `sectors`, `galaxy_shell` and `galaxy_block_stats` were INT already. Each table is rebuilt in place (its address index with it) and no value is touched; a column that is already INT is skipped, so a stopped run can be started again. The version is detected from `bright_stars.band_index` being INT.
@@ -2258,7 +2260,7 @@ The table was dropped in v91 (DB.32) and made again in v92 on shells (see "v92" 
 
 ### v71 (GEN.167): `galaxy_shape.phenomenon_min_mass_solar`
 
-`galaxy_shape.phenomenon_min_mass_solar` (DOUBLE, nullable): the phenomenon scatter's mass cut. The scatter places only the neutron stars and black holes at or above it (with 20, only the intermediate-mass black holes: about 2.7e5 rows instead of 1.17e9); a sector fill draws the share below it on the stream `{seed}:phenomena-fill:{ring}:{layer}:{slot}`, so the two add up to the whole population. `planetgen plan --phenomena-only --phenomenon-min-mass M` re-scatters at a new cut; filled sectors already hold every mass and are left out. See docs/design/phenomenon-scatter-mass-cut.md.
+`galaxy_shape.phenomenon_min_mass_solar` (DOUBLE, nullable): the phenomenon scatter's mass cut. The scatter places only the neutron stars and black holes at or above it (with 20, only the intermediate-mass black holes: about 2.7e5 rows at a 0.1% share, about 800 at the 3e-6 of GEN.259, instead of 1.17e9); a sector fill draws the share below it on the stream `{seed}:phenomena-fill:{ring}:{layer}:{slot}`, so the two add up to the whole population. `planetgen plan --phenomena-only --phenomenon-min-mass M` re-scatters at a new cut; filled sectors already hold every mass and are left out. See docs/design/phenomenon-scatter-mass-cut.md.
 
 ### v72 (GEN.86): stellar activity and magnetic fields
 

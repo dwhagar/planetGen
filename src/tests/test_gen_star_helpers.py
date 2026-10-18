@@ -170,11 +170,12 @@ def test_white_dwarf_params_keep_the_mass_radius_relation():
 
 
 @pytest.mark.parametrize("mass, ms_fraction, yerkes", [
-    (1.0, 0.1, "V"), (1.0, 1.04, "IV"), (1.0, 1.15, "III"), (1.0, 1.25, "VII"),
+    (1.0, 0.1, "V"), (1.0, 1.04, "IV"), (1.0, 1.09, "III"), (1.0, 1.25, "VII"),
     (6.0, 1.15, "II"), (6.0, 1.25, "VII"),
 ])
 def test_evolve_star_phases_follow_age(mass, ms_fraction, yerkes):
-    """Phase boundaries are multiples of the main-sequence lifetime."""
+    """Phase boundaries are multiples of the main-sequence lifetime: a solar-mass star leaves the subgiant phase at 1.05
+    of it and its giant branch ends at 1.12 (GEN.502, Hurley, Pols and Tout 2000); a 6 solar mass star keeps 1.1 and 1.2."""
     age = stellar_evolution.main_sequence_lifetime_gy(mass) * ms_fraction
     rng = random.Random(7)
     state = stellar_evolution.evolve_star(mass, age, rng)
@@ -260,7 +261,7 @@ def test_main_sequence_luminosity_is_increasing_and_positive():
 def test_main_sequence_lifetime_falls_with_mass():
     lifetimes = [stellar_evolution.main_sequence_lifetime_gy(m) for m in MASSES]
     assert lifetimes == sorted(lifetimes, reverse=True)
-    assert stellar_evolution.main_sequence_lifetime_gy(1.0) == PC.SOLAR_MS_LIFESPAN_GY
+    assert stellar_evolution.main_sequence_lifetime_gy(1.0) == pytest.approx(10.0, rel=0.05)  # GEN.467: 10.2 Gy
 
 
 def test_effective_temperature_is_solar_for_the_sun_and_monotonic():

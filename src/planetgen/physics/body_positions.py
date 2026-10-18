@@ -9,9 +9,11 @@ Where every body of a system is at any time (MAP.70), from the scene
 kilometres in the scene's frame (the system barycenter, or the first star
 for a wide binary, at the origin):
 
-- A planet, moon or the second star of a pair goes round on a circular
-  orbit: its stored phase plus 360 degrees for each period
-  (`orbits.orbital_position_au`).
+- A planet or moon goes round on the orbit its stored state vector says
+  (GEN.289): the state is moved from its own epoch to the requested time
+  by `kepler.universal_step` (`body_state.advance`).
+- The second star of a pair goes round on a circular orbit: its stored
+  phase plus 360 degrees for each period (`orbits.orbital_position_au`).
 - A comet goes round on its Kepler orbit: an elliptical one's mean anomaly
   advances by 360 degrees a period (`kepler.comet_orbital_state`), a
   parabolic one's parabolic mean anomaly by `sqrt(mu / 2q^3)` a year.
@@ -25,7 +27,7 @@ checks the two against each other. NAV.6 plans courses on this one.
 
 import math
 
-from planetgen.physics import constants
+from planetgen.physics import body_state, constants
 from planetgen.physics.kepler import comet_orbital_state, gravitational_parameter_au3_yr2
 from planetgen.physics.orbits import orbital_position_au
 
@@ -39,6 +41,17 @@ def _relative_circular_km(orbit, years):
     x, y, z = orbital_position_au(orbit["distance_km"] / AU_KM, orbit["inclination_deg"],
                                   orbit["ascending_node_deg"], phase % 360.0)
     return [x * AU_KM, y * AU_KM, z * AU_KM]
+
+
+def _relative_state_km(orbit, years, scene_epoch_unix):
+    """A planet's or moon's position relative to what it goes round, in km: its stored state moved from the epoch it
+    is true at to `years` past the scene's epoch."""
+    epoch = orbit.get("epoch_unix")
+    offset = 0.0 if epoch is None or scene_epoch_unix is None else scene_epoch_unix - epoch
+    position, _velocity = body_state.advance(
+        orbit["position_km"], orbit["velocity_kms"], orbit["distance_km"], orbit["period_years"],
+        years * constants.SECONDS_PER_YEAR + offset)
+    return list(position)
 
 
 def _comet_relative_km(orbit, years):
@@ -93,10 +106,11 @@ def positions_at(scene, years):
     def origin(around):
         return [0.0, 0.0, 0.0] if around == "barycenter" else out[around]
 
+    epoch_unix = scene.get("epoch_unix")
     for planet in scene["planets"]:
-        out[planet["ref"]] = _add(origin(planet["orbit"]["around"]), _relative_circular_km(planet["orbit"], years))
+        out[planet["ref"]] = _add(origin(planet["orbit"]["around"]), _relative_state_km(planet["orbit"], years, epoch_unix))
         for moon in planet["moons"]:
-            out[moon["ref"]] = _add(out[planet["ref"]], _relative_circular_km(moon["orbit"], years))
+            out[moon["ref"]] = _add(out[planet["ref"]], _relative_state_km(moon["orbit"], years, epoch_unix))
     for comet in scene["comets"]:
         out[comet["ref"]] = _add(origin(comet["orbit"]["around"]), _comet_relative_km(comet["orbit"], years))
     return out

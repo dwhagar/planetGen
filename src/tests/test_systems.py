@@ -21,7 +21,7 @@ from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.generation.binary import BinaryStarProxy
-from planetgen.physics import constants
+from planetgen.physics import body_state, constants
 from planetgen import tuning as prog_c
 from planetgen.physics.orbits import (
     circular_orbital_speed_kms, minimum_update_interval_years, mutual_hill_radius_au, mutual_hill_radius_m, orbital_position_au,
@@ -300,9 +300,12 @@ def assert_positions_and_speeds_are_consistent(system):
         assert radius == pytest.approx(body.distance, rel=1e-9), (
             f"{body.name}: position radius {radius} AU != distance {body.distance} AU"
         )
+        phase_deg = body_state.argument_of_latitude_deg(
+            (body.position_x, body.position_y, body.position_z),
+            body.orbital_inclination_deg, body.orbital_ascending_node_deg)
         expected_position = orbital_position_au(
             body.distance, body.orbital_inclination_deg,
-            body.orbital_ascending_node_deg, body.orbital_phase_deg,
+            body.orbital_ascending_node_deg, phase_deg,
         )
         assert (body.position_x, body.position_y, body.position_z) == pytest.approx(expected_position)
 

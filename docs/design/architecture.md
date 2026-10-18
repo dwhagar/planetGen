@@ -262,7 +262,7 @@ The galaxy: sector grid, density, outline, seeds, object IDs, navigation. The se
 | [`version_check.py`](../../src/planetgen/galaxy/version_check.py) | The mixed-version warning (DB.7): a galaxy extended by a different release holds sectors made by more than one version, and reproduces only sector by sector. |
 | [`version_history.py`](../../src/planetgen/galaxy/version_history.py) | The version keys an update has run under (OPS.13; docs/design/reproducible-galaxies.md). |
 | [`version_key.py`](../../src/planetgen/galaxy/version_key.py) | The version key (DB.6; docs/design/reproducible-galaxies.md, section 4): 22 uppercase hex digits naming exactly what a galaxy seed needs to make the same galaxy again -- the PlanetGen release and the environment it ran in. |
-| [`viewport.py`](../../src/planetgen/galaxy/viewport.py) | The Galaxy Map's cube-tile arithmetic (the octree of 16 pc to 65,536 pc cubes, tile keys) and viewport queries. |
+| [`viewport.py`](../../src/planetgen/galaxy/viewport.py) | The Galaxy Map's cube-tile arithmetic (the octree of 16 pc to 524,288 pc cubes, the grid's whole reach, tile keys) and viewport queries. |
 | [`window.py`](../../src/planetgen/galaxy/window.py) | The Galaxy Map's data windows (MAP.151): `g` cells across, a ball of the centre block's size, found in closed form per shell. |
 
 #### src/planetgen/population/

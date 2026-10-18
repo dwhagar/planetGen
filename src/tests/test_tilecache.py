@@ -15,6 +15,7 @@ import os
 import pytest  # noqa: E402
 
 from planetgen.web.lib import tilecache, tilepack  # noqa: E402
+from planetgen.galaxy.viewport import TILE_MAX_LEVEL  # noqa: E402
 
 
 FAKE_STAR = {
@@ -186,7 +187,7 @@ def test_databases_are_cached_separately(api):
 
 @pytest.mark.parametrize("keys", [
     ["nope"],
-    ["13/0/0/0"],
+    [f"{TILE_MAX_LEVEL + 1}/0/0/0"],
     ["1/2/0/0"],
     [f"12/{i}/0/0" for i in range(129)],
 ])
