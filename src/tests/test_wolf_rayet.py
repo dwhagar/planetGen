@@ -184,3 +184,62 @@ def test_none_is_born_old_enough_to_be_one_in_an_old_population():
     t_ms, t_end = _window(wolf_rayet.threshold_mass_sol())
     assert t_end * 1000.0 < tuning.NEBULA_CLASS_MAX_AGE_MYR.get("X", 10.0)
     assert t_end < min(low for low, _ in tuning.STELLAR_POPULATION_AGE_RANGES_GY.values() if low >= 3.0)
+
+
+def _wolf_rayet_star(seed, mass_sol=60.0):
+    draw.set_run_seed(seed)
+    t_ms, t_end = _window(mass_sol)
+    start = wolf_rayet.start_gy(mass_sol, t_ms, t_end)
+    age = start + draw.random() * (t_end - start)
+    return Star.from_params(evolution.star_params(mass_sol, age, evolution.evolve_star(mass_sol, age)),
+                            SystemConfig(), name="Wr")
+
+
+def test_the_ring_class_is_a_wolf_rayet_only_emission_class_of_two_to_thirty_five_parsecs():
+    data = tuning.NEBULA_CLASSES["X"]
+    assert data["family"] == "emission" and data["host_only"]
+    low, high = data["radius_range_ly"]
+    assert low == pytest.approx(2.0 * 3.2616, rel=0.03) and high == pytest.approx(35.0 * 3.2616, rel=0.03)
+    assert ("W", 0, 9, ("X",), 0.4) in tuning.NEBULA_HOST_RULES
+    assert tuning.NEBULA_CLASS_MAX_AGE_MYR["X"] == 10.0
+    # The longest a star that reaches the phase lives (the threshold mass at the Sun's metallicity) is under the limit.
+    assert _window(wolf_rayet.threshold_mass_sol())[1] * 1000.0 < tuning.NEBULA_CLASS_MAX_AGE_MYR["X"]
+
+
+def test_no_nebula_drawn_without_a_host_is_a_ring():
+    from planetgen.generation.phenomena import nebula as nebula_module
+    from planetgen.generation import phenomena_plausibility
+    assert "X" not in nebula_module.FREE_CLASS_LETTERS and "X" in nebula_module.NEBULA_CLASS_LETTERS
+    assert "X" not in phenomena_plausibility._NEBULA_CLASS_SHARES
+    assert sum(phenomena_plausibility._NEBULA_CLASS_SHARES.values()) == pytest.approx(1.0)
+    draw.set_run_seed(1)
+    for _ in range(300):
+        assert nebula_module.Nebula(SystemConfig(), nebula_type="emission").nebula_class != "X"
+
+
+def test_a_wolf_rayet_star_lights_a_ring_in_forty_percent_and_the_ring_names_it():
+    from planetgen.generation import nebula_contents
+    rings = []
+    trials = 500
+    for seed in range(trials):
+        star = _wolf_rayet_star(seed)
+        nebula = nebula_contents.hosted_nebula_of(star)
+        if nebula is not None:
+            rings.append((star, nebula))
+    assert 0.32 < len(rings) / trials < 0.48, len(rings)
+    low, high = tuning.NEBULA_CLASSES["X"]["radius_range_ly"]
+    for star, nebula in rings:
+        assert nebula.nebula_class == "X" and nebula.nebula_type == "emission"
+        assert nebula.hosts == f"{star.type.split(' ', 1)[0]} x1"
+        assert low <= nebula.radius_ly <= high and nebula.q_total is None
+        assert nebula.age_myr == pytest.approx(star.age * 1000.0)
+        assert "wolf-rayet ring nebula" in " ".join(nebula.to_paragraph_list())
+
+
+def test_a_wolf_rayet_star_older_than_the_limit_lights_nothing_and_neither_does_a_remnant_class_star():
+    import types
+    from planetgen.generation import nebula_contents
+    old = types.SimpleNamespace(type="WN6 Blue Wolf-Rayet Star", age=0.02, mass=1.0e32, temperature=60000.0)
+    assert nebula_contents.hosted_nebula_of(old) is None
+    ordinary = types.SimpleNamespace(type="G2V Yellow Main Sequence Star", age=0.004, mass=1.0e30, temperature=5800.0)
+    assert nebula_contents.hosted_nebula_of(ordinary) is None

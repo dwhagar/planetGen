@@ -2495,7 +2495,7 @@ NEBULA_FAMILIES = {
 # Nebula and supernova remnant classes, one letter each like
 # PLANET_CLASSES (GEN.11; reasoning, sources and the family tables in
 # docs/design/nebula-and-asteroid-field-classes.md). I and O are unused so
-# they aren't read as 1 and 0; X-Z are reserved. A-Q are nebulae, R-W are
+# they aren't read as 1 and 0; Y and Z are reserved. A-Q and X (the Wolf-Rayet ring, GEN.243) are nebulae, R-W are
 # supernova remnants ("stellar remnants" means supernova remnants only,
 # Boss 2026-09-30; compact objects keep their own tables).
 #
@@ -2505,6 +2505,7 @@ NEBULA_FAMILIES = {
 # `extinction_range_av` (optical extinction in magnitudes, log-uniform
 # unless the low end is 0), `center` (the central-object rule of GEN.10
 # builds on), and `frequency` (relative weight within its family group).
+# A class with `host_only` is never drawn free (by family or frequency): only a star of its kind lights one (X).
 # Nebulae also carry `radius_range_ly`; a remnant's radius comes from its
 # age (Sedov-Taylor, below), so remnants carry `morphology` (the Vink 2012
 # shell/plerion/composite shape), `age_range_years` and `compact` (which
@@ -2545,6 +2546,11 @@ NEBULA_CLASSES = {
           "radius_range_ly": (2.0, 20.0), "density_range_cm3": (1e2, 1e3),
           "temperature_range_k": (50.0, 10000.0), "extinction_range_av": (0.5, 3.0),
           "center": "an early-B star", "frequency": 1.0},
+    "X": {"name": "Wolf-Rayet ring nebula", "family": "emission",
+          "species": "ionized hydrogen and helium in a thin swept-up shell around a hollow interior",
+          "radius_range_ly": (6.5, 114.0), "density_range_cm3": (10.0, 1e3),
+          "temperature_range_k": (8000.0, 12000.0), "extinction_range_av": (0.0, 1.0),
+          "center": "a Wolf-Rayet star (required)", "frequency": 1.0, "host_only": True},
     "H": {"name": "Young planetary nebula", "family": "planetary",
           "species": "ionized hydrogen, carbon, nitrogen, oxygen and neon",
           "radius_range_ly": (0.1, 0.5), "density_range_cm3": (1e4, 1e5),
@@ -2688,6 +2694,7 @@ NEBULA_HOST_RULES = (
     ("B", 0, 2, ("C", "G"), 0.25),
     ("B", 3, 9, ("F",), 0.05),
     ("A", 0, 9, ("F",), 0.01),
+    ("W", 0, 9, ("X",), 0.4),
 )
 """tuple: Nebulae a sector grows around its own stars (GEN.10), as
 `(spectral letter, lowest subclass, highest subclass, classes, chance)`
@@ -2710,10 +2717,11 @@ reflection nebula (F) when a dusty cloud happens to be near (van den Bergh
 the cloud. The class is drawn among the classes the star is young enough
 for, by NEBULA_CLASSES frequency."""
 
-NEBULA_CLASS_MAX_AGE_MYR = {"C": 1.0, "D": 10.0, "E": 20.0, "F": 50.0, "G": 5.0}
+NEBULA_CLASS_MAX_AGE_MYR = {"C": 1.0, "D": 10.0, "E": 20.0, "F": 50.0, "G": 5.0, "X": 10.0}
 """dict: The oldest a host star can be and still sit in a nebula of the class, Myr
 (design note, "Lifetimes by class": C 0.1 to 1, D 3 to 10, E 5 to 20, F 1 to 50, G 1
-to 5). Only the upper limits are used: the lower ones come out of the physics, a
+to 5; X: the longest a Wolf-Rayet star's life runs, 8.5 Myr at the threshold mass, GEN.243).
+Only the upper limits are used: the lower ones come out of the physics, a
 young region has not grown to the class's radius (`physics.hii`)."""
 
 NEBULA_CLUSTER_MASS_RANGE_SOL = {"D": (300.0, 1.0e4), "E": (1.0e4, 1.0e5)}

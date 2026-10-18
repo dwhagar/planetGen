@@ -71,6 +71,16 @@ def companion_chance(star_type):
     return tuning.WR_COMPANION_CHANCE.get((star_type or "")[:2])
 
 
+def drawn_type(rng=None):
+    """The spectral text of a Wolf-Rayet star drawn with nothing else known (`"WN6"`): a subtype by the phase shares,
+    a heavy star's, and a subclass uniformly in its range."""
+    from planetgen.util import draw
+    rng = rng or draw
+    name = subtype(tuning.WO_MIN_INITIAL_MASS_SOL, rng.random())
+    low, high = sorted(tuning.WR_SUBCLASS_RANGE[name])
+    return f"{name}{rng.randint(low, high)}"
+
+
 def state(mass_sol, age_gy, start, end, rng, min_luminosity_sol=None):
     """
     The state of a Wolf-Rayet star of initial mass `mass_sol` at `age_gy`, between `start` and `end` (Gy).
