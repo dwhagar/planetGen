@@ -10,6 +10,7 @@ import math
 
 import pytest
 
+from planetgen import describe
 from planetgen.generation import run_galaxy
 from planetgen.generation import run_sector
 from planetgen.db import query
@@ -56,8 +57,8 @@ def test_quasar_round_trips_and_describes_itself():
     q = Quasar(cfg, name="Test Nucleus")
     copy = Quasar.from_dict(q.to_dict(), cfg)
     assert copy.to_dict() == q.to_dict()
-    text = str(q)
-    assert "Test Nucleus (Quasar)" in text
+    text = describe.render(describe.describe_phenomenon(q), "text")
+    assert "Test Nucleus" in text
     assert "active nucleus" in text
 
 

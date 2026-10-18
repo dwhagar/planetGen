@@ -551,7 +551,7 @@ def test_save_sector_and_load_sector_round_trip(mysql_config):
     reloaded_by_name = {entry.star_system.name: entry for entry in reloaded_sector.entries}
     for original_system, original_position in ((system_a, (1.0, 2.0, 3.0)), (system_b, (-4.0, 0.0, 5.5))):
         entry = reloaded_by_name[original_system.name]
-        assert str(entry.star_system) == str(original_system)
+        assert render_support.text(entry.star_system) == render_support.text(original_system)
         # Round-tripped through ly -> milliparsecs -> ly, so exact equality
         # isn't expected -- only floating-point-close.
         assert entry.position == pytest.approx(original_position)
