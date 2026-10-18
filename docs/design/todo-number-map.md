@@ -1952,7 +1952,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.106 | CLI output as plain text by default, Markdown and wikitext on request | none | done, PR #1533 |
 | UX.107 | Units in the description go through the ladders | none | open |
 | UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | none | done, PR #2206 |
-| UX.109 | Remove the old per-class description text | none | open |
+| UX.109 | Remove the old per-class description text | none | done, PR #2234 |
 | UX.110 | The phenomena count on the overview page is wrong (bug) | none | done, PR #2124 |
 | UX.111 | Reads, API and web wording on shells | none | done, PR #1607 |
 | UX.112 | Maintenance mode: the site is closed to everyone but admin while the maps are rebuilt | none | done, PR #1607 |

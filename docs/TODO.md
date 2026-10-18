@@ -508,27 +508,6 @@ with `clamp()`.
   on this item.
   Prerequisites: none. Related: UX.22 (done, PR #1504), UX.81 (done, PR #1504).
 
-- [ ] **UX.109 Remove the old per-class description text**
-  Remove SystemConfig.MARKDOWN, the per-class to_paragraph_list and
-  __str__ text, db/render.py render_system_sections, the /sections
-  endpoint and mdrender, once nothing reads them. Foundations Wording
-  (filed 05:50Z, split out of API.25, done PR #1527).
-  Owns the one deletion of the Markdown machinery
-  (`web/lib/mdrender.py`, the `/sections` route,
-  `render_system_sections`, the markdown dependency and the Markdown
-  tests) that UX.105 also listed; UX.105 now builds only the renderer
-  and the page move (2026-10-16 review).
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 15 of 54). This replaces any earlier owner line on this item.
-  Global document note (Core 4, 11:27 PM EDT as the lane reported): this
-  item deletes `web/lib/mdrender.py`, so when it merges the architecture
-  page's mdrender.py row (`docs/design/architecture.md` line 508 and the
-  generated map) goes; the TODO thread removes it with the next
-  global-document regeneration, the lane does not touch it.
-  Prerequisites: none.
-
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
   update on everything once this is done so all the controls work
