@@ -240,7 +240,12 @@ def test_the_phenomena_line_counts_the_rows_to_place_not_the_progress_weight(mys
     messages = []
     monkeypatch.setattr(log, "normal", lambda message, *args, **kwargs: messages.append(message))
     run_plan.scatter_phenomena(_plan_args(mysql_config))
-    expected = sum(scatter.shell_expected(SHAPE, shell, high, EDGE_PC, E_VALUE, 1.0) for shell, high in EXTENTS)
+    conn = store.get_connection(mysql_config)
+    try:
+        stored = store.get_galaxy_shape(conn).shape  # the run draws the structure from the stored galaxy seed
+    finally:
+        conn.close()
+    expected = sum(scatter.shell_expected(stored, shell, high, EDGE_PC, E_VALUE, 1.0) for shell, high in EXTENTS)
     line = next(m for m in messages if m.startswith("Phenomena: about "))
     assert line.startswith(f"Phenomena: about {round(expected):,} to place in {len(EXTENTS):,} shells")
     weight = expected + run_plan.brightStars.BAND_WEIGHT_STARS * sum(2 * high + 1 for _shell, high in EXTENTS)
