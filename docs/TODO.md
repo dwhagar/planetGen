@@ -3945,7 +3945,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
   lane queue); a line here that named Core 4 was the TODO thread's
   counting error, corrected 2026-10-16, 4:50 PM EDT.
-  Prerequisites: GEN.317, GEN.318.
+  Prerequisites: GEN.318.
 
 - [ ] **GEN.136 Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests**
   GEN.58 as built hashes floats exactly; the research recommends
@@ -4220,7 +4220,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
   lane queue); a line here that named Core 4 was the TODO thread's
   counting error, corrected 2026-10-16, 4:50 PM EDT.
-  Prerequisites: GEN.317.
+  Prerequisites: none.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
 - [ ] **GEN.164 Synthetic globular-cluster systems for generated galaxies**
@@ -5778,30 +5778,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   caller of `primary_first` (GEN.581) later. No new copy is added.
   Prerequisites: GEN.315. Related: GEN.264.
 
-- [ ] **GEN.317 Pulsar planets and the radiation environment of neutron stars**
-  Split from GEN.130 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). The system pass already rolls a
-  millisecond pulsar's planets at 0.7% (tuning.SYSTEM_PASS_ODDS). Build
-  what they are: three types (disc 25%, ablated companion 50%, captured
-  circumbinary giant 25% present as a type but switched off until a
-  cluster says otherwise, GEN.163), carbon rich with no atmosphere and
-  radiation tier 3, the planet model's cap of about 10 planets for a
-  recycled pulsar corrected, planets placed in the zones of GEN.129:f;
-  and the radiation fields (spin-down power, X-ray luminosity) feeding
-  GEN.86 and GEN.87. Done: a millisecond pulsar that rolls planets gets
-  them in those types and shares, with the stated radiation tier, no
-  young pulsar has any, and a test pins the 0.7% and the 25/50/25 split.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Build state (Core 3, reported 11:18 AM EDT 2026-10-18, real clock):
-  coded on branch claude/pr-gen317-pulsar-planets with epoch 32 pending
-  (no migration; GEN.404 and GEN.546 also want 32, so the next merger
-  renumbers); the changed gate started 11:17 AM EDT. Two design gaps are
-  filed apart as GEN.593.
-  Prerequisites: none. Related: GEN.130, GEN.436, GEN.444.
-
 - [ ] **GEN.318 White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk**
   Split from GEN.130 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). The white dwarf and the planetary
@@ -5819,6 +5795,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Build state (Core 3, reported 1:18 PM EDT 2026-10-18 on the lane's
+  clock): coded and rebased on release 8.0.1828, epoch 33 pending,
+  changed gate started 1:16 PM EDT. The white dwarf engulfment radius
+  follows the progenitor mass (1.5 + 0.8 (M - 1) AU, replacing
+  `WD_PROGENITOR_ENGULFMENT_AU`), the survivors' orbits widen by
+  M_formation / M_now, and a planetary nebula's close pair gets a
+  post-AGB circumbinary disk descriptor and no planets. Stand-ins left
+  out: eccentricity excitation, the swallowed-giant flag, the rare close
+  giant.
   Prerequisites: none. Related: GEN.130.
 
 - [ ] **GEN.325 Planet cull in dense components by the survival formula and the metallicity factor**
@@ -7582,6 +7567,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (8.0.1821), so a change here takes the next free epoch at its merge,
   32 unless another lane merges first; Alembic head is 0112 and the next
   free id is 0113.
+  Epoch note (1:20 PM EDT 2026-10-18, real clock): epoch 32 is stamped
+  by GEN.317 (release 8.0.1828), so a change here takes the next free
+  epoch at its merge, 33 unless another lane merges first (Core 3's
+  GEN.318 carries 33 pending); Alembic head is 0112, next free 0113.
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -13052,6 +13041,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (8.0.1821), so a change here takes the next free epoch at its merge,
   32 unless another lane merges first; Alembic head is 0112 and the next
   free id is 0113.
+  Epoch note (1:20 PM EDT 2026-10-18, real clock): epoch 32 is stamped
+  by GEN.317 (release 8.0.1828), so a change here takes the next free
+  epoch at its merge, 33 unless another lane merges first (Core 3's
+  GEN.318 carries 33 pending); Alembic head is 0112, next free 0113.
   Prerequisites: none. Related: GEN.469, GEN.134, GEN.301.
 
 - [ ] **GEN.547 The local B-star share is 0.12 percent against 0.04 observed: find what keeps it three times too high (strict expected failure)**
@@ -14696,6 +14689,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (8.0.1821), so a change here takes the next free epoch at its merge,
   32 unless another lane merges first; Alembic head is 0112 and the next
   free id is 0113.
+  Epoch note (1:20 PM EDT 2026-10-18, real clock): epoch 32 is stamped
+  by GEN.317 (release 8.0.1828), so a change here takes the next free
+  epoch at its merge, 33 unless another lane merges first (Core 3's
+  GEN.318 carries 33 pending); Alembic head is 0112, next free 0113.
   Prerequisites: none. Related: GEN.182, GEN.400, GEN.402.
 
 - [ ] **GEN.592 A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced)**
@@ -14748,7 +14745,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 3 (proposed). Default (stands unless Boss overrules): not
   a prerequisite of GEN.301; value-changing, so it takes the next free
   epoch at its merge.
-  Prerequisites: GEN.317. Related: GEN.317, GEN.555, GEN.163.
+  Prerequisites: none. Related: GEN.317, GEN.555, GEN.163.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -19840,6 +19837,13 @@ clears each one.
   of Core 3. Same family as the web edit menu setups above (a fixture
   database build that stalls under load, possibly a mysqld stall); no
   solo reproducer yet. It goes with Bug Hunt's setup fix.
+  Sighting (Core 3, reported 1:18 PM EDT 2026-10-18 on the lane's clock;
+  its GEN.317 gate, 11:17 AM to 1:14 PM EDT, load 8 to 9):
+  `test_web_browser_layout.py::test_controls_do_not_overlap[web.logout-390/600]`
+  failed in setup after 794.89 s; it passes alone. The same
+  fixture-setup stall as the crumbs and web edit menu cases above, so
+  the family now covers three modules. Frequency: 2 of 3 gates of Core
+  3.
   Prerequisites: none. Related: TEST.227, TEST.235.
 
 - [ ] **TEST.247 The random-start neighbourhood test with --min-start-density 1000 (dense_core) takes 466 s alone and 554 s with its sibling, and times out at 900 s under gate load (bug)**
@@ -19939,6 +19943,24 @@ clears each one.
   a facility can be skipped for good. Done: the cause is on this item
   and the test passes 30 of 30 fresh draws. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.238, TEST.249.
+
+- [ ] **TEST.252 test_a_double_click_on_a_star_flies_the_camera_to_it fails once in a loaded gate and passes alone (bug)**
+  Found by Core 3 (reported 1:18 PM EDT 2026-10-18 on the lane's clock;
+  its GEN.317 gate, 11:17 AM to 1:14 PM EDT, load 9.1), filed by the
+  TODO thread.
+  `src/tests/test_web_browser_sector_reach.py::test_a_double_click_on_a_star_flies_the_camera_to_it`
+  failed once after 3.8 s and passes alone. Failure text not relayed
+  (Core 3 has it in its `.test-failures.jsonl`). Fails on main: not run
+  on main. Frequency: 1 of 1 gate with the others of its kind red the
+  same way (a loaded browser phase). Reproducer: the test while another
+  gate runs; no solo reproducer. Do: get the failure text from Core 3,
+  then find whether the double click lands before the star list has
+  loaded or before the camera hook is ready (the same shape as TEST.223
+  and TEST.248), and wait for that state in the test or fix the page if
+  a click is lost; no quarantine. Done: the cause is on this item and
+  the test passes in a browser phase that runs beside another gate.
+  Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.223, TEST.248.
 
 ## USR: User accounts
 
