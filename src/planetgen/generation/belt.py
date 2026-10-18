@@ -23,7 +23,6 @@ from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from planetgen.util.format import format_distance_au
 
 
 def generate_asteroid_composition():
@@ -189,37 +188,6 @@ class AsteroidBelt:
                 "various unknown materials" if no components were selected.
         """
         return format_composition_summary(self.composition)
-
-    def to_paragraph_list(self):
-        """
-        Generates a list of descriptive paragraphs for the asteroid belt,
-        including its header, orbital boundaries (through the distance
-        ladder), density, and composition.
-
-        Returns:
-            list: A list of strings, where each string is a paragraph describing
-                  the asteroid belt.
-        """
-        distance_text = f"between {format_distance_au(self.lower_limit)} and {format_distance_au(self.upper_limit)}"
-
-        output_paragraphs = []
-        header_level = '##' if self.system_config.MARKDOWN else '==' # Use self.system_config
-        header = f"{header_level} Asteroid Belt {header_level if not self.system_config.MARKDOWN else ''}".rstrip() # Use self.system_config
-        output_paragraphs.append(header)
-
-        composition_text = self.get_composition_summary()
-        description_sentence = f"This is a {self.density} asteroid belt, composed of {composition_text}."
-
-        output_paragraphs.append(f"An asteroid belt orbits roughly {distance_text}. {description_sentence}")
-
-        return output_paragraphs
-
-    def __str__(self):
-        """
-        Returns a string representation of the asteroid belt, with paragraphs
-        separated by double newlines.
-        """
-        return "\n\n".join(self.to_paragraph_list())
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 object_timing.track(AsteroidBelt, "belt")

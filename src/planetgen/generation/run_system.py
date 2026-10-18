@@ -157,8 +157,6 @@ def build_system_config(args):
             setattr(system_config, attr, value)
 
     # Command-line value options override anything set by --system-file.
-    if getattr(args, 'markdown', False):  # sector and galaxy runs, until they move to --format (UX.108)
-        system_config.MARKDOWN = True
     if args.star_type is not None:
         system_config.STAR_TYPE = args.star_type
     if args.num_orbits is not None:

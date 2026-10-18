@@ -100,7 +100,6 @@ REQUIREMENTS=(
     "rq>=1.16.0"
     "pyotp>=2.9.0"
     "segno>=1.6.0"
-    "markdown>=3.6"
     "cachetools>=5.3.0"
     "sqlalchemy>=2.0.30"
     "alembic>=1.13.0"

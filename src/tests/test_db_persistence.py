@@ -36,6 +36,7 @@ from planetgen.generation.binary import BinaryStarProxy
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen.physics.orbits import orbital_position_au
+from tests import render_support
 
 
 
@@ -157,7 +158,7 @@ def test_load_star_system_round_trips_comets_with_composition(mysql_config):
         assert math.isclose(comet.orbital_speed_kms, original.orbital_speed_kms, rel_tol=1e-9)
         assert comet.composition == original.composition
         assert comet.system_config is reloaded.system_config
-    assert str(reloaded) == str(system)
+    assert render_support.text(reloaded) == render_support.text(system)
 
 
 def _make_wide_binary_system_with_comets():
@@ -320,7 +321,7 @@ def test_load_star_system_round_trips_single_star_system_exactly(mysql_config):
     finally:
         conn.close()
 
-    assert str(reloaded) == str(system)
+    assert render_support.text(reloaded) == render_support.text(system)
     assert reloaded.planet_count == system.planet_count
     assert reloaded.belt_count == system.belt_count
     assert reloaded.moon_count == system.moon_count
@@ -351,7 +352,7 @@ def test_load_star_system_round_trips_binary_system_exactly(mysql_config):
 
     assert isinstance(reloaded.star, BinaryStarProxy)
     assert len(reloaded.stars) == 2
-    assert str(reloaded) == str(system)
+    assert render_support.text(reloaded) == render_support.text(system)
     assert reloaded.star.mass == system.star.mass
     assert reloaded.star.luminosity == system.star.luminosity
     # The DB schema has exactly one system_config_id per star_systems row,
@@ -383,7 +384,7 @@ def test_lifespan_gy_null_round_trips_to_infinite_lifespan(mysql_config):
         conn.close()
 
     assert reloaded.star.lifespan == float('inf')
-    assert str(reloaded) == str(system)
+    assert render_support.text(reloaded) == render_support.text(system)
 
 
 def test_galactic_orbit_fields_round_trip_exactly(mysql_config):

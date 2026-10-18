@@ -31,14 +31,11 @@ from planetgen.physics.stellar_evolution import (YERKES_CLASS_NAMES, evolve_star
                                star_params)
 from planetgen.galaxy import mass_chain
 from planetgen.galaxy.galactic_orbit import (
-    calculate_galactic_orbit, format_galactic_orbit, generate_galactic_orbit_fields,
+    calculate_galactic_orbit, generate_galactic_orbit_fields,
 )
-from planetgen.names.wordsalad import LazySaladName, generate_phoneme_salad_name
+from planetgen.names.wordsalad import LazySaladName
 from planetgen.physics.orbits import calculate_habitable_zone, calculate_hill_sphere
 from planetgen.util.checks import finite_domain
-from planetgen.util.format import (
-    format_age_string, format_number, format_body_radius_km, format_distance_au, format_distance_km, format_mass_kg, format_power_w, properties_to_string,
-)
 
 STAR_TYPE_PATTERN = re.compile(r"([OBAFGKM])([0-9])(IA\+|IAB|VII|III|IA|IB|II|IV|VI|0|V|D)")
 """A forced `SystemConfig.STAR_TYPE` (uppercased): spectral class, subclass
@@ -965,135 +962,6 @@ class Star(LazySaladName):
                 draw.Stream(f"disk:{self.mass!r}:{self.age!r}"))
             for name, value in (disk or {}).items():
                 setattr(self, name, value)
-
-    def get_table_properties(self):
-        """
-        Builds the "Star Data" property dict -- the exact key/value pairs
-        `to_paragraph_list` renders into the star's data table -- as its own
-        method so the database persistence layer can read the same
-        as-published values without duplicating this formatting logic (see
-        `planetgen/db/store.py`).
-
-        Returns:
-            dict: Keys `type`, `radius`, `mass`, `temp`, `lum`, `hab`, `orbit`,
-                 `loc`, each an already-formatted display string.
-        """
-        mass_string = format_mass_kg(self.mass)
-        lum_string = format_power_w(self.luminosity)
-
-        radius_string = format_body_radius_km(self.system_config, self.radius)
-
-        orbit_string = format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)
-
-        properties = {
-            "type": self.type,
-            "radius": radius_string,
-            "mass": mass_string,
-            "temp": f"{format_number(self.temperature)} K",
-            "lum": lum_string,
-            "hab": f"Between {format_distance_au(self.habitable_zone[0])} and {format_distance_au(self.habitable_zone[1])}",
-            "orbit": orbit_string,
-            "loc": self.name # Adding the star's name as location
-        }
-        # Only shown when this star actually hosts planets (reflex_offset_*
-        # defaults to 0.0 for a planet-less star -- see its own docstring)
-        # -- a star with nothing pulling on it has nothing to report here.
-        if self.reflex_offset_x or self.reflex_offset_y or self.reflex_offset_z:
-            offset_km = math.sqrt(
-                self.reflex_offset_x ** 2 + self.reflex_offset_y ** 2 + self.reflex_offset_z ** 2
-            ) * constants.AU_TO_KM
-            properties["wobble"] = f"{format_distance_km(offset_km)} from its nominal position, pulled by its own planets"
-        if self.disk_kind:
-            properties["disk"] = (
-                f"{self.disk_kind.replace('-', ' ').capitalize()} disk of "
-                f"{format_mass_kg(self.disk_mass_solar * constants.SOLAR_MASS_TO_KG)}, from "
-                f"{format_distance_au(self.disk_inner_au)} to {format_distance_au(self.disk_outer_au)}, "
-                f"with no bodies in it")
-        return properties
-
-    def to_paragraph_list(self):
-        """
-        Generates a list of descriptive paragraphs about the star's properties.
-
-        This method formats the star's physical characteristics (type, radius,
-        mass, temperature, luminosity, habitable zone) into a structured block
-        using `properties_to_string`, delegating the mass/luminosity/radius
-        value formatting to `format_mass_kg`/`format_power_w`/`format_length_km`. It
-        also constructs a sentence describing the star's age and expected
-        lifespan (via `format_age_string`), incorporating evolutionary notes
-        from `STAR_EVOLUTION` if available.
-
-        The output is designed to be human-readable and can be formatted either
-        as Wikitext or Markdown based on the `config.MARKDOWN` flag.
-
-        Returns:
-            list: A list of strings, where each string represents a paragraph
-                  or a formatted data block describing the star.
-        """
-        paragraphs = []
-
-        star_properties = self.get_table_properties()
-
-        markdown_key_map = {
-            "type": "Type",
-            "radius": "Radius",
-            "mass": "Mass",
-            "temp": "Temperature",
-            "lum": "Luminosity",
-            "hab": "Habitable Zone",
-            "orbit": "Galactic Orbit",
-            "wobble": "Planetary Wobble",
-            "disk": "Disk",
-            "loc": "Location"
-        }
-
-        star_block = properties_to_string(self.system_config, star_properties, "Star Data", markdown_key_map=markdown_key_map)
-        paragraphs.append(star_block)
-
-        # Construct the age and evolutionary notes sentence
-        age_str = format_age_string(self.age)
-
-        if self.yerkes_class in pre_main_sequence.STAGE_CLASSES:
-            age_sentence_base = (f"The star is approximately {age_str} old and is still contracting towards the main "
-                                 f"sequence, with an expected lifespan of {format_age_string(self.lifespan)}")
-        elif self.lifespan == float('inf'):
-            age_sentence_base = f"The star is approximately {age_str} old and is now a white dwarf, which will cool for trillions of years"
-        else:
-            lifespan_str = format_age_string(self.lifespan)
-            age_sentence_base = f"The star is approximately {age_str} old, with an expected lifespan of {lifespan_str}"
-
-        full_age_and_notes_sentence = age_sentence_base
-        # STAR_EVOLUTION's notes describe a *main-sequence* star's habitable-zone
-        # lifespan window, keyed by spectral letter. For a giant, supergiant,
-        # subdwarf, or white dwarf, that letter reflects only the star's current
-        # temperature/color -- not a main-sequence evolutionary stage -- so the
-        # notes (and their quoted lifespan figures) would be meaningless or
-        # self-contradictory (e.g. a white dwarf whose age already exceeds the
-        # "main-sequence lifespan" quoted for its current temperature class).
-        if self.yerkes_class == "V":
-            spectral_class_char = self.type[0]
-            star_info = tuning.STAR_EVOLUTION.get(spectral_class_char, {})
-            if "evolutionary_constraint_notes" in star_info:
-                # Append notes directly as they are a continuation, ensuring a space and period at the end
-                full_age_and_notes_sentence += ". " + star_info["evolutionary_constraint_notes"].rstrip(".")
-        full_age_and_notes_sentence += "." # Ensure the entire combined sentence ends with a period
-
-        paragraphs.append(full_age_and_notes_sentence)
-
-        return paragraphs
-
-    def __str__(self):
-        """
-        Returns a complete string representation of the star, suitable for display.
-
-        This method compiles all the descriptive paragraphs generated by
-        `to_paragraph_list()` and joins them with double newlines to create
-        a well-formatted, multi-paragraph string.
-
-        Returns:
-            str: A formatted string describing the star and its properties.
-        """
-        return '\n\n'.join(self.to_paragraph_list())
 
     def _generate_from_population_model(self, initial_mass_sol=None, age_gy=None):
         """

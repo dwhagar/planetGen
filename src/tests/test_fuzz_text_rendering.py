@@ -2,7 +2,7 @@
 
 """
 Property-based / brute-force tests for the text/HTML rendering layer:
-`planetgen/web/lib/mdrender.py`, `planetgen/web/lib/fmt.py`, `planetgen/web/lib/pagination.py`,
+`planetgen/describe/html.py`, `planetgen/web/lib/fmt.py`, `planetgen/web/lib/pagination.py`,
 `planetgen/web/lib/tabledisplay.py`, and
 `planetgen/db/render.py`.
 
@@ -33,7 +33,7 @@ from hypothesis import assume, example, given, settings
 from hypothesis import strategies as st
 
 from planetgen.web.lib import fmt  # noqa: E402
-from planetgen.web.lib import mdrender  # noqa: E402
+from planetgen.describe import html as describe_html  # noqa: E402
 from planetgen.web.lib import pagination  # noqa: E402
 from planetgen.web.lib import tabledisplay  # noqa: E402
 from planetgen.db import render as systemRender  # noqa: E402
@@ -101,75 +101,43 @@ def _assert_no_active_content(markup, allowed_tags, allowed_attrs, trusted_targe
 
 
 # ---------------------------------------------------------------------------
-# mdrender
+# The Document's HTML
 # ---------------------------------------------------------------------------
 
-_MD_TAGS = {"h1", "h2", "h3", "h4", "h5", "h6", "p", "br", "div", "table", "thead", "tbody", "tr", "th", "td", "sup"}
-_MD_ATTRS = {"id", "class", "tabindex", "align"}
 _BLOCK_TAGS = {"p", "table", "caption", "thead", "tbody", "tr", "th", "td", "div", "span", "strong", "a", "sup"}
 _BLOCK_ATTRS = {"class", "tabindex", "scope", "href", "data-q", "data-si", "data-nc"}
 
 
-@given(text=markdown_text)
-def test_markdown_output_contains_only_the_converters_own_markup(text):
-    out, headings = mdrender.markdown_to_html_with_headings(text)
-    assert out == mdrender.markdown_to_html(text)
-    parsed = _assert_no_active_content(out, _MD_TAGS, _MD_ATTRS)
-    # <sup> is the one re-enabled tag, and never with attributes.
-    assert all(not attrs for tag, attrs in parsed.tags if tag == "sup")
-    # Headings: one per <hN>, ids unique, slug-safe, and matching the markup.
-    h_tags = [(tag, attrs) for tag, attrs in parsed.tags if re.fullmatch(r"h[1-6]", tag)]
-    assert len(h_tags) == len(headings)
-    ids = [h["id"] for h in headings]
-    assert len(set(ids)) == len(ids)
-    for (tag, attrs), heading in zip(h_tags, headings):
-        assert re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", heading["id"]), heading
-        assert attrs == {"id": heading["id"]} and tag == f"h{heading['level']}"
+def _hostile_document(text):
+    return {"title": text, "sections": [{"kind": "star", "title": text, "ref": None, "children": [], "blocks": [
+        {"type": "facts", "title": text, "rows": [{"key": "a", "label": text, "value": [text]}]},
+        {"type": "prose", "role": "summary", "text": [[text]]}]}]}
+
+
+_DOC_TAGS = {"section", "h1", "h2", "h3", "h4", "h5", "h6", "p", "div", "table", "caption", "thead", "tbody", "tr", "th",
+             "td", "span", "strong", "em", "a", "sup", "ul", "li", "br"}
+
+
+class _DocAttrs(set):
+    """The attributes the Document's HTML uses: a few fixed ones and any `data-*`."""
+
+    def __contains__(self, name):
+        return super().__contains__(name) or name.startswith("data-")
+
+
+_DOC_ATTRS = _DocAttrs({"class", "tabindex", "scope", "href", "title"})
 
 
 @given(text=markdown_text)
-def test_markdown_never_loses_or_invents_visible_text(text):
-    """Every non-whitespace character of the input survives (as text, once
-    unescaped) except the markdown syntax itself: `#` header markers, `|`
-    table pipes, `-`/`:` separator rows, the literal `<sup>` tags and the
-    STX/ETX control characters the markdown package reserves."""
-    out = mdrender.markdown_to_html(text)
-    visible = "".join(_parse(out).text)
-    strip = lambda s: re.sub(r"[\s#|:\-\x02\x03]|</?sup>", "", s)  # noqa: E731
-    assert strip(visible) == strip(text) or not text
+def test_the_document_html_contains_only_the_renderers_own_markup(text):
+    _assert_no_active_content(describe_html.render(_hostile_document(text)), _DOC_TAGS, _DOC_ATTRS)
 
 
-@pytest.mark.parametrize("value", [None, "", " ", "\n\n\n", "\t\r\n"])
-def test_markdown_blank_input(value):
-    out, headings = mdrender.markdown_to_html_with_headings(value)
-    if not value:
-        assert (out, headings) == ("", [])
-    else:
-        assert headings == [] and "<script" not in out
-
-
-@pytest.mark.parametrize("markdown", [
-    "|" + " -- |" * 20000,
-    "| a |\n|" + "-" * 50000 + ":" * 50000,
-    "| a |\n" + "|-" * 30000 + "x",
-    "#" * 6 + " " + "x" * 200000,
-    "\n\n".join(["# same"] * 3000),
-    "&lt;sup&gt;" * 20000 + "&lt;/sup&gt;",
-])
-def test_markdown_pathological_inputs_finish_quickly(markdown):
-    import time
-    start = time.perf_counter()
-    out = mdrender.markdown_to_html(markdown)
-    assert time.perf_counter() - start < 5.0
-    assert "<script" not in out.lower()
-
-
-@given(names_=st.lists(hostile_text, min_size=1, max_size=30))
-def test_slugify_is_unique_and_non_empty_for_any_heading_text(names_):
-    used = set()
-    ids = [mdrender._slugify(n, used) for n in names_]
-    assert len(set(ids)) == len(ids) == len(used)
-    assert all(re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", i) for i in ids)
+@given(text=markdown_text)
+def test_the_document_html_never_loses_visible_text(text):
+    visible = "".join(_parse(describe_html.render(_hostile_document(text))).text)
+    squash = lambda value: re.sub(r"\s", "", value)  # noqa: E731
+    assert squash(text) in squash(visible) or not text.strip()
 
 
 # ---------------------------------------------------------------------------
@@ -448,9 +416,8 @@ def test_generated_system_with_hostile_name_renders_to_inert_html(name):
     for fmt_ in systemRender.FORMATS:
         text = systemRender.render_star_system(system, fmt_)
         assert isinstance(text, str) and text
-        assert system.system_config.MARKDOWN is False
-    _assert_no_active_content(mdrender.markdown_to_html(systemRender.render_star_system(system, "markdown")),
-                              _MD_TAGS, _MD_ATTRS)
+    from planetgen import describe
+    _assert_no_active_content(describe_html.render(describe.describe(system)), _DOC_TAGS, _DOC_ATTRS)
 
 
 def test_the_split_system_description_with_hostile_names_is_inert(mysql_config):

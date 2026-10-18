@@ -50,11 +50,8 @@ from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.generation.star import Star
 from planetgen.galaxy.remnant_distribution import pulsar_radial_factor
-from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
+from planetgen.galaxy.galactic_orbit import generate_galactic_orbit_fields
 from planetgen.physics.orbits import calculate_habitable_zone
-from planetgen.util.format import (
-    format_age_string, format_number, format_body_radius_km, format_distance_km, format_duration_seconds, format_length_km, format_magnetic_field_gauss, format_mass_kg, properties_to_string,
-)
 from planetgen.util.random import log_uniform
 
 
@@ -141,15 +138,6 @@ class CompactRemnant(Star):
         self.ejecta_velocity_kms = tuple(velocity_kms)
         self.galactic_orbital_speed_kms = self.galactic_orbital_period_gy = None
         self.galactic_orbital_phase_deg = self.galactic_min_update_interval_years = None
-
-    def _orbit_string(self):
-        """The remnant's galactic orbit as the property table words it."""
-        if self.ejecta_velocity_kms is not None:
-            speed = math.sqrt(sum(component * component for component in self.ejecta_velocity_kms))
-            return f"Ejected from the galaxy, leaving at {speed:.0f} km/s on a straight line"
-        if self.galactic_orbital_period_gy is None:
-            return "None (the galaxy's center)"
-        return format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)
 
     def _generate_remnant_age_and_lifespan(self):
         """
@@ -239,12 +227,6 @@ class CompactRemnant(Star):
         remnant.habitable_zone = tuple(data["habitable_zone"])
         remnant.lifespan = float('inf') if data["lifespan"] is None else data["lifespan"]
         return remnant
-
-    def __str__(self):
-        """Joins `to_paragraph_list()` with blank lines, like every other
-        renderable object in this package."""
-        return "\n\n".join(self.to_paragraph_list())
-
 
 class BlackHole(CompactRemnant):
     """
@@ -386,85 +368,6 @@ class BlackHole(CompactRemnant):
             black_hole.mass_class = infer_black_hole_mass_class(black_hole.mass_solar)
         return black_hole
 
-    def get_table_properties(self):
-        """
-        Builds the "Black Hole Data" property dict, mirroring
-        `Star.get_table_properties`'s role for the database persistence
-        layer and `to_paragraph_list`.
-
-        Returns:
-            dict: Keys `type`, `mass`, `event_horizon`, `spin`, `disk`,
-                 `orbit`, `loc`, each an already-formatted display string.
-        """
-        mass_string = format_mass_kg(self.mass)
-        radius_string = format_length_km(
-            self.system_config, self.radius,
-            tuning.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
-            tuning.ROUND_RADIUS_KM, tuning.SCIENTIFIC_NOTATION_DECIMAL_PLACES,
-        )
-        orbit_string = self._orbit_string()
-        properties = {
-            "type": self.type,
-            "mass": mass_string,
-            "event_horizon": radius_string,
-            "spin": f"{self.spin:.3f} (dimensionless)",
-            "disk": "Active accretion disk detected" if self.has_accretion_disk else "None detected",
-            "orbit": orbit_string,
-            "loc": self.name,
-        }
-        if self.reflex_offset_x or self.reflex_offset_y or self.reflex_offset_z:
-            offset_km = math.sqrt(
-                self.reflex_offset_x ** 2 + self.reflex_offset_y ** 2 + self.reflex_offset_z ** 2
-            ) * constants.AU_TO_KM
-            properties["wobble"] = f"{format_distance_km(offset_km)} from its nominal position, pulled by its own planets"
-        return properties
-
-    def to_paragraph_list(self):
-        """
-        Generates descriptive paragraphs for this black hole, analogous to
-        `Star.to_paragraph_list`: a data block, then a narrative sentence
-        covering its formation and current accretion state.
-
-        Returns:
-            list: A list of paragraph strings.
-        """
-        paragraphs = []
-        properties = self.get_table_properties()
-        markdown_key_map = {
-            "type": "Type", "mass": "Mass", "event_horizon": "Event Horizon Radius",
-            "spin": "Spin Parameter", "disk": "Accretion Disk", "orbit": "Galactic Orbit",
-            "wobble": "Planetary Wobble", "loc": "Location",
-        }
-        paragraphs.append(properties_to_string(self.system_config, properties, "Black Hole Data", markdown_key_map=markdown_key_map))
-
-        age_str = format_age_string(self.age)
-        if self.mass_class == "supermassive":
-            paragraphs.append(
-                f"{self.name} is the supermassive black hole at the heart of the galaxy, around which every "
-                f"star in it ultimately orbits. Its nucleus is quiescent: a thin, hot accretion flow feeds it at a "
-                f"tiny fraction of its Eddington limit, glowing at roughly {format_number(self.temperature, ',.0f')} K."
-            )
-            return paragraphs
-        if self.mass_class == "intermediate":
-            origin = (
-                f"{self.name} is an intermediate-mass black hole, heavier than any single star could leave "
-                f"behind -- likely grown in a dense star cluster approximately {age_str} ago."
-            )
-        else:
-            origin = f"{self.name} is the collapsed core of a massive star, formed in a supernova approximately {age_str} ago."
-        sentence = f"{origin} Nothing, not even light, can escape from within its event horizon."
-        if self.has_accretion_disk:
-            sentence += (
-                f" A faint accretion disk of infalling matter still surrounds it, its inner edge glowing at "
-                f"roughly {format_number(self.temperature, ',.0f')} K."
-            )
-        else:
-            sentence += " No companion star or debris disk remains; only its gravity betrays its presence."
-        paragraphs.append(sentence)
-
-        return paragraphs
-
-
     def _rotation_period_hours(self):
         """The horizon's rotation period, hours; `None` for a* = 0 (no
         rotation)."""
@@ -592,85 +495,6 @@ class NeutronStar(CompactRemnant):
     def _xuv_w(self):
         """Thermal X-rays or spin-down X-rays (`activity.neutron_star_xuv_w`)."""
         return activity.neutron_star_xuv_w(self)
-
-    def get_table_properties(self):
-        """
-        Builds the "Neutron Star Data" property dict, mirroring
-        `Star.get_table_properties`'s role for the database persistence
-        layer and `to_paragraph_list`.
-
-        Returns:
-            dict: Keys `type`, `mass`, `radius`, `spin_period`,
-                 `magnetic_field`, `surface_temp`, `orbit`, `loc`, each an
-                 already-formatted display string.
-        """
-        mass_string = format_mass_kg(self.mass)
-        radius_string = format_length_km(
-            self.system_config, self.radius,
-            tuning.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
-            tuning.ROUND_RADIUS_KM, tuning.SCIENTIFIC_NOTATION_DECIMAL_PLACES,
-        )
-        orbit_string = self._orbit_string()
-        properties = {
-            "type": self.type,
-            "mass": mass_string,
-            "radius": radius_string,
-            "spin_period": format_duration_seconds(self.spin_period_ms / 1000),
-            "magnetic_field": format_magnetic_field_gauss(self.magnetic_field_gauss),
-            "surface_temp": f"{format_number(self.surface_temperature_k, ',.0f')} K",
-            "orbit": orbit_string,
-            "loc": self.name,
-        }
-        if self.reflex_offset_x or self.reflex_offset_y or self.reflex_offset_z:
-            offset_km = math.sqrt(
-                self.reflex_offset_x ** 2 + self.reflex_offset_y ** 2 + self.reflex_offset_z ** 2
-            ) * constants.AU_TO_KM
-            properties["wobble"] = f"{format_distance_km(offset_km)} from its nominal position, pulled by its own planets"
-        return properties
-
-    def to_paragraph_list(self):
-        """
-        Generates descriptive paragraphs for this neutron star, analogous
-        to `Star.to_paragraph_list`: a data block, then a narrative
-        sentence covering its formation and pulsar behavior (if any).
-
-        Returns:
-            list: A list of paragraph strings.
-        """
-        paragraphs = []
-        properties = self.get_table_properties()
-        markdown_key_map = {
-            "type": "Type", "mass": "Mass", "radius": "Radius",
-            "spin_period": "Spin Period", "magnetic_field": "Magnetic Field",
-            "surface_temp": "Surface Temperature", "orbit": "Galactic Orbit",
-            "wobble": "Planetary Wobble", "loc": "Location",
-        }
-        paragraphs.append(properties_to_string(self.system_config, properties, "Neutron Star Data", markdown_key_map=markdown_key_map))
-
-        age_str = format_age_string(self.age)
-        sentence = (
-            f"{self.name} is a neutron star, the collapsed core of a massive star left behind by a supernova "
-            f"approximately {age_str} ago, packing more mass than the Sun into a sphere only "
-            f"{format_body_radius_km(self.system_config, self.radius)} in radius."
-        )
-        if self.pulsar_type == "magnetar":
-            sentence += (
-                f" It is a magnetar, one of the Galaxy's rarest objects: its magnetic field of "
-                f"{format_magnetic_field_gauss(self.magnetic_field_gauss)} is among the strongest known, it turns "
-                f"once every {format_duration_seconds(self.spin_period_ms / 1000)}, and it is young enough that "
-                f"it can still erupt in giant flares."
-            )
-        elif self.pulsar_type != "non-pulsing":
-            sentence += (
-                f" It is a {self.pulsar_type} pulsar, sweeping a beam of radiation past any observer once every "
-                f"{format_duration_seconds(self.spin_period_ms / 1000)}."
-            )
-        else:
-            sentence += " Whatever rotational beam it once had no longer sweeps across this vantage point."
-        paragraphs.append(sentence)
-
-        return paragraphs
-
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 object_timing.track(BlackHole, "black-hole")

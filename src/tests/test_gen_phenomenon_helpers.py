@@ -5,10 +5,7 @@ Direct tests of the module-level class and designation helpers behind
 the phenomena -- nebula (`nebulaData`), supernova remnant
 (`supernovaRemnantData`), black hole (`compactRemnant`), rogue planet and
 interstellar comet (`roguePlanetData`), star-bound comet (`cometData`)
-and asteroid field (`asteroidFieldData`) -- plus every
-`get_table_properties` (Star, Planet, BinaryStarProxy, WideBinaryPair,
-BlackHole, NeutronStar): keys, string values, and the conditional wobble
-rows.
+and asteroid field (`asteroidFieldData`).
 """
 import math
 import re
@@ -357,81 +354,3 @@ def test_asteroid_field_designation():
     assert asteroid_field.asteroid_field_designation("C3", "FE81000A2B", 1) == "AF C3-FE81000A2B-01"
     assert asteroid_field.asteroid_field_designation("C3", None, 7) == "AF C3-07"
     assert asteroid_field.asteroid_field_designation("C3", "", 123) == "AF C3-123"
-
-
-# --- get_table_properties -------------------------------------------------
-
-def assert_all_strings(properties, allow_none=()):
-    for key, value in properties.items():
-        if key in allow_none and value is None:
-            continue
-        assert isinstance(value, str) and value, key
-
-
-def test_star_table_properties():
-    star = Star(cfg(STAR_TYPE="G2V"))
-    props = star.get_table_properties()
-    assert set(props) == {"type", "radius", "mass", "temp", "lum", "hab", "orbit", "loc"}
-    assert_all_strings(props)
-    assert props["loc"] == star.name and props["temp"].endswith(" K") and props["hab"].startswith("Between ")
-    star.reflex_offset_x = 1e-4
-    assert "pulled by its own planets" in star.get_table_properties()["wobble"]
-
-
-def test_planet_table_properties():
-    star = Star(cfg(STAR_TYPE="G2V"))
-    planet = Planet(star.system_config, star, star.habitable_zone, star.habitable_zone[1] * 3,
-                    planet_class="J", moon_count=0)
-    props = planet.get_table_properties()
-    assert set(props) == {"class", "distance", "period", "speed", "radius", "gravity"}
-    assert props["class"] == "J" and props["gravity"].endswith(" g)") and " m/s² (" in props["gravity"]
-    assert_all_strings(props)
-    planet.reflex_offset_y = 1e-6
-    assert "pulled by its own moons" in planet.get_table_properties()["moon_wobble"]
-    planet.planet_class = None
-    assert planet.get_table_properties()["class"] is None
-
-
-def test_close_binary_table_properties():
-    system = StarSystem(cfg(STAR_TYPE="G2V", PLANETS=False, BINARY_SYSTEM=True, WIDE_BINARY=False))
-    props = system.star.get_table_properties()
-    assert {"type", "mass", "lum", "hab", "separation", "mutual_orbit", "orbit", "loc"} <= set(props)
-    assert_all_strings(props)
-    assert "per orbit" in props["mutual_orbit"]
-
-
-def test_wide_binary_table_properties():
-    system = StarSystem(cfg(STAR_TYPE="G2V", PLANETS=False, BINARY_SYSTEM=True, WIDE_BINARY=True))
-    pair = system.wide_binary
-    props = pair.get_table_properties()
-    assert set(props) == {"separation", "eccentricity", "mutual_orbit", "wobble", "primary_limit", "secondary_limit"}
-    assert_all_strings(props)
-    assert float(props["eccentricity"]) == pytest.approx(pair.eccentricity, abs=5e-4)
-    assert props["primary_limit"].startswith(f"{pair.primary.name}'s planetary system is stable out to ")
-    assert "from the barycenter" in props["wobble"]
-
-
-@pytest.mark.parametrize("mass_class", [None, "supermassive"])
-def test_black_hole_table_properties(mass_class):
-    hole = BlackHole(cfg(), mass_class=mass_class)
-    props = hole.get_table_properties()
-    assert set(props) == {"type", "mass", "event_horizon", "spin", "disk", "orbit", "loc"}
-    assert_all_strings(props)
-    assert props["type"] == f"{hole.mass_class_label} Black Hole"
-    assert props["disk"] in ("Active accretion disk detected", "None detected")
-    assert props["spin"].endswith("(dimensionless)")
-    if mass_class == "supermassive":
-        assert props["orbit"] == "None (the galaxy's center)"
-    hole.reflex_offset_z = 1e-5
-    assert "wobble" in hole.get_table_properties()
-
-
-def test_neutron_star_table_properties():
-    star = NeutronStar(cfg())
-    props = star.get_table_properties()
-    assert set(props) == {"type", "mass", "radius", "spin_period", "magnetic_field", "surface_temp", "orbit", "loc"}
-    assert_all_strings(props)
-    assert props["magnetic_field"].endswith(" G") and props["surface_temp"].endswith(" K")
-    assert re.fullmatch(r"[0-9.,]+(?: × 10[⁰¹²³⁴-⁹]+)? G", props["magnetic_field"]), props["magnetic_field"]
-    star.reflex_offset_x = 1e-5
-    assert "wobble" in star.get_table_properties()

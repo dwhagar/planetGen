@@ -80,7 +80,7 @@ def test_generate_sector_phenomena_passes_rate_per_star_times_star_count_as_the_
 
     monkeypatch.setattr(run_sector, "_sample_poisson_count", fake_sample_poisson_count)
 
-    args = SimpleNamespace(markdown=False)
+    args = SimpleNamespace()
     entries = run_sector.generate_sector_phenomena(sector, args)
 
     assert entries == []
@@ -118,7 +118,7 @@ def test_generate_sector_phenomena_builds_the_right_type_and_count(monkeypatch):
     fake.stars = run_sector.sector_star_count(sector)
     monkeypatch.setattr(run_sector, "_sample_poisson_count", fake)
 
-    args = SimpleNamespace(markdown=False)
+    args = SimpleNamespace()
     entries = run_sector.generate_sector_phenomena(sector, args)
 
     assert len(entries) == 3
@@ -138,7 +138,7 @@ def test_molecular_clouds_are_dark_family_nebulae(monkeypatch):
     fake.stars = run_sector.sector_star_count(sector)
     monkeypatch.setattr(run_sector, "_sample_poisson_count", fake)
 
-    entries = run_sector.generate_sector_phenomena(sector, SimpleNamespace(markdown=False))
+    entries = run_sector.generate_sector_phenomena(sector, SimpleNamespace())
     assert [e.phenomenon.nebula_type for e in entries] == ["dark", "dark"]
     assert all(e.phenomenon.nebula_class in "MNPQ" for e in entries)
 
@@ -159,7 +159,7 @@ def test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing(monkeypatch):
     for entry in sector.entries:
         entry.star_system.stars[0].age = 0.004  # 4 Myr, still in its cloud
 
-    entries = run_sector.generate_sector_phenomena(sector, SimpleNamespace(markdown=False))
+    entries = run_sector.generate_sector_phenomena(sector, SimpleNamespace())
     assert len(entries) == 1
     assert entries[0].position == hot.position
     nebula = entries[0].phenomenon
@@ -182,7 +182,7 @@ def test_a_star_past_the_nebula_class_age_lights_no_cloud(monkeypatch):
     cfg.BINARY_SYSTEM = False
     sector.add_system(system, system_config=cfg)
     sector.entries[0].star_system.stars[0].age = 0.05  # 50 Myr: C, D and E are all over
-    assert run_sector.add_star_hosted_nebulae(sector, SimpleNamespace(markdown=False)) == []
+    assert run_sector.add_star_hosted_nebulae(sector, SimpleNamespace()) == []
 
 
 def test_brown_dwarfs_are_rogue_planet_rows(monkeypatch):
@@ -191,7 +191,7 @@ def test_brown_dwarfs_are_rogue_planet_rows(monkeypatch):
     fake.stars = run_sector.sector_star_count(sector)
     monkeypatch.setattr(run_sector, "_sample_poisson_count", fake)
 
-    entries = run_sector.generate_sector_phenomena(sector, SimpleNamespace(markdown=False))
+    entries = run_sector.generate_sector_phenomena(sector, SimpleNamespace())
     assert [e.phenomenon_type for e in entries] == ["rogue-planet", "rogue-planet"]
     assert all(e.phenomenon.mass_bin == "brown-dwarf" for e in entries)
 
@@ -205,7 +205,7 @@ def test_generate_sector_phenomena_threads_galactic_center_dist_ly_to_compact_re
     fake.stars = run_sector.sector_star_count(sector)
     monkeypatch.setattr(run_sector, "_sample_poisson_count", fake)
 
-    args = SimpleNamespace(markdown=False)
+    args = SimpleNamespace()
     galactic_center_dist_ly = 5000.0
     entries = run_sector.generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly)
 
@@ -232,23 +232,10 @@ def test_generate_sector_phenomena_skips_a_massive_draw_that_cannot_be_placed(mo
 
     monkeypatch.setattr(SpaceSector, "add_phenomenon", fake_add_phenomenon)
 
-    args = SimpleNamespace(markdown=False)
+    args = SimpleNamespace()
     entries = run_sector.generate_sector_phenomena(sector, args)
 
     assert entries == []  # both draws failed to place and were skipped, no crash
-
-
-def test_generate_sector_phenomena_honors_markdown_flag(monkeypatch):
-    sector = _seeded_sector(1)
-    fake = _only("comet", 4)
-    fake.stars = run_sector.sector_star_count(sector)
-    monkeypatch.setattr(run_sector, "_sample_poisson_count", fake)
-
-    args = SimpleNamespace(markdown=True)
-    entries = run_sector.generate_sector_phenomena(sector, args)
-
-    assert len(entries) == 4
-    assert all(e.phenomenon.system_config.MARKDOWN is True for e in entries)
 
 
 def test_a_local_density_sector_gets_about_six_and_a_half_rogues_per_star():
@@ -257,7 +244,7 @@ def test_a_local_density_sector_gets_about_six_and_a_half_rogues_per_star():
     counts = []
     for _ in range(5):
         sector.phenomena.clear()
-        entries = run_sector.generate_sector_phenomena(sector, SimpleNamespace(markdown=False))
+        entries = run_sector.generate_sector_phenomena(sector, SimpleNamespace())
         counts.append(sum(1 for e in entries if e.phenomenon_type == "rogue-planet"))
     mean = sum(counts) / len(counts)
     expected = (_rate("rogue-planet") + _rate("brown-dwarf")) * stars

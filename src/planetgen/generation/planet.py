@@ -25,13 +25,13 @@ import math
 
 from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import atmosphere, constants, habitability_world, hydrosphere, magnetism, planets as planetPhysics, protection, radiation
+from planetgen.physics import atmosphere, constants, habitability_world, hydrosphere, magnetism, planets as planetPhysics, radiation
 from planetgen.physics.position import HoldsOrbitPosition, axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.util.format import (
-    format_body_radius_km, format_distance_au, format_distance_km, format_gravity_g, format_number, properties_to_string, to_paragraph, format_period_years, format_pressure_pa, format_speed_kms, format_temperature_k,
+    format_number, to_paragraph, format_pressure_pa, format_temperature_k,
 )
 
 
@@ -488,45 +488,6 @@ class Planet(HoldsOrbitPosition):
         from planetgen.generation import life
         return life.flavor_line(self.flavor_key)
 
-    def get_table_properties(self):
-        """
-        Builds the "Planet Data"/"Class Data" property dict -- the exact
-        key/value pairs `to_paragraph_list` renders into the body's data
-        table -- as its own method so the database persistence layer can
-        read the same as-published values without duplicating this
-        formatting logic (see `planetgen/db/store.py`). Same dict shape for
-        planets and moons; only the wiki template name differs (handled in
-        `to_paragraph_list`, not here).
-
-        Returns:
-            dict: Keys `class`, `distance`, `period`, `speed`, `radius`,
-                 `gravity`, each an already-formatted display string
-                 (`class` may be `None`).
-        """
-        # A moon's distance is from its planet, a planet's from its star;
-        # both go through the distance ladder. The radius is a body radius:
-        # always km in scientific notation.
-        distance_text = format_distance_au(self.distance)
-        radius_string = format_body_radius_km(self.system_config, self.radius)
-
-        properties = {
-            "class": self.planet_class,
-            "distance": distance_text,
-            "period": format_period_years(self.period),
-            "speed": format_speed_kms(self.orbital_speed_kms),
-            "radius": radius_string,
-            "gravity": format_gravity_g(self.gravity),
-        }
-        # Only shown for a moon-having planet (reflex_offset_* defaults to
-        # 0.0 for a moonless planet or a moon itself -- see its own
-        # docstring) -- nothing to report for a body nothing pulls on.
-        if self.reflex_offset_x or self.reflex_offset_y or self.reflex_offset_z:
-            offset_km = math.sqrt(
-                self.reflex_offset_x ** 2 + self.reflex_offset_y ** 2 + self.reflex_offset_z ** 2
-            ) * constants.AU_TO_KM
-            properties["moon_wobble"] = f"{format_distance_km(offset_km)} from its nominal position, pulled by its own moons"
-        return properties
-
     def gas_giant_depth(self):
         """
         The numbers behind a gas giant's depth sentences, from its already-computed reference-level pressure
@@ -598,91 +559,6 @@ class Planet(HoldsOrbitPosition):
             return None
         host = habitability_world.compact_host_name(getattr(self, "star", None))
         return habitability_world.world_from(values, lethal_host=host), host
-
-    def _habitability_paragraphs(self):
-        """
-        The habitability paragraph of a scored rocky body (UX.91, GEN.208): its
-        score, each of the six categories with its colour, why it falls there
-        and the gear it asks for, and the gear a human needs overall. Empty for a gas
-        giant or a body saved without scores.
-        """
-        scored = self.habitability_world()
-        if scored is None:
-            return []
-        world, host = scored
-        bold = (lambda text: f"**{text}**") if self.system_config.MARKDOWN else (lambda text: f"'''{text}'''")
-        return [protection.paragraph(world, bold, compact_host=host)]
-
-    def to_paragraph_list(self):
-        """
-        Generates a list of descriptive paragraphs about the planet or moon,
-        including its data block, atmospheric/surface conditions, life and
-        flavor text, and (recursively) the paragraphs for any moons it has.
-
-        Returns:
-            list: A list of strings, where each string is a paragraph describing
-                  the planet, or the moon if `self.is_moon` is set (moon-specific
-                  wording is resolved via `object_type_desc` and the `is_moon`-aware
-                  `self.description` set by `planetPhysics.generate_planet_properties`,
-                  not by post-processing the rendered text here).
-        """
-        object_type_desc = "moon" if self.is_moon else "planet"
-        header_level = ('###' if self.is_moon else '##') if self.system_config.MARKDOWN else ('===' if self.is_moon else '==')
-
-        output_paragraphs = []
-        header = f"{header_level} {self.name} {header_level if not self.system_config.MARKDOWN else ''}".rstrip() # Use self.system_config
-        output_paragraphs.append(header)
-
-        planet_properties = self.get_table_properties()
-
-        # Moons use a distinct wiki template name ("Class Data") instead of "Planet Data",
-        # set directly here rather than via text substitution further down.
-        template_name = "Class Data" if self.is_moon else "Planet Data"
-        output_paragraphs.append(properties_to_string(self.system_config, planet_properties, template_name)) # Pass system_config
-
-        sentences = []
-        if not self.is_moon:
-            if len(self.moons) > 1:
-                sentences.append(f"There are {len(self.moons)} moons orbiting this planet.")
-            elif len(self.moons) == 1:
-                sentences.append("There is 1 moon orbiting this planet.")
-            else:
-                sentences.append("There are no moons orbiting this planet.")
-
-        if self.body_type == "t":
-            if self.atmosphere != "None":
-                sentences.append(
-                    f"This {object_type_desc} has a surface pressure of {format_pressure_pa(self.atmospheric_pressure)} and a temperature of {format_temperature_k(self.surface_temperature)}.")
-                sentences.append(
-                    f"It is {self.description.lower()} with an atmosphere of {self.atmosphere.lower()} and a composition of {self.composition.lower()}.")
-            else:
-                sentences.append(
-                    f"This {object_type_desc} has no atmosphere and a surface temperature of {format_temperature_k(self.surface_temperature)}.")
-                sentences.append(f"It is {self.description.lower()} with a composition of {self.composition.lower()}.")
-        else:
-            sentences.append(
-                f"This gas giant has an internal pressure of {format_pressure_pa(self.atmospheric_pressure)} and a temperature of {format_temperature_k(self.surface_temperature)}.")
-            sentences.extend(self._gas_giant_pressure_depth_text())
-            sentences.append(f"It is {self.description.lower()} with a composition of {self.composition.lower()}.")
-
-        # Call the new method to get life and flavor text paragraphs
-        output_paragraphs.extend(self._generate_life_and_flavor_paragraphs(object_type_desc, sentences))
-
-        output_paragraphs.extend(self._habitability_paragraphs())
-
-        if self.moons:
-            for moon in self.moons:
-                output_paragraphs.extend(moon.to_paragraph_list())  # Recursively get moon paragraphs
-
-        return output_paragraphs
-
-    def __str__(self):
-        """
-        Returns a string representation of the planet, with paragraphs
-        separated by double newlines.
-        """
-        return "\n\n".join(self.to_paragraph_list())
-
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 object_timing.track(Planet, "planet", kind_after=lambda planet: "moon" if planet.is_moon else "planet")

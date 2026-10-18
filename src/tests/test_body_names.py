@@ -13,6 +13,7 @@ import pytest
 from planetgen.names.bodies import CLOSE_PAIR_LETTERS, close_pair_label, moon_letters, rename_prefix, to_roman
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
+from tests import render_support
 
 
 def test_to_roman():
@@ -77,7 +78,7 @@ def test_single_star_system_numbers_planets_and_lettered_moons():
     assert system.binary_type is None
     assert system.star.name == system.name
     _assert_numbered(system.name, system.planets)
-    assert str(system).startswith(f"= {system.name} =")
+    assert render_support.wikitext(system).startswith(f"= {system.name} =")
 
 
 def test_close_binary_stars_are_the_systems_a_and_b_and_planets_orbit_both():
@@ -87,7 +88,7 @@ def test_close_binary_stars_are_the_systems_a_and_b_and_planets_orbit_both():
     assert system.secondary_star.name == f"{system.name} B"
     assert system.star.name == system.name  # the pair's proxy titles the page
     _assert_numbered(system.name, system.planets)
-    assert f"{system.name} A / B Binary System" in str(system)
+    assert f"{system.name} A / B Binary System" in render_support.wikitext(system)
 
 
 def test_wide_binary_planets_are_numbered_after_their_own_star():
@@ -100,7 +101,7 @@ def test_wide_binary_planets_are_numbered_after_their_own_star():
     _assert_numbered(first, system.planets)
     _assert_numbered(secondary_word, system.secondary_planets)
     # The page is titled with the system, not the primary star.
-    assert str(system).startswith(f"= {system.name} =")
+    assert render_support.wikitext(system).startswith(f"= {system.name} =")
 
 
 @pytest.mark.parametrize("binary,wide", [(False, None), (True, False), (True, True)])

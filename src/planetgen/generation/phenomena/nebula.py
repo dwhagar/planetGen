@@ -20,10 +20,9 @@ from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
+from planetgen.galaxy.galactic_orbit import generate_galactic_orbit_fields
 from planetgen.names.wordsalad import LazySaladName
 from planetgen.physics import hii, stellar_evolution, wolf_rayet
-from planetgen.util.format import format_distance_ly, format_number, format_number_density_cm3
 from planetgen.util.random import log_uniform
 
 
@@ -188,7 +187,7 @@ class Nebula(LazySaladName):
 
         Args:
             system_config (SystemConfig): The shared SystemConfig object
-                (used only for its `MARKDOWN` flag, via `to_paragraph_list`).
+                (its settings).
             name (str, optional): An explicit name. Random if omitted.
             nebula_type (str, optional): A `NEBULA_FAMILIES` key; the
                 class is then drawn within that family (sector generation
@@ -332,49 +331,6 @@ class Nebula(LazySaladName):
     def class_name(self):
         """The class's own name, e.g. "Classical H II region"."""
         return tuning.NEBULA_CLASSES[self.nebula_class]["name"]
-
-    def to_paragraph_list(self):
-        """
-        Generates a list of descriptive paragraphs for the nebula: a
-        header naming it and its type, then a description of its size,
-        composition, and formation.
-
-        Returns:
-            list: A list of strings, where each string is a paragraph
-                  describing the nebula.
-        """
-        header_level = '##' if self.system_config.MARKDOWN else '=='
-        header = f"{header_level} {self.name} (Class {self.nebula_class} {self.nebula_type.capitalize()} Nebula) {header_level if not self.system_config.MARKDOWN else ''}".rstrip()
-
-        article = "an" if self.nebula_type[0] in "aeiou" else "a"
-        description = (
-            f"{self.name} is {article} {self.nebula_type} nebula about "
-            f"{format_distance_ly(self.radius_ly)} in radius, composed of {self.composition}. It formed via {self.formation_cause}. "
-            f"Though bound to no star, it still orbits the galactic center at "
-            f"{format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)}."
-        )
-        contents = (
-            f"It is a class {self.nebula_class} nebula ({self.class_name.lower()}): mostly "
-            f"{self.dominant_species}, at about {format_number_density_cm3(self.density_cm3)} "
-            f"and {format_number(self.temperature_k, ',.0f')} K, dimming the stars behind it by "
-            f"{self.extinction_av:.2g} magnitudes."
-        )
-
-        paragraphs = [header, description, contents]
-        if self.hosts:
-            lit = f"Its stars are {self.hosts}, about {format_number(self.age_myr, ',.3g')} million years old"
-            if self.q_total:
-                lit += f", giving off {format_number(self.q_total, ',.2g')} ionizing photons a second"
-            paragraphs.append(lit + ".")
-        return paragraphs
-
-    def __str__(self):
-        """
-        Returns a string representation of the nebula, with paragraphs
-        separated by double newlines.
-        """
-        return "\n\n".join(self.to_paragraph_list())
-
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 object_timing.track(Nebula, "nebula")

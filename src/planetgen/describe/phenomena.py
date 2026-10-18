@@ -140,8 +140,12 @@ def _rogue_surface_sentences(planet):
 
 
 def _rogue_planet(planet):
-    kind = planet.kind_label.lower() + (f", class {planet.planet_class}" if getattr(planet, "planet_class", None) else "")
-    what = "brown dwarf" if planet.kind_label == "Brown Dwarf" else "planet"
+    kind = planet.kind_label.lower()
+    if getattr(planet, "planet_class", None):
+        kind += f", class {planet.planet_class}"
+    elif planet.spectral_type:
+        kind += f", type {planet.spectral_type}"
+    what = f"{planet.spectral_type} brown dwarf" if planet.spectral_type else "planet"
     rows = [
         fact("type", "Type", f"Rogue {kind}"),
         fact("radius", "Radius", build._radius_km(planet.radius_km)),
