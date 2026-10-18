@@ -29,10 +29,10 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.galaxy import components, disk_history
+from planetgen.galaxy import components, core_gas, disk_history
 from planetgen.galaxy import structure as galaxy_structure
 from planetgen.galaxy import density as galaxy_density
-from planetgen.physics import component_profiles, metallicity
+from planetgen.physics import component_profiles, constants, metallicity
 from planetgen.physics import open_cluster_evolution as evolution
 from planetgen.physics.units import pc_to_ly
 from planetgen.util import draw
@@ -156,6 +156,76 @@ def ambient_density_msun_pc3(x, y, z, shape, expected_at_density_1, edge_pc):
     return relative * expected_at_density_1 / edge_pc ** 3 * tuning.CLUSTER_MEAN_SYSTEM_MASS_SOL
 
 
+def _circular_speed_kms(radius_pc, shape):
+    """
+    The circular speed in the galaxy's centre at cylindrical `radius_pc`, km/s, from the nuclear cluster and the
+    nuclear disc inside it (`GM(<r)/r`; the exponential disc's mass inside `r` is `M (1 - (1 + x) exp(-x))`, `x` its
+    radius over the scale length). The bulge's mass is left out, so the speed is a floor [stand-in].
+    """
+    terms = galaxy_density.model_terms(shape)
+    stellar_mass, _halo = disk_history.stellar_and_halo_masses(shape)
+    solar_per_model = stellar_mass / sum(galaxy_density.component_masses(shape).values())
+    x = radius_pc / terms["nuclear_disc_length_pc"]
+    enclosed = solar_per_model * (terms["nuclear_cluster_mass"]
+                                  + terms["nuclear_disc_mass"] * (1.0 - (1.0 + x) * np.exp(-x)))
+    radius_m = np.maximum(radius_pc, 1.0) * constants.PARSEC_M
+    return np.sqrt(constants.G * enclosed * constants.SOLAR_MASS_TO_KG / radius_m) / 1.0e3
+
+
+def _core_ring(stream, shape, core):
+    """
+    The clusters the central ring forms (`galaxy.core_gas`): `(age_gy, x, y, z, fe_h, speed_kms, dispersion_kms)` arrays
+    of those formed over `tuning.CORE_STAR_FORMATION_SPAN_GY` at the ring's rate (the share of it that goes into bound
+    clusters, the mass function's mean mass for the count), at the ring's radius, width and height, with the nuclear
+    disc's [Fe/H] and dispersion, on the circular orbit of the nucleus. Their initial masses are drawn with the others.
+    """
+    span_gy = min(tuning.CORE_STAR_FORMATION_SPAN_GY, _MAX_AGE_GY)
+    mean_count = core.rate_msun_yr * core.bound_share * span_gy * 1.0e9 / evolution.mean_initial_mass_sol()
+    count = poisson_count(mean_count, stream) if mean_count > 0.0 else 0
+    age = np.maximum(stream.random_array(count) * span_gy, 1.0e-9)
+    radius = np.abs(core.radius_pc + core.sigma_pc * _normal(stream, count))
+    phi = stream.random_array(count) * 2.0 * math.pi
+    z = 2.0 * core.height_pc * np.arctanh(np.clip(2.0 * stream.random_array(count) - 1.0, -1.0 + 1.0e-12, 1.0 - 1.0e-12))
+    row = tuning.METALLICITY_BY_POPULATION["nuclear_disc"]
+    fe_h = np.clip(row["offset"] + row["sigma"] * _normal(stream, count), *tuning.METALLICITY_RANGE_FE_H)
+    speed = _circular_speed_kms(radius, shape)
+    dispersion = np.full(count, tuning.STELLAR_POPULATION_DISPERSION_KMS["nuclear_disc"])
+    return age, radius * np.cos(phi), radius * np.sin(phi), z, fe_h, speed, dispersion
+
+
+def _disk_formed(stream, shape):
+    """
+    `(age_gy, initial_mass, (x, y, z), fe_h, speed_kms, dispersion_kms)` of the clusters the disk's star formation history
+    forms (see the module docstring, steps 1 and 2): empty arrays for a disk that formed none.
+    """
+    empty = (np.zeros(0), np.zeros(0), (np.zeros(0), np.zeros(0), np.zeros(0)), np.zeros(0), np.zeros(0), np.zeros(0))
+    ages_gy, step_gy, radii, ring_width, mass_formed, efficiency = _formation_table(shape)
+    weight = mass_formed * efficiency / evolution.mean_initial_mass_sol()          # clusters formed per cell
+    total = float(weight.sum())
+    if total <= 0.0:
+        return empty
+    floor = None
+    if total > tuning.OPEN_CLUSTER_MAX_COUNT:      # a program limit: keep the heavier ones (`tuning.OPEN_CLUSTER_MAX_COUNT`)
+        floor = evolution.low_mass_keeping_share(tuning.OPEN_CLUSTER_MAX_COUNT / total)
+        weight = weight * (tuning.OPEN_CLUSTER_MAX_COUNT / total)
+        total = float(tuning.OPEN_CLUSTER_MAX_COUNT)
+    count = poisson_count(total, stream)
+    if count == 0:
+        return empty
+    cumulative = np.cumsum(weight.reshape(-1))
+    cumulative /= cumulative[-1]
+    cell = np.minimum(np.searchsorted(cumulative, stream.random_array(count), side="right"), cumulative.size - 1)
+    ring, step = np.divmod(cell, weight.shape[1])
+    age = np.minimum(np.maximum(ages_gy[step] + (stream.random_array(count) - 0.5) * step_gy, 0.0), _MAX_AGE_GY)
+    age = np.maximum(age, 1.0e-9)       # a cluster younger than `_MIN_AGE_GY` is still embedded (GEN.241's nebulae), not drawn
+    radius = radii[ring] + (stream.random_array(count) - 0.5) * ring_width
+    radius = np.maximum(radius, 0.5 * ring_width)
+    initial = evolution.initial_masses(stream.random_array(count), floor)
+    place = _place(stream, radius, age, shape)
+    fe_h = _fe_h(stream, radius, age)
+    return (age, initial, place, fe_h, np.full(count, tuning.CLUSTER_HALO_CIRCULAR_KMS), _dispersion_kms(shape, age))
+
+
 def generate_open_clusters(galaxy_seed, shape, edge_pc, expected_at_density_1, epoch_unix=0.0):
     """
     Draws a galaxy's young open clusters from its seed and shape.
@@ -172,30 +242,18 @@ def generate_open_clusters(galaxy_seed, shape, edge_pc, expected_at_density_1, e
     """
     stream = _stream(galaxy_seed)
     c_env_myr = stream.uniform(*tuning.OPEN_CLUSTER_DISRUPTION_CENV_MYR)
-    ages_gy, step_gy, radii, ring_width, mass_formed, efficiency = _formation_table(shape)
-    weight = mass_formed * efficiency / evolution.mean_initial_mass_sol()          # clusters formed per cell
-    total = float(weight.sum())
-    if total <= 0.0:
-        return []
-    floor = None
-    if total > tuning.OPEN_CLUSTER_MAX_COUNT:      # a program limit: keep the heavier ones (`tuning.OPEN_CLUSTER_MAX_COUNT`)
-        floor = evolution.low_mass_keeping_share(tuning.OPEN_CLUSTER_MAX_COUNT / total)
-        weight = weight * (tuning.OPEN_CLUSTER_MAX_COUNT / total)
-        total = float(tuning.OPEN_CLUSTER_MAX_COUNT)
-    count = poisson_count(total, stream)
+    disk = _disk_formed(stream, shape)
+    ring = _core_ring(stream, shape, core_gas.core_gas(shape))
+    ring_initial = evolution.initial_masses(stream.random_array(len(ring[0])))
+    age = np.concatenate((disk[0], ring[0]))
+    initial = np.concatenate((disk[1], ring_initial))
+    x, y, z = (np.concatenate((disk[2][k], ring[1 + k])) for k in range(3))
+    fe_h = np.concatenate((disk[3], ring[4]))
+    speed = np.concatenate((disk[4], ring[5]))
+    dispersion = np.concatenate((disk[5], ring[6]))
+    count = len(age)
     if count == 0:
         return []
-    cumulative = np.cumsum(weight.reshape(-1))
-    cumulative /= cumulative[-1]
-    cell = np.minimum(np.searchsorted(cumulative, stream.random_array(count), side="right"), cumulative.size - 1)
-    ring, step = np.divmod(cell, weight.shape[1])
-    age = np.minimum(np.maximum(ages_gy[step] + (stream.random_array(count) - 0.5) * step_gy, 0.0), _MAX_AGE_GY)
-    age = np.maximum(age, 1.0e-9)       # a cluster younger than `_MIN_AGE_GY` is still embedded (GEN.241's nebulae), not drawn
-    radius = radii[ring] + (stream.random_array(count) - 0.5) * ring_width
-    radius = np.maximum(radius, 0.5 * ring_width)
-    initial = evolution.initial_masses(stream.random_array(count), floor)
-    x, y, z = _place(stream, radius, age, shape)
-    fe_h = _fe_h(stream, radius, age)
     rho = ambient_density_msun_pc3(x, y, z, shape, expected_at_density_1, edge_pc)
     t0 = evolution.disruption_t0_yr(rho, c_env_myr)
     metals = tuning.OPEN_CLUSTER_SOLAR_Z * 10.0 ** fe_h
@@ -206,10 +264,8 @@ def generate_open_clusters(galaxy_seed, shape, edge_pc, expected_at_density_1, e
     size = evolution.half_mass_radii_pc(initial, age, density_z, expansion)
     size = np.minimum(size, evolution.jacobi_radii_pc(mass, galactocentric) / tuning.SATELLITE_TIDAL_OVER_HALF_MASS)
     kept = np.nonzero((mass >= tuning.OPEN_CLUSTER_MASS_RANGE_SOL[0]) & (size > 0.0) & (age >= _MIN_AGE_GY))[0]
-    dispersion = _dispersion_kms(shape, age)
     kicks = np.stack([_normal(stream, count), _normal(stream, count), _normal(stream, count)]) * dispersion
     cylindrical = np.maximum(np.hypot(x, y), 1.0)
-    speed = tuning.CLUSTER_HALO_CIRCULAR_KMS
     velocity = (-speed * y / cylindrical + kicks[0], speed * x / cylindrical + kicks[1], kicks[2])
     seeds = [stream.getrandbits(63) for _ in range(len(kept))]
     found = []

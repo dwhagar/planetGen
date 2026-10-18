@@ -144,6 +144,12 @@
       "epoch": 29,
       "first_release": "8.0.1819",
       "reason": "A generated galaxy draws its young open clusters from its disk's star formation history (GEN.244): they are stored with the globular clusters, add their density to their cell in one of twelve age-bin populations, and the component pass draws their bright and massive stars, so a new galaxy's stars, systems and sector profiles differ near them."
+    },
+    {
+      "epoch": 30,
+      "first_release": null,
+      "pending": true,
+      "reason": "A barred galaxy's centre has a gas ring fed by its bar that forms young stars and clusters (GEN.282)."
     }
   ]
 }

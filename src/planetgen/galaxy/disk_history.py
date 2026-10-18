@@ -287,6 +287,15 @@ def stellar_mass_for_scale_length(disk_scale_length_pc):
     return 10.0 ** min(max(0.5 * (low + high), 8.2), 11.9)
 
 
+def stellar_and_halo_masses(shape):
+    """`(stellar mass, halo mass)` of the galaxy of this shape, solar masses: its `masses` (from the mass chain) when it
+    has them, else those of the median galaxy of its disk scale length."""
+    if shape.masses is None:
+        stellar_mass = stellar_mass_for_scale_length(shape.disk_scale_length_pc)
+        return stellar_mass, mass_chain.median_halo_mass(stellar_mass)
+    return shape.masses
+
+
 @functools.lru_cache(maxsize=64)
 def history_of(shape):
     """
@@ -296,11 +305,7 @@ def history_of(shape):
     """
     from planetgen.galaxy import density
     length = shape.disk_scale_length_pc
-    if shape.masses is None:
-        stellar_mass = stellar_mass_for_scale_length(length)
-        halo_mass = mass_chain.median_halo_mass(stellar_mass)
-    else:
-        stellar_mass, halo_mass = shape.masses
+    stellar_mass, halo_mass = stellar_and_halo_masses(shape)
     masses = density.component_masses(shape)
     thin_share = masses["thin_disk"] / (masses["thin_disk"] + masses["thick_disk"] + masses["bulge"])
     return history(stellar_mass * thin_share, length, halo_mass)

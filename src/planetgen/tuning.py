@@ -1195,6 +1195,28 @@ NUCLEAR_RESOLUTION_PC = 2.0
 """float: The radius of the grid's core ball (shell 0, half the 4 pc shell depth). The cluster's cusp is held below
 the radius at which its density equals the ball's mean, so the ball's cell holds exactly the cluster's mass inside
 2 pc and no cell is asked for a density the grid cannot hold (`galaxy.density.model_terms`)."""
+
+# The galactic centre's gas and young stars (GEN.282, `galaxy.core_gas`, docs/design/realistic-galactic-core.md 3.4).
+# A bar carries the gas of its gap inward (`BAR_GAP_RADIUS_RATIO`) and piles it into a ring at the centre, the central
+# molecular zone; the ring forms stars at a small share of what comes in. All three are from the review of Henshaw et al.
+# 2023 (PPVII, arXiv:2203.11223, read): the bar's gap gas leaves on a Gy (the simulations behind `BAR_GAP_STAR_FORMATION_FLOOR`),
+# the inflow to the ring is 0.8 solar masses a year for the Milky Way (Hatchfield et al. 2021, 30% efficiency of the
+# dust lanes' flow) against a star formation rate of 0.07 (Table 1: source counts 0.07, integrated light 0.07 to 0.09, more
+# or less constant over the last 5 Myr to 100 Myr), by continuity `inflow = star formation + outflow + growth` (their eq. 1).
+CORE_GAS_INFLOW_TIME_GY = 1.0
+"""float: The time the bar takes to carry the gas of its gap to the centre, Gy."""
+CORE_STAR_FORMATION_PER_INFLOW = 0.07 / 0.8
+"""float: The ring's star formation rate over the gas inflow to it (the Milky Way's measured 0.07 over 0.8 solar masses a
+year; one galaxy measured, so a stand-in for the ratio in others) [R, stand-in for other galaxies]."""
+CORE_RING_RADIUS_BULGE_RATIO = 100.0 / 1580.0
+CORE_RING_WIDTH_BULGE_RATIO = 50.0 / 1580.0
+CORE_RING_HEIGHT_BULGE_RATIO = 30.0 / 1580.0
+"""float: The ring's radius, full width at half maximum and vertical scale height over the bulge's scale radius, as the
+nuclear disc's are (`NUCLEAR_DISC_LENGTH_RATIO`): 100 pc, 50 pc and 30 pc for the Milky Way's 1.58 kpc [recalled: the
+review gives the ring at 100 to 200 pc, so these are placeholders tied to the nuclear disc, to verify]."""
+CORE_STAR_FORMATION_SPAN_GY = 1.0
+"""float: How long the ring is taken to have formed stars at its present rate (open clusters of the ring are drawn over
+this span; the review has the rate constant for at least 5 Myr and 0.09 over 100 Myr) [placeholder]."""
 # The bar's long axis leads the Sun-center line by an angle drawn from the seed (`galaxy.structure_draw.draw_bar`);
 # the Milky Way's is 27 degrees (its near end at positive galactic longitude; Wegg & Gerhard 2013, BHG16: 28-33).
 
