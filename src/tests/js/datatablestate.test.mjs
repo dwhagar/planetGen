@@ -28,6 +28,15 @@ test("values are percent-encoded", () => {
   assert.equal(dataQuery(state, 0, 50, false), "sort=name&descriptor=a%20b%26c&offset=0&limit=50");
 });
 
+test("the jump-by-value start rides in the data query as from, and in a prefixed address as the table's own from (PERF.75)", () => {
+  const state = { sort: "name", descending: false, filters: {}, start: "Be a&b" };
+  assert.equal(dataQuery(state, 0, 50, false), "sort=name&from=Be%20a%26b&offset=0&limit=50");
+  assert.deepEqual(stateParams(state, "name", "systems_"), [["systems_from", "Be a&b"]]);
+  assert.deepEqual(stateParams({ ...state, start: "" }, "name", "systems_"), []);
+  assert.equal(pageAddress("/systems", "?x=1&systems_from=old", state, "name", "systems_", ["systems_sort", "systems_order", "systems_page", "systems_from"]),
+    "/systems?x=1&systems_from=Be%20a%26b");
+});
+
 const OWNED = ["sort", "order", "page", "type", "descriptor"];
 
 test("the page address is the path with the same pairs the no-script links use", () => {
