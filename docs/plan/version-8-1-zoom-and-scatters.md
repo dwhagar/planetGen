@@ -253,7 +253,6 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 | TEST.241 | Test: no absolute position is stored for anything inside a system, so every 8.1 item that stores a position stores it parent-relative |  |  |
 | GEN.317 | Pulsar planets and the radiation environment of neutron stars |  | Split from GEN.130. |
 | GEN.318 | White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk |  | Split from GEN.130. |
-| GEN.543 | Define "usable" for a P-type window so the design table's pair-node row (34% falling to 18%) can be reproduced |  |  |
 | PERF.138 | The nuclear cluster term made the extent majorant about 1000 times looser: the shell scatter takes over 250 s, not 5.6 s (bug) |  |  |
 | GEN.590 | Wire the downloaded isochrones, white-dwarf sequences and neutron-star tables into star composition (after Boss answers the Require / Stand-in card) |  |  |
 | GEN.130 | Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes | GEN.317, GEN.318 | Phenomena catalogue, Boss 2026-10-15. Step 3, rescoped. Core. |
