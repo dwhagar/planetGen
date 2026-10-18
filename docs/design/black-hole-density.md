@@ -11,7 +11,7 @@ Code: `physics/black_hole_formation.py` (the IMF share, the formed share of a wi
 - **The galaxy's total** (the ejecta, T5 and T9) is `black_hole_density.mean_factor`: the place factor averaged over the density on a grid of 72 log radii, 24 polar angles and 6 azimuths, to a thousand disk scale lengths. The clusters' and satellites' stars (a percent) are not in it, as `galaxy_systems` leaves them out.
 - **Streams.** Every class draws from `{prefix}:{kind}:{subtype}` (`phenomenon_scatter.class_stream`): per shell, per reach and far run, and per component, so the neutron star, planetary nebula and remnant rows no longer move when the black hole counts do (T2).
 - **A standalone sector** (no galaxy) rolls the black holes at the failed share at solar metallicity of the middle draw, 9.3%, times `base_rate_per_star()`: 5.8e-4 per star against the old 5.0e-4.
-- **Numbers at the solar circle**, Milky Way-like shape, middle draw: 7.7e-4 black holes per star, 1.5 times the old 5.0e-4; a galaxy ranges over 0.3 to 3.4 times (T9 asserts the sweep).
+- **Numbers at the solar circle**, Milky Way-like shape, middle draw: 7.7e-4 black holes per star, 1.5 times the old 5.0e-4; 150 sampled galaxies range over 0.44 to 2.84 times, the mean 1.46 (T9 asserts a looser range).
 
 Stand-ins, all tunable in `tuning`: the uniform shape across each verified range (only the range is known), the linear-in-Z form between the anchors and its hold above solar, the generic cluster and satellite peaks in the scatter's weights, and the 100 Myr completeness window averaged over 64 ages and 64 progenitor masses.
 
