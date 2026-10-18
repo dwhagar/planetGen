@@ -288,18 +288,11 @@ def stellar_mass_for_scale_length(disk_scale_length_pc):
 
 
 @functools.lru_cache(maxsize=64)
-def population_shares(shape):
+def history_of(shape):
     """
-    The share of the thin disk's stars in each disk population (`young`, `intermediate`, `old`), from the history of the
-    galaxy of this shape. They add up to 1.
-
-    Args:
-        shape (GalaxyShape): The galaxy's shape: its `masses` (stellar and halo, from the mass chain) when it has them,
-            else the median galaxy of its disk scale length; the disk scale length sets the rings; its bulge and thick
-            disk set how much of the stars are the thin disk's.
-
-    Returns:
-        dict: Population name -> share.
+    The thin disk's `DiskHistory` for the galaxy of this shape: its `masses` (stellar and halo, from the mass chain) when
+    it has them, else the median galaxy of its disk scale length; the disk scale length sets the rings, and its bulge and
+    thick disk set how much of the stars are the thin disk's.
     """
     from planetgen.galaxy import density
     length = shape.disk_scale_length_pc
@@ -310,7 +303,22 @@ def population_shares(shape):
         stellar_mass, halo_mass = shape.masses
     masses = density.component_masses(shape)
     thin_share = masses["thin_disk"] / (masses["thin_disk"] + masses["thick_disk"] + masses["bulge"])
-    found = history(stellar_mass * thin_share, length, halo_mass)
+    return history(stellar_mass * thin_share, length, halo_mass)
+
+
+@functools.lru_cache(maxsize=64)
+def population_shares(shape):
+    """
+    The share of the thin disk's stars in each disk population (`young`, `intermediate`, `old`), from the history of the
+    galaxy of this shape (`history_of`). They add up to 1.
+
+    Args:
+        shape (GalaxyShape): The galaxy's shape.
+
+    Returns:
+        dict: Population name -> share.
+    """
+    found = history_of(shape)
     ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
     shares = {name: found.share_between(*ages[name]) for name in tuning.STELLAR_POPULATION_ARM_AMPLITUDE}
     total = sum(shares.values())

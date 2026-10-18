@@ -1347,6 +1347,9 @@
 --   `planets` and `moons`) and `system_configs.markdown` are dropped: the life structure of v110 replaced the first three, the
 --   tier columns the note, and nothing read the flag. `flavor_text_count` stays (the generator still counts the line).
 --
+-- v112 (GEN.244): `bright_stars.population` also takes `open_cluster_00` to `open_cluster_11`, the age bins (a quarter dex wide,
+--   1 Myr to 1 Gyr) of a generated galaxy's young open clusters.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -3349,7 +3352,7 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     KEY idx_bright_stars_luminosity (luminosity_w),
     KEY idx_bright_stars_next_update_due (next_update_due),
     KEY idx_bright_stars_population (population, off_plane, luminosity_w),
-    CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge', 'halo', 'cluster', 'satellite', 'nuclear_cluster', 'nuclear_disc', 'satellite_young', 'satellite_intermediate')),
+    CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge', 'halo', 'cluster', 'satellite', 'nuclear_cluster', 'nuclear_disc', 'satellite_young', 'satellite_intermediate', 'open_cluster_00', 'open_cluster_01', 'open_cluster_02', 'open_cluster_03', 'open_cluster_04', 'open_cluster_05', 'open_cluster_06', 'open_cluster_07', 'open_cluster_08', 'open_cluster_09', 'open_cluster_10', 'open_cluster_11')),
     CONSTRAINT fk_bright_stars_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
