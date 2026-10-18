@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1765] - 2026-10-18
+
+**Headline:** The Uncharted systems table no longer counts every row of the galaxy to show its total.
+
+### Changed
+- **`count_uncharted_systems` answers from the stored counts (PERF.112).** The total behind the Uncharted systems table and `/api/systems/uncharted` went through a full `COUNT(*)` over the stars-without-a-system join on every request. It now uses the same stored count as the other tables (`db/countcache.py`): the last answer is served at once while a background recount refreshes it, and a galaxy with no stored answer yet gets a capped estimate (`total_capped` is true in the API and the page shows "more than N"). The count is stamped with the galaxy's content stamp, so it is recounted when the galaxy changes.
+
+TODO items resolved: PERF.112. Added: none.
+
 ## [8.0.1764] - 2026-10-18
 
 **Headline:** The architecture has a code map you can open in a browser and drill down from the project's areas to a function's source, with what calls what, generated from the code.
