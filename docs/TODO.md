@@ -5781,6 +5781,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Build state (Core 3, reported 11:18 AM EDT 2026-10-18, real clock):
+  coded on branch claude/pr-gen317-pulsar-planets with epoch 32 pending
+  (no migration; GEN.404 and GEN.546 also want 32, so the next merger
+  renumbers); the changed gate started 11:17 AM EDT. Two design gaps are
+  filed apart as GEN.593.
   Prerequisites: none. Related: GEN.130, GEN.436, GEN.444.
 
 - [ ] **GEN.318 White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk**
@@ -14704,6 +14709,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed, GEN.281's lane).
   Prerequisites: none. Related: GEN.281, GEN.283.
 
+- [ ] **GEN.593 Pulsar planets: the disc range stops short of PSR B1257+12's planets, and two of the three formation paths (a captured giant, an ablated companion) leave a pulsar with no planets**
+  Design gaps in GEN.317 found by Core 3 while building it (reported
+  11:18 AM EDT 2026-10-18, real clock; its GEN.317 gate started 11:17 AM
+  EDT; branch claude/pr-gen317-pulsar-planets, epoch 32 pending, no
+  migration), filed by the TODO thread. GEN.317 builds the disc origin
+  of a millisecond pulsar's planets (25 percent), the spin-down power
+  and the pulsar wind pressure on the magnetopause. Gap 1: the disc mass
+  range 0.01 to 10 Earth masses is cut at planet class C's top radius,
+  3.3 Earth masses, so planets as heavy as PSR B1257+12's 4.3 and 3.9
+  Earth masses are never drawn (the test target, never an input: NO
+  FIXED CONTENT). Gap 2: the captured giant (25 percent, with GEN.163
+  off) and the ablated companion (50 percent, 0.001 to 0.05 solar
+  masses, beyond class J's 13 Jupiter masses, with no stripped-core
+  class) give the pulsar no planets, so 25 percent of the pulsars that
+  roll planets hold them. Do: gap 1, either a larger carbon-rich class
+  or raise class C's 10,000 km radius ceiling from the sources, so the
+  disc range reaches its own top; gap 2, Core 3 suggests the ablated
+  companion rides GEN.555 (the pair builder, 8.4) and the captured giant
+  waits for GEN.163, and the item says which stand-in the pulsar gets
+  until then (a labelled placeholder, tunable, per the gap plan). Done:
+  a disc-origin pulsar can draw planets up to the top of its mass range,
+  and each unbuilt path is named with its prerequisite and its stand-in.
+  Owner: Core 3 (proposed). Default (stands unless Boss overrules): not
+  a prerequisite of GEN.301; value-changing, so it takes the next free
+  epoch at its merge.
+  Prerequisites: GEN.317. Related: GEN.317, GEN.555, GEN.163.
+
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -15706,6 +15738,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch), and `test_gen_phenomenon_reach.py` runs in minutes again.
   Owner: Core 1 (GEN.402's author; proposed, Core 3 and Core 4 touch the
   same module).
+  Evidence from Core 3 (reported 11:07 AM EDT 2026-10-18, real clock):
+  `test_gen_scatter_tiers.py::test_the_mass_pass_draws_each_band_from_its_tiers_mass_limit`
+  takes 58 s on main and 98 s on Core 3's stack tip for the same reason
+  (the nuclear cluster majorant); the stack adds nothing beyond the ring
+  term.
   Prerequisites: none. Related: GEN.402, GEN.322, PERF.106.
 
 ## DB: Database and schema
@@ -19768,6 +19805,16 @@ clears each one.
   no quarantine. Done: the five tests pass in a gate that runs beside
   another gate, and the backfill time is printed in the run log. Owner:
   Bug Hunt (proposed).
+  Sighting (Core 3, reported 11:07 AM EDT 2026-10-18, real clock; its
+  stacked GEN.244, GEN.282 and GEN.563 gate 2, 8:55 to 10:52 AM EDT,
+  load 5.3):
+  `test_web_browser_crumbs.py::test_a_pages_breadcrumb_is_one_line_at_any_width[1280]`
+  and `[320]` had two module-fixture setup errors at 953.7 s, past the
+  900 s limit, where the same module's database builds in 37 s alone;
+  all three failures of that gate passed alone. Frequency: 1 of 2 gates
+  of Core 3. Same family as the web edit menu setups above (a fixture
+  database build that stalls under load, possibly a mysqld stall); no
+  solo reproducer yet. It goes with Bug Hunt's setup fix.
   Prerequisites: none. Related: TEST.227, TEST.235.
 
 - [ ] **TEST.247 The random-start neighbourhood test with --min-start-density 1000 (dense_core) takes 466 s alone and 554 s with its sibling, and times out at 900 s under gate load (bug)**

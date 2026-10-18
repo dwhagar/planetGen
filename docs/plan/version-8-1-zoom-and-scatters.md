@@ -249,6 +249,7 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 | GEN.129 | Multi-star systems of up to twelve stars | GEN.311, GEN.312, MAP.213, GEN.313 | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
 | TEST.241 | Test: no absolute position is stored for anything inside a system, so every 8.1 item that stores a position stores it parent-relative |  |  |
 | GEN.317 | Pulsar planets and the radiation environment of neutron stars |  | Split from GEN.130. |
+| GEN.593 | Pulsar planets: the disc range stops short of PSR B1257+12's planets, and two of the three formation paths (a captured giant, an ablated companion) leave a pulsar with no planets | GEN.317 |  |
 | GEN.318 | White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk |  | Split from GEN.130. |
 | PERF.138 | The nuclear cluster term made the extent majorant about 1000 times looser: the shell scatter takes over 250 s, not 5.6 s (bug) |  |  |
 | GEN.590 | Wire the downloaded isochrones, white-dwarf sequences and neutron-star tables into star composition (after Boss answers the Require / Stand-in card) |  |  |
