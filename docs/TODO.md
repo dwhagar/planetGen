@@ -15002,6 +15002,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, and after the
   GEN.401 merge (the item waited for it already); PERF.118 merged
   (#2159).
+  Merged in part (Core 5, #2259, reported 11:32 AM EDT 2026-10-18 as the
+  lane reported; releases 8.0.1822 to 8.0.1825): slices 1 to 4 (the
+  phenomena scatter as units, the luminosity and band scatters as queue
+  commands, the plan skeleton command, and the stage timing,
+  killed-worker handler and unit time limits). Stage rows now come from
+  the unit that completes the stage. Commands registered so far:
+  plan-skeleton, scatter-mass, scatter-luminosity, scatter-band,
+  scatter-phenomena, fill-map-luminosity, clean-nebula-field and
+  draw-nebula-field; rescore-habitability is slice 5. Slice 5 (the fills
+  and the nebula field as commands) is the next PR, so this item stays
+  open.
   Prerequisites: none. Related: PERF.98.
 
 - [ ] **PERF.107 The sector units and the stages around them: start, neighborhood, sectors, link, population and settle**
@@ -19878,6 +19889,27 @@ clears each one.
   passes 30 of 30 fresh draws. Owner: Bug Hunt (proposed; it will loop
   it idle after the slow-pages item).
   Prerequisites: none. Related: TEST.238.
+
+- [ ] **TEST.250 test_workers.py: two tests fail once in a full run because ensure_workers is the inline test stand-in although the module is marked real_queue (something left the inline queue patch active in that xdist worker) (bug)**
+  Found by Core 5 (reported 11:32 AM EDT 2026-10-18 as the lane
+  reported; its PERF.106 slices 1 to 4 gate), filed by the TODO thread.
+  In the gate's full run on worker gw3,
+  `src/tests/test_workers.py::test_a_batch_of_jobs_starts_no_more_workers_than_wanted_and_not_twice`
+  and
+  `::test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs`
+  failed once: `ensure_workers` was the inline test stand-in although
+  the module is marked `real_queue`, so a module that ran before it on
+  that worker left the inline queue patch active. Both pass alone and
+  after modules that build a galaxy with `run_cli`. Fails on main: not
+  seen. Frequency: 1 full run. Reproducer: none yet; Core 5 will watch
+  the next gates (the failing order is a module that patches the queue
+  inline, then test_workers on the same worker). Do: find the module
+  whose patch outlives its test (a module-level or session fixture that
+  is not undone) from the failing worker's order, and undo it; no
+  quarantine. Done: the cause is on this item and test_workers passes
+  after every module on one worker. Owner: Bug Hunt (proposed; Core 5
+  owns PERF.106, the area it touches).
+  Prerequisites: none. Related: TEST.238, PERF.106.
 
 ## USR: User accounts
 
