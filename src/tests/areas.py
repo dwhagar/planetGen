@@ -34,7 +34,7 @@ AREA_RULES = (
     ("physics", r"astropy|atmosphere|climate|comet|disk|evolution|galactic|habitability|heliopause|heliosphere|"
                 r"hydrosphere|kepler|light|luminosity|orbit|planet|quasar|radiation|remnant|spin|state_vectors|"
                 r"surface|math|body_positions|gen_kepler|moons|facilit|wide_binary|binary_pair|rogue|spatial_position|"
-                r"physical|physics_edges|planet_inputs|elements|stellar_abundances"),
+                r"physical|physics_edges|planet_inputs|elements|stellar_abundances|stellar_composition"),
     ("generation", r"gen_|census|generation|galaxy_|sector|phenomen|nebula|bright|star|scatter|object|parallel|"
                    r"work_queue|worker|redis_queue|prevalence|population|mass_backfill|fingerprint|reproducible|"
                    r"neighborhood|directives|single_system|skeleton|poisson|redo|span|stages|steps|step_registry|"
