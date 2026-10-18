@@ -2962,35 +2962,47 @@ ROGUE_NEPTUNE_INTERNAL_TEMPERATURE_K = 53.0
 Jupiter it fixes how a sub-Jupiter giant's heat scales with mass
 (L ~ M^1.65)."""
 
-ROGUE_BROWN_DWARF_LUMINOSITY_SOL = 4e-5
-"""float: Burrows & Liebert's brown dwarf cooling law, L = 4e-5 L_sun
-(t / 1 Gyr)^-1.3 (M / 0.05 M_sun)^2.64. A giant between 1 and 13
-Jupiter masses is a power law joining Jupiter to this law at 13."""
-
-ROGUE_BROWN_DWARF_MASS_EXPONENT = 2.64
-"""float: The mass exponent of that law."""
-
 ROGUE_MAX_EFFECTIVE_TEMPERATURE_K = 2800.0
 """float: The hottest a rogue gets. The cooling law above assumes an old,
 shrunken body; a brown dwarf younger than a few hundred million years is
 still puffed up, so the law (with today's radius) overshoots. Young brown
 dwarfs near the hydrogen-burning limit are late-M dwarfs, ~2,800 K."""
 
-# Brown dwarfs as stars (GEN.252, docs/design/brown-dwarf-state.md). The luminosity law is the ROGUE_BROWN_DWARF_*
-# pair above; these are the rest of Burrows et al. 2001's (Rev. Mod. Phys. 73:719, eqs. 1 and 2, read, arXiv
-# astro-ph/0103383) pair of power laws, the mass function and the map from temperature to spectral type.
-BROWN_DWARF_TEMPERATURE_AT_1_GY_K = 1550.0
-"""float: A 0.05 solar mass brown dwarf's effective temperature at 1 Gy (Burrows et al. 2001, eq. 2, solar
-metallicity)."""
+# Brown dwarfs as stars (GEN.252, GEN.549, docs/design/brown-dwarf-state.md): the cooling track, the mass function and the
+# map from temperature to spectral type.
+BROWN_DWARF_TRACKS = (
+    (0.01, ((0.01, 1570, 0.156),)),
+    (0.015, ((0.01, 2261, 0.189), (0.03, 2139, 0.171), (0.05, 1760, 0.146))),
+    (0.02, ((0.01, 2519, 0.244), (0.03, 2184, 0.159), (0.05, 1838, 0.137))),
+    (0.03, ((0.01, 2682, 0.283), (0.03, 2448, 0.167), (0.1, 1912, 0.124), (0.12, 1779, 0.12))),
+    (0.04, ((0.01, 2768, 0.292), (0.03, 2632, 0.185), (0.1, 2311, 0.13), (0.3, 1667, 0.108))),
+    (0.05, ((0.01, 2843, 0.315), (0.03, 2755, 0.2), (0.1, 2525, 0.139), (0.3, 2063, 0.109), (0.625, 1555, 0.099))),
+    (0.06, ((0.01, 2900, 0.335), (0.03, 2860, 0.217), (0.1, 2670, 0.148), (0.3, 2331, 0.112), (1.0, 1584, 0.094))),
+    (0.07, ((0.01, 2946, 0.358), (0.03, 2925, 0.233), (0.1, 2794, 0.158), (0.3, 2519, 0.117), (1.0, 2047, 0.094),
+            (3.0, 1650, 0.09), (10.0, 1626, 0.09))),
+    (0.072, ((0.01, 2954, 0.363), (0.03, 2936, 0.236), (0.1, 2813, 0.16), (0.3, 2552, 0.118), (1.0, 2109, 0.095),
+             (3.0, 1793, 0.091), (10.0, 1790, 0.091))),
+    (0.075, ((0.01, 2967, 0.369), (0.03, 2952, 0.241), (0.1, 2839, 0.162), (0.3, 2594, 0.119), (1.0, 2243, 0.097),
+             (3.0, 2052, 0.092), (10.0, 2037, 0.091))),
+    (0.08, ((0.01, 2987, 0.383), (0.03, 2977, 0.249), (0.1, 2879, 0.167), (0.3, 2660, 0.122), (1.0, 2400, 0.102),
+            (3.0, 2343, 0.099), (10.0, 2345, 0.099))),
+)
+"""tuple: The cooling track of a brown dwarf, one row per mass: `(mass in solar masses, ((age in Gy, effective
+temperature in K, radius in solar radii), ...))`, oldest last. These are values of the solar-metallicity models of
+Baraffe, Homeier, Allard and Chabrier 2015 (A&A 577:A42, arXiv 1503.04107, read; the 2MASS isochrone file of
+perso.ens-lyon.fr/isabelle.baraffe/BHAC15dir, whose BT-Settl atmospheres reach down to about 1,500 K), thinned to nine
+ages and rounded as printed. Their tables stop where an object has cooled below the models' range (the last age of a
+row), which is why Phillips et al. 2020 (A&A 637:A38, arXiv 2003.13717, read) limit their own ATMO 2020 grid to below
+about 2,000 K and send the hotter objects to these models. A row that ends before 10 Gy continues at
+`BROWN_DWARF_TEMPERATURE_AGE_EXPONENT`; a row that reaches 10 Gy holds its last values (the near-limit objects settle on a
+plateau)."""
+
+BROWN_DWARF_TRACK_END_GY = 10.0
+"""float: The age the tabulated tracks are cut at: a `BROWN_DWARF_TRACKS` row whose last age is this one has settled."""
 
 BROWN_DWARF_TEMPERATURE_AGE_EXPONENT = -0.32
-"""float: Burrows et al. 2001, eq. 2: `Teff` falls as `t^-0.32`. With the luminosity's `t^-1.3` it leaves the radius
-nearly constant (`t^-0.01`), which the radius uses (a young brown dwarf is larger; `ROGUE_MAX_EFFECTIVE_TEMPERATURE_K`
-caps the overshoot)."""
-
-BROWN_DWARF_TEMPERATURE_MASS_EXPONENT = 0.83
-"""float: Burrows et al. 2001, eq. 2: `Teff` grows as `M^0.83`. With the luminosity's `M^2.64` the radius falls as
-`M^-0.34` (0.088 solar radii at 0.05 solar masses)."""
+"""float: Burrows et al. 2001 (Rev. Mod. Phys. 73:719, eq. 2, read, arXiv astro-ph/0103383): the effective temperature of
+an old brown dwarf falls as `t^-0.32`. It continues a `BROWN_DWARF_TRACKS` row past its last age."""
 
 BROWN_DWARF_MASS_FUNCTION_SLOPE = 0.6
 """float: The substellar mass function `dN/dM ~ M^-0.6` (Kirkpatrick et al. 2021, ApJS 253:7, arXiv 2011.11616, read:

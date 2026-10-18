@@ -25,7 +25,7 @@ a new `RoguePlanet` and back-fills stored rows (`store._migrate_v47_to_v48`).
 
 import math
 
-from planetgen.physics import constants, hydrosphere
+from planetgen.physics import brown_dwarf, constants, hydrosphere
 from planetgen import tuning
 from planetgen.util.random import log_uniform
 from planetgen.util import draw
@@ -92,9 +92,9 @@ def radiogenic_flux_w_m2(mass_kg, radius_km, age_gy, abundance=1.0):
 
 def _giant_luminosity_w(mass_kg, age_gy):
     """A giant's or brown dwarf's internal luminosity, W: a power law in
-    mass through Neptune and Jupiter below 1 Mjup, from Jupiter to Burrows
-    & Liebert's brown dwarf law at 13 Mjup, then that law; all fading as
-    t^-1.3 (`ROGUE_GIANT_COOLING_TIME_EXPONENT`)."""
+    mass through Neptune and Jupiter below 1 Mjup, from Jupiter to the brown
+    dwarf cooling track (`physics/brown_dwarf.py`) at 13 Mjup, then that
+    track; below 13 Mjup fading as t^-1.3 (`ROGUE_GIANT_COOLING_TIME_EXPONENT`)."""
     pc = tuning
     phys = constants
     jupiter_l = pc.ROGUE_JUPITER_INTERNAL_FLUX_W_M2 * 4 * math.pi * (phys.JUPITER_RADIUS_KM * 1000.0) ** 2
@@ -102,9 +102,7 @@ def _giant_luminosity_w(mass_kg, age_gy):
     neptune_l = _sigma() * pc.ROGUE_NEPTUNE_INTERNAL_TEMPERATURE_K ** 4 * 4 * math.pi * neptune_radius_m ** 2
 
     def brown_dwarf_l(m_kg, t_gy):
-        m_solar = m_kg / phys.SOLAR_MASS_TO_KG
-        return (pc.ROGUE_BROWN_DWARF_LUMINOSITY_SOL * phys.SOLAR_LUMINOSITY
-                * t_gy ** pc.ROGUE_GIANT_COOLING_TIME_EXPONENT * (m_solar / 0.05) ** pc.ROGUE_BROWN_DWARF_MASS_EXPONENT)
+        return brown_dwarf.luminosity_sol(m_kg / phys.SOLAR_MASS_TO_KG, t_gy) * phys.SOLAR_LUMINOSITY
 
     m_jup = mass_kg / phys.JUPITER_MASS_TO_KG
     age_factor = (age_gy / pc.ROGUE_EARTH_REFERENCE_AGE_GY) ** pc.ROGUE_GIANT_COOLING_TIME_EXPONENT
@@ -175,7 +173,7 @@ def nitrogen_vapor_pressure_pa(temperature_k):
         -NITROGEN_SUBLIMATION_J_MOL / GAS_CONSTANT_J_MOL_K * (1 / temperature_k - 1 / NITROGEN_TRIPLE_POINT_K))
 
 
-def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moons, rng=draw):
+def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moons, rng=draw, age_gy=None):
     """
     A rogue planet's surface conditions (the module docstring's four
     steps). `rng` supplies every draw (age, abundance, tides, envelope,
@@ -187,6 +185,8 @@ def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moon
         mass_bin (str): Its `ROGUE_PLANET_MASS_BIN_CHOICES` bin.
         has_moons (bool): Whether it kept a moon (tidal heating, rocky only).
         rng: Anything with `uniform` and `random` (default: `random`).
+        age_gy (float, optional): Its age; drawn from `ROGUE_PLANET_AGE_RANGE_GY` when not given. A brown dwarf's
+            radius depends on it, so `RoguePlanet` draws it first.
 
     Returns:
         dict: `age_gy`, `internal_heat_flux_w_m2`, `effective_temperature_k`,
@@ -197,7 +197,8 @@ def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moon
             and `has_internal_heat` (still geologically active, or a giant).
     """
     pc = tuning
-    age_gy = rng.uniform(*pc.ROGUE_PLANET_AGE_RANGE_GY)
+    if age_gy is None:
+        age_gy = rng.uniform(*pc.ROGUE_PLANET_AGE_RANGE_GY)
     gravity = surface_gravity_m_s2(mass_kg, radius_km)
     result = {
         "age_gy": age_gy, "ice_shell_thickness_km": None, "ocean_depth_km": None, "hp_ice_km": None,

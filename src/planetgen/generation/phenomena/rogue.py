@@ -227,9 +227,10 @@ class RoguePlanet(LazySaladName):
         if mass_bin == "brown-dwarf":
             log.choice("Rogue planet type", "brown dwarf", "mass_bin 'brown-dwarf'")
             self.planet_type = 'g'
-            # The radius the two Burrows et al. 2001 cooling laws fix (GEN.252): near Jupiter's, a little smaller
-            # for a heavier brown dwarf.
-            self.radius_km = brownDwarf.radius_sol(self.mass_kg / constants.SOLAR_MASS_TO_KG) \
+            # The radius of the cooling track at its age (GEN.549): larger when young, nearly Jupiter's when old. The age
+            # is drawn here, before the surface conditions, which are given it.
+            brown_dwarf_age_gy = draw.uniform(*tuning.ROGUE_PLANET_AGE_RANGE_GY)
+            self.radius_km = brownDwarf.radius_sol(self.mass_kg / constants.SOLAR_MASS_TO_KG, brown_dwarf_age_gy) \
                 * constants.SOLAR_RADIUS_M / constants.KM_TO_M_FACTOR
             self.composition = (
                 "hydrogen and helium, a failed star that briefly fused deuterium and now glows faintly "
@@ -266,7 +267,8 @@ class RoguePlanet(LazySaladName):
 
         self.has_moons = hosts.holds_something("planet-satellites", "rogue-planet")
         self._apply_surface_conditions(rogue_surface_conditions(
-            self.mass_kg, self.radius_km, self.planet_type, self.mass_bin, self.has_moons))
+            self.mass_kg, self.radius_km, self.planet_type, self.mass_bin, self.has_moons,
+            age_gy=brown_dwarf_age_gy if mass_bin == "brown-dwarf" else None))
 
         (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
          self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
