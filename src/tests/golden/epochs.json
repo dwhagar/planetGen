@@ -139,6 +139,12 @@
       "epoch": 28,
       "first_release": "8.0.1813",
       "reason": "A brown dwarf's temperature, radius and luminosity follow the cooling track of Baraffe et al. (2015) in place of a single old-age power law, so the heaviest brown dwarfs stay as hot L dwarfs and a free-floating brown dwarf's radius, flux and surface change with its drawn age (GEN.549)."
+    },
+    {
+      "epoch": 29,
+      "first_release": null,
+      "pending": true,
+      "reason": "A young, intermediate or old disk star's age is drawn from the galaxy's star formation rate inside its window instead of evenly, so a seed places stars of different ages and the share of bright stars of each population, and the local B-star share, change (GEN.546)."
     }
   ]
 }

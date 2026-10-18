@@ -24,6 +24,7 @@ import math
 from dataclasses import dataclass
 
 from planetgen import tuning
+from planetgen.galaxy import disk_history
 from planetgen.generation.star_population import placed_star_fraction
 
 
@@ -67,7 +68,8 @@ def _resolved_at(profile, expected, cap_sol, mass_limit_sol):
     total = sum(profile.mix.values())
     if total <= 0.0:
         return 0.0
-    share = sum(density * placed_star_fraction(cap_sol, mass_limit_sol, population)
+    age_laws = disk_history.population_age_laws(profile.shape)
+    share = sum(density * placed_star_fraction(cap_sol, mass_limit_sol, population, age_laws)
                 for population, density in profile.mix.items()) / total
     return expected * min(share, 1.0)
 

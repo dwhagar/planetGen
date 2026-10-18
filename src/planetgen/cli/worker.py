@@ -58,7 +58,8 @@ def warm(queues=None):
     from planetgen import tuning
     from planetgen.generation import star_population
     for population in star_population.POPULATIONS:
-        star_population._bright_table(float(tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL), population)
+        star_population._bright_table(float(tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL), population, None,
+                                      star_population._law(population, None))
 
 
 def code_version_on_disk():

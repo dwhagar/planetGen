@@ -57,18 +57,39 @@ arXiv 1407.1078, read; M* 6.08 +- 1.14e10, disk 5.17 +- 1.11e10), which against 
 factor of two. The gas left at the Sun's radius is 0.2 to 0.3 of its stars (observed about 13 against 38 solar masses per
 pc2), inside the test's 0.1 to 0.5.
 
+## Ages inside a window (GEN.546)
+
+A window used to draw its stars' ages evenly, though the rate varies across it (by a factor of 1.0, 2.5 and a rise from
+nothing for the young, intermediate and old windows of a 5e10 galaxy). Now the age of a young, intermediate or old disk
+star is drawn from the history's own rate inside its window.
+
+- **The law.** `galaxy.age_law.AgeLaw` is the density of ages in a window as a piecewise-linear curve through the disk's
+  star formation rate (rings weighted by area) at 33 evenly spaced ages (`tuning.AGE_LAW_POINTS`, rounded to six figures so
+  that equal histories give one law). It gives the weight of an interval (the window's length times the chance an age
+  falls in it, which for an even spread is the overlap), and an age by inverting its cumulative.
+  `galaxy.disk_history.population_age_laws(shape)` builds one per disk population (`tuning.DISK_AGE_LAW_POPULATIONS`)
+  for the galaxy of a shape. The bulge, halo, clusters and satellites have no entry and draw evenly: their history is not
+  the disk's.
+- **One law everywhere.** The star samplers' tables, shares and draws all take the same law (`age_laws` in
+  `generation.star_population`, `bright_stars.age_laws_of(shape)`), so the bright stars the scatter places, the mass
+  pass, both backfills and the dim systems a sector draws for itself agree on how many stars of each kind a place holds
+  and how old they are. `FillContext.apply` hands a dim system its population's law as `SystemConfig.AGE_LAW`. A draw with
+  no population (a system made outside a galaxy) keeps the whole disk's even spread.
+- **What changes.** Within a window the ages shift toward where the rate is high: the old window of a 5e10 galaxy
+  averages 6.1 Gy instead of 6.5, the intermediate one 1.8 Gy instead of 1.55, and a 1e10 galaxy's old window 5.0 Gy.
+  The shares of each window are still the history's (GEN.469), but the share of bright stars in a window changes with the
+  ages: a front-loaded intermediate window holds more bright main-sequence stars.
+- **The local B-star share** between the arms at the solar radius, with 100,000 draws a population, falls from 0.069% to
+  0.050% (0.046 to 0.055% over four seeds), against the observed 0.04%. The 0.12% in the table above is GEN.469's own
+  figure at the time and is kept as recorded.
+
 ## What it does not do
 
-- **The observed local B-star share (0.04%, Mamajek's census) is still 3 times lower than the Milky Way-like
-  galaxy's 0.12% (0.085% at 6.1e10 solar masses).** `test_the_local_b_share_reaches_the_observed_one` is a strict expected failure that records this; it
-  turns into a failure to remove the day something closes the gap. What is not in the model and could: the single-star
-  mass function may be steeper than the cluster one above 1 solar mass (Kroupa 2001, astro-ph/0009005, on the bias of unresolved
-  binaries: a
-  slope of 2.7 instead of 2.3 would cut B stars by about 40%, but the generator's mass function is the one the whole star
-  model reads), the Sun's place above the plane and between the arms, and gas moving between rings.
-- **Ages stay uniform inside a window.** The star formation rate varies across a window (by a factor of 1.0, 2.5 and a
-  rise from nothing for the young, intermediate and old windows of a 5e10 galaxy), so the mean ages are somewhat off.
-  Drawing an age from the history inside the window is a follow-up in the sampler.
+- **The observed local B-star share (0.04%, Mamajek's census) is still 1.2 to 1.4 times lower than the Milky Way-like
+  galaxy's 0.046 to 0.055% (GEN.546 closed most of the gap, below).** The test now allows 1.5 times the observed share.
+  What is not in the model and could close the rest: the single-star mass function may be steeper than the cluster one above 1
+  solar mass (Kroupa 2001, astro-ph/0009005, on the bias of unresolved binaries), the Sun's place above the plane and
+  between the arms, and gas moving between rings.
 - **Gas moves between rings, flows out, and halos gain stars by mergers** in a real galaxy; here each ring is a closed
   box fed by its inflow and the relation's stellar mass counts every star the halo holds.
 - **The radial pattern stays GEN.134's** (`galaxy.star_formation.recent_factor`, from the gas disk's scale length and the

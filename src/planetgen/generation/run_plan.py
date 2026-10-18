@@ -798,13 +798,15 @@ class _ScatterShape:
                 + (f", and {self.component_count:,} components." if self.component_count else "."))
 
 
-def _band_fractions(tiered, min_luminosity_sol, max_luminosity_sol, mass_range):
+def _band_fractions(tiered, min_luminosity_sol, max_luminosity_sol, mass_range, galaxy_shape):
     """A scatter pass's expected share of the stars by population (`fractions`) and its sum for the baseline
-    (`band_share`), for a tiered pass or a single band."""
+    (`band_share`), for a tiered pass or a single band, with the ages spread as the draw of `galaxy_shape` spreads
+    them (GEN.546)."""
+    age_laws = brightStars.age_laws_of(galaxy_shape)
     if tiered is None:
-        fractions = brightStars.band_fractions(min_luminosity_sol, max_luminosity_sol, mass_range)
+        fractions = brightStars.band_fractions(min_luminosity_sol, max_luminosity_sol, mass_range, age_laws)
         return fractions, sum(fractions.values())
-    fractions = brightStars.tier_fractions_of(tiered)
+    fractions = brightStars.tier_fractions_of(tiered, age_laws)
     shares = [sum(item.values()) for item in fractions]
     return fractions, shares[scatter_limits.BASELINE] or max(shares)
 
@@ -1034,7 +1036,7 @@ def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosit
     Returns:
         dict: Stars written per population.
     """
-    fractions, band_share = _band_fractions(tiered, min_luminosity_sol, max_luminosity_sol, mass_range)
+    fractions, band_share = _band_fractions(tiered, min_luminosity_sol, max_luminosity_sol, mass_range, skeleton.shape)
     workers = run_common._worker_count(args)
     components = _galaxy_components(mysql_config)
     shape = _plan_shape(skeleton, extents, fractions, band_share, components, tiered, workers)
@@ -1099,7 +1101,7 @@ def expand_scatter_mass(params):
     limits = scatter_limits.ScatterLimits.of(skeleton, params["min_luminosity_sol"], params["mass_limit_sol"])
     floor = starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL
     tiered = scatter_limits.mass_pass(limits, floor)
-    fractions, band_share = _band_fractions(tiered, floor, None, None)
+    fractions, band_share = _band_fractions(tiered, floor, None, None, skeleton.shape)
     components = _galaxy_components(mysql_config)
     shape = _plan_shape(skeleton, extents, fractions, band_share, components, tiered)
     drawing = _ScatterPass(skeleton, filled, floor, None, params["seed"], None, tiered, components)
