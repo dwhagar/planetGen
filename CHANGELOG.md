@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1757] - 2026-10-18
+
+**Headline:** Hypervelocity stars, kicked neutron stars and ejected black holes now stream through the whole galaxy and out to the grid's reach, on straight lines, instead of stopping at the disk's outline.
+
+### Changed
+- **Hypervelocity stars are placed out to the grid's reach (GEN.238).** They were drawn inside the galaxy's outline and redrawn if they fell outside. They now follow the count the galaxy ejects (`HYPERVELOCITY_STARS_PER_GALAXY`, 1,000 to 10,000 out to 100 kpc) times the plan's reach over that radius, with the distance falling as `r^-2` to the reach (262 kpc by default), a direction uniform on the sphere and 500 to 1,000 km/s outward. With the default reach more than 99% of them lie beyond the disk's outline, in the halo and the space around it.
+- **Neutron stars and black holes the galaxy ejected stream through every sector (GEN.238).** Each kind's unbound share of the galaxy (a fifth to two fifths of neutron stars, 2% of black holes) spreads over a sphere of the distance a 400 km/s remnant covers in 10 Gy, as `N / (4 pi r^2 v T)`. The sector profile carries each kind's mean for its cell, the fill draws a count from it in a stage of its own (`ejecta`), places each remnant clear of the other Hill spheres and gives it a velocity of 300 to 500 km/s along a random direction instead of a galactic orbit. The nightly update moves such a remnant on a straight line from its epoch and keeps its velocity. They carry no planets, and a black hole drawn here is stellar-mass. A cell draws at most 50 of a kind (`EJECTA_MAX_PER_CELL`, a program limit that only a galaxy shaped to hold astronomically many systems in a few cells reaches).
+- **A remnant in a superbubble is sized by the cavity's thin gas (GEN.298).** A remnant's radius (the Sedov-Taylor blast wave, held at the snowplow onset, GEN.151) took its own class's density however thin the gas around it was, so a remnant inside a cavity was sized as if in the disk. Where the sector's profile places it in a superbubble, the remnant, rolled by the fill or built from the scatter, takes the cavity's interior density, 0.001 to 0.01 cm^-3 (`SystemConfig.AMBIENT_DENSITY_CM3`), so it grows to a few hundred light-years where the disk's would have stopped at tens. The class contents and every draw are unchanged, and outside a bubble nothing changes. The remnant rate keeps its factor: the cavity is where the explosions went off.
+
+generation-output: changed
+
+TODO items resolved: GEN.238, GEN.298. Added: none.
+
 ## [8.0.1756] - 2026-10-17
 
 **Headline:** The O-star nebula test no longer fails on the hotter cluster stars that now live as long as real ones do.
