@@ -92,8 +92,6 @@ that default.
 | VIEW | The view from a planet |
 | POP | Population and politics |
 
-DOC has no open items today.
-
 ## Background
 
 The long-term goal is a fully populated galaxy (every sector, system,
@@ -1284,6 +1282,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Headline: 9.1 (the gravity map).
   Prerequisites: GEN.199, MAP.168, MAP.169, UX.94, API.24. Related:
   GEN.105, NAV.6.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the title
+  and the sentence calling the gravity map "the seminal feature of 9.0
+  (phase 3 roll-out)" are superseded by the version headline list (Boss,
+  2026-10-16, 11:25 and 11:26 PM EDT): 9.1 is the view from a planet
+  (VIEW.18) with the gravity map as its second feature, and 9.0 is
+  composition and the atmosphere colour.
   Design: [docs/design/gravity-map.md](design/gravity-map.md)
 
 - [ ] **MAP.168 The Sector Map gravity layer: coloured zones for pull, well depth and tidal strength**
@@ -1457,6 +1462,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   legend "share of the block inside a nebula", hover shows the
   percentage, works on unfilled cells. Off by default. Done: the choice,
   legend and hover with a browser test. Owner: Foundations lane 2.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the cover
+  ramp bins are those of MAP.178's nebula density research (2026-10-10,
+  PR #1188): 0, under 0.5 percent, 0.5 to 1.5, 1.5 to 3 and 3 percent or
+  more, replacing 0, under 5, 5 to 15, 15 to 30 and 30 percent or more
+  (the alternative of per-view percentiles stays open for the builder).
   Prerequisite: MAP.174. Related: MAP.131.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -2047,6 +2058,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stars follow the bubbles (GEN.391 to GEN.395), the drawn layer is an
   explanation and debug overlay, not how bubbles are shown. Keep this
   layer, off by default; MAP.236 stays at lower priority.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): where the
+  Done line says the layer is "on by default", Boss's 2026-10-16, 9:38
+  PM EDT answer wins: the layer is off by default and on request.
   Prerequisites: none. Related: MAP.234, MAP.217, GEN.254.
 
 - [ ] **MAP.236 Superbubbles need clearer bounds and slightly more transparency on the Galaxy Map**
@@ -2400,6 +2415,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-18 as the lane reported): Core 2 takes the stage views, the
   Sector Map and the client limits, to start after MAP.249 and its cache
   warming (PERF.130 to PERF.132) merge.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the star
+  cap is 45,000, not 70,000: MAP.249 (merged #2263, reported 2026-10-18,
+  about 12:55 PM EDT) set `GALAXY_VIEW_MAX_STARS` to 45,000 (was
+  70,000).
   Prerequisites: none. Related: MAP.249, MAP.250.
 
 - [ ] **MAP.253 Map and scene read the parent chain: systemscene, body_positions, the browser twin orbitpositions.js and the systemmap branches drop the three origin conventions**
@@ -2842,6 +2862,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   edge for nebulae and remnants it is a follow-up in `db/near.py`
   `_phenomena` (search r + the widest placed radius, measure to the
   centre minus the radius).
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the owner
+  is Core 4 (Boss approved the lane at 4:31 PM EDT, 2026-10-16); the
+  earlier "Owner: Interface" line is superseded.
   Prerequisites: none. Related: NAV.12, NAV.44, NAV.45.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
 
@@ -3628,6 +3652,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     follows from the masses derived from the generated galaxy, and 229.3
     is a reference value for a plausibility test. GEN.338 carries the
     rewrite.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the 8.2
+  kpc "placement" of the Sun and the change of
+  `GALACTIC_CENTER_DISTANCE_LY` are struck by GEN.144 (Boss, 2026-10-16,
+  9:43 PM EDT): the galaxy stores no home or Sun position and no value
+  places the Sun in the density model; 8.128 kpc stays only as the Milky
+  Way test reference.
     Prerequisites: GEN.338, GEN.339, GEN.340.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
@@ -4048,6 +4079,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
   lane queue); a line here that named Core 4 was the TODO thread's
   counting error, corrected 2026-10-16, 4:50 PM EDT.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): where the
+  Rescoped Done line says a scattered neutron star or black hole never
+  has a system before the fill, Boss's 2026-10-15, 5:51 PM EDT
+  refinement wins: stellar companions of neutron stars and black holes
+  are decided when the object is scattered, at the observed fractions;
+  only pulsar planets and the system pass are decided at fill.
   Prerequisites: GEN.318.
 
 - [ ] **GEN.136 Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests**
@@ -5216,6 +5254,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
   PM EDT, 2026-10-16; queue in the lane report); held until its blocker
   merges: GEN.325 (Core 3). Core 4 takes it when it unblocks.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the owner
+  is Core 4 (2026-10-16, 4:31 PM EDT, held until GEN.325 merges); the
+  early "Owner Core 3" text is superseded.
   Prerequisites: GEN.325. Related: GEN.158.
   Design: [docs/design/realistic-galactic-core.md](design/realistic-galactic-core.md)
 
@@ -5631,6 +5673,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator relayed): GEN.572, the exact AU per light-year and
   light-year per parsec, joins the 8.1 changes before the one rescatter
   (it changes a nebula's stored radius).
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the core
+  range is GEN.280 to GEN.284: GEN.285 no longer gates the 8.1 headline
+  (Boss's card, 2026-10-16, 8:41 PM EDT, see GEN.285) and stays in 8.3.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -6144,6 +6190,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   squared = G M(<r) / r), not set, and `MILKY_WAY_MASS` goes as the
   central mass of every Hill sphere (GEN.400); the baryonic Tully-Fisher
   relation is a cross-check only.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): where the
+  text names an 8.2 kpc "placement value", GEN.378 (Boss, 2026-10-16,
+  9:43 PM EDT) wins: no home or Sun position is stored; 8.128 and 8.2
+  kpc are reference radii for tests only.
   Prerequisites: GEN.144, GEN.369, GEN.379. Related: GEN.115.
 
 - [ ] **GEN.339 Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded**
@@ -6162,6 +6213,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   kpc average 229.3 km/s with the stated dispersions, an old galaxy run
   through the reseed step gives the same distribution, and the old
   function and constants are gone.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the Done
+  test target of 229.3 km/s at 8.128 kpc is superseded by GEN.338's
+  rewrite (2026-10-16, 8:43 PM EDT): the speed follows from the
+  potential derived from the generated galaxy, and 229.3 is only a
+  plausibility reference for a Milky Way shaped galaxy. Per-position
+  calculations replace every Sun-radius use (GEN.378, Boss, 9:43 PM
+  EDT).
   Prerequisites: GEN.338. Related: GEN.115.
 
 - [ ] **GEN.340 One star stepper: kick-drift-kick in the potential, a step per object, on arrays**
@@ -7188,6 +7247,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a second bump near 10 Gyr and stops about 11 Gyr. The plan's FCC 153,
   FCC 177 and '2 to 4 Gyr first phase' statements need Pinna 2019b and
   Bensby 2014 (not uploaded) and stay unverified.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): GEN.406 is
+  retired (2026-10-17, about 10:42 AM EDT): the age ranges are in
+  docs/design/galaxy-laws-research.md, and GEN.406 is not a
+  prerequisite.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.387 Globular clusters, the nuclear cluster and the central black hole follow the family's spheroid and halo**
@@ -7815,6 +7879,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (`physics.elements.molar_mass`); it left them because changing them
   would alter derived values. This table should take its molar masses
   from `physics.elements.molar_mass`.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the NIST
+  line "NIST, PubChem and USGS public domain" is corrected by the later
+  check (2026-10-17, 2:43 AM EDT): NIST SRD is copyrighted (permission
+  needed), PubChem and USGS are public domain. The licence column is a
+  record only (Boss, 2:35 PM EDT).
   Related: DB.71.
 
 - [ ] **GEN.411 The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree**
@@ -8023,6 +8093,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only, GEN.590): the shared download catalogue now treats every dataset
   as required, so this item's design should say whether a missing file
   refuses to start or falls back to a labelled stand-in, and why.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the
+  licence reason "(Boss to settle)" for shipping a fitted table is
+  closed by Boss's 2026-10-17, 2:35 PM EDT answer (GEN.410): every paper
+  and dataset he acquired is usable and no licence audit gates the
+  table; the fitted table may stand only for another stated reason
+  (size, fit quality).
   Related: GEN.87, GEN.189, DB.68.
 
 - [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
@@ -8244,6 +8321,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the note replaces a verified one; use the part 02 table and the
   first-report formulas; the note's N_s = 2.54743e19 cm^-3 is right; the
   King-factor-above-1.20 claim is unsupported.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the Earth
+  Rayleigh test value is 0.09721 at 550 nm (Bucholtz Table 4, 1962 US
+  Standard, read from Boss's papers, GEN.422, 2026-10-17, 12:10 to 12:13
+  PM EDT), replacing the computed 0.0969, at the same 2 percent
+  tolerance.
   Prerequisites: GEN.410, GEN.411. Related: GEN.418, VIEW.14.
 
 - [ ] **GEN.418 Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce**
@@ -8312,6 +8395,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the visible line lists of
   CH4 and NH3 (Karkoschka 1994, Karkoschka and Tomasko 2009 and 2010,
   Sithajan 2025).
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the
+  methane band strengths are no longer Boss's to research (Boss,
+  2026-10-18, 3:07 PM EDT: "I have already provided all the AD1 data I
+  can!"): remaining AD1 gaps are labelled stand-ins and methane comes
+  from the Oxford k-tables (GEN.422).
   Prerequisites: GEN.418. Related: GEN.409, GEN.420.
 
 - [ ] **GEN.420 The descriptions show the atmosphere colour: a swatch and a word in the planet and moon facts, in every output**
@@ -8728,6 +8817,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `physics.elements.molar_mass`; `habitability_world.MOLAR_KG` (SO2 and
   CH4) is about 1.9e-4 above the element sums and is left for the table
   items (see GEN.410).
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the NIST
+  line "NIST, PubChem and USGS public domain" is corrected by the later
+  check (2026-10-17, 2:43 AM EDT): NIST SRD is copyrighted (permission
+  needed), PubChem and USGS are public domain. The licence column is a
+  record only (Boss, 2:35 PM EDT).
 
 - [ ] **GEN.428 Planets and moons draw their bulk composition fractions instead of carrying a fixed text**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -9745,6 +9840,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Body composition research lanes to verify; summary in section 10 of
   docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the giant metallicity
   scaling and the double-grey profile.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the
+  "uncovered brown-dwarf range of 500 to 700 K" is superseded by GEN.494
+  (Kirkpatrick 2021 Table 13: 500 to 700 K is T8 to T9, Y0 is 371 to 510
+  K).
 
 - [ ] **GEN.455 Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -9819,6 +9919,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
   10A to 10D of atmosphere-composition.md): NH3 photolysis lifetime at 1 AU: default 1.5e-4 per s (6.7e3 s), range 1.3e-4 to 1.8e-4 per s (5.6e3 to 7.7e3 s), settled by the two lanes in part 10E (GEN.496 stores the quiet-Sun rate and an activity factor of 1.05 to 1.10); comet CO2 ratios confirmed, other comet ranges
   per finding 27.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the NH3
+  range 0.1 to 3.6 percent is superseded by the Mumma and Charnley 2011
+  values (1.5, 0.5, 0.7 and under 0.3 percent in four comets; Boss's
+  papers, GEN.488 and GEN.495, 2026-10-17, 12:10 to 12:13 PM EDT; the
+  3.6 percent bound is unsupported), flagged a stand-in at the widest
+  bracket.
 
 - [ ] **GEN.456 Lava worlds and hot rocky planets draw a vapour atmosphere over the magma from the surface composition and temperature: sodium, potassium, silicon monoxide, magnesium, iron and the oxides**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -10216,6 +10323,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   times lower between 0.3 and 3 Jupiter masses) are two verified fits
   that disagree: the newest wins (Chachan 2025), Thorngren stays in
   the record, and the union stays the bracket where either is in doubt.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the Do
+  text's Thorngren 2016 fit (M_Z = 57.9 (M / MJ)^0.61, 0.26 dex) is
+  superseded by the source rule of 2026-10-17, 1:16 PM EDT (two verified
+  fits that disagree: the newest wins, Chachan 2025; Thorngren stays in
+  the record and as a bracket end). Chachan's coefficients are not yet
+  in the item and must be read first.
 
 - [ ] **GEN.461 The hydrosphere reads the stored water mass fraction: the compressed water-layer depth, the base pressure, the high-pressure ice and the liquidus are recomputed, and the class label follows from the water share (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -10873,6 +10987,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   distance, DC13 Table 6), no extrasolar ensemble: rule M, the widest.
   Zoning boundary at the star's snow line, width 0.3 in log AU
   (placeholder).
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the
+  84-name list is not kept "as a vocabulary of names": per Boss's
+  shared-vocabulary point (2026-10-17, 1:47 AM EDT)
+  `ASTEROID_COMPONENTS` and the per-family lists go, and component names
+  come from the shared GEN.427 table through the class gate.
 
 - [ ] **GEN.478 The atmosphere possibility tables: the 16 categories and 104 rows of part 09, loaded through the gated table loader, with every row that has no sourced weight flagged and drawn from its bracket**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -10983,6 +11103,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed, with the composition chain).
   Prerequisites: GEN.478, GEN.411. Related: GEN.478, GEN.411, GEN.451,
   GEN.454, GEN.28, GEN.90, GEN.424.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the +0.5
+  magma ocean oxygen fugacity at 1 Earth mass is on Sossi's scale and
+  0.0 on the stored Hirschmann 2021 scale (GEN.498, 2026-10-17, 2:43 AM
+  EDT): the generator fixes one reference and keeps +0.5 as a Sossi
+  scale calibration target only.
 
 - [ ] **GEN.480 Source the occurrence weights of bare rock, hydrogen-helium envelope and water-rich worlds and of the envelope metal fraction, by radius, mass and insolation (AR1)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -11576,6 +11702,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4.11): Nearest law: spectral type is a monotone function of Teff with
   scatter; Kirkpatrick 2021 Table 13 (RMS 134, 79, 79 K; Y0 at 371 to
   510 K) wins over 'T/Y gap 500 to 700 K', which is T8 to T9. Rule V.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the brown
+  dwarf range is corrected (2026-10-17, 3:36 AM EDT and 1:16 PM EDT):
+  500 to 700 K is T8 to T9, not a T/Y gap, and Y0 begins at 371 to 510 K
+  (Kirkpatrick 2021 Table 13). The title's "T/Y boundary near 500 to 700
+  K" and GEN.454's "uncovered range of 500 to 700 K" are superseded.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.495 The comet population table: species ranges and log-normal scatters replace the draw centred on one comet, with a carbon-chain-depleted flag**
@@ -12068,6 +12200,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4.11): BC8: the planet-minus-star Fe/Mg slope 0.94 (+1.02/-1.07) is
   Plotnykov, Valencia and Ross 2026 (preprint arXiv:2511.17717), not the 2020 paper; of the two
   verified papers by the same group the newest wins.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): cite the
+  fit as Plotnykov, Valencia and Ross 2026 (preprint arXiv:2511.17717),
+  not Plotnykov 2025 or the 2020 paper (2026-10-17, 1:16 PM EDT).
   Prerequisites: GEN.503, GEN.505. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
@@ -12696,6 +12832,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chat, relayed by the coordinator): he has already provided all the AD1
   data he can, so none of these is a request to him.
   The Oxford page says 'not yet fully verified' and states no licence.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the
+  "missing and still on the fetch list" lines are stale: Bogaard 1978
+  leaves the fetch list (SO2 and H2S Rayleigh numbers can be computed,
+  open-gaps report 2026-10-17, 1:16 PM EDT), BC13 weights and limits are
+  free from IAEA GSR Part 3 (only the neutron weighting function stays
+  open), and AD1 methane is filled; the AD1 papers are not requests to
+  Boss (Boss, 2026-10-18, 3:07 PM EDT).
 
 - [ ] **GEN.534 A satellite's young stars reach the system-type tables: the young-star system types name `satellite_young`**
   Residual of GEN.528 (merged #2077, 2026-10-17, about 3:02 PM EDT as
@@ -13307,6 +13451,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   constant alone moves to 8.1 as GEN.563 (needs GEN.560); the derived
   counts for every remnant, the kick step and the rest of this item stay
   in 8.4; the neutron star count already matches and does not change.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): O'Connor
+  and Ott 2011 (ApJ 730, 70), Sukhbold et al. 2016 (ApJ 821, 38) and
+  Fryer et al. 2012 (ApJ 749, 91) are verified (GEN.560 finding,
+  2026-10-17, 11:55 PM EDT); "recalled and unverified" no longer applies
+  to them. The kick-escape share stays unverified.
 
 - [ ] **GEN.555 The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -13535,6 +13685,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   kick-escape share, Zhang 2008, Smartt 2009, Kochanek 2015, Ugliano
   2012. This item stays open for the moons, isolated-disk and size-law
   parts.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): O'Connor
+  and Ott 2011, Sukhbold et al. 2016 and Fryer et al. 2012 are verified
+  (finding of 2026-10-17, 11:55 PM EDT); the Do list's "recalled and
+  unverified" no longer applies to them. The kick-escape share stays
+  unverified.
   Prerequisites: none. Related: GEN.550.
 
 - [ ] **GEN.564 A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter**
@@ -14984,6 +15140,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md):
+  web/job_runner.py is not deleted: PERF.119 (Boss's card F1,
+  2026-10-18, 5:14 PM EDT) keeps it cut down to the detached starter
+  that only starts the run and does not build or order commands. The
+  delete list and the "no old code" Done line carry that exception.
   Prerequisites: DB.29. Related: PERF.86, PERF.29, PERF.30, DOC.20.
 
 - [ ] **PERF.107 The sector units and the stages around them: start, neighborhood, sectors, link, population and settle**
@@ -15165,6 +15327,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4 workers (a test that compares the stored rows), and the units are
   static chunks, not a work-stealing split, so a rerun gives the same
   chunks.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the flag
+  is `plan --fill-habitability`, not `plan --habitability` (PERF.122,
+  2026-10-17, 4:19 PM EDT; the code in `cli/generate.py` uses
+  `--fill-habitability`).
   Prerequisites: none. Related: PERF.98, PERF.106.
 
 - [ ] **PERF.117 The map-luminosity fill (`plan --map-luminosity`): measure it, and split it into id-range chunks if the time warrants**
@@ -15187,6 +15354,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4 workers (a test that compares the stored rows), and the units are
   static chunks, not a work-stealing split, so a rerun gives the same
   chunks.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the flag
+  is `plan --fill-map-luminosity`, not `plan --map-luminosity`
+  (PERF.122, 2026-10-17, 4:19 PM EDT; the code in `cli/generate.py` uses
+  `--fill-map-luminosity`).
   Prerequisites: none. Related: PERF.98, PERF.106.
 
 - [ ] **PERF.119 The Generate page, the API and the one-off sector and system commands start their runs through the wrapper**
@@ -15465,6 +15637,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.141 (the phased warm-up) and, as one goal with the index and
   lists, DB.79, PERF.140 and UX.141 (issue #2293). Full wording on
   PERF.139.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): "brought
+  forward if its cause is the missing cache" is superseded by Boss's
+  card on MAP.249 (2026-10-18, about 8:54 AM EDT, "Both, cut payload
+  first"): the tile cache work follows MAP.249's payload cut.
 
 - [ ] **PERF.131 Store the tiles compressed and serve the stored bytes with their encoding, so a request does no compression**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -15612,6 +15789,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dropped because of age, and a change to the data still rebuilds what it
   touched. Where the Done text below says "instead of evicting" or
   "nothing valid deleted", this decision wins.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): "brought
+  forward" is superseded by Boss's card on MAP.249 (2026-10-18, about
+  8:54 AM EDT): the tile cache work follows MAP.249's payload cut (about
+  2 MB a view).
   Prerequisites: none. Related: PERF.129, PERF.41, PERF.104.
 
 - [ ] **PERF.134 The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions**
@@ -15650,6 +15832,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that rule bumps the tile cache stamp and the cached tiles are rebuilt
   once. The galaxy map lag Boss reported at the same time is MAP.249; if
   its cause is the missing cache, this item is brought forward.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): "brought
+  forward" is superseded by Boss's card on MAP.249 (2026-10-18, about
+  8:54 AM EDT): the tile cache work follows MAP.249's payload cut (about
+  2 MB a view).
 
 - [ ] **PERF.136 Measure the fill with wanderers and their moons, and decide whether the rogue cost is on by default**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -16631,6 +16818,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the head is 0109 and the next free is 0110. DB.69, DB.67, DB.70 and
   DB.68 take the next free ids in the order they merge, so the numbers
   above are the order, not the ids.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the
+  revision is part of the ONE 8.4 revision of DB.73 (Boss, 2026-10-17,
+  11:38 PM EDT); "follows the DB.65 and DB.67 ones in the queue" is
+  superseded.
 
 - [ ] **DB.70 Planets, moons and small bodies store the surface and small-body composition shares**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -16786,6 +16978,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and parent mass, advanced by one `advance(seconds)` for every body,
   galactic, planetary and lunar. Storage here should hold that same
   state vector (with GEN.584).
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): DB.67,
+  DB.68, DB.69, DB.70 and DB.71 share this item's ONE 8.4 revision
+  (Boss, 2026-10-17, 11:38 to 11:40 PM EDT, in the order Cores 1 and 4
+  agree): the earlier lines that give each its own next free id in merge
+  order, DB.71's "revision after the DB.67 one", and DB.69's "follows
+  the DB.65 and DB.67 ones" are superseded. DB.67's "Boss wipes and
+  rebuilds" describes a different revision and is left as written.
   Prerequisites: none. Related: GEN.550, DB.69, DB.70.
 
 - [ ] **DB.74 One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables**
@@ -17215,6 +17415,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   does not refuse.
   Decided (2026-10-10): Boss (19:12Z): keep the current major plus the
   previous major for one release cycle (upload payloads only).
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the
+  version header is `X-PlanetGen-API-Version` (the code's
+  `API_VERSION_HEADER`, docs/api.md, API.31 of 2026-10-17, 11:33 AM
+  EDT), not `PlanetGen-API-Version`; and the server reports its version
+  and accepted range at `GET /api/version` (2026-10-09 research), not
+  only at `/api/health`, which may keep reporting `api_version`.
 
 - [ ] **API.6 User-level API keys, owned by the account that created them, that can read but not upload**
   Boss (2026-10-01 19:32Z): "Only admin can upload, and Admin can
@@ -18301,6 +18508,11 @@ clears each one.
   same clean full runs; if it times out again with no path integration
   in the traceback, split it back out. Agreed by Bug Hunt (2026-10-17,
   12:33 AM EDT as the lane reported).
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the owner
+  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
+  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
+  has been idle since 12:40 AM EDT on 2026-10-16.
   Prerequisites: none.
 
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
@@ -18326,6 +18538,11 @@ clears each one.
   generated and the primary was K2V every time. Needed next time: The
   failing assertion text and the seed of the failing run. Running log:
   the comments on issue #1694.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the owner
+  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
+  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
+  has been idle since 12:40 AM EDT on 2026-10-16.
   Prerequisites: none. Related: TEST.111, TEST.71.
 
 - [ ] **TEST.126 The heavy WebGL browser-map tests time out when four workers run them together (bug)**
@@ -18485,6 +18702,11 @@ clears each one.
   lane reported, release 8.0.1760): the breadcrumb sighting on this item
   is resolved by the TEST.231 change; the item's other sightings stay
   open, as does TEST.172.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the owner
+  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
+  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
+  has been idle since 12:40 AM EDT on 2026-10-16.
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
@@ -18505,6 +18727,11 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the owner
+  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
+  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
+  has been idle since 12:40 AM EDT on 2026-10-16.
   Prerequisites: none. Related: TEST.111, TEST.116.
 
 - [ ] **TEST.128 test_spatial_position_db and test_web_db_fields fail under a parallel run on one MySQL (bug)**
@@ -18533,6 +18760,11 @@ clears each one.
   passed, 1 failed): the same
   test_a_paused_queue_node_stands_by_until_resumed[2] failed once under
   the gate and passed alone 3 of 3 (8 s each); no traceback was saved.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the owner
+  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
+  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
+  has been idle since 12:40 AM EDT on 2026-10-16.
   Prerequisites: none. Related: TEST.111, TEST.123.
 
 - [ ] **TEST.129 Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug)**
@@ -18561,6 +18793,11 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the owner
+  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
+  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
+  has been idle since 12:40 AM EDT on 2026-10-16.
   Prerequisites: none. Related: TEST.116, TEST.126.
 
 - [ ] **TEST.130 test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug)**
@@ -18586,6 +18823,11 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the owner
+  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
+  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
+  has been idle since 12:40 AM EDT on 2026-10-16.
   Prerequisites: none. Related: TEST.123, GEN.122.
 
 - [ ] **TEST.135 Big-galaxy query-budget test for the nebula reads**
@@ -18625,6 +18867,11 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the owner
+  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
+  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
+  has been idle since 12:40 AM EDT on 2026-10-16.
   Prerequisites: none. Related: TEST.111, TEST.128, TEST.132 (done, PR #1578).
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
@@ -18647,6 +18894,11 @@ clears each one.
   Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
   "most important first, favoring anything that blocks something"; it
   takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the owner
+  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
+  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
+  has been idle since 12:40 AM EDT on 2026-10-16.
   Prerequisites: none. Related: TEST.128, TEST.137, TEST.126.
 
 - [ ] **TEST.141 test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug)**
@@ -18677,6 +18929,11 @@ clears each one.
   1 of 1 gate runs, passes alone 2 of 2. Fails on main: not checked.
   Reproducer given: SIGTERM to the process group while the 4-core gate
   runs, full gate under load.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the owner
+  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
+  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
+  has been idle since 12:40 AM EDT on 2026-10-16.
   Prerequisites: none. Related: TEST.128, TEST.132 (done, PR #1578), TEST.134.
 
 - [ ] **TEST.159 Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population**
@@ -20225,6 +20482,11 @@ clears each one.
     while admins stay at 12 hours (moved to the second child of USR.2, a
     role-aware session lifetime that applies at every sign-in; this item
     keeps the page route, the per-user limit and the concurrency cap).
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the order
+  is USR.2, then USR.3, then USR.5, then USR.4, then USR.6 and USR.7
+  (USR.4 is placed after USR.5, 2026-10-16 review; USR.28 first, with
+  USR.26 and USR.27 under USR.2).
     Prerequisites: USR.26.
 
 - [ ] **USR.9 `seo.privacy_note` text, "download my data" and "delete my account" on the account page**
@@ -20695,6 +20957,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 8 of 43). This replaces any earlier owner line on this item.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the
+  fingerprint encoder is GEN.304's (split from GEN.136, 2026-10-16), not
+  GEN.136's.
   Prerequisites: GEN.304. Related: OPS.28.
 
 - [ ] **OPS.58 The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment**
@@ -21445,6 +21711,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   The blackbody colour is GEN.416 in 9.0 (Boss, 2026-10-16, 11:24 PM
   EDT, the atmosphere colour chain); this item extends that module with
   the magnitude, bolometric correction and extinction law.
+  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
+  newer note wins, report todo-contradictions-2026-10-18.md): the HYG
+  calibration test is VIEW.12's (VIEW.10 was folded into VIEW.12, Boss,
+  2026-10-16, 11:58 PM EDT), not VIEW.10's.
   Prerequisites: VIEW.1, VIEW.9, GEN.416. Related: VIEW.2.
 
 - [ ] **VIEW.12 Sky catalogue: the stars an observer sees, with direction, brightness and light-time**
