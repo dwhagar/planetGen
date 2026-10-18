@@ -17267,6 +17267,10 @@ clears each one.
   this item (a trail race in MAP.227 and MAP.228): it is a test timing,
   not an app race. The fix resolves this item when merged; the sightings
   under TEST.172 (a block number off by one) are not covered by it.
+  Partly fixed (Core 2, PR #2147 merged 2026-10-17, 10:23 PM EDT as the
+  lane reported, release 8.0.1760): the breadcrumb sighting on this item
+  is resolved by the TEST.231 change; the item's other sightings stay
+  open, as does TEST.172.
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
@@ -18970,52 +18974,6 @@ clears each one.
   gate. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.126, TEST.171, TEST.172, TEST.227.
 
-- [ ] **TEST.231 test_the_wheel_anchors_on_the_star_under_the_pointer_not_the_mesh_behind_it failed alone once in 8 runs (bug)**
-  Found by Blocker 1 (2026-10-17, about 7:38 PM EDT, relayed by the
-  coordinator), filed by the TODO thread.
-  `src/tests/test_web_browser_sector_reach.py::test_the_wheel_anchors_on_the_star_under_the_pointer_not_the_mesh_behind_it`
-  (MAP.245's test) failed `assert the wheel anchor is (0, 0, 0)`, got
-  0.031 on two axes, once in 8 runs on Blocker 1's branch, 0 of 8 on
-  main, and 4 passes after. Fails on main: not in 8 runs. Frequency: 1
-  of 8 runs on one branch. Reproducer: run the test alone 8 times. A
-  rare flake: a small anchor offset is a numeric tolerance or a frame
-  that was not settled, not a missing wait. Do: find whether the anchor
-  reads the camera before it has settled, and fix the cause in the test
-  or the page. Done: the cause is on this item and the test passes 30 of
-  30 runs. Owner: Core 2 (owns the test, MAP.245).
-  Failure text (Blocker 1, 2026-10-17, 7:41 PM EDT as the lane
-  reported): `assert [0.0312965870..., -0.0312965870..., 0] ==
-  approx([0.0, 0.0, 0.0])`, case (5, -4); once in 8 alone runs on a
-  branch that cannot touch the test and once inside a changed gate under
-  load 9; 0 of 8 alone runs on main. Cause found (Core 2, 2026-10-17,
-  7:43 PM EDT as the lane reported): the test reads the star's screen
-  spot right after `galaxyCentreOn` (a camera flight), so under load the
-  spot is stale when the anchor is asked and the anchor falls back to
-  the focus-plane point (0.031 away). Fix coded in Core 2's branch
-  map247 (the test waits until the spot holds still for 3 reads, and the
-  same helper is applied to the system-disc test); it goes in the
-  MAP.247 PR and resolves this item when merged.
-  Sighting (Bug Hunt, 2026-10-17, 9:14 PM EDT as the lane reported, gate
-  61508d78 on the #2124 branch): the test FAILS ALONE in the gate at
-  9:08 PM EDT, same case (5, -4): the anchor is [0.03148, -0.03148, 0]
-  where the star is (0, 0, 0) (line 270, a pointer 5 px off the star
-  picks a point 0.031 pc away). Frequency now 2 of 9 runs outside Core
-  2's branch, against main as of 9:00 PM EDT. The fix (the test waits
-  until the star's screen spot holds still for 3 reads) is in Core 2's
-  branch map247 and ships with the MAP.247 PR; until it merges every
-  gate on main can fail on this test, so the TODO thread asked Core 2
-  (9:15 PM EDT) to send the test fix on its own, ahead of the MAP.247
-  gate.
-  Fix coded (Core 2, 2026-10-17, 9:15 PM EDT as the lane reported): its
-  own branch test231 (commit 79e6ebe0, off current main), not waiting
-  for the MAP.247 PR. Its small gate starts when MAP.239's gate 2 ends
-  (gates run one at a time), then PR and merge; Core 2 tells the TODO
-  thread and Bug Hunt at merge.
-  Sighting (Core 2, 2026-10-17, 9:31 PM EDT as the lane reported;
-  MAP.239's gate 2): failed again inside the gate and passes alone; the
-  fix is in Core 2's branch test231 (small PR next).
-  Prerequisites: none. Related: MAP.245, TEST.126.
-
 - [ ] **TEST.232 The a11y page_targets fixture fails 199 browser tests when /search answers 202 (slow-page job) under load (bug)**
   Found by Core 3 (2026-10-17, about 8:28 PM EDT as the lane reported;
   GEN.321's third gate, browser phase, load 6 to 10, between about 7:30
@@ -19058,6 +19016,8 @@ clears each one.
   Fix coded (Core 2, 2026-10-17, 9:15 PM EDT as the lane reported):
   branch test232 pins `SLOW_PAGE_SECONDS` off for the a11y fixture's
   app. It waits for Core 2's gates in order (TEST.231 first).
+  TEST.231 merged as #2147 (Core 2, 10:23 PM EDT as the lane reported);
+  the TEST.232 PR is next, then MAP.239.
   Prerequisites: none. Related: UX.118, PERF.105, TEST.223.
 
 - [ ] **TEST.233 test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug)**
