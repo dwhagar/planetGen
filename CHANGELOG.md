@@ -2,6 +2,37 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1838] - 2026-10-18
+
+**Headline:** A star's main-sequence track, a white dwarf's radius and layers and a neutron star's crust now come from the downloaded data, and generation will not start without it
+
+### Changed
+
+Star composition reads the data files that `update.sh` downloads (MIST isochrones, white-dwarf cooling sequences, neutron-star crust tables): a main-sequence star gets its luminosity, temperature, radius and lifetime from the MIST grid, a white dwarf its radius at its temperature and its hydrogen, helium, carbon and oxygen layers, and a neutron star the outer crust of one of 20 nuclear mass models. There is no fallback value: while a file is missing, `galaxy`, `plan`, `population` and `sector --num-sectors` above 1 refuse to start and name what is missing, and so do the Sector page's neighbourhood button and the Generate page's jobs, which now begin with a "Check the data" step after "Check the math" and before anything is reset. `update.sh` and `install.sh` warn at the end if a download failed. The older white-dwarf radius table and neutron-star crust list that this replaces were removed. No stored value changes.
+
+## [8.0.1837] - 2026-10-18
+
+**Headline:** The map luminosity fill, the habitability re-score and the nebula field run on the work queue as commands.
+
+### Changed
+- **`fill-map-luminosity` and `rescore-habitability` are commands (PERF.106).** `planetgen plan --fill-map-luminosity` and `--fill-habitability` queue a unit per range of ids (200,000 scattered rows, 500 systems) through the wrapper, so the ranges can run on several workers; each unit writes only its own rows, so the result is the same at any worker count. The bar counts ids, and the stage's row in the stage history is stored by the unit that completes it.
+- **`clean-nebula-field` and `draw-nebula-field` are commands (PERF.106).** `--redo-nebula-field` checks the stored field clouds in one unit (the dry run is always done and logged first; with `apply` the same unit deletes the rejected ones and refreshes containment), and the nebula field table is drawn by a unit per slab of cells, here and in the phenomena scatter, replacing the older work queue the draw used. The table holds the same rows at one and four workers, as it did at one before.
+- **`docs/design/redis-and-the-work-queue.md` describes them.**
+
+TODO items resolved: none (slice five of PERF.106). Added: none.
+
+## [8.0.1836] - 2026-10-18
+
+**Headline:** `planetgen warm` now builds the Galaxy Map's tiles ahead of the first visitor, the first levels in full and the zoom run in to the centre.
+
+### Added
+- **`warm-galaxy-tiles`, a new cache family and command (PERF.130).** `planetgen warm` (and so every update) now builds every tile of the first `tile_cache.warm_levels` levels of the map's tile octree (default 8: 4,713 tiles on the scaled test galaxy), then the tiles of a zoom run from the opening view in to the galaxy's centre along the opening camera's line, down to level `tile_cache.warm_zoom_levels` (default 14, the finest the map's cut uses; 7,112 tiles in all). The work is cut into chunks of 128 tiles that the queue's workers build, coarsest level first, so a stopped run has built what the most views use; a second run finds every tile stored and builds none. On the scaled test galaxy the defaults took 12 minutes 3 seconds in one process and 40 MB, and the time for a fresh visitor to get every tile of a view along the zoom run fell from 111 seconds over eight views (53.5 s at 3,000 pc) to 3.2 seconds. A level count that would build more than 150,000 tiles is refused with its count. Two new settings, `tile_cache.warm_levels` and `tile_cache.warm_zoom_levels`, in `config.json`, the example, the schema and `docs/config.md`.
+
+### Changed
+- `planetgen warm` lists seven families instead of six (`galaxy-tiles` follows `galaxy-map`).
+
+TODO items resolved: PERF.130 / Added: none
+
 ## [8.0.1835] - 2026-10-18
 
 **Headline:** The test that an orbital facility's phase advances no longer fails when the random giant it orbits is small enough that a quarter turn is not yet due.

@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.141 |
 | MAP | MAP.254 |
 | NAV | NAV.63 |
-| GEN | GEN.594 |
+| GEN | GEN.595 |
 | PERF | PERF.139 |
 | DB | DB.79 |
 | API | API.32 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.254 |
+| TEST | TEST.256 |
 | USR | USR.31 |
 | OPS | OPS.62 |
 | DOC | DOC.72 |
@@ -1254,10 +1254,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.587 | Replace the hand-written relation sites with the relations module, by file group, bit-identical on the golden set | none | open |
 | GEN.588 | Optional: operator arithmetic on Quantity for the edges (mass divided by volume gives a density), unscheduled | none | open |
 | GEN.589 | Research: the central molecular zone's upper cluster mass and its cloud-shock disruption, so the young clusters of the core match the few that are observed | none | open |
-| GEN.590 | Wire the downloaded isochrones, white-dwarf sequences and neutron-star tables into star composition (after Boss answers the Require / Stand-in card) | none | open |
+| GEN.590 | Wire the downloaded isochrones, white-dwarf sequences and neutron-star tables into star composition (after Boss answers the Require / Stand-in card) | none | done, PR #2282 |
 | GEN.591 | An elliptical comet's aphelion can exceed its star's Hill sphere in about 10% of runs: the comet bound test fails on main (bug) | none | open |
 | GEN.592 | A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced) | none | open |
 | GEN.593 | Pulsar planets: the disc range stops short of PSR B1257+12's planets, and two of the three formation paths (a captured giant, an ablated companion) leave a pulsar with no planets | none | open |
+| GEN.594 | Each AD dataset (AD1 to AD8) needs a refuse-or-fall-back decision: a missing file stops the run or stands in as a labelled stand-in | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1739,7 +1740,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.103 | A per-night cost ceiling on the orbital update: warn with the backlog size and move the rest the next night | none | done, PR #1769 |
 | PERF.104 | Cache warm-up for the whole site: build every list, map, sector, system and search index cache after an update, then rebuild only what a change invalidates | none | done, PR #1826 |
 | PERF.105 | Slow page requests queue a job that builds the answer into Redis, with a status route (the mechanism) | none | done, PR #2066 |
-| PERF.106 | The plan command on the run record, with stage timing, the killed-worker handler and job timeouts | none | open |
+| PERF.106 | The plan command on the run record, with stage timing, the killed-worker handler and job timeouts | none | done, PR #2278 |
 | PERF.107 | The sector units and the stages around them: start, neighborhood, sectors, link, population and settle | none | open |
 | PERF.108 | The backfill as queue units: chunks of at least 10,000 cells, one enumeration (folds in PERF.18) | none | open |
 | PERF.109 | Cache the Generate page estimate | none | done, PR #2050 |
@@ -1763,7 +1764,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.127 | `warm_map`: each cache family is its own command and `update.sh` builds the list | none | done, PR #2166 |
 | PERF.128 | `benchmark` is a step list handed to the wrapper, not a sequence of its own | none | open |
 | PERF.129 | Robust tile caching: the first zoom levels built ahead, tiles stored compressed, built proactively around every visit, kept until the data changes | none | open |
-| PERF.130 | Build the first several zoom levels of the Galaxy Map ahead of the first visitor: the opening view and every level down to a chosen depth | none | open |
+| PERF.130 | Build the first several zoom levels of the Galaxy Map ahead of the first visitor: the opening view and every level down to a chosen depth | none | done, PR #2276 |
 | PERF.131 | Store the tiles compressed and serve the stored bytes with their encoding, so a request does no compression | none | open |
 | PERF.132 | Build proactively on a visit: the surrounding tiles and the next zoom levels are built and cached in the background | none | open |
 | PERF.133 | Keep every tile until the data changes: invalidate by what changed, rebuild what a change touched, and never evict a valid tile for size | none | open |
@@ -2347,6 +2348,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.251 | test_orbital_facilities_advance_their_phase fails once in a gate: advance_facility_orbits returns 0 where 1 is expected for orbit_clock(period / 4) (bug) | none | done, PR #2272 |
 | TEST.252 | test_a_double_click_on_a_star_flies_the_camera_to_it fails once in a loaded gate and passes alone (bug) | none | open |
 | TEST.253 | test_nebula_shape_endpoint_serves_a_mesh fails once under load: the largest vertex radius is 1.0288 against a bound of 1.0, and it passes alone (bug) | none | open |
+| TEST.254 | test_core_ball_batch_fill_makes_planets builds 4 systems instead of 3 for some random galaxy seeds (bug) | none | open |
+| TEST.255 | test_workers: two real-Redis worker tests fail in loaded gates and pass alone, again after TEST.250's fix (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

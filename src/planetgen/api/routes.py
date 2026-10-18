@@ -1678,6 +1678,7 @@ def generate_sector_neighborhood_route(sector_id):
     if not estimate_only:
         try:
             run_galaxy.require_math_check()
+            run_galaxy.require_datasets()
         except RuntimeError as exc:
             raise ApiError(str(exc), status_code=409)
     try:

@@ -14,7 +14,7 @@ of this build; the grid is the data, not a result tuned to any known star.
 The readers interpolate: linearly in [Fe/H] between the two grid values around it (clamped at the ends of the grid),
 linearly in log age between the two isochrone ages around the age, and linearly in initial mass along the isochrone.
 They answer `None` when the star has left the main sequence at that age or is beyond the grid's ages, and raise
-`fetch.StandIn` when the file has not been downloaded.
+`fetch.DataMissing` when the file has not been downloaded.
 """
 
 import functools
@@ -37,7 +37,7 @@ DATASET = fetch.Dataset(
     licence="open; cite Choi et al. 2016 and Dotter 2016",
     pieces=(fetch.Piece(ARCHIVE, "https://mist.science/data/tarballs_v1.2/" + ARCHIVE,
                         "bb3f42743f75676fa8bf6ca63c4cb2723a0839b77204efebcae39fa4610a92c8", 221507784, transient=True),),
-    standin="the Baraffe et al. 2015 track at solar metallicity and the fitted relations of the stellar-composition note",
+    replaces="the Baraffe et al. 2015 track at solar metallicity and the fitted relations of the stellar-composition note",
     fill="SC1",
     derived=(DERIVED,),
     derive=lambda folder: derive(folder),

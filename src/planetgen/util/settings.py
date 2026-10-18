@@ -160,6 +160,12 @@ class TileCache(_Section):
                    env="PLANETGEN_TILE_CACHE_DIR", editable=False, category="cache")
     max_mb: float = opt(200, "Roughly how big the tile cache may grow before its oldest files are pruned (0 turns "
                         "the disk cache off).", env="PLANETGEN_TILE_CACHE_MAX_MB", unit="MB", category="cache", ge=0)
+    warm_levels: int = opt(8, "How many levels of the Galaxy Map's tile octree `planetgen warm` builds in full, "
+                           "coarsest first (level 8 is tiles 2,048 pc across; every level is eight times the tiles "
+                           "of the one above; 0 builds none).", unit="levels", category="cache", ge=0, le=15)
+    warm_zoom_levels: int = opt(14, "Finest tile level of the zoom run `planetgen warm` builds from the opening "
+                                "view in to the galaxy's centre, on top of the levels above (level 14 is tiles 32 pc "
+                                "across and the finest the map's cut uses; at most 15; 0 builds no run).", unit="levels", category="cache", ge=0, le=15)
 
 
 class PageCache(_Section):
