@@ -14184,6 +14184,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   every recalled source verified by a lane before use under the standing
   source rules, and any change to a drawn value bumps the generator
   epoch (OPS.56 rule).
+  Lane (coordinator, 11:44 PM EDT as relayed): a read-only research
+  thread 'Black hole formation research (2026-10-18)' (effort high) runs
+  the black hole part first, because GEN.563 and so GEN.301 wait on it;
+  its findings go to
+  /mnt/project-files/handoffs/gen560-black-hole-formation-2026-10-18.md
+  and the coordinator relays them. The other research parts of this item
+  (moons of ejected planets, disks of isolated planetary-mass objects,
+  the interstellar size law) have no lane yet.
   Prerequisites: none. Related: GEN.550.
 
 - [ ] **GEN.561 The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own**
@@ -14226,6 +14234,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are Core 3's files, so the two lanes agree who edits them).
   Prerequisites: none. Related: GEN.553, GEN.327, GEN.253, GEN.377,
   GEN.273, GEN.550.
+  Owner confirmed (coordinator, 11:44 PM EDT as relayed): Core 4.
 
 - [ ] **GEN.563 The black hole density follows the mass function and the verified failed-supernova share: one constant changes, the neutron star density stays**
   From Boss's back-scatter cards (Boss's back-scatter cards, taps 11:38
@@ -14255,6 +14264,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shows the gap to the derived share. Owner: Core 3 (proposed: it owns
   the scatter rates and GEN.377); the verification is the research
   lane's, GEN.560.
+  Owner confirmed (coordinator, 11:44 PM EDT as relayed): Core 3.
   Prerequisites: GEN.560. Related: GEN.560, GEN.554, GEN.377, GEN.301.
 
 
