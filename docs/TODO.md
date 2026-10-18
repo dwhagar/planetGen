@@ -14892,6 +14892,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   brown-dwarf radius and hydrogen limit against metallicity (MIST starts
   at 0.1 solar masses) and the neutron-star radius from an equation of
   state (GEN.463). Boss's answer covers star composition only.
+  Correction from Blocker 1 (reported 10:12 AM EDT 2026-10-18, real
+  clock): the neutron-star radius is not left as a stand-in. GEN.463
+  already merged and gives it from the measured band
+  (`physics/neutron_star.py`); what stays unbuilt is only the
+  neutron-star inner crust and core, which would integrate the 21
+  equation-of-state tables on disk (nothing does yet). Its first gate
+  run failed on test-harness faults of its own (the test machine has no
+  downloaded data, so the test fixture has to hold for the whole
+  session); fixed, gate rerun started 10:09 AM EDT.
   Prerequisites: none. Related: GEN.548, GEN.543, GEN.439, GEN.440.
 
 - [ ] **GEN.591 An elliptical comet's aphelion can exceed its star's Hill sphere in about 10% of runs: the comet bound test fails on main (bug)**
@@ -19928,6 +19937,16 @@ clears each one.
   failed once (113 neutron stars against 112 wanted). Both are in the
   same file as the unseeded galaxy and go with Bug Hunt's fix; the
   second needs its own look at whether the expected count is exact.
+  Arithmetic from Core 1 (reported 10:37 AM EDT 2026-10-18, real clock;
+  its GEN.404 gate failed once, passed 4 of 4 alone) for the plan-run
+  case: `hypervelocity_rows` draws round(log-uniform(1e3, 1e4) x
+  reach_pc / 1e5 pc) stars and the toy outline's reach is about 34 pc,
+  so the count rounds to 0 whenever the log-uniform draw is under about
+  1,470, about 17 percent of random seeds. Fails on main by the same
+  arithmetic. Reproducer: run the test a dozen times. This is the cause
+  already recorded above, with the threshold now stated; the fix is in
+  the test (pin a seed that places one, or tie the expectation to the
+  count).
   Prerequisites: none. Related: TEST.220, TEST.224.
 
 - [ ] **TEST.239 Tests for the unified chain: determinism by host, representation counts per kind and level, rogue and comet rates, derived remnant shares**
@@ -20151,6 +20170,27 @@ clears each one.
   another gate, and the backfill time is printed in the run log. Owner:
   Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.227, TEST.235.
+
+- [ ] **TEST.247 The random-start neighbourhood test with --min-start-density 1000 (dense_core) takes 466 s alone and 554 s with its sibling, and times out at 900 s under gate load (bug)**
+  Found by Core 1 (reported 10:37 AM EDT 2026-10-18, real clock, its
+  GEN.404 gate), filed by the TODO thread.
+  `src/tests/test_galaxy_gen.py::test_random_start_neighborhood_matches_the_real_skeleton_plan[dense_core]`
+  (the `--min-start-density 1000` variant added with TEST.225): alone on
+  an idle origin/main both variants take 554 s (dense_core about 466 s,
+  random about 88 s); under the four-core gate load dense_core passed
+  the 900 s per-test limit and failed with a timeout. Fails on main:
+  only under gate load. Frequency: 1 of 1 gate runs of Core 1 so far.
+  Reproducer: `pytest
+  src/tests/test_galaxy_gen.py::test_random_start_neighborhood_matches_the_real_skeleton_plan`
+  on idle main (554 s), then the same with another gate running. Do:
+  find what the dense-core start spends its 466 s on (a capped
+  dense-core cell that resolves its brightest stars, GEN.281) and shrink
+  the work the test needs (a smaller radius or a pinned address in a
+  dense core) without loosening what it proves, or give the case a time
+  limit that scales with load; no quarantine. Done: the dense_core case
+  passes in a gate that runs beside another gate, and its alone time is
+  under 300 s or the item says why not. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.225, TEST.246.
 
 ## USR: User accounts
 
