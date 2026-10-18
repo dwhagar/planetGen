@@ -9468,6 +9468,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   RELATIONS (neon follows O or Mg, white-dwarf layers, neutron-star
   inner crust and core, the brown-dwarf radius and hydrogen limit
   against Z) wait on GEN.548.
+  Update (Blocker 1, 1:13 AM EDT 2026-10-18 as the lane reported): the
+  first gate had one real failure (the tuning pair test:
+  `STELLAR_NS_MASS_HEAVIEST_SOL` was a (mean, sigma) tuple and is now
+  two constants) plus the three architecture-page tests, which are
+  opt-in since DOC.69; rebased on main 6ed27d7, second changed gate
+  started 1:12 AM EDT. A fourth new module for the architecture page:
+  `planetgen.physics.wolf_rayet`.
 
 - [ ] **GEN.440 Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -19923,6 +19930,15 @@ clears each one.
   Done adds: a test that runs any migrate or maintenance path sets
   `PLANETGEN_STATE_DIR` to a temp folder, so the real folder is never
   written.
+  Sighting (Core 2, 1:21 AM EDT 2026-10-18 as the lane reported): in
+  Core 2's lane container (the test install, hostname vm)
+  `/var/lib/planetGen/state/maintenance.json` stayed set ('by':
+  'migrate', 'cause': 'update') from a test run's `migrate`, since 5:21
+  PM EDT 10-17; it is not Boss's server and nothing is for Boss to do.
+  Tests that run `migrate` must not write the real state directory (the
+  fixture must point `PLANETGEN_STATE_DIR` at a temporary one and
+  restore it); Core 2 works around it with `PLANETGEN_STATE_DIR`
+  meanwhile.
   Prerequisites: none.
 
 - [ ] **TEST.190 A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug)**
