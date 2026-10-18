@@ -257,7 +257,7 @@ So the encounter limit, not the tide, decides everywhere, and the old fixed cap 
 (11,400 AU) and far too wide in the bulge. That is the intended consequence of 6.6, and it is a visible one: a
 bulge sector holds only tight pairs. The reference density `rho_2` and sigma come from the profile (`gas.mass_solar`
 and `dark_matter` are left out of rho, which would shorten the limit a little). The sigma used is the share-weighted rms of the
-cell's populations (`tuning.STELLAR_POPULATION_DISPERSION_KMS`). The age is the star's own, so a young pair keeps a wider axis than an old one.
+cell's populations (`profile._dispersion_kms`: the disc's, bulge's and halo's from the galaxy's own structure, GEN.532; the rest `tuning.STELLAR_POPULATION_DISPERSION_KMS`). The age is the star's own, so a young pair keeps a wider axis than an old one.
 
 ## 4. How the rules reach the draw
 
