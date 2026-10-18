@@ -80,8 +80,9 @@ def test_the_density_table_and_the_registry_name_the_same_kinds():
     assert set(tuning.PHENOMENON_RATE_SCALE) == set(tuning.PHENOMENON_DENSITY_PC3)
     for row in registry.KINDS:
         assert row.rate in (None, row.kind), row.kind
-    # A kind the sector rolls has a rate (or is explicitly rate-less, like the cloud field).
-    assert {row.kind for row in registry.rows(sector_roll=True) if not row.rate} == set()
+    # A kind the sector rolls has a rate (or is explicitly rate-less: the black holes' follows the stars' metallicity,
+    # `galaxy.black_hole_density`, GEN.563).
+    assert {row.kind for row in registry.rows(sector_roll=True) if not row.rate} == {"black-hole"}
 
 
 def test_no_place_names_a_kind_the_registry_lacks():

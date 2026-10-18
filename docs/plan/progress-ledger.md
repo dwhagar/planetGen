@@ -888,3 +888,10 @@ Baseline: PR #1817.
 | UX.107 | 8.1 | Description layer |
 | DOC.45 | 8.1 | Description layer |
 | GEN.572 | 8.1 | Composition research and design |
+| GEN.549 | 8.1 | Galaxy laws build |
+| TEST.223 | 8.1 | Bugs and flaky tests |
+| TEST.238 | 8.1 | Bugs and flaky tests |
+| MAP.252 | 8.1 | Fly-through map |
+| GEN.244 | 8.1 | Components and wanderers |
+| GEN.282 | 8.1 | Galactic core and halo |
+| GEN.563 | 8.1 | Galactic core and halo |

@@ -33,7 +33,7 @@ SUN = (8128.0, 0.0, 0.0)
 INNER_DISK = (3000.0, 0.0, 0.0)
 HALO = (20000.0, 3000.0, 15000.0)
 ABOVE_THE_DISK = (8128.0, 0.0, 1500.0)
-EVERYWHERE_ONE = ("neutron-star", "black-hole", "planetary-nebula", "brown-dwarf")
+EVERYWHERE_ONE = ("neutron-star", "planetary-nebula", "brown-dwarf")
 
 
 def _at(position):
@@ -81,10 +81,23 @@ def test_the_expected_factor_clamps_a_draw_as_the_sampler_does():
 
 
 @pytest.mark.parametrize("position", [SUN, INNER_DISK, HALO, ABOVE_THE_DISK, (0.0, 0.0, 0.0)])
-def test_bound_remnants_planetary_nebulae_and_brown_dwarfs_are_not_scaled_by_place(position):
+def test_neutron_stars_planetary_nebulae_and_brown_dwarfs_are_not_scaled_by_place(position):
     factors = _at(position).kind_factors
     for kind in EVERYWHERE_ONE:
         assert factors[kind] == 1.0
+
+
+@pytest.mark.parametrize("position", [SUN, INNER_DISK, HALO, ABOVE_THE_DISK, (0.0, 0.0, 0.0)])
+def test_the_black_hole_factor_is_the_failed_share_the_places_stars_make(position):
+    """GEN.563: not 1 but the share of the place's massive stars that failed to explode and made their remnant: below
+    the galaxy's metal-free share, and the halo's metal-poor stars make more than the disk's."""
+    factor = _at(position).kind_factors["black-hole"]
+    assert 0.0 < factor <= SHAPE.structure.black_hole_metal_free_share / (1.0 - 0.00637) * 1.001
+
+
+def test_a_metal_poor_place_makes_more_black_holes_than_a_metal_rich_one():
+    assert _at(HALO).kind_factors["black-hole"] > _at(SUN).kind_factors["black-hole"]
+    assert _at(SUN).kind_factors["black-hole"] >= _at(INNER_DISK).kind_factors["black-hole"]
 
 
 @pytest.mark.parametrize("position", [SUN, INNER_DISK, HALO, ABOVE_THE_DISK, (0.0, 0.0, 0.0)])
@@ -456,7 +469,7 @@ def test_the_planetary_nebula_factor_is_one_in_the_disk_within_a_few_percent_and
 def test_the_disks_other_factors_are_what_they_were():
     here = _at(SUN)
     assert here.kind_factors["supernova-remnant"] == pytest.approx(here.gas.cold_fraction)
-    for kind in ("neutron-star", "black-hole", "brown-dwarf"):
+    for kind in ("neutron-star", "brown-dwarf"):
         assert here.kind_factors[kind] == 1.0
 
 

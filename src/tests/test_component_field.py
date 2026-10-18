@@ -183,3 +183,32 @@ def test_the_field_is_made_once_from_equal_rows():
     from planetgen.db import store
     found = tuple(_cluster(2.0e5, 5.0, 5, name=f"C{i}", center=(100.0 * i, 0.0, 0.0)) for i in range(3))
     assert store._field_of(found, EDGE, E1) is store._field_of(tuple(found), EDGE, E1)
+
+
+def test_an_unchanged_table_is_not_read_again(monkeypatch):
+    """GEN.244: a galaxy holds tens of thousands of open clusters, and every page asks for the field; the rows are read
+    only when the table's signature changes."""
+    from planetgen.db import store
+
+    class Answer:
+        def __init__(self, row):
+            self.row = row
+
+        def fetchone(self):
+            return self.row
+
+    signature = {"db": "d", "n": 3, "first_id": 1, "last_id": 3, "mass": 6.0e5}
+
+    class Conn:
+        def execute(self, sql, params=()):
+            return Answer({"1": 1} if "information_schema" in sql else dict(signature))
+
+    reads = []
+    found = [_cluster(2.0e5, 5.0, 5, name=f"C{i}", center=(100.0 * i, 0.0, 0.0)) for i in range(3)]
+    monkeypatch.setattr(store, "get_galaxy_components", lambda conn, kind=None: reads.append(1) or list(found))
+    monkeypatch.setattr(store, "_FIELD_BY_SIGNATURE", store.collections.OrderedDict())
+    first = store._component_field(Conn(), EDGE, E1)
+    assert first is not None and store._component_field(Conn(), EDGE, E1) is first and len(reads) == 1
+    signature["last_id"] = 9           # the table was written again
+    store._component_field(Conn(), EDGE, E1)
+    assert len(reads) == 2

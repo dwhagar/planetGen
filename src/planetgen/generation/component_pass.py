@@ -31,14 +31,15 @@ import numpy as np
 from planetgen import tuning
 from planetgen.generation import bright_stars, phenomenon_reach, phenomenon_scatter
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS
-from planetgen.galaxy import component_field, nebula_field, profile
+from planetgen.galaxy import black_hole_density, component_field, components as component_table, nebula_field, profile
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.physics import component_profiles
 from planetgen.util import draw
 from planetgen.util.poisson import poisson_count
 
 COMPONENT_KINDS = ("cluster", "satellite")
-"""tuple: The kinds of component the pass draws; each is also the population of its stars."""
+"""tuple: The kinds of component the pass draws; each is also the population of its stars (a satellite's three, a young
+open cluster's one by its age)."""
 
 
 def systems_of(component):
@@ -153,7 +154,10 @@ def satellite_rates(min_mass_solar):
 
 def expected_phenomena(component, min_mass_solar):
     """About how many phenomena the pass places for one component, the progress bar's weight: its systems times the
-    rates it has (a satellite's gas-kept and young-born classes at their full rate, an upper bound)."""
+    rates it has (a satellite's gas-kept and young-born classes at their full rate, an upper bound). A young open cluster
+    (GEN.244) places none: its remnants are the disk's, and its stars are a fraction of a percent of the disk's."""
+    if component_table.is_open_cluster(component):
+        return 0.0
     rates = phenomenon_rates(min_mass_solar)
     if component.kind == "satellite":
         rates = rates + satellite_rates(min_mass_solar)
@@ -195,9 +199,12 @@ def gas_by_radius(component, shape):
 def _class_mean(component, kind, subtype, rate, shape):
     """The Poisson mean of one class in one component: its systems times the rate per system, times the component's
     factor for the class (GEN.528): the planetary nebulae's old-star share, the magnetars' young share of the
-    satellite's systems. A satellite's supernova remnants take the full rate and are kept by the gas fraction
+    satellite's systems, the stellar-mass black holes' metallicity factor of the component's populations (GEN.563). A satellite's supernova remnants take the full rate and are kept by the gas fraction
     (`scatter_phenomena`)."""
     mean = systems_of(component) * rate
+    if kind == "black-hole" and subtype == "stellar":
+        mean *= black_hole_density.component_factor(component_field.population_shares(component),
+                                                    None if shape is None else shape.structure)
     if kind == phenomenon_scatter.OLD_STAR_KIND:
         mean *= planetary_nebula_factor(component, shape)
     elif phenomenon_reach._follows_young_stars(kind, subtype):
@@ -222,11 +229,12 @@ def scatter_phenomena(components, edge_pc, seed, skip_addresses=None, min_mass_s
     extra = satellite_rates(min_mass_solar)
     skip_addresses = skip_addresses or set()
     for component in components:
-        if component.kind not in COMPONENT_KINDS:
+        if component.kind not in COMPONENT_KINDS or component_table.is_open_cluster(component):
             continue
-        rng = draw.Stream(f"{seed}:phenomena:component:{component.kind}:{component.name}")
         gas = gas_by_radius(component, shape) if component.kind == "satellite" else None
         for kind, subtype, rate in rates + (extra if gas is not None else []):
+            rng = phenomenon_scatter.class_stream(
+                f"{seed}:phenomena:component:{component.kind}:{component.name}", kind, subtype)
             points, (mass_draw, keep) = _candidates(component, _class_mean(component, kind, subtype, rate, shape), rng)
             masses = phenomenon_scatter._masses(kind, subtype, min_mass_solar, mass_draw)
             if kind in phenomenon_scatter.GAS_WEIGHTED_KINDS and points.shape[1]:

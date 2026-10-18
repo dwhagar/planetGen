@@ -35,6 +35,17 @@ def test_a_tile_comes_back_with_its_stars_in_order_and_close_to_what_went_in():
     assert back["generated"][0]["star_type"] == "G"
 
 
+def test_the_tier_of_a_halo_or_satellite_star_rides_with_the_charted_flag():
+    """MAP.252: the halo (1) and the satellite galaxies (2) are the first to dim under "Charted only"; the flag byte
+    carries them beside `charted` and a star of the disc has no `tier`."""
+    stars = [star(1, 1.0, 1.0, 1.0, 1.0, tier=1), star(2, 2.0, 1.0, 1.0, 1.0, tier=2, system_id=4),
+             star(3, 3.0, 1.0, 1.0, 1.0), star(4, 4.0, 1.0, 1.0, 1.0, system_id=5)]
+    back = tilepack.unpack_tile(tilepack.pack_tile({"stars": stars}))["stars"]
+    assert [(s.get("tier"), s["charted"]) for s in back] == [(1, False), (2, True), (None, False), (None, True)]
+    trimmed = tilecache.trim_tile({"stars": [dict(stars[1], system_id=None, tier=2), dict(stars[2], tier=0)]})["stars"]
+    assert trimmed[0]["tier"] == 2 and "tier" not in trimmed[1]
+
+
 def test_a_star_costs_about_twenty_bytes_where_json_costs_over_a_hundred():
     stars = [star(i, i * 0.37, -i * 0.11, i * 0.02, 1.0 + i, temperature_k=5000 + i, radius_sol=1.0 + i / 100,
                   star_type="G", system_id=i) for i in range(1000)]

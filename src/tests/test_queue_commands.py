@@ -51,10 +51,15 @@ def test_a_step_the_request_does_not_select_is_not_in_the_list():
     assert kinds(["plan", "--phenomena-only"]) == ["scatter-phenomena"]
 
 
-def test_the_mass_scatter_is_the_first_stage_the_wrapper_queues():
-    for argv in (["plan"], ["plan", "--bright-stars-only"], ["galaxy", "--then-scatter"]):
+def test_the_star_scatters_are_the_stages_the_wrapper_queues_first_in_the_order_of_their_passes():
+    for argv in (["plan", "--bright-stars-only"], ["galaxy", "--then-scatter"]):
         args = _args(argv)
-        assert [step.kind for step in wrapper.queued(wrapper.steps_for(args.command, args))] == ["scatter-mass"]
+        assert [step.kind for step in wrapper.queued(wrapper.steps_for(args.command, args))
+                if step.kind in ("scatter-mass", "scatter-luminosity")] == ["scatter-mass", "scatter-luminosity"]
+    args = _args(["plan", "--phenomena-only"])
+    assert [step.kind for step in wrapper.queued(wrapper.steps_for(args.command, args))] == ["scatter-phenomena"]
+    args = _args(["plan", "--bright-stars-down-to", "10"])
+    assert [step.kind for step in wrapper.queued(wrapper.steps_for(args.command, args))] == ["scatter-band"]
 
 
 def test_only_a_registered_command_with_units_can_be_queued_and_every_command_has_a_summary():
@@ -64,7 +69,7 @@ def test_only_a_registered_command_with_units_can_be_queued_and_every_command_ha
     with pytest.raises(ValueError):
         commands.build_steps("sector", _args(["galaxy"]))
     with pytest.raises(ValueError, match="cannot be cut"):
-        commands.expand_function("scatter-luminosity")
+        commands.expand_function("scatter-backfill")
 
 
 def test_the_step_the_wrapper_adds_when_the_stored_scatter_is_incomplete_comes_before_the_luminosity_pass():
@@ -111,7 +116,7 @@ def _units(count):
 def test_the_unit_that_completes_a_stage_queues_the_next_in_the_order_of_the_list(monkeypatch, conn):
     _register(monkeypatch, first=_units(3), second=_units(2), third=_units(1))
     plans, results = [], {}
-    listing = [commands.Step("inline", "scatter-luminosity", "An inline step"),
+    listing = [commands.Step("inline", "scatter-backfill", "An inline step"),
                commands.Step("a", "first", "First"), commands.Step("b", "second", "Second"),
                commands.Step("c", "third", "Third")]
     run_id = wrapper.run("Three stages", listing[1:], lambda index, plan: plans.append((index, plan["kind"], plan["units"])),
@@ -181,7 +186,7 @@ def test_a_unit_runs_alone_and_the_command_line_lists_and_runs_commands(monkeypa
     assert commands.run_alone("alone", {"n": 4}) == {"squared": 16}
     generate_cli.run_commands(_args(["commands"]))
     assert any(line.startswith("scatter-mass") and "units" in line for line in lines)
-    assert any(line.startswith("scatter-luminosity") and "inline" in line for line in lines)
+    assert any(line.startswith("scatter-backfill") and "inline" in line for line in lines)
     assert len(lines) == len(commands.REGISTRY), "one line per command"
     path = tmp_path / "unit.json"
     path.write_text(json.dumps({"n": 5}))

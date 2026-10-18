@@ -210,6 +210,7 @@ export function createStageView(host) {
   let needGenerated = false;
   let view = null;
   let goToken = 0;
+  let arriving = false;
   // The map's own history (Back and Forward buttons): this entry's index,
   // and the furthest one known.
   let mapIndex = 0;
@@ -1071,6 +1072,7 @@ export function createStageView(host) {
     if (entered) closeSector();
     if (!options.keepSector) selectedSector = null;
     const token = ++goToken;
+    arriving = true;
     const query = withKept(options.query || cameraQueryFor(r, options.camera || cameraFor(r)));
     if (options.push !== false && (!S.sameStage(stage, r.stage) || withoutCam(query) !== withoutCam(location.search))) {
       pushEntry(query, r.stage);
@@ -1085,6 +1087,8 @@ export function createStageView(host) {
       if (!active || token !== goToken) return;
       if (animation) finishAnimation();
       flyTo(r);
+    }).finally(function () {
+      if (token === goToken) arriving = false;
     });
   }
 
@@ -2462,6 +2466,10 @@ export function createStageView(host) {
 
   // For the browser tests: the stage on screen.
   canvasEl.galaxyStage = function () { return stage; };
+
+  // For the browser tests: whether the camera is on its way to a stage, waiting for the stage's data or flying
+  // (the trail follows the camera, MAP.227, so it is read once the camera has landed).
+  canvasEl.galaxyMoving = function () { return arriving || !!animation; };
 
   // For the browser tests: opens the window of `g` cells round the cell {m, shell, band, wedge}, as the
   // breadcrumb's crumbs and a click on a block do.

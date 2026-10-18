@@ -172,6 +172,40 @@ def test_each_stage_is_stored_with_its_time_settings_and_what_it_did(control_con
     assert history["mass"]["stage_n"] == 4 and history["mass"]["stage_total"] == 9
 
 
+def test_a_stage_handed_to_the_queue_is_not_stored_by_this_process(control_config, monkeypatch):
+    mysql_config = control_config
+    from planetgen.generation import stats as generation_stats
+    monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
+    args = _plan("--bright-stars-only", "--workers", "2", "--mysql-host", mysql_config.host,
+                 "--mysql-port", str(mysql_config.port), "--mysql-user", mysql_config.user,
+                 "--mysql-password", mysql_config.password, "--mysql-database", mysql_config.database)
+    stages.begin(stages.for_command("plan", args), args, "plan")
+    stages.enter("mass")
+    row = stages.hand_over_open_stage()
+    assert row["command"] == "plan" and row["settings"]["workers"] == 2 and (row["n"], row["total"]) == (1, 2)
+    stages.note(shells=10, shells_modified=1, objects=3)
+    stages.enter("luminosity")
+    stages.finish()
+    conn = _control(mysql_config)
+    try:
+        assert [run["stage_key"] for run in generation_stats.stage_history(conn)
+                if run["stage_key"] in ("mass", "luminosity")] == ["luminosity"]
+        (job,) = generation_stats.stage_history(conn, stages.JOB_KEY)
+    finally:
+        conn.close()
+    assert job["metrics"]["shells"] == 10, "the whole job still counts the handed-over stage"
+
+
+def test_a_stage_with_nothing_recorded_hands_over_no_row(monkeypatch):
+    from planetgen.generation import stats as generation_stats
+    monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "0")
+    args = _plan("--bright-stars-only")
+    stages.begin(stages.for_command("plan", args), args, "plan")
+    stages.enter("mass")
+    assert stages.hand_over_open_stage() is None
+    stages.finish()
+
+
 def test_an_estimate_prefers_the_runs_with_the_same_settings(control_config, monkeypatch):
     mysql_config = control_config
     from planetgen.generation import stats as generation_stats

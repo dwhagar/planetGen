@@ -59,6 +59,6 @@ def test_a_migration_run_again_leaves_the_check_as_it_is(mysql_config):
         clause = conn.execute(
             "SELECT check_clause AS c FROM information_schema.check_constraints WHERE constraint_schema = DATABASE()"
             " AND constraint_name = 'chk_bright_stars_population'").fetchone()["c"]
-        assert clause.count("_utf8mb4") == len(POPULATIONS) == len(migration.POPULATIONS)
+        assert clause.count("_utf8mb4") == len(POPULATIONS)     # the later migration (open clusters) adds names
     finally:
         conn.close()

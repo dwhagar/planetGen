@@ -105,7 +105,7 @@ def test_a_groups_bound_is_never_below_the_density_inside_it(make):
         plane, z = _points_in(groups, index, rng, 60)
         angle = rng.uniform(0.0, 2.0 * math.pi, 60)
         found = brightStars.population_densities_array(plane * np.cos(angle), plane * np.sin(angle), z, SHAPE)
-        wanted = sum(np.maximum(found[name], 0.0) * fractions[name] for name in brightStars.POPULATIONS)
+        wanted = sum(np.maximum(found[name], 0.0) * fractions[name] for name in brightStars.SCATTERED_POPULATIONS)
         assert (wanted <= bound[index] * (1.0 + 1e-9)).all(), index
 
 

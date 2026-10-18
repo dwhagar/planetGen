@@ -70,7 +70,8 @@ const {
   POINT_FADE, cloudSizeShare, opacitySum, starShare,
 } = await import(`./starfade.js${VERSION_QUERY}`);
 const {
-  POINT_PX, STAR_POINT_GLSL, isUncharted, phenomenonLuminositySol, pointBrightness,
+  POINT_PX, STAR_POINT_GLSL, UNCHARTED_FAR_GLSL, UNCHARTED_FAR_KEEP, massRampShare, unchartedKeep,
+  phenomenonLuminositySol, pointBrightness,
 } = await import(`./starpoint.js${VERSION_QUERY}`);
 const { fetchCutTiles, tileBoxOf } = await import(`./galaxytilecut.js${VERSION_QUERY}`);
 const { unpackResponse, unpackTile } = await import(`./tilepack.js${VERSION_QUERY}`);
@@ -1568,13 +1569,12 @@ function initGalaxyMap3d(canvasEl, data) {
   // (galaxyblocks.buildCells). A generated star is charted, a bright
   // star once its sector is filled (`charted`); black holes, neutron
   // stars and quasars are landmarks and stay lit.
-  var UNCHARTED_STAR_DIM = 0.2;
 
   var starMaterial = new THREE.ShaderMaterial({
     uniforms: {
       pixelRatio: { value: renderer.getPixelRatio() }, now: { value: 0 },
       fadeIn: { value: Math.max(STAR_FADE_IN_MS, 1) / 1000 },
-      chartedOnly: { value: 0 }, unchartedDim: { value: UNCHARTED_STAR_DIM },
+      chartedOnly: { value: 0 }, unchartedFarKeep: { value: UNCHARTED_FAR_KEEP }, focusPc: { value: 0 },
       zoomFadeOn: { value: 1 },
       magLimit: { value: 1000 }, magOn: { value: 1 },
     },
@@ -1603,9 +1603,12 @@ function initGalaxyMap3d(canvasEl, data) {
       "attribute vec3 starColor;",
       "uniform float pixelRatio;",
       "attribute float starClipped;",
-      "attribute float starUncharted;",
+      // MAP.252: the share of its light an object keeps under "Charted only" (1 for a charted one).
+      "attribute float starKeep;",
       "uniform float chartedOnly;",
-      "uniform float unchartedDim;",
+      "uniform float unchartedFarKeep;",
+      "uniform float focusPc;",
+      UNCHARTED_FAR_GLSL,
       "varying vec3 vColor;",
       "varying float vCore;",
       "varying float vGlow;",
@@ -1614,14 +1617,16 @@ function initGalaxyMap3d(canvasEl, data) {
       "  vColor = starColor;",
       "  float zoomShown = starTile;",
       "  vShown = clamp((now - starBorn) / fadeIn, 0.0, 1.0) * mix(1.0, zoomShown, zoomFadeOn);",
-      // "Charted only" (MAP.111): a star outside charted space dimmed.
-      "  vShown *= mix(1.0, unchartedDim, chartedOnly * starUncharted);",
       "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);",
       // MAP.187: stars are not part of the near field -- it thins the blocks'
       // density and cell boxes only, so a star never vanishes in front of
       // the camera or on the line to the focus.
       // MAP.148: opacity and brightness follow the apparent magnitude from the camera.
       "  float dist = length(mvPosition.xyz);",
+      // "Charted only" (MAP.111, MAP.252): an object outside charted space dimmed by its place in the cut order, and
+      // the farther from the focus, the more.
+      "  float keep = starKeep < 0.999 ? starKeep * mix(1.0, unchartedFarKeep, unchartedFar(dist, focusPc)) : 1.0;",
+      "  vShown *= mix(1.0, keep, chartedOnly);",
       "  float appMag = apparentMagnitude(starAbsMag, dist);",
       "  vShown *= mix(1.0, magnitudeShare(appMag, magLimit), magOn);",
       "  gl_Position = projectionMatrix * mvPosition;",
@@ -1736,7 +1741,7 @@ function initGalaxyMap3d(canvasEl, data) {
     var glows = new Float32Array(n);
     var brights = new Float32Array(n);
     var absMags = new Float32Array(n);
-    var uncharted = new Float32Array(n);
+    var keeps = new Float32Array(n);
     var tileShares = new Float32Array(n);
     var pointBrights = new Float32Array(n);
     // MAP.208: a phenomenon is never drawn brighter than the brightest star here.
@@ -1747,11 +1752,11 @@ function initGalaxyMap3d(canvasEl, data) {
       }
     });
     stars.forEach(function (star, i) {
-      uncharted[i] = isUncharted(star) ? 1 : 0;
       // A phenomenon is drawn as the star of its mass: `map_luminosity_sol` is the
       // server's (planetgen.physics.stellar_evolution.phenomenon_map_luminosity_sol).
       var luminosity = star.phenomenon ? phenomenonLuminositySol(star.map_luminosity_sol, brightestSol) : star.luminosity_sol;
       var t = logShare(luminosity, STAR_LOG_LUMINOSITY);
+      keeps[i] = unchartedKeep(star, star.phenomenon ? massRampShare(star.mass_solar) : t);
       // Without a stored radius, guess one from the luminosity.
       var r = logShare(star.radius_sol != null ? star.radius_sol : Math.pow(luminosity, 0.35), STAR_LOG_RADIUS);
       absMags[i] = absoluteMagnitude(luminosity);
@@ -1780,7 +1785,7 @@ function initGalaxyMap3d(canvasEl, data) {
     geometry.setAttribute("starAbsMag", new THREE.BufferAttribute(absMags, 1));
     geometry.setAttribute("starBorn", new THREE.BufferAttribute(born, 1));
     geometry.setAttribute("starClipped", new THREE.BufferAttribute(new Float32Array(n), 1));
-    geometry.setAttribute("starUncharted", new THREE.BufferAttribute(uncharted, 1));
+    geometry.setAttribute("starKeep", new THREE.BufferAttribute(keeps, 1));
     geometry.setAttribute("starTile", new THREE.BufferAttribute(tileShares, 1));
     starShareSignature = "";
     starPoints.geometry.dispose();
@@ -1843,6 +1848,7 @@ function initGalaxyMap3d(canvasEl, data) {
   function updateMagnitudeLimit(now) {
     updateStarShares();
     var uniforms = starMaterial.uniforms;
+    uniforms.focusPc.value = nearUniforms.nearD.value;
     var seconds = magLastFrame ? (now - magLastFrame) / 1000 : 0;
     magLastFrame = now;
     var n = starList.length;
@@ -1932,6 +1938,20 @@ function initGalaxyMap3d(canvasEl, data) {
       if (starShare(f, cam, TILE_ROOT, FINEST_CUT_LEVEL) > 0.5) shown++;
     });
     return { sum: opacitySum(fade, cam, TILE_ROOT, FINEST_CUT_LEVEL), shown: shown, count: fade.length, camera: orbit.radius };
+  };
+
+  // For tests (MAP.252): the share of its light each drawn object keeps under "Charted only" (1 for a charted one)
+  // with the pieces it was worked out from, and whether "Charted only" is on.
+  canvasEl.galaxyUnchartedKeeps = function () {
+    var keeps = starPoints.geometry.getAttribute("starKeep");
+    return {
+      on: starMaterial.uniforms.chartedOnly.value > 0,
+      far: starMaterial.uniforms.unchartedFarKeep.value,
+      entries: starList.map(function (star, i) {
+        return { id: star.id, phenomenon: Boolean(star.phenomenon), type: star.type || null, tier: star.tier || 0,
+          mass: star.mass_solar == null ? null : star.mass_solar, keep: keeps.array[i] };
+      }),
+    };
   };
 
   // For tests: switches the zoom fade off (every star at full opacity, as
