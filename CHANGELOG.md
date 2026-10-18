@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1773] - 2026-10-18
+
+**Headline:** The cache warm-up is one command per cache family, and `update.sh` hands the list of them to the wrapper.
+
+### Changed
+- **Each cache family is its own command (PERF.127).** `warm-galaxy-map`, `warm-lists`, `warm-sectors`, `warm-systems`, `warm-phenomena` and `warm-search` each warm that family and nothing else, take only their own settings (the site's database and, for the pages of objects, the most to warm) and run alone (`planetgen command-run`); `end-map-rebuild-maintenance` opens the site after the sector-grid switch closed it. `planetgen commands` lists them. The choice and the order live only in the wrapper's list (`commands.build_steps("warm", ...)`).
+- **`planetgen warm [FAMILY ...] [--cap N]` replaces `python3 -m planetgen.cli.warm_map`.** It builds that list (every family in order, or the ones named; a list of every family ends with the command that opens the site), hands it to the wrapper and prints one line per family. `--only`, `--no-rq` and `--timeout` are gone with no replacement: the choice is the families named, Redis is required as for every run, and `update.sh` still stops the run after 30 minutes. The run stops at the first command that fails, where the families used to run side by side as separate jobs, one failing not holding up the others. `update.sh` and `scripts/deploy-common.sh` call `planetgen warm` (`python3 -m planetgen.cli.generate warm` as the web server's user).
+- **A run has a kind, and the warm-up is a maintenance run.** A generation run owns the machine and shows the visitors' banner, as before. A maintenance run takes a place of its own in Redis (`planetgen:run:active:maintenance`), so it does not wait for a generation run, holds none up and never shows the "galaxy is being changed" banner; only one runs at a time. The Queue page still reads the old job tree, so until it reads the run record (PERF.99) it no longer lists the cache warm-up; the log of `planetgen warm` and the activity log (`GEN warm.family`, `GEN warm.failed`) have every line.
+- **`docs/cli.md`, `docs/design/cache-warm-up.md`, `docs/design/command-inventory.md`, `docs/design/redis-and-the-work-queue.md`, `docs/design/architecture.md` and `INSTALL.md` describe it, and the architecture map is rebuilt.**
+
+TODO items resolved: PERF.127. Added: none.
+
 ## [8.0.1772] - 2026-10-18
 
 **Headline:** The black holes' share of the wide-pair perturber mass is checked against four papers: the generator's black hole count and masses lie inside the published ranges, so the remnants stay in.
