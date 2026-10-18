@@ -14303,6 +14303,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 - [ ] **GEN.563 The black hole density depends on metallicity: the verified failed-supernova share of the stars born replaces the one constant 7e-5 per pc^3**
   From Boss's back-scatter cards on the unified orbited-body design (docs/design/unified-star-like-objects.md, GEN.550): 'BH density only' at 11:38 to 11:40 PM EDT, then Boss tapped 'Metallicity-dependent' on the GEN.563 card at 11:51 PM EDT (2026-10-17, as the coordinator relayed with the wake time converted): the black hole share is metallicity-dependent, not a kept 7e-5. Research: docs/design/black-hole-formation-sources.md (GEN.560, 11:55 PM EDT as the lane reported): the verified failed-supernova share is 0 to 45% of stars of 8 to 150 Msun (more at low metallicity), so black holes are 0 to 4.0e-4 per pc^3 and the present 7e-5 is inside the range (f = 7.8%). Scope: only the black hole density changes; the neutron star density (5.6e-4, already matching), the black hole mass law and every other kind stay as they are (a change of the mass law is for GEN.553 and GEN.554, and means a second rescatter for black hole masses unless Boss decides otherwise). Do, as the design note of GEN.567 settles it: the density at a place is the stars born there (the population mix at the place) times the IMF share of 8 to 150 Msun (0.637% of stars, from the generator's own IMF) times f(Z) of the population's [Fe/H] at that place (the galaxy's metallicity law, `metallicity.mean_fe_h` and the component peaks, GEN.158 and GEN.159) times the share that stays in the galaxy, replacing `PHENOMENON_RATES["black-hole"]`; label every number's source state (verified range, derived, or placeholder) and keep the old 7e-5 and the derived share as test targets that show the gap. It changes the scatter's output, so it bumps the generator epoch and joins the one full rescatter, which is why it is a prerequisite of GEN.301. Done: the black hole count follows the metallicity at three test places (a metal-rich disk, a metal-poor halo, a cluster), the neutron star count is unchanged, and the golden digest changes with the epoch bump. Owner: Core 3 (proposed; it owns the scatter rates and GEN.377; Boss's card D7 owners do not cover it), after GEN.243 and GEN.244/282 and after GEN.567.
+  Design draft (docs/design/black-hole-density.md, 12:13 AM EDT,
+  2026-10-18): about 10 functions in 5 files (`tuning`,
+  `phenomenon_scatter`, `phenomenon_reach`, `profile`, `ejecta_field`,
+  plus the rolled path in `run_sector`); the black hole rate becomes a
+  place factor `sum over populations of w_p x C_p x F_p`; 8 to 9 tests
+  (T1 to T9). Finding: every shell draws all scatter classes from one
+  stream, black holes first (`phenomenon_scatter.py:63-68`), so changing
+  black hole counts moves the realised neutron star, planetary nebula
+  and supernova remnant rows; the draft recommends this item give each
+  class its own stream, a one-time change inside the wiped rescatter,
+  which also makes 'neutron stars unchanged' testable bit-identical
+  (T2). Boss's seven cards on the choices were open at 12:14 AM EDT as
+  the coordinator reported; the recommended options (widest range,
+  linear in Z, density only, intermediate-mass holes held at today's
+  rate, budget left as a registered gap, mass law left for
+  GEN.553/GEN.554, islands left for GEN.554) are in the note. If Boss
+  takes them, the scope above stands.
   Prerequisites: GEN.560, GEN.567. Related: GEN.560, GEN.554, GEN.377, GEN.301.
 
 - [ ] **GEN.564 A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter**
@@ -14500,6 +14517,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (Core 3).
   Prerequisites: GEN.560. Related: GEN.563, GEN.560, GEN.554, GEN.377,
   GEN.327.
+  Design note landed (docs/design/black-hole-density.md, the design
+  lane's draft of 12:13 AM EDT, 2026-10-18 as the lane reported): fixes
+  (1) to (6) with recommendations and has seven cards for Boss (BH1 to
+  BH7: the f range and its draw, the shape between the anchors, whether
+  a remnant row carries [Fe/H], the intermediate-mass hole count, the
+  neutron star plus black hole budget, the mass law in 8.1, the mass
+  islands). The cards were open at 12:14 AM EDT as the coordinator
+  reported; this item closes when Boss's taps are recorded in the note
+  and GEN.563 is rewritten to the result.
 
 - [ ] **GEN.568 One registry of every unit the project uses**
   Part of the unified orbited-body plan (GEN.550; design note
