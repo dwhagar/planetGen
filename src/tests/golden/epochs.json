@@ -162,8 +162,7 @@
     },
     {
       "epoch": 33,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1830",
       "reason": "A young, intermediate or old disk star's age is drawn from the galaxy's star formation rate inside its window instead of evenly, so a seed places stars of different ages and the share of bright stars of each population, and the local B-star share, change (GEN.546)."
     }
   ]
