@@ -1,0 +1,6 @@
+**Headline:** The generator now has the relations that say what a star is made of, ready for the composition of every star to be derived from them.
+
+### Added
+- **The stellar composition relations (GEN.439).** `physics/stellar_abundances.py` turns a star's [Fe/H], age and branch into its hydrogen, helium and metal fractions and the mass fraction of each of fourteen elements, on the Asplund 2021 scale (the Sun is the zero point and a test target, not a preset). A star younger than 8 Gy is thin-disc; older ones follow the thin or the alpha-rich sequence by the Bensby fit, each with its own oxygen, magnesium, silicon, carbon and calcium pattern and the scatter between them, so metal-poor stars come out with more metal for their iron, less iron per silicon and more magnesium, as observed. The same module has the iron, magnesium, silicon and carbon ratios the planets inherit, the changes at the surface of a red giant, the birth europium, thorium and uranium, the white dwarf mass-radius table (Sirius B to 0.1 percent), the neutron star's outer crust, the black hole's quantities and the brown dwarf's limits and radius. Every relation lists its source and whether it is verified, partly verified, open or a stand-in. Nothing the generator stores changes.
+
+TODO items resolved: GEN.439. Added: none.

@@ -928,6 +928,116 @@ dwarf; the most that were placed in 60 draws was 15), so the cull cuts the count
 number, not from the ceiling: `ceil(16 x factor)` objects at most, which is 2 at [Fe/H] -1.65 and 16 at the floor.
 """
 
+# Stellar abundances (GEN.439, `physics/stellar_abundances.py`, docs/design/stellar-composition.md and part A of
+# docs/design/body-composition-research.md). The reference scale is Asplund, Amarsi and Grevesse 2021 (arXiv:2105.01661, Table 2
+# log eps on H = 12; Boss 2026-10-17 1:24 AM EDT), moved to proto-solar by A21's diffusion correction of +0.064 dex for the
+# metals and +0.070 dex for helium; it is a scale and never a preset. Verification states are in `STELLAR_RELATION_STATES`.
+STELLAR_SOLAR_LOG_EPS = {
+    "C": 8.46, "N": 7.83, "O": 8.69, "Ne": 8.06, "Na": 6.22, "Mg": 7.55, "Al": 6.43, "Si": 7.51, "S": 7.12, "Ar": 6.38,
+    "K": 5.07, "Ca": 6.30, "Fe": 7.46, "Ni": 6.20, "Eu": 0.52, "Th": 0.03, "U": -0.54}
+"""dict: Element symbol to A21 photospheric log eps (H = 12); the 14 elements that make 99.7 percent of Z, and Eu, Th and U."""
+STELLAR_PROTO_METAL_OFFSET_DEX = 0.064
+STELLAR_PROTO_HELIUM_OFFSET_DEX = 0.070
+STELLAR_PROTO_X = 0.7121
+STELLAR_PROTO_Z = 0.0154
+STELLAR_PRIMORDIAL_Y = 0.24672
+"""float: Primordial helium mass fraction, Planck 2018 VI eq. 72a (arXiv:1807.06209). The proto-solar X, Z and Y (0.2725 by
+difference) are A21 re-summed with the offsets above."""
+STELLAR_THICK_START_GY = 8.0
+"""float: Stars younger than this are thin-disc; older ones draw the branch from the logistic. Haywood et al. 2013 (the
+thick disc formed from about 13 to about 8 Gy ago, the age scale uncertain by 1 to 1.5 Gy; Boss's papers); range 6.5 to
+9.5. The first draft's 3.0 was the project's intermediate/old boundary and the paper contradicts it (Boss approved
+8.0, 2026-10-17)."""
+STELLAR_HIGH_ALPHA_LOGISTIC = (-0.350, 0.132)
+"""tuple: `(f0, w)`: P(high-alpha) = 1 / (1 + exp(([Fe/H] - f0) / w)) for a star old enough to be thick-disc (Bensby, Feltzing
+and Oey 2014, fit to the chemically high-alpha fraction; their paper is not in the repository's papers, so partly verified)."""
+STELLAR_FE_H_FIT_RANGE = {"thin": (-0.9, 0.5), "high-alpha": (-1.6, 0.1)}
+"""dict: The [Fe/H] each branch's [X/Fe] fits were made over; outside it the fit is held at its edge (flagged)."""
+# [X/Fe] means by branch, as ("linear", a, b): a + b F; ("min", c, b, k): c + b min(F - k, 0), the thin disc's plateau above k
+# and rise below; ("max", p, s, k): p + s max(F - k, 0), the high-alpha plateau below k. Fitted to Bensby 2014 (Mg, Si, Ca,
+# Al), Nissen 2014 NLTE (C, O) and Battistini and Bensby 2016 (Eu), part A 2.7.
+STELLAR_XFE_FITS = {
+    "thin": {
+        "Mg": ("min", 0.006, -0.343, 0.03), "Si": ("min", 0.017, -0.166, -0.07), "Ca": ("min", -0.041, -0.163, 0.42),
+        "O": ("linear", -0.011, -0.373), "C": ("linear", -0.030, -0.163), "Al": ("min", 0.032, -0.029, 0.06),
+        "Eu": ("linear", 0.060, -0.404)},
+    "high-alpha": {
+        "Mg": ("max", 0.357, -0.373, -0.73), "Si": ("max", 0.253, -0.199, -0.99), "Ca": ("max", 0.282, -0.251, -0.99),
+        "O": ("max", 0.606, -0.495, -0.91), "C": ("max", 0.191, -0.521, -0.10), "Al": ("max", 0.225, -0.298, -0.48),
+        "Eu": ("max", 0.446, -0.290, -0.93)},
+}
+STELLAR_XFE_SIGMA = {
+    "thin": {"C": 0.044, "O": 0.052, "Mg": 0.066, "Si": 0.042, "Eu": 0.077},
+    "high-alpha": {"C": 0.050, "O": 0.065, "Mg": 0.073, "Si": 0.073, "Eu": 0.084}}
+"""dict: Residual scatter (dex) of the fits above, by branch."""
+STELLAR_XFE_CORRELATION = (
+    (1.00, 0.56, 0.69, 0.71),
+    (0.56, 1.00, 0.36, 0.37),
+    (0.69, 0.36, 1.00, 0.77),
+    (0.71, 0.37, 0.77, 1.00))
+"""tuple: Residual correlation of C, O, Mg and Si (Brewer and Fischer 2016, 844 dwarfs), so Mg/Si, a ratio of two correlated
+terms, has its narrow real scatter."""
+STELLAR_CEMP = {"fe_h_below": -2.0, "probability": 0.25, "carbon_fe_min": 0.7, "carbon_fe_span": 1.3, "rich_probability_below": -4.0}
+"""dict: Carbon-enhanced metal-poor stars (Frebel and Norris 2015): below [Fe/H] -2 a fraction `probability` have [C/Fe] of
+`carbon_fe_min` plus a uniform share of `carbon_fe_span`. The literature's rise to 1 below -4 is unreachable under the stored
+[Fe/H] floor of -3.5 (`METALLICITY_RANGE_FE_H`)."""
+STELLAR_NEON_FOLLOWS = "O"
+"""str: Which element's [X/Fe] neon takes: "O" (the GEN.464 filing; oxygen from the NLTE fit) or "Mg" (part A 3.2); the two
+differ in Z/Z0 by 8 percent at most (stellar-composition.md D11)."""
+STELLAR_TH_EU = {"log_ratio_mean": 0.014, "log_ratio_sigma": 0.045}
+"""dict: [Th/Eu] at zero age (Botelho et al. 2019, arXiv:1810.10413 Table 4); Th is measured near solar [Fe/H] only, so Th
+elsewhere is inferred through Eu."""
+STELLAR_SOLAR_SYSTEM_AGE_GY = 4.568
+"""float: How far back the solar scale's Th and U are decayed to give their birth abundances (the age of the oldest solids;
+the photospheric Th and U of A21 are meteoritic)."""
+STELLAR_U_TH_UNCERTAINTY = 0.06
+"""float: The relative spread on the birth U/Th (0.572 for the solar scale): the 2003 Palme and O'Neill cross-check, decayed
+back, sits 6 percent from it (stellar-composition.md step 10). Carried as the uncertainty, not applied."""
+# Surface changes of the first dredge-up on the red-giant branch (Boothroyd and Sackmann 1999, arXiv:astro-ph/9512121 Tables 2 and
+# 4): per initial mass, the rise in helium mass fraction and the C/Z and N/Z at the end, for Z = 0.02 (initial Y 0.28, C/Z
+# 0.1733, N/Z 0.0531) and Z = 0.001 (initial Y 0.24, C/Z 0.0765; N not extracted at low Z).
+STELLAR_DREDGE_UP_MASSES_SOL = (1.0, 1.5, 2.0, 2.5)
+STELLAR_DREDGE_UP_Z_HIGH = {
+    "z": 0.02, "initial_y": 0.28, "initial_c_over_z": 0.1733, "initial_n_over_z": 0.0531,
+    "final_y": (0.3025, 0.2957, 0.2888, 0.2915), "final_c_over_z": (0.1530, 0.1273, 0.1167, 0.1143),
+    "final_n_over_z": (0.0771, 0.1073, 0.1197, 0.1324)}
+STELLAR_DREDGE_UP_Z_LOW = {
+    "z": 0.001, "initial_y": 0.24, "initial_c_over_z": 0.0765,
+    "final_y": (0.2598, 0.2606, 0.2545, None), "final_c_over_z": (0.0654, 0.0518, 0.0449, None)}
+# Wolf-Rayet surface composition (Crowther 2007, arXiv:astro-ph/0610356 section 3.5): mass fractions.
+STELLAR_WOLF_RAYET = {
+    "WN-early": {"H": 0.0, "N": 0.01, "C": 0.0005},
+    "WN-late": {"H": (0.05, 0.25), "N": 0.01},
+    "WN/WC": {"C": 0.05, "N": 0.01},
+    "WC": {"C": (0.20, 0.55)}}
+"""dict: Surface mass fractions by Wolf-Rayet subtype; a pair is a range. WC carbon is the refined 20 to 55 percent (C/He 0.1 to
+0.5 by number), inside the wider 10 to 60 percent of the literature; the rest of each star is helium (and oxygen in WO), the
+split open."""
+# White dwarfs: core type by mass (Althaus et al. 2010, arXiv:1007.2659), atmosphere type shares (Xu, Rogers and Blouin 2024,
+# arXiv:2404.15425).
+STELLAR_WD_HELIUM_CORE_MAX_SOL = 0.45
+"""float: A white dwarf below this mass has a helium core. Recalled, open (no source read for the number)."""
+STELLAR_WD_ONE_CORE_MIN_SOL = 1.05
+"""float: A white dwarf above this mass has an oxygen-neon core (Althaus et al. 2010)."""
+STELLAR_WD_DA_SHARE = 0.80
+STELLAR_WD_POLLUTED_SHARE = (0.25, 0.50)
+# Neutron stars (Ozel and Freire 2016, arXiv:1603.02698; Romani 2022; Rezzolla et al. 2018; Miller et al. 2021).
+STELLAR_NS_MASS_GAUSSIANS = (("slow", 1.49, 0.19), ("recycled", 1.54, 0.23))
+"""tuple: `(population, mean, sigma)` of the observed neutron-star masses in solar masses."""
+STELLAR_NS_MASS_FLOOR_SOL = 1.17
+STELLAR_NS_MASS_HEAVIEST_SOL = 2.35
+STELLAR_NS_MASS_HEAVIEST_SIGMA_SOL = 0.17
+STELLAR_NS_MAXIMUM_NONROTATING_MASS_SOL = (2.01, 2.16)
+STELLAR_NS_RADIUS_BAND_KM = (11.6, 13.1)
+"""tuple: The hull of Miller et al. 2021's 1-sigma radii at 1.4 and 2.08 solar masses; nearly mass independent, not a cap
+(J0740+6620 alone is 13.7 +2.6 -1.5 km). GEN.463 owns the radius function."""
+# Brown dwarfs: limits in Jupiter masses (Spiegel, Burrows and Milsom 2011, arXiv:1008.5150 Table 1) and in solar masses
+# (Burrows et al. 2001, arXiv:astro-ph/0103383).
+STELLAR_BROWN_DWARF = {
+    "deuterium_mj": 13.55, "deuterium_solar_z": 0.0189, "deuterium_z_slope_mj_per_dex": -0.9,
+    "deuterium_y_slope_mj_per_0p01": -0.2, "deuterium_reference_y": 0.25, "deuterium_range_mj": (11.0, 16.3),
+    "lithium_sol": 0.06, "hydrogen_solar_z_sol": (0.070, 0.074), "hydrogen_zero_z_sol": 0.092}
+
 # Globular clusters (GEN.159, docs/design/globular-clusters.md). A cluster is stored as a density component, not as
 # stars: its profile is a King (1966) model of one of ten concentrations `KING_W0_RANGE` (inclusive), solved once
 # (`physics/king.py`) on `KING_TABLE_POINTS` log-spaced radii and scaled by length. A cluster's systems number its
