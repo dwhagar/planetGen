@@ -58,7 +58,7 @@ def hosted_seed(star):
 
 def hosted_nebula_of(star, chance_factor=1.0, markdown=False):
     """
-    The nebula a main-sequence star lights (`tuning.NEBULA_HOST_RULES`), or None: the star rolls its row's chance
+    The nebula a main-sequence or Wolf-Rayet star lights (`tuning.NEBULA_HOST_RULES`), or None: the star rolls its row's chance
     (scaled by the sector profile's `"nebula"` factor `chance_factor`) on its own stream, and on a hit the class is
     drawn among those the star is young enough for and the nebula built from the same stream.
 
@@ -70,10 +70,15 @@ def hosted_nebula_of(star, chance_factor=1.0, markdown=False):
     Returns:
         Nebula or None.
     """
-    match = re.fullmatch(r"([OBAFGKM])([0-9])V", (getattr(star, "type", "") or "").split(" ", 1)[0])
+    match = re.fullmatch(r"(?:([OBAFGKM])([0-9])V|(W[NCO])([0-9]))", (getattr(star, "type", "") or "").split(" ", 1)[0])
     if match is None:
         return None
-    letter, subclass = match.group(1), int(match.group(2))
+    if match.group(3):
+        # GEN.243: a Wolf-Rayet star (WN6) is matched on the letter W, and the nebula keeps its subtype.
+        letter, subclass, host = "W", int(match.group(4)), (match.group(3), int(match.group(4)))
+    else:
+        letter, subclass = match.group(1), int(match.group(2))
+        host = (letter, subclass)
     age_myr = star.age * 1000.0
     for rule_letter, low, high, classes, chance in tuning.NEBULA_HOST_RULES:
         if letter != rule_letter or not (low <= subclass <= high):
@@ -87,7 +92,7 @@ def hosted_nebula_of(star, chance_factor=1.0, markdown=False):
             config = SystemConfig()
             config.MARKDOWN = markdown
             nebula_class = choose_weighted_class(young, "Star-hosted nebula class")
-            return Nebula(config, nebula_class=nebula_class, host=(letter, subclass), age_myr=age_myr)
+            return Nebula(config, nebula_class=nebula_class, host=host, age_myr=age_myr)
     return None
 
 

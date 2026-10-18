@@ -633,6 +633,38 @@ BLUE_SUPERGIANT_TEMPERATURE_RANGE_K = (9000.0, 35000.0)
 # first threshold IB, then IAB, IA, and 0 (hypergiant) at the top.
 SUPERGIANT_YERKES_THRESHOLDS_SOL = {"IAB": 10000.0, "IA": 50000.0, "0": 500000.0}
 
+# Wolf-Rayet stars (GEN.243, docs/design/intergalactic-and-halo-contents.md 5.11): a very massive star
+# stripped to its hot helium core in the last stretch of its life, in place of the end of its supergiant phase.
+WR_MIN_INITIAL_MASS_SOL = 25.0
+"""float: The least initial mass of a star that ends as a Wolf-Rayet star at the Sun's metallicity, solar masses
+(the Galactic Wolf-Rayet census against the Galactic birth rate gives about 25 [R]; the count check in
+`tests/test_wolf_rayet.py` is the test of it)."""
+WR_THRESHOLD_METALLICITY_EXPONENT = 0.5
+"""float: The threshold rises as Z^-0.5: the winds that strip the star weaken with metals [R], so 25 solar masses at
+the Sun's metallicity is 35 at half and 56 at a fifth of it [I]."""
+WR_PHASE_MYR = 0.3
+"""float: How long a Wolf-Rayet star stays one, Myr (the last stretch of its life) [R]."""
+WR_MAX_SUPERGIANT_SHARE = 0.5
+"""float: The phase never takes more than this share of the supergiant window it replaces, so the heaviest stars,
+whose whole post-main-sequence life is short, still pass through a supergiant phase first."""
+WR_PRESENT_MASS_FRACTION_RANGE = (0.4, 0.6)
+"""tuple: The present mass of a Wolf-Rayet star over its initial mass, drawn uniformly [R]."""
+WR_SUBTYPE_PHASE_SHARES = (("WN", 0.6), ("WC", 0.3), ("WO", 0.1))
+"""tuple: The subtype by the share of the phase gone: nitrogen-rich first, then carbon-rich, then the oxygen-rich last
+tenth (only for stars of `WO_MIN_INITIAL_MASS_SOL` or more; lighter ones stay WC to the end)."""
+WO_MIN_INITIAL_MASS_SOL = 40.0
+"""float: The least initial mass that reaches the oxygen-rich WO stage [I]."""
+WR_TEMPERATURE_RANGE_K = {"WN": (30000.0, 100000.0), "WC": (40000.0, 120000.0), "WO": (150000.0, 200000.0)}
+"""dict: The effective temperature of each subtype, K, drawn uniformly: the whole 30,000 to 200,000 K of the design
+note, split by subtype [R, I]."""
+WR_SUBCLASS_RANGE = {"WN": (2, 9), "WC": (4, 9), "WO": (1, 4)}
+"""dict: The subclass numbers of each subtype, hottest first (WN2 to WN9, WC4 to WC9, WO1 to WO4)."""
+WR_LUMINOSITY_RANGE_SOL = (1.0e5, 1.0e6)
+"""tuple: The luminosity of a Wolf-Rayet star, solar luminosities, log-uniform [R]."""
+WR_COMPANION_CHANCE = {"WN": 0.52, "WC": 0.90, "WO": 0.90}
+"""dict: The share of Wolf-Rayet stars with a companion, by subtype (Dsilva et al., a spectroscopic multiplicity survey of
+Galactic Wolf-Rayet stars: 52% of WN, 96% of WC, capped at 0.9 as in the phenomena catalogue; WO takes WC's)."""
+
 # Piecewise main-sequence mass-luminosity relation, L = coeff * M^exponent
 # (Lsun, Msun), each piece for M below its max_mass_sol and the last one
 # open-ended (Duric 2004; Salaris & Cassisi 2005).
@@ -2463,7 +2495,7 @@ NEBULA_FAMILIES = {
 # Nebula and supernova remnant classes, one letter each like
 # PLANET_CLASSES (GEN.11; reasoning, sources and the family tables in
 # docs/design/nebula-and-asteroid-field-classes.md). I and O are unused so
-# they aren't read as 1 and 0; X-Z are reserved. A-Q are nebulae, R-W are
+# they aren't read as 1 and 0; Y and Z are reserved. A-Q and X (the Wolf-Rayet ring, GEN.243) are nebulae, R-W are
 # supernova remnants ("stellar remnants" means supernova remnants only,
 # Boss 2026-09-30; compact objects keep their own tables).
 #
@@ -2473,6 +2505,7 @@ NEBULA_FAMILIES = {
 # `extinction_range_av` (optical extinction in magnitudes, log-uniform
 # unless the low end is 0), `center` (the central-object rule of GEN.10
 # builds on), and `frequency` (relative weight within its family group).
+# A class with `host_only` is never drawn free (by family or frequency): only a star of its kind lights one (X).
 # Nebulae also carry `radius_range_ly`; a remnant's radius comes from its
 # age (Sedov-Taylor, below), so remnants carry `morphology` (the Vink 2012
 # shell/plerion/composite shape), `age_range_years` and `compact` (which
@@ -2513,6 +2546,11 @@ NEBULA_CLASSES = {
           "radius_range_ly": (2.0, 20.0), "density_range_cm3": (1e2, 1e3),
           "temperature_range_k": (50.0, 10000.0), "extinction_range_av": (0.5, 3.0),
           "center": "an early-B star", "frequency": 1.0},
+    "X": {"name": "Wolf-Rayet ring nebula", "family": "emission",
+          "species": "ionized hydrogen and helium in a thin swept-up shell around a hollow interior",
+          "radius_range_ly": (6.5, 114.0), "density_range_cm3": (10.0, 1e3),
+          "temperature_range_k": (8000.0, 12000.0), "extinction_range_av": (0.0, 1.0),
+          "center": "a Wolf-Rayet star (required)", "frequency": 1.0, "host_only": True},
     "H": {"name": "Young planetary nebula", "family": "planetary",
           "species": "ionized hydrogen, carbon, nitrogen, oxygen and neon",
           "radius_range_ly": (0.1, 0.5), "density_range_cm3": (1e4, 1e5),
@@ -2656,6 +2694,7 @@ NEBULA_HOST_RULES = (
     ("B", 0, 2, ("C", "G"), 0.25),
     ("B", 3, 9, ("F",), 0.05),
     ("A", 0, 9, ("F",), 0.01),
+    ("W", 0, 9, ("X",), 0.4),
 )
 """tuple: Nebulae a sector grows around its own stars (GEN.10), as
 `(spectral letter, lowest subclass, highest subclass, classes, chance)`
@@ -2678,10 +2717,11 @@ reflection nebula (F) when a dusty cloud happens to be near (van den Bergh
 the cloud. The class is drawn among the classes the star is young enough
 for, by NEBULA_CLASSES frequency."""
 
-NEBULA_CLASS_MAX_AGE_MYR = {"C": 1.0, "D": 10.0, "E": 20.0, "F": 50.0, "G": 5.0}
+NEBULA_CLASS_MAX_AGE_MYR = {"C": 1.0, "D": 10.0, "E": 20.0, "F": 50.0, "G": 5.0, "X": 10.0}
 """dict: The oldest a host star can be and still sit in a nebula of the class, Myr
 (design note, "Lifetimes by class": C 0.1 to 1, D 3 to 10, E 5 to 20, F 1 to 50, G 1
-to 5). Only the upper limits are used: the lower ones come out of the physics, a
+to 5; X: the longest a Wolf-Rayet star's life runs, 8.5 Myr at the threshold mass, GEN.243).
+Only the upper limits are used: the lower ones come out of the physics, a
 young region has not grown to the class's radius (`physics.hii`)."""
 
 NEBULA_CLUSTER_MASS_RANGE_SOL = {"D": (300.0, 1.0e4), "E": (1.0e4, 1.0e5)}

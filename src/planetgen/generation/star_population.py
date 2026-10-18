@@ -57,7 +57,7 @@ import bisect
 import functools
 import math
 
-from planetgen.physics import constants
+from planetgen.physics import constants, wolf_rayet
 from planetgen import tuning
 from planetgen.physics.stellar_evolution import (
     _power_law_integral, _sample_power_law, agb_bright_chance, evolve_star, giant_bright_chance, giant_end_fraction,
@@ -91,6 +91,16 @@ def _supergiant_bright_chance(ms_luminosity_sol, min_luminosity_sol):
     return (high - need) / (high - low)
 
 
+def _wolf_rayet_bright_chance(min_luminosity_sol):
+    """The chance a Wolf-Rayet star's log-uniform luminosity is >= the threshold (GEN.243)."""
+    low, high = tuning.WR_LUMINOSITY_RANGE_SOL
+    if min_luminosity_sol <= low:
+        return 1.0
+    if min_luminosity_sol >= high:
+        return 0.0
+    return math.log(high / min_luminosity_sol) / math.log(high / low)
+
+
 def _bright_windows(mass_sol, min_luminosity_sol):
     """
     Every age window in which a star of initial mass `mass_sol` can be at
@@ -108,8 +118,13 @@ def _bright_windows(mass_sol, min_luminosity_sol):
         windows.append((0.0, t_ms, 1.0))
     if mass_sol >= pc.SUPERGIANT_MIN_MASS_SOL:
         chance = _supergiant_bright_chance(l_ms, min_luminosity_sol)
+        wr_start = wolf_rayet.start_gy(mass_sol, t_ms, t_giant)
+        if wr_start is None:
+            wr_start = t_giant
+        elif _wolf_rayet_bright_chance(min_luminosity_sol) > 0:
+            windows.append((wr_start, t_giant, _wolf_rayet_bright_chance(min_luminosity_sol)))
         if chance > 0:
-            windows.append((t_ms, t_giant, chance))
+            windows.append((t_ms, wr_start, chance))
         return windows
     # A subgiant brightens linearly from l_ms to the base of its giant branch.
     progress = (min_luminosity_sol - l_ms) / (subgiant_end_luminosity_sol(mass_sol) - l_ms)
@@ -197,7 +212,13 @@ def _bright_measure_bound(low_mass, high_mass, min_luminosity_sol, window):
         bound += _overlap(0.0, t_long, window)
     if low_mass >= pc.SUPERGIANT_MIN_MASS_SOL:
         chance = _supergiant_bright_chance(l_max, min_luminosity_sol)
-        return bound + chance * _overlap(t_short, t_long * pc.GIANT_PHASE_END_MS_FRACTION, window)
+        bound += chance * _overlap(t_short, t_long * pc.GIANT_PHASE_END_MS_FRACTION, window)
+        if high_mass >= wolf_rayet.threshold_mass_sol():
+            # GEN.243: the Wolf-Rayet window at the end of the supergiant window, over every mass of the cell.
+            bound += _wolf_rayet_bright_chance(min_luminosity_sol) * _overlap(
+                t_short * pc.GIANT_PHASE_END_MS_FRACTION - tuning.WR_PHASE_MYR / wolf_rayet.MYR_PER_GY,
+                t_long * pc.GIANT_PHASE_END_MS_FRACTION, window)
+        return bound
     if subgiant_end_luminosity_sol(high_mass) > min_luminosity_sol:
         bound += _overlap(t_short, t_long * sub_high, window)
     # A heavier giant starts its branch higher, so the chance at the cell's top mass bounds the cell's, except right
