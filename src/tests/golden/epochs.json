@@ -99,6 +99,11 @@
       "epoch": 20,
       "first_release": "8.0.1759",
       "reason": "The ionizing members of a class D or E emission region are real stars placed in a Plummer sphere about its seed star, and a star's hosted-nebula roll reads its mass, age and temperature as floats, so some stars roll a different nebula (GEN.321)."
+    },
+    {
+      "epoch": 21,
+      "first_release": "8.0.1771",
+      "reason": "A free-floating brown dwarf's mass follows the 20 pc census's mass function and its radius the cooling laws' (0.07 to 0.14 solar radii), so its temperature, flux and surface change, and a brown dwarf member of a multi-star tree has a spectral type as its state and the radius the laws give at the system's age (GEN.252)."
     }
   ]
 }

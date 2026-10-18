@@ -829,3 +829,6 @@ Baseline: PR #1817.
 | MAP.250 | 8.1 | Fly-through map |
 | DOC.68 | 8.1 | Docs |
 | PERF.118 | 8.1 | Queue, caches and performance |
+| GEN.252 | 8.1 | Multi-star and compact systems |
+| GEN.541 | 8.1 | Components and wanderers |
+| PERF.135 | 8.1 | Queue, caches and performance |

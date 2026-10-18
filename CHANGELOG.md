@@ -2,6 +2,42 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1772] - 2026-10-18
+
+**Headline:** The black holes' share of the wide-pair perturber mass is checked against four papers: the generator's black hole count and masses lie inside the published ranges, so the remnants stay in.
+
+### Changed
+- `docs/design/placement-by-population.md` records the check of GEN.541: the share of core-collapse stars that leave a hole (0.29, against 0.26 to 0.45 in Sukhbold et al. 2016), the mean hole mass (12.5 against 9 to 14 there and 11.7 to 14.2 in Olejak et al. 2020) and the number for a galaxy of 5e10 solar masses (1.6e8 to 2.5e8 against Olejak et al.'s 1.3e8 and the older 1e8 to 1e9). By the widest-range rule the draw stays; the perturber mass, 1.44 solar masses (stars alone 0.55), would be 0.75 to 1.34 for the other published count and mass shapes, with the holes carrying 0.2 to 0.6 of the second moment.
+- The note's two stale figures (0.594 and 1.46, from before the Hurley, Pols and Tout lifetimes) are 0.553 and 1.44.
+- `tests/test_place_terms.py` records the three ranges that hold and the two perturber masses.
+
+TODO items resolved: GEN.541 / Added: none
+
+## [8.0.1771] - 2026-10-18
+
+**Headline:** A brown dwarf now has the spectral type, temperature and radius its mass and age give (late M, L, T or Y), where a free-floating one had only a random size and a multi-star member had no state.
+
+### Changed
+- New `physics/brown_dwarf.py`: Burrows et al. 2001's two cooling laws (luminosity `t^-1.3 M^2.64`, temperature `t^-0.32 M^0.83`) fix the temperature and the radius, and Kirkpatrick et al. 2021's Table 13 (525 L, T and Y dwarfs within 20 pc) turns the temperature into a type: L0 at 2,238 K, T0 at 1,255 K, Y0 at 461 K, late M above. `docs/design/brown-dwarf-state.md` names every source and what is left out.
+- A free-floating brown dwarf's mass is drawn from the census's `dN/dM ~ M^-0.6` between 13 and 80 Jupiter masses (it was log-uniform) and its radius follows the laws, 0.07 to 0.14 solar radii (it was Jupiter's times a random 0.75 to 1.1). Its page names its type ("a free-floating T5 brown dwarf", "Rogue Brown Dwarf, Type T5"), read from its stored temperature.
+- A brown dwarf member of a multi-star tree has its type as the member's `state` (it was empty) and the radius the laws give at the system's age (it was 0.1 solar radii for all); the scatter row's members list reads "Brown dwarf (T5)". The brown dwarf class page gives the temperatures where L, T and Y begin.
+- Temperatures of the hot L dwarfs are 2 to 4 times too few against the census (a strict expected failure in `tests/test_brown_dwarf.py`).
+
+generation-output: changed
+
+TODO items resolved: GEN.252 / Added: hot L dwarfs (above 1,500 K) come out 2 to 4 times too rare because the old-age power law is too cool for the heaviest brown dwarfs (a Baraffe or ATMO 2020 track would close it)
+
+## [8.0.1770] - 2026-10-18
+
+**Headline:** The Uncharted stars and Phenomena tables have a "Starting at" box too, so a deep list is reached by a value instead of by paging.
+
+### Changed
+- **The Uncharted stars table jumps by value under every sort (PERF.135).** The box takes the unit its column shows: solar luminosities, kelvin, Gyr, a shell number, or the start of a star type. The list begins at the first star at or after the value in the sort's direction (brightest first for luminosity, so `25` starts at the stars of 25 solar luminosities and dimmer), the count line says how many are left, and the page address carries the text (`uncharted_from`). Text the sort cannot read (a word for a temperature) shows the list from the top with a line saying why. A value past the last star shows the last page of the sort with a line saying nothing came after it.
+- **The Phenomena table jumps into the scattered tail by number (PERF.135).** Under the name sort the box takes a scattered phenomenon's number, the one in the address of its page, and lists the unbuilt scattered phenomena from it on (the built ones come before the tail and are not listed from a start). A number past the end shows the last page of the tail, with the same line.
+- **`GET /api/uncharted-systems` and `GET /api/phenomena` take `from=<value>`** with those meanings; a value they cannot read is a 400, and a start past the end answers the last page with `past_end` true and `total` the page's length. `total` counts from the start, kept as a stored count for each start. `docs/api.md` and `docs/design/slow-reads-and-timeouts.md` describe them. The `/table/<name>` routes also answer a `note` for the line.
+
+TODO items resolved: PERF.135. Added: none.
+
 ## [8.0.1769] - 2026-10-18
 
 **Headline:** A generate run now lists the commands it will run, and the massive-star scatter is the first one the queue runs as separate commands.

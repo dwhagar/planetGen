@@ -1,8 +1,0 @@
-**Headline:** The Uncharted stars and Phenomena tables have a "Starting at" box too, so a deep list is reached by a value instead of by paging.
-
-### Changed
-- **The Uncharted stars table jumps by value under every sort (PERF.135).** The box takes the unit its column shows: solar luminosities, kelvin, Gyr, a shell number, or the start of a star type. The list begins at the first star at or after the value in the sort's direction (brightest first for luminosity, so `25` starts at the stars of 25 solar luminosities and dimmer), the count line says how many are left, and the page address carries the text (`uncharted_from`). Text the sort cannot read (a word for a temperature) shows the list from the top with a line saying why. A value past the last star shows the last page of the sort with a line saying nothing came after it.
-- **The Phenomena table jumps into the scattered tail by number (PERF.135).** Under the name sort the box takes a scattered phenomenon's number, the one in the address of its page, and lists the unbuilt scattered phenomena from it on (the built ones come before the tail and are not listed from a start). A number past the end shows the last page of the tail, with the same line.
-- **`GET /api/uncharted-systems` and `GET /api/phenomena` take `from=<value>`** with those meanings; a value they cannot read is a 400, and a start past the end answers the last page with `past_end` true and `total` the page's length. `total` counts from the start, kept as a stored count for each start. `docs/api.md` and `docs/design/slow-reads-and-timeouts.md` describe them. The `/table/<name>` routes also answer a `note` for the line.
-
-TODO items resolved: PERF.135. Added: none.
