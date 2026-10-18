@@ -20,7 +20,7 @@ import rq
 
 from planetgen import _version
 from planetgen.admin import updateguard
-from planetgen.queue import redisqueue, work, workers
+from planetgen.queue import redisqueue, units, work, workers
 
 WARM_MODULES = (
     "planetgen.generation.run_plan",
@@ -122,7 +122,8 @@ def main(argv=None):
                      "not both.")
     connection = redisqueue.connect(args.url, blocking=True)   # RQ blocks on the server; keepalive finds it gone
     queues = [redisqueue.queue(name, connection) for name in args.queues]
-    worker = worker_class()(queues, connection=connection, name=args.name, serializer=serializers.pop())
+    worker = worker_class()(queues, connection=connection, name=args.name, serializer=serializers.pop(),
+                            work_horse_killed_handler=units.horse_killed)     # PERF.106: a killed unit fails its run now
     worker.work(burst=args.burst, with_scheduler=False,
                 max_idle_time=None if args.burst else args.idle_seconds)
 

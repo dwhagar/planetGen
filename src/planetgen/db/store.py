@@ -46,6 +46,7 @@ connection per call, per TODO.md's "add real connection pooling" note.
 """
 
 import argparse
+import collections
 import contextlib
 import dataclasses
 import functools
@@ -1523,6 +1524,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (112, _check_marker("chk_bright_stars_population", "open_cluster_00")),
     (111, lambda shape: ("planets", "flavor_text") not in shape["columns"]),
     (110, lambda shape: ("planets", "life_stage") in shape["columns"]),
     (109, lambda shape: ("planets", "orbital_phase_deg") not in shape["columns"]),
@@ -7540,18 +7542,42 @@ def _field_of(found, edge_pc, expected_at_density_1):
     return componentField.ComponentField(found, edge_pc, expected_at_density_1)
 
 
+_FIELD_BY_SIGNATURE = collections.OrderedDict()
+"""OrderedDict: The last few `ComponentField`s by the signature of the rows they were made from, so a read that finds the
+table unchanged does not load it again (GEN.244: a galaxy holds up to `tuning.OPEN_CLUSTER_MAX_COUNT` open clusters)."""
+_FIELD_BY_SIGNATURE_LIMIT = 8
+
+
 def _component_field(conn, edge_pc, expected_at_density_1):
     """The galaxy's `ComponentField` (GEN.160, GEN.237) from its stored clusters and satellites, or `None` when it has
     none (or the table is not there yet: a migration reads the skeleton before v97). Fields made from equal rows are one
-    object, so the density model's caches by shape keep hitting."""
+    object, so the density model's caches by shape keep hitting. The rows are read only when the table's signature (the
+    database, the row count, the first and last id and the mass sum) is not the one of a field already made."""
     if not conn.execute(
             "SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'galaxy_components'"
     ).fetchone():
         return None
+    row = conn.execute(
+        "SELECT DATABASE() AS db, COUNT(*) AS n, MIN(id) AS first_id, MAX(id) AS last_id, SUM(mass_solar) AS mass"
+        " FROM galaxy_components").fetchone()
+    if not row["n"]:
+        return None
+    key = (row["db"], row["n"], row["first_id"], row["last_id"], row["mass"], float(edge_pc),
+           float(expected_at_density_1))
+    field = _FIELD_BY_SIGNATURE.get(key)
+    if field is not None:
+        with contextlib.suppress(KeyError):       # another thread dropped it meanwhile
+            _FIELD_BY_SIGNATURE.move_to_end(key)
+        return field
     found = tuple(c for c in get_galaxy_components(conn) if c.kind in componentField.KINDS_IN_THE_GATE)
     if not found:
         return None
-    return _field_of(tuple(dataclasses.replace(c, id=None) for c in found), float(edge_pc), float(expected_at_density_1))
+    field = _field_of(tuple(dataclasses.replace(c, id=None) for c in found), float(edge_pc),
+                      float(expected_at_density_1))
+    _FIELD_BY_SIGNATURE[key] = field
+    while len(_FIELD_BY_SIGNATURE) > _FIELD_BY_SIGNATURE_LIMIT:
+        _FIELD_BY_SIGNATURE.popitem(last=False)
+    return field
 
 
 def get_galaxy_shape(conn):

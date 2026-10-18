@@ -302,15 +302,25 @@ def stellar_mass_for_scale_length(disk_scale_length_pc):
     return 10.0 ** min(max(0.5 * (low + high), 8.2), 11.9)
 
 
-def _shape_history(shape):
-    """The `DiskHistory` of the galaxy of this shape (the thin disk's share of its stars taken from its components)."""
+def stellar_and_halo_masses(shape):
+    """`(stellar mass, halo mass)` of the galaxy of this shape, solar masses: its `masses` (from the mass chain) when it
+    has them, else those of the median galaxy of its disk scale length."""
+    if shape.masses is None:
+        stellar_mass = stellar_mass_for_scale_length(shape.disk_scale_length_pc)
+        return stellar_mass, mass_chain.median_halo_mass(stellar_mass)
+    return shape.masses
+
+
+@functools.lru_cache(maxsize=64)
+def history_of(shape):
+    """
+    The thin disk's `DiskHistory` for the galaxy of this shape: its `masses` (stellar and halo, from the mass chain) when
+    it has them, else the median galaxy of its disk scale length; the disk scale length sets the rings, and its bulge and
+    thick disk set how much of the stars are the thin disk's.
+    """
     from planetgen.galaxy import density
     length = shape.disk_scale_length_pc
-    if shape.masses is None:
-        stellar_mass = stellar_mass_for_scale_length(length)
-        halo_mass = mass_chain.median_halo_mass(stellar_mass)
-    else:
-        stellar_mass, halo_mass = shape.masses
+    stellar_mass, halo_mass = stellar_and_halo_masses(shape)
     masses = density.component_masses(shape)
     thin_share = masses["thin_disk"] / (masses["thin_disk"] + masses["thick_disk"] + masses["bulge"])
     return history(stellar_mass * thin_share, length, halo_mass)
@@ -329,7 +339,7 @@ def population_age_laws(shape):
     Returns:
         dict: Population name -> `AgeLaw`.
     """
-    found = _shape_history(shape)
+    found = history_of(shape)
     ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
     return {name: found.age_law(*ages[name]) for name in tuning.DISK_AGE_LAW_POPULATIONS}
 
@@ -338,17 +348,15 @@ def population_age_laws(shape):
 def population_shares(shape):
     """
     The share of the thin disk's stars in each disk population (`young`, `intermediate`, `old`), from the history of the
-    galaxy of this shape. They add up to 1.
+    galaxy of this shape (`history_of`). They add up to 1.
 
     Args:
-        shape (GalaxyShape): The galaxy's shape: its `masses` (stellar and halo, from the mass chain) when it has them,
-            else the median galaxy of its disk scale length; the disk scale length sets the rings; its bulge and thick
-            disk set how much of the stars are the thin disk's.
+        shape (GalaxyShape): The galaxy's shape.
 
     Returns:
         dict: Population name -> share.
     """
-    found = _shape_history(shape)
+    found = history_of(shape)
     ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
     shares = {name: found.share_between(*ages[name]) for name in tuning.STELLAR_POPULATION_ARM_AMPLITUDE}
     total = sum(shares.values())

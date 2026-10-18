@@ -23,6 +23,7 @@ import functools
 import math
 
 from planetgen import tuning
+from planetgen.galaxy import black_hole_density
 from planetgen.galaxy import density as galaxyDensity
 from planetgen.galaxy import seed as galaxySeed
 from planetgen.physics import constants as physical_constants
@@ -57,9 +58,12 @@ def unbound_fraction(kind, galaxy_seed=None):
 
 
 def unbound_count(kind, shape, expected_at_density_1, edge_pc, galaxy_seed=None):
-    """The ejected `kind` the galaxy holds: its rate per system, times the galaxy's systems, times the unbound share."""
-    return (tuning.phenomenon_rate_per_star(kind) * galaxy_systems(shape, expected_at_density_1, edge_pc)
-            * unbound_fraction(kind, galaxy_seed))
+    """The ejected `kind` the galaxy holds: the unbound share of what it formed. A neutron star's rate per system is
+    the count formed; the black holes' is what the galaxy's metallicity makes (`black_hole_density.formed_per_star`, the
+    bound ones and the ejected together), so bound plus ejected is the whole (GEN.563)."""
+    formed = (black_hole_density.formed_per_star(shape) if kind == "black-hole"
+              else tuning.phenomenon_rate_per_star(kind))
+    return formed * galaxy_systems(shape, expected_at_density_1, edge_pc) * unbound_fraction(kind, galaxy_seed)
 
 
 def mean_speed_kms():

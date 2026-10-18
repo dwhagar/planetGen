@@ -87,6 +87,48 @@ export function isUncharted(entry) {
   return !(entry.generated || entry.charted);
 }
 
+// How much of its light an uncharted object keeps under "Charted only" (MAP.252), 0 to 1, by the order objects
+// are cut in (MAP.251, docs/design/zoom-star-visibility.md section 10): a star of a satellite galaxy (`tier` 2) is
+// dimmed hardest, then a halo star (`tier` 1), then two ramps at the same time, a star from small and dim to large
+// and bright and a phenomenon from small to large by mass (`rampShare`, 0 to 1: `luminosityShare` of a star,
+// `massRampShare` of a phenomenon), the most massive and the brightest keeping the most. A charted object keeps all.
+export const UNCHARTED_KEEP_SATELLITE = 0.03;
+export const UNCHARTED_KEEP_HALO = 0.08;
+export const UNCHARTED_KEEP_RAMP = [0.12, 0.5];
+export function unchartedKeep(entry, rampShare) {
+  if (!isUncharted(entry)) return 1;
+  if (entry.tier === 2) return UNCHARTED_KEEP_SATELLITE;
+  if (entry.tier === 1) return UNCHARTED_KEEP_HALO;
+  const share = Math.min(1, Math.max(0, rampShare));
+  return UNCHARTED_KEEP_RAMP[0] + (UNCHARTED_KEEP_RAMP[1] - UNCHARTED_KEEP_RAMP[0]) * share;
+}
+
+// A phenomenon's place on its ramp: its mass in powers of ten over `MASS_RAMP_DECADES` (a solar mass is the
+// smallest, the same range as the server's `scattered_point_size`); a phenomenon with no mass sits in the middle.
+export const MASS_RAMP_DECADES = 8;
+export function massRampShare(massSolar) {
+  if (!(massSolar > 0)) return 0.5;
+  return Math.min(1, Math.max(0, Math.log10(Math.max(massSolar, 1)) / MASS_RAMP_DECADES));
+}
+
+// The distance rule (MAP.252): the farther an uncharted object is from the camera than its focus, the less it keeps:
+// at the focus's distance all of `keep`, from four times that far `UNCHARTED_FAR_KEEP` of it (log in between).
+export const UNCHARTED_FAR_KEEP = 0.35;
+export const UNCHARTED_FAR_RATIO = 4;
+export function unchartedFarShare(distancePc, focusPc) {
+  if (!(focusPc > 0) || !(distancePc > focusPc)) return 0;
+  return Math.min(1, Math.log(distancePc / focusPc) / Math.log(UNCHARTED_FAR_RATIO));
+}
+
+// The same `unchartedFarShare` in GLSL: `float unchartedFar(float distancePc, float focusPc)`, the share of the
+// distance rule to apply (0 at the focus, 1 four times as far).
+export const UNCHARTED_FAR_GLSL = [
+  "float unchartedFar(float distancePc, float focusPc) {",
+  "  if (focusPc <= 0.0 || distancePc <= focusPc) return 0.0;",
+  "  return min(1.0, log(distancePc / focusPc) / " + Math.log(UNCHARTED_FAR_RATIO).toFixed(6) + ");",
+  "}",
+].join("\n");
+
 // The same `pointGrow` in GLSL: `float pointGrow(float distancePc)`.
 export const STAR_POINT_GLSL = [
   "float pointGrow(float distancePc) {",

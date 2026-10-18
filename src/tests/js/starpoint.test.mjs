@@ -107,6 +107,44 @@ test("Charted only dims a star or a scattered phenomenon outside the filled sect
   assert.equal(P.isUncharted({ phenomenon: true, type: "black_hole" }), false, "a built phenomenon lies in a filled sector");
 });
 
+test("Charted only dims in the cut order: satellite stars, halo stars, then two ramps, the brightest and most massive last (MAP.252)", () => {
+  const sat = P.unchartedKeep({ id: 1, tier: 2 }, 1);
+  const halo = P.unchartedKeep({ id: 2, tier: 1 }, 1);
+  const dimStar = P.unchartedKeep({ id: 3 }, 0);
+  const brightStar = P.unchartedKeep({ id: 4 }, 1);
+  assert.ok(sat < halo && halo < dimStar && dimStar < brightStar, [sat, halo, dimStar, brightStar].join(" < "));
+  assert.equal(P.unchartedKeep({ id: 5, charted: true, tier: 2 }, 0), 1, "a charted star keeps all of its light");
+  assert.equal(P.unchartedKeep({ id: 6, generated: true }, 0), 1);
+  // The two ramps run together: a small phenomenon is cut with the small dim stars, a large one with the bright.
+  const small = P.unchartedKeep({ phenomenon: true, scattered: true }, P.massRampShare(1));
+  const large = P.unchartedKeep({ phenomenon: true, scattered: true }, P.massRampShare(1e8));
+  assert.equal(small, dimStar);
+  assert.equal(large, brightStar);
+  assert.ok(P.massRampShare(1e4) > P.massRampShare(10) && P.massRampShare(10) > P.massRampShare(1));
+  assert.equal(P.massRampShare(undefined), 0.5, "no mass sits in the middle");
+  assert.equal(P.unchartedKeep({ id: 7 }, 7), brightStar, "a share past the ramp is clamped");
+});
+
+test("Charted only dims the farther from the focus more, and the glsl twin agrees", () => {
+  assert.equal(P.unchartedFarShare(10, 100), 0, "nearer than the focus");
+  assert.equal(P.unchartedFarShare(100, 100), 0);
+  assert.ok(P.unchartedFarShare(200, 100) > 0 && P.unchartedFarShare(200, 100) < P.unchartedFarShare(300, 100));
+  assert.equal(P.unchartedFarShare(400, 100), 1);
+  assert.equal(P.unchartedFarShare(4000, 100), 1);
+  assert.equal(P.unchartedFarShare(50, 0), 0, "no focus, no rule");
+  assert.match(P.UNCHARTED_FAR_GLSL, /float unchartedFar\(float distancePc, float focusPc\)/);
+  assert.match(P.UNCHARTED_FAR_GLSL, new RegExp(Math.log(P.UNCHARTED_FAR_RATIO).toFixed(6).replace(".", "\\.")));
+  assert.ok(P.UNCHARTED_FAR_KEEP > 0 && P.UNCHARTED_FAR_KEEP < 1);
+});
+
+test("the Galaxy Map gives every object a keep share and the shader applies it with the distance rule", () => {
+  const map = source("galaxymap3d.js");
+  assert.match(map, /keeps\[i\] = unchartedKeep\(star, star\.phenomenon \? massRampShare\(star\.mass_solar\) : t\)/);
+  assert.match(map, /attribute float starKeep;/);
+  assert.match(map, /mix\(1\.0, unchartedFarKeep, unchartedFar\(dist, focusPc\)\)/);
+  assert.match(map, /uniforms\.focusPc\.value = nearUniforms\.nearD\.value/);
+});
+
 test("the sector scene's far brightness follows the star's own and never exceeds it", async () => {
   installDom("http://localhost/sector/1");
   const SS = await import(new URL("sectorscene.js", STATIC_URL).href);

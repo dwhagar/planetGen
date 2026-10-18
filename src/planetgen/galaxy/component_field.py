@@ -21,7 +21,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.galaxy import satellite_history
+from planetgen.galaxy import components, satellite_history
 from planetgen.physics import component_profiles
 
 
@@ -32,26 +32,48 @@ SATELLITE_POPULATIONS = ("satellite_young", "satellite_intermediate", "satellite
 """tuple: The populations of a satellite's stars (GEN.526): the history's last 0.1 Gy, its last 3 Gy before that, and the
 rest."""
 
-POPULATIONS_IN_THE_GATE = ("cluster", *SATELLITE_POPULATIONS)
-"""tuple: The populations of the mix that components put in a cell, which the scatters leave to the component pass and
-the sector's own draw counts as none (a satellite's three are one kind, `satellite`)."""
+OPEN_CLUSTER_POPULATIONS = tuning.OPEN_CLUSTER_POPULATIONS
+"""tuple: The populations of a young open cluster's stars (GEN.244), one per quarter-decade of age, 1 Myr to 1 Gyr: the
+cluster is coeval, so its stars belong to the population whose age window holds its age."""
 
-KIND_OF_POPULATION = {"cluster": "cluster", "satellite": "satellite", "satellite_young": "satellite",
-                      "satellite_intermediate": "satellite"}
-"""dict: Population -> the component kind whose stars it holds."""
+POPULATIONS_IN_THE_GATE = ("cluster", *SATELLITE_POPULATIONS, *OPEN_CLUSTER_POPULATIONS)
+"""tuple: The populations of the mix that components put in a cell, which the scatters leave to the component pass and
+the sector's own draw counts as none (a satellite's three are one family, `satellite`, a young cluster's twelve one,
+`open_cluster`)."""
+
+FAMILY_OF_POPULATION = {"cluster": "cluster", "satellite": "satellite", "satellite_young": "satellite",
+                        "satellite_intermediate": "satellite",
+                        **{name: "open_cluster" for name in OPEN_CLUSTER_POPULATIONS}}
+"""dict: Population -> the family of components whose stars it holds: `cluster` (the globular clusters), `satellite` or
+`open_cluster`."""
+
+KIND_OF_POPULATION = FAMILY_OF_POPULATION
+
+
+def family_of(component):
+    """A component's family: its kind, except that a `cluster` with the `plummer` profile is a young `open_cluster`
+    (a globular cluster is a `king`)."""
+    return components.family_of(component)
 
 
 def population_shares(component):
     """
-    The shares of a component's stars by population, `{population: share}` adding up to 1: a cluster's are all `cluster`;
-    a satellite's are its history's (`galaxy.satellite_history`), young, intermediate and the rest.
+    The shares of a component's stars by population, `{population: share}` adding up to 1: a globular cluster's are all
+    `cluster`; a young open cluster's all the population of its age (`components.open_cluster_population`); a
+    satellite's are its history's (`galaxy.satellite_history`), young, intermediate and the rest.
     """
+    if components.is_open_cluster(component):
+        return {components.open_cluster_population(component.age_gy): 1.0}
     if component.kind != "satellite":
         return {component.kind: 1.0}
     found = satellite_history.history(component.mass_solar, component.half_mass_radius_pc, component.age_gy)
     return {"satellite_young": found.young_share, "satellite_intermediate": found.intermediate_share,
             "satellite": found.old_share}
 
+
+
+_PREFILTER_ABOVE = 24
+"""int: Components in one grid cell above which `_contributions` drops the far ones with one vector test."""
 
 
 class ComponentField:
@@ -65,8 +87,9 @@ class ComponentField:
         expected_at_density_1 (float): The systems a cell holds at `relative_density` 1.
     """
 
-    __slots__ = ("edge_pc", "expected_at_density_1", "names", "kinds", "fe_h", "shares", "_centers", "_reach",
-                 "_scale_pc", "_central", "_tables", "_index")
+    __slots__ = ("edge_pc", "expected_at_density_1", "names", "kinds", "families", "fe_h", "shares", "_centers", "_reach",
+                 "_scale_pc", "_central", "_tables", "_index", "_big", "_small", "_small_by_cyl", "_small_cyl",
+                 "_small_by_dist", "_small_dist", "_small_window", "_encloses_origin")
 
     def __init__(self, found, edge_pc, expected_at_density_1):
         held = [c for c in found if c.kind in KINDS_IN_THE_GATE]
@@ -74,6 +97,7 @@ class ComponentField:
         self.expected_at_density_1 = float(expected_at_density_1)
         self.names = tuple(c.name for c in held)
         self.kinds = tuple(c.kind for c in held)
+        self.families = tuple(components.family_of(c) for c in held)
         self.fe_h = tuple(c.metallicity_fe_h for c in held)
         self.shares = tuple(population_shares(c) for c in held)
         self._centers = np.array([c.center_pc for c in held], dtype=float).reshape(-1, 3)
@@ -84,6 +108,7 @@ class ComponentField:
                                  dtype=float) / tuning.CLUSTER_MEAN_SYSTEM_MASS_SOL
         self._tables = tuple(component_profiles.table_for(c) for c in held)
         self._index = self._build_index()
+        self._group_by_reach()
 
     __hash__ = object.__hash__
 
@@ -92,6 +117,28 @@ class ComponentField:
 
     def __len__(self):
         return len(self.names)
+
+    def _group_by_reach(self):
+        """
+        Splits the components into the few with a wide reach (globular clusters, satellites), which `bound` and `high_band`
+        test one by one, and the many of small reach (the young open clusters of GEN.244, tens of thousands in a galaxy),
+        which they find by a window in a sorted radius instead: a component of reach under
+        `tuning.CLUSTER_SMALL_REACH_PC` can touch a ring or a shell only if its radius is within its reach of it.
+        """
+        reach = self._reach
+        small = reach <= tuning.CLUSTER_SMALL_REACH_PC
+        self._big = np.nonzero(~small)[0]
+        self._small = np.nonzero(small)[0]
+        cylindrical = np.hypot(self._centers[:, 0], self._centers[:, 1])[self._small]
+        distance = np.linalg.norm(self._centers, axis=1)[self._small]
+        order = np.argsort(cylindrical, kind="stable")
+        self._small_by_cyl, self._small_cyl = self._small[order], cylindrical[order]
+        order = np.argsort(distance, kind="stable")
+        self._small_by_dist, self._small_dist = self._small[order], distance[order]
+        slack = tuning.CLUSTER_BOUND_SLACK_EDGES * self.edge_pc
+        self._small_window = (float(reach[self._small].max()) if len(self._small) else 0.0) + slack
+        self._encloses_origin = bool(np.any(
+            np.linalg.norm(self._centers[self._small], axis=1) <= reach[self._small] + slack)) if len(self._small) else False
 
     def _grid_cell(self, point):
         grid = tuning.CLUSTER_GRID_PC
@@ -146,7 +193,12 @@ class ComponentField:
         if not near:
             return []
         position = np.asarray(position_pc, dtype=float)
-        return [(i, self._cube_systems(i, position)) for i in near]
+        if len(near) > _PREFILTER_ABOVE:
+            # Hundreds of young clusters share a grid cell: one vector test drops those too far to reach the cube.
+            near = np.asarray(near)
+            apart = np.linalg.norm(self._centers[near] - position, axis=1)
+            near = near[apart - 0.87 * self.edge_pc < self._reach[near]]
+        return [(int(i), self._cube_systems(int(i), position)) for i in near]
 
     def densities(self, position_pc):
         """
@@ -169,17 +221,20 @@ class ComponentField:
         return sum(systems for i, systems in self._contributions(position_pc)
                    if kind is None or self.kinds[i] == kind) / self.expected_at_density_1
 
-    def fe_h_peaks(self, position_pc, kind):
+    def fe_h_peaks(self, position_pc, population):
         """
-        The [Fe/H] distribution of the `kind` stars (a population of a satellite's three is the kind `satellite`) at
-        `position_pc`, `((weight, mean, sigma), ...)`: one peak per
-        component of the kind that reaches the point, weighted by the systems it puts in the cell and centred on its own
-        [Fe/H] with `tuning.COMPONENT_FE_H_SIGMA[kind]`. Empty where no component of the kind reaches.
+        The [Fe/H] distribution of the stars of `population` at `position_pc` (a family's populations share one:
+        a satellite's three, a young cluster's twelve), `((weight, mean, sigma), ...)`: one peak per
+        component of the family that reaches the point, weighted by the systems it puts in the cell and centred on its own
+        [Fe/H] with `tuning.COMPONENT_FE_H_SIGMA[family]`. For a young cluster, only the clusters whose age is that
+        population's. Empty where no component of the family reaches.
         """
-        kind = KIND_OF_POPULATION.get(kind, kind)
-        sigma = tuning.COMPONENT_FE_H_SIGMA[kind]
+        family = FAMILY_OF_POPULATION.get(population, population)
+        sigma = tuning.COMPONENT_FE_H_SIGMA[family]
+        exact = population in OPEN_CLUSTER_POPULATIONS
         return tuple((systems, self.fe_h[i], sigma) for i, systems in self._contributions(position_pc)
-                     if self.kinds[i] == kind and systems > 0.0)
+                     if self.families[i] == family and systems > 0.0
+                     and (not exact or population in self.shares[i]))
 
     def bound(self, r_cyl, z):
         """
@@ -189,11 +244,18 @@ class ComponentField:
         """
         if not len(self):
             return 0.0
-        cylindrical = np.hypot(self._centers[:, 0], self._centers[:, 1])
-        nearest = np.hypot(r_cyl - cylindrical, z - self._centers[:, 2]) - tuning.CLUSTER_BOUND_SLACK_EDGES * self.edge_pc
+        slack = tuning.CLUSTER_BOUND_SLACK_EDGES * self.edge_pc
+        near = self._big
+        if len(self._small):
+            low, high = np.searchsorted(self._small_cyl, (r_cyl - self._small_window, r_cyl + self._small_window))
+            near = np.concatenate((self._big, self._small_by_cyl[low:high]))
+        if not len(near):
+            return 0.0
+        centers = self._centers[near]
+        nearest = np.hypot(r_cyl - np.hypot(centers[:, 0], centers[:, 1]), z - centers[:, 2]) - slack
         total = 0.0
-        for i in np.nonzero(nearest < self._reach)[0]:
-            total += self._systems_per_pc3(int(i), max(float(nearest[i]), 0.0)) * self.edge_pc ** 3
+        for k in np.nonzero(nearest < self._reach[near])[0]:
+            total += self._systems_per_pc3(int(near[k]), max(float(nearest[k]), 0.0)) * self.edge_pc ** 3
         return total / self.expected_at_density_1
 
     def high_band(self, shell, band_at, edge_pc):
@@ -202,18 +264,34 @@ class ComponentField:
         does: a component far from the plane is no part of the run of bands the disk and bulge qualify, so the outline
         takes it in by hand. `band_at` is `galaxy.spherical.band_at`.
         """
-        high = -1
-        radius = shell * edge_pc
         slack = tuning.CLUSTER_BOUND_SLACK_EDGES * edge_pc
-        for center, reach in zip(self._centers, self._reach):
+        radius = shell * edge_pc
+        if self._encloses_origin:
+            return band_at(shell, 0.0) if shell else 0   # the sphere holds the pole: the shell's top band
+        high = -1
+        for i in self._big:
+            center, reach = self._centers[i], self._reach[i]
             distance = float(np.linalg.norm(center))
             grown = reach + slack
             if distance <= grown:
-                return band_at(shell, 0.0) if shell else 0   # the sphere holds the pole: the shell's top band
+                return band_at(shell, 0.0) if shell else 0
             if abs(distance - radius) > grown:
                 continue
             latitude = math.asin(max(-1.0, min(1.0, center[2] / distance)))
             half_angle = math.asin(min(1.0, grown / distance))
             highest = min(math.pi / 2.0, abs(latitude) + half_angle)
             high = max(high, abs(band_at(shell, math.pi / 2.0 - highest)))
+        if len(self._small):
+            low, top = np.searchsorted(self._small_dist, (radius - self._small_window, radius + self._small_window))
+            near = self._small_by_dist[low:top]
+            if len(near):
+                centers = self._centers[near]
+                distance = self._small_dist[low:top]
+                grown = self._reach[near] + slack
+                inside = np.abs(distance - radius) <= grown
+                if inside.any():
+                    latitude = np.arcsin(np.clip(centers[inside, 2] / distance[inside], -1.0, 1.0))
+                    half_angle = np.arcsin(np.minimum(1.0, grown[inside] / distance[inside]))
+                    highest = float(np.minimum(math.pi / 2.0, np.abs(latitude) + half_angle).max())
+                    high = max(high, abs(band_at(shell, math.pi / 2.0 - highest)))
         return high

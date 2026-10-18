@@ -85,6 +85,11 @@ POPULATIONS = tuple(tuning.STELLAR_POPULATION_AGE_RANGES_GY)
 """tuple: The stellar populations `galaxy.density.population_densities`
 splits a position's density into, each scattered on its own."""
 
+SCATTERED_POPULATIONS = tuple(name for name in POPULATIONS if name not in tuning.OPEN_CLUSTER_POPULATIONS)
+"""tuple: The populations the shell walk and the object-first sampler weigh. A young open cluster's twelve (GEN.244)
+are left to the component pass (`POPULATIONS_IN_THE_GATE`), so the walks' weights skip them: they are zero there, and
+twelve more terms in every candidate's weights would cost more than a rare component is worth."""
+
 ANGLE_BINS = 32
 """int: How many longitude bins a band's density is averaged over (fewer when
 the band has fewer wedges). The spiral arms' density varies smoothly over
@@ -368,7 +373,7 @@ def sampled_band_expectations(shape, shell_index, high_band, edge_pc, expected_a
         found = _densities_at(points, z, shape)
         here = fractions[scatterLimits.tier_of_densities(found)] if by_tier else fractions
         for densities in found:
-            band_expected += sum(densities[population] * here[population] for population in POPULATIONS)
+            band_expected += sum(densities[population] * here[population] for population in SCATTERED_POPULATIONS)
         out.append((band, plane, z, expected_at_density_1 * wedges * volume_ratio(shell_index, band, edge_pc) / bins
                     * band_expected * step))
     return out
@@ -418,18 +423,18 @@ def _capacity(shape, address, fractions, expected_at_density_1, edge_pc):
     shell_index, band_index, wedge = address
     centre = _densities(sector_position_pc(shell_index, band_index, wedge, edge_pc), shape)
     expected = (expected_at_density_1 * volume_ratio(shell_index, band_index, edge_pc)
-                * sum(centre[population] * fractions[population] for population in POPULATIONS))
+                * sum(centre[population] * fractions[population] for population in SCATTERED_POPULATIONS))
     return object_first.sector_capacity(expected)
 
 
 def _pick_population(rng, weights, wanted):
     """The population of a kept candidate, in proportion to `weights` (which add up to `wanted`)."""
     pick_weight = rng.random() * wanted
-    for population, weight in zip(POPULATIONS, weights):
+    for population, weight in zip(SCATTERED_POPULATIONS, weights):
         pick_weight -= weight
         if pick_weight < 0.0:
             return population
-    return max(zip(POPULATIONS, weights), key=lambda item: item[1])[0]
+    return max(zip(SCATTERED_POPULATIONS, weights), key=lambda item: item[1])[0]
 
 
 def _spots(shape, shell_index, high_band, edge_pc, expected_at_density_1, fractions, rng, skip_addresses,
@@ -489,7 +494,7 @@ def _spots(shape, shell_index, high_band, edge_pc, expected_at_density_1, fracti
         point = _draw_point_in_cell(rng, shell_index, band_index, wedge, edge_pc)
         here = by_tier[tier_of_band[pick]]
         densities = _densities(tuple(value / MPC_PER_PC for value in point), shape)
-        weights = [densities[population] * here[population] for population in POPULATIONS]
+        weights = [densities[population] * here[population] for population in SCATTERED_POPULATIONS]
         wanted = sum(weights)
         if check and wanted > bounds[pick] * (1.0 + 1e-9):
             raise AssertionError(f"majorant violated in band {band_index} of shell {shell_index}: "
@@ -521,7 +526,7 @@ def reach_bounds(shape, groups, by_tier, coarse=False):
     if not len(groups):
         return np.zeros(0)
     if len(by_tier) == 1 or coarse:
-        merged = {population: max(item[population] for item in by_tier) for population in POPULATIONS}
+        merged = {population: max(item[population] for item in by_tier) for population in SCATTERED_POPULATIONS}
         return object_first.extent_majorants(shape, groups.inner, groups.z_near, groups.z_far, merged, groups.r_out)
     near, far = groups.probes()
     near_tier = scatterLimits.probe_densities(shape, *near)[1]
@@ -529,7 +534,7 @@ def reach_bounds(shape, groups, by_tier, coarse=False):
     bounds = np.zeros(len(groups))
     for pair in sorted(set(zip(near_tier.tolist(), far_tier.tolist()))):
         merged = {population: max(by_tier[pair[0]][population], by_tier[pair[1]][population])
-                  for population in POPULATIONS}
+                  for population in SCATTERED_POPULATIONS}
         if sum(merged.values()) <= 0.0:
             continue
         mask = (near_tier == pair[0]) & (far_tier == pair[1])
@@ -551,7 +556,7 @@ def _expected_in_groups(shape, groups, expected_at_density_1, fractions):
         tiers = np.zeros(len(groups), dtype=int)
     wanted = np.zeros(len(groups))
     for tier, here in enumerate(by_tier):
-        wanted += np.where(tiers == tier, sum(means[population] * here[population] for population in POPULATIONS), 0.0)
+        wanted += np.where(tiers == tier, sum(means[population] * here[population] for population in SCATTERED_POPULATIONS), 0.0)
     return float(expected_at_density_1 * np.sum(groups.volume * wanted))
 
 
@@ -674,7 +679,7 @@ def _reach_spots(shape, groups, high_band, edge_pc, expected_at_density_1, by_ti
         tier = 0 if tier_of is None else tier_of(shell_index, band_index)
         here = by_tier[tier]
         densities = _densities(tuple(value / MPC_PER_PC for value in point), shape)
-        weights = [densities[population] * here[population] for population in POPULATIONS]
+        weights = [densities[population] * here[population] for population in SCATTERED_POPULATIONS]
         wanted = sum(weights)
         if check and wanted > bounds[pick] * (1.0 + 1e-9):
             raise AssertionError(f"majorant violated in group {pick} of shell {shell_index}: "
@@ -698,7 +703,7 @@ def _draw_groups(shape, groups, high_band, edge_pc, expected_at_density_1, rng, 
     carries on from it."""
     by_tier = fractions if tiered is not None else [fractions]
     tier_of = None if tiered is None else tiered.limits.tier_at
-    placed = {(tier, population): [] for population in POPULATIONS for tier in range(len(pass_bands))}
+    placed = {(tier, population): [] for population in SCATTERED_POPULATIONS for tier in range(len(pass_bands))}
 
     def candidates_done(done, total, taken):
         if on_progress is not None and total:
@@ -728,7 +733,7 @@ def draw_placed(placed, pass_bands, rng, on_progress=None, base=0.0, age_laws=No
     drawn = 0
     for population in POPULATIONS:
         for tier, band in enumerate(pass_bands):
-            spots = placed[(tier, population)]
+            spots = placed.get((tier, population))
             if not spots:
                 continue
             stars = sample_bright_stars(len(spots), band.min_luminosity_sol, population, rng,
@@ -807,7 +812,7 @@ def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1,
         fractions = tier_fractions_of(tiered, age_laws)
         tiers = tiered.tiers_in(shell_index, high_band)
         pass_bands = list(tiered.bands)
-    placed = {(tier, population): [] for population in POPULATIONS for tier in range(len(pass_bands))}
+    placed = {(tier, population): [] for population in SCATTERED_POPULATIONS for tier in range(len(pass_bands))}
 
     def candidates_done(done, total, taken):
         if on_progress is not None and total:
@@ -820,7 +825,7 @@ def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1,
         placed[(tier, population)].append((band_index, wedge, point))
     total_placed = sum(len(spots) for spots in placed.values())
     drawn = 0
-    for population in POPULATIONS:
+    for population in SCATTERED_POPULATIONS:
         for tier, band in enumerate(pass_bands):
             spots = placed[(tier, population)]
             if not spots:
@@ -874,18 +879,18 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
     bands = canonical_bands(min_luminosity_sol, max_luminosity_sol)
     age_laws = age_laws_of(shape)
     shares = {(k, population): bright_band_fraction(low, high, population, mass_range, age_laws)
-              for k, low, high in bands for population in POPULATIONS}
+              for k, low, high in bands for population in SCATTERED_POPULATIONS}
     for shell_index, band_index, wedge in addresses:
         center = sector_position_pc(shell_index, band_index, wedge, edge_pc)
         densities = _densities(center, shape)
         volume = volume_ratio(shell_index, band_index, edge_pc)
         for k, low, high in bands:
             means = {population: expected_at_density_1 * volume * densities[population] * shares[(k, population)]
-                     for population in POPULATIONS}
+                     for population in SCATTERED_POPULATIONS}
             if not any(mean > 0.0 for mean in means.values()):
                 continue
             rng = draw.Stream(f"{seed}:{shell_index}:{band_index}:{wedge}:{k}")
-            for population in POPULATIONS:
+            for population in SCATTERED_POPULATIONS:
                 if means[population] <= 0.0:
                     continue
                 count = _sample_poisson_count(means[population], rng=rng)
@@ -964,7 +969,7 @@ def cell_band_rate(shape, address, edge_pc, expected_at_density_1, shares):
     shell_index, band_index, wedge = address
     densities = _densities(sector_position_pc(shell_index, band_index, wedge, edge_pc), shape)
     volume = volume_ratio(shell_index, band_index, edge_pc)
-    return sum(expected_at_density_1 * volume * densities[population] * shares[population] for population in POPULATIONS)
+    return sum(expected_at_density_1 * volume * densities[population] * shares[population] for population in SCATTERED_POPULATIONS)
 
 
 def block_candidates(seed, shell_index, band_index, chunk, k, bound, rate_of):
@@ -1088,18 +1093,18 @@ def backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target
     bands = canonical_mass_bands(target_mass_sol, held_mass_sol, edges)
     age_laws = age_laws_of(shape)
     shares = {(low, population): mass_band_fraction(low, high, max_luminosity_sol, population, age_laws)
-              for low, high in bands for population in POPULATIONS}
+              for low, high in bands for population in SCATTERED_POPULATIONS}
     for shell_index, band_index, wedge in addresses:
         center = sector_position_pc(shell_index, band_index, wedge, edge_pc)
         densities = _densities(center, shape)
         volume = volume_ratio(shell_index, band_index, edge_pc)
         for low, high in bands:
             means = {population: expected_at_density_1 * volume * densities[population] * shares[(low, population)]
-                     for population in POPULATIONS}
+                     for population in SCATTERED_POPULATIONS}
             if not any(mean > 0.0 for mean in means.values()):
                 continue
             rng = draw.Stream(f"{seed}:{shell_index}:{band_index}:{wedge}:m{low:g}")
-            for population in POPULATIONS:
+            for population in SCATTERED_POPULATIONS:
                 if means[population] <= 0.0:
                     continue
                 count = _sample_poisson_count(means[population], rng=rng)

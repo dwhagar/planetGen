@@ -142,6 +142,21 @@
     },
     {
       "epoch": 29,
+      "first_release": "8.0.1819",
+      "reason": "A generated galaxy draws its young open clusters from its disk's star formation history (GEN.244): they are stored with the globular clusters, add their density to their cell in one of twelve age-bin populations, and the component pass draws their bright and massive stars, so a new galaxy's stars, systems and sector profiles differ near them."
+    },
+    {
+      "epoch": 30,
+      "first_release": "8.0.1820",
+      "reason": "A barred galaxy's centre has a gas ring fed by its bar that forms young stars and clusters (GEN.282)."
+    },
+    {
+      "epoch": 31,
+      "first_release": "8.0.1821",
+      "reason": "The black holes follow the stars' metals with a share of failed supernovae drawn from the seed, every scattered class on a stream of its own (GEN.563)."
+    },
+    {
+      "epoch": 32,
       "first_release": null,
       "pending": true,
       "reason": "A young, intermediate or old disk star's age is drawn from the galaxy's star formation rate inside its window instead of evenly, so a seed places stars of different ages and the share of bright stars of each population, and the local B-star share, change (GEN.546)."

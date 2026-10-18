@@ -822,6 +822,14 @@ STELLAR_POPULATION_AGE_RANGES_GY = {
     "nuclear_cluster": (3.0, 12.0), "nuclear_disc": (4.0, 12.0),
     "satellite_young": (0.0, 0.1), "satellite_intermediate": (0.1, 3.0),
 }
+# The young open clusters (GEN.244, `generation/open_clusters.py`) are coeval, so their stars cannot share one age
+# window: a cluster's stars belong to the population of the quarter-decade of age it falls in, 1 Myr to 1 Gyr
+# (`open_cluster_00` is 1 to 1.78 Myr, `open_cluster_11` 562 Myr to 1 Gyr), and a star's age is drawn from that window.
+OPEN_CLUSTER_AGE_EDGES_MYR = tuple(10.0 ** (k / 4.0) for k in range(13))
+OPEN_CLUSTER_POPULATIONS = tuple(f"open_cluster_{k:02d}" for k in range(len(OPEN_CLUSTER_AGE_EDGES_MYR) - 1))
+STELLAR_POPULATION_AGE_RANGES_GY.update({
+    name: (OPEN_CLUSTER_AGE_EDGES_MYR[k] / 1000.0, OPEN_CLUSTER_AGE_EDGES_MYR[k + 1] / 1000.0)
+    for k, name in enumerate(OPEN_CLUSTER_POPULATIONS)})
 # The three thin-disc populations' scale heights over the old one's come from the galaxy's own dispersions
 # (`galaxy.structure.population_height_ratios`, GEN.532), not from a table here.
 STELLAR_POPULATION_ARM_AMPLITUDE = {"young": 0.9, "intermediate": 0.4, "old": 0.0}
@@ -1100,7 +1108,60 @@ CLUSTER_BULGE_DISPERSION_KMS = 60.0
 CLUSTER_CELL_SUBSAMPLES = 6
 CLUSTER_NEAR_EDGES = 3.0
 CLUSTER_BOUND_SLACK_EDGES = 2.0
+CLUSTER_SMALL_REACH_PC = 256.0
+"""float: A component whose tidal sphere is no wider than this (the young open clusters, GEN.244) is found by a window in a
+sorted radius in `ComponentField.bound` and `high_band`, not tested one by one: tens of thousands of them are drawn."""
 CLUSTER_GRID_PC = 1024.0
+
+# A generated galaxy's young open clusters (GEN.244, `generation/open_clusters.py`, `physics/open_cluster_evolution.py`,
+# docs/design/intergalactic-and-halo-contents.md 5.14). Every number is from a paper read for this item, none from the
+# Milky Way's catalogue of clusters; the sources are in the design note's table.
+# Formed: a share of the disk's star formation (the cluster formation efficiency, Kruijssen 2012, MNRAS 426, 3008,
+# arXiv:1208.2963, his equation 45: `Gamma = 1 / (1.15 + 0.6 S^-0.4 + 0.05 S^-1)` for the star formation rate density
+# `S` in solar masses per year per kpc2) goes into bound clusters whose initial masses fall as M^-2 between
+# `OPEN_CLUSTER_MASS_RANGE_SOL` (Lamers et al. 2005, A&A 441, 117, arXiv:astro-ph/0505558: slope -2, a physical upper
+# limit as high as 1e6; Lada and Lada 2003, ARA&A 41, 57, arXiv:astro-ph/0301540: 90% of embedded stars are in groups
+# of 100 or more members, masses over 50).
+OPEN_CLUSTER_CFE_COEFFICIENTS = (1.15, 0.6, -0.4, 0.05, -1.0)
+OPEN_CLUSTER_MASS_RANGE_SOL = (50.0, 1.0e6)
+OPEN_CLUSTER_MASS_FUNCTION_SLOPE = 2.0
+OPEN_CLUSTER_MAX_COUNT = 100_000
+"""int: The most young open clusters a galaxy draws, a program limit (GEN.244). A galaxy shaped to hold its star formation
+in a few parsecs would form millions (the cluster formation efficiency rises to 0.7); the draw is cut by raising the low end
+of the initial masses until this many are expected, so the clusters left are the heavier ones (the mass function falls as
+M^-2, so the lighter ones hold little of the stars). The galaxies the generator draws form 5,000 to 92,000."""
+OPEN_CLUSTER_AGE_RANGE_MYR = (OPEN_CLUSTER_AGE_EDGES_MYR[0], OPEN_CLUSTER_AGE_EDGES_MYR[-1])
+# Lost: the cluster loses mass to stellar evolution (`OPEN_CLUSTER_EVOLUTION_LOSS`, Lamers et al. 2005 Table 1, rows of
+# `(Z, a, b, c)`: the share of the initial mass lost is `10 ** ((log10 t - a) ** b + c)` for `t` in years, above
+# `OPEN_CLUSTER_EVOLUTION_LOSS_START_MYR`) and to tidal disruption on a timescale that falls as the cluster loses mass,
+# `t_dis = t0 (M / Msun) ** gamma` with `gamma = 0.62`, `t0 = Cenv 1e-4 gamma (rho_amb / (Msun / pc3)) ** -0.5` (Lamers et
+# al. 2005 and Lamers, Gieles and Portegies Zwart 2005, A&A 429, 173, arXiv:astro-ph/0408235, where `Cenv` is 300 to
+# 800 Myr and `rho_amb` the mean density where the cluster lies). `Cenv` is drawn once per galaxy, from the seed. A
+# cluster whose mass falls below `OPEN_CLUSTER_MASS_RANGE_SOL`'s low end is gone. The solar metallicity of the table
+# is Z = 0.02 (its own convention); a cluster's Z is that times 10 ** [Fe/H].
+OPEN_CLUSTER_DISRUPTION_GAMMA = 0.62
+OPEN_CLUSTER_DISRUPTION_CENV_MYR = (300.0, 800.0)
+OPEN_CLUSTER_EVOLUTION_LOSS_START_MYR = 12.5
+OPEN_CLUSTER_EVOLUTION_LOSS = (
+    (0.0004, 7.06, 0.265, -1.790), (0.0040, 7.06, 0.260, -1.800), (0.0080, 7.03, 0.260, -1.800),
+    (0.0200, 7.00, 0.255, -1.805), (0.0500, 7.00, 0.250, -1.820),
+)
+OPEN_CLUSTER_SOLAR_Z = 0.02
+# Sized: a young cluster's half-mass density is 10^(3 +- 1) solar masses per pc3 at ages under 10 Myr and its radius grows
+# by a factor of 5 to 10 in its first 100 Myr, then stays (Portegies Zwart, McMillan and Gieles 2010, ARA&A 48, 431,
+# arXiv:1002.1961, section 2.3 and figures 8 and 9). Its half-mass radius is `(3 M / (8 pi rho)) ** (1/3)` at birth;
+# a tidally limited one keeps a sixth of its Jacobi radius at most [Henon's tidally filling cluster,
+# recalled, to verify]: the profile is cut at six half-mass radii (`SATELLITE_TIDAL_OVER_HALF_MASS`), so the cap is
+# a sixth of the Jacobi radius.
+OPEN_CLUSTER_HALF_MASS_DENSITY_LOG10 = {"mean": 3.0, "sigma": 1.0}
+OPEN_CLUSTER_EXPANSION_FACTOR_RANGE = (5.0, 10.0)
+OPEN_CLUSTER_EXPANSION_AGE_GY = 0.1
+# Placed: where stars of the cluster's age lie (`galaxy.density.population_densities`, the `young` population under
+# 0.1 Gy and the `intermediate` one over it), on the circular orbit of the disk with that population's dispersion.
+# A cluster's stars share one [Fe/H] to within `COMPONENT_FE_H_SIGMA["open_cluster"]`, which stands in for the
+# homogeneity of open clusters [stand-in, to verify]; its value is the disk's mean at its radius, drawn with the
+# population's scatter.
+OPEN_CLUSTER_DISK_POPULATION_EDGE_GY = 0.1
 
 # The galaxy density model's fixed Milky Way structure
 # (`galaxy.density`, GEN.118, GEN.119): everything that isn't a
@@ -1141,6 +1202,28 @@ NUCLEAR_RESOLUTION_PC = 2.0
 """float: The radius of the grid's core ball (shell 0, half the 4 pc shell depth). The cluster's cusp is held below
 the radius at which its density equals the ball's mean, so the ball's cell holds exactly the cluster's mass inside
 2 pc and no cell is asked for a density the grid cannot hold (`galaxy.density.model_terms`)."""
+
+# The galactic centre's gas and young stars (GEN.282, `galaxy.core_gas`, docs/design/realistic-galactic-core.md 3.4).
+# A bar carries the gas of its gap inward (`BAR_GAP_RADIUS_RATIO`) and piles it into a ring at the centre, the central
+# molecular zone; the ring forms stars at a small share of what comes in. All three are from the review of Henshaw et al.
+# 2023 (PPVII, arXiv:2203.11223, read): the bar's gap gas leaves on a Gy (the simulations behind `BAR_GAP_STAR_FORMATION_FLOOR`),
+# the inflow to the ring is 0.8 solar masses a year for the Milky Way (Hatchfield et al. 2021, 30% efficiency of the
+# dust lanes' flow) against a star formation rate of 0.07 (Table 1: source counts 0.07, integrated light 0.07 to 0.09, more
+# or less constant over the last 5 Myr to 100 Myr), by continuity `inflow = star formation + outflow + growth` (their eq. 1).
+CORE_GAS_INFLOW_TIME_GY = 1.0
+"""float: The time the bar takes to carry the gas of its gap to the centre, Gy."""
+CORE_STAR_FORMATION_PER_INFLOW = 0.07 / 0.8
+"""float: The ring's star formation rate over the gas inflow to it (the Milky Way's measured 0.07 over 0.8 solar masses a
+year; one galaxy measured, so a stand-in for the ratio in others) [R, stand-in for other galaxies]."""
+CORE_RING_RADIUS_BULGE_RATIO = 100.0 / 1580.0
+CORE_RING_WIDTH_BULGE_RATIO = 50.0 / 1580.0
+CORE_RING_HEIGHT_BULGE_RATIO = 30.0 / 1580.0
+"""float: The ring's radius, full width at half maximum and vertical scale height over the bulge's scale radius, as the
+nuclear disc's are (`NUCLEAR_DISC_LENGTH_RATIO`): 100 pc, 50 pc and 30 pc for the Milky Way's 1.58 kpc [recalled: the
+review gives the ring at 100 to 200 pc, so these are placeholders tied to the nuclear disc, to verify]."""
+CORE_STAR_FORMATION_SPAN_GY = 1.0
+"""float: How long the ring is taken to have formed stars at its present rate (open clusters of the ring are drawn over
+this span; the review has the rate constant for at least 5 Myr and 0.09 over 100 Myr) [placeholder]."""
 # The bar's long axis leads the Sun-center line by an angle drawn from the seed (`galaxy.structure_draw.draw_bar`);
 # the Milky Way's is 27 degrees (its near end at positive galactic longitude; Wegg & Gerhard 2013, BHG16: 28-33).
 
@@ -1179,11 +1262,14 @@ STELLAR_POPULATION_DISPERSION_KMS = {
     "satellite_young": 25.0, "satellite_intermediate": 25.0,       # the same satellite, so the same motion (GEN.526)
     "nuclear_cluster": 150.0, "nuclear_disc": 80.0,
 }
+# A young open cluster's stars (GEN.244) take the thin disc's age heating of their own bin, from the galaxy's structure
+# (`galaxy.structure.disc_dispersion_kms`), not a value here.
 STELLAR_POPULATION_ROTATION = {
     "young": "disk", "intermediate": "disk", "old": "disk", "bulge": "bar", "halo": "none", "cluster": "orbit",
     "satellite": "orbit", "satellite_young": "orbit", "satellite_intermediate": "orbit",
     "nuclear_cluster": "none", "nuclear_disc": "disk",
 }
+STELLAR_POPULATION_ROTATION.update({name: "disk" for name in OPEN_CLUSTER_POPULATIONS})
 # A cluster carries its own [Fe/H] (`physics.metallicity`); until the component table (GEN.237) gives each one
 # its own, the profile of a cluster cell shows the two peaks of the Milky Way's clusters (-1.5 and -0.5,
 # docs/design/globular-clusters.md), as `(share, mean, sigma)`; the shares are recalled (about two thirds are the
@@ -1193,7 +1279,7 @@ METALLICITY_CLUSTER_PEAKS = ((0.65, -1.5, 0.3), (0.35, -0.5, 0.3))
 # own [Fe/H], each with this scatter (dex), weighted by the systems each puts in the cell; the peaks below stand in
 # for a place no component reaches (a sample drawn without a profile). A satellite's stand-in is the Clouds'
 # and dwarfs' middle (LMC about -0.4, SMC about -0.9, the dwarf spheroidals -1.0 to -2.1, recalled).
-COMPONENT_FE_H_SIGMA = {"cluster": 0.15, "satellite": 0.3}
+COMPONENT_FE_H_SIGMA = {"cluster": 0.15, "satellite": 0.3, "open_cluster": 0.05}
 METALLICITY_SATELLITE_PEAKS = ((1.0, -1.2, 0.5),)
 
 # A satellite's star formation history (GEN.526, `galaxy.satellite_history`, docs/design/intergalactic-and-halo-contents.md
@@ -2396,10 +2482,13 @@ HABITABLE_FLAVOR = [ # Flavor text for any habitable world.
 # gave about 1e5 in a Milky Way-sized galaxy against the handful of observed
 # candidates, and on 2026-10-16 (Boss, decision card, GEN.259) to 3e-6, so that
 # a Milky Way-sized galaxy, with about 1e8 black holes, holds about 300 of them
-# ("hundreds, as the observations suggest") [R].
+# ("hundreds, as the observations suggest") [R]. GEN.563 (Boss, card BH4, 12:34 AM EDT on 2026-10-18) holds that count: the
+# stellar-mass black holes now follow the stars' metallicity, but these are not remnants of failed supernovae, so
+# they keep the rate they had, 3e-6 of 7e-5 per pc^3 over `REFERENCE_STELLAR_DENSITY_PC3`.
 BLACK_HOLE_MASS_RANGE_SOLAR = (5.0, 20.0)
 BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR = (1e2, 1e5)
 BLACK_HOLE_INTERMEDIATE_MASS_CHANCE = 3.0e-6
+BLACK_HOLE_INTERMEDIATE_RATE_PER_STAR = BLACK_HOLE_INTERMEDIATE_MASS_CHANCE * 7.0e-5 / 0.14
 
 # A supermassive black hole sits at the center of every galaxy (generate.add_galactic_nucleus), quiescent or an
 # active quasar. Its mass follows the galaxy's bulge or stellar mass (`galaxy.structure.black_hole_mass_solar`,
@@ -3503,7 +3592,8 @@ PHENOMENON_DENSITY_PC3 = {
     # GEN.100 retune (Boss, 2026-10-09): the central observed values, 1e9
     # neutron stars (0.4% of ~2.5e11 stars) and 1e8 black holes (0.05%).
     "neutron-star": 5.6e-4,
-    "black-hole": 7e-5,
+    # The stellar-mass black holes are not a rate of their own: they follow from the stars' metallicity
+    # (`galaxy.black_hole_density`, GEN.563). The old 7e-5 (1e8 in the Galaxy, 0.05% of ~2.5e11 stars) is a test target.
     # Giant molecular clouds: 1e-6 to 1e-5 (Kennicutt & Evans 2012, ARA&A
     # 50:531): cloud centers, generated as dark-family nebulae (classes
     # M-Q). GMC_ARM_FILLING_FACTOR is the matching fraction of arm volume
@@ -3627,6 +3717,34 @@ NEUTRON_STAR_UNBOUND_FRACTION_RANGE = (0.2, 0.4)
 
 BLACK_HOLE_UNBOUND_FRACTION = 0.02
 """float: The share of a galaxy's black holes that are ejected (GEN.238; about 2%) [S, recalled; to verify]."""
+
+CORE_COLLAPSE_MASS_RANGE_SOL = (SUPERGIANT_MIN_MASS_SOL, IMF_BREAKS_SOL[-1])
+"""tuple: The initial masses that end as a neutron star or a black hole, solar masses: 8 (the supergiants' edge) to the
+top of the IMF, 150 (GEN.560). 0.637% of the stars born."""
+
+BLACK_HOLE_FAILED_SHARE_SOLAR_RANGE = (0.0, 0.45)
+"""tuple: The share of the massive stars of solar metallicity that fail to explode and leave a black hole: the widest
+verified range, 0 (O'Connor and Ott 2011's lowest) to 45% (Sukhbold et al. 2016's highest; Ebinger et al. 2020 give 5 to
+21%). A galaxy draws its own, uniform over the range (only the range is known) and cut by the neutron star budget
+(`physics.black_hole_formation.share_cap`). GEN.563, docs/design/black-hole-formation-sources.md."""
+
+BLACK_HOLE_FAILED_SHARE_METAL_FREE_RANGE = (0.15, 0.32)
+"""tuple: The same share for a metal-free population, 15% (O'Connor and Ott 2011) to 32% (Ebinger et al. 2020's
+highest; Sukhbold et al. give solar only). Drawn uniform over the range, cut at the neutron star budget and not below
+the galaxy's solar share. GEN.563."""
+
+BLACK_HOLE_FORMED_MASS_STEPS = 64
+BLACK_HOLE_FORMED_AGE_STEPS = 64
+"""int: Log-spaced progenitor masses and ages across a window the share of formed remnants is averaged over (numerical,
+`physics.black_hole_formation.remnant_formed_share`)."""
+
+BLACK_HOLE_FAILED_MEAN_TABLE_STEPS = 1025
+"""int: Points of the table the failed share's mean over a metallicity peak is read from (it is smooth in the peak's mean)."""
+BLACK_HOLE_GALAXY_MEAN_RADIAL_STEPS = 72
+BLACK_HOLE_GALAXY_MEAN_POLAR_STEPS = 24
+BLACK_HOLE_GALAXY_MEAN_AZIMUTH_STEPS = 6
+"""int: The log-spaced radii, equal-area polar angles and azimuths of the grid a galaxy's mean black hole rate per star
+is averaged over (`galaxy.black_hole_density.mean_rate_per_star`, GEN.563)."""
 
 EJECTA_SPEED_RANGE_KMS = (300.0, 500.0)
 """tuple: The speed a kicked neutron star or black hole has far out, above the galaxy's escape speed, km/s (GEN.238)

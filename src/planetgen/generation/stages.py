@@ -174,27 +174,37 @@ def note(**metrics):
         _state["open"]["metrics"].update(metrics)
 
 
-def _recording_on():
+def recording_enabled():
+    """Whether stage rows and speed stats are stored at all (`PLANETGEN_GENERATION_STATS`, off in the test suite)."""
     from planetgen.generation import stats as generation_stats
-    return (_state["args"] is not None and
-            os.environ.get(generation_stats.STATS_ENV_VAR, "1").strip().lower() not in ("0", "off", "no", "false"))
+    return os.environ.get(generation_stats.STATS_ENV_VAR, "1").strip().lower() not in ("0", "off", "no", "false")
+
+
+def _recording_on():
+    return _state["args"] is not None and recording_enabled()
 
 
 def _write(record):
     """Stores one stage's row in the control database; a failure only warns in the debug log."""
     if not _recording_on():
         return
+    from planetgen.db import store
+    write_row(store.mysql_config_from_args(_state["args"]), _state["command"] or "", record)
+
+
+def write_row(config, command, record):
+    """Stores one stage's row for the database `config` names (`record`: `key`, `n`, `total`, `label`, `skipped`,
+    `settings`, `metrics` and `seconds`) in the control database; a failure only warns in the debug log."""
     try:
         from planetgen.db import store
         from planetgen.galaxy.version_key import version_key
-        config = store.mysql_config_from_args(_state["args"])
         conn = store.get_control_connection(store.control_mysql_config(config))
         try:
             conn.execute(
                 "INSERT INTO generation_stage_runs (database_name, command, stage_key, stage_n, stage_total, label,"
                 " skipped, skip_reason, started_at, finished_at, seconds, workers, settings, metrics, version_key)"
                 " VALUES (?, ?, ?, ?, ?, ?, ?, ?, DATE_SUB(NOW(6), INTERVAL ? MICROSECOND), NOW(6), ?, ?, ?, ?, ?)",
-                (config.database, _state["command"] or "", record["key"], record["n"], record["total"],
+                (config.database, command, record["key"], record["n"], record["total"],
                  record["label"][:80], 1 if record["skipped"] else 0,
                  (record["skipped"] or None) and record["skipped"][:200],
                  int(record["seconds"] * 1e6), record["seconds"], record["settings"].get("workers", 1),
@@ -207,6 +217,41 @@ def _write(record):
         log.debug(f"Stage statistics: not recorded ({exc}).")
 
 
+def _with_rate(record):
+    """Adds the stage's seconds per shell to its metrics when it visited shells; returns the shells."""
+    shells = int(record["metrics"].get("shells") or 0)
+    if shells > 0 and record["seconds"] > 0:
+        record["metrics"]["seconds_per_shell"] = record["seconds"] / shells
+    return shells
+
+
+def hand_over_open_stage():
+    """
+    Hands the stage open now to the queue (PERF.106): its units run elsewhere, so the unit that completes the stage
+    writes its row (`write_queued_row`, from what the run record holds) and this process does not. This process still
+    counts the stage in the whole job's totals.
+
+    Returns:
+        dict or None: The row's `command`, `n`, `total`, `label` and `settings` for the run record to carry; `None`
+            when no row is stored (no stage open, or statistics off).
+    """
+    record = _state["open"]
+    if record is None or not _recording_on():
+        return None
+    record["queued"] = True
+    return {"command": _state["command"] or "", "n": record["n"], "total": record["total"], "label": record["label"],
+            "settings": dict(record["settings"])}
+
+
+def write_queued_row(config, key, row, seconds, metrics):
+    """The row of a stage that ran on the queue (`hand_over_open_stage`'s `row`), written by the unit that completed
+    it: `seconds` from the first unit's start to the last one's end and the `metrics` its command found."""
+    record = {"key": key, "n": row["n"], "total": row["total"], "label": row["label"], "skipped": None,
+              "settings": row["settings"], "metrics": dict(metrics), "seconds": seconds}
+    _with_rate(record)
+    write_row(config, row["command"], record)
+
+
 def _close_open():
     """Records the stage open now, with the time it took."""
     record = _state["open"]
@@ -215,13 +260,11 @@ def _close_open():
         _state["ran"] += 1
         record["seconds"] = time.perf_counter() - record["t0"]
         _state["job_seconds"] += record["seconds"]
-        shells = int(record["metrics"].get("shells") or 0)
-        _state["job_shells"] += shells
-        if shells > 0 and record["seconds"] > 0:
-            record["metrics"]["seconds_per_shell"] = record["seconds"] / shells
+        _state["job_shells"] += _with_rate(record)
         if record["key"] in SCATTER_KEYS:
             _state["scatters"].append(record)
-        _write(record)
+        if not record.get("queued"):
+            _write(record)
 
 
 def _write_job():

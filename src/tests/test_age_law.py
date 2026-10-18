@@ -103,7 +103,7 @@ def test_the_history_gives_a_law_for_each_disk_population_and_none_for_the_rest(
 def test_the_laws_probabilities_are_the_histories_shares_inside_the_window():
     """Within one window the law is the history's own rate: the share of a window's stars younger than a mid age is the
     history's `share_between`, to the accuracy of the law's points."""
-    found = disk_history._shape_history(SHAPE)
+    found = disk_history.history_of(SHAPE)
     for name, law in LAWS.items():
         low, high = law.window
         middle = 0.5 * (low + high)

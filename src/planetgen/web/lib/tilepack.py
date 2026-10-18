@@ -27,8 +27,11 @@ One tile (all numbers little-endian)::
                                   log10 RADIUS_LOG_RANGE
       class                       u8[count]: the first letter of the star
                                   type, 0 for none
-      charted                     u8[count]: 1 when the star's system is
-                                  known to the database (`system_id`)
+      charted                     u8[count]: bit 0 is 1 when the star's system is
+                                  known to the database (`system_id`); bits 1
+                                  and 2 are its `tier` (0 the disc, the bulge
+                                  and the rest, 1 the halo, 2 a satellite
+                                  galaxy, MAP.252)
       id kind                     u8: 0 whole numbers, 1 text of one length,
                                   2 anything else
         kind 0                    u32[count] low halves, then u32[count]
@@ -122,7 +125,8 @@ def _pack_stars(stars):
     radius_lo, radius_hi = RADIUS_LOG_RANGE
     out.append(bytes(_encode_log(star.get("radius_sol"), radius_lo, radius_hi, _U8) for star in stars))
     out.append(bytes(ord(str(star["star_type"])[0]) if star.get("star_type") else 0 for star in stars))
-    out.append(bytes(1 if star.get("system_id") is not None else 0 for star in stars))
+    out.append(bytes((1 if star.get("system_id") is not None else 0) | (min(int(star.get("tier") or 0), 3) << 1)
+                     for star in stars))
     out.extend(_pack_ids([star["id"] for star in stars]))
     return out
 
@@ -145,7 +149,7 @@ def pack_tile(tile):
     Args:
         tile (dict): `stars` and `generated` (lists of star dicts with
             `id`, `x`, `y`, `z`, `luminosity_sol` and optionally
-            `temperature_k`, `radius_sol`, `star_type`, `system_id`) and the
+            `temperature_k`, `radius_sol`, `star_type`, `system_id`, `tier`) and the
             JSON sections `clouds`, `points` and `incomplete`.
 
     Returns:
@@ -268,7 +272,9 @@ def _unpack_stars(buffer, offset):
             star["radius_sol"] = value
         if classes[i]:
             star["star_type"] = chr(classes[i])
-        star["charted"] = bool(charted[i])
+        star["charted"] = bool(charted[i] & 1)
+        if charted[i] >> 1:
+            star["tier"] = charted[i] >> 1
         stars.append(star)
     return stars, offset
 

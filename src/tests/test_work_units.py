@@ -162,6 +162,49 @@ def test_a_stage_of_no_units_ends_at_once(monkeypatch, conn):
     assert results == {} and runrecord.read_run(conn, run_id)["state"] == "done"
 
 
+def test_a_units_time_limit_is_a_multiple_of_its_stages_expected_time_and_never_none(monkeypatch, conn):
+    assert units.unit_timeout(None) == units.unit_timeout(0) == units.UNIT_TIMEOUT_SECONDS
+    assert units.unit_timeout(1000) == 10_000 and units.unit_timeout(1) == units.MIN_UNIT_TIMEOUT_SECONDS
+    assert units.unit_timeout(10 ** 9) == units.UNIT_TIMEOUT_SECONDS
+    _handlers(monkeypatch, test=_square)
+    run_id = runrecord.start_run(conn, "T", [runrecord.Stage("a", "A", units=1), runrecord.Stage("b", "B", units=1)])
+    units.enqueue_units(conn, run_id, 0, "test", [({"n": 1}, 1.0)], expected_seconds=2000)
+    units.enqueue_units(conn, run_id, 1, "test", [({"n": 2}, 1.0)])
+    jobs = {job.id: job for job in redisqueue.queue(redisqueue.BULK_QUEUE, conn).jobs}
+    assert {job.timeout for job in jobs.values()} == {20_000, units.UNIT_TIMEOUT_SECONDS}
+
+
+def test_a_stage_with_a_recorded_time_gets_it_as_its_expected_seconds_and_its_units_a_limit_from_it(monkeypatch, conn):
+    _handlers(monkeypatch, test=_square)
+    monkeypatch.setattr(wrapper, "expected_seconds", lambda step, row: 3000.0 if row else None)
+    row = {"command": "plan", "n": 1, "total": 1, "label": "A test stage", "settings": {"workers": 1}}
+    seen, real = [], units.enqueue_units
+    monkeypatch.setattr(units, "enqueue_units", lambda *args, **kwargs: seen.append(kwargs) or real(*args, **kwargs))
+    run_id = wrapper.run("T", [_step(1)], lambda index, plan: None, lambda index, unit, result: None, rows={"test": row})
+    stage = runrecord.read_run(conn, run_id)["stages"][0]
+    assert stage["expected_seconds"] == 3000.0 and stage["row"] == row
+    assert seen == [{"expected_seconds": 3000.0}]
+
+
+def test_a_killed_worker_process_fails_its_run_at_once_naming_the_unit(monkeypatch, conn):
+    _handlers(monkeypatch, test=_square)
+    run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=3)])
+    units.enqueue_units(conn, run_id, 0, "test", [({"n": n}, 1.0) for n in range(3)])
+    job = redisqueue.queue(redisqueue.BULK_QUEUE, conn).jobs[1]
+    units.horse_killed(job, 4242, -9, None)
+    run = runrecord.read_run(conn, run_id)
+    assert run["state"] == "failed" and "unit 1 of stage 0 was killed" in run["error"] and "4242" in run["error"]
+    assert runrecord.active_run(conn) is None, "the machine is free at once"
+    from planetgen.queue import workers
+    workers.ensure_workers(redisqueue.BULK_QUEUE, conn)             # RQ's retry finds the run over and does nothing
+    assert runrecord.read_run(conn, run_id)["stages"][0]["done"] == 0
+
+
+def test_a_killed_job_that_is_not_a_unit_is_left_to_rq(conn):
+    other = type("Job", (), {"func_name": "planetgen.somewhere.else", "args": ("x", 1, 2), "connection": conn})()
+    units.horse_killed(other, 1, -9, None)               # no run to fail, nothing raised
+
+
 def test_more_units_than_the_cap_are_refused(monkeypatch, conn):
     _handlers(monkeypatch, test=_square)
     monkeypatch.setattr(units, "MAX_UNITS", 2)
@@ -177,36 +220,16 @@ def test_only_the_table_names_what_a_unit_runs():
     for kind in ("os.system", "nope"):
         with pytest.raises(KeyError):
             commands.unit_function(kind)
+    for kind in ("scatter-luminosity", "scatter-band", "scatter-phenomena", "plan-skeleton"):
+        assert callable(commands.unit_function(kind)) and callable(commands.expand_function(kind))
     with pytest.raises(ValueError, match="inline"):
-        commands.unit_function("scatter-luminosity")
+        commands.unit_function("scatter-backfill")
 
 
 # --- The massive-star scatter on the new queue (the stage PERF.97 moves, the wrapper queues, PERF.118) ----------
 
-def _scatter_mass(mysql_config, workers, on_run_record):
-    """Draws the toy galaxy's massive stars (8 solar masses and up) and returns the stars stored, sorted."""
+def _stored_stars(mysql_config):
     from planetgen.db import store
-    from planetgen.galaxy import scatter_limits
-    from planetgen.generation import run_plan
-    from planetgen.generation import star_population as starPopulation
-    from tests.test_bright_star_scatter import EXTENTS, _plan_args, _seed_galaxy
-    _seed_galaxy(mysql_config)
-    args = _plan_args(mysql_config, "--bright-stars-only", "--workers", str(workers))
-    conn = store.get_connection(mysql_config)
-    try:
-        skeleton = store.get_galaxy_shape(conn)
-        conn.execute("DELETE FROM bright_stars")
-        conn.commit()
-    finally:
-        conn.close()
-    if on_run_record:
-        run_plan._scatter_mass(args, mysql_config, 1000.0, 8.0, 77)
-    else:
-        limits = scatter_limits.ScatterLimits.of(skeleton, 1000.0, 8.0)
-        tiered = scatter_limits.mass_pass(limits, starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL)
-        run_plan._scatter_shells(args, mysql_config, skeleton, EXTENTS, set(),
-                                 starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL, 77, "Massive stars",
-                                 stats_kind="scatter-mass", task_kind="mass-stars", tiered=tiered)
     conn = store.get_connection(mysql_config)
     try:
         columns = ", ".join(store.BRIGHT_STAR_COLUMNS)
@@ -215,12 +238,28 @@ def _scatter_mass(mysql_config, workers, on_run_record):
         conn.close()
 
 
+def _scatter_mass(mysql_config, workers):
+    """Draws the toy galaxy's massive stars (8 solar masses and up) and returns the stars stored, sorted."""
+    from planetgen.db import store
+    from planetgen.generation import run_plan
+    from tests.test_bright_star_scatter import _plan_args, _seed_galaxy
+    _seed_galaxy(mysql_config)
+    args = _plan_args(mysql_config, "--bright-stars-only", "--workers", str(workers))
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("DELETE FROM bright_stars")
+        conn.commit()
+    finally:
+        conn.close()
+    run_plan._scatter_mass(args, mysql_config, 1000.0, 8.0, 77)
+    return _stored_stars(mysql_config)
+
+
 @pytest.mark.fresh_database
-def test_the_mass_scatter_gives_the_same_stars_at_any_worker_count_and_as_the_old_queue(mysql_config):
-    one = _scatter_mass(mysql_config, 1, True)
+def test_the_mass_scatter_gives_the_same_stars_at_any_worker_count(mysql_config):
+    one = _scatter_mass(mysql_config, 1)
     assert len(one) > 5, "the toy galaxy holds massive stars to compare"
-    assert _scatter_mass(mysql_config, 4, True) == one
-    assert _scatter_mass(mysql_config, 1, False) == one
+    assert _scatter_mass(mysql_config, 4) == one
 
 
 @pytest.mark.fresh_database
@@ -228,7 +267,7 @@ def test_the_mass_scatter_records_its_run_with_a_unit_per_run_of_shells(mysql_co
     runs = []
     real = wrapper.run
     monkeypatch.setattr(wrapper, "run", lambda *args, **kwargs: runs.append(real(*args, **kwargs)) or runs[-1])
-    _scatter_mass(mysql_config, 2, True)
+    _scatter_mass(mysql_config, 2)
     conn = redisqueue.connect()
     run = runrecord.read_run(conn, runs[0])
     assert run["state"] == "done" and run["database"] == mysql_config.database
@@ -237,6 +276,95 @@ def test_the_mass_scatter_records_its_run_with_a_unit_per_run_of_shells(mysql_co
     plan = runrecord.read_plan(conn, runs[0], 0)
     assert plan["kind"] == "scatter-mass" and plan["units"] == run["stages"][0]["units"]
     assert [step["kind"] for step in runrecord.read_steps(conn, runs[0])] == ["scatter-mass"]
+
+
+def _scatter_then_band(mysql_config, workers):
+    """Scatters the toy galaxy's bright stars (both passes), then adds the band down to 100 L_sun; returns the stars
+    stored after each, sorted."""
+    from planetgen.generation import run_plan
+    from tests.test_bright_star_scatter import _plan_args, _seed_galaxy
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--workers", str(workers)))
+    scattered = _stored_stars(mysql_config)
+    run_plan.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", "100", "--workers", str(workers)))
+    return scattered, _stored_stars(mysql_config)
+
+
+@pytest.mark.fresh_database
+def test_the_luminosity_pass_and_the_band_give_the_same_stars_at_any_worker_count_and_record_their_runs(
+        mysql_config, monkeypatch):
+    runs = []
+    real = wrapper.run
+    monkeypatch.setattr(wrapper, "run", lambda *args, **kwargs: runs.append(real(*args, **kwargs)) or runs[-1])
+    scattered, banded = _scatter_then_band(mysql_config, 1)
+    assert len(scattered) > 20 and len(banded) > len(scattered)
+    conn = redisqueue.connect()
+    assert [step["kind"] for run in runs for step in runrecord.read_steps(conn, run)] == [
+        "scatter-mass", "scatter-luminosity", "scatter-band"]
+    for run_id in runs:
+        run = runrecord.read_run(conn, run_id)
+        assert run["state"] == "done" and run["stages"][0]["done"] == run["stages"][0]["units"] > 0
+    monkeypatch.setattr(wrapper, "run", real)
+    assert _scatter_then_band(mysql_config, 4) == (scattered, banded)
+
+
+@pytest.mark.fresh_database
+def test_a_scatter_stage_is_stored_once_by_the_unit_that_completes_it_with_its_speeds(mysql_config, monkeypatch):
+    from planetgen.db import store
+    from planetgen.generation import run_plan, stages
+    from planetgen.generation import stats as generation_stats
+    from tests.test_bright_star_scatter import _plan_args, _seed_galaxy
+    store.get_control_connection(mysql_config, ensure_schema=True).close()
+    monkeypatch.setenv(store.CONTROL_DB_ENV_VAR, mysql_config.database)
+    monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
+    _seed_galaxy(mysql_config)
+    args = _plan_args(mysql_config, "--bright-stars-only", "--workers", "2")
+    stages.begin(stages.for_command("plan", args), args, "plan")
+    summary = run_plan.scatter_bright_stars(args)
+    stages.finish()
+    conn = store.get_control_connection(mysql_config)
+    try:
+        history = generation_stats.stage_history(conn)
+        job = generation_stats.stage_history(conn, stages.JOB_KEY)
+        kinds = {kind for kind, _workers, _bucket in generation_stats.GenerationStats(
+            store.control_mysql_config(mysql_config)).buckets}
+    finally:
+        conn.close()
+    by_key = {}
+    for run in history:
+        by_key.setdefault(run["stage_key"], []).append(run)
+    assert {key: len(rows) for key, rows in by_key.items() if key in ("mass", "luminosity")} == {"mass": 1, "luminosity": 1}
+    mass, light = by_key["mass"][0], by_key["luminosity"][0]
+    assert mass["settings"]["workers"] == 2 and mass["seconds"] > 0 and not mass["skipped"]
+    assert (mass["stage_n"], mass["stage_total"]) == (1, 2) and (light["stage_n"], light["stage_total"]) == (2, 2)
+    assert mass["metrics"]["objects"] + light["metrics"]["objects"] == summary["total"] > 20
+    assert mass["metrics"]["shells"] > 0 and 0 < mass["metrics"]["shells_modified"] <= mass["metrics"]["shells"]
+    assert mass["metrics"]["seconds_per_shell"] == pytest.approx(mass["seconds"] / mass["metrics"]["shells"])
+    assert {"scatter-mass", "scatter-bright"} <= kinds, "each unit's speed is recorded under its pass's kind"
+    assert job and job[0]["metrics"]["shells"] > 0, "the whole job's totals are still the starter's"
+
+
+@pytest.mark.fresh_database
+def test_the_band_stage_is_stored_once_by_the_starter_because_it_tops_up_after_its_units(mysql_config, monkeypatch):
+    from planetgen.db import store
+    from planetgen.generation import run_plan, stages
+    from planetgen.generation import stats as generation_stats
+    from tests.test_bright_star_scatter import _plan_args, _seed_galaxy
+    store.get_control_connection(mysql_config, ensure_schema=True).close()
+    monkeypatch.setenv(store.CONTROL_DB_ENV_VAR, mysql_config.database)
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
+    run_plan.run_plan(_plan_args(mysql_config, "--bright-stars-down-to", "100", "--workers", "2"))
+    conn = store.get_control_connection(mysql_config)
+    try:
+        bands = [run for run in generation_stats.stage_history(conn) if run["stage_key"] == "band"]
+        kinds = {kind for kind, _workers, _bucket in generation_stats.GenerationStats(
+            store.control_mysql_config(mysql_config)).buckets}
+    finally:
+        conn.close()
+    assert len(bands) == 1 and bands[0]["seconds"] > 0 and bands[0]["settings"]["workers"] == 2
+    assert "scatter-bright" in kinds, "the band's units still record their speeds"
 
 
 @pytest.mark.fresh_database
@@ -267,6 +395,153 @@ def test_a_unit_of_the_mass_scatter_runs_alone_from_its_json_arguments(mysql_con
         assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == stars
     finally:
         conn.close()
+
+
+def _scatter_phenomena(mysql_config, workers):
+    """Scatters the toy galaxy's phenomena and returns the rows stored (no id), sorted."""
+    import json
+
+    from planetgen.db import store
+    from planetgen.generation import run_plan
+    from tests.test_bright_star_scatter import _plan_args, _seed_galaxy
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_plan_args(mysql_config, "--workers", str(workers)))
+    conn = store.get_connection(mysql_config)
+    try:
+        rows = conn.execute("SELECT * FROM phenomenon_scatter").fetchall()
+    finally:
+        conn.close()
+    return sorted(json.dumps({key: str(value) for key, value in row.items() if key != "id"}, sort_keys=True)
+                  for row in rows)
+
+
+@pytest.mark.fresh_database
+def test_the_phenomena_scatter_gives_the_same_rows_at_any_worker_count_and_records_its_run(mysql_config, monkeypatch):
+    runs = []
+    real = wrapper.run
+    monkeypatch.setattr(wrapper, "run", lambda *args, **kwargs: runs.append(real(*args, **kwargs)) or runs[-1])
+    one = _scatter_phenomena(mysql_config, 1)
+    assert len(one) > 50
+    conn = redisqueue.connect()
+    assert [step["kind"] for run in runs for step in runrecord.read_steps(conn, run)] == ["scatter-phenomena"]
+    run = runrecord.read_run(conn, runs[0])
+    assert run["state"] == "done" and run["stages"][0]["done"] == run["stages"][0]["units"] > 1
+    monkeypatch.setattr(wrapper, "run", real)
+    assert _scatter_phenomena(mysql_config, 4) == one
+
+
+@pytest.mark.fresh_database
+def test_a_unit_of_the_phenomena_scatter_runs_alone_from_its_json_arguments(mysql_config):
+    import json
+
+    from planetgen.db import store
+    from planetgen.generation import run_plan
+    from tests.test_bright_star_scatter import _seed_galaxy
+    _seed_galaxy(mysql_config)
+    params = {"database": wrapper.database_args(mysql_config), "min_mass_solar": 1.0, "seed": 77}
+    expansion = run_plan.expand_scatter_phenomena(params)
+    assert expansion.units == run_plan.expand_scatter_phenomena(json.loads(json.dumps(params))).units
+    assert expansion.plan == json.loads(json.dumps(expansion.plan))
+    shape = run_plan._PhenomenaShape.from_json(expansion.plan)
+    assert shape.to_json() == expansion.plan and len(shape.tasks) == len(expansion.units) > 1
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("DELETE FROM phenomenon_scatter")
+        conn.commit()
+        placed = 0
+        for args, _cost in expansion.units:
+            assert json.loads(json.dumps(args)) == args and "password" not in args["database"]
+            result = commands.run_alone("scatter-phenomena", json.loads(json.dumps(args)))
+            placed += sum(result["counts"].values())
+        assert placed > 50
+        assert conn.execute("SELECT COUNT(*) AS n FROM phenomenon_scatter").fetchone()["n"] == placed
+    finally:
+        conn.close()
+
+
+def _skeleton_args(mysql_config, *extra):
+    import argparse
+
+    from planetgen.cli import generate as generate_cli
+    from tests.test_galaxy_gen import _PLAN_SHAPE_ARGV, _mysql_argv
+    parser = argparse.ArgumentParser(prefix_chars="-+")
+    generate_cli.add_plan_arguments(parser)
+    args = parser.parse_args(_PLAN_SHAPE_ARGV + list(extra) + _mysql_argv(mysql_config))
+    generate_cli.validate_plan_args(args, parser)
+    return args
+
+
+@pytest.fixture
+def control_database(mysql_config, monkeypatch):
+    """The test database doubling as the control database (the plan draws the galaxy's naming key into it)."""
+    from planetgen.db import store
+    store.get_control_connection(mysql_config, ensure_schema=True).close()
+    monkeypatch.setenv(store.CONTROL_DB_ENV_VAR, mysql_config.database)
+    return mysql_config
+
+
+@pytest.mark.fresh_database
+def test_the_skeleton_is_one_unit_whose_lines_the_starter_logs_and_whose_run_is_recorded(
+        control_database, monkeypatch, capsys):
+    from planetgen.generation import run_plan
+    runs = []
+    real = wrapper.run
+    monkeypatch.setattr(wrapper, "run", lambda *args, **kwargs: runs.append(real(*args, **kwargs)) or runs[-1])
+    summary = run_plan._skeleton_on_queue(_skeleton_args(control_database))
+    out = capsys.readouterr().out
+    assert summary["shell_count"] > 0 and "Building skeleton:" in out and "Galaxy seed " in out and "Naming key " in out
+    conn = redisqueue.connect()
+    run = runrecord.read_run(conn, runs[0])
+    assert run["state"] == "done" and [stage["key"] for stage in run["stages"]] == ["skeleton"]
+    assert run["stages"][0]["units"] == 1
+    assert [step["kind"] for step in runrecord.read_steps(conn, runs[0])] == ["plan-skeleton"]
+
+
+@pytest.mark.fresh_database
+def test_the_skeleton_unit_runs_alone_from_its_json_arguments(control_database):
+    import json
+
+    from planetgen.db import store
+    from planetgen.generation import run_plan
+    args = _skeleton_args(control_database, "--seed", "00112233445566778899AABBCCDDEEFF")
+    params = json.loads(json.dumps(run_plan.skeleton_params(args, control_database)))
+    assert params["galaxy_seed"] == "00112233445566778899AABBCCDDEEFF" and "password" not in params["database"]
+    result = commands.run_alone("plan-skeleton", params)
+    assert result["summary"]["shell_count"] > 0 and any(line.startswith("Galaxy seed 00112233") for line in result["lines"])
+    conn = store.get_connection(control_database)
+    try:
+        assert store.get_galaxy_seed(conn).hex().upper() == "00112233445566778899AABBCCDDEEFF"
+    finally:
+        conn.close()
+
+
+@pytest.mark.fresh_database
+def test_a_skeleton_the_unit_refuses_ends_the_plan_with_its_message(control_database, caplog):
+    from planetgen.generation import run_plan
+    args = _skeleton_args(control_database)
+    args.reach_shells = -1
+    with pytest.raises(SystemExit) as stopped, caplog.at_level("ERROR"):
+        run_plan._skeleton_on_queue(args)
+    assert stopped.value.code == 1 and "--reach-shells -1" in caplog.text
+
+
+@pytest.mark.fresh_database
+def test_the_skeleton_stage_is_stored_once_by_its_unit(control_database, monkeypatch):
+    from planetgen.db import store
+    from planetgen.generation import run_plan, stages
+    from planetgen.generation import stats as generation_stats
+    monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
+    args = _skeleton_args(control_database, "--workers", "2")
+    stages.begin(stages.plan_stages(args), args, "plan")
+    stages.enter("skeleton")
+    run_plan._skeleton_on_queue(args)
+    stages.finish()
+    conn = store.get_control_connection(control_database)
+    try:
+        rows = [run for run in generation_stats.stage_history(conn) if run["stage_key"] == "skeleton"]
+    finally:
+        conn.close()
+    assert len(rows) == 1 and rows[0]["seconds"] > 0 and rows[0]["settings"]["workers"] == 2
 
 
 def test_the_shells_are_cut_into_the_same_units_whatever_the_worker_count():

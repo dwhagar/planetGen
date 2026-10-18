@@ -36,7 +36,7 @@ def _shell_means(shape, shell, high_band, fractions, e=E_VALUE, edge=EDGE_PC, po
             if point is None:
                 continue
             densities = brightStars._densities(tuple(v / brightStars.MPC_PER_PC for v in point), shape)
-            summed += sum(densities[p] * fractions[p] for p in brightStars.POPULATIONS)
+            summed += sum(densities[p] * fractions[p] for p in brightStars.SCATTERED_POPULATIONS)
             used += 1
         total += e * wedges * brightStars.volume_ratio(shell, band, edge) * summed / used
     return total
@@ -73,7 +73,7 @@ def test_the_majorant_is_never_below_the_true_density(shape, shell):
                 if point is None:
                     continue
                 densities = brightStars._densities(tuple(v / brightStars.MPC_PER_PC for v in point), shape)
-                wanted = sum(densities[p] * fractions[p] for p in brightStars.POPULATIONS)
+                wanted = sum(densities[p] * fractions[p] for p in brightStars.SCATTERED_POPULATIONS)
                 assert wanted <= majorants[band + high] * (1 + 1e-9), (shell, band, fractions)
 
 
