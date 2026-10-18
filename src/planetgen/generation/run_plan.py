@@ -16,6 +16,7 @@ import dataclasses
 import math
 import threading
 import time
+import types
 
 from planetgen.queue import commands, progress_rate, units, work as workQueue, wrapper
 from planetgen.db import store
@@ -234,56 +235,80 @@ def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, s
     return sectors, stars
 
 
-def build_skeleton(args):
-    """
-    Builds and persists the galaxy's skeleton: `galaxy_shape` (the shape
-    parameters, calibration constant, edge length and outer shell -- one
-    singleton row) and `galaxy_shell` (the galaxy's outline: one row per
-    shell, from the core out, holding the highest band that shell reaches --
-    see `galaxy.skeleton.build_shell_extents`). Together they are the bounds
-    every generation path checks first. The edge is always the standard
-    `program_constants.DEFAULT_SECTOR_EDGE_PC`.
+SKELETON_OPTIONS = ("max_shell", "reach_shells", "cell_star_ceiling", "fill_luminosity_cap", "core_min_luminosity",
+                    "core_mass_limit", "halo_min_luminosity", "arm_density", "interarm_density",
+                    "disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc", "bulge_amplitude",
+                    "arm_count", "pitch_angle_deg", "nuclear_amplitude", "calibration_radius_pc")
+"""tuple: The options of `planetgen plan` that shape the skeleton, the parameters of the `plan-skeleton` command."""
 
-    No sector content or individual addresses are stored -- that stays
-    lazy (`ensure_sector_generated`). Re-running replaces the whole
-    skeleton; a full Milky-Way-scale build takes a few milliseconds.
+
+def skeleton_params(args, mysql_config):
+    """The parameters of the `plan-skeleton` command for the parsed `args` (plain JSON): the database, the seed the
+    user asked for (32 hex digits, or `None`) and each of `SKELETON_OPTIONS` the arguments carry."""
+    seed = getattr(args, "seed", None)
+    return {"database": wrapper.database_args(mysql_config),
+            "galaxy_seed": None if seed is None else galaxySeed.format_seed(seed),
+            **{name: getattr(args, name) for name in SKELETON_OPTIONS if hasattr(args, name)}}
+
+
+def expand_plan_skeleton(params):
+    """The `plan-skeleton` command's stage: one unit, the whole skeleton, given the command's parameters."""
+    return commands.Expansion([(params, 1.0)], {})
+
+
+def plan_skeleton_unit(params, report):
+    """
+    The `plan-skeleton` command (PERF.106): builds and persists the galaxy's skeleton: `galaxy_shape` (the shape
+    parameters, calibration constant, edge length and outer shell -- one singleton row) and `galaxy_shell` (the
+    galaxy's outline: one row per shell, from the core out, holding the highest band that shell reaches -- see
+    `galaxy.skeleton.build_shell_extents`). Together they are the bounds every generation path checks first. The edge
+    is always the standard `program_constants.DEFAULT_SECTOR_EDGE_PC`.
+
+    No sector content or individual addresses are stored -- that stays lazy (`ensure_sector_generated`). Re-running
+    replaces the whole skeleton; a full Milky-Way-scale build takes a few milliseconds.
 
     Args:
-        args (argparse.Namespace): Parsed arguments.
+        params (dict): `skeleton_params`.
+        report (callable): Unused: the unit is one step.
 
     Returns:
-        dict: `outer_shell_index`, `shell_count`, `total_candidate_sectors`,
-              `elapsed_s`, `edge_confirmed`.
+        dict: `summary` (`outer_shell_index`, `reach_shell_index`, `shell_count`, `total_candidate_sectors`,
+            `elapsed_s` and `edge_confirmed`) and `lines`, what the run says about it, for the process that started the
+            run to log (this unit may run in a worker).
+
+    Raises:
+        ValueError: `reach_shells` is out of range, or a different seed is asked for in a galaxy that has sectors.
     """
+    lines = []
+    say = lines.append
     edge_pc = run_common._edge_pc()
     e_value = expected_system_count_at_density_1(program_constants.DEFAULT_SECTOR_EDGE_LY)
     threshold_rho = 1.0 / e_value
 
-    reach_shell_index = getattr(args, "reach_shells", DEFAULT_REACH_SHELL)
+    reach_shell_index = params.get("reach_shells", DEFAULT_REACH_SHELL)
     try:
         spherical.check_reach(reach_shell_index)
     except ValueError as exc:
-        log.error(f"--reach-shells {reach_shell_index}: {exc}")
-        raise SystemExit(1)
+        raise ValueError(f"--reach-shells {reach_shell_index}: {exc}") from exc
 
-    mysql_config = store.mysql_config_from_args(args)
-    requested_seed = getattr(args, "seed", None)
+    mysql_config = _mysql_config_of(params)
+    requested_seed = None if params["galaxy_seed"] is None else galaxySeed.parse_seed(params["galaxy_seed"])
     conn = store.get_connection(mysql_config)
     try:
         stored_seed = store.get_galaxy_seed(conn)
         if (requested_seed is not None and stored_seed is not None and requested_seed != stored_seed
                 and store.has_galaxy_sectors(conn)):
-            log.error(f"The galaxy already has sectors made from seed {galaxySeed.format_seed(stored_seed)}; "
-                      f"a different --seed needs a wiped galaxy.")
-            raise SystemExit(1)
+            raise ValueError(f"The galaxy already has sectors made from seed {galaxySeed.format_seed(stored_seed)}; "
+                             f"a different --seed needs a wiped galaxy.")
         # A new outline invalidates every pre-placed bright star (schema v43).
         store.clear_bright_stars(conn)
         # The seed is settled first: the shape (GEN.401), the globular clusters (GEN.159, GEN.160) and the satellites
         # (GEN.237) all come from it, and the components go in the outline's bound, so they are placed before the
         # outline is walked.
         galaxy_seed = requested_seed or stored_seed or galaxySeed.new_seed()
-        shape, drawn = shapeDraw.plan_shape(args, galaxy_seed)
-        log.normal(
+        shape, drawn = shapeDraw.plan_shape(types.SimpleNamespace(**{
+            name: params.get(name) for name in SKELETON_OPTIONS}), galaxy_seed)
+        say(
             f"Building skeleton: edge_pc={edge_pc:g} stellar_mass={drawn.chain.stellar_mass_solar:.3g} ({drawn.stage}-type) "
             f"disk_scale_length_pc={shape.disk_scale_length_pc:.0f} disk_scale_height_pc={shape.disk_scale_height_pc:.0f} "
             f"bulge_scale_radius_pc={shape.bulge_scale_radius_pc:.0f} bulge_to_total={drawn.bulge_to_total:.3f} "
@@ -302,12 +327,12 @@ def build_skeleton(args):
         shape = shape._replace(components=componentField.ComponentField(found + dwarfs, edge_pc, e_value))
     finally:
         conn.close()
-    log.normal(f"Drew {len(found):,} globular clusters holding {sum(c.expected_systems for c in found):,.0f} systems "
-               f"and placed {len(dwarfs):,} satellite galaxies holding {sum(c.expected_systems for c in dwarfs):,.0f}.")
+    say(f"Drew {len(found):,} globular clusters holding {sum(c.expected_systems for c in found):,.0f} systems "
+        f"and placed {len(dwarfs):,} satellite galaxies holding {sum(c.expected_systems for c in dwarfs):,.0f}.")
 
     t0 = time.perf_counter()
     extents, outer_shell_index, edge_confirmed = build_shell_extents(
-        shape, edge_pc, threshold_rho, max_shell=min(args.max_shell, reach_shell_index),
+        shape, edge_pc, threshold_rho, max_shell=min(params["max_shell"], reach_shell_index),
     )
     elapsed = time.perf_counter() - t0
 
@@ -315,20 +340,20 @@ def build_skeleton(args):
     galaxy_seed = store.save_galaxy_shape(
         shape, edge_pc=edge_pc, outer_shell_index=outer_shell_index,
         expected_system_count_at_density_1=e_value, config=mysql_config, galaxy_seed=galaxy_seed,
-        reach_shell_index=reach_shell_index, cell_star_ceiling=getattr(args, "cell_star_ceiling", None),
-        fill_luminosity_cap_sol=getattr(args, "fill_luminosity_cap", None),
-        core_min_luminosity_sol=getattr(args, "core_min_luminosity", None),
-        core_mass_limit_sol=getattr(args, "core_mass_limit", None),
-        halo_min_luminosity_sol=getattr(args, "halo_min_luminosity", None),
+        reach_shell_index=reach_shell_index, cell_star_ceiling=params.get("cell_star_ceiling"),
+        fill_luminosity_cap_sol=params.get("fill_luminosity_cap"),
+        core_min_luminosity_sol=params.get("core_min_luminosity"),
+        core_mass_limit_sol=params.get("core_mass_limit"),
+        halo_min_luminosity_sol=params.get("halo_min_luminosity"),
     )
-    core_floor = getattr(args, "core_min_luminosity", None)
-    core_mass = getattr(args, "core_mass_limit", None)
-    halo_floor = getattr(args, "halo_min_luminosity", None)
+    core_floor = params.get("core_min_luminosity")
+    core_mass = params.get("core_mass_limit")
+    halo_floor = params.get("halo_min_luminosity")
     limits = store.GalaxySkeletonInfo(
         shape, edge_pc, outer_shell_index, e_value, None, core_min_luminosity_sol=core_floor,
         core_mass_limit_sol=core_mass,
         halo_min_luminosity_sol=program_constants.HALO_MIN_LUMINOSITY_SOL if halo_floor is None else halo_floor)
-    log.normal(
+    say(
         f"Scatter limits by place: core luminosity floor {scatter_limits.core_min_luminosity_sol(limits, None):,.0f} "
         f"L_sun{'' if core_floor is not None else ' (the baseline plus a tenth)'}, core mass limit "
         f"{scatter_limits.core_mass_limit_sol(limits, None):g} M_sun{'' if core_mass is not None else ' (the baseline plus a tenth)'}, "
@@ -339,17 +364,54 @@ def build_skeleton(args):
         source = "kept from the earlier plan"
     else:
         source = "drawn at random"
-    log.normal(f"Galaxy seed {galaxySeed.format_seed(galaxy_seed)} ({source}).")
-    _draw_naming_key(mysql_config, galaxy_seed, new_seed=stored_seed != galaxy_seed)
+    say(f"Galaxy seed {galaxySeed.format_seed(galaxy_seed)} ({source}).")
+    say(_draw_naming_key(mysql_config, galaxy_seed, new_seed=stored_seed != galaxy_seed))
 
-    return {
+    return {"summary": {
         "outer_shell_index": outer_shell_index,
         "reach_shell_index": reach_shell_index,
         "shell_count": len(extents),
         "total_candidate_sectors": shell_candidate_sector_count(extents),
         "elapsed_s": elapsed,
         "edge_confirmed": edge_confirmed,
-    }
+    }, "lines": lines}
+
+
+def _skeleton_on_queue(args):
+    """
+    Builds the skeleton on the new queue (PERF.106): the wrapper selects the `plan-skeleton` command from this run's
+    steps, a unit builds it, and this process logs what the unit says. The skeleton stage is only that unit, so the
+    unit that completes it stores the stage's row.
+
+    Returns:
+        dict: The build's summary (`plan_skeleton_unit`).
+
+    Raises:
+        SystemExit: The unit refused its parameters (the reach, or a seed that does not match a galaxy with sectors).
+    """
+    mysql_config = store.mysql_config_from_args(args)
+    workers = run_common._worker_count(args)
+    step, listing = wrapper.step_for(args, "skeleton", "Galaxy skeleton", {
+        **skeleton_params(args, mysql_config), "workers": workers})
+    row = stages.hand_over_open_stage()
+    held = {}
+
+    def on_result(_index, _unit, result):
+        for line in result["lines"]:
+            log.normal(line)
+        held["summary"] = result["summary"]
+
+    try:
+        wrapper.run("Galaxy skeleton", [step], lambda _index, plan: None, on_result, workers_count=workers,
+                    who=getattr(args, "who", None), database=mysql_config.database, argv=getattr(args, "argv", None),
+                    seed=None, listing=listing, rows=None if row is None else {"skeleton": row})
+    except units.RunStopped as exc:
+        marker = "ValueError: "
+        if marker not in str(exc):
+            raise
+        log.error(str(exc).split(marker, 1)[1])
+        raise SystemExit(1) from exc
+    return held["summary"]
 
 
 def _draw_naming_key(mysql_config, galaxy_seed, new_seed):
@@ -358,21 +420,21 @@ def _draw_naming_key(mysql_config, galaxy_seed, new_seed):
     database. A new seed draws a new key; planning again over the same seed
     keeps the key an admin may have changed. Without a control database the
     plan still succeeds and the key is drawn the first time an admin asks.
+
+    Returns:
+        str: What to say about it: the key, or why none was drawn.
     """
     try:
         conn = store.get_control_connection(store.control_mysql_config(mysql_config))
     except Exception as exc:  # noqa: BLE001 -- no control database yet
-        log.normal(f"No naming key drawn: the control database can't be opened ({exc}). Run update.sh.")
-        return None
+        return f"No naming key drawn: the control database can't be opened ({exc}). Run update.sh."
     try:
         key = naming_key.draw(conn, mysql_config.database, galaxy_seed, replace=new_seed)
     except Exception as exc:  # noqa: BLE001 -- control schema older than v9
-        log.normal(f"No naming key drawn: {exc}. Run update.sh.")
-        return None
+        return f"No naming key drawn: {exc}. Run update.sh."
     finally:
         conn.close()
-    log.normal(f"Naming key {key}.")
-    return key
+    return f"Naming key {key}."
 
 
 def scatter_bright_stars(args, passes=("mass", "luminosity")):
@@ -2185,7 +2247,7 @@ def run_plan(args):
         return
     stages.enter("skeleton")
     with workQueue.job_node("skeleton", "Galaxy skeleton"):
-        summary = build_skeleton(args)
+        summary = _skeleton_on_queue(args)
     if summary["shell_count"]:
         shells = f"{summary['shell_count']:,} shells"
     else:

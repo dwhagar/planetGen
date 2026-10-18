@@ -220,7 +220,7 @@ def test_only_the_table_names_what_a_unit_runs():
     for kind in ("os.system", "nope"):
         with pytest.raises(KeyError):
             commands.unit_function(kind)
-    for kind in ("scatter-luminosity", "scatter-band", "scatter-phenomena"):
+    for kind in ("scatter-luminosity", "scatter-band", "scatter-phenomena", "plan-skeleton"):
         assert callable(commands.unit_function(kind)) and callable(commands.expand_function(kind))
     with pytest.raises(ValueError, match="inline"):
         commands.unit_function("scatter-backfill")
@@ -457,6 +457,91 @@ def test_a_unit_of_the_phenomena_scatter_runs_alone_from_its_json_arguments(mysq
         assert conn.execute("SELECT COUNT(*) AS n FROM phenomenon_scatter").fetchone()["n"] == placed
     finally:
         conn.close()
+
+
+def _skeleton_args(mysql_config, *extra):
+    import argparse
+
+    from planetgen.cli import generate as generate_cli
+    from tests.test_galaxy_gen import _PLAN_SHAPE_ARGV, _mysql_argv
+    parser = argparse.ArgumentParser(prefix_chars="-+")
+    generate_cli.add_plan_arguments(parser)
+    args = parser.parse_args(_PLAN_SHAPE_ARGV + list(extra) + _mysql_argv(mysql_config))
+    generate_cli.validate_plan_args(args, parser)
+    return args
+
+
+@pytest.fixture
+def control_database(mysql_config, monkeypatch):
+    """The test database doubling as the control database (the plan draws the galaxy's naming key into it)."""
+    from planetgen.db import store
+    store.get_control_connection(mysql_config, ensure_schema=True).close()
+    monkeypatch.setenv(store.CONTROL_DB_ENV_VAR, mysql_config.database)
+    return mysql_config
+
+
+@pytest.mark.fresh_database
+def test_the_skeleton_is_one_unit_whose_lines_the_starter_logs_and_whose_run_is_recorded(
+        control_database, monkeypatch, capsys):
+    from planetgen.generation import run_plan
+    runs = []
+    real = wrapper.run
+    monkeypatch.setattr(wrapper, "run", lambda *args, **kwargs: runs.append(real(*args, **kwargs)) or runs[-1])
+    summary = run_plan._skeleton_on_queue(_skeleton_args(control_database))
+    out = capsys.readouterr().out
+    assert summary["shell_count"] > 0 and "Building skeleton:" in out and "Galaxy seed " in out and "Naming key " in out
+    conn = redisqueue.connect()
+    run = runrecord.read_run(conn, runs[0])
+    assert run["state"] == "done" and [stage["key"] for stage in run["stages"]] == ["skeleton"]
+    assert run["stages"][0]["units"] == 1
+    assert [step["kind"] for step in runrecord.read_steps(conn, runs[0])] == ["plan-skeleton"]
+
+
+@pytest.mark.fresh_database
+def test_the_skeleton_unit_runs_alone_from_its_json_arguments(control_database):
+    import json
+
+    from planetgen.db import store
+    from planetgen.generation import run_plan
+    args = _skeleton_args(control_database, "--seed", "00112233445566778899AABBCCDDEEFF")
+    params = json.loads(json.dumps(run_plan.skeleton_params(args, control_database)))
+    assert params["galaxy_seed"] == "00112233445566778899AABBCCDDEEFF" and "password" not in params["database"]
+    result = commands.run_alone("plan-skeleton", params)
+    assert result["summary"]["shell_count"] > 0 and any(line.startswith("Galaxy seed 00112233") for line in result["lines"])
+    conn = store.get_connection(control_database)
+    try:
+        assert store.get_galaxy_seed(conn).hex().upper() == "00112233445566778899AABBCCDDEEFF"
+    finally:
+        conn.close()
+
+
+@pytest.mark.fresh_database
+def test_a_skeleton_the_unit_refuses_ends_the_plan_with_its_message(control_database, caplog):
+    from planetgen.generation import run_plan
+    args = _skeleton_args(control_database)
+    args.reach_shells = -1
+    with pytest.raises(SystemExit) as stopped, caplog.at_level("ERROR"):
+        run_plan._skeleton_on_queue(args)
+    assert stopped.value.code == 1 and "--reach-shells -1" in caplog.text
+
+
+@pytest.mark.fresh_database
+def test_the_skeleton_stage_is_stored_once_by_its_unit(control_database, monkeypatch):
+    from planetgen.db import store
+    from planetgen.generation import run_plan, stages
+    from planetgen.generation import stats as generation_stats
+    monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
+    args = _skeleton_args(control_database, "--workers", "2")
+    stages.begin(stages.plan_stages(args), args, "plan")
+    stages.enter("skeleton")
+    run_plan._skeleton_on_queue(args)
+    stages.finish()
+    conn = store.get_control_connection(control_database)
+    try:
+        rows = [run for run in generation_stats.stage_history(conn) if run["stage_key"] == "skeleton"]
+    finally:
+        conn.close()
+    assert len(rows) == 1 and rows[0]["seconds"] > 0 and rows[0]["settings"]["workers"] == 2
 
 
 def test_the_shells_are_cut_into_the_same_units_whatever_the_worker_count():
