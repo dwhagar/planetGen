@@ -205,7 +205,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | GEN.468 | Settle the water share beyond the snow line: the Marboeuf-derived 0.14 to 0.39 of the solids against the convention of about 0.5 |  | Body composition research lane master section 5 decision 2; Boss 1:21 AM EDT card Keep the switch; read-only. Unowned. |
 | GEN.457 | The small bodies and moons composition design: the taxon and comet draws, compaction, the moon origin types and the ice fraction |  | Body composition research lane part D; design note, no code. Core 4 proposed. |
 | GEN.560 | Research list for the chain: ejection survival of moons, circumplanetary disks of isolated planetary-mass objects, failed-supernova and direct-collapse shares, the size law of interstellar objects |  |  |
-| GEN.567 | Design note: the metallicity-dependent black hole density: the form of f(Z), the birth [Fe/H] of a remnant, and what the scatter reads | GEN.560 |  |
 | GEN.572 | The two rounded unit factors become exact before the one rescatter: 63241.077 AU per light-year and 3.26156 light-years per parsec |  | Boss 12:04 AM EDT 10-18; generator epoch bump, joins the rescatter. Core 5 proposed. |
 
 
@@ -391,7 +390,7 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 |---|---|---|---|
 | GEN.282 | Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec) | GEN.244 | Core 3; step 3 of the galactic core note |
 | GEN.377 | Scatter limits by place for the neutron star and black hole scatter below the cut: the core and halo tiers apply to it, not one global mass cut | GEN.562 | Core 3 finding after GEN.333. |
-| GEN.563 | The black hole density depends on metallicity and is capped by the neutron star budget, and every scatter class gets its own random stream | GEN.560, GEN.567 |  |
+| GEN.563 | The black hole density depends on metallicity and is capped by the neutron star budget, and every scatter class gets its own random stream | GEN.560 |  |
 | GEN.303 | Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000 |  | Core 3 wires it; Boss 1:47 PM EDT. |
 | GEN.284 | Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut | GEN.325 | Core 3; step 4 of the galactic core note |
 

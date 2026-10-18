@@ -14310,7 +14310,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the 8 to 150 Msun share in any galaxy and the count stays 0.5 to 3.1
   times the old constant. Owner: Core 3 (proposed; it owns the scatter
   rates and GEN.377), after GEN.243 (done), GEN.244 and GEN.282.
-  Prerequisites: GEN.560, GEN.567. Related: GEN.560, GEN.554, GEN.377, GEN.301.
+  Prerequisites: GEN.560. Related: GEN.560, GEN.554, GEN.377, GEN.301.
 
 - [ ] **GEN.564 A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter**
   Filed proposed, not assigned, from Core 1's read-only code audit of
@@ -14467,65 +14467,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from it. Owner: a read-only research lane (proposed, none assigned),
   8.4 phase 1, no behaviour change.
   Prerequisites: none. Related: GEN.550, GEN.560, GEN.559, GEN.522.
-
-- [ ] **GEN.567 Design note: the metallicity-dependent black hole density: the form of f(Z), the birth [Fe/H] of a remnant, and what the scatter reads**
-  Boss tapped 'Metallicity-dependent' on the GEN.563 card at 11:51 PM
-  EDT (2026-10-17, as the coordinator relayed with the wake time
-  converted). Read-only design step before GEN.563 is coded; no code.
-  Inputs: docs/design/black-hole-formation-sources.md (GEN.560,
-  verified): failed-supernova share f of stars of 8 to 150 Msun is 0 to
-  45% overall, solar metallicity 0 to 7% (O'Connor and Ott 2011), 5 to
-  21% (Ebinger et al. 2020, two calibrations), 26 to 45% (Sukhbold et
-  al. 2016, four calibrations); low metallicity (1e-4 solar or zero) 15%
-  (O'Connor and Ott), 18 to 32% (Ebinger); more at low metallicity; the
-  generator's IMF share of 8 to 150 Msun is 0.637% of stars (own
-  computation from its Kroupa breaks and slopes). To settle: (1) the
-  form of f(Z) between the sourced anchors under the standing rule that
-  the widest verified range wins and a range-only parameter is a draw,
-  not a point (a per-galaxy draw inside the range, or an envelope); (2)
-  which [Fe/H] a remnant carries: it was born at the end of its
-  progenitor's few Myr, in the population the place's stars were born
-  into, so the birth [Fe/H] is the population's at that place and epoch
-  (`metallicity.mean_fe_h`, `metallicity.sample_fe_h`, the cluster and
-  satellite peaks of `component_field.fe_h_peaks`, all GEN.158 and
-  GEN.159, merged), not the present gas; (3) how the density at a place
-  is built: stars born per volume (the population mix of
-  `galaxyDensity.population_densities`) times the IMF share times f(Z of
-  that population) times what stays (kick retention: about 2% of black
-  holes leave the galaxy per `compact-remnant-regions.md`), replacing
-  the single `PHENOMENON_RATES["black-hole"] = 7e-5` and keeping the
-  neutron star rate as it is (it already matches); (4) how the scatter
-  tiers and the below-cut draw (GEN.377) and the group-node remnant draw
-  (GEN.327) read it; (5) whether the black hole mass law changes now
-  (today uniform 5 to 20 Msun; the verified average is 7.7 to 9.2 Msun
-  for the helium core or 13.2 to 13.8 Msun for the whole star) or stays
-  for GEN.553 and GEN.554 in 8.4: Boss chose the density only, so a mass
-  change now is a further card, and leaving it means a second rescatter
-  for black hole masses; (6) the mass-island structure (which progenitor
-  masses fail: islands from about 20 Msun, mostly failure above 35 Msun
-  at low Z, per Sukhbold, O'Connor and Ott and Maltsev et al. 2025) is
-  optional here and a candidate for GEN.554. Done: a note
-  docs/design/black-hole-density.md that fixes (1) to (5), names the
-  source state of every number, and lists the tests (density against the
-  derived share at three metallicities, the neutron star count
-  unchanged); Boss approves the open choices on cards. Owner: a
-  read-only design thread (the coordinator starts it), then GEN.563
-  (Core 3).
-  Prerequisites: GEN.560. Related: GEN.563, GEN.560, GEN.554, GEN.377,
-  GEN.327.
-  Design note landed (docs/design/black-hole-density.md, the design
-  lane's draft of 12:13 AM EDT, 2026-10-18 as the lane reported): fixes
-  (1) to (6) with recommendations and has seven cards for Boss (BH1 to
-  BH7: the f range and its draw, the shape between the anchors, whether
-  a remnant row carries [Fe/H], the intermediate-mass hole count, the
-  neutron star plus black hole budget, the mass law in 8.1, the mass
-  islands). The cards were open at 12:14 AM EDT as the coordinator
-  reported; this item closes when Boss's taps are recorded in the note
-  and GEN.563 is rewritten to the result.
-  Done in substance (Boss's taps on BH1 to BH7, 12:33 to 12:35 AM EDT,
-  2026-10-18, as the design lane reported and the coordinator relayed):
-  the decisions are recorded in docs/design/black-hole-density.md and
-  GEN.563 is rewritten to them. Retired with the PR that records it.
 
 - [ ] **GEN.568 One registry of every unit the project uses**
   Part of the unified orbited-body plan (GEN.550; design note
