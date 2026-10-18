@@ -2434,6 +2434,10 @@ export function createStageView(host) {
   // For the browser tests: the stage on screen.
   canvasEl.galaxyStage = function () { return stage; };
 
+  // For the browser tests: whether a camera flight is still running (the trail follows the camera, MAP.227, so it
+  // is read once the flight has landed).
+  canvasEl.galaxyFlying = function () { return !!animation; };
+
   // For the browser tests: opens the window of `g` cells round the cell {m, shell, band, wedge}, as the
   // breadcrumb's crumbs and a click on a block do.
   canvasEl.galaxyOpenWindow = function (cell, g) {
