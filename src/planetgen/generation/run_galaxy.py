@@ -25,7 +25,7 @@ import pymysql
 
 from planetgen.db import region, sector_paths, store
 from planetgen.generation import bright_stars as brightStars
-from planetgen.galaxy import resolution as galaxyResolution, seed as galaxySeed, version_check
+from planetgen.galaxy import density, resolution as galaxyResolution, seed as galaxySeed, version_check
 from planetgen.physics import mathcheck
 from planetgen.queue import redisqueue
 from planetgen import tuning as program_constants
@@ -653,7 +653,9 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc, channel=Non
             args, galaxy_seed=galaxy_seed, address=address,
             galactic_center_dist_ly=pc_to_ly(radius_pc), cell=cell, fill=fill, cloud_field=cloud_field)
         if address == run_sector.NUCLEUS_ADDRESS and not (fill is not None and fill.phenomena_scattered):
-            run_sector.add_galactic_nucleus(sector, args, pc_to_ly(radius_pc))
+            run_sector.add_galactic_nucleus(
+                sector, args, pc_to_ly(radius_pc),
+                mass_solar=None if fill is None else density.central_black_hole_mass_solar(fill.shape))
         sector.place_in_galaxy(tuple(pc_to_ly(c) for c in position_pc))
         # PERF.45: a run links its sectors to their neighbours once, at its end
         # (`link_after_run`), instead of one at a time under a lock.

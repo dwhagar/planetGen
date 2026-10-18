@@ -15,7 +15,7 @@ import pytest
 from planetgen import tuning
 from planetgen.cli import generate as generate_cli
 from planetgen.db import store
-from planetgen.galaxy import remnant_distribution
+from planetgen.galaxy import density, remnant_distribution
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.spherical import sector_address_at, sector_position_pc, wedge_count
 from planetgen.generation import phenomenon_scatter as scatter
@@ -96,15 +96,17 @@ def test_each_kind_follows_its_rate_per_star():
 
 def test_the_nucleus_is_a_quasar_or_the_supermassive_black_hole_at_the_origin(monkeypatch):
     monkeypatch.setattr(tuning, "QUASAR_ACTIVE_NUCLEUS_CHANCE", 1.0)
-    quasar = _as_dict(scatter.nucleus_row(9))
+    quasar = _as_dict(scatter.nucleus_row(9, SHAPE))
     assert quasar["kind"] == "quasar" and quasar["subtype"] is None
     monkeypatch.setattr(tuning, "QUASAR_ACTIVE_NUCLEUS_CHANCE", 0.0)
-    hole = _as_dict(scatter.nucleus_row(9))
+    hole = _as_dict(scatter.nucleus_row(9, SHAPE))
     assert hole["kind"] == "black-hole" and hole["subtype"] == scatter.NUCLEUS_SUBTYPE
+    mass = density.central_black_hole_mass_solar(SHAPE)
     for row in (quasar, hole):
+        assert row["mass_solar"] == mass          # either way the galaxy's own central black hole (GEN.402)
         assert (row["shell_index"], row["band_index"], row["wedge_index"]) == scatter.NUCLEUS_ADDRESS
         assert (row["position_x_mpc"], row["position_y_mpc"], row["position_z_mpc"]) == (0, 0, 0)
-    assert scatter.nucleus_row(9) == scatter.nucleus_row(9)
+    assert scatter.nucleus_row(9, SHAPE) == scatter.nucleus_row(9, SHAPE)
 
 
 REACH_SHELL = 65_535
@@ -155,9 +157,9 @@ def test_hypervelocity_stars_are_placed_by_the_seed_alone_none_redrawn_for_the_o
 
 
 def test_the_special_rows_leave_out_filled_cells():
-    rows = scatter.special_rows(EXTENTS, EDGE_PC, 4)
+    rows = scatter.special_rows(EXTENTS, EDGE_PC, 4, SHAPE)
     assert tuple(rows[0][:3]) == scatter.NUCLEUS_ADDRESS
-    left = scatter.special_rows(EXTENTS, EDGE_PC, 4, filled={scatter.NUCLEUS_ADDRESS})
+    left = scatter.special_rows(EXTENTS, EDGE_PC, 4, SHAPE, filled={scatter.NUCLEUS_ADDRESS})
     assert tuple(left[0][:3]) != scatter.NUCLEUS_ADDRESS
     assert len(left) == len(rows) - 1 or len(left) < len(rows)
 
@@ -690,16 +692,16 @@ def test_the_central_black_hole_or_quasar_exists_whatever_the_limits(mysql_confi
 
 
 def test_the_nucleus_row_does_not_depend_on_any_limit():
-    assert scatter.special_rows(EXTENTS, EDGE_PC, 3)[0] == scatter.nucleus_row(3)
-    assert scatter.nucleus_row(3)[3] in scatter.NUCLEUS_KINDS
+    assert scatter.special_rows(EXTENTS, EDGE_PC, 3, SHAPE)[0] == scatter.nucleus_row(3, SHAPE)
+    assert scatter.nucleus_row(3, SHAPE)[3] in scatter.NUCLEUS_KINDS
 
 
 def test_every_scattered_black_hole_and_neutron_star_stores_a_mass_inside_its_class_range():
-    rows = [_as_dict(row) for row in _shell() + _shell(OTHER_SHELL)] + [_as_dict(scatter.nucleus_row(5))]
+    rows = [_as_dict(row) for row in _shell() + _shell(OTHER_SHELL)] + [_as_dict(scatter.nucleus_row(5, SHAPE))]
     ranges = {("neutron-star", None): tuning.NEUTRON_STAR_MASS_RANGE_SOLAR,
               ("black-hole", "stellar"): tuning.BLACK_HOLE_MASS_RANGE_SOLAR,
               ("black-hole", "intermediate"): tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR,
-              ("black-hole", "supermassive"): tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR}
+              ("black-hole", "supermassive"): (tuning.BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR, float("inf"))}
     seen = set()
     for row in rows:
         key = (row["kind"], row["subtype"])
@@ -740,7 +742,7 @@ def test_the_map_sizes_scattered_points_by_their_stored_mass(mysql_config):
     assert query.scattered_point_size(tuning.BLACK_HOLE_MASS_RANGE_SOLAR[1]) \
         < query.scattered_point_size(tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[0])
     assert query.scattered_point_size(tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[1]) \
-        < query.scattered_point_size(tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR[0])
+        < query.scattered_point_size(tuning.BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR)
 
     conn = store.get_connection(mysql_config)
     try:

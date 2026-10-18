@@ -139,6 +139,6 @@ def test_a_plan_stores_the_settings_and_the_stored_shape_gives_the_same_density(
     assert stored.arm_level == pytest.approx(1.25) and stored.arm_amplitude == pytest.approx(0.6)
     assert stored.nuclear_amplitude == 0.5 and stored.bulge_amplitude == 4.0
     terms = density.shape_with_terms(stored)
-    assert terms["nuclear_cluster_mass"] == pytest.approx(
-        0.5 * tuning.NUCLEAR_CLUSTER_BULGE_RATIO * terms["bulge_mass"])
+    full = density.model_terms(stored._replace(nuclear_amplitude=1.0))
+    assert terms["nuclear_cluster_mass"] == pytest.approx(0.5 * full["nuclear_cluster_mass"])
     assert terms["nuclear_disc_mass"] == pytest.approx(tuning.NUCLEAR_DISC_CLUSTER_MASS_RATIO * terms["nuclear_cluster_mass"])
