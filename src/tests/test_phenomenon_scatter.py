@@ -22,9 +22,10 @@ from planetgen.generation import phenomenon_scatter as scatter
 from planetgen.generation import run_galaxy, run_plan, run_sector
 from planetgen.physics import black_hole_formation, stellar_evolution
 from planetgen.physics.units import ly_to_pc
+from tests.toy_shape import toy_shape
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
-SHAPE = build_galaxy_shape(
+SHAPE = toy_shape(
     disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
     bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
 )

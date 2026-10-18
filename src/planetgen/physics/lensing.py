@@ -31,14 +31,14 @@ def einstein_radius_m(mass_kg, lens_distance_m, source_distance_m):
     return math.sqrt(schwarzschild_scale_m * lens_distance_m * (1 - lens_distance_m / source_distance_m))
 
 
-def einstein_radius_against_galactic_centre_m(mass_kg, galactic_radius_pc):
+def einstein_radius_against_galactic_centre_m(mass_kg, galactic_radius_pc, observer_radius_pc):
     """
-    The Einstein radius, metres, seen from Sol against a source at the
-    galactic centre, for a lens `galactic_radius_pc` from the centre on the
-    line between them (the lens-Sol distance is Sol's `GALACTIC_CENTER_DISTANCE_LY`
-    less that radius). `None` for a lens farther from the centre than Sol is:
-    nothing of it lies between us and the centre.
+    The Einstein radius, metres, seen from an observer `observer_radius_pc` from the galactic centre (the galaxy's
+    reference radius: no home position is stored, GEN.404) against a source at the galactic centre, for a lens
+    `galactic_radius_pc` from the centre on the line between them (the lens-observer distance is the observer's
+    radius less that radius). `None` for a lens farther from the centre than the observer is: nothing of it lies
+    between the observer and the centre.
     """
-    source_m = constants.GALACTIC_CENTER_DISTANCE_LY * constants.LY_TO_M
+    source_m = observer_radius_pc * constants.PARSEC_M
     lens_m = source_m - galactic_radius_pc * constants.PARSEC_M
     return einstein_radius_m(mass_kg, lens_m, source_m)

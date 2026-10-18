@@ -10,12 +10,11 @@ the spiral arms, an exponential thick disk, a boxy bar bulge and a stellar
 halo, each fitted to published Milky Way structure (GEN.118, GEN.119, GEN.234; sources in
 `tuning`'s "galaxy density model" block).
 
-The model gives a `relative_density` at any galaxy-frame position,
-normalized so it equals `1.0` at a chosen calibration point (by
-convention, the position on the disk plane, at the inter-arm minimum
-azimuth, at `calibration_radius_pc` from the galactic center) -- matching
-the same "1.0 = realistic local density" convention `generation/run_sector.py
---density` already uses elsewhere in this codebase. A sector's own
+The model gives a `relative_density` at any galaxy-frame position, in units of the real local stellar
+density (`physical_constants.LOCAL_STELLAR_DENSITY_LY3`, the "1.0 = realistic local density" convention
+`generation/run_sector.py --density` uses elsewhere in this codebase), normalized so the whole galaxy holds the
+systems its stellar mass makes (`structure.stellar_mass_solar` over `tuning.MEAN_SYSTEM_MASS_SOLAR`, GEN.404): no
+position of the Sun is read. A sector's own
 predicted star count is then `SpaceSector.expected_system_count() *
 relative_density(sector_center)`; a sector with a predicted count `< 1` is
 one the design doc's own gating rule treats as not worth generating.
@@ -24,10 +23,8 @@ Deliberately **not** hardcoded to Milky-Way scale: `GalaxyShape` bundles
 every shape parameter as plain fields, so the same formulas describe a
 galaxy of any size -- a small toy/demonstration spiral just as validly as
 a Milky-Way-scale one. `GalaxyShape.build` computes the one derived value
-(`k_norm`, the normalization constant) from the others; nothing here reads
-`physical_constants.GALACTIC_CENTER_DISTANCE_LY` or any other Milky-Way-
-specific constant, since that would only make sense for a galaxy actually
-built to that real scale.
+(`k_norm`, the normalization constant) from the others and the galaxy's stellar mass; nothing here reads a
+Sun or home position.
 
 This module is pure and side-effect-free, like `galaxy/spherical.py` --
 callers own deciding what to do with a `relative_density` value (whether
@@ -46,6 +43,8 @@ from planetgen.galaxy import component_field as componentField
 from planetgen.galaxy import core_gas as coreGas
 from planetgen.galaxy import star_formation as starFormation
 from planetgen.galaxy import structure as galaxyStructure
+from planetgen.physics import constants as physical_constants
+from planetgen.physics.units import ly_to_pc
 from planetgen.util import detmath
 
 GalaxyShape = namedtuple(
@@ -173,8 +172,8 @@ def model_terms(shape):
             `thick_disk_scale_height_pc`, `bulge_scale_y_pc`,
             `bulge_scale_z_pc`, `bar_angle_rad` (galaxy-frame azimuth of
             the bar's near end) with its `bar_cos` and `bar_sin`,
-            `solar_angle_rad` (the Sun's azimuth: the inter-arm minimum
-            at the solar radius), and the nuclear terms (GEN.280): `bulge_mass` (the bulge's
+            `reference_angle_rad` (the reference azimuth the bar's angle and the satellites' frame are
+            measured from: the inter-arm minimum at the reference radius), and the nuclear terms (GEN.280): `bulge_mass` (the bulge's
             integral, in the model's unnormalized units), `nuclear_cluster_mass`, `nuclear_cluster_scale_pc`
             (the Hernquist scale radius), `nuclear_cluster_softening_pc` (the radius inside which the
             cusp is held flat, `tuning.NUCLEAR_RESOLUTION_PC`), `nuclear_disc_mass`, `nuclear_disc_length_pc`,
@@ -182,24 +181,21 @@ def model_terms(shape):
     """
     length = shape.disk_scale_length_pc
     structure = shape.structure
-    solar_radius = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * length
+    reference_radius = tuning.REFERENCE_RADIUS_SCALE_LENGTHS * length
     thick_length = structure.thick_length_ratio * length
     thick_height = structure.thick_height_ratio * shape.disk_scale_height_pc
-    solar_angle = _interarm_angle(solar_radius, shape)
-    bar_angle = solar_angle + math.radians(structure.bar_angle_deg)
+    reference_angle = _interarm_angle(reference_radius, shape)
+    bar_angle = reference_angle + math.radians(structure.bar_angle_deg)
     scale_y = structure.bar_axis_ratio_y * shape.bulge_scale_radius_pc
     scale_z = structure.bar_axis_ratio_z * shape.bulge_scale_radius_pc
     bulge_mass = shape.bulge_amplitude * shape.bulge_scale_radius_pc * scale_y * scale_z * BULGE_UNIT_INTEGRAL
     thick_amplitude = thick_disk_amplitude(shape)
-    bulge_share = bulge_mass / (bulge_mass + _disk_mass(shape.arm_level, length, shape.disk_scale_height_pc)
-                                + _disk_mass(thick_amplitude, thick_length, thick_height))
-    # The cluster is a ratio to the model's own bulge, so a toy galaxy gets a proportionate centre: the ratio of the
-    # drawn cluster to the bulge the galaxy's stars make, in the model's units (which hold
-    # `MODEL_SYSTEMS_PER_STELLAR_MASS` systems of `MEAN_SYSTEM_MASS_SOLAR` a solar mass of stars).
-    model_per_solar = galaxyStructure.MODEL_SYSTEMS_PER_STELLAR_MASS * galaxyStructure.MEAN_SYSTEM_MASS_SOLAR
-    bulge_stars = model_per_solar * bulge_share * structure.stellar_mass_solar
-    cluster_ratio = structure.nuclear_cluster_mass_solar / bulge_stars if bulge_stars > 0.0 else 0.0   # no bulge, no cluster
-    cluster_mass = max(shape.nuclear_amplitude, 0.0) * cluster_ratio * bulge_mass
+    main_mass = (bulge_mass + _disk_mass(shape.arm_level, length, shape.disk_scale_height_pc)
+                 + _disk_mass(thick_amplitude, thick_length, thick_height))
+    # The model's units per solar mass of the visible stars (the galaxy's stars less the stellar halo's): the nuclear
+    # cluster is drawn in solar masses (GEN.402) and enters the model through it.
+    per_solar = main_mass / (structure.stellar_mass_solar * (1.0 - structure.halo_stellar_ratio))
+    cluster_mass = max(shape.nuclear_amplitude, 0.0) * structure.nuclear_cluster_mass_solar * per_solar
     cluster_scale = tuning.NUCLEAR_CLUSTER_SCALE_RATIO * shape.bulge_scale_radius_pc
     disc_mass = cluster_mass * tuning.NUCLEAR_DISC_CLUSTER_MASS_RATIO
     disc_length = tuning.NUCLEAR_DISC_LENGTH_RATIO * shape.bulge_scale_radius_pc
@@ -213,8 +209,10 @@ def model_terms(shape):
         "bar_angle_rad": bar_angle,
         "bar_cos": math.cos(bar_angle),
         "bar_sin": math.sin(bar_angle),
-        "solar_angle_rad": solar_angle,
+        "reference_angle_rad": reference_angle,
         "bulge_mass": bulge_mass,
+        "visible_mass": main_mass,
+        "mass_per_solar": per_solar,
         "nuclear_cluster_mass": cluster_mass,
         "nuclear_cluster_scale_pc": cluster_scale,
         "nuclear_cluster_softening_pc": _cluster_softening(cluster_mass, cluster_scale),
@@ -284,8 +282,8 @@ def halo_terms(shape):
     (max(m, core) / break) ** -slope`, `m = sqrt(R**2 + (z / axis_ratio)**2)`, the slope `halo_inner_slope`
     inside `halo_break_pc` and `halo_outer_slope` beyond. The radii are `tuning`'s ratios to the disk scale
     length. The amplitude is solved, like `k_norm`, so the halo's integral is the galaxy's stellar halo share
-    (`galaxy.structure.stellar_halo_system_fraction`, GEN.532) of the visible components' (`component_masses`), in the
-    model's unnormalized density.
+    (`galaxy.structure.stellar_halo_system_fraction`, GEN.532) of the visible components' (`model_terms`
+    `visible_mass`), in the model's unnormalized density.
 
     Returns:
         dict: `halo_amplitude`, `halo_core_pc`, `halo_break_pc`, `halo_axis_ratio`, `halo_inner_slope`,
@@ -295,16 +293,12 @@ def halo_terms(shape):
     core, break_pc = tuning.HALO_CORE_RATIO * length, tuning.HALO_BREAK_RATIO * length
     unit = _halo_unit_integral(tuning.HALO_INNER_SLOPE, tuning.HALO_OUTER_SLOPE, core, break_pc,
                                tuning.HALO_AXIS_RATIO)
-    visible = sum(component_masses(shape, steps=HALO_MASS_STEPS).values())
+    visible = model_terms(shape)["visible_mass"]
     return {
         "halo_amplitude": galaxyStructure.stellar_halo_system_fraction(shape.structure) * visible / unit,
         "halo_core_pc": core, "halo_break_pc": break_pc, "halo_axis_ratio": tuning.HALO_AXIS_RATIO,
         "halo_inner_slope": tuning.HALO_INNER_SLOPE, "halo_outer_slope": tuning.HALO_OUTER_SLOPE,
     }
-
-
-HALO_MASS_STEPS = 60
-"""int: `component_masses` steps the halo's amplitude is solved with (finer than the default 40; cached per shape)."""
 
 
 def _halo_scalar(r_cyl, z, terms):
@@ -325,15 +319,6 @@ def halo_density(position_pc, shape):
     """The halo's `relative_density` at `position_pc` (`k_norm` applied): what the halo adds to a cell."""
     x, y, z = position_pc
     return shape.k_norm * _halo_scalar(detmath.hypot(x, y), z, halo_terms(shape))
-
-
-def halo_local_density_scale(shape):
-    """
-    How much the halo would grow if it were normalised to the local density (`tuning.HALO_LOCAL_DENSITY_FRACTION`
-    of the thin disk's density at the Sun) instead of to its mass: the alternative the design note keeps, about 2.7.
-    """
-    solar = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * shape.disk_scale_length_pc
-    return tuning.HALO_LOCAL_DENSITY_FRACTION / halo_density((solar, 0.0, 0.0), shape)
 
 
 def shape_with_terms(shape):
@@ -641,6 +626,13 @@ def component_masses(shape, steps=40):
     }
 
 
+def total_mass(shape):
+    """Everything the model holds, in its unnormalized units: the visible components, the nuclear cluster and disc, and
+    the stellar halo (the arm factor averages to 1 around any circle, so the arms add nothing)."""
+    terms = model_terms(shape)
+    return terms["visible_mass"] + terms["nuclear_cluster_mass"] + terms["nuclear_disc_mass"] + halo_mass(shape)
+
+
 def halo_mass(shape):
     """The halo's share of the model's stars (the units of `component_masses`), in closed form: the halo
     term integrated over all space, the stellar halo share of the visible components' by construction."""
@@ -667,16 +659,16 @@ def _component_density(position_pc, shape):
 
 def relative_density(position_pc, shape):
     """
-    This galaxy's stellar density at `position_pc`, relative to
-    `shape`'s own calibration point (`1.0` there, by construction -- see
-    `GalaxyShape.build`).
+    This galaxy's stellar density at `position_pc`, in units of the real local stellar density
+    (`physical_constants.LOCAL_STELLAR_DENSITY_LY3`); the galaxy holds the systems its stellar mass makes
+    (`build_galaxy_shape`).
 
     Args:
         position_pc (tuple): `(x, y, z)`, galaxy-frame parsecs.
         shape (GalaxyShape): The galaxy's shape parameters.
 
     Returns:
-        float: `1.0` at the calibration point; `> 1.0` in denser regions
+        float: `1.0` where the density is the real local one; `> 1.0` in denser regions
               (bulge, spiral arm crests near the core); `< 1.0` in sparser
               ones (outer disk, inter-arm, off-plane).
     """
@@ -738,7 +730,6 @@ def build_galaxy_shape(
     arm_count,
     pitch_angle_rad,
     arm_amplitude,
-    calibration_radius_pc=None,
     spiral_reference_angle_rad=0.0,
     arm_level=1.0,
     nuclear_amplitude=0.0,
@@ -746,24 +737,15 @@ def build_galaxy_shape(
     structure=galaxyStructure.REFERENCE_STRUCTURE,
 ):
     """
-    Builds a `GalaxyShape` with `k_norm` computed automatically, rather
-    than left for the caller to guess -- calibrated so `relative_density`
-    equals exactly `1.0` at `(calibration_radius_pc, z=0)`, at the
-    inter-arm minimum azimuth at that radius (the design doc's own
-    calibration choice: real spiral galaxies' analog of "the Sun" sits
-    between arms, not on one, so this is the conservative reading of
-    "1.0 = typical local density").
+    Builds a `GalaxyShape` with `k_norm` computed automatically, rather than left for the caller to guess: the
+    constant that makes the density, in units of the real local stellar density, hold the galaxy's systems (its
+    stellar mass `structure.stellar_mass_solar` over `tuning.MEAN_SYSTEM_MASS_SOLAR`, GEN.404). No point of the galaxy
+    is the calibration point and no Sun position is read.
 
     Args:
         disk_scale_length_pc, disk_scale_height_pc, bulge_scale_radius_pc,
         bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude:
             The galaxy's shape parameters -- see `GalaxyShape`.
-        calibration_radius_pc (float, optional): The in-plane radius the
-            `relative_density = 1.0` calibration point sits at. Defaults
-            to `tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH *
-            disk_scale_length_pc` -- the real Milky Way's own
-            solar-radius-to-scale-length ratio (8.2 / 2.6 kpc), reused
-            here at whatever scale this galaxy actually is.
         spiral_reference_angle_rad (float): See `GalaxyShape` -- arbitrary
             fixed orientation, `0.0` unless there's a reason to prefer
             another.
@@ -778,9 +760,6 @@ def build_galaxy_shape(
     Returns:
         GalaxyShape: With `k_norm` filled in.
     """
-    if calibration_radius_pc is None:
-        calibration_radius_pc = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * disk_scale_length_pc
-
     unnormalized = GalaxyShape(
         disk_scale_length_pc=disk_scale_length_pc,
         disk_scale_height_pc=disk_scale_height_pc,
@@ -798,13 +777,9 @@ def build_galaxy_shape(
         structure=structure,
     )
 
-    theta_interarm = _interarm_angle(calibration_radius_pc, unnormalized)
-    calibration_position = (
-        calibration_radius_pc * math.cos(theta_interarm),
-        calibration_radius_pc * math.sin(theta_interarm),
-        0.0,
-    )
-    k_norm = 1.0 / _raw_density(calibration_position, unnormalized)
+    systems = structure.stellar_mass_solar / tuning.MEAN_SYSTEM_MASS_SOLAR
+    local_per_pc3 = physical_constants.LOCAL_STELLAR_DENSITY_LY3 / ly_to_pc(1.0) ** 3
+    k_norm = systems / (local_per_pc3 * total_mass(unnormalized))
 
     return unnormalized._replace(k_norm=k_norm)
 
