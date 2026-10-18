@@ -5804,6 +5804,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   post-AGB circumbinary disk descriptor and no planets. Stand-ins left
   out: eccentricity excitation, the swallowed-giant flag, the rare close
   giant.
+  Epoch note (1:50 PM EDT 2026-10-18, real clock): epoch 34 is stamped
+  by GEN.404 (release 8.0.1831, #2270), so a change here takes the next
+  free epoch at its merge, 35 unless another lane merges first (Core 3's
+  GEN.318 renumbers to 35); Alembic head is 0112, next free 0113.
   Prerequisites: none. Related: GEN.130.
 
 - [ ] **GEN.325 Planet cull in dense components by the survival formula and the metallicity factor**
@@ -6680,7 +6684,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shows a galaxy twice the size changes the Hill
   radius. Fails on main: no failure, a fixed assumption. Related:
   GEN.368, GEN.285.
-  Prerequisites: GEN.404. Related: GEN.368, GEN.285, GEN.223.
+  Prerequisites: none. Related: GEN.368, GEN.285, GEN.223.
 
 - [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
   Boss (2026-10-16, 4:02 PM EDT, in the Core 1 thread): "we'll need a
@@ -7460,118 +7464,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sources, as applied above; no card; he tunes it later.
   Prerequisites: none. Related: GEN.297, GEN.366, GEN.387.
 
-- [ ] **GEN.404 The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position**
-  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
-  source Shen et al. 2003, approximation for the halo mass, no home
-  position, every derived law draws its natural scatter from the seed,
-  the first family covers 3e9 to 2e11 solar stellar mass; paper check
-  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
-  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
-  1's docs PR merges; draft
-  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Row 11
-  (Boss, 9:43 PM EDT, "Confirmed drop 'home'"): the galaxy stores no
-  home or Sun position. The five Sun radii (`GALAXY_SUN_RADIUS_PC`
-  8,200, `SUN_GALACTIC_RADIUS_PC` 8,000, `GALACTIC_CENTER_DISTANCE_LY`,
-  the hypervelocity radius, the cluster radius) go; the density
-  calibration comes from the galaxy's mass (GEN.400, GEN.401), the
-  hypervelocity and cluster reach from the galaxy's own scales, and the
-  fallback distance of a sector with no placement from the sector's real
-  place; the default distance goes here (callers pass the position they
-  have), while GEN.370 (8.3) then changes the central mass. The
-  metallicity zero point and the rates quoted at the Sun per object are
-  GEN.405's, so the two items do not wait on each other. The map starts
-  where sectors
-  are generated (MAP.190 already does). GEN.144's Milky Way test radius
-  stays as a test reference only. Done: no code or doc reads a Sun
-  radius for the density calibration, the hypervelocity or cluster
-  reach, the fallback distance or the default tidal distance (a grep
-  test on those names, the reference radius excepted; GEN.405's grep
-  closes the rest);
-  the density and the sector profile agree with the old model at the
-  test radius within the derived scatter; the tests that pinned the
-  Milky Way values check the law. No fixed content (Boss, 4:11 and 4:14
-  PM EDT): no Milky Way preset or option; the real values are only
-  plausibility targets (GEN.366). Each law is written with its source
-  named in the code and the doc; the scatter is a log-normal drawn
-  through `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
-  compatibility shim: the old constant goes in the same change. A change
-  that alters the generator output follows the epoch rule.
-  Prerequisites: none. Related: GEN.144, GEN.405, MAP.190,
-  USR.11.
-  Owner (coordinator, 2026-10-16, 10:16 PM EDT): Core 4 proposed (it
-  owns the metallicity and star-density work in GEN.103 and GEN.134); it
-  starts after GEN.368 and GEN.400 merge, so Core 4's current queue does
-  not change.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): split of the Sun uses made with GEN.405 (metallicity and
-  rates) and GEN.370 (central mass), so GEN.404 and GEN.405 no longer
-  point at each other; GEN.406 (research) now comes first in the Galaxy
-  laws build and GEN.405 waits for it.
-  Core 3 note (GEN.322 to GEN.324 merged): `band_majorants` is now
-  `band_majorants` plus `extent_majorants(shape, inner, z_near, z_far,
-  fractions, outer)`; GEN.322's plan test uses a luminosity floor of
-  2500 (30,000 gave only 284 stars at GEN.134's young share, none in the
-  high-extent shells beyond the outline).
-  Decided (Boss, 2026-10-17, tapped on a card in Core 1's thread,
-  reported by Core 1 at 8:36 PM EDT as the lane reported and relayed by
-  the coordinator at 8:37 PM EDT): "Mass sets count" for the density
-  source. The star count comes from the galaxy's stellar mass (not from
-  a stored local density at a Sun radius); a Milky Way-sized galaxy is
-  therefore about 2.6 times sparser at the reference radius than the old
-  fixed calibration, until the disc vertical profile is revisited. Core
-  1 builds on this option (GEN.402/404 coded in its own worktree during
-  the GEN.532/533 gate, 72% at 8:33 PM EDT with no failures, as the lane
-  reported). The 2.6 factor is a consequence Boss accepted, not a
-  defect: the test of the density against the old model at the reference
-  radius (Done above) then checks the law and states the factor instead
-  of expecting agreement within the scatter.
-  Core 1's findings while building this item (8:33 PM EDT as the lane
-  reported): the vertical profile is filed as GEN.544 and the mean
-  system mass as GEN.545; the Einstein radius is now
-  shown "seen from the reference radius" (see VIEW.1). The O-star test
-  failure it also saw is TEST.230's cause (retired, #2128); Core 1 fixes
-  the assert in this branch to look for an O5V entry anywhere in the
-  nebula's hosts.
-  Boss (2026-10-17, 9:00 PM EDT, relayed by the coordinator) approved
-  GEN.544 (vertical profile: keep the column, match the midplane) and
-  GEN.545 (mean system mass derived from the generator's own
-  distribution) with their defaults and expects them to fix the star
-  count drop: the 2.6 times sparser figure above is expected to shrink
-  once they land, so the "Done" density check here states the factor it
-  measures and GEN.544 and GEN.545 bring it back toward the old local
-  density. Owner of all three: Core 1.
-  Progress (Core 1, 12:47 AM EDT 2026-10-18 as the lane reported): coded
-  and committed on its own branch; it needs a rebase, epoch 25, a test
-  sweep and its own gate after GEN.402. The Done check states the
-  measured density factor, about 0.38 of the old pinned value before
-  GEN.544 and GEN.545 land (they follow it, Boss 9:00 PM EDT).
-  Epoch update (4:36 AM EDT 2026-10-18, from the epochs file on main):
-  epoch 24 is stamped (release 8.0.1783, Core 4's bundle) and epoch 25
-  is stamped (release 8.0.1801, GEN.402, #2224); this item takes epoch
-  26 (Core 1, as the coordinator relayed), so the earlier 'epoch 25'
-  above is out of date.
-  Epoch update (7:28 AM EDT 2026-10-18, from the epochs file on main):
-  epoch 26 is stamped (release 8.0.1810, GEN.561, #2240), so this item
-  takes the next free epoch at its merge (27 unless another lane merges
-  first); the epoch 26 named above is out of date.
-  Epoch update (8:08 AM EDT 2026-10-18, from the epochs file on main):
-  epoch 27 is stamped (release 8.0.1812, GEN.572, #2243), so this item
-  takes the next free epoch at its merge (28 unless another lane merges
-  first); the epoch 26 or 27 named above is out of date.
-  Epoch update (9:25 AM EDT 2026-10-18, from the epochs file on main):
-  epoch 28 is stamped (release 8.0.1813, GEN.549, #2247), so this item
-  takes the next free epoch at its merge (29 unless another lane merges
-  first); the epoch 27 or 28 named above is out of date.
-  Epoch note (11:12 AM EDT 2026-10-18): epochs 29, 30 and 31 are stamped
-  by GEN.244 (release 8.0.1819), GEN.282 (8.0.1820) and GEN.563
-  (8.0.1821), so a change here takes the next free epoch at its merge,
-  32 unless another lane merges first; Alembic head is 0112 and the next
-  free id is 0113.
-  Epoch note (1:20 PM EDT 2026-10-18, real clock): epoch 32 is stamped
-  by GEN.317 (release 8.0.1828), so a change here takes the next free
-  epoch at its merge, 33 unless another lane merges first (Core 3's
-  GEN.318 carries 33 pending); Alembic head is 0112, next free 0113.
-
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
   source Shen et al. 2003, approximation for the halo mass, no home
@@ -7611,7 +7503,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   owns the metallicity and star-density work in GEN.103 and GEN.134); it
   starts after GEN.368 and GEN.400 merge, so Core 4's current queue does
   not change.
-  Prerequisites: GEN.404. Related: GEN.319, GEN.320, GEN.134,
+  Prerequisites: none. Related: GEN.319, GEN.320, GEN.134,
   GEN.254.
   Body composition research lane finding F6 (2026-10-17):
   `METALLICITY_DISC_FALL_DEX_PER_KPC = 0.06` (tuning.py, marked
@@ -12968,7 +12860,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stands as the decision; Boss expects GEN.544 and GEN.545 together to
   undo most of the star count drop GEN.404 causes. Owner: Core 1 (they
   follow GEN.404).
-  Prerequisites: GEN.404. Related: GEN.404, GEN.134, GEN.401.
+  Prerequisites: none. Related: GEN.404, GEN.134, GEN.401.
 
 - [ ] **GEN.545 The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution**
   Found by Core 1 while building GEN.404 (2026-10-17, 8:33 PM EDT as the
@@ -13000,81 +12892,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stands as the decision; Boss expects GEN.544 and GEN.545 together to
   undo most of the star count drop GEN.404 causes. Owner: Core 1 (they
   follow GEN.404).
-  Prerequisites: GEN.404. Related: GEN.404, GEN.103, GEN.366.
-
-- [ ] **GEN.546 Draw a disk star's age from the star formation history inside its window, not uniformly**
-  Follow-up of GEN.469 (merged #2139, Core 4, 2026-10-17, 9:34 PM EDT as
-  the lane reported; design note
-  docs/design/disk-star-formation-history.md, "Ages stay uniform inside
-  a window"), filed by the TODO thread. GEN.469 sets the share of young
-  (under 0.1 Gy), intermediate (0.1 to 3 Gy) and old (3 to 10 Gy) disk
-  stars from the gas history, but a star's age inside its window is
-  still drawn uniformly, though the star formation rate varies across a
-  window (by a factor of 1.0, 2.5 and a smaller one across the three
-  windows, per the note). Do: draw the age inside the window from the
-  history's own rate (the inverse of its cumulative within the window),
-  in the sampler that draws ages; the sampler files belong to Core 3, so
-  ask Core 3 before touching them. This may lower the local B-star share
-  the GEN.469 test still expects to fail, so do it before the item on
-  that share. Changes stored values, so it bumps the generator epoch
-  (OPS.56 rule); default (stands unless Boss overrules): not a
-  prerequisite of GEN.301, and it rides the one full rescatter only if
-  it merges before it. Done: a test draws many stars of one window and
-  checks the age histogram follows the history's rate across it, the
-  design note says so, and the star-type share test is rerun. Owner:
-  Core 4 (proposed; it built GEN.469), with Core 3 asked first.
-  Core 4's report (reported at 9:46 AM EDT 2026-10-18 as the lane
-  reported, filed by the TODO thread; its gate `scripts/test.py changed`
-  is running, PR follows when it passes): the design is
-  `galaxy/age_law.py` with an `AgeLaw`, threaded through the star
-  population, the scatter, both backfills and the fill context
-  (`SystemConfig.AGE_LAW`); the bulge, the halo, the clusters and the
-  satellites stay even, as the item says. Generator epoch 29 is pending
-  (28 is stamped); GEN.404 and GEN.244 want it too, so the next merger
-  renumbers. The local B-star share between the arms falls from 0.069
-  percent to 0.050 percent against 0.04 percent observed, and the strict
-  expected failure `test_the_local_b_share_reaches_the_observed_one` was
-  removed. `docs/design/disk-star-formation-history.md` still shows
-  GEN.469's 0.12 percent and is updated after the merge.
-  Epoch note (11:12 AM EDT 2026-10-18): epochs 29, 30 and 31 are stamped
-  by GEN.244 (release 8.0.1819), GEN.282 (8.0.1820) and GEN.563
-  (8.0.1821), so a change here takes the next free epoch at its merge,
-  32 unless another lane merges first; Alembic head is 0112 and the next
-  free id is 0113.
-  Epoch note (1:20 PM EDT 2026-10-18, real clock): epoch 32 is stamped
-  by GEN.317 (release 8.0.1828), so a change here takes the next free
-  epoch at its merge, 33 unless another lane merges first (Core 3's
-  GEN.318 carries 33 pending); Alembic head is 0112, next free 0113.
-  Prerequisites: none. Related: GEN.469, GEN.134, GEN.301.
-
-- [ ] **GEN.547 The local B-star share is 0.12 percent against 0.04 observed: find what keeps it three times too high (strict expected failure)**
-  Follow-up of GEN.469 (merged #2139, Core 4, 2026-10-17, 9:34 PM EDT as
-  the lane reported), filed by the TODO thread. GEN.469 lowered the
-  local B-star share between the arms from 0.19 percent to 0.12 percent,
-  against 0.04 percent observed (Mamajek); `tests/test_disk_history.py`
-  keeps the gap as a strict expected failure so it fails loudly when
-  closed. The observed share stays a test target and never an input (NO
-  FIXED CONTENT). What GEN.469 reports: the present star formation is
-  0.38 of the disk's ten-Gy mean (the Milky Way's is about 0.2), so the
-  history's recent rate is probably the part that is too high, and ages
-  are uniform inside the young window (the item above). Do: after that
-  item, find what else sets the recent rate (the inflow history from the
-  halo, the return fraction, the Kennicutt-Schmidt exponent or a star
-  formation threshold) from the sources and say which source moves it;
-  if the sources do not settle it Boss decides on a card. Changes stored
-  values (epoch rule, OPS.56); default (stands unless Boss overrules):
-  not a prerequisite of GEN.301. Done: the local B share is within the
-  observed one's uncertainty from the derivation, the strict expected
-  failure is removed, or the item says which input is unknown and Boss
-  has decided. Owner: Core 4 (proposed), after the age item.
-  Core 4's report (reported at 9:46 AM EDT 2026-10-18 as the lane
-  reported, filed by the TODO thread): GEN.546's age law brings the
-  local B-star share to 0.050 percent against 0.04 percent observed and
-  the strict expected failure is removed, so Core 4 lists this item as
-  resolved with GEN.546 (retire both when its PR merges). Core 4 offers
-  to reopen it if Boss wants the Kroupa and binary analysis anyway; that
-  stays a Boss call.
-  Prerequisites: GEN.546. Related: GEN.469, GEN.134, GEN.546.
+  Prerequisites: none. Related: GEN.404, GEN.103, GEN.366.
 
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
   Boss's request (2026-10-17, 11:19 PM EDT, project chat, and an
@@ -13291,6 +13109,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The object classes this draw feeds (GEN.565, the mass object core and
   its three family classes) are built with this item (card E3, 11:48 PM
   EDT as relayed).
+  In progress (Core 4, reported 1:31 PM EDT 2026-10-18 on the lane's
+  clock, starting in the draft order of GEN.550 with card E3): sliced
+  plan, each slice its own gate and PR, golden output unchanged until
+  the value-changing slice: (1) GEN.565a the MassObject core (identity,
+  mass, radius, parent-relative state, age, spin, galactic motion) with
+  table-driven to_dict and from_dict, Star becoming the StellarObject
+  family with CompactRemnant, BlackHole and NeutronStar as states so the
+  `_skip_property_init` workaround and the duplicated constructor tails
+  go; (2) GEN.565b PlanetaryObject (Planet, moon, RoguePlanet) and
+  SmallBody (Comet, InterstellarComet) on the same core; (3) GEN.553 the
+  five-step body draw (origin table, birth with the IMF below 0.08 solar
+  masses and the population's age and [Fe/H], present state, a
+  composition hook for GEN.439 and GEN.440, motion with the remnant
+  kick), value-changing and taking a new epoch; the free brown dwarf
+  leaves `rogue_planets` there, which needs Core 1's DB.73 and DB.74
+  table shape agreed first; (4) GEN.554 after GEN.553, with the
+  explosion-map sources verified before use. Core 4 will not touch
+  GEN.568 and GEN.569 (Core 5) or GEN.555 (Core 3).
 
 - [ ] **GEN.554 Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -13690,6 +13526,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.584 (position, velocity, spin axis and rate in rad/s, mass with
   mu, epoch and next-due), with identity, radius and age beside it; this
   item declares the fields.
+  In progress (Core 4, reported 1:31 PM EDT 2026-10-18 on the lane's
+  clock, starting in the draft order of GEN.550 with card E3): sliced
+  plan, each slice its own gate and PR, golden output unchanged until
+  the value-changing slice: (1) GEN.565a the MassObject core (identity,
+  mass, radius, parent-relative state, age, spin, galactic motion) with
+  table-driven to_dict and from_dict, Star becoming the StellarObject
+  family with CompactRemnant, BlackHole and NeutronStar as states so the
+  `_skip_property_init` workaround and the duplicated constructor tails
+  go; (2) GEN.565b PlanetaryObject (Planet, moon, RoguePlanet) and
+  SmallBody (Comet, InterstellarComet) on the same core; (3) GEN.553 the
+  five-step body draw (origin table, birth with the IMF below 0.08 solar
+  masses and the population's age and [Fe/H], present state, a
+  composition hook for GEN.439 and GEN.440, motion with the remnant
+  kick), value-changing and taking a new epoch; the free brown dwarf
+  leaves `rogue_planets` there, which needs Core 1's DB.73 and DB.74
+  table shape agreed first; (4) GEN.554 after GEN.553, with the
+  explosion-map sources verified before use. Core 4 will not touch
+  GEN.568 and GEN.569 (Core 5) or GEN.555 (Core 3).
 
 - [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
   Part of the unified orbited-body chain (GEN.550; design note
@@ -14693,6 +14547,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by GEN.317 (release 8.0.1828), so a change here takes the next free
   epoch at its merge, 33 unless another lane merges first (Core 3's
   GEN.318 carries 33 pending); Alembic head is 0112, next free 0113.
+  Epoch note (1:50 PM EDT 2026-10-18, real clock): epoch 34 is stamped
+  by GEN.404 (release 8.0.1831, #2270), so a change here takes the next
+  free epoch at its merge, 35 unless another lane merges first (Core 3's
+  GEN.318 renumbers to 35); Alembic head is 0112, next free 0113.
   Prerequisites: none. Related: GEN.182, GEN.400, GEN.402.
 
 - [ ] **GEN.592 A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced)**
@@ -16738,6 +16596,17 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Units (Boss's cards, 11:56 to 11:57 PM EDT, as the coordinator
   relayed): the column list it drives from is the column registry of
   DB.76 (Core 1); the two share one list.
+  Dependency note (TODO thread, 1:38 PM EDT 2026-10-18, real clock):
+  this item lists GEN.565 as a prerequisite, and Core 4 started GEN.565a
+  (the MassObject core) at 1:31 PM EDT as the lane reported, so the core
+  table's field names come from Core 4's slice 1; Core 1 is asked
+  whether it has started DB.74 and its column list so both use the same
+  names.
+  Core 1's answer (reported 1:40 PM EDT 2026-10-18, real clock): not
+  started, no core-table column list; Core 4 proposes the field names in
+  GEN.565 slice 1 and Core 1 fits DB.74 and DB.73 to them when they come
+  up in its queue (after GEN.404, PERF.138, GEN.591, GEN.544, GEN.545
+  and TEST.241).
   Prerequisites: DB.73, GEN.565. Related: GEN.550, DB.73, DB.67, DB.70.
 
 - [ ] **DB.75 Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID**
@@ -19899,28 +19768,11 @@ clears each one.
   on origin/main and on Core 4's branch; the query count flips between
   11 and 12 with random system content. So it fails on main, about 1 run
   in 6; Bug Hunt does not need to wait for it to appear in a gate.
+  Sighting (Core 5, reported 1:27 PM EDT 2026-10-18 on the lane's clock;
+  its PERF.106 slice 5 gate): failed once with 12 vs 11 queries and
+  passed alone; one more run of the same flake (with Core 4's 1 in 6
+  alone on main).
   Prerequisites: none. Related: TEST.238.
-
-- [ ] **TEST.250 test_workers.py: two tests fail once in a full run because ensure_workers is the inline test stand-in although the module is marked real_queue (something left the inline queue patch active in that xdist worker) (bug)**
-  Found by Core 5 (reported 11:32 AM EDT 2026-10-18 as the lane
-  reported; its PERF.106 slices 1 to 4 gate), filed by the TODO thread.
-  In the gate's full run on worker gw3,
-  `src/tests/test_workers.py::test_a_batch_of_jobs_starts_no_more_workers_than_wanted_and_not_twice`
-  and
-  `::test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs`
-  failed once: `ensure_workers` was the inline test stand-in although
-  the module is marked `real_queue`, so a module that ran before it on
-  that worker left the inline queue patch active. Both pass alone and
-  after modules that build a galaxy with `run_cli`. Fails on main: not
-  seen. Frequency: 1 full run. Reproducer: none yet; Core 5 will watch
-  the next gates (the failing order is a module that patches the queue
-  inline, then test_workers on the same worker). Do: find the module
-  whose patch outlives its test (a module-level or session fixture that
-  is not undone) from the failing worker's order, and undo it; no
-  quarantine. Done: the cause is on this item and test_workers passes
-  after every module on one worker. Owner: Bug Hunt (proposed; Core 5
-  owns PERF.106, the area it touches).
-  Prerequisites: none. Related: TEST.238, PERF.106.
 
 - [ ] **TEST.251 test_orbital_facilities_advance_their_phase fails once in a gate: advance_facility_orbits returns 0 where 1 is expected for orbit_clock(period / 4) (bug)**
   Found by Core 2 (reported about 12:55 PM EDT 2026-10-18 on the lane's
@@ -19961,6 +19813,25 @@ clears each one.
   the test passes in a browser phase that runs beside another gate.
   Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.223, TEST.248.
+
+- [ ] **TEST.253 test_nebula_shape_endpoint_serves_a_mesh fails once under load: the largest vertex radius is 1.0288 against a bound of 1.0, and it passes alone (bug)**
+  Found by Core 4 (reported 1:29 PM EDT 2026-10-18 on the lane's clock;
+  its GEN.546 gate 2, 11:38 AM to 1:23 PM EDT), filed by the TODO
+  thread.
+  `src/tests/test_api.py::test_nebula_shape_endpoint_serves_a_mesh`
+  failed once with a maximum vertex radius of 1.0288 where the test
+  bounds it by 1.0; it passes alone. A load dependence is unlikely for a
+  mesh radius, so the likelier cause is an unseeded nebula shape whose
+  noise can push a vertex past the unit sphere (inferred, not checked).
+  Fails on main: unknown. Frequency: 1 of 2 gates of Core 4. Reproducer:
+  loop the test alone on idle main with fresh draws and print the shape
+  seed and the largest radius. Do: find whether the shape generator can
+  place a vertex beyond 1.0 for some seeds (then the endpoint promises a
+  bound it does not keep, and the generator or the doc is the bug) or
+  whether the test's bound is too tight; fix without loosening what the
+  test proves; no quarantine. Done: the cause is on this item and the
+  test passes 30 of 30 fresh draws. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.249, TEST.251.
 
 ## USR: User accounts
 

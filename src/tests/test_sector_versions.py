@@ -6,6 +6,7 @@ import math
 from planetgen.db import store
 from planetgen.galaxy import version_check, version_key
 from planetgen.galaxy.density import build_galaxy_shape
+from tests.toy_shape import toy_shape
 
 RUNNING = version_key.current()
 
@@ -72,7 +73,7 @@ def test_the_galaxy_warning_reads_the_record_galaxy_shape_keeps(mysql_config):
     finally:
         conn.close()
     seed = bytes(range(16))
-    shape = build_galaxy_shape(
+    shape = toy_shape(
         disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
         bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4)
     store.save_galaxy_shape(shape, edge_pc=4.0, outer_shell_index=1,

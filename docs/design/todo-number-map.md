@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.253 |
+| TEST | TEST.254 |
 | USR | USR.31 |
 | OPS | OPS.62 |
 | DOC | DOC.72 |
@@ -1068,7 +1068,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.401 | The shape of the stars from the stellar mass: disk length and height, thick disk, bulge, bar and arms replace the generate defaults | none | done, PR #2051 |
 | GEN.402 | The central black hole mass and the nuclear cluster follow the bulge: the M-bulge and M-sigma relations replace the fixed ranges | none | done, PR #2224 |
 | GEN.403 | The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157 | none | open |
-| GEN.404 | The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position | none | open |
+| GEN.404 | The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position | none | done, PR #2270 |
 | GEN.405 | Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values | none | open |
 | GEN.406 | Research the population ages and velocity dispersions by component, the thick disk scaling and the stellar halo fraction so they become laws | none | done, PR #2022 |
 | GEN.407 | Correct the horizontal-branch and red giant tables to the checked sources: the RGB time law, the evolutionary flux, the HB colour row, the extreme HB luminosity and the tip | none | done, PR #1985 |
@@ -1210,8 +1210,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.543 | Define "usable" for a P-type window so the design table's pair-node row (34% falling to 18%) can be reproduced | none | done, PR #2238 |
 | GEN.544 | Revisit the disc's vertical profile: the sech-squared core has half the midplane density of the exponential fits its scale heights come from | none | open |
 | GEN.545 | The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution | none | open |
-| GEN.546 | Draw a disk star's age from the star formation history inside its window, not uniformly | none | open |
-| GEN.547 | The local B-star share is 0.12 percent against 0.04 observed: find what keeps it three times too high (strict expected failure) | none | open |
+| GEN.546 | Draw a disk star's age from the star formation history inside its window, not uniformly | none | done, PR #2268 |
+| GEN.547 | The local B-star share is 0.12 percent against 0.04 observed: find what keeps it three times too high (strict expected failure) | none | done, PR #2268 |
 | GEN.548 | Build-time downloads for the isochrone grids, the white-dwarf layers and the neutron-star equation of state, each with a checksum and a labelled stand-in until it lands | none | done, PR #2236 |
 | GEN.549 | L dwarfs hotter than 1,500 K are 2 to 4 times too rare against the 20 pc census: use a cooling track that reaches them (strict expected failure) | none | done, PR #2247 |
 | GEN.550 | Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system | none | open |
@@ -2343,9 +2343,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.247 | The random-start neighbourhood test with --min-start-density 1000 (dense_core) takes 466 s alone and 554 s with its sibling, and times out at 900 s under gate load (bug) | none | open |
 | TEST.248 | The slow-pages test 'stop waiting stops the polling and check again picks it up' fails in a loaded browser phase: the status line still reads 'About 30% ... about 5 s left.' where 'Stopped waiting.' is expected, and it passes alone in 0.3 s (bug) | none | done, PR #2261 |
 | TEST.249 | The sector and system page query-count test fails once in the non-browser phase: 12 statements for a lone system where 11 for one with planets, on unseeded systems (bug) | none | open |
-| TEST.250 | test_workers.py: two tests fail once in a full run because ensure_workers is the inline test stand-in although the module is marked real_queue (something left the inline queue patch active in that xdist worker) (bug) | none | open |
+| TEST.250 | test_workers.py: two tests fail once in a full run because ensure_workers is the inline test stand-in although the module is marked real_queue (something left the inline queue patch active in that xdist worker) (bug) | none | done, PR #2267 |
 | TEST.251 | test_orbital_facilities_advance_their_phase fails once in a gate: advance_facility_orbits returns 0 where 1 is expected for orbit_clock(period / 4) (bug) | none | open |
 | TEST.252 | test_a_double_click_on_a_star_flies_the_camera_to_it fails once in a loaded gate and passes alone (bug) | none | open |
+| TEST.253 | test_nebula_shape_endpoint_serves_a_mesh fails once under load: the largest vertex radius is 1.0288 against a bound of 1.0, and it passes alone (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

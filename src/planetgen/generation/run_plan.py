@@ -239,7 +239,7 @@ def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, s
 SKELETON_OPTIONS = ("max_shell", "reach_shells", "cell_star_ceiling", "fill_luminosity_cap", "core_min_luminosity",
                     "core_mass_limit", "halo_min_luminosity", "arm_density", "interarm_density",
                     "disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc", "bulge_amplitude",
-                    "arm_count", "pitch_angle_deg", "nuclear_amplitude", "calibration_radius_pc")
+                    "arm_count", "pitch_angle_deg", "nuclear_amplitude")
 """tuple: The options of `planetgen plan` that shape the skeleton, the parameters of the `plan-skeleton` command."""
 
 
@@ -320,8 +320,8 @@ def plan_skeleton_unit(params, report):
         found = clusters.generate_clusters(
             galaxy_seed, epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX, scale=scale)
         dwarfs = satellites.place_satellites(
-            galaxy_seed, program_constants.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * shape.disk_scale_length_pc,
-            model_terms(shape)["solar_angle_rad"], epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX, scale=scale)
+            galaxy_seed, program_constants.REFERENCE_RADIUS_SCALE_LENGTHS * shape.disk_scale_length_pc,
+            model_terms(shape)["reference_angle_rad"], epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX, scale=scale)
         young = openClusters.generate_open_clusters(
             galaxy_seed, shape, edge_pc, e_value, epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX)
         store.replace_galaxy_components(conn, found + young, kind="cluster")

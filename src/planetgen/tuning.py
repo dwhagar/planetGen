@@ -1074,7 +1074,8 @@ CLUSTER_HALO_CIRCULAR_KMS = 220.0
 # A generated galaxy's globular cluster system (`generation/clusters.py`, docs/design/globular-clusters.md section 8):
 # the Milky Way's count; masses lognormal about `CLUSTER_MASS_PEAK_SOL` with `CLUSTER_MASS_SIGMA_DEX`, truncated to
 # `CLUSTER_MASS_RANGE_SOL`; half-mass radii lognormal about `CLUSTER_HALF_MASS_RADIUS_PC` (width in dex, growing with
-# distance from the centre as `(R / 8 kpc) ** CLUSTER_RADIUS_GROWTH`, limited to `CLUSTER_HALF_MASS_RADIUS_RANGE_PC`);
+# distance from the centre as `(R / reference) ** CLUSTER_RADIUS_GROWTH` (the reference radius in the galaxy's own
+# scale lengths, `CLUSTER_RADIUS_REFERENCE_SCALE_LENGTHS`), limited to `CLUSTER_HALF_MASS_RADIUS_RANGE_PC`);
 # a fraction `CLUSTER_CORE_COLLAPSED_FRACTION` is core-collapsed (W0 at the top of the range) and the rest draw their
 # concentration c from a normal about `CLUSTER_CONCENTRATION_MEAN` (all recalled from Harris 1996 and Baumgardt and
 # Hilker 2018, good to the shape of the distribution). [Fe/H] has two groups, `(fraction, mean, sigma)`: the
@@ -1089,6 +1090,9 @@ CLUSTER_HALF_MASS_RADIUS_PC = 5.0
 CLUSTER_HALF_MASS_RADIUS_SIGMA_DEX = 0.3
 CLUSTER_HALF_MASS_RADIUS_RANGE_PC = (1.5, 40.0)
 CLUSTER_RADIUS_GROWTH = 0.3
+CLUSTER_RADIUS_REFERENCE_SCALE_LENGTHS = 8000.0 / 2600.0
+"""float: The radius clusters have their typical size at, in the disk's scale lengths (the Milky Way's 8 kpc over its
+2.6 kpc, scaled to the galaxy; GEN.404 took the fixed 8 kpc out)."""
 CLUSTER_CORE_COLLAPSED_FRACTION = 0.2
 CLUSTER_CONCENTRATION_MEAN = 1.45
 CLUSTER_CONCENTRATION_SIGMA = 0.4
@@ -1169,10 +1173,11 @@ OPEN_CLUSTER_DISK_POPULATION_EDGE_GY = 0.1
 # galaxy. Sources: Bland-Hawthorn & Gerhard 2016 (ARA&A 54:529, "BHG16"),
 # Dwek et al. 1995 (ApJ 445:716), Wegg & Gerhard 2013 (MNRAS 435:1874).
 #
-# The Sun's distance from the center over the thin disk's scale length:
-# R0 = 8.2 kpc, L = 2.6 kpc (BHG16). The calibration point (relative
-# density 1.0) sits here by default, and the bar is angled from it.
-GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH = 8200.0 / 2600.0
+# The reference radius, over the thin disk's scale length: the radius the populations' motions are characterised at,
+# the nebula and star-formation profiles are quoted at, and the bar and the satellites' frame are angled from. A
+# stand-in ratio from the Milky Way's R0 = 8.2 kpc and L = 2.6 kpc (BHG16), scaled to whatever galaxy this is; it
+# fixes no position in the galaxy (GEN.404 removed the home position and the density's calibration point).
+REFERENCE_RADIUS_SCALE_LENGTHS = 8200.0 / 2600.0
 # The thick disk's mass, length and height, the bulge's axes and angle, and the stellar halo's share are drawn
 # from the galaxy seed (`galaxy.structure_draw`, GEN.532, GEN.533); the Milky Way's published ones (BHG16: a thick
 # disk of 900 pc and 2.0 kpc against the thin disk's 300 pc and 2.6 kpc; Dwek et al. 1995's G2 bulge fit with
@@ -1246,10 +1251,6 @@ HALO_AXIS_RATIO = 0.7
 # The halo's amount is the galaxy's own (`galaxy.structure.stellar_halo_system_fraction`, GEN.532): its mass over
 # the galaxy's stellar mass drawn from the placeholder law of `galaxy.structure_draw`; the amplitude is solved from it
 # like `k_norm` (`galaxy.density.halo_terms`).
-HALO_LOCAL_DENSITY_FRACTION = 5.0e-3
-"""float: The alternative normalisation the note keeps (Juric et al. 2008): the halo at the Sun is 0.5% of the
-local density, about 2.7 times what `HALO_SYSTEM_FRACTION` gives (0.185%). Not used by the generator;
-`halo_local_density_scale` is the factor that would switch to it."""
 
 # The sector profile (GEN.235, docs/design/intergalactic-and-halo-contents.md 5.3): what a place sets for the
 # rules that never change by place. A first model, not a fit, in the design note's order. The thin disc's, the
@@ -1407,8 +1408,8 @@ CLOSE_BINARY_FRACTION_BY_FE_H = {-3.0: 0.53, -1.0: 0.40, -0.2: 0.24, 0.5: 0.10}
 ENCOUNTER_LIMIT_COEFFICIENT = 0.002
 
 # A system drawn with no galaxy placement (a single system from the command line) has no cell to read a density and
-# a dispersion from; it takes the Sun's neighbourhood, the way `constants.GALACTIC_CENTER_DISTANCE_LY` stands for its
-# distance from the centre. Recalled round values (a mass density of 0.1 Msun/pc^3 and a field dispersion of
+# a dispersion from; it takes the Sun's neighbourhood (a stand-in until the place's own density is read, like the
+# distance from the centre `galaxy.scales.default_galactocentric_pc` gives it). Recalled round values (a mass density of 0.1 Msun/pc^3 and a field dispersion of
 # 30 km/s; Jiang & Tremaine 2010 use 0.045 Msun/pc^3 for the observed stars and 29 km/s, their equation 47 and section 5),
 # to verify.
 SOLAR_NEIGHBOURHOOD_MASS_DENSITY_SOLAR_PC3 = 0.1
@@ -2532,11 +2533,10 @@ REMNANT_VERTICAL_FACTOR_MAX = 4.0
 BLACK_HOLE_CORE_EXCESS = 1.0
 BLACK_HOLE_CORE_SCALE_PC = 2000.0
 # Active radio pulsars' radial profile, Lorimer et al. 2006 (a = 1.9, b = 5.0),
-# against the Milky Way's own stars: the Sun's radius and the disk's scale length.
+# against the disk's own stars, with the radius it is quoted at (`REFERENCE_RADIUS_SCALE_LENGTHS`) and the disk's scale
+# length both the galaxy's own (`galaxy.scales`).
 PULSAR_RADIAL_A = 1.9
 PULSAR_RADIAL_B = 5.0
-GALAXY_SUN_RADIUS_PC = 8200.0
-GALAXY_DISK_SCALE_LENGTH_PC = 2600.0
 
 # Neutron star mass range in solar masses -- real measured masses cluster
 # tightly around ~1.4 Msun with a hard floor near the Chandrasekhar-like
@@ -3340,16 +3340,17 @@ SYSTEM_COMET_CHANCE = 0.3
 # The share of systems that come out with each feature that no single draw
 # decides, measured over 20,000 systems generated with default options
 # (four seeds of 5,000; 2026-10-07, remeasured 2026-10-17 after GEN.447 to
-# GEN.449 changed the companions). A sector or galaxy run's
+# GEN.449 changed the companions and 2026-10-18 after GEN.404 moved a system with
+# no place to the galaxy's half-mass radius). A sector or galaxy run's
 # `--prevalence feature=+50` forces the feature on in enough systems to
 # make that share 1.5 times as large. Remeasure after a change to
 # generation moves one of them: tests/test_prevalence.py checks they still
 # hold within a few points.
 PREVALENCE_BASE_SHARES = {
-    "habitable_world": 0.257,   # a habitable planet or moon
-    "asteroid_belt": 0.607,     # an asteroid belt
-    "large_star": 0.050,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
-    "planets": 0.961,           # at least one planet or belt
+    "habitable_world": 0.253,   # a habitable planet or moon
+    "asteroid_belt": 0.582,     # an asteroid belt
+    "large_star": 0.051,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
+    "planets": 0.953,           # at least one planet or belt
 }
 
 # The usual share of each feature one draw decides (ADM.16: the Generate
@@ -3603,7 +3604,7 @@ PHENOMENON_DENSITY_PC3 = {
     # A flag on an ordinary generated system, not a phenomenon row.
     "runaway-star": 2.1e-3,
     # Stars moving > 500 km/s, ejected by the central black hole, at
-    # HVS_REFERENCE_RADIUS_PC; scales as r_GC^-2 (Brown 2015, ARA&A
+    # HVS_REFERENCE_SCALE_LENGTHS; scales as r_GC^-2 (Brown 2015, ARA&A
     # 53:15). The research's 5e-9 implies ~4e5 out to 100 kpc against a
     # stated 1e3-1e4 total; 1e-10 matches the total. Also a system flag.
     "hypervelocity-star": 1e-10,
@@ -3712,8 +3713,12 @@ SUPERBUBBLE_AMBIENT_DENSITY_RANGE_CM3 = (0.001, 0.01)
 SUPERBUBBLE_TEMPERATURE_K = 1.0e6
 """float: The gas inside a cavity: ionised, about a million kelvin (the soft X-ray background)."""
 
-HVS_REFERENCE_RADIUS_PC = 8000.0
-"""float: Galactic radius the "hypervelocity-star" density is quoted at."""
+HVS_REFERENCE_SCALE_LENGTHS = 8000.0 / 2600.0
+"""float: Galactic radius the "hypervelocity-star" density is quoted at, in the galaxy's thin disk scale lengths (the Milky
+Way's 8 kpc over its 2.6 kpc, scaled to whatever galaxy this is; `galaxy.scales`, GEN.404)."""
+DISK_HALF_MASS_SCALE_LENGTHS = 1.6783469900170382
+"""float: The radius that holds half of an exponential disc's stars, in scale lengths (the root of `1 - (1 + x) exp(-x)
+= 1/2`): where a system with no place in the galaxy is taken (`galaxy.scales.default_galactocentric_pc`)."""
 
 INTERSTELLAR_DEBRIS_DENSITY_PC3 = 1e12
 """float: Interstellar comets and planetesimals (m-km) per pc^3 at

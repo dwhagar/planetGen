@@ -15,6 +15,7 @@ from planetgen.cli.generate import add_plan_arguments
 from planetgen.db import store
 from planetgen.galaxy import density
 from planetgen.web import generate_page
+from tests.toy_shape import toy_shape
 
 BASE = dict(disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0,
             bulge_amplitude=3.11, arm_count=2, pitch_angle_rad=math.radians(15.0))
@@ -22,8 +23,8 @@ BASE = dict(disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale
 
 def _shape(arm_density=1.4, interarm_density=0.6, bulge=3.11, nuclear=0.0):
     amplitude, level = density.arm_terms(arm_density, interarm_density)
-    return density.build_galaxy_shape(**{**BASE, "bulge_amplitude": bulge}, arm_amplitude=amplitude,
-                                      arm_level=level, nuclear_amplitude=nuclear)
+    return toy_shape(**{**BASE, "bulge_amplitude": bulge}, arm_amplitude=amplitude,
+                     arm_level=level, nuclear_amplitude=nuclear)
 
 
 def _on_arm(shape, radius_pc=12000.0):

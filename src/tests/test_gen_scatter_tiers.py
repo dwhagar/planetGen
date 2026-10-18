@@ -22,6 +22,7 @@ from planetgen.galaxy.spherical import band_range
 from planetgen.generation import bright_stars as brightStars
 from planetgen.physics import constants
 from planetgen.physics.units import ly_to_pc
+from tests.toy_shape import toy_shape
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 E_VALUE = 1.0e5
@@ -30,7 +31,7 @@ MASS = 14.0
 
 
 def _shape(nuclear_amplitude=1.0):
-    return build_galaxy_shape(
+    return toy_shape(
         disk_scale_length_pc=300.0, disk_scale_height_pc=60.0, bulge_scale_radius_pc=40.0, bulge_amplitude=2.0,
         arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4, nuclear_amplitude=nuclear_amplitude,
     )

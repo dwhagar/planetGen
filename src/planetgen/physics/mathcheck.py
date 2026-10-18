@@ -23,7 +23,7 @@ figure, a paper, or an exact identity). There are three groups:
   round-trip, the constants agree with each other, luminosity rises and
   lifetime falls with mass, a Kepler orbit conserves energy and angular
   momentum, the sector grid (shells, bands and wedges) tiles each shell exactly
-  and finds every cell again from its own center, density is 1 at its calibration point, and
+  and finds every cell again from its own center, a galaxy holds the systems its stellar mass makes, and
   nothing returns NaN or infinity over a fixed sweep.
 - **distribution** (TEST.66): a few thousand seeded draws from each
   sampler (initial mass function, star ages, Poisson sector counts, the
@@ -288,10 +288,15 @@ def _schwarzschild_radius_km(mass_solar):
     return 2 * pc.G * mass_solar * pc.SOLAR_MASS_TO_KG / pc.SPEED_OF_LIGHT_M_S ** 2 / 1000
 
 
+SUN_REFERENCE_RADIUS_PC = 8200.0
+"""float: The Sun's distance from the galactic centre, 8.2 kpc (GRAVITY Collaboration 2019): the radius the Sun's own
+galactic orbit is checked at. A test reference only; no generation reads a Sun position (GEN.404)."""
+
+
 def _reference_checks():
     sun_kg = pc.SOLAR_MASS_TO_KG
     period = planets.calculate_orbital_period_years
-    gc_ly = pc.GALACTIC_CENTER_DISTANCE_LY
+    gc_ly = units.pc_to_ly(SUN_REFERENCE_RADIUS_PC)
     return [
         Check("sun_luminosity", "reference", "stellar_evolution.main_sequence_luminosity_sol(1)",
               lambda: stellar_evolution.main_sequence_luminosity_sol(1.0), 1.0, 1e-9,
@@ -341,10 +346,6 @@ def _reference_checks():
               lambda: _schwarzschild_radius_km(1.0), 2.953, 0.002,
               "Schwarzschild radius of 1 M_sun, 2.953 km (2GM/c^2 with GM_sun = 1.3271e20 m^3/s^2)",
               unit="km"),
-        Check("sun_galactic_radius", "reference", "physical_constants.GALACTIC_CENTER_DISTANCE_LY",
-              lambda: units.ly_to_pc(gc_ly) / 1000, 8.2, 0.05,
-              "the Sun's distance from the galactic center, 8.2 kpc (GRAVITY Collaboration 2019)",
-              unit="kpc"),
         Check("sun_galactic_orbital_speed", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[0]",
               lambda: galactic_orbit.calculate_galactic_orbit(gc_ly)[0], 225.0, 0.1,
               "the Sun's circular speed around the galaxy, about 220-230 km/s (IAU 1985; Reid et al. 2014)",
@@ -689,13 +690,15 @@ def _galaxy_mass_ratio(part, of):
     return masses[part] / sum(masses[name] for name in of)
 
 
-def _density_at_calibration():
+def _stellar_mass_held_error():
+    """How far the reference galaxy's integrated density (the visible components on the numerical grid, the nuclear
+    structures and the halo, in solar masses at `tuning.MEAN_SYSTEM_MASS_SOLAR` a system) is from its stellar mass."""
     shape = _reference_galaxy_shape()
-    radius = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * shape.disk_scale_length_pc
-    theta_arm = (shape.spiral_reference_angle_rad
-                 + math.log(radius / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad))
-    theta = theta_arm + math.pi / shape.arm_count
-    return galaxyDensity.relative_density((radius * math.cos(theta), radius * math.sin(theta), 0.0), shape)
+    terms = galaxyDensity.model_terms(shape)
+    numerical = (sum(galaxyDensity.component_masses(shape, steps=60).values()) + terms["nuclear_cluster_mass"]
+                 + terms["nuclear_disc_mass"] + galaxyDensity.halo_mass(shape))
+    systems_per_unit = shape.k_norm * pc.LOCAL_STELLAR_DENSITY_LY3 / units.ly_to_pc(1.0) ** 3
+    return numerical * systems_per_unit * tuning.MEAN_SYSTEM_MASS_SOLAR / shape.structure.stellar_mass_solar
 
 
 def _population_split_error():
@@ -799,9 +802,10 @@ def _invariant_checks():
               _point_in_cell_failures, 0, 0.0,
               f"{exact}: a point's radius, colatitude and longitude lie in its shell, band and wedge bounds",
               mode="max", unit="failures"),
-        Check("density_is_1_at_calibration", "invariant", "galaxyDensity.relative_density at the calibration point",
-              _density_at_calibration, 1.0, 1e-12,
-              "definition (galaxyDensity.build_galaxy_shape): 1.0 at the inter-arm calibration point"),
+        Check("galaxy_holds_its_stellar_mass", "invariant", "galaxyDensity.build_galaxy_shape",
+              _stellar_mass_held_error, 1.0, 2e-3,
+              "definition: the density integrates to the systems the stellar mass makes at "
+              "tuning.MEAN_SYSTEM_MASS_SOLAR a system, to the numerical grid's accuracy"),
         Check("population_densities_sum", "invariant", "galaxyDensity.population_densities",
               _population_split_error, 1e-12, 0.0, f"{exact}: the populations add up to relative_density",
               mode="max", unit="relative error"),
