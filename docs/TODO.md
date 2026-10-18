@@ -2244,6 +2244,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MB a view), then warm the tile cache ahead of the zoom path (PERF.130
   to PERF.132, which follow the payload cut). Core 2 builds it and
   states in the PR how many stars the cut loses.
+  Merged in part (Core 2, #2263, release 8.0.1827, reported about 12:55
+  PM EDT 2026-10-18 on the lane's clock): the payload cut. The distance
+  cut factor is 3 (was 2), the view cone 50 degrees (was 70),
+  `GALAXY_VIEW_MAX_STARS` 45,000 (was 70,000), the JS twins equal. Stars
+  drawn before to after on the scaled probe galaxy: 100,000 pc +30%;
+  30,000 pc -6%; 10,000 pc -52%; 3,000 pc -27%; 1,000 pc -31%; 100 pc
+  -41%; 30 pc -42%. Tiles per view 414 to 478 became 213 to 271, the
+  packed view at 1,000 pc 3.20 MB became 1.88 MB, and the cold server
+  build at 1,000 pc 62 s became 37 s (table in
+  docs/design/fly-through-view-distance.md; Boss tunes it through
+  DISTANCE_CUT_EDGES, DISTANCE_CUT_HALF_ANGLE_DEG and the budgets). This
+  item stays open: the cache warming (PERF.130 to PERF.132, Core 2's
+  next PR) is the other half of Boss's 'Both' answer, and the item's own
+  Done (a before and after of the settled-view time) needs it.
 
 - [ ] **MAP.251 When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug)**
   Boss (2026-10-17, 7:38 PM EDT, typed in the project chat, relayed by
@@ -19903,6 +19917,28 @@ clears each one.
   after every module on one worker. Owner: Bug Hunt (proposed; Core 5
   owns PERF.106, the area it touches).
   Prerequisites: none. Related: TEST.238, PERF.106.
+
+- [ ] **TEST.251 test_orbital_facilities_advance_their_phase fails once in a gate: advance_facility_orbits returns 0 where 1 is expected for orbit_clock(period / 4) (bug)**
+  Found by Core 2 (reported about 12:55 PM EDT 2026-10-18 on the lane's
+  clock; its MAP.249 gate, 104 minutes, load 8.4), filed by the TODO
+  thread.
+  `src/tests/test_galactic_motion.py::test_orbital_facilities_advance_their_phase`
+  failed with `assert 0 == 1` at line 173:
+  `store.advance_facility_orbits(conn, store.orbit_clock(conn, period /
+  4))` moved no facility. Passes alone 3 of 3. Fails on main: unknown.
+  Frequency: 1 of 2 gate runs on Core 2's tree. Reproducer: run the test
+  alone in a loop on idle main with the system drawn each time
+  (`_system_with_worlds` is unseeded, so the period of the giant the
+  facility orbits is random), then under load. Suspect (inferred, not
+  checked): the update only moves rows with `next_update_due <=
+  clock.end_unix`, and `_schedule_updates` sets that date from
+  `_FACILITY_INTERVAL_SQL`, so a facility whose period is long against
+  the quarter-period clock the test uses may not be due. Do: print the
+  period, `next_update_due` and `clock.end_unix` on a failure; then pin
+  the system or choose a clock past the due date, or fix the schedule if
+  a facility can be skipped for good. Done: the cause is on this item
+  and the test passes 30 of 30 fresh draws. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.238, TEST.249.
 
 ## USR: User accounts
 
