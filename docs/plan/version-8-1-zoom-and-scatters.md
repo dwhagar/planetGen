@@ -275,6 +275,7 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | GEN.498 | One oxygen-fugacity scale for the generator: the reference fixed, delta-IW stored on it, and the buffers converted |  | Body lane G-4 (part G3): one IW reference scale (Hirschmann 2021), delta-IW stored on it. Core 4 proposed. |
 | GEN.497 | The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve | GEN.470 | Body lane G-3 (part G4): the corrected cold-end tables and Span and Wagner CO2 extend GEN.470. Core 4 proposed. |
 | GEN.439 | The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers | GEN.438 | Boss 11:58 PM EDT; a constants-and-functions module, no database access. |
+| GEN.548 | Build-time downloads for the isochrone grids, the white-dwarf layers and the neutron-star equation of state, each with a checksum and a labelled stand-in until it lands |  |  |
 
 
 ## Phase 3: New scatters: stars, nebulae and the region query
