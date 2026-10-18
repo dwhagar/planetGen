@@ -368,7 +368,7 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
             break
         # MAP.150: each click opens a window centred on the cell clicked, one size down.
         assert crumbs[-1].startswith("Block "), crumbs
-        assert re.fullmatch(r"win=(81|27|9|3|1)\.\d+\.\d+\.-?\d+", query), query
+        assert re.fullmatch(r"win=(81|27|9|3|1)\.\d+\.-?\d+\.\d+", query), query
         assert query != steps[-1][0], "the URL names the new stage"
         steps.append((query, crumbs))
     assert reached_sector, f"never reached a sector: {steps[-1]}"
