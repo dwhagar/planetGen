@@ -829,3 +829,14 @@ Baseline: PR #1817.
 | MAP.250 | 8.1 | Fly-through map |
 | DOC.68 | 8.1 | Docs |
 | PERF.118 | 8.1 | Queue, caches and performance |
+| GEN.252 | 8.1 | Multi-star and compact systems |
+| GEN.541 | 8.1 | Components and wanderers |
+| PERF.135 | 8.1 | Queue, caches and performance |
+| PERF.127 | 8.1 | Queue, caches and performance |
+| GEN.551 | 8.4 | Bulk composition |
+| GEN.243 | 8.1 | Nebula and young stars |
+| GEN.438 | 8.1 | Composition tables |
+| GEN.532 | 8.1 | Galaxy laws build |
+| GEN.533 | 8.1 | Galaxy laws build |
+| GEN.567 | 8.1 | Composition research and design |
+| MAP.243 | 8.1 | Interface update |

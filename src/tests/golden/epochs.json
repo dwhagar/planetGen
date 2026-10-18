@@ -107,6 +107,16 @@
     },
     {
       "epoch": 22,
+      "first_release": "8.0.1774",
+      "reason": "A star of 25 solar masses or more (more at low metallicity) is a Wolf-Rayet star for the last 0.3 Myr of its life in place of the end of its supergiant phase, with a WN, WC or WO type, a luminosity and temperature of its own and a companion in 52% (WN) or 90% (WC, WO) of systems, and a Wolf-Rayet star lights a class X ring nebula in 40% of cases (GEN.243)."
+    },
+    {
+      "epoch": 23,
+      "first_release": "8.0.1776",
+      "reason": "The thick disk, bar and stellar halo are drawn from the galaxy seed (thick-disk mass, length and height from the circular speed, the bar's presence, axis ratios and angle, the halo's share of the stars), and the young, intermediate and old heights and every population's velocity dispersion come from one heating law with a molecular birth-gas stand-in, so a seed places different stars, motions and bar-gap star formation (GEN.532, GEN.533)."
+    },
+    {
+      "epoch": 24,
       "first_release": null,
       "pending": true,
       "reason": "A body stores its life stage, pace, exact ages and flavour key as data instead of paragraphs and a habitability note, and the class texts the generator writes no longer claim life, so the stored description and life columns change (DB.51, GEN.221)."

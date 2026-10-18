@@ -27,6 +27,12 @@ Neighbour galaxies, more than one galaxy in the database and the intergalactic f
 
 Small clean-ups that wait for an upstream release; none is part of a version's build.
 
+### Optional unit edge arithmetic
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.588 | Optional: operator arithmetic on Quantity for the edges (mass divided by volume gives a density), unscheduled | GEN.586 | Optional; Boss chose R1 option 1, so nothing waits on it. |
+
 ### Upstream follow-ups
 
 | ID | Item | Needs | Note |

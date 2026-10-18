@@ -321,7 +321,7 @@ What the old command structure becomes (Boss, 2026-10-17, 8:06 PM EDT: the rewor
 | `galaxy`'s in-process start, neighborhood, sectors, link, backfill, population and settle | the same stages as registered commands; `galaxy` becomes a step list | PERF.123, PERF.107, PERF.108 |
 | `sector` with `--population`, `phenomenon` with its settle | `sector` and `phenomenon` only generate | PERF.124 |
 | `population` with `--territories-only` and `--rescan` | two commands | PERF.125 |
-| `check-db` behind flags, `warm_map --only`, `benchmark`'s own sequence | a command per check, per cache family, and a step list | PERF.126, PERF.127, PERF.128 |
+| `check-db` behind flags, `warm_map --only`, `benchmark`'s own sequence | a command per check, per cache family, and a step list; `warm_map` is `planetgen warm` and the six `warm-*` commands, run as a maintenance run (PERF.127, done) | PERF.126, PERF.127, PERF.128 |
 | The Generate page, API jobs and one-off pages starting their own runs | build a step list and call the wrapper | PERF.119 |
 | The Generate page, Queue page and job log reading the old tables; the `work_*` tables | read the run record in Redis; deleted with their migration | PERF.99, PERF.100 |
 | `update.sh` and migrations starting while jobs run | refuse while the run record shows a live run | DB.29 |

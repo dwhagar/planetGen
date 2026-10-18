@@ -48,7 +48,7 @@ from planetgen.db import query
 from planetgen.db import store as _db
 from planetgen.db import store
 from planetgen import tuning
-from planetgen.galaxy import profile as galaxy_profile, spherical
+from planetgen.galaxy import profile as galaxy_profile, spherical, structure_draw
 from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count, relative_density
 from planetgen.galaxy.frame import galaxy_to_local_pc
 from planetgen.galaxy.spherical import (
@@ -67,6 +67,9 @@ EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 # a few dozen shells out (not real Milky-Way scale, which would make
 # these tests slow for no benefit -- ensure_sector_generated's own logic
 # doesn't care about scale).
+# A stored shape carries no thick disk, bar or halo values: the galaxy seed draws them on load (GEN.532, GEN.533). The
+# toy shape is therefore built with the structure its fixed seed draws, and `_seed_skeleton` stores that seed.
+_SKELETON_SEED = bytes(range(16))
 _SKELETON_SHAPE = build_galaxy_shape(
     disk_scale_length_pc=40.0,
     disk_scale_height_pc=12.0,
@@ -75,6 +78,7 @@ _SKELETON_SHAPE = build_galaxy_shape(
     arm_count=2,
     pitch_angle_rad=math.radians(15),
     arm_amplitude=0.4,
+    structure=structure_draw.draw_structure(_SKELETON_SEED),
 )
 
 
@@ -136,10 +140,17 @@ def _seed_skeleton(mysql_config, shape=_SKELETON_SHAPE, outer_shell_index=999, e
         e_value (float): `expected_system_count_at_density_1`.
         shells (iterable): `(shell_index, high_band_index)` pairs -- see
             `_db.replace_galaxy_shells`.
-        galaxy_seed (bytes, optional): The galaxy's seed; drawn at random
-            by default.
+        galaxy_seed (bytes, optional): The galaxy's seed; the stored one when there
+            is one, else the fixed `_SKELETON_SEED`, so the loaded shape matches
+            `_SKELETON_SHAPE`.
         reach_shell_index (int): The outermost shell the grid has addresses for.
     """
+    if galaxy_seed is None:
+        conn = _db.get_connection(mysql_config)
+        try:
+            galaxy_seed = _db.get_galaxy_seed(conn) or _SKELETON_SEED
+        finally:
+            conn.close()
     _db.save_galaxy_shape(shape, edge_pc=EDGE_PC, outer_shell_index=outer_shell_index,
                            expected_system_count_at_density_1=e_value, config=mysql_config,
                            galaxy_seed=galaxy_seed, reach_shell_index=reach_shell_index)
@@ -235,7 +246,7 @@ def test_galaxy_density_shape_serializes_the_stored_skeleton(mysql_config):
 
     assert shape_dict is not None
     for field in _SKELETON_SHAPE._fields:
-        if field in ("components", "masses"):  # objects for the density model, not JSON for the map
+        if field in ("components", "masses", "structure"):  # objects for the density model, not JSON for the map
             assert field not in shape_dict
             continue
         assert shape_dict[field] == pytest.approx(getattr(_SKELETON_SHAPE, field))
@@ -584,8 +595,8 @@ def test_ensure_sector_generated_refuses_only_beyond_the_reach(mysql_config):
 def test_ensure_sector_generated_saves_a_halo_sector_from_its_profile_even_when_empty(mysql_config, monkeypatch):
     """GEN.235: a cell the outline does not hold but the reach does is generated from its profile when asked, and
     saved and marked generated though its draw comes out empty; the second ask returns the same sector."""
-    _seed_skeleton(mysql_config, shells=_shells(2, 1), reach_shell_index=200)
-    address = (150, 0, 3)     # 600 pc out in the toy galaxy (a scale length is 40 pc): the halo
+    _seed_skeleton(mysql_config, shells=_shells(2, 1), reach_shell_index=300)
+    address = (200, 0, 3)     # 800 pc out in the toy galaxy (a scale length is 40 pc): the halo
     densities = []
     real = run_galaxy.generate_and_save_sector_at
 
@@ -1452,6 +1463,9 @@ def test_stars_and_phenomena_fit_within_their_sectors_real_cells(mysql_config, m
                            " WHERE compact_remnant_black_hole_id IS NOT NULL)",
             "neutron_stars": " AND id NOT IN (SELECT compact_remnant_neutron_star_id FROM supernova_remnants"
                              " WHERE compact_remnant_neutron_star_id IS NOT NULL)",
+            # A field cloud (the dark family) is filed under the sector holding its centroid, and a cloud
+            # tens of light years across has its centre in a neighbouring cell whenever it sits near a face.
+            "nebulae": " AND nebula_type <> 'dark'",
         }
         for table, label in _CHECKABLE_PHENOMENON_TABLES:
             rows = conn.execute(

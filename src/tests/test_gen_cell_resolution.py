@@ -14,7 +14,7 @@ from planetgen import tuning
 from planetgen.api import routes
 from planetgen.cli import generate as generate_cli
 from planetgen.db import store
-from planetgen.galaxy import resolution
+from planetgen.galaxy import resolution, structure_draw
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.profile import profile_at, sector_profile
 from planetgen.galaxy.spherical import cell_volume, sector_position_pc
@@ -24,9 +24,11 @@ from planetgen.physics import constants
 from planetgen.physics.units import ly_to_pc
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
+SEED = bytes(range(16))
 SHAPE = build_galaxy_shape(
     disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
     bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
+    structure=structure_draw.draw_structure(SEED),   # a stored shape carries no structure: its seed draws it
 )
 E_VALUE = 2000.0
 EXTENTS = [(0, 0), (1, 1), (2, 2), (3, 3), (4, 3), (5, 3), (6, 3), (7, 3), (8, 3)]
@@ -140,7 +142,8 @@ def test_the_settings_are_stored_with_the_galaxy_and_default_to_the_tunings(mysq
 
 def _seed_galaxy(mysql_config, ceiling, cap):
     store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=8, expected_system_count_at_density_1=E_VALUE,
-                            config=mysql_config, cell_star_ceiling=ceiling, fill_luminosity_cap_sol=cap)
+                            config=mysql_config, cell_star_ceiling=ceiling, fill_luminosity_cap_sol=cap,
+                            galaxy_seed=SEED)
     store.replace_galaxy_shells(EXTENTS, config=mysql_config)
 
 

@@ -71,7 +71,7 @@ from planetgen.admin import activity_log
 from planetgen.db import alembic_runner, login, point_columns, scatter_systems
 from planetgen.names import object_id as objectId
 from planetgen import tuning
-from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scatter_limits as scatterLimits, seed as galaxySeed, uid as galaxyUid, version_key as versionKey
+from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, spin
 from planetgen.util import log
 from planetgen.util.settings import env_name, get_settings
@@ -7587,14 +7587,17 @@ def get_galaxy_shape(conn):
         spiral_reference_angle_rad=row["spiral_reference_angle_rad"],
         k_norm=row["k_norm"],
     )
-    shape = shape._replace(components=_component_field(conn, row["edge_pc"], row["expected_system_count_at_density_1"]))
-    if row.get("galaxy_seed") is not None:      # a galaxy with no seed has no masses: its disk's size stands for them
-        chain = massChain.draw_mass_chain(bytes(row["galaxy_seed"]))
+    seed = None if row.get("galaxy_seed") is None else bytes(row["galaxy_seed"])
+    # The thick disk, bar, stellar halo and motions are not columns: the seed draws them again (GEN.532, GEN.533).
+    shape = shape._replace(components=_component_field(conn, row["edge_pc"], row["expected_system_count_at_density_1"]),
+                           structure=shape_draw.structure_for(seed))
+    if seed is not None:      # a galaxy with no seed has no masses: its disk's size stands for them
+        chain = massChain.draw_mass_chain(seed)
         shape = shape._replace(masses=(chain.stellar_mass_solar, chain.halo_mass_solar))
     return GalaxySkeletonInfo(
         shape=shape, edge_pc=row["edge_pc"], outer_shell_index=row["outer_shell_index"],
         expected_system_count_at_density_1=row["expected_system_count_at_density_1"],
-        galaxy_seed=None if row.get("galaxy_seed") is None else bytes(row["galaxy_seed"]),
+        galaxy_seed=seed,
         reach_shell_index=row.get("reach_shell_index", 65535),
         cell_star_ceiling=row.get("cell_star_ceiling", tuning.CELL_STAR_CEILING),
         fill_luminosity_cap_sol=row.get("fill_luminosity_cap_sol", tuning.FILL_LUMINOSITY_CAP_SOL),

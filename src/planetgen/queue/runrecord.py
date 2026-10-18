@@ -22,6 +22,9 @@ Keys (`PREFIX` is `planetgen`; the tests give it a prefix of their own):
                                   sees one figure; expires a day after it is written.
 * `<PREFIX>:run:<id>:events`     stream: the log and timeline, `XADD` with `MAXLEN ~ EVENTS_MAXLEN`.
 * `<PREFIX>:run:active`          string: the run that owns the machine, `SET NX`, so a second run gets "busy".
+* `<PREFIX>:run:active:maintenance`  string: the same for a run of `MAINTENANCE` kind (the cache warm-up, PERF.127):
+                                  it does not own the machine, so it neither blocks a generation run nor shows the
+                                  galaxy-changing banner, and only one runs at a time.
 
 A unit that finishes calls `unit_done`, one script run by Redis: it adds the index to the done set (a unit that
 runs twice counts once), updates the counters and the decayed sums, and, for the unit that makes the set
@@ -46,6 +49,12 @@ KEEP_SECONDS = 30 * 86400
 
 EVENTS_MAXLEN = 100_000
 """int: The event stream's approximate length limit."""
+
+GENERATION = "generation"
+MAINTENANCE = "maintenance"
+KINDS = (GENERATION, MAINTENANCE)
+"""A run changes the galaxy (`GENERATION`, owns the machine) or only keeps the site in order (`MAINTENANCE`, PERF.127:
+building caches changes nothing a visitor reads)."""
 
 LIVE_STATES = ("running", "cancelling")
 FINAL_STATES = ("done", "failed", "cancelled")
@@ -123,8 +132,9 @@ def banner_key(run_id):
     return _k("run", run_id, "banner")
 
 
-def active_key():
-    return _k("run", "active")
+def active_key(kind=GENERATION):
+    """The key that names the live run of `kind`."""
+    return _k("run", "active") if kind == GENERATION else _k("run", "active", kind)
 
 
 def new_run_id(now=None):
@@ -198,18 +208,20 @@ class UnitDone:
     done: int
 
 
-def active_run(conn):
-    """The id of the run that owns the machine, or `None`."""
-    value = conn.get(active_key())
+def active_run(conn, kind=GENERATION):
+    """The id of the live run of `kind` (by default the one that owns the machine), or `None`."""
+    value = conn.get(active_key(kind))
     return _s(value) if value else None
 
 
 def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=None, seed=None, now=None,
-              steps=None):
+              steps=None, kind=GENERATION):
     """
-    Records a new run and takes the machine for it.
+    Records a new run and takes the machine for it (a `MAINTENANCE` run takes only its own place, so a generation
+    run and a maintenance run may be live together).
 
     Args:
+        kind (str): `GENERATION` or `MAINTENANCE`.
         stages (list[Stage]): The run's stages, in order (at least one).
         steps (list[dict], optional): The wrapper's step list (`queue.commands.Step.as_dict`), one per stage; the
             unit that completes a stage reads the next one from here (PERF.118).
@@ -218,20 +230,22 @@ def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=No
         str: The run id.
 
     Raises:
-        Busy: Another run owns the machine.
+        Busy: Another run of that kind is running.
     """
     if not stages:
         raise ValueError("a run has at least one stage")
+    if kind not in KINDS:
+        raise ValueError(f"a run is one of {KINDS}")
     now = _now(now)
     run_id = run_id or new_run_id(now)
-    if not conn.set(active_key(), run_id, nx=True):
-        raise Busy(f"run {active_run(conn)} is running")
+    if not conn.set(active_key(kind), run_id, nx=True):
+        raise Busy(f"run {active_run(conn, kind)} is running")
     declared = [asdict(stage) for stage in stages]
     for stage in declared:
         stage["cost"] = float(stage["units"] if stage["cost"] is None else stage["cost"])
     pipe = conn.pipeline()
     pipe.hset(run_key(run_id), mapping={
-        "title": title, "who": who or "", "database": database or "", "argv": json.dumps(argv or []),
+        "title": title, "kind": kind, "who": who or "", "database": database or "", "argv": json.dumps(argv or []),
         "seed": "" if seed is None else str(seed), "state": "running", "stages": json.dumps(declared),
         "steps": json.dumps(steps or []), "current": 0, "created": now, "started": now, "updated": now,
         "finished": "", "error": ""})
@@ -334,7 +348,8 @@ def finish_run(conn, run_id, state="done", error=None, now=None):
     if _s(conn.hget(run_key(run_id), "state")) not in LIVE_STATES:
         return False
     conn.hset(run_key(run_id), mapping={"state": state, "finished": now, "updated": now, "error": error or ""})
-    conn.register_script(_RELEASE)(keys=[active_key()], args=[run_id])
+    kind = _s(conn.hget(run_key(run_id), "kind")) or GENERATION
+    conn.register_script(_RELEASE)(keys=[active_key(kind)], args=[run_id])
     log(conn, run_id, error or f"run {state}", kind=f"run.{state}", level="error" if state == "failed" else "info",
         now=now)
     stages = len(json.loads(conn.hget(run_key(run_id), "stages")))
@@ -393,7 +408,7 @@ _STAGE_NUMBERS = ("units", "done", "cost_total", "cost_done", "seconds", "starte
 
 def read_run(conn, run_id):
     """
-    The run as one dict for pages and the ETA (`runeta.estimate`): the record (`id`, `title`, `who`, `database`,
+    The run as one dict for pages and the ETA (`runeta.estimate`): the record (`id`, `title`, `kind`, `who`, `database`,
     `state`, `current`, `created`, `started`, `updated`, `finished`, `error`) and `stages`, each the declared
     stage with its counters merged in (numbers, `None` where not set yet). `None` for an unknown run.
     """
@@ -406,7 +421,8 @@ def read_run(conn, run_id):
     pipe = conn.pipeline()
     for index in range(len(declared)):
         pipe.hgetall(stage_key(run_id, index))
-    run = {"id": run_id, "title": record["title"], "who": record["who"], "database": record["database"],
+    run = {"id": run_id, "title": record["title"], "kind": record.get("kind") or GENERATION, "who": record["who"],
+           "database": record["database"],
            "state": record["state"], "error": record["error"] or None, "current": int(float(record["current"])),
            "stages": []}
     for name in ("created", "started", "updated", "finished"):
@@ -445,6 +461,6 @@ def recent_runs(conn, limit=20):
     return sorted(found, reverse=True)[:limit]
 
 
-__all__ = ["Busy", "Stage", "UnitDone", "active_run", "begin_stage", "finish_run", "is_cancelling", "is_stale",
+__all__ = ["GENERATION", "KINDS", "MAINTENANCE", "Busy", "Stage", "UnitDone", "active_run", "begin_stage", "finish_run", "is_cancelling", "is_stale",
            "log", "new_run_id", "read_events", "read_plan", "read_run", "read_steps", "recent_runs", "request_cancel",
            "set_stage_plan", "start_run", "unit_done", "write_log_file"]

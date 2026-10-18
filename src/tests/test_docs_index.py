@@ -7,6 +7,8 @@ import importlib.util
 import os
 import re
 
+import pytest
+
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 _spec = importlib.util.spec_from_file_location("build_docs_index", os.path.join(ROOT, "scripts", "build_docs_index.py"))
 index = importlib.util.module_from_spec(_spec)
@@ -18,17 +20,23 @@ def _text():
         return handle.read()
 
 
+@pytest.mark.globaldocs
 def test_the_index_is_up_to_date():
-    assert _text() == index.build(), "docs/index.html is out of date: run python scripts/build_docs_index.py"
+    assert _text() == index.build(), "docs/index.html is out of date: run python scripts/build_global_docs.py"
 
 
-def test_every_html_page_under_docs_is_listed_with_a_description():
-    text = _text()
+def test_every_html_page_under_docs_has_a_description():
     pages = index.html_pages()
     assert len(pages) >= 7
-    for path, title, description in pages:
-        assert f'href="{path}"' in text, f"{path} is not in the docs index: run python scripts/build_docs_index.py"
+    for path, _title, description in pages:
         assert description, f"{path} has no <meta name=\"description\" content=\"...\"> (what it contains and who it is for)"
+
+
+@pytest.mark.globaldocs
+def test_every_html_page_under_docs_is_listed():
+    text = _text()
+    for path, _title, _description in index.html_pages():
+        assert f'href="{path}"' in text, f"{path} is not in the docs index: run python scripts/build_global_docs.py"
     assert "design/architecture-map.html" in text and "plan/version-plan.html" in text
 
 
@@ -40,6 +48,7 @@ def test_every_page_links_back_to_the_index():
         assert f'href="{"../" * depth}index.html"' in page, f"{path} has no link back to the docs index"
 
 
+@pytest.mark.globaldocs
 def test_the_index_links_resolve_to_files_and_the_goal_issues():
     text = _text()
     for href in re.findall(r'<a href="([^":#]+)"', text):

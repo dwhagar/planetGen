@@ -696,6 +696,19 @@ export function createStageView(host) {
   // null. Read by the browser tests.
   canvasEl.galaxyAnchorUnder = function (clientX, clientY) { return anchorUnder(clientX, clientY); };
 
+  // MAP.243: whether an object of the map (anything with x, y, z in parsecs) lies beyond the galaxy's outline, in the
+  // halo or a satellite galaxy, where no block of the whole-galaxy view holds it. Worked out once per object.
+  function outsideOutline(item) {
+    if (item.beyondOutline === undefined) {
+      const at = P.sectorAddressAt(item.x, item.y, item.z, edgePc);
+      item.beyondOutline = !P.sectorInOutline(at.shell, at.band, at.wedge, getOutline());
+    }
+    return item.beyondOutline;
+  }
+
+  // For the browser tests: whether a point of the map (x, y, z in parsecs) lies beyond the galaxy's outline.
+  canvasEl.galaxyOutsideOutline = function (x, y, z) { return outsideOutline({ x: x, y: y, z: z }); };
+
   // Whether the map has caught up with its stage: what is drawn is the
   // stage the breadcrumb names and no flight is running. The stage changes
   // at once, its drawing when the container's data has loaded. Read by
@@ -1620,21 +1633,7 @@ export function createStageView(host) {
     const base = display && display.resolved ? display.resolved.stage : stage;
     // The window opens round the middle of what the click went through, not the face it met first.
     if (at) at = S.chordMiddle(pick.block.bounds || P.drillBlockBounds(pick.block, edgePc), at, host.camera.position);
-    let into = S.windowInto(base, pick.block, at, edgePc);
-    // A click near the galaxy's edge can fall on a cell that holds no sector:
-    // the window goes to the nearest cell towards the block's middle that does.
-    if (into && at && S.resolveStage(into, getOutline(), edgePc).problem) {
-      const middle = P.cellCenter(S.drillBlockBounds(pick.block, edgePc));
-      for (let k = 1; k <= 4; k++) {
-        const nearer = S.windowInto(base, pick.block, {
-          x: at.x + ((middle[0] - at.x) * k) / 4, y: at.y + ((middle[1] - at.y) * k) / 4, z: at.z + ((middle[2] - at.z) * k) / 4,
-        }, edgePc);
-        if (nearer && !S.resolveStage(nearer, getOutline(), edgePc).problem) {
-          into = nearer;
-          break;
-        }
-      }
-    }
+    const into = S.windowInto(base, pick.block, at, edgePc);
     if (into) go(into);
   }
 
@@ -2303,6 +2302,23 @@ export function createStageView(host) {
     const y = onMap ? event.clientY : rect.top + rect.height / 2;
     let found = picker.pick(x, y, function (layer) { return layer === choiceLayer; });
     if (!found && onMap) found = picker.pick(rect.left + rect.width / 2, rect.top + rect.height / 2, function (layer) { return layer === choiceLayer; });
+    if (!stage.win) {
+      // MAP.243: beyond the outline (the halo, a satellite galaxy) there is no block under the pointer, or only the
+      // disc's behind what is pointed at: the window opens round the cell holding the star or phenomenon in front,
+      // else the point the wheel has been zooming toward.
+      const front = picker.pick(x, y);
+      const halo = front && front.layer !== choiceLayer ? front : null;
+      const point = halo ? [halo.entry.x, halo.entry.y, halo.entry.z] : found ? null : anchorUnder(x, y);
+      if (point) {
+        const block = P.cellAt(P.DRILL_LEVELS[0], point[0], point[1], point[2], edgePc);
+        const into = P.drillBlockHolds(block, P.REACH_OUTLINE) ? S.windowInto(stage, block, { x: point[0], y: point[1], z: point[2] }, edgePc) : null;
+        if (!into) return false;
+        acrossGate.spend(now);
+        showTooltip("", 0, 0);
+        go(into);
+        return true;
+      }
+    }
     if (!found || found.entry < 0 || !pickable(found.entry)) return false;
     acrossGate.spend(now);
     touchPending = -1;
@@ -2760,7 +2776,7 @@ export function createStageView(host) {
     if (entered) {
       // The address of an open sector names only the sector, so the trail is the one of the window round it, as a
       // fresh load of that address shows.
-      return S.sectorStage(entered.sector.shell, entered.sector.band, entered.sector.wedge, getOutline()) || stage;
+      return S.sectorStage(entered.sector.shell, entered.sector.band, entered.sector.wedge) || stage;
     }
     if (enteredSystem) return stage;
     return S.stageAtPoint(stage, view.target, getOutline(), edgePc);
@@ -2771,7 +2787,7 @@ export function createStageView(host) {
   // Redraws the breadcrumb and the header line when the view's middle has moved into another cell or sector.
   function refreshWhere() {
     if (!active || !view || !resolved) return;
-    const sector = entered || enteredSystem ? null : S.sectorAtPoint(view.target, getOutline(), edgePc);
+    const sector = entered || enteredSystem ? null : S.sectorAtPoint(view.target, edgePc);
     const win = cameraStage().win;
     const key = (win ? win.centre.m + ":" + S.blockLabel(win.centre) : "galaxy") + "|" + (sector ? S.blockLabel(sector) : "");
     if (key === whereKey) return;
@@ -2908,7 +2924,7 @@ export function createStageView(host) {
   }
 
   function locate(sector) {
-    const next = S.sectorStage(sector.shell, sector.band, sector.wedge, getOutline());
+    const next = S.sectorStage(sector.shell, sector.band, sector.wedge);
     if (!next) {
       notice("Sector " + S.blockLabel(sector) + " is outside the galaxy.");
       return false;
@@ -3056,7 +3072,7 @@ export function createStageView(host) {
   // asked for, the smallest stage showing the whole course (section 9.4).
   function stageFromLocation(useCourse) {
     if (pinned) {
-      const next = S.sectorStage(pinned.shell, pinned.band, pinned.wedge, getOutline());
+      const next = S.sectorStage(pinned.shell, pinned.band, pinned.wedge);
       if (!next) return { stage: S.galaxyStage(), sector: null, problem: "This sector is outside the galaxy." };
       return { stage: next, sector: pinned, open: true, problem: null };
     }
@@ -3068,7 +3084,7 @@ export function createStageView(host) {
     const asked = parsed.camera ? (kept && !S.resolveStage(kept, getOutline(), edgePc).problem ? kept : stageForCamera(parsed.camera)) : null;
     if (parsed.sector) {
       const s = parsed.sector;
-      const next = asked || S.sectorStage(s.shell, s.band, s.wedge, getOutline());
+      const next = asked || S.sectorStage(s.shell, s.band, s.wedge);
       if (!next) {
         return { stage: S.galaxyStage(), sector: null, problem: "Sector " + S.blockLabel(s) + " is outside the galaxy." };
       }
@@ -3222,6 +3238,7 @@ export function createStageView(host) {
     // Inside a window (not the whole galaxy), where phenomena take the
     // pointer before the blocks.
     inContainer: function () { return !!stage.win; },
+    outsideOutline: outsideOutline,
     go: go,
     locate: locate,
   };

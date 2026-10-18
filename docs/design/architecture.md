@@ -107,6 +107,7 @@ flowchart LR
 | `scripts/build_unit_ladders.py` | Writes the browser's copy of the unit ladders (`static/unitladders.js`) from `planetgen/util/ladders.py` (UX.23). |
 | `scripts/vendor_shoelace.py` | Copies the parts of Shoelace the site uses into `static/vendor/shoelace/`. |
 | `scripts/build_todo_docs.py`, `scripts/todo_docs/` | Builds the three browsable TODO pages from the TODO sources. |
+| [`scripts/build_global_docs.py`](../../scripts/build_global_docs.py) | Rebuilds, or with `--check` checks, every global document in order (the architecture map, the plan pages, the docs index); only the TODO thread runs it, and the tests that compare them with their sources are the `globaldocs` tests, skipped unless `PLANETGEN_GLOBAL_DOCS=1` (DOC.69). |
 | `scripts/bench_nav.py`, `scripts/star_type_by_radius.py` | Developer tools: times `nav_between` on a large synthetic galaxy (NAV.10); star types against distance from the core (GEN.133). |
 | `scripts/lock-requirements.sh` | Rewrites `requirements.lock` with `uv`. Run by a developer after changing a requirement, never on a server. |
 | [`scripts/bump_version.py`](../../scripts/bump_version.py) | Turns `changes/` notes into releases: bumps `_version.py`, the README badge and `CHANGELOG.md` together. Also the PR check (`--check-pr`). |
@@ -411,7 +412,7 @@ The command-line tools, each run as `python3 -m planetgen.cli.<name>` (the gener
 | [`reset.py`](../../src/planetgen/cli/reset.py) | Empties every generated table (`TRUNCATE`), keeping the schema and its version, so a fresh galaxy can be generated. |
 | [`stage_progress.py`](../../src/planetgen/cli/stage_progress.py) | The progress bar of the maintenance commands: one bar over the command's steps and a second over the items inside the current step. |
 | [`version_history.py`](../../src/planetgen/cli/version_history.py) | Records the version key every galaxy database was updated under (OPS.13), or lists what was recorded. |
-| [`warm_map.py`](../../src/planetgen/cli/warm_map.py) | Builds the Galaxy Map's opening view ahead of time (MAP.134), into the tile cache the web site reads, so the first visitor after a release (or after the cache was cleared) isn't the one who waits for it. |
+| [`warm.py`](../../src/planetgen/cli/warm.py) | `planetgen warm` (PERF.127): builds the list of the cache-warming commands (one per family) for the wrapper to run, so the first visitor after a release (or after the cache was cleared) isn't the one who waits for the Galaxy Map, the lists, the pages and the search. |
 | [`worker.py`](../../src/planetgen/cli/worker.py) | One RQ worker for planetGen's queues, at the lowered priority generation workers always run at. |
 
 #### src/planetgen/wiki/
@@ -488,7 +489,7 @@ The HTML pages (see [html-interface.md](../html-interface.md)). `templates/` hol
 | [`tables.py`](../../src/planetgen/web/tables.py) | The data tables' JSON route (`/table/<name>`, UX.41) and the helper list pages call to draw one. |
 | [`transport.py`](../../src/planetgen/web/transport.py) | The in-process transport that lets `apiclient` call the API routes without a socket. |
 | [`views.py`](../../src/planetgen/web/views.py) | `/` (home), `/sectors`, `/systems` and `/search`. |
-| [`warmup.py`](../../src/planetgen/web/warmup.py) | Builds the Galaxy Map's opening view ahead of time (MAP.134); `python -m planetgen.cli.warm_map` runs it. |
+| [`warmup.py`](../../src/planetgen/web/warmup.py) | The cache families as commands (`warm-galaxy-map`, `warm-lists`, ... PERF.127), each warming one family of pages ahead of the first visitor (MAP.134, PERF.104); `planetgen warm` runs the list. |
 
 #### src/planetgen/web/lib/
 
@@ -833,7 +834,7 @@ once.
 grid to shells, bands and wedges in place (renumbering the object IDs from
 the new sectors). The migration turns maintenance mode on, which closes the
 site and the API to everyone but the admin until the Galaxy Map has been
-rebuilt; revision `0092` made the block totals on shells, and `planetgen.cli.warm_map`
+rebuilt; revision `0092` made the block totals on shells, and `planetgen warm`
 turns that maintenance off again once the opening view is built
 (`planetgen/admin/maintenance.py`, `planetgen.cli.maintenance`). An admin's own
 maintenance stays on.
@@ -904,7 +905,7 @@ backstop for a change nobody recorded: sectors and systems added by a direct
 database edit are seen within 15 seconds by default. Nothing is kept past
 `max_age_seconds` (5 minutes by default) in a process. It fails open (no Redis,
 no cache), and `page_cache` in `config.json` tunes or disables it. The
-warm-up fills the shared copies after an update (`planetgen.cli.warm_map`,
+warm-up fills the shared copies after an update (`planetgen warm`,
 [cache-warm-up.md](cache-warm-up.md)).
 
 **Admin writes from the pages.** The system page's facility form
@@ -968,7 +969,7 @@ by the cache generation. The web process keeps tile files under
 Freshness comes from `db.query.galaxy_changes`, which reads the
 `modified_at` columns and names only the tiles that changed; a change it
 cannot pin down starts a new generation. `update.sh` ends by warming the
-map's opening view (`planetgen.cli.warm_map`, MAP.134).
+map's opening view (`planetgen warm`, MAP.134).
 
 ## Flow 4: admin login and background Generate jobs
 
@@ -1044,7 +1045,7 @@ flowchart TD
         U --> PDC["install-python-deps.sh --check"]
         DC --> NL["NLTK words corpus"]
         DC --> RD["ensure_redis, check_redis_settings<br/>(warns, never edits Redis config)"]
-        DC --> WM["warm_galaxy_map<br/>planetgen.cli.warm_map"]
+        DC --> WM["warm_galaxy_map<br/>planetgen warm"]
         DC --> MR["migrate_or_reset_db -> planetgen.cli.migrate"]
         I --> POP{"offer_population_pass<br/>run it? (y/N, 30 s;<br/>POPULATION=1 skips the question)"}
         POP -->|"y"| GP["planetgen population"]
@@ -1084,7 +1085,7 @@ directory and debug log.
 **Update.** `update.sh` forces the checkout to the
 branch tip (untracked files such as `config.json` are kept), then run each
 check and change only what is missing. The maintenance timers in
-`examples/maintenance/` can run it, and `planetgen.cli.orbits`, on a schedule. It ends by warming the Galaxy Map's opening view (`warm_galaxy_map`, `planetgen.cli.warm_map`, MAP.134).
+`examples/maintenance/` can run it, and `planetgen.cli.orbits`, on a schedule. It ends by warming the Galaxy Map's opening view (`warm_galaxy_map`, `planetgen warm`, MAP.134).
 
 **Releases.** A PR never edits the version. It adds one note under
 `changes/` named `<short-name>.<patch|minor|major>.md`; `release-note.yml`

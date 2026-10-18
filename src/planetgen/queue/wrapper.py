@@ -120,7 +120,7 @@ def _await_plan(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sl
 
 
 def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, who=None, database=None, argv=None,
-        seed=None, listing=None, url=None):
+        seed=None, listing=None, url=None, kind=runrecord.GENERATION):
     """
     Runs the queued `steps` as one run: starts the run record (the machine is busy for it), queues the first stage,
     makes sure workers are running (`workers_count` of them at most: the run's `--workers`) and follows each stage to
@@ -135,13 +135,16 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         on_progress (callable, optional): `on_progress(index, unit, done, estimate)` for the units still working.
         listing (list[commands.Step], optional): Every step of the run, inline ones too, as the wrapper's list
             (`steps_for`); stored in the run record. Default: `steps`.
+        kind (str): `runrecord.GENERATION` for a run that changes the galaxy (it owns the machine and shows the
+            visitors' banner) or `runrecord.MAINTENANCE` for one that only keeps the site in order, such as the
+            cache warm-up (PERF.127).
 
     Returns:
         str: The run id.
 
     Raises:
         redisqueue.Unavailable: No Redis server answers.
-        runrecord.Busy: Another run owns the machine.
+        runrecord.Busy: Another run of that kind is running.
         units.RunStopped: A unit failed or the run was cancelled.
     """
     url = url or redisqueue.redis_url()
@@ -155,7 +158,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
     recorded = [by_key.get(step.key, step) for step in (listing or steps)]
     run_id = runrecord.start_run(
         conn, title, [runrecord.Stage(step.key, step.label, workers=workers_count or 1) for step in steps],
-        who=who, database=database, argv=argv, seed=seed, steps=[step.as_dict() for step in recorded])
+        who=who, database=database, argv=argv, seed=seed, steps=[step.as_dict() for step in recorded], kind=kind)
     ensure = lambda: workers.ensure_workers(redisqueue.BULK_QUEUE, conn, url, count=workers_count)  # noqa: E731
     try:
         advance(conn, run_id, 0)

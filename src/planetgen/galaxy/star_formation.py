@@ -58,6 +58,12 @@ def gap_radius_pc(shape):
     return tuning.BAR_GAP_RADIUS_RATIO * shape.bulge_scale_radius_pc
 
 
+def _gap_floor(shape):
+    """What is left of the star formation at the centre of the bar gap: `tuning.BAR_GAP_STAR_FORMATION_FLOOR`, or 1
+    (no gap) for a galaxy without a bar (`shape.structure.bar_present`, GEN.533)."""
+    return tuning.BAR_GAP_STAR_FORMATION_FLOOR if shape.structure.bar_present else 1.0
+
+
 def _gap_suppression(radius_pc, gap_pc, floor):
     """`S(R)`: `floor` at the centre, half-way up at the gap radius, 1 well outside it (works on arrays)."""
     up = np.power(np.asarray(radius_pc, dtype=float) / gap_pc, tuning.BAR_GAP_EDGE_POWER)
@@ -96,7 +102,7 @@ def recent_factor(radius_pc, shape):
     """
     length = shape.disk_scale_length_pc
     gap = gap_radius_pc(shape)
-    floor = tuning.BAR_GAP_STAR_FORMATION_FLOOR
+    floor = _gap_floor(shape)
     decline = _decline_per_scale_length()
     norm = _normalisation(round(decline, 9), round(gap / length, 9), floor)
     radius = np.asarray(radius_pc, dtype=float)
@@ -116,7 +122,7 @@ def _log_slope(radius_pc, shape):
     """`d ln(recent_factor) / dR` at `radius_pc` (closed form, arrays)."""
     length = shape.disk_scale_length_pc
     gap = gap_radius_pc(shape)
-    floor = tuning.BAR_GAP_STAR_FORMATION_FLOOR
+    floor = _gap_floor(shape)
     power = tuning.BAR_GAP_EDGE_POWER
     radius = np.asarray(radius_pc, dtype=float)
     up = np.power(radius / gap, power)

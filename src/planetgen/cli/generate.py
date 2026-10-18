@@ -34,6 +34,7 @@ import time
 
 import pymysql
 from planetgen.cli import benchmark
+from planetgen.cli import warm as warm_cli
 
 from planetgen.queue import commands as queueCommands, work as workQueue
 from planetgen.db import check as db_check, fingerprint, store
@@ -1362,6 +1363,16 @@ def build_parser():
     benchmark.add_benchmark_arguments(benchmark_parser)
     add_logging_arguments(benchmark_parser)
 
+    warm_parser = subparsers.add_parser(
+        'warm',
+        description="Builds the site's caches ahead of the first visitor: the Galaxy Map's opening view, the lists, "
+                    "the sector, system and phenomenon pages and the search. Each cache family is its own command "
+                    "(see 'planetgen commands'); this builds the list of them and the wrapper runs them in order "
+                    "on the Redis queue. Run it as the web server's user.",
+        help="Build the site's caches.")
+    warm_cli.add_warm_arguments(warm_parser)
+    add_logging_arguments(warm_parser)
+
     commands_parser = subparsers.add_parser(
         'commands',
         description="Lists every command the work queue can run: its name, whether it runs as units on the "
@@ -1383,6 +1394,7 @@ def build_parser():
     return parser, {
         'commands': commands_parser,
         'command-run': command_run_parser,
+        'warm': warm_parser,
         'benchmark': benchmark_parser,
         'system': system_parser,
         'sector': sector_parser,
@@ -1528,8 +1540,8 @@ def run_command_unit(args):
     log.normal(json.dumps(result, sort_keys=True))
 
 
-READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions", "benchmark", "commands", "command-run")
-"""tuple: Subcommands that write nothing, so they aren't logged as runs
+READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions", "benchmark", "commands", "command-run", "warm")
+"""tuple: Subcommands that write nothing generated (`warm` only builds caches), so they aren't logged as runs
 (no activity log lines, job tree node or run history)."""
 
 
@@ -1550,6 +1562,7 @@ _COMMAND_HANDLERS = {
     'benchmark': benchmark.run_benchmark,
     'commands': run_commands,
     'command-run': run_command_unit,
+    'warm': warm_cli.run_warm,
     'check-math': run_check_math,
     'versions': run_versions,
     'check-db': run_check_db,
