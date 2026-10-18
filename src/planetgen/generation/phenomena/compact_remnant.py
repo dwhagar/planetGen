@@ -47,11 +47,9 @@ from planetgen.physics import activity, constants, neutron_star, remnant_mass, s
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
-from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.generation.star import Star
 from planetgen.galaxy import shape_draw as shapeDraw, structure as galaxyStructure
 from planetgen.galaxy.remnant_distribution import pulsar_radial_factor
-from planetgen.galaxy.galactic_orbit import generate_galactic_orbit_fields
 from planetgen.physics.orbits import calculate_habitable_zone
 from planetgen.util.random import log_uniform
 
@@ -164,9 +162,7 @@ class CompactRemnant(Star):
         self.habitable_zone = calculate_habitable_zone(self.luminosity)
         self.system_perimeter = self.calculate_system_perimeter(self.galactic_center_dist_ly)
         self.heliosphere_radius = 0.0
-        (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
-         self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
-            generate_galactic_orbit_fields(self.galactic_center_dist_ly, galactic_orbital_phase_deg)
+        self.set_galactic_motion(self.galactic_center_dist_ly, galactic_orbital_phase_deg)
         # GEN.104: the spin axis, a Rayleigh tilt from the galactic pole.
         self.rotation_period_hours = self._rotation_period_hours()
         spin.set_spin(self, spin.GALACTIC_POLE, spin.rayleigh_tilt_deg())
@@ -182,41 +178,6 @@ class CompactRemnant(Star):
         (or Hawking) luminosity; a neutron star overrides it."""
         return self.luminosity or 0.0
 
-    def to_dict(self):
-        """
-        Returns a JSON-serializable dict of this remnant's properties, per
-        `self.SERIALIZABLE_FIELDS` (the subclass's own list). Mirrors
-        `Star.to_dict`'s `habitable_zone`/`lifespan` handling exactly.
-
-        Returns:
-            dict: One entry per field in `SERIALIZABLE_FIELDS`.
-        """
-        data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
-        data["habitable_zone"] = list(self.habitable_zone)
-        data["lifespan"] = None if self.lifespan == float('inf') else self.lifespan
-        return data
-
-    @classmethod
-    def from_dict(cls, data, system_config):
-        """
-        Reconstructs a `BlackHole`/`NeutronStar` from a dict in the shape
-        `to_dict()` produces, without re-running generation (`__init__` is
-        bypassed via `object.__new__`, mirroring `Star.from_dict`).
-
-        Args:
-            data (dict): A dict in the shape `to_dict()` produces.
-            system_config (SystemConfig): The system's shared config.
-
-        Returns:
-            CompactRemnant: The reconstructed remnant (concrete subclass
-                matching `cls`).
-        """
-        remnant = object.__new__(cls)
-        remnant.system_config = system_config
-        fields_from_dict(remnant, data, cls.SERIALIZABLE_FIELDS)
-        remnant.habitable_zone = tuple(data["habitable_zone"])
-        remnant.lifespan = float('inf') if data["lifespan"] is None else data["lifespan"]
-        return remnant
 
 class BlackHole(CompactRemnant):
     """

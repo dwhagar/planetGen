@@ -13564,6 +13564,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   table shape agreed first; (4) GEN.554 after GEN.553, with the
   explosion-map sources verified before use. Core 4 will not touch
   GEN.568 and GEN.569 (Core 5) or GEN.555 (Core 3).
+  Merged in part (Core 4, GEN.565a, #2274, release 8.0.1839, reported
+  4:33 PM EDT 2026-10-18 on the lane's clock; no epoch, no stored value,
+  field name or draw changes): `generation/mass_object.py`
+  (`MassObject`) holds the four galactic-motion fields and the draw that
+  sets them and one `to_dict`/`from_dict` pair driven by each family's
+  `SERIALIZABLE_FIELDS`, with `_encode` and `_decode` hooks; `Star`,
+  `Planet`, `Comet`, `RoguePlanet`, `InterstellarComet` and
+  `AsteroidField` use it, `BlackHole`, `NeutronStar` and
+  `BinaryStarProxy` inherit it through `Star`, and `CompactRemnant`'s
+  copy of `Star`'s save and load is gone. This item stays open for
+  GEN.565b (the planetary and small-body families on the same core) and
+  the removal of the nine classes. Finding fixed in the same PR: on main
+  `test_age_law.py::test_the_scatter_and_both_backfills_draw_with_the_galaxys_laws`
+  (GEN.546's test) had timed out at 900 s on every run since GEN.404
+  (#2270) made a toy galaxy hold the Milky Way's stellar mass in a 40 pc
+  disk and GEN.404's gate did not include that test; the test now reads
+  in relative units (30 s for the whole file). Owned by Core 4, so no
+  TEST item.
 
 - [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
   Part of the unified orbited-body chain (GEN.550; design note
