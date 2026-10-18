@@ -13,7 +13,7 @@ import pytest
 from planetgen.util import draw
 from planetgen.generation import run_galaxy
 from planetgen.db import store as _db
-from planetgen.galaxy import nebula_field
+from planetgen.galaxy import mass_chain, nebula_field
 from planetgen import tuning
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.spherical import sector_address_at, sector_position_pc, shell_bounds_pc, wedge_count
@@ -22,10 +22,13 @@ from planetgen.physics.units import ly_to_pc
 from tests.bughunt_support import forced_system_config
 
 # Milky Way scale: disk scale length 2.8 kpc, the solar circle at 2.82 of them.
-SHAPE = build_galaxy_shape(2800.0, 350.0, 200.0, 1.0, 2, math.radians(15.0), 0.4)
+SEED = bytes(range(16))
+_CHAIN = mass_chain.draw_mass_chain(SEED)
+SHAPE = build_galaxy_shape(2800.0, 350.0, 200.0, 1.0, 2, math.radians(15.0), 0.4,
+                           masses=(_CHAIN.stellar_mass_solar, _CHAIN.halo_mass_solar))
+"""A stored galaxy's shape carries the masses its seed draws (`db.store.get_galaxy_shape`), and the clouds read them."""
 SOLAR_RADIUS_PC = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * SHAPE.disk_scale_length_pc
 ARM_ANGLE = math.log(SOLAR_RADIUS_PC / SHAPE.disk_scale_length_pc) / math.tan(SHAPE.pitch_angle_rad)
-SEED = bytes(range(16))
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 REACH_PC = EDGE_PC * math.sqrt(3) / 2
 

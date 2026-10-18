@@ -2,6 +2,76 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1761] - 2026-10-18
+
+**Headline:** The accessibility tests no longer fail on a loaded machine when the first build of a page takes longer than the slow-page limit.
+
+### Changed
+- `tests/test_web_a11y.py` pins the slow-page rule off for its module (`pages_are_never_slow`, an autouse module fixture setting `tuning.SLOW_PAGE_SECONDS` to infinity). On a loaded run the first build of `/search` or `/phenomena` took over 3 s, the cost rule marked the route slow, and the next request was queued and answered 202 with the loading state instead of the page, which failed the `page_targets` fixture for 199 tests in one gate. These tests check each page's layout and accessibility, not the slow-page answer, which `tests/test_slowpages.py` covers.
+
+### Added
+- Nothing.
+
+TODO items resolved: TEST.232 / Added: none
+
+## [8.0.1760] - 2026-10-18
+
+**Headline:** The wheel-anchor, system-disc and breadcrumb browser tests wait for the camera and the address to stop changing before reading them, so they no longer fail when a loaded machine is slow.
+
+### Changed
+- `tests/test_web_browser_sector_reach.py`: `test_the_wheel_anchors_on_the_star_under_the_pointer_not_the_mesh_behind_it` and `test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star` read the star's screen spot right after `galaxyCentreOn`, a camera flight. On a slow run the star had moved on by the time the anchor was asked for, so the anchor fell back to the focus plane's point (0.031 pc off the star on two axes) and the test failed alone in two of nine runs. They now read the spot with `_still_spot`: the same place on three reads 100 ms apart.
+
+- `tests/test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names` reads the page's URL only once it has stopped changing (`_url_settled`; TEST.126). The map writes the camera into the address 350 ms after it last moved, in its frame loop, so on a loaded run the scale bar held still before the address named where the camera ended and a fresh load of the stale address showed another sector (`Sector 1·0·2` against `Sector 1·0·1`, seen in four gates). Three runs at load 14 to 16 pass with it; the failure came in one of four runs without it.
+
+- `test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star` (TEST.213) stopped its wheel loop at a share of 0.999 and then asked for 1.0 within 1e-6, so it failed whenever the last step landed between the two (0.99975 in a loaded run). It now asks for the share it stopped at: at least 0.999, whole.
+
+- The same anchor test clicked 5 px right and 4 px up of the star as its second try, and the sector's stars are drawn from the database, so now and then another star lay nearer to that spot and the wheel (rightly) anchored on it. The offset is now picked from a short list as one at which no other star of the scene is nearer to the pointer than the target (`_shift_nearest_to`). Six runs in a row pass, against about one failure in four before.
+
+### Added
+- Nothing.
+
+TODO items resolved: TEST.231, TEST.213 (and the breadcrumb sighting on TEST.126; its other sightings and TEST.172 stay open) / Added: none
+
+## [8.0.1759] - 2026-10-18
+
+**Headline:** The big H II regions (classes D and E) now hold the real O and B stars that light them, placed in a cluster around the seed star.
+
+### Added
+- **The ionizing members of an emission region (GEN.321).** A class D or E region lists its stars of 5.5 solar masses and up by spectral type; those stars are now real systems, a mass in each type's range from the IMF, the nebula's age, and a place in a Plummer sphere of half-mass radius 1 pc (D) or 2 pc (E) about the seed star, inside the nebula's radius. The members depend only on the galaxy, the nebula and the seed star's point, so a region that spans sectors gives the same members from every sector that reaches it, and each sector builds the ones that fall in its cube. A sector finds the regions that the pre-placed hot stars of its neighbours light from their stored rows, built or not.
+
+### Changed
+- A star's hosted-nebula roll takes its mass, age and temperature as floats, so a star made in a fill (a whole-kelvin integer temperature) and the same star read back from its stored row roll the same nebula.
+- Only the ionizing members are real; the rest of the cluster stays the sector's ordinary background density. A hot star the scatter did not place lights a region whose members fall in its own sector alone.
+
+generation-output: changed
+
+## [8.0.1758] - 2026-10-18
+
+**Headline:** A disk's young, middle-aged and old stars now follow its own gas history, so light galaxies hold more young stars and heavy ones fewer, where every disk used to form stars at one rate for ten billion years.
+
+### Changed
+- The thin disk's share of young (under 0.1 Gy), intermediate (0.1 to 3 Gy) and old (3 to 10 Gy) stars is what its star formation history puts in those windows, not the windows' lengths. The history is gas continuity per ring: the Kennicutt-Schmidt law (n 1.4) uses the gas up, the return fraction comes from the generator's own mass function (0.37; the same code gives Madau and Dickinson's 0.27 for a Salpeter slope), and the gas comes in as fast as the stars the galaxy's halo builds (Fakhouri, Ma and Boylan-Kolchin 2010 halo growth, Moster, Naab and White 2013 stellar-to-halo relation moving with redshift). New `galaxy/disk_history.py`; `docs/design/disk-star-formation-history.md` names every source.
+- A galaxy of 5e10 solar masses holds 0.39% young, 19% intermediate and 81% old disk stars (flat history: 1%, 29%, 70%); one of 1e10 holds 2.9%, 62% and 35%. Its present star formation is 0.38 of its ten-Gy mean (the Milky Way's is about 0.2) and the local B-star share between the arms falls from 0.19% to 0.12% (observed 0.04%, still a strict expected failure in `tests/test_disk_history.py`). Ages stay uniform inside a window.
+- `GalaxyShape.masses` carries the galaxy's stellar and halo mass (drawn again from its seed in `db.store.get_galaxy_shape`, set by `shape_draw`); a shape without them takes the median galaxy of its disk size. `density.population_densities`, its array form and the sampler's band bound (`generation/object_first._disk_share_bound`) read the shares through `star_formation.disk_population_share`.
+- `MAGNETAR_YOUNG_STAR_SHARE` is 0.0019 (was 0.0044), the young share of a galaxy of 5e10 solar masses; a galaxy with more young stars now holds proportionally more magnetars.
+
+generation-output: changed
+
+TODO items resolved: GEN.469 / Added: the local B-star share is still 3 times the observed one (tests/test_disk_history.py, strict expected failure); ages inside a window are uniform though the rate varies across it (follow-up in the sampler)
+
+## [8.0.1757] - 2026-10-18
+
+**Headline:** Hypervelocity stars, kicked neutron stars and ejected black holes now stream through the whole galaxy and out to the grid's reach, on straight lines, instead of stopping at the disk's outline.
+
+### Changed
+- **Hypervelocity stars are placed out to the grid's reach (GEN.238).** They were drawn inside the galaxy's outline and redrawn if they fell outside. They now follow the count the galaxy ejects (`HYPERVELOCITY_STARS_PER_GALAXY`, 1,000 to 10,000 out to 100 kpc) times the plan's reach over that radius, with the distance falling as `r^-2` to the reach (262 kpc by default), a direction uniform on the sphere and 500 to 1,000 km/s outward. With the default reach more than 99% of them lie beyond the disk's outline, in the halo and the space around it.
+- **Neutron stars and black holes the galaxy ejected stream through every sector (GEN.238).** Each kind's unbound share of the galaxy (a fifth to two fifths of neutron stars, 2% of black holes) spreads over a sphere of the distance a 400 km/s remnant covers in 10 Gy, as `N / (4 pi r^2 v T)`. The sector profile carries each kind's mean for its cell, the fill draws a count from it in a stage of its own (`ejecta`), places each remnant clear of the other Hill spheres and gives it a velocity of 300 to 500 km/s along a random direction instead of a galactic orbit. The nightly update moves such a remnant on a straight line from its epoch and keeps its velocity. They carry no planets, and a black hole drawn here is stellar-mass. A cell draws at most 50 of a kind (`EJECTA_MAX_PER_CELL`, a program limit that only a galaxy shaped to hold astronomically many systems in a few cells reaches).
+- **A remnant in a superbubble is sized by the cavity's thin gas (GEN.298).** A remnant's radius (the Sedov-Taylor blast wave, held at the snowplow onset, GEN.151) took its own class's density however thin the gas around it was, so a remnant inside a cavity was sized as if in the disk. Where the sector's profile places it in a superbubble, the remnant, rolled by the fill or built from the scatter, takes the cavity's interior density, 0.001 to 0.01 cm^-3 (`SystemConfig.AMBIENT_DENSITY_CM3`), so it grows to a few hundred light-years where the disk's would have stopped at tens. The class contents and every draw are unchanged, and outside a bubble nothing changes. The remnant rate keeps its factor: the cavity is where the explosions went off.
+
+generation-output: changed
+
+TODO items resolved: GEN.238, GEN.298. Added: none.
+
 ## [8.0.1756] - 2026-10-17
 
 **Headline:** The O-star nebula test no longer fails on the hotter cluster stars that now live as long as real ones do.
