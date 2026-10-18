@@ -2143,19 +2143,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the sentence above that the look is a separate item. MAP.214 (the
   default view) points here for the charted look.
 
-- [ ] **MAP.239 Raise the Galaxy Map tile root to the 262 kpc reach: `TILE_ROOT` in `galaxy/viewport.py` and `galaxymap3d.js`**
-  From the GEN.372 precision audit (Core 1,
-  docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
-  EDT), filed by the TODO thread; verdict: 64-bit is enough for every
-  stored value. Boss decided by card (2026-10-16, 7:36 to 7:38 PM EDT):
-  the map tile root rises to the 262 kpc reach. Done: `TILE_ROOT` in
-  `src/planetgen/galaxy/viewport.py` and
-  `src/html/static/galaxymap3d.js` is the reach, so a tile key covers
-  every address in it; stale comments fixed (`web/lib/tilepack.py:30`,
-  `galaxyprisms.js:475`); `test_tiles_cover_the_reach` checks that every
-  cell at the reach edge falls in a tile. Owner: Core 2.
-  Prerequisites: none. Related: GEN.372, MAP.146.
-
 - [ ] **MAP.240 Browser buffers hold camera-relative coordinates: territory dots, superbubbles, made rings, block prisms, stage views, system view dots and belts**
   From the GEN.372 precision audit (Core 1,
   docs/design/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
@@ -2275,7 +2262,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proposed (the map lane that owns the infinite zoom tree and MAP.239),
   after the tree; the Interface lane may take it with UX.115 if that
   lane starts first.
-  Prerequisites: MAP.239. Related: MAP.207,
+  Prerequisites: none. Related: MAP.207,
   MAP.219, MAP.210, UX.115, GEN.322, API.27.
   Second sighting, confirmed (Boss, 2026-10-17, 3:09 PM EDT, screenshots
   under /mnt/project-files/bugs/galaxy-halo-group-2026-10-17/, folded in
@@ -14720,7 +14707,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with progress bars of what it will build; a second run builds nothing
   that is current; a browser test opens the map at each built level and
   finds every tile a cache hit. Owner: Core 2 (proposed).
-  Prerequisites: PERF.118, PERF.127, MAP.239. Related: PERF.129,
+  Prerequisites: PERF.118, PERF.127. Related: PERF.129,
   PERF.127, PERF.104, MAP.239.
   Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
   stored here are built with halo and satellite-galaxy stars ranked
@@ -19057,6 +19044,11 @@ clears each one.
   (TEST.227 is the same shape). Done: the cause is on this item and the
   test passes 30 of 30 runs at load 12. Owner: Core 2 (owns UX.118 and
   TEST.227; proposed).
+  MAP.239 merged as #2152 (Core 2, reported as 10:41 PM EDT on the
+  lane's clock). Its re-run after merging main (the four gate-2 failures
+  plus the sector-reach, slow-pages, tilecache and api files, 202 passed
+  in 9 min 51 s at load 1 to 3) passed this test, so Core 2 has not
+  touched it; it stays open.
   Prerequisites: none. Related: TEST.227, UX.118.
 
 - [ ] **TEST.236 test_galaxy_map_drill_down_by_clicks rejects a window address with a negative band, because its regex allows a minus sign only on the wedge (bug)**
