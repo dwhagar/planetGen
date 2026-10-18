@@ -8,8 +8,7 @@
   - Bar (GEN.533, sources in `docs/design/gen533-bar-sources.md`): presence from Erwin 2018 by stellar mass, the in-plane axis ratio from Diaz-Garcia 2016, a boxy or thin vertical ratio, an angle uniform on 0 to 180 degrees, and the unbarred bulge's axis ratios from Costantin 2018. A galaxy without a bar has no bar gap in its star formation.
 - **One law sets the scale heights and the velocity dispersions of the disc populations** (the dispersion of the gas the stars are born from, 6.5 +/- 1 km/s as a molecular stand-in until GEN.536 reads the CO values, a central disc dispersion of 0.248 Vc, an age exponent of 0.44), replacing the fixed height ratios and dispersions of the young, intermediate and old discs, the halo and the bulge. The reference check puts the old disc 32% under Sharma and Hayden's 21.1 km/s at the Sun (inside the plan's 35%) and the young disc at 0.22 of the old disc's height (65 pc for 300 pc; observed about 50 pc). The atomic gas's 10 km/s (Tamburro 2009) gave 0.40 and twice the molecular clouds the catalogues hold, so it is not used.
 - Removed from `tuning.py`: the thick-disk, bulge axis, bar angle, halo mass and system-fraction constants and the fixed height ratios and dispersions the draw replaces.
-- `MAGNETAR_YOUNG_STAR_SHARE` is 0.0043 on the reference structure (was 0.0044).
-- The generator epoch is 18.
+- The generator epoch is 20.
 generation-output: changed
 
 ### Added
