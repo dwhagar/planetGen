@@ -13349,6 +13349,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   SC3 are in gap-filling-plan 6.6 and design note stellar-composition
   14.1 names the sources. After it merges, Blocker 1 wires the readers
   into the stellar modules.
+  Gate update (Blocker 1, relayed by the coordinator at about 4:26 AM
+  EDT 2026-10-18, lane clock): the gate that started about 2:46 AM EDT
+  was killed by the container restart at about 3:55 AM EDT; it restarted
+  at 4:26 AM EDT on the rebased branch. This replaces the earlier note
+  that it was alive in its browser phase.
   Prerequisites: none. Related: GEN.439, GEN.440, GEN.502, API.31.
 
 - [ ] **GEN.549 L dwarfs hotter than 1,500 K are 2 to 4 times too rare against the 20 pc census: use a cooling track that reaches them (strict expected failure)**
