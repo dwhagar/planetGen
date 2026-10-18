@@ -19,7 +19,7 @@ from planetgen.db import models, store
 from planetgen.galaxy import sector as galaxy_sector
 from planetgen.generation import phenomenon_scatter, run_phenomenon, run_sector
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.phenomena import registry
+from planetgen.generation.phenomena import hosts, registry
 from planetgen.names import naming_key, object_id
 from planetgen.web.lib import classref
 
@@ -35,7 +35,7 @@ def test_every_row_has_every_column_and_valid_values():
         assert row.family in registry.FAMILIES, row.kind
         assert row.gate in registry.GATES, row.kind
         assert row.mode in registry.MODES, row.kind
-        assert row.system_model in registry.SYSTEM_MODELS, row.kind
+        assert row.host is None or row.host in hosts.BY_NAME, row.kind
         assert isinstance(row.carries, tuple) and isinstance(row.sector_roll, bool), row.kind
         assert (row.scatter_pass in registry.SCATTER_PASSES) == (row.mode == "scatter"), row.kind
 

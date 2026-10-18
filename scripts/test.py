@@ -10,7 +10,10 @@ Picks and runs a slice of the test suite (TEST.139, docs/design/test-suite-rebui
     scripts/test.py full                  everything: the merge gate; also refreshes the map `changed` reads
     scripts/test.py full --check          ... and lists failing tests `changed` would not have selected
     scripts/test.py full -- -x -k login   anything after `--` goes to pytest as it is
-    scripts/test.py <command> --resume    continue the last run of this same build, skipping the tests that passed in it
+    scripts/test.py <command> --global-docs  also the freshness tests of the generated global documents (TODO's and the stamp's)
+    scripts/test.py <command> --resume    continue an earlier run: skip the tests that passed in it (same build) or in
+                                          an earlier run whose environment is the same and whose files that test
+                                          used have not changed since (TEST.208)
 
 Every command except `quick` and `browser` (`changed` and `full` included) runs in two phases: the tests that
 need no browser on every core, then the browser tests on `--browser-workers`
@@ -21,10 +24,13 @@ Failures: every failing test's full report (traceback, worker, machine load) is 
 and when the run ends the failed tests are run again alone, on one worker, each with the verdict "passes alone"
 (it only failed under load or beside other tests) or "fails alone" (a real failure). `--no-rerun` skips that.
 
-Resuming (TEST.148): every run keeps `.test-progress/<build id>.jsonl`, a line per finished test. After a run was
-killed or stopped, the same command with `--resume` and nothing else changed (same code, files, packages, servers,
-command and day: the build id) skips the tests that passed and runs the rest. It says RESUMING first and RESUMED on
-its last line; with a different build it runs nothing and says which part changed. Never automatic.
+Resuming (TEST.148, TEST.208): every run keeps `.test-progress/<build id>.jsonl`, a line per finished test and, for
+a test that passed, the files it used. After a run was killed or stopped, the same command with `--resume` skips the
+tests that passed in the same build, and the tests that passed in an earlier run (any command) of the same
+environment (packages, Python, MySQL and Redis versions, PLANETGEN_* variables, day) when none of the files that
+changed since is one the test used (the rules of `changed`), so a merge of main after a cancelled gate reruns only
+what it touched. A different environment reuses nothing and every test runs. It says RESUMING first and RESUMED on
+its last line, with how many tests were reused and from which runs. Never automatic, and not part of the merge gate.
 
 The first line printed is the start time and how long this command took last
 time on this checkout; the last line is `PASS` or `FAIL` with the duration and the counts, or `INTERRUPTED` when the
@@ -134,10 +140,10 @@ def describe_counts(counts):
 def _progress_modules():
     sys.path.insert(0, os.path.join(ROOT, "src"))
     try:
-        from tests import buildid, progress_log, redis_cleanup
+        from tests import buildid, progress_log, redis_cleanup, reuse
     finally:
         sys.path.pop(0)
-    return buildid, progress_log, redis_cleanup
+    return buildid, progress_log, redis_cleanup, reuse
 
 
 def clear_test_redis():
@@ -146,8 +152,8 @@ def clear_test_redis():
 
 
 def explain_no_resume(buildid, progress_log, directory, command_key, parts):
-    """Why there is nothing to resume: the newest earlier run of this command and the parts of the build that
-    differ from it, or that there is none."""
+    """Why there is nothing to resume from: that no earlier run of `command_key` left a log, or the newest one and the
+    parts of the build that differ from it."""
     newest = None
     for name in os.listdir(directory):
         if not name.endswith(".jsonl"):
@@ -165,12 +171,27 @@ def explain_no_resume(buildid, progress_log, directory, command_key, parts):
 
 
 class Progress:
-    """The progress log of one run (TEST.150) and, when `resume` is asked for, what the earlier run of the same
-    build had passed (TEST.151). `problem` says why a resume cannot be made."""
+    """The progress log of one run (TEST.150) and, when `resume` is asked for, what earlier runs had passed that this
+    one may skip (TEST.151, TEST.208). `problem` says why a resume cannot be made; `reused` lists, per earlier run,
+    `(build id, start time, tests)`; `note` says what kept tests from being reused."""
 
-    def __init__(self, identifier, path, parts, skip_file=None, passed=0, earlier_started="", problem=None):
+    def __init__(self, identifier, path, parts, skip_file=None, passed=0, earlier_started="", problem=None,
+                 reused=(), note=""):
         self.identifier, self.path, self.parts = identifier, path, parts
         self.skip_file, self.passed, self.earlier_started, self.problem = skip_file, passed, earlier_started, problem
+        self.reused, self.note = list(reused), note
+
+
+def resume_sources(progress):
+    """Where a resumed run's skipped tests passed: `N in the run started T`, and for another build, which one."""
+    return "; ".join(f"{count} in the run started {when}" + ("" if build == progress.identifier else f" of build {build}")
+                     for build, when, count in progress.reused)
+
+
+def _write_lines(path, lines, mode="a"):
+    with open(path, mode, encoding="utf-8") as f:
+        for line in lines:
+            f.write(json.dumps(line) + "\n")
 
 
 def start_progress_log(command_key, extra, base, directory=None, now=None, resume=False):
@@ -178,10 +199,13 @@ def start_progress_log(command_key, extra, base, directory=None, now=None, resum
     the header of the log of that id (emptying one an earlier run of the same build left, unless `resume`).
     `src/tests/progress_log.py` appends a line for every test that finishes.
 
-    With `resume`, the log of the same build is kept and added to, and the node ids it records as passed are
-    written to a skip list for pytest (`--skip-passed`). When the build has no log with a passed test, the result's
-    `problem` says why and nothing is written."""
-    buildid, progress_log, _ = _progress_modules()
+    With `resume`, the node ids to leave out are written to a skip list for pytest (`--skip-passed`): the tests that
+    passed in the log of the same build, and the tests that passed in an earlier run of the same environment whose
+    files they used have not changed since (`src/tests/reuse.py`, TEST.208). Those are carried into this run's log, so
+    a second resume counts them too. When no earlier run of this command left a log, the result's `problem` says so
+    and nothing is written; when there are logs but nothing can be reused, the run goes on with every test and `note`
+    says what kept them out."""
+    buildid, progress_log, _, reuse = _progress_modules()
     directory = directory or PROGRESS_DIR
     now = now or datetime.datetime.now(datetime.timezone.utc)
     parts = buildid.build_parts(ROOT, command_key, extra, base, now=now)
@@ -196,24 +220,48 @@ def start_progress_log(command_key, extra, base, directory=None, now=None, resum
         except OSError:
             pass
     path = os.path.join(directory, identifier + ".jsonl")
-    if resume:
-        header, tests = progress_log.read(path)
-        passed = sorted(nodeid for nodeid, line in tests.items() if line.get("outcome") == "passed")
-        if not header or not passed:
-            why = explain_no_resume(buildid, progress_log, directory, command_key, parts) if not header else \
-                f"the log of build {identifier} records no test that passed"
-            return Progress(identifier, path, parts, problem=why)
-        skip_file = os.path.join(directory, identifier + ".skip")
-        with open(skip_file, "w", encoding="utf-8") as f:
-            json.dump(passed, f)
-        with open(path, "a", encoding="utf-8") as f:
-            f.write(json.dumps({"kind": "resume", "at": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "skipped": len(passed)}) + "\n")
-        return Progress(identifier, path, parts, skip_file, len(passed), header.get("started", ""))
-    header = {"kind": "header", "build": identifier, "command": command_key, "parts": parts,
-              "started": now.strftime("%Y-%m-%dT%H:%M:%SZ")}
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(json.dumps(header) + "\n")
-    return Progress(identifier, path, parts)
+    started = now.strftime("%Y-%m-%dT%H:%M:%SZ")
+    current = reuse.manifest(ROOT)
+    header = {"kind": "header", "build": identifier, "command": command_key, "parts": parts, "started": started,
+              "manifest": current}
+    if not resume:
+        _write_lines(path, [header], "w")
+        return Progress(identifier, path, parts)
+    earlier, tests = progress_log.read(path)
+    same = {nodeid for nodeid, line in tests.items() if line.get("outcome") == "passed"}
+    across, _looked, blocked = reuse.reusable(directory, parts, current, skip=path)
+    across = {nodeid: found for nodeid, found in across.items() if nodeid not in same}
+    if not earlier and not across:
+        if not any(progress_log.read(os.path.join(directory, name))[0].get("command") == command_key
+                   for name in os.listdir(directory) if name.endswith(".jsonl") and name != identifier + ".jsonl"):
+            return Progress(identifier, path, parts, problem=explain_no_resume(buildid, progress_log, directory,
+                                                                               command_key, parts))
+        why = (f"the environment changed since the earlier runs ({', '.join(blocked)})" if blocked
+               else "no earlier pass is left whose files are unchanged")
+        _write_lines(path, [header], "w")
+        return Progress(identifier, path, parts, note=why)
+    if earlier and not same and not across:
+        return Progress(identifier, path, parts, problem=f"the log of build {identifier} records no test that passed")
+    wanted = sorted(same | set(across))
+    skip_file = os.path.join(directory, identifier + ".skip")
+    with open(skip_file, "w", encoding="utf-8") as f:
+        json.dump(wanted, f)
+    carried = []
+    for nodeid, found in sorted(across.items()):
+        carried += [dict(found["test"], reused_from=found["build"]), dict(found["deps"], reused_from=found["build"])]
+    sources = {}
+    if same:
+        sources[(identifier, earlier.get("started", ""))] = len(same)
+    for found in across.values():
+        key = (found["build"], found["started"])
+        sources[key] = sources.get(key, 0) + 1
+    if earlier:
+        _write_lines(path, [{"kind": "resume", "at": started, "skipped": len(wanted), "reused": len(across)}] + carried)
+    else:
+        _write_lines(path, [header, {"kind": "resume", "at": started, "skipped": len(wanted), "reused": len(across)}]
+                     + carried, "w")
+    reused = [(build, when, count) for (build, when), count in sorted(sources.items(), key=lambda item: item[0][1])]
+    return Progress(identifier, path, parts, skip_file, len(wanted), reused[0][1] if reused else "", reused=reused)
 
 
 def load_runs():
@@ -299,6 +347,9 @@ def main(argv=None):
                         "automatic; the last line says the run was resumed)")
     parser.add_argument("--check", action="store_true",
                         help="for `full`: list the failing tests `changed` would not have selected")
+    parser.add_argument("--global-docs", action="store_true",
+                        help="also run the tests that compare the generated global documents with their sources "
+                        "(PLANETGEN_GLOBAL_DOCS=1; the TODO thread's and the release stamp's, DOC.69)")
     argv = sys.argv[1:] if argv is None else list(argv)
     extra = []
     if "--" in argv:  # everything after `--` is pytest's, whatever it looks like
@@ -313,6 +364,8 @@ def main(argv=None):
         parser.error(f"`{args.command}` takes no areas")
     if args.check and args.command != "full":
         parser.error("`--check` goes with `full`")
+    if args.global_docs:
+        os.environ["PLANETGEN_GLOBAL_DOCS"] = "1"
     extra = depmap_options(args.command, args.base, args.check) + extra
 
     key = args.command + (" " + " ".join(args.areas) if args.areas else "")
@@ -327,10 +380,14 @@ def main(argv=None):
     print(f"scripts/test.py {key}: started {datetime.datetime.now(datetime.timezone.utc):%H:%M}Z"
           + (f", last time {minutes(previous['seconds'])}" if previous else ", no earlier run recorded")
           + f", build {identifier}", flush=True)
-    if args.resume:
-        print(f"scripts/test.py {key}: RESUMING build {identifier} from the run started {progress.earlier_started}: "
-              f"the {progress.passed} tests that passed there are skipped, the rest run now", flush=True)
+    if args.resume and progress.skip_file:
+        print(f"scripts/test.py {key}: RESUMING build {identifier}: the {progress.passed} tests that passed earlier are "
+              f"skipped ({resume_sources(progress)}), the rest run now", flush=True)
         extra_for_pytest = extra + ["--skip-passed", progress.skip_file]
+    elif args.resume:
+        print(f"scripts/test.py {key}: RESUMING build {identifier}: nothing from the earlier runs can be reused "
+              f"({progress.note}); every test runs", flush=True)
+        extra_for_pytest = extra
     else:
         extra_for_pytest = extra
     said = clear_test_redis()
@@ -381,8 +438,9 @@ def main(argv=None):
         print(f"--- TIMED OUT: {len(timed_out)} test(s) ran past the per-test limit and were stopped:", flush=True)
         for nodeid in timed_out:
             print(f"  {nodeid}", flush=True)
-    resumed = (f" (RESUMED build {identifier}: {progress.passed} more passed in the run started "
-               f"{progress.earlier_started})" if args.resume else "")
+    resumed = (f" (RESUMED build {identifier}: {progress.passed} more passed earlier, {resume_sources(progress)})"
+               if args.resume and progress.skip_file else
+               f" (RESUMED build {identifier}: 0 more passed earlier, {progress.note})" if args.resume else "")
     print(f"scripts/test.py {key}: {'PASS' if status == 0 else 'FAIL'} in {minutes(round(seconds))}: "
           f"{describe_counts(totals)}" + (f" ({len(timed_out)} TIMED OUT)" if timed_out else "") + resumed, flush=True)
     return status

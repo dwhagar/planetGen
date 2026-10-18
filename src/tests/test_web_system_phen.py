@@ -28,6 +28,7 @@ from planetgen.web.lib.fmt import linkify_nearest, nearest_systems_html  # noqa:
 from planetgen.db import store  # noqa: E402
 from planetgen.admin import auth as adminAuth
 from planetgen.generation.config import SystemConfig  # noqa: E402
+from planetgen.describe import model  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from planetgen.generation.system import StarSystem  # noqa: E402
 from planetgen.web import csrf  # noqa: E402
@@ -77,8 +78,9 @@ class FakeData:
 
     def __init__(self):
         self.system = _system_detail()
-        self.sections = {"overview": "An *overview*.", "stars": {"1": "A yellow star."},
-                         "planets": {}, "moons": {}, "belts": {}, "comets": {}}
+        self.description = model.document("system", "system:1", "Sol", [model.section(
+            "system", "system:1", "Sol", [model.prose("overview", "An <overview>.")],
+            [model.section("star", "star:1", "Sol", [model.prose("summary", "A yellow star.")])])])
         self.phenomena = [_phenomenon_row(i, sector_id=3 if i % 3 == 0 else None) for i in range(3)]
         self.phenomena_asked = []
         self.phenomenon = {
@@ -98,9 +100,9 @@ class FakeData:
             raise apiclient.NotFoundError(f"no such system: {system_id}")
         return self.system
 
-    def get_system_sections(self, db, system_id):
-        self.calls.append(("get_system_sections", db, system_id))
-        return self.sections
+    def get_system_description(self, db, system_id):
+        self.calls.append(("get_system_description", db, system_id))
+        return self.description
 
     def get_system_facilities(self, db, system_id):
         self.calls.append(("get_system_facilities", db, system_id))
@@ -156,7 +158,7 @@ class FakeData:
         return self.admin
 
 
-_FAKED = ("get_system", "get_system_sections", "get_system_facilities", "get_system_owner", "get_facility_types", "get_system_habitable_species",
+_FAKED = ("get_system", "get_system_description", "get_system_facilities", "get_system_owner", "get_facility_types", "get_system_habitable_species",
           "get_system_text", "get_wiki_config", "upload_system_to_wiki",
           "get_phenomena", "get_phenomenon", "auth_me")
 
@@ -242,7 +244,7 @@ def test_system_page_renders(app, client, fake):
     # The map, the body list, the stars table, and the page's scripts.
     assert 'id="sysmap-' in html
     assert 'class="system-list system-list-root"' in html
-    assert "<p>An *overview*.</p>" in html and "A yellow star." in html
+    assert '<p class="doc-prose doc-overview">An &lt;overview&gt;.</p>' in html and "A yellow star." in html
     assert "<h2>Stars</h2>" in html
     assert re.search(r'<script type="module" src="/static/systemmap.js\?v=[^"]+"></script>', html)
     assert re.search(r'<script type="module" src="/static/copycode.js\?v=[^"]+"></script>', html)

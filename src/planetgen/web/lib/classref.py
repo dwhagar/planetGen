@@ -187,7 +187,7 @@ def _planet():
             ("Atmosphere", _sentence(data["atmosphere"]) if data.get("atmosphere") else "None"),
             ("Radius", number_range(*data["radius_range"], "km")),
             ("Forms in", ", ".join(zones) if zones else "None"),
-            ("Habitable", "Yes" if habitable else "No"),
+            ("Habitable class", "Yes" if habitable else "No"),
         ]
         if data.get("life_chemical"):
             facts.append(("Life's light-harvesting pigments", ", ".join(data["life_chemical"])))

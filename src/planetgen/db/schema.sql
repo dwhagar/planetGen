@@ -1339,6 +1339,14 @@
 --   velocity, mass, epoch, parent and dynamical state, the columns of v102) and moves by `kepler.universal_step`; the
 --   phase was a second record of the same place on a circle. A circumbinary planet's parent is its system.
 --
+-- v110 (DB.50): `planets` and `moons` gain `life_stage`, `evolutionary_pace`, `life_milestone_age_gyr`, `life_system_age_gyr` and
+--   `flavor_key`, the structure that replaces the evolutionary paragraphs and `flavor_text`. NULL until generation writes them
+--   (DB.51); nothing is dropped.
+--
+-- v111 (DB.52): the prose is gone. `planet_evolutionary_paragraphs`, `moon_evolutionary_paragraphs`, `flavor_text` and `hab_note` (on
+--   `planets` and `moons`) and `system_configs.markdown` are dropped: the life structure of v110 replaced the first three, the
+--   tier columns the note, and nothing read the flag. `flavor_text_count` stays (the generator still counts the line).
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1640,7 +1648,6 @@ CREATE TABLE IF NOT EXISTS orbit_simulation_state (
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS system_configs (
     id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    markdown          TINYINT(1) NOT NULL DEFAULT 0 CHECK (markdown IN (0, 1)),
     habitable_world   TINYINT(1) CHECK (habitable_world IN (0, 1)),
     asteroid_belt     TINYINT(1) CHECK (asteroid_belt IN (0, 1)),
     comets            TINYINT(1) CHECK (comets IN (0, 1)),          -- v50
@@ -1979,8 +1986,12 @@ CREATE TABLE IF NOT EXISTS planets (
     habitable_zone_outer_km   DOUBLE NOT NULL,
     life_chemical             VARCHAR(64),
     evolutionary_speed        VARCHAR(64),
-    flavor_text               TEXT,
     flavor_text_count         INT NOT NULL DEFAULT 0,
+    life_stage                VARCHAR(32),      -- v110 (DB.50): a MILESTONE_KEYS key, NULL before any milestone
+    evolutionary_pace         VARCHAR(16),      -- v110: the timeline scale (fast, normal, slow)
+    life_milestone_age_gyr    DOUBLE,           -- v110: the age of that milestone, Gy
+    life_system_age_gyr       DOUBLE,           -- v110: the age of the system the timeline was written at, Gy
+    flavor_key                VARCHAR(32),      -- v110: which flavour line (replaces flavor_text)
     -- Orbital motion (v9, see header comment) -- inclination/ascending
     -- node are fixed at generation time. rotation_period_hours is a
     -- separate, static "day length" stat. There is no stored phase (v109,
@@ -2075,7 +2086,6 @@ CREATE TABLE IF NOT EXISTS planets (
     l_ener                      DOUBLE,
     l_rad                       DOUBLE,
     equipment_tier              TINYINT,
-    hab_note                    VARCHAR(255),
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -2106,19 +2116,6 @@ CREATE TABLE IF NOT EXISTS planets (
     KEY idx_planets_radius_km (radius_km),
     CONSTRAINT chk_planets_parent_type CHECK (parent_type IN ('star', 'planet', 'system')),
     CONSTRAINT chk_planets_dynamical_state CHECK (dynamical_state IN ('bound', 'unbound'))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Child table for the variable-length evolutionary narrative list
--- (Planet.evolutionary_data).
-CREATE TABLE IF NOT EXISTS planet_evolutionary_paragraphs (
-    id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    planet_id   BIGINT UNSIGNED NOT NULL,
-    position    INT NOT NULL,
-    paragraph   TEXT NOT NULL,
-
-    CONSTRAINT fk_planet_evolutionary_paragraphs_planet
-        FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,
-    KEY idx_planet_evolutionary_paragraphs_planet_id (planet_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Child table replacing reflection_spectrum_visible/non_visible -- no
@@ -2179,8 +2176,12 @@ CREATE TABLE IF NOT EXISTS moons (
     habitable_zone_outer_km   DOUBLE NOT NULL,
     life_chemical             VARCHAR(64),
     evolutionary_speed        VARCHAR(64),
-    flavor_text               TEXT,
     flavor_text_count         INT NOT NULL DEFAULT 0,
+    life_stage                VARCHAR(32),      -- v110 (DB.50): a MILESTONE_KEYS key, NULL before any milestone
+    evolutionary_pace         VARCHAR(16),      -- v110: the timeline scale (fast, normal, slow)
+    life_milestone_age_gyr    DOUBLE,           -- v110: the age of that milestone, Gy
+    life_system_age_gyr       DOUBLE,           -- v110: the age of the system the timeline was written at, Gy
+    flavor_key                VARCHAR(32),      -- v110: which flavour line (replaces flavor_text)
     -- Orbital motion (v9, see header comment) -- inclination/ascending
     -- node are fixed at generation time. rotation_period_hours is a
     -- separate, static "day length" stat. There is no stored phase (v109,
@@ -2271,7 +2272,6 @@ CREATE TABLE IF NOT EXISTS moons (
     l_ener                      DOUBLE,
     l_rad                       DOUBLE,
     equipment_tier              TINYINT,
-    hab_note                    VARCHAR(255),
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
@@ -2299,18 +2299,6 @@ CREATE TABLE IF NOT EXISTS moons (
     KEY idx_moons_radius_km (radius_km),
     CONSTRAINT chk_moons_parent_type CHECK (parent_type IN ('star', 'planet', 'system')),
     CONSTRAINT chk_moons_dynamical_state CHECK (dynamical_state IN ('bound', 'unbound'))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Moon counterpart of planet_evolutionary_paragraphs.
-CREATE TABLE IF NOT EXISTS moon_evolutionary_paragraphs (
-    id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    moon_id     BIGINT UNSIGNED NOT NULL,
-    position    INT NOT NULL,
-    paragraph   TEXT NOT NULL,
-
-    CONSTRAINT fk_moon_evolutionary_paragraphs_moon
-        FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE,
-    KEY idx_moon_evolutionary_paragraphs_moon_id (moon_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Moon counterpart of planet_reflection_spectrum.

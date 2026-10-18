@@ -96,7 +96,7 @@ def _all_species(conn):
 
 
 def _fits(world, species):
-    """`(unaided, equipped)` lists of the `species` (`_all_species`) that could live on `world`, best PHI-4 first."""
+    """`(unaided, equipped)` lists of the `species` (`_all_species`) that could live on `world`, best PHI-6 first."""
     unaided, equipped = [], []
     for s, overrides in species:
         tech = None if s["tech_level"] is None else float(s["tech_level"])
@@ -119,7 +119,7 @@ def species_for_body(conn, kind, body_id):
 
     Returns:
         dict: `scored` (false for a gas giant or a body saved without a score: both lists are then empty), `unaided`
-            (species with no Red domain there, best PHI-4 first) and `equipped` (those that could with the kit their
+            (species with no Red domain there, best PHI-6 first) and `equipped` (those that could with the kit their
             tech level can make and are not already in `unaided`). Each entry has `id`, `name`, `tech_level`, the
             verdict fields of `_verdict` and `homeworld_planet_id`.
     """
@@ -166,7 +166,7 @@ def bodies_for_species(conn, species_id, system_id=None, sector_id=None):
     Returns:
         dict: `species_id`, `scored` (bodies scored), `truncated` (more than `SCOPE_LIMIT` bodies were in scope; the
             first were scored), `unaided` and `equipped` lists of `{kind, id, name, star_system_id}` and the verdict
-            fields of `_verdict`, best PHI-4 first.
+            fields of `_verdict`, best PHI-6 first.
     """
     species = conn.execute("SELECT id, tech_level FROM species WHERE id = ?", (species_id,)).fetchone()
     if species is None:

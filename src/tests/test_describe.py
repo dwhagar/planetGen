@@ -13,9 +13,11 @@ import json
 
 import pytest
 
+from planetgen import tuning
 from planetgen.db import store
 from planetgen.describe import describe, model
 from planetgen.describe import build
+from planetgen.describe.quantity import inline_text
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.system import StarSystem
@@ -83,12 +85,54 @@ def test_every_variant_gives_a_checked_json_document(overrides):
         assert json.loads(json.dumps(document, allow_nan=False)) == document
 
 
-def test_a_system_anchored_by_a_compact_remnant_is_described():
-    for remnant_class in (BlackHole, NeutronStar):
+@pytest.mark.parametrize("remnant_class, kind", [(BlackHole, "black-hole"), (NeutronStar, "neutron-star")])
+def test_a_system_anchored_by_a_compact_remnant_is_described_as_one(remnant_class, kind):
+    for seed in range(6):
+        draw.set_run_seed(seed)
         config = SystemConfig()
-        document = describe(StarSystem(system_config=config, compact_remnant=remnant_class(config)))
+        remnant = remnant_class(config)
+        document = describe(StarSystem(system_config=config, compact_remnant=remnant))
         model.check(document)
-        assert any(section["kind"] == "star" for section in model.sections(document))
+        section = next(s for s in model.sections(document) if s["kind"] == kind)
+        assert set(remnant.get_table_properties()) <= _fact_keys(section)
+        text = " ".join(inline_text(sentence) for block in section["blocks"] if block["type"] == "prose"
+                        for sentence in block["text"])
+        assert "white dwarf" not in text and "main sequence" not in text
+        overview = " ".join(inline_text(sentence) for sentence in document["sections"][0]["blocks"][0]["text"])
+        assert "heliosphere" not in overview and "0 km" not in overview
+
+
+def test_a_black_hole_says_how_it_formed_and_whether_it_feeds():
+    for seed in range(12):
+        draw.set_run_seed(seed)
+        config = SystemConfig()
+        hole = BlackHole(config)
+        section = next(s for s in model.sections(describe(StarSystem(system_config=config, compact_remnant=hole)))
+                       if s["kind"] == "black-hole")
+        text = " ".join(inline_text(sentence) for block in section["blocks"] if block["type"] == "prose"
+                        for sentence in block["text"])
+        if hole.mass_class == "supermassive":
+            assert "centre of the galaxy" in text
+        else:
+            assert ("collapsed core" in text) or ("intermediate-mass" in text)
+            assert ("accretion disk of infalling matter" in text) == bool(hole.has_accretion_disk)
+
+
+def test_a_neutron_star_names_its_pulsar_type():
+    seen = set()
+    for seed in range(60):
+        draw.set_run_seed(seed)
+        config = SystemConfig()
+        star = NeutronStar(config)
+        section = next(s for s in model.sections(describe(StarSystem(system_config=config, compact_remnant=star)))
+                       if s["kind"] == "neutron-star")
+        text = " ".join(inline_text(sentence) for block in section["blocks"] if block["type"] == "prose"
+                        for sentence in block["text"])
+        expected = {"magnetar": "It is a magnetar", "non-pulsing": "no longer sweeps"}.get(
+            star.pulsar_type, f"It is a {star.pulsar_type} pulsar")
+        assert expected in text
+        seen.add(star.pulsar_type)
+    assert len(seen) >= 2
 
 
 def test_no_markup_reaches_the_document():
@@ -139,28 +183,48 @@ def test_every_body_has_a_section_in_page_order():
         assert sum(kind == "comet" for kind, _ in titles) == len(system.comets) + len(system.secondary_comets)
 
 
-def test_the_overview_says_what_the_old_summary_said():
+def test_the_overview_keeps_the_old_summary_but_counts_worlds_by_their_rating():
+    """GEN.220: the heliosphere and edge sentences are the old ones; the habitable line counts overall Green or Blue."""
     for _overrides, system in _systems():
         overview = describe(system)["sections"][0]["blocks"][0]
         assert overview["role"] == "overview"
-        assert " ".join(_plain(sentence) for sentence in overview["text"]) == system.summary_paragraph()
+        text = [_plain(sentence) for sentence in overview["text"]]
+        old = system.summary_paragraph()
+        assert " ".join(text[-2:]) == old[old.index("The star's stellar wind"):]
+        count = build._potentially_habitable_count(system)
+        line = {0: "There are no potentially habitable worlds in this system.",
+                1: "There is 1 potentially habitable world in the system."}.get(
+            count, f"There are {count} potentially habitable worlds in the system.")
+        assert text.count(line) == 1 and not any("class M" in sentence for sentence in text)
 
 
-def test_the_life_and_flavour_sentences_are_the_old_ones():
-    seen = set()
+def test_a_world_counts_as_potentially_habitable_by_its_overall_tier(monkeypatch):
+    for _overrides, system in _systems():
+        bodies = [body for planet in system.planets + system.secondary_planets if planet.body_type != "a"
+                  for body in (planet, *planet.moons)]
+        expected = sum(1 for body in bodies if body.habitability_world() is not None
+                       and habitability.tier(protection.rating(*body.habitability_world())["overall"])
+                       in ("Blue", "Green"))
+        assert build._potentially_habitable_count(system) == expected
+    monkeypatch.setattr(habitability, "POTENTIALLY_HABITABLE_TIERS", ())
+    assert all(build._potentially_habitable_count(system) == 0 for _overrides, system in _systems())
+
+
+def test_the_life_sentences_are_short_and_plain():
+    """GEN.221: one sentence for the chemistry (and the pace), one each for what the life looks like."""
+    seen = 0
     for _overrides, system in _systems(4):
         document = describe(system)
         for body in system.planets + system.secondary_planets:
-            if body.body_type == "a":
+            if body.body_type == "a" or not body.life_chemical:
                 continue
-            old = " ".join(body.to_paragraph_list())
             section = next(s for s in model.sections(document) if s["title"] == body.name)
-            for block in section["blocks"]:
-                if block["type"] == "prose" and block["role"] in ("life", "flavour", "timeline"):
-                    for sentence in block["text"]:
-                        assert _plain(sentence) in old
-                        seen.add(block["role"])
-    assert {"life", "timeline"} <= seen
+            life = [_plain(sentence) for block in section["blocks"] if block["type"] == "prose" and block["role"] == "life"
+                    for sentence in block["text"]]
+            assert life and life[0].startswith(f"Life based on {body.life_chemical.lower()} could arise on this ")
+            assert all(len(sentence) < 160 and "suitable for the development" not in sentence for sentence in life)
+            seen += 1
+    assert seen > 0
 
 
 def test_an_airless_body_has_a_zero_pressure_fact_and_no_atmosphere_block():
@@ -242,3 +306,39 @@ def test_a_scored_rocky_body_carries_its_six_ratings_as_the_paragraph_says_them(
                 assert f"{block['overall']['score']:.2f}" in paragraph
                 seen += 1
     assert seen
+
+
+def test_the_star_sentence_is_two_short_sentences_and_makes_no_claim_about_the_universe():
+    """GEN.221: the age and lifespan, then what the class means for life (one sentence each)."""
+    seen = 0
+    for _overrides, system in _systems(6):
+        document = describe(system)
+        for section in model.sections(document):
+            if section["kind"] != "star":
+                continue
+            star = next(s for s in system.stars if s.name == section["title"])
+            summary = [block for block in section["blocks"] if block["type"] == "prose" and block["role"] == "summary"]
+            text = " ".join(_plain(sentence) for block in summary for sentence in block["text"])
+            assert text.startswith("The star is about ") and "in the universe" not in text and "approximately" not in text
+            if star.yerkes_class == "V" and star.type[0] in tuning.STAR_EVOLUTION:
+                assert tuning.STAR_EVOLUTION[star.type[0]]["evolutionary_constraint_notes"] in text
+                assert text.count(". ") >= 1
+            seen += 1
+    assert seen > 0
+
+
+def test_the_timeline_is_written_from_the_stored_state_with_the_ladders():
+    seen = 0
+    for _overrides, system in _systems(8):
+        document = describe(system)
+        for body in system.planets + system.secondary_planets:
+            if body.body_type == "a" or not body.evolutionary_data:
+                continue
+            section = next(s for s in model.sections(document) if s["title"] == body.name)
+            block = next((b for b in section["blocks"] if b["type"] == "prose" and b["role"] == "timeline"), None)
+            if block is None:
+                continue
+            text = " ".join(_plain(sentence) for sentence in block["text"])
+            assert "Billion Years" not in text and "Million Years" not in text and "speculative timeline" in text
+            seen += 1
+    assert seen > 0

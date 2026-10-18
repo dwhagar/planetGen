@@ -9,6 +9,7 @@ tri-state `+name`/`-name` options and `--system-file`). The sector
 command builds each of its systems through `build_system_config`.
 """
 
+import json
 import sys
 
 from planetgen.db import store
@@ -16,9 +17,16 @@ from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.db.render import FORMATS as OUTPUT_FORMATS, render_star_system
+from planetgen import describe
+from planetgen.db import render
+from planetgen.db.render import render_star_system
 from planetgen.generation import run_common
 
+
+DOCUMENT_FORMAT = describe.DOCUMENT_FORMAT
+
+OUTPUT_FORMATS = (*render.FORMATS, DOCUMENT_FORMAT)
+"""tuple: The formats `--output` writes: the text formats of `db.render`, then the Document itself."""
 
 # Tri-state options settable with `+name` (force True) / `-name` (force False).
 # Each maps directly onto a `SystemConfig` attribute of the same name.
@@ -258,7 +266,8 @@ def run_system(args):
                               f"short-lived and very large stars often have no room for one.")
 
     if args.output:
-        text = render_star_system(system, args.format)
+        text = (json.dumps(describe.describe(system)) if args.format == DOCUMENT_FORMAT
+                else render_star_system(system, args.format))
         if args.output == "-":
             sys.stdout.write(text if text.endswith("\n") else text + "\n")
         else:

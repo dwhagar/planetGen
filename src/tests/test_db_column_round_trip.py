@@ -64,9 +64,8 @@ NULL_IN_THIS_GALAXY = {
         "galactic_radius_pc")},
     # A life-bearing moon (rare) and its paragraphs and spectrum.
     **{("moons", column): CHANCE for column in
-       ("atm_density", "atm_molar_density", "scale_height_km", "life_chemical", "evolutionary_speed")},
-    **{("moon_evolutionary_paragraphs", column): CHANCE for column in
-       ("id", "moon_id", "position", "paragraph")},
+       ("atm_density", "atm_molar_density", "scale_height_km", "life_chemical", "evolutionary_speed",
+        "life_stage", "evolutionary_pace", "life_milestone_age_gyr", "life_system_age_gyr")},
     **{("moon_reflection_spectrum", column): CHANCE for column in
        ("id", "moon_id", "spectrum_type", "position", "value")},
     # The CLI places an interstellar comet near the galaxy's sectors only sometimes.
@@ -110,17 +109,16 @@ NEVER_READ = {
     # Row order in a child table: the loaders read them ORDER BY position.
     **{(table, "position"): "sort key" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
-        "interstellar_comet_composition", "planet_evolutionary_paragraphs", "planet_reflection_spectrum",
-        "moon_evolutionary_paragraphs", "moon_reflection_spectrum")},
+        "interstellar_comet_composition", "planet_reflection_spectrum", "moon_reflection_spectrum")},
     # Child tables' own ids and parent keys: matched in the WHERE clause.
     **{(table, "id"): "child row id" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
-        "interstellar_comet_composition", "planet_evolutionary_paragraphs", "planet_reflection_spectrum",
-        "moon_evolutionary_paragraphs", "moon_reflection_spectrum", "system_config_slots", "system_configs")},
+        "interstellar_comet_composition", "planet_reflection_spectrum", "moon_reflection_spectrum",
+        "system_config_slots", "system_configs")},
     **{(table, parent): "parent key" for table, parent in (
         ("comet_composition", "comet_id"), ("interstellar_comet_composition", "comet_id"),
-        ("asteroid_field_composition", "field_id"), ("planet_evolutionary_paragraphs", "planet_id"),
-        ("planet_reflection_spectrum", "planet_id"), ("moon_evolutionary_paragraphs", "moon_id"),
+        ("asteroid_field_composition", "field_id"),
+        ("planet_reflection_spectrum", "planet_id"),
         ("moon_reflection_spectrum", "moon_id"), ("system_config_slots", "config_id"),
         ("system_owners", "star_system_id"), ("nebula_shape_balls", "nebula_id"))},
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
@@ -136,8 +134,6 @@ NEVER_READ = {
         ("star_systems", "epoch_unix"), ("star_systems", "next_update_due"),
         ("star_systems", "binary_epoch_unix"), ("star_systems", "binary_next_update_due"),
         ("facilities", "epoch_unix"), ("facilities", "next_update_due"))},
-    # Empty unless a moon bears life (see NULL_IN_THIS_GALAXY).
-    ("moon_evolutionary_paragraphs", "paragraph"): CHANCE,
     ("moon_reflection_spectrum", "spectrum_type"): CHANCE, ("moon_reflection_spectrum", "value"): CHANCE,
     **{(table, stamp): "row timestamps (the Galaxy Map's change feed reads modified_at in bulk)"
        for table in ("star_systems", "facilities") for stamp in ("created_at", "modified_at")},
@@ -212,7 +208,7 @@ def test_every_column_is_read_back(rich_galaxy, monkeypatch):
         with tracking_reads(monkeypatch) as reads:
             pages = [f"/api/sectors/{pid('sector', i, conn)}" for i in ids("sectors")]
             pages += [f"/api/systems/{pid('system', i, conn)}{part}" for i in ids("star_systems")
-                      for part in ("", "/sections", "/owner", "/facilities")]
+                      for part in ("", "/owner", "/facilities")]
             pages += [f"/api/phenomena/{label}/{pid(label, i, conn)}" for table, label, *_ in query._PHENOMENON_TABLES
                       for i in ids(table)]
             pages += [f"/api/nebulae/{pid('nebula', i, conn)}/shape" for i in ids("nebulae")]

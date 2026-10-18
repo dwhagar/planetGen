@@ -55,6 +55,8 @@ import threading
 
 import pytest
 
+from tests import progress_log
+
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MAP_PATH = os.path.join(ROOT, ".pytest-deps.json")
 PROOF_PATH = os.path.join(ROOT, ".pytest-deps-proof.json")
@@ -385,6 +387,7 @@ def pytest_runtest_protocol(item, nextitem):
         state = config._depmap
         if item.nodeid not in state.bad:
             state.results[item.nodeid] = (used, opaque, state.times.get(item.nodeid, 0.0))
+            progress_log.record_deps(config, item.nodeid, used, opaque)   # TEST.208: a later run may reuse the pass
 
 
 def pytest_runtest_logreport(report):

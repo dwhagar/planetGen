@@ -131,7 +131,7 @@ def test_the_lines_of_an_airless_frozen_world_read_like_the_examples_boss_gave()
             "**PHI-6 habitability** is 0.00, and a visitor needs an environment suit.",
             "**Pressure: Red** (0.00). The air pressure is 0 kPa, so a pressure suit is needed.",
             "**Temperature: Red** (0.00). The air temperature is -227 C, so an environment suit is needed.",
-            "**Air: Red** (0.00). There is no atmosphere (0.0 kPa).",
+            "**Air: Red** (0.00). There is no atmosphere (0 kPa).",
             "**Water: Red** (0.00). There is no liquid water to support life.",
             "**Radiation: Yellow** (0.45). The radiation dose is a mean of 742 mSv a year, inside the Yellow band "
             "(up to 1 Sv a year)."):
@@ -211,5 +211,81 @@ def test_the_air_line_of_a_world_with_no_atmosphere_says_so_and_is_red():
     """GEN.215: Air is Red and the text says there is no atmosphere, never that the gases are fine."""
     world = _world(pressure_kpa=0.0, gases={})
     text = protection.paragraph(world, _bold)
-    assert "**Air: Red** (0.00). There is no atmosphere (0.0 kPa). **Water:" in text
+    assert "**Air: Red** (0.00). There is no atmosphere (0 kPa). **Water:" in text
     assert "within their long-term limits" not in text
+
+
+# --- ported from the retired habitability_explain (GEN.218) ---------------------------------------------------------
+
+def _earth():
+    return World(pressure_kpa=101.0, temperature_c=15.0, gases={"O2": 0.21, "CO2": 0.0004}, gravity_ms2=9.8,
+                 life_stage="biosphere")
+
+
+def test_an_earth_like_world_is_one_paragraph_of_six_blue_categories_with_their_values():
+    text = protection.paragraph(_earth(), _bold)
+    assert text.startswith("**PHI-6 habitability** is 1.00, and a visitor needs no equipment.")
+    for domain in ("Pressure", "Temperature", "Air", "Water", "Radiation", "Suitability"):
+        assert f"**{domain}: Blue** (1.00)." in text
+    assert "The air pressure is 101 kPa, so no gear is needed." in text
+    assert "The air temperature is 15 C, so no gear is needed." in text
+
+
+def test_a_gas_past_its_long_term_limit_asks_for_a_scrubber_and_is_named_once_in_the_one_gas_table():
+    world = World(pressure_kpa=101.0, temperature_c=15.0, gases={"O2": 0.21, "CO2": 0.03}, gravity_ms2=9.8)
+    text = protection.paragraph(world, _bold)
+    assert "a mask with a scrubber" in text and "**Air: Yellow**" in text and "carbon dioxide" in text.lower()
+    assert not hasattr(protection, "GAS_NAMES")
+    assert protection._gas("H2S") == "hydrogen sulfide"
+
+
+def _worlds(count=400):
+    rng = random.Random(91)
+    for _ in range(count):
+        yield World(
+            pressure_kpa=10 ** rng.uniform(-1, 5), temperature_c=rng.uniform(-150, 500),
+            gases={"O2": rng.choice([0.0, 0.05, 0.21, 0.4, 0.9]), "CO2": rng.choice([0.0, 0.0004, 0.01, 0.05, 0.5]),
+                   "CO": rng.choice([0.0, 1e-6, 1e-3]), "H2S": rng.choice([0.0, 1e-6, 1e-3])},
+            gravity_ms2=rng.uniform(1, 25), relative_humidity=rng.uniform(0.05, 0.99), solvent="water",
+            ph=rng.choice([None, 2.0, 7.0, 10.0, 13.0]), water_activity=rng.choice([1.0, 0.8, 0.5]),
+            chaotropicity_kj_kg=rng.choice([0.0, 50.0, 90.0]), surface_dose_sv_yr=10 ** rng.uniform(-3, 3),
+            life_stage=rng.choice(hab.LIFE_STAGES), water_source=rng.choice(["liquid", "ice", "hydrated", "vapour", None]),
+            life_on_surface=rng.random() < 0.8)
+
+
+def test_the_rows_colours_and_scores_always_equal_the_stored_ones():
+    for world in _worlds():
+        stored = hab.phi4(world)
+        result = protection.rating(world)
+        assert result["overall"] == stored["PHI-4"]
+        for row in result["rows"]:
+            assert (row["score"], row["tier"]) == stored[row["domain"]]
+
+
+def _system_text(markdown):
+    for seed in range(1, 60):
+        random.seed(seed)
+        config = SystemConfig()
+        config.MARKDOWN = markdown
+        text = str(StarSystem(config))
+        if "PHI-6 habitability** is" in text or "PHI-6 habitability''' is" in text:
+            return text
+    raise AssertionError("no rocky body in 60 systems")
+
+
+def test_a_generated_planet_or_moon_description_carries_the_paragraph_in_each_format():
+    markdown = _system_text(True)
+    for domain in ("Pressure", "Temperature", "Air", "Water", "Radiation", "Suitability"):
+        assert f"**{domain}: " in markdown
+    wikitext = _system_text(False)
+    assert "'''PHI-6 habitability''' is" in wikitext and "**PHI-6" not in wikitext
+
+
+def test_there_is_one_describer_of_the_six_categories():
+    import importlib.util
+    assert importlib.util.find_spec("planetgen.physics.habitability_explain") is None
+
+
+def test_a_small_dose_prints_in_the_ladders_scientific_form_not_as_a_python_exponent():
+    text = protection.radiation_need(_world(surface_dose_sv_yr=2.0e-7))[2]
+    assert "e-" not in text and "10" in text

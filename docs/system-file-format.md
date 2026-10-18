@@ -131,16 +131,16 @@ a "class M world".
 | `C` | Dead world, no atmosphere | terrestrial | h, e, c | no |
 | `D` | Small icy body | terrestrial | h, e, c | no |
 | `E` | Molten core/crust world with a thin atmosphere | terrestrial | e | yes |
-| `F` | Volcanic world with shallow seas and bacterial life | terrestrial | e | yes |
-| `G` | Rocky, barren world with simple life | terrestrial | e | yes |
-| `H` | Desert world, minimal water | terrestrial | e | yes |
+| `F` | Volcanic world with shallow seas | terrestrial | e | yes |
+| `G` | Rocky, barren world | terrestrial | e | yes |
+| `H` | Desert world, little liquid water | terrestrial | e | yes |
 | `I` | Ice giant with a tilted magnetic field | gas giant | e, c | no |
 | `J` | Gas giant with a turbulent atmosphere and rings | gas giant | h, e, c | no |
 | `K` | Adaptable world with a thin atmosphere | terrestrial | e | yes |
-| `L` | Marginally habitable world with vegetation | terrestrial | e | yes |
-| `M` | Terrestrial, Earth-like world | terrestrial | e | yes |
+| `L` | Marginally habitable world | terrestrial | e | yes |
+| `M` | Temperate terrestrial world | terrestrial | e | yes |
 | `N` | Hot world with a dense, reducing atmosphere | terrestrial | e | no |
-| `O` | Pelagic (ocean) world, >90% liquid water | terrestrial | e | yes |
+| `O` | Ocean world, most of the surface liquid water | terrestrial | e | yes |
 | `P` | Cold, glaciated world | terrestrial | e | yes |
 | `Q` | Eccentric orbit, extreme temperature swings | terrestrial | e | yes |
 | `S` | Barren, rocky Super-Earth | terrestrial | h, e, c | no |

@@ -16,6 +16,10 @@
     <h2 id="polities-heading">Polities</h2>
   </div>
   <p>Each spacefaring species founds one polity, which holds the systems within its reach.</p>
+  {% if empty_note %}
+  <p>{{ empty_note }}</p>
+  {% else %}
   {{ datatable(table) }}
+  {% endif %}
 </section>
 {% endblock %}

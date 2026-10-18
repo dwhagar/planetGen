@@ -94,7 +94,7 @@ Two consequences worth stating:
 
 One row each, the columns of [phenomena-catalogue-and-fill.md](phenomena-catalogue-and-fill.md) section 6. Kinds and subtypes not listed are unchanged.
 
-| kind (subtype) | family | mode | scatter_pass | gate | system_model | carries | notes |
+| kind (subtype) | family | mode | scatter_pass | gate | host | carries | notes |
 |---|---|---|---|---|---|---|---|
 | `neutron-star` (`magnetar`) | compact-remnant | scatter | `band-density` | `young stars` (new gate) | none | none | `id_code` is the neutron star's; subtype only |
 | `supernova-remnant` (class letter) | nebula | scatter | `band-density` | `nebula field` | none | its core, at build | the subtype becomes the class letter instead of `None` |

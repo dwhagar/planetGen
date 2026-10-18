@@ -830,5 +830,4 @@ def reapply_life(body):
     """A body's life chemistry, evolution speed and (for a habitable
     planet) evolutionary timeline, re-rolled after its class or climate
     changed (`planetLife.apply_life_data`)."""
-    body.evolutionary_data = []
     planetLife.apply_life_data(body)
