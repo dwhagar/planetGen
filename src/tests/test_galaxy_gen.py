@@ -1139,7 +1139,10 @@ def _build_real_skeleton(mysql_config, extra_argv=()):
     generate_cli.validate_plan_args(args, parser)
     # The plan draws the galaxy's naming key into the control database (GEN.70); the fixture's database holds the
     # control schema too, so the draw works and no "control database can't be opened" line is logged (TEST.191).
-    with mock.patch.dict(os.environ, {_db.CONTROL_DB_ENV_VAR: mysql_config.database}):
+    # A toy of 40 pc scale length forms half a million young open clusters of 50 solar masses and up (GEN.244: the count
+    # follows the star formation rate density), which every plan test would draw, store and load; only the heavy end is kept.
+    with mock.patch.dict(os.environ, {_db.CONTROL_DB_ENV_VAR: mysql_config.database}), \
+            mock.patch.object(tuning, "OPEN_CLUSTER_MASS_RANGE_SOL", (2.0e4, 1.0e6)):
         _db.get_control_connection(mysql_config, ensure_schema=True).close()
         return run_plan.build_skeleton(args)
 

@@ -9,6 +9,7 @@ itself is `physics/king.py` for the `king` profile. Positions are in parsecs in 
 at the origin), velocities in km/s there, both at `epoch_unix`.
 """
 
+import bisect
 import dataclasses
 
 from planetgen import tuning
@@ -86,3 +87,22 @@ class Component:
     def expected_systems(self):
         """How many systems the component holds: its mass over `tuning.CLUSTER_MEAN_SYSTEM_MASS_SOL`."""
         return self.mass_solar / tuning.CLUSTER_MEAN_SYSTEM_MASS_SOL
+
+
+def is_open_cluster(component):
+    """Whether `component` is a young open cluster (GEN.244): a `cluster` with the `plummer` profile. A globular cluster
+    is a `king`."""
+    return component.kind == "cluster" and component.profile == "plummer"
+
+
+def family_of(component):
+    """The family of a component: `open_cluster` for a young open cluster, else its kind."""
+    return "open_cluster" if is_open_cluster(component) else component.kind
+
+
+def open_cluster_population(age_gy):
+    """The population (`tuning.OPEN_CLUSTER_POPULATIONS`) the stars of an open cluster of this age belong to: the
+    quarter-decade of age that holds it, the first for a cluster younger than 1 Myr and the last for one older than 1 Gy."""
+    edges = tuning.OPEN_CLUSTER_AGE_EDGES_MYR
+    index = bisect.bisect_right(edges, float(age_gy) * 1000.0) - 1
+    return tuning.OPEN_CLUSTER_POPULATIONS[min(max(index, 0), len(tuning.OPEN_CLUSTER_POPULATIONS) - 1)]

@@ -579,10 +579,8 @@ def population_densities_array(x, y, z, shape):
     densities["halo"] = np.maximum(halo, 0.0)
     # The components are not in the array form: its points are band bins far wider than a cluster, and the scatter's
     # per-band weights leave components to their own pass (GEN.161, GEN.240); the one-point form is the cell's.
-    densities["cluster"] = np.zeros_like(densities["halo"])
-    densities["satellite"] = np.zeros_like(densities["halo"])
-    densities["satellite_young"] = np.zeros_like(densities["halo"])
-    densities["satellite_intermediate"] = np.zeros_like(densities["halo"])
+    for name in componentField.POPULATIONS_IN_THE_GATE:
+        densities[name] = np.zeros_like(densities["halo"])
     densities["nuclear_cluster"] = shape.k_norm * _nuclear_cluster_array(np.sqrt(r_cyl ** 2 + np.square(z)), terms)
     densities["nuclear_disc"] = shape.k_norm * _nuclear_disc_array(r_cyl, z, terms)
     return densities
