@@ -860,7 +860,10 @@ with `clamp()`.
   panels and the phenomena name search read the same index. Done: each
   list opens on a large test galaxy in the time the Generate page's
   probe sets, the phenomenon name search finds a name, and none of these
-  queries uses `OFFSET`. Suggested owner: Core 2; headline 8.2.
+  queries uses `OFFSET`. Suggested owner: Core 2; filed in 8.2.
+  Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
+  coordinator reported them): the list pages are filed in 8.2 with the
+  tile cache; their index is kept first when the shared budget is short.
   Prerequisites: PERF.140. Related: PERF.137.
 
 
@@ -15585,27 +15588,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rebuilds the tiles it touched (the changed tiles and their coarser
   parents, in the background at once rather than on the next visit);
   `prune` no longer deletes a valid tile because of age, so
-  `tile_cache.max_mb` is sized from the measured size of the built
-  levels plus the visited ones and the admin page says when the cache is
-  over it instead of evicting; a new tile format or a new generator
+  `cache.max_mb` is sized from the measured size of the built levels
+  plus the visited ones, the admin page says when the cache is at the
+  budget, and only the least recently visited on-demand tiles are
+  dropped to make room (see the Decided note below); a new tile format or a new generator
   epoch (PERF.41) drops the stored tiles once and starts a new
   generation; the generation and stamp logic keeps working for stage and
   window payloads; tests for a change inside one sector (only its tiles
   and parents rebuilt), a re-planned galaxy (a new generation) and a
-  full cache (nothing valid deleted). Owner: Core 2 (proposed).
+  full cache (warming stops, built-ahead tiles stay, the oldest visited tile goes). Owner: Core 2 (proposed).
   Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
   stored here are built with halo and satellite-galaxy stars ranked
   below every other star, so a budget cut removes them first; landing
   that rule bumps the tile cache stamp and the cached tiles are rebuilt
   once. The galaxy map lag Boss reported at the same time is MAP.249; if
   its cause is the missing cache, this item is brought forward.
-  OPEN CONFLICT (2026-10-18, found when filing PERF.139): this item says
-  a valid tile is never evicted for size and the admin page only says
-  when the cache is over `tile_cache.max_mb`; Boss (2026-10-18, 5:43 PM
-  EDT) then set a cap of up to 1 GB as a setting. What happens when the
-  cap is full is not decided; it goes to Boss as a card (coordinator
-  posts it). Until he answers, this item's no-eviction wording stands
-  and PERF.139 builds only the setting and the display.
+  Decided (Boss, 2026-10-18, card tap 5:56 to 5:57 PM EDT "Stop warming,
+  drop oldest visits", as the coordinator reported it; REPLACES this
+  item's earlier "never evict for size, warn only" wording): when the
+  `cache.max_mb` budget (PERF.139, default 1 GB) is full, the warm-up
+  stops, the built-ahead tiles are kept, and only the least recently
+  visited on-demand tiles are dropped to make room. A tile is still never
+  dropped because of age, and a change to the data still rebuilds what it
+  touched. Where the Done text below says "instead of evicting" or
+  "nothing valid deleted", this decision wins.
   Prerequisites: none. Related: PERF.129, PERF.41, PERF.104.
 
 - [ ] **PERF.134 The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions**
@@ -15747,15 +15753,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Do: one key `cache.max_mb` in `config.json` (default 1024, 0 turns the
   stored caches off) replaces `tile_cache.max_mb`, with no shim; the
   tile cache, the stored lists and the object index share it; the admin
-  cache view (PERF.134) shows used and budget per kind. What happens
-  when the budget is full is a question for Boss (PERF.133 says a valid
-  tile is never evicted for size; see the open fork on that item).
-  `page_cache.max_mb` is memory per process, a different thing, and
-  stays. Done: the key exists in the settings model,
+  cache view (PERF.134) shows used and budget per kind. What happens when the budget is full is
+  decided (Boss, card taps 2026-10-18, 5:56 to 5:57 PM EDT, as the coordinator reported them): warming stops at the budget, built-ahead tiles are kept
+  and only the least recently visited on-demand tiles are dropped (see PERF.133);
+  when the budget is short, the object index and stored lists are kept first and
+  the tiles take the remaining space. `page_cache.max_mb` is memory per process,
+  a different thing, and stays. Done: the key exists in the settings model,
   `config.schema.json`, `config.json.example` and docs/config.md, the
   tile cache reads it, a test fills a small budget and checks the stated
   behaviour, and the admin page shows the budget. Suggested owner: Core
-  2 (the tile cache lane); headline 8.2.
+  2 (the tile cache lane); filed in 8.2.
+  Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
+  coordinator reported them): the cache budget is full: warming stops,
+  built-ahead tiles stay, only the least recently visited on-demand
+  tiles are dropped (PERF.133 amended); the budget is short: indexes and
+  stored lists first, tiles take the rest.
   Prerequisites: none.
 
 - [ ] **PERF.140 The index builder and its automatic refresh: each kind is rebuilt from what changed whenever generation, an orbital update or an edit changes it**
@@ -15784,7 +15796,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   update and an API edit each leave the index matching the live tables,
   a test changes one object and sees only its row rewritten, and the
   admin page shows the index size and age per kind. Suggested owner:
-  Core 2; headline 8.2.
+  Core 2; filed in 8.2.
+  Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
+  coordinator reported them): the index and lists are filed in 8.2 with
+  the tile cache, after PERF.131 to 133; their space is taken first when
+  the shared budget is short, tiles take the rest.
   Prerequisites: DB.79, PERF.139.
 
 - [ ] **PERF.141 The warm-up runs in phases after every generation, update or change, as deep as the budget allows**
@@ -15819,7 +15835,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   state. Done: a test runs a small galaxy through every phase, a change
   in one sector re-runs only the affected phases for it, and a run stops
   cleanly at a small budget. Suggested owner: Core 2 (owner of PERF.130
-  to 132); headline 8.2.
+  to 132); filed in 8.2.
+  Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
+  coordinator reported them): the warm-up stops at the budget and keeps
+  built-ahead tiles; indexes and lists are warmed and kept first, tiles
+  take the remaining space; the phases are filed in 8.2.
   Prerequisites: PERF.139, PERF.140, PERF.131, PERF.132, PERF.133.
 
 ## DB: Database and schema
@@ -16979,8 +16999,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   columns the list pages sort and filter on; a unique key on kind and
   ID, keyset keys per kind and sort, and a FULLTEXT index on the name.
   Done: the migration, the model and schema.sql agree, and the index is
-  empty until PERF.141 fills it. Suggested owner: Core 1; headline 8.2
-  (whether 8.1 or 8.2 is a question for Boss).
+  empty until PERF.141 fills it. Suggested owner: Core 1; filed in 8.2 with the tile cache
+  (Boss, card tap 5:56 to 5:57 PM EDT).
+  Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
+  coordinator reported them): the index table is filed in 8.2 with the
+  tile cache; the index is kept first when the shared budget is short.
   Prerequisites: none.
 
 ## API: The JSON API
@@ -18190,7 +18213,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   1 GB). Done: the settings page shows the slider for `cache.max_mb`,
   moving it writes the key, editing `config.json` moves the slider, and
   a test covers the round trip. Suggested owner: Core 2 with the
-  settings page code; headline 8.2.
+  settings page code; filed in 8.2.
   Prerequisites: PERF.139.
 
 ## SEC: Security
