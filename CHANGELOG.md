@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1838] - 2026-10-18
+
+**Headline:** A star's main-sequence track, a white dwarf's radius and layers and a neutron star's crust now come from the downloaded data, and generation will not start without it
+
+### Changed
+
+Star composition reads the data files that `update.sh` downloads (MIST isochrones, white-dwarf cooling sequences, neutron-star crust tables): a main-sequence star gets its luminosity, temperature, radius and lifetime from the MIST grid, a white dwarf its radius at its temperature and its hydrogen, helium, carbon and oxygen layers, and a neutron star the outer crust of one of 20 nuclear mass models. There is no fallback value: while a file is missing, `galaxy`, `plan`, `population` and `sector --num-sectors` above 1 refuse to start and name what is missing, and so do the Sector page's neighbourhood button and the Generate page's jobs, which now begin with a "Check the data" step after "Check the math" and before anything is reset. `update.sh` and `install.sh` warn at the end if a download failed. The older white-dwarf radius table and neutron-star crust list that this replaces were removed. No stored value changes.
+
 ## [8.0.1837] - 2026-10-18
 
 **Headline:** The map luminosity fill, the habitability re-score and the nebula field run on the work queue as commands.
