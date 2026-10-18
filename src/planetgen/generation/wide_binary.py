@@ -36,7 +36,6 @@ import math
 
 from planetgen import tuning
 from planetgen.generation import companion_classes, place_terms
-from planetgen.physics import constants
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.util import draw
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
@@ -44,9 +43,6 @@ from planetgen.generation.star import Star
 from planetgen.physics.orbits import (
     circular_orbital_speed_kms, hill_radius_in_pair_au, holman_wiegert_critical_semimajor_axis,
     minimum_update_interval_years, orbital_position_au,
-)
-from planetgen.util.format import (
-    format_distance_au, format_distance_km, properties_to_string, format_period_years, format_speed_kms,
 )
 
 
@@ -256,69 +252,6 @@ class WideBinaryPair:
         pair.secondary = secondary
         fields_from_dict(pair, data, cls.SERIALIZABLE_FIELDS)
         return pair
-
-    def get_table_properties(self):
-        """
-        Builds the "Wide Binary System Data" property dict -- the exact
-        key/value pairs `to_paragraph_list` renders into the pair's own
-        relationship data table, distinct from either constituent star's
-        own `Star.get_table_properties()` table.
-
-        Returns:
-            dict: Keys `separation`, `eccentricity`, `mutual_orbit`,
-                 `primary_limit`, `secondary_limit`, each an
-                 already-formatted display string.
-        """
-        separation_string = (
-            f"{format_distance_au(self.separation_au)}, "
-            f"ranging from {format_distance_au(self.periapsis_au)} at periapsis "
-            f"to {format_distance_au(self.apoapsis_au)} at apoapsis"
-        )
-        mutual_orbit_string = (
-            f"{format_speed_kms(self.speed_kms)} "
-            f"({format_period_years(self.period_years)} per orbit)"
-        )
-        primary_offset_km = math.sqrt(
-            self.primary_position_x_au ** 2 + self.primary_position_y_au ** 2 + self.primary_position_z_au ** 2
-        ) * constants.AU_TO_KM
-        secondary_offset_km = math.sqrt(
-            self.secondary_position_x_au ** 2 + self.secondary_position_y_au ** 2 + self.secondary_position_z_au ** 2
-        ) * constants.AU_TO_KM
-        wobble_string = (
-            f"{self.primary.name}: {format_distance_km(primary_offset_km)}, "
-            f"{self.secondary.name}: {format_distance_km(secondary_offset_km)} "
-            f"from the barycenter"
-        )
-
-        return {
-            "separation": separation_string,
-            "eccentricity": f"{self.eccentricity:.3f}",
-            "mutual_orbit": mutual_orbit_string,
-            "wobble": wobble_string,
-            "primary_limit": f"{self.primary.name}'s planetary system is stable out to {self.primary_a_crit_au:.2f} AU due to {self.secondary.name}'s gravity.",
-            "secondary_limit": f"{self.secondary.name}'s planetary system is stable out to {self.secondary_a_crit_au:.2f} AU due to {self.primary.name}'s gravity.",
-        }
-
-    def to_paragraph_list(self):
-        """
-        Generates a list of descriptive paragraphs for the wide binary
-        pair's own orbital relationship. Does NOT include either
-        constituent star's own individual details (those are each star's
-        own `Star.to_paragraph_list()`, rendered separately -- see
-        `system.StarSystem.__str__`'s wide-binary branch).
-
-        Returns:
-            list: A single-element list: [the pair's own data block].
-        """
-        pair_properties = self.get_table_properties()
-        markdown_key_map = {
-            "separation": "Stellar Separation", "eccentricity": "Orbital Eccentricity",
-            "mutual_orbit": "Mutual Orbit", "wobble": "Barycenter Offset",
-            "primary_limit": "Primary's Planetary Limit",
-            "secondary_limit": "Secondary's Planetary Limit",
-        }
-        return [properties_to_string(self.system_config, pair_properties, "Wide Binary System Data", markdown_key_map=markdown_key_map)]
-
 
 def wide_pair_limit_au(system_config, primary, secondary):
     """

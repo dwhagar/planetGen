@@ -8,6 +8,7 @@ import re
 import pytest
 
 from planetgen import tuning
+from planetgen.describe import build as describe_build
 from planetgen.generation import life as planetLife
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
@@ -15,6 +16,7 @@ from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
 
 from tests.fuzz_support import deterministic_entropy
+from tests import render_support
 
 LIFE_WORDS = re.compile(r"life|bacteri|vegetation|flora|fauna|evolution|alga|microb|organism|biosphere|civiliz", re.I)
 COMPLEX_WORDS = re.compile(r"vegetation|macro-algae|moss|ferns|forests|sapient|civilization|invertebrate", re.I)
@@ -38,9 +40,7 @@ def _planet(host_star, cls):
 def _description_and_life_text(planet):
     """Everything a reader sees about the world's nature and life, except the index's own explanation
     (which says what the scores are)."""
-    habitability = set(planet._habitability_paragraphs())
-    paragraphs = [p for p in planet.to_paragraph_list() if p not in habitability and not p.lstrip().startswith(("=", "#", "{"))]
-    return " ".join(paragraphs)
+    return render_support.prose_text(describe_build._planet_section(planet))
 
 
 @pytest.mark.parametrize("cls", ECOSPHERE_HABITABLE)

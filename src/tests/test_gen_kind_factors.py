@@ -223,7 +223,7 @@ def test_a_fill_multiplies_each_kinds_mean_by_its_factor_and_leaves_a_kind_witho
 
     monkeypatch.setattr(run_sector.fill_stages, "stage", tracking_stage)
     factors = {"rogue-planet": 0.25, "comet": 0.0, "supernova-remnant": 0.5}
-    run_sector.generate_sector_phenomena(sector, SimpleNamespace(markdown=False), kind_factors=factors)
+    run_sector.generate_sector_phenomena(sector, SimpleNamespace(), kind_factors=factors)
     rate = tuning.phenomenon_rate_per_star
     assert means["rogue-planet"] == pytest.approx(rate("rogue-planet") * stars * 0.25)
     assert means["comet"] == 0.0
@@ -234,7 +234,7 @@ def test_a_fill_with_no_factors_draws_the_same_as_one_with_every_factor_one():
     def kinds(factors):
         with draw.bound("kind-factors-same"):
             sector = _seeded_sector(5)
-            entries = run_sector.generate_sector_phenomena(sector, SimpleNamespace(markdown=False), kind_factors=factors)
+            entries = run_sector.generate_sector_phenomena(sector, SimpleNamespace(), kind_factors=factors)
         return sorted(entry.phenomenon_type for entry in entries)
     assert kinds(None) == kinds({"rogue-planet": 1.0, "comet": 1.0, "nebula": 1.0})
 
@@ -244,7 +244,7 @@ def test_a_factor_of_zero_rolls_no_rogue_planet_or_comet(monkeypatch):
     with draw.bound("kind-factors-zero"):
         sector = _seeded_sector(7)
         entries = run_sector.generate_sector_phenomena(
-            sector, SimpleNamespace(markdown=False), kind_factors={"rogue-planet": 0.0, "comet": 0.0})
+            sector, SimpleNamespace(), kind_factors={"rogue-planet": 0.0, "comet": 0.0})
     assert not [e for e in entries if e.phenomenon_type in ("rogue-planet", "comet")]
 
 
@@ -282,7 +282,7 @@ def test_the_hosted_nebula_chance_is_scaled_by_the_nebula_factor(monkeypatch):
     for factor in (1.0, 0.4, 0.0):
         draw.set_run_seed(236)
         sector = Sector(4000)
-        run_sector.add_star_hosted_nebulae(sector, types.SimpleNamespace(markdown=False), chance_factor=factor)
+        run_sector.add_star_hosted_nebulae(sector, types.SimpleNamespace(), chance_factor=factor)
         rates[factor] = sector.added / 4000
     assert abs(rates[1.0] - 0.25) < 0.03
     assert abs(rates[0.4] - 0.10) < 0.03
@@ -487,7 +487,7 @@ def test_the_scattered_remnants_and_the_fill_take_the_places_share():
         def add_phenomenon(self, phenomenon, kind, position=None):
             return phenomenon
 
-    args = SimpleNamespace(markdown=False)
+    args = SimpleNamespace()
     row = {"kind": "supernova-remnant", "subtype": None, "mass_solar": None}
     for share, expected in ((1.0, "Type Ia"), (0.0, "core-collapse")):
         with draw.bound(f"scattered-{share}"):

@@ -23,6 +23,7 @@ from planetgen.generation.wide_binary import sample_wide_binary_eccentricity, sa
 from planetgen.generation import validation
 from planetgen.generation.comet import Comet
 from planetgen.physics.orbits import hill_radius_in_pair_au, holman_wiegert_critical_semimajor_axis, mutual_hill_radius_au
+from tests import render_support
 
 STAR_TYPES = ["G2V", "M5V", "K3V", "A0V"]
 TRIALS = 3
@@ -391,7 +392,7 @@ def test_wide_binary_system_generates_and_stays_within_bounds(star_type):
         for planet in system.secondary_planets:
             assert _orbit_edge(planet) <= system._orbit_ceiling_au(system.secondary_star) + 1e-6
 
-        assert str(system).strip()
+        assert render_support.text(system).strip()
 
 
 def test_wide_binary_stars_share_one_age_within_both_lifespans():
@@ -425,7 +426,7 @@ def test_wide_binary_round_trips_through_to_dict_from_dict():
     assert reloaded.wide_binary.eccentricity == system.wide_binary.eccentricity
     assert len(reloaded.planets) == len(system.planets)
     assert len(reloaded.secondary_planets) == len(system.secondary_planets)
-    assert str(reloaded) == str(system)
+    assert render_support.text(reloaded) == render_support.text(system)
 
 
 def test_close_binary_default_still_reachable_when_wide_binary_forced_false():

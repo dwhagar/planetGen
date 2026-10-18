@@ -5,7 +5,7 @@ A small web interface (in [`../src/html/`](../src/html/)) for
 browsing the MySQL databases described in
 [`database-schema.md`](database-schema.md) -- pick a database (schema),
 drill into its sectors and star systems, and view (or copy) the
-rendered wikitext/Markdown page saved for each one. Sectors and systems
+description of each system, written from its database rows. Sectors and systems
 also get their own interactive visualizations: a draggable 3D "Sector
 Map" per sector (translucent clouds for any nearby nebula/asteroid field,
 glowing points for any nearby black hole/neutron star),
@@ -172,9 +172,8 @@ before being placed in a page; a requested `?db=` schema name is
 validated API-side against the actual, prefix-filtered schema listing
 (exact match only, `planetgen.db.store.resolve_database`), which is what
 prevents it from being used to select a schema this deployment never
-meant to expose. `mdrender` escapes every block in full before emitting
-any markup, then narrowly re-enables only the one legitimate raw-HTML
-pattern generated content ever contains (`<sup>...</sup>`) -- so a
+meant to expose. The Document's HTML renderer
+(`describe/html.py`) escapes every string it writes and re-enables nothing, so a
 mischievous `--name`/`--star-type` value can't inject live HTML into a
 rendered page.
 
@@ -298,7 +297,7 @@ a help link on each page and a test that every page has one); until then the pag
 | `/admin/settings/export`, `/admin/settings/import`, `/admin/settings/import/save` | (new) | Admins only: export downloads the options set in `config.json` that an admin may change as `planetgen-settings.json`, without secrets or command-line-only options; import takes such a file (up to 1 MiB), checks it like an edit, shows the review diff, and `import/save` saves it as `config.import` with a backup first. A bad value, an unknown key, an option an admin may not set or a file from a newer release changes nothing and is named. |
 | `/admin/facility-types` | (new) | Admins only (POP.10): every facility type with its fields, and forms to add, change, take out of use and delete types and add, change and delete their fields, or to add the example type; each form posts back to the page, the API holds the rules and a refusal shows as the page's error. |
 | `/admin/generate` | (new) | Admins only: generate, plan or reset the galaxy from the browser (see below). |
-| `/admin/generate/system` | (new) | Admins only: one star system with every `planetgen system` option, shown as Markdown or wikitext and never saved (see below). |
+| `/admin/generate/system` | (new) | Admins only: one star system with every `planetgen system` option, shown as the system's description with Markdown, wikitext and text downloads, and never saved (see below). |
 
 **System page wiki upload.** For an admin (`current_admin()`), the
 system page asks `GET /api/wiki-config` and offers an "Upload to Wiki"
@@ -542,13 +541,14 @@ button. The last jobs are listed with their full output at
 `web/system_page.py` + `templates/generate_system.html`, linked from the
 Generate page) offers every `planetgen system` option: the ten
 force/forbid choices, name, star type, age, orbital slots, the flavor
-overrides, a pasted `--system-file` JSON, Markdown or wikitext, and the
-`--debug` narration. It runs `planetgen system --output FILE` in a
+overrides, a pasted `--system-file` JSON and the
+`--debug` narration. It runs `planetgen system --format document --output FILE` in a
 temporary directory and waits for it (a system takes about a second), so
-nothing touches the database. The result shows in a code box with Copy
-and Download buttons (Download posts the text back to
-`/admin/generate/system/download`, which returns it as a `.md`/`.wiki`
-file), plus a rendered preview for Markdown.
+nothing touches the database. The result shows as the system's description
+(the Document, `describe/html.py`) with a Download button for each format
+(Markdown, wikitext and text; a button posts the Document back to
+`/admin/generate/system/download`, which returns it as a `.md`/`.wiki`/`.txt`
+file).
 
 A job is an RQ job on Redis (`redis.url`): the page queues
 `planetgen.web.job_runner.run(<job dir>)` on a queue of the job's own and

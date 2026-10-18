@@ -21,6 +21,8 @@ import math
 
 import pytest
 
+from planetgen.describe import build as describe_build
+from planetgen.describe.quantity import inline_text as describe_inline
 from planetgen.galaxy import mass_chain
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star, _sample_evolved_star_mass_sol
@@ -333,14 +335,14 @@ _MAIN_SEQUENCE_ONLY_NOTE_FRAGMENTS = [
 @pytest.mark.parametrize("yerkes_class", ["VII", "III", "IB", "0"])
 def test_evolved_star_narrative_never_quotes_main_sequence_notes(yerkes_class):
     """
-    Regression guard for the Star.to_paragraph_list bug where a giant,
+    Regression guard for the age-sentence bug where a giant,
     supergiant, or white dwarf's age sentence quoted a main-sequence-only
     evolutionary note belonging to its current-temperature letter (e.g. a
     white dwarf's age exceeding the "main-sequence lifespan" quoted for it).
     """
     for spec in SPECTRAL_CLASSES:
         s = make_star(f"{spec}5{yerkes_class}")
-        age_sentence = s.to_paragraph_list()[1]
+        age_sentence = describe_inline(describe_build._star_age_sentence(s))
         for fragment in _MAIN_SEQUENCE_ONLY_NOTE_FRAGMENTS:
             assert fragment not in age_sentence, (
                 f"{spec}5{yerkes_class}: narrative wrongly includes a main-sequence-only note"

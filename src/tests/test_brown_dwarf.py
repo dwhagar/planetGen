@@ -18,6 +18,7 @@ from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.physics import brown_dwarf, constants
 from planetgen.util import draw
 from planetgen.web import scatter_members_view
+from tests import render_support
 
 
 def test_the_masses_run_from_the_deuterium_limit_to_the_hydrogen_limit():
@@ -145,9 +146,9 @@ def test_the_free_floating_brown_dwarf_has_the_laws_mass_radius_and_a_type():
         assert dwarf.radius_km == pytest.approx(brown_dwarf.radius_sol(solar) * constants.SOLAR_RADIUS_M
                                                 / constants.KM_TO_M_FACTOR)
         assert dwarf.spectral_type == brown_dwarf.spectral_type(dwarf.effective_temperature_k)
-        text = " ".join(dwarf.to_paragraph_list())
-        assert f"{dwarf.spectral_type} brown dwarf" in text
-        assert f"Type {dwarf.spectral_type})" in text
+        section = render_support.phenomenon_section(dwarf)
+        assert f"{dwarf.spectral_type} brown dwarf" in render_support.prose_text(section)
+        assert f"type {dwarf.spectral_type}" in render_support.facts_text(section)
     assert RoguePlanet(SystemConfig(), mass_bin="terrestrial").spectral_type is None
 
 

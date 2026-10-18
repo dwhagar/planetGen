@@ -36,6 +36,7 @@ from planetgen.galaxy.sector import (
     required_separation_ly,
 )
 from planetgen.generation.system import StarSystem
+from tests import render_support
 
 TRIALS = 3
 
@@ -283,7 +284,7 @@ def test_reload_with_generated_key_reproduces_the_exact_system():
     rebuilt = SpaceSector.from_dict(data)
     rebuilt_system = rebuilt.entries[0].star_system
 
-    assert str(rebuilt_system) == str(system)
+    assert render_support.text(rebuilt_system) == render_support.text(system)
     assert rebuilt_system.hab_count == system.hab_count
 
 
@@ -351,7 +352,7 @@ def test_save_and_load_round_trip_via_file(tmp_path):
     assert reloaded.entries[0].star_system.name == "Vulcan"
     # File save/load round-trips the generated object graph exactly too,
     # not just the recipe (Phase 1.5).
-    assert str(reloaded.entries[0].star_system) == str(system)
+    assert render_support.text(reloaded.entries[0].star_system) == render_support.text(system)
 
 
 def test_system_config_to_dict_and_from_dict_round_trip():
