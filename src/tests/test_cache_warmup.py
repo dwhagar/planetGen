@@ -11,6 +11,7 @@ tests' workers run the units here), with the families themselves faked where onl
 """
 
 import contextlib
+import types
 
 import pytest
 
@@ -19,6 +20,7 @@ from planetgen.api.config import Config
 from planetgen.cli import generate as generate_cli
 from planetgen.cli import warm as warm_cli
 from planetgen.db import dataversion, store
+from planetgen.galaxy import viewport
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.queue import commands, redisclient, redisqueue, runrecord, units, wrapper
 from planetgen.web import warmup
@@ -197,9 +199,80 @@ def test_every_cache_family_is_its_own_registered_command_with_one_unit():
     assert list(commands.KIND_OF_WARM_FAMILY) == list(warmup.FAMILIES)
     for family, kind in commands.KIND_OF_WARM_FAMILY.items():
         assert not commands.spec(kind).inline
+        if family == "galaxy-tiles":
+            continue   # many units, one a chunk of tiles: its own tests below
         expansion = commands.expand_function(kind)({"database": "x", "cap": 4})
         assert expansion.units == [({"database": "x", "cap": 4}, 1.0)], "one unit that warms that family and no other"
     assert commands.spec(commands.END_MAP_REBUILD).summary
+
+
+# --- The Galaxy Map's tiles (PERF.130) -----------------------------------------------------------
+
+@pytest.fixture
+def tile_levels(galaxy, monkeypatch):
+    """`warm-galaxy-tiles` on the seeded galaxy with a small octree (levels 0 to 3 in full, a zoom run to level 5)."""
+    real = warmup.build_app
+    monkeypatch.setattr(warmup, "build_app", lambda config=None: real(galaxy.config))
+    levels = types.SimpleNamespace(warm_levels=3, warm_zoom_levels=5)
+    monkeypatch.setattr(warmup, "get_settings", lambda: types.SimpleNamespace(tile_cache=levels))
+    return levels
+
+
+def _run_tile_units(galaxy):
+    expansion = commands.expand_function("warm-galaxy-tiles")({"database": galaxy.config.database, "cap": None})
+    return expansion, [commands.run_alone("warm-galaxy-tiles", args) for args, _cost in expansion.units]
+
+
+def test_the_first_levels_are_every_tile_coarsest_level_first_and_the_zoom_run_adds_finer_ones():
+    bounds = ((-20000.0, -20000.0, -20000.0), (20000.0, 20000.0, 20000.0))
+    keys = warmup.octree_tiles(bounds, 3)
+    levels = [viewport.parse_tile_key(key)[0] for key in keys]
+    assert levels == sorted(levels) and [levels.count(level) for level in range(4)] == [1, 8, 8, 8]
+    assert len(set(keys)) == len(keys)
+    run = warmup.zoom_run_tiles(bounds, 30000.0, 8)
+    assert run and all(viewport.parse_tile_key(key)[0] <= 8 for key in run) and len(set(run)) == len(run)
+    assert max(viewport.parse_tile_key(key)[0] for key in run) == 8, "the run goes in to the finest level asked for"
+    shape = None
+    every = warmup.tiles_to_warm(shape, 3, 8)
+    assert every[:len(keys)] == warmup.octree_tiles(warmup.tile_bounds_pc(warmup.ly_to_pc(
+        warmup.DEFAULT_SECTOR_EDGE_LY), shape), 3)
+    assert warmup.tiles_to_warm(shape, 3, 3) == warmup.tiles_to_warm(shape, 3, 0), "a run no finer adds nothing"
+
+
+def test_levels_that_would_build_too_many_tiles_are_refused_with_the_count():
+    with pytest.raises(warmup.WarmupFailed, match=r"warm_levels \d+ would build \d+ tiles.*lower it"):
+        warmup.tiles_to_warm(None, viewport.TILE_MAX_LEVEL, 0)
+
+
+def test_the_tile_command_is_cut_into_chunks_and_the_map_then_finds_every_tile_stored(galaxy, tile_levels,
+                                                                                   monkeypatch):
+    expansion, results = _run_tile_units(galaxy)
+    keys = [key for args, _cost in expansion.units for key in args["keys"]]
+    assert len(keys) == expansion.plan["tiles"] == len(set(keys)) > 0
+    assert all(0 < len(args["keys"]) <= warmup.TILE_CHUNK and cost > 0 for args, cost in expansion.units)
+    assert sum(result["warmed"] for result in results) == len(keys)
+    assert sum(result["built"] for result in results) == len(keys) and results[0]["noun"] == "tiles"
+    # A second run finds every tile stored and current: it builds nothing.
+    _expansion, again = _run_tile_units(galaxy)
+    assert sum(result["built"] for result in again) == 0 and sum(result["warmed"] for result in again) == len(keys)
+    # A web worker that never saw the warm-up asks the API for none of them.
+    asked = []
+    real = tilecache.get_galaxy_tiles
+    monkeypatch.setattr(tilecache, "get_galaxy_tiles", lambda db, wanted: asked.append(list(wanted)) or real(db, wanted))
+    for start in range(0, len(keys), tilecache.MAX_TILES_PER_REQUEST):
+        got = tilecache.fetch_tiles(galaxy.config.database, keys[start:start + tilecache.MAX_TILES_PER_REQUEST])
+        assert got["cached"] == len(got["tiles"])
+    assert [wanted for wanted in asked if wanted] == []
+
+
+def test_the_views_the_map_asks_for_on_the_way_in_are_stored(galaxy, tile_levels):
+    _run_tile_units(galaxy)
+    with warmup.build_app().test_request_context("/"):
+        shape = apiclient.get_galaxy_shape(galaxy.config.database)
+    stored = set(warmup.tiles_to_warm(shape, tile_levels.warm_levels, tile_levels.warm_zoom_levels))
+    opening = [key for key in warmup.opening_request(shape)
+               if viewport.parse_tile_key(key)[0] <= tile_levels.warm_zoom_levels]
+    assert opening and set(opening) <= stored
 
 
 def _args(*argv):
@@ -253,6 +326,10 @@ def script(monkeypatch, redis_server):
 
     monkeypatch.setattr(warm_cli, "_site_database", lambda: "x")
     monkeypatch.setattr(warmup, "warm_family", warm_family)
+    # The tile command is many units on a real galaxy; here, like the other families, it is one unit that is faked.
+    monkeypatch.setattr(warmup, "expand_warm_galaxy_tiles", lambda params: commands.Expansion(
+        [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
+    monkeypatch.setattr(warmup, "warm_galaxy_tiles_unit", lambda args, report: warmup._warm_unit("galaxy-tiles", args))
     Plan.ran, Plan.failing, Plan.owners = [], {}, []
     return Plan
 
@@ -264,7 +341,7 @@ def test_the_script_prints_one_line_per_family(script, capsys):
     assert {db for _family, _cap, db in script.ran} == {"x"}
     for family in warmup.FAMILIES:
         assert f"{family}: 3 pages warmed" in out
-    assert "Maintenance mode was not the map rebuild's" in out and "Cache warm-up done: 6 families." in out
+    assert "Maintenance mode was not the map rebuild's" in out and f"Cache warm-up done: {len(warmup.FAMILIES)} families." in out
 
 
 def test_a_failing_command_stops_the_list_exits_non_zero_and_is_named(script, caplog):
@@ -273,8 +350,8 @@ def test_a_failing_command_stops_the_list_exits_non_zero_and_is_named(script, ca
         warm_cli.run_warm(_args())
     assert exit_info.value.code == 1
     err = caplog.text
-    assert "the cache warm-up stopped: unit 0 of stage 3 failed: WarmupFailed: 2 of 9 pages did not answer" in err
-    assert [family for family, _cap, _db in script.ran] == ["galaxy-map", "lists", "sectors", "systems"], \
+    assert "the cache warm-up stopped: unit 0 of stage 4 failed: WarmupFailed: 2 of 9 pages did not answer" in err
+    assert [family for family, _cap, _db in script.ran] == ["galaxy-map", "galaxy-tiles", "lists", "sectors", "systems"], \
         "the wrapper's list stops at the failing command"
 
 

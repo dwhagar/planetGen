@@ -87,7 +87,9 @@
   },
   "tile_cache": {
     "dir": "",
-    "max_mb": 200.0
+    "max_mb": 200.0,
+    "warm_levels": 8,
+    "warm_zoom_levels": 14
   },
   "page_cache": {
     "enabled": true,

@@ -115,6 +115,10 @@ REGISTRY = _commands(
     CommandSpec("warm-galaxy-map", "Warm the Galaxy Map's opening view, its shape, sectors and phenomena",
                 unit=("planetgen.web.warmup", "warm_galaxy_map_unit"),
                 expand=("planetgen.web.warmup", "expand_warm_galaxy_map")),
+    CommandSpec("warm-galaxy-tiles", "Warm the Galaxy Map's tiles: the first levels in full, and the zoom run in to the centre",
+                unit=("planetgen.web.warmup", "warm_galaxy_tiles_unit"),
+                expand=("planetgen.web.warmup", "expand_warm_galaxy_tiles"),
+                finish=("planetgen.web.warmup", "finish_warm_galaxy_tiles")),
     CommandSpec("warm-lists", "Warm the first page of every list, and its counts",
                 unit=("planetgen.web.warmup", "warm_lists_unit"), expand=("planetgen.web.warmup", "expand_warm_lists")),
     CommandSpec("warm-sectors", "Warm every sector page",
@@ -167,7 +171,7 @@ KIND_OF_STAGE = {
 
 
 KIND_OF_WARM_FAMILY = {family: f"warm-{family}" for family in
-                       ("galaxy-map", "lists", "sectors", "systems", "phenomena", "search")}
+                       ("galaxy-map", "galaxy-tiles", "lists", "sectors", "systems", "phenomena", "search")}
 """dict: The command that warms each cache family (`web/warmup.FAMILIES`), the steps of `planetgen warm`."""
 
 KIND_OF_CHECK = {name: f"check-{name}" for name in (
