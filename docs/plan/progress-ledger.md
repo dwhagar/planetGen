@@ -826,3 +826,4 @@ Baseline: PR #1817.
 | PERF.112 | 8.1 | Queue, caches and performance |
 | DOC.52 | 8.1 | Docs |
 | DOC.67 | 8.1 | Docs |
+| MAP.250 | 8.1 | Fly-through map |
