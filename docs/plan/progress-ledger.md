@@ -833,3 +833,4 @@ Baseline: PR #1817.
 | GEN.541 | 8.1 | Components and wanderers |
 | PERF.135 | 8.1 | Queue, caches and performance |
 | PERF.127 | 8.1 | Queue, caches and performance |
+| GEN.551 | 8.4 | Bulk composition |

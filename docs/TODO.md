@@ -915,12 +915,7 @@ with `clamp()`.
 - [ ] **UX.138 Pages, symbols and descriptions for the new rows: moons of wanderers, free brown dwarfs as stars, unbound comets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md (the
-  design thread 'Unify star-like objects (2026-10-17)', findings relayed
-  by the coordinator at 11:29 PM EDT; the draft is not yet approved, and
-  Boss's cards D1 to D8 on it were open at 11:29 PM EDT as the
-  coordinator reported). Filed proposed, not assigned: the owner named
-  is the draft's suggestion only. U12 of the draft. The class pages, the
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U12 of the draft. The class pages, the
   map symbols (a moon of a rogue is new; the 'Mark Rogue Planets'
   setting and the rogue display follow the new rows) and the
   descriptions for what U4, U8, U9 and U10 produce; GEN.446's text for
@@ -928,8 +923,7 @@ with `clamp()`.
   a rogue planet page lists its moons, a free brown dwarf reads as a
   star, an unbound comet page shows its size, composition and activity.
   Done: each new row has a page, a symbol and a description in every
-  output, with the representation audit TEST.159 counting them. Owner:
-  not assigned (the draft proposes the interface lane), 8.4 phase 4.
+  output, with the representation audit TEST.159 counting them. Owner: proposed, not assigned by D7 (the draft proposes the interface lane), 8.4 phase 4.
   Standing rules for the whole chain: NO FIXED CONTENT (nothing copied
   from the Solar System or the Milky Way), the database schema is not a
   constraint, no backward-compatibility shims, every draw through the
@@ -5552,7 +5546,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator 2026-10-17, 11:29 PM EDT as relayed): gets simpler: with
   one body model a planet that leaves its star changes its parent and
   keeps its row, ID and moons; there is no second `rogue-planet` table
-  row to create (GEN.551 awaits Boss's approval of the design).
+  row to create (the design is approved, Boss's cards of 11:28 to 11:31 PM EDT).
 
 - [ ] **GEN.292 Run the orbital update for a stated span in one go from the command line (elapsed years)**
   Finding (orbital-encounters research, 2026-10-15, kind: gap in
@@ -9080,7 +9074,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test target here and in TEST.210), not 3.9 to 5.4. Core mass fraction
   from the star is 0.2 to 0.47 with the Thiabaud box used only as a
   plausibility box.
-  Prerequisites: GEN.427, GEN.440, GEN.458. Related: GEN.429,
+  Prerequisites: GEN.427, GEN.440, GEN.458, GEN.557. Related: GEN.429,
   DB.69,
   GEN.430.
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
@@ -9174,8 +9168,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   built before or together with this item, or the rogue composition draw
   is built twice, because a `RoguePlanet` is not a `Planet`. The same
   holds for GEN.429, GEN.442, GEN.458, GEN.466, GEN.495, DB.69 and
-  DB.70. No prerequisite is added; the order is for the lane plan after
-  Boss's card D6.
+  DB.70. GEN.557 is a prerequisite since 11:31 PM EDT (see the decided order below).
+  Decided order (coordinator, 2026-10-17, 11:31 PM EDT, after Boss's
+  eight cards on the unified chain, taps 11:28 to 11:31 PM EDT): this
+  item follows or joins GEN.557 (wanderers); GEN.557 is now one of its
+  prerequisites. It may be built in one go with GEN.557 by the same lane
+  (Core 4).
 
 - [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -13842,16 +13840,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one full rescatter. Version: proposed 8.4 (new worlds) as a holding
   place, not decided; it can move once the design lands. Done: the
   design note is approved item by item on cards and this umbrella is
-  replaced by its children. Owner: the design thread first, then Core 4
-  as the composition and stellar chain owner (coordinator, 2026-10-17,
-  11:19 PM EDT); no lane is assigned yet.
+  replaced by its children. Owner: Core 4 for the chain, Core 3 for the pair builder, Core 1 for storage (Boss's card D7, 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed); the design thread's work is done.
   Prerequisites: none. Related: GEN.301, GEN.377, GEN.129, GEN.130,
   GEN.142, GEN.264, GEN.315, GEN.332, GEN.291, GEN.457, GEN.466,
   GEN.442.
   Design thread findings (relayed by the coordinator, 2026-10-17, 11:29
   PM EDT as the coordinator reported): draft
   /mnt/project-files/design-drafts/unified-star-like-objects.md.
-  Children filed, proposed and not assigned: U1 GEN.551 (approval and
+  Children filed at 11:30 PM EDT: U1 GEN.551 (approval and
   cards D1 to D8), U2 GEN.552, U3 is GEN.315 as filed (Core 3, 8.1; keep
   its interface host-neutral: a function that takes a tree and returns
   bodies), U4 GEN.553, U5 GEN.554, U6 GEN.555, U7 GEN.556, U8 GEN.557,
@@ -13874,50 +13870,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and 8. The group cap stays 12 unless Boss says otherwise (the design
   reads his 7 as the largest group the generator makes). Version holding
   place: 8.4; card D6 decides.
-
-- [ ] **GEN.551 Approve the unified orbited-body design note and its eight cards (D1 to D8) before any build of the chain**
-  Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
-  the coordinator relayed). Design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md (the
-  design thread 'Unify star-like objects (2026-10-17)', findings relayed
-  by the coordinator at 11:29 PM EDT; the draft is not yet approved, and
-  Boss's cards D1 to D8 on it were open at 11:29 PM EDT as the
-  coordinator reported). Filed proposed, not assigned: the owner named
-  is the draft's suggestion only. Boss's answer to the cards of section
-  6 of the draft: D1 storage depth (code only, a shared parent link, or
-  one bodies table), D2 remnant counts (keep fixed densities, derive
-  them, or derive neutron stars only), D3 where rogue moons come from
-  (ejection survivors, isolated-disk moons, or both), D4 the notional
-  formation host for a rogue planet's composition, D5 unbound comet rows
-  (rows above a size cut or the 0.007 per pc^3 design rate), D6 version
-  (a new phase of 8.4, structural parts in 8.1 phase 2, or after 9.0),
-  D7 lanes, D8 whether the rogue cost is on by default. The draft reads
-  two points as decided and makes no card of them: the group cap stays
-  12 (decided earlier; Boss wrote 7 in passing) and moons are the lowest
-  level (Boss's words), so no moons of moons. Recommended options are in
-  the draft; they stand as the defaults only if Boss confirms them (the
-  9:54 PM EDT 'approve all your defaults' covered the composition notes,
-  not this one). Done: each card answered and recorded here with the
-  answer, the time and Boss's words, the draft moved to docs/design/ and
-  linked from docs/design/README.md, and the items below renumbered or
-  dropped to match. Owner: Boss. Standing rules for the whole chain: NO
-  FIXED CONTENT (nothing copied from the Solar System or the Milky Way),
-  the database schema is not a constraint, no backward-compatibility
-  shims, every draw through the one wrapper `util/draw.py` (GEN.56),
-  every recalled source verified by a lane before use under the standing
-  source rules, and any change to a drawn value bumps the generator
-  epoch (OPS.56 rule).
-  Prerequisites: none. Related: GEN.550.
+  Decided (Boss, eight cards D1 to D8, taps 11:28 to 11:31 PM EDT,
+  2026-10-17, as the coordinator relayed; each the draft's
+  recommendation): D1 a shared parent link, the kind tables stay; D2
+  derive the NS and BH counts from the mass function and verified
+  explosion maps, his densities become test targets; D3 rogue moons from
+  both origins; D4 rogue composition from a notional formation host; D5
+  comets as rows above a size cut with a computed count; D6 a new part
+  of 8.4 for the chain; D7 Core 4 for the chain, Core 3 for the pair
+  builder, Core 1 for storage; D8 rogue-with-moons on by default after a
+  PERF measurement. The design note is
+  docs/design/unified-star-like-objects.md (plan). GEN.551 is done by
+  these answers. GEN.560 (research) moves to 8.1 phase 1 with no
+  behaviour change, at Boss's ask for foundations (11:33 PM EDT).
+  Back-scatter of the 8.4 items against 8.1 is in progress at Boss's ask
+  (11:33 PM EDT).
 
 - [ ] **GEN.552 Host registry: the five fixed `system_model` values become pointers to one gated orbiter table per host class, with no change in behaviour**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md (the
-  design thread 'Unify star-like objects (2026-10-17)', findings relayed
-  by the coordinator at 11:29 PM EDT; the draft is not yet approved, and
-  Boss's cards D1 to D8 on it were open at 11:29 PM EDT as the
-  coordinator reported). Filed proposed, not assigned: the owner named
-  is the draft's suggestion only. U2 of the draft (section 7).
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U2 of the draft (section 7).
   `phenomena/registry.py` (GEN.250, built) has a `system_model` column
   with five values (`none`, `star-system`, `central-star`, `rogue-moon`,
   `remnant-planets`). Replace it with one row per host class (group
@@ -13931,24 +13903,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the tables, each row labelled with its source state; the stage C
   system pass reads them (its `SYSTEM_PASS_ODDS` becomes rows). Done: a
   fill with the tables gives byte-identical systems to one without.
-  Owner: not assigned (the draft proposes Core 4), 8.4 phase 1. Standing
+  Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built), 8.4 phase 1. Standing
   rules for the whole chain: NO FIXED CONTENT (nothing copied from the
   Solar System or the Milky Way), the database schema is not a
   constraint, no backward-compatibility shims, every draw through the
   one wrapper `util/draw.py` (GEN.56), every recalled source verified by
   a lane before use under the standing source rules, and any change to a
   drawn value bumps the generator epoch (OPS.56 rule).
-  Prerequisites: GEN.551. Related: GEN.550, GEN.315.
+  Prerequisites: none. Related: GEN.550, GEN.315.
 
 - [ ] **GEN.553 One star-like body draw: origin, birth, state and [Fe/H], with the initial-final relation, the remnant mass, radius and age rules in one place**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md (the
-  design thread 'Unify star-like objects (2026-10-17)', findings relayed
-  by the coordinator at 11:29 PM EDT; the draft is not yet approved, and
-  Boss's cards D1 to D8 on it were open at 11:29 PM EDT as the
-  coordinator reported). Filed proposed, not assigned: the owner named
-  is the draft's suggestion only. U4 of the draft. Today the white dwarf
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U4 of the draft. Today the white dwarf
   initial-final relation is applied in four files (`stellar_evolution`,
   `multistar`, `scatter_companions`, `place_terms`), the neutron star
   and black hole mass in five, the Schwarzschild radius in two, and the
@@ -13970,26 +13937,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the rogue surface module's duplicated Burrows constants are replaced
   by the `brown_dwarf` module. Done: each rule lives in one function,
   the duplicated copies are gone with no shim, a brown dwarf takes the
-  population's age, and the tests for each kind pass. Owner: not
-  assigned (the draft proposes Core 4), 8.4 phase 1. Standing rules for
+  population's age, and the tests for each kind pass. Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built), 8.4 phase 1. Standing rules for
   the whole chain: NO FIXED CONTENT (nothing copied from the Solar
   System or the Milky Way), the database schema is not a constraint, no
   backward-compatibility shims, every draw through the one wrapper
   `util/draw.py` (GEN.56), every recalled source verified by a lane
   before use under the standing source rules, and any change to a drawn
   value bumps the generator epoch (OPS.56 rule).
-  Prerequisites: GEN.551, GEN.439, GEN.440. Related: GEN.550, GEN.252,
+  Prerequisites: GEN.439, GEN.440. Related: GEN.550, GEN.252,
   GEN.463, GEN.467, GEN.469.
 
 - [ ] **GEN.554 Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md (the
-  design thread 'Unify star-like objects (2026-10-17)', findings relayed
-  by the coordinator at 11:29 PM EDT; the draft is not yet approved, and
-  Boss's cards D1 to D8 on it were open at 11:29 PM EDT as the
-  coordinator reported). Filed proposed, not assigned: the owner named
-  is the draft's suggestion only. U5 of the draft. A neutron star or
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U5 of the draft. A neutron star or
   black hole becomes a star-like object whose state is 'remnant', with a
   progenitor mass and a birth time like every other star. Quick check by
   the design thread (its own computation with the generator's IMF breaks
@@ -14010,10 +13971,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   supermassive black holes keep their own origin rows. The progenitor
   ranges 8 to 30 and 20 to 100 and the explosion maps need verified
   sources first (recalled and unverified: O'Connor and Ott 2011,
-  Sukhbold et al. 2016, Fryer et al. 2012). Depends on card D2. Done:
+  Sukhbold et al. 2016, Fryer et al. 2012). Decided (card D2): derive the counts from the mass function and the verified explosion maps, Boss's densities become test targets, and the black hole share needs a verified source first. Done:
   counts are outputs, the old densities are tests with the gap shown,
-  each source is verified or the row is labelled a placeholder. Owner:
-  not assigned (the draft proposes Core 4), 8.4 phase 1. Standing rules
+  each source is verified or the row is labelled a placeholder. Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built), 8.4 phase 1. Standing rules
   for the whole chain: NO FIXED CONTENT (nothing copied from the Solar
   System or the Milky Way), the database schema is not a constraint, no
   backward-compatibility shims, every draw through the one wrapper
@@ -14026,12 +13986,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 - [ ] **GEN.555 The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md (the
-  design thread 'Unify star-like objects (2026-10-17)', findings relayed
-  by the coordinator at 11:29 PM EDT; the draft is not yet approved, and
-  Boss's cards D1 to D8 on it were open at 11:29 PM EDT as the
-  coordinator reported). Filed proposed, not assigned: the owner named
-  is the draft's suggestion only. U6 of the draft. `multistar._Builder`
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U6 of the draft. `multistar._Builder`
   already draws periods, eccentricities and orientations from a law per
   pair kind and checks stability (60 tries per pair, with the
   Mardling-Aarseth, Eggleton-Kiseleva and Kozai screens). Make it
@@ -14046,8 +14001,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scatter time and planets, moons and belts at sector fill (Boss,
   2026-10-15, 5:51 PM EDT) stands. Done: planet and brown dwarf pairs
   come out of the builder with sourced laws and the one stability test,
-  and the existing trees are unchanged for the same seeds. Owner: not
-  assigned (the draft proposes Core 3, which owns the multi-star train),
+  and the existing trees are unchanged for the same seeds. Owner: Core 3 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built),
   8.4 phase 1. Standing rules for the whole chain: NO FIXED CONTENT
   (nothing copied from the Solar System or the Milky Way), the database
   schema is not a constraint, no backward-compatibility shims, every
@@ -14055,18 +14009,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   source verified by a lane before use under the standing source rules,
   and any change to a drawn value bumps the generator epoch (OPS.56
   rule).
-  Prerequisites: GEN.551, GEN.315, GEN.331, GEN.332. Related: GEN.550,
+  Prerequisites: GEN.315, GEN.331, GEN.332. Related: GEN.550,
   GEN.331, GEN.332, GEN.129, GEN.327.
 
 - [ ] **GEN.556 `populate(host)`: planets, belts, comets and moons come from the class tables by one recursive routine, and the system pass is absorbed**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md (the
-  design thread 'Unify star-like objects (2026-10-17)', findings relayed
-  by the coordinator at 11:29 PM EDT; the draft is not yet approved, and
-  Boss's cards D1 to D8 on it were open at 11:29 PM EDT as the
-  coordinator reported). Filed proposed, not assigned: the owner named
-  is the draft's suggestion only. U7 of the draft. One routine for any
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U7 of the draft. One routine for any
   host: draw its companion nodes when its table has them and depth
   allows, draw the orbiters of every satellite row that passes the gate
   inside the zone rule (engulfment and Roche limit to the Holman-Wiegert
@@ -14083,7 +14032,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   draw moves. A star system is then the recursion: group, member,
   planet, moon. Done: a system rebuilt from its stored members and seeds
   equals the stored one at every depth, and the old system pass is gone
-  with no shim. Owner: not assigned (the draft proposes Core 4), 8.4
+  with no shim. Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built), 8.4
   phase 2. Standing rules for the whole chain: NO FIXED CONTENT (nothing
   copied from the Solar System or the Milky Way), the database schema is
   not a constraint, no backward-compatibility shims, every draw through
@@ -14096,12 +14045,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 - [ ] **GEN.557 Wanderers: a rogue planet becomes a planet with no parent, drawn by the one body chain with an origin table, a notional formation host, the population's age and motion**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md (the
-  design thread 'Unify star-like objects (2026-10-17)', findings relayed
-  by the coordinator at 11:29 PM EDT; the draft is not yet approved, and
-  Boss's cards D1 to D8 on it were open at 11:29 PM EDT as the
-  coordinator reported). Filed proposed, not assigned: the owner named
-  is the draft's suggestion only. U8 of the draft; closes GEN.142
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U8 of the draft; closes GEN.142
   (peculiar velocity for rogue planets). Stage E becomes 'wanderers',
   the bodies whose origin row says 'ejected from a system' or 'formed in
   isolation', counted per star as in the code (Poisson, mean rate per
@@ -14121,10 +14065,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   8.4) write composition for `Planet` objects and a `RoguePlanet` is not
   one, so this item is built before or together with GEN.428, or the
   rogue draw is built twice; so it carries no prerequisite on GEN.428.
-  Depends on cards D3 and D4. Done: no `RoguePlanet` class draws its own
+  Decided (cards D3 and D4): rogue moons from both origins, and a rogue's composition from a notional formation host through the bound-planet code. Order (coordinator, 11:31 PM EDT): GEN.428 follows or joins this item. Done: no `RoguePlanet` class draws its own
   composition, age or velocity, GEN.142 is closed, and a rogue's
-  composition comes from the shared code. Owner: not assigned (the draft
-  proposes Core 4), 8.4 phase 1 or 2 with GEN.428. Standing rules for
+  composition comes from the shared code. Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built), 8.4 phase 1 or 2 with GEN.428. Standing rules for
   the whole chain: NO FIXED CONTENT (nothing copied from the Solar
   System or the Milky Way), the database schema is not a constraint, no
   backward-compatibility shims, every draw through the one wrapper
@@ -14137,13 +14080,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 - [ ] **GEN.558 Moons of wanderers: ejection survivors and isolated-disk moons are table rows, and the fixed 20% boolean is gone**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md (the
-  design thread 'Unify star-like objects (2026-10-17)', findings relayed
-  by the coordinator at 11:29 PM EDT; the draft is not yet approved, and
-  Boss's cards D1 to D8 on it were open at 11:29 PM EDT as the
-  coordinator reported). Filed proposed, not assigned: the owner named
-  is the draft's suggestion only. U9 of the draft, card D3 (recommended
-  there: both mechanisms as origin rows by mass bin; not decided). A
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U9 of the draft, card D3 (Decided: both mechanisms, as origin rows by mass bin). A
   moon of a free planet is the ordinary moon routine with a different
   outer limit. For an ejected planet only moons that were inside a
   smaller fraction of the Hill radius at ejection survive (recalled and
@@ -14159,7 +14096,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   12 moon systems per sector, so cost is unmeasured (U14). Done: a rogue
   planet's moons are Moon rows with a parent, the boolean is gone with
   no shim, and each source is verified or the row is labelled a
-  placeholder. Owner: not assigned (the draft proposes Core 4), 8.4
+  placeholder. Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built), 8.4
   phase 2. Standing rules for the whole chain: NO FIXED CONTENT (nothing
   copied from the Solar System or the Milky Way), the database schema is
   not a constraint, no backward-compatibility shims, every draw through
@@ -14171,13 +14108,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 - [ ] **GEN.559 Unbound comets: a size law and a cut, composition from the comet table, derived activity and velocity**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md (the
-  design thread 'Unify star-like objects (2026-10-17)', findings relayed
-  by the coordinator at 11:29 PM EDT; the draft is not yet approved, and
-  Boss's cards D1 to D8 on it were open at 11:29 PM EDT as the
-  coordinator reported). Filed proposed, not assigned: the owner named
-  is the draft's suggestion only. U10 of the draft, card D5 (recommended
-  there: rows above a size cut, the rest a computed count; not decided).
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U10 of the draft, card D5 (Decided: rows above a size cut, the rest a computed count).
   An interstellar comet today is a descriptive row: a diameter, a speed
   and three components from a list of ten, activity a 50% coin, at a
   design rate of 0.007 per pc^3 against a real 1e12 per pc^3 (range 1e11
@@ -14195,8 +14126,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   offset, GEN.520); activity derived from composition, size and distance
   to the nearest star; velocity from the population plus ejection speed.
   Done: the coin and the fixed list are gone, comets above the cut are
-  rows, the count below is shown. Owner: not assigned (the draft
-  proposes Core 4), 8.4 phase 2. Standing rules for the whole chain: NO
+  rows, the count below is shown. Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built), 8.4 phase 2. Standing rules for the whole chain: NO
   FIXED CONTENT (nothing copied from the Solar System or the Milky Way),
   the database schema is not a constraint, no backward-compatibility
   shims, every draw through the one wrapper `util/draw.py` (GEN.56),
@@ -14208,12 +14138,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 - [ ] **GEN.560 Research list for the chain: ejection survival of moons, circumplanetary disks of isolated planetary-mass objects, failed-supernova and direct-collapse shares, the size law of interstellar objects**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md (the
-  design thread 'Unify star-like objects (2026-10-17)', findings relayed
-  by the coordinator at 11:29 PM EDT; the draft is not yet approved, and
-  Boss's cards D1 to D8 on it were open at 11:29 PM EDT as the
-  coordinator reported). Filed proposed, not assigned: the owner named
-  is the draft's suggestion only. U15 of the draft, a read-only research
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U15 of the draft, a read-only research
   item with no behaviour change. For each: find the source, read it,
   verify the citation and the number before any lane uses it (the
   standing source rules: verified wins, the newest verified wins, the
@@ -14227,9 +14152,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Science, OUP, ScienceDirect and A&A; arXiv, doi.org, NTRS and Crossref
   are open). Done: a note under docs/design/ lists each source with its
   verified numbers and what is still missing, and U5, U9 and U10 read
-  from it. Owner: not assigned (the draft proposes a read-only research
-  lane), 8.4 phase 1 (it can run earlier since it has no prerequisite
-  and changes no behaviour). Standing rules for the whole chain: NO
+  from it. Owner: proposed, not assigned by D7 (the draft proposes a read-only research lane), 8.1 phase 1, no behaviour change (the coordinator, 11:31 PM EDT, relaying Boss's wish for foundations in 8.1). Standing rules for the whole chain: NO
   FIXED CONTENT (nothing copied from the Solar System or the Milky Way),
   the database schema is not a constraint, no backward-compatibility
   shims, every draw through the one wrapper `util/draw.py` (GEN.56),
@@ -15178,22 +15101,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 - [ ] **PERF.136 Measure the fill with wanderers and their moons, and decide whether the rogue cost is on by default**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md (the
-  design thread 'Unify star-like objects (2026-10-17)', findings relayed
-  by the coordinator at 11:29 PM EDT; the draft is not yet approved, and
-  Boss's cards D1 to D8 on it were open at 11:29 PM EDT as the
-  coordinator reported). Filed proposed, not assigned: the owner named
-  is the draft's suggestion only. U14 of the draft, card D8 (recommended
-  there: on, after a PERF measurement shows the fill stays inside the
-  budget; the alternatives are off by default with a plan-configuration
-  switch like the halo and satellite switches of GEN.537, or on without
-  a measurement). Rogue planets outnumber stars about 5 to 1 and about
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U14 of the draft, card D8 (Decided: on by default, after a PERF measurement shows the fill stays inside the budget). Rogue planets outnumber stars about 5 to 1 and about
   12 moon systems per sector are expected, so this may be the heaviest
   new part of the fill; no measurement exists. Do: measure the fill and
   the tile build with the PERF harness on the sample galaxy and on a
   large one, with and without wanderer moons, and record the numbers.
-  Done: the measurement is in the item and the card D8 answer decides
-  the default. Owner: not assigned (the draft proposes Core 5), 8.4
+  Done: the measurement is in the item and the default is on if it is inside the budget. Owner: proposed, not assigned by D7 (the draft proposes Core 5), 8.4
   phase 4. Standing rules for the whole chain: NO FIXED CONTENT (nothing
   copied from the Solar System or the Milky Way), the database schema is
   not a constraint, no backward-compatibility shims, every draw through
@@ -16127,14 +16040,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
 - [ ] **DB.73 Storage for one orbited-body model: a shared parent link for every kind, free parents, the orbit node table filled, moons storable under a rogue**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md (the
-  design thread 'Unify star-like objects (2026-10-17)', findings relayed
-  by the coordinator at 11:29 PM EDT; the draft is not yet approved, and
-  Boss's cards D1 to D8 on it were open at 11:29 PM EDT as the
-  coordinator reported). Filed proposed, not assigned: the owner named
-  is the draft's suggestion only. U11 of the draft, card D1 (recommended
-  there: option 2, code plus one shared parent link, kind tables keep
-  their own columns; not decided). The object ID is unchanged (body
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U11 of the draft, card D1 (Decided: option 2, code plus one shared parent link, the kind tables keep their own columns). The object ID is unchanged (body
   number 0 for the head of a system or a wanderer, 1 and up for the rest
   on one counter; a planet leaving its star keeps its ID and changes its
   parent). Do: widen `parent_type` and `parent_id` (on `planets` and
@@ -16149,15 +16055,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   regenerated (wiped rescatter), not converted. The Alembic revision is
   numbered at merge (head 0109 at 6:20 PM EDT on 2026-10-17). Done: a
   moon of a free planet stores and loads, a planet's parent change keeps
-  its row and ID, and the schema doc is updated. Owner: not assigned
-  (the draft proposes Core 1, the identity and repair chain), 8.4 phase
+  its row and ID, and the schema doc is updated. Owner: Core 1 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built), 8.4 phase
   1. Standing rules for the whole chain: NO FIXED CONTENT (nothing
   copied from the Solar System or the Milky Way), the database schema is
   not a constraint, no backward-compatibility shims, every draw through
   the one wrapper `util/draw.py` (GEN.56), every recalled source
   verified by a lane before use under the standing source rules, and any
   change to a drawn value bumps the generator epoch (OPS.56 rule).
-  Prerequisites: GEN.551. Related: GEN.550, DB.69, DB.70.
+  Prerequisites: none. Related: GEN.550, DB.69, DB.70.
 
 ## API: The JSON API
 
@@ -19538,12 +19443,7 @@ clears each one.
 - [ ] **TEST.239 Tests for the unified chain: determinism by host, representation counts per kind and level, rogue and comet rates, derived remnant shares**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md (the
-  design thread 'Unify star-like objects (2026-10-17)', findings relayed
-  by the coordinator at 11:29 PM EDT; the draft is not yet approved, and
-  Boss's cards D1 to D8 on it were open at 11:29 PM EDT as the
-  coordinator reported). Filed proposed, not assigned: the owner named
-  is the draft's suggestion only. U13 of the draft. Determinism by host:
+  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U13 of the draft. Determinism by host:
   a system rebuilt from its seeds and stored members equals the stored
   one at every depth. Representation: counts per kind and per level
   (TEST.159, TEST.160), the multiplicity audit for planet and moon
@@ -19551,8 +19451,7 @@ clears each one.
   dwarf and remnant branches (TEST.211). Rates: rogue and comet rates
   against the cited ones, and the derived remnant shares against Boss's
   densities (U5) as targets that show the gap. Done: each test exists
-  and passes, none is skipped or loosened. Owner: not assigned (the
-  draft proposes Core 4 with the test lane), 8.4 phase 4. Standing rules
+  and passes, none is skipped or loosened. Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built) with the test lane, 8.4 phase 4. Standing rules
   for the whole chain: NO FIXED CONTENT (nothing copied from the Solar
   System or the Milky Way), the database schema is not a constraint, no
   backward-compatibility shims, every draw through the one wrapper

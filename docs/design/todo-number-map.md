@@ -1208,7 +1208,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.548 | Build-time downloads for the isochrone grids, the white-dwarf layers and the neutron-star equation of state, each with a checksum and a labelled stand-in until it lands | none | open |
 | GEN.549 | L dwarfs hotter than 1,500 K are 2 to 4 times too rare against the 20 pc census: use a cooling track that reaches them (strict expected failure) | none | open |
 | GEN.550 | Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system | none | open |
-| GEN.551 | Approve the unified orbited-body design note and its eight cards (D1 to D8) before any build of the chain | none | open |
+| GEN.551 | Approve the unified orbited-body design note and its eight cards (D1 to D8) before any build of the chain | none | done, PR #2171 |
 | GEN.552 | Host registry: the five fixed `system_model` values become pointers to one gated orbiter table per host class, with no change in behaviour | none | open |
 | GEN.553 | One star-like body draw: origin, birth, state and [Fe/H], with the initial-final relation, the remnant mass, radius and age rules in one place | none | open |
 | GEN.554 | Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets | none | open |
