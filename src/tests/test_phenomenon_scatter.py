@@ -759,6 +759,8 @@ def test_the_map_sizes_scattered_points_by_their_stored_mass(mysql_config):
     assert by_mass[1.5] < by_mass[10.0] < by_mass[18.0] < by_mass[5000.0]
     unstored = [point for point in points if point["mass_solar"] is None]
     assert unstored and unstored[0]["size"] == 0.55
+    # MAP.111: an unbuilt scattered point is outside the filled sectors, so "Charted only" dims it.
+    assert [point["charted"] for point in points] == [False] * len(points)
     # MAP.208: drawn as bright as a star of its mass (a black hole a little dimmer), a massless one as a
     # one solar mass star.
     by_mass = {point["mass_solar"]: point for point in points}
@@ -767,6 +769,27 @@ def test_the_map_sizes_scattered_points_by_their_stored_mass(mysql_config):
     assert by_mass[1.5]["map_luminosity_sol"] == pytest.approx(stellar_evolution.map_luminosity_sol(1.5), rel=1e-3)
     assert by_mass[1.5]["map_luminosity_sol"] < by_mass[10.0]["map_luminosity_sol"] < by_mass[5000.0]["map_luminosity_sol"]
     assert unstored[0]["map_luminosity_sol"] == pytest.approx(tuning.BLACK_HOLE_MAP_BRIGHTNESS, rel=1e-3)
+
+
+def test_a_scattered_point_is_charted_once_its_sector_is_built(mysql_config):
+    """MAP.111: a coarse tile lists built scattered points too; only those are charted, so "Charted only" keeps
+    them lit and dims the unbuilt ones."""
+    from planetgen.db import query
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("DELETE FROM phenomenon_scatter")
+        for wedge, built in ((0, "NULL"), (1, "NOW()")):
+            conn.execute(
+                "INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, subtype, "
+                "position_x_mpc, position_y_mpc, position_z_mpc, seed, mass_solar, built_at) "
+                f"VALUES (0, 0, ?, 'black-hole', 'supermassive', ?, 0, 0, 1, 4.0e6, {built})",
+                (wedge, 1000 * wedge))
+        conn.commit()
+        points = query.galaxy_scattered_points_in_box(conn, (-10, -10, -10), (10, 10, 10), EDGE_PC, 50, True)
+    finally:
+        conn.close()
+    assert sorted(point["charted"] for point in points) == [False, True]
+    assert {point["name"] for point in points if point["charted"]} == {"Black hole"}
 
 
 def _index_names(conn):

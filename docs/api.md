@@ -908,8 +908,10 @@ forced credential change. They back the admin stats page
   `{"all": true}` — lifts lockouts and forgets their counts; returns
   `{"lifted": n}`; audited as `lockout.lift`. From a shell (for an admin
   locked out of the site itself): `python3 -m planetgen.cli.lockouts` lists
-  them, `--ip <address>`, `--user <name>` or `--all` lifts them, and
-  `--forget-devices <name>` revokes that admin's trusted-device cookies.
+  them, `python3 -m planetgen.cli.lift_lockout` with `--ip <address>`,
+  `--user <name>` or `--all` lifts them, and
+  `python3 -m planetgen.cli.forget_devices <name>` revokes that admin's
+  trusted-device cookies.
 
 ### Authentication
 
@@ -962,7 +964,7 @@ forced credential change. They back the admin stats page
 - `POST /api/auth/totp/disable` `{"current_password", "code"}` — turns
   it off, and forgets every trusted device of that admin (the browser
   that turned it off gets a new device cookie). Lost the phone and the recovery codes? From a shell:
-  `python3 -m planetgen.cli.lockouts --reset-two-factor <user>`.
+  `python3 -m planetgen.cli.reset_two_factor <user>`.
 - `POST /api/auth/logout` — ends the current session, clears the cookie.
 - `GET /api/auth/me` — the calling admin's identity.
 - `POST /api/auth/change-credentials`

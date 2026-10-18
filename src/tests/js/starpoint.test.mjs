@@ -97,6 +97,16 @@ test("a phenomenon is as bright as a star of its mass, never brighter than the b
   assert.equal(P.phenomenonLuminositySol(undefined, 7), 1);
 });
 
+test("Charted only dims a star or a scattered phenomenon outside the filled sectors, nothing inside", () => {
+  assert.equal(P.isUncharted({ id: 1 }), true, "a pre-placed star in an uncharted sector");
+  assert.equal(P.isUncharted({ id: 1, charted: true }), false);
+  assert.equal(P.isUncharted({ id: 1, generated: true }), false, "a generated star is in a filled sector");
+  assert.equal(P.isUncharted({ phenomenon: true, scattered: true, charted: false }), true, "an unbuilt scattered black hole");
+  assert.equal(P.isUncharted({ phenomenon: true, scattered: true }), true, "a point from a tile that predates the field");
+  assert.equal(P.isUncharted({ phenomenon: true, scattered: true, charted: true }), false, "its sector is built");
+  assert.equal(P.isUncharted({ phenomenon: true, type: "black_hole" }), false, "a built phenomenon lies in a filled sector");
+});
+
 test("the sector scene's far brightness follows the star's own and never exceeds it", async () => {
   installDom("http://localhost/sector/1");
   const SS = await import(new URL("sectorscene.js", STATIC_URL).href);

@@ -32,7 +32,7 @@ Evidence tags: [C] computed or measured for this note (scripts in `/mnt/project-
 | Generate page jobs | `web/jobs.py`, `web/job_runner.py`, `cli/worker.py` | one RQ queue per job, `planetgen-web-<job id>`, one job, one detached burst worker | `result_ttl=0`, `failure_ttl` 1 day | `start_job` raises `OSError`: no job starts |
 | API jobs (neighborhood, regenerate, wiki, estimates, one-off system) | `queue/api_jobs.py` | shared queue `planetgen-web`, jobs `planetgen-api-<16 hex>`, counter `planetgen-api-workers-starting` (15 s) | `result_ttl` and `failure_ttl` 1 day | `NoQueue`; `command_and_wait` runs the command in the request instead |
 | Request rate limits (Flask-Limiter) | `api/config.py` | `planetgen:limiter:*` (the `limits` library's keys) | per window | falls back to counting in memory |
-| Login lockouts (SEC.30) | `admin/throttle.py` `RedisStore`, `api/loginguard.py`, `cli/lockouts.py` | one JSON string per address or username, `planetgen:limiter:login:<scope>:<subject>`, written under `WATCH`, 7 day expiry | until idle | counts in memory, warns once |
+| Login lockouts (SEC.30) | `admin/throttle.py` `RedisStore`, `api/loginguard.py`, `cli/lockouts.py`, `cli/lift_lockout.py` | one JSON string per address or username, `planetgen:limiter:login:<scope>:<subject>`, written under `WATCH`, 7 day expiry | until idle | counts in memory, warns once |
 | Stored counts (PERF.64) | `db/countcache.py` | `planetgen:counts:<db>:<digest>` (6 h) and `...:lock` (10 min), `SET NX EX` | expiry | in-process cache only |
 | Tile single-flight (PERF.38) | `web/lib/singleflight.py` | `planetgen:build:<name>`, `SET NX EX 60` | expiry | every caller builds |
 
