@@ -28,7 +28,8 @@ def _civilized():
         cfg.HABITABLE_WORLD = True
         cfg.BINARY_SYSTEM = False
         system = StarSystem(system_config=cfg)
-        if any(population.parse_timeline(getattr(p, "evolutionary_data", None) or []) for p in system.planets):
+        if any(population.timeline_of(getattr(p, "life_stage", None), getattr(p, "life_system_age_gyr", None),
+                                  getattr(p, "life_milestone_age_gyr", None)) for p in system.planets):
             return system, cfg
     pytest.fail("could not generate a system with a civilization")
 

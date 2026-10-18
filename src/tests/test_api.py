@@ -19,6 +19,7 @@ import time
 
 import pytest
 
+from planetgen.describe import model
 from planetgen.util import logpaths
 
 from planetgen.web.app import create_app
@@ -476,7 +477,7 @@ def test_system_text_follows_a_rename(admin_client, seeded_sector):
     assert content.startswith("# Renamed After Generation")
 
 
-def test_system_sections_cover_every_body(client, mysql_config):
+def test_the_description_splits_into_every_body(client, mysql_config):
     cfg = SystemConfig()
     cfg.STAR_TYPE = "G2V"
     cfg.MOONS = True
@@ -494,21 +495,23 @@ def test_system_sections_cover_every_body(client, mysql_config):
     system_id = _db.save_system(system, cfg, config=mysql_config)
 
     detail = client.get(f"/api/systems/{pid('system', system_id)}").get_json()
-    sections = client.get(f"/api/systems/{pid('system', system_id)}/sections").get_json()
+    sections = model.split_by_body(client.get(f"/api/systems/{pid('system', system_id)}/description").get_json())
     assert any(p["moons"] for p in detail["planets"]) and detail["belts"] and detail["comets"]
 
-    assert "This system contains" in sections["overview"] or "no stellar objects" in sections["overview"]
+    overview = " ".join(str(block["text"]) for block in sections["overview"] if block["type"] == "prose")
+    assert "This system contains" in overview or "no stellar objects" in overview
     assert set(sections["stars"]) == {str(s["id"]) for s in detail["stars"]}
     assert set(sections["planets"]) == {str(p["id"]) for p in detail["planets"]}
     assert set(sections["moons"]) == {str(m["id"]) for p in detail["planets"] for m in p["moons"]}
     assert set(sections["belts"]) == {str(b["id"]) for b in detail["belts"]}
     assert set(sections["comets"]) == {str(c["id"]) for c in detail["comets"]}
     for planet in detail["planets"]:
-        # A planet's own section stops before its moons' sections begin.
-        assert "### " not in sections["planets"][str(planet["id"])]
+        # A planet's own blocks stop before its moons' sections begin: one facts table, its own.
+        blocks = sections["planets"][str(planet["id"])]
+        assert [block["type"] for block in blocks].count("facts") == 1
         assert {"habitable", "inhabited", "life_stage"} <= set(planet)
 
-    assert client.get("/api/systems/999999999/sections").status_code == 404
+    assert client.get("/api/systems/999999999/description").status_code == 404
 
 
 def test_nav_returns_direct_course_and_route_for_same_sector(client, seeded_sector):
@@ -631,7 +634,7 @@ def test_nav_returns_direct_course_for_system_to_phenomenon(client, mysql_config
 def test_nav_returns_400_when_system_has_no_sector(client, mysql_config):
     conn = _db.get_connection(mysql_config)
     try:
-        config_cur = conn.execute("INSERT INTO system_configs (markdown) VALUES (0)")
+        config_cur = conn.execute("INSERT INTO system_configs (name) VALUES (NULL)")
         config_id = config_cur.lastrowid
         origin_cur = conn.execute(
             "INSERT INTO star_systems (sector_id, system_config_id, name, quadrant) VALUES (NULL, ?, ?, ?)",

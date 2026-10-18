@@ -969,7 +969,7 @@ def reconcile_zone_and_class(planet, primary_mass_kg, distance_override=None, pa
     the class it already has isn't valid there, regenerates its class and
     every class-derived physical property from scratch for the corrected
     zone -- rather than silently reporting a stale class (e.g. "a
-    terrestrial Earth-like world") at a distance that class doesn't
+    temperate terrestrial world") at a distance that class doesn't
     physically support.
 
     Meant to be called only after something external to normal generation

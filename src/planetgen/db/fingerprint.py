@@ -12,7 +12,7 @@ object has the same address, position, properties and name.
 A sector's content is its `sectors` row, every object filed in it (star
 systems with their stars, planets, moons, belts, comets and facilities;
 phenomena; stand-alone facilities), those objects' child rows
-(compositions, paragraphs, spectra, nebula shape balls), and the
+(compositions, spectra, nebula shape balls), and the
 address-keyed rows of its cell (`bright_stars`, `phenomenon_scatter`).
 
 Left out, as the design says: row ids and timestamps; each row's clock
@@ -55,9 +55,7 @@ STAR_TABLES = ("black_holes", "neutron_stars")
 remnant in a system) with no `sector_id` of their own."""
 
 CHILD_TABLES = (
-    ("planet_evolutionary_paragraphs", "planet_id", "planets"),
     ("planet_reflection_spectrum", "planet_id", "planets"),
-    ("moon_evolutionary_paragraphs", "moon_id", "moons"),
     ("moon_reflection_spectrum", "moon_id", "moons"),
     ("asteroid_belt_composition", "belt_id", "asteroid_belts"),
     ("comet_composition", "comet_id", "comets"),

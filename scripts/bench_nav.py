@@ -33,7 +33,7 @@ BATCH = 5000
 def build(conn, sectors, per_sector, edge_pc):
     side = math.ceil(math.sqrt(sectors))
     rng = random.Random(1)
-    config_id = conn.execute("INSERT INTO system_configs (markdown) VALUES (0)").lastrowid
+    config_id = conn.execute("INSERT INTO system_configs (name) VALUES (NULL)").lastrowid
     count = 0
     rows = []
     for index in range(sectors):

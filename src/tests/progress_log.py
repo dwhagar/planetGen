@@ -53,12 +53,23 @@ class ProgressLog:
         self.running.pop(report.nodeid, None)
         line = {"kind": "test", "nodeid": report.nodeid, "outcome": worst(outcomes), "seconds": round(seconds, 2),
                 "worker": self.worker, "at": time.strftime("%H:%M:%SZ", time.gmtime())}
+        self.write(line)
+
+    def write(self, line):
         data = (json.dumps(line) + "\n").encode("utf-8")
         fd = os.open(self.path, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o644)
         try:
             os.write(fd, data)
         finally:
             os.close(fd)
+
+
+def record_deps(config, nodeid, files, opaque):
+    """Writes the files a passed test used as a `deps` line (TEST.208: `tests/reuse.py` decides from them whether a
+    later run may count the pass). Does nothing when this run keeps no progress log."""
+    log = config.pluginmanager.get_plugin("planetgen-progress-log")
+    if log is not None:
+        log.write({"kind": "deps", "nodeid": nodeid, "files": sorted(files), "opaque": bool(opaque)})
 
 
 def pytest_addoption(parser):

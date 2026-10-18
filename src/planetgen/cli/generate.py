@@ -34,10 +34,10 @@ import time
 
 import pymysql
 from planetgen.cli import benchmark
-from planetgen.cli import warm as warm_cli
+from planetgen.cli import checkdb as checkdb_cli, warm as warm_cli
 
 from planetgen.queue import commands as queueCommands, work as workQueue
-from planetgen.db import check as db_check, fingerprint, store
+from planetgen.db import fingerprint, store
 from planetgen.admin import activity_log
 from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.generation import directives, limits, luminosity_floor, prevalence
@@ -255,8 +255,8 @@ def add_system_arguments(parser):
 
     # Write the description instead of saving (a one-off system)
     parser.add_argument('--format', choices=run_system.OUTPUT_FORMATS, default=run_system.OUTPUT_FORMATS[0],
-                        help="With --output, how to write the system: plain text (the default), Markdown "
-                             "or wikitext.")
+                        help="With --output, how to write the system: plain text (the default), Markdown, "
+                             "wikitext or the Document as JSON.")
     parser.add_argument('--output', '-o', type=str, metavar='FILE',
                         help="Write the system's description (in --format) to FILE "
                              "instead of saving the system to the database; '-' writes it to stdout.")
@@ -1209,35 +1209,6 @@ def add_fingerprint_arguments(parser):
     add_logging_arguments(parser)
 
 
-def add_check_db_arguments(parser):
-    """
-    Adds the `check-db` subcommand's options: the sectors to scope the
-    value, count and version-key checks to (`--shell`, `--sector`), `--deep`,
-    `--no-check-table`, and the MySQL connection and logging args.
-
-    Args:
-        parser (argparse.ArgumentParser): The parser to add options to.
-    """
-    parser.add_argument('--shell', type=int, action='append', metavar='SHELL',
-                        help="Check only this shell's sectors for values, counts and version keys (repeatable).")
-    parser.add_argument('--sector', type=int, nargs=3, action='append', metavar=('SHELL', 'BAND', 'WEDGE'),
-                        help="Check only the sector at this address for values, counts and version keys "
-                             "(repeatable).")
-    parser.add_argument('--deep', action='store_true',
-                        help="Also run CHECK TABLE ... EXTENDED and validate every star system (slow: the time "
-                             "is estimated first and a yes asked for).")
-    parser.add_argument('--yes', action='store_true',
-                        help="With --deep: go ahead after the estimate without asking (needed off a terminal).")
-    parser.add_argument('--estimate-only', action='store_true',
-                        help="With --deep: print the time estimate and stop (the Generate page uses it).")
-    parser.add_argument('--wide-binaries', action='store_true',
-                        help="With --deep: validate only the wide binaries (S-type pairs), for the count of "
-                             "pairs whose orbits overlap.")
-    parser.add_argument('--no-check-table', action='store_true', help="Skip CHECK TABLE.")
-    store.add_mysql_connection_args(parser)
-    add_logging_arguments(parser)
-
-
 def add_population_arguments(parser):
     """
     Adds the `population` subcommand's options: `--rescan`,
@@ -1343,10 +1314,13 @@ def build_parser():
     check_db_parser = subparsers.add_parser(
         'check-db',
         description="Checks the database for damage and changes nothing: schema revision, table health, "
-                    "rows without parents, ids, impossible values, sector counts and version keys. Ends with one "
-                    "pass or fail line per check; exits 1 when it found damage and 2 when a check could not run.",
+                    "rows without parents, ids, impossible values, sector counts and version keys, and (named) "
+                    "the thorough table check and every star system. Each check is a command of its own on the "
+                    "work queue (planetgen commands). Ends with one pass or fail line per check; exits 1 when it "
+                    "found damage and 2 when a check could not run.",
         help="Check the database for damage (writes nothing).")
-    add_check_db_arguments(check_db_parser)
+    checkdb_cli.add_check_db_arguments(check_db_parser)
+    add_logging_arguments(check_db_parser)
 
     population_parser = subparsers.add_parser(
         'population',
@@ -1462,42 +1436,6 @@ def run_fingerprint(args):
         print(line)
 
 
-def run_check_db(args):
-    """`planetgen check-db`: prints the database check's report; exits 1 on
-    damage, 2 when a check could not run (DB.8)."""
-    config = store.mysql_config_from_args(args)
-    scope = db_check.Scope(tuple(args.shell or ()), tuple(tuple(a) for a in args.sector or ()), args.wide_binaries)
-    if args.estimate_only and not args.deep:
-        raise SystemExit("check-db: --estimate-only is for --deep.")
-    if args.wide_binaries and not args.deep:
-        raise SystemExit("check-db: --wide-binaries is for --deep.")
-    conn = store.get_connection(config, ensure_schema=False)
-    try:
-        if args.deep:
-            estimate = db_check.deep_estimate(conn, config, scope)
-            log.normal(estimate.summary())
-            if args.estimate_only:
-                sys.stdout.write(run_common.ESTIMATE_PREFIX + json.dumps(estimate.as_dict()) + "\n")
-                sys.stdout.flush()
-                return
-            if not args.yes:
-                if not run_common._interactive():
-                    log.normal("Nothing was checked: a deep check off a terminal needs --yes.")
-                    raise SystemExit(db_check.EXIT_UNCHECKED)
-                if run_common._ask(None, "Run the deep check? [y/N] ") not in ("y", "yes"):
-                    log.normal("Nothing was checked.")
-                    raise SystemExit(0)
-        report = db_check.run_checks(
-            conn, config, scope=scope, deep=args.deep, check_table=not args.no_check_table,
-            on_progress=lambda name: log.normal(f"Checking {name} ..."))
-    finally:
-        conn.close()
-    for line in report.lines():
-        log.normal(line)
-    if report.exit_code():
-        raise SystemExit(report.exit_code())
-
-
 def run_check_math(args):
     """`planetgen check-math`: prints the math check's report and exits
     1 if any check failed (TEST.68)."""
@@ -1565,7 +1503,7 @@ _COMMAND_HANDLERS = {
     'warm': warm_cli.run_warm,
     'check-math': run_check_math,
     'versions': run_versions,
-    'check-db': run_check_db,
+    'check-db': checkdb_cli.run_check_db,
     'fingerprint': run_fingerprint,
     'system': run_system.run_system,
     'sector': run_sector.run_sector,

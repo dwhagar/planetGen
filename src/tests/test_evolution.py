@@ -12,10 +12,15 @@ class text says life there tops out at "simple"/"bacterial". Fixed via
 
 Run with: pytest src/tests/test_evolution.py
 """
+import re
+
 import pytest
 
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.evolution import MILESTONE_KEYS, get_evolutionary_timeline
+from planetgen.generation.evolution import (
+    MILESTONE_KEYS, get_evolutionary_state, get_evolutionary_timeline, timeline_paragraphs,
+)
+from planetgen.util import draw
 from planetgen.generation.star import Star
 from planetgen import tuning as prog_c
 
@@ -110,3 +115,37 @@ def test_every_capped_class_is_a_real_milestone_key(planet_class):
     # key that MILESTONE_KEYS.index() would raise ValueError on at
     # generation time.
     assert prog_c.PLANET_CLASS_MAX_LIFE_STAGE[planet_class] in MILESTONE_KEYS
+
+
+# --- DB.51: the structure, and the paragraph written from it ---------------------------------------------------
+
+_SYSTEM_AGE = re.compile(r"current estimated age of the system is ([0-9.]+) (Billion|Million) Years")
+_MILESTONE = re.compile(r"would have been ([A-Za-z ]+) at ([0-9.]+) (Billion|Million) Years")
+
+
+def _years(amount, unit):
+    return float(amount) * {"Billion": 1.0, "Million": 1e-3}[unit]
+
+
+@pytest.mark.parametrize("age", [0.2, 1.0, 2.0, 3.0, 4.2, 20.0])
+@pytest.mark.parametrize("intelligent_life", [None, True, False])
+def test_the_state_says_what_the_paragraph_says(age, intelligent_life):
+    """The stage, pace and ages that are stored are the ones the old paragraph spelled out (to its rounding)."""
+    star = _star(intelligent_life=intelligent_life, age=age)
+    with draw.bound(51):
+        state = get_evolutionary_state(star, "M")
+    with draw.bound(51):
+        paragraph = get_evolutionary_timeline(star, "M")
+    assert paragraph == timeline_paragraphs(state)
+    text = paragraph[0]
+    system_age = _SYSTEM_AGE.search(text)
+    assert _years(*system_age.groups()) == pytest.approx(state["system_age_gyr"], rel=0.01)
+    assert prog_c.EVOLUTIONARY_TIMELINES[state["scale"]]["evolutionary_pace"].lower() in text
+    milestone = _MILESTONE.search(text)
+    if state["stage"] is None:
+        assert milestone is None and state["milestone_age_gyr"] is None
+        assert "No significant evolutionary milestones" in text
+    else:
+        assert milestone.group(1).lower().replace(" ", "_") == state["stage"]
+        assert _years(milestone.group(2), milestone.group(3)) == pytest.approx(state["milestone_age_gyr"], rel=0.01)
+        assert state["stage"] in MILESTONE_KEYS

@@ -18,7 +18,7 @@ Default naming, which the owner may change with Boss: one root command per kind 
 | `planetgen phenomenon` | Generates one phenomenon, then settles its sector unless `--no-settle` | Almost: settle leaves it | PERF.124 |
 | `planetgen system` | Generates one system and prints or writes it | Yes | none (registered by PERF.118) |
 | `planetgen population` | The population pass and the territories pass (`--territories-only`, `--rescan`) | No: two passes | PERF.125 |
-| `planetgen check-db` | Schema revision, table health, rows without parents, and with `--deep` the wide-binary and sector checks | No: several checks behind flags | PERF.126 |
+| `planetgen check-db` | Builds the list of the nine `check-*` commands (one per check: revision, tables, extended tables, orphans, ids, values, counts, version keys, systems) the arguments name, and hands it to the wrapper as a check run | Yes: each check is its own command; this only builds the list (PERF.126, done) | PERF.126 |
 | `planetgen check-math`, `versions`, `fingerprint` | The math check; list the version history; print the content digests | Yes | none |
 | `planetgen benchmark` | Runs `plan`, then `galaxy` over a small shell, in child processes and prints the timings | One purpose, but a fixed sequence of its own | PERF.128 |
 | `cli.migrate`, `cli.reset`, `cli.worker`, `cli.query`, `cli.maintenance`, `cli.update_guard`, `cli.config`, `cli.backup` | Bring the schema up; wipe the generated rows; run a queue worker; list stored rows; switch maintenance mode; close the site for an update; check and edit settings; take, list, verify and restore archives | Yes (one verb each) | none |
