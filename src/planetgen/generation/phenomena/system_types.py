@@ -322,7 +322,7 @@ SYSTEM_TYPE_RATES = {
     "rogue-planet-pair": _t(
         "13.5", "Rogue planet pair (a rogue and its moon, or two rogues)", "rogue planets", 0.2, "S", ("young",),
         "planetgen.generation.phenomena.rogue:RoguePlanet", None, "F", (10,),
-        note="The existing moon rule (SYSTEM_PASS_ODDS)."),
+        note="The existing moon rule (`hosts.PLANET_SATELLITES`)."),
 
     # --- 13.6 Ejection and runaways ---
     "runaway-star": _t(
