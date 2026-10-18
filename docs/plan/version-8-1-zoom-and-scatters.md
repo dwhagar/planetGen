@@ -135,11 +135,9 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.141 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug) |  | Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.190 | A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug) |  | Test-infrastructure finding. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.194 | `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug) |  | Flaky test finding from the Settings lane, 5:47 PM EDT. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
-| TEST.223 | Two galaxy-map browser tests fail in a loaded full browser run and pass alone: the free camera from a window down, and forward to the current view (bug) |  | Flaky under load. Bug Hunt proposed. |
 | TEST.224 | `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed once in a full gate: the nested system's inside_nebula_id was None (bug) |  | Core 5 finding at #2070: a nested system had no inside_nebula_id in one full gate. |
 | TEST.227 | test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone] failed in a loaded browser run and passes alone (bug) |  | Core 3 sighting, 6:50 PM EDT. |
 | TEST.237 | The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug) |  |  |
-| TEST.238 | test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it fails in a gate with no hypervelocity-star stored, and passes alone (bug) |  |  |
 | TEST.246 | The web edit menu tests time out in setup in a loaded gate: the accessibility site database backfill took 1024 s while other tests ran, and the tests pass alone in 46 to 49 s (bug) |  |  |
 | TEST.247 | The random-start neighbourhood test with --min-start-density 1000 (dense_core) takes 466 s alone and 554 s with its sibling, and times out at 900 s under gate load (bug) |  |  |
 | TEST.243 | Two test_web_browser_units tests errored in setup, one after 1041 s in pymysql (bug) |  |  |
@@ -185,7 +183,6 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.140 | Double-click on a selected object goes there and opens its information |  | GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714). |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below |  | GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716), one context view. The #716 bug label was overruled. |
 | MAP.249 | The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug) |  | Boss 6:48 PM EDT; Core 2 profiles first. |
-| MAP.252 | Viewing only the filled sectors does not dim the phenomena (bug) |  |  |
 | MAP.251 | When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug) |  |  |
 | MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine |  | Folds MAP.127, the Galaxy Map's neighbouring blocks and slabs (Boss 2026-10-07 16:27Z: one map engine for all maps). |
 | MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field |  | Boss 2026-10-09 22:24Z and 22:56Z. Umbrella for MAP.148 to MAP.152; replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |

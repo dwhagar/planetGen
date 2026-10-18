@@ -1508,7 +1508,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.249 | The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug) | none | open |
 | MAP.250 | When a map chooses which stars to show, halo and satellite-galaxy stars are the lowest priority and are always cut first, before anything else | none | done, PR #2155 |
 | MAP.251 | When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug) | none | open |
-| MAP.252 | Viewing only the filled sectors does not dim the phenomena (bug) | none | open |
+| MAP.252 | Viewing only the filled sectors does not dim the phenomena (bug) | none | done, PR #2252 |
 | MAP.253 | Map and scene read the parent chain: systemscene, body_positions, the browser twin orbitpositions.js and the systemmap branches drop the three origin conventions | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
@@ -2315,7 +2315,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.220 | test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter finds `neutron-star` inside `magnetar neutron-star` (bug) | none | done, PR #2214 |
 | TEST.221 | test_a_runaway_system_moves_beyond_the_rotation_curve_and_its_stars_and_bodies_share_it raises StopIteration when the first system's only planet entry is an asteroid belt (bug) | none | done, PR #2070 |
 | TEST.222 | Remove the NumPy 2.5 deprecation filter around the skimage marching-cubes call once scikit-image stops raising it | none | open |
-| TEST.223 | Two galaxy-map browser tests fail in a loaded full browser run and pass alone: the free camera from a window down, and forward to the current view (bug) | none | open |
+| TEST.223 | Two galaxy-map browser tests fail in a loaded full browser run and pass alone: the free camera from a window down, and forward to the current view (bug) | none | done, PR #2252 |
 | TEST.224 | `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed once in a full gate: the nested system's inside_nebula_id was None (bug) | none | open |
 | TEST.225 | `test_random_start_neighborhood_matches_the_real_skeleton_plan` generated 18,210 systems against a predicted 83,346.6 in one gate run (bug) | none | done, PR #2227 |
 | TEST.226 | Tests for the plan configuration and its two switches: the interior is identical with each combination, off generates nothing beyond the boundaries, addresses outside them are refused, the 8.1 sphere is the all-on case | none | open |
@@ -2330,7 +2330,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.235 | test_stop_waiting_stops_the_polling_and_check_again_picks_it_up[light] failed once in a loaded gate and passes alone (bug) | none | done, PR #2218 |
 | TEST.236 | test_galaxy_map_drill_down_by_clicks rejects a window address with a negative band, because its regex allows a minus sign only on the wedge (bug) | none | done, PR #2227 |
 | TEST.237 | The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug) | none | open |
-| TEST.238 | test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it fails in a gate with no hypervelocity-star stored, and passes alone (bug) | none | open |
+| TEST.238 | test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it fails in a gate with no hypervelocity-star stored, and passes alone (bug) | none | done, PR #2252 |
 | TEST.239 | Tests for the unified chain: determinism by host, representation counts per kind and level, rogue and comet rates, derived remnant shares | none | open |
 | TEST.240 | Round-trip and registry tests for the mass object core: every kind's stored row round-trips, and no kind table is named in a list the registry should own | none | open |
 | TEST.241 | Test: no absolute position is stored for anything inside a system, so every 8.1 item that stores a position stores it parent-relative | none | open |

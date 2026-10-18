@@ -889,3 +889,6 @@ Baseline: PR #1817.
 | DOC.45 | 8.1 | Description layer |
 | GEN.572 | 8.1 | Composition research and design |
 | GEN.549 | 8.1 | Galaxy laws build |
+| TEST.223 | 8.1 | Bugs and flaky tests |
+| TEST.238 | 8.1 | Bugs and flaky tests |
+| MAP.252 | 8.1 | Fly-through map |
