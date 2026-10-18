@@ -316,7 +316,7 @@ def two_sector_galaxy(mysql_config):
             "b": _system_ids_by_name(conn, sector_b_id),
             "c": _system_ids_by_name(conn, sector_c_id),
         }
-        unplaced_cur = conn.execute("INSERT INTO system_configs (markdown) VALUES (0)")
+        unplaced_cur = conn.execute("INSERT INTO system_configs (name) VALUES (NULL)")
         unplaced_config_id = unplaced_cur.lastrowid
         unplaced_cur = conn.execute(
             "INSERT INTO star_systems (sector_id, system_config_id, name, quadrant) VALUES (NULL, ?, ?, ?)",

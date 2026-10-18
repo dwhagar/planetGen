@@ -22,6 +22,7 @@ from planetgen.web.app import create_app
 from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.api.config import Config
 
+from planetgen.describe import model  # noqa: E402
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.db import query  # noqa: E402
 from planetgen.db import store  # noqa: E402
@@ -114,7 +115,6 @@ class FakeData:
     def __init__(self):
         self.system = _system()
         self.facilities = _facilities()
-        self.sections = {"overview": "", "stars": {}, "planets": {}, "moons": {}, "belts": {}, "comets": {}}
         self.admin = None
         self.orbit_error = None
         self.create_error = None
@@ -142,8 +142,8 @@ class FakeData:
             raise apiclient.NotFoundError(f"no such system: {system_id}")
         return self.system
 
-    def get_system_sections(self, db, system_id):
-        return self.sections
+    def get_system_description(self, db, system_id):
+        return model.document("system", "system:1", "Sol", [model.section("system", "system:1", "Sol")])
 
     def get_system_facilities(self, db, system_id):
         self.calls.append(("get_system_facilities", db, system_id))
@@ -171,7 +171,7 @@ class FakeData:
         self.calls.append(("delete", db, facility_id))
 
 
-_FAKED = ("get_system", "get_system_sections", "get_system_facilities", "get_wiki_config", "auth_me",
+_FAKED = ("get_system", "get_system_description", "get_system_facilities", "get_wiki_config", "auth_me",
           "get_facility_orbit", "create_facility", "delete_facility", "get_facility_types", "get_system_owner",
           "update_facility", "suggest_facility_ratings")
 

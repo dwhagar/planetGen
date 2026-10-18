@@ -113,12 +113,12 @@ def test_a_stale_air_rating_is_corrected_without_touching_anything_else(mysql_co
                            "AND phi4 IS NOT NULL ORDER BY id LIMIT 1", (system_id,)).fetchone()
         other = {name: row[name] for name in row if name not in COLUMNS and not name.endswith("_at")}
         with conn:
-            conn.execute("UPDATE planets SET phi4_air = 0.123, tier_air = 3, phi4_suitability = NULL, hab_note = 'old' "
+            conn.execute("UPDATE planets SET phi4_air = 0.123, tier_air = 3, phi4_suitability = NULL "
                          "WHERE id = ?", (row["id"],))
             store.refresh_habitability(conn, system_id)
         fresh = conn.execute("SELECT * FROM planets WHERE id = ?", (row["id"],)).fetchone()
         assert _same(fresh["phi4_air"], row["phi4_air"]) and fresh["tier_air"] == row["tier_air"]
-        assert fresh["hab_note"] == row["hab_note"] and fresh["phi4_suitability"] is not None
+        assert fresh["phi4_suitability"] is not None
         assert {name: fresh[name] for name in other} == other
     finally:
         conn.close()

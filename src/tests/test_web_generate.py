@@ -1090,7 +1090,7 @@ def test_system_page_renders_every_option(site, client):
     for name, _label in system_page.TRISTATE_FIELDS:
         assert f'name="{name}"' in html
     for name in ("name", "star_type", "age", "num_orbits", "flavor_chance_system", "flavor_chance_planet",
-                 "max_planet_flavor", "system_file", "format", "debug"):
+                 "max_planet_flavor", "system_file", "debug"):
         assert f'name="{name}"' in html
     # Linked from the Generate page.
     assert 'href="/admin/generate/system"' in client.get("/admin/generate").get_data(as_text=True)
@@ -1106,13 +1106,13 @@ def test_system_options_match_generate_py():
     spec = system_page.system_request({
         "habitable_world": "yes", "comets": "no", "name": "-Odd Name", "star_type": "G2V", "age": "old",
         "num_orbits": "4", "flavor_chance_system": "0.5", "flavor_chance_planet": "1",
-        "max_planet_flavor": "1", "format": "markdown",
+        "max_planet_flavor": "1",
     })
     args = parsers["system"].parse_args(spec["argv"] + ["--output", "x"])
     assert args.habitable_world is True and args.comets is False and args.planets is None
     assert args.name == "-Odd Name" and args.star_type == "G2V" and args.age == "old"
     assert args.num_orbits == 4 and args.flavor_chance_system == 0.5 and args.flavor_chance_planet == 1.0
-    assert args.max_planet_flavor and args.format == "markdown" and args.output == "x"
+    assert args.max_planet_flavor and args.format == "document" and args.output == "x"
 
 
 @pytest.mark.parametrize("form, message", [
@@ -1132,24 +1132,19 @@ def test_system_request_rejects_what_generate_py_rejects(form, message):
         system_page.system_request(form)
 
 
-def test_system_page_generates_markdown_without_a_database(site, client):
+def test_system_page_generates_the_page_without_a_database(site, client):
     resp = _post_system(client, name="Webtest Vesta", habitable_world="yes", num_orbits="3", debug="1",
                         system_file='{"slots": [{"type": "planet", "planet_class": "M"}, null, null]}')
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200, html
     assert '<h2 id="system-result-heading">Webtest Vesta</h2>' in html
-    assert "# Webtest Vesta" in html  # the Markdown code box
-    assert '<div class="prose">' in html  # the rendered preview
-    assert 'title="Save as Webtest-Vesta.md">Download</button>' in html
+    assert '<section class="doc-section doc-system">' in html  # the page, from the Document
+    assert 'class="qty"' in html and "# Webtest Vesta" in html  # quantities, and the Markdown in a download form
+    assert "<textarea readonly name=\"text\"" not in html
+    assert 'title="Save as Webtest-Vesta.md">Download Markdown</button>' in html
+    assert 'title="Save as Webtest-Vesta.wiki">Download Wikitext</button>' in html
+    assert 'title="Save as Webtest-Vesta.txt">Download Plain text</button>' in html
     assert "Debug log" in html
-    assert re.search(r'<script type="module" src="/static/copycode.js\?v=[^"]+"></script>', html)
-
-
-def test_system_page_wikitext(site, client):
-    html = _post_system(client, name="Wiki Star", format="wikitext").get_data(as_text=True)
-    assert "= Wiki Star =" in html
-    assert 'title="Save as Wiki-Star.wiki"' in html
-    assert '<div class="prose">' not in html
 
 
 def test_system_page_shows_a_bad_value(site, client):
@@ -1197,6 +1192,10 @@ def test_generate_py_system_output_writes_a_file_and_no_database(tmp_path):
                                "--name=Wiki Out"], cwd=jobs.REPO_DIR, capture_output=True, encoding="utf-8", timeout=120,
                               env=env)
     assert wikitext.returncode == 0 and wikitext.stdout.startswith("= Wiki Out =")
+    document = subprocess.run([PY, *jobs.GENERATE_COMMAND, "system", "--format", "document", "--output", "-", "--quiet",
+                               "--name=Wiki Out"], cwd=jobs.REPO_DIR, capture_output=True, encoding="utf-8", timeout=120,
+                              env=env)
+    assert document.returncode == 0 and json.loads(document.stdout)["title"] == "Wiki Out"
 
 
 # --- Upper bounds (SEC.18) ----------------------------------

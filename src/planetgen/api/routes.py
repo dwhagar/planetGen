@@ -111,7 +111,7 @@ from planetgen.galaxy.spherical import describe_sector_cell, sector_address_at
 from planetgen.galaxy.window import DEFAULT_WINDOW
 from planetgen.generation.system import StarSystem
 from planetgen.db.render import FORMATS as SYSTEM_TEXT_FORMATS
-from planetgen.db.render import describe_system, render_system_sections, render_system_text
+from planetgen.db.render import describe_system, render_system_text
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, pc_to_ly
 from planetgen.util.format import format_distance_ly
 from planetgen.wiki import WikiClient, WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
@@ -617,7 +617,8 @@ def system_description(system_id):
     `GET /api/systems/<id>/description` -- the system's Document (API.25,
     `planetgen/describe/`): sections, fact and rating tables, compositions
     and prose, every number a typed quantity, built now from its database
-    rows. The web page renders it; `/text` writes it as text on request.
+    rows. The web page renders it, splitting it per body (`describe.model.split_by_body`); `/text` writes it as
+    text on request.
     """
     try:
         return jsonify(describe_system(get_db(), system_id))
@@ -641,21 +642,6 @@ def system_text(system_id):
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     return jsonify({"id": system_id, "format": fmt, "content": content})
-
-
-@bp.route("/systems/<uid:system_id>/sections")
-def system_sections(system_id):
-    """
-    `GET /api/systems/<id>/sections` -- the same page as Markdown, split
-    per star/planet/moon/belt/comet (keyed by row id) plus the system
-    `overview`, for `html/system.py`'s expandable system list -- see
-    `systemRender.render_system_sections`.
-    """
-    try:
-        sections = render_system_sections(get_db(), system_id)
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 404
-    return jsonify(sections)
 
 
 @bp.route("/near")

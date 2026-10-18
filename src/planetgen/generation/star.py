@@ -1075,7 +1075,7 @@ class Star(LazySaladName):
             star_info = tuning.STAR_EVOLUTION.get(spectral_class_char, {})
             if "evolutionary_constraint_notes" in star_info:
                 # Append notes directly as they are a continuation, ensuring a space and period at the end
-                full_age_and_notes_sentence += " and " + star_info["evolutionary_constraint_notes"]
+                full_age_and_notes_sentence += ". " + star_info["evolutionary_constraint_notes"].rstrip(".")
         full_age_and_notes_sentence += "." # Ensure the entire combined sentence ends with a period
 
         paragraphs.append(full_age_and_notes_sentence)

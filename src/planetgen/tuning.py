@@ -1358,7 +1358,7 @@ PLANET_CLASSES = {
         }
     },
     "F": {
-        "description": "a volcanic world with shallow seas and bacterial life",
+        "description": "a volcanic world with shallow seas",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
         # Earth-scale anchor, see Class E's note.
@@ -1385,7 +1385,7 @@ PLANET_CLASSES = {
         }
     },
     "G": {
-        "description": "a rocky, barren world with simple life",
+        "description": "a rocky, barren world",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
         # Earth-scale anchor, see Class E's note.
@@ -1413,7 +1413,7 @@ PLANET_CLASSES = {
         }
     },
     "H": {
-        "description": "a desert world with minimal water (less than 10% liquid water)",
+        "description": "a desert world with little liquid water",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
         # Earth-scale anchor, see Class E's note.
@@ -1549,7 +1549,7 @@ PLANET_CLASSES = {
         }
     },
     "L": {
-        "description": "a marginally habitable world with vegetation",
+        "description": "a marginally habitable world",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 7500),
         # No single real analog; skewed toward the lower-mid range --
@@ -1582,7 +1582,7 @@ PLANET_CLASSES = {
         }
     },
     "M": {
-        "description": "a terrestrial Earth-like world",
+        "description": "a temperate terrestrial world",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
         # Earth (6,371km) sits ~27% through this range -- exact.
@@ -1670,7 +1670,7 @@ PLANET_CLASSES = {
         }
     },
     "O": {
-        "description": "a pelagic (ocean) world with greater than 90% of its surface covered in liquid water",
+        "description": "an ocean world with most of its surface covered in liquid water",
         "composition": "silicon, iron, and magnesium",
         "radius_range": (5000, 10000),
         # Earth-scale anchor, see Class E's note.
@@ -1980,43 +1980,43 @@ STAR_EVOLUTION = {
         "lifespan_gy": (0.001, 0.01), # 1 Million - 10 Million years
         "supported_evolutionary_scales": ["fast"],
         "potentially_viable_chemicals": ["Retinal"],
-        "evolutionary_constraint_notes": "burns through its fuel and goes supernova before planets can sufficiently cool to form stable liquid oceans, meaning only the absolute fastest, most primitive precursor photochemistry could theoretically occur"
+        "evolutionary_constraint_notes": "It burns out and explodes before planets can cool enough to hold oceans, so only the simplest light-driven chemistry could arise."
     },
     "B": {
         "lifespan_gy": (0.01, 1.5), # 10 Million - 1.5 Billion years
         "supported_evolutionary_scales": ["fast"],
         "potentially_viable_chemicals": ["Retinal"],
-        "evolutionary_constraint_notes": "is highly volatile and short-lived, providing barely enough time for planetary cooling and the emergence of single-celled life utilizing simple proton-motive gradients"
+        "evolutionary_constraint_notes": "It is volatile and short-lived, which leaves barely enough time for a planet to cool and for single-celled life to appear."
     },
     "A": {
         "lifespan_gy": (1.5, 4.3), # 1.5 Billion - 4.3 Billion years
         "supported_evolutionary_scales": ["fast", "normal"],
         "potentially_viable_chemicals": ["Retinal", "Melanin"],
-        "evolutionary_constraint_notes": "allows enough time for the development of early biospheres and radiotrophic organisms adapted to high-energy radiation, but likely dies before complex, slow-evolving porphyrin-based photosynthesis can be perfected"
+        "evolutionary_constraint_notes": "It lasts long enough for early biospheres and radiation-tolerant life, but probably not for slow, complex photosynthesis to mature."
     },
     "F": {
         "lifespan_gy": (4.3, 9.1), # 4.3 Billion - 9.1 Billion years
         "supported_evolutionary_scales": ["fast", "normal", "slow"],
         "potentially_viable_chemicals": ["Retinal", "Melanin", "Blue-Optimized Porphyrins (+ GFPs)", "Zinc-Bacteriochlorophyll"],
-        "evolutionary_constraint_notes": "provides a long enough main-sequence window for complex biospheres to emerge, including advanced UV-shielding and biofluorescent adaptations"
+        "evolutionary_constraint_notes": "It lasts long enough for complex biospheres to emerge, including UV shielding and fluorescent adaptations."
     },
     "G": {
         "lifespan_gy": (9.1, 17.5), # 9.1 Billion - 17.5 Billion years
         "supported_evolutionary_scales": ["fast", "normal", "slow"],
         "potentially_viable_chemicals": ["Retinal", "Melanin", "Chlorophyll a (Standard Porphyrins)", "Zinc-Bacteriochlorophyll"],
-        "evolutionary_constraint_notes": "is the solar standard, providing stable, long-term conditions ideal for the slow evolution of highly complex, oxygenic photosynthesis based on the tetrapyrrole chlorin ring"
+        "evolutionary_constraint_notes": "It is steady for a long time, which suits the slow evolution of complex, oxygen-making photosynthesis."
     },
     "K": {
         "lifespan_gy": (17.5, 73.5), # 17.5 Billion - 73.5 Billion years
         "supported_evolutionary_scales": ["fast", "normal", "slow"],
         "potentially_viable_chemicals": ["Retinal", "Melanin", "Chlorophyll a (Standard Porphyrins)", "Zinc-Bacteriochlorophyll"],
-        "evolutionary_constraint_notes": "is exceptionally stable and long-lived, offering tens of billions of years for slow-evolving biospheres to reach climax ecologies and adapt to slight red-shifts in the stellar spectrum"
+        "evolutionary_constraint_notes": "It is very stable and lives for tens of billions of years, so slow-evolving biospheres can reach a climax and adapt to its slight red shift."
     },
     "M": {
         "lifespan_gy": (73.5, 5500.0), # 73.5 Billion - 5.5 Trillion years
         "supported_evolutionary_scales": ["fast", "normal", "slow"],
         "potentially_viable_chemicals": ["Retinal", "Melanin", "Bacteriochlorophylls (BChls)", "Zinc-Bacteriochlorophyll"],
-        "evolutionary_constraint_notes": "is the longest-lived star in the universe; while early flaring requires rapid adaptation (e.g., radiotrophic melanin) during the initial hundreds of millions of years, its trillions of years of stability allow deep-infrared anoxygenic photosynthesis to dominate permanently"
+        "evolutionary_constraint_notes": "Early flares demand quick adaptation, such as radiotrophic melanin, but trillions of years of stability let deep-infrared photosynthesis last for good."
     }
 }
 
@@ -2099,7 +2099,7 @@ PLANET_CLASS_MAX_LIFE_STAGE = {
     # `EVOLUTIONARY_TIMELINES`/`EVOLUTIONARY_TEXT`'s own milestone keys;
     # a class not listed here (H, K, M, O, P, V) is uncapped -- its
     # description doesn't commit to any life-complexity ceiling at all
-    # ("an adaptable world", "a terrestrial Earth-like world", etc.), so
+    # ("an adaptable world", "a temperate terrestrial world", etc.), so
     # the full milestone range -- including a technological civilization,
     # same as real Earth -- remains fair game.
     "E": "abiogenesis",         # "barely supports life" (this class's own
@@ -2137,25 +2137,6 @@ HABITABILITY_LIFE_SCORE_MIN = 0.005
 float: A planet's `phi_bio` (microbial) or `phi_cpx` (complex life) score
 below this shows as 0.00 and counts as none (GEN.206): the habitability
 index allows no life of that kind, so the description must not claim it.
-"""
-
-NO_LIFE_CLASS_DESCRIPTIONS = {
-    "F": "a volcanic world with shallow seas",
-    "G": "a rocky, barren world",
-    "L": "a marginal, barren world",
-}
-"""
-dict[str, str]: What `PLANET_CLASSES[cls]["description"]` says instead for a
-class whose own text claims life when the habitability index gives the
-world no microbial life (GEN.206). A class not listed claims no life.
-"""
-
-MICROBIAL_ONLY_CLASS_DESCRIPTIONS = {
-    "L": "a marginally habitable world",
-}
-"""
-dict[str, str]: The same for a world whose index allows microbial life but
-not complex life (GEN.206): Class L's "with vegetation" would claim flora.
 """
 
 MOON_BLACKLIST = ['Q', 'S', 'V']

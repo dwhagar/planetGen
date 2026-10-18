@@ -330,13 +330,12 @@ rather than the star's letter alone.
 `generation/life.py` (`life_ceiling`, `apply_life_data`):
 
 - `phi_bio` below `tuning.HABITABILITY_LIFE_SCORE_MIN` (0.005, what shows as 0.00):
-  the world carries no life chemistry, speed, spectrum or timeline, and a class
-  text that claims life (F "bacterial life", G "simple life", L "with vegetation")
-  is replaced by `NO_LIFE_CLASS_DESCRIPTIONS`.
+  the world carries no life chemistry, speed, spectrum or timeline. The class texts
+  claim no life (GEN.221 took "bacterial life", "simple life" and "with vegetation"
+  out of F, G and L), so nothing in them needs replacing.
 - `phi_cpx` below the same line with microbial life allowed: the timeline stops at
   "photosynthesis" (`get_evolutionary_timeline(..., max_stage=)`, the lower of this
-  and the class ceiling `PLANET_CLASS_MAX_LIFE_STAGE`) and Class L loses its
-  vegetation (`MICROBIAL_ONLY_CLASS_DESCRIPTIONS`).
+  and the class ceiling `PLANET_CLASS_MAX_LIFE_STAGE`).
 - A body with no scores (a gas giant, or one saved without them) keeps the old class
   rules. Of 31 bodies of a habitable class in 120 generated systems, 14 score no
   microbial life, 6 allow microbial life only and 11 are unlimited, so fewer worlds
