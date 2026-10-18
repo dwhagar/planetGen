@@ -19147,30 +19147,6 @@ clears each one.
   the requirements are next locked.
   Prerequisites: none. Related: TEST.188.
 
-- [ ] **TEST.224 `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed once in a full gate: the nested system's inside_nebula_id was None (bug)**
-  Found by Core 5 (2026-10-17, about 2:20 PM EDT as the lane reported,
-  #2070 gate), relayed by the coordinator, filed by the TODO thread.
-  `src/tests/test_db_persistence.py::test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins`
-  failed once in the gate with `assert None == 1` at line 1259 (the
-  nested system's `inside_nebula_id` was None, expected 1); it passes
-  alone in 0.34 s. Fails on main: not seen. Frequency: 1 of 1 full
-  gates. Reproducer: the full gate under load; alone it passes. Do: find
-  whether the test depends on a draw or on test order (a shared nebula
-  id, an unseeded stream, a stale row), and make it deterministic with
-  no quarantine. Done: the cause is named, the test passes in the full
-  gate on 3 runs, and a test pins the condition it depended on. Owner:
-  Bug Hunt (proposed).
-  Sighting (Core 5, 2026-10-17, relayed by the coordinator at 10:46 PM
-  EDT on the lane's clock, its gate 7): `assert
-  nested["inside_nebula_id"] == big` gave None == 1 (line about 1262), 1
-  of 9 runs in the gate and 8 of 8 alone. Core 5's reading (inferred,
-  not checked): the small nebula's centre is random inside its own
-  shape, not necessarily inside the big one's, so the nested system can
-  land outside the big nebula. Fails on main: not checked. Reproducer
-  given: loop the test with `-n0`. The same test is TEST.216 (Bug Hunt's
-  #2124 branch).
-  Prerequisites: none. Related: TEST.208, TEST.213.
-
 - [ ] **TEST.226 Tests for the plan configuration and its two switches: the interior is identical with each combination, off generates nothing beyond the boundaries, addresses outside them are refused, the 8.1 sphere is the all-on case**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
   intergalactic generation to be a switch that defaults to off, put that
@@ -19201,35 +19177,6 @@ clears each one.
   and satellite galaxy switches to on if it holds that content (each
   switch on its own); only a galaxy created after 8.5 defaults both off.
   No change to 8.1.
-
-- [ ] **TEST.227 test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone] failed in a loaded browser run and passes alone (bug)**
-  Found by Core 3 (2026-10-17, 6:50 PM EDT as the lane reported,
-  GEN.321's second changed gate, ended 6:41 PM EDT, load 8 to 10; 19,437
-  passed, 4 failed), filed by the TODO thread.
-  `src/tests/test_web_browser_slow_pages.py::test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone]`
-  failed in the browser phase and passed when run alone. The failure
-  text was not relayed. Fails on main: not run on main. Frequency: 1 of
-  1 gates since this test was seen; unknown before. Reproducer: run
-  `scripts/test.py changed` with another lane's gate sharing the box, or
-  the test alone repeated under `stress` load. Do: take the failure text
-  from the gate log (Core 3's `.test-failures.jsonl`), find whether the
-  wait is too short under load or the page races the job, fix the cause
-  in the test or the page without lengthening a wait blindly and without
-  quarantining. Done: the cause is on this item and the test passes
-  under load in a gate. Owner: Bug Hunt (proposed).
-  Detail from Core 3 (2026-10-17, 7:09 PM EDT as the lane reported,
-  filed by the TODO thread): the failure was in the browser phase of
-  GEN.321's second gate (ended 6:41 PM EDT, load 8 to 10 from other
-  lanes' gates); on the rerun alone it passed in 9.4 s at load 8.2. It
-  passed in Core 3's earlier gate at 4:35 PM EDT. The failure text
-  itself is still not relayed (it is in Core 3's
-  `.test-failures.jsonl`). Fails on main: not run on main. No solo
-  reproducer.
-  Another sighting (Blocker 1, GEN.438 gate, 12:20 AM EDT 2026-10-18 as
-  the lane reported):
-  `test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone]`
-  failed under load and passed alone.
-  Prerequisites: none. Related: TEST.126, TEST.172, TEST.213.
 
 - [ ] **TEST.228 test_stars_and_phenomena_fit_within_their_sectors_real_cells compares a dark cloud's centre with its sector's cell, but the cloud is filed by its centroid**
   Observation by Core 1 (2026-10-17, 7:07 PM EDT as the lane reported),
@@ -19269,7 +19216,7 @@ clears each one.
   run that test in a way that does not take two cores. Done: the cause
   is on this item and the browser phase shows no multi-minute stall in a
   gate. Owner: Bug Hunt (proposed).
-  Prerequisites: none. Related: TEST.126, TEST.171, TEST.172, TEST.227.
+  Prerequisites: none. Related: TEST.126, TEST.171, TEST.172.
 
 - [ ] **TEST.233 test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug)**
   Found by Core 3 (2026-10-17, about 8:28 PM EDT as the lane reported;
@@ -19510,26 +19457,6 @@ clears each one.
   Prerequisites: GEN.576. Related: GEN.550, GEN.552, GEN.315, GEN.565.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
-- [ ] **TEST.243 Two test_web_browser_units tests errored in setup, one after 1041 s in pymysql (bug)**
-  Found by Core 1 (gate 5 of GEN.532/GEN.533, 12:22 AM EDT 2026-10-18 as
-  the lane reported; gate on its branch before the merge of #2186),
-  filed by the TODO thread. Test:
-  `src/tests/test_web_browser_units.py::test_the_server_text_is_the_automatic_text`
-  and `::test_a_saved_preference_is_applied_on_load`. Failure: both
-  errored in setup, not in the test body; the first after 1041 s with
-  `pymysql converters.py:60 Failed`, which is the per-test time limit
-  expiring while the setup waited on the database. Both pass alone.
-  Gate: the browser phase with 2 workers, box load 1.9. Fails on main:
-  not seen (not run on main separately). Frequency: once in 1 gate of
-  that lane; other loaded-browser failures (TEST.227, TEST.235) may be the same family (inferred, not checked). Reproducer: run
-  `pytest src/tests/test_web_browser_units.py` while a full gate runs,
-  and watch the setup time of the database fixture. Do: find what the
-  setup waited on (a lock or a slow fixture) and fix the cause. Done:
-  the cause is on this item and the two tests set up inside their limit
-  in 5 loaded runs. Owner: Bug Hunt (proposed; it owns the browser flake
-  family).
-  Prerequisites: none. Related: TEST.227, TEST.235, TEST.172.
-
 - [ ] **TEST.244 Tests: re-primary and reparent invariants, frame round trips, momentum conservation, a moon's velocity as the sum of its hops, a locked body's rate follows a primary change**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/unified-system-barycentre.md, decided: Boss's nine cards
@@ -19584,75 +19511,6 @@ clears each one.
   Prerequisites: GEN.576, GEN.578, GEN.581, GEN.583. Related: GEN.550,
   GEN.565, GEN.576, GEN.578.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
-
-- [ ] **TEST.246 The web edit menu tests time out in setup in a loaded gate: the accessibility site database backfill took 1024 s while other tests ran, and the tests pass alone in 46 to 49 s (bug)**
-  Found by Core 5 (reported 8:06 AM EDT 2026-10-18 on the lane's clock,
-  its GEN.572 gate of 71 minutes), filed by the TODO thread. Five
-  `test_web_edit_menu` tests failed with setup timeouts; the setup
-  builds the accessibility site database (the a11y site_db backfill),
-  which took 1024 s while concurrent tests ran, and each test passes
-  alone in 46 to 49 s. Core 5 also saw TEST.235's slow-pages [dark] case
-  fail once and pass alone. Fails on main: not checked (load only).
-  Frequency: 1 of 1 gates with other tests running beside it.
-  Reproducer: `scripts/test.py changed` while another gate runs, or the
-  web edit menu tests with the backfill under CPU load. Do: build the
-  site database once per run (a shared fixture) or give the setup a
-  deadline that scales with load, so no test waits on a 1000 s backfill;
-  no quarantine. Done: the five tests pass in a gate that runs beside
-  another gate, and the backfill time is printed in the run log. Owner:
-  Bug Hunt (proposed).
-  Sighting (Core 3, reported 11:07 AM EDT 2026-10-18, real clock; its
-  stacked GEN.244, GEN.282 and GEN.563 gate 2, 8:55 to 10:52 AM EDT,
-  load 5.3):
-  `test_web_browser_crumbs.py::test_a_pages_breadcrumb_is_one_line_at_any_width[1280]`
-  and `[320]` had two module-fixture setup errors at 953.7 s, past the
-  900 s limit, where the same module's database builds in 37 s alone;
-  all three failures of that gate passed alone. Frequency: 1 of 2 gates
-  of Core 3. Same family as the web edit menu setups above (a fixture
-  database build that stalls under load, possibly a mysqld stall); no
-  solo reproducer yet. It goes with Bug Hunt's setup fix.
-  Sighting (Core 3, reported 1:18 PM EDT 2026-10-18 on the lane's clock;
-  its GEN.317 gate, 11:17 AM to 1:14 PM EDT, load 8 to 9):
-  `test_web_browser_layout.py::test_controls_do_not_overlap[web.logout-390/600]`
-  failed in setup after 794.89 s; it passes alone. The same
-  fixture-setup stall as the crumbs and web edit menu cases above, so
-  the family now covers three modules. Frequency: 2 of 3 gates of Core
-  3.
-  Sighting (Core 2, reported about 3:25 PM EDT 2026-10-18 on the lane's
-  clock; its PERF.130 gate, 1:15 to 2:54 PM EDT, load 7.2):
-  `test_web_generate_alignment.py::test_text_boxes_line_up` had 12 setup
-  errors (web.generate and web.generate_system at 390, 820 and 1280,
-  light and dark) and every one passes alone. The same fixture-setup
-  stall under load as the web edit menu, crumbs and layout cases above,
-  so the family now covers four modules. Frequency: 1 of 1 gates of Core
-  2. It goes with Bug Hunt's setup fix. Core 2 also saw
-  `test_workers.py::test_a_batch_of_jobs_starts_no_more_workers_than_wanted_and_not_twice`
-  and
-  `::test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs`
-  fail in that gate (both pass alone): its gate started at 1:15 PM EDT,
-  before Core 5's fix #2267 (merged 1:27 PM EDT; TEST.250 retired), so
-  these two are most likely TEST.250's cause (the shared inline queue
-  context undoing its patches in the wrong order) and need no new item;
-  if either fails again on a tree that carries #2267, file it then.
-  Prerequisites: none. Related: TEST.227, TEST.235.
-
-- [ ] **TEST.252 test_a_double_click_on_a_star_flies_the_camera_to_it fails once in a loaded gate and passes alone (bug)**
-  Found by Core 3 (reported 1:18 PM EDT 2026-10-18 on the lane's clock;
-  its GEN.317 gate, 11:17 AM to 1:14 PM EDT, load 9.1), filed by the
-  TODO thread.
-  `src/tests/test_web_browser_sector_reach.py::test_a_double_click_on_a_star_flies_the_camera_to_it`
-  failed once after 3.8 s and passes alone. Failure text not relayed
-  (Core 3 has it in its `.test-failures.jsonl`). Fails on main: not run
-  on main. Frequency: 1 of 1 gate with the others of its kind red the
-  same way (a loaded browser phase). Reproducer: the test while another
-  gate runs; no solo reproducer. Do: get the failure text from Core 3,
-  then find whether the double click lands before the star list has
-  loaded or before the camera hook is ready (the same shape as TEST.223
-  and TEST.248), and wait for that state in the test or fix the page if
-  a click is lost; no quarantine. Done: the cause is on this item and
-  the test passes in a browser phase that runs beside another gate.
-  Owner: Bug Hunt (proposed).
-  Prerequisites: none. Related: TEST.223, TEST.248.
 
 - [ ] **TEST.253 test_nebula_shape_endpoint_serves_a_mesh fails once under load: the largest vertex radius is 1.0288 against a bound of 1.0, and it passes alone (bug)**
   Found by Core 4 (reported 1:29 PM EDT 2026-10-18 on the lane's clock;
