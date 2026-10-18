@@ -880,3 +880,11 @@ Baseline: PR #1817.
 | TEST.236 | 8.1 | Bugs and flaky tests |
 | TEST.225 | 8.1 | Bugs and flaky tests |
 | TEST.245 | 8.1 | Bugs and flaky tests |
+| MAP.247 | 8.1 | Fly-through map |
+| UX.109 | 8.1 | Description layer |
+| GEN.548 | 8.1 | Composition tables |
+| GEN.543 | 8.1 | Multi-star and compact systems |
+| GEN.561 | 8.1 | Description layer |
+| UX.107 | 8.1 | Description layer |
+| DOC.45 | 8.1 | Description layer |
+| GEN.572 | 8.1 | Composition research and design |

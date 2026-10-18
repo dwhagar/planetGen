@@ -102,8 +102,6 @@ setup(
         # Two-step sign-in and its QR code (SEC.29).
         'pyotp>=2.9.0',
         'segno>=1.6.0',
-        # Markdown rendering (UX.39).
-        'markdown>=3.6',
         # The page and tile caches (PERF.25). diskcache is left out: its
         # last release has an unfixed advisory (PYSEC-2026-2447, unpickling
         # whatever is in the cache folder), which the dependency audit

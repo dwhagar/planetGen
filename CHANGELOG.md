@@ -2,6 +2,97 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1812] - 2026-10-18
+
+**Headline:** A parsec is exactly 3.2615637772 light-years and a light-year exactly 63241.0770843 AU wherever the generator used rounded values.
+
+### Changed
+- **The three rounded unit factors are the exact ones (GEN.572).** `physics/hii.py` typed 3.26156 light-years per parsec, and `generation/phenomena/asteroid_field.py` and `generation/phenomena_plausibility.py` each typed 63241.077 AU per light-year; all three now read the definitions in `physics/constants.py` (`PARSEC_M / LIGHTYEAR_M` and `LIGHTYEAR_M / AU_M`), which differ from the old values by 1.2e-6 and 1.3e-9 in relative size. `hii.region` returns its radius in light-years with the factor, and the nebula generator stores it, so a nebula's radius changes in the last digits for a seed; an asteroid field's size digit can differ only for a radius at its floor boundary. Nothing else changes.
+- **The generator epoch is 27** (a pending epoch until a release names it); the full wiped rescatter that carries the epoch's other changes carries this one.
+generation-output: changed
+
+TODO items resolved: GEN.572. Added: none.
+
+## [8.0.1811] - 2026-10-18
+
+**Headline:** The map's side panel, the query command's lines and the class pages' ranges write their distances, gravity and temperatures the same way as the rest of the program.
+
+### Changed
+- The system map's side panel shows an airless body's pressure as "0 kPa" (it said "None"), gravity as "0.378 g" on the gravity ladder, and a star's temperature on the temperature ladder ("5,772 K").
+- `planetgen query` writes a sector's edge, a nearby system's distance and a planet's or moon's radius on the distance ladders ("3.68 pc (12 ly)", "6,371 km") instead of fixed two-decimal formats.
+- A class page range gives both ends one style, so it no longer reads "5,000 to 1 × 10⁴ km" (it is "5 × 10³ to 1 × 10⁴ km").
+- The describer, wide-binary, comet, nebula and quasar numbers already go through the ladders (UX.108 and UX.109 moved them into the Document).
+
+TODO items resolved: UX.107 / Added: none
+
+## [8.0.1810] - 2026-10-18
+
+**Headline:** The equipment tier a world stores now matches what its description asks for: an environment suit where it is too hot, too cold or too rich in oxygen, not a mask or nothing.
+
+### Changed
+- `habitability.equipment` names an environment suit when the temperature is past the Green heat or cold edge or the inspired oxygen is above the chronic limit, as `protection` and the world's page already say. Such worlds' stored `equipment_tier` rises (and so do the search page's equipment tags).
+- `tests/test_wording_agrees_with_the_index.py`: the gear class and the equipment label now agree for every world, so the expected failure is gone.
+
+generation-output: changed
+
+TODO items resolved: GEN.561 / Added: none
+
+## [8.0.1809] - 2026-10-18
+
+**Headline:** The reference docs describe the description layer as built: the PHI-6 name, the `rating` data, the command line options and the removed text builders.
+
+### Changed
+- `docs/design/habitability-index.md` names the display score PHI-6 (it was PHI-4 before GEN.207) and describes `protection.rating` and the describer in place of the removed `protection.paragraph`.
+- `docs/cli.md` drops the `--markdown` flag of `planetgen phenomenon`, which no longer exists.
+- `docs/database-schema.md` says the old text builder (`to_paragraph_list`) is gone.
+
+TODO items resolved: DOC.45 / Added: none
+
+## [8.0.1808] - 2026-10-18
+
+**Headline:** The design page now says what a usable circumbinary window is and which numbers are measured
+
+### Changed
+
+The multi-star design page's table of pair nodes with a usable P-type window had no definition behind it. Two definitions were tried on the same seeded draw of the generator's trees (width above 0.3 AU with an outer edge twice the inner, and width above 0.3 AU overlapping the pair's habitable zone); neither matched the table within 7 points at every number of stars, so a P-type window counts as usable when it is wider than 0.3 AU, like the S-type row, the table's old row is marked as the earlier estimate, and a test pins the measured share. No generated value changes.
+
+## [8.0.1807] - 2026-10-18
+
+**Headline:** The generator's stellar isochrone grid, white-dwarf models and neutron-star matter tables are downloaded once at setup and checked
+
+### Changed
+
+`update.sh` and `install.sh` now run one shared download step (`python3 -m planetgen.cli.datasets fetch`) that fetches static data files into `/var/cache/planetgen/datasets`, outside the checkout. Each request sends the standard `User-Agent` (software, release and API version), is retried if the host does not answer, and each file must match the size and sha256 the catalogue states, otherwise it is not kept. A host that does not answer only prints a warning; the generator then uses a stand-in that says it is one. Nothing downloads while the site or the generator runs.
+
+Three datasets use it: the MIST v1.2 main-sequence isochrones (luminosity, temperature and radius against mass, age and [Fe/H], and main-sequence lifetimes; a 221 MB archive reduced once to 5 MB), the Bédard et al. 2020 white-dwarf cooling sequences (radius and layer masses), and 21 neutron-star equations of state with the outer-crust composition for 20 nuclear mass models. Each has a reader in `planetgen.datasets`; the first download is about 225 MB and takes a minute or two.
+
+## [8.0.1806] - 2026-10-18
+
+**Headline:** The old per-class description text, the Markdown renderer and the `markdown` dependency are gone; every page and download now comes from the one description Document.
+
+### Changed
+- Removed the old description path: each body's `to_paragraph_list` and `__str__`, the `MARKDOWN` text, `web/lib/mdrender.py`, and the `markdown` package from `setup.py` and the lock files.
+- The `markdown` recipe key of a system run is gone (`docs/api.md`, `docs/system-file-format.md`); Markdown, wikitext and text are written from the Document.
+- Tests that read the old text now read the Document through `tests/render_support.py`; `test_mdrender.py` is removed.
+- The docs no longer describe `mdrender`; the Document HTML renderer escapes every string it writes.
+
+TODO items resolved: UX.109
+
+## [8.0.1805] - 2026-10-18
+
+**Headline:** With the cursor over empty space the wheel now zooms toward where the stars thicken along the cursor's ray, not toward a flat plane through the middle of the view.
+
+### Changed
+- Where the cursor ray meets nothing pickable, the point the wheel zooms toward (and a double click on empty space flies half way to) is the first place along the ray where the column of the galaxy's stars passes half the view's distance in local-average density (`columnAnchor` in `galaxystageview.js`, `columnDensityPoint` in `mapcontrol.js`). Before, it was the point of the focus plane under the cursor, however empty or dense the space along the ray. In a dense region (a bulge, an arm, the core) the point is nearer, in space of the average density it is half way to the focus, and where the ray finds too little it is the focus plane's point as before. A point is never nearer than a quarter of the way to the focus plane, so a wheel step still moves the eye.
+- The density is the page's own galaxy model (`relativeDensity` in `galaxyprisms.js`), so no density field was added to the cell scene or the tiles. Not used in an opened system or before the galaxy has a shape.
+- A pointer within 12 px of the middle of the map (on the cross) still zooms about the cross (MAP.199): the column point is not used there. Without this the wheel on the cross drifted the view off its line of sight once the density column was thick behind it, and `test_wheel_zoom_turns_about_the_centre_and_a_shift_click_chooses_it` failed in both of two runs.
+- `docs/design/fly-through-view-distance.md` says what is built.
+
+### Added
+- A node test for `columnDensityPoint` (uniform space, a dense slab after empty space, a column that never passes, no density) and a browser test in `tests/test_web_browser_sector_reach.py`: with a sector open near the core, the anchor under two empty corners of the map lies between a fifth and a third of the view's distance from the eye, not on the focus plane.
+
+TODO items resolved: MAP.247 / Added: none
+
 ## [8.0.1804] - 2026-10-18
 
 **Headline:** The neighbourhood test no longer fails when the random start lands in the dense core, where cells hold fewer systems than the plan's raw prediction by design.

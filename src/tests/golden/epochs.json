@@ -124,6 +124,16 @@
       "epoch": 25,
       "first_release": "8.0.1801",
       "reason": "The central black hole's mass follows the galaxy (the bulge relation for a classical bulge, else the stellar-mass relation, each with its own seeded deviation) and the nuclear star cluster's mass follows its stellar mass with a drawn slope, so a seed places a different nucleus, quasar and hypervelocity-star source (GEN.402)."
+    },
+    {
+      "epoch": 26,
+      "first_release": "8.0.1810",
+      "reason": "The kit a human visitor needs is an environment suit past the Green heat or cold edge or with oxygen above the chronic limit, as the description says, so the stored equipment tier of such a world rises from a mask or none (TEST.155)."
+    },
+    {
+      "epoch": 27,
+      "first_release": "8.0.1812",
+      "reason": "The three rounded unit factors become the exact ones: a light-year is 63241.0770843 AU (was 63241.077) and a parsec is 3.2615637772 light-years (was 3.26156), so an H II region's stored radius in light-years changes in its last digits and an asteroid field's size digit can change at its floor boundary (GEN.572)."
     }
   ]
 }

@@ -34,7 +34,10 @@
 #      covers, nothing later attempts a download of its own. See
 #      `docs/TODO.md`'s "Deployment bugs found in production" section for the
 #      incident (`PermissionError: [Errno 13] ... '/var/www/nltk_data'`)
-#      this fixes. Then, unless --skip-database, it offers (y/N, 30
+#      this fixes. The same step downloads the static data sets
+#      (`planetgen.cli.datasets fetch`, GEN.548) into /var/cache/planetgen/datasets;
+#      a host that is down only warns, the generator then uses labelled stand-ins.
+#      Then, unless --skip-database, it offers (y/N, 30
 #      seconds, default N; skipped with no terminal) to run the
 #      population pass, `planetgen population`; POPULATION=1 runs it
 #      without asking (offer_population_pass in scripts/deploy-common.sh).
@@ -125,9 +128,10 @@ else
 fi
 
 echo
-echo "== 3/8: Fetching the NLTK 'words' corpus into $NLTK_DATA_DIR =="
+echo "== 3/8: Fetching the NLTK 'words' corpus into $NLTK_DATA_DIR and the static data sets =="
 # Skipped when it's already there (scripts/deploy-common.sh).
 ensure_nltk_words "$NLTK_DATA_DIR"
+ensure_datasets
 
 if (( ! SKIP_DATABASE )); then
     # After the corpus: the population pass names species with it.

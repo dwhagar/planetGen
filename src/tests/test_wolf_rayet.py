@@ -20,6 +20,7 @@ from planetgen.generation.system import StarSystem
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.physics import wolf_rayet
 from planetgen.util import draw
+from tests import render_support
 
 
 def _window(mass_sol):
@@ -113,7 +114,7 @@ def test_a_wolf_rayet_star_builds_a_system_and_rebuilds_from_its_record():
     star = Star.from_params(params, config, name="Wr")
     assert star.yerkes_class == "W" and star.type.startswith("W")
     assert Star.from_dict(star.to_dict(), config).type == star.type
-    assert "Wolf-Rayet" in " ".join(star.to_paragraph_list())
+    assert "Wolf-Rayet" in star.type
     config.PLANETS = True
     for seed in range(20):
         draw.set_run_seed(seed)
@@ -233,7 +234,7 @@ def test_a_wolf_rayet_star_lights_a_ring_in_forty_percent_and_the_ring_names_it(
         assert nebula.hosts == f"{star.type.split(' ', 1)[0]} x1"
         assert low <= nebula.radius_ly <= high and nebula.q_total is None
         assert nebula.age_myr == pytest.approx(star.age * 1000.0)
-        assert "wolf-rayet ring nebula" in " ".join(nebula.to_paragraph_list())
+        assert "wolf-rayet ring nebula" in render_support.facts_text(render_support.phenomenon_section(nebula))
 
 
 def test_a_wolf_rayet_star_older_than_the_limit_lights_nothing_and_neither_does_a_remnant_class_star():

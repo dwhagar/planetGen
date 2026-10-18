@@ -29,7 +29,7 @@ from planetgen.util.serialization import fields_from_dict, fields_to_dict
 # configuration. `to_dict`/`from_dict` use this list so a config round-trips
 # through JSON in exactly the shape `--system-file` already expects.
 SERIALIZABLE_FIELDS = [
-    "MARKDOWN", "HABITABLE_WORLD", "ASTEROID_BELT", "COMETS", "LARGE_STAR", "MOONS",
+    "HABITABLE_WORLD", "ASTEROID_BELT", "COMETS", "LARGE_STAR", "MOONS",
     "MAX_PLANETS", "PLANETS", "STAR_TYPE", "NAME", "AGE", "INTELLIGENT_LIFE",
     "BINARY_SYSTEM", "WIDE_BINARY", "NUM_ORBITS", "SLOTS", "PREVALENCE",
 ]
@@ -39,12 +39,6 @@ class SystemConfig:
     def __init__(self):
         self.system_flavor_count = 0
         self.recent_flavor_texts = [] # Stores recently used flavor texts to avoid repetition
-        self.MARKDOWN = False
-        """
-        bool: If True, output will be formatted in Markdown. If False, output will be
-        formatted in Wikitext. Defaults to False.
-        """
-
         self.TYPE_IA_SHARE = None
         """
         float or None: The share of supernova remnants that are Type Ia where the remnant is made (the sector

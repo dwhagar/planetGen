@@ -163,9 +163,7 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
             system already added via `add_system`, so their Hill spheres
             are in place for a black hole's/neutron star's own placement
             check) to add phenomena to, in place.
-        args (argparse.Namespace): Parsed arguments; only `args.markdown`
-            is consulted (threaded into each phenomenon's own
-            `SystemConfig`, matching every star system's own config).
+        args (argparse.Namespace): Parsed arguments (none is read here).
         galactic_center_dist_ly (float, optional): As in `generate_sector`
             -- threaded into a standalone black hole's/neutron star's own
             Hill-sphere/galactic-orbit calculation, exactly like every star
@@ -223,7 +221,6 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
                 program_constants.phenomenon_rate_per_star(kind) * star_count * kind_factors.get(kind, 1.0))
             for _ in range(count):
                 phenomenon_config = SystemConfig()
-                phenomenon_config.MARKDOWN = args.markdown
                 phenomenon_config.TYPE_IA_SHARE = type_ia_share
                 phenomenon_config.AMBIENT_DENSITY_CM3 = ambient_density_cm3
                 phenomenon = factory(phenomenon_config, galactic_center_dist_ly)
@@ -273,7 +270,6 @@ def _add_planetary_nebula(sector, args, nebula, galactic_center_dist_ly=None, po
     entry, or `None` when the sector has no room left for the system.
     """
     config = SystemConfig()
-    config.MARKDOWN = args.markdown
     config.STAR_TYPE = draw.choice(program_constants.PLANETARY_NEBULA_CENTRAL_STAR_TYPES)
     nebula_contents.planetary_central_config(config)  # GEN.320: a close companion in 20%
     system = StarSystem(system_config=config, galactic_center_dist_ly=galactic_center_dist_ly)
@@ -301,7 +297,7 @@ def add_star_hosted_nebulae(sector, args, chance_factor=1.0, hosts_out=None):
 
     Args:
         sector (SpaceSector): The populated sector.
-        args (argparse.Namespace): Parsed arguments; only `args.markdown` is read.
+        args (argparse.Namespace): Parsed arguments.
         chance_factor (float): The sector profile's `"nebula"` factor (GEN.236, the cold gas fraction): the rules'
             chances are scaled by it, so a star in a gas-poor place stays bare.
         hosts_out (list, optional): Receives `(nebula, host_name, local_position_ly)` for each nebula made, the seed
@@ -315,7 +311,7 @@ def add_star_hosted_nebulae(sector, args, chance_factor=1.0, hosts_out=None):
         stars = getattr(system_entry.star_system, "stars", None) or []
         if not stars:
             continue
-        nebula = nebula_contents.hosted_nebula_of(stars[0], chance_factor, args.markdown)
+        nebula = nebula_contents.hosted_nebula_of(stars[0], chance_factor)
         if nebula is None:
             continue
         log.debug(f"Sector {sector.name!r}: {_spectral_code(stars[0])} star {system_entry.star_system.name!r} "
@@ -485,8 +481,7 @@ def add_galactic_nucleus(sector, args, galactic_center_dist_ly, mass_solar=None)
 
     Args:
         sector (SpaceSector): The core sector, already populated.
-        args (argparse.Namespace): Parsed arguments; only `args.markdown`
-            is consulted.
+        args (argparse.Namespace): Parsed arguments (none is read here).
         galactic_center_dist_ly (float): The sector center's distance from
             the galactic center, in light-years.
         mass_solar (float, optional): The central black hole's mass (`density.central_black_hole_mass_solar`,
@@ -496,7 +491,6 @@ def add_galactic_nucleus(sector, args, galactic_center_dist_ly, mass_solar=None)
         SectorPhenomenonEntry: The quasar's or the black hole's entry.
     """
     nucleus_config = SystemConfig()
-    nucleus_config.MARKDOWN = args.markdown
     position = (-galactic_center_dist_ly, 0.0, 0.0)
     with fill_stages.stage(sector, fill_stages.FLAGS, "nucleus"):
         if draw.random() < program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE:
@@ -570,7 +564,6 @@ def _build_scattered(sector, args, row, position, dist_ly, min_mass_solar=None, 
     `None`: its own class density)."""
     kind = row["kind"]
     config = SystemConfig()
-    config.MARKDOWN = args.markdown
     config.TYPE_IA_SHARE = type_ia_share
     config.AMBIENT_DENSITY_CM3 = ambient_density_cm3
     if kind == "hypervelocity-star":
@@ -618,7 +611,6 @@ def add_below_cut_remnants(sector, args, fill, galactic_center_dist_ly=None):
         for kind, subtype, mass_range, count in draws:
             for _ in range(count):
                 config = SystemConfig()
-                config.MARKDOWN = args.markdown
                 if kind == "black-hole":
                     remnant = BlackHole(config, galactic_center_dist_ly=galactic_center_dist_ly,
                                         mass_class=subtype, mass_range=mass_range)
@@ -658,7 +650,6 @@ def add_ejecta(sector, args, fill, galactic_center_dist_ly=None):
         with fill_stages.stage(sector, fill_stages.EJECTA, kind):
             for _ in range(_sample_poisson_count(mean)):
                 config = SystemConfig()
-                config.MARKDOWN = args.markdown
                 if kind == "black-hole":
                     remnant = BlackHole(config, galactic_center_dist_ly=galactic_center_dist_ly, mass_class="stellar")
                 else:

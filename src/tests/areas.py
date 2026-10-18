@@ -28,7 +28,7 @@ AREA_RULES = (
            r"bughunt_db|settings|alembic|id_blocks|tilecache|caches|slow_read|query_db"),
     ("api", r"api|ratelimit|login|password|two_factor|admin_auth|corridor|route_edge|activity"),
     ("web", r"web|fuzz_web|page|systempage|systemmap|starmap|galaxymap|galaxydrill|galaxyprisms|galaxystages|"
-            r"galaxy_urls|galaxy_viewport|navmap|nav_|tile|datatable|generatebuttons|icons|mdrender|js_unit|"
+            r"galaxy_urls|galaxy_viewport|navmap|nav_|tile|datatable|generatebuttons|icons|js_unit|"
             r"class_pages|console|pagination|number_format|speed_period|distance_format|unit_ladders|fmt_|local_time|"
             r"connectionnote|system_render|system_scene|warmup|eta_|progress_|navigation|render_edges|text_rendering"),
     ("physics", r"astropy|atmosphere|climate|comet|disk|evolution|galactic|habitability|heliopause|heliosphere|"
@@ -40,7 +40,7 @@ AREA_RULES = (
                    r"neighborhood|directives|single_system|skeleton|poisson|redo|span|stages|steps|step_registry|"
                    r"near|search|save_progress|failed_run|validation|examples|full_matrix|space_sector|"
                    r"system_velocity|system_|systems|planets|benchmark|sector_|serialization|end_to_end"),
-    ("ops", r"admin_script|edge_|deploy|install|bump|version|todo|update_|modulegraph|debug_log|job_tree|"
+    ("ops", r"admin_script|edge_|deploy|install|bump|version|todo|update_|modulegraph|debug_log|job_tree|datasets_|"
             r"private_dirs|admin|state|activity_log|cli|utils_and_config"),
 )
 

@@ -620,7 +620,7 @@ def phi4(world, limits=HUMAN):
 def equipment(world, limits=HUMAN):
     """The kit a human visitor needs: "ideal", "breathing mask", "mask
     with scrubber", "environment suit" (a pressure suit, or a suit
-    against a Red temperature or air) or "full life support with
+    against a Red temperature or air, a temperature past the Green heat or cold edge, or too much oxygen) or "full life support with
     radiation hardening", from the worst of Pressure, Temperature, Air and
     Radiation and what made it so. (Water chemistry and Suitability are
     about drinking and eating, not the kit.)"""
@@ -631,6 +631,9 @@ def equipment(world, limits=HUMAN):
         return "full life support with radiation hardening"
     if scores["Pressure"] < 0.75 or min(scores.values()) < 0.4:
         return "environment suit"
+    cold_suit_c, heat_garment_c = limits.temperature[1], limits.temperature[5]
+    if not cold_suit_c <= world.temperature_c <= heat_garment_c or inspired_o2_kpa(world, limits) > limits.o2_chronic:
+        return "environment suit"  # the same suit the description asks for past the Green heat or cold, or too much oxygen
     if min(gases[g] for g in ("CO2", "CO", "H2S", "SO2")) < 1.0:
         return "mask with scrubber"
     if gases["O2"] < 1.0 or scores["Pressure"] < 1.0:

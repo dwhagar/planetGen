@@ -28,9 +28,9 @@ from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
+from planetgen.galaxy.galactic_orbit import generate_galactic_orbit_fields
 from planetgen.names.wordsalad import LazySaladName
-from planetgen.util.format import format_body_radius_km, format_flux_w_m2, format_number, format_speed_kms
+from planetgen.util.format import format_flux_w_m2, format_number
 from planetgen.util.random import sample_power_law
 
 
@@ -193,7 +193,7 @@ class RoguePlanet(LazySaladName):
 
         Args:
             system_config (SystemConfig): The shared SystemConfig object
-                (used only for its `MARKDOWN` flag, via `to_paragraph_list`).
+                (its settings).
             name (str, optional): An explicit name. Random if omitted.
             mass_bin (str, optional): One of
                 `tuning.ROGUE_PLANET_MASS_BIN_CHOICES`. Omitted,
@@ -337,42 +337,6 @@ class RoguePlanet(LazySaladName):
             return None
         return brownDwarf.spectral_type(self.effective_temperature_k)
 
-    def to_paragraph_list(self):
-        """
-        Generates a list of descriptive paragraphs for the rogue planet: a
-        header naming it, and a description of its physical properties and
-        drift through interstellar space.
-
-        Returns:
-            list: A list of strings, where each string is a paragraph
-                  describing the rogue planet.
-        """
-        header_level = '##' if self.system_config.MARKDOWN else '=='
-        kind_label = self.kind_label
-        if getattr(self, "planet_class", None):
-            kind_label += f", Class {self.planet_class}"
-        elif self.spectral_type:
-            kind_label += f", Type {self.spectral_type}"
-        header = f"{header_level} {self.name} (Rogue {kind_label}) {header_level if not self.system_config.MARKDOWN else ''}".rstrip()
-
-        what = f"{self.spectral_type} brown dwarf" if self.spectral_type else "planet"
-        description = (
-            f"{self.name} is a free-floating {what} adrift in interstellar space, bound to no star. It has a "
-            f"radius of roughly {format_body_radius_km(self.system_config, self.radius_km)} and is composed of "
-            f"{self.composition}."
-        )
-
-        sentences = [description]
-        sentences.extend(self.surface_sentences())
-        if self.has_moons:
-            sentences.append("A smaller companion body, likely captured after ejection, still orbits it.")
-        sentences.append(
-            f"Though bound to no star, it still orbits the galactic center at "
-            f"{format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)}."
-        )
-
-        return [header, " ".join(sentences)]
-
     def surface_sentences(self):
         """
         Plain sentences on its age, own heat and surface (`rogueSurface`):
@@ -415,14 +379,6 @@ class RoguePlanet(LazySaladName):
     def surface_regime_label(self):
         """`SURFACE_REGIME_LABELS`' text for `surface_regime`."""
         return SURFACE_REGIME_LABELS.get(self.surface_regime, self.surface_regime)
-
-    def __str__(self):
-        """
-        Returns a string representation of the rogue planet, with
-        paragraphs separated by double newlines.
-        """
-        return "\n\n".join(self.to_paragraph_list())
-
 
 def interstellar_comet_designation(sector_code, index):
     """
@@ -475,7 +431,7 @@ class InterstellarComet(LazySaladName):
 
         Args:
             system_config (SystemConfig): The shared SystemConfig object
-                (used only for its `MARKDOWN` flag, via `to_paragraph_list`).
+                (its settings).
             name (str, optional): An explicit name. Random if omitted.
         """
         self.system_config = system_config
@@ -543,43 +499,6 @@ class InterstellarComet(LazySaladName):
             str: The composition summary phrase.
         """
         return format_comet_composition_summary(self.composition)
-
-    def to_paragraph_list(self):
-        """
-        Generates a list of descriptive paragraphs for the comet: a header
-        naming it, and a description of its size, composition, speed, and
-        current activity.
-
-        Returns:
-            list: A list of strings, where each string is a paragraph
-                  describing the comet.
-        """
-        header_level = '##' if self.system_config.MARKDOWN else '=='
-        header = f"{header_level} {self.name} (Interstellar Comet) {header_level if not self.system_config.MARKDOWN else ''}".rstrip()
-
-        activity = (
-            "It currently shows an active coma and tail as its surface ices sublimate."
-            if self.is_active else
-            "It shows no current activity, passing through inert."
-        )
-        description = (
-            f"{self.name} is a small icy body on a hyperbolic, unbound trajectory through interstellar space, "
-            f"with a nucleus roughly {self.nucleus_diameter_km:.2f} km across, composed of "
-            f"{self.get_composition_summary()}. It is traveling at a hyperbolic excess speed of "
-            f"{format_speed_kms(self.velocity_kms)} relative to any star it passes. {activity} Its own bulk motion "
-            f"still carries it around the galactic center at "
-            f"{format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)}."
-        )
-
-        return [header, description]
-
-    def __str__(self):
-        """
-        Returns a string representation of the comet, with paragraphs
-        separated by double newlines.
-        """
-        return "\n\n".join(self.to_paragraph_list())
-
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 object_timing.track(RoguePlanet, "rogue-planet")

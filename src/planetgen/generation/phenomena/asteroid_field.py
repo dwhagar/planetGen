@@ -24,16 +24,17 @@ import math
 from planetgen.generation.belt import format_composition_summary, generate_asteroid_composition
 from planetgen.generation.config import SystemConfig
 from planetgen import tuning
+from planetgen.physics import constants as pc
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
+from planetgen.galaxy.galactic_orbit import generate_galactic_orbit_fields
 from planetgen.names.wordsalad import LazySaladName
-from planetgen.util.format import format_distance_ly
 
 
-AU_PER_LY = 63241.077
-"""float: Astronomical units in one light-year, for the size digit."""
+AU_PER_LY = pc.LIGHTYEAR_M / pc.AU_M
+"""float: Astronomical units in one light-year, exact from the two definitions in `physics/constants.py` (GEN.572), for
+the size digit."""
 
 
 def asteroid_field_size_digit(radius_ly):
@@ -136,7 +137,7 @@ class AsteroidField(LazySaladName):
 
         Args:
             system_config (SystemConfig): The shared SystemConfig object
-                (used only for its `MARKDOWN` flag, via `to_paragraph_list`).
+                (its settings).
             name (str, optional): An explicit name. Random if omitted.
         """
         self.system_config = system_config
@@ -214,38 +215,6 @@ class AsteroidField(LazySaladName):
             str: The composition summary phrase.
         """
         return format_composition_summary(self.composition)
-
-    def to_paragraph_list(self):
-        """
-        Generates a list of descriptive paragraphs for the field: a header
-        naming it, and a description of its size, density, composition,
-        and galactic motion.
-
-        Returns:
-            list: A list of strings, where each string is a paragraph
-                  describing the asteroid field.
-        """
-        header_level = '##' if self.system_config.MARKDOWN else '=='
-        header = f"{header_level} {self.name} (Class {self.field_class} Asteroid Field) {header_level if not self.system_config.MARKDOWN else ''}".rstrip()
-
-        family_description = tuning.ASTEROID_FIELD_COMPOSITIONS[self.composition_family]["description"]
-        description = (
-            f"{self.name} is a class {self.field_class} field: a {self.density} {self.composition_family} "
-            f"field of asteroid debris ({family_description}) drifting in open interstellar space, "
-            f"about {format_distance_ly(self.radius_ly)} in radius, composed of {self.get_composition_summary()}. "
-            f"Though bound to no star, it still orbits the galactic center at "
-            f"{format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)}."
-        )
-
-        return [header, description]
-
-    def __str__(self):
-        """
-        Returns a string representation of the asteroid field, with
-        paragraphs separated by double newlines.
-        """
-        return "\n\n".join(self.to_paragraph_list())
-
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 object_timing.track(AsteroidField, "asteroid-field")

@@ -488,47 +488,6 @@ with `clamp()`.
   TEST.183) comes after them. Core 5 is the proposed owner.
   Prerequisites: UX.121, UX.122, UX.123, TEST.183. Related: PERF.66.
 
-- [ ] **UX.107 Units in the description go through the ladders**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. The describer, the map side panel (gravity, star
-  temperature, pressure of an airless body as 0 kPa in line with the
-  habitability text), the CLI query lines, the class page radius ranges,
-  and the wide-binary, comet, nebula and quasar numbers. The ladders
-  themselves (mass, temperature, pressure, Gyr rename) are UX.22, UX.23
-  and UX.81 (UX, all done); this item is the call sites outside the
-  files they edit.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 19 of 54). This replaces any earlier owner line on this item.
-  Units (Boss's cards, 11:56 to 11:57 PM EDT, as the coordinator
-  relayed): UX.139 moves the ladders onto the registry and GEN.574 moves
-  `qty()` onto the Quantity class; Core 4 owns all three, and both wait
-  on this item.
-  Prerequisites: none. Related: UX.22 (done, PR #1504), UX.81 (done, PR #1504).
-
-- [ ] **UX.109 Remove the old per-class description text**
-  Remove SystemConfig.MARKDOWN, the per-class to_paragraph_list and
-  __str__ text, db/render.py render_system_sections, the /sections
-  endpoint and mdrender, once nothing reads them. Foundations Wording
-  (filed 05:50Z, split out of API.25, done PR #1527).
-  Owns the one deletion of the Markdown machinery
-  (`web/lib/mdrender.py`, the `/sections` route,
-  `render_system_sections`, the markdown dependency and the Markdown
-  tests) that UX.105 also listed; UX.105 now builds only the renderer
-  and the page move (2026-10-16 review).
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 15 of 54). This replaces any earlier owner line on this item.
-  Global document note (Core 4, 11:27 PM EDT as the lane reported): this
-  item deletes `web/lib/mdrender.py`, so when it merges the architecture
-  page's mdrender.py row (`docs/design/architecture.md` line 508 and the
-  generated map) goes; the TODO thread removes it with the next
-  global-document regeneration, the lane does not touch it.
-  Prerequisites: none.
-
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
   update on everything once this is done so all the controls work
@@ -676,7 +635,7 @@ with `clamp()`.
   from the same ladder table. Done: no browser call site multiplies by a
   unit factor; the Python and JavaScript outputs for the same value
   agree in the existing parity test.
-  Prerequisites: GEN.299, UX.107. Related: GEN.300.
+  Prerequisites: GEN.299. Related: GEN.300.
 
 - [ ] **UX.129 Saved lists in the browser and in the account: one store with a local and an account backend**
   Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
@@ -849,7 +808,7 @@ with `clamp()`.
   need them. Nothing the site shows changes. Done: the rendered pages
   are identical, a factor is stated once, and the generated ladder table
   is current.
-  Prerequisites: GEN.569, UX.107. Related: GEN.550, GEN.565, DB.74.
+  Prerequisites: GEN.569. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
 - [ ] **UX.140 Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed**
@@ -1198,7 +1157,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.151's tile keys; MAP.154, the nested lists, merged in #1303), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148
   and MAP.150, done in #1382); this umbrella closes last.
   Headline: 8.1 (infinite zoom: the fly-through Galaxy Map).
-  Prerequisites: MAP.247.
+  Prerequisites: none.
   Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
@@ -2199,21 +2158,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is gone (no shim).
   Prerequisites: GEN.420. Related: GEN.420.
 
-- [ ] **MAP.247 The wheel zoom's column-density ray fallback: where the cursor ray hits nothing pickable, the point is the first sample where the integrated column density passes a threshold**
-  Split from MAP.245 (Core 2, 2026-10-17, 4:24 PM EDT as the lane
-  reported: the cell scene has no density field where the cursor ray
-  hits nothing, so the fallback was not built; relayed by the
-  coordinator). The wheel's point under the cursor is, in order, the
-  picked star, remnant or cell, else the first sample along the cursor
-  ray where the integrated column density passes a threshold (this
-  item), else the point at the current focus depth (built). Done: the
-  cell scene carries the density the ray integrates (or reads it from
-  the stage's density tiles), the threshold is a named constant with its
-  reason, and a browser test zooms with the cursor over empty space
-  between the stars of a dense region and ends where the column passes
-  the threshold, not at the focus depth. Owner: Core 2 (proposed).
-  Prerequisites: none. Related: MAP.225, MAP.245.
-
 - [ ] **MAP.248 The maps and pages follow the plan configuration: with the halo or the satellite galaxies off, nothing is drawn, picked or offered beyond the configured boundaries**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
   intergalactic generation to be a switch that defaults to off, put that
@@ -2268,6 +2212,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ahead of MAP.247 in its queue.
   Prerequisites: none. Related: MAP.239, MAP.152, MAP.147, PERF.129,
   PERF.130, PERF.131, PERF.132, PERF.133.
+  Profile result (Core 2, 5:07 AM EDT 2026-10-18 as the lane reported;
+  measured on a scaled copy of the galaxy with 528,250 bright stars,
+  387,916 of them halo, current main, tiles asked the way the page asks,
+  no cache; probe script `tileprobe.py` in Core 2's scratchpad and
+  database `lagprobe` in its container): at every camera distance from
+  300,000 pc down to 30 pc a view asks for 400 to 480 tiles (the cap is
+  512). From 10,000 pc inward a view is 7 to 8.8 MB of JSON (17,500 to
+  19,700 stars, 2,700 to 11,000 points) and takes 50 to 67 s of cold
+  server time; farther out it is 1.2 to 2 MB and 7 to 10 s. The cost is
+  the star-list piece (38 to 44 s) and the scattered-point piece (20 to
+  24 s); no single piece is over 3 s (the largest is 2.8 s). So a zoom
+  to a new level means about 450 new tiles and about 8 MB, which
+  explains the slog, and MAP.239, MAP.243, MAP.247 and MAP.250 do not
+  change it. Options put to Boss through the coordinator: (1) cut the
+  tiles per view to about 150 and set budgets so a view is about 2 MB,
+  (2) tile cache warming (PERF.130 to PERF.132), (3) both; Core 2
+  recommends (3) and starts (1) now.
+  Option 1 measured (Core 2, 5:15 AM EDT 2026-10-18 as the lane
+  reported, through the coordinator): cutting the payload about 40% (the
+  view cone from 70 to 50 degrees and the budget factor 3) costs about a
+  third of the stars and still leaves 23 to 37 s of cold server time for
+  each new level; the cut factor alone helps little when zoomed in. Core
+  2's updated recommendation is tile cache warming first (PERF.130 to
+  PERF.132), then trimming the cone and budgets only if a view is still
+  heavy. Boss's card was replaced with the three options (warm the cache
+  first, cut the payload first, both); his choice is recorded below (Both, cut payload first).
+  Decided (Boss, 2026-10-18, tapped on the card at about 8:54 AM EDT, as
+  the coordinator relayed): "Both, cut payload first". Cut the payload
+  first (fewer tiles per view, smaller star and point budgets, about 2
+  MB a view), then warm the tile cache ahead of the zoom path (PERF.130
+  to PERF.132, which follow the payload cut). Core 2 builds it and
+  states in the PR how many stars the cut loses.
 
 - [ ] **MAP.251 When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug)**
   Boss (2026-10-17, 7:38 PM EDT, typed in the project chat, relayed by
@@ -4682,6 +4658,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is stamped (release 8.0.1801, GEN.402, #2224); this item takes the
   next free epoch after GEN.404 and GEN.572 at its merge, so the 'epoch
   24 pending' above is out of date.
+  Gate update (Core 3, reported 5:57 AM EDT 2026-10-18 on the lane's
+  clock): the 1:55 AM EDT changed gate ended red at 3:48 AM EDT (19,899
+  passed, 8 failed, 1 error). One cause was this item's own and is
+  fixed: every page read loaded all stored components (a galaxy holds up
+  to 100,000 open clusters), 1.3 s a request and browser tests ten times
+  slower, so `db/store.py` now caches the component field by the table
+  signature (count, first and last id, mass sum, database). Four other
+  failures pass alone and the three browser map failures are filed apart
+  (see TEST.223 and PERF.138). GEN.244, GEN.282 and GEN.563 are rebased
+  as one stack on main d576474b: GEN.244 takes Alembic 0112 and fixture
+  schema_v111, all three ride epoch 26 (pending; GEN.404 and Core 4's
+  UX.107 bundle also claim 26, so the next merger renumbers). One
+  stacked changed gate started 5:55 AM EDT on the GEN.563 tip (expected
+  end about 7:50 AM EDT); merge order 244, 282, 563.
+  Epoch update (7:28 AM EDT 2026-10-18, from the epochs file on main):
+  epoch 26 is stamped (release 8.0.1810, GEN.561, #2240), so this item
+  takes the next free epoch at its merge (27 unless another lane merges
+  first); the epoch 26 named above is out of date.
+  Epoch update (8:08 AM EDT 2026-10-18, from the epochs file on main):
+  epoch 27 is stamped (release 8.0.1812, GEN.572, #2243), so this item
+  takes the next free epoch at its merge (28 unless another lane merges
+  first); the epoch 26 or 27 named above is out of date.
   Prerequisites: none. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -5669,7 +5667,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
   Prerequisites: GEN.244, GEN.282, GEN.284, TEST.159, TEST.160, GEN.450,
-  TEST.196, GEN.530, GEN.563, GEN.572.
+  TEST.196, GEN.530, GEN.563.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -7750,6 +7748,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is stamped (release 8.0.1801, GEN.402, #2224); this item takes epoch
   26 (Core 1, as the coordinator relayed), so the earlier 'epoch 25'
   above is out of date.
+  Epoch update (7:28 AM EDT 2026-10-18, from the epochs file on main):
+  epoch 26 is stamped (release 8.0.1810, GEN.561, #2240), so this item
+  takes the next free epoch at its merge (27 unless another lane merges
+  first); the epoch 26 named above is out of date.
+  Epoch update (8:08 AM EDT 2026-10-18, from the epochs file on main):
+  epoch 27 is stamped (release 8.0.1812, GEN.572, #2243), so this item
+  takes the next free epoch at its merge (28 unless another lane merges
+  first); the epoch 26 or 27 named above is out of date.
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -13083,33 +13089,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed).
   Prerequisites: none. Related: GEN.133, GEN.134.
 
-- [ ] **GEN.543 Define "usable" for a P-type window so the design table's pair-node row (34% falling to 18%) can be reproduced**
-  Open question from GEN.314 (Blocker 1, merged #2125, 2026-10-17;
-  reported 7:38 PM EDT through the coordinator):
-  `docs/design/multistar-and-compact-systems.md` 5.6 gives "Pair nodes
-  with a usable P-type window" as 34%, 35%, 28%, 23%, 20%, 18% for N = 2
-  to 7, but does not define "usable" past the window being there.
-  GEN.314's width test (window wider than 0.3 AU) gives 45%, 48%, 43%,
-  37%, 35%, 30%, above the table. The S-type row is reproduced within 7
-  points. Default (stands as Decided unless Boss says otherwise): try
-  two candidate definitions on the same seeded draw of the generator's
-  trees, (a) width above 0.3 AU and an outer edge at least twice the
-  inner edge, (b) width above 0.3 AU and the window overlaps the host's
-  habitable zone, and keep the one that lands the table's row within 7
-  points at every N; if neither does, keep the measured numbers, label
-  the table's row as the earlier estimate and say so on the design page.
-  Nothing waits on it. Done: the definition is written next to the
-  table, a test pins the share, and the table's row is either reproduced
-  or relabelled. Owner: Blocker 1 (proposed, after PERF.118, GEN.438 to
-  GEN.440).
-  Decided (Boss, 2026-10-17, 9:54 PM EDT, typed in the project chat,
-  relayed by the coordinator): "I approve all your defaults". This
-  approves the default on this item (two candidate definitions of
-  "usable" tried on the same seeded draw, the one that lands the table's
-  row within 7 points at every N kept, else the measured numbers kept
-  and the table's row relabelled).
-  Prerequisites: none. Related: GEN.314, GEN.264.
-
 - [ ] **GEN.544 Revisit the disc's vertical profile: the sech-squared core has half the midplane density of the exponential fits its scale heights come from**
   Found by Core 1 while building GEN.404 (2026-10-17, 8:33 PM EDT as the
   lane reported), filed by the TODO thread. Design gap, a consequence of
@@ -13223,81 +13202,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   has decided. Owner: Core 4 (proposed), after the age item.
   Prerequisites: GEN.546. Related: GEN.469, GEN.134, GEN.546.
 
-- [ ] **GEN.548 Build-time downloads for the isochrone grids, the white-dwarf layers and the neutron-star equation of state, each with a checksum and a labelled stand-in until it lands**
-  Boss (2026-10-17, 9:40 to 9:45 PM EDT, card answer relayed by the
-  coordinator at 9:46 PM EDT): the research gap in
-  docs/design/stellar-composition.md section 14 is closed by a
-  build-time download for the isochrone grids (luminosity, temperature
-  and lifetime against Z), the white-dwarf layers and the neutron-star
-  equation of state, as in D6 and the AD1 methane pattern
-  (docs/design/gap-filling-plan.md section 8: data is downloaded at
-  build time, no derived table is stored in the repository, the design
-  says how tests run offline). Filed by the TODO thread. Do: for each of
-  the three, name the dataset and its verified source (the lane verifies
-  each citation before use, the standing source rules apply), fetch an
-  extract with its sha256 at build time with the standard User-Agent of
-  API.31, keep a labelled stand-in as the fallback when the network is
-  down (the AD1 methane build does this), and let GEN.439 and GEN.440
-  read the result through one function per dataset. Network note: arXiv,
-  doi.org, NTRS, NIST, PubChem, USGS, HITRAN, Crossref, Zenodo, Nature
-  and PMC are reachable from the project environment; ADS, Science, OUP,
-  ScienceDirect, A&A, Annual Reviews, Europe PMC and LPI are refused, so
-  a dataset that lives only there is fetched from a Zenodo or arXiv copy
-  or Boss supplies it. Raw papers and downloaded datasets stay out of
-  the repository (Boss, 2:35 PM EDT, 2026-10-17: results and derived
-  values may be committed; the program stays free). Default (stands
-  unless Boss overrules): the three datasets are separate small pieces,
-  so GEN.439 can use the stand-ins first and swap each in as it lands.
-  Done: each dataset has a function, a checksum and a stand-in labelled
-  as one in the stand-in registry (gap plan section 6), a test builds a
-  fixture offline, and the design note names the three sources. Owner:
-  Blocker 1 (proposed, with GEN.439).
-  Decided (Boss, 2026-10-17, 9:54 PM EDT, typed in the project chat,
-  relayed by the coordinator): "I approve all your defaults". Everything
-  else on this item stands as its default.
-  Decided: Boss tapped 'Shared step first' on the GEN.548 card at 12:46
-  AM EDT on 2026-10-18 (as the coordinator relayed): GEN.548 builds the
-  shared download step first (standard User-Agent of API.31, sha256
-  check, cache outside the repository in a folder `update.sh` fills, a
-  labelled stand-in when the host is down, offline fixtures for the
-  tests) and then its three datasets; AD1 to AD8 and the other download
-  jobs reuse that one step. No download step is merged yet: AD1 methane
-  is only a design and a source check so far. Standing rule: Downloads
-  of static files take place at setup (the step `update.sh` runs, into a
-  cache folder outside the repository) unless the data needs to be
-  constantly updated; any code that fetches data at run time must say in
-  its design why the data needs constant updates (Boss, 12:47 AM EDT on
-  2026-10-18, project chat, as the coordinator relayed). The three
-  datasets here are static (grids and tables that change with a paper,
-  not with the clock), so they are fetched at setup and never at run
-  time.
-  Progress (Blocker 1, reported about 2:46 AM EDT 2026-10-18 as the lane
-  clock read, through the coordinator): coded; its changed gate started
-  about 2:46 AM EDT. It is the shared setup-time download step:
-  update.sh and install.sh run it, the cache is
-  /var/cache/planetgen/datasets, every file is checked against a sha256,
-  a stand-in is used when a host is down, and it fetches the MIST
-  isochrones, the Bedard white-dwarf sequences and the neutron-star
-  equation of state and crust tables. GEN.439 and GEN.440 merged as
-  #2208 (the open states in their RELATIONS list wait on this step).
-  Detail (Blocker 1, 2:47 AM EDT 2026-10-18 as the lane reported):
-  branch claude/gen548-download-step holds
-  `planetgen/datasets/fetch.py`, the command `python -m
-  planetgen.cli.datasets fetch`, step 3 of update.sh and install.sh, the
-  cache directory override PLANETGEN_DATA_DIR, and the three datasets
-  (MIST main-sequence isochrones SC1, Bedard 2020 white-dwarf sequences
-  SC2, neutron-star equation of state and outer-crust compositions SC3);
-  a real fetch was verified (82 s, 225 MB). The stand-in fills SC1 to
-  SC3 are in gap-filling-plan 6.6 and design note stellar-composition
-  14.1 names the sources. After it merges, Blocker 1 wires the readers
-  into the stellar modules.
-  Gate update (Blocker 1, relayed by the coordinator at about 4:26 AM
-  EDT 2026-10-18, lane clock): the gate that started about 2:46 AM EDT
-  was killed by the container restart at about 3:55 AM EDT; it restarted
-  at 4:26 AM EDT on the rebased branch. This replaces the earlier note
-  that it was alive in its browser phase.
-  Prerequisites: none. Related: GEN.439, GEN.440, GEN.502, API.31.
-
 - [ ] **GEN.549 L dwarfs hotter than 1,500 K are 2 to 4 times too rare against the 20 pc census: use a cooling track that reaches them (strict expected failure)**
   Follow-up of GEN.252 (merged #2164, Core 4, 2026-10-17, 11:09 PM EDT
   as the lane reported), filed by the TODO thread from Core 4's report
@@ -13324,6 +13228,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   census's share in the test, the strict expected failure is gone, and
   the design note names the track. Owner: Core 4 (proposed; it built
   GEN.252), after the description layer.
+  Epoch update (8:08 AM EDT 2026-10-18, from the epochs file on main):
+  epoch 27 is stamped (release 8.0.1812, GEN.572, #2243), so this item
+  takes the next free epoch at its merge (28 unless another lane merges
+  first); the epoch 26 or 27 named above is out of date.
   Prerequisites: none. Related: GEN.252, GEN.301.
 
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
@@ -13812,24 +13720,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   parts.
   Prerequisites: none. Related: GEN.550.
 
-- [ ] **GEN.561 The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own**
-  Failure (Core 4, 11:41 PM EDT as the lane reported; found in its TEST.155 branch, whose finding text is in
-  `changes/test155-wording-agrees-with-the-index.patch.md` there, merging with the description-layer bundle): the
-  description (`protection.requirements`) asks for an environment suit in a Yellow heat (air temperature above the
-  `heat_garment_c` limit, 45 to 122 C), a Yellow cold (below `cold_suit_c`) or an inspired oxygen above the chronic
-  limit, while `habitability.equipment`, stored as `equipment_tier`, returns a mask or ideal there. The strict expected
-  failure is `test_the_gear_and_the_equipment_label_agree_in_a_yellow_heat_cold_or_oxygen_excess` in
-  `tests/test_wording_agrees_with_the_index.py`. Decided (Boss, card "Which wins when the gear sentence and the stored
-  kit disagree in a Yellow heat?", tapped "Kit follows words", option A, 10:55 PM EDT as the lane reported; the other
-  options were "Words follow kit" and "Leave it"): the sentence wins and the kit follows it. Do: `habitability.equipment`
-  returns "environment suit" when `temperature_c` is outside [`cold_suit_c`, `heat_garment_c`] or the inspired oxygen
-  exceeds `o2_chronic`; the strict expected failure becomes a passing test. Stored `equipment_tier` of such worlds rises, so
-  it is a generator epoch change (epoch 23 pending on Core 4's branch as the lane reported; the number follows the order of
-  merges). Done: the gear class and the equipment label agree for every random and example world. Owner: Core 4 (its own
-  queue, after the description-layer bundle, UX.109, UX.107 and DOC.45; its branch note cites GEN.561). Filed by the TODO
-  thread at Core 4's request (11:27 PM EDT as the lane reported).
-  Prerequisites: none. Related: TEST.155, GEN.218, GEN.288.
-
 - [ ] **GEN.563 The black hole density depends on metallicity and is capped by the neutron star budget: the failed-supernova share of the stars born replaces the one constant 7e-5 per pc^3, and every scatter class gets its own random stream**
   From Boss's back-scatter cards on the unified orbited-body design
   (docs/design/unified-star-like-objects.md, GEN.550): 'BH density only'
@@ -14210,42 +14100,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.568. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
-- [ ] **GEN.572 The two rounded unit factors become exact before the one rescatter: 63241.077 AU per light-year and 3.26156 light-years per parsec**
-  Part of the unified orbited-body plan (GEN.550;
-  docs/design/unified-unit-quantity.md, Boss's cards Q5 and Q6, 11:56 to
-  11:57 PM EDT, 2026-10-17, as the coordinator relayed). Boss tapped
-  'Pull into 8.1' on the card for this item at 12:04 AM EDT, 2026-10-18
-  (as the coordinator relayed), so it is built in 8.1, before the one
-  full wiped rescatter, and is a prerequisite of GEN.301. Owner: Core 5
-  (proposed). It needs no unit registry: the three sites read the exact
-  `AU_M`, `LIGHTYEAR_M` and `PARSEC_M` of `physics/constants.py`. The
-  rounded values sit in `generation/phenomena/asteroid_field.py:35`,
-  `generation/phenomena_plausibility.py:79` and `physics/hii.py:40`;
-  they differ from the exact ones by 1.3e-9 and 1.2e-6 in relative size.
-  Why it is a rescatter item (found by the TODO thread, 2026-10-17):
-  `hii.region` returns `radius * LY_PER_PC` as the radius in light-years
-  of an H II region, which `generation/phenomena/nebula.py:273` stores,
-  so the exact factor changes a nebula's stored radius in the last
-  digits; that is a scatter output (a phenomenon scatter row), so the
-  item takes the next generator epoch and joins the list of changes the
-  one wiped rescatter carries (a refill would not be enough). The other
-  two sites only decide a size digit at its floor boundary. The three
-  constants change at once and nothing else; the later sweep of the
-  other ad-hoc factors is GEN.571 and stays bit-identical. Done: the
-  three sites read the exact factors, the golden digest changes with the
-  epoch entry, and the tests that pin nebula radii are regenerated.
-  Progress (Core 5, 2:54 AM EDT 2026-10-18 as the lane reported): coded;
-  its changed gate started 2:53 AM EDT, and it takes epoch 25 (epoch 24
-  is pending for GEN.402, GEN.244 or the next of them to merge; the
-  later merger renumbers). PR follows when the gate is green.
-  Epoch update (4:36 AM EDT 2026-10-18, from the epochs file on main):
-  epoch 24 is stamped (release 8.0.1783, Core 4's bundle) and epoch 25
-  is stamped (release 8.0.1801, GEN.402, #2224); this item's epoch is
-  therefore not 25: it renumbers to the next free number at its merge
-  (26 if it merges before GEN.404, else after it).
-  Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
-  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
-
 - [ ] **GEN.573 The position class reads its units from the registry: length unit by key, no bare 1000 or copy of c, mass and mu a declared relation**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
@@ -14291,7 +14145,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it (no backward shim otherwise); `describe/quantity.py` loses its
   `_KM_M`. Done: the Document and API tests pass on the new shape and
   the HTML renderer shows the same text.
-  Prerequisites: GEN.569, UX.107. Related: GEN.550, GEN.565,
+  Prerequisites: GEN.569. Related: GEN.550, GEN.565,
   DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
@@ -14971,6 +14825,84 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   not a preset). Owner: Core 3 (proposed; it built GEN.244). Not a
   prerequisite of GEN.301.
   Prerequisites: GEN.244. Related: GEN.244, GEN.282.
+
+- [ ] **GEN.590 Wire the downloaded isochrones, white-dwarf sequences and neutron-star tables into star composition (after Boss answers the Require / Stand-in card)**
+  GEN.548 merged (#2236, release 8.0.1807; reported by Blocker 1 at 6:05
+  AM EDT on the lane's clock): the shared setup-time download step
+  (`planetgen/datasets/`, `planetgen/cli/datasets`,
+  `planetgen/util/user_agent.py`) and its three readers for the MIST
+  isochrones (SC1), the Bedard white-dwarf sequences (SC2) and the
+  neutron-star equation of state and crust (SC3). Nothing reads them
+  yet: `stellar_abundances` and `stellar_composition` still use their
+  stand-ins. Do: wire the three readers into the stellar abundances and
+  star composition, once Boss answers the card Blocker 1 holds in its
+  own thread (options: Require the data, Stand-in fallback, Not yet;
+  Blocker 1 recommends Require the data). Done: star composition reads
+  the downloaded files by way of the three reader functions, the
+  behaviour when a file is missing is the one Boss chose and a test pins
+  it offline with the fixtures, and the stand-in registry (gap plan
+  section 6) lists what is still a stand-in. Filed by the TODO thread at
+  Blocker 1's request (6:05 AM EDT as the lane reported). Owner: Blocker
+  1 (proposed). Boss's answer is not recorded yet.
+  Prerequisites: none. Related: GEN.548, GEN.543, GEN.439, GEN.440.
+
+- [ ] **GEN.591 An elliptical comet's aphelion can exceed its star's Hill sphere in about 10% of runs: the comet bound test fails on main (bug)**
+  Found by Bug Hunt (reported 7:20 AM EDT 2026-10-18 on the lane's
+  clock), filed by the TODO thread.
+  `src/tests/test_comet_data.py::test_every_elliptical_comet_is_bound_and_stays_inside_the_stars_hill_sphere`
+  fails with `AssertionError: (0.08, 0.998818116460001,
+  6159.290676884793, 5814.6170006007005)`: an elliptical comet's
+  aphelion is 6159 AU, above the 5815 AU Hill sphere of a 0.08
+  solar-mass star at 2000 pc. Fails on main: yes. Bug Hunt's tree failed
+  17 of 120 fresh runs alone at idle (14%); the TODO thread's re-run on
+  main d6367912 at 7:41 to 7:43 AM EDT failed 3 of 30 (10%). So it is
+  unseeded draws, not load. Reading of the code (TODO thread, not yet
+  traced to a commit): `generation/comet.py` draws the eccentricity from
+  the period class's range and sets no cap from the star's Hill sphere,
+  while the test takes the Hill radius from
+  `mass_chain.current_central_mass_kg()` (the galaxy's virial mass,
+  GEN.400); a lighter galaxy gives a smaller Hill sphere, so the
+  tightest star (0.08 solar masses at the inner edge) can have a
+  long-period comet that leaves it. Either the generator must cap a
+  closed orbit's aphelion at the Hill sphere of its star (GEN.182 says a
+  closed orbit never leaves its star), or the test's bound must be the
+  one the generator uses; Bug Hunt suggests it started after GEN.402
+  (#2224). Frequency: 10 to 14% of runs alone. Reproducer: `for i in
+  $(seq 1 120); do python3 -m pytest src/tests/test_comet_data.py -k
+  bound_and_stays_inside -q; done`. Done: an elliptical comet's aphelion
+  is below its star's Hill sphere for every draw, by a cap in the
+  generator (an epoch if values change) or by a corrected bound, and the
+  test passes 300 of 300 fresh runs with no quarantine. Owner: Core 1
+  (proposed by Bug Hunt; GEN.400 and GEN.402 are its mass chain).
+  Epoch note (8:08 AM EDT 2026-10-18): if a generator cap changes values
+  this item takes the epoch after GEN.404's and GEN.549's (29 or later;
+  27 is stamped).
+  Prerequisites: none. Related: GEN.182, GEN.400, GEN.402.
+
+- [ ] **GEN.592 A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced)**
+  Observation by Bug Hunt (reported 8:51 AM EDT 2026-10-18 on the lane's
+  clock; not yet traced), filed by the TODO thread. In a galaxy run that
+  does not draw the star scatter, a capped cell (expected systems over
+  the 5,000 ceiling, in the dense core) generates 0 systems, while
+  `galaxy.resolution.cell_resolution` says it resolves 4 to 30 (no mass
+  limit passed) or 81 over a 24-cell neighbourhood (with the scatter's
+  mass limit passed, as `run_galaxy._fill_context` does). Probed with
+  the fixed seed 96901074FC015B42F2E80F1434609687: cells (4,-1,23),
+  (3,0,16), (4,0,23) and (5,0,29) resolved 10.4, 4.1, 25.8 and 29.5
+  systems and generated 0 each by `galaxy --shell --band --wedge`. Fails
+  on main: not checked by the TODO thread. Question for the GEN.281
+  owner: if the fill is meant to turn the bands drawn at the cap into
+  systems even without the scatter, it under-generates; if the scatter
+  must have run first, the plan statistics overstate what a sector run
+  produces, and the plan should say so. Do: trace why the capped cell
+  generates nothing, then either fix the fill or write down that the
+  scatter must run first and make the statistics honest. Done: a capped
+  cell generates the number `cell_resolution` gives, or the plan states
+  the precondition and the statistics follow it, with a test of the
+  chosen behaviour. Bug Hunt's own TEST.225 test no longer depends on
+  this (its next PR leaves capped cells out of the sum). Owner: Core 3
+  (proposed, GEN.281's lane).
+  Prerequisites: none. Related: GEN.281, GEN.283.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -15727,6 +15659,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that rule bumps the tile cache stamp and the cached tiles are rebuilt
   once. The galaxy map lag Boss reported at the same time is MAP.249; if
   its cause is the missing cache, this item is brought forward.
+  Decided (Boss, 2026-10-18, tapped 'Both, cut payload first' on the
+  MAP.249 card at about 8:54 AM EDT, as the coordinator relayed): the
+  tile cache work follows MAP.249's payload cut, so it starts after Core
+  2's payload PR (about 2 MB a view) and is sized for the reduced tiles.
 
 - [ ] **PERF.131 Store the tiles compressed and serve the stored bytes with their encoding, so a request does no compression**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -15768,6 +15704,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that rule bumps the tile cache stamp and the cached tiles are rebuilt
   once. The galaxy map lag Boss reported at the same time is MAP.249; if
   its cause is the missing cache, this item is brought forward.
+  Decided (Boss, 2026-10-18, tapped 'Both, cut payload first' on the
+  MAP.249 card at about 8:54 AM EDT, as the coordinator relayed): the
+  tile cache work follows MAP.249's payload cut, so it starts after Core
+  2's payload PR (about 2 MB a view) and is sized for the reduced tiles.
   Prerequisites: none. Related: PERF.129, MAP.159, MAP.158.
 
 - [ ] **PERF.132 Build proactively on a visit: the surrounding tiles and the next zoom levels are built and cached in the background**
@@ -15809,6 +15749,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that rule bumps the tile cache stamp and the cached tiles are rebuilt
   once. The galaxy map lag Boss reported at the same time is MAP.249; if
   its cause is the missing cache, this item is brought forward.
+  Decided (Boss, 2026-10-18, tapped 'Both, cut payload first' on the
+  MAP.249 card at about 8:54 AM EDT, as the coordinator relayed): the
+  tile cache work follows MAP.249's payload cut, so it starts after Core
+  2's payload PR (about 2 MB a view) and is sized for the reduced tiles.
 
 - [ ] **PERF.133 Keep every tile until the data changes: invalidate by what changed, rebuild what a change touched, and never evict a valid tile for size**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -15931,6 +15875,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy. Owner: Core 5 (proposed, it found the list and wrote the
   PERF.126 and PERF.127 commands); low priority, no version blocker.
   Prerequisites: none. Related: PERF.75, PERF.135.
+
+- [ ] **PERF.138 The nuclear cluster term made the extent majorant about 1000 times looser: the shell scatter takes over 250 s, not 5.6 s (bug)**
+  Found by Core 3 (reported 5:57 AM EDT 2026-10-18 on the lane's clock),
+  filed by the TODO thread. Since GEN.402 (#2224)
+  `object_first.extent_majorants` returns a bound about 1000 times
+  larger for the groups beside the galaxy centre (the nuclear cluster
+  term): shell 5 of the tier test's toy galaxy (`tiers.SHAPE`) has a
+  bound of 8.9e6 where it was 3.7e3, so
+  `phenomenon_reach.scatter_shell(tiers.SHAPE, 5, -1, tiers.EDGE_PC,
+  4000.0, 5, min_mass_solar=1.0, check=True)` takes over 250 s where it
+  took 5.6 s (224,000 rows) on 2bd9bfad. The bound is the nuclear
+  cluster's `_nuclear_cluster_array` majorant at the group's nearest
+  point times `fractions["nuclear_cluster"]`. A loose majorant makes the
+  scatter draw and thin that many more candidates, so this is a likely
+  real performance cliff for every scatter that rides the nuclear term,
+  not only a slow test: `test_gen_phenomenon_reach.py` now takes about
+  15 minutes under `-n 4`. Fails on main: slow, not red (Core 3's count
+  on 390fb54e). The TODO thread's re-run on main dfe8351f from 6:00 AM
+  EDT (gate load, four cores shared) was still running after 14 minutes
+  and was stopped. Frequency: every run. Reproducer: `PYTHONPATH=src
+  python3` with `from tests import test_gen_scatter_tiers as tiers` and
+  `list(phenomenon_reach.scatter_shell(...))` with the arguments above,
+  timed on 2bd9bfad and on main. Do: find why the nuclear cluster
+  majorant grew (the group's nearest point can sit inside the cluster's
+  core radius, where the profile peaks), tighten it to the real maximum
+  over the group's extent or split the nearest groups, and keep the
+  one-sided bound the thinning needs. Done: the shell-5 call is back
+  near its old time with the same rows (the rows must not change, so no
+  epoch), and `test_gen_phenomenon_reach.py` runs in minutes again.
+  Owner: Core 1 (GEN.402's author; proposed, Core 3 and Core 4 touch the
+  same module).
+  Prerequisites: none. Related: GEN.402, GEN.322, PERF.106.
 
 ## DB: Database and schema
 
@@ -19583,6 +19559,30 @@ clears each one.
   a `canvas.galaxyFlying` hook plus `_wait_settled` waiting for it, in
   Bug Hunt's next PR with MAP.251 and MAP.252; this item retires with
   that PR.
+  Sighting (Core 2, MAP.247's second gate, reported 4:58 AM EDT
+  2026-10-18 as the lane reported; 62 minutes, 800 passed, 1 failed): a
+  galaxy-map drill-down test failed again in the changed gate and passes
+  alone. Consistent with the crumb-read-mid-flight cause above; it goes
+  with Bug Hunt's fix.
+  Sighting (Core 3, reported 5:57 AM EDT 2026-10-18 on the lane's
+  clock): `test_galaxy_map_drill_down_by_clicks` failed 1 of 3 alone
+  runs on a clean main and 1 of 3 on Core 3's tree, with the trail after
+  Back naming 'Block 175·22·348 (27)' where the walk saw 'Block
+  174·20·348 (27)', and
+  `test_galaxy_map_forward_to_current_jumps_to_the_newest_view` showed
+  the same one-cell drift in a gate. Both match the
+  crumb-read-mid-flight cause above and go with Bug Hunt's fix. The one
+  `win=81.10.-15.4` failure came from a tree that still had the old
+  window regex; main's regex (#2227) allows a negative band and accepts
+  it. Core 3's third note
+  (test_generate_sector_real_capacity_overflow... failed once under gate
+  load with 120 of 120 fitting) is the TEST.245 case already fixed by
+  the lighter test galaxy in #2227.
+  Sighting (Core 4, reported about 7:30 AM EDT 2026-10-18 on the lane's
+  clock; changed gate of #2240, 20,020 passed):
+  `test_galaxy_map_drill_down_by_clicks` failed once under load (40 s
+  call at load 10) and passes alone (65 s). Same crumb case; it goes
+  with Bug Hunt's fix.
   Prerequisites: none. Related: TEST.213, TEST.194.
 
 - [ ] **TEST.224 `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed once in a full gate: the nested system's inside_nebula_id was None (bug)**
@@ -19863,6 +19863,11 @@ clears each one.
   known.
   Status (Bug Hunt, 2:37 AM EDT 2026-10-18 as the lane reported): the
   hypervelocity count flake is not started; TEST.243 is not started.
+  Sighting (Core 5, reported 8:06 AM EDT 2026-10-18 on the lane's clock;
+  its GEN.572 gate): failed once with no hypervelocity-star in the
+  stored kinds (seedless galaxy, random scatter seed), and passed 12 of
+  12 reruns on main and on the branch; frequency about 1 in 13. Same
+  cause as above (the unseeded galaxy); it goes with Bug Hunt's fix.
   Prerequisites: none. Related: TEST.220, TEST.224.
 
 - [ ] **TEST.239 Tests for the unified chain: determinism by host, representation counts per kind and level, rogue and comet rates, derived remnant shares**
@@ -20068,6 +20073,24 @@ clears each one.
   Prerequisites: GEN.576, GEN.578, GEN.581, GEN.583. Related: GEN.550,
   GEN.565, GEN.576, GEN.578.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **TEST.246 The web edit menu tests time out in setup in a loaded gate: the accessibility site database backfill took 1024 s while other tests ran, and the tests pass alone in 46 to 49 s (bug)**
+  Found by Core 5 (reported 8:06 AM EDT 2026-10-18 on the lane's clock,
+  its GEN.572 gate of 71 minutes), filed by the TODO thread. Five
+  `test_web_edit_menu` tests failed with setup timeouts; the setup
+  builds the accessibility site database (the a11y site_db backfill),
+  which took 1024 s while concurrent tests ran, and each test passes
+  alone in 46 to 49 s. Core 5 also saw TEST.235's slow-pages [dark] case
+  fail once and pass alone. Fails on main: not checked (load only).
+  Frequency: 1 of 1 gates with other tests running beside it.
+  Reproducer: `scripts/test.py changed` while another gate runs, or the
+  web edit menu tests with the backfill under CPU load. Do: build the
+  site database once per run (a shared fixture) or give the setup a
+  deadline that scales with load, so no test waits on a 1000 s backfill;
+  no quarantine. Done: the five tests pass in a gate that runs beside
+  another gate, and the backfill time is printed in the run log. Owner:
+  Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.227, TEST.235.
 
 ## USR: User accounts
 
@@ -21036,21 +21059,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 43 of 54). This replaces any earlier owner line on this item.
   Prerequisite: PERF.86.
-
-- [ ] **DOC.45 Reference docs follow the description layer**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. Leftover sweep for docs/html-interface.md, api.md
-  (/sections removed, /description added), cli.md (--format),
-  system-file-format.md, example-systems.md,
-  design/habitability-index.md (PHI-6 naming) and testing.md. Each build
-  item updates the page it changes in its own PR; this is what is left,
-  part of the DOC.18 to DOC.44 sweep at the end of Phase 1.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 20 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none.
 
 - [ ] **DOC.48 Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes**
   Step 14 of the whole-sphere train.

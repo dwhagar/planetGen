@@ -17,7 +17,6 @@ import subprocess
 import pytest
 
 from planetgen.physics import constants as pc
-from planetgen.generation.config import SystemConfig
 from planetgen.util import ladders
 from planetgen.util.format import _aside_symbol
 from planetgen.util.format import (
@@ -90,11 +89,9 @@ def test_exact_constants():
 
 
 def test_body_radius_is_always_scientific_km():
-    config = SystemConfig()
-    config.MARKDOWN = True
-    assert format_body_radius_km(config, 6371) == "6.37 × 10<sup>3</sup> km"
-    assert format_body_radius_km(config, 1737.4) == "1.74 × 10<sup>3</sup> km"
-    assert format_body_radius_km(config, 696_000) == "6.96 × 10<sup>5</sup> km"
+    assert format_body_radius_km(6371) == "6.37 × 10<sup>3</sup> km"
+    assert format_body_radius_km(1737.4) == "1.74 × 10<sup>3</sup> km"
+    assert format_body_radius_km(696_000) == "6.96 × 10<sup>5</sup> km"
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node isn't installed")

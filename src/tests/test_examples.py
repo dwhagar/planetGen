@@ -18,6 +18,7 @@ from planetgen.generation import run_system
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen import tuning
+from tests import render_support
 
 # This file lives at src/tests/, two levels under the repo root (src
 # layout), not one -- ".." twice to reach examples/systems/ at the repo
@@ -31,7 +32,7 @@ TRIALS = 3
 # Substrings from STAR_EVOLUTION's evolutionary_constraint_notes that describe
 # a *main-sequence* star's habitable-zone lifespan. These should never appear
 # in a star's narrative text for a non-main-sequence (Yerkes != 'V') star --
-# see get_star_evolutionary_profile / Star.to_paragraph_list.
+# see get_star_evolutionary_profile and describe.build._star_age_sentence.
 _MAIN_SEQUENCE_ONLY_NOTE_FRAGMENTS = [
     note["evolutionary_constraint_notes"]
     for note in tuning.STAR_EVOLUTION.values()
@@ -49,7 +50,7 @@ def build_system(path):
 @pytest.mark.parametrize("path", EXAMPLE_FILES, ids=[os.path.basename(p) for p in EXAMPLE_FILES])
 def test_example_renders_nonempty_output(path):
     system = build_system(path)
-    text = str(system)
+    text = render_support.text(system)
     assert text.strip()
     assert system.star.name in text
 
@@ -73,7 +74,7 @@ def test_example_narrative_never_misapplies_main_sequence_notes(path):
     sentence must never quote a main-sequence lifespan note that belongs to
     a different evolutionary story (this produced self-contradicting text
     like "age 9.33 Gy ... main-sequence lifespan 4.3-9.1 Gy" for a white
-    dwarf before the fix in Star.to_paragraph_list).
+    dwarf before the fix in the star sentence).
     """
     for _ in range(TRIALS):
         system = build_system(path)
@@ -82,7 +83,7 @@ def test_example_narrative_never_misapplies_main_sequence_notes(path):
                 continue
             # Only this star's own paragraphs: a main-sequence companion
             # (GEN.54) rightly carries its own note.
-            text = "\n\n".join(star.to_paragraph_list())
+            text = render_support.section_prose(system, star.name)
             for fragment in _MAIN_SEQUENCE_ONLY_NOTE_FRAGMENTS:
                 assert fragment not in text, (
                     f"{path}: non-main-sequence star {star.name} ({star.type}) narrative "

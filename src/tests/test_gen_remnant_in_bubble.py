@@ -79,7 +79,7 @@ def test_a_scattered_remnant_is_sized_by_the_density_it_is_given():
         def add_phenomenon(self, phenomenon, kind, position=None):
             return phenomenon
 
-    args = SimpleNamespace(markdown=False)
+    args = SimpleNamespace()
     row = {"kind": "supernova-remnant", "subtype": None, "mass_solar": None}
     bubble, _ = _bubble()
     with draw.bound("scattered"):

@@ -11,6 +11,7 @@ from planetgen.db import store
 from planetgen.physics import constants
 from planetgen.generation.star import cloud_pressure_pa, compressed_heliosphere_radius
 from tests.test_db_persistence import _placed_nebula, _sector_with_one_system
+from tests import render_support
 
 
 def test_a_dense_cold_cloud_squeezes_a_sunlike_heliopause_below_an_au():
@@ -61,6 +62,6 @@ def test_a_system_inside_a_dense_nebula_reports_its_squeezed_heliopause(mysql_co
         system = store.load_star_system(conn, system_id)
         assert system.surrounding_cloud["id"] == nebula_id
         name = detail["inside"]["name"]
-        assert f"the gas of {name} around the system presses it in" in system.summary_paragraph()
+        assert f"the gas of {name} around the system presses it in" in render_support.text(system)
     finally:
         conn.close()

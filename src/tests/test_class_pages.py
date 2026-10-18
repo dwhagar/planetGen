@@ -132,7 +132,7 @@ def test_class_pages_show_the_constants(client):
     planet = tuning.PLANET_CLASSES["M"]
     html = _html(client, "/classes/planet/M")
     low, high = planet["radius_range"]
-    assert f"{classref.number(low)} to {classref.number(high)} km" in html  # UX.20: 1 × 10⁴ km
+    assert classref.number_range(low, high, "km") in html  # UX.20, UX.107: both ends in one style
     assert "<th scope=\"row\">Habitable class</th><td>Yes</td>" in html
     assert planet["composition"][1:] in html
 
@@ -159,7 +159,7 @@ def test_class_pages_show_the_constants(client):
     assert "10^d to 10^(d+1) AU" in html
 
     low, high = tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR
-    assert f"{classref.number(low)} to {classref.number(high)} solar masses" in _html(client, "/classes/black-hole/intermediate")
+    assert classref.number_range(low, high, "solar masses") in _html(client, "/classes/black-hole/intermediate")
 
     low, high = tuning.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER
     assert f"{low:.0f} to {high:.0f} Jupiter masses" in _html(client, "/classes/rogue-planet/brown-dwarf")
@@ -404,3 +404,10 @@ def test_the_equipment_search_tags_link_to_the_habitability_levels(app):
     helped = {group["title"]: group["help"] for group in groups}
     assert helped["Planet: Equipment a Human Needs"]["url"] == "/classes/habitability"
     assert helped["Planet Class"] is None
+
+
+def test_a_range_gives_both_ends_the_one_style():
+    """UX.107: a class page range never mixes plain and scientific ("5,000 to 1 × 10⁴ km")."""
+    assert classref.number_range(5000, 1e4, "km") == "5 × 10³ to 1 × 10⁴ km"
+    assert classref.number_range(100, 900) == "100 to 900"
+    assert classref.number_range(0.5, 20000) == "0.5 to 2 × 10⁴"

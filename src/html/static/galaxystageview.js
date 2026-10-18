@@ -119,6 +119,16 @@ const NEAREST_STAR_REACH = 0.35;
 // MAP.245: how near a star is to the pointer, in pixels, for the wheel to zoom toward it.
 const STAR_ANCHOR_PX = 14;
 
+// MAP.247: the wheel's point on a cursor ray that meets nothing pickable is where the stars' column along the ray
+// passes COLUMN_SHARE of the view's distance in local-average density (1 is the average): in space of that
+// density half way to the focus, in a dense region (a bulge, an arm) nearer, in a sparse one not at all (the
+// point of the focus plane is taken). The ray is read out to COLUMN_REACH times the eye's distance to the focus,
+// and a point is never nearer than COLUMN_NEAREST of the way to the focus, so a step in still moves the eye.
+const COLUMN_SHARE = 0.5;
+const COLUMN_REACH = 2;
+const COLUMN_NEAREST = 0.25;
+const CROSS_PX = 12; // MAP.247: a pointer this near the middle of the map is on the cross
+
 // The zoom policies (mapcontrol.js): a short range around the fit, and
 // on the whole galaxy only closer than its fit.
 const FREE_VIEW_ZOOM = MC.zoomPolicy(MC.ZOOM_RANGE, MIN_ZOOM, MAX_ZOOM);
@@ -2160,7 +2170,26 @@ export function createStageView(host) {
       return [origin.x + direction.x * found.distance, origin.y + direction.y * found.distance, origin.z + direction.z * found.distance];
     }
     const forward = new THREE.Vector3(view.target[0], view.target[1], view.target[2]).sub(origin).normalize();
-    return MC.pointOnFocusPlane(origin.toArray(), direction.toArray(), view.target, forward.toArray());
+    const onPlane = MC.pointOnFocusPlane(origin.toArray(), direction.toArray(), view.target, forward.toArray());
+    // A pointer on the cross zooms about the cross (MAP.199), whatever the column behind it holds.
+    const onCross = Math.hypot(clientX - (rect.left + rect.width / 2), clientY - (rect.top + rect.height / 2)) <= CROSS_PX;
+    return (!onCross && columnAnchor(origin, direction, forward, onPlane)) || onPlane;
+  }
+
+  // MAP.247: the first point of the cursor ray where the column of the galaxy's stars passes the threshold
+  // (COLUMN_SHARE), or null: no shape yet, a system open, nothing dense enough within reach.
+  function columnAnchor(origin, direction, forward, onPlane) {
+    if (!host.shape || enteredSystem || !onPlane) return null;
+    const focus = Math.hypot(onPlane[0] - origin.x, onPlane[1] - origin.y, onPlane[2] - origin.z);
+    const found = MC.columnDensityPoint(origin.toArray(), direction.toArray(),
+      function (x, y, z) { return P.relativeDensity(x, y, z, host.shape); }, COLUMN_SHARE * view.dist, COLUMN_REACH * focus);
+    if (!found) return null;
+    const nearest = COLUMN_NEAREST * focus;
+    const away = Math.hypot(found[0] - origin.x, found[1] - origin.y, found[2] - origin.z);
+    if (!(away > 0)) return null;
+    if (away >= nearest) return found;
+    const k = nearest / away;
+    return [origin.x + (found[0] - origin.x) * k, origin.y + (found[1] - origin.y) * k, origin.z + (found[2] - origin.z) * k];
   }
 
   // Zooms by `factor` (under 1 comes closer) about the view's middle: the

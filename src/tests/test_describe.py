@@ -94,7 +94,7 @@ def test_a_system_anchored_by_a_compact_remnant_is_described_as_one(remnant_clas
         document = describe(StarSystem(system_config=config, compact_remnant=remnant))
         model.check(document)
         section = next(s for s in model.sections(document) if s["kind"] == kind)
-        assert set(remnant.get_table_properties()) <= _fact_keys(section)
+        assert _TABLE_KEYS[kind] <= _fact_keys(section)
         text = " ".join(inline_text(sentence) for block in section["blocks"] if block["type"] == "prose"
                         for sentence in block["text"])
         assert "white dwarf" not in text and "main sequence" not in text
@@ -143,8 +143,19 @@ def test_no_markup_reaches_the_document():
                 assert not any(mark in text for mark in _MARKUP), text
 
 
-def test_every_old_table_row_has_a_fact():
-    """The facts of each section cover the keys the old data table carried."""
+_TABLE_KEYS = {
+    "star": {"type", "radius", "mass", "temp", "lum", "hab", "orbit", "loc"},
+    "planet": {"class", "distance", "period", "speed", "radius", "gravity"},
+    "close-pair": {"type", "mass", "lum", "hab", "separation", "mutual_orbit", "orbit", "loc"},
+    "wide-pair": {"separation", "eccentricity", "mutual_orbit", "wobble", "primary_limit", "secondary_limit"},
+    "black-hole": {"type", "mass", "event_horizon", "spin", "disk", "orbit", "loc"},
+    "neutron-star": {"type", "mass", "radius", "spin_period", "magnetic_field", "surface_temp", "orbit", "loc"},
+}
+"""dict: The fact keys each kind of section carries (the rows of the data tables the pages have always shown)."""
+
+
+def test_every_table_row_has_a_fact():
+    """The facts of each section cover the rows the pages' data tables carry."""
     for _overrides, system in _systems():
         document = describe(system)
         by_title = {}
@@ -152,20 +163,20 @@ def test_every_old_table_row_has_a_fact():
             by_title.setdefault((section["kind"], section["title"]), section)
         for star in system.stars:
             keys = _fact_keys(by_title[("star", star.name)])
-            assert set(star.get_table_properties()) <= keys, star.name
+            assert _TABLE_KEYS["star"] <= keys, star.name
         if system.binary_type == "close":
             pair = next(s for s in _all_sections(document) if s["kind"] == "pair")
-            assert set(system.star.get_table_properties()) <= _fact_keys(pair)
+            assert _TABLE_KEYS["close-pair"] <= _fact_keys(pair)
         if system.binary_type == "wide":
             pair = next(s for s in _all_sections(document) if s["kind"] == "pair")
-            assert set(system.wide_binary.get_table_properties()) <= _fact_keys(pair)
+            assert _TABLE_KEYS["wide-pair"] <= _fact_keys(pair)
         bodies = list(system.planets) + list(system.secondary_planets)
         for body in bodies:
             if body.body_type == "a":
                 continue
-            assert set(body.get_table_properties()) <= _fact_keys(by_title[("planet", body.name)]), body.name
+            assert _TABLE_KEYS["planet"] <= _fact_keys(by_title[("planet", body.name)]), body.name
             for moon in body.moons:
-                assert set(moon.get_table_properties()) <= _fact_keys(by_title[("moon", moon.name)]), moon.name
+                assert _TABLE_KEYS["planet"] <= _fact_keys(by_title[("moon", moon.name)]), moon.name
 
 
 def test_every_body_has_a_section_in_page_order():
@@ -189,8 +200,7 @@ def test_the_overview_keeps_the_old_summary_but_counts_worlds_by_their_rating():
         overview = describe(system)["sections"][0]["blocks"][0]
         assert overview["role"] == "overview"
         text = [_plain(sentence) for sentence in overview["text"]]
-        old = system.summary_paragraph()
-        assert " ".join(text[-2:]) == old[old.index("The star's stellar wind"):]
+        assert any("gravitational influence extends out to" in sentence for sentence in text[-2:])
         count = build._potentially_habitable_count(system)
         line = {0: "There are no potentially habitable worlds in this system.",
                 1: "There is 1 potentially habitable world in the system."}.get(
@@ -298,12 +308,11 @@ def test_a_scored_rocky_body_carries_its_six_ratings_as_the_paragraph_says_them(
                     continue
                 block = blocks[0]
                 assert [row["domain"] for row in block["rows"]] == list(habitability.DOMAINS)
-                bold = lambda text: text
-                paragraph = protection.paragraph(*scored[:1], bold, scored[1])
-                for row in block["rows"]:
-                    assert f"{row['domain']}: {row['tier']}" in paragraph
-                    assert _plain(row["text"]) in paragraph
-                assert f"{block['overall']['score']:.2f}" in paragraph
+                result = protection.rating(*scored)
+                assert [(row["domain"], row["tier"], row["score"]) for row in block["rows"]] == [
+                    (row["domain"], row["tier"], row["score"]) for row in result["rows"]]
+                assert [_plain(row["text"]) for row in block["rows"]] == [row["text"] for row in result["rows"]]
+                assert block["overall"]["score"] == result["overall"]
                 seen += 1
     assert seen
 

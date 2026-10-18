@@ -335,6 +335,25 @@ def test_a_double_click_on_empty_space_flies_half_way_toward_it(page, base_url):
     assert (spot_after["x"], spot_after["y"]) == pytest.approx(empty, abs=2.0)
 
 
+def test_the_wheel_anchor_on_empty_space_is_where_the_column_of_stars_passes_the_threshold(page, base_url, site_app, sample_params):
+    """MAP.247: in the opened sector a cursor ray that meets no star has its point where the column of the galaxy's
+    stars along it passes half the view's distance in local-average density, not on the focus plane: the fixture
+    sector lies near the galaxy's core, where the density is far above the average, so the point is the nearest one
+    allowed (a quarter of the way to the focus plane)."""
+    scene = _Scene(page, base_url, site_app, sample_params)
+    page.goto(f"{base_url}/galaxy?sector={scene.code}&open=1", wait_until="load")
+    page.wait_for_selector(CANVAS, state="attached")
+    _ready(page)
+    rect = page.evaluate("() => { const r = document.querySelector('#galaxymap3d-canvas').getBoundingClientRect(); return [r.left, r.top, r.width, r.height]; }")
+    camera = _camera(page)
+    for corner in ((rect[0] + 6, rect[1] + 6), (rect[0] + rect[2] - 6, rect[1] + rect[3] - 6)):
+        anchor = _anchor_under(page, corner)
+        assert anchor, f"no point under {corner}"
+        away = math.dist(camera["eye"], anchor)
+        # The focus plane is at least `dist` from the eye along any ray of the view (at most about 1.2 times it).
+        assert 0.2 * camera["dist"] <= away <= 0.35 * camera["dist"], (away, camera["dist"])
+
+
 def _fly_setup(page, base_url, site_app, sample_params):
     """The sector opened, and a star of it with a system: the star's point in the map (pc) and where it is on screen."""
     scene = _Scene(page, base_url, site_app, sample_params)

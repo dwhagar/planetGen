@@ -13,7 +13,7 @@ Every other table already has direct coverage in `test_db_persistence.py`/
 cross-reference); this file exists specifically to close those
 gaps, not to duplicate what's already covered. Unlike
 `test_db_persistence.py`'s flagship round-trip tests (which compare via
-`str(obj) == str(reloaded)`, comprehensive for whatever `__str__`
+the rendered text of the two, comprehensive for whatever the text
 surfaces but blind to any column that isn't rendered into it), every test
 here queries the actual child-table rows directly and checks specific
 column values -- the failure mode this guards against is exactly "a

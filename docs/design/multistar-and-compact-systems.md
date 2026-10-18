@@ -415,12 +415,25 @@ test [C]:
 | N | 2 | 3 | 4 | 5 | 6 | 7 |
 |---|---|---|---|---|---|---|
 | Stars with an S-type window above 0.3 AU | 77% | 40% | 28% | 20% | 15% | 13% |
-| Pair nodes with a usable P-type window | 34% | 35% | 28% | 23% | 20% | 18% |
+| Pair nodes with a usable P-type window (earlier estimate, see GEN.543 below) | 34% | 35% | 28% | 23% | 20% | 18% |
+| Pair nodes with a P-type window above 0.3 AU (measured, GEN.543) | 45% | 48% | 43% | 37% | 35% | 30% |
 
 About 75 to 80% of systems at every N have a habitable-zone-sized stable window
 somewhere: higher N removes zones around single stars but rarely all of them.
 
-**As built (GEN.314).** `physics/planet_zones.py` is the one place these windows are worked out: `planet_zones(nodes, members, floors_au, disk_cap_au)` over the nodes and members of a tree (`OrbitNode` and `TreeMember`, or the generator's `Node` and `Member`) gives an S-type window for every member and a P-type window for every pair node, and `flux_at(zone, distance_au, luminosities, nodes, members)` sums the light on a planet of a window's host (6.5). The S-type ceiling is the Holman and Wiegert limit or the star's Hill radius in the pair, whichever is tighter, so two stars give exactly what `Star.a_crit_au` has always held, and a pair node's lower limit is the circumbinary fit or the highest engulfment floor of a member below it, which is `StarSystem._orbit_floor_au`. The disk cap is `tuning.PLANET_ZONE_DISK_CAP_AU`. On the generator's own trees (300 draws for each N, seeded) the share of stars with an S-type window wider than 0.3 AU is 73%, 39%, 27%, 21%, 15% and 15% for N = 2 to 7, the table above within 7 points at every N. The same count for pair nodes (width above 0.3 AU alone) gives 45%, 48%, 43%, 37%, 35% and 30%, above the table's 34% to 18%: the table's "usable" P-type window was not defined past the width, so the test holds only the S-type row.
+**As built (GEN.314).** `physics/planet_zones.py` is the one place these windows are worked out: `planet_zones(nodes, members, floors_au, disk_cap_au)` over the nodes and members of a tree (`OrbitNode` and `TreeMember`, or the generator's `Node` and `Member`) gives an S-type window for every member and a P-type window for every pair node, and `flux_at(zone, distance_au, luminosities, nodes, members)` sums the light on a planet of a window's host (6.5). The S-type ceiling is the Holman and Wiegert limit or the star's Hill radius in the pair, whichever is tighter, so two stars give exactly what `Star.a_crit_au` has always held, and a pair node's lower limit is the circumbinary fit or the highest engulfment floor of a member below it, which is `StarSystem._orbit_floor_au`. The disk cap is `tuning.PLANET_ZONE_DISK_CAP_AU`. On the generator's own trees (300 draws for each N, seeded) the share of stars with an S-type window wider than 0.3 AU is 73%, 39%, 27%, 21%, 15% and 15% for N = 2 to 7, the table above within 7 points at every N. The same count for pair nodes (width above 0.3 AU alone) gives 45%, 48%, 43%, 37%, 35% and 30%, above the table's 34% to 18%: the table's "usable" P-type window was not defined past the width, so the test held only the S-type row until GEN.543.
+
+**"Usable" for a P-type window (GEN.543).** The table's row was an earlier estimate with no definition past the width and a "crude habitable-zone test"; it cannot be reproduced from the text, so two definitions were tried on the same seeded draw (300 trees per N, `draw.Stream(0..299)`, main-sequence members, the host's luminosity the sum of the members below the node) against the row's 34, 35, 28, 23, 20 and 18%:
+
+| N | 2 | 3 | 4 | 5 | 6 | 7 |
+|---|---|---|---|---|---|---|
+| (a) width above 0.3 AU and outer edge at least twice the inner edge | 38% | 41% | 36% | 31% | 29% | 25% |
+| distance from the row (points) | +4 | +6 | +8 | +8 | +9 | +7 |
+| (b) width above 0.3 AU and the window overlaps the pair's habitable zone (`calculate_habitable_zone` of the summed luminosity) | 7% | 15% | 15% | 13% | 13% | 11% |
+| distance from the row (points) | -27 | -20 | -13 | -10 | -7 | -7 |
+
+Neither lands within 7 points at every N ((a) misses at N = 4, 5 and 6, (b) at N = 2 to 5), so by the rule written for the item the measured numbers stay: a P-type window is "usable" when it is wider than 0.3 AU, the same test as the S-type row, and the table's row is the earlier estimate. A planet needs a window, not a window that happens to hold the habitable zone: how much light a planet gets there is `flux_at`'s job (6.5). `test_planet_zones.py` pins the measured share.
+
 
 ## 6. Data model, naming, maps and updates
 
