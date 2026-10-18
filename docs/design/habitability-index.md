@@ -68,7 +68,7 @@ split into Air and Water, and a long-term Suitability was added. `planetgen/phys
 maths: every constant below is named there with its source, and GEN.89
 stores what it computes for every planet and moon.
 
-**PHI-4 (display, for a human visitor).** Each domain's variables have
+**PHI-6 (display, for a human visitor; called PHI-4 until GEN.207 made the four domains six).** Each domain's variables have
 bands; a variable scores 1 in Blue, falls linearly to 0.75 at the Green
 edge, 0.4 at the Yellow edge and 0 at the outer Red edge (in log10 for
 pressures and doses). A domain scores its worst variable, and its tier is
@@ -76,7 +76,7 @@ Blue at 1, Green from 0.75, Yellow from 0.4, Red below. The six domains are
 Pressure, Temperature, Air Chemistry (is the air breathable: oxygen, CO2, CO,
 H2S, SO2), Water Chemistry (is the water drinkable: pH, water activity,
 chaotropicity; a world with no liquid water scores 0, Red), Radiation and
-Suitability. PHI-4 (still stored as `phi4`) is their geometric mean held under
+Suitability. PHI-6 (still stored as `phi4`) is their geometric mean held under
 the colour gates below.
 
 | Variable | Blue | Green | Yellow | Red |
@@ -217,7 +217,7 @@ inventory, 2.3 umol/L phosphate, 80 W/m^2, liquid water at aw 1 and chi
 0, relative humidity 0.5, liquid water for a base. Doses are computed
 unless given.
 
-| World | Inputs | P / T / Air / Water / R / Suit | PHI-4 | PHI_bio | PHI_cpx | Phi_tech | Equipment |
+| World | Inputs | P / T / Air / Water / R / Suit | PHI-6 | PHI_bio | PHI_cpx | Phi_tech | Equipment |
 |---|---|---|---|---|---|---|---|
 | Earth | 101.3 kPa, 15 C, N2 78%, O2 21%, CO2 0.04%, pH 8.1, RH 0.7, a full biosphere | Blue x6 | 1.00 | 0.97 | 0.97 | 1.00 | ideal |
 | Dense CO2 | 300 kPa, 40 C, CO2 95%, N2 5%, pH 6.5, RH 0.8, 40 W/m^2, no life | Green / Yellow / Red / Blue / Blue / Red | 0.69 | 0.97 | 0 | 0.48 | environment suit |
@@ -522,14 +522,15 @@ decided, the value in use first:
 The one new row, a heat-shielded suit past 140 C, comes from the notes alone. The
 Armstrong limit (6.3 kPa against 6.27) is the same number to the notes' rounding.
 
-`protection.paragraph` writes the description of a rocky body as one paragraph (GEN.216).
-It opens "PHI-6 habitability is 0.00, and a visitor needs an environment suit." The six
-categories follow, each as "Name: Colour (value)." and one short sentence with the number and
-its consequence ("The air pressure is 0 kPa, so a pressure suit is needed."). Air with no
-atmosphere reads "There is no atmosphere (0.0 kPa)." (GEN.215), Radiation names its band,
-and Suitability says which of food, water and shelter are readily available. Gear is named in
-short words (`SHORT_GEAR`); the first line gives the heaviest class any stressor asks for. A
-planet of a pulsar, a neutron star or a black hole says its dose is rated lethal.
+`protection.rating` gives the description of a rocky body as data (GEN.216, UX.104): the overall value and name, the gear
+a visitor needs, and one row per category with its colour, score and one short sentence. The describer
+(`describe/build.py`) puts it in the body's Document and the renderers write it. It opens "PHI-6 habitability is 0.00 (Red),
+and a visitor needs an environment suit." The six categories follow, each as "Name: Colour (value)." and one short sentence with
+the number and its consequence ("The air pressure is 0 kPa, so a pressure suit is needed."). Air with no atmosphere reads
+"There is no atmosphere (0 kPa)." (GEN.215), Radiation names its band, and Suitability says which of food, water and shelter
+are readily available. Gear is named in short words (`SHORT_GEAR`); the first line gives the heaviest class any stressor asks
+for, and the stored `equipment_tier` agrees with it (an environment suit past the Green heat or cold edge or with too much
+oxygen). A planet of a pulsar, a neutron star or a black hole says its dose is rated lethal.
 
 ## 10. What a species can live in (POP.12, built without storage)
 
