@@ -432,6 +432,10 @@ Constants keep the style of `tuning.py`: a docstring with the source and the lab
 
 Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, relayed by the coordinator): line lists and star catalogues (HITRAN, ExoMol, Brewer 2016, Hypatia) are downloaded at build time. No derived table of them is stored in the repository. The cost is that a build needs the network, so the design must also say how tests run offline: tests never reach the network; they read either fixtures the test builds itself from synthetic values or a cache of earlier downloads kept outside the repository, and the record's `licence` field names the dataset licence. The data work of AD1 to AD8, BC2 and BC19 (group X9 and the BC2 and BC19 parts of X6 and X7) is gated on that design (the download step, the cache location, the fixtures and the offline test rule), not on reading the licences.
 
+Decided (Boss, 12:46 AM EDT on 2026-10-18, card 'Shared step first', as the coordinator relayed): GEN.548 builds the one shared download step first: the standard User-Agent of API.31, a sha256 check, a cache outside the repository in a folder `update.sh` fills, a labelled stand-in when the host is down, and offline fixtures for the tests. Its three datasets follow, and the data jobs AD1 to AD8, BC2 and BC19 reuse the same step. No download step is merged yet: AD1 methane is a design and a source check only, so its extract is built on the shared step once GEN.548 lands.
+
+Standing rule (Boss, 12:47 AM EDT on 2026-10-18, project chat, as the coordinator relayed): Downloads of static files take place at setup (the step `update.sh` runs, into a cache folder outside the repository) unless the data needs to be constantly updated; any code that fetches data at run time must say in its design why the data needs constant updates (Boss, 12:47 AM EDT on 2026-10-18, project chat, as the coordinator relayed). "Build time" in this section and in the items means this setup step.
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
