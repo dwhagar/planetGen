@@ -13087,33 +13087,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed).
   Prerequisites: none. Related: GEN.133, GEN.134.
 
-- [ ] **GEN.543 Define "usable" for a P-type window so the design table's pair-node row (34% falling to 18%) can be reproduced**
-  Open question from GEN.314 (Blocker 1, merged #2125, 2026-10-17;
-  reported 7:38 PM EDT through the coordinator):
-  `docs/design/multistar-and-compact-systems.md` 5.6 gives "Pair nodes
-  with a usable P-type window" as 34%, 35%, 28%, 23%, 20%, 18% for N = 2
-  to 7, but does not define "usable" past the window being there.
-  GEN.314's width test (window wider than 0.3 AU) gives 45%, 48%, 43%,
-  37%, 35%, 30%, above the table. The S-type row is reproduced within 7
-  points. Default (stands as Decided unless Boss says otherwise): try
-  two candidate definitions on the same seeded draw of the generator's
-  trees, (a) width above 0.3 AU and an outer edge at least twice the
-  inner edge, (b) width above 0.3 AU and the window overlaps the host's
-  habitable zone, and keep the one that lands the table's row within 7
-  points at every N; if neither does, keep the measured numbers, label
-  the table's row as the earlier estimate and say so on the design page.
-  Nothing waits on it. Done: the definition is written next to the
-  table, a test pins the share, and the table's row is either reproduced
-  or relabelled. Owner: Blocker 1 (proposed, after PERF.118, GEN.438 to
-  GEN.440).
-  Decided (Boss, 2026-10-17, 9:54 PM EDT, typed in the project chat,
-  relayed by the coordinator): "I approve all your defaults". This
-  approves the default on this item (two candidate definitions of
-  "usable" tried on the same seeded draw, the one that lands the table's
-  row within 7 points at every N kept, else the measured numbers kept
-  and the table's row relabelled).
-  Prerequisites: none. Related: GEN.314, GEN.264.
-
 - [ ] **GEN.544 Revisit the disc's vertical profile: the sech-squared core has half the midplane density of the exponential fits its scale heights come from**
   Found by Core 1 while building GEN.404 (2026-10-17, 8:33 PM EDT as the
   lane reported), filed by the TODO thread. Design gap, a consequence of

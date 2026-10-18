@@ -883,3 +883,4 @@ Baseline: PR #1817.
 | MAP.247 | 8.1 | Fly-through map |
 | UX.109 | 8.1 | Description layer |
 | GEN.548 | 8.1 | Composition tables |
+| GEN.543 | 8.1 | Multi-star and compact systems |
