@@ -147,8 +147,7 @@
     },
     {
       "epoch": 30,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1820",
       "reason": "A barred galaxy's centre has a gas ring fed by its bar that forms young stars and clusters (GEN.282)."
     }
   ]
