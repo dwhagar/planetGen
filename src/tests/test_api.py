@@ -2633,7 +2633,8 @@ def test_nebula_shape_endpoint_serves_a_mesh(client, mysql_config):
     assert 0 < len(low["faces"]) < len(full["faces"])
     count = len(full["vertices"])
     assert all(0 <= i < count for face in full["faces"] for i in face)
-    assert max(sum(v * v for v in vertex) ** 0.5 for vertex in full["vertices"]) <= 1.0
+    # The nebula's radius bounds the mesh (TEST.253), give or take the five decimals the route rounds to.
+    assert max(sum(v * v for v in vertex) ** 0.5 for vertex in full["vertices"]) <= 1.0 + 1e-5
     assert client.get(f"/api/nebulae/{pid('nebula', nebula_id)}/shape?lod=ultra").status_code == 404
     assert client.get("/api/nebulae/999999/shape").status_code == 404
 
