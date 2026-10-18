@@ -204,6 +204,15 @@ def _comparable(rows):
     return sorted(tuple(float(value) if isinstance(value, float) else value for value in row) for row in rows)
 
 
+def _stored_shape(mysql_config):
+    """The galaxy's shape as the scatter reads it: from the database, with the masses its seed draws (GEN.469)."""
+    conn = store.get_connection(mysql_config)
+    try:
+        return store.get_galaxy_shape(conn).shape
+    finally:
+        conn.close()
+
+
 def _expected_scatter(mysql_config, seed):
     """What the scatter's passes give (GEN.185): the mass pass, then the lighter stars at least `THRESHOLD`
     bright, skipping the sectors the mass pass marked."""
@@ -211,10 +220,11 @@ def _expected_scatter(mysql_config, seed):
     from planetgen.physics import constants
     limit = tuning.PHENOMENON_MIN_MASS_SOLAR
     mass_seed = _scatter_seed(mysql_config, "mass-scatter")
-    heavy = list(brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, star_population.MASS_PASS_MIN_LUMINOSITY_SOL,
+    shape = _stored_shape(mysql_config)
+    heavy = list(brightStars.scatter(shape, EXTENTS, EDGE_PC, E_VALUE, star_population.MASS_PASS_MIN_LUMINOSITY_SOL,
                                      mass_seed, mass_range=(limit, None)))
     marked = {row[:3] for row in heavy if row[12] >= THRESHOLD * constants.SOLAR_LUMINOSITY}
-    light = list(brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, THRESHOLD, seed, skip_addresses=marked,
+    light = list(brightStars.scatter(shape, EXTENTS, EDGE_PC, E_VALUE, THRESHOLD, seed, skip_addresses=marked,
                                      mass_range=(None, limit)))
     return heavy + light
 
@@ -496,7 +506,7 @@ def test_re_running_an_interrupted_band_holds_the_band_once(mysql_config, monkey
     assert band is not None
     assert _settings(mysql_config) == (BAND_FLOOR, seed)
     band_seed = _scatter_seed(mysql_config, f"band/{BAND_FLOOR:g}-{THRESHOLD:g}")
-    expected = list(brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, BAND_FLOOR, band_seed,
+    expected = list(brightStars.scatter(_stored_shape(mysql_config), EXTENTS, EDGE_PC, E_VALUE, BAND_FLOOR, band_seed,
                                         max_luminosity_sol=THRESHOLD,
                                         mass_range=(None, 20.0)))
     stored = _stored_rows(mysql_config)

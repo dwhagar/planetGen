@@ -89,6 +89,12 @@
       "epoch": 18,
       "first_release": "8.0.1757",
       "reason": "Hypervelocity stars are placed out to the grid's reach with no outline test and their count scales with the reach, neutron stars and black holes the galaxy ejected stream through every sector as their own stage on straight lines, and a supernova remnant in a superbubble is sized by the cavity's interior density (GEN.238, GEN.298), so the scatter rows and the sector fills change."
+    },
+    {
+      "epoch": 19,
+      "first_release": null,
+      "pending": true,
+      "reason": "The disk's young, intermediate and old star shares come from its own gas history (the Kennicutt-Schmidt law fed by the stars its halo builds), so a light galaxy holds more young stars and a heavy one fewer than the flat ten-billion-year history, and the magnetar rate reads the new young share (GEN.469)."
     }
   ]
 }
