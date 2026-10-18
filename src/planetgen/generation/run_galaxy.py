@@ -16,6 +16,7 @@ against the skeleton `run_plan` builds.
 """
 
 import argparse
+import collections
 import copy
 import math
 import os
@@ -434,17 +435,7 @@ def backfill_bright_stars_around(config, centers_pc, progress=None):
         if skeleton is None:
             return summary
         limits, seed = run_plan._scatter_limits_and_seed(conn, skeleton)
-        bounds = store.get_galaxy_bounds(conn)
-        centers = {sector_address_at(center, skeleton.edge_pc) for center in centers_pc}
-        targets = backfill_step_targets(centers, bounds)
-        # GEN.333: a sector backfills the masses under its own band's mass limit.
-        targets = {address: mass for address, mass in targets.items()
-                   if limits.mass_limit_at(address[0], address[1]) is None
-                   or mass < limits.mass_limit_at(address[0], address[1])}
-        held = store.sector_bright_masses(conn, targets)
-        filled = store.get_occupied_addresses(conn, {address[0] for address in targets})
-        todo = {address: mass for address, mass in targets.items()
-                if address not in filled and mass < held.get(address, math.inf)}
+        todo = backfill_targets(conn, skeleton, limits, centers_pc)
         on_sector = None
         if todo:
             bar.update(description="Bright-star backfill (sectors)", total=len(todo))
@@ -465,6 +456,144 @@ def backfill_bright_stars_around(config, centers_pc, progress=None):
     if summary["sectors"]:
         log.debug(f"bright-star backfill: {summary['stars']} stars in {summary['sectors']} sector(s), masses "
                   f"{','.join(f'{mass:g}' for mass in program_constants.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL)} Msun")
+    return summary
+
+
+def backfill_targets(conn, skeleton, limits, centers_pc):
+    """
+    The sectors a bright-star backfill around `centers_pc` has stars to draw in, found once from the stored galaxy
+    (PERF.108): the sectors out from the centers' sectors (`backfill_step_targets`) that a band's mass limit does not
+    already cover (GEN.333), that are not filled and that are not already taken that deep.
+
+    Returns:
+        dict: `(shell, band, wedge)` -> the lightest initial mass to place there, solar masses.
+    """
+    bounds = store.get_galaxy_bounds(conn)
+    centers = {sector_address_at(center, skeleton.edge_pc) for center in centers_pc}
+    targets = backfill_step_targets(centers, bounds)
+    # GEN.333: a sector backfills the masses under its own band's mass limit.
+    targets = {address: mass for address, mass in targets.items()
+               if limits.mass_limit_at(address[0], address[1]) is None
+               or mass < limits.mass_limit_at(address[0], address[1])}
+    held = store.sector_bright_masses(conn, targets)
+    filled = store.get_occupied_addresses(conn, {address[0] for address in targets})
+    return {address: mass for address, mass in targets.items()
+            if address not in filled and mass < held.get(address, math.inf)}
+
+
+BACKFILL_UNIT_CELLS = 10_000
+"""int: The fewest sectors a backfill unit draws (PERF.108): the draw is about 0.06 ms a sector, so a smaller unit is
+mostly overhead."""
+
+BACKFILL_UNITS_MAX = 2000
+"""int: The most units a backfill is cut into, however many sectors it has."""
+
+
+def expand_backfill_bright_stars(params):
+    """
+    The `scatter-backfill` command's stage (PERF.108): the sectors to draw (`backfill_targets` around the sectors
+    created since `params["since"]`) are found once, here, and cut in order into static chunks of at least
+    `BACKFILL_UNIT_CELLS` sectors (and at most `BACKFILL_UNITS_MAX` chunks), the same at any worker count. A stage with
+    nothing to draw is one empty unit, so the stage still stores its row.
+    """
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
+        skeleton = store.get_galaxy_shape(conn)
+        todo = {}
+        if skeleton is not None:
+            limits, _seed = run_plan._scatter_limits_and_seed(conn, skeleton)
+            todo = backfill_targets(conn, skeleton, limits, store.sector_centers_since(conn, params["since"]))
+    finally:
+        conn.close()
+    addresses = sorted(todo)
+    size = max(BACKFILL_UNIT_CELLS, -(-len(addresses) // BACKFILL_UNITS_MAX))
+    units = [({"database": params["database"], "items": [[*address, todo[address]] for address in addresses[start:start + size]]},
+              float(len(addresses[start:start + size]))) for start in range(0, len(addresses), size)]
+    return commands.Expansion(units or [({"database": params["database"], "items": []}, 1.0)],
+                              {"sectors": len(addresses)})
+
+
+def backfill_bright_stars_unit(unit_args, report):
+    """
+    The `scatter-backfill` command's unit (PERF.108): draws the chunk's sectors down to their target masses
+    (`run_plan._draw_sector_masses`, a few hundred a transaction, each sector rechecked under its lock), every sector
+    from its own seed, so the stars are the same whichever sector reached it first and at any worker count.
+
+    Returns:
+        dict: `sectors` (drawn), `stars` (placed), `visited` (the chunk's sectors) and `shells`, the stars placed per
+            shell and kind (`shell index as text` -> `[[label, plural, count], ...]`, for the starter's lines).
+    """
+    items = unit_args["items"]
+    targets = {tuple(item[:3]): item[3] for item in items}
+    conn = store.get_connection(_mysql_config_of(unit_args))
+    shells = {}
+    visited = [0]
+
+    def on_sector():
+        visited[0] += 1
+        report(visited[0], len(items))
+
+    try:
+        skeleton = store.get_galaxy_shape(conn)
+        sectors = stars = 0
+        if skeleton is not None and targets:
+            limits, seed = run_plan._scatter_limits_and_seed(conn, skeleton)
+            sectors, stars = run_plan._draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=on_sector,
+                                                          shells=shells)
+    except BaseException:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+    return {"sectors": sectors, "stars": stars, "visited": len(items),
+            "shells": {str(shell): [[*label, count] for label, count in types.items()]
+                       for shell, types in shells.items()}}
+
+
+def _backfill_on_queue(args, started_at):
+    """
+    The backfill of a `galaxy` run on the new queue (PERF.108): the wrapper selects the `scatter-backfill` command from
+    this run's steps, finds the sectors to draw once and cuts them into units (`expand_backfill_bright_stars`), this
+    process follows the units with a bar of the sectors they visit (PERF.28) and says how many stars each shell was
+    given, and the unit that completes the stage stores the stage's row.
+
+    Returns:
+        dict: `sectors` (drawn) and `stars` (placed), summed over the units.
+    """
+    mysql_config = store.mysql_config_from_args(args)
+    workers = run_common._worker_count(args)
+    step, listing = wrapper.step_for(args, "backfill", "Bright-star backfill", {
+        "database": wrapper.database_args(mysql_config), "since": started_at.isoformat(sep=" "), "workers": workers})
+    row = stages.hand_over_open_stage()
+    summary = {"sectors": 0, "stars": 0}
+    shells = {}
+    with run_common._generation_progress() as progress:
+        log.set_console(progress.console)
+        try:
+            with steps.Step("Bright-star backfill (sectors)", "backfill", 1, args=args, progress=progress,
+                            workers=workers) as bar:
+                def on_plan(_index, plan):
+                    bar.update(total=max(plan["detail"]["sectors"], 1))
+
+                def on_result(_index, _unit, result):
+                    summary["sectors"] += result["sectors"]
+                    summary["stars"] += result["stars"]
+                    for shell, types in result["shells"].items():
+                        counts = shells.setdefault(int(shell), collections.Counter())
+                        for label, plural, count in types:
+                            counts[(label, plural)] += count
+                    bar.update(advance=result["visited"])
+
+                try:
+                    wrapper.run("Bright-star backfill", [step], on_plan, on_result, workers_count=workers,
+                                who=getattr(args, "who", None), database=mysql_config.database,
+                                argv=getattr(args, "argv", None), seed=None, listing=listing,
+                                rows=None if row is None else {"backfill": row})
+                finally:
+                    run_common._finish_stats(args)
+        finally:
+            log.reset_console()
+    run_plan.log_shells("Bright-star backfill", shells)
     return summary
 
 
@@ -493,22 +622,14 @@ def backfill_after_run(args, edge_pc, started_at):
     config = store.mysql_config_from_args(args)
     conn = store.get_connection(config)
     try:
-        generated = store.sector_centers_since(conn, started_at)
-        if not generated:
+        if not store.sector_centers_since(conn, started_at):
             stages.skip("backfill", "the run generated no sector")
             return summary
-        centers = generated
     finally:
         conn.close()
     stages.enter("backfill")
     log.normal("Backfilling the bright stars out from the edge of the run...")
-    # Its own bar and ETA (PERF.28): a backfill can take minutes.
-    with run_common._generation_progress() as progress:
-        log.set_console(progress.console)
-        try:
-            summary = backfill_bright_stars_around(config, centers, progress=progress)
-        finally:
-            log.reset_console()
+    summary = _backfill_on_queue(args, started_at)
     stages.note(sectors=summary["sectors"], objects=summary["stars"])
     log.normal(f"Backfilled {summary['stars']:,} bright stars in {summary['sectors']:,} sectors.")
     return summary

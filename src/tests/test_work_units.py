@@ -628,3 +628,79 @@ def test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_unit
         db.close()
     assert saved > 0 and out.count("Saved sector '") == saved, "each sector logged once, as it was saved"
     assert paths > 0 and "Linked " in out
+
+
+def _backfilled_rows(config, monkeypatch, unit_cells):
+    """The bright stars a one-sector `galaxy` run's backfill places, cut into units of `unit_cells` sectors, and the
+    units it was cut into."""
+    from planetgen.db import store
+    from planetgen.generation import run_galaxy
+    from planetgen.galaxy.spherical import sector_position_pc
+    from tests.test_bright_star_scatter import EDGE_PC, EXTENTS, SEED, SHAPE, _database_now
+    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=8,      # a sparse toy galaxy: a quick draw
+                            expected_system_count_at_density_1=100.0, config=config, cell_star_ceiling=1e12,
+                            galaxy_seed=SEED)
+    store.replace_galaxy_shells(EXTENTS, config=config)
+    monkeypatch.setattr(run_galaxy, "BACKFILL_UNIT_CELLS", unit_cells)
+    args = run_galaxy._default_generation_args(config=config)
+    args.num_systems = 0
+    address = (3, 0, 4)
+    started = _database_now(config)
+    run_galaxy.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
+    args.shell, args.band, args.wedge = address
+    cut = run_galaxy.expand_backfill_bright_stars({"database": wrapper.database_args(config),
+                                                   "since": started.isoformat(sep=" ")})
+    summary = run_galaxy.backfill_after_run(args, EDGE_PC, started)
+    conn = store.get_connection(config)
+    try:
+        rows = [tuple(row.values()) for row in conn.execute(
+            "SELECT shell_index, band_index, wedge_index, initial_mass_sol, luminosity_w, star_type, position_x_mpc,"
+            " position_y_mpc, position_z_mpc, seed"
+            " FROM bright_stars ORDER BY shell_index, band_index, wedge_index, initial_mass_sol, seed"
+        ).fetchall()]
+    finally:
+        conn.close()
+    return rows, cut, summary
+
+
+@pytest.mark.fresh_database
+def test_the_backfill_gives_the_same_stars_in_one_unit_or_many(mysql_config, monkeypatch):
+    from tests.test_gen_resume import second_mysql_config  # noqa: F401  (the fixture, to be called below)
+    from planetgen.db import store
+    import tests.conftest as conftest
+    import pymysql
+    import uuid
+    kwargs = conftest._test_server_kwargs()
+    name = f"planetgen_test_{uuid.uuid4().hex[:16]}"
+    server = pymysql.connect(**kwargs)
+    try:
+        with server.cursor() as cur:
+            cur.execute(f"CREATE DATABASE `{name}`")
+        server.commit()
+        other = store.MySQLConfig(database=name, **kwargs)
+        whole, whole_cut, whole_summary = _backfilled_rows(mysql_config, monkeypatch, 10_000)
+        size = max(1, whole_cut.plan["sectors"] // 4)
+        many, many_cut, many_summary = _backfilled_rows(other, monkeypatch, size)
+        store.close_pool(other)
+    finally:
+        with server.cursor() as cur:
+            cur.execute(f"DROP DATABASE IF EXISTS `{name}`")
+        server.commit()
+        server.close()
+    assert len(whole_cut.units) == 1 and whole_cut.plan["sectors"] >= 4 and whole_cut.plan == many_cut.plan
+    assert 2 <= len(many_cut.units) <= 5 and max(len(unit[0]["items"]) for unit in many_cut.units) == size
+    assert whole and whole == many and whole_summary == many_summary and whole_summary["stars"] == len(whole)
+    flat = [item for unit, _cost in many_cut.units for item in unit["items"]]
+    assert flat == [item for unit, _cost in whole_cut.units for item in unit["items"]], "the same sectors, in order"
+
+
+@pytest.mark.fresh_database
+def test_a_backfill_with_nothing_to_draw_is_one_empty_unit_and_stores_its_stage(mysql_config):
+    from planetgen.generation import run_galaxy
+    from tests.test_bright_star_scatter import _database_now, _seed_galaxy
+    _seed_galaxy(mysql_config)
+    cut = run_galaxy.expand_backfill_bright_stars({"database": wrapper.database_args(mysql_config),
+                                                   "since": _database_now(mysql_config).isoformat(sep=" ")})
+    assert [unit[0]["items"] for unit in cut.units] == [[]] and cut.plan == {"sectors": 0}
+    result = commands.run_alone("scatter-backfill", cut.units[0][0])
+    assert result == {"sectors": 0, "stars": 0, "visited": 0, "shells": {}}
