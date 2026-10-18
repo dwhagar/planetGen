@@ -13789,53 +13789,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
-- [ ] **PERF.20 Short-term caching through the work queue and API**
-  Boss (2026-10-01 22:17Z): "Everything should go through the work
-  queue so that we can implement short-term caching where possible, add
-  a TODO item to investigate that so that the work queue and API work
-  together to optimize API calls back and forth. This is an item that
-  needs planning." Builds on PERF.19's audit of what the API and web
-  site start and on the page cache (PERF.2). Plan first, with Boss:
-  which API calls and queued results can be cached for a short time, and
-  where (the queue's task results, the API's responses, or both); how
-  long entries live and what clears them (a write, a regenerate, a
-  galaxy reset); how a request finds a queued or just-finished task that
-  already answers it instead of starting the same work again; and how
-  the API and the queue hand results back and forth with fewer round
-  trips. Done: an approved plan, with the build work filed as its own
-  items from it.
-  Plan (2026-10-07): Plans on RQ job results and the
-  cachetools caches (PERF.24, PERF.25).
-  Research (2026-10-09, performance-eta-queue-and-caching.md): the
-  planning is done by design doc 4.4: do not cache generation jobs;
-  cache estimates, tile and stage builds, stats and search aggregates
-  keyed by (kind, argument digest, epoch, speed-stats version); a Redis
-  epoch counter incremented by writers; single-flight keys; no RQ round
-  trip for cache reads (2.4 s start-up against microseconds); RQ does
-  not deduplicate by job id, so dedupe with `SET NX EX`. Build items:
-  (a) the epoch counter, (b) single-flight for tiles and stages, (c) a
-  cached estimate, (d) XFetch only for age-expired costly entries.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: PERF.109, PERF.110. Its plan is finished
-  (design performance-eta-queue-and-caching.md 4.4 lists four build
-  items) but the item still reads 'needs planning', and two of the four
-  are already built: (a) the epoch counter is PERF.104's `epoch` tag
-  (docs/design/cache-warm-up.md, status built) and (b) single-flight for
-  tiles and stages is `web/lib/singleflight.py`, used in
-  `web/lib/tilecache.py`.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 27 of 54). This replaces any earlier owner line on this item.
-  Core 5 (reported 12:50 PM EDT as the lane clock read, relayed by the
-  coordinator): PERF.109 and PERF.110 merged (#2050): the Generate page
-  estimate is cached and the XFetch refresh for costly age-expiring
-  entries is built in `web/lib/xfetch.py` (not util: the GEN.56 draw
-  scan forbids random in generation packages); this item's prerequisites
-  are met.
-  Prerequisites: none.
-
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
   Replace the one-`sector_stats`-row-per-visited-cell ledger of
   untouched sectors with an interval or chunk ledger once GEN.42's
@@ -13883,50 +13836,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the near and far distance and the zone count, state the error); no
   kernel code of its own.
   Design: [docs/design/gravity-map.md](design/gravity-map.md)
-
-- [ ] **PERF.75 The jump-by-value box for the big data tables (keyset paging is done for the Systems, Uncharted stars and Phenomena tables)**
-  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
-  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
-  synthetic systems, MariaDB 10.11): `OFFSET` makes page n cost n times
-  as much (rows 0, 20,000, 500,000 and 1,500,000 take 0.004, 0.13, 5.8
-  and 12.1 s idle); a keyset page costs 2 ms at row 1,500,000 (8.5 s
-  before). Done: the table routes and the API list routes take
-  `after=<sort key, id>` next to `offset=`, `static/datatable.js` pages
-  forward by key and jumps by value (a letter or a sector; the scroll
-  bar position becomes an estimate), the condition is written with `OR`
-  and never as a row constructor (it took 5.0 s on MariaDB 10.11, no
-  index range), and a test checks the plan on MariaDB and MySQL. Decided
-  by default (the three research defaults, 2026-10-10 21:41Z; stands
-  unless Boss objects): jump-by-value is accepted in place of
-  jump-by-row-number on the big tables. Built (PR #1199): keyset paging
-  for the Systems name sort only. Still open: the other sorts, tables and
-  API list routes, and the jump-by-value box (a letter or a sector).
-  Owner: Foundations lane 1.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 7 of 54). This replaces any earlier owner line on this item.
-  Core 5's next gate (2026-10-17, relayed by the coordinator at 2:25 PM
-  EDT) carries part 1: keyset paging for the Uncharted stars table, the
-  Phenomena scattered tail, and the Systems name sort either way round.
-  Still open after part 1: the jump-by-value box. The Sectors table is
-  dropped from this item (TODO thread's default; Boss can overrule): it
-  stores only generated sectors, so a deep OFFSET stays cheap and keyset
-  paging buys nothing there.
-  Part 1 merged (Core 5, PR #2086, 2026-10-17, about 3:58 PM EDT as the
-  lane reported): keyset paging for the Uncharted stars table, the
-  Phenomena scattered tail and the Systems name sort in either
-  direction. Still open: the jump-by-value box (a letter or a sector) on
-  the big tables, and any other table or API list route that still pages by OFFSET (not rechecked here). The Sectors table stays dropped from this item (the TODO
-  thread's default of 2:25 PM EDT; it stores only generated sectors, so
-  a deep OFFSET stays cheap).
-  Core 5's gate 7 (started 9:03 PM EDT as the lane reported, relayed by
-  the coordinator) carries the Systems "Starting at" jump box (a letter
-  or a sector). The Uncharted stars and Phenomena tables have numeric or
-  scatter-id sorts and get no box there: filed as PERF.135 with a
-  default. The Sectors table stays dropped.
-  Prerequisites: none. Related: PERF.64, PERF.70, PERF.71.
-  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
 - [ ] **PERF.86 Redo the work queue: drop the task and subtask logic and use Redis simply**
   GitHub issue [#1229](https://github.com/dwhagar/planetGen/issues/1229)
@@ -14229,27 +14138,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Bug Hunt (bugs only, Boss, 2026-10-17, 10:06 AM EDT). This
   replaces any earlier owner line on this item.
   Prerequisites: none. Related: PERF.104, TEST.54.
-
-- [ ] **PERF.112 The uncharted-star count runs a full COUNT(*) on every request: keep the count so the page and the API do not scan bright_stars each time (performance)**
-  Finding from Core 5 (2026-10-17, about 3:58 PM EDT as the lane
-  reported, relayed by the coordinator, kind: performance), checked by
-  the TODO thread against main: `count_uncharted_systems` in
-  `src/planetgen/db/query.py` runs `SELECT COUNT(*) FROM bright_stars
-  WHERE star_system_id IS NULL` and the Uncharted stars API route
-  (`api/routes.py`, `"total": count_uncharted_systems(db)`) calls it on
-  every request, so every page of the table costs a scan of the whole
-  scatter table even though the page itself is now a keyset page
-  (PERF.75 part 1). With millions of scattered stars the count
-  dominates. Not measured yet. Do: measure the count on a large seeded
-  galaxy (idle box, times stated), then keep the number where it is
-  cheap to read (a counter written when a star is built into a system
-  and when the scatter places stars, or a cached value invalidated by
-  those writes, whichever the design notes of PERF.71 prefer), and make
-  the web page and the API read it. Done: the count is read in constant
-  time on a galaxy of the measured size, it stays right after a star is
-  built, a rescatter and a reset (a test for each), and the measurement
-  is on the item. Owner: Core 5 (proposed, PERF.75's author).
-  Prerequisites: none. Related: PERF.75, PERF.71, UX.87.
 
 - [ ] **PERF.113 The neighbour link of a galaxy run: measure it, and split it into chunks of sectors if the time warrants**
   Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
@@ -14893,7 +14781,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   types a value in each and checks the first row shown, and a test
   checks the plan stays an index range on MariaDB and MySQL (the OR form
   PERF.75 requires). Owner: Core 5 (proposed), after PERF.75.
-  Prerequisites: PERF.75. Related: PERF.75, PERF.71.
+  Prerequisites: none. Related: PERF.75, PERF.71.
 
 ## DB: Database and schema
 
@@ -18825,6 +18713,15 @@ clears each one.
   no quarantine. Done: the cause is named, the test passes in the full
   gate on 3 runs, and a test pins the condition it depended on. Owner:
   Bug Hunt (proposed).
+  Sighting (Core 5, 2026-10-17, relayed by the coordinator at 10:46 PM
+  EDT on the lane's clock, its gate 7): `assert
+  nested["inside_nebula_id"] == big` gave None == 1 (line about 1262), 1
+  of 9 runs in the gate and 8 of 8 alone. Core 5's reading (inferred,
+  not checked): the small nebula's centre is random inside its own
+  shape, not necessarily inside the big one's, so the nested system can
+  land outside the big nebula. Fails on main: not checked. Reproducer
+  given: loop the test with `-n0`. The same test is TEST.216 (Bug Hunt's
+  #2124 branch).
   Prerequisites: none. Related: TEST.208, TEST.213.
 
 - [ ] **TEST.225 `test_random_start_neighborhood_matches_the_real_skeleton_plan` generated 18,210 systems against a predicted 83,346.6 in one gate run (bug)**
@@ -19049,6 +18946,11 @@ clears each one.
   plus the sector-reach, slow-pages, tilecache and api files, 202 passed
   in 9 min 51 s at load 1 to 3) passed this test, so Core 2 has not
   touched it; it stays open.
+  Sighting (Core 5, 2026-10-17, relayed at 10:46 PM EDT on the lane's
+  clock, its gate 7): the `[light-phone]` variant failed once at load
+  about 9 with the status line 'About 30% (an estimate: 300 of 1,000
+  rows), about 5 s left.' and passed alone: the same shape as the
+  `[light]` failure above.
   Prerequisites: none. Related: TEST.227, UX.118.
 
 - [ ] **TEST.236 test_galaxy_map_drill_down_by_clicks rejects a window address with a negative band, because its regex allows a minus sign only on the wedge (bug)**
@@ -19082,6 +18984,26 @@ clears each one.
   the `-?` moved to the band on branch bughunt-test225; it rides the
   TEST.225 PR, which retires this item when it merges.
   Prerequisites: none. Related: TEST.172, TEST.202.
+
+- [ ] **TEST.237 The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug)**
+  Found by Core 5 (2026-10-17, relayed by the coordinator at 10:46 PM
+  EDT on the lane's clock, its gate 7), filed by the TODO thread. The
+  wheel-anchor browser test
+  (`test_the_wheel_anchors_on_the_star_under_the_pointer_not_the_mesh_behind_it`,
+  the TEST.231 test; failure text not yet given, asked of Core 5) failed
+  when run alone at box load 9.7 (call 5.47 s) and passed at load 3.
+  TEST.231's fix (PR #2147, release 8.0.1760) removed two causes (the
+  camera read before it settled, and an offset click nearer another
+  random fixture star); this is either residual load sensitivity or a
+  third cause. Fails on main: not checked (the lane's tree may predate
+  #2147; asked). Frequency: once. Reproducer: run the test alone while
+  another gate uses the box (load 9 or more). Do: get the failure text,
+  check the lane's tree had #2147, then loop the test at load 9 to 10
+  and find what the failing assertion read; fix the cause without
+  loosening what the test proves. Done: the cause is on this item and
+  the test passes 30 of 30 runs at load 10. Owner: Core 2 (proposed; it
+  fixed TEST.231).
+  Prerequisites: none. Related: TEST.231, TEST.126.
 
 
 ## USR: User accounts
@@ -20049,7 +19971,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   know about. Done: the sweep is run again on main, anything new is
   fixed in the same pass, README's headline feature list and the release
   headline are checked, and the result is recorded here.
-  Prerequisites: DOC.19, DOC.20, DOC.48, DOC.50, DOC.51, DOC.52.
+  Prerequisites: DOC.19, DOC.20, DOC.48, DOC.50, DOC.51.
   Related: DOC.4.
   Runs last: re-run the sweep when the other 8.1 DOC items are done
   (2026-10-16 review).
@@ -20186,30 +20108,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   nearest-first radius ladder), so NAV.61 is now a prerequisite.
   Prerequisites: NAV.61. Related: NAV.61, TEST.165.
   Design: [docs/design/spherical-region-queries.md](design/spherical-region-queries.md)
-
-- [ ] **DOC.52 A docs index page: links to every HTML page under docs/, each with a description of what it contains**
-  Boss (2026-10-15 7:01 PM EDT): "Add a TODO item in DOCS to build an
-  index with links to pages with descriptions of what each page contains
-  under docs to link the HTML together." Today the HTML pages under
-  docs/ (the execution plan, the version plan, the TODO tree, the TODO
-  reference, the architecture page, and any page added later) do not
-  link to each other except by hand. Build `docs/index.html`: one entry
-  per HTML page with its title, a one-or-two sentence description of
-  what it contains and who it is for, and a link; the generated TODO
-  pages and the execution plan gain a header link back to the index, and
-  the index links the Markdown design notes and the GitHub issue list
-  for the goals (docs/plan/issue-groups.md). Keep it generated where the
-  page is generated (a small script reads each page's title and a
-  description line, so a new page cannot be forgotten, with a test that
-  fails when an HTML page under docs/ is missing from the index). Done:
-  docs/index.html exists, every HTML page under docs/ is listed with a
-  description and links back to it, and the test passes. Owner: Quality
-  (2026-10-15).
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 53 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none.
 
 - [ ] **DOC.54 Admin help: how to edit, regenerate, lock, approve and undo**
   Boss (2026-10-16, 1:07 PM EDT), headline of 8.6 (ADM.57): the admin
@@ -20374,54 +20272,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   DB.70.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
-
-- [ ] **DOC.67 An architecture map Boss can drill down: project areas, modules and functions with the call flow between them, generated from the code**
-  Boss (2026-10-17, 12:23 PM EDT, relayed by the coordinator): "I want a
-  more detailed architecture HTML document that I can drill down and see
-  the flow through modules and even functions if possible, I want a map
-  of the project and its distinct areas." docs/design/architecture.html
-  (DOC.47, merged #2037) is the overview level, written by hand from
-  architecture.md; there is no code map and no generator behind it, so
-  this item builds both. Do: a generator
-  (`scripts/build_architecture_map.py`) reads `src/planetgen` with the
-  ast module (about 380 modules) and writes one self-contained page,
-  `docs/design/architecture-map.html`, with no network and no build
-  step. Level 1 is the project map: the distinct areas (web, api, queue,
-  generation, galaxy, population, physics, describe, db, admin, backup,
-  wiki, cli, names, tuning and the tests) as boxes with the imports
-  between them and a one-line purpose from architecture.md. Level 2 is
-  an area: its modules, what each imports and what imports it. Level 3
-  is a module: its classes and functions with the docstring's first
-  line, and for each function the functions it calls and the functions
-  that call it, resolved where the name is unambiguous and marked as
-  unresolved where it is not. Level 4 is a function's source with the
-  call edges clickable. A flow view shows the main paths end to end (a
-  page request to the API, to the work queue, to generation and the
-  database; a scatter pass; a map tile read; a backup) as a chain a
-  reader can click down through, written as a short hand-kept list of
-  entry functions so the chain is traced by the generator and not drawn
-  by hand. Search by module or function name; links are stable anchors.
-  Done: the page opens offline, every area, module and function of
-  `src/planetgen` is reachable by drilling down from the project map,
-  the flow view traces at least the five paths named above, the
-  generator has `--check` and a test that fails when a module is missing
-  from the page, and the page is listed in the docs index (DOC.52).
-  Default picked: the generated page is committed like the TODO pages;
-  module and import levels are checked in the docs gate, and the
-  function level is regenerated at each release stamp, so a lane does
-  not regenerate it on every merge (the lane may choose a better rule
-  and say so).
-  Owner: Core 5 (proposed by the TODO thread, Boss's lanes to 8.1,
-  2026-10-17): it owns DOC.52, whose index must list the page, and the
-  DOC sweep DOC.18, and it takes the small docs items first; Core 2
-  wrote DOC.47 but is on the wheel zoom chain, the 8.1 headline. Not on
-  the headline path: it can wait behind Core 5's stellar bundle unless
-  Boss promotes it.
-  Decided (Boss, 2026-10-17, 12:26 PM EDT, card tapped "Core 5, after
-  stellar", relayed in words by the coordinator): Core 5 owns it, queued
-  behind its stellar bundle (GEN.463, 467, 502, 529) and GEN.259, 238,
-  298; the owner line above is no longer only proposed.
-  Prerequisites: none. Related: DOC.47, DOC.52, DOC.18.
 
 - [ ] **DOC.68 Generate docs/plan/execution-plan.html from scripts/build_todo_docs.py like the other plan pages**
   Asked by Core 5 through the coordinator (2026-10-17, 7:51 PM EDT),
