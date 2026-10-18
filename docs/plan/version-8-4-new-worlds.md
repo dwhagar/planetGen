@@ -20,6 +20,7 @@ The composition fractions that drive density, mass and gravity, stored and descr
 |---|---|---|---|
 | GEN.458 | Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes |  | Body composition research lane finding F8, cluster 3; generator epoch bump. Core 4 proposed. |
 | GEN.428 | Planets and moons draw their bulk composition fractions instead of carrying a fixed text | GEN.427, GEN.440, GEN.458, GEN.557 | Boss 11:49 PM EDT; generator epoch bump. Core 4 proposed. |
+| GEN.564 | A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter |  |  |
 | GEN.557 | Wanderers: a rogue planet becomes a planet with no parent, drawn by the one body chain with an origin table, a notional formation host, the population's age and motion | GEN.553, DB.73 |  |
 | DB.73 | Storage for one orbited-body model: a shared parent link for every kind, free parents, the orbit node table filled, moons storable under a rogue |  |  |
 | GEN.555 | The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test | GEN.315, GEN.331, GEN.332 |  |
