@@ -14767,7 +14767,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   command list, each command is one queue item; the stages are not wired
   in any other way. PERF.118 (the wrapper) comes first and PERF.119
   (every start path uses it) comes after this umbrella.
-  Prerequisites: PERF.106, PERF.107, PERF.108. Related: PERF.86.
+  Prerequisites: PERF.107, PERF.108. Related: PERF.86.
 
 - [ ] **PERF.99 Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
@@ -14838,72 +14838,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merged (#2159).
   Prerequisites: DB.29. Related: PERF.86, PERF.29, PERF.30, DOC.20.
 
-- [ ] **PERF.106 The plan command on the run record, with stage timing, the killed-worker handler and job timeouts**
-  Split from PERF.98 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Move the stages of `planetgen
-  plan` onto run records, units and barriers as PERF.97 did for the mass
-  scatter: the skeleton as one unit, the phenomena and luminosity
-  scatters as static chunks (each scatter its own queue item, run in
-  order), and the other plan modes (`band`, `map-luminosity`,
-  `habitability`, `nebula-field`, the redo list). This first step also
-  adds what every later stage reuses: stage timing written into
-  `generation_stage_runs` and `generation_stats` by the unit that
-  completes the stage, `work_horse_killed_handler` marking the unit and
-  the run at once, and a real `job_timeout` (a multiple of the stage's
-  expected time) on every unit instead of -1. Done: `planetgen plan` in
-  every mode runs on the new queue and gives the same galaxy for the
-  same seed at any worker count; stage rows land in MySQL as today; a
-  hard-killed horse fails the run at once; no unit has `job_timeout` -1;
-  one test per mode.
-  Built-on note (Core 2, 2026-10-17, PERF.97 merged as #1999, about 5:20
-  AM EDT as the lane reported): the massive-star scatter runs as static
-  units on the Redis run record (payload_for is shared by the old and
-  the new queue; same stars at 1 and 4 workers and as the old queue).
-  The far-shell and component tasks of the scatter run as units too, and
-  a component unit reads its component from the database, so the other
-  scatters in this item take the same payload and unit shape.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 29 of 54). This replaces any earlier owner line on this item.
-  Order (Blocker/scheduler review of 2026-10-17, applied by the
-  coordinator at 10:41 AM EDT): Core 5 starts this item after Core 1's
-  GEN.401 merges, because the plan command and the queue chain edit
-  run_plan.py, cli/generate.py and web/generate_page.py, which GEN.401
-  is changing (Core 1 reported those as its files); Core 5's small items
-  fill the gap.
-  GEN.401 merged (#2051, Core 1, 12:50 PM EDT as the lane reported), so
-  the wait on it is over: Core 5 can take the item (the coordinator told
-  Core 5 at 12:51 PM EDT).
-  Boss, 2026-10-17, 4:12 PM EDT: every stage in this item is a command
-  registered with the wrapper of PERF.118, and the wrapper builds the
-  command list, each command is one queue item; the stages are not wired
-  in any other way.
-  Decided (Boss, 2026-10-17, 4:15 PM EDT): each scatter kind (mass,
-  luminosity, phenomena, nebula field, backfill and the rest) is its own
-  command with its own parameters, never one command that groups
-  scatters; see PERF.118.
-  Decided (Boss, 2026-10-17, 4:18 PM EDT): each command here does one
-  and only one thing and knows nothing of the other stages or the order;
-  the order lives only in the wrapper's step list (PERF.118).
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, and after the
-  GEN.401 merge (the item waited for it already); PERF.118 merged
-  (#2159).
-  Merged in part (Core 5, #2259, reported 11:32 AM EDT 2026-10-18 as the
-  lane reported; releases 8.0.1822 to 8.0.1825): slices 1 to 4 (the
-  phenomena scatter as units, the luminosity and band scatters as queue
-  commands, the plan skeleton command, and the stage timing,
-  killed-worker handler and unit time limits). Stage rows now come from
-  the unit that completes the stage. Commands registered so far:
-  plan-skeleton, scatter-mass, scatter-luminosity, scatter-band,
-  scatter-phenomena, fill-map-luminosity, clean-nebula-field and
-  draw-nebula-field; rescore-habitability is slice 5. Slice 5 (the fills
-  and the nebula field as commands) is the next PR, so this item stays
-  open.
-  Prerequisites: none. Related: PERF.98.
-
 - [ ] **PERF.107 The sector units and the stages around them: start, neighborhood, sectors, link, population and settle**
   Split from PERF.98 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). Move the `galaxy` command's
@@ -14930,7 +14864,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-17, 4:18 PM EDT): each command here does one
   and only one thing and knows nothing of the other stages or the order;
   the order lives only in the wrapper's step list (PERF.118).
-  Prerequisites: PERF.106. Related: PERF.98.
+  Prerequisites: none. Related: PERF.98.
 
 - [ ] **PERF.108 The backfill as queue units: chunks of at least 10,000 cells, one enumeration (folds in PERF.18)**
   Split from PERF.98 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -15083,7 +15017,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4 workers (a test that compares the stored rows), and the units are
   static chunks, not a work-stealing split, so a rerun gives the same
   chunks.
-  Prerequisites: PERF.106. Related: PERF.98, PERF.106.
+  Prerequisites: none. Related: PERF.98, PERF.106.
 
 - [ ] **PERF.117 The map-luminosity fill (`plan --map-luminosity`): measure it, and split it into id-range chunks if the time warrants**
   Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
@@ -15105,7 +15039,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4 workers (a test that compares the stored rows), and the units are
   static chunks, not a work-stealing split, so a rerun gives the same
   chunks.
-  Prerequisites: PERF.106. Related: PERF.98, PERF.106.
+  Prerequisites: none. Related: PERF.98, PERF.106.
 
 - [ ] **PERF.119 The Generate page, the API and the one-off sector and system commands start their runs through the wrapper**
   Boss, 2026-10-17, 4:12 PM EDT: "Rework so every part of the generate
@@ -15189,7 +15123,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shim; a test runs each command alone and the wrapper builds the old
   `plan` run as a step list that gives the same galaxy for the same
   seed. Owner: Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.106, PERF.120. Related: PERF.106, PERF.118,
+  Prerequisites: PERF.120. Related: PERF.106, PERF.118,
   PERF.120.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
@@ -15208,7 +15142,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   parameters (the batch size and the id range), registered with the
   wrapper, runnable alone, with the `plan` flags removed and no shim; a
   test runs each alone. Owner: Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.106, PERF.120. Related: PERF.106, PERF.116,
+  Prerequisites: PERF.120. Related: PERF.106, PERF.116,
   PERF.117, PERF.121.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
