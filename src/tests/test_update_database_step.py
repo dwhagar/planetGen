@@ -27,6 +27,7 @@ import uuid
 import pymysql
 import pytest
 
+from planetgen.admin import maintenance
 from planetgen.db import store
 from tests.bughunt_support import mysql_argv, run_cli
 from tests.conftest import _test_server_kwargs
@@ -53,11 +54,26 @@ def _admin(*statements):
         conn.close()
 
 
+ISOLATION_VARIABLES = ("PLANETGEN_STATE_DIR", "PLANETGEN_MAINTENANCE_FILE", "PLANETGEN_LOG_DIR")
+"""tuple: What conftest.py points at throwaway folders. The step's environment drops every other `PLANETGEN_*`
+variable, but these stay, or the migration's update guard writes the real `maintenance.json` (TEST.189)."""
+
+
+def _real_maintenance_file():
+    """The bytes of the file a machine without the test variables would use (None when it is not there)."""
+    path = os.path.join(maintenance.DEFAULT_STATE_DIR, "maintenance.json")
+    try:
+        with open(path, "rb") as handle:
+            return handle.read()
+    except FileNotFoundError:
+        return None
+
+
 def _run_step(config, control_db, **overrides):
     """Runs the shared database step in bash with stdin not a terminal,
     pointed at `config` through the same PLANETGEN_MYSQL_* variables
     update.sh's environment would carry."""
-    env = {k: v for k, v in os.environ.items() if not k.startswith("PLANETGEN_")}
+    env = {k: v for k, v in os.environ.items() if not k.startswith("PLANETGEN_") or k in ISOLATION_VARIABLES}
     env.update(
         PLANETGEN_MYSQL_HOST=config.host, PLANETGEN_MYSQL_PORT=str(config.port),
         PLANETGEN_MYSQL_USER=config.user, PLANETGEN_MYSQL_PASSWORD=config.password,
@@ -136,6 +152,15 @@ def test_a_database_that_needs_migrating_is_migrated_and_keeps_its_data(mysql_co
     assert "No terminal to ask on: keeping the data and migrating it." in result.stdout
     assert _version(mysql_config) == store.SCHEMA_VERSION + 1
     assert _systems(mysql_config) == systems
+
+
+def test_a_migration_leaves_the_real_maintenance_file_alone(mysql_config, control_db, tmp_path):
+    run_cli("system", mysql_argv(mysql_config))
+    before = _real_maintenance_file()
+    result = _run_step(mysql_config, control_db, **_extra_revision(tmp_path))
+    assert result.returncode == 0, result.stderr
+    assert _real_maintenance_file() == before
+    assert os.environ["PLANETGEN_MAINTENANCE_FILE"] != os.path.join(maintenance.DEFAULT_STATE_DIR, "maintenance.json")
 
 
 def test_a_database_older_than_the_baseline_is_refused_untouched(mysql_config, control_db):

@@ -7,7 +7,7 @@
   <h2 id="home-counts-heading" class="sr-only">What is here</h2>
   <ul class="entry-points">
     {%- for count in counts %}
-    <li><a href="{{ count.url }}"><strong>{{ num(count.total) }}</strong> {{ count.noun }}</a></li>
+    <li><a href="{{ count.url }}"><strong>{{ num(count.total) }}{% if count.capped %}+{% endif %}</strong> {{ count.noun }}</a></li>
     {%- endfor %}
   </ul>
 </section>

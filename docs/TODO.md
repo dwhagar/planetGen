@@ -4826,6 +4826,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only clusters above 2e4 solar masses. The epoch in the note reads 24
   pending and is renumbered at merge (Core 1's GEN.402 and Core 4's
   bundle also claim 24; the first to merge takes it).
+  Update (Core 3, 1:58 AM EDT 2026-10-18 as the lane reported): the
+  first full run (12:55 AM) was cut at 56 minutes after it found two
+  real faults, a tuning pair that was not ordered and a 60 s hang for a
+  1 pc toy galaxy from millions of drawn open clusters (fixed with a
+  dict and an `OPEN_CLUSTER_MAX_COUNT` of 100,000 as a program limit
+  that raises the low mass); the container's memory limit killed mysqld
+  at 1:50 AM EDT (5:50Z), caused by Core 3's side tests running beside
+  the gate, which polluted about 100 database tests. Rebased on main
+  c3b9ec30 and restarted from zero at 1:55 AM EDT, expected end about
+  3:30 AM EDT. GEN.282 (core gas ring) is coded, tested and committed
+  behind it; GEN.563 is coded with 15 new tests and the old ones
+  updated, in a third worktree; Core 3 plans one stacked gate for
+  GEN.282 and GEN.563, merged in order (the epoch 24 pending rides all
+  three). The core ring's over-production of massive clusters is
+  GEN.589.
   Prerequisites: none. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -15447,6 +15462,32 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mismatch raises.
   Prerequisites: GEN.586. Related: GEN.550, GEN.568, GEN.569.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.589 Research: the central molecular zone's upper cluster mass and its cloud-shock disruption, so the young clusters of the core match the few that are observed**
+  Finding from Core 3 while building GEN.244 and GEN.282 (1:58 AM EDT
+  2026-10-18 as the lane reported), filed by the TODO thread. Kind:
+  generation result against observation. Object: the central molecular
+  zone ring of a drawn galaxy. Result: 5 to 12 young clusters above 5e3
+  solar masses per galaxy against about 2 observed (Arches and
+  Quintuplet), and 7 to 21 clusters older than 10 Myr above 5e4 against
+  none. Cause as the lane reads it: the cluster mass function M^-2 runs
+  to 1e6 solar masses (the widest limit under Boss's widest-range rule),
+  the ambient density of the disruption law leaves out the gas, and
+  there is no disruption by cloud shocks. Do (research first, nothing
+  built until the sources are read): find a published upper cluster mass
+  for the central molecular zone and a cloud-shock disruption rate (Core
+  3 names Trujillo-Gomez 2019 as a lead; it is a lead until a lane has
+  read it, and a lane verifies each citation before use), say what the
+  sources give, and propose the change to GEN.244's mass function and
+  disruption for the core ring; the fill ships as the labelled stand-in
+  meanwhile. A change to the stored clusters rides the pending epoch and
+  the one wiped rescatter. Done: the note names the sources with their
+  evidence state, gives the upper mass and the disruption law with their
+  scatter, and a test shows the young clusters of the core above 5e3
+  solar masses are few (the observed count is the plausibility target,
+  not a preset). Owner: Core 3 (proposed; it built GEN.244). Not a
+  prerequisite of GEN.301.
+  Prerequisites: GEN.244. Related: GEN.244, GEN.282.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work

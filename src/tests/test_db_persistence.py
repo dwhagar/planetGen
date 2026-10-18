@@ -1210,17 +1210,30 @@ def _point_inside(shape):
     return next(point for point in grid if shape.contains(point))
 
 
-def _placed_nebula(conn, sector_id, around_pc, radius_ly, nebula_class="D"):
+def _placed_nebula(conn, sector_id, around_pc, radius_ly, nebula_class="D", holds_ly=0.0):
     """A nebula placed so `around_pc` lies inside its shape (GEN.75): a
-    nebula holds only the points within its shape, not its whole sphere."""
+    nebula holds only the points within its shape, not its whole sphere.
+    With `holds_ly`, the shape is drawn again until the 27 points of a cube of side `2 * holds_ly` round `around_pc` are
+    inside it too, as a smaller nebula placed round `around_pc` needs its centre to be (TEST.216: a shape whose
+    only interior point near the middle was close to its surface left that centre outside, about 1 draw in 40)."""
     from planetgen.generation.phenomena.nebula import Nebula
-    nebula = Nebula(SystemConfig(), nebula_class=nebula_class)
-    nebula.radius_ly = radius_ly
-    shape = nebula.get_shape()
     from planetgen.physics.units import ly_to_pc
 
-    inside = _point_inside(shape)
-    x, y, z = (around_pc[i] - inside[i] * ly_to_pc(radius_ly) for i in range(3))
+    reach = ly_to_pc(holds_ly)
+    steps = (-1, 0, 1) if holds_ly else (0,)
+    holding = [[around_pc[0] + a * reach, around_pc[1] + b * reach, around_pc[2] + c * reach]
+               for a in steps for b in steps for c in steps]
+    for _draw in range(200):
+        nebula = Nebula(SystemConfig(), nebula_class=nebula_class)
+        nebula.radius_ly = radius_ly
+        shape = nebula.get_shape()
+        inside = _point_inside(shape)
+        x, y, z = (around_pc[i] - inside[i] * ly_to_pc(radius_ly) for i in range(3))
+        if all(shape.contains([(point[i] - (x, y, z)[i]) / ly_to_pc(radius_ly) for i in range(3)])
+               for point in holding):
+            break
+    else:
+        raise AssertionError("200 shapes drawn and none held the points a nested nebula needs")
     return store.insert_nebula(conn, nebula, sector_id=sector_id, placement={
         "center_x_pc": x, "center_y_pc": y, "center_z_pc": z, "galactic_radius_pc": math.hypot(x, y, z),
     })
@@ -1247,7 +1260,8 @@ def test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins(mysql_config
     conn = store.get_connection(mysql_config)
     try:
         with conn:
-            big = _placed_nebula(conn, sector_id, _system_point_pc(conn, sector_id), radius_ly=100.0, nebula_class="E")
+            big = _placed_nebula(conn, sector_id, _system_point_pc(conn, sector_id), radius_ly=100.0, nebula_class="E",
+                                 holds_ly=6.0)
         row = conn.execute("SELECT inside_nebula_id, inside_remnant_id FROM star_systems WHERE sector_id = ?",
                            (sector_id,)).fetchone()
         assert (row["inside_nebula_id"], row["inside_remnant_id"]) == (big, None)

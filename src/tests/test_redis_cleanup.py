@@ -57,6 +57,22 @@ def test_what_tests_leave_goes_and_what_they_did_not_make_stays(scratch_database
     assert removed == 13 and "removed 13 keys" in said
 
 
+def test_a_queue_with_a_job_made_lately_is_left_whole(scratch_database):
+    """TEST.203: a run queueing jobs for workers that have not yet sent a heartbeat must not lose them to another
+    run's clean-up."""
+    client = scratch_database
+    _leave_a_finished_job(client, "planetgen-run-old", "job-old")
+    client.hset("rq:job:job-old", mapping={"created_at": _stamp(redis_cleanup.YOUNG_JOB_SECONDS + 60)})
+    client.rpush("rq:queue:planetgen-run-new", "job-new")
+    client.hset("rq:job:job-new", mapping={"status": "queued", "created_at": _stamp(30)})
+    client.sadd("rq:queues", "rq:queue:planetgen-run-new")
+    removed, _said = redis_cleanup.clean(client=client, now=NOW)
+    assert not client.exists("rq:finished:planetgen-run-old") and not client.exists("rq:job:job-old")
+    assert client.llen("rq:queue:planetgen-run-new") == 1 and client.exists("rq:job:job-new")
+    assert client.sismember("rq:queues", "rq:queue:planetgen-run-new")
+    assert removed == 3
+
+
 def test_nothing_to_clear_says_nothing(scratch_database):
     assert redis_cleanup.clean(client=scratch_database, now=NOW) == (0, "")
 
