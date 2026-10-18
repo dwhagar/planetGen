@@ -4892,36 +4892,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.270.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **GEN.252 Brown dwarfs as stars: an L, T and Y state for companions and primaries, with the brown-dwarf desert**
-  Step 5 of the phenomena train (catalogue section 8 item 5). An L/T/Y
-  state from the `ROGUE_BROWN_DWARF_*` cooling tables, so a brown dwarf
-  can be a companion or primary of a system, with the brown-dwarf-desert
-  rule for close companions. Done: a system can hold a brown dwarf star
-  at the observed rate, shown as one on its page. Later; nothing in the
-  whole-sphere train waits on it. Owner: Core, later (2026-10-15).
-  Catalogue (Boss 2026-10-15 6:08 PM EDT;
-  docs/design/multi-star-systems.md sections 13 to 16): the brown dwarf
-  rows of section 13.5 (close companion under 0.6% inside 3 to 10 AU,
-  wide 3.2%, pairs 15% of brown dwarfs, planetary-mass companions) are
-  built by GEN.275.
-  Owns the L, T and Y brown-dwarf star state and nothing else; the
-  brown-dwarf companion rows and rates are child a of GEN.275
-  (2026-10-16 review).
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
-  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; ready: no blocker). Core 4 asks Core 3
-  before touching stellar evolution constants in tuning.py. A line here
-  that named Core 3 or Core 4 earlier is replaced by this one.
-  Order (Boss, 2026-10-17, 10:39 AM EDT, card "Apply TODO's three small
-  lane reorderings?", tapped "Apply all three"; Core 4 said it has not
-  started it): Core 4 builds it right after GEN.469, ahead of its
-  description layer, because Core 3's GEN.331 and GEN.275 wait on it.
-  Prerequisites: none. Related: GEN.129.
-  Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
-
 - [ ] **GEN.253 White-dwarf pollution flag and cool white dwarf presets**
   Step 6 of the phenomena train (catalogue section 8 item 6). 25% to 50%
   of cool white dwarfs are polluted by accreted rocky debris [S]; add
@@ -6230,7 +6200,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.252. Related: GEN.275.
+  Prerequisites: none. Related: GEN.275.
 
 - [ ] **GEN.332 Circumbinary and S-type planets, circumbinary disks and rogue planet pairs at fill**
   Split from GEN.275 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -13549,27 +13519,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss, 2026-10-17, 4:49 PM EDT: the satellite scatter kinds read this
   switch from the stored galaxy setting, and no other scatter kind does.
 
-- [ ] **GEN.541 The wide-pair perturber mass: black holes carry about twice the second moment of all stars; decide whether remnants stay in it, with the black-hole mass function checked**
-  Finding from Core 4 (2026-10-17, 5:16 PM EDT as the lane reported,
-  GEN.447 merged as #2100): in the mass-weighted perturber mass of the
-  wide-pair encounter limit, black holes carry about twice the second
-  moment of all stars together; with `remnants=False` the stars-only
-  figure is 0.59 against 1.46 with them. Remnants are real perturbers,
-  so the default stands: they stay in. Done: the black-hole share of the
-  second moment is traced to its inputs (the black-hole number and mass
-  function the galaxy draws, with the sources read first, verified
-  sources before unverified, NO FIXED CONTENT), the figure that results
-  is written beside the limit with the stars-only value, and, if the
-  inputs do not hold, the limit is corrected; if they hold, the note
-  says so and the item closes. The change of any stored value bumps the
-  generator epoch with the OPS.56 rule. Owner: Core 4 (proposed, the
-  GEN.447 author).
-  Decided (Boss, 2026-10-17, 9:54 PM EDT, typed in the project chat,
-  relayed by the coordinator): "I approve all your defaults". This
-  approves the default on this item: remnants stay in the wide-pair
-  perturber mass.
-  Prerequisites: none. Related: GEN.447, GEN.450.
-
 - [ ] **GEN.542 scripts/star_type_by_radius.py fails with a TypeError because the plan arguments now default the disk and arm options to None (bug)**
   Found by Core 4 (2026-10-17, 5:30 PM EDT as the lane reported, relayed
   7:08 PM EDT), filed by the TODO thread; reproduced on current main at
@@ -13761,6 +13710,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   else on this item stands as its default.
   Prerequisites: none. Related: GEN.439, GEN.440, GEN.502, API.31.
 
+- [ ] **GEN.549 L dwarfs hotter than 1,500 K are 2 to 4 times too rare against the 20 pc census: use a cooling track that reaches them (strict expected failure)**
+  Follow-up of GEN.252 (merged #2164, Core 4, 2026-10-17, 11:09 PM EDT
+  as the lane reported), filed by the TODO thread from Core 4's report
+  and `docs/design/brown-dwarf-state.md`. GEN.252 gives a brown dwarf
+  its type, temperature and radius from the Burrows et al. 2001 old-age
+  power laws (Teff = 1550 K (t/1 Gy)^-0.32 (M/0.05 Msun)^0.83, capped at
+  2,800 K). That law is too cool for the heaviest brown dwarfs, so L
+  dwarfs hotter than 1,500 K come out at 0.2 to 0.5 of the census's
+  share (the 20 pc census of Kirkpatrick et al. 2021 counts 0.5 to 0.8
+  per 1e-3 pc^3 in every 150 K bin above 1,500 K);
+  `tests/test_brown_dwarf.py::test_the_hot_l_dwarfs_reach_the_censuss_share`
+  keeps the gap as a strict expected failure so it fails loudly when
+  closed. The census share stays a test target and never an input (NO
+  FIXED CONTENT). Do: replace the law above 1,500 K with a cooling track
+  that reaches those temperatures, from the sources read first (Baraffe
+  et al. 2003 or Phillips et al. 2020, the ATMO 2020 grids, are the ones
+  the design note names; the lane verifies each citation before use, the
+  standing source rules apply, and a paper only Boss can supply is a
+  research request to him), keep the radius law consistent with it, and
+  remove the expected failure. Changes stored values, so it bumps the
+  generator epoch (OPS.56 rule); default (stands unless Boss overrules):
+  not a prerequisite of GEN.301, and it rides the one full rescatter
+  only if it merges before it. Done: L dwarfs above 1,500 K reach the
+  census's share in the test, the strict expected failure is gone, and
+  the design note names the track. Owner: Core 4 (proposed; it built
+  GEN.252), after the description layer.
+  Prerequisites: none. Related: GEN.252, GEN.301.
+
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -13935,7 +13912,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 37 of 54). This replaces any earlier owner line on this item.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
   Prerequisites: PERF.98, PERF.119. Related: PERF.86, UX.3.
@@ -13969,7 +13946,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 42 of 54). This replaces any earlier owner line on this item.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
   Prerequisites: DB.29. Related: PERF.86, PERF.29, PERF.30, DOC.20.
@@ -14023,7 +14000,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and only one thing and knows nothing of the other stages or the order;
   the order lives only in the wrapper's step list (PERF.118).
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, and after the
   GEN.401 merge (the item waited for it already); PERF.118 merged
   (#2159).
@@ -14289,7 +14266,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.118, PERF.121, PERF.122,
   PERF.123, PERF.124, PERF.125, PERF.126, PERF.127, PERF.128.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
@@ -14317,7 +14294,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: PERF.106, PERF.120. Related: PERF.106, PERF.118,
   PERF.120.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
@@ -14336,7 +14313,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: PERF.106, PERF.120. Related: PERF.106, PERF.116,
   PERF.117, PERF.121.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
@@ -14363,7 +14340,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: PERF.107, PERF.108, PERF.121. Related: PERF.107,
   PERF.108, PERF.118, PERF.120.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
@@ -14385,7 +14362,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: PERF.123. Related: PERF.119, PERF.120,
   PERF.123, PERF.125.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
@@ -14406,7 +14383,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: PERF.107, PERF.120. Related: PERF.107, PERF.114,
   PERF.120.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
@@ -14426,7 +14403,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   could not run), and the flags that grouped them are gone with no shim.
   Owner: Core 5 (proposed; the PERF.118 chain).
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
   Prerequisites: PERF.120. Related: PERF.118, PERF.120.
@@ -14449,7 +14426,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: PERF.120. Related: PERF.118, PERF.120,
   PERF.104.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
@@ -14467,7 +14444,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reading the stage timings the run record already holds; it runs no
   stage itself. Owner: Core 5 (proposed; the PERF.118 chain).
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
   Prerequisites: PERF.123. Related: PERF.31, PERF.118, PERF.120.
@@ -14720,25 +14697,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   once. The galaxy map lag Boss reported at the same time is MAP.249; if
   its cause is the missing cache, this item is brought forward.
 
-- [ ] **PERF.135 The Uncharted stars and Phenomena tables get a jump-by-value box for their numeric and scatter-id sorts**
-  Asked by Core 5 through the coordinator (2026-10-17, relayed about
-  9:04 PM EDT), filed by the TODO thread. PERF.75's jump box ("Starting
-  at") is built for the Systems table, whose sort is a name. The
-  Uncharted stars and Phenomena tables sort by numbers (brightness,
-  mass, distance) or by scatter id, so a letter box does not fit and
-  they get no box in PERF.75's gate. Default (stands unless Boss
-  overrules): each of those tables gets the same "Starting at" box,
-  taking a value in the unit of the column the table is sorted by (a
-  number, with its unit shown next to the box) or, for the scatter-id
-  sort, a scatter id; the table lands on the first row at or after the
-  value by the existing keyset paging (`after=<sort key, id>`), and a
-  value past the end lands on the last page with a line saying so. Done:
-  both tables show the box for every sort they offer, a browser test
-  types a value in each and checks the first row shown, and a test
-  checks the plan stays an index range on MariaDB and MySQL (the OR form
-  PERF.75 requires). Owner: Core 5 (proposed), after PERF.75.
-  Prerequisites: none. Related: PERF.75, PERF.71.
-
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -14900,7 +14858,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 41 of 54). This replaces any earlier owner line on this item.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
 
