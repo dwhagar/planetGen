@@ -7,6 +7,8 @@
 
 - `test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star` (TEST.213) stopped its wheel loop at a share of 0.999 and then asked for 1.0 within 1e-6, so it failed whenever the last step landed between the two (0.99975 in a loaded run). It now asks for the share it stopped at: at least 0.999, whole.
 
+- The same anchor test clicked 5 px right and 4 px up of the star as its second try, and the sector's stars are drawn from the database, so now and then another star lay nearer to that spot and the wheel (rightly) anchored on it. The offset is now picked from a short list as one at which no other star of the scene is nearer to the pointer than the target (`_shift_nearest_to`). Six runs in a row pass, against about one failure in four before.
+
 ### Added
 - Nothing.
 
