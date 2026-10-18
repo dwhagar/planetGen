@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.248 |
+| TEST | TEST.250 |
 | USR | USR.31 |
 | OPS | OPS.62 |
 | DOC | DOC.72 |
@@ -908,7 +908,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.241 | Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds | none | done, PR #2144 |
 | GEN.242 | A pre-main-sequence state for young stars, so protostars can exist as real stars | none | done, PR #2009 |
 | GEN.243 | Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X | none | done, PR #2178 |
-| GEN.244 | Young open clusters and OB associations as components (later) | none | open |
+| GEN.244 | Young open clusters and OB associations as components (later) | none | done, PR #2253 |
 | GEN.245 | Debris disks around A and F stars (later) | none | open |
 | GEN.246 | Luminous blue variables and hypergiants (later) | none | open |
 | GEN.247 | Accreting white dwarf binaries: novae, cataclysmic and symbiotic variables, Type Ia progenitors (later) | none | open |
@@ -946,7 +946,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.279 | A realistic galactic core from the density and generation model (replaces the dropped one-off nuclear-cluster object GEN.155) | none | done, PR #1728 |
 | GEN.280 | Galactic core density: nuclear star cluster and nuclear disc terms in the density model, replacing the Gaussian core of ADM.49 | none | done, PR #1855 |
 | GEN.281 | Galactic core cell star ceiling and fill luminosity cap: a dense cell fills only stars at or above the cap, and the unresolved count and mass are computed from the address | none | done, PR #1820 |
-| GEN.282 | Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec) | none | open |
+| GEN.282 | Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec) | none | done, PR #2255 |
 | GEN.283 | Scatter limits by place: a core luminosity floor and mass limit, a halo luminosity floor (default 500, lowest 50), and the baseline everywhere else | none | done, PR #1904 |
 | GEN.284 | Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut | none | open |
 | GEN.285 | Nuclear mass components in the galactic potential for the orbital update | none | open |
@@ -1227,7 +1227,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.560 | Research list for the chain: ejection survival of moons, circumplanetary disks of isolated planetary-mass objects, failed-supernova and direct-collapse shares, the size law of interstellar objects | none | open |
 | GEN.561 | The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own | none | done, PR #2240 |
 | GEN.562 | One function for the white-dwarf initial-final relation and for the neutron star and black hole mass draw, with no change in what any seed generates | none | done, PR #2220 |
-| GEN.563 | The black hole density follows the mass function and the verified failed-supernova share: one constant changes, the neutron star density stays | none | open |
+| GEN.563 | The black hole density follows the mass function and the verified failed-supernova share: one constant changes, the neutron star density stays | none | done, PR #2256 |
 | GEN.564 | A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter | none | open |
 | GEN.565 | The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes | none | open |
 | GEN.566 | Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560 | none | open |
@@ -2340,6 +2340,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.245 | test_generate_sector_real_capacity_overflow_returns_a_partial_sector fails in about 1 run in 100 because it draws an unseeded sector, so the draw sometimes fits all 120 systems (bug) | none | done, PR #2227 |
 | TEST.246 | The web edit menu tests time out in setup in a loaded gate: the accessibility site database backfill took 1024 s while other tests ran, and the tests pass alone in 46 to 49 s (bug) | none | open |
 | TEST.247 | The random-start neighbourhood test with --min-start-density 1000 (dense_core) takes 466 s alone and 554 s with its sibling, and times out at 900 s under gate load (bug) | none | open |
+| TEST.248 | The slow-pages test 'stop waiting stops the polling and check again picks it up' fails in a loaded browser phase: the status line still reads 'About 30% ... about 5 s left.' where 'Stopped waiting.' is expected, and it passes alone in 0.3 s (bug) | none | open |
+| TEST.249 | The sector and system page query-count test fails once in the non-browser phase: 12 statements for a lone system where 11 for one with planets, on unseeded systems (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
