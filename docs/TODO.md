@@ -13582,6 +13582,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   disk and GEN.404's gate did not include that test; the test now reads
   in relative units (30 s for the whole file). Owned by Core 4, so no
   TEST item.
+  Standing design rule (Boss, 2026-10-18, 5:20 PM EDT, typed in the
+  project chat, relayed by the coordinator;
+  docs/design/mass-object-class.md): "For all objects are objects with
+  mass in the system. I want to make sure that galactic motion is not
+  the only thing that they handle because the trajectory of all motion,
+  including planetary and lunar, should both be built into the object
+  mass functions (since they're all the same rules)". The mass object
+  core carries the trajectory of every kind of motion with one set of
+  rules: galactic motion, a planet's and a moon's orbit about its
+  parent, a comet's Kepler state and a star's orbit about a barycentre.
+  GEN.565a (#2274) covers only the galactic-motion fields and the save
+  and load, so GEN.565b and the kinematic record of GEN.584 must bring
+  the planetary and lunar trajectory into the same core functions; Core
+  4 was told to check GEN.565b against this rule.
 
 - [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
   Part of the unified orbited-body chain (GEN.550; design note
@@ -14323,6 +14337,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   relayed). The kernels are SI floats; GEN.586 is not a hard
   prerequisite, write the same formulas once if it is not yet merged and
   let GEN.587 move them.
+  Standing design rule (Boss, 5:20 PM EDT 2026-10-18; see GEN.565 and
+  docs/design/mass-object-class.md): the trajectory of all motion,
+  planetary and lunar as well as galactic, is built into the one set of
+  mass object functions, since they are all the same rules. The
+  kinematic record is the state those functions advance for every kind
+  of object.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
 - [ ] **GEN.585 Dimensions and unit systems in the registry: every unit carries its exponent vector, the derived kinds are listed, and a constant's number in any coherent system follows from its dimension**
