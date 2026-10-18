@@ -5,4 +5,4 @@
 - **`cli.version_history` only records** the version key (OPS.60). Its `--list` is removed; `planetgen versions` lists the history.
 
 ### Removed
-- **`cli.render_parity` and `cli.dedupe`** (OPS.61), the one-off check for schema v29 and the name backfill for v24, which migrated long ago, with their tests.
+- **`cli.render_parity` and `cli.dedupe`** (OPS.61), the one-off check for schema v29 and the name backfill for v24, which migrated long ago, with their tests and the two step names (`dedupe-sectors`, `dedupe-systems`) nothing runs any more.
