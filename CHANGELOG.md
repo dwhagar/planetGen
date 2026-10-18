@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1781] - 2026-10-18
+
+**Headline:** `scripts/test.py --resume` now continues a cancelled gate after main was merged in, rerunning only the tests whose files changed.
+
+### Changed
+- `--resume` reuses a pass from an earlier run, of any build, when the environment is the same and none of the files that differ between the two trees is a file the test used; a changed environment now runs every test and says why instead of refusing (TEST.208).
+- The progress log header carries a manifest of the files (path and hash), and every passed test of a `changed` run leaves a `deps` line with the files it used, so a cancelled run keeps both; reused passes are copied into the new log and counted by the next resume.
+
+TODO items resolved: TEST.208 / Added: none
+
 ## [8.0.1780] - 2026-10-18
 
 **Headline:** Four load-sensitive tests no longer fail for reasons that are not in the code they check.
