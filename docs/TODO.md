@@ -3456,6 +3456,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its last update (one day of real time is one day of orbit), and an
   option advances it by a stated extra span in one go. Done when its
   subitems are.
+  Boss statement (2026-10-18, 5:24 PM EDT), UNVERIFIED against the
+  design until the read-only "Orbital update check (2026-10-18)" note
+  lands: "And let's also double-check that the orbital motion updates:
+  1. Checks for whatever records require an update. 2. New records
+  without a next update field will always get an update, where the next
+  update field will be set. 3. Calculate any required position changes
+  first. 4. Change the motion vector of each object to account for
+  gravitational effects, given the point mass, calculated gradient of
+  the sector and area surrounding the sector, using the algorithm of:
+  the largest hill radius present in the galaxy becomes the search
+  radius for gravitational objects. So that we can calculate the vector
+  field and the gravitational gradient at the exact location of the
+  object to update its motion vector. Based on speed the system will
+  then set an entry in the database for that object for when it next
+  needs a position or motion update. According to the floor, it is
+  already approved". The last sentence is unclear ("the floor" is not
+  a term in the design or in an earlier answer); recorded as stated,
+  not interpreted. The four steps are the order of one run: due records
+  first (a record with no next-update value is always due and gets one),
+  positions, then velocities from the influence set (GEN.341, GEN.342)
+  plus the galactic gradient, then the next-update value from speed
+  (GEN.139). The check compares this order with orbital-updates.md and
+  reports where the design differs; the 8.3 items change only after it
+  lands.
   Headline: 8.3 (the orbital update system).
   Prerequisites: GEN.290, GEN.291.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
@@ -4006,6 +4030,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   closed-form step on read, and the thresholds only schedule
   perturbation re-fits; GEN.289 replaces the phase columns that the
   earlier wording relied on.
+  Boss (2026-10-18, 5:24 PM EDT): a new record with no next-update
+  value is always updated and the value is then set, and the value is
+  set from the object's speed after the velocity change; full wording on
+  GEN.105 (unverified against the design until the orbital update check
+  lands).
   Prerequisites: none.
   Design: [docs/design/orbital-solvers-and-integrators.md](design/orbital-solvers-and-integrators.md)
 
@@ -6113,6 +6142,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The force on a body comes from the shared field kernel (PERF.88); this
   item adds the influence-set term, the galactic gradient hook and the
   velocity update (2026-10-16 review).
+  Boss (2026-10-18, 5:24 PM EDT): the kernel is evaluated at the exact
+  location of each updated object, with the largest Hill radius in the
+  galaxy as the search radius, after the position change; see GEN.105
+  (unverified against the design until the orbital update check lands).
   Prerequisites: GEN.341, GEN.338, GEN.340. Related: GEN.109.
 
 - [ ] **GEN.343 The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter**
