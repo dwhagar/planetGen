@@ -14,11 +14,10 @@ scatter and its per-sector bands.
 import collections
 import dataclasses
 import math
-import queue as queue_module
 import threading
 import time
 
-from planetgen.queue import commands, progress_rate, redisqueue, units, work as workQueue, wrapper
+from planetgen.queue import commands, progress_rate, units, work as workQueue, wrapper
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
@@ -453,12 +452,9 @@ def scatter_bright_stars(args, passes=("mass", "luminosity")):
         else:
             stages.skip("mass", "not chosen to be redone")
         if "luminosity" in passes:
-            marked = store.bright_star_marked_addresses(conn, limits)
-            log.normal(f"{len(marked):,} sectors hold a star born at their band's mass limit or more and at "
-                       "least its luminosity floor bright; the luminosity pass skips them.")
             stages.enter("luminosity")
-            light = _scatter_shells(args, mysql_config, skeleton, extents, set(filled) | marked, min_luminosity_sol,
-                                    seed, "Bright stars", tiered=scatter_limits.luminosity_pass(limits))
+            light = _scatter_on_queue(args, mysql_config, "luminosity", "Bright stars", "scatter-bright", {
+                "min_luminosity_sol": min_luminosity_sol, "mass_limit_sol": float(mass_limit)}, seed)
             for population, count in light.items():
                 counts[population] += count
         else:
@@ -524,9 +520,9 @@ class _ShellTracker:
     with their own ETA. The second bar goes again once tasks finish
     faster than one per `FAST_TASK_SECONDS` (the gap keeps it from
     flashing on and off near the line). A task is a run of consecutive
-    shells (`shell_chunks`); `names` says which ones, `sizes` how many.
-    Called from the run's own thread and the progress channel's
-    (`_drain_channel`), so every change holds `lock`.
+    shells (`static_shell_chunks`); `names` says which ones, `sizes` how many.
+    Called from the run's own thread and the one following the units' progress
+    (`wrapper.run`), so every change holds `lock`.
     """
 
     SLOW_TASK_SECONDS = 30.0
@@ -619,31 +615,6 @@ class _ShellTracker:
             self.progress.remove_task(self.detail)
             self.progress.detail_task = None
             self.detail = None
-
-
-class _DirectChannel:
-    """The progress channel of a scatter run with one worker: its tasks
-    are drawn in this process, so reports go straight to the tracker."""
-
-    def __init__(self, tracker):
-        self.tracker = tracker
-
-    def put(self, item):
-        self.tracker.task_progress(*item)
-
-
-def _drain_channel(channel, tracker, stop):
-    """Hands the workers' task reports to the tracker until `stop`."""
-    while True:
-        try:
-            item = channel.get(timeout=0.25)
-        except queue_module.Empty:
-            if stop.is_set():
-                return
-            continue
-        except (EOFError, OSError):
-            return
-        tracker.task_progress(*item)
 
 
 CHANNEL_INTERVAL_SECONDS = 0.25
@@ -1011,64 +982,40 @@ class _ScatterTally:
         return self.counts
 
 
-def _scatter_shells(args, mysql_config, skeleton, extents, filled, min_luminosity_sol, seed, label,
-                    max_luminosity_sol=None, mass_range=None, stats_kind="scatter-bright", task_kind="bright-stars",
-                    tiered=None):
-    """
-    Draws and writes the bright stars of every shell through the work
-    queue, a task per run of consecutive shells (`shell_chunks`), with a
-    progress bar: every star at or above `min_luminosity_sol`, or only those
-    below `max_luminosity_sol` too (one band of a staged scatter), and born
-    in `mass_range` (initial solar masses `(low, high)`, an end `None` for no
-    limit; GEN.185). Cells in `filled` (the sectors already filled, and the
-    ones the mass pass marked) are left out. `tiered` (a `scatter_limits.TieredPass`, GEN.333) draws each band at its
-    tier's limits instead, and `min_luminosity_sol`, `max_luminosity_sol` and `mass_range` are then not read.
+def _mysql_config_of(params):
+    """The `MySQLConfig` a command's params name (`wrapper.database_args`; the password is this process's settings')."""
+    named = params["database"]
+    return store.MySQLConfig(host=named["host"], port=named["port"], user=named["user"], database=named["database"])
 
-    The bar counts each task's expected work (PERF.9,
-    `brightStars.shell_weight`, worked out first in a second or two),
-    credited star by star as the workers report (PERF.4, `_ShellTracker`,
-    which also adds the second bar for slow tasks). Each task's time
-    goes into the speed stats as a `stats_kind` task (PERF.10) and has its own work queue task kind `task_kind`
-    (PERF.54). The massive-star pass is `_scatter_mass`'s, on the new queue.
+
+def _expansion(mysql_config, skeleton, extents, skip, min_luminosity_sol, max_luminosity_sol, mass_range, tiered, seed,
+               extra=None):
+    """
+    A shell scatter's stage cut into its units (`_ScatterShape`, `static_shell_chunks`): the same at any worker count,
+    from the galaxy and the pass's limits alone. `skip` is the sectors the pass leaves out; `extra` is added to the
+    stage's JSON summary.
 
     Returns:
-        dict: Stars written per population.
+        commands.Expansion: A unit per task, its cost the task's expected stars, and the shape as JSON.
     """
     fractions, band_share = _band_fractions(tiered, min_luminosity_sol, max_luminosity_sol, mass_range)
-    workers = run_common._worker_count(args)
     components = _galaxy_components(mysql_config)
-    shape = _plan_shape(skeleton, extents, fractions, band_share, components, tiered, workers)
-    drawing = _ScatterPass(skeleton, filled, min_luminosity_sol, max_luminosity_sol, seed, mass_range, tiered,
-                           components)
-    log.normal(shape.log_line(label))
-    with _ShellBars(args, label, stats_kind, workers) as bars:
-        bars.open(shape)
-        tally = _ScatterTally(args, label, shape, stats_kind, workers, bars.tracker)
-        stop = threading.Event()
-        channel = drain = None
-        try:
-            with run_common._work_queue(args, label) as queue:
-                if queue.parallel:
-                    channel = queue.channel("scatter-progress")
-                    drain = threading.Thread(target=_drain_channel, args=(channel, bars.tracker, stop),
-                                             name="scatter-progress", daemon=True)
-                    drain.start()
-                else:
-                    channel = _DirectChannel(bars.tracker)
-                queue.submit_each(task_kind, [
-                    (f"shell {shape.names[key]}", {
-                        "mysql_config": mysql_config, "shape": skeleton.shape, "key": key,
-                        **drawing.payload(shape, key), "channel": channel,
-                    }, shape.weights[key], tally.on_done_for(key))
-                    for key in shape.tasks], _scatter_shells_task)
-        finally:
-            stop.set()
-            if drain is not None:
-                drain.join(timeout=5)
-            if isinstance(channel, redisqueue.Channel):
-                channel.close()
-            run_common._finish_stats(args)
-    return tally.finish()
+    shape = _plan_shape(skeleton, extents, fractions, band_share, components, tiered)
+    drawing = _ScatterPass(skeleton, skip, min_luminosity_sol, max_luminosity_sol, seed, mass_range, tiered, components)
+    return commands.Expansion([(drawing.unit_args(shape, key, mysql_config), shape.weights[key]) for key in shape.tasks],
+                              {**shape.to_json(), **(extra or {})})
+
+
+def _stored_galaxy(conn):
+    """`(skeleton, extents, filled)` of the stored galaxy, for a shell scatter.
+
+    Raises:
+        RuntimeError: The skeleton was never built.
+    """
+    skeleton = store.get_galaxy_shape(conn)
+    if skeleton is None:
+        raise RuntimeError("The galaxy's skeleton has never been built -- run 'planetgen plan' first.")
+    return skeleton, _outline(conn), store.filled_sector_addresses(conn)
 
 
 def expand_scatter_mass(params):
@@ -1084,51 +1031,101 @@ def expand_scatter_mass(params):
     Returns:
         commands.Expansion: The units, and the `_ScatterShape` as JSON.
     """
-    named = params["database"]
-    mysql_config = store.MySQLConfig(host=named["host"], port=named["port"], user=named["user"],
-                                     database=named["database"])
+    mysql_config = _mysql_config_of(params)
     conn = store.get_connection(mysql_config)
     try:
-        skeleton = store.get_galaxy_shape(conn)
-        if skeleton is None:
-            raise RuntimeError("The galaxy's skeleton has never been built -- run 'planetgen plan' first.")
-        extents = _outline(conn)
-        filled = store.filled_sector_addresses(conn)
+        skeleton, extents, filled = _stored_galaxy(conn)
     finally:
         conn.close()
     limits = scatter_limits.ScatterLimits.of(skeleton, params["min_luminosity_sol"], params["mass_limit_sol"])
     floor = starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL
-    tiered = scatter_limits.mass_pass(limits, floor)
-    fractions, band_share = _band_fractions(tiered, floor, None, None)
-    components = _galaxy_components(mysql_config)
-    shape = _plan_shape(skeleton, extents, fractions, band_share, components, tiered)
-    drawing = _ScatterPass(skeleton, filled, floor, None, params["seed"], None, tiered, components)
-    return commands.Expansion([(drawing.unit_args(shape, key, mysql_config), shape.weights[key]) for key in shape.tasks],
-                              shape.to_json())
+    return _expansion(mysql_config, skeleton, extents, filled, floor, None, None,
+                      scatter_limits.mass_pass(limits, floor), params["seed"])
 
 
-def _scatter_mass(args, mysql_config, min_luminosity_sol, mass_limit, seed, label="Massive stars"):
+def expand_scatter_luminosity(params):
     """
-    The massive-star pass (GEN.185 pass 2) on the new queue (PERF.97, PERF.118): the wrapper (`queue/wrapper.py`)
-    selects the `scatter-mass` command from this run's steps, records the run, cuts the pass into units
-    (`expand_scatter_mass`) and queues them, and this process follows the units' results and progress with the same
-    bar as the other scatters until all are done. `--workers` (or `PLANETGEN_WORKERS`) is how many workers the run
-    starts, one included.
+    The `scatter-luminosity` command's stage cut into its units (PERF.106): the luminosity pass (GEN.185 pass 4):
+    every star born lighter than the mass limit and at least the luminosity floor bright, in the sectors that are
+    neither filled nor marked by the mass pass (a sector holding a mass-pass star that bright already has one). The
+    marks are read here, when the stage starts, between the passes, while the table holds only the mass pass's stars.
+
+    Args:
+        params (dict): `database` (`wrapper.database_args`), `min_luminosity_sol` (the baseline luminosity floor),
+            `mass_limit_sol` (the stellar mass limit) and `seed` (the pass's).
+
+    Returns:
+        commands.Expansion: The units, and the `_ScatterShape` as JSON with `marked`, the sectors left out as marked.
+    """
+    mysql_config = _mysql_config_of(params)
+    conn = store.get_connection(mysql_config)
+    try:
+        skeleton, extents, filled = _stored_galaxy(conn)
+        limits = scatter_limits.ScatterLimits.of(skeleton, params["min_luminosity_sol"], params["mass_limit_sol"])
+        marked = store.bright_star_marked_addresses(conn, limits)
+    finally:
+        conn.close()
+    return _expansion(mysql_config, skeleton, extents, set(filled) | marked, params["min_luminosity_sol"], None, None,
+                      scatter_limits.luminosity_pass(limits), params["seed"], {"marked": len(marked)})
+
+
+def expand_scatter_band(params):
+    """
+    The `scatter-band` command's stage cut into its units (PERF.106): the band of bright stars from the new level up
+    to the stored one (`--bright-stars-down-to`), each tier from its new floor up to its old one, in the sectors that
+    are neither filled nor backfilled to their own level.
+
+    Args:
+        params (dict): `database` (`wrapper.database_args`), `target_luminosity_sol` (the new level),
+            `current_luminosity_sol` (the stored one), `mass_limit_sol` (the stored mass limit, or `None`) and `seed`.
+
+    Returns:
+        commands.Expansion: The units, and the `_ScatterShape` as JSON with `own`, the backfilled sectors left out.
+    """
+    mysql_config = _mysql_config_of(params)
+    mass_limit = params["mass_limit_sol"]
+    conn = store.get_connection(mysql_config)
+    try:
+        skeleton, extents, filled = _stored_galaxy(conn)
+        own = store.sector_bright_level_keys(conn)
+    finally:
+        conn.close()
+    older = scatter_limits.ScatterLimits.of(skeleton, params["current_luminosity_sol"], mass_limit)
+    newer = scatter_limits.ScatterLimits.of(skeleton, params["target_luminosity_sol"], mass_limit)
+    return _expansion(mysql_config, skeleton, extents, set(filled) | set(own), params["target_luminosity_sol"],
+                      params["current_luminosity_sol"], None if mass_limit is None else (None, mass_limit),
+                      scatter_limits.band_pass(newer, older), params["seed"], {"own": len(own)})
+
+
+def _scatter_on_queue(args, mysql_config, key, label, stats_kind, params, seed):
+    """
+    A shell scatter pass on the new queue (PERF.97, PERF.106, PERF.118): the wrapper (`queue/wrapper.py`) selects the
+    stage's command (`scatter-mass`, `scatter-luminosity` or `scatter-band`) from this run's steps, records the run,
+    cuts the pass into units (the command's `expand`) and queues them, and this process follows the units' results
+    and progress with the same bar as the other scatters until all are done. `--workers` (or `PLANETGEN_WORKERS`) is
+    how many workers the run starts, one included.
+
+    Args:
+        key (str): The stage (`mass`, `luminosity` or `band`).
+        stats_kind (str): The speed stats kind of the pass's tasks.
+        params (dict): What the command's expansion reads besides the database (`expand_scatter_mass` and the others).
 
     Returns:
         dict: Stars written per population.
     """
     workers = run_common._worker_count(args)
-    step, listing = wrapper.step_for(args, "mass", label, {
-        "min_luminosity_sol": float(min_luminosity_sol), "mass_limit_sol": float(mass_limit), "seed": seed,
-        "database": wrapper.database_args(mysql_config)})
+    step, listing = wrapper.step_for(args, key, label, {**params, "seed": seed,
+                                                        "database": wrapper.database_args(mysql_config)})
     held = {}
-    with _ShellBars(args, label, "scatter-mass", workers) as bars:
+    with _ShellBars(args, label, stats_kind, workers) as bars:
         def on_plan(_index, plan):
             held["shape"] = _ScatterShape.from_json(plan["detail"])
+            if plan["detail"].get("marked") is not None:
+                log.normal(f"{plan['detail']['marked']:,} sectors hold a star born at their band's mass limit or more "
+                           "and at least its luminosity floor bright; the luminosity pass skips them.")
             log.normal(held["shape"].log_line(label))
             bars.open(held["shape"])
-            held["tally"] = _ScatterTally(args, label, held["shape"], "scatter-mass", workers, bars.tracker)
+            held["tally"] = _ScatterTally(args, label, held["shape"], stats_kind, workers, bars.tracker)
 
         def on_result(_index, unit, result):
             held["tally"].on_done_for(unit)(result, result["seconds"], held["shape"].weights[unit])
@@ -1141,6 +1138,13 @@ def _scatter_mass(args, mysql_config, min_luminosity_sol, mass_limit, seed, labe
         finally:
             run_common._finish_stats(args)
     return held["tally"].finish()
+
+
+def _scatter_mass(args, mysql_config, min_luminosity_sol, mass_limit, seed, label="Massive stars"):
+    """The massive-star pass (GEN.185 pass 2) on the new queue (`_scatter_on_queue`). Returns the stars written per
+    population."""
+    return _scatter_on_queue(args, mysql_config, "mass", label, "scatter-mass", {
+        "min_luminosity_sol": float(min_luminosity_sol), "mass_limit_sol": float(mass_limit)}, seed)
 
 
 def add_bright_star_band(args):
@@ -1200,9 +1204,10 @@ def add_bright_star_band(args):
                    + (f", leaving out {len(filled):,} filled sectors" if filled else "")
                    + (f" and {len(own):,} backfilled sectors" if own else "") + ".")
         t0 = time.perf_counter()
-        counts = _scatter_shells(args, mysql_config, skeleton, extents, skip, target, seed,
-                                 f"Bright stars {target:g}-{current:g} L_sun", max_luminosity_sol=current,
-                                 mass_range=mass_range, tiered=tiered)
+        counts = _scatter_on_queue(args, mysql_config, "band", f"Bright stars {target:g}-{current:g} L_sun",
+                                   "scatter-bright", {
+            "target_luminosity_sol": target, "current_luminosity_sol": current,
+            "mass_limit_sol": None if mass_limit is None else float(mass_limit)}, seed)
         floors = {address: newer.level_at(address[0], address[1]) for address in own}
         topped = sorted(address for address, level in own.items() if address not in filled and level > floors[address]
                         and floors[address] < older.level_at(address[0], address[1]))
