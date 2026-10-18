@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.252 |
+| TEST | TEST.253 |
 | USR | USR.31 |
 | OPS | OPS.62 |
 | DOC | DOC.72 |
@@ -981,7 +981,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.314 | Planet zones in a hierarchy and flux sums: S-type and P-type windows per node (Holman-Wiegert) and the flux a planet receives from every member | none | done, PR #2125 |
 | GEN.315 | A fill builds a system from its stored members and nodes; the system pass keeps only planets, moons, belts and disks | none | open |
 | GEN.316 | Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired | none | open |
-| GEN.317 | Pulsar planets and the radiation environment of neutron stars | none | open |
+| GEN.317 | Pulsar planets and the radiation environment of neutron stars | none | done, PR #2265 |
 | GEN.318 | White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk | none | open |
 | GEN.319 | Nebula rates read the profile: young and old shares, the cell's gas and the Type Ia share as profile fields | none | done, PR #2003 |
 | GEN.320 | build_nebula_with_contents: every hosted nebula gets its stars as real systems inside its bounds (classes C, G, F, planetary, remnants, P and Q) | none | done, PR #2014 |
@@ -2345,6 +2345,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.249 | The sector and system page query-count test fails once in the non-browser phase: 12 statements for a lone system where 11 for one with planets, on unseeded systems (bug) | none | open |
 | TEST.250 | test_workers.py: two tests fail once in a full run because ensure_workers is the inline test stand-in although the module is marked real_queue (something left the inline queue patch active in that xdist worker) (bug) | none | open |
 | TEST.251 | test_orbital_facilities_advance_their_phase fails once in a gate: advance_facility_orbits returns 0 where 1 is expected for orbit_clock(period / 4) (bug) | none | open |
+| TEST.252 | test_a_double_click_on_a_star_flies_the_camera_to_it fails once in a loaded gate and passes alone (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
