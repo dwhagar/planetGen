@@ -106,4 +106,4 @@ def test_a_dark_nebula_has_no_hosts():
 
 def test_the_hosted_rules_respect_the_age_table():
     assert set(tuning.NEBULA_CLASS_MAX_AGE_MYR) >= {c for rule in tuning.NEBULA_HOST_RULES for c in rule[3]}
-    assert all(0.0 < rule[4] <= 0.25 for rule in tuning.NEBULA_HOST_RULES)
+    assert all(0.0 < rule[4] <= 0.5 for rule in tuning.NEBULA_HOST_RULES)

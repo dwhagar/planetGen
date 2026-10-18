@@ -678,7 +678,8 @@ class StarSystem:
                             pre_main_sequence.companion_chance(initial_mass, self.primary_star.age * 1.0e9))
         # GEN.243: a Wolf-Rayet star has a companion in 52% (WN) or 90% (WC and WO) of cases, not the field's rate.
         special_chance = protostar_chance if protostar_chance is not None else (
-            wolf_rayet.companion_chance(self.primary_star.type) if self.primary_star.yerkes_class == wolf_rayet.CLASS
+            wolf_rayet.companion_chance(self.primary_star.type)
+            if getattr(self.primary_star, "yerkes_class", None) == wolf_rayet.CLASS
             else None)
         chance = prevalence.scaled_chance(config, "binary_system", field_chance if special_chance is None else special_chance)
         fe_h = getattr(self.primary_star, "metallicity_fe_h", None)
