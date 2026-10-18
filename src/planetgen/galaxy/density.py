@@ -53,15 +53,18 @@ GalaxyShape = namedtuple(
         "bulge_scale_radius_pc", "bulge_amplitude",
         "arm_count", "pitch_angle_rad", "arm_amplitude", "arm_level", "nuclear_amplitude",
         "spiral_reference_radius_pc", "spiral_reference_angle_rad",
-        "k_norm", "components",
+        "k_norm", "components", "masses",
     ],
-    defaults=(None,),
+    defaults=(None, None),
 )
 """A galaxy's disk/bulge/spiral shape, at whatever physical scale the
 caller chooses -- see `GalaxyShape.build` to construct one with `k_norm`
 computed automatically rather than guessed. `components` is the galaxy's
 `galaxy.component_field.ComponentField` (GEN.160, GEN.237: its globular clusters and satellite galaxies), `None` for a
-galaxy without; it is not part of the stored shape row."""
+galaxy without; it is not part of the stored shape row. `masses` is `(stellar mass, halo mass)` in solar masses, the
+galaxy's own (`galaxy.mass_chain`; GEN.469), which its disk's star formation history is worked out from; `None` takes the
+median galaxy of the disk's size (`galaxy.disk_history.population_shares`). It is not part of the stored row either: it
+is drawn again from the galaxy's seed."""
 
 
 def _sech_squared(x):
@@ -282,7 +285,7 @@ def shape_with_terms(shape):
     """`shape`'s fields and its `model_terms` and `halo_terms` in one plain dict: what the
     Galaxy Map's prisms read (`db.query.galaxy_density_shape`)."""
     fields = shape._asdict()
-    del fields["components"]
+    del fields["components"], fields["masses"]
     return {**fields, **model_terms(shape), **halo_terms(shape)}
 
 
@@ -427,7 +430,7 @@ def population_densities(position_pc, shape):
     are the globular clusters' and the satellite galaxies' systems in the cell's cube over a cell's at density 1
     (`shape.components`, GEN.160 and GEN.237; 0 for a galaxy without). The thin disk is shared among the three
     disk populations in proportion to how many stars each would put here:
-    its share of disk star formation (the length of its age range), times
+    its share of disk star formation (the part of the disk's gas history in its age range, `galaxy.disk_history`), times
     its own vertical profile (`sech^2(z/2h)/h`, a thinner disk for younger
     stars) and its own arm contrast (`1 + A cos(arm phase)`, strongest for
     young stars). So young stars crowd the arms near the plane, and far
@@ -445,13 +448,11 @@ def population_densities(position_pc, shape):
     disk = shape.k_norm * thin * shape.arm_level * (1 + shape.arm_amplitude * arm_cos)
     halo = shape.k_norm * _halo_scalar(detmath.hypot(position_pc[0], position_pc[1]), z, halo_terms(shape))
 
-    ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
-    formation_span = tuning.STAR_FORMATION_AGE_RANGE_GY[1] - tuning.STAR_FORMATION_AGE_RANGE_GY[0]
     recent = starFormation.recent_factor(detmath.hypot(position_pc[0], position_pc[1]), shape)
     weights = {}
     for name, ratio in tuning.STELLAR_POPULATION_SCALE_HEIGHT_RATIO.items():
         height = shape.disk_scale_height_pc * ratio
-        share = (ages[name][1] - ages[name][0]) / formation_span
+        share = starFormation.disk_population_share(name, shape)
         weights[name] = (share * _vertical(z, height) / height
                          * (1 + tuning.STELLAR_POPULATION_ARM_AMPLITUDE[name] * arm_cos)
                          * (recent if name in starFormation.RECENT_POPULATIONS else 1.0))
@@ -503,13 +504,11 @@ def population_densities_array(x, y, z, shape):
     disk = shape.k_norm * thin * shape.arm_level * (1 + shape.arm_amplitude * arm_cos)
     halo = shape.k_norm * _halo(r_cyl, z, halo_terms(shape))
 
-    ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
-    formation_span = tuning.STAR_FORMATION_AGE_RANGE_GY[1] - tuning.STAR_FORMATION_AGE_RANGE_GY[0]
     recent = starFormation.recent_factor(r_cyl, shape)
     weights = {}
     for name, ratio in tuning.STELLAR_POPULATION_SCALE_HEIGHT_RATIO.items():
         height = shape.disk_scale_height_pc * ratio
-        share = (ages[name][1] - ages[name][0]) / formation_span
+        share = starFormation.disk_population_share(name, shape)
         weights[name] = (share * _vertical_any(z, height) / height
                          * (1 + tuning.STELLAR_POPULATION_ARM_AMPLITUDE[name] * arm_cos)
                          * (recent if name in starFormation.RECENT_POPULATIONS else 1.0))
@@ -680,6 +679,7 @@ def build_galaxy_shape(
     spiral_reference_angle_rad=0.0,
     arm_level=1.0,
     nuclear_amplitude=0.0,
+    masses=None,
 ):
     """
     Builds a `GalaxyShape` with `k_norm` computed automatically, rather
@@ -707,6 +707,7 @@ def build_galaxy_shape(
             arm crest and the inter-arm trough (ADM.49; see `arm_terms`).
         nuclear_amplitude (float): How much of the observed nuclear star cluster and nuclear stellar disc
             the centre holds (GEN.280): 1 is the observed pair, scaled to the bulge, 0 is none.
+        masses (tuple, optional): The galaxy's `(stellar mass, halo mass)`, solar masses (`GalaxyShape.masses`).
 
     Returns:
         GalaxyShape: With `k_norm` filled in.
@@ -727,6 +728,7 @@ def build_galaxy_shape(
         spiral_reference_radius_pc=disk_scale_length_pc,
         spiral_reference_angle_rad=spiral_reference_angle_rad,
         k_norm=1.0,
+        masses=None if masses is None else (float(masses[0]), float(masses[1])),
     )
 
     theta_interarm = _interarm_angle(calibration_radius_pc, unnormalized)

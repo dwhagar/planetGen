@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.138 |
 | MAP | MAP.253 |
 | NAV | NAV.63 |
-| GEN | GEN.546 |
+| GEN | GEN.549 |
 | PERF | PERF.136 |
 | DB | DB.73 |
 | API | API.32 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.235 |
+| TEST | TEST.237 |
 | USR | USR.31 |
 | OPS | OPS.62 |
 | DOC | DOC.69 |
@@ -976,7 +976,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.318 | White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk | none | open |
 | GEN.319 | Nebula rates read the profile: young and old shares, the cell's gas and the Type Ia share as profile fields | none | done, PR #2003 |
 | GEN.320 | build_nebula_with_contents: every hosted nebula gets its stars as real systems inside its bounds (classes C, G, F, planetary, remnants, P and Q) | none | done, PR #2014 |
-| GEN.321 | Emission regions D and E: the ionizing members of a young cluster in a Plummer sphere, cut by sector cube | none | open |
+| GEN.321 | Emission regions D and E: the ionizing members of a young cluster in a Plummer sphere, cut by sector cube | none | done, PR #2144 |
 | GEN.322 | Band groups and the halo term: the bright-star and mass passes cover the 262 kpc reach | none | done, PR #1991 |
 | GEN.323 | The phenomena pass runs on the object-first sampler | none | done, PR #1992 |
 | GEN.324 | A component pass: clusters, the Clouds and Sagittarius place their stars, and the fill adds the component's density to lambda | none | done, PR #1993 |
@@ -1124,7 +1124,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.466 | Moons draw their origin type, ice fraction and composition from the parent, the circumplanetary ice line and the age | none | open |
 | GEN.467 | The main-sequence lifetime is derived from sourced stellar relations instead of the fixed 10 Gyr for one solar mass and a power law of -2.5 (bug) | none | done, PR #2112 |
 | GEN.468 | Settle the water share beyond the snow line: the Marboeuf-derived 0.14 to 0.39 of the solids against the convention of about 0.5 | none | open |
-| GEN.469 | The disk's star-formation history from the gas law: the local B-star share is 0.2 percent against the observed 0.04 percent | none | open |
+| GEN.469 | The disk's star-formation history from the gas law: the local B-star share is 0.2 percent against the observed 0.04 percent | none | done, PR #2139 |
 | GEN.470 | One saturation-pressure function p_sat(species, T) for the gases and ices: the Fray and Schmitt polynomials, water by Feistel and Wagner, and its tests | none | open |
 | GEN.471 | Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K | none | open |
 | GEN.472 | One gated possibility-table format and loader: every composition category is a table of possibilities with a class gate and a weight, drawn by the normalised weights of the rows that pass | none | done, PR #2061 |
@@ -1201,6 +1201,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.543 | Define "usable" for a P-type window so the design table's pair-node row (34% falling to 18%) can be reproduced | none | open |
 | GEN.544 | Revisit the disc's vertical profile: the sech-squared core has half the midplane density of the exponential fits its scale heights come from | none | open |
 | GEN.545 | The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution | none | open |
+| GEN.546 | Draw a disk star's age from the star formation history inside its window, not uniformly | none | open |
+| GEN.547 | The local B-star share is 0.12 percent against 0.04 observed: find what keeps it three times too high (strict expected failure) | none | open |
+| GEN.548 | Build-time downloads for the isochrone grids, the white-dwarf layers and the neutron-star equation of state, each with a checksum and a labelled stand-in until it lands | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2264,6 +2267,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.232 | The a11y page_targets fixture fails 199 browser tests when /search answers 202 (slow-page job) under load (bug) | none | open |
 | TEST.233 | test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug) | none | open |
 | TEST.234 | test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug) | none | open |
+| TEST.235 | test_stop_waiting_stops_the_polling_and_check_again_picks_it_up[light] failed once in a loaded gate and passes alone (bug) | none | open |
+| TEST.236 | test_galaxy_map_drill_down_by_clicks rejects a window address with a negative band, because its regex allows a minus sign only on the wedge (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

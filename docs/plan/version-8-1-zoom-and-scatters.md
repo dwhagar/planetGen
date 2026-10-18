@@ -163,6 +163,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.170 | test_math_check::test_whole_run_is_fast and the Galaxy Map breadcrumb folding test fail under full-suite load and pass alone (bug) |  | Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.171 | test_gen_resume::test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards failed once under gate load with no scattered system (0 > 0) and passes alone (bug) |  | Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.172 | test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug) |  | Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
+| TEST.236 | test_galaxy_map_drill_down_by_clicks rejects a window address with a negative band, because its regex allows a minus sign only on the wedge (bug) |  |  |
 | TEST.174 | test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug) |  | Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | UX.133 | `GET /polities` and `GET /species` answer 404 before the population pass has run: show an empty page instead (bug) |  | Finding from a lane. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.189 | A test that runs `migrate` leaves maintenance mode on: restore `state/maintenance.json` in the fixture (bug) |  | Test-infrastructure finding. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
@@ -173,6 +174,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.225 | `test_random_start_neighborhood_matches_the_real_skeleton_plan` generated 18,210 systems against a predicted 83,346.6 in one gate run (bug) |  | Bug Hunt: generated 18,210 systems against 83,346.6 predicted, seed A4D8564BFD80DA2331294BD96F547E67. |
 | TEST.227 | test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone] failed in a loaded browser run and passes alone (bug) |  | Core 3 sighting, 6:50 PM EDT. |
 | TEST.231 | test_the_wheel_anchors_on_the_star_under_the_pointer_not_the_mesh_behind_it failed alone once in 8 runs (bug) |  |  |
+| TEST.235 | test_stop_waiting_stops_the_polling_and_check_again_picks_it_up[light] failed once in a loaded gate and passes alone (bug) |  |  |
 | TEST.234 | test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug) |  |  |
 | TEST.233 | test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug) |  |  |
 | TEST.232 | The a11y page_targets fixture fails 199 browser tests when /search answers 202 (slow-page job) under load (bug) |  |  |
@@ -274,6 +276,7 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | GEN.498 | One oxygen-fugacity scale for the generator: the reference fixed, delta-IW stored on it, and the buffers converted |  | Body lane G-4 (part G3): one IW reference scale (Hirschmann 2021), delta-IW stored on it. Core 4 proposed. |
 | GEN.497 | The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve | GEN.470 | Body lane G-3 (part G4): the corrected cold-end tables and Span and Wagner CO2 extend GEN.470. Core 4 proposed. |
 | GEN.439 | The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers | GEN.438 | Boss 11:58 PM EDT; a constants-and-functions module, no database access. |
+| GEN.548 | Build-time downloads for the isochrone grids, the white-dwarf layers and the neutron-star equation of state, each with a checksum and a labelled stand-in until it lands |  |  |
 
 
 ## Phase 3: New scatters: stars, nebulae and the region query
@@ -348,17 +351,15 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 |---|---|---|---|
 | GEN.450 | The star-formation profile's radial slope: reconcile the Schmidt index with the observed gradient, with the choice named |  | Core 4 citation re-check, 2026-10-17; follow-up of GEN.134. Core 4. |
 | GEN.541 | The wide-pair perturber mass: black holes carry about twice the second moment of all stars; decide whether remnants stay in it, with the black-hole mass function checked |  | Finding from Core 4, 2026-10-17, 5:16 PM EDT. |
-| GEN.469 | The disk's star-formation history from the gas law: the local B-star share is 0.2 percent against the observed 0.04 percent |  | GEN.134 follow-up (proposal 2); generator epoch bump, joins the one rescatter. Core 4. |
 | GEN.371 | Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies |  | Core 1; Boss 4:02 PM EDT: feasibility study. |
 | GEN.369 | Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option | GEN.371 | Core 1; Boss 4:01 PM EDT: Draw them. |
 | GEN.535 | Check the Magellanic gas fraction and supernova-remnant count against the observed Clouds, and the dwarfs that still come out with gas (Leo I) |  | Open inferences of GEN.528: gas fraction, low LMC remnant count, Leo I gas. |
 | GEN.534 | A satellite's young stars reach the system-type tables: the young-star system types name `satellite_young` |  | Residual of GEN.528: the system-type tables do not name satellite_young. Core 3 proposed. |
-| GEN.321 | Emission regions D and E: the ionizing members of a young cluster in a Plummer sphere, cut by sector cube |  | Split from GEN.241. |
 | GEN.530 | A pre-placed star's hosted nebula shows from its scatter row on the maps and pages |  | Residual of GEN.320: the hosted nebula of a pre-placed star from its scatter row. |
-| GEN.241 | Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds | GEN.321 | Whole-sphere build train, Boss 2026-10-15. Step 12. Core. Folds in MAP.182. |
-| GEN.328 | Groups at fill in star-forming cores and OB regions | GEN.327, GEN.321 | Split from GEN.273. |
+| GEN.241 | Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds |  | Whole-sphere build train, Boss 2026-10-15. Step 12. Core. Folds in MAP.182. |
+| GEN.328 | Groups at fill in star-forming cores and OB regions | GEN.327 | Split from GEN.273. |
 | GEN.273 | Young groups and trapezia: the `group` node, offset and velocity columns, a decay age and the remnant draw | GEN.327, GEN.328 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 17. Core. |
-| GEN.244 | Young open clusters and OB associations as components (later) | GEN.241, GEN.321 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
+| GEN.244 | Young open clusters and OB associations as components (later) | GEN.241 | Whole-sphere build train, Boss 2026-10-15. Later group, section 5.12. Core, later. |
 | GEN.365 | Hot white dwarf and planetary-nebula central star radius disagrees with the radius that its luminosity and temperature imply (bug) |  | Finding from Core 3. |
 
 ### Globular clusters
@@ -462,6 +463,8 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | GEN.403 | The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157 |  | GEN.368 build, Boss approved the table 10:11 PM EDT; Core 1 proposed for GEN.400 to GEN.403, Core 3 or Core 4 for GEN.404 and GEN.405 (profile.py, activity.py), any lane for GEN.406. |
 | GEN.404 | The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position |  | GEN.368 build, Boss approved the table 10:11 PM EDT; Core 1 proposed for GEN.400 to GEN.403, Core 3 or Core 4 for GEN.404 and GEN.405 (profile.py, activity.py), any lane for GEN.406. Core 4 proposed (coordinator 10:16 PM EDT). |
 | GEN.405 | Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values | GEN.404 | GEN.368 build, Boss approved the table 10:11 PM EDT; Core 1 proposed for GEN.400 to GEN.403, Core 3 or Core 4 for GEN.404 and GEN.405 (profile.py, activity.py), any lane for GEN.406. Core 4 proposed (coordinator 10:16 PM EDT). |
+| GEN.547 | The local B-star share is 0.12 percent against 0.04 observed: find what keeps it three times too high (strict expected failure) | GEN.546 |  |
+| GEN.546 | Draw a disk star's age from the star formation history inside its window, not uniformly |  |  |
 | GEN.545 | The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution | GEN.404 |  |
 | GEN.544 | Revisit the disc's vertical profile: the sech-squared core has half the midplane density of the exponential fits its scale heights come from | GEN.404 |  |
 | GEN.531 | Boss's research requests from the galaxy laws research (R1 to R15): the observed stellar halo, the dwarf range, the thick disk fits and the cluster system |  | Research requests R1 to R15 of the GEN.406 note; does not gate GEN.301. |
@@ -474,8 +477,8 @@ The last audits and the headline: they test the component pass, the core and the
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| TEST.185 | Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius | GEN.321 | Split from TEST.159. |
+| TEST.185 | Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius |  | Split from TEST.159. |
 | TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | TEST.184, TEST.185 | Whole-sphere build train, Boss 2026-10-15. Step 15. Quality. |
-| TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | GEN.282, GEN.321 | Phenomena catalogue, Boss 2026-10-15. Step 4. Quality. |
+| TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked | GEN.282 | Phenomena catalogue, Boss 2026-10-15. Step 4. Quality. |
 | TEST.196 | Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged |  | Core 4; Boss 6:15 PM EDT: expected-numbers check for GEN.103. |
-| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.241, GEN.243, GEN.244, GEN.282, GEN.284, TEST.159, TEST.160, TEST.196, GEN.450, GEN.469, GEN.530 |  |
+| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.241, GEN.243, GEN.244, GEN.282, GEN.284, TEST.159, TEST.160, TEST.196, GEN.450, GEN.530 |  |

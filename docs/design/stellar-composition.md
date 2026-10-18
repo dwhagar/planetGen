@@ -1,6 +1,6 @@
 # Stellar composition: the checked design of what every star and remnant is made of
 
-**Status (2026-10-17):** draft design for GEN.435, for Boss to review. Nothing is built. It settles how the composition of every kind of star, brown dwarf and remnant follows from the values the generator already stores, so that GEN.439 (the relations), GEN.440 (the derived function), GEN.464 (the solids law), GEN.428 (the planets' core fraction), GEN.463 and GEN.467 (the two replaced figures) and TEST.211 (the sweep) can be built from it. Master plan: [composition-model.md](composition-model.md). Research: [body-composition-research.md](body-composition-research.md) and [part A](body-composition-parts/A-stars.md); the other sources are named where used.
+**Status (2026-10-17):** design for GEN.435; Boss approved section 14 as recommended (9:40 to 9:45 PM EDT). Nothing is built. It settles how the composition of every kind of star, brown dwarf and remnant follows from the values the generator already stores, so that GEN.439 (the relations), GEN.440 (the derived function), GEN.464 (the solids law), GEN.428 (the planets' core fraction), GEN.463 and GEN.467 (the two replaced figures) and TEST.211 (the sweep) can be built from it. Master plan: [composition-model.md](composition-model.md). Research: [body-composition-research.md](body-composition-research.md) and [part A](body-composition-parts/A-stars.md); the other sources are named where used.
 
 **Checked against Boss's papers** (`docs/design/boss-papers-2026-10-17.md` on origin/main, sections 2.8, 2.11, 3 and 4). Where a paper contradicts a value in our files the paper wins and both values are stated. Changes: the age gate of D10 (3.0 to 8.0 Gy, Haywood 2013), the age-metallicity answer Q3, the test targets, section 12 and the new section 13. **Source rule** (Boss, 12:39 PM EDT on 2026-10-17): when in doubt, verified wins; when two verified sources are in doubt, the newest wins; when two sources are both in question, "most permission take wins". **Assumption for Boss to confirm:** the third rule is read as most permissive, meaning the widest value or range is kept (or both options kept and the spread carried). Each place that resolves a disagreement says "Rule applied", and section 13 lists them all.
 
@@ -222,9 +222,11 @@ Rules (Boss, 12:39 PM EDT on 2026-10-17): verified wins; if two verified sources
 | Part A 3.3 and B's new columns against the item text of GEN.435 and GEN.440 | None: an instruction from the item, not a source value | No columns (D9) |
 | Solar reference scale: Asplund 2021 against Lodders 2009 and 2019 | None: Boss's ruling, 1:24 AM EDT | Asplund 2021, spread as uncertainty (D1) |
 
-## 14. For Boss to approve
+## 14. Approved by Boss
 
-| # | Rule on | Recommendation |
+**Decided (Boss, 2026-10-17, 9:40 to 9:45 PM EDT, cards answered in the project chat): every row below is approved as recommended, with the research row approved as a build-time download (GEN.548).** The table keeps the recommendation each card carried.
+
+| # | Rule on | Recommendation (approved) |
 |---|---|---|
 | D9 | Derive the branch and four offsets from a seeded key, store nothing | Approve: no value fails the derivation test, and no migration is needed |
 | D10 | Age gate at 8.0 Gy (range 6.5 to 9.5, Haywood 2013) instead of a stored population | Approve 8.0 with the logistic unscaled; the thick-disc share is then low (0.095 of old-disc stars) until Bensby 2014 or Pinna 2019b gives an age-resolved fraction; do not adopt the 3.5 times stand-in |
@@ -236,7 +238,7 @@ Rules (Boss, 12:39 PM EDT on 2026-10-17): verified wins; if two verified sources
 | D16 | Shared [Fe/H], branch and offsets in groups and clusters, zero within-group scatter | Approve as a flagged default |
 | Rule | Third source rule: the widest value or range, or both kept (Boss confirmed at 1:12 PM EDT that 'most permission take wins' means the widest range of the two sources: Decided) | Nothing to confirm; section 13 shows where it was used |
 | Brewer scatter | Use Brewer 2016's wider sd (0.06 to 0.13) in place of part A's (0.04 to 0.07)? | No: keep part A, carry the 0.1 dex mean difference as uncertainty |
-| Research | Isochrone grids for L, T and lifetime against Z; white-dwarf layers; neutron-star EOS | Boss to supply or approve a build-time download as in D6 |
+| Research | Isochrone grids for L, T and lifetime against Z; white-dwarf layers; neutron-star EOS | Boss approved a build-time download as in D6 (GEN.548) |
 
 ## Appendix: the code behind the numbers
 
