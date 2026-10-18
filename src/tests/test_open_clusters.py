@@ -12,7 +12,7 @@ import numpy as np
 import pytest
 
 from planetgen import tuning
-from planetgen.galaxy import component_field, components, profile
+from planetgen.galaxy import component_field, components, core_gas, profile
 from planetgen.galaxy import density as galaxyDensity
 from planetgen.generation import component_pass, open_clusters
 from planetgen.physics import open_cluster_evolution as evolution
@@ -228,5 +228,6 @@ def test_a_galaxy_that_would_form_millions_draws_the_cap_and_keeps_the_heavier_o
     assert floor == pytest.approx(1.0 / (0.1 / low + 0.9 / high), rel=1e-9) and floor > 8.0 * low
     assert evolution.initial_masses(np.array([0.0, 0.5]), floor)[0] == pytest.approx(floor)
     monkeypatch.setattr(tuning, "OPEN_CLUSTER_MAX_COUNT", 2_000)
+    monkeypatch.setattr(core_gas, "core_gas", lambda shape: core_gas.NO_RING)      # the ring's clusters are not capped
     found = open_clusters.generate_open_clusters(b"capped-seed", _shape(), EDGE, E1)
     assert 0 < len(found) <= 2_000 + 5 * 2_000 ** 0.5
