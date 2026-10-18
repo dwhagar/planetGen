@@ -7927,6 +7927,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   widest-range rule, replaced when a measurement exists. GR7, the radius
   ratio of the blue to the red cluster system, stays widened with both
   papers kept (11:19 AM EDT answer).
+  Open choice check (2026-10-18, 12:45 AM EDT): the halo-mass law is
+  decided (Boss, 10:11 PM EDT on 2026-10-16). The one choice with no
+  Boss tap on file is the cluster system mass fraction eta of the halo
+  (row 9 of docs/design/intergalactic-and-halo-contents.md): 2.9e-5
+  (Harris, Blakeslee and Harris 2017, computed value), 4e-5 (Hudson
+  2014, verified) and 6e-5 (Harris, Harris and Alessi 2013, verified).
+  His standing source rule (12:39 PM EDT on 2026-10-17: when two sources
+  are in question the most permission wins, meaning the widest range)
+  gives the default: draw eta over the widest range, 2.9e-5 to 6e-5,
+  keep all three sources. Applied by the TODO thread from that rule, not
+  a new tap; a card is possible if Boss wants a narrower choice.
   Prerequisites: none. Related: GEN.297, GEN.366, GEN.387.
 
 - [ ] **GEN.404 The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position**
@@ -13713,10 +13724,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   items that touch the same ground: GEN.301 (the 8.1 headline, the
   scatters; whether this waits on it or reshapes it is for the design),
   GEN.377 (scatter limits by place for the neutron star and black hole
-  scatter), GEN.129 (multi-star systems of up to twelve stars: Boss's 'a
-  7-star-like-object group' may be an example or a new cap against the
-  standing multi-star cap of 12; the design asks him on a card, it is
-  not assumed), GEN.130 (compact-remnant systems at fill), GEN.142
+  scatter), GEN.129 (multi-star systems of up to twelve stars: DECIDED, Boss
+  tapped 'Keep 12' at 12:44 AM EDT on 2026-10-18 as the coordinator
+  relayed: the standing cap of 12 stays and his 'a group of up to 7
+  star-like objects' is read as a typical group, not a limit), GEN.130 (compact-remnant systems at fill), GEN.142
   (peculiar velocity for rogue planets), GEN.264 and GEN.315 (the fill
   builds a system from its stored members), GEN.332 (circumbinary
   planets and rogue planet pairs), GEN.291 (a bound planet becomes a
@@ -13838,6 +13849,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   expanded as GEN.578; SY16 is the 8.3 note on GEN.197). The 8.1 effect
   is conventions only: GEN.315, GEN.264, GEN.316, GEN.552, GEN.555,
   GEN.556 and TEST.241 changed in text, no new 8.1 item.
+  Unit relations decided (Boss's cards R1 to R4 on the unit relations
+  (docs/design/unified-unit-quantity.md section 11), tapped 12:41 to
+  12:43 AM EDT on 2026-10-18 (as the coordinator relayed with the wake
+  times converted), every one the recommended option: R1 dimensions in
+  the registry plus named relations with a dimension test, plain floats
+  in the kernels, no operator arithmetic on Quantity in the kernels; R2
+  relations declared as data (name, input kinds, output kind, formula)
+  with the fast float kernel and the Quantity wrapper generated from the
+  one declaration; R3 SI inside the kernels, the other unit systems (AU,
+  year, solar mass) generated from the registry where a kernel wants
+  them, so 4 pi squared comes from G's dimension and is no longer typed;
+  R4 the relations replace the hand-written laws with the UN5 sweep,
+  file group by file group, and only where the golden set is
+  bit-identical): filed as GEN.585 (dimensions and unit systems),
+  GEN.586 (relations module), GEN.587 (replace the hand-written sites)
+  and GEN.588 (optional operator arithmetic, unscheduled).
+  Group cap decided (Boss's card 'Keep 12', 12:44 AM EDT on 2026-10-18,
+  as the coordinator relayed): the existing multi-star cap of 12 stays
+  everywhere in this plan (the tree builder, the host chain, GEN.552,
+  GEN.576); 'a group of up to 7 star-like objects' in his first message
+  is read as a typical group, not a limit.
 
 - [ ] **GEN.552 Host registry: the five fixed `system_model` values become pointers to one gated orbiter table per host class, with no change in behaviour**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -14503,8 +14535,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and angular momentum (kg m^2/s), with dimensions. The relations module
   also needs `rotation_period <-> angular_rate`, `obliquity(axis,
   orbit_normal)`, `breakup_rate(mass, radius)` and
-  `galactic_orbit(position, velocity)`; Boss's relation cards R1 to R4
-  were open at 12:32 AM EDT as the coordinator reported.
+  `galactic_orbit(position, velocity)`; Boss's relation cards R1 to R4 are decided (12:41 to 12:43 AM EDT, 2026-10-18, as the coordinator relayed): dimensions are required in the registry (GEN.585) and the relations module is GEN.586.
   Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
@@ -14603,6 +14634,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   this sweep keeps every other factor bit-identical and runs after
   GEN.572 where they touch the same files (`hii.py`,
   `asteroid_field.py`, `phenomena_plausibility.py`).
+  Relations (Boss's cards R1 to R4 on the unit relations
+  (docs/design/unified-unit-quantity.md section 11), tapped 12:41 to
+  12:43 AM EDT on 2026-10-18 (as the coordinator relayed with the wake
+  times converted), every one the recommended option: R1 dimensions in
+  the registry plus named relations with a dimension test, plain floats
+  in the kernels, no operator arithmetic on Quantity in the kernels; R2
+  relations declared as data (name, input kinds, output kind, formula)
+  with the fast float kernel and the Quantity wrapper generated from the
+  one declaration; R3 SI inside the kernels, the other unit systems (AU,
+  year, solar mass) generated from the registry where a kernel wants
+  them, so 4 pi squared comes from G's dimension and is no longer typed;
+  R4 the relations replace the hand-written laws with the UN5 sweep,
+  file group by file group, and only where the golden set is
+  bit-identical): the hand-written law sites (Schwarzschild, surface
+  gravity, density, luminosity, Kepler, escape speed, the typed G and
+  the bare 1000 juggle) are replaced by GEN.587 in the same file groups,
+  so a file group is swept for factors and laws in one pass where no
+  lane has it open; each sweep stays bit-identical on the golden set.
   Prerequisites: GEN.568. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
@@ -15183,7 +15232,155 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the precision of the computation.
   Prerequisites: GEN.578, GEN.565, DB.73. Related: GEN.550, GEN.565,
   GEN.576, GEN.578.
+  Relations: the derived columns (speed, axial tilt, galactic orbital
+  period and phase, rotation period, a*) are computed through the
+  declared kernels of GEN.586 (`obliquity`, `breakup_rate`,
+  `galactic_orbit`, `rotation_period <-> angular_rate`), per Boss's
+  cards R1 to R4 (12:41 to 12:43 AM EDT, 2026-10-18, as the coordinator
+  relayed). The kernels are SI floats; GEN.586 is not a hard
+  prerequisite, write the same formulas once if it is not yet merged and
+  let GEN.587 move them.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **GEN.585 Dimensions and unit systems in the registry: every unit carries its exponent vector, the derived kinds are listed, and a constant's number in any coherent system follows from its dimension**
+  Part of the unified orbited-body plan (GEN.550;
+  docs/design/unified-unit-quantity.md section 11, UN13). Decided:
+  Boss's cards R1 to R4 on the unit relations
+  (docs/design/unified-unit-quantity.md section 11), tapped 12:41 to
+  12:43 AM EDT on 2026-10-18 (as the coordinator relayed with the wake
+  times converted), every one the recommended option: R1 dimensions in
+  the registry plus named relations with a dimension test, plain floats
+  in the kernels, no operator arithmetic on Quantity in the kernels; R2
+  relations declared as data (name, input kinds, output kind, formula)
+  with the fast float kernel and the Quantity wrapper generated from the
+  one declaration; R3 SI inside the kernels, the other unit systems (AU,
+  year, solar mass) generated from the registry where a kernel wants
+  them, so 4 pi squared comes from G's dimension and is no longer typed;
+  R4 the relations replace the hand-written laws with the UN5 sweep,
+  file group by file group, and only where the golden set is
+  bit-identical. Boss's question (12:09 AM EDT): do we need converters
+  from one type of unit to another by putting two or more units together
+  in the right order. Proposed owner, not assigned by a card: Core 5
+  (the owner proposed for GEN.568). Do: extend the registry of GEN.568
+  so the dimension (exponent vector over mass, length, time and
+  temperature; angle and counts stay dimensionless kinds) is required on
+  every unit and kind, and list the derived kinds the code uses with
+  their dimensions and display units: density, acceleration, energy,
+  force, mass flow, flux, number density, angular momentum and angular
+  rate. Add named unit systems, each a list of base units (SI; AU, year
+  and solar mass): the number of any constant (G, c, sigma) in a system
+  is computed from its dimension and the base units, so the 4 pi squared
+  of `kepler.AU3_PER_YR2_PER_SOLAR_MASS` and the other typed shortcuts
+  are generated and tested. About 100 to 150 lines, no run-time cost.
+  Done: every unit and kind has a dimension and a test fails without
+  one; compound units agree with their parts; G, c and sigma in
+  AU-year-solar-mass equal the typed values (4 pi squared for G) to the
+  last digit or the difference is stated; a constant in a system is
+  computed, never typed.
+  Prerequisites: GEN.568. Related: GEN.550, GEN.565, GEN.568, GEN.569.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.586 physics/relations.py: the named laws declared once as data, with a fast float kernel in SI and a Quantity wrapper generated from the same declaration, and a dimension test in the mathcheck gate**
+  Part of the unified orbited-body plan (GEN.550;
+  docs/design/unified-unit-quantity.md section 11, UN14). Decided:
+  Boss's cards R1 to R4 on the unit relations
+  (docs/design/unified-unit-quantity.md section 11), tapped 12:41 to
+  12:43 AM EDT on 2026-10-18 (as the coordinator relayed with the wake
+  times converted), every one the recommended option: R1 dimensions in
+  the registry plus named relations with a dimension test, plain floats
+  in the kernels, no operator arithmetic on Quantity in the kernels; R2
+  relations declared as data (name, input kinds, output kind, formula)
+  with the fast float kernel and the Quantity wrapper generated from the
+  one declaration; R3 SI inside the kernels, the other unit systems (AU,
+  year, solar mass) generated from the registry where a kernel wants
+  them, so 4 pi squared comes from G's dimension and is no longer typed;
+  R4 the relations replace the hand-written laws with the UN5 sweep,
+  file group by file group, and only where the golden set is
+  bit-identical. Proposed owner, not assigned by a card: Core 4 (the
+  note offers Core 4). Do: one module where each relation is declared
+  once: its name, its input kinds, its output kind and a formula written
+  with `+ - * / **` (a `relations.sqrt` accepts the probe objects). Two
+  entry points come from each declaration: a float kernel in SI for
+  generation (`surface_gravity(mass_kg, radius_m)`) and a Quantity
+  wrapper for the edges (`surface_gravity(Quantity, Quantity)` returns a
+  Quantity of kind acceleration, every unit and the Earth multiple
+  answered). About 15 relations cover the hand-written laws
+  (Schwarzschild radius, surface gravity, density and sphere volume,
+  luminosity from radius and temperature and equilibrium temperature,
+  Kepler's third law and mean motion, escape speed, break-up speed and
+  vis-viva) plus Hill radius, Roche limit, inverse-square flux and mass
+  flow; the System plan adds `rotation_period <-> angular_rate`,
+  `obliquity(axis, orbit_normal)`, `breakup_rate(mass, radius)` and
+  `galactic_orbit(position, velocity)` (GEN.584 reads them for the
+  derived columns). The dimension test runs each formula once on probe
+  objects that carry a dimension and checks the result has the declared
+  output dimension, in the `physics/mathcheck.py` invariant group
+  (TEST.65); a km where m was meant or a missing square fails the gate,
+  nothing is checked at run time. About 250 to 350 lines with tests.
+  Done: each relation has a kernel, a wrapper and a dimension test; a
+  deliberately wrong formula fails the gate; kernel and wrapper agree
+  bit for bit on the golden inputs; the module header states the unit
+  rules and that kernels take plain SI floats.
+  Prerequisites: GEN.585, GEN.569. Related: GEN.550, GEN.565, GEN.568,
+  GEN.569.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.587 Replace the hand-written relation sites with the relations module, by file group, bit-identical on the golden set**
+  Part of the unified orbited-body plan (GEN.550;
+  docs/design/unified-unit-quantity.md section 11, UN15). Decided:
+  Boss's cards R1 to R4 on the unit relations
+  (docs/design/unified-unit-quantity.md section 11), tapped 12:41 to
+  12:43 AM EDT on 2026-10-18 (as the coordinator relayed with the wake
+  times converted), every one the recommended option: R1 dimensions in
+  the registry plus named relations with a dimension test, plain floats
+  in the kernels, no operator arithmetic on Quantity in the kernels; R2
+  relations declared as data (name, input kinds, output kind, formula)
+  with the fast float kernel and the Quantity wrapper generated from the
+  one declaration; R3 SI inside the kernels, the other unit systems (AU,
+  year, solar mass) generated from the registry where a kernel wants
+  them, so 4 pi squared comes from G's dimension and is no longer typed;
+  R4 the relations replace the hand-written laws with the UN5 sweep,
+  file group by file group, and only where the golden set is
+  bit-identical. Proposed owner, not assigned by a card: Core 5, in file
+  groups with GEN.571 and in files no lane has open. Do: replace the
+  roughly 50 sites that write one of the six laws by hand with the
+  kernels of GEN.586, per the table in section 11.2 of the note:
+  Schwarzschild radius (7 lines in 6 files), surface gravity (5 in 4),
+  density and sphere volume (11 in 6), luminosity, radius and
+  temperature (9 in 8), Kepler's third law and mean motion (13 in 8
+  files, in three unit systems that become one law with three views),
+  escape and break-up speed (3 in 3), G (45 lines in 26 files), and the
+  `radius_km * 1000.0` juggle (24 lines) and the 15 divisions by Earth's
+  gravity outside `constants.py`. A relation replaces a site only where
+  the golden set is unchanged; a site whose last digit differs because
+  the operation order changed goes with an epoch-changing change and the
+  one wiped rescatter if it touches scatter output, and is listed in the
+  PR. About 60 to 120 lines removed. Done: no file outside the relations
+  module writes these laws, a test greps for the typed 4 pi squared and
+  the bare 1000 beside a radius, the three Kepler unit systems are one
+  law, and every sweep is bit-identical on the golden set or carries its
+  epoch.
+  Prerequisites: GEN.586. Related: GEN.550, GEN.565, GEN.568, GEN.569.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.588 Optional: operator arithmetic on Quantity for the edges (mass divided by volume gives a density), unscheduled**
+  Part of the unified orbited-body plan (GEN.550;
+  docs/design/unified-unit-quantity.md section 11, UN16). OPTIONAL and
+  unscheduled: Boss chose option 1 on card R1 (12:41 AM EDT on
+  2026-10-18, as the coordinator relayed), which keeps operator
+  arithmetic out of the kernels; this item exists only so the second
+  option stays on the list, and nothing waits on it. If it is ever
+  built: `mass / volume` gives a Quantity whose kind is found by
+  dimension (density if it matches a listed kind, else an anonymous
+  derived unit) and adding mismatched dimensions raises, for describe,
+  the API, one-off values and tests only (about 150 lines). The kernels
+  stay plain floats because a Quantity round trip costs 22 to 37
+  microseconds against 0.17 to 0.5 for a float operation (note section
+  4.4). Proposed owner: Core 5. Done: the operators exist on Quantity,
+  the kernels do not use them (a test greps the physics kernels), and a
+  mismatch raises.
+  Prerequisites: GEN.586. Related: GEN.550, GEN.568, GEN.569.
+  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
