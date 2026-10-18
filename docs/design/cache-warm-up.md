@@ -48,7 +48,7 @@ So renaming one sector bumps `sector:<id>` and `sector-data`: its page, its neig
 
 ## The warm-up
 
-One script, `python -m planetgen.cli.warm_map` (the name stays: update.sh, the update guard and the docs use it), run after `update.sh` as the web server's user. It covers these families, each its own RQ job on the interactive queue so each is a node on the admin runs page (`/admin/queue`, kind "Cache warm-up") with its state and times:
+`planetgen warm` (PERF.127; it was `python -m planetgen.cli.warm_map`), run after `update.sh` as the web server's user. It covers these families, each its own command on the work queue (`warm-galaxy-map`, `warm-lists`, `warm-sectors`, `warm-systems`, `warm-phenomena`, `warm-search`; `queue/commands.py`) that warms that family and nothing else and can run alone (`planetgen command-run`). `planetgen warm` builds the list of them and the wrapper runs them in order as a maintenance run (`runrecord.MAINTENANCE`: its own place in Redis, so it does not block a generation run and the visitors' banner never shows it):
 
 | Family | What it warms |
 |---|---|
@@ -59,9 +59,9 @@ One script, `python -m planetgen.cli.warm_map` (the name stays: update.sh, the u
 | `phenomena` | every phenomenon page, same cap |
 | `search` | the search page's empty and default answers and its index counts |
 
-Each family ends with one line, `<family>: <n> warmed (<m> already cached, <k> left out by the cap) in <s> s`, printed by the script, written to the activity log (the admin's log) and returned as the job's result. The script exits non-zero if any family fails or is skipped, and says which; it has no silent fallback (a Redis that does not answer, a maintenance flag set by someone else, or an update running are errors, printed). A cap that leaves objects out says so; those fill on first visit. `--no-rq` runs the families inline in the script (the default enqueues and waits for them); `--only <family>` runs one. A family warms by visiting the pages through the site's own Flask app (`warmup.build_app`: open during the sector-switch maintenance, not rate limited), so what it caches is exactly what the page asks for; a page that does not answer 200 fails the family. The node on the runs page ends with one "Warm-up result" task row holding the line (`work.record_task`); the activity log has `GEN warm.family` or `GEN warm.failed`. The script waits for a running update to finish before it queues (the queue takes no job during one, OPS.53), so `update.sh` can start it in the background.
+Each family ends with one line, `<family>: <n> warmed (<m> already cached, <k> left out by the cap) in <s> s`, printed by the command, written to the activity log (the admin's log) and returned as the unit's result. `planetgen warm` exits non-zero if any command fails, and says which (the run stops at the failing one, as every wrapper list does); it has no silent fallback (a Redis that does not answer, another warm-up running, or an update running are errors, printed). A cap that leaves objects out says so; those fill on first visit. `planetgen warm lists search` runs just those; there is no `--no-rq` and no `--only`, since the order and the choice live in the wrapper's list and Redis is required. A family warms by visiting the pages through the site's own Flask app (`warmup.build_app`: open during the sector-switch maintenance, not rate limited), so what it caches is exactly what the page asks for; a page that does not answer 200 fails the family. The activity log has `GEN warm.family` or `GEN warm.failed`. `planetgen warm` waits for a running update to finish before it queues (the queue takes no job during one, OPS.53), so `update.sh` can start it in the background.
 
-It runs inside the maintenance flag the update set (OPS.51) and ends the sector-switch maintenance as `warm_map` does today, after every family has succeeded. It registers with the update guard (OPS.53) so a later update lists and cancels it.
+It runs inside the maintenance flag the update set (OPS.51). A list of every family ends with the command `end-map-rebuild-maintenance`, which ends the sector-switch maintenance after every family has succeeded: it is the list, not a family, that knows the maps are then rebuilt. It registers with the update guard (OPS.53) so a later update lists and cancels it.
 
 ## Done when
 
@@ -73,4 +73,4 @@ Warming past the cap (a galaxy of millions of sectors warms its nearest `warm_ma
 
 ## Without Redis
 
-The shared tier needs Redis (PERF.86 makes it required for generation anyway). With none, the page cache stores nothing (a copy it could not validate is never served), the warm-up queue refuses with a printed error, and `--no-rq` still visits the pages (it warms the disk tile cache and the counts only).
+The shared tier needs Redis (PERF.86 makes it required for generation anyway). With none, the page cache stores nothing (a copy it could not validate is never served), `planetgen warm` refuses with a printed error (Redis is required for every run, PERF.127 removed the inline `--no-rq` mode).

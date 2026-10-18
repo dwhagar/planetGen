@@ -96,6 +96,25 @@ REGISTRY = _commands(
     CommandSpec("link-neighbours", "Link the neighbours"),
     CommandSpec("run-population", "Run the population pass"),
     CommandSpec("settle-sector-paths", "Save the sector paths"),
+    CommandSpec("warm-galaxy-map", "Warm the Galaxy Map's opening view, its shape, sectors and phenomena",
+                unit=("planetgen.web.warmup", "warm_galaxy_map_unit"),
+                expand=("planetgen.web.warmup", "expand_warm_galaxy_map")),
+    CommandSpec("warm-lists", "Warm the first page of every list, and its counts",
+                unit=("planetgen.web.warmup", "warm_lists_unit"), expand=("planetgen.web.warmup", "expand_warm_lists")),
+    CommandSpec("warm-sectors", "Warm every sector page",
+                unit=("planetgen.web.warmup", "warm_sectors_unit"),
+                expand=("planetgen.web.warmup", "expand_warm_sectors")),
+    CommandSpec("warm-systems", "Warm every system page",
+                unit=("planetgen.web.warmup", "warm_systems_unit"),
+                expand=("planetgen.web.warmup", "expand_warm_systems")),
+    CommandSpec("warm-phenomena", "Warm every phenomenon page",
+                unit=("planetgen.web.warmup", "warm_phenomena_unit"),
+                expand=("planetgen.web.warmup", "expand_warm_phenomena")),
+    CommandSpec("warm-search", "Warm the search page",
+                unit=("planetgen.web.warmup", "warm_search_unit"), expand=("planetgen.web.warmup", "expand_warm_search")),
+    CommandSpec("end-map-rebuild-maintenance", "Open the site again after the sector-grid switch closed it",
+                unit=("planetgen.web.warmup", "end_map_rebuild_unit"),
+                expand=("planetgen.web.warmup", "expand_end_map_rebuild")),
 )
 """dict: Every command the wrapper can name, by kind."""
 
@@ -108,6 +127,14 @@ KIND_OF_STAGE = {
     "settle": "settle-sector-paths",
 }
 """dict: The command that does each stage of `generation/stages.py`."""
+
+
+KIND_OF_WARM_FAMILY = {family: f"warm-{family}" for family in
+                       ("galaxy-map", "lists", "sectors", "systems", "phenomena", "search")}
+"""dict: The command that warms each cache family (`web/warmup.FAMILIES`), the steps of `planetgen warm`."""
+
+END_MAP_REBUILD = "end-map-rebuild-maintenance"
+"""str: The command that opens the site after a full warm-up; the last step of a list that warms every family."""
 
 
 def spec(kind):
@@ -152,18 +179,41 @@ def expand_function(kind):
 
 def build_steps(command, args):
     """
-    The steps a `planetgen galaxy` or `planetgen plan` run with the parsed `args` will take, in order: exactly the
-    stages the request selects (`generation.stages`), each as its command and the settings that shape it. A pure
-    function of the arguments.
+    The steps a `planetgen galaxy`, `planetgen plan` or `planetgen warm` run with the parsed `args` will take, in
+    order: exactly the commands the request selects (the stages of `generation.stages`, or the cache families of
+    `web/warmup`), each with the settings that shape it. A pure function of the arguments.
 
     Raises:
-        ValueError: For any other command.
+        ValueError: For any other command, or a cache family that does not exist.
     """
+    if command == "warm":
+        return _warm_steps(args)
     from planetgen.generation import stages
     if command not in ("galaxy", "plan"):
-        raise ValueError(f"the wrapper builds steps for galaxy and plan, not {command!r}")
+        raise ValueError(f"the wrapper builds steps for galaxy, plan and warm, not {command!r}")
     return [Step(stage.key, KIND_OF_STAGE[stage.key], stage.label, stages.stage_settings(stage.key, args))
             for stage in stages.for_command(command, args) if stage.skip is None]
+
+
+def _warm_steps(args):
+    """
+    The steps of `planetgen warm`: one command for each cache family asked for (`args.families`, every family when
+    none), in the order of `web/warmup.FAMILIES`, each with the site's database (`args.database`) and, for the
+    pages of objects, the most to warm (`args.cap`). A list of every family ends with the command that opens the site
+    after the sector-grid switch: it is the list, not any family, that knows the maps are then rebuilt.
+    """
+    from planetgen.web import warmup
+    asked = list(getattr(args, "families", None) or ())
+    unknown = [family for family in asked if family not in warmup.FAMILIES]
+    if unknown:
+        raise ValueError(f"no such cache family {unknown[0]!r}; one of {', '.join(warmup.FAMILIES)}")
+    families = [family for family in warmup.FAMILIES if not asked or family in asked]
+    settings = {"database": args.database, "cap": getattr(args, "cap", None)}
+    steps = [Step(family, KIND_OF_WARM_FAMILY[family], f"Warm {family}: {warmup.FAMILIES[family]}", dict(settings))
+             for family in families]
+    if len(families) == len(warmup.FAMILIES):
+        steps.append(Step("reopen", END_MAP_REBUILD, "Open the site after the map rebuild", {}))
+    return steps
 
 
 def run_alone(kind, args, report=None):

@@ -94,7 +94,7 @@ fi
 
 # The state directory: the maintenance switch (planetgen.admin.maintenance) and the backup archives
 # (planetgen.backup), which the web app's admin pages and
-# `planetgen.cli.warm_map` (Apache's user) write. The install folder above is root's, so a file beside it can
+# `planetgen warm` (Apache's user) write. The install folder above is root's, so a file beside it can
 # be read but never replaced by the web app. The group may write too (mode 770, never world-writable) so an
 # operator in the web group can use `python3 -m planetgen.cli.maintenance`.
 if [[ -z "${1:-}" ]]; then
