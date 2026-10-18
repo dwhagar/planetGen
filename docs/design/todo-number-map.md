@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.141 |
 | MAP | MAP.254 |
 | NAV | NAV.63 |
-| GEN | GEN.591 |
+| GEN | GEN.592 |
 | PERF | PERF.139 |
 | DB | DB.79 |
 | API | API.32 |
@@ -638,7 +638,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.42 | Describe what update.sh and install.sh really do today in INSTALL.md and the Apache and macOS guides | none | done, PR #1584 |
 | DOC.43 | Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer | none | done, PR #1584 |
 | DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it | none | done, PR #1584 |
-| DOC.45 | Reference docs follow the description layer | none | open |
+| DOC.45 | Reference docs follow the description layer | none | done, PR #2240 |
 | DOC.46 | Docs for the spherical sector grid | none | done, PR #1627 |
 | DOC.47 | Rebuild docs/design/architecture.html from the new architecture.md | none | done, PR #2037 |
 | DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | none | open |
@@ -1225,7 +1225,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.558 | Moons of wanderers: ejection survivors and isolated-disk moons are table rows, and the fixed 20% boolean is gone | none | open |
 | GEN.559 | Unbound comets: a size law and a cut, composition from the comet table, derived activity and velocity | none | open |
 | GEN.560 | Research list for the chain: ejection survival of moons, circumplanetary disks of isolated planetary-mass objects, failed-supernova and direct-collapse shares, the size law of interstellar objects | none | open |
-| GEN.561 | The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own | none | open |
+| GEN.561 | The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own | none | done, PR #2240 |
 | GEN.562 | One function for the white-dwarf initial-final relation and for the neutron star and black hole mass draw, with no change in what any seed generates | none | done, PR #2220 |
 | GEN.563 | The black hole density follows the mass function and the verified failed-supernova share: one constant changes, the neutron star density stays | none | open |
 | GEN.564 | A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter | none | open |
@@ -1255,6 +1255,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.588 | Optional: operator arithmetic on Quantity for the edges (mass divided by volume gives a density), unscheduled | none | open |
 | GEN.589 | Research: the central molecular zone's upper cluster mass and its cloud-shock disruption, so the young clusters of the core match the few that are observed | none | open |
 | GEN.590 | Wire the downloaded isochrones, white-dwarf sequences and neutron-star tables into star composition (after Boss answers the Require / Stand-in card) | none | open |
+| GEN.591 | An elliptical comet's aphelion can exceed its star's Hill sphere in about 10% of runs: the comet bound test fails on main (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1952,7 +1953,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.104 | Build the document model for stars, pairs, planets, moons, belts, comets and the overview | none | done, PR #1509 |
 | UX.105 | The system page builds every body's detail from the document model as HTML tables | none | done, PR #2206 |
 | UX.106 | CLI output as plain text by default, Markdown and wikitext on request | none | done, PR #1533 |
-| UX.107 | Units in the description go through the ladders | none | open |
+| UX.107 | Units in the description go through the ladders | none | done, PR #2240 |
 | UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | none | done, PR #2206 |
 | UX.109 | Remove the old per-class description text | none | done, PR #2234 |
 | UX.110 | The phenomena count on the overview page is wrong (bug) | none | done, PR #2124 |

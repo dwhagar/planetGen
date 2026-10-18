@@ -77,7 +77,8 @@ import colorsys
 import math
 import statistics
 
-from planetgen.web.lib.fmt import esc, format_distance_km, format_pressure_pa, format_speed_kms, format_temperature_k
+from planetgen.web.lib.fmt import (
+    esc, format_distance_km, format_gravity_g_short, format_pressure_pa, format_speed_kms, format_temperature_k)
 from planetgen.web.maps.starmap import star_color, _SUN_RADIUS_KM
 from planetgen.web.lib.tabledisplay import (
     format_body_distance, format_body_radius, format_period, format_luminosity, format_mass, format_star_radius,
@@ -773,9 +774,9 @@ def _atmosphere_text(planet):
 
 def _pressure_text(planet, has_atmosphere):
     """MAP.117: the side panel's surface pressure, "None" for an airless
-    body, left out when the row has no value."""
+    body (as the habitability text says it, "0 kPa"), left out when the row has no value."""
     if not has_atmosphere:
-        return "None"
+        return "0 kPa"
     pressure_pa = planet.get("atmospheric_pressure_pa")
     return None if pressure_pa is None else to_plain_text(format_pressure_pa(pressure_pa))
 
@@ -805,7 +806,7 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
         "zone": _ZONE_LABELS.get(planet["zone"], ""),
         "distance": to_plain_text(format_body_distance(planet["distance_km"], planet.get("_is_moon", False))),
         "period": format_period(planet["period_years"]),
-        "gravity": f'{round(planet["gravity_g"], 3) if planet["gravity_g"] is not None else ""} g',
+        "gravity": format_gravity_g_short(planet["gravity_g"]) if planet["gravity_g"] is not None else "",
         "life": planet.get("life_chemical"),
         "atmosphere": _atmosphere_text(planet),
         "composition": planet.get("composition"),
@@ -1228,7 +1229,7 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
 
 def _star_temp_text(star):
     temperature_k = star.get("temperature_k")
-    return f"{int(temperature_k)} K" if temperature_k is not None else "\u2013"
+    return format_temperature_k(temperature_k, companions=False) if temperature_k is not None else "\u2013"
 
 
 def _star_label(system, star):

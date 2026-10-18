@@ -488,26 +488,6 @@ with `clamp()`.
   TEST.183) comes after them. Core 5 is the proposed owner.
   Prerequisites: UX.121, UX.122, UX.123, TEST.183. Related: PERF.66.
 
-- [ ] **UX.107 Units in the description go through the ladders**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. The describer, the map side panel (gravity, star
-  temperature, pressure of an airless body as 0 kPa in line with the
-  habitability text), the CLI query lines, the class page radius ranges,
-  and the wide-binary, comet, nebula and quasar numbers. The ladders
-  themselves (mass, temperature, pressure, Gyr rename) are UX.22, UX.23
-  and UX.81 (UX, all done); this item is the call sites outside the
-  files they edit.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 19 of 54). This replaces any earlier owner line on this item.
-  Units (Boss's cards, 11:56 to 11:57 PM EDT, as the coordinator
-  relayed): UX.139 moves the ladders onto the registry and GEN.574 moves
-  `qty()` onto the Quantity class; Core 4 owns all three, and both wait
-  on this item.
-  Prerequisites: none. Related: UX.22 (done, PR #1504), UX.81 (done, PR #1504).
-
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
   update on everything once this is done so all the controls work
@@ -655,7 +635,7 @@ with `clamp()`.
   from the same ladder table. Done: no browser call site multiplies by a
   unit factor; the Python and JavaScript outputs for the same value
   agree in the existing parity test.
-  Prerequisites: GEN.299, UX.107. Related: GEN.300.
+  Prerequisites: GEN.299. Related: GEN.300.
 
 - [ ] **UX.129 Saved lists in the browser and in the account: one store with a local and an account backend**
   Found in the split review (2026-10-16, Boss 1:07 PM EDT: look at each
@@ -828,7 +808,7 @@ with `clamp()`.
   need them. Nothing the site shows changes. Done: the rendered pages
   are identical, a factor is stated once, and the generated ladder table
   is current.
-  Prerequisites: GEN.569, UX.107. Related: GEN.550, GEN.565, DB.74.
+  Prerequisites: GEN.569. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
 - [ ] **UX.140 Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed**
@@ -4686,6 +4666,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   UX.107 bundle also claim 26, so the next merger renumbers). One
   stacked changed gate started 5:55 AM EDT on the GEN.563 tip (expected
   end about 7:50 AM EDT); merge order 244, 282, 563.
+  Epoch update (7:28 AM EDT 2026-10-18, from the epochs file on main):
+  epoch 26 is stamped (release 8.0.1810, GEN.561, #2240), so this item
+  takes the next free epoch at its merge (27 unless another lane merges
+  first); the epoch 26 named above is out of date.
   Prerequisites: none. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -7754,6 +7738,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is stamped (release 8.0.1801, GEN.402, #2224); this item takes epoch
   26 (Core 1, as the coordinator relayed), so the earlier 'epoch 25'
   above is out of date.
+  Epoch update (7:28 AM EDT 2026-10-18, from the epochs file on main):
+  epoch 26 is stamped (release 8.0.1810, GEN.561, #2240), so this item
+  takes the next free epoch at its merge (27 unless another lane merges
+  first); the epoch 26 named above is out of date.
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -13714,24 +13702,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   parts.
   Prerequisites: none. Related: GEN.550.
 
-- [ ] **GEN.561 The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own**
-  Failure (Core 4, 11:41 PM EDT as the lane reported; found in its TEST.155 branch, whose finding text is in
-  `changes/test155-wording-agrees-with-the-index.patch.md` there, merging with the description-layer bundle): the
-  description (`protection.requirements`) asks for an environment suit in a Yellow heat (air temperature above the
-  `heat_garment_c` limit, 45 to 122 C), a Yellow cold (below `cold_suit_c`) or an inspired oxygen above the chronic
-  limit, while `habitability.equipment`, stored as `equipment_tier`, returns a mask or ideal there. The strict expected
-  failure is `test_the_gear_and_the_equipment_label_agree_in_a_yellow_heat_cold_or_oxygen_excess` in
-  `tests/test_wording_agrees_with_the_index.py`. Decided (Boss, card "Which wins when the gear sentence and the stored
-  kit disagree in a Yellow heat?", tapped "Kit follows words", option A, 10:55 PM EDT as the lane reported; the other
-  options were "Words follow kit" and "Leave it"): the sentence wins and the kit follows it. Do: `habitability.equipment`
-  returns "environment suit" when `temperature_c` is outside [`cold_suit_c`, `heat_garment_c`] or the inspired oxygen
-  exceeds `o2_chronic`; the strict expected failure becomes a passing test. Stored `equipment_tier` of such worlds rises, so
-  it is a generator epoch change (epoch 23 pending on Core 4's branch as the lane reported; the number follows the order of
-  merges). Done: the gear class and the equipment label agree for every random and example world. Owner: Core 4 (its own
-  queue, after the description-layer bundle, UX.109, UX.107 and DOC.45; its branch note cites GEN.561). Filed by the TODO
-  thread at Core 4's request (11:27 PM EDT as the lane reported).
-  Prerequisites: none. Related: TEST.155, GEN.218, GEN.288.
-
 - [ ] **GEN.563 The black hole density depends on metallicity and is capped by the neutron star budget: the failed-supernova share of the stars born replaces the one constant 7e-5 per pc^3, and every scatter class gets its own random stream**
   From Boss's back-scatter cards on the unified orbited-body design
   (docs/design/unified-star-like-objects.md, GEN.550): 'BH density only'
@@ -14145,6 +14115,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is stamped (release 8.0.1801, GEN.402, #2224); this item's epoch is
   therefore not 25: it renumbers to the next free number at its merge
   (26 if it merges before GEN.404, else after it).
+  Epoch update (7:28 AM EDT 2026-10-18, from the epochs file on main):
+  epoch 26 is stamped (release 8.0.1810, GEN.561, #2240), so this item
+  takes the next free epoch at its merge (27 unless another lane merges
+  first); the epoch 26 named above is out of date.
   Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
@@ -14193,7 +14167,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it (no backward shim otherwise); `describe/quantity.py` loses its
   `_KM_M`. Done: the Document and API tests pass on the new shape and
   the HTML renderer shows the same text.
-  Prerequisites: GEN.569, UX.107. Related: GEN.550, GEN.565,
+  Prerequisites: GEN.569. Related: GEN.550, GEN.565,
   DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
@@ -14893,6 +14867,36 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Blocker 1's request (6:05 AM EDT as the lane reported). Owner: Blocker
   1 (proposed). Boss's answer is not recorded yet.
   Prerequisites: none. Related: GEN.548, GEN.543, GEN.439, GEN.440.
+
+- [ ] **GEN.591 An elliptical comet's aphelion can exceed its star's Hill sphere in about 10% of runs: the comet bound test fails on main (bug)**
+  Found by Bug Hunt (reported 7:20 AM EDT 2026-10-18 on the lane's
+  clock), filed by the TODO thread.
+  `src/tests/test_comet_data.py::test_every_elliptical_comet_is_bound_and_stays_inside_the_stars_hill_sphere`
+  fails with `AssertionError: (0.08, 0.998818116460001,
+  6159.290676884793, 5814.6170006007005)`: an elliptical comet's
+  aphelion is 6159 AU, above the 5815 AU Hill sphere of a 0.08
+  solar-mass star at 2000 pc. Fails on main: yes. Bug Hunt's tree failed
+  17 of 120 fresh runs alone at idle (14%); the TODO thread's re-run on
+  main d6367912 at 7:41 to 7:43 AM EDT failed 3 of 30 (10%). So it is
+  unseeded draws, not load. Reading of the code (TODO thread, not yet
+  traced to a commit): `generation/comet.py` draws the eccentricity from
+  the period class's range and sets no cap from the star's Hill sphere,
+  while the test takes the Hill radius from
+  `mass_chain.current_central_mass_kg()` (the galaxy's virial mass,
+  GEN.400); a lighter galaxy gives a smaller Hill sphere, so the
+  tightest star (0.08 solar masses at the inner edge) can have a
+  long-period comet that leaves it. Either the generator must cap a
+  closed orbit's aphelion at the Hill sphere of its star (GEN.182 says a
+  closed orbit never leaves its star), or the test's bound must be the
+  one the generator uses; Bug Hunt suggests it started after GEN.402
+  (#2224). Frequency: 10 to 14% of runs alone. Reproducer: `for i in
+  $(seq 1 120); do python3 -m pytest src/tests/test_comet_data.py -k
+  bound_and_stays_inside -q; done`. Done: an elliptical comet's aphelion
+  is below its star's Hill sphere for every draw, by a cap in the
+  generator (an epoch if values change) or by a corrected bound, and the
+  test passes 300 of 300 fresh runs with no quarantine. Owner: Core 1
+  (proposed by Bug Hunt; GEN.400 and GEN.402 are its mass chain).
+  Prerequisites: none. Related: GEN.182, GEN.400, GEN.402.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -19556,6 +19560,11 @@ clears each one.
   (test_generate_sector_real_capacity_overflow... failed once under gate
   load with 120 of 120 fitting) is the TEST.245 case already fixed by
   the lighter test galaxy in #2227.
+  Sighting (Core 4, reported about 7:30 AM EDT 2026-10-18 on the lane's
+  clock; changed gate of #2240, 20,020 passed):
+  `test_galaxy_map_drill_down_by_clicks` failed once under load (40 s
+  call at load 10) and passes alone (65 s). Same crumb case; it goes
+  with Bug Hunt's fix.
   Prerequisites: none. Related: TEST.213, TEST.194.
 
 - [ ] **TEST.224 `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed once in a full gate: the nested system's inside_nebula_id was None (bug)**
@@ -21009,21 +21018,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 43 of 54). This replaces any earlier owner line on this item.
   Prerequisite: PERF.86.
-
-- [ ] **DOC.45 Reference docs follow the description layer**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. Leftover sweep for docs/html-interface.md, api.md
-  (/sections removed, /description added), cli.md (--format),
-  system-file-format.md, example-systems.md,
-  design/habitability-index.md (PHI-6 naming) and testing.md. Each build
-  item updates the page it changes in its own PR; this is what is left,
-  part of the DOC.18 to DOC.44 sweep at the end of Phase 1.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 20 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none.
 
 - [ ] **DOC.48 Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes**
   Step 14 of the whole-sphere train.

@@ -2,6 +2,41 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1811] - 2026-10-18
+
+**Headline:** The map's side panel, the query command's lines and the class pages' ranges write their distances, gravity and temperatures the same way as the rest of the program.
+
+### Changed
+- The system map's side panel shows an airless body's pressure as "0 kPa" (it said "None"), gravity as "0.378 g" on the gravity ladder, and a star's temperature on the temperature ladder ("5,772 K").
+- `planetgen query` writes a sector's edge, a nearby system's distance and a planet's or moon's radius on the distance ladders ("3.68 pc (12 ly)", "6,371 km") instead of fixed two-decimal formats.
+- A class page range gives both ends one style, so it no longer reads "5,000 to 1 × 10⁴ km" (it is "5 × 10³ to 1 × 10⁴ km").
+- The describer, wide-binary, comet, nebula and quasar numbers already go through the ladders (UX.108 and UX.109 moved them into the Document).
+
+TODO items resolved: UX.107 / Added: none
+
+## [8.0.1810] - 2026-10-18
+
+**Headline:** The equipment tier a world stores now matches what its description asks for: an environment suit where it is too hot, too cold or too rich in oxygen, not a mask or nothing.
+
+### Changed
+- `habitability.equipment` names an environment suit when the temperature is past the Green heat or cold edge or the inspired oxygen is above the chronic limit, as `protection` and the world's page already say. Such worlds' stored `equipment_tier` rises (and so do the search page's equipment tags).
+- `tests/test_wording_agrees_with_the_index.py`: the gear class and the equipment label now agree for every world, so the expected failure is gone.
+
+generation-output: changed
+
+TODO items resolved: GEN.561 / Added: none
+
+## [8.0.1809] - 2026-10-18
+
+**Headline:** The reference docs describe the description layer as built: the PHI-6 name, the `rating` data, the command line options and the removed text builders.
+
+### Changed
+- `docs/design/habitability-index.md` names the display score PHI-6 (it was PHI-4 before GEN.207) and describes `protection.rating` and the describer in place of the removed `protection.paragraph`.
+- `docs/cli.md` drops the `--markdown` flag of `planetgen phenomenon`, which no longer exists.
+- `docs/database-schema.md` says the old text builder (`to_paragraph_list`) is gone.
+
+TODO items resolved: DOC.45 / Added: none
+
 ## [8.0.1808] - 2026-10-18
 
 **Headline:** The design page now says what a usable circumbinary window is and which numbers are measured
