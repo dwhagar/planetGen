@@ -5960,10 +5960,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   post-AGB circumbinary disk descriptor and no planets. Stand-ins left
   out: eccentricity excitation, the swallowed-giant flag, the rare close
   giant.
-  Epoch note (1:50 PM EDT 2026-10-18, real clock): epoch 34 is stamped
-  by GEN.404 (release 8.0.1831, #2270), so a change here takes the next
-  free epoch at its merge, 35 unless another lane merges first (Core 3's
-  GEN.318 renumbers to 35); Alembic head is 0112, next free 0113.
+  Epoch note (1:50 PM EDT 2026-10-18, real clock): epoch 35 is stamped by PERF.138 (release 8.0.1842, #2297; 34 by GEN.404, 8.0.1831, #2270), so a change here takes the next free epoch at its merge, 36 unless another lane merges first (Core 3's GEN.318 renumbers to 36); Alembic head is 0112, next free 0113.
   Prerequisites: none. Related: GEN.130.
 
 - [ ] **GEN.325 Planet cull in dense components by the survival formula and the metallicity factor**
@@ -14844,10 +14841,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by GEN.317 (release 8.0.1828), so a change here takes the next free
   epoch at its merge, 33 unless another lane merges first (Core 3's
   GEN.318 carries 33 pending); Alembic head is 0112, next free 0113.
-  Epoch note (1:50 PM EDT 2026-10-18, real clock): epoch 34 is stamped
-  by GEN.404 (release 8.0.1831, #2270), so a change here takes the next
-  free epoch at its merge, 35 unless another lane merges first (Core 3's
-  GEN.318 renumbers to 35); Alembic head is 0112, next free 0113.
+  Epoch note (1:50 PM EDT 2026-10-18, real clock): epoch 35 is stamped by PERF.138 (release 8.0.1842, #2297; 34 by GEN.404, 8.0.1831, #2270), so a change here takes the next free epoch at its merge, 36 unless another lane merges first (Core 3's GEN.318 renumbers to 36); Alembic head is 0112, next free 0113.
   Prerequisites: none. Related: GEN.182, GEN.400, GEN.402.
 
 - [ ] **GEN.592 A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced)**
@@ -15691,6 +15685,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   40 MB is acceptable, up to 1 GB by the `cache.max_mb` setting
   (PERF.139); stored data that can be precomputed and shipped ready
   should be.
+  Boss, 2026-10-18, 6:05 PM EDT: "make sure we don't re-compile a tile
+  if nothing has changed". Storing compressed tiles must not rebuild a
+  tile that is already stored and unchanged; it only re-encodes once,
+  when the format changes.
   Prerequisites: none. Related: PERF.129, MAP.159, MAP.158.
 
 - [ ] **PERF.132 Build proactively on a visit: the surrounding tiles and the next zoom levels are built and cached in the background**
@@ -15739,6 +15737,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss (2026-10-18, 5:43 PM EDT): the warm-up goes "as deep as we can"
   in phases after every update, generation or change; see PERF.141 for
   the phases and PERF.139 for the budget.
+  Boss, 2026-10-18, 6:05 PM EDT: "make sure we don't re-compile a tile
+  if nothing has changed". A visit builds only the tiles that are
+  missing or whose data changed; a stored unchanged tile is served as it
+  is.
 
 - [ ] **PERF.133 Keep every tile until the data changes: invalidate by what changed, rebuild what a change touched, and never evict a valid tile for size**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -15794,6 +15796,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   forward" is superseded by Boss's card on MAP.249 (2026-10-18, about
   8:54 AM EDT): the tile cache work follows MAP.249's payload cut (about
   2 MB a view).
+  Boss, 2026-10-18, 6:05 PM EDT: "make sure we don't re-compile a tile
+  if nothing has changed". Already required by this item (a stored tile
+  is kept until the data under it changes, by the content stamp and the
+  `modified_at` check); the explicit test is on PERF.141: a second
+  warm-up with no change builds nothing. A tile is also not rebuilt when
+  only a release stamp changes and the tile format and generator epoch
+  do not (PERF.41).
   Prerequisites: none. Related: PERF.129, PERF.41, PERF.104.
 
 - [ ] **PERF.134 The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions**
@@ -15881,43 +15890,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy. Owner: Core 5 (proposed, it found the list and wrote the
   PERF.126 and PERF.127 commands); low priority, no version blocker.
   Prerequisites: none. Related: PERF.75, PERF.135.
-
-- [ ] **PERF.138 The nuclear cluster term made the extent majorant about 1000 times looser: the shell scatter takes over 250 s, not 5.6 s (bug)**
-  Found by Core 3 (reported 5:57 AM EDT 2026-10-18 on the lane's clock),
-  filed by the TODO thread. Since GEN.402 (#2224)
-  `object_first.extent_majorants` returns a bound about 1000 times
-  larger for the groups beside the galaxy centre (the nuclear cluster
-  term): shell 5 of the tier test's toy galaxy (`tiers.SHAPE`) has a
-  bound of 8.9e6 where it was 3.7e3, so
-  `phenomenon_reach.scatter_shell(tiers.SHAPE, 5, -1, tiers.EDGE_PC,
-  4000.0, 5, min_mass_solar=1.0, check=True)` takes over 250 s where it
-  took 5.6 s (224,000 rows) on 2bd9bfad. The bound is the nuclear
-  cluster's `_nuclear_cluster_array` majorant at the group's nearest
-  point times `fractions["nuclear_cluster"]`. A loose majorant makes the
-  scatter draw and thin that many more candidates, so this is a likely
-  real performance cliff for every scatter that rides the nuclear term,
-  not only a slow test: `test_gen_phenomenon_reach.py` now takes about
-  15 minutes under `-n 4`. Fails on main: slow, not red (Core 3's count
-  on 390fb54e). The TODO thread's re-run on main dfe8351f from 6:00 AM
-  EDT (gate load, four cores shared) was still running after 14 minutes
-  and was stopped. Frequency: every run. Reproducer: `PYTHONPATH=src
-  python3` with `from tests import test_gen_scatter_tiers as tiers` and
-  `list(phenomenon_reach.scatter_shell(...))` with the arguments above,
-  timed on 2bd9bfad and on main. Do: find why the nuclear cluster
-  majorant grew (the group's nearest point can sit inside the cluster's
-  core radius, where the profile peaks), tighten it to the real maximum
-  over the group's extent or split the nearest groups, and keep the
-  one-sided bound the thinning needs. Done: the shell-5 call is back
-  near its old time with the same rows (the rows must not change, so no
-  epoch), and `test_gen_phenomenon_reach.py` runs in minutes again.
-  Owner: Core 1 (GEN.402's author; proposed, Core 3 and Core 4 touch the
-  same module).
-  Evidence from Core 3 (reported 11:07 AM EDT 2026-10-18, real clock):
-  `test_gen_scatter_tiers.py::test_the_mass_pass_draws_each_band_from_its_tiers_mass_limit`
-  takes 58 s on main and 98 s on Core 3's stack tip for the same reason
-  (the nuclear cluster majorant); the stack adds nothing beyond the ring
-  term.
-  Prerequisites: none. Related: GEN.402, GEN.322, PERF.106.
 
 - [ ] **PERF.139 One cache size setting, `cache.max_mb`, default 1024: tiles, stored lists and indexes share one disk budget**
   Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
@@ -16027,6 +15999,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator reported them): the warm-up stops at the budget and keeps
   built-ahead tiles; indexes and lists are warmed and kept first, tiles
   take the remaining space; the phases are filed in 8.2.
+  Boss, 2026-10-18, 6:05 PM EDT: "make sure we don't re-compile a tile
+  if nothing has changed". Done also needs a test: a warm-up run over a
+  galaxy that has not changed builds zero tiles (and zero list or index
+  rebuilds), every phase reports "unchanged", and a change in one sector
+  rebuilds only its tiles and their coarser parents.
   Prerequisites: PERF.139, PERF.140, PERF.131, PERF.132, PERF.133.
 
 ## DB: Database and schema
