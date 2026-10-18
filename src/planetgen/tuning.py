@@ -2475,10 +2475,13 @@ HABITABLE_FLAVOR = [ # Flavor text for any habitable world.
 # gave about 1e5 in a Milky Way-sized galaxy against the handful of observed
 # candidates, and on 2026-10-16 (Boss, decision card, GEN.259) to 3e-6, so that
 # a Milky Way-sized galaxy, with about 1e8 black holes, holds about 300 of them
-# ("hundreds, as the observations suggest") [R].
+# ("hundreds, as the observations suggest") [R]. GEN.563 (Boss, card BH4, 12:34 AM EDT on 2026-10-18) holds that count: the
+# stellar-mass black holes now follow the stars' metallicity, but these are not remnants of failed supernovae, so
+# they keep the rate they had, 3e-6 of 7e-5 per pc^3 over `REFERENCE_STELLAR_DENSITY_PC3`.
 BLACK_HOLE_MASS_RANGE_SOLAR = (5.0, 20.0)
 BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR = (1e2, 1e5)
 BLACK_HOLE_INTERMEDIATE_MASS_CHANCE = 3.0e-6
+BLACK_HOLE_INTERMEDIATE_RATE_PER_STAR = BLACK_HOLE_INTERMEDIATE_MASS_CHANCE * 7.0e-5 / 0.14
 
 # A supermassive black hole sits at the center of every galaxy (generate.add_galactic_nucleus), quiescent or an
 # active quasar. Its mass follows the galaxy's bulge or stellar mass (`galaxy.structure.black_hole_mass_solar`,
@@ -3582,7 +3585,8 @@ PHENOMENON_DENSITY_PC3 = {
     # GEN.100 retune (Boss, 2026-10-09): the central observed values, 1e9
     # neutron stars (0.4% of ~2.5e11 stars) and 1e8 black holes (0.05%).
     "neutron-star": 5.6e-4,
-    "black-hole": 7e-5,
+    # The stellar-mass black holes are not a rate of their own: they follow from the stars' metallicity
+    # (`galaxy.black_hole_density`, GEN.563). The old 7e-5 (1e8 in the Galaxy, 0.05% of ~2.5e11 stars) is a test target.
     # Giant molecular clouds: 1e-6 to 1e-5 (Kennicutt & Evans 2012, ARA&A
     # 50:531): cloud centers, generated as dark-family nebulae (classes
     # M-Q). GMC_ARM_FILLING_FACTOR is the matching fraction of arm volume
@@ -3706,6 +3710,34 @@ NEUTRON_STAR_UNBOUND_FRACTION_RANGE = (0.2, 0.4)
 
 BLACK_HOLE_UNBOUND_FRACTION = 0.02
 """float: The share of a galaxy's black holes that are ejected (GEN.238; about 2%) [S, recalled; to verify]."""
+
+CORE_COLLAPSE_MASS_RANGE_SOL = (SUPERGIANT_MIN_MASS_SOL, IMF_BREAKS_SOL[-1])
+"""tuple: The initial masses that end as a neutron star or a black hole, solar masses: 8 (the supergiants' edge) to the
+top of the IMF, 150 (GEN.560). 0.637% of the stars born."""
+
+BLACK_HOLE_FAILED_SHARE_SOLAR_RANGE = (0.0, 0.45)
+"""tuple: The share of the massive stars of solar metallicity that fail to explode and leave a black hole: the widest
+verified range, 0 (O'Connor and Ott 2011's lowest) to 45% (Sukhbold et al. 2016's highest; Ebinger et al. 2020 give 5 to
+21%). A galaxy draws its own, uniform over the range (only the range is known) and cut by the neutron star budget
+(`physics.black_hole_formation.share_cap`). GEN.563, docs/design/black-hole-formation-sources.md."""
+
+BLACK_HOLE_FAILED_SHARE_METAL_FREE_RANGE = (0.15, 0.32)
+"""tuple: The same share for a metal-free population, 15% (O'Connor and Ott 2011) to 32% (Ebinger et al. 2020's
+highest; Sukhbold et al. give solar only). Drawn uniform over the range, cut at the neutron star budget and not below
+the galaxy's solar share. GEN.563."""
+
+BLACK_HOLE_FORMED_MASS_STEPS = 64
+BLACK_HOLE_FORMED_AGE_STEPS = 64
+"""int: Log-spaced progenitor masses and ages across a window the share of formed remnants is averaged over (numerical,
+`physics.black_hole_formation.remnant_formed_share`)."""
+
+BLACK_HOLE_FAILED_MEAN_TABLE_STEPS = 1025
+"""int: Points of the table the failed share's mean over a metallicity peak is read from (it is smooth in the peak's mean)."""
+BLACK_HOLE_GALAXY_MEAN_RADIAL_STEPS = 72
+BLACK_HOLE_GALAXY_MEAN_POLAR_STEPS = 24
+BLACK_HOLE_GALAXY_MEAN_AZIMUTH_STEPS = 6
+"""int: The log-spaced radii, equal-area polar angles and azimuths of the grid a galaxy's mean black hole rate per star
+is averaged over (`galaxy.black_hole_density.mean_rate_per_star`, GEN.563)."""
 
 EJECTA_SPEED_RANGE_KMS = (300.0, 500.0)
 """tuple: The speed a kicked neutron star or black hole has far out, above the galaxy's escape speed, km/s (GEN.238)

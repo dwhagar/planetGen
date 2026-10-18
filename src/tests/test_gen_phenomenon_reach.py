@@ -15,7 +15,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.db import store
-from planetgen.galaxy import density, remnant_distribution, spherical, structure_draw
+from planetgen.galaxy import black_hole_density, density, remnant_distribution, spherical, structure_draw
 from planetgen.generation import object_first, phenomenon_reach as reach, phenomenon_scatter as scatter, run_plan
 from tests import test_gen_scatter_tiers as tiers
 from tests.test_bright_star_scatter import EXTENTS
@@ -126,7 +126,12 @@ def test_the_remnants_are_thicker_than_the_stars_and_the_young_class_follows_the
     for point in (plane, high):
         x, y, z = (np.array([value]) for value in point)
         stars = density.total_density_array(x, y, z, SHAPE)
+        # The stellar-mass black holes weigh each population by the failed share of its stars (GEN.563).
         assert reach._weights("black-hole", "stellar", x, y, z, SHAPE)[0] == pytest.approx(
+            black_hole_density.weights_array(x, y, z, SHAPE)[0]
+            * remnant_distribution.placement_factor("black-hole", point, SHAPE.disk_scale_height_pc))
+        assert 0.0 < black_hole_density.weights_array(x, y, z, SHAPE)[0] < stars[0]
+        assert reach._weights("black-hole", "intermediate", x, y, z, SHAPE)[0] == pytest.approx(
             stars[0] * remnant_distribution.placement_factor("black-hole", point, SHAPE.disk_scale_height_pc))
         assert reach._weights("planetary-nebula", None, x, y, z, SHAPE)[0] == pytest.approx(stars[0])
         assert reach._weights("neutron-star", scatter.MAGNETAR_SUBTYPE, x, y, z, SHAPE)[0] == pytest.approx(
@@ -134,7 +139,7 @@ def test_the_remnants_are_thicker_than_the_stars_and_the_young_class_follows_the
 
 
 def test_the_expected_objects_and_the_far_screen_follow_the_rates():
-    fractions = reach.scattered_fractions(CUT)
+    fractions = reach.scattered_fractions(CUT, SHAPE.structure)
     assert len(fractions) == 1 and all(value >= 0.0 for value in fractions[0].values())
     estimates = reach.reach_estimates(SHAPE, [(5, 2), (6, -1)], EDGE_PC, E_VALUE, CUT)
     assert estimates[5][0] > 0.0 and estimates[6][0] > 0.0 and estimates[6][1] > 0
