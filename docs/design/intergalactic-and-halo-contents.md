@@ -514,6 +514,7 @@ The research behind it: `/mnt/project-files/reports/gen401-shape-sources-2026-10
 - **Q5** Decided (Boss, 2026-10-16, 10:09 PM EDT, card): Shen et al. 2003 sets the disk length (3.9 kpc at 5e10); van der Wel et al. 2014 stays the cross-check of the scatter.
 - **Q6** Decided (Boss, 2026-10-16, 10:10 PM EDT, card): the approximation in row 2 (median inverse with an effective Mh scatter), the conditional through a halo mass function as a later refinement.
 - **Approval** (Boss, 2026-10-16, 10:11 PM EDT, card): the table is approved; the build is planned from it.
+- **Q7** Decided (Boss, 2026-10-17, card in Core 1's thread, reported at 8:36 PM EDT as the lane reported; GEN.404): "Mass sets count": the star count comes from the stellar mass; a Milky Way-sized galaxy is about 2.6 times sparser at the reference radius until the disc vertical profile is revisited.
 
 ## 6. What it costs
 

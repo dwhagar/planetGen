@@ -8079,6 +8079,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fractions, outer)`; GEN.322's plan test uses a luminosity floor of
   2500 (30,000 gave only 284 stars at GEN.134's young share, none in the
   high-extent shells beyond the outline).
+  Decided (Boss, 2026-10-17, tapped on a card in Core 1's thread,
+  reported by Core 1 at 8:36 PM EDT as the lane reported and relayed by
+  the coordinator at 8:37 PM EDT): "Mass sets count" for the density
+  source. The star count comes from the galaxy's stellar mass (not from
+  a stored local density at a Sun radius); a Milky Way-sized galaxy is
+  therefore about 2.6 times sparser at the reference radius than the old
+  fixed calibration, until the disc vertical profile is revisited. Core
+  1 builds on this option (GEN.402/404 coded in its own worktree during
+  the GEN.532/533 gate, 72% at 8:33 PM EDT with no failures, as the lane
+  reported). The 2.6 factor is a consequence Boss accepted, not a
+  defect: the test of the density against the old model at the reference
+  radius (Done above) then checks the law and states the factor instead
+  of expecting agreement within the scatter.
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -18880,6 +18893,102 @@ clears each one.
   same helper is applied to the system-disc test); it goes in the
   MAP.247 PR and resolves this item when merged.
   Prerequisites: none. Related: MAP.245, TEST.126.
+
+- [ ] **TEST.232 The a11y page_targets fixture fails 199 browser tests when /search answers 202 (slow-page job) under load (bug)**
+  Found by Core 3 (2026-10-17, about 8:28 PM EDT as the lane reported;
+  GEN.321's third gate, browser phase, load 6 to 10, between about 7:30
+  and 8:06 PM EDT), filed by the TODO thread. 199 tests errored in setup
+  with `web.search: GET /search answered 202 (anonymous) / 202 (admin)
+  with the sample database` (`src/tests/test_web_a11y.py`, the module
+  fixture `page_targets`, which asks every page for a 200 once). Core 3
+  suspected a Redis or search index shared by two gates running at once;
+  reading the code does not support that: the module's database is
+  `planetgen_a11y_<uuid>`, and every slow-page key
+  (`planetgen:slowtime:`, `planetgen:slowpath:` in `queue/pagejobs.py`)
+  holds that name, so another gate cannot reach them. What the code does
+  show: `/search` is a `@slow_route` page (`web/views.py:316`) that asks
+  the API for several answers; the first build that takes over
+  `tuning.SLOW_PAGE_SECONDS` (3.0 s) is timed (`apiclient._body_of` into
+  `pagejobs.record_duration`), and `slowpages.cost` then calls every
+  other request on that route slow (`slowest_recent_duration`, 600 s)
+  and `pagejobs.ensure` queues it, so the page answers `202` with the
+  loading state. On a loaded box the first build is slow enough to do
+  that; on an idle one it never is. The fixture never waits for a page
+  job, so the status stays 202 and `pytest.fail` follows. Reproduced by
+  the TODO thread (2026-10-17, 8:40 PM EDT): with
+  `tuning.SLOW_PAGE_SECONDS = 0.001` set before `pytest.main` on
+  `src/tests/test_web_a11y.py -k search` the fixture fails alone with
+  `web.phenomena: GET /phenomena answered 202 (anonymous) / 202 (admin)
+  with the sample database` (the first slow-route page it asks;
+  `/search` is the second). Fails on main: yes, when the threshold is
+  lowered; not run on main loaded. Frequency: once (one gate, about 36
+  minutes of the browser phase, 199 tests of the module). Reproducer:
+  `python3 -c "import pytest; from planetgen import tuning;
+  tuning.SLOW_PAGE_SECONDS = 0.001; pytest.main(['-n0',
+  'src/tests/test_web_a11y.py', '-k', 'search'])"` with
+  `PYTHONPATH=src`. Do: make the fixture independent of load (pin the
+  slow-page rule off for this module's app, as the slow-page tests pin
+  it on, or follow the 202 to its finished page) and check the other
+  module-scoped fixtures that ask a `@slow_route` page for a 200
+  (`/phenomena` too). Done: the fixture passes with `SLOW_PAGE_SECONDS`
+  at 0.01 and the cause is on this item. Owner: Core 2 (owns UX.118 and
+  the slow pages; proposed).
+  Prerequisites: none. Related: UX.118, PERF.105, TEST.223.
+
+- [ ] **TEST.233 test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug)**
+  Found by Core 3 (2026-10-17, about 8:28 PM EDT as the lane reported;
+  GEN.321's third gate), filed by the TODO thread.
+  `src/tests/test_prevalence.py::test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30]`
+  failed once with a share of 0.752 against 0.7891 within 0.0365 (the
+  band is 4 standard deviations of 2,000 systems). The TODO thread
+  (2026-10-17, 8:31 to 8:38 PM EDT) ran it alone 13 times with different
+  hash seeds (13 passed) and measured the unchanged asteroid-belt share
+  over 6 seeds of 2,000 systems at 0.6088 against
+  `PREVALENCE_BASE_SHARES` 0.607 (one standard deviation of the mean
+  0.0045), so the generator did not drift. The cause of the
+  irreproducibility: the test seeds its run with `hash((feature,
+  percent)) % 1000`, and `hash()` of a tuple holding a string differs in
+  every Python process (hash randomisation), so each run draws a
+  different sample from the 4-sigma band and a failure cannot be
+  replayed. A 4-sigma miss on one sample is rare (about 6 in 100,000 per
+  test per run) but there are 7 such cases in the file and every gate
+  runs them. Fails on main: not run on main. Frequency: once in about 14
+  runs seen. Reproducer: none for the failing sample; the seed is not
+  recorded. Do: seed every case with a stable value (for example
+  `zlib.crc32(f"{feature}:{percent}".encode()) % 1000`) so a failure
+  repeats, and print the seed in the assert message; if the stable seeds
+  all pass keep the 4-sigma band, and if one lands outside it re-measure
+  that feature's response to the percentage (a belt share at +30% may
+  not be exactly 1.3 times the base). Done: the seeds are stable, the
+  assert names its seed, and each case passes 30 of 30 runs. Owner: Core
+  3 (found it; proposed).
+  Prerequisites: none. Related: GEN.448.
+
+- [ ] **TEST.234 test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug)**
+  Found by Core 3 (2026-10-17, about 8:28 PM EDT as the lane reported;
+  GEN.321's third gate, loaded browser phase), filed by the TODO thread.
+  `src/tests/test_web_settings_browser.py::test_the_review_and_error_pages_are_accessible[admin]`
+  failed `_overflow` (scrollWidth 606 against a 390 px viewport, the
+  widest element `sl-dropdown.site-gear`) once; the same file's other
+  roles and a rerun passed (Core 3 had not rerun it alone at the time of
+  the report). The overflow is read straight after
+  `wait_for_selector("table.settings-diff")`, with no wait for the
+  Shoelace components to be defined; a `sl-dropdown` that is not
+  upgraded yet lays its slotted content out inline, which is as wide as
+  a menu (inferred from the element named, not reproduced). Fails on
+  main: not run on main. Frequency: once. Reproducer: not known; run the
+  test under load (`stress` on the box) or add a `page.route` that
+  delays the Shoelace script by 2 s. Do: wait for
+  `customElements.whenDefined('sl-dropdown')` (or the page's own ready
+  flag) before `_overflow`, in this test and in the shared `_page`
+  helper if other tests read layout before the components load; if the
+  width still shows with the components defined, the gear dropdown is a
+  real overflow on the review page at 390 px and the CSS is the fix.
+  Done: the cause is on this item and the test passes 30 of 30 runs with
+  the Shoelace script delayed by 2 s. Owner: Core 3 (found it;
+  proposed), or Core 5 (owns the TEST/DOC small items) if Core 3 is
+  busy.
+  Prerequisites: none. Related: TEST.126, TEST.223.
 
 
 ## USR: User accounts
