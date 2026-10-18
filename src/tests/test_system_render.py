@@ -13,7 +13,6 @@ what used to be stored), for every kind of system.
 import pytest
 
 from planetgen.util import draw
-from planetgen.cli import render_parity
 from planetgen.db import store
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.config import SystemConfig
@@ -161,15 +160,6 @@ def test_life_stage_is_read_back_from_the_timeline_paragraph():
     assert life_stage_from_paragraphs([paragraph]) == "technological_civilization"
     assert life_stage_from_paragraphs(["No significant evolutionary milestones are predicted."]) is None
     assert life_stage_from_paragraphs([]) is None
-
-
-def test_parity_check_sorts_differences():
-    names = ["Onoshur Kin", "Onoshur"]
-    stored = "= Onoshur =\n|wobble=1 km from its nominal position\nSame line"
-    assert render_parity.classify(stored, stored, names) is None
-    assert render_parity.classify(stored, stored.replace("= Onoshur =", "= Onoshur Kin ="), names) == "names"
-    assert render_parity.classify(stored, stored.replace("1 km", "2 km"), names) == "live"
-    assert render_parity.classify(stored, stored.replace("Same line", "Changed line"), names) == "other"
 
 
 def test_rendering_keeps_an_anchored_black_holes_fractional_disk_temperature(mysql_config):

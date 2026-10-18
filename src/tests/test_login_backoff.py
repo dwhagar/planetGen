@@ -421,22 +421,24 @@ def test_private_lockout_warns_about_a_proxy(real_app):
 
 
 def test_command_line_lists_and_lifts(redis_server, key_prefix, capsys, monkeypatch):
-    from planetgen.cli import lockouts as loginLockouts
+    from planetgen.cli import lift_lockout, lockouts
     store = throttle.RedisStore.from_url(redis_server, key_prefix)
     for _ in range(3):
         throttle.record_failure(store, SCOPE_IP, "2001:db8:1:2::/64")
     monkeypatch.setenv("PLANETGEN_RATELIMIT_STORAGE_URI", redis_server)
-    monkeypatch.setattr(loginLockouts, "RATELIMIT_KEY_PREFIX", key_prefix)
-    assert loginLockouts.main([]) == 0
+    monkeypatch.setattr(lockouts, "RATELIMIT_KEY_PREFIX", key_prefix)
+    assert lockouts.main([]) == 0
     assert "2001:db8:1:2::/64" in capsys.readouterr().out
-    assert loginLockouts.main(["--ip", "2001:db8:1:2::99"]) == 0
+    assert lift_lockout.main(["--ip", "2001:db8:1:2::99"]) == 0
     assert "Lifted 1 lockout (ip:2001:db8:1:2::/64)" in capsys.readouterr().out
-    assert loginLockouts.main([]) == 0
+    assert lockouts.main([]) == 0
     assert "Nothing is locked." in capsys.readouterr().out
 
 
 def test_command_line_says_when_the_lockouts_are_in_memory(monkeypatch, capsys):
-    from planetgen.cli import lockouts as loginLockouts
+    from planetgen.cli import lift_lockout, lockouts
     monkeypatch.setenv("PLANETGEN_RATELIMIT_STORAGE_URI", "memory://")
-    assert loginLockouts.main([]) == 1
+    assert lockouts.main([]) == 1
+    assert "nothing to list or lift" in capsys.readouterr().err
+    assert lift_lockout.main(["--all"]) == 1
     assert "nothing to list or lift" in capsys.readouterr().err

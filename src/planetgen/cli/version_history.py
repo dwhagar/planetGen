@@ -2,17 +2,15 @@
 # planetgen.cli.version_history
 
 """
-Records the version key every galaxy database was updated under (OPS.13),
-or lists what was recorded.
+Records the version key every galaxy database was updated under (OPS.13).
 
-`update.sh` runs it after the code and databases are
-current. With no option it adds one history row per galaxy database that has
-a seed (`planetgen.galaxy.version_history`); `--list` prints each database's
-rows, newest first, and records nothing. `planetgen versions` is the same
-listing.
+`update.sh` runs it after the code and databases are current. It adds one
+history row per galaxy database that has a seed
+(`planetgen.galaxy.version_history`) and does nothing else; `planetgen
+versions` lists what was recorded.
 
 Usage:
-    python3 -m planetgen.cli.version_history [--list] [--mysql-host HOST] ...
+    python3 -m planetgen.cli.version_history [--mysql-host HOST] ...
 """
 
 import argparse
@@ -51,7 +49,7 @@ def record_all(config):
 
 
 def format_history(config):
-    """The listing `--list` and `planetgen versions` print."""
+    """The listing `planetgen versions` prints."""
     control = store.get_control_connection(store.control_mysql_config(config), ensure_schema=False)
     lines = []
     try:
@@ -72,15 +70,11 @@ def format_history(config):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Record, or list, the version key each galaxy was updated under.")
+    parser = argparse.ArgumentParser(description="Record the version key each galaxy was updated under.")
     store.add_mysql_connection_args(parser)
-    parser.add_argument("--list", action="store_true", help="Print the recorded history and record nothing.")
     args = parser.parse_args()
     config = store.mysql_config_from_args(args)
     try:
-        if args.list:
-            print(format_history(config))
-            return
         recorded = record_all(config)
     except Exception as exc:  # noqa: BLE001
         print(f"error: {exc}", file=sys.stderr)

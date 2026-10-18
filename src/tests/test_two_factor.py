@@ -290,13 +290,13 @@ def test_api_keys_skip_the_second_factor(real_app):
 
 
 def test_command_line_reset(mysql_config, real_app, capsys, monkeypatch):
-    from planetgen.cli import lockouts
+    from planetgen.cli import reset_two_factor
     _turn_on(real_app.admin_client)
     args = ["--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port),
             "--mysql-user", mysql_config.user, "--mysql-password", mysql_config.password,
             "--mysql-database", mysql_config.database]
     monkeypatch.setattr(store, "configured_control_database", lambda: mysql_config.database)
-    assert lockouts.main(["--reset-two-factor", "admin"] + args) == 0
+    assert reset_two_factor.main(["admin"] + args) == 0
     assert "Two-factor sign-in for admin is off." in capsys.readouterr().out
     assert _login(real_app.test_client(), "admin", "violet-orbit-ledger-91").get_json()["username"] == "admin"
 
