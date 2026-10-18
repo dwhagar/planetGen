@@ -105,16 +105,17 @@ ensure_nltk_words() {
 # The static data the generator reads (GEN.548, planetgen.datasets): downloaded
 # once, here, into a cache folder outside the checkout and made readable for
 # Apache's user; nothing downloads while the site runs. A dataset whose host
-# does not answer stays on its labelled stand-in and DATASETS_STAND_IN is set so
-# the end of the script says so; it never stops an install or an update.
-DATASETS_STAND_IN=0
+# does not answer stays missing and DATASETS_MISSING is set so the end of the
+# script says so (bulk generation refuses to start without it, GEN.590); it
+# never stops an install or an update.
+DATASETS_MISSING=0
 ensure_datasets() {
     local dir="${PLANETGEN_DATA_DIR:-/var/cache/planetgen/datasets}"
     mkdir -p "$dir"
     if ! PLANETGEN_DATA_DIR="$dir" run_cli datasets fetch; then
-        DATASETS_STAND_IN=1
-        echo "warning: some data could not be downloaded (above); the generator uses the labelled stand-ins until" >&2
-        echo "         the next update fetches it ('python3 -m planetgen.cli.datasets status' says which)." >&2
+        DATASETS_MISSING=1
+        echo "warning: some data could not be downloaded (above); bulk generation refuses to start until the next" >&2
+        echo "         update fetches it ('python3 -m planetgen.cli.datasets status' says which)." >&2
     fi
     chmod -R a+rX "$dir"
 }
