@@ -13338,6 +13338,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   isochrones, the Bedard white-dwarf sequences and the neutron-star
   equation of state and crust tables. GEN.439 and GEN.440 merged as
   #2208 (the open states in their RELATIONS list wait on this step).
+  Detail (Blocker 1, 2:47 AM EDT 2026-10-18 as the lane reported):
+  branch claude/gen548-download-step holds
+  `planetgen/datasets/fetch.py`, the command `python -m
+  planetgen.cli.datasets fetch`, step 3 of update.sh and install.sh, the
+  cache directory override PLANETGEN_DATA_DIR, and the three datasets
+  (MIST main-sequence isochrones SC1, Bedard 2020 white-dwarf sequences
+  SC2, neutron-star equation of state and outer-crust compositions SC3);
+  a real fetch was verified (82 s, 225 MB). The stand-in fills SC1 to
+  SC3 are in gap-filling-plan 6.6 and design note stellar-composition
+  14.1 names the sources. After it merges, Blocker 1 wires the readers
+  into the stellar modules.
   Prerequisites: none. Related: GEN.439, GEN.440, GEN.502, API.31.
 
 - [ ] **GEN.549 L dwarfs hotter than 1,500 K are 2 to 4 times too rare against the 20 pc census: use a cooling track that reaches them (strict expected failure)**
@@ -17609,6 +17620,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 2, proposed (the interface housekeeping line beside API.15
   and API.26; not asked yet, the coordinator tells Core 2 when it
   reaches the item).
+  Detail (Blocker 1, 2:47 AM EDT 2026-10-18 as the lane reported):
+  GEN.548 adds `planetgen/util/user_agent.py` with `user_agent()`, the
+  one function that builds the identifying User-Agent string; this item
+  reuses it instead of writing a second one (it is on the GEN.548
+  branch, so it is on main once GEN.548 merges).
   Prerequisites: none. Related: API.5, API.15, API.30.
 
 ## ADM: Admin tools
