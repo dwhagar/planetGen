@@ -97,8 +97,7 @@
     },
     {
       "epoch": 20,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1759",
       "reason": "The ionizing members of a class D or E emission region are real stars placed in a Plummer sphere about its seed star, and a star's hosted-nebula roll reads its mass, age and temperature as floats, so some stars roll a different nebula (GEN.321)."
     }
   ]
