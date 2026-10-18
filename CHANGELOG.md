@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1761] - 2026-10-18
+
+**Headline:** The accessibility tests no longer fail on a loaded machine when the first build of a page takes longer than the slow-page limit.
+
+### Changed
+- `tests/test_web_a11y.py` pins the slow-page rule off for its module (`pages_are_never_slow`, an autouse module fixture setting `tuning.SLOW_PAGE_SECONDS` to infinity). On a loaded run the first build of `/search` or `/phenomena` took over 3 s, the cost rule marked the route slow, and the next request was queued and answered 202 with the loading state instead of the page, which failed the `page_targets` fixture for 199 tests in one gate. These tests check each page's layout and accessibility, not the slow-page answer, which `tests/test_slowpages.py` covers.
+
+### Added
+- Nothing.
+
+TODO items resolved: TEST.232 / Added: none
+
 ## [8.0.1760] - 2026-10-18
 
 **Headline:** The wheel-anchor, system-disc and breadcrumb browser tests wait for the camera and the address to stop changing before reading them, so they no longer fail when a loaded machine is slow.
