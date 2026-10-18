@@ -20300,6 +20300,48 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
 
+- [ ] **DOC.69 Global documents are regenerated only by the TODO thread: a stale generated page never fails a lane's gate and a lane's PR never touches one**
+  Boss, 2026-10-17, 11:25 PM EDT (as the coordinator relayed): "TODO
+  should be the only one who regenerates global documents". Why now:
+  DOC.68 made a stale `docs/plan` page fail `build_todo_docs.py --check`
+  and `src/tests/test_todo_docs.py`, and the architecture map
+  (`docs/design/architecture-map.html`, DOC.67) goes stale whenever any
+  lane adds a module (`physics.brown_dwarf` did; PERF.127 regenerated it
+  in #2166), so every lane PR that adds a module regenerates a 3 MB page
+  and every two such PRs conflict. Global documents are the generated
+  pages that span the project: the architecture map, `docs/index.html`
+  and every `docs/plan/*.html`. Plan (TODO thread's proposal, with Core
+  5, which owns DOC.67 and DOC.68, to settle the details): (1) a pytest
+  marker `globaldocs` on the freshness tests
+  (`test_architecture_map.py::test_the_page_lists_every_module_of_the_package`,
+  `test_docs_index.py::test_the_index_is_up_to_date` and
+  `test_every_html_page_under_docs_is_listed_with_a_description`,
+  `test_todo_docs.py::test_pages_are_up_to_date`);
+  `src/tests/conftest.py` leaves them out of every run unless
+  `PLANETGEN_GLOBAL_DOCS=1` or `-m globaldocs` is given, so
+  `scripts/test.py changed`, `quick` and a lane's gate never run them;
+  (2) one script, `scripts/build_global_docs.py` (with `--check`), runs
+  the three builders, and `scripts/test.py globaldocs` runs the marked
+  tests with the variable set; the TODO flow runs it after every merge
+  batch and `full --check` at a release stamp runs it, so a stale page
+  fails there and nowhere a lane sees it; (3) the builders stay as they
+  are and the generated files are never in a lane PR (the lane's own
+  docs, such as a design note and its entry in `docs/design/README.md`,
+  stay lane work); (4) the rule is written in the process docs
+  (`docs/plan/execution-notes.md`, `CLAUDE.md` or the contributor doc
+  that carries the lane rules, and the briefs) and the execution plan
+  page shows it. Done: a lane that adds a module and does not touch a
+  global document passes its changed gate; the marked tests fail on a
+  stale page when run with the variable, and the TODO flow and the
+  release stamp run them; the rule is in the process docs. Order on Core
+  5's lane (coordinator, 11:25 PM EDT): first, ahead of PERF.126, so
+  other lanes do not hit conflicts. Owner: Core 5 (proposed by the
+  coordinator; it owns DOC.67 and DOC.68). Open point for Core 5:
+  whether `test_todo_docs.py`'s other checks (the ledger counts, the
+  order check) stay in the lane gate, since they read TODO.md which
+  lanes never edit.
+  Prerequisites: none. Related: DOC.67, DOC.68, DOC.47.
+
 ## VIEW: The view from a planet
 
 - [ ] **VIEW.1 View from a planet**
