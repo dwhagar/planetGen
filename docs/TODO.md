@@ -8092,6 +8092,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   defect: the test of the density against the old model at the reference
   radius (Done above) then checks the law and states the factor instead
   of expecting agreement within the scatter.
+  Core 1's findings while building this item (8:33 PM EDT as the lane
+  reported): the vertical profile is filed as GEN.544 and the mean
+  system mass as GEN.545; the Einstein radius is now
+  shown "seen from the reference radius" (see VIEW.1). The O-star test
+  failure it also saw is TEST.230's cause (retired, #2128); Core 1 fixes
+  the assert in this branch to look for an O5V entry anywhere in the
+  nebula's hosts.
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -13805,6 +13812,62 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   or relabelled. Owner: Blocker 1 (proposed, after PERF.118, GEN.438 to
   GEN.440).
   Prerequisites: none. Related: GEN.314, GEN.264.
+
+- [ ] **GEN.544 Revisit the disc's vertical profile: the sech-squared core has half the midplane density of the exponential fits its scale heights come from**
+  Found by Core 1 while building GEN.404 (2026-10-17, 8:33 PM EDT as the
+  lane reported), filed by the TODO thread. Design gap, a consequence of
+  GEN.404's "Mass sets count" decision (Boss, card in Core 1's thread):
+  `galaxy/density.py` `_vertical` uses sech^2(z / 2h), and with the
+  density normalised to the galaxy's mass the reference structure (5e10
+  solar masses) has 0.037 systems per pc^3 at the reference radius, 0.38
+  of the old pinned local density (0.0985). The thin disc holds the
+  right column there (about 30 solar masses per pc^2 against 35
+  observed), but a sech^2 core has half the midplane density of the
+  exponential fits the scale heights were measured against, so the
+  midplane is too sparse and the 2.6 times sparser result of GEN.404 is
+  partly this profile and not only the mass law. Fails on main: no (it
+  appears with GEN.404's normalisation). Frequency: every galaxy.
+  Reproducer: `build_galaxy_shape` with the BHG16 shape,
+  `relative_density` at 3.15 scale lengths. Do: decide the profile with
+  the sources the scale heights come from (an exponential or a sum of
+  thin populations by age, GEN.134's young share and the thick disc
+  ratios decide the sum), keep the column density, change the midplane,
+  and say in the design note what the old and new local density are.
+  Default (stands unless Boss overrules): keep the column (about 30
+  against 35 observed) and match the midplane of the exponential fits,
+  with the thin populations summed if one profile cannot do both. Done:
+  the midplane density at the reference radius matches the fits within
+  the derived scatter, the column density does not move, and a test pins
+  both. A change that alters the generator output follows the epoch
+  rule. Owner: Core 1 proposed (it owns the code GEN.404 changes), after
+  GEN.404 merges.
+  Prerequisites: GEN.404. Related: GEN.404, GEN.134, GEN.401.
+
+- [ ] **GEN.545 The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution**
+  Found by Core 1 while building GEN.404 (2026-10-17, 8:33 PM EDT as the
+  lane reported), filed by the TODO thread.
+  `tuning.MEAN_SYSTEM_MASS_SOLAR = 0.4` is documented as "recalled,
+  within a factor of 1.5"; today it only turns unresolved mass into a
+  system count (`generation/place_terms.py`, `galaxy/resolution.py`),
+  but with GEN.404's mass-normalised density it becomes the divisor of
+  the stellar mass for every galaxy (stellar mass over 0.4 gives the
+  system count), so a factor of 1.5 here moves every galaxy's star count
+  by up to 50 percent. Boss's rule is no fixed content. Fails on main:
+  no (the constant matters once GEN.404 merges). Frequency: every
+  galaxy. Reproducer: change the constant by 1.5 in `tuning.py` and
+  compare the system count of one seed. Do: compute the mean mass of a
+  system from the generator's own stellar mass function and multiplicity
+  (GEN.103's pooled Moe trend, the IMF in use) so the constant goes, or,
+  if the integral cannot be done in closed form, a seeded measurement at
+  build time; where a source is needed, GEN.366 or the next research
+  pass names it and the lane verifies the citation first. Default
+  (stands unless Boss overrules): derive it from the generator's own
+  distribution, no new constant. Done: no code reads
+  `MEAN_SYSTEM_MASS_SOLAR`, a test checks the derived mean against a
+  seeded draw of systems within the scatter, and the design note says
+  where the number comes from. Owner: Core 1 proposed, after GEN.404
+  merges.
+  Prerequisites: GEN.404. Related: GEN.404, GEN.103, GEN.366.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -20501,6 +20564,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     Decided (2026-10-10): Boss (19:16Z, Accept all): constellation names
     use the name codec (the 2026-10-07 plan stands); the licensing,
     transliteration and uniqueness questions are moot.
+  Note (Core 1, 2026-10-17, 8:33 PM EDT as the lane reported, GEN.404):
+  there is no home position, so the Einstein radius GEN.154 shows is now
+  "seen from the reference radius" (3.15 scale lengths of the galaxy).
+  When the view from a planet has a real observer (this item), the
+  Einstein radius and any other figure that assumes an observer's place
+  should read that observer instead of the reference radius.
 
 - [ ] **VIEW.6 Settle the handedness of the generated galaxy before mapping real sky coordinates**
   The generated galaxy rotates counterclockwise about +Z and the real
