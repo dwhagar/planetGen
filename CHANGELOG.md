@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1809] - 2026-10-18
+
+**Headline:** The reference docs describe the description layer as built: the PHI-6 name, the `rating` data, the command line options and the removed text builders.
+
+### Changed
+- `docs/design/habitability-index.md` names the display score PHI-6 (it was PHI-4 before GEN.207) and describes `protection.rating` and the describer in place of the removed `protection.paragraph`.
+- `docs/cli.md` drops the `--markdown` flag of `planetgen phenomenon`, which no longer exists.
+- `docs/database-schema.md` says the old text builder (`to_paragraph_list`) is gone.
+
+TODO items resolved: DOC.45 / Added: none
+
 ## [8.0.1808] - 2026-10-18
 
 **Headline:** The design page now says what a usable circumbinary window is and which numbers are measured
