@@ -895,3 +895,4 @@ Baseline: PR #1817.
 | GEN.244 | 8.1 | Components and wanderers |
 | GEN.282 | 8.1 | Galactic core and halo |
 | GEN.563 | 8.1 | Galactic core and halo |
+| TEST.248 | 8.1 | Bugs and flaky tests |
