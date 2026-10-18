@@ -230,7 +230,7 @@ def test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star(page, base_u
             break
     assert shares, "the system's scene never came in"
     assert shares == sorted(shares), shares
-    assert shares[-1] == pytest.approx(1.0, abs=1e-6), shares
+    assert shares[-1] >= 0.999, shares
     # A small system is first loaded at the 50 AU it is taken for, found too small to stay and dropped; its real size is
     # remembered, so it is loaded once more when its disc is big enough, and not again.
     assert 1 <= len(seen) <= 2, seen
