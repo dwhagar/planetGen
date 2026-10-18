@@ -50,7 +50,7 @@ from planetgen.db import store
 from planetgen.generation import limits
 from planetgen import tuning
 from planetgen.util import log
-from planetgen.galaxy.density import build_galaxy_shape
+from planetgen.galaxy.density import _raw_density, build_galaxy_shape
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1
 from planetgen.physics.units import ly_to_pc
 
@@ -306,7 +306,6 @@ def test_a_lone_double_dash_value_is_a_usage_error(argv):
 @example(target=("galaxy", "--min-start-density"), token="nan")         # filter silently off
 @example(target=("plan", "--arm-density"), token="nan")                 # NaN reached MySQL
 @example(target=("plan", "--disk-scale-length-pc"), token="nan")        # NaN reached MySQL
-@example(target=("plan", "--calibration-radius-pc"), token="inf")       # math domain error
 def test_non_finite_numbers_are_rejected_by_validation(target, token):
     command, option = target
     assert _parse([command] + _BASE_ARGV.get(command, []) + [option, token]) == 2
@@ -531,8 +530,6 @@ def plan_argv(draw):
         "--nuclear-amplitude", repr(draw(st.sampled_from([0.0, 2.0, 0.0, 2.0, -1.0]))),
         "--max-shell", str(draw(st.sampled_from([1, 5, 200, 1, 5, 200, 0]))),
     ]
-    if draw(st.booleans()):
-        argv += ["--calibration-radius-pc", repr(length * draw(st.sampled_from([1e-3, 1.0, 2.82, 30.0])))]
     return argv
 
 
@@ -557,8 +554,6 @@ _PLAN_TRACEBACKS = [
     (["--disk-scale-height-pc", "0"], "ZeroDivisionError (z / height)"),
     (["--bulge-scale-radius-pc", "0"], "ZeroDivisionError"),
     (["--bulge-scale-radius-pc", "-1"], "OverflowError: math range error"),
-    (["--calibration-radius-pc", "0"], "ValueError: math domain error (log(0))"),
-    (["--calibration-radius-pc", "1e300"], "ZeroDivisionError (k_norm = 1 / underflowed density)"),
     (["--disk-scale-height-pc", "inf"], "pymysql ProgrammingError: inf can not be used with MySQL"),
 ]
 
@@ -578,13 +573,13 @@ def test_plan_degenerate_shape_is_a_usage_error(extra, consequence):
 # ---------------------------------------------------------------------------
 
 # Relative density ~1 everywhere near the center (no bulge, no arms, huge
-# scale lengths, calibrated at 1 pc) so every sector expects the realistic
+# scale lengths, normalized to 1 at the centre) so every sector expects the realistic
 # ~4 systems -- fast -- and an outline of shells 0..3, bands -1..1.
-_FLAT_SHAPE = build_galaxy_shape(
+_FLAT_UNNORMALIZED = build_galaxy_shape(
     disk_scale_length_pc=1e6, disk_scale_height_pc=1e6, bulge_scale_radius_pc=1.0,
     bulge_amplitude=0.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.0,
-    calibration_radius_pc=1.0,
 )
+_FLAT_SHAPE = _FLAT_UNNORMALIZED._replace(k_norm=1.0 / _raw_density((0.0, 0.0, 0.0), _FLAT_UNNORMALIZED))
 _OUTER_SHELL = 3
 _FLAT_OUTLINE = [(0, 0), (1, 1), (2, 1), (3, 1)]
 

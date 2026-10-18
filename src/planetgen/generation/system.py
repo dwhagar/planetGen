@@ -196,8 +196,8 @@ class StarSystem:
                 straight through to every `Star`/`BinaryStarProxy` this
                 system creates (see `Star.calculate_system_perimeter`'s
                 docstring). `None` (the default) leaves every constituent
-                star's Hill-sphere calculation on the fixed
-                `constants.GALACTIC_CENTER_DISTANCE_LY` constant --
+                star's Hill-sphere calculation on the radius that holds half of the
+                galaxy's disc stars (`galaxy.scales`) --
                 the correct behavior for a system with no galaxy placement
                 (e.g. `generation/run_sector.py`'s own standalone CLI).
             compact_remnant (BlackHole or NeutronStar, optional): A

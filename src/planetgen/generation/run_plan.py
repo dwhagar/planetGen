@@ -320,8 +320,8 @@ def plan_skeleton_unit(params, report):
         found = clusters.generate_clusters(
             galaxy_seed, epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX, scale=scale)
         dwarfs = satellites.place_satellites(
-            galaxy_seed, program_constants.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * shape.disk_scale_length_pc,
-            model_terms(shape)["solar_angle_rad"], epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX, scale=scale)
+            galaxy_seed, program_constants.REFERENCE_RADIUS_SCALE_LENGTHS * shape.disk_scale_length_pc,
+            model_terms(shape)["reference_angle_rad"], epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX, scale=scale)
         young = openClusters.generate_open_clusters(
             galaxy_seed, shape, edge_pc, e_value, epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX)
         store.replace_galaxy_components(conn, found + young, kind="cluster")

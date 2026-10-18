@@ -57,7 +57,6 @@ COSMIC_BACKGROUND_TEMPERATURE_K = 2.725  # Cosmic microwave background, K -- the
 # --- Astronomical Constants ---
 SOLAR_MASS_TO_KG = 1.988409870698051e+30  # Solar mass to kilograms conversion factor
 SOLAR_LUMINOSITY = 3.828e+26  # Solar luminosity in Watts
-GALACTIC_CENTER_DISTANCE_LY = 25800  # Distance from Sol to the Galactic Center in light-years
 MIN_TIDAL_DISTANCE_LY = 4.89  # 1.5 pc, a point's mean distance in the 2 pc core ball: the nearest to the center a system's Hill sphere is worked out at (at 0 it would be 0, leaving no room for a planet)
 EARTH_MASS_TO_KG = 5.972167867791379e+24  # Earth mass to kilograms conversion factor
 MOON_MASS_KG = 7.342e+22  # The Moon's mass, kg: project-nominal (the IAU defines no lunar mass), for the mass ladder's lunar rung
@@ -97,9 +96,8 @@ SNOW_LINE_AU_AT_1_LSUN = 2.7
 # the asymptotic velocity well outside it, the same qualitative shape real
 # spiral-galaxy rotation curves show (steep bulge rise, flat disk plateau)
 # and the standard explanation for why "flat rotation curve" is cited as
-# dark-matter evidence in the first place. Validated against Sol's own
-# GALACTIC_CENTER_DISTANCE_LY above: this gives ~206 km/s and a ~236
-# million-year orbital period, both close to the real Sun's measured
+# dark-matter evidence in the first place. At 8.2 kpc, the Sun's distance (`mathcheck.SUN_REFERENCE_RADIUS_PC`), it
+# gives ~206 km/s and a ~236 million-year orbital period, both close to the real Sun's measured
 # ~220-240 km/s circular velocity and ~225-250 million-year "galactic year".
 GALACTIC_ROTATION_FLAT_VELOCITY_KMS = 220.0  # Asymptotic circular velocity, km/s -- the IAU (1985) standard local-standard-of-rest value, still within the range of modern estimates (~220-236 km/s)
 GALACTIC_ROTATION_CORE_RADIUS_PC = 3000  # Turnover radius of the rotation curve (rise -> plateau), in parsecs -- approximates the real Milky Way's bulge/inner-disk transition

@@ -19,8 +19,8 @@ gas and the way a disc's dispersion grows with age:
 - `sigma_age` is fixed by the disc's central vertical dispersion, which is a fraction of the circular speed
   (`0.248 +/- 0.038 V`, Martinsson et al. 2013, arXiv:1307.8130, 30 spirals): the root mean square of `sigma_z` over
   a star formation flat in age from 0 to `tau` is that central value.
-- The dispersion falls as `exp(-R / 2 h_R)` (Martinsson 2013); the model's profiles are at the solar-like radius
-  (`tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH` scale lengths), where every population is taken.
+- The dispersion falls as `exp(-R / 2 h_R)` (Martinsson 2013); the model's profiles are at the reference radius
+  (`tuning.REFERENCE_RADIUS_SCALE_LENGTHS` scale lengths), where every population is taken.
 - A population's scale height goes as its dispersion squared (an isothermal sheet: `h = sigma^2 / (pi G Sigma)`, one
   surface density for all), so its ratio to the old disc's is `sigma_z(population)^2 / sigma_z(old)^2`.
 - The profile's dispersion is the three-axis total: the gas part is isotropic (`3 sigma_gas^2`), the heated part has
@@ -73,8 +73,8 @@ hole's draw about its law in standard deviations; `nuclear_cluster_mass_solar` i
 zero for a galaxy that has none (GEN.402); the two `black_hole_*_share` are the shares of the massive stars that fail to explode,
 at solar and at zero metallicity (GEN.563, `physics.black_hole_formation`)."""
 
-SOLAR_RADIUS_OVER_TWO_LENGTHS = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH / 2.0
-"""float: `R / 2 h_R` at the solar-like radius, the exponent of the fall of the dispersion."""
+REFERENCE_RADIUS_OVER_TWO_LENGTHS = tuning.REFERENCE_RADIUS_SCALE_LENGTHS / 2.0
+"""float: `R / 2 h_R` at the reference radius, the exponent of the fall of the dispersion."""
 ANISOTROPY_SIGMA_Z_OVER_SIGMA_R = 0.54
 """float: The heated part's vertical over radial dispersion (Sharma and Hayden 2020; a stand-in for every age)."""
 AZIMUTHAL_OVER_RADIAL = math.sqrt(0.5)
@@ -84,14 +84,8 @@ HEATED_TOTAL_OVER_VERTICAL = math.sqrt(
 """float: The three-axis total of the heated part over its vertical dispersion (2.48)."""
 STELLAR_HALO_DENSITY_SLOPE = (tuning.HALO_INNER_SLOPE + tuning.HALO_OUTER_SLOPE) / 2.0
 """float: The tracer slope the Jeans equation takes (3.5: the middle of the model's inner and outer slopes)."""
-MODEL_SYSTEMS_PER_STELLAR_MASS = 6.0
-"""float: How many systems the model's visible components hold per solar mass of stars: the default model holds 3.0e11
-for the 5e10 solar masses it stands for (its densities are tuned to star counts, not to mass), the number the halo's
-share of the visible systems is scaled by."""
-MEAN_SYSTEM_MASS_SOLAR = 0.4
-"""float: Solar masses a halo system holds on average (docs/design/globular-clusters.md)."""
 
-_MILKY_WAY_SOLAR_RADIUS_OVER_LENGTH = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH
+_MILKY_WAY_SOLAR_RADIUS_OVER_LENGTH = tuning.REFERENCE_RADIUS_SCALE_LENGTHS
 _MILKY_WAY_THICK_LENGTH_RATIO = 2000.0 / 2600.0
 _MILKY_WAY_THICK_HEIGHT_RATIO = 900.0 / 300.0
 _MILKY_WAY_THICK_LOCAL_DENSITY_RATIO = 0.04
@@ -130,9 +124,9 @@ draws (a stand-in: no measurement gives a galaxy's)."""
 
 
 def stellar_halo_system_fraction(structure):
-    """The stellar halo's systems over the visible components' systems: its mass over the galaxy's stellar mass,
-    scaled to the model's counts (`MODEL_SYSTEMS_PER_STELLAR_MASS`, `MEAN_SYSTEM_MASS_SOLAR`)."""
-    return structure.halo_stellar_ratio / (MEAN_SYSTEM_MASS_SOLAR * MODEL_SYSTEMS_PER_STELLAR_MASS)
+    """The stellar halo's systems over the visible components' systems: its mass over the rest of the galaxy's stars
+    (the halo is `halo_stellar_ratio` of them all, GEN.404)."""
+    return structure.halo_stellar_ratio / (1.0 - structure.halo_stellar_ratio)
 
 
 def _heated_square(structure, name):
@@ -143,7 +137,7 @@ def _heated_square(structure, name):
     power = 1.0 + 2.0 * structure.disc_age_exponent
     at_tau = (structure.disc_central_dispersion_kms ** 2 - structure.disc_gas_dispersion_kms ** 2) * power
     mean = (high ** power - low ** power) / (power * (high - low)) / tau ** (2.0 * structure.disc_age_exponent)
-    return at_tau * mean * math.exp(-2.0 * SOLAR_RADIUS_OVER_TWO_LENGTHS)
+    return at_tau * mean * math.exp(-2.0 * REFERENCE_RADIUS_OVER_TWO_LENGTHS)
 
 
 def disc_vertical_dispersion_kms(structure, name):

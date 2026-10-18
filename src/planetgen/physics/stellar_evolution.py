@@ -27,6 +27,7 @@ section.
 
 import math
 
+from planetgen.galaxy import scales
 from planetgen.physics import constants, giant_branch, metallicity, ms_lifetime, remnant_mass, wolf_rayet
 from planetgen import tuning
 from planetgen.util import draw
@@ -480,7 +481,7 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
         if fe_h is None:
             # A cluster or satellite star with no distribution of its own is drawn as the halo's.
             origin = "halo" if population in ("cluster", "satellite", "satellite_young", "satellite_intermediate") and not fe_h_peaks else population
-            fe_h = metallicity.sample_fe_h(origin, constants.GALACTIC_CENTER_DISTANCE_LY, rng, peaks=fe_h_peaks)
+            fe_h = metallicity.sample_fe_h(origin, scales.default_galactocentric_ly(), rng, peaks=fe_h_peaks)
             state["metallicity_fe_h"] = fe_h
         colour = sample_horizontal_branch_colour(fe_h, age_gy, rng)
         state.update(yerkes_class="III", phase="horizontal-branch",

@@ -604,11 +604,12 @@ this document is the reference.
 4. **Three Sun distances.** `physics/constants.py` has
    `GALACTIC_CENTER_DISTANCE_LY = 25800` (7.91 kpc). The source document, GEN.115
    and `orbital-updates.md` use 8.128 kpc (the document allows 8.128 to 8.200).
-   `tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH = 8200 / 2600` puts the density
+   `tuning.REFERENCE_RADIUS_SCALE_LENGTHS = 8200 / 2600` puts the density
    model's Sun at exactly 8.2 kpc, which the docs round to "3.15 L" (that
    rounds to 8.19). No test uses 8.128 yet, because GEN.115 is unbuilt. The
    potential itself does not care; the test calibration radius and Sol's
    placement do. Pick one reference and move the others to it.
+   *GEN.404:* the constant and the density's calibration radius are gone; the Sun's 8.2 kpc is `mathcheck.SUN_REFERENCE_RADIUS_PC`, a test reference.
 5. **"Singularity-free" and "vanishes at the origin".** The document calls the
    Hernquist derivatives singularity-free and says Plummer softening makes the
    net acceleration vanish at the origin. The Hernquist and NFW forces are

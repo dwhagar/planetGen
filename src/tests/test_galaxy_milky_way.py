@@ -25,7 +25,7 @@ from planetgen.physics import mathcheck
 
 SHAPE = mathcheck._reference_galaxy_shape()
 TERMS = density.model_terms(SHAPE)
-SOLAR_RADIUS_PC = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * SHAPE.disk_scale_length_pc
+SOLAR_RADIUS_PC = tuning.REFERENCE_RADIUS_SCALE_LENGTHS * SHAPE.disk_scale_length_pc
 
 
 def _at(radius, angle, z=0.0):
@@ -130,7 +130,7 @@ def test_the_bar_leads_the_sun_by_27_degrees():
     # (counterclockwise from galactic north, increasing theta).
     angles = [2 * math.pi * i / 3600 for i in range(3600)]
     densest = max(angles, key=lambda a: density._components(_at(1500.0, a), SHAPE)[0])
-    lead = math.degrees((densest - TERMS["solar_angle_rad"]) % math.pi)
+    lead = math.degrees((densest - TERMS["reference_angle_rad"]) % math.pi)
     assert lead == pytest.approx(27.0, abs=2.0)
 
 
@@ -165,7 +165,7 @@ def test_the_very_center_is_the_nuclear_cluster_and_the_bulge_rules_beyond_it():
 def _edge_on_column(x, z):
     """Edge-on light at sky position `(x, z)`, seen from the Sun's side:
     the density summed along the Sun-center line."""
-    angle = TERMS["solar_angle_rad"]
+    angle = TERMS["reference_angle_rad"]
     toward = (math.cos(angle), math.sin(angle))
     across = (-toward[1], toward[0])
     return sum(density.relative_density(
@@ -179,6 +179,6 @@ def test_the_bulge_stands_out_edge_on():
     # Milky Way model gives 3.8.
     assert _edge_on_column(0.0, 1000.0) > 3.8 * _edge_on_column(4000.0, 1000.0)
     # And 600 pc up, most of the center's light is the bulge's.
-    angle = TERMS["solar_angle_rad"]
+    angle = TERMS["reference_angle_rad"]
     bulge = sum(density._components(_at(y, angle, 600.0), SHAPE)[0] for y in range(-20000, 20001, 50))
     assert SHAPE.k_norm * bulge > 0.5 * _edge_on_column(0.0, 600.0)

@@ -217,8 +217,7 @@
 --
 -- v10: galactic orbit. `stars` gains `galactic_orbital_speed_kms` and
 --   `galactic_orbital_period_gy` -- a star system's circular orbital speed
---   and period around the galactic center, derived from its (or the fixed
---   `physical_constants.GALACTIC_CENTER_DISTANCE_LY` fallback's) distance
+--   and period around the galactic center, derived from its (or the fallback's, the radius that holds half of the galaxy's disc stars) distance
 --   from it via a simple rotation-curve model (see
 --   `physical_constants.GALACTIC_ROTATION_FLAT_VELOCITY_KMS`'s comment and
 --   `galactic_orbit.calculate_galactic_orbit`) -- the same "fixed at generation

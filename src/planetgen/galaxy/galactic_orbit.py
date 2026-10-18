@@ -10,6 +10,7 @@ period and phase, and the text every "Galactic Orbit" row shows.
 
 import math
 
+from planetgen.galaxy import scales
 from planetgen.physics import constants as physical_constants
 from planetgen.physics.orbits import minimum_update_interval_years
 from planetgen.physics.units import ly_to_pc
@@ -85,8 +86,7 @@ def generate_galactic_orbit_fields(galactic_center_dist_ly=None, galactic_orbita
         galactic_center_dist_ly (float, optional): This body's actual
             distance from the galactic center, in light-years -- see
             `Star.calculate_system_perimeter`'s docstring for the same
-            parameter/fallback convention. `None` (the default) uses the
-            fixed `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant.
+            parameter/fallback convention. `None` (the default) uses the radius that holds half of the galaxy's disc stars (`galaxy.scales`).
         galactic_orbital_phase_deg (float, optional): This body's current
             angular position around its galactic orbit, in degrees -- see
             `Star.__init__`'s docstring for the same parameter. `None`
@@ -97,7 +97,7 @@ def generate_galactic_orbit_fields(galactic_center_dist_ly=None, galactic_orbita
               galactic_orbital_phase_deg, galactic_min_update_interval_years)`.
     """
     if galactic_center_dist_ly is None:
-        galactic_center_dist_ly = physical_constants.GALACTIC_CENTER_DISTANCE_LY
+        galactic_center_dist_ly = scales.default_galactocentric_ly()
     speed_kms, period_gy = calculate_galactic_orbit(galactic_center_dist_ly)
     phase_deg = galactic_orbital_phase_deg if galactic_orbital_phase_deg is not None else draw.uniform(0, 360)
     min_update_interval_years = minimum_update_interval_years(period_gy * 1e9)
