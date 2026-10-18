@@ -107,8 +107,7 @@
     },
     {
       "epoch": 22,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1774",
       "reason": "A star of 25 solar masses or more (more at low metallicity) is a Wolf-Rayet star for the last 0.3 Myr of its life in place of the end of its supergiant phase, with a WN, WC or WO type, a luminosity and temperature of its own and a companion in 52% (WN) or 90% (WC, WO) of systems, and a Wolf-Rayet star lights a class X ring nebula in 40% of cases (GEN.243)."
     }
   ]
