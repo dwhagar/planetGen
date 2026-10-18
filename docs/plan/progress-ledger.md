@@ -875,3 +875,8 @@ Baseline: PR #1817.
 | TEST.235 | 8.1 | Bugs and flaky tests |
 | GEN.562 | 8.1 | Multi-star and compact systems |
 | GEN.402 | 8.1 | Galaxy laws build |
+| OPS.60 | 8.1 | Queue, caches and performance |
+| OPS.61 | 8.1 | Queue, caches and performance |
+| TEST.236 | 8.1 | Bugs and flaky tests |
+| TEST.225 | 8.1 | Bugs and flaky tests |
+| TEST.245 | 8.1 | Bugs and flaky tests |
