@@ -985,6 +985,7 @@ class Star(LazySaladName):
         age_bias = self.system_config.AGE
         population = getattr(self.system_config, "POPULATION", None)
         fe_h_peaks = getattr(self.system_config, "FE_H_PEAKS", None)
+        age_law = getattr(self.system_config, "AGE_LAW", None)
         state = None
         if initial_mass_sol is not None:
             initial_mass_sol = max(initial_mass_sol, tuning.IMF_BREAKS_SOL[0])
@@ -1007,7 +1008,7 @@ class Star(LazySaladName):
                 initial_mass_sol, age, state = sample_living_star(
                     age_bias, self.system_config.LARGE_STAR, habitable_host=habitable_host,
                     population=population, max_luminosity_sol=max_luminosity_sol, max_mass_sol=max_mass_sol,
-                    fe_h_peaks=fe_h_peaks)
+                    fe_h_peaks=fe_h_peaks, age_law=age_law)
             except ValueError:
                 if not (self.system_config.LARGE_STAR and (max_luminosity_sol is not None
                                                            or max_mass_sol is not None)):
@@ -1020,7 +1021,7 @@ class Star(LazySaladName):
                 initial_mass_sol, age, state = sample_living_star(
                     age_bias, None, habitable_host=habitable_host,
                     population=population, max_luminosity_sol=max_luminosity_sol, max_mass_sol=max_mass_sol,
-                    fe_h_peaks=fe_h_peaks)
+                    fe_h_peaks=fe_h_peaks, age_law=age_law)
 
         self._apply_params(star_params(initial_mass_sol, age, state))
         log.choice("Star", self.type, f"population model: initial mass {initial_mass_sol:.3g} Msun, "

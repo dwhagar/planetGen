@@ -154,9 +154,11 @@ def test_the_present_rate_over_the_mean_is_within_a_factor_of_two_of_the_milky_w
     assert 0.5 * observed <= found.present_over_mean() <= 2.0 * observed
 
 
-def _b_share_between_arms_at_the_sun(shape=SHAPE, draws=20_000):
+def _b_share_between_arms_at_the_sun(shape=SHAPE, draws=100_000, spread_ages=True, seed=469):
     """The share of the stars between the arms at the solar radius that are B dwarfs: each disk population's B share
-    (drawn from the generator's own sampler) over the populations' densities there."""
+    (drawn from the generator's own sampler, with the ages spread by the history's rate inside each window unless
+    `spread_ages` is false, GEN.546) over the populations' densities there."""
+    laws = disk_history.population_age_laws(shape) if spread_ages else {}
     solar = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * shape.disk_scale_length_pc
     angles = np.linspace(0.0, 2.0 * math.pi, 720, endpoint=False)
     cosines = [density._arm_cosine(solar * math.cos(a), solar * math.sin(a), shape) for a in angles]
@@ -164,11 +166,11 @@ def _b_share_between_arms_at_the_sun(shape=SHAPE, draws=20_000):
     mix = density.population_densities((solar * math.cos(angle), solar * math.sin(angle), 0.0), shape)
     every = sum(max(value, 0.0) for value in mix.values())
     b_share = {}
-    with draw.bound(469):
+    with draw.bound(seed):
         for name in ("young", "intermediate"):
             count = 0
             for _ in range(draws):
-                mass, age, state = sample_living_star(population=name)
+                mass, age, state = sample_living_star(population=name, age_law=laws.get(name))
                 if state["yerkes_class"] in ("VII", "IV", "III", "II", "I"):
                     continue
                 count += star_params(mass, age, state)["type"][0] == "B"
@@ -177,14 +179,15 @@ def _b_share_between_arms_at_the_sun(shape=SHAPE, draws=20_000):
 
 
 def test_the_local_b_share_is_what_the_derived_history_and_the_mass_function_give():
-    """Recorded: the B-star share between the arms at the solar radius is near 0.12 percent for the Milky Way-like
-    galaxy, against 0.19 percent with a flat history and the observed 0.04."""
+    """Recorded: the B-star share between the arms at the solar radius is near 0.05 percent for the Milky Way-like
+    galaxy with the ages spread by the history's rate (GEN.546), 0.07 percent with them spread evenly inside the windows
+    and 0.19 percent with a flat history, against the observed 0.04."""
     share = _b_share_between_arms_at_the_sun()
-    assert 0.0006 <= share <= 0.0016
+    assert 0.0004 <= share <= 0.0007
+    assert _b_share_between_arms_at_the_sun(spread_ages=False) > share
 
 
-@pytest.mark.xfail(strict=True, reason="GEN.469: the derived history leaves the local B share at about three "
-                   "times the observed 0.04 percent (Mamajek's census, docs/design/star-types-by-galactic-radius.md); "
-                   "what is missing is open (docs/design/disk-star-formation-history.md, 'What it does not do')")
 def test_the_local_b_share_reaches_the_observed_one():
-    assert _b_share_between_arms_at_the_sun() <= 1.5 * 0.0004
+    """Mamajek's census (docs/design/star-types-by-galactic-radius.md) is a test target, never an input (GEN.547)."""
+    for seed in (469, 1, 2):
+        assert _b_share_between_arms_at_the_sun(seed=seed) <= 1.5 * 0.0004
