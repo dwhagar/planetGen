@@ -172,8 +172,7 @@
     },
     {
       "epoch": 35,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1842",
       "reason": "A reach group beyond the outline bounds the nuclear cluster and disc where the group really is (its inner spherical radius, not the pole's central density), so the candidate stream of the shells beyond the outline is drawn differently and the rows a seed places in them change (PERF.138)."
     }
   ]
