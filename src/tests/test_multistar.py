@@ -14,6 +14,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.generation import multistar
+from planetgen.generation.phenomena import hosts
 from planetgen.physics import ms_lifetime, stability, stellar_evolution as evolution
 from planetgen.util import draw
 
@@ -119,7 +120,7 @@ def test_every_member_kind_is_known_and_masses_are_positive():
 def test_the_number_of_stars_follows_the_class_table():
     placed = multistar.Placed("star", 20.0)
     counts = Counter(_tree(placed, 1.0e6, seed).star_count for seed in range(4000))
-    table = multistar.STAR_COUNT_PROBABILITIES["O"]
+    table = hosts.STAR_COUNT_PROBABILITIES["O"]
     for n in (1, 2, 3):
         expected = table[n - 1]
         sigma = math.sqrt(expected * (1 - expected) / 4000)
@@ -307,7 +308,7 @@ def test_the_b_star_rows_reproduce_moe_and_di_stefanos_table_13_fractions():
     # GEN.449: single, binary and triple-or-more fractions of the mid-B and early-B bins.
     for name, row in (("mid B", "B-mid"), ("early B", "B-early")):
         bin_ = tuning.MULTIPLICITY_BY_PRIMARY_MASS_BIN[name]
-        table = multistar.STAR_COUNT_PROBABILITIES[row]
+        table = hosts.STAR_COUNT_PROBABILITIES[row]
         assert sum(table) == pytest.approx(1.0, abs=1e-4)
         assert table[0] == pytest.approx(bin_["single"], abs=1e-4)
         assert table[1] == pytest.approx(bin_["binary"], abs=1e-4)

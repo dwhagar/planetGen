@@ -33,6 +33,14 @@ Small clean-ups that wait for an upstream release; none is part of a version's b
 |---|---|---|---|
 | GEN.588 | Optional: operator arithmetic on Quantity for the edges (mass divided by volume gives a density), unscheduled | GEN.586 | Optional; Boss chose R1 option 1, so nothing waits on it. |
 
+### Paging audit
+
+The leftover offset-paged queries, checked one by one; nothing in 8.1 waits on it.
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| PERF.137 | Audit the remaining `LIMIT ? OFFSET ?` queries: say which serve a big table and move those to keyset paging |  | Low priority; from Core 5's list (2026-10-18). |
+
 ### Upstream follow-ups
 
 | ID | Item | Needs | Note |

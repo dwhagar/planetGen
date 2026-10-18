@@ -4014,7 +4014,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
   lane queue); a line here that named Core 4 was the TODO thread's
   counting error, corrected 2026-10-16, 4:50 PM EDT.
-  Prerequisites: GEN.317, GEN.318, GEN.552.
+  Prerequisites: GEN.317, GEN.318.
 
 - [ ] **GEN.136 Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests**
   GEN.58 as built hashes floats exactly; the research recommends
@@ -5975,7 +5975,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.552. Related: GEN.130, GEN.436, GEN.444.
+  Prerequisites: none. Related: GEN.130, GEN.436, GEN.444.
 
 - [ ] **GEN.318 White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk**
   Split from GEN.130 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -13551,55 +13551,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.576); 'a group of up to 7 star-like objects' in his first message
   is read as a typical group, not a limit.
 
-- [ ] **GEN.552 Host registry: the five fixed `system_model` values become pointers to one gated orbiter table per host class, with no change in behaviour**
-  Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
-  the coordinator relayed). Design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U2 of the draft (section 7).
-  `phenomena/registry.py` (GEN.250, built) has a `system_model` column
-  with five values (`none`, `star-system`, `central-star`, `rogue-moon`,
-  `remnant-planets`). Replace it with one row per host class (group
-  node, star-like object, remnant, brown dwarf, planet bound or free,
-  moon) pointing to a companion table and a satellite table in the
-  gated-table format of GEN.472 (built): rows with classes, weights, a
-  source state and a zone rule (section 3.3 of the draft). A host class row exists for a moon and for a small body too (Boss's cards S5 and S6 on the System design, 12:10 to 12:13 AM EDT, 2026-10-18, as the coordinator relayed, superseding 'moons are the lowest level'): each row carries a `may_host` gate, a small body's orbiter table is empty by that gate, and a moon's has no rows until the tidal-survival gate row of GEN.579 exists; the recursion of the later `populate(host)` ends by the gate, not by a depth of three. This
-  step only moves what the code does into tables; the drawn values do
-  not change, so it does not bump the epoch. Do: the registry column and
-  the tables, each row labelled with its source state; the stage C
-  system pass reads them (its `SYSTEM_PASS_ODDS` becomes rows). Done: a
-  fill with the tables gives byte-identical systems to one without.
-  Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed). Moved to 8.1 phase 3 (Boss's back-scatter cards, taps 11:38 to 11:40 PM EDT, 2026-10-17, as the coordinator relayed, card 'Add to 8.1': always in 8.1 before GEN.317 and GEN.130, even if it delays Core 4's other 8.1 work); it is a prerequisite of GEN.317 and GEN.130 so they are written once against the host tables, not twice against the five fixed values. No epoch. Standing
-  rules for the whole chain: NO FIXED CONTENT (nothing copied from the
-  Solar System or the Milky Way), the database schema is not a
-  constraint, no backward-compatibility shims, every draw through the
-  one wrapper `util/draw.py` (GEN.56), every recalled source verified by
-  a lane before use under the standing source rules, and any change to a
-  drawn value bumps the generator epoch (OPS.56 rule).
-  System design (Boss's cards S5 and S6, 12:10 to 12:13 AM EDT,
-  2026-10-18, as the coordinator relayed;
-  docs/design/unified-system-barycentre.md, item SY1): the text above
-  now has a moon host row and a small-body host row with a `may_host`
-  gate. Owner Core 4.
-  Convention added (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT,
-  2026-10-18, as the coordinator relayed;
-  docs/design/unified-system-barycentre.md, section 12.2 point 2): host
-  rows express an orbiter's mass as a ratio to the host's mass where the
-  source gives a ratio, so the draw cannot make an orbiter heavier than
-  its host except through the pair builder, where the primary-first step
-  (GEN.581) lives. A wording edit on a table being written anyway; no
-  behaviour change.
-  As built so far (Core 4, 12:47 AM EDT 2026-10-18 as the lane reported;
-  coded on a branch, not merged, byte-identical draws proven over 30,000
-  seeds): the host class names are group-node, star-like, remnant,
-  brown-dwarf, planet and moon, with three tables (star-count,
-  remnant-satellites, planet-satellites); `SYSTEM_PASS_ODDS` and
-  `multistar.STAR_COUNT_PROBABILITIES` are gone; it is built in 8.1
-  phase 3 (the unified-objects note said U2 is 8.4, which is wrong: U2
-  is 8.1). Not yet applied by the lane: the System-card rewording above
-  (drop 'moons lowest level', moon and small-body host rows with a
-  `may_host` gate, orbiter mass as a ratio to host mass); it is in this
-  item's text now, so the lane should read it before the merge.
-  Prerequisites: none. Related: GEN.550, GEN.315.
-
 - [ ] **GEN.553 One star-like body draw: origin, birth, state and [Fe/H], with the initial-final relation, the remnant mass, radius and age rules in one place**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
@@ -13746,7 +13697,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the one wrapper `util/draw.py` (GEN.56), every recalled source
   verified by a lane before use under the standing source rules, and any
   change to a drawn value bumps the generator epoch (OPS.56 rule).
-  Prerequisites: GEN.552, GEN.315, GEN.555, GEN.565, GEN.581. Related:
+  Prerequisites: GEN.315, GEN.555, GEN.565, GEN.581. Related:
   GEN.550,
   GEN.264,
   GEN.315, GEN.346.
@@ -14370,6 +14321,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   other ad-hoc factors is GEN.571 and stays bit-identical. Done: the
   three sites read the exact factors, the golden digest changes with the
   epoch entry, and the tests that pin nebula radii are regenerated.
+  Progress (Core 5, 2:54 AM EDT 2026-10-18 as the lane reported): coded;
+  its changed gate started 2:53 AM EDT, and it takes epoch 25 (epoch 24
+  is pending for GEN.402, GEN.244 or the next of them to merge; the
+  later merger renumbers). PR follows when the gate is green.
   Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
@@ -14649,7 +14604,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   level counter. Done: a body below the cut has no satellites, a moon
   host draws none until its rows exist, and every row carries its source
   state.
-  Prerequisites: GEN.552. Related: GEN.550, GEN.552, GEN.315, GEN.565.
+  Prerequisites: none. Related: GEN.550, GEN.552, GEN.315, GEN.565.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
 - [ ] **GEN.580 Research: the binary and satellite fraction of small bodies by size, and the survival of sub-satellites of moons, to replace the stand-in cut of the hosting gate**
@@ -15749,32 +15704,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merged (#2159).
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
-- [ ] **PERF.126 `check-db`: each check is its own command and the report is the list the wrapper runs**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/command-inventory.md. Today `planetgen
-  check-db` runs the schema revision check, the table health check, the
-  rows-without-parents check and, with `--deep`, the sector and
-  wide-binary checks, picked by flags. Done: each check is its own
-  read-only command with its own parameters (the scope, `--deep`
-  becoming its own check), a wrapper step list of all of them gives
-  today's report and the same exit codes (1 on damage, 2 when a check
-  could not run), and the flags that grouped them are gone with no shim.
-  Owner: Core 5 (proposed; the PERF.118 chain).
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Progress (Core 5, 12:47 and 12:58 AM EDT 2026-10-18 as the lane
-  reported): written and committed on claude/core5-perf126, held behind
-  DOC.69 (merged as #2172); nine `check-*` commands run as a CHECK-kind
-  run; it needs Redis now and `--deep` and `--no-check-table` are gone.
-  Merging main, then its gate.
-  Prerequisites: PERF.120. Related: PERF.118, PERF.120.
-  Design: [docs/design/command-inventory.md](design/command-inventory.md)
-
 - [ ] **PERF.128 `benchmark` is a step list handed to the wrapper, not a sequence of its own**
   Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
   we can build whatever sequences we want" (the principle of 4:18 PM
@@ -16057,6 +15986,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   verified by a lane before use under the standing source rules, and any
   change to a drawn value bumps the generator epoch (OPS.56 rule).
   Prerequisites: GEN.558, GEN.559. Related: GEN.550.
+
+- [ ] **PERF.137 Audit the remaining `LIMIT ? OFFSET ?` queries: say which serve a big table and move those to keyset paging**
+  Found by Core 5 (3:15 AM EDT 2026-10-18 as the lane reported), filed
+  by the TODO thread. Keyset paging is done for the Systems, Uncharted
+  stars and Phenomena tables (PERF.20 umbrella and PERF.75, #2154);
+  `grep 'LIMIT ? OFFSET ?' src/planetgen` on main at 8.0.1795 still
+  finds 16 sites, as candidates only (Core 5 did not trace which serve
+  big tables): `db/query.py` lines 214, 501, 576, 618, 857, 898, 1781,
+  2270, 2365, 4234 and 6045 (11 queries), `population/model.py` 695, 778
+  and 830 (list queries), `db/stats.py` 310 (base names) and
+  `queue/work.py` 907 (task listing). The API list routes take `offset`
+  (api/routes.py MAX_PAGE_OFFSET) and `web/lib/pagination.py` clamps a
+  page past the end. Why it matters: `OFFSET` makes page n cost n times
+  as much (measured for the Systems table: rows 0, 20,000, 500,000 and
+  1,500,000 take 0.004, 0.13, 5.8 and 12.1 s idle, where a keyset page
+  costs 2 ms). Do: for each site, read the caller and the table it pages
+  (row count at a full galaxy, from the schema or a measured count) and
+  write one line per site: big or small, and the deepest page a user or
+  the API can ask for. Move the big ones to the keyset form the three
+  finished tables use (`after=<sort key, id>` next to `offset=`) and
+  leave the small ones with a one-line comment saying the table stays
+  under a few thousand rows. Done: a table of the 16 sites on this item
+  with the verdict for each, every big site on keyset paging with a test
+  that pages to the end, and the deepest-page time under 50 ms at a full
+  galaxy. Owner: Core 5 (proposed, it found the list and wrote the
+  PERF.126 and PERF.127 commands); low priority, no version blocker.
+  Prerequisites: none. Related: PERF.75, PERF.135.
 
 ## DB: Database and schema
 
@@ -19646,57 +19602,6 @@ clears each one.
   replaces any earlier owner line on this item.
   Prerequisites: none. Related: TEST.193, TEST.195, PERF.88.
 
-- [ ] **TEST.220 test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter finds `neutron-star` inside `magnetar neutron-star` (bug)**
-  Found by Core 2 (2026-10-17, 11:35 AM EDT as the lane reported, its
-  MAP.225, MAP.227 and MAP.228 gate 9:36 to 11:18 AM EDT), filed by the
-  TODO thread.
-  `src/tests/test_phenomenon_scatter.py::test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter`
-  failed in the full gate: `AssertionError: neutron-star`, from `assert
-  (' neutron-star' in 'Placed 9,958 phenomena in 1.1s: 3,465 stellar
-  black-hole, 1 planetary-nebula, 9 intermediate black-hole, 1 magnetar
-  neutron-star, 6,481 hypervelocity-star, 1 supermassive black-hole; 43
-  of them have companions.') ==
-  bool(summary['counts'].get('neutron-star'))`. Cause read by the TODO
-  thread from the test (line 201 of the file): the check `(f" {label}"
-  in final) == bool(summary["counts"].get(label))` looks for the label
-  as a substring, and the label `neutron-star` is a substring of
-  `magnetar neutron-star`, so a run that places a magnetar but no plain
-  neutron star reports True against a count of None. Fails on main: no
-  (Core 2 ran it in a clean worktree at origin/main 0690c541: it passed,
-  7 of 7 alone, and the whole 77-test file passed on both, 294 s and 301
-  s); it failed once inside the full gate, load about 4 to 9, on the
-  gate's base, so it depends on the draw that run made. Frequency: 1 of
-  1 gate run. Reproducer: none found idle; force a plan run whose draw
-  has a magnetar and no plain neutron star (for example a run with the
-  neutron-star count zeroed). Done: the check matches whole labels (the
-  label bounded by a separator, or the counts read from the summary
-  line's own fields), so `magnetar neutron-star` no longer satisfies
-  `neutron-star`; a test places a magnetar and no neutron star and
-  passes; no quarantine. Owner: Bug Hunt (proposed).
-  Sighting (Core 1, 2026-10-17, 2:48 PM EDT as the lane reported, its
-  GEN.527 gate): failed once in the gate with 'AssertionError:
-  neutron-star' at the same loop (the draw had a magnetar and no plain
-  neutron star); it passes alone on Core 1's branch (4.7 s). Fails on
-  main: not checked. Frequency: now 2 of 2 gate runs seen (Core 2's and
-  Core 1's). Core 1's fix idea matches the Done line: match the label
-  after a count (a digit, a space, then the label).
-  Sighting (Core 3, 2026-10-17, 10:09 PM EDT as the lane reported;
-  GEN.321 branch after its final rebase onto GEN.469, 10:05 to 10:08 PM
-  EDT):
-  `test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter`
-  failed once under `pytest -n 4` (208 passed, 1 failed across nine
-  scatter and nebula test files) and passed 7 of 7 alone. Fails on main:
-  not run. Frequency: one more draw-dependent sighting, which fits the
-  substring cause above (a run that places a magnetar and no plain
-  neutron star).
-  Correction (Bug Hunt, 2026-10-17, 10:50 PM EDT as the lane reported): the gate d784f21a failure with `no
-  hypervelocity-star` was a different test,
-  `test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it`, and it failed alone on the
-  gate's old base (stored kinds were only black-hole and neutron-star) but passes alone on origin/main
-  2ada74af and on Bug Hunt's branch merged with main: a base-age failure, not this item's substring cause
-  and not a new sighting of this test.
-  Prerequisites: none. Related: TEST.213.
-
 - [ ] **TEST.222 Remove the NumPy 2.5 deprecation filter around the skimage marching-cubes call once scikit-image stops raising it**
   Found by Core 5 while fixing TEST.188 (2026-10-17, 12:50 PM EDT as the
   lane reported; merged #2050), filed by the TODO thread. The NumPy 2.5
@@ -20106,6 +20011,17 @@ clears each one.
   Owner stays with whoever takes TEST.237.
   Core 5 still owes the failure text (as the lane reported at 12:47 AM
   EDT 2026-10-18); it comes with its next report.
+  Answer (Core 5, 3:15 AM EDT 2026-10-18 as the lane reported): the test
+  failed in Core 5's changed gate and again alone with `-n0` at box load
+  9.7 (the call took 5.47 s); it passed 3 of 3 on Core 5's branch and 2
+  of 2 on main at load 3. The assertion text was not kept (only the
+  verdict line), so it cannot be quoted. The lane's tree was main at
+  release 8.0.1767 or later, so it carried #2147 (8.0.1760); that is
+  inferred from the release numbers, not checked commit by commit.
+  Reading: the failure still tracks load, which fits Core 2's note that
+  the first `_still_spot` read can take seconds; the next sighting
+  should keep the assertion text. Frequency: 2 failures in 2 runs at
+  load 9.7, 0 in 5 at load 3.
   Prerequisites: none. Related: TEST.231, TEST.126.
 
 - [ ] **TEST.238 test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it fails in a gate with no hypervelocity-star stored, and passes alone (bug)**

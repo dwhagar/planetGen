@@ -17,7 +17,7 @@ release is stamped.
 | MAP | MAP.254 |
 | NAV | NAV.63 |
 | GEN | GEN.590 |
-| PERF | PERF.137 |
+| PERF | PERF.138 |
 | DB | DB.79 |
 | API | API.32 |
 | ADM | ADM.97 |
@@ -1216,7 +1216,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.549 | L dwarfs hotter than 1,500 K are 2 to 4 times too rare against the 20 pc census: use a cooling track that reaches them (strict expected failure) | none | open |
 | GEN.550 | Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system | none | open |
 | GEN.551 | Approve the unified orbited-body design note and its eight cards (D1 to D8) before any build of the chain | none | done, PR #2171 |
-| GEN.552 | Host registry: the five fixed `system_model` values become pointers to one gated orbiter table per host class, with no change in behaviour | none | open |
+| GEN.552 | Host registry: the five fixed `system_model` values become pointers to one gated orbiter table per host class, with no change in behaviour | none | done, PR #2214 |
 | GEN.553 | One star-like body draw: origin, birth, state and [Fe/H], with the initial-final relation, the remnant mass, radius and age rules in one place | none | open |
 | GEN.554 | Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets | none | open |
 | GEN.555 | The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test | none | open |
@@ -1755,7 +1755,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.123 | `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds | none | open |
 | PERF.124 | `sector` and `phenomenon` only generate: the population pass leaves `sector` and the settle leaves `phenomenon` | none | open |
 | PERF.125 | The population pass and the territories pass are separate commands | none | open |
-| PERF.126 | `check-db`: each check is its own command and the report is the list the wrapper runs | none | open |
+| PERF.126 | `check-db`: each check is its own command and the report is the list the wrapper runs | none | done, PR #2211 |
 | PERF.127 | `warm_map`: each cache family is its own command and `update.sh` builds the list | none | done, PR #2166 |
 | PERF.128 | `benchmark` is a step list handed to the wrapper, not a sequence of its own | none | open |
 | PERF.129 | Robust tile caching: the first zoom levels built ahead, tiles stored compressed, built proactively around every visit, kept until the data changes | none | open |
@@ -1766,6 +1766,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.134 | The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions | none | open |
 | PERF.135 | The Uncharted stars and Phenomena tables get a jump-by-value box for their numeric and scatter-id sorts | none | done, PR #2163 |
 | PERF.136 | Measure the fill with wanderers and their moons, and decide whether the rogue cost is on by default | none | open |
+| PERF.137 | Audit the remaining `LIMIT ? OFFSET ?` queries: say which serve a big table and move those to keyset paging | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -2307,7 +2308,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.217 | `test_every_column_is_written` found a NULL in every row of `moons.evolutionary_speed` in the full parallel gate, and passes alone (bug) | none | done, PR #1989 |
 | TEST.218 | `test_first_control_connections_at_once` leaves 3 idle connections open on `planetgen_test_*` when its fixture ends: the test should close its own connections (bug) | none | open |
 | TEST.219 | Browser pages still have 1 to 7 requests running 8 s after the server stops: find what keeps them busy and make it faster | none | open |
-| TEST.220 | test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter finds `neutron-star` inside `magnetar neutron-star` (bug) | none | open |
+| TEST.220 | test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter finds `neutron-star` inside `magnetar neutron-star` (bug) | none | done, PR #2214 |
 | TEST.221 | test_a_runaway_system_moves_beyond_the_rotation_curve_and_its_stars_and_bodies_share_it raises StopIteration when the first system's only planet entry is an asteroid belt (bug) | none | done, PR #2070 |
 | TEST.222 | Remove the NumPy 2.5 deprecation filter around the skimage marching-cubes call once scikit-image stops raising it | none | open |
 | TEST.223 | Two galaxy-map browser tests fail in a loaded full browser run and pass alone: the free camera from a window down, and forward to the current view (bug) | none | open |

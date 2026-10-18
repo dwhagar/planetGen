@@ -21,6 +21,7 @@ much smaller icy planetesimal passing through on a hyperbolic trajectory
 import math
 
 from planetgen.generation.config import SystemConfig
+from planetgen.generation.phenomena import hosts
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, SURFACE_REGIME_LABELS, rogue_surface_conditions
 from planetgen.physics import brown_dwarf as brownDwarf, constants, planets as planetPhysics, spin
 from planetgen import tuning
@@ -263,7 +264,7 @@ class RoguePlanet(LazySaladName):
 
         self.planet_class = choose_rogue_planet_class(self.planet_type, self.radius_km, self.mass_kg, mass_bin)
 
-        self.has_moons = draw.random() < tuning.SYSTEM_PASS_ODDS["rogue-planet"]["moons"]
+        self.has_moons = hosts.holds_something("planet-satellites", "rogue-planet")
         self._apply_surface_conditions(rogue_surface_conditions(
             self.mass_kg, self.radius_km, self.planet_type, self.mass_bin, self.has_moons))
 

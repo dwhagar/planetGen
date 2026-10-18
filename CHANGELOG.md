@@ -2,6 +2,43 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1797] - 2026-10-18
+
+**Headline:** The host tables' source and note strings name the design note instead of a TODO code, so no code shows where a user can see it.
+
+### Changed
+- `phenomena/hosts.py`: the strings of the host tables (sources, limits, replacements, notes) no longer carry TODO codes; `test_no_todo_codes_shown` passes again.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1796] - 2026-10-18
+
+**Headline:** What can accompany or orbit an object is now a set of host classes with gated tables of possibilities, replacing the registry's five fixed system models; nothing the generator draws changes.
+
+### Changed
+- `phenomena/registry.py`: the `system_model` column is now `host`, the name of a host class (group node, star-like object, remnant, brown dwarf, planet, moon, small body) in the new `phenomena/hosts.py`. Each class points to a companion table and a satellite table in the format of `possibility_table` (GEN.472), with each row's source and source state and its zone rule.
+- Three tables hold what the code already did: `star-count` (the number of stars of a system by spectral class, moved out of `multistar`), `remnant-satellites` (a millisecond pulsar holds planets at 0.7%, the other remnants none; this replaces `tuning.SYSTEM_PASS_ODDS` for stage C) and `planet-satellites` (a rogue planet keeps a captured moon at 20%, a stand-in until GEN.466).
+- The system pass, a rogue planet's moon and a multi-star group's star count read those tables. The draws are the same on the same streams: a test compares each against the formula it replaced over tens of thousands of seeds, and the stream is left where it was.
+- Every host class carries a `may_host` gate (Boss's cards S5 and S6, 12:10 to 12:13 AM EDT, 2026-10-18, as the coordinator relayed, which superseded "moons are the lowest level"): a small body (comet, asteroid field) has the gate closed and no satellite table; a moon has a `moon-satellites` table with only the empty row until the tidal-survival row of GEN.579. A row states an orbiter's mass as a ratio to its host's where the source gives a ratio. The later recursion ends by the gate, not by a depth of three.
+- Left for the item that builds them (U7 of `docs/design/unified-star-like-objects.md`): the star-like object's planets and belts, a brown dwarf's satellites and a planet's bound moons are still made by `StarSystem` and `generate_moons`.
+
+- The scatter summary test (`test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter`) compares whole labels: a magnetar line contains the text of the plain neutron-star label and failed some seeds.
+
+TODO items resolved: GEN.552 / Added: none
+
+## [8.0.1795] - 2026-10-18
+
+**Headline:** The database check is one command per check, and `planetgen check-db` hands the list of them to the wrapper.
+
+### Changed
+- **Each database check is its own command (PERF.126).** `check-revision`, `check-tables`, `check-tables-extended`, `check-orphans`, `check-ids`, `check-values`, `check-counts`, `check-version-keys` and `check-systems` each do that check and nothing else, only read the database, take only their own settings (the database, and for the value, count, version-key and systems checks the sectors to look at) and run alone (`planetgen command-run`). `planetgen commands` lists them. The choice and the order live only in the wrapper's list (`commands.build_steps("check-db", ...)`).
+- **`planetgen check-db [CHECK ...]` builds that list and prints the report.** Without a name it runs every check but the two slow ones; naming checks runs those (`planetgen check-db ids orphans`). `--deep` and `--no-check-table` are gone with no replacement: `tables-extended` and `systems` are the slow checks and a deep check is naming them, and leaving out the table check is leaving it out of the names. `--shell`, `--sector`, `--wide-binaries`, `--yes` and `--estimate-only` stay (the last three are for the systems check). The report and the exit codes are as before: one pass or fail line per check, 1 on damage, 2 when a check could not run. It now needs Redis, as every run does, and a Redis that does not answer exits 2 with the reason.
+- **The check is a run of its own kind.** A check run takes a place of its own in Redis (`planetgen:run:active:check`), so it does not wait for a generation run, holds none up and never shows the "galaxy is being changed" banner to the site's visitors. The Generate page's Check the database section passes the slow checks by name for its Deep check box and shows the same estimate first.
+- **`test_a_new_test_module_needs_no_regeneration` joins the `globaldocs` tests (DOC.69).** It compares the committed architecture map with the package's module list, so a new module such as `cli/checkdb.py` made it fail every lane's gate; it now runs only with `PLANETGEN_GLOBAL_DOCS=1`.
+- **`docs/cli.md`, `docs/design/db-check-and-parity-repair.md`, `docs/design/command-inventory.md`, `docs/design/redis-and-the-work-queue.md` and `docs/design/architecture.md` describe it.**
+
+TODO items resolved: PERF.126. Added: none.
+
 ## [8.0.1794] - 2026-10-18
 
 **Headline:** Any star's composition can now be worked out from what the generator already stores for it.
