@@ -14243,25 +14243,73 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   draws are not in that path. This item replaces that relation line, so
   the 8.4 unification of that star is a small edit here.
 
-- [ ] **GEN.563 The black hole density depends on metallicity: the verified failed-supernova share of the stars born replaces the one constant 7e-5 per pc^3**
-  From Boss's back-scatter cards on the unified orbited-body design (docs/design/unified-star-like-objects.md, GEN.550): 'BH density only' at 11:38 to 11:40 PM EDT, then Boss tapped 'Metallicity-dependent' on the GEN.563 card at 11:51 PM EDT (2026-10-17, as the coordinator relayed with the wake time converted): the black hole share is metallicity-dependent, not a kept 7e-5. Research: docs/design/black-hole-formation-sources.md (GEN.560, 11:55 PM EDT as the lane reported): the verified failed-supernova share is 0 to 45% of stars of 8 to 150 Msun (more at low metallicity), so black holes are 0 to 4.0e-4 per pc^3 and the present 7e-5 is inside the range (f = 7.8%). Scope: only the black hole density changes; the neutron star density (5.6e-4, already matching), the black hole mass law and every other kind stay as they are (a change of the mass law is for GEN.553 and GEN.554, and means a second rescatter for black hole masses unless Boss decides otherwise). Do, as the design note of GEN.567 settles it: the density at a place is the stars born there (the population mix at the place) times the IMF share of 8 to 150 Msun (0.637% of stars, from the generator's own IMF) times f(Z) of the population's [Fe/H] at that place (the galaxy's metallicity law, `metallicity.mean_fe_h` and the component peaks, GEN.158 and GEN.159) times the share that stays in the galaxy, replacing `PHENOMENON_RATES["black-hole"]`; label every number's source state (verified range, derived, or placeholder) and keep the old 7e-5 and the derived share as test targets that show the gap. It changes the scatter's output, so it bumps the generator epoch and joins the one full rescatter, which is why it is a prerequisite of GEN.301. Done: the black hole count follows the metallicity at three test places (a metal-rich disk, a metal-poor halo, a cluster), the neutron star count is unchanged, and the golden digest changes with the epoch bump. Owner: Core 3 (proposed; it owns the scatter rates and GEN.377; Boss's card D7 owners do not cover it), after GEN.243 and GEN.244/282 and after GEN.567.
-  Design draft (docs/design/black-hole-density.md, 12:13 AM EDT,
-  2026-10-18): about 10 functions in 5 files (`tuning`,
-  `phenomenon_scatter`, `phenomenon_reach`, `profile`, `ejecta_field`,
-  plus the rolled path in `run_sector`); the black hole rate becomes a
-  place factor `sum over populations of w_p x C_p x F_p`; 8 to 9 tests
-  (T1 to T9). Finding: every shell draws all scatter classes from one
-  stream, black holes first (`phenomenon_scatter.py:63-68`), so changing
-  black hole counts moves the realised neutron star, planetary nebula
-  and supernova remnant rows; the draft recommends this item give each
-  class its own stream, a one-time change inside the wiped rescatter,
-  which also makes 'neutron stars unchanged' testable bit-identical
-  (T2). Boss's seven cards on the choices were open at 12:14 AM EDT as
-  the coordinator reported; the recommended options (widest range,
-  linear in Z, density only, intermediate-mass holes held at today's
-  rate, budget left as a registered gap, mass law left for
-  GEN.553/GEN.554, islands left for GEN.554) are in the note. If Boss
-  takes them, the scope above stands.
+- [ ] **GEN.563 The black hole density depends on metallicity and is capped by the neutron star budget: the failed-supernova share of the stars born replaces the one constant 7e-5 per pc^3, and every scatter class gets its own random stream**
+  From Boss's back-scatter cards on the unified orbited-body design
+  (docs/design/unified-star-like-objects.md, GEN.550): 'BH density only'
+  at 11:38 to 11:40 PM EDT, 'Metallicity-dependent' at 11:51 PM EDT
+  (2026-10-17), and his seven cards on the design note
+  docs/design/black-hole-density.md, tapped 12:33 to 12:35 AM EDT on
+  2026-10-18 (as the design lane reported; relayed by the coordinator):
+  BH1 widest verified range with two ordered draws per galaxy, BH2
+  linear in Z held at the solar value above solar, BH3 density only with
+  no new column (GEN.553 draws a remnant's birth [Fe/H] in 8.4), BH4
+  intermediate-mass holes keep today's rate of 1.5e-9 per star (about
+  440 in the default galaxy), BH5 NOT the recommended option: cap f so
+  neutron stars plus black holes fit the massive-star share, BH6 the
+  mass law stays for GEN.553 and GEN.554 in 8.4 (masses unchanged in the
+  8.1 rescatter), BH7 the mass islands are recorded for GEN.554. Do (the
+  note's sections 1 to 9): the density at a place is the stars born
+  there times the IMF share of 8 to 150 Msun (0.6372% of stars, derived
+  from the generator's own IMF) times the share that stays (0.98) times
+  the sum over populations of w_p x C_p x F_p, where F_p is the mean of
+  f(Z) over the population's [Fe/H] at the place
+  (`metallicity.expected_factor`, the GEN.158/159 peaks) and C_p is 0.79
+  for the young window and 1 elsewhere (own computation); replace
+  `PHENOMENON_DENSITY_PC3["black-hole"]` and
+  `phenomenon_rate_per_star("black-hole")` (about 10 functions in
+  `tuning`, `phenomenon_scatter`, `phenomenon_reach`, `galaxy/profile`,
+  `galaxy/ejecta_field` and the rolled path in `run_sector`; the neutron
+  star classes read none of this). The two numbers per galaxy: `f_cap =
+  1 - NS_formed / IMF_SHARE` with `NS_formed` the neutron star rate per
+  star (4.0e-3) times (1 + the galaxy's neutron star unbound share,
+  drawn first from the seed in 0.2 to 0.4), so `f_cap` is 12.1% to
+  24.7%; `f_sun ~ U(0, min(0.45, f_cap))`; `f_low = max(min(U(0.15,
+  0.32), f_cap), f_sun)`; `f(Z) = f_low + (f_sun - f_low) x
+  min(10^[Fe/H], 1)`. The cap overrides the widest verified range (solar
+  values above 25% and metal-free values above the cap are never
+  reached), so label the cap derived and the truncated ranges verified
+  but cut by Boss's card 5; GEN.554 revisits it when the neutron star
+  rate follows the mass function. Result: holes range 0.5 to 3.1 times
+  today's count, mean 1.5 times (2.2e8 in the default galaxy).
+  Intermediate-mass holes: their rate per star is 3e-6 x 5.0e-4 =
+  1.5e-9, independent of f(Z). Streams: every shell draws all scatter
+  classes from one stream in `SCATTER_CLASSES` order, black holes first
+  (`phenomenon_scatter.py:63-68`), so changing black hole counts moves
+  the realised neutron star, planetary nebula and supernova remnant
+  rows; give each class its own stream
+  (`{seed}:phenomena:shell:{shell}:{kind}:{subtype}`), a one-time change
+  inside the wiped rescatter that also makes 'neutron stars unchanged'
+  testable bit-identical. Source states: IMF share, C_p and the cap
+  derived; the f ranges verified; the uniform shape, the f_low >= f_sun
+  ordering and the linear-in-Z shape stand-ins; the 0.98 retention
+  verified through a secondary note (the primary, Sweeney et al., was
+  not opened). Effect on GEN.301: it changes scatter output, so it bumps
+  the generator epoch (the next free) and joins the one wiped rescatter,
+  and stays a prerequisite of GEN.301; every scatter class's rows are
+  redrawn once because of the per-class streams; masses are unchanged.
+  Tests of the note: T1 the density against the derived share at three
+  places with pinned draws, T2 neutron star rows bit-identical across a
+  black hole change, T3 monotone in [Fe/H], T4 7e-5 lies inside the new
+  range and the ratio is printed (f = 7.8% reproduces it), T5 bound plus
+  ejected equals the galaxy total formed with 2% ejected, T6 the `check`
+  flag of `_group_rows` raises on no group at the lowest and highest
+  draws, T7 over 1,000 seeds f_sun in 0 to min(45%, f_cap), f_low >=
+  f_sun, f_low <= max(f_cap, f_sun), f_cap in 12.1% to 24.7%, a seed
+  reproduces its pair, T8 intermediate-mass holes stay near 440 in the
+  default galaxy, T9 neutron stars plus black holes formed never exceed
+  the 8 to 150 Msun share in any galaxy and the count stays 0.5 to 3.1
+  times the old constant. Owner: Core 3 (proposed; it owns the scatter
+  rates and GEN.377), after GEN.243 (done), GEN.244 and GEN.282.
   Prerequisites: GEN.560, GEN.567. Related: GEN.560, GEN.554, GEN.377, GEN.301.
 
 - [ ] **GEN.564 A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter**
@@ -14474,6 +14522,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   islands). The cards were open at 12:14 AM EDT as the coordinator
   reported; this item closes when Boss's taps are recorded in the note
   and GEN.563 is rewritten to the result.
+  Done in substance (Boss's taps on BH1 to BH7, 12:33 to 12:35 AM EDT,
+  2026-10-18, as the design lane reported and the coordinator relayed):
+  the decisions are recorded in docs/design/black-hole-density.md and
+  GEN.563 is rewritten to them. Retired with the PR that records it.
 
 - [ ] **GEN.568 One registry of every unit the project uses**
   Part of the unified orbited-body plan (GEN.550; design note
