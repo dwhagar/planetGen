@@ -8321,7 +8321,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss, 1:23 PM EDT (typed in the project chat, relayed by the
   coordinator): AD1 is Boss's to research (Karkoschka and Tomasko 2010
   and related, paid); the labelled stand-in stays until he supplies the
-  bands.
+  bands. Boss, 3:07 PM EDT 2026-10-18 (typed in the project chat,
+  relayed by the coordinator): "I have already provided all the AD1 data
+  I can!" So nothing more is requested from him: any AD1 gap that
+  remains (ammonia and water in the visible) is a labelled stand-in in
+  the gap registry until a measurement is found.
   AD1 methane (1:55 PM EDT as the coordinator relayed): absorption comes
   from the three-temperature band parameters (Oxford k-tables of
   Karkoschka and Tomasko 2010) with the Voigt-Goody formula of Collins
@@ -9017,8 +9021,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
   answers relayed in words by the coordinator;
   docs/design/gap-filling-plan.md section 8): BC7 ice densities: Fray
-  and Schmitt 2009 and Bierson and Nimmo 2019 are on Boss's own list;
-  the bracket from NIST and PubChem stays meanwhile.
+  and Schmitt 2009 and Bierson and Nimmo 2019 were on Boss's own list
+  (Boss, 3:07 PM EDT 2026-10-18: he has provided all the data he can, so
+  the bracket from NIST and PubChem stays as a labelled stand-in).
   Papers list (2026-10-17, filed by the TODO thread;
   docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
   papers he can download himself, the coordinator posted the list at
@@ -9152,8 +9157,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
   answers relayed in words by the coordinator;
   docs/design/gap-filling-plan.md section 8): AD5 particle spectra and
-  BC13 ICRP 103 (on Boss's own list; the secondary-source tissue factors
-  stay meanwhile). Any table this item downloads is fetched at build
+  BC13 ICRP 103 (was on Boss's own list; Boss, 3:07 PM EDT 2026-10-18: he
+  has provided all the data he can, so the secondary-source tissue
+  factors stay as a labelled stand-in). Any table this item downloads is fetched at build
   time and not stored, and tests run offline (plan 6.5).
   Papers list (2026-10-17, filed by the TODO thread;
   docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
@@ -9825,8 +9831,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
   answers relayed in words by the coordinator;
   docs/design/gap-filling-plan.md section 8): BC7 ice densities: Fray
-  and Schmitt 2009 and Bierson and Nimmo 2019 are on Boss's own list;
-  the bracket from NIST and PubChem stays meanwhile.
+  and Schmitt 2009 and Bierson and Nimmo 2019 were on Boss's own list
+  (Boss, 3:07 PM EDT 2026-10-18: he has provided all the data he can, so
+  the bracket from NIST and PubChem stays as a labelled stand-in).
   Papers list (2026-10-17, filed by the TODO thread;
   docs/design/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
   papers he can download himself, the coordinator posted the list at
@@ -10419,8 +10426,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
   answers relayed in words by the coordinator;
   docs/design/gap-filling-plan.md section 8): BC12 vapour-pressure
-  windows: Fray and Schmitt 2009 is on Boss's own list; each fit stays
-  inside its stated window meanwhile.
+  windows: Fray and Schmitt 2009 was on Boss's own list (Boss, 3:07 PM
+  EDT 2026-10-18: he has provided all the data he can); each fit stays
+  inside its stated window as a labelled stand-in.
   Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
   the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
   summary in the gap plan section 4.10; V read, R recomputed, D
@@ -11561,8 +11569,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
   answers relayed in words by the coordinator;
   docs/design/gap-filling-plan.md section 8): BC12 vapour-pressure
-  windows: Fray and Schmitt 2009 is on Boss's own list; each fit stays
-  inside its stated window meanwhile.
+  windows: Fray and Schmitt 2009 was on Boss's own list (Boss, 3:07 PM
+  EDT 2026-10-18: he has provided all the data he can); each fit stays
+  inside its stated window as a labelled stand-in.
   Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
   the paper-filing thread; report docs/design/boss-papers-2026-10-17.md,
   summary in the gap plan section 4.10; V read, R recomputed, D
@@ -12553,9 +12562,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   k-tables built from Karkoschka and Tomasko 2010 (3,689 wavelengths,
   400 nm to 5.0 micron, 100, 198 and 296 K; Collins 2018 prints the
   temperature formula) and the PDS volume gbat_0001 (Karkoschka 1994 and
-  1998, 300 to 1050 nm). Still open and Boss's research: ammonia in the
-  visible (four equivalent widths read from a figure), water in the
-  visible, methane 5.0 to 5.5 micron, and the 1e-5 floor below 450 nm.
+  1998, 300 to 1050 nm). Still open, each a labelled stand-in in the gap
+  registry: ammonia in the visible (four equivalent widths read from a
+  figure), water in the visible, methane 5.0 to 5.5 micron, and the 1e-5
+  floor below 450 nm. Boss, 3:07 PM EDT 2026-10-18 (typed in the project
+  chat, relayed by the coordinator): he has already provided all the AD1
+  data he can, so none of these is a request to him.
   The Oxford page says 'not yet fully verified' and states no licence.
 
 - [ ] **GEN.534 A satellite's young stars reach the system-type tables: the young-star system types name `satellite_young`**

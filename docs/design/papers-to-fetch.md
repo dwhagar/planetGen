@@ -25,7 +25,7 @@ How each field was obtained:
 
 ## B. Other papers the three files could not read for the same reason
 
-Status, 1:57 PM EDT on 2026-10-17: B5 and B6 (AD1): methane no longer needs the paid papers, the free Oxford k-tables of Karkoschka and Tomasko 2010 and the PDS volume gbat_0001 hold the data (partly verified; ad1-methane-sources-check-2026-10-17.md). Ammonia and water in the visible stay open and are Boss's research; the stand-in stays for them.
+Status, 1:57 PM EDT on 2026-10-17: B5 and B6 (AD1): methane no longer needs the paid papers, the free Oxford k-tables of Karkoschka and Tomasko 2010 and the PDS volume gbat_0001 hold the data (partly verified; ad1-methane-sources-check-2026-10-17.md). Ammonia and water in the visible stay open as labelled stand-ins. Boss, 3:07 PM EDT on 2026-10-18: he has already provided all the AD1 data he can, so no AD1 paper (B5, B6) is a request to him any more; the same holds for the other paid papers on his earlier list (Fray and Schmitt, Ayers 1980, ICRP 103): their gaps stay labelled stand-ins.
 
 Selection rule: the file says the paper was not read, second-hand only, or behind a refused publisher, and a number is wanted from it. Each has a Crossref-confirmed DOI unless stated.
 
