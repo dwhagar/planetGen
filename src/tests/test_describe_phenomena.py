@@ -121,3 +121,13 @@ def test_nothing_a_phenomenon_holds_comes_out_unescaped():
 def test_something_that_is_not_a_phenomenon_is_refused():
     with pytest.raises(ValueError):
         describe.describe_phenomenon(object())
+
+
+@pytest.mark.parametrize("remnant_class", [BlackHole, NeutronStar])
+def test_a_remnant_the_galaxy_ejected_says_so_and_has_no_orbit(remnant_class):
+    remnant = remnant_class(SystemConfig())
+    remnant.eject((10.0, 20.0, 20.0))
+    section = describe.describe_phenomenon(remnant)["sections"][0]
+    orbit = next(row for block in section["blocks"] if block["type"] == "facts" for row in block["rows"]
+                 if row["key"] == "orbit")
+    assert inline_text(orbit["value"]).startswith("Ejected from the galaxy, leaving at 30 km/s")

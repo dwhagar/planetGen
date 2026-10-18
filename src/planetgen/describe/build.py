@@ -142,6 +142,9 @@ def _star_age_sentence(star):
 
 
 def _galactic_orbit_or_centre(star):
+    if getattr(star, "ejecta_velocity_kms", None) is not None:
+        speed = math.sqrt(sum(component * component for component in star.ejecta_velocity_kms))
+        return inline("Ejected from the galaxy, leaving at ", _kms(speed), " on a straight line")
     if star.galactic_orbital_period_gy is None:
         return inline("None (the galaxy's centre)")
     return _galactic_orbit(star.galactic_orbital_speed_kms, star.galactic_orbital_period_gy)
