@@ -14456,28 +14456,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: PERF.120. Related: PERF.118, PERF.120.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
-- [ ] **PERF.127 `warm_map`: each cache family is its own command and `update.sh` builds the list**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/command-inventory.md. Today `python3 -m
-  planetgen.cli.warm_map` builds the Galaxy Map opening view, every
-  list, every sector, system and phenomenon page and the search in one
-  command, picked with `--only FAMILY`. Done: each family (the Galaxy
-  Map view, the lists, the sector pages, the system pages, the
-  phenomenon pages, the search) is its own command with its own
-  parameters, runnable alone; the step list of all of them is what
-  `update.sh` hands to the wrapper after an update; `--only` is gone
-  with no shim. Owner: Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.120. Related: PERF.118, PERF.120,
-  PERF.104.
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Design: [docs/design/command-inventory.md](design/command-inventory.md)
-
 - [ ] **PERF.128 `benchmark` is a step list handed to the wrapper, not a sequence of its own**
   Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
   we can build whatever sequences we want" (the principle of 4:18 PM
@@ -14530,7 +14508,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.239 (the tile root rises to the reach, which changes every level's
   geometry, so the build waits for it), MAP.195 (finer tiles leave out
   what a coarser tile sent, which changes what a tile holds), PERF.127
-  (warm_map: the tile build is one of its families, each its own
+  (`planetgen warm`: the tile build is one of its families, each its own
   command, PERF.120), and the plan commands (a regenerated galaxy
   changes tile content, so the build is a step the wrapper lists after
   the generation commands, never a part of one). Owner: Core 2
@@ -14575,7 +14553,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with progress bars of what it will build; a second run builds nothing
   that is current; a browser test opens the map at each built level and
   finds every tile a cache hit. Owner: Core 2 (proposed).
-  Prerequisites: PERF.127. Related: PERF.129,
+  Prerequisites: none. Related: PERF.129,
   PERF.127, PERF.104, MAP.239.
   Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
   stored here are built with halo and satellite-galaxy stars ranked

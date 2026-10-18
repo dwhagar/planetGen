@@ -24,4 +24,4 @@ The head on main is 0109 (0107 GEN.526, 0108 DB.72, 0109 GEN.289); the next free
 - **GEN.537:** the plan configuration design cards (8.5).
 - **The 9.0 major version:** the `.major.md` note and the hand version bump need Boss's word.
 - **AD1:** the ammonia and water papers in the visible, and the paid ones (Karkoschka and Tomasko, Fray and Schmitt, Ayers 1980) and the ICRP 103 pages (sections 4 and 5.10) the radiation note asks for.
-- **PERF.41:** the cold-rebuild time of `warm_map`.
+- **PERF.41:** the cold-rebuild time of `planetgen warm` (was `warm_map`).
