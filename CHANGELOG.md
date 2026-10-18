@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1806] - 2026-10-18
+
+**Headline:** The old per-class description text, the Markdown renderer and the `markdown` dependency are gone; every page and download now comes from the one description Document.
+
+### Changed
+- Removed the old description path: each body's `to_paragraph_list` and `__str__`, the `MARKDOWN` text, `web/lib/mdrender.py`, and the `markdown` package from `setup.py` and the lock files.
+- The `markdown` recipe key of a system run is gone (`docs/api.md`, `docs/system-file-format.md`); Markdown, wikitext and text are written from the Document.
+- Tests that read the old text now read the Document through `tests/render_support.py`; `test_mdrender.py` is removed.
+- The docs no longer describe `mdrender`; the Document HTML renderer escapes every string it writes.
+
+TODO items resolved: UX.109
+
 ## [8.0.1805] - 2026-10-18
 
 **Headline:** With the cursor over empty space the wheel now zooms toward where the stars thicken along the cursor's ray, not toward a flat plane through the middle of the view.
