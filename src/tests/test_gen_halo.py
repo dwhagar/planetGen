@@ -22,7 +22,7 @@ import pytest
 from planetgen import tuning
 from planetgen.galaxy import density, spherical, structure as galaxyStructure
 from planetgen.galaxy.density import (
-    _halo, build_galaxy_shape, component_masses, halo_density, halo_local_density_scale, halo_mass, halo_terms,
+    _halo, build_galaxy_shape, component_masses, halo_density, halo_mass, halo_terms,
     population_densities, population_densities_array, relative_density,
 )
 from planetgen.galaxy.skeleton import build_shell_extents, expected_system_count_at_density_1
@@ -30,6 +30,12 @@ from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation.star_population import bright_star_fraction
 from planetgen.physics import mathcheck
+
+def tuning_local_density_per_pc3():
+    from planetgen.physics import constants as physicalConstants
+    from planetgen.physics.units import ly_to_pc
+    return physicalConstants.LOCAL_STELLAR_DENSITY_LY3 / ly_to_pc(1.0) ** 3
+
 
 MILKY_WAY = build_galaxy_shape(
     disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0,
@@ -84,13 +90,14 @@ def test_the_halo_matches_the_design_notes_table(radius_kpc, relative):
 
 def test_the_halo_is_far_below_the_old_floor_in_the_distance_and_near_it_at_the_sun():
     old_floor = 1.0e-3
-    assert halo_density((8200.0, 0.0, 0.0), MILKY_WAY) == pytest.approx(old_floor * 1.9, rel=0.1)
+    assert halo_density((8200.0, 0.0, 0.0), MILKY_WAY) == pytest.approx(old_floor * 1.7, rel=0.1)
     assert halo_density((50000.0, 0.0, 0.0), MILKY_WAY) < old_floor / 100
     assert halo_density((262000.0, 0.0, 0.0), MILKY_WAY) < old_floor / 1e5
 
 
 def test_the_halo_integrates_to_its_share_of_the_visible_systems():
-    visible = sum(component_masses(MILKY_WAY, steps=60).values())
+    visible = density.model_terms(MILKY_WAY)["visible_mass"]
+    assert visible == pytest.approx(sum(component_masses(MILKY_WAY, steps=60).values()), rel=2e-3)
     assert halo_mass(MILKY_WAY) == pytest.approx(galaxyStructure.stellar_halo_system_fraction(MILKY_WAY.structure) * visible, rel=1e-12)
     # And the closed form agrees with adding the density up: shells of the spheroid, 4 pi q m^2 dm, m log-spaced.
     terms = halo_terms(MILKY_WAY)
@@ -100,12 +107,14 @@ def test_the_halo_integrates_to_its_share_of_the_visible_systems():
     assert total == pytest.approx(halo_mass(MILKY_WAY), rel=2e-3)
 
 
-def test_the_halo_is_one_point_one_seven_percent_of_the_reference_systems():
-    # 1.4e9 solar masses (Deason et al. 2019) of the 5e10 of stars, at 0.4 solar masses a system and 6 model systems
-    # a solar mass of stars: 3.5e9 systems against 3.0e11.
+def test_the_halo_is_its_share_of_the_stars_over_the_rest():
+    # 1.4e9 solar masses (Deason et al. 2019) of the 5e10 of stars: against the other 4.86e10, the same ratio of systems.
     structure = galaxyStructure.REFERENCE_STRUCTURE
     assert structure.halo_stellar_ratio * 5.0e10 == pytest.approx(1.4e9)
-    assert galaxyStructure.stellar_halo_system_fraction(structure) == pytest.approx(1.4e9 / 0.4 / 3.0e11)
+    assert galaxyStructure.stellar_halo_system_fraction(structure) == pytest.approx(1.4e9 / (5.0e10 - 1.4e9))
+    # and the whole model holds the systems the stellar mass makes
+    held = density.total_mass(MILKY_WAY) * MILKY_WAY.k_norm * tuning_local_density_per_pc3() * tuning.MEAN_SYSTEM_MASS_SOLAR
+    assert held == pytest.approx(5.0e10, rel=1e-9)
 
 
 def test_the_halo_is_continuous_at_the_break_and_flat_in_the_core():
@@ -127,12 +136,8 @@ def test_the_halo_scales_with_the_galaxy():
         disk_scale_length_pc=1300.0, disk_scale_height_pc=150.0, bulge_scale_radius_pc=790.0,
         bulge_amplitude=3.11, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4)
     assert halo_terms(small)["halo_break_pc"] == pytest.approx(halo_terms(MILKY_WAY)["halo_break_pc"] / 2)
-    assert halo_mass(small) == pytest.approx(galaxyStructure.stellar_halo_system_fraction(small.structure) * sum(component_masses(small, 60).values()),
+    assert halo_mass(small) == pytest.approx(galaxyStructure.stellar_halo_system_fraction(small.structure) * density.model_terms(small)["visible_mass"],
                                              rel=1e-12)
-
-
-def test_the_local_density_alternative_is_about_two_point_seven_times_higher():
-    assert halo_local_density_scale(MILKY_WAY) == pytest.approx(2.7, rel=0.1)
 
 
 def test_no_cell_beyond_the_halos_dense_core_expects_a_whole_system():
@@ -145,13 +150,13 @@ def test_no_cell_beyond_the_halos_dense_core_expects_a_whole_system():
 
 def test_the_halo_does_not_widen_the_outline():
     # The outline reads the disk and bulge only (`skeleton._bound_raw_density_at`), and the halo is under 0.3% of the
-    # one-star threshold where it ends. Calibrating the Sun to 1.0 with the halo in lowers `k_norm` by 0.2%, so the
-    # default galaxy's edge moves in by two shells (3,764 to 3,762) and its band total by 0.05%; nothing moves out.
+    # one-star threshold where it ends. The galaxy holds the systems its stellar mass makes (GEN.404), 2.6 times
+    # fewer than the density tuned to the real count at the Sun gave, so the reference galaxy's edge sits at shell
+    # 3,127 (it was 3,762).
     extents, outer, _confirmed = build_shell_extents(mathcheck._reference_galaxy_shape(), EDGE_PC, 1.0 / E_VALUE)
-    assert outer == 3762
-    assert len(extents) == 3763
-    assert sum(high for _shell, high in extents) == 1618994   # +2 bands from the nuclear disc's bound (GEN.280); the drawn-structure thick disk (GEN.532) adds 53
-    assert sum(high for _shell, high in extents) < 1619713
+    assert outer == 3127
+    assert len(extents) == 3128
+    assert sum(high for _shell, high in extents) == 1101636
 
 
 def _halo_and_edge_cells(shape):

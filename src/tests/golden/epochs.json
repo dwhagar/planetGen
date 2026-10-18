@@ -164,6 +164,12 @@
       "epoch": 33,
       "first_release": "8.0.1830",
       "reason": "A young, intermediate or old disk star's age is drawn from the galaxy's star formation rate inside its window instead of evenly, so a seed places stars of different ages and the share of bright stars of each population, and the local B-star share, change (GEN.546)."
+    },
+    {
+      "epoch": 34,
+      "first_release": null,
+      "pending": true,
+      "reason": "The galaxy's star count and density follow from its stellar mass (the model is normalised to hold the mass, with no density pinned at a Sun-radius point), and the places the generator took from the Milky Way (the Sun's radius, the default galactocentric distance, the hypervelocity reference radius) come from the galaxy's own disk scale length, so a seed holds a different number of stars and places them differently (GEN.404)."
     }
   ]
 }

@@ -21,17 +21,19 @@ import math
 import numpy as np
 
 from planetgen import tuning
+from planetgen.galaxy import scales
 from planetgen.physics import constants
 from planetgen.util import draw
 
 _KPC_IN_LY = constants.KILOPARSEC_M / constants.LY_TO_M
-_SUN_DISTANCE_KPC = constants.GALACTIC_CENTER_DISTANCE_LY / _KPC_IN_LY
 
 
 def disc_gradient_fe_h(galactic_center_dist_ly):
-    """The mean [Fe/H] of the disc at this distance from the centre: zero at the Sun's distance, rising
-    inward and falling outward by `METALLICITY_DISC_FALL_DEX_PER_KPC`."""
-    return -tuning.METALLICITY_DISC_FALL_DEX_PER_KPC * (galactic_center_dist_ly / _KPC_IN_LY - _SUN_DISTANCE_KPC) + 0.0
+    """The mean [Fe/H] of the disc at this distance from the centre: zero at the galaxy's reference radius
+    (`galaxy.scales`; GEN.405 replaces the zero point with the central metallicity of its mass-metallicity relation),
+    rising inward and falling outward by `METALLICITY_DISC_FALL_DEX_PER_KPC`."""
+    reference_kpc = scales.reference_radius_pc() / 1000.0
+    return -tuning.METALLICITY_DISC_FALL_DEX_PER_KPC * (galactic_center_dist_ly / _KPC_IN_LY - reference_kpc) + 0.0
 
 
 def halo_mean_fe_h(galactic_center_dist_ly):

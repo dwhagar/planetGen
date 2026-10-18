@@ -88,7 +88,7 @@ def test_the_gas_left_at_the_suns_radius_is_a_fraction_of_its_stars():
     """Target: the Galaxy's local gas is about a third of its local stellar surface density (13 against 38 solar
     masses per pc2); the derived rings should leave tenths, not hundredths or ones."""
     found = disk_history.history(3.5e10, 2600.0, HALO)
-    ring = int(np.argmin(np.abs(found.radius_scale_lengths - tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH)))
+    ring = int(np.argmin(np.abs(found.radius_scale_lengths - tuning.REFERENCE_RADIUS_SCALE_LENGTHS)))
     assert 0.1 <= found.gas_now[ring] / found.stars_now[ring] <= 0.5
 
 
@@ -159,7 +159,7 @@ def _b_share_between_arms_at_the_sun(shape=SHAPE, draws=100_000, spread_ages=Tru
     (drawn from the generator's own sampler, with the ages spread by the history's rate inside each window unless
     `spread_ages` is false, GEN.546) over the populations' densities there."""
     laws = disk_history.population_age_laws(shape) if spread_ages else {}
-    solar = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * shape.disk_scale_length_pc
+    solar = tuning.REFERENCE_RADIUS_SCALE_LENGTHS * shape.disk_scale_length_pc
     angles = np.linspace(0.0, 2.0 * math.pi, 720, endpoint=False)
     cosines = [density._arm_cosine(solar * math.cos(a), solar * math.sin(a), shape) for a in angles]
     angle = angles[int(np.argmin(cosines))]

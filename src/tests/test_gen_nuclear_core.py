@@ -14,8 +14,10 @@ from planetgen import tuning
 from planetgen.galaxy import density, resolution
 from planetgen.galaxy import structure as galaxyStructure
 from planetgen.galaxy.profile import profile_at
+from planetgen.galaxy.skeleton import expected_system_count_at_density_1
 from planetgen.galaxy.spherical import cell_volume
 from planetgen.generation import object_first
+from planetgen.physics import constants as physicalConstants
 from planetgen.physics.units import ly_to_pc
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
@@ -37,12 +39,12 @@ def test_the_masses_follow_the_bulge_and_the_amplitude():
     shape = _shape()
     terms = density.model_terms(shape)
     structure = shape.structure
-    model_per_solar = galaxyStructure.MODEL_SYSTEMS_PER_STELLAR_MASS * galaxyStructure.MEAN_SYSTEM_MASS_SOLAR
-    ratio = structure.nuclear_cluster_mass_solar / (model_per_solar * density.bulge_to_total(shape) * structure.stellar_mass_solar)
-    assert terms["nuclear_cluster_mass"] == pytest.approx(ratio * terms["bulge_mass"])
-    # On the reference structure the default model's cluster is near the Milky Way's 2.5e7 solar masses (a plausibility
-    # target: the model's mass units are not physical to better than a third).
-    assert terms["nuclear_cluster_mass"] == pytest.approx(2.5e7, rel=0.35)
+    # The cluster is the drawn mass in solar masses, in the model's units (GEN.404: those hold the stellar mass).
+    assert terms["nuclear_cluster_mass"] == pytest.approx(structure.nuclear_cluster_mass_solar * terms["mass_per_solar"])
+    systems_per_unit = shape.k_norm * physicalConstants.LOCAL_STELLAR_DENSITY_LY3 / ly_to_pc(1.0) ** 3
+    # (the cluster and the nuclear disc add 3% to the stars the stellar mass makes, so the solar masses come out so far under)
+    assert terms["nuclear_cluster_mass"] * systems_per_unit * tuning.MEAN_SYSTEM_MASS_SOLAR == pytest.approx(
+        structure.nuclear_cluster_mass_solar, rel=0.05)
     assert terms["nuclear_disc_mass"] == pytest.approx(tuning.NUCLEAR_DISC_CLUSTER_MASS_RATIO * terms["nuclear_cluster_mass"])
     half = density.model_terms(_shape(nuclear=0.5))
     assert half["nuclear_cluster_mass"] == pytest.approx(0.5 * terms["nuclear_cluster_mass"])
@@ -90,14 +92,19 @@ def test_the_core_ball_holds_exactly_the_clusters_mass_inside_it():
 
 def test_the_cell_at_the_centre_resolves_about_the_clusters_systems():
     shape = _shape()
-    expected_per_cell_at_1 = 6.306319061835597
+    expected_per_cell_at_1 = expected_system_count_at_density_1(tuning.DEFAULT_SECTOR_EDGE_LY)
     profile = profile_at((0.0, 0.0, 0.0), shape, EDGE_PC, expected_per_cell_at_1, address=(0, 0, 0),
                          volume_pc3=cell_volume(0, 0, 0, EDGE_PC))
     assert profile.region == "nuclear"
     systems = resolution.expected_in_cell(profile)
-    # The reference cluster (1.8e7 solar masses, the model's units) holds 4.4e6 inside 2 pc, 1.1e7 systems at 0.4 a
-    # system; the softened cusp and the bulge bring the cell to 1.6e7.
-    assert systems == pytest.approx(1.58e7, rel=0.05)
+    # The reference cluster (2.5e7 solar masses, at 0.4 a system 6.2e7 systems) holds the share `r^2 / (r + a)^2` of
+    # them inside the resolution ball, 24% for the 2 pc ball and the 2.07 pc scale radius; the softened cusp and the
+    # bulge keep the cell within 5% of it.
+    terms = density.model_terms(shape)
+    ball = tuning.NUCLEAR_RESOLUTION_PC
+    inside = ball ** 2 / (ball + terms["nuclear_cluster_scale_pc"]) ** 2
+    assert systems == pytest.approx(shape.structure.nuclear_cluster_mass_solar / tuning.MEAN_SYSTEM_MASS_SOLAR * inside,
+                                    rel=0.05)
     assert profile.mix["nuclear_cluster"] > 0.95 * profile.density
 
 

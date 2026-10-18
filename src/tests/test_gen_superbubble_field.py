@@ -48,7 +48,8 @@ def test_the_plane_at_the_solar_circle_is_about_an_eighth_inside_a_bubble():
     samples = 800
     for step in range(samples):
         angle = 2.0 * math.pi * step / samples
-        point = (tuning.GALAXY_SUN_RADIUS_PC * math.cos(angle), tuning.GALAXY_SUN_RADIUS_PC * math.sin(angle), 0.0)
+        radius = tuning.REFERENCE_RADIUS_SCALE_LENGTHS * MILKY_WAY.disk_scale_length_pc
+        point = (radius * math.cos(angle), radius * math.sin(angle), 0.0)
         inside += superbubble_field.containing(SEED, MILKY_WAY, point) is not None
     assert 0.05 <= inside / samples <= 0.30
 

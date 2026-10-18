@@ -17,6 +17,7 @@ from planetgen.db import store
 from planetgen.galaxy import object_uid, spherical, uid as galaxy_uid
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1
+from tests.toy_shape import toy_shape
 from tests.db_schema_support import load_old_schema
 
 pytestmark = pytest.mark.fresh_database
@@ -24,7 +25,7 @@ pytestmark = pytest.mark.fresh_database
 migration = importlib.import_module("planetgen.db.migrations.versions.0091_spherical_sectors")
 
 EDGE = 4.0
-SHAPE = build_galaxy_shape(disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
+SHAPE = toy_shape(disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
                            bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4)
 
 

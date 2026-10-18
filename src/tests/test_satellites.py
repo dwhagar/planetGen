@@ -30,8 +30,8 @@ SHAPE = galaxyDensity.build_galaxy_shape(
     arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4)
 EDGE = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 E1 = expected_system_count_at_density_1(tuning.DEFAULT_SECTOR_EDGE_LY)
-SOLAR_RADIUS = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * SHAPE.disk_scale_length_pc
-SOLAR_ANGLE = galaxyDensity.model_terms(SHAPE)["solar_angle_rad"]
+SOLAR_RADIUS = tuning.REFERENCE_RADIUS_SCALE_LENGTHS * SHAPE.disk_scale_length_pc
+SOLAR_ANGLE = galaxyDensity.model_terms(SHAPE)["reference_angle_rad"]
 
 
 def _placed():

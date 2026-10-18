@@ -86,11 +86,12 @@ def _place(stream, group):
     return (x, y, z), velocity
 
 
-def _structure(stream, galactocentric_pc):
+def _structure(stream, galactocentric_pc, scale=1.0):
     """`(half_mass_radius_pc, king_w0, tidal_radius_pc, core_collapsed)` of one cluster at this distance from the
     centre: the King concentration is lowered where the Jacobi radius would cut the cluster's edge off."""
     low, high = tuning.CLUSTER_HALF_MASS_RADIUS_RANGE_PC
-    growth = (max(galactocentric_pc, 1000.0) / 8000.0) ** tuning.CLUSTER_RADIUS_GROWTH
+    reference_pc = tuning.CLUSTER_RADIUS_REFERENCE_SCALE_LENGTHS * tuning.HALO_SCALE_LENGTH_PC * scale
+    growth = (max(galactocentric_pc, 1000.0 * scale) / reference_pc) ** tuning.CLUSTER_RADIUS_GROWTH
     radius = tuning.CLUSTER_HALF_MASS_RADIUS_PC * 10.0 ** stream.gauss(
         0.0, tuning.CLUSTER_HALF_MASS_RADIUS_SIGMA_DEX) * growth
     radius = min(max(radius, low), high)
@@ -134,7 +135,7 @@ def generate_clusters(galaxy_seed, count=tuning.CLUSTER_COUNT_MILKY_WAY, epoch_u
         position = tuple(c * scale for c in position)
         distance = math.sqrt(sum(c * c for c in position))
         mass = _mass(stream)
-        radius, w0, collapsed = _structure(stream, distance)
+        radius, w0, collapsed = _structure(stream, distance, scale)
         w0 = king.limit_w0(w0, radius, king.jacobi_radius_pc(mass, distance))
         clusters.append(components.Component(
             kind="cluster", name=f"Generated cluster {index + 1:03d}", source="generated",

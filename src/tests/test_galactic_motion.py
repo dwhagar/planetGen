@@ -18,6 +18,7 @@ from planetgen.galaxy.straight_line import scatter_position_mpc, straight_line_p
 from planetgen.generation.system import StarSystem
 from planetgen.physics import constants as physical_constants
 from planetgen.physics.units import pc_to_ly
+from tests.toy_shape import toy_shape
 
 EDGE_PC = 4.0
 SHELL = 10
@@ -269,7 +270,7 @@ SCATTER_RADIUS_PC = 8000.0
 def _seed_scatter_grid(mysql_config):
     """The galaxy's stored cell size (a point is refiled by it) and one point of every moving scatter kind."""
     from planetgen.galaxy.density import build_galaxy_shape
-    shape = build_galaxy_shape(disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
+    shape = toy_shape(disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
                                bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4)
     store.save_galaxy_shape(shape, edge_pc=EDGE_PC, outer_shell_index=8, expected_system_count_at_density_1=2000.0,
                             config=mysql_config)

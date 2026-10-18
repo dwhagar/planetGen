@@ -1,6 +1,6 @@
 """GEN.132: the regional factors for neutron stars and black holes."""
 
-from planetgen.galaxy import remnant_distribution as rd
+from planetgen.galaxy import remnant_distribution as rd, scales
 
 
 def test_remnants_are_rarer_in_the_plane_and_commoner_high_up():
@@ -19,7 +19,8 @@ def test_black_holes_gain_toward_the_core_only():
     assert rd.radial_factor("neutron-star", 0.0) == 1.0
 
 
-def test_pulsar_profile_is_one_at_the_sun_and_thin_in_the_inner_galaxy():
-    assert abs(rd.pulsar_radial_factor(8200.0) - 1.0) < 1e-9
-    assert rd.pulsar_radial_factor(1000.0) < 0.2
+def test_pulsar_profile_is_one_at_the_reference_radius_and_thin_in_the_inner_galaxy():
+    reference = scales.reference_radius_pc()
+    assert abs(rd.pulsar_radial_factor(reference) - 1.0) < 1e-9
+    assert rd.pulsar_radial_factor(0.12 * reference) < 0.2
     assert rd.pulsar_radial_factor(0.0) == 0.0
