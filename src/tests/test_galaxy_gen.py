@@ -56,6 +56,7 @@ from planetgen.galaxy.spherical import (
 )
 from planetgen.physics.units import ly_to_pc, mpc_to_pc
 
+from tests.toy_shape import toy_shape
 from tests import worker_patches
 from tests.bughunt_support import forced_system_config
 
@@ -67,10 +68,13 @@ EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 # a few dozen shells out (not real Milky-Way scale, which would make
 # these tests slow for no benefit -- ensure_sector_generated's own logic
 # doesn't care about scale).
+# A plan of a toy galaxy holds it in relative units, density 1 at its reference radius (GEN.404).
+pytestmark = pytest.mark.usefixtures("unit_density_plans")
+
 # A stored shape carries no thick disk, bar or halo values: the galaxy seed draws them on load (GEN.532, GEN.533). The
 # toy shape is therefore built with the structure its fixed seed draws, and `_seed_skeleton` stores that seed.
 _SKELETON_SEED = bytes(range(16))
-_SKELETON_SHAPE = build_galaxy_shape(
+_SKELETON_SHAPE = toy_shape(
     disk_scale_length_pc=40.0,
     disk_scale_height_pc=12.0,
     bulge_scale_radius_pc=10.0,
@@ -1187,9 +1191,9 @@ random is too light for one in three draws (its densest cell stays under that), 
 (TEST.225)."""
 
 
-@pytest.mark.parametrize("start, plan", [([], []), (["--min-start-density", "1000"], ["--seed", DENSE_CORE_SEED])],
+@pytest.mark.parametrize("start, plan, radius_ly", [([], [], 25.0), (["--min-start-density", "1000"], ["--seed", DENSE_CORE_SEED], 18.0)],
                          ids=["random", "dense_core"])
-def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, monkeypatch, start, plan):
+def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, monkeypatch, start, plan, radius_ly):
     """
     The standard workflow this project's own docs describe -- 'plan' once,
     then 'galaxy' with no flags: pick a random location, generate every
@@ -1226,7 +1230,7 @@ def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, 
        at all gets one fallback system, which would swamp their tiny
        predictions.
     """
-    radius_pc = ly_to_pc(25.0)
+    radius_pc = ly_to_pc(radius_ly)
     summary = _build_real_skeleton(mysql_config, plan)
     assert summary["outer_shell_index"] > 0, "the toy shape's own skeleton should find real content"
 

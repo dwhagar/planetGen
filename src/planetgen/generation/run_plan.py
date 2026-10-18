@@ -239,7 +239,7 @@ def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, s
 SKELETON_OPTIONS = ("max_shell", "reach_shells", "cell_star_ceiling", "fill_luminosity_cap", "core_min_luminosity",
                     "core_mass_limit", "halo_min_luminosity", "arm_density", "interarm_density",
                     "disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc", "bulge_amplitude",
-                    "arm_count", "pitch_angle_deg", "nuclear_amplitude", "calibration_radius_pc")
+                    "arm_count", "pitch_angle_deg", "nuclear_amplitude")
 """tuple: The options of `planetgen plan` that shape the skeleton, the parameters of the `plan-skeleton` command."""
 
 
@@ -320,8 +320,8 @@ def plan_skeleton_unit(params, report):
         found = clusters.generate_clusters(
             galaxy_seed, epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX, scale=scale)
         dwarfs = satellites.place_satellites(
-            galaxy_seed, program_constants.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * shape.disk_scale_length_pc,
-            model_terms(shape)["solar_angle_rad"], epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX, scale=scale)
+            galaxy_seed, program_constants.REFERENCE_RADIUS_SCALE_LENGTHS * shape.disk_scale_length_pc,
+            model_terms(shape)["reference_angle_rad"], epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX, scale=scale)
         young = openClusters.generate_open_clusters(
             galaxy_seed, shape, edge_pc, e_value, epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX)
         store.replace_galaxy_components(conn, found + young, kind="cluster")
@@ -836,13 +836,15 @@ class _ScatterShape:
                 + (f", and {self.component_count:,} components." if self.component_count else "."))
 
 
-def _band_fractions(tiered, min_luminosity_sol, max_luminosity_sol, mass_range):
+def _band_fractions(tiered, min_luminosity_sol, max_luminosity_sol, mass_range, galaxy_shape):
     """A scatter pass's expected share of the stars by population (`fractions`) and its sum for the baseline
-    (`band_share`), for a tiered pass or a single band."""
+    (`band_share`), for a tiered pass or a single band, with the ages spread as the draw of `galaxy_shape` spreads
+    them (GEN.546)."""
+    age_laws = brightStars.age_laws_of(galaxy_shape)
     if tiered is None:
-        fractions = brightStars.band_fractions(min_luminosity_sol, max_luminosity_sol, mass_range)
+        fractions = brightStars.band_fractions(min_luminosity_sol, max_luminosity_sol, mass_range, age_laws)
         return fractions, sum(fractions.values())
-    fractions = brightStars.tier_fractions_of(tiered)
+    fractions = brightStars.tier_fractions_of(tiered, age_laws)
     shares = [sum(item.values()) for item in fractions]
     return fractions, shares[scatter_limits.BASELINE] or max(shares)
 
@@ -1103,7 +1105,7 @@ def _expansion(mysql_config, skeleton, extents, skip, min_luminosity_sol, max_lu
     Returns:
         commands.Expansion: A unit per task, its cost the task's expected stars, and the shape as JSON.
     """
-    fractions, band_share = _band_fractions(tiered, min_luminosity_sol, max_luminosity_sol, mass_range)
+    fractions, band_share = _band_fractions(tiered, min_luminosity_sol, max_luminosity_sol, mass_range, skeleton.shape)
     components = _galaxy_components(mysql_config)
     shape = _plan_shape(skeleton, extents, fractions, band_share, components, tiered)
     drawing = _ScatterPass(skeleton, skip, min_luminosity_sol, max_luminosity_sol, seed, mass_range, tiered, components)

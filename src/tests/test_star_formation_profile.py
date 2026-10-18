@@ -43,7 +43,7 @@ def test_the_profile_rings_at_the_bars_end():
 def test_most_star_formation_is_inside_the_solar_circle_and_little_is_far_out():
     rings = _rings(SHAPE)
     total = np.trapezoid(rings, RADII)
-    solar = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * SHAPE.disk_scale_length_pc
+    solar = tuning.REFERENCE_RADIUS_SCALE_LENGTHS * SHAPE.disk_scale_length_pc
     inside = np.trapezoid(rings[RADII <= solar], RADII[RADII <= solar]) / total
     far = np.trapezoid(rings[RADII >= 13_500.0], RADII[RADII >= 13_500.0]) / total
     assert 0.75 <= inside <= 0.95         # observed 84%
@@ -63,7 +63,7 @@ def test_the_outer_fall_is_steeper_than_the_stars_and_near_the_observed_slope():
 
 
 def test_the_recent_share_falls_outward_and_in_the_gap():
-    solar = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * SHAPE.disk_scale_length_pc
+    solar = tuning.REFERENCE_RADIUS_SCALE_LENGTHS * SHAPE.disk_scale_length_pc
     gap = star_formation.gap_radius_pc(SHAPE)
     edge = star_formation.recent_factor(1.4 * gap, SHAPE)
     assert star_formation.recent_factor(300.0, SHAPE) < 0.2 * edge

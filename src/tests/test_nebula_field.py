@@ -29,7 +29,7 @@ SHAPE = build_galaxy_shape(2800.0, 350.0, 200.0, 1.0, 2, math.radians(15.0), 0.4
                            masses=(_CHAIN.stellar_mass_solar, _CHAIN.halo_mass_solar),
                            structure=structure_draw.draw_structure(SEED))
 """A stored galaxy's shape carries the masses and structure its seed draws (`db.store.get_galaxy_shape`), and the clouds read them."""
-SOLAR_RADIUS_PC = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * SHAPE.disk_scale_length_pc
+SOLAR_RADIUS_PC = tuning.REFERENCE_RADIUS_SCALE_LENGTHS * SHAPE.disk_scale_length_pc
 ARM_ANGLE = math.log(SOLAR_RADIUS_PC / SHAPE.disk_scale_length_pc) / math.tan(SHAPE.pitch_angle_rad)
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 REACH_PC = EDGE_PC * math.sqrt(3) / 2

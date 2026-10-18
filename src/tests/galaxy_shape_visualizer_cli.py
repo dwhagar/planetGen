@@ -108,9 +108,6 @@ def _add_shape_arguments(parser):
                              "galaxyDensity.GalaxyShape's own docstring).")
     parser.add_argument("--arm-amplitude", type=float, default=DEFAULT_ARM_AMPLITUDE,
                         help="Spiral arm/inter-arm density contrast, 0-1ish.")
-    parser.add_argument("--calibration-radius-pc", type=float, default=None,
-                        help="Where relative_density == 1.0 is calibrated -- defaults to "
-                             "3.15 * disk-scale-length-pc (build_galaxy_shape's own default, the Sun's radius).")
 
 
 def _shape_from_args(args):
@@ -122,7 +119,6 @@ def _shape_from_args(args):
         arm_count=args.arm_count,
         pitch_angle_rad=math.radians(args.pitch_angle_deg),
         arm_amplitude=args.arm_amplitude,
-        calibration_radius_pc=args.calibration_radius_pc,
     )
 
 

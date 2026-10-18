@@ -17,7 +17,9 @@ from planetgen.galaxy.sector import SpaceSector
 from planetgen.galaxy.straight_line import scatter_position_mpc, straight_line_position_pc
 from planetgen.generation.system import StarSystem
 from planetgen.physics import constants as physical_constants
+from planetgen.physics.position import update_interval_s
 from planetgen.physics.units import pc_to_ly
+from tests.toy_shape import toy_shape
 
 EDGE_PC = 4.0
 SHELL = 10
@@ -167,10 +169,17 @@ def test_orbital_facilities_advance_their_phase(mysql_config):
         ids = _ids(conn, system_id)
         with conn:
             facility_id = store.add_facility(conn, "Ring", "station", "orbital", "planet", ids["giant"], phase_deg=0.0)
-        period = conn.execute("SELECT orbit_period_years FROM facilities WHERE id = ?", (facility_id,)).fetchone()[
-            "orbit_period_years"]
+        row = conn.execute("SELECT orbit_period_years, orbit_distance_km FROM facilities WHERE id = ?",
+                           (facility_id,)).fetchone()
+        period = row["orbit_period_years"]
+        # A facility is due once it has moved its scale's threshold (100,000 km round a planet), so one close round a
+        # small giant is not due after a quarter turn: the step is whole turns more than that takes, plus the quarter
+        # (the whole turns wrap away, GEN.108), which keeps the phase it checks (TEST.251).
+        speed_ms = row["orbit_distance_km"] * 1000.0 * 2 * math.pi / (period * physical_constants.SECONDS_PER_YEAR)
+        due_years = update_interval_s(speed_ms, "planetary") / physical_constants.SECONDS_PER_YEAR
+        step = (math.ceil(due_years / period) + 0.25) * period
         with conn:
-            assert store.advance_facility_orbits(conn, store.orbit_clock(conn, period / 4)) == 1
+            assert store.advance_facility_orbits(conn, store.orbit_clock(conn, step)) == 1
         phase = conn.execute("SELECT orbit_phase_deg FROM facilities WHERE id = ?", (facility_id,)).fetchone()
         assert phase["orbit_phase_deg"] == pytest.approx(90.0)
     finally:
@@ -269,7 +278,7 @@ SCATTER_RADIUS_PC = 8000.0
 def _seed_scatter_grid(mysql_config):
     """The galaxy's stored cell size (a point is refiled by it) and one point of every moving scatter kind."""
     from planetgen.galaxy.density import build_galaxy_shape
-    shape = build_galaxy_shape(disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
+    shape = toy_shape(disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
                                bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4)
     store.save_galaxy_shape(shape, edge_pc=EDGE_PC, outer_shell_index=8, expected_system_count_at_density_1=2000.0,
                             config=mysql_config)

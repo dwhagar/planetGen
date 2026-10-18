@@ -20,8 +20,7 @@ from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
 
 SHAPE = build_galaxy_shape(disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0,
-                           bulge_amplitude=3.11, arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4,
-                           calibration_radius_pc=None)
+                           bulge_amplitude=3.11, arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4)
 DEFAULT_GALAXY_STARS = 2.953e11
 """float: Stars in the default galaxy (the design doc's figure), for the scatter kinds' counts."""
 ARM_CREST_GAS_FACTOR = 2.3

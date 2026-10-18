@@ -40,6 +40,7 @@ import numpy as np
 
 from planetgen import tuning
 from planetgen.galaxy import mass_chain
+from planetgen.galaxy.age_law import AgeLaw
 
 _GYR_PER_HUBBLE_TIME = 977.792
 """float: `1 / H0` in Gy for `H0 = 1` km/s/Mpc over 100 (so `977.792 / (100 h)` Gy)."""
@@ -78,6 +79,20 @@ class DiskHistory:
         since_start = span - edges                               # time since the disk began, at each edge
         at = np.interp(since_start, span - self.age_gy, cumulative)
         return float((at[0] - at[1]) / cumulative[-1])
+
+    def age_law(self, young_edge_gy, old_edge_gy, points=None):
+        """
+        The spread of ages inside the window from `young_edge_gy` to `old_edge_gy` before now (GEN.546): the disk's star
+        formation (rings weighted by their area) at `points` ages spread evenly across it, as an `AgeLaw`. The rates are
+        rounded to six figures so that two histories that agree to that give one law (the sampling tables are cached on
+        it).
+        """
+        points = tuning.AGE_LAW_POINTS if points is None else points
+        ages = np.linspace(young_edge_gy, old_edge_gy, points)
+        # `age_gy` falls from the disk's age to 0, so the rate is read on its reverse (increasing) ages.
+        rates = np.interp(ages, self.age_gy[::-1], self._total_rate()[::-1])
+        top = float(rates.max())
+        return AgeLaw(tuple(float(a) for a in ages), tuple(round(max(float(r) / top, 0.0), 6) for r in rates))
 
     def present_over_mean(self):
         """The whole disk's star formation now over its mean over the disk's life (rings weighted by area)."""
@@ -309,6 +324,24 @@ def history_of(shape):
     masses = density.component_masses(shape)
     thin_share = masses["thin_disk"] / (masses["thin_disk"] + masses["thick_disk"] + masses["bulge"])
     return history(stellar_mass * thin_share, length, halo_mass)
+
+
+@functools.lru_cache(maxsize=64)
+def population_age_laws(shape):
+    """
+    How each disk population's ages are spread over its window, from the history of the galaxy of this shape (GEN.546):
+    `young`, `intermediate` and `old` to their `AgeLaw`. A population the history does not cover (the bulge, the halo, a
+    cluster) has no entry and draws uniformly.
+
+    Args:
+        shape (GalaxyShape): As in `population_shares`.
+
+    Returns:
+        dict: Population name -> `AgeLaw`.
+    """
+    found = history_of(shape)
+    ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
+    return {name: found.age_law(*ages[name]) for name in tuning.DISK_AGE_LAW_POPULATIONS}
 
 
 @functools.lru_cache(maxsize=64)

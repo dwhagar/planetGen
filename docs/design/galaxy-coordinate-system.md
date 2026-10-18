@@ -213,8 +213,8 @@ nearest systems filled in like a generated one.
 
 - **Hill spheres follow the real radius.** `Star.calculate_system_perimeter`
   takes `galactic_center_dist_ly`, threaded from the owning sector's
-  `galactic_radius_pc`. The fixed `GALACTIC_CENTER_DISTANCE_LY` (Sol's
-  distance) is used only for a system generated outside the galaxy.
+  `galactic_radius_pc`. A system generated outside the galaxy is taken at the radius that holds half of the disc's stars
+  (`galaxy.scales.default_galactocentric_pc`, GEN.404).
 - **Galactic orbits.** `planetgen.cli.orbits` turns every system, phenomenon
   and stand-alone facility along its galactic orbit, moves anything that
   drifts into another generated sector over to it, then recomputes
