@@ -126,6 +126,13 @@ The existing note already lists B1257+12, B1620-26 b and J1719-1438 b with the s
 - Type C (ablated core): a companion of 0.001 to 0.05 Msun (black widow, redback, chthonian) at an orbital period of hours to a day; stripped, carbon rich.
 - Habitability: lowest tier always. This agrees with the existing no-go.
 
+**Built (GEN.317, `generation/pulsar_planets.py`).** A millisecond pulsar that rolls planets draws its origin with the 25 / 25 / 50 weights above (`tuning.PULSAR_PLANET_ORIGIN_WEIGHTS`). Only the disc is built: 1 to 3 planets of the airless carbon-rich class C between 0.1 and 0.6 AU, no moons, each period at a ratio of 4:3, 3:2, 5:3 or 2:1 to the one inside it, scattered by 1%; the radiation tier is the lowest by the existing compact-host rule. Two cuts from the rules above, both stand-ins until their kinds exist:
+
+- The mass range is 0.01 to 10 Earth masses cut at what class C holds: a sphere of its top radius (10,000 km) at the middle of its density range, 3.3 Earth masses, so PSR B1257+12's 4.3 and 3.9 Earth masses are not drawn. A larger carbon-rich class (or class C's radius ceiling raised) lifts the cut.
+- The captured giant (cluster only, GEN.163 off) and the ablated companion (a sub-stellar pair member, 0.001 to 0.05 solar masses, beyond class J's 13 Jupiter masses and with no stripped-core class) draw and give the pulsar no planets, so today 25% of the pulsars that roll planets hold them. The companion belongs to the pair builder (GEN.555).
+
+The wind's ram pressure is `magnetism.pulsar_wind_pressure_pa` with `xi` = `tuning.PULSAR_WIND_XI` = 1, from the star's `spin_down_power_w` (the magnetic-dipole `B^2 R^6 Omega^4 / 6 c^3`); `magnetism.wind_pressure_pa` uses it for a young, millisecond or magnetar neutron star, so a planet's magnetopause reads the pulsar wind, not the Sun's.
+
 ### 2.2 White dwarf and neutron star formation channels
 
 Boss's text states the channels in prose: white dwarf mergers leave a carbon-dominated fallback disc whose high solid-to-gas ratio suppresses vertical shear instability and lets rocky planets form by gravitational instability before the disc dissipates [B]. This is the mechanism for type A above, and it also explains why young pulsars get none (no white dwarf to disrupt). No further generator rule.

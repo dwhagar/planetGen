@@ -26,7 +26,7 @@
 
 // Equal to planetgen.galaxy.viewport.DISTANCE_CUT_EDGES and DISTANCE_CUT_FADE_BAND
 // (a test holds them equal).
-export const CUT_EDGES = 2;
+export const CUT_EDGES = 3;
 export const FADE_BAND = 1.15;
 export const DETAIL_FULL_PC = 60;
 export const DETAIL_GONE_PC = 120;

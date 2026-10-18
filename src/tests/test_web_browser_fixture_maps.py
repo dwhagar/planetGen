@@ -2094,9 +2094,15 @@ def test_galaxy_map_stars_fade_in_with_the_zoom(page, map_site):
     steps = [camera * 2 ** (k / 8) for k in range(-8, 5)]
     sums = [page.evaluate(opacity, r)["sum"] for r in steps]
     assert all(0 <= s <= here["count"] + 1e-6 for s in sums), sums
+    # A tile's whole share rises over the fade band (a 1.32 ratio of distance, about 3 zoom steps, MAP.152), so a view
+    # whose stars sit in a few tiles moves most of the set within one step at the steepest part of the ramp, and the
+    # early tail of the ramp is a large rise of a small sum (MAP.249's factor 3 puts that tail inside the sweep). What
+    # must hold is that no step brings in the whole set, measured against the full count, and that the set arrives
+    # over several steps.
     for before, after in zip(sums, sums[1:]):
-        if before >= 5:
-            assert abs(after - before) <= 0.6 * before, sums
+        assert abs(after - before) <= 0.7 * here["count"], sums
+    rising = [step for step, (before, after) in enumerate(zip(sums, sums[1:])) if after - before > 0.02 * here["count"]]
+    assert len(rising) >= 3, sums
 
 
 def test_galaxy_map_near_field_thins_what_stands_between_the_camera_and_the_focus(page, map_site):
