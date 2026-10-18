@@ -131,7 +131,7 @@ def test_the_lines_of_an_airless_frozen_world_read_like_the_examples_boss_gave()
             "**PHI-6 habitability** is 0.00, and a visitor needs an environment suit.",
             "**Pressure: Red** (0.00). The air pressure is 0 kPa, so a pressure suit is needed.",
             "**Temperature: Red** (0.00). The air temperature is -227 C, so an environment suit is needed.",
-            "**Air: Red** (0.00). There is no atmosphere (0.0 kPa).",
+            "**Air: Red** (0.00). There is no atmosphere (0 kPa).",
             "**Water: Red** (0.00). There is no liquid water to support life.",
             "**Radiation: Yellow** (0.45). The radiation dose is a mean of 742 mSv a year, inside the Yellow band "
             "(up to 1 Sv a year)."):
@@ -211,7 +211,7 @@ def test_the_air_line_of_a_world_with_no_atmosphere_says_so_and_is_red():
     """GEN.215: Air is Red and the text says there is no atmosphere, never that the gases are fine."""
     world = _world(pressure_kpa=0.0, gases={})
     text = protection.paragraph(world, _bold)
-    assert "**Air: Red** (0.00). There is no atmosphere (0.0 kPa). **Water:" in text
+    assert "**Air: Red** (0.00). There is no atmosphere (0 kPa). **Water:" in text
     assert "within their long-term limits" not in text
 
 

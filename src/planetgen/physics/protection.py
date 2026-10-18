@@ -95,7 +95,7 @@ def temperature_need(world):
 def air_need(world):
     """`(rank, gear, why)` for the air: the worst of its oxygen and the gases a filter can take out."""
     if not habitability.has_atmosphere(world):
-        return "suit", "an environment suit with its own air", f"there is no atmosphere ({world.pressure_kpa:.1f} kPa)"
+        return "suit", "an environment suit with its own air", f"there is no atmosphere ({_kpa(world.pressure_kpa)})"
     need = ("none", None, "the oxygen and the other gases are within their long-term limits")
     o2 = inspired_o2_kpa(world)
     if o2 < limit("inspired_o2_min_kpa"):
@@ -166,6 +166,11 @@ OVERALL_GEAR = {"none": "no equipment", "mask": "a breathing mask", "scrubber": 
 classes name their own gear)."""
 
 
+def _be(gear):
+    """"are" for gear named in the plural ("cooling garments"), else "is"."""
+    return "are" if gear.endswith("garments") else "is"
+
+
 def _short(gear):
     return SHORT_GEAR.get(gear, gear)
 
@@ -222,7 +227,7 @@ def _clause(name, world, need, compact_host):
     elif name == "Radiation" and rank != "hardened":
         gear = None
     if gear:
-        text += f", so {_short(gear)} is needed" if name != "Water" else f", so {gear}"
+        text += f", so {_short(gear)} {_be(gear)} needed" if name != "Water" else f", so {gear}"
     elif name in ("Pressure", "Temperature") and rank == "none":
         text += ", so no gear is needed"
     text += "."
