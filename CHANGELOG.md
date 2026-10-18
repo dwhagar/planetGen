@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1818] - 2026-10-18
+
+**Headline:** The phenomenon scatter tests no longer fail now and then on a galaxy seed that places no hypervelocity star.
+
+### Changed
+- Tests: `test_phenomenon_scatter.py` seeds its toy galaxy from a fixed galaxy seed. The toy galaxy reaches about 36 pc, so the hypervelocity count is 0 for about one seed in six and `test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it` failed on that draw (TEST.238); the file's 80 tests pass on the fixed seed.
+
+TODO items resolved: TEST.238 / Added: none
+
 ## [8.0.1817] - 2026-10-18
 
 **Headline:** The neighbourhood test's dense-core case no longer fails by chance: it uses a fixed galaxy and checks a capped cell against the ceiling, not against a count the run does not produce.
