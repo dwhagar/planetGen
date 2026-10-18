@@ -17,6 +17,7 @@ from planetgen.galaxy.sector import SpaceSector
 from planetgen.galaxy.straight_line import scatter_position_mpc, straight_line_position_pc
 from planetgen.generation.system import StarSystem
 from planetgen.physics import constants as physical_constants
+from planetgen.physics.position import update_interval_s
 from planetgen.physics.units import pc_to_ly
 from tests.toy_shape import toy_shape
 
@@ -168,10 +169,17 @@ def test_orbital_facilities_advance_their_phase(mysql_config):
         ids = _ids(conn, system_id)
         with conn:
             facility_id = store.add_facility(conn, "Ring", "station", "orbital", "planet", ids["giant"], phase_deg=0.0)
-        period = conn.execute("SELECT orbit_period_years FROM facilities WHERE id = ?", (facility_id,)).fetchone()[
-            "orbit_period_years"]
+        row = conn.execute("SELECT orbit_period_years, orbit_distance_km FROM facilities WHERE id = ?",
+                           (facility_id,)).fetchone()
+        period = row["orbit_period_years"]
+        # A facility is due once it has moved its scale's threshold (100,000 km round a planet), so one close round a
+        # small giant is not due after a quarter turn: the step is whole turns more than that takes, plus the quarter
+        # (the whole turns wrap away, GEN.108), which keeps the phase it checks (TEST.251).
+        speed_ms = row["orbit_distance_km"] * 1000.0 * 2 * math.pi / (period * physical_constants.SECONDS_PER_YEAR)
+        due_years = update_interval_s(speed_ms, "planetary") / physical_constants.SECONDS_PER_YEAR
+        step = (math.ceil(due_years / period) + 0.25) * period
         with conn:
-            assert store.advance_facility_orbits(conn, store.orbit_clock(conn, period / 4)) == 1
+            assert store.advance_facility_orbits(conn, store.orbit_clock(conn, step)) == 1
         phase = conn.execute("SELECT orbit_phase_deg FROM facilities WHERE id = ?", (facility_id,)).fetchone()
         assert phase["orbit_phase_deg"] == pytest.approx(90.0)
     finally:
