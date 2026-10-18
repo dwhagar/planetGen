@@ -165,7 +165,13 @@ def test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing(monkeypatch):
     nebula = entries[0].phenomenon
     assert nebula.nebula_class in ("C", "D", "E")
     assert nebula.age_myr == pytest.approx(4.0)
-    assert nebula.hosts.startswith("O5V x1")
+    # The host is among the stars: a class D or E region also holds the cluster behind it, drawn from the IMF, and at
+    # 4 Myr the hottest of those are still alive (an O3V or O5V lives about 4 Myr, `physics.ms_lifetime`), so the
+    # list may begin with a hotter type or count more than one O5V.
+    counts = {kind: int(count) for kind, count in (part.split(" x") for part in nebula.hosts.split(", "))}
+    assert counts["O5V"] >= 1
+    if nebula.nebula_class == "C":
+        assert nebula.hosts == "O5V x1"
 
 
 def test_a_star_past_the_nebula_class_age_lights_no_cloud(monkeypatch):

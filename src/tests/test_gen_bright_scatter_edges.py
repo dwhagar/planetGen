@@ -204,6 +204,15 @@ def _comparable(rows):
     return sorted(tuple(float(value) if isinstance(value, float) else value for value in row) for row in rows)
 
 
+def _stored_shape(mysql_config):
+    """The galaxy's shape as the scatter reads it: from the database, with the masses its seed draws (GEN.469)."""
+    conn = store.get_connection(mysql_config)
+    try:
+        return store.get_galaxy_shape(conn).shape
+    finally:
+        conn.close()
+
+
 def _expected_scatter(mysql_config, seed):
     """What the scatter's passes give (GEN.185): the mass pass, then the lighter stars at least `THRESHOLD`
     bright, skipping the sectors the mass pass marked."""
@@ -211,10 +220,11 @@ def _expected_scatter(mysql_config, seed):
     from planetgen.physics import constants
     limit = tuning.PHENOMENON_MIN_MASS_SOLAR
     mass_seed = _scatter_seed(mysql_config, "mass-scatter")
-    heavy = list(brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, star_population.MASS_PASS_MIN_LUMINOSITY_SOL,
+    shape = _stored_shape(mysql_config)
+    heavy = list(brightStars.scatter(shape, EXTENTS, EDGE_PC, E_VALUE, star_population.MASS_PASS_MIN_LUMINOSITY_SOL,
                                      mass_seed, mass_range=(limit, None)))
     marked = {row[:3] for row in heavy if row[12] >= THRESHOLD * constants.SOLAR_LUMINOSITY}
-    light = list(brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, THRESHOLD, seed, skip_addresses=marked,
+    light = list(brightStars.scatter(shape, EXTENTS, EDGE_PC, E_VALUE, THRESHOLD, seed, skip_addresses=marked,
                                      mass_range=(None, limit)))
     return heavy + light
 
@@ -339,6 +349,12 @@ def _nearest(cells, address):
                                                   sector_position_pc(*address, EDGE_PC)), cell))
 
 
+def _is_built_star(entry):
+    """Whether a sector's entry is the system built around a stored bright star (the members of an emission region are
+    preplaced too, GEN.321, and carry no row id)."""
+    return getattr(entry, "bright_star_id", None) is not None
+
+
 def _fill(mysql_config, address):
     """Fills one sector, as a galaxy run does for each of its sectors
     (no backfill: since GEN.30 that runs once after the run's sectors)."""
@@ -421,7 +437,7 @@ def test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star(mysql_c
     ring_cells = [cell for cell in _backfill_steps(mysql_config, address) if cell in leftovers]
 
     _sector_id, _name, sector = _fill(mysql_config, address)
-    assert [entry for entry in sector.entries if entry.preplaced] == []
+    assert [entry for entry in sector.entries if _is_built_star(entry)] == []
     assert _count(mysql_config, "SELECT COUNT(*) AS n FROM bright_stars WHERE star_system_id IS NOT NULL") == 0
     assert _backfill_around(mysql_config, address)["stars"] > 0
     # The backfill draws each sector's stars from its mass, and a sector it reaches can draw none (about 1 run
@@ -435,7 +451,7 @@ def test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star(mysql_c
     assert _unbuilt_leftover_cells(mysql_config, last_leftover) & (reached | {address}) == {address}
 
     _sector_id, _name, sector = _fill(mysql_config, neighbor)
-    preplaced = [entry for entry in sector.entries if entry.preplaced]
+    preplaced = [entry for entry in sector.entries if _is_built_star(entry)]
     built, unlinked = _built_in(mysql_config, neighbor)
     assert unlinked == 0
     assert preplaced and len(built) == len(preplaced)
@@ -456,7 +472,7 @@ def test_a_fill_after_failed_commits_clears_the_reached_sectors_leftovers(mysql_
     # With more workers, the shells drawn beside the heaviest left theirs too.
     assert last_leftover == 20_000 if worker_patches.workers() == 1 else last_leftover >= 20_000
     _sector_id, _name, sector = _fill(mysql_config, address)
-    assert [entry for entry in sector.entries if entry.preplaced] == []
+    assert [entry for entry in sector.entries if _is_built_star(entry)] == []
     _backfill_around(mysql_config, address)
 
     assert _count(mysql_config, "SELECT COUNT(*) AS n FROM bright_stars WHERE star_system_id IS NOT NULL") == 0
@@ -496,7 +512,7 @@ def test_re_running_an_interrupted_band_holds_the_band_once(mysql_config, monkey
     assert band is not None
     assert _settings(mysql_config) == (BAND_FLOOR, seed)
     band_seed = _scatter_seed(mysql_config, f"band/{BAND_FLOOR:g}-{THRESHOLD:g}")
-    expected = list(brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, BAND_FLOOR, band_seed,
+    expected = list(brightStars.scatter(_stored_shape(mysql_config), EXTENTS, EDGE_PC, E_VALUE, BAND_FLOOR, band_seed,
                                         max_luminosity_sol=THRESHOLD,
                                         mass_range=(None, 20.0)))
     stored = _stored_rows(mysql_config)

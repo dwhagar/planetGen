@@ -191,7 +191,13 @@ class SupernovaRemnant(LazySaladName):
                                                age_gy=self.age_years / 1e9)
         (self.dominant_species, self.density_cm3, self.temperature_k,
          self.extinction_av) = draw_class_contents(self.remnant_class)
-        self.radius_ly = sedov_taylor_radius_ly(self.age_years, self.density_cm3)
+        ambient_density = getattr(system_config, "AMBIENT_DENSITY_CM3", None)
+        if ambient_density is None:
+            ambient_density = self.density_cm3
+        else:
+            log.choice("Supernova remnant ambient density", f"{ambient_density:.4g} cm^-3",
+                       "the remnant sits in a superbubble: its Sedov-Taylor size reads the cavity's interior density")
+        self.radius_ly = sedov_taylor_radius_ly(self.age_years, ambient_density)
         self.compact_offset_ly = self._draw_kick_offset_ly(kind)
 
     def _draw_kick_offset_ly(self, kind):

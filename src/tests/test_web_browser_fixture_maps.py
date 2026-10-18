@@ -2178,8 +2178,25 @@ def test_sector_map_click_on_the_selected_nebula_clears_it(page, map_site):
     assert _info_title(page) == nebula["name"], "and a click selects it again"
 
 
+def _url_settled(page, quiet_ms=900):
+    """The page's URL once it has stopped changing. The map writes the camera into the address 350 ms after the
+    camera last moved, in its frame loop, so on a loaded machine the scale bar can hold still (`_settle`) before
+    the address names where the camera ended (TEST.126)."""
+    last, held = None, 0
+    for _ in range(200):
+        if page.url == last:
+            held += 100
+            if held >= quiet_ms:
+                return last
+        else:
+            last, held = page.url, 0
+        page.wait_for_timeout(100)
+    return page.url
+
+
 def _crumbs_on_a_fresh_load(page):
     """The steps a new page shows for this page's URL."""
+    _url_settled(page)
     other = page.context.new_page()
     try:
         other.goto(page.url)
@@ -2198,6 +2215,7 @@ def test_galaxy_breadcrumb_always_matches_the_view_its_url_names(page, map_site)
 
     def in_sync(label):
         _settle(page)
+        _url_settled(page)
         live = _crumbs(page)
         assert live == _crumbs_on_a_fresh_load(page), (label, page.url, live)
         checked.append(label)

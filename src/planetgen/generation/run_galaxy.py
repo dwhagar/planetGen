@@ -23,7 +23,7 @@ import time
 
 import pymysql
 
-from planetgen.db import sector_paths, store
+from planetgen.db import region, sector_paths, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import resolution as galaxyResolution, seed as galaxySeed, version_check
 from planetgen.physics import mathcheck
@@ -41,6 +41,7 @@ from planetgen.galaxy.spherical import (
 )
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.generation import fill_order, object_timing
+from planetgen.generation import nebula_contents as nebulaContents
 from planetgen.generation import run_common
 from planetgen.generation import run_plan
 from planetgen.generation import run_population
@@ -268,6 +269,40 @@ def _plan_pending(pending):
     return batch, [item[2] for item in batch], None
 
 
+HOT_HOST_PATTERN = "^(O[0-9]|B[012])V"
+"""str: The spectral types that can light an emission region (`tuning.NEBULA_HOST_RULES`: O and B0 to B2 rows)."""
+
+
+def _emission_hosts(conn, skeleton, address, profile):
+    """
+    The emission regions (D and E) lit by the pre-placed hot stars of the sectors around `address` (GEN.321): every
+    `bright_stars` row, built or not, within the reach of a region's members of the sector's cube, rolled as its own
+    sector rolled it (`nebula_contents.row_host`, with that sector's `"nebula"` factor), as `(nebula, host_name,
+    host_position_pc)`. The sector's own stars are left out: its fill makes their regions itself. A hot star the
+    scatter did not place is no row, so its region reaches no neighbour.
+    """
+    reach = profile.edge_pc * math.sqrt(3) / 2 + nebulaContents.emission_reach_pc()
+    rows = region.region_rows(
+        conn, "bright_stars",
+        "p.shell_index, p.band_index, p.wedge_index, p.star_type, p.age_gy, p.mass_kg, p.temperature_k, "
+        "p.position_x_mpc, p.position_y_mpc, p.position_z_mpc",
+        ("p.position_x_mpc / 1000.0", "p.position_y_mpc / 1000.0", "p.position_z_mpc / 1000.0"),
+        profile.position_pc, reach, where=f"p.star_type REGEXP '{HOT_HOST_PATTERN}'")
+    factors, found = {}, []
+    for row in sorted((dict(r) for r in rows),
+                      key=lambda r: (r["shell_index"], r["band_index"], r["wedge_index"], r["position_x_mpc"],
+                                     r["position_y_mpc"], r["position_z_mpc"])):
+        host_address = (row["shell_index"], row["band_index"], row["wedge_index"])
+        if host_address == tuple(address) or nebulaContents.row_host(row) is None:
+            continue
+        if host_address not in factors:
+            factors[host_address] = sector_profile(host_address, skeleton).kind_factors.get("nebula", 1.0)
+        host = nebulaContents.row_host(row, factors[host_address])
+        if host is not None:
+            found.append(host)
+    return found
+
+
 def _fill_context(args, address):
     """The `brightStars.FillContext` for one galaxy sector: its sector
     profile (`galaxy.profile`: the population mix and the rest), its unfilled pre-placed bright stars down to its own level and
@@ -302,15 +337,16 @@ def _fill_context(args, address):
                 below_cut = brightStars.BelowCut(tuple(address), min_mass_solar, seed, expected)
         level = store.bright_star_fill_level(conn, *address)
         mass_limit = store.bright_star_fill_mass_limit(conn, *address)
+        emission_hosts = _emission_hosts(conn, skeleton, address, profile)
         if level is None and mass_limit is None:
             return brightStars.FillContext(profile, phenomenon_rows=phenomena, below_cut=below_cut,
-                                           resolution=resolution)
+                                           resolution=resolution, emission_hosts=emission_hosts)
         rows = store.bright_stars_for_sector(conn, *address)
     finally:
         conn.close()
     return brightStars.FillContext(profile, rows, min_luminosity_sol=level,
                                    phenomenon_rows=phenomena, below_cut=below_cut, star_mass_limit_sol=mass_limit,
-                                   resolution=resolution)
+                                   resolution=resolution, emission_hosts=emission_hosts)
 
 
 def backfill_step_targets(addresses, bounds, step_masses=None):
