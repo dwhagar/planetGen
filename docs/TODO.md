@@ -13738,6 +13738,53 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.252), after the description layer.
   Prerequisites: none. Related: GEN.252, GEN.301.
 
+- [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
+  Boss's request (2026-10-17, 11:19 PM EDT, project chat, and an
+  addendum typed in the design thread at 11:21 PM EDT, both as the
+  coordinator relayed): "I want to unify generation of stars and
+  star-like objects (former stars, including stellar black holes and
+  neutron stars as well as brown dwarfs, etc). Then use the same
+  generation chain we use for sector fill that we do with stars. We then
+  use sector fill for unbound comets, rogue planets (which should have
+  the chance to get moons)." and "basically I want to unify the process
+  of anything that can have something else orbiting it. Planets have
+  moons at the lowest level, highest level a 7-star-like-object group
+  with each having star systems. Then star system creation is
+  recursive." Filed by the TODO thread as a placeholder only: no
+  breakdown, version or lane is decided. The read-only design thread
+  'Unify star-like objects (2026-10-17)' maps the current code and
+  proposes the chain and the item breakdown; its findings go into this
+  item and its children when they arrive. Overlaps to settle in that
+  design (built, so context only): GEN.447 to GEN.449 (binaries, gas
+  law), GEN.463 and GEN.467 (neutron star radius, main-sequence
+  lifetime), GEN.469 (disk star-formation history), GEN.252 (brown
+  dwarfs as stars, #2164), GEN.541 (black hole perturber check, #2164)
+  and the earlier phenomenon scatter below the stellar mass cut. Open
+  items that touch the same ground: GEN.301 (the 8.1 headline, the
+  scatters; whether this waits on it or reshapes it is for the design),
+  GEN.377 (scatter limits by place for the neutron star and black hole
+  scatter), GEN.129 (multi-star systems of up to twelve stars: Boss's 'a
+  7-star-like-object group' may be an example or a new cap against the
+  standing multi-star cap of 12; the design asks him on a card, it is
+  not assumed), GEN.130 (compact-remnant systems at fill), GEN.142
+  (peculiar velocity for rogue planets), GEN.264 and GEN.315 (the fill
+  builds a system from its stored members), GEN.332 (circumbinary
+  planets and rogue planet pairs), GEN.291 (a bound planet becomes a
+  rogue planet), GEN.457 and GEN.466 (moon origin and composition),
+  GEN.442 (comets). The design must hold to NO FIXED CONTENT, GEN.56
+  (draw.py is the one random wrapper) and the standing rule that the
+  database schema is not a constraint. Changes stored values, so it
+  bumps the generator epoch (OPS.56 rule) and decides its place in the
+  one full rescatter. Version: proposed 8.4 (new worlds) as a holding
+  place, not decided; it can move once the design lands. Done: the
+  design note is approved item by item on cards and this umbrella is
+  replaced by its children. Owner: the design thread first, then Core 4
+  as the composition and stellar chain owner (coordinator, 2026-10-17,
+  11:19 PM EDT); no lane is assigned yet.
+  Prerequisites: none. Related: GEN.301, GEN.377, GEN.129, GEN.130,
+  GEN.142, GEN.264, GEN.315, GEN.332, GEN.291, GEN.457, GEN.466,
+  GEN.442.
+
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -17602,6 +17649,22 @@ clears each one.
   the pin Bug Hunt has in its #2124 branch should cover it; Bug Hunt is
   asked to check that the pinned seed gives a nonzero forced total (this
   assertion) as well as the scattered system count (line 299).
+  Sighting at line 299 again, reported as deterministic (Core 1, 11:20
+  PM EDT as the lane reported; its gate 5 and one run alone in a clean
+  worktree at 5c49fc42, release 8.0.1759): `assert some_scattered > 0`
+  (no bright star in shell 8 band 0 wedges 0..7 after the forced scatter
+  and the galaxy run); Core 1 said it passed at 7f17820b and suspected
+  GEN.321 or GEN.469. Checked by the TODO thread at 11:18 PM EDT (own
+  clock): the test passed alone 2 of 2 on current main bc97f757 (about
+  24 s) and 1 of 1 on 5c49fc42 (32 s), so it does not fail
+  deterministically on main; Core 1's runs differ from these in the
+  machine (a gate or other lane's load) or the test database state, not
+  in the commit. Frequency: 2 of 2 for Core 1, 0 of 3 for the TODO
+  thread. Fails on main: no (0 of 3 alone). Same unpinned galaxy seed as
+  the sightings above; Bug Hunt's #2124 pin should cover it, and Bug
+  Hunt is asked to run it 10 times under load after its re-gate. If Core
+  1 can still reproduce it in a clean tree, the next step is to print
+  the seed and the sector it drew.
   Prerequisites: none. Related: TEST.170, TEST.111.
 
 - [ ] **TEST.172 test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug)**
@@ -18910,6 +18973,13 @@ clears each one.
   Fix coded (Bug Hunt, 2026-10-17, 10:15 PM EDT as the lane reported):
   the `-?` moved to the band on branch bughunt-test225; it rides the
   TEST.225 PR, which retires this item when it merges.
+  Sighting (Core 4, 11:09 PM EDT as the lane reported; its
+  GEN.252/GEN.541 gate):
+  `test_web_browser_maps.py::test_galaxy_map_drill_down_by_clicks`
+  failed once in the gate and passed alone (8.2 s). Fits this item (a
+  negative band drawn in the sample galaxy), failure text not sent;
+  unconfirmed. Fixed on Bug Hunt's branch bughunt-test225 once that PR
+  merges.
   Prerequisites: none. Related: TEST.172, TEST.202.
 
 - [ ] **TEST.237 The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug)**
