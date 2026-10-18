@@ -880,3 +880,4 @@ Baseline: PR #1817.
 | TEST.236 | 8.1 | Bugs and flaky tests |
 | TEST.225 | 8.1 | Bugs and flaky tests |
 | TEST.245 | 8.1 | Bugs and flaky tests |
+| MAP.247 | 8.1 | Fly-through map |
