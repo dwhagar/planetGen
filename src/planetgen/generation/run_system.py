@@ -53,7 +53,7 @@ def load_system_file(path):
     docstrings for details): `star_type`, `name`, `age`, `num_orbits`,
     `slots`, `habitable_world`, `asteroid_belt`, `comets`, `large_star`, `moons`,
     `max_planets`, `intelligent_life`, `binary_system`, `wide_binary`,
-    `planets`, `markdown`, `flavor_chance_system`, `flavor_chance_planet`,
+    `planets`, `flavor_chance_system`, `flavor_chance_planet`,
     `max_planet_flavor`, `output`.
 
     `slots`, if present, is a list whose entries are either `null` or an
@@ -98,7 +98,7 @@ def apply_system_file(system_config, data):
         "star_type", "name", "age", "num_orbits", "slots",
         "habitable_world", "asteroid_belt", "comets", "large_star", "moons",
         "max_planets", "intelligent_life", "binary_system", "wide_binary",
-        "planets", "markdown",
+        "planets",
     ]
     key_to_attr = {key: key.upper() for key in simple_keys}
 

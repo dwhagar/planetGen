@@ -1309,12 +1309,11 @@ it the same way `planetgen system` does, via `StarSystem(system_config=...)`:
   "intelligent_life": null,
   "binary_system": false,
   "wide_binary": null,
-  "num_orbits": 6,
-  "markdown": false
+  "num_orbits": 6
 }
 ```
 
-Accepted fields: `markdown`, `star_type`, `name`, `age` (`"young"`,
+Accepted fields: `star_type`, `name`, `age` (`"young"`,
 `"old"`, or `null`), `num_orbits` (a positive integer up to 500, or `null`), and the
 tri-state booleans `habitable_world`/`asteroid_belt`/`large_star`/`moons`/
 `max_planets`/`planets`/`intelligent_life`/`binary_system`/`wide_binary`
