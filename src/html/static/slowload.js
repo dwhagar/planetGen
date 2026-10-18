@@ -88,6 +88,10 @@ async function poll() {
   busy = true;
   try {
     const response = await fetch(panel.dataset.statusUrl, { cache: "no-store", headers: { Accept: "application/json" } });
+    if (stopped) {
+      busy = false; // "Stop waiting" was pressed while this answer was on its way: it must not undo the stop
+      return;
+    }
     if (response.status === 404) {
       busy = false;
       await bring(false); // the job is gone (finished long ago, or expired): ask for the page itself
@@ -95,6 +99,10 @@ async function poll() {
     }
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const job = await response.json();
+    if (stopped) {
+      busy = false;
+      return;
+    }
     render(job);
     if (job.state === "succeeded") {
       busy = false;
