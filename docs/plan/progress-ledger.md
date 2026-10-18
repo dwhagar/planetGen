@@ -813,3 +813,5 @@ Baseline: PR #1817.
 | TEST.213 | 8.1 | Bugs and flaky tests |
 | GEN.314 | 8.1 | Multi-star and compact systems |
 | TEST.230 | 8.1 | Bugs and flaky tests |
+| GEN.238 | 8.1 | Components and wanderers |
+| GEN.298 | 8.1 | Components and wanderers |
