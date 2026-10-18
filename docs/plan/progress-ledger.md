@@ -869,3 +869,4 @@ Baseline: PR #1817.
 | TEST.155 | 8.1 | Description layer |
 | GEN.439 | 8.1 | Composition tables |
 | GEN.440 | 8.1 | Star composition |
+| PERF.126 | 8.1 | Queue, caches and performance |
