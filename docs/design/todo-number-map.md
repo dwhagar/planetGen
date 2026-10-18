@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.246 |
+| TEST | TEST.247 |
 | USR | USR.31 |
 | OPS | OPS.62 |
 | DOC | DOC.72 |
@@ -1236,7 +1236,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.569 | The Quantity value class: the number as given, every other unit answered on first read and kept, declared relations, checks | none | open |
 | GEN.570 | Field declaration: every unit-valued field of the mass object classes declares its kind and native unit, and the one field table serves the serializer | none | open |
 | GEN.571 | Replace the ad-hoc unit conversions with the registry, by file group, bit-identical on the golden set | none | open |
-| GEN.572 | The two rounded unit factors become exact: 63241.077 AU per light-year and 3.26156 light-years per parsec, as one epoch-changing change | none | open |
+| GEN.572 | The two rounded unit factors become exact: 63241.077 AU per light-year and 3.26156 light-years per parsec, as one epoch-changing change | none | done, PR #2243 |
 | GEN.573 | The position class reads its units from the registry: length unit by key, no bare 1000 or copy of c, mass and mu a declared relation | none | open |
 | GEN.574 | Describe and API: qty() builds a Quantity and the {kind, si} shape becomes {kind, value, unit} | none | open |
 | GEN.575 | Sweep the mass object classes: the 35 unit-suffixed attributes and every quantity held under two units get one declared native unit | none | open |
@@ -2337,6 +2337,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.243 | Two test_web_browser_units tests errored in setup, one after 1041 s in pymysql (bug) | none | open |
 | TEST.244 | Tests: re-primary and reparent invariants, frame round trips, momentum conservation, a moon's velocity as the sum of its hops, a locked body's rate follows a primary change | none | open |
 | TEST.245 | test_generate_sector_real_capacity_overflow_returns_a_partial_sector fails in about 1 run in 100 because it draws an unseeded sector, so the draw sometimes fits all 120 systems (bug) | none | done, PR #2227 |
+| TEST.246 | The web edit menu tests time out in setup in a loaded gate: the accessibility site database backfill took 1024 s while other tests ran, and the tests pass alone in 46 to 49 s (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

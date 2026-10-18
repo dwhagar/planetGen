@@ -4670,6 +4670,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch 26 is stamped (release 8.0.1810, GEN.561, #2240), so this item
   takes the next free epoch at its merge (27 unless another lane merges
   first); the epoch 26 named above is out of date.
+  Epoch update (8:08 AM EDT 2026-10-18, from the epochs file on main):
+  epoch 27 is stamped (release 8.0.1812, GEN.572, #2243), so this item
+  takes the next free epoch at its merge (28 unless another lane merges
+  first); the epoch 26 or 27 named above is out of date.
   Prerequisites: none. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -5657,7 +5661,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
   Prerequisites: GEN.244, GEN.282, GEN.284, TEST.159, TEST.160, GEN.450,
-  TEST.196, GEN.530, GEN.563, GEN.572.
+  TEST.196, GEN.530, GEN.563.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -7742,6 +7746,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch 26 is stamped (release 8.0.1810, GEN.561, #2240), so this item
   takes the next free epoch at its merge (27 unless another lane merges
   first); the epoch 26 named above is out of date.
+  Epoch update (8:08 AM EDT 2026-10-18, from the epochs file on main):
+  epoch 27 is stamped (release 8.0.1812, GEN.572, #2243), so this item
+  takes the next free epoch at its merge (28 unless another lane merges
+  first); the epoch 26 or 27 named above is out of date.
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -13214,6 +13222,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   census's share in the test, the strict expected failure is gone, and
   the design note names the track. Owner: Core 4 (proposed; it built
   GEN.252), after the description layer.
+  Epoch update (8:08 AM EDT 2026-10-18, from the epochs file on main):
+  epoch 27 is stamped (release 8.0.1812, GEN.572, #2243), so this item
+  takes the next free epoch at its merge (28 unless another lane merges
+  first); the epoch 26 or 27 named above is out of date.
   Prerequisites: none. Related: GEN.252, GEN.301.
 
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
@@ -14082,46 +14094,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.568. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
-- [ ] **GEN.572 The two rounded unit factors become exact before the one rescatter: 63241.077 AU per light-year and 3.26156 light-years per parsec**
-  Part of the unified orbited-body plan (GEN.550;
-  docs/design/unified-unit-quantity.md, Boss's cards Q5 and Q6, 11:56 to
-  11:57 PM EDT, 2026-10-17, as the coordinator relayed). Boss tapped
-  'Pull into 8.1' on the card for this item at 12:04 AM EDT, 2026-10-18
-  (as the coordinator relayed), so it is built in 8.1, before the one
-  full wiped rescatter, and is a prerequisite of GEN.301. Owner: Core 5
-  (proposed). It needs no unit registry: the three sites read the exact
-  `AU_M`, `LIGHTYEAR_M` and `PARSEC_M` of `physics/constants.py`. The
-  rounded values sit in `generation/phenomena/asteroid_field.py:35`,
-  `generation/phenomena_plausibility.py:79` and `physics/hii.py:40`;
-  they differ from the exact ones by 1.3e-9 and 1.2e-6 in relative size.
-  Why it is a rescatter item (found by the TODO thread, 2026-10-17):
-  `hii.region` returns `radius * LY_PER_PC` as the radius in light-years
-  of an H II region, which `generation/phenomena/nebula.py:273` stores,
-  so the exact factor changes a nebula's stored radius in the last
-  digits; that is a scatter output (a phenomenon scatter row), so the
-  item takes the next generator epoch and joins the list of changes the
-  one wiped rescatter carries (a refill would not be enough). The other
-  two sites only decide a size digit at its floor boundary. The three
-  constants change at once and nothing else; the later sweep of the
-  other ad-hoc factors is GEN.571 and stays bit-identical. Done: the
-  three sites read the exact factors, the golden digest changes with the
-  epoch entry, and the tests that pin nebula radii are regenerated.
-  Progress (Core 5, 2:54 AM EDT 2026-10-18 as the lane reported): coded;
-  its changed gate started 2:53 AM EDT, and it takes epoch 25 (epoch 24
-  is pending for GEN.402, GEN.244 or the next of them to merge; the
-  later merger renumbers). PR follows when the gate is green.
-  Epoch update (4:36 AM EDT 2026-10-18, from the epochs file on main):
-  epoch 24 is stamped (release 8.0.1783, Core 4's bundle) and epoch 25
-  is stamped (release 8.0.1801, GEN.402, #2224); this item's epoch is
-  therefore not 25: it renumbers to the next free number at its merge
-  (26 if it merges before GEN.404, else after it).
-  Epoch update (7:28 AM EDT 2026-10-18, from the epochs file on main):
-  epoch 26 is stamped (release 8.0.1810, GEN.561, #2240), so this item
-  takes the next free epoch at its merge (27 unless another lane merges
-  first); the epoch 26 named above is out of date.
-  Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
-  Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
-
 - [ ] **GEN.573 The position class reads its units from the registry: length unit by key, no bare 1000 or copy of c, mass and mu a declared relation**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
@@ -14896,6 +14868,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generator (an epoch if values change) or by a corrected bound, and the
   test passes 300 of 300 fresh runs with no quarantine. Owner: Core 1
   (proposed by Bug Hunt; GEN.400 and GEN.402 are its mass chain).
+  Epoch note (8:08 AM EDT 2026-10-18): if a generator cap changes values
+  this item takes the epoch after GEN.404's and GEN.549's (29 or later;
+  27 is stamped).
   Prerequisites: none. Related: GEN.182, GEN.400, GEN.402.
 
 
@@ -19845,6 +19820,11 @@ clears each one.
   known.
   Status (Bug Hunt, 2:37 AM EDT 2026-10-18 as the lane reported): the
   hypervelocity count flake is not started; TEST.243 is not started.
+  Sighting (Core 5, reported 8:06 AM EDT 2026-10-18 on the lane's clock;
+  its GEN.572 gate): failed once with no hypervelocity-star in the
+  stored kinds (seedless galaxy, random scatter seed), and passed 12 of
+  12 reruns on main and on the branch; frequency about 1 in 13. Same
+  cause as above (the unseeded galaxy); it goes with Bug Hunt's fix.
   Prerequisites: none. Related: TEST.220, TEST.224.
 
 - [ ] **TEST.239 Tests for the unified chain: determinism by host, representation counts per kind and level, rogue and comet rates, derived remnant shares**
@@ -20050,6 +20030,24 @@ clears each one.
   Prerequisites: GEN.576, GEN.578, GEN.581, GEN.583. Related: GEN.550,
   GEN.565, GEN.576, GEN.578.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **TEST.246 The web edit menu tests time out in setup in a loaded gate: the accessibility site database backfill took 1024 s while other tests ran, and the tests pass alone in 46 to 49 s (bug)**
+  Found by Core 5 (reported 8:06 AM EDT 2026-10-18 on the lane's clock,
+  its GEN.572 gate of 71 minutes), filed by the TODO thread. Five
+  `test_web_edit_menu` tests failed with setup timeouts; the setup
+  builds the accessibility site database (the a11y site_db backfill),
+  which took 1024 s while concurrent tests ran, and each test passes
+  alone in 46 to 49 s. Core 5 also saw TEST.235's slow-pages [dark] case
+  fail once and pass alone. Fails on main: not checked (load only).
+  Frequency: 1 of 1 gates with other tests running beside it.
+  Reproducer: `scripts/test.py changed` while another gate runs, or the
+  web edit menu tests with the backfill under CPU load. Do: build the
+  site database once per run (a shared fixture) or give the setup a
+  deadline that scales with load, so no test waits on a 1000 s backfill;
+  no quarantine. Done: the five tests pass in a gate that runs beside
+  another gate, and the backfill time is printed in the run log. Owner:
+  Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.227, TEST.235.
 
 ## USR: User accounts
 
