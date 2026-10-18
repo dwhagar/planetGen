@@ -20,6 +20,11 @@ project's bright-star pre-placement plan):
 `population` is one of `stellarEvolution.population_age_range_gy`'s names
 ("young", "intermediate", "old", "bulge") or None for the whole disk.
 
+`age_laws` (GEN.546, optional on every function that takes a `population`) is a dict of population name to
+`galaxy.age_law.AgeLaw`, `galaxy.disk_history.population_age_laws(shape)` for a galaxy: the density of ages inside the
+population's window. A population without an entry draws its ages evenly across the window, as every population did
+before. The bright measure, the tables and the age draw all use the same law, so a scatter and a sector fill agree.
+
 How the bright draw works
 -------------------------
 Bright stars are rare (well under 1 in 1,000), so drawing whole-model
@@ -57,6 +62,7 @@ import bisect
 import functools
 import math
 
+from planetgen.galaxy.age_law import AgeLaw
 from planetgen.physics import constants, wolf_rayet
 from planetgen import tuning
 from planetgen.physics.stellar_evolution import (
@@ -70,8 +76,15 @@ POPULATIONS = tuple(tuning.STELLAR_POPULATION_AGE_RANGES_GY)
 """The named stellar populations, in `population_densities` order."""
 
 
-def _overlap(low, high, window):
-    return max(0.0, min(high, window[1]) - max(low, window[0]))
+def _overlap(low, high, law):
+    """The window's length times the chance an age falls in `[low, high]` (the overlap itself, for an even spread)."""
+    return law.weight(low, high)
+
+
+def _law(population, age_laws):
+    """The `AgeLaw` of `population`: its entry in `age_laws`, else an even spread across its window."""
+    found = None if age_laws is None else age_laws.get(population)
+    return found if found is not None else AgeLaw.uniform(population_age_range_gy(population))
 
 
 def _giant_bright_chance(mass_sol, min_luminosity_sol):
@@ -146,16 +159,16 @@ def _bright_windows(mass_sol, min_luminosity_sol):
 
 
 def _bright_measure(mass_sol, min_luminosity_sol, window):
-    """The chance a star of this mass, of an age uniform in `window`, is
+    """The chance a star of this mass, of an age spread over the age law `window`, is
     at least `min_luminosity_sol` bright (times the window's length)."""
     return sum(_overlap(start, end, window) * chance
                for start, end, chance in _bright_windows(mass_sol, min_luminosity_sol))
 
 
 def _living_measure(mass_sol, window):
-    """The chance a star of this mass, of an age uniform in `window`, has
+    """The chance a star of this mass, of an age spread over the age law `window`, has
     not collapsed (times the window's length); see `evolve_star`."""
-    span = window[1] - window[0]
+    span = window.span
     if mass_sol < tuning.SUPERGIANT_MIN_MASS_SOL:
         return span
     dead_from = main_sequence_lifetime_gy(mass_sol) * giant_end_fraction(mass_sol)
@@ -287,7 +300,7 @@ def _check_mass_range(mass_range):
 
 
 @functools.lru_cache(maxsize=None)
-def _bright_table(min_luminosity_sol, population, mass_range=None):
+def _bright_table(min_luminosity_sol, population, mass_range=None, window=None):
     """
     The cached per-(threshold, population, mass range) sampling table: cell
     edges, slopes and continuity factors, each cell's measure bound, the
@@ -295,10 +308,12 @@ def _bright_table(min_luminosity_sol, population, mass_range=None):
     fraction. `mass_range` (`(low, high)` initial masses in solar masses,
     either end `None`) keeps only the stars born in it: the fraction is
     still the share of ALL living stars, so a mass pass and a luminosity
-    pass below it add up to the share that one threshold gives.
+    pass below it add up to the share that one threshold gives. `window` is the population's `AgeLaw` (an even spread
+    across its window when `None`).
     """
     check_threshold(min_luminosity_sol)
-    window = population_age_range_gy(population)
+    if window is None:
+        window = _law(population, None)
     cells, cumulative = [], []
     running = bright = living = 0.0
     mass_low, mass_high = mass_range if mass_range is not None else (None, None)
@@ -316,7 +331,7 @@ def _bright_table(min_luminosity_sol, population, mass_range=None):
             running += count * bound
             cells.append((a, b, alpha, bound))
             cumulative.append(running)
-    return {"window": window, "cells": cells, "cumulative": cumulative, "population": population,
+    return {"window": window.window, "law": window, "cells": cells, "cumulative": cumulative, "population": population,
             "fraction": bright / living if living > 0 else 0.0}
 
 
@@ -328,7 +343,7 @@ def _power_law_quantile(a, b, alpha, u):
     return (a ** p + u * (b ** p - a ** p)) ** (1 / p)
 
 
-def bright_star_fraction(min_luminosity_sol, population=None, mass_range=None):
+def bright_star_fraction(min_luminosity_sol, population=None, mass_range=None, age_laws=None):
     """
     The share of a population's living stars (those `sample_living_star`
     draws) whose luminosity is at least `min_luminosity_sol`, among those
@@ -342,14 +357,16 @@ def bright_star_fraction(min_luminosity_sol, population=None, mass_range=None):
         population (str or None): "young", "intermediate", "old", "bulge",
             or None for the whole disk.
         mass_range (tuple, optional): As above.
+        age_laws (dict, optional): Population name -> `AgeLaw`, as in the module docstring.
 
     Returns:
         float: The fraction, in `[0, 1]`.
     """
-    return _bright_table(float(min_luminosity_sol), population, _check_mass_range(mass_range))["fraction"]
+    return _bright_table(float(min_luminosity_sol), population, _check_mass_range(mass_range),
+                         _law(population, age_laws))["fraction"]
 
 
-def massive_star_fraction(min_mass_sol, population=None):
+def massive_star_fraction(min_mass_sol, population=None, age_laws=None):
     """
     The share of a population's living stars born with at least
     `min_mass_sol` solar masses, at any luminosity: what the mass pass of
@@ -357,11 +374,12 @@ def massive_star_fraction(min_mass_sol, population=None):
     `MASS_PASS_MIN_LUMINOSITY_SOL` all its life), and what a mass backfill
     (GEN.187) takes a sector down to.
     """
-    return _mass_band_table((float(min_mass_sol), None), population)["fraction"]
+    return _mass_band_table((float(min_mass_sol), None), population, _law(population, age_laws))["fraction"]
 
 
 def _sample_one_bright(table, min_luminosity_sol, rng):
-    cells, cumulative, window = table["cells"], table["cumulative"], table["window"]
+    cells, cumulative, law = table["cells"], table["cumulative"], table["law"]
+    window = law.window
     if not cells:
         raise ValueError(f"no star in population window {window} Gy reaches {min_luminosity_sol} Lsun")
     for _ in range(tuning.STAR_MODEL_MAX_REDRAWS):
@@ -379,7 +397,7 @@ def _sample_one_bright(table, min_luminosity_sol, rng):
             if pick < weight:
                 break
             pick -= weight
-        age = rng.uniform(start, end)
+        age = law.sample(start, end, rng)
         state = evolve_star(mass, age, rng, min_luminosity_sol=min_luminosity_sol, population=table["population"])
         # Guards the window edges against rounding (an age landing exactly
         # on a phase boundary).
@@ -414,7 +432,7 @@ def _sample_one_in_band(table, min_luminosity_sol, max_luminosity_sol, rng):
 
 
 def sample_bright_stars(n, min_luminosity_sol, population=None, rng=draw, max_luminosity_sol=None,
-                        mass_range=None):
+                        mass_range=None, age_laws=None):
     """
     Draws `n` stars from the population model conditional on luminosity
     `>= min_luminosity_sol` (see the module docstring for how), and below
@@ -432,6 +450,7 @@ def sample_bright_stars(n, min_luminosity_sol, population=None, rng=draw, max_lu
         max_luminosity_sol (float, optional): The band's upper limit
             (Lsun, exclusive); `None` for no limit.
         mass_range (tuple, optional): As in `bright_star_fraction`.
+        age_laws (dict, optional): As in `bright_star_fraction`.
 
     Returns:
         list: `n` dicts from `stellarEvolution.star_params` (type, Yerkes
@@ -440,35 +459,39 @@ def sample_bright_stars(n, min_luminosity_sol, population=None, rng=draw, max_lu
     """
     if max_luminosity_sol is not None and max_luminosity_sol <= min_luminosity_sol:
         raise ValueError(f"empty luminosity band [{min_luminosity_sol:g}, {max_luminosity_sol:g}) Lsun")
-    table = _bright_table(float(min_luminosity_sol), population, _check_mass_range(mass_range))
+    table = _bright_table(float(min_luminosity_sol), population, _check_mass_range(mass_range),
+                          _law(population, age_laws))
     if max_luminosity_sol is None:
         return [_sample_one_bright(table, min_luminosity_sol, rng) for _ in range(n)]
     return [_sample_one_in_band(table, min_luminosity_sol, max_luminosity_sol, rng) for _ in range(n)]
 
 
-def bright_band_fraction(min_luminosity_sol, max_luminosity_sol=None, population=None, mass_range=None):
+def bright_band_fraction(min_luminosity_sol, max_luminosity_sol=None, population=None, mass_range=None,
+                         age_laws=None):
     """
     The share of a population's living stars with `min <= luminosity <
     max` (`bright_star_fraction(min)` when `max` is `None`) among those
     born in `mass_range`: what a staged scatter's new band adds.
     """
-    fraction = bright_star_fraction(min_luminosity_sol, population, mass_range)
+    fraction = bright_star_fraction(min_luminosity_sol, population, mass_range, age_laws)
     if max_luminosity_sol is not None:
-        fraction -= bright_star_fraction(max_luminosity_sol, population, mass_range)
+        fraction -= bright_star_fraction(max_luminosity_sol, population, mass_range, age_laws)
     return max(fraction, 0.0)
 
 
 @functools.lru_cache(maxsize=None)
-def _mass_band_table(mass_range, population):
+def _mass_band_table(mass_range, population, window=None):
     """
     The cached sampling table of the stars born in `mass_range` (`(low,
     high)` initial solar masses, `high` `None` for no limit) that are still
     alive, at any luminosity: the cells, their running weights (IMF share
     times the longest age window in the cell), the population's age
     window and the band's `fraction` of ALL living stars (the same
-    denominator `bright_star_fraction` uses, so the two subtract).
+    denominator `bright_star_fraction` uses, so the two subtract). `window` is the population's `AgeLaw` (an even
+    spread across its window when `None`).
     """
-    window = population_age_range_gy(population)
+    if window is None:
+        window = _law(population, None)
     mass_low, mass_high = mass_range
     cells, cumulative = [], []
     running = born = living = 0.0
@@ -486,7 +509,7 @@ def _mass_band_table(mass_range, population):
             running += count * bound
             cells.append((a, b, alpha, bound))
             cumulative.append(running)
-    return {"window": window, "cells": cells, "cumulative": cumulative, "population": population,
+    return {"window": window.window, "law": window, "cells": cells, "cumulative": cumulative, "population": population,
             "fraction": born / living if living > 0 else 0.0}
 
 
@@ -498,7 +521,7 @@ def _check_mass_band(min_mass_sol, max_mass_sol):
     return (float(min_mass_sol), None if max_mass_sol is None else float(max_mass_sol))
 
 
-def mass_band_fraction(min_mass_sol, max_mass_sol=None, max_luminosity_sol=None, population=None):
+def mass_band_fraction(min_mass_sol, max_mass_sol=None, max_luminosity_sol=None, population=None, age_laws=None):
     """
     The share of a population's living stars born with `min_mass_sol <=
     mass < max_mass_sol` (`None`: no upper mass) that are dimmer than
@@ -507,26 +530,27 @@ def mass_band_fraction(min_mass_sol, max_mass_sol=None, max_luminosity_sol=None,
     already placed the brighter ones.
     """
     band = _check_mass_band(min_mass_sol, max_mass_sol)
-    born = _mass_band_table(band, population)["fraction"]
+    born = _mass_band_table(band, population, _law(population, age_laws))["fraction"]
     if max_luminosity_sol is not None:
-        born -= bright_star_fraction(max_luminosity_sol, population, band)
+        born -= bright_star_fraction(max_luminosity_sol, population, band, age_laws)
     return max(born, 0.0)
 
 
 def _sample_one_in_mass_band(table, max_luminosity_sol, rng):
-    cells, cumulative, window = table["cells"], table["cumulative"], table["window"]
+    cells, cumulative, law = table["cells"], table["cumulative"], table["law"]
+    window = law.window
     if not cells:
         raise ValueError(f"no star in population window {window} Gy is alive in this mass band")
     for _ in range(tuning.STAR_MODEL_MAX_REDRAWS):
         index = min(bisect.bisect_right(cumulative, rng.random() * cumulative[-1]), len(cells) - 1)
         a, b, alpha, bound = cells[index]
         mass = _sample_power_law(a, b, alpha, rng)
-        if rng.random() * bound >= _living_measure(mass, window):
+        if rng.random() * bound >= _living_measure(mass, law):
             continue
         oldest = window[1]
         if mass >= tuning.SUPERGIANT_MIN_MASS_SOL:
             oldest = min(oldest, main_sequence_lifetime_gy(mass) * giant_end_fraction(mass))
-        age = rng.uniform(window[0], oldest)
+        age = law.sample(window[0], oldest, rng)
         state = evolve_star(mass, age, rng, population=table["population"])
         if state is None:
             continue
@@ -537,18 +561,19 @@ def _sample_one_in_mass_band(table, max_luminosity_sol, rng):
     raise ValueError(f"no star drawn in {tuning.STAR_MODEL_MAX_REDRAWS} tries")
 
 
-def sample_mass_band_stars(n, min_mass_sol, max_mass_sol=None, population=None, rng=draw, max_luminosity_sol=None):
+def sample_mass_band_stars(n, min_mass_sol, max_mass_sol=None, population=None, rng=draw, max_luminosity_sol=None,
+                           age_laws=None):
     """
     Draws `n` living stars born with `min_mass_sol <= mass < max_mass_sol`
     and, when given, dimmer than `max_luminosity_sol` (the bright ones
     were placed already), as `stellarEvolution.star_params` dicts.
     """
     band = _check_mass_band(min_mass_sol, max_mass_sol)
-    table = _mass_band_table(band, population)
+    table = _mass_band_table(band, population, _law(population, age_laws))
     return [_sample_one_in_mass_band(table, max_luminosity_sol, rng) for _ in range(n)]
 
 
-def placed_star_fraction(min_luminosity_sol, min_mass_sol, population=None):
+def placed_star_fraction(min_luminosity_sol, min_mass_sol, population=None, age_laws=None):
     """
     The share of a population's living stars the galaxy scatter places in
     advance: those born with at least `min_mass_sol` solar masses (the mass
@@ -557,14 +582,15 @@ def placed_star_fraction(min_luminosity_sol, min_mass_sol, population=None):
     draw is the rest.
     """
     if min_mass_sol is None:
-        return 0.0 if min_luminosity_sol is None else bright_star_fraction(min_luminosity_sol, population)
+        return 0.0 if min_luminosity_sol is None else bright_star_fraction(min_luminosity_sol, population,
+                                                                           age_laws=age_laws)
     if min_luminosity_sol is None:
-        return massive_star_fraction(min_mass_sol, population)
-    return (massive_star_fraction(min_mass_sol, population)
-            + bright_star_fraction(min_luminosity_sol, population, (None, min_mass_sol)))
+        return massive_star_fraction(min_mass_sol, population, age_laws)
+    return (massive_star_fraction(min_mass_sol, population, age_laws)
+            + bright_star_fraction(min_luminosity_sol, population, (None, min_mass_sol), age_laws))
 
 
-def sample_dim_star(max_luminosity_sol, population=None, rng=draw, max_mass_sol=None):
+def sample_dim_star(max_luminosity_sol, population=None, rng=draw, max_mass_sol=None, age_laws=None):
     """
     Draws one star from the population model conditional on luminosity
     `< max_luminosity_sol` (a sector's own stars once its bright ones were
@@ -575,7 +601,8 @@ def sample_dim_star(max_luminosity_sol, population=None, rng=draw, max_mass_sol=
         dict: As one of `sample_bright_stars`'s.
     """
     mass, age, state = sample_living_star(rng=rng, population=population, max_luminosity_sol=max_luminosity_sol,
-                                          max_mass_sol=max_mass_sol)
+                                          max_mass_sol=max_mass_sol,
+                                          age_law=None if age_laws is None else age_laws.get(population))
     return star_params(mass, age, state)
 
 

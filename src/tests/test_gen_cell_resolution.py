@@ -35,7 +35,7 @@ EXTENTS = [(0, 0), (1, 1), (2, 2), (3, 3), (4, 3), (5, 3), (6, 3), (7, 3), (8, 3
 
 
 def _fake_profile(expected, mix, volume=EDGE_PC ** 3):
-    return SimpleNamespace(expected_systems=expected, mix=mix, volume_pc3=volume, edge_pc=EDGE_PC)
+    return SimpleNamespace(expected_systems=expected, mix=mix, volume_pc3=volume, edge_pc=EDGE_PC, shape=SHAPE)
 
 
 def test_a_cell_at_or_under_the_ceiling_is_filled_whole():
@@ -50,7 +50,8 @@ def test_a_cell_over_the_ceiling_resolves_the_stars_at_or_above_the_cap_and_the_
     mix = {"old": 3.0, "bulge": 1.0}
     found = resolution.cell_resolution(_fake_profile(50_001.0, mix), 50_000.0, 100.0)
     assert found.capped
-    share = (3.0 * placed_star_fraction(100.0, None, "old") + 1.0 * placed_star_fraction(100.0, None, "bulge")) / 4.0
+    laws = brightStars.age_laws_of(SHAPE)
+    share = (3.0 * placed_star_fraction(100.0, None, "old", laws) + 1.0 * placed_star_fraction(100.0, None, "bulge")) / 4.0
     assert found.resolved_systems == pytest.approx(50_001.0 * share)
     assert found.resolved_systems + found.unresolved_systems == pytest.approx(50_001.0)
     assert found.unresolved_mass_solar == pytest.approx(found.unresolved_systems * tuning.MEAN_SYSTEM_MASS_SOLAR)

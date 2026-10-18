@@ -833,6 +833,13 @@ STELLAR_POPULATION_AGE_RANGES_GY.update({
 # The three thin-disc populations' scale heights over the old one's come from the galaxy's own dispersions
 # (`galaxy.structure.population_height_ratios`, GEN.532), not from a table here.
 STELLAR_POPULATION_ARM_AMPLITUDE = {"young": 0.9, "intermediate": 0.4, "old": 0.0}
+DISK_AGE_LAW_POPULATIONS = ("young", "intermediate", "old")
+"""tuple: The populations whose ages inside their window follow the disk's star formation rate (GEN.546,
+`galaxy.disk_history.population_age_laws`). The others (bulge, halo, clusters, satellites) draw uniformly: their history
+is not the disk's."""
+AGE_LAW_POINTS = 33
+"""int: Points of the rate curve an age law keeps across a window (the curve is smooth, and 33 points hold a window's
+cumulative to better than 1e-3 of the window)."""
 
 # How much of the thin disk's recent star formation a place holds (GEN.134, `galaxy.star_formation`): derived from the
 # galaxy's shape, with the Milky Way's profile only as a test target.
