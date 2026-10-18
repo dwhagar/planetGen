@@ -8,7 +8,7 @@ Version: 8.3
 
 ## Goal
 
-The orbital update (GEN.105): every object moves on its orbit each day with n-body influence, collisions and ejections, built on one point-in-space object for every kind of object, with the gravity field evaluator, the Quantity class, long steps, events and the nightly run. Proposed by the TODO thread; not yet approved by Boss.
+The orbital update (GEN.105): every object moves on its orbit each day with n-body influence, collisions and ejections, built on one point-in-space object for every kind of object, with the gravity field evaluator, the Quantity class, long steps, events and the nightly run. The orbital motion update (four steps, forks F1 to F5) is approved to build (Boss, card taps of 2026-10-18, 5:30 to 5:33 PM EDT, as the coordinator reported them); the rest of the version is as proposed by the TODO thread.
 
 ## Phase 1: Positions and the nightly run
 
