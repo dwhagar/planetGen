@@ -2506,6 +2506,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reach (viewport.fetch_cut_tiles and distance_cut_tiles) and in the
   client's per-frame limit (starfade.js, starmagnitude.js), never in the
   tile query.
+  Decided (Boss, 2026-10-17, 9:54 PM EDT, typed in the project chat,
+  relayed by the coordinator): "I approve all your defaults". This
+  approves the default on this item: nebulae are cut with the phenomena
+  ramp by their visible size.
   Prerequisites: MAP.250. Related: MAP.249, MAP.250.
 
 - [ ] **MAP.252 Viewing only the filled sectors does not dim the phenomena (bug)**
@@ -2569,6 +2573,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reach (viewport.fetch_cut_tiles and distance_cut_tiles) and in the
   client's per-frame limit (starfade.js, starmagnitude.js), never in the
   tile query.
+  Decided (Boss, 2026-10-17, 9:54 PM EDT, typed in the project chat,
+  relayed by the coordinator): "I approve all your defaults". This
+  approves the default on this item: nebulae are cut with the phenomena
+  ramp by their visible size, the same order as MAP.251.
   Prerequisites: none. Related: MAP.250.
 
 
@@ -8246,10 +8254,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   N_s is right; SO2 and H2S stay on the polarizability route until
   Bogaard 1978); licences: JPL 19-5 is not public domain, Huebner and
   Mukherjee, NMSU and Bremen have no licence found, Mainz is CC BY 4.0.
-  Design note merged as #2063 (Blocker 1, 2026-10-17) and awaiting Boss
-  approval; Boss has not approved it: docs/design/atmosphere-colour.md
-  ends with a 'For Boss to approve' list with a recommendation per item;
-  a ruling that differs changes this item.
+  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/atmosphere-colour.md. Approved by Boss as recommended
+  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
+  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
   Decided (Boss, 2026-10-17, 2:35 PM EDT, typed in the project chat,
   GEN.500 removed): every paper and dataset Boss acquired was obtained
   legally and is usable, so no licence audit gates this table and no
@@ -8363,10 +8370,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   10A to 10D of atmosphere-composition.md): the Parmentier and Guillot
   semi-grey form is equation 30 with mu_* throughout; beta is the band
   fraction, not an opacity ratio.
-  Design note merged as #2063 (Blocker 1, 2026-10-17) and awaiting Boss
-  approval; Boss has not approved it: docs/design/atmosphere-colour.md
-  ends with a 'For Boss to approve' list with a recommendation per item;
-  a ruling that differs changes this item.
+  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/atmosphere-colour.md. Approved by Boss as recommended
+  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
+  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
   Prerequisites: none. Related: DB.67, GEN.85, GEN.355.
 
 - [ ] **GEN.413 Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance**
@@ -9104,10 +9110,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Bremen and Karkoschka state none; the licence column is mandatory (it
   takes 'open' where none is found) and the audit (GEN.500) was removed by
   Boss (2:35 PM EDT).
-  Design note merged as #2063 (Blocker 1, 2026-10-17) and awaiting Boss
-  approval; Boss has not approved it: docs/design/bulk-composition.md
-  ends with a 'For Boss to approve' list with a recommendation per item;
-  a ruling that differs changes this item.
+  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/bulk-composition.md. Approved by Boss as recommended
+  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
+  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
   Decided (Boss, 2:10 PM EDT, card "Data table, no bump", relayed in
   words; bulk-composition.md approve item 10, composition-model.md
   section 3): this item is a table in 8.1 phase 2 and bumps nothing; the
@@ -9431,10 +9436,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Bremen and Karkoschka state none; the licence column is mandatory (it
   takes 'open' where none is found) and the audit (GEN.500) was removed by
   Boss (2:35 PM EDT).
-  Design note merged as #2063 (Blocker 1, 2026-10-17) and awaiting Boss
-  approval; Boss has not approved it: docs/design/composition-model.md
-  section 7 ends with a 'For Boss to approve' list with a recommendation
-  per item; a ruling that differs changes this item.
+  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/composition-model.md. Approved by Boss as recommended
+  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
+  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
   Decided (Boss, 2026-10-17, 2:35 PM EDT, typed in the project chat,
   GEN.500 removed): every paper and dataset Boss acquired was obtained
   legally and is usable, so no licence audit gates this table and no
@@ -9851,10 +9855,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the Atwell 2015 parameters; the atmospheric cutoff comes from
   inverting the PSTAR range for column P/g (Mars 165 MeV vertical);
   neutrons are 2 to 7 percent of the dose; W(air) is 33.97 eV.
-  Design note merged as #2063 (Blocker 1, 2026-10-17) and awaiting Boss
-  approval; Boss has not approved it: docs/design/radiation-model.md
-  ends with a 'For Boss to approve' list with a recommendation per item;
-  a ruling that differs changes this item.
+  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/radiation-model.md. Approved by Boss as recommended
+  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
+  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
 
 - [ ] **GEN.444 Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -10239,10 +10242,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and solid CO2 uses Span and Wagner equation 3.12 (the 0 to 800 K, 12
   GPa range of the note belongs to Trusler 2011); H2 freezes below 13.96
   K (Tc 33.145 to 33.18 K, HD Tc 35.908 K); the item is GEN.497.
-  Design note merged as #2063 (Blocker 1, 2026-10-17) and awaiting Boss
-  approval; Boss has not approved it: docs/design/atmosphere-colour.md
-  ends with a 'For Boss to approve' list with a recommendation per item;
-  a ruling that differs changes this item.
+  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/atmosphere-colour.md. Approved by Boss as recommended
+  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
+  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
 
 - [ ] **GEN.453 The radiation constants are corrected: the dipole cutoff scales with moment over radius squared, the dose curve against the column and the field factor follow the measured and simulated tables (bug)**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -10308,10 +10310,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   7, 1996). Earth's vertical cutoff by the Stoermer scaling is about
   14.3 GV against 14.9 in the code; the Gale column is 21 g/cm^2 against
   16.4.
-  Design note merged as #2063 (Blocker 1, 2026-10-17) and awaiting Boss
-  approval; Boss has not approved it: docs/design/radiation-model.md
-  ends with a 'For Boss to approve' list with a recommendation per item;
-  a ruling that differs changes this item.
+  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/radiation-model.md. Approved by Boss as recommended
+  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
+  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
 
 - [ ] **GEN.454 Giant planets, ice giants and brown dwarfs draw their atmosphere mixture from the equilibrium chemistry sequence: by temperature, pressure, metallicity and quench**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -10676,10 +10677,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test TEST.214): no table: the snow line is a drawn scalar (0.2 dex
   around the 170 K position) that the gated weights of GEN.428, GEN.442
   and GEN.466 take as an argument.
-  Design note merged as #2063 (Blocker 1, 2026-10-17) and awaiting Boss
-  approval; Boss has not approved it: docs/design/bulk-composition.md
-  ends with a 'For Boss to approve' list with a recommendation per item;
-  a ruling that differs changes this item.
+  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/bulk-composition.md. Approved by Boss as recommended
+  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
+  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
 
 - [ ] **GEN.459 One radiogenic module: heat from the isotope-wise decay of potassium, thorium, uranium and aluminium-26, drawn from the host star's abundances, replaces the bulk-silicate values that are 37 to 50 percent too high and the separate ground-dose draw (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -12372,10 +12372,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Figure 2 by a factor of 6 to 9) give no mass law and no later-mantle
   oxidation law. The stand-ins stay. Hirschmann 2012 and Gaillard 2021
   and 2022 are not uploaded.
-  Design note merged as #2063 (Blocker 1, 2026-10-17) and awaiting Boss
-  approval; Boss has not approved it: docs/design/bulk-composition.md
-  ends with a 'For Boss to approve' list with a recommendation per item;
-  a ruling that differs changes this item.
+  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/bulk-composition.md. Approved by Boss as recommended
+  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
+  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
   Prerequisites: none. Related: GEN.451, DB.69, GEN.422, GEN.456.
 
 - [ ] **GEN.499 The lava-world vapour species and mean molar mass from temperature and composition, replacing the heavy-oxide range of 40 to 60 g/mol**
@@ -13712,6 +13711,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   says so and the item closes. The change of any stored value bumps the
   generator epoch with the OPS.56 rule. Owner: Core 4 (proposed, the
   GEN.447 author).
+  Decided (Boss, 2026-10-17, 9:54 PM EDT, typed in the project chat,
+  relayed by the coordinator): "I approve all your defaults". This
+  approves the default on this item: remnants stay in the wide-pair
+  perturber mass.
   Prerequisites: none. Related: GEN.447, GEN.450.
 
 - [ ] **GEN.542 scripts/star_type_by_radius.py fails with a TypeError because the plan arguments now default the disk and arm options to None (bug)**
@@ -13750,6 +13753,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   table, a test pins the share, and the table's row is either reproduced
   or relabelled. Owner: Blocker 1 (proposed, after PERF.118, GEN.438 to
   GEN.440).
+  Decided (Boss, 2026-10-17, 9:54 PM EDT, typed in the project chat,
+  relayed by the coordinator): "I approve all your defaults". This
+  approves the default on this item (two candidate definitions of
+  "usable" tried on the same seeded draw, the one that lands the table's
+  row within 7 points at every N kept, else the measured numbers kept
+  and the table's row relabelled).
   Prerequisites: none. Related: GEN.314, GEN.264.
 
 - [ ] **GEN.544 Revisit the disc's vertical profile: the sech-squared core has half the midplane density of the exponential fits its scale heights come from**
@@ -13894,6 +13903,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as one in the stand-in registry (gap plan section 6), a test builds a
   fixture offline, and the design note names the three sources. Owner:
   Blocker 1 (proposed, with GEN.439).
+  Decided (Boss, 2026-10-17, 9:54 PM EDT, typed in the project chat,
+  relayed by the coordinator): "I approve all your defaults". Everything
+  else on this item stands as its default.
   Prerequisites: none. Related: GEN.439, GEN.440, GEN.502, API.31.
 
 
@@ -18349,6 +18361,10 @@ clears each one.
   `tuning.MULTIPLICITY_BY_PRIMARY_MASS_BIN` and nothing draws from it;
   default: it is a reference for this check and never an input to the
   draw, as the ranges above are.
+  Decided (Boss, 2026-10-17, 9:54 PM EDT, typed in the project chat,
+  relayed by the coordinator): "I approve all your defaults". This
+  approves the default on this item: the flatness edge is widened to the
+  range the sources give.
 
 - [ ] **TEST.198 `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug)**
   Found by Core 3 (2026-10-16, 6:22 PM EDT), filed by the TODO thread.
