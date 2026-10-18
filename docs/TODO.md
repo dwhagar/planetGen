@@ -14819,7 +14819,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it offline with the fixtures, and the stand-in registry (gap plan
   section 6) lists what is still a stand-in. Filed by the TODO thread at
   Blocker 1's request (6:05 AM EDT as the lane reported). Owner: Blocker
-  1 (proposed). Boss's answer is not recorded yet.
+  1 (proposed). Boss's answer is recorded below (Require the data).
+  Decided (Boss, 2026-10-18, 9:38 AM EDT, project chat): "I answered
+  download files requiring data", meaning his card answer "Require the
+  data": star composition requires the downloaded files (the isochrones,
+  the white-dwarf sequences and the neutron-star tables) and does not
+  fall back to a stand-in; it is not left for later. The TODO thread's
+  reading of 'require' (Blocker 1 confirms the wording): with a file
+  missing, star composition fails with a plain message that names the
+  dataset and says which setup command fetches it (no silent stand-in),
+  and the offline tests use the fixtures of GEN.548. Blocker 1 does the
+  wiring.
   Prerequisites: none. Related: GEN.548, GEN.543, GEN.439, GEN.440.
 
 - [ ] **GEN.591 An elliptical comet's aphelion can exceed its star's Hill sphere in about 10% of runs: the comet bound test fails on main (bug)**
