@@ -2396,8 +2396,8 @@ BLACK_HOLE_INTERMEDIATE_MASS_CHANCE = 3.0e-6
 
 # A supermassive black hole sits at the center of every galaxy (generate.add_galactic_nucleus), quiescent or an
 # active quasar. Its mass follows the galaxy's bulge or stellar mass (`galaxy.structure.black_hole_mass_solar`,
-# GEN.402); a black hole above the intermediate-mass range is a supermassive one.
-BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR = BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[1]
+# GEN.402). The class edge is the usual definition, a million solar masses.
+BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR = 1e6
 
 # A quiescent nucleus accretes far below its Eddington limit: Sgr A*
 # shines at ~1e-9 of it (Genzel, Eisenhauer & Gillessen 2010, RvMP

@@ -196,7 +196,8 @@ def model_terms(shape):
     # drawn cluster to the bulge the galaxy's stars make, in the model's units (which hold
     # `MODEL_SYSTEMS_PER_STELLAR_MASS` systems of `MEAN_SYSTEM_MASS_SOLAR` a solar mass of stars).
     model_per_solar = galaxyStructure.MODEL_SYSTEMS_PER_STELLAR_MASS * galaxyStructure.MEAN_SYSTEM_MASS_SOLAR
-    cluster_ratio = structure.nuclear_cluster_mass_solar / (model_per_solar * bulge_share * structure.stellar_mass_solar)
+    bulge_stars = model_per_solar * bulge_share * structure.stellar_mass_solar
+    cluster_ratio = structure.nuclear_cluster_mass_solar / bulge_stars if bulge_stars > 0.0 else 0.0   # no bulge, no cluster
     cluster_mass = max(shape.nuclear_amplitude, 0.0) * cluster_ratio * bulge_mass
     cluster_scale = tuning.NUCLEAR_CLUSTER_SCALE_RATIO * shape.bulge_scale_radius_pc
     disc_mass = cluster_mass * tuning.NUCLEAR_DISC_CLUSTER_MASS_RATIO
