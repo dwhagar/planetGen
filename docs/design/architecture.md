@@ -209,7 +209,6 @@ The constants and the maths behind every generated body.
 | [`constants.py`](../../src/planetgen/physics/constants.py) | Universal physical and mathematical constants and unit conversions. |
 | [`formation.py`](../../src/planetgen/physics/formation.py) | Protoplanetary disk physics: the snow line, the minimum-mass solar nebula's surface density, and the isolation mass a planet can grow to. |
 | [`habitability.py`](../../src/planetgen/physics/habitability.py) | The planetary habitability index (GEN.84): the reference maths of docs/design/habitability-index.md section 7, every constant with its source. |
-| [`habitability_explain.py`](../../src/planetgen/physics/habitability_explain.py) | The words behind a body's PHI-6 colours (UX.91): for each of the six factors its colour and score, the inputs that make it up and which one sets the colour. |
 | [`habitability_world.py`](../../src/planetgen/physics/habitability_world.py) | The habitability score of every planet and moon (GEN.89): turns a body's stored air, water, temperature, radiation and light into the `World` that `habitability.scores` reads (GEN.84) and stores the result. |
 | [`hii.py`](../../src/planetgen/physics/hii.py) | H II regions from their stars' ionizing photons (GEN.150). |
 | [`hydrosphere.py`](../../src/planetgen/physics/hydrosphere.py) | Water on planets, moons and rogue planets (GEN.88). |
@@ -221,7 +220,7 @@ The constants and the maths behind every generated body.
 | [`orbits.py`](../../src/planetgen/physics/orbits.py) | Orbital mechanics for generated systems: the habitable zone, Hill spheres and mutual Hill radii, the stability limit and orbital positions. |
 | [`planets.py`](../../src/planetgen/physics/planets.py) | What a planet or moon physically is: zone, class, radius, mass, density, composition, atmosphere, temperature, moons and orbital position. |
 | [`position.py`](../../src/planetgen/physics/position.py) | `SpatialPosition3D` keeps where one body is in three frames at once, each in Cartesian, cylindrical and spherical form, and keeps all of them in step: setting any coordinate, in any frame and any form, recomputes the rest. |
-| [`protection.py`](../../src/planetgen/physics/protection.py) | The protective gear a visitor needs on a world, and the paragraph that says where each habitability category falls and why (GEN.208). |
+| [`protection.py`](../../src/planetgen/physics/protection.py) | The one habitability describer (GEN.218): the protective gear a visitor needs on a world and the rows (domain, colour, score, sentence) and paragraph that say where each of the six PHI-6 categories falls and why (GEN.208, GEN.216). |
 | [`protection_limits.py`](../../src/planetgen/physics/protection_limits.py) | Every limit of the human visitor's habitability bands and protective gear in one table (GEN.208), so that a later per-species limit (the canon has races that live in conditions humans cannot) replaces a row here and nothing else. |
 | [`radiation.py`](../../src/planetgen/physics/radiation.py) | Surface radiation dose, UV and galactic hazards (GEN.87). |
 | [`rogue_surface.py`](../../src/planetgen/physics/rogue_surface.py) | A rogue planet has no star, so its surface is set by its own heat alone (Boss's research, 2026-10-01; Stevenson 1999, Burrows et al. |
@@ -363,7 +362,7 @@ The content database: writing, reading, migrating and checking it. `schema.sql` 
 | [`__init__.py`](../../src/planetgen/db/__init__.py) | The content database (MySQL): writing, reading, migrating and checking it. |
 | [`alembic_runner.py`](../../src/planetgen/db/alembic_runner.py) | Runs the Alembic revisions in `planetgen/db/migrations/` against a planetGen content database (DB.11). |
 | [`migrations/helpers.py`](../../src/planetgen/db/migrations/helpers.py) | What a revision uses on a big table: instant columns, online indexes, updates in committed pages with progress, and the existence checks (DB.18). |
-| [`check.py`](../../src/planetgen/db/check.py) | `planetgen check-db` (and the Admin dashboard's "Check the database" button, which runs it as a job) looks for damage in a galaxy database and changes nothing. |
+| [`check.py`](../../src/planetgen/db/check.py) | The database checks `planetgen check-db` runs (and the Generate page's "Check the database" button, which runs it as a job): each is a command of its own (`check-revision` ... `check-systems`) that looks for damage in a galaxy database and changes nothing. |
 | [`corridor.py`](../../src/planetgen/db/corridor.py) | The objects near a straight segment of the galaxy, for routing and course steering. |
 | [`countcache.py`](../../src/planetgen/db/countcache.py) | Counts and filter-menu totals that are too big to take inside a web request (PERF.64). |
 | [`edits.py`](../../src/planetgen/db/edits.py) | Writes an admin's edits back to the content database (TODO ADM.1): a star system changed in memory (a body regenerated, removed, reclassified, or a new star), a phenomenon regenerated in place, and a sector deleted with everything in it. |
@@ -401,6 +400,7 @@ The command-line tools, each run as `python3 -m planetgen.cli.<name>` (the gener
 |---|---|
 | [`__init__.py`](../../src/planetgen/cli/__init__.py) | The command-line tools. |
 | [`benchmark.py`](../../src/planetgen/cli/benchmark.py) | `planetgen benchmark` (PERF.31): where a generation run spends its time, from the plan to a finished fill. |
+| [`checkdb.py`](../../src/planetgen/cli/checkdb.py) | `planetgen check-db` (PERF.126): builds the list of the database-check commands (one per check) for the wrapper to run as a check run, and prints the report: one pass or fail line per check, exit 1 on damage and 2 when a check could not run. |
 | [`config.py`](../../src/planetgen/cli/config.py) | Checks and documents the settings (`planetgen.cli.config`). |
 | [`generate.py`](../../src/planetgen/cli/generate.py) | `planetgen`: the single entry point for every generator, dispatched by subcommand. |
 | [`forget_devices.py`](../../src/planetgen/cli/forget_devices.py) | Revokes every trusted-device cookie of one admin (SEC.22). |

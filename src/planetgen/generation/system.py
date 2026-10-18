@@ -2002,7 +2002,7 @@ class StarSystem:
         Builds the system summary paragraph -- object counts, habitable
         worlds, heliosphere and gravitational edge -- that `__str__` places
         near the top of the page. Its own method so a caller rendering the
-        page piece by piece (`systemRender.render_system_sections`) gets
+        page piece by piece (`describe.model.split_by_body`) gets
         exactly the same sentences.
 
         Returns:

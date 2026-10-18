@@ -579,19 +579,24 @@ stored galaxy is internal testing only.
 
 ## Check the database
 
-`planetgen check-db` looks for damage and changes nothing: the schema revision, table health (`CHECK TABLE`), rows without parents, ids, impossible values, sector counts and version keys. It ends with one pass or fail line per check, exits 1 when it found damage and 2 when a check could not run (DB.8, DB.21). The Generate page runs the same checks.
+`planetgen check-db` looks for damage and changes nothing: the schema revision, table health (`CHECK TABLE`), rows without parents, ids, impossible values, sector counts and version keys. It ends with one pass or fail line per check, exits 1 when it found damage and 2 when a check could not run (DB.8, DB.21, PERF.126). The Generate page runs the same checks.
+
+Each check is a command of its own (`check-revision`, `check-tables`, `check-tables-extended`, `check-orphans`, `check-ids`, `check-values`, `check-counts`, `check-version-keys`, `check-systems`; `planetgen commands` lists them). `check-db` only builds the list of them and the wrapper queues them one after the other as a check run on the Redis queue, so it needs Redis (and a worker running as part of it) like every queue run, never holds up a generation run and shows no banner to the site's visitors. Name the checks to run only those.
 
 ```bash
-planetgen check-db                          # every check, the whole database
-planetgen check-db --shell 12               # values, counts and version keys of one shell's sectors (repeatable)
-planetgen check-db --sector 12 3 0          # the same for one sector: shell 12, band 3, wedge 0 (repeatable)
-planetgen check-db --deep --estimate-only   # print the time a deep check would take, then stop
-planetgen check-db --deep --yes             # also CHECK TABLE ... EXTENDED and validate every star system
+planetgen check-db                              # the default checks, the whole database
+planetgen check-db ids orphans                  # only those checks, in the order the list keeps
+planetgen check-db --shell 12                   # values, counts and version keys of one shell's sectors (repeatable)
+planetgen check-db --sector 12 3 0              # the same for one sector: shell 12, band 3, wedge 0 (repeatable)
+planetgen check-db systems --estimate-only      # print the time the systems check would take, then stop
+planetgen check-db tables-extended systems --yes   # the slow checks: CHECK TABLE ... EXTENDED, then every star system
+planetgen command-run check-ids '{"database": {...}}'   # one check alone
 ```
 
-*   `--deep`: also runs `CHECK TABLE ... EXTENDED` and validates every star system. It is slow, so the time is estimated first and a yes is asked for; `--yes` goes ahead after the estimate without asking (needed off a terminal), and `--estimate-only` prints the estimate and stops (the Generate page uses it).
-*   `--wide-binaries` (with `--deep`): validates only the wide binaries (S-type pairs), to count the pairs whose orbits overlap (GEN.228).
-*   `--no-check-table`: skips `CHECK TABLE`.
+*   Without a name the list is `revision tables orphans ids values counts version-keys`; `tables-extended` (`CHECK TABLE ... EXTENDED`) and `systems` (validates every star system) are the slow ones and run only when named.
+*   `systems` is slow, so its time is estimated first and a yes is asked for; `--yes` goes ahead after the estimate without asking (needed off a terminal), and `--estimate-only` prints the estimate and stops (the Generate page uses it).
+*   `--wide-binaries` (with `systems`): validates only the wide binaries (S-type pairs), to count the pairs whose orbits overlap (GEN.228).
+*   `--shell` and `--sector` scope `values`, `counts`, `version-keys` and `systems`; the other checks always look at the whole database.
 
 ## Version keys
 

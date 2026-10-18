@@ -140,6 +140,29 @@ test("Stop waiting stops polling and Check again resumes it", async () => {
   assert.equal(el.querySelector("[data-slow-stop]").hidden, false);
 });
 
+test("an answer that arrives after Stop waiting does not undo the stop (TEST.235)", async () => {
+  const win = installDom("http://localhost/phenomena");
+  let answer;
+  win.fetchHandler = () => new Promise((resolve) => { answer = resolve; });
+  const el = await start(win);
+  win.timers.advance(1000);
+  await settle();
+  assert.equal(win.fetchCalls.length, 1, "the poll is on its way");
+  el.querySelector("[data-slow-stop]").dispatchEvent(new Event("click"));
+  answer(job());
+  await settle();
+  assert.match(text(el, "status"), /^Stopped waiting\./);
+  assert.equal(el.querySelector("[data-slow-resume]").hidden, false);
+  assert.equal(el.querySelector("[data-slow-stop]").hidden, true);
+  win.timers.advance(5000);
+  await settle();
+  assert.equal(win.fetchCalls.length, 1, "no more polls once stopped");
+  win.fetchHandler = () => job({ done: 600 });
+  el.querySelector("[data-slow-resume]").dispatchEvent(new Event("click"));
+  await settle();
+  assert.equal(text(el, "percent"), "60%", "Check again still works after a stop that raced a poll");
+});
+
 test("a finished job asks for the page at the same address, and a page waiting for another job carries on with that one", async () => {
   const win = installDom("http://localhost/search?q=sol");
   const next = h("section", { "data-slow-load": "", "data-job": "fedcba9876543210", "data-state": "queued",

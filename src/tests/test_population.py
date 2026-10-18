@@ -29,34 +29,30 @@ from tests.publicids import pid, pids
 # Pure model
 # ---------------------------------------------------------------------------
 
-def _paragraph(milestone, milestone_age, system_age):
-    return [f"A speculative evolutionary timeline for a planet orbiting this star indicates a standard "
-            f"evolutionary pace. The current estimated age of the system is {system_age}. The most recent "
-            f"significant evolutionary milestone prior to this age would have been {milestone} at "
-            f"{milestone_age}. Text."]
-
-
-def test_parse_timeline_reads_stage_and_ages():
-    timeline = population.parse_timeline(
-        _paragraph("Technological Civilization", "4.50 Billion Years", "4.60 Billion Years"))
+def test_timeline_of_reads_stage_and_ages():
+    timeline = population.timeline_of("technological_civilization", 4.6, 4.5)
     assert timeline.life_stage == "technological_civilization"
     assert timeline.system_age_years == pytest.approx(4.6e9)
     assert timeline.milestone_age_years == pytest.approx(4.5e9)
     assert timeline.window_years == pytest.approx(1e8)
 
-    multicellular = population.parse_timeline(
-        _paragraph("Multicellularity", "900.00 Million Years", "2.00 Billion Years"))
+    multicellular = population.timeline_of("multicellularity", 2.0, 0.9)
     assert multicellular.life_stage == "multicellularity"
     assert multicellular.milestone_age_years == pytest.approx(9e8)
 
 
-@pytest.mark.parametrize("milestone", ["Abiogenesis", "Photosynthesis", "Complex Cells"])
+@pytest.mark.parametrize("milestone", ["abiogenesis", "photosynthesis", "complex_cells", None])
 def test_simple_life_is_not_a_life_world(milestone):
-    assert population.parse_timeline(_paragraph(milestone, "1.00 Billion Years", "2.00 Billion Years")) is None
+    assert population.timeline_of(milestone, 2.0, 1.0) is None
 
 
-def test_parse_timeline_reads_real_generated_paragraphs():
-    """The parser keeps up with `get_evolutionary_timeline`'s own wording."""
+def test_a_timeline_needs_both_ages():
+    assert population.timeline_of("technological_civilization", None, 4.5) is None
+    assert population.timeline_of("technological_civilization", 4.6, None) is None
+
+
+def test_timeline_of_reads_real_generated_planets():
+    """A generated planet's stored structure reads back as a timeline."""
     for _ in range(200):
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V"
@@ -64,7 +60,9 @@ def test_parse_timeline_reads_real_generated_paragraphs():
         cfg.HABITABLE_WORLD = True
         system = StarSystem(system_config=cfg)
         for planet in system.planets:
-            timeline = population.parse_timeline(getattr(planet, "evolutionary_data", None) or [])
+            timeline = population.timeline_of(getattr(planet, "life_stage", None),
+                                              getattr(planet, "life_system_age_gyr", None),
+                                              getattr(planet, "life_milestone_age_gyr", None))
             if timeline is not None and timeline.life_stage == "technological_civilization":
                 assert timeline.milestone_age_years <= timeline.system_age_years
                 return
@@ -166,7 +164,8 @@ def _civilized_system(mysql_config):
         cfg.HABITABLE_WORLD = True
         cfg.BINARY_SYSTEM = False
         system = StarSystem(system_config=cfg)
-        if any(population.parse_timeline(getattr(p, "evolutionary_data", None) or []) for p in system.planets):
+        if any(population.timeline_of(getattr(p, "life_stage", None), getattr(p, "life_system_age_gyr", None),
+                                  getattr(p, "life_milestone_age_gyr", None)) for p in system.planets):
             return store.save_system(system, cfg, config=mysql_config)
     pytest.fail("could not generate a system with a civilization")
 

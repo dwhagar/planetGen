@@ -4,7 +4,8 @@
 
 from planetgen.describe.render import rating_lines, render_document, share_text
 
-TEMPLATES = {"star": "Star Data", "planet": "Planet Data", "moon": "Class Data"}
+TEMPLATES = {"star": "Star Data", "black-hole": "Black Hole Data", "neutron-star": "Neutron Star Data",
+             "planet": "Planet Data", "moon": "Class Data"}
 """dict: The wiki's data template for a section kind that has one; the pair kinds are named below."""
 
 PAIR_TEMPLATES = {"Binary system": "Binary System Data", "Wide binary system": "Wide Binary System Data"}
@@ -47,9 +48,13 @@ class Style:
 
     @staticmethod
     def join(chunks):
-        return "\n\n".join(chunks) + "\n\n[[Category:Star Systems]]\n"
+        return "\n\n".join(chunks)
+
+
+CATEGORIES = {"system": "Star Systems", "phenomenon": "Phenomena"}
+"""dict: The wiki category each kind of Document is filed under."""
 
 
 def render(document):
     """The Document as wikitext."""
-    return render_document(document, Style, "wikitext")
+    return render_document(document, Style, "wikitext") + f"\n\n[[Category:{CATEGORIES[document['kind']]}]]\n"

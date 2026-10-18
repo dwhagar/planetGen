@@ -22,6 +22,7 @@ import math
 
 from flask import abort, jsonify, redirect, request
 from markupsafe import Markup
+from planetgen.describe.model import split_by_body
 from planetgen.galaxy import objectref
 from planetgen.physics import constants as physical_constants
 from planetgen.physics.lensing import einstein_radius_against_galactic_centre_m
@@ -298,7 +299,7 @@ def system(system_id):
         facility_form = system_facilities.handle_post(system_id, detail, facilities, facility_context)
         if not isinstance(facility_form, dict):
             return facility_form
-    sections = apiclient.get_system_sections(db, system_id)
+    sections = split_by_body(apiclient.get_system_description(db, system_id))
     code_content = apiclient.get_system_text(db, system_id, code_fmt)["content"] if code_fmt else None
 
     admin = current_admin()

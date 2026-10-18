@@ -226,8 +226,9 @@ def test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter(m
     final = next(m for m in messages if m.startswith("Placed "))
     for label, count in summary["counts"].items():  # only what was created, like the star count
         assert f"{count:,} {label}" in final, label
-    for label in scatter.EXPECTED_LABELS:
-        assert (f" {label}" in final) == bool(summary["counts"].get(label)), label
+    listed = {item.split(" ", 1)[1] for item in final.split(": ", 1)[1].split(";")[0].split(", ")}
+    for label in scatter.EXPECTED_LABELS:  # whole labels: "magnetar neutron-star" is not a "neutron-star"
+        assert (label in listed) == bool(summary["counts"].get(label)), label
     assert " 0 " not in final
     placed = sum(int(m.split(": placed ")[1].split(":")[0].replace(",", "")) for m in shell_lines)
     assert placed <= summary["total"]

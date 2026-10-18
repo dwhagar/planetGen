@@ -841,3 +841,36 @@ Baseline: PR #1817.
 | GEN.567 | 8.1 | Composition research and design |
 | MAP.243 | 8.1 | Interface update |
 | DOC.69 | 8.1 | Docs |
+| OPS.59 | 8.1 | Queue, caches and performance |
+| UX.110 | 8.1 | Description layer |
+| TEST.134 | 8.1 | Bugs and flaky tests |
+| TEST.170 | 8.1 | Bugs and flaky tests |
+| TEST.171 | 8.1 | Bugs and flaky tests |
+| TEST.172 | 8.1 | Bugs and flaky tests |
+| TEST.174 | 8.1 | Bugs and flaky tests |
+| UX.133 | 8.1 | Bugs and flaky tests |
+| TEST.189 | 8.1 | Bugs and flaky tests |
+| TEST.216 | 8.1 | Bugs and flaky tests |
+| TEST.203 | 8.1 | Bugs and flaky tests |
+| TEST.199 | 8.1 | Bugs and flaky tests |
+| GEN.397 | 8.1 | Bugs and flaky tests |
+| TEST.208 | 8.1 | Bugs and flaky tests |
+| GEN.218 | 8.1 | Description layer |
+| GEN.219 | 8.1 | Description layer |
+| DB.50 | 8.1 | Description layer |
+| DB.51 | 8.1 | Description layer |
+| UX.119 | 8.1 | Description layer |
+| UX.120 | 8.1 | Description layer |
+| UX.105 | 8.1 | Description layer |
+| GEN.220 | 8.1 | Description layer |
+| UX.108 | 8.1 | Description layer |
+| GEN.221 | 8.1 | Description layer |
+| DB.52 | 8.1 | Description layer |
+| TEST.155 | 8.1 | Description layer |
+| GEN.439 | 8.1 | Composition tables |
+| GEN.440 | 8.1 | Star composition |
+| PERF.126 | 8.1 | Queue, caches and performance |
+| GEN.552 | 8.1 | Multi-star and compact systems |
+| TEST.220 | 8.1 | Bugs and flaky tests |
+| TEST.235 | 8.1 | Bugs and flaky tests |
+| GEN.562 | 8.1 | Multi-star and compact systems |

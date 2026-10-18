@@ -41,6 +41,7 @@ def test_the_page_lists_every_module_of_the_package(collected):
     assert not problems, "\n".join(problems) + "\nthe TODO thread runs python scripts/build_global_docs.py"
 
 
+@pytest.mark.globaldocs
 def test_a_new_test_module_needs_no_regeneration(collected):
     assert not amap.module_problems(_page().replace('"name":"tests.test_architecture_map"', '"name":"tests.other"'), collected)
 

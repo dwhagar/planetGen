@@ -17,10 +17,10 @@ from planetgen.db import store
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
-from planetgen.generation.evolution import life_stage_from_paragraphs
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
-from planetgen.db.render import render_star_system, render_system_sections, render_system_text
+from planetgen.db.render import describe_system, render_star_system, render_system_text
+from planetgen.describe.model import split_by_body
 from planetgen.generation.wide_binary import WideBinaryPair
 
 _VARIANTS = [
@@ -137,29 +137,17 @@ def test_sections_split_the_page_per_body(mysql_config):
     system_id = store.save_system(system, cfg, config=mysql_config)
     conn = store.get_connection(mysql_config)
     try:
-        sections = render_system_sections(conn, system_id)
+        sections = split_by_body(describe_system(conn, system_id))
     finally:
         conn.close()
 
     for key in ("stars", "planets", "moons", "belts", "comets"):
-        for text in sections[key].values():
-            assert text, key
+        for blocks in sections[key].values():
+            assert blocks, key
     assert sections["overview"]
     planets = [p for p in system.planets if p.body_type != "a"]
     assert len(sections["planets"]) == len(planets)
     assert len(sections["moons"]) == sum(len(p.moons) for p in planets)
-
-
-
-
-def test_life_stage_is_read_back_from_the_timeline_paragraph():
-    paragraph = (
-        "A speculative evolutionary timeline ... would have been Technological Civilization at "
-        "4.50 Billion Years. The planet boasts a fully mature biosphere."
-    )
-    assert life_stage_from_paragraphs([paragraph]) == "technological_civilization"
-    assert life_stage_from_paragraphs(["No significant evolutionary milestones are predicted."]) is None
-    assert life_stage_from_paragraphs([]) is None
 
 
 def test_rendering_keeps_an_anchored_black_holes_fractional_disk_temperature(mysql_config):
@@ -180,3 +168,23 @@ def test_rendering_keeps_an_anchored_black_holes_fractional_disk_temperature(mys
             assert text == render_star_system(system, fmt)
     finally:
         conn.close()
+
+
+def test_the_system_list_shows_the_documents_blocks_without_markdown(mysql_config):
+    from planetgen.db import query
+    from planetgen.web.lib.systempage import system_list_html
+
+    cfg = _config(BINARY_SYSTEM=False, MOONS=True, COMETS=True, ASTEROID_BELT=True)
+    system_id = store.save_system(StarSystem(system_config=cfg), cfg, config=mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        sections = split_by_body(describe_system(conn, system_id))
+        detail = query.system_detail(conn, system_id)
+    finally:
+        conn.close()
+    html = system_list_html(detail, sections)
+    assert 'class="doc-prose doc-overview"' in html and 'class="doc-facts"' in html
+    assert 'class="qty"' in html
+    assert "**" not in html and "\n# " not in html
+    for planet in detail["planets"]:
+        assert f'id="planet-{planet["id"]}"' in html

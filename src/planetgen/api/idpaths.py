@@ -41,8 +41,7 @@ ID_PATHS = {
         "inside.id": "phenomenon",
         **_BODIES,
     },
-    "api.system_sections": {"stars{}": "star", "planets{}": "planet", "moons{}": "moon", "belts{}": "belt",
-                            "comets{}": "comet"},
+    "api.system_description": {},
     "api.system_scene": {
         "system.id": "system",
         **_BODIES,

@@ -21,12 +21,11 @@ The `AsteroidBelt` class, a simpler representation of an asteroid belt, is
 defined separately in `asteroidData`.
 """
 
-import re
 import math
 
 from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import atmosphere, constants, habitability_explain, habitability_world, hydrosphere, magnetism, planets as planetPhysics, radiation
+from planetgen.physics import atmosphere, constants, habitability_world, hydrosphere, magnetism, planets as planetPhysics, protection, radiation
 from planetgen.physics.position import HoldsOrbitPosition, axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
@@ -179,9 +178,13 @@ class Planet(HoldsOrbitPosition):
                                          log units above the iron-wustite buffer.
         p_o2_kpa ... p_so2_kpa (float): Each `physics.atmosphere.SPECIES`
                                         gas's partial pressure, kPa.
-        evolutionary_data (list): A list of strings describing the evolutionary timeline
-                                  (set by `life.apply_life_data`, empty until then).
-        flavor_text (str): A randomly selected flavor text for the planet.
+        life_stage (str or None): The latest `evolution.MILESTONE_KEYS` milestone the timeline reached (set by
+                                  `life.apply_life_data`; `None` before any, or with no timeline).
+        evolutionary_pace (str or None): The timeline scale (`fast`, `normal`, `slow`); `None` when the body has no
+                                         timeline.
+        life_milestone_age_gyr, life_system_age_gyr (float or None): The milestone's age and the system's, Gy.
+        flavor_key (str or None): The flavour line `life.decide_flavor_text` drew, as `category:index` into the
+                                  `tuning` flavour lists (`flavor_text` reads it).
         flavor_text_count (int): The number of flavor texts added to this planet.
     """
 
@@ -191,7 +194,8 @@ class Planet(HoldsOrbitPosition):
         "mass", "atmosphere", "composition", "radius", "planet_class", "distance",
         "body_type", "scale_height", "hill_radius", "min_orbit_distance", "name",
         "life_chemical", "evolutionary_speed", "reflection_spectrum_visible",
-        "reflection_spectrum_non_visible", "evolutionary_data", "flavor_text",
+        "reflection_spectrum_non_visible", "life_stage", "evolutionary_pace",
+        "life_milestone_age_gyr", "life_system_age_gyr", "flavor_key",
         "flavor_text_count", "habitable_zone", "volume", "period",
         "orbital_inclination_deg", "orbital_ascending_node_deg",
         "position_x", "position_y", "position_z", "orbital_speed_kms",
@@ -313,8 +317,11 @@ class Planet(HoldsOrbitPosition):
         self.evolutionary_speed = None
         self.reflection_spectrum_visible = None
         self.reflection_spectrum_non_visible = None
-        self.evolutionary_data = [] # Populated later by life.apply_life_data
-        self.flavor_text = None # Initialize flavor text
+        self.life_stage = None # Set later by life.apply_life_data, with the next three
+        self.evolutionary_pace = None
+        self.life_milestone_age_gyr = None
+        self.life_system_age_gyr = None
+        self.flavor_key = None # Set later by life.decide_flavor_text
         self.flavor_text_count = 0 # Initialize flavor text count for this planet
         self.orbital_inclination_deg = None
         self.orbital_ascending_node_deg = None
@@ -464,6 +471,23 @@ class Planet(HoldsOrbitPosition):
 
         return life_paragraphs
 
+    @property
+    def evolutionary_data(self):
+        """The evolutionary timeline paragraph written from the stored structure (`evolution.timeline_paragraphs`),
+        `[]` for a body with no timeline."""
+        if self.evolutionary_pace is None:
+            return []
+        from planetgen.generation import evolution
+        return evolution.timeline_paragraphs({
+            "scale": self.evolutionary_pace, "stage": self.life_stage,
+            "milestone_age_gyr": self.life_milestone_age_gyr, "system_age_gyr": self.life_system_age_gyr})
+
+    @property
+    def flavor_text(self):
+        """The flavour line `flavor_key` names (`life.flavor_line`), or `None`."""
+        from planetgen.generation import life
+        return life.flavor_line(self.flavor_key)
+
     def get_table_properties(self):
         """
         Builds the "Planet Data"/"Class Data" property dict -- the exact
@@ -572,8 +596,7 @@ class Planet(HoldsOrbitPosition):
         values = habitability_world.values_from_body(self)
         if values.get("surface_temperature_k") is None:
             return None
-        host = re.match(r"Planet of an? ([a-z ]+):", getattr(self, "hab_note", None) or "")
-        host = host.group(1) if host else None
+        host = habitability_world.compact_host_name(getattr(self, "star", None))
         return habitability_world.world_from(values, lethal_host=host), host
 
     def _habitability_paragraphs(self):
@@ -588,7 +611,7 @@ class Planet(HoldsOrbitPosition):
             return []
         world, host = scored
         bold = (lambda text: f"**{text}**") if self.system_config.MARKDOWN else (lambda text: f"'''{text}'''")
-        return habitability_explain.paragraphs(world, bold, compact_host=host)
+        return [protection.paragraph(world, bold, compact_host=host)]
 
     def to_paragraph_list(self):
         """

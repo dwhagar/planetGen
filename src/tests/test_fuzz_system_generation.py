@@ -309,7 +309,7 @@ def assert_life_caps(system, cfg):
     for obj in system.planets + system.secondary_planets:
         if obj.body_type == "a" or not obj.evolutionary_data:
             continue
-        stage = evolution.life_stage_from_paragraphs(obj.evolutionary_data)
+        stage = obj.life_stage
         if stage is None:
             continue
         cap = prog.PLANET_CLASS_MAX_LIFE_STAGE.get(obj.planet_class)
@@ -646,11 +646,12 @@ def test_evolutionary_timeline_respects_caps_for_any_star(seed, star_type, plane
     cfg.AGE = age
     with _deterministic_entropy(seed):
         star = Star(cfg)
-        paragraphs = evolution.get_evolutionary_timeline(star, planet_class)
+        state = evolution.get_evolutionary_state(star, planet_class)
+    paragraphs = evolution.timeline_paragraphs(state)
     assert isinstance(paragraphs, list) and all(isinstance(p, str) and p for p in paragraphs)
     text = " ".join(paragraphs)
     assert "nan" not in text.lower().split() and "inf" not in text.lower().split()
-    stage = evolution.life_stage_from_paragraphs(paragraphs)
+    stage = state["stage"]
     if stage is not None:
         cap = prog.PLANET_CLASS_MAX_LIFE_STAGE.get(planet_class)
         if cap is not None:
@@ -675,8 +676,10 @@ def test_life_pass_is_stable_on_reload(seed):
     for a, b in zip(system.planets, rebuilt.planets):
         if a.body_type == "a":
             continue
-        assert (a.life_chemical, a.evolutionary_speed, a.evolutionary_data, a.flavor_text) == \
-               (b.life_chemical, b.evolutionary_speed, b.evolutionary_data, b.flavor_text)
+        assert (a.life_chemical, a.evolutionary_speed, a.life_stage, a.evolutionary_pace, a.life_milestone_age_gyr,
+                a.life_system_age_gyr, a.flavor_key, a.evolutionary_data, a.flavor_text) == \
+               (b.life_chemical, b.evolutionary_speed, b.life_stage, b.evolutionary_pace, b.life_milestone_age_gyr,
+                b.life_system_age_gyr, b.flavor_key, b.evolutionary_data, b.flavor_text)
         with _deterministic_entropy(seed):
             planetLife.apply_life_data(b)
             planetLife.decide_flavor_text(b)

@@ -22,9 +22,10 @@ Keys (`PREFIX` is `planetgen`; the tests give it a prefix of their own):
                                   sees one figure; expires a day after it is written.
 * `<PREFIX>:run:<id>:events`     stream: the log and timeline, `XADD` with `MAXLEN ~ EVENTS_MAXLEN`.
 * `<PREFIX>:run:active`          string: the run that owns the machine, `SET NX`, so a second run gets "busy".
-* `<PREFIX>:run:active:maintenance`  string: the same for a run of `MAINTENANCE` kind (the cache warm-up, PERF.127):
-                                  it does not own the machine, so it neither blocks a generation run nor shows the
-                                  galaxy-changing banner, and only one runs at a time.
+* `<PREFIX>:run:active:<kind>`   string: the same for a run of `MAINTENANCE` kind (the cache warm-up, PERF.127) or
+                                  `CHECK` kind (the database check, PERF.126): it does not own the machine, so it
+                                  neither blocks a generation run nor shows the galaxy-changing banner, and only one
+                                  of each kind runs at a time.
 
 A unit that finishes calls `unit_done`, one script run by Redis: it adds the index to the done set (a unit that
 runs twice counts once), updates the counters and the decayed sums, and, for the unit that makes the set
@@ -52,9 +53,12 @@ EVENTS_MAXLEN = 100_000
 
 GENERATION = "generation"
 MAINTENANCE = "maintenance"
-KINDS = (GENERATION, MAINTENANCE)
-"""A run changes the galaxy (`GENERATION`, owns the machine) or only keeps the site in order (`MAINTENANCE`, PERF.127:
-building caches changes nothing a visitor reads)."""
+CHECK = "check"
+KINDS = (GENERATION, MAINTENANCE, CHECK)
+"""A run changes the galaxy (`GENERATION`, owns the machine), only keeps the site in order (`MAINTENANCE`, PERF.127:
+building caches changes nothing a visitor reads) or only reads it (`CHECK`, PERF.126: the database check). Each kind has
+one live run at a time, in a place of its own, so a check is never refused for a warm-up and neither holds up a
+generation run."""
 
 LIVE_STATES = ("running", "cancelling")
 FINAL_STATES = ("done", "failed", "cancelled")
@@ -217,11 +221,11 @@ def active_run(conn, kind=GENERATION):
 def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=None, seed=None, now=None,
               steps=None, kind=GENERATION):
     """
-    Records a new run and takes the machine for it (a `MAINTENANCE` run takes only its own place, so a generation
-    run and a maintenance run may be live together).
+    Records a new run and takes the machine for it (a `MAINTENANCE` or `CHECK` run takes only its own place, so a
+    generation run and one of those may be live together).
 
     Args:
-        kind (str): `GENERATION` or `MAINTENANCE`.
+        kind (str): One of `KINDS`.
         stages (list[Stage]): The run's stages, in order (at least one).
         steps (list[dict], optional): The wrapper's step list (`queue.commands.Step.as_dict`), one per stage; the
             unit that completes a stage reads the next one from here (PERF.118).
@@ -461,6 +465,6 @@ def recent_runs(conn, limit=20):
     return sorted(found, reverse=True)[:limit]
 
 
-__all__ = ["GENERATION", "KINDS", "MAINTENANCE", "Busy", "Stage", "UnitDone", "active_run", "begin_stage", "finish_run", "is_cancelling", "is_stale",
+__all__ = ["CHECK", "GENERATION", "KINDS", "MAINTENANCE", "Busy", "Stage", "UnitDone", "active_run", "begin_stage", "finish_run", "is_cancelling", "is_stale",
            "log", "new_run_id", "read_events", "read_plan", "read_run", "read_steps", "recent_runs", "request_cancel",
            "set_stage_plan", "start_run", "unit_done", "write_log_file"]

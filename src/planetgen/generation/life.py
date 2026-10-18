@@ -19,9 +19,8 @@ the star's final age rather than a provisional pre-adjustment one.
 """
 
 
-import re
 
-from planetgen.generation.evolution import get_evolutionary_timeline
+from planetgen.generation.evolution import get_evolutionary_state
 from planetgen import tuning
 from planetgen.physics import habitability_world
 from planetgen.util import draw
@@ -170,25 +169,10 @@ def life_ceiling(planet):
     return None
 
 
-def _set_description(planet, ceiling):
-    """A class whose own description claims life (F, G, L) says what the
-    index allows instead (`tuning.NO_LIFE_CLASS_DESCRIPTIONS`,
-    `MICROBIAL_ONLY_CLASS_DESCRIPTIONS`); with no limit, or any other class,
-    the class's own text stands."""
-    cls = planet.planet_class
-    if cls not in tuning.NO_LIFE_CLASS_DESCRIPTIONS and cls not in tuning.MICROBIAL_ONLY_CLASS_DESCRIPTIONS:
-        return
-    text = None
-    if ceiling == "none":
-        text = tuning.NO_LIFE_CLASS_DESCRIPTIONS.get(cls)
-    elif ceiling == "microbial":
-        text = tuning.MICROBIAL_ONLY_CLASS_DESCRIPTIONS.get(cls)
-    if text is None:
-        text = tuning.PLANET_CLASSES[cls]["description"]
-    if planet.is_moon:
-        text = re.sub(r'\bplanets\b', 'moons', text)
-        text = re.sub(r'\bplanet\b', 'moon', text)
-    planet.description = text
+def _set_description(planet):
+    """The class's own description. It claims no life and no planet, so a moon reads it as it stands; what the index
+    allows is said by the life sentences."""
+    planet.description = tuning.PLANET_CLASSES[planet.planet_class]["description"]
 
 
 def apply_life_data(planet):
@@ -205,21 +189,21 @@ def apply_life_data(planet):
         planet (Planet): The planet or moon to apply life data to. Its
                          `life_chemical`, `reflection_spectrum_visible`,
                          `reflection_spectrum_non_visible`, `evolutionary_speed`,
-                         and (if applicable) `evolutionary_data` attributes are
-                         set in place.
+                         and (if applicable) `life_stage`, `evolutionary_pace` and
+                         the two ages are set in place.
     """
     spectral_class = get_star_spectral_class(planet.star) if planet.star.type else None
 
     # GEN.206: the habitability index decides what may live here. No microbial
     # life means no chemistry, speed, timeline or claim in the description.
     ceiling = life_ceiling(planet)
-    _set_description(planet, ceiling)
+    _set_description(planet)
     if ceiling == "none":
         planet.life_chemical = None
         planet.reflection_spectrum_visible = None
         planet.reflection_spectrum_non_visible = None
         planet.evolutionary_speed = None
-        planet.evolutionary_data = []
+        _set_evolutionary_state(planet, None)
         habitability_world.rescore(planet)  # GEN.217: the score of a lifeless world is still redone once everything is final
         log.debug("Life chemistry: none, the habitability index gives microbial life 0")
         return
@@ -252,9 +236,37 @@ def apply_life_data(planet):
     # there, so no timeline (a lifeless world used to get one, and the
     # population pass then gave it a species no page would show).
     if planet.zone == 'e' and not planet.is_moon and planet.life_chemical:
-        planet.evolutionary_data = get_evolutionary_timeline(
-            planet.star, planet.planet_class, max_stage="photosynthesis" if ceiling == "microbial" else None)
+        _set_evolutionary_state(planet, get_evolutionary_state(
+            planet.star, planet.planet_class, max_stage="photosynthesis" if ceiling == "microbial" else None))
+    else:
+        _set_evolutionary_state(planet, None)
     habitability_world.rescore(planet)  # GEN.207: Suitability reads the life that was just drawn
+
+
+def _set_evolutionary_state(planet, state):
+    """Stores a `get_evolutionary_state` on the body (`None`: no timeline)."""
+    planet.life_stage = state["stage"] if state else None
+    planet.evolutionary_pace = state["scale"] if state else None
+    planet.life_milestone_age_gyr = state["milestone_age_gyr"] if state else None
+    planet.life_system_age_gyr = state["system_age_gyr"] if state else None
+
+
+def _flavor_lists():
+    return {"habitable": tuning.HABITABLE_FLAVOR, "planet": tuning.PLANET_FLAVOR, "orbital": tuning.ORBITAL_FLAVOR}
+
+
+def flavor_key(category, text):
+    """The `category:index` key of the flavour line `text` in a `tuning` flavour list (`habitable`, `planet` or
+    `orbital`)."""
+    return f"{category}:{_flavor_lists()[category].index(text)}"
+
+
+def flavor_line(key):
+    """The flavour line a `flavor_key` names, or `None` for no key."""
+    if key is None:
+        return None
+    category, index = key.split(":")
+    return _flavor_lists()[category][int(index)]
 
 
 def decide_flavor_text(planet):
@@ -263,7 +275,7 @@ def decide_flavor_text(planet):
     text, updating the shared `system_config` flavor bookkeeping in the same
     step. Must be called after `apply_life_data(planet)` for the same
     planet/moon, since the habitable/multicellular-life check below reads
-    `planet.evolutionary_data`.
+    `planet.life_stage`.
 
     Called once per planet/moon by `StarSystem.__init__`, in the same pass
     as `apply_life_data`, rather than at render time -- `to_paragraph_list()`
@@ -273,7 +285,7 @@ def decide_flavor_text(planet):
 
     Args:
         planet (Planet): The planet or moon to decide flavor text for. Its
-                         `flavor_text`/`flavor_text_count` attributes are set
+                         `flavor_key`/`flavor_text_count` attributes are set
                          in place; `planet.system_config.system_flavor_count`/
                          `recent_flavor_texts` are updated when a flavor is
                          selected.
@@ -301,28 +313,26 @@ def decide_flavor_text(planet):
 
     # Check for habitable and multicellular/technological life
     is_habitable = planet.planet_class in tuning.HABITABLE_PLANET_CLASSES
-    has_multicellular_life = False
-    if is_habitable and planet.evolutionary_data:
-        for stage_paragraph in planet.evolutionary_data:
-            if "multicellularity" in stage_paragraph.lower() or "technological civilization" in stage_paragraph.lower():
-                has_multicellular_life = True
-                break
+    has_multicellular_life = planet.life_stage in ("multicellularity", "technological_civilization")
 
     if is_habitable and has_multicellular_life:
         selected_flavor = draw.choice(available_habitable_flavor)
         flavor_category = "habitable (multicellular/technological life present)"
+        flavor_list = "habitable"
     elif planet.body_type == "t" and planet.planet_class != "A":
         selected_flavor = draw.choice(available_planet_flavor)
         flavor_category = "planet (terrestrial body, not class A)"
+        flavor_list = "planet"
     elif planet.body_type == "g" or planet.planet_class == "A":
         selected_flavor = draw.choice(available_orbital_flavor)
         flavor_category = "orbital (gas giant or class A body)"
+        flavor_list = "orbital"
     else:
         flavor_category = None
 
     if selected_flavor:
         log.choice("Planet flavor text", selected_flavor, f"category: {flavor_category}")
-        planet.flavor_text = selected_flavor
+        planet.flavor_key = flavor_key(flavor_list, selected_flavor)
         system_config.system_flavor_count += 1
         planet.flavor_text_count += 1
 

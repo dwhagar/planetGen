@@ -9,16 +9,20 @@ button, which runs it as a job) looks for damage in a galaxy database and
 changes nothing. See `docs/design/db-check-and-parity-repair.md` section 6.
 
 Each check is a function of a `_Context` that returns a list of `Problem`s
-(empty when the check passes); `run_checks` runs them all, turns a check
-that itself failed to run into an "error" result (could not check, which is
-not the same as damaged), and returns a `Report`.
+(empty when the check passes), and a command of its own on the work queue
+(`check-revision`, `check-tables`, ... `queue/commands.py`, PERF.126), whose unit
+(`run_check`) opens its own connection, runs that one check and returns its
+`CheckResult`: a check that itself failed to run is an "error" result (could not
+check, which is not the same as damaged), never an exception. `planetgen check-db`
+only builds the list of the checks asked for and hands it to the wrapper; `Report`
+turns the results of the list into the lines and the exit code.
 
-The checks:
+The checks (each one command):
 
 1. `revision`: the Alembic revision, `schema_migrations` and the code's
    `store.SCHEMA_VERSION` agree, and the tables match `db/models.py`.
-2. `tables`: `CHECK TABLE` on every table (`--no-check-table` skips it,
-   `--deep` makes it EXTENDED).
+2. `tables`: `CHECK TABLE ... QUICK` on every table; `tables-extended` is the
+   slow `EXTENDED` one (a check of its own, not a flag).
 3. `orphans`: every foreign key's child rows have a parent (the keys come
    from `information_schema`), plus the pointers no key covers
    (`nearest_systems` and `sector_paths` objects).
@@ -29,15 +33,16 @@ The checks:
    from the star systems filed in the sector (an orbit refile moves a
    system without updating the stats).
 7. `version keys`: every sector has a well formed version key.
-8. `systems` (`--deep` only, DB.21): every star system is loaded and run
+8. `systems` (a check of its own, DB.21): every star system is loaded and run
    through `validation.check_star_system` (orbit spacing, the stable-orbit
    ceiling, each planet's moons). Slow, so `deep_estimate` tells how long
-   first, from the speed this server recorded for it, and the pass draws
-   its own progress bar.
+   first, from the speed this server recorded for it, and the unit reports its
+   progress.
 
-`--shell` and `--sector` scope the value, count and version-key checks to
-those sectors; the others always look at the whole database. A galaxy too
-big to check in one go is checked a region at a time.
+The scope (`--shell` and `--sector`) belongs to the value, count, version-key and
+systems checks, which look only at those sectors; the others always look at the
+whole database. The systems check also takes `wide_binaries`. A galaxy too big
+to check in one go is checked a region at a time.
 """
 
 import re
@@ -108,6 +113,13 @@ class Problem:
     rows: list = field(default_factory=list)
     warning: bool = False
 
+    def as_dict(self):
+        return {"what": self.what, "rows": list(self.rows), "warning": self.warning}
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(data["what"], list(data["rows"]), bool(data["warning"]))
+
     def lines(self):
         shown = self.rows[:MAX_ROWS_SHOWN]
         out = [self.what] + [f"    {row}" for row in shown]
@@ -123,6 +135,15 @@ class CheckResult:
     status: str
     problems: list = field(default_factory=list)
     error: str = ""
+
+    def as_dict(self):
+        """The result as plain JSON, as a unit of the work queue returns it."""
+        return {"name": self.name, "status": self.status, "problems": [p.as_dict() for p in self.problems],
+                "error": self.error}
+
+    @classmethod
+    def from_dict(cls, data):
+        return cls(data["name"], data["status"], [Problem.from_dict(p) for p in data["problems"]], data["error"])
 
     def line(self):
         label = {PASS: "pass", FAIL: "FAIL", WARN: "warn", ERROR: "COULD NOT CHECK"}[self.status]
@@ -197,8 +218,8 @@ class _Context:
     conn: object
     config: object
     scope: Scope
-    deep: bool
-    check_table: bool
+    report: object = None
+    """callable or None: `report(done, estimate)` for a check that can say how far it is (the systems check)."""
 
     def rows(self, sql, params=()):
         return self.conn.execute(sql, params).fetchall()
@@ -277,10 +298,16 @@ def _diff_text(diff):
 
 
 def check_tables(ctx):
-    """`CHECK TABLE` on every table (skipped with `--no-check-table`)."""
-    if not ctx.check_table:
-        return []
-    mode = "EXTENDED" if ctx.deep else "QUICK"
+    """`CHECK TABLE ... QUICK` on every table."""
+    return _check_tables(ctx, "QUICK")
+
+
+def check_tables_extended(ctx):
+    """`CHECK TABLE ... EXTENDED` on every table: slow, so a check of its own."""
+    return _check_tables(ctx, "EXTENDED")
+
+
+def _check_tables(ctx, mode):
     problems = []
     for table in ctx.tables():
         for row in ctx.rows(f"CHECK TABLE `{table}` {mode}"):
@@ -426,7 +453,7 @@ class DeepEstimate:
         basis = ("from the speed this server recorded" if self.measured
                  else "a rough guess: this server has not recorded the speed yet")
         return (f"Deep check: {self.systems:,} star systems to validate, about "
-                f"{generation_stats.format_duration(self.seconds)} ({basis}), plus the table checks.")
+                f"{generation_stats.format_duration(self.seconds)} ({basis}).")
 
     def as_dict(self):
         return {"deep_check": True, "systems": self.systems, "seconds": self.seconds, "measured": self.measured,
@@ -448,7 +475,7 @@ def _system_ids(conn, scope):
 
 
 def deep_estimate(conn, config, scope=None):
-    """The `DeepEstimate` for validating every star system in `scope` (all by default), from the recorded
+    """The `DeepEstimate` for the systems check over every star system in `scope` (all by default), from the recorded
     speed of the pass (`DEEP_STATS_KIND`), else `DEEP_FALLBACK_SECONDS_PER_SYSTEM` a system."""
     from planetgen.generation import run_common
 
@@ -463,14 +490,14 @@ def deep_estimate(conn, config, scope=None):
 
 def check_systems(ctx):
     """Every star system in scope loads and passes `validation.check_star_system`. One problem lists each
-    failing system with what is wrong (a system that cannot be loaded says so). Only run with `--deep`."""
+    failing system with what is wrong (a system that cannot be loaded says so)."""
     from planetgen.generation import run_common
 
     ids = _system_ids(ctx.conn, ctx.scope)
     failing = []
     stats = run_common._stats_for_config(ctx.config)
     with steps.step("Validating star systems", "db-check", len(ids), stats=stats, own=True) as bar:
-        for system_id in ids:
+        for number, system_id in enumerate(ids, 1):
             try:
                 system = store.load_star_system(ctx.conn, system_id)
                 found = validation.check_star_system(system)
@@ -481,49 +508,138 @@ def check_systems(ctx):
             if lines:
                 failing.append(f"star system {name!r} (id {system_id}): " + "; ".join(lines))
             bar.advance()
+            if ctx.report is not None:
+                ctx.report(number, len(ids))
     if not failing:
         return []
     return [Problem(f"{len(failing)} star system(s) fail validation.", failing)]
 
 
+@dataclass(frozen=True)
+class Check:
+    """One check: its `name` (the word `planetgen check-db NAME` takes, and the tail of its command `check-NAME`),
+    the `label` its result line carries, its `function`, and whether it takes the sector `scoped` list and
+    `wide_binaries`."""
+    name: str
+    label: str
+    function: object
+    scoped: bool = False
+    wide_binaries: bool = False
+
+
 CHECKS = (
-    ("revision", check_revision),
-    ("tables", check_tables),
-    ("orphans", check_orphans),
-    ("ids", check_ids),
-    ("values", check_values),
-    ("counts", check_counts),
-    ("version keys", check_version_keys),
+    Check("revision", "revision", check_revision),
+    Check("tables", "tables", check_tables),
+    Check("tables-extended", "tables (extended)", check_tables_extended),
+    Check("orphans", "orphans", check_orphans),
+    Check("ids", "ids", check_ids),
+    Check("values", "values", check_values, scoped=True),
+    Check("counts", "counts", check_counts, scoped=True),
+    Check("version-keys", "version keys", check_version_keys, scoped=True),
+    Check("systems", "systems", check_systems, scoped=True, wide_binaries=True),
 )
-"""tuple: `(name, function)` in the order they run and report."""
+"""tuple: Every check, in the order a list of them runs and reports."""
+
+BY_NAME = {check.name: check for check in CHECKS}
 
 
-def run_checks(conn, config, scope=None, deep=False, check_table=True, on_progress=None):
-    """
-    Runs every check and returns the `Report`. Nothing is written. A check
-    that raises is reported as "could not check" with its error.
+def run_check(check, ctx):
+    """Runs one check and returns its `CheckResult`. A check that raises a database error is "could not check"
+    with its error, not damage."""
+    try:
+        problems = check.function(ctx)
+    except (sqlalchemy.exc.SQLAlchemyError, store.pymysql.err.MySQLError, KeyError) as exc:
+        return CheckResult(check.label, ERROR, error=f"{type(exc).__name__}: {exc}")
+    if any(not p.warning for p in problems):
+        status = FAIL
+    else:
+        status = WARN if problems else PASS
+    return CheckResult(check.label, status, problems)
 
-    Args:
-        conn (Connection): An open connection (no schema changes needed).
-        config (MySQLConfig): The same database, for the model comparison.
-        scope (Scope, optional): The sectors the sector-scoped checks use.
-        deep (bool): EXTENDED table checks.
-        check_table (bool): Run `CHECK TABLE` at all.
-        on_progress (callable, optional): `on_progress(name)` before each.
-    """
-    ctx = _Context(conn, config, scope or Scope(), deep, check_table)
-    results = []
-    for name, function in CHECKS + ((("systems", check_systems),) if deep else ()):
-        if on_progress is not None:
-            on_progress(name)
-        try:
-            problems = function(ctx)
-        except (sqlalchemy.exc.SQLAlchemyError, store.pymysql.err.MySQLError, KeyError) as exc:
-            results.append(CheckResult(name, ERROR, error=f"{type(exc).__name__}: {exc}"))
-            continue
-        if any(not p.warning for p in problems):
-            status = FAIL
-        else:
-            status = WARN if problems else PASS
-        results.append(CheckResult(name, status, problems))
-    return Report(results)
+
+def scope_of(args):
+    """The `Scope` a check's unit arguments name (`shells`, `addresses`, `wide_binaries`)."""
+    return Scope(tuple(args.get("shells") or ()), tuple(tuple(a) for a in args.get("addresses") or ()),
+                 bool(args.get("wide_binaries")))
+
+
+def _config_of(args):
+    named = args["database"]
+    return store.MySQLConfig(host=named["host"], port=named["port"], user=named["user"], database=named["database"])
+
+
+def _unit(name, args, report):
+    """The unit of the command `check-<name>`: opens this worker's own connection to the database the run named
+    (`wrapper.database_args`; the password is the worker's settings'), runs the one check and returns its result as
+    JSON."""
+    config = _config_of(args)
+    conn = store.get_connection(config, ensure_schema=False)
+    try:
+        return run_check(BY_NAME[name], _Context(conn, config, scope_of(args), report)).as_dict()
+    finally:
+        conn.close()
+
+
+def check_revision_unit(args, report):
+    """The unit of `check-revision`: `check_revision` (PERF.126)."""
+    return _unit("revision", args, report)
+
+
+def check_tables_unit(args, report):
+    """The unit of `check-tables`: `CHECK TABLE ... QUICK` on every table."""
+    return _unit("tables", args, report)
+
+
+def check_tables_extended_unit(args, report):
+    """The unit of `check-tables-extended`: `CHECK TABLE ... EXTENDED` on every table."""
+    return _unit("tables-extended", args, report)
+
+
+def check_orphans_unit(args, report):
+    """The unit of `check-orphans`: child rows whose parent is gone."""
+    return _unit("orphans", args, report)
+
+
+def check_ids_unit(args, report):
+    """The unit of `check-ids`: `id_blocks` is ahead of every id."""
+    return _unit("ids", args, report)
+
+
+def check_values_unit(args, report):
+    """The unit of `check-values`: columns holding numbers no generator can write, in the scope the arguments name."""
+    return _unit("values", args, report)
+
+
+def check_counts_unit(args, report):
+    """The unit of `check-counts`: a sector's stats count its systems, in the scope the arguments name."""
+    return _unit("counts", args, report)
+
+
+def check_version_keys_unit(args, report):
+    """The unit of `check-version-keys`: every sector in scope has a well formed version key."""
+    return _unit("version-keys", args, report)
+
+
+def check_systems_unit(args, report):
+    """The unit of `check-systems`: every star system in scope (the wide binaries only with `wide_binaries`)
+    validates; reports `(done, systems)` as it goes."""
+    return _unit("systems", args, report)
+
+
+def expand_check(params):
+    """The one unit of a check's stage: the arguments the step gave, unchanged."""
+    from planetgen.queue import commands
+    return commands.Expansion([(dict(params), 1.0)], {})
+
+
+def expand_check_systems(params):
+    """The one unit of the systems check, its cost the number of systems it will validate (the bar and the ETA)."""
+    from planetgen.queue import commands
+    config = _config_of(params)
+    conn = store.get_connection(config, ensure_schema=False)
+    try:
+        where, values = _system_filter(scope_of(params))
+        count = conn.execute(f"SELECT COUNT(*) AS n FROM star_systems WHERE 1 = 1{where}", values).fetchone()["n"]
+    finally:
+        conn.close()
+    return commands.Expansion([(dict(params), float(max(count, 1)))], {"systems": count})

@@ -26,9 +26,8 @@ PROSE_TEXT_COLUMNS = {
     # Galaxy schema: generated prose and the summaries shown on pages.
     ("facilities", "description"), ("facilities", "ratings_note"), ("facility_types", "description"),
     ("facility_type_fields", "choices"), ("planets", "description"), ("planets", "atmosphere"),
-    ("planets", "composition"), ("planets", "flavor_text"), ("moons", "description"), ("moons", "atmosphere"),
-    ("moons", "composition"), ("moons", "flavor_text"),
-    ("planet_evolutionary_paragraphs", "paragraph"), ("moon_evolutionary_paragraphs", "paragraph"),
+    ("planets", "composition"), ("moons", "description"), ("moons", "atmosphere"),
+    ("moons", "composition"),
     ("star_systems", "location"), ("star_systems", "system_flavor_text"),
     ("asteroid_belts", "composition_summary"), ("asteroid_fields", "composition_summary"),
     ("comets", "composition_summary"), ("interstellar_comets", "composition_summary"),

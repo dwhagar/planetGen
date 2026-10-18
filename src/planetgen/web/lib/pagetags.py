@@ -17,7 +17,7 @@ import re
 from planetgen.db import dataversion as dv
 
 _ID = r"([^/]+)"
-_SYSTEM_SUBPATHS = ("text", "sections", "scene", "facilities", "habitable-species", "owner")
+_SYSTEM_SUBPATHS = ("text", "description", "scene", "facilities", "habitable-species", "owner")
 
 ALL_TAGS = (*dv.SET_TAGS, *dv.DATA_TAGS, dv.TAG_SYSTEM_ANY, dv.TAG_POPULATION, dv.TAG_POSITIONS)
 """tuple: What an answer nothing here describes reads, besides `epoch`."""

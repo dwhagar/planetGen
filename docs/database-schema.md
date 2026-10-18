@@ -1150,7 +1150,6 @@ One row per `SystemConfig` "recipe" — the generation parameters a
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | INTEGER | PK | |
-| `markdown` | INTEGER (0/1) | NOT NULL, default 0 | Whether this recipe renders Markdown (1) or wikitext (0). Not tri-state — always a concrete choice. |
 | `habitable_world` | INTEGER (0/1) | tri-state | Force/forbid/random a habitable world. |
 | `asteroid_belt` | INTEGER (0/1) | tri-state | Force/forbid/random an asteroid belt. |
 | `comets` | INTEGER (0/1) | tri-state | Force/forbid/random a star-bound comet (v50). |
@@ -1328,7 +1327,6 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `scale_height_km`, `hill_radius_km`, `min_orbit_distance_km` | DOUBLE | nullable | |
 | `habitable_zone_inner_km`, `_outer_km` | DOUBLE | NOT NULL | Copied from the host star at generation time, never recomputed. |
 | `life_chemical`, `evolutionary_speed` | TEXT | nullable | Set by life-data generation, if any. |
-| `flavor_text` | TEXT | nullable | |
 | `flavor_text_count` | INTEGER | NOT NULL, default 0 | |
 | `orbital_inclination_deg`, `orbital_ascending_node_deg` | DOUBLE | NOT NULL | Added in v9. Fixed at generation time — together they orient this (circular) orbital plane in 3D. |
 | `position_x_km`, `_y_km`, `_z_km` | DOUBLE | NOT NULL | Added in v11. This body's Cartesian position relative to its orbital anchor — the star (or a binary's combined center) for a planet — derived from `distance_km` and the three orbital-motion columns above (`orbits.orbital_position_au`). `planetgen.cli.orbits` moves it by `kepler.universal_step` (v109: there is no stored phase; the phase is derived from this position). |
@@ -1353,63 +1351,11 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `tier_pressure`, `tier_temperature`, `tier_air`, `tier_radiation` | TINYINT | nullable | Added in v76 (GEN.89); `tier_chemistry` was renamed `tier_air` in v87. Each domain's colour: 0 Blue, 1 Green, 2 Yellow, 3 Red. |
 | `equipment_tier` | TINYINT | nullable | Added in v76 (GEN.89). The kit a human needs: 0 ideal (named shirtsleeve before 2026-10-10), 1 breathing mask, 2 mask with scrubber, 3 environment suit, 4 full life support with radiation hardening. A pulsar's, neutron star's or black hole's planet is always 4. |
 | `phi_bio`, `phi_cpx`, `phi_tech`, `l_solv`, `l_chem`, `l_ener`, `l_rad` | DOUBLE | nullable | Added in v76 (GEN.89). The Xenobiology numbers: microbial life (the product of the four likelihoods `l_solv` solvent, `l_chem` chemistry, `l_ener` energy and `l_rad` radiation), complex life (`phi_bio` times the metazoa's gas tolerance) and human operability with equipment (`phi_tech`, the geometric mean of the pressure, temperature, water and radiation mitigation factors). |
-| `hab_note` | VARCHAR(255) | nullable | Added in v76 (GEN.89). The domains short of Blue ("Pressure Red, Radiation Yellow"), "All four domains Blue", or "Planet of a pulsar, neutron star or black hole: lethal radiation, rated as 1,000 Sv/yr at the surface". |
 | `energy_flux_w_m2` | DOUBLE | nullable | Added in v76 (GEN.89). The light or chemical power life can use: 6% of the starlight, or 1% of the body's own heat flow, whichever is more (the heat only, under an ice lid). The one input the score keeps, so the dose refresh can re-score from the row. |
 | `flux_variation` | DOUBLE | nullable | Added in v87 (DB.26, GEN.148). The relative swing of the stellar flux over the orbit or pair cycle; 0 is steady. NULL until regenerated. |
 | `induced_moment_a_m2` | DOUBLE | nullable | Added in v87 (DB.26, GEN.178), placed after `dipole_class`. The induced magnetic moment in A m2; NULL when not computed or none. |
 | `phi4_water`, `phi4_suitability` | DOUBLE | nullable | Added in v87 (DB.26, GEN.207, PHI-6), beside `phi4_air`. The water score and the suitability (the lowest of water, food and shelter). NULL until regenerated. |
 | `tier_water`, `tier_suitability` | TINYINT | nullable | Added in v87 (DB.26, GEN.207). The colour of each, 0 Blue to 3 Red like the other tiers. |
-
-### `planet_evolutionary_paragraphs`
-
-Child table for a planet's variable-length evolutionary narrative
-(`Planet.evolutionary_data`).
-
-| Column | Type | Null | Notes |
-|---|---|---|---|
-| `id` | INTEGER | PK | |
-| `planet_id` | INTEGER | FK -> `planets.id`, `ON DELETE CASCADE`, NOT NULL | |
-| `position` | INTEGER | NOT NULL | List order. |
-| `paragraph` | TEXT | NOT NULL | |
-
-### `planet_reflection_spectrum`
-
-Child table for a planet's reflection-spectrum descriptor lists
-(`Planet.reflection_spectrum_visible`/`_non_visible`). Deliberately a
-normalized table, not a JSON column — this schema has no JSON-blob columns
-anywhere.
-
-| Column | Type | Null | Notes |
-|---|---|---|---|
-| `id` | INTEGER | PK | |
-| `planet_id` | INTEGER | FK -> `planets.id`, `ON DELETE CASCADE`, NOT NULL | |
-| `spectrum_type` | TEXT | NOT NULL, CHECK IN ('visible','non_visible') | |
-| `position` | INTEGER | NOT NULL | List order. |
-| `value` | TEXT | NOT NULL | |
-
-### `moons`
-
-One row per moon — added in schema v2, in place of the v1 design where a
-moon was a `planets` row self-referencing via `parent_planet_id`. Exactly
-the same column shape as `planets` (a moon is a `Planet` instance too,
-with `is_moon=True`), except `planet_id` names the specific planet it
-orbits. No self-reference here: moons never generate their own moons
-(`Planet.__init__` only calls `generate_moons` `if not self.is_moon`). A moon is generated as its planet's numeral plus a letter in orbit order,
-e.g. `"Voranthis IIa"` (v34), and can be renamed (`PATCH /api/moons/<id>`).
-
-| Column | Type | Null | Notes |
-|---|---|---|---|
-| `id` | INTEGER | PK | |
-| `planet_id` | INTEGER | FK -> `planets.id`, `ON DELETE CASCADE`, NOT NULL | The planet this moon orbits. |
-| `star_system_id` | INTEGER | FK -> `star_systems.id`, `ON DELETE CASCADE`, NOT NULL | Redundant with the owning planet's own `star_system_id` — kept here too so a moon can be queried/joined to its system without an extra hop through `planets`. |
-| `star_id` | INTEGER | FK -> `stars.id`, `ON DELETE SET NULL`, nullable | Same value as the owning planet's `star_id` (see that column's note above — NULL for a binary system). |
-| `orbital_index` | INTEGER | NOT NULL | Position in the parent planet's `moons` list. |
-| `body_type`, `name`, `planet_class`, `distance_km` (from the parent planet), `radius_km`, `mass_kg`, `volume_km3`, `period_years`, `zone`, `description`, `gravity_g`, `surface_temperature_k`, `density_g_cm3`, `atmosphere`, `atm_density`, `atm_molar_density`, `atmospheric_pressure_pa`, `composition`, `scale_height_km`, `hill_radius_km`, `min_orbit_distance_km`, `habitable_zone_inner_km`, `_outer_km`, `life_chemical`, `evolutionary_speed`, `flavor_text`, `flavor_text_count`, `orbital_inclination_deg`, `orbital_ascending_node_deg`, `orbital_phase_deg`, `position_x_km`, `_y_km`, `_z_km`, `orbital_speed_kms`, `velocity_x_kms`, `_y_kms`, `_z_kms`, `epoch_unix`, `next_update_due`, `min_update_interval_years`, `rotation_period_hours`, `spin_axis_x`, `_y`, `_z`, `axial_tilt_deg`, `mantle_redox`, `mantle_delta_iw`, `p_<gas>_kpa`, `magnetic_moment_a_m2`, `dipole_class`, `magnetopause_rp`, `xuv_flux_earth`, `xuv_exposure_index`, `flare_irradiation_index`, `water_mass_fraction`, `hydrosphere`, `ocean_fraction`, `land_fraction`, `ocean_depth_km`, `ice_shell_km`, `hp_ice_km`, `ocean_class`, `ocean_ph`, `water_activity`, `phosphorus`, `surface_dose_msv_yr`, `dose_gcr_msv_yr`, `dose_sep_msv_yr`, `dose_ground_msv_yr`, `dose_helio_mult`, `uv_surface_index`, `ozone_loss_flag`, `phi4`, `phi4_<domain>`, `tier_<domain>`, `phi_bio`, `phi_cpx`, `phi_tech`, `l_solv`, `l_chem`, `l_ener`, `l_rad`, `equipment_tier`, `hab_note`, `energy_flux_w_m2` | — | — | Identical meaning/type/nullability to the same-named column on `planets` above, except `position_x/y/z_km` are relative to *this moon's* orbital anchor — its parent planet, not the star. |
-
-### `moon_evolutionary_paragraphs`
-
-Moon counterpart of `planet_evolutionary_paragraphs` — identical shape,
-`moon_id` FK -> `moons.id` (`ON DELETE CASCADE`) instead of `planet_id`.
 
 ### `moon_reflection_spectrum`
 
@@ -2076,11 +2022,9 @@ sectors 1───* star_systems *───1 system_configs 1───* system_c
                   │
                   ├──1───* planets
                   │             │
-                  │             ├──1───* planet_evolutionary_paragraphs
                   │             ├──1───* planet_reflection_spectrum
                   │             └──1───* moons
                   │                       │
-                  │                       ├──1───* moon_evolutionary_paragraphs
                   │                       └──1───* moon_reflection_spectrum
                   │
                   └──1───* asteroid_belts 1───* asteroid_belt_composition
@@ -2127,6 +2071,14 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v110 (DB.50): structure columns for life and flavour
+
+Migration 0110 adds five nullable columns to `planets` and `moons`, after `flavor_text_count`: `life_stage` (VARCHAR(32), a `generation.evolution.MILESTONE_KEYS` key, NULL before any milestone), `evolutionary_pace` (VARCHAR(16), the timeline scale `fast`, `normal` or `slow`), `life_milestone_age_gyr` and `life_system_age_gyr` (DOUBLE, the age of the milestone and the age of the system the timeline was written at, Gy) and `flavor_key` (VARCHAR(32), which flavour line, replacing `flavor_text`). They replace what is only recoverable now by reading the evolutionary paragraphs and `flavor_text`. Nothing is dropped and no row is touched. Generation writes the columns from DB.51 on (`life.apply_life_data` and `decide_flavor_text`, which draw as before), the loaders and `Planet.evolutionary_data`/`flavor_text` read them back, and the prose columns and tables are no longer written or read; v111 (DB.52) drops them. `flavor_key` is `category:index` into the `tuning` flavour list the line was drawn from (`habitable`, `planet` or `orbital`), so reordering a list changes the lines of stored bodies. `system_configs.markdown` is no longer read or written either. A column that is already there is skipped, so a stopped run can be started again. The version is detected from `planets.life_stage`.
+
+### v111 (DB.52): the prose is dropped
+
+Migration 0111 drops what v110 and DB.51 made unused: the tables `planet_evolutionary_paragraphs` and `moon_evolutionary_paragraphs`, the columns `flavor_text` and `hab_note` of `planets` and `moons`, and `system_configs.markdown`. The life timeline is the `life_stage`, `evolutionary_pace` and age columns, the flavour line is `flavor_key`, and the habitability note is worked out from the `tier_<domain>` columns, so no information is lost. `flavor_text_count` stays, because the generator still counts the line it draws. A table or column already gone is skipped, so a stopped run can be started again. The version is detected from `planets.flavor_text` being gone.
 
 ### v109 (GEN.289): a planet or moon is its state vector
 
