@@ -198,9 +198,16 @@ def test_the_mass_limit_must_be_a_preset(mysql_config):
     assert tuning.PHENOMENON_MIN_MASS_PRESETS[0] == 8.0 and tuning.PHENOMENON_MIN_MASS_SOLAR == 14.0
 
 
+GALAXY_SEED = bytes.fromhex("c4ca4238a0b923820dcc509a6f75849b")
+"""bytes: The galaxy seed every test here draws from. The toy galaxy reaches about 36 pc, so the number of
+hypervelocity stars the scatter places (`round(log-uniform(1e3, 1e4) x reach / 100000)`) is 0 for about one seed in six,
+and a test that needs one failed on that draw alone (TEST.238)."""
+
+
 def _seed_galaxy(mysql_config):
     store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=8,
-                            expected_system_count_at_density_1=E_VALUE, config=mysql_config, cell_star_ceiling=1e12)
+                            expected_system_count_at_density_1=E_VALUE, config=mysql_config, cell_star_ceiling=1e12,
+                            galaxy_seed=GALAXY_SEED)
     store.replace_galaxy_shells(EXTENTS, config=mysql_config)
 
 
