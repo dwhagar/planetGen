@@ -74,7 +74,7 @@ What reads the families.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.387 | Globular clusters, the nuclear cluster and the central black hole follow the family's spheroid and halo | GEN.382, GEN.383, GEN.297, GEN.402, GEN.403 | Step 6 of the galaxy types chain. |
+| GEN.387 | Globular clusters, the nuclear cluster and the central black hole follow the family's spheroid and halo | GEN.382, GEN.383, GEN.297, GEN.403 | Step 6 of the galaxy types chain. |
 
 
 ## Phase 4: Creation

@@ -4672,6 +4672,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (0112 if nothing else lands first); the schema doc and fixture version
   follow it. The epoch 24 pending in the epochs file is also claimed by
   Core 1's GEN.402; the next merger renumbers.
+  Epoch update (4:36 AM EDT 2026-10-18, from the epochs file on main):
+  epoch 24 is stamped (release 8.0.1783, Core 4's bundle) and epoch 25
+  is stamped (release 8.0.1801, GEN.402, #2224); this item takes the
+  next free epoch after GEN.404 and GEN.572 at its merge, so the 'epoch
+  24 pending' above is out of date.
   Prerequisites: none. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -7270,7 +7275,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stated fraction; same seed same galaxy. No fixed content (Boss, 4:11
   and 4:14 PM EDT): no named galaxy, preset or hand-set value; reference
   galaxies only check the result.
-  Prerequisites: GEN.382, GEN.383, GEN.297, GEN.402, GEN.403. Related:
+  Prerequisites: GEN.382, GEN.383, GEN.297, GEN.403. Related:
   GEN.384,
   GEN.280.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
@@ -7548,79 +7553,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.400).
   Prerequisites: none. Related: GEN.368, GEN.378, GEN.380.
 
-- [ ] **GEN.402 The central black hole mass and the nuclear cluster follow the bulge: the M-bulge and M-sigma relations replace the fixed ranges**
-  GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
-  source Shen et al. 2003, approximation for the halo mass, no home
-  position, every derived law draws its natural scatter from the seed,
-  the first family covers 3e9 to 2e11 solar stellar mass; paper check
-  /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
-  docs/design/intergalactic-and-halo-contents.md section 5.13 once Core
-  1's docs PR merges; draft
-  /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Rows 7
-  and 8. The black hole mass comes from the bulge mass (Kormendy and Ho
-  2013, with its scatter) or, without a classical bulge, from the
-  stellar mass; its velocity dispersion from the M-sigma relation; the
-  active or quiescent split stays a draw from the Eddington ratio
-  ranges; the hole stays exactly on the origin (Boss, 7:27 PM EDT). The
-  nuclear cluster mass follows the stellar mass by a power law with
-  nucleation falling away above the mass the table gives; the Georgiev
-  against Neumayer slope conflict is decided here and written in the
-  doc. Replaces `BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR`, the 100 km/s
-  dispersion, the quasar mass range and the nuclear ratios
-  (`tuning.py:745-755, 1988, 1999, 2886`). Done: the black hole mass
-  tracks the bulge mass with the stated scatter over many seeds; the
-  dispersion follows M-sigma; a galaxy without a bulge draws a small
-  hole or none by the stated fraction; the old constants are gone; same
-  seed same galaxy. No fixed content (Boss, 4:11 and 4:14 PM EDT): no
-  Milky Way preset or option; the real values are only plausibility
-  targets (GEN.366). Each law is written with its source named in the
-  code and the doc; the scatter is a log-normal drawn through
-  `unit_seed(galaxy_seed, ...)` and the one random wrapper. No
-  compatibility shim: the old constant goes in the same change. A change
-  that alters the generator output follows the epoch rule.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): take the spheroid mass (the bulge mass for a spiral) as
-  an input from the start, so GEN.387 (9.4) adds the family's occupation
-  fraction and does not rewrite this item.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 22 of 43). This replaces any earlier owner line on this item.
-  Fills (2026-10-17, gap-filling plan, docs/design/gap-filling-plan.md):
-  the values this item cannot source from a read paper are filled by the
-  plan's section 5 (derived D, bracket B, theory prior T, or labelled
-  placeholder P) and registered in one stand-in registry (plan section
-  6: fill id, kind, evidence label, source state, form, assumptions,
-  validity range, knobs, target id, falsifier test, replaced-by research
-  item, sources, licence, epoch). A lead such as Gemini may only widen a
-  bracket, and on a contradiction the verified source wins. A stand-in
-  replaced later changes stored output and rides the pending epoch.
-  Galaxy gaps for this item: the reading jobs GR5, GR7, GR8, GR13 (group
-  X4) and the priors GX2, GX3, GX4 (X5); each has a fill that ships
-  without the answer.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/gap-filling-plan.md section 8): GX3 nuclear cluster slope:
-  uniform 0.48 to 1.36, both sources stay (Neumayer, Georgiev). GR5
-  (Courteau 2007 scatter): the fill ships and the VizieR search result
-  replaces it later.
-  VizieR search result (2026-10-17, finished 11:39 AM EDT as the
-  coordinator reported; docs/design/vizier-courteau-comeron.md): GR5
-  (Courteau 2007 scatter of log(Vc/sigma0)) stays at the plan's fill:
-  the table is not on VizieR; raw scatter of two source samples is 0.104
-  to 0.123 dex.
-  Gemini batch 1 check (2026-10-17, finished 11:49 AM EDT as the lane
-  clock reported; docs/design/gemini-batch1-check.md): nuclear cluster
-  mass slope 0.48 (Neumayer 2020, zero point 6.51 at M* 1e9), against
-  Georgiev 1.0 to 1.36: both kept (widened, Boss's decision 2); Gemini's
-  0.65 is attributed to Neumayer and is not in the paper.
-  Progress (Core 1, 12:47 AM EDT 2026-10-18 as the lane reported): coded
-  and rebased on main including #2187, epoch 24; changed gate (pid
-  18022) started 12:22 AM EDT, non-browser phase at 47% with no
-  failures, expected end about 2:20 AM EDT; PR and squash follow if
-  green. It resolves this item and adds none.
-  Prerequisites: none. Related: GEN.280, GEN.387, GEN.368.
-
 - [ ] **GEN.403 The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
   source Shen et al. 2003, approximation for the halo mass, no home
@@ -7808,6 +7740,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sweep and its own gate after GEN.402. The Done check states the
   measured density factor, about 0.38 of the old pinned value before
   GEN.544 and GEN.545 land (they follow it, Boss 9:00 PM EDT).
+  Epoch update (4:36 AM EDT 2026-10-18, from the epochs file on main):
+  epoch 24 is stamped (release 8.0.1783, Core 4's bundle) and epoch 25
+  is stamped (release 8.0.1801, GEN.402, #2224); this item takes epoch
+  26 (Core 1, as the coordinator relayed), so the earlier 'epoch 25'
+  above is out of date.
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -14296,6 +14233,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its changed gate started 2:53 AM EDT, and it takes epoch 25 (epoch 24
   is pending for GEN.402, GEN.244 or the next of them to merge; the
   later merger renumbers). PR follows when the gate is green.
+  Epoch update (4:36 AM EDT 2026-10-18, from the epochs file on main):
+  epoch 24 is stamped (release 8.0.1783, Core 4's bundle) and epoch 25
+  is stamped (release 8.0.1801, GEN.402, #2224); this item's epoch is
+  therefore not 25: it renumbers to the next free number at its merge
+  (26 if it merges before GEN.404, else after it).
   Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
