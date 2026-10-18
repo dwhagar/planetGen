@@ -4005,6 +4005,7 @@ def _bright_star_entry(row):
         "luminosity_sol": row["luminosity_w"] / constants.SOLAR_LUMINOSITY,
         "temperature_k": row["temperature_k"], "radius_sol": _radius_sol(row["radius_km"]),
         "star_type": row["star_type"], "population": row["population"],
+        "tier": LOWEST_PRIORITY_TIER.get(row["population"], 0),
         "yerkes_class": row["yerkes_class"], "shell_index": row["shell_index"],
         "band_index": row["band_index"], "wedge_index": row["wedge_index"],
         "system_id": row["star_system_id"],
