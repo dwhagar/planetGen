@@ -27,9 +27,8 @@ from planetgen.physics import brown_dwarf as brownDwarf, constants, planets as p
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
-from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from planetgen.galaxy.galactic_orbit import generate_galactic_orbit_fields
 from planetgen.names.wordsalad import LazySaladName
+from planetgen.generation.mass_object import GALACTIC_MOTION_FIELDS, MassObject
 from planetgen.util.format import format_flux_w_m2, format_number
 from planetgen.util.random import sample_power_law
 
@@ -149,7 +148,7 @@ def default_rogue_planet_class(planet_type, radius_km, mass_kg, mass_bin=None):
     return max(candidates, key=lambda code: tuning.PLANET_CLASS_PROBABILITIES.get(code, 0.0))
 
 
-class RoguePlanet(LazySaladName):
+class RoguePlanet(LazySaladName, MassObject):
     """
     A basic class to store information for a free-floating ("rogue"/nomad)
     planet with no host star.
@@ -177,8 +176,7 @@ class RoguePlanet(LazySaladName):
     SERIALIZABLE_FIELDS = [
         "name", "planet_type", "planet_class", "mass_bin", "mass_kg", "radius_km", "composition",
         "has_internal_heat", "has_moons", *ROGUE_SURFACE_FIELDS,
-        "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
-        "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
+        *GALACTIC_MOTION_FIELDS,
         "rotation_period_hours", *spin.SPIN_FIELDS,
     ]
     """Every attribute set by `__init__`, excluding `system_config` (a
@@ -270,9 +268,7 @@ class RoguePlanet(LazySaladName):
             self.mass_kg, self.radius_km, self.planet_type, self.mass_bin, self.has_moons,
             age_gy=brown_dwarf_age_gy if mass_bin == "brown-dwarf" else None))
 
-        (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
-         self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
-            generate_galactic_orbit_fields()
+        self.set_galactic_motion()
         # GEN.104: a planet's day and a Rayleigh tilt from the galactic pole.
         self.rotation_period_hours = spin.planet_day_hours(self.planet_type)
         spin.set_spin(self, spin.GALACTIC_POLE, spin.rayleigh_tilt_deg())
@@ -284,33 +280,11 @@ class RoguePlanet(LazySaladName):
             setattr(self, field, conditions[field])
         self.has_internal_heat = conditions["has_internal_heat"]
 
-    def to_dict(self):
-        """
-        Returns a JSON-serializable dict of this planet's properties, per
-        `SERIALIZABLE_FIELDS`.
-
-        Returns:
-            dict: One entry per field in `SERIALIZABLE_FIELDS`.
-        """
-        return fields_to_dict(self, self.SERIALIZABLE_FIELDS)
-
     @classmethod
     def from_dict(cls, data, system_config):
-        """
-        Reconstructs a `RoguePlanet` from a dict in the shape `to_dict()`
-        produces, without re-running generation (`__init__` is bypassed
-        via `object.__new__`).
-
-        Args:
-            data (dict): A dict in the shape `to_dict()` produces.
-            system_config (SystemConfig): The shared config.
-
-        Returns:
-            RoguePlanet: The reconstructed planet.
-        """
-        planet = object.__new__(cls)
-        planet.system_config = system_config
-        fields_from_dict(planet, data, cls.SERIALIZABLE_FIELDS)
+        """Reconstructs a `RoguePlanet` from a dict in the shape `to_dict()` produces, without re-running
+        generation."""
+        planet = cls._rebuild(data, system_config)
         if getattr(planet, "mass_bin", None) is None:
             planet.mass_bin = infer_rogue_mass_bin(planet.mass_kg)
         if "planet_class" not in data:
@@ -392,7 +366,7 @@ def interstellar_comet_designation(sector_code, index):
     return f"I/{sector_code}-{index}" if sector_code else f"I/{index}"
 
 
-class InterstellarComet(LazySaladName):
+class InterstellarComet(LazySaladName, MassObject):
     """
     A basic class to store information for a small icy body passing
     through on an unbound, hyperbolic interstellar trajectory (real
@@ -412,8 +386,7 @@ class InterstellarComet(LazySaladName):
 
     SERIALIZABLE_FIELDS = [
         "name", "nucleus_diameter_km", "velocity_kms", "is_active",
-        "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
-        "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
+        *GALACTIC_MOTION_FIELDS,
         "rotation_period_hours", *spin.SPIN_FIELDS,
     ]
     """Every attribute set by `__init__`, excluding `system_config` (a
@@ -450,45 +423,16 @@ class InterstellarComet(LazySaladName):
         num_components = min(3, len(tuning.COMET_COMPOSITION))
         self.composition = draw.sample(tuning.COMET_COMPOSITION, k=num_components)
 
-        (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
-         self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
-            generate_galactic_orbit_fields()
+        self.set_galactic_motion()
         # GEN.104: a small body's spin, YORP-tilted from the galactic pole.
         self.rotation_period_hours = spin.small_body_period_hours()
         spin.set_spin(self, spin.GALACTIC_POLE, spin.yorp_tilt_deg())
 
-    def to_dict(self):
-        """
-        Returns a JSON-serializable dict of this comet's properties, per
-        `SERIALIZABLE_FIELDS`, plus `composition`.
-
-        Returns:
-            dict: One entry per field in `SERIALIZABLE_FIELDS`, plus
-                 `composition`.
-        """
-        data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
+    def _encode(self, data):
         data["composition"] = list(self.composition)
-        return data
 
-    @classmethod
-    def from_dict(cls, data, system_config):
-        """
-        Reconstructs an `InterstellarComet` from a dict in the shape
-        `to_dict()` produces, without re-running generation (`__init__` is
-        bypassed via `object.__new__`).
-
-        Args:
-            data (dict): A dict in the shape `to_dict()` produces.
-            system_config (SystemConfig): The shared config.
-
-        Returns:
-            InterstellarComet: The reconstructed comet.
-        """
-        comet = object.__new__(cls)
-        comet.system_config = system_config
-        fields_from_dict(comet, data, cls.SERIALIZABLE_FIELDS)
-        comet.composition = list(data["composition"])
-        return comet
+    def _decode(self, data):
+        self.composition = list(data["composition"])
 
     def get_composition_summary(self):
         """

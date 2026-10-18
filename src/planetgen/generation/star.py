@@ -26,14 +26,12 @@ from planetgen.physics import activity, metallicity, ms_lifetime, pre_main_seque
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
-from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.physics.stellar_evolution import (YERKES_CLASS_NAMES, evolve_star, sample_living_star, sample_star_age_gy,
                                star_params)
 from planetgen.galaxy import mass_chain
-from planetgen.galaxy.galactic_orbit import (
-    calculate_galactic_orbit, generate_galactic_orbit_fields,
-)
+from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
 from planetgen.names.wordsalad import LazySaladName
+from planetgen.generation.mass_object import GALACTIC_MOTION_FIELDS, MassObject
 from planetgen.physics.orbits import calculate_habitable_zone, calculate_hill_sphere
 from planetgen.util.checks import finite_domain
 
@@ -164,7 +162,7 @@ def compressed_heliosphere_radius(radius_au, density_cm3, temperature_k):
     return radius_au * math.sqrt(constants.ISM_PRESSURE / pressure)
 
 
-class Star(LazySaladName):
+class Star(LazySaladName, MassObject):
     """
     Represents a single star, encapsulating its physical and orbital properties.
 
@@ -190,8 +188,7 @@ class Star(LazySaladName):
     SERIALIZABLE_FIELDS = [
         "name", "type", "yerkes_class", "mass", "radius", "temperature",
         "luminosity", "age", "lifespan", "habitable_zone", "system_perimeter",
-        "heliosphere_radius", "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
-        "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
+        "heliosphere_radius", *GALACTIC_MOTION_FIELDS,
         "a_crit_au", "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
         "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
         *activity.STAR_ACTIVITY_FIELDS, "metallicity_fe_h",
@@ -268,49 +265,17 @@ class Star(LazySaladName):
     `store.advance_orbital_phases`' class-blind bulk `UPDATE`s.
     """
 
-    def to_dict(self):
-        """
-        Returns a JSON-serializable dict of this star's generated
-        properties, per `SERIALIZABLE_FIELDS`.
-
-        `habitable_zone` is stored as a list (JSON has no tuple type).
-        `lifespan` is stored as `None` in place of `float('inf')` (white
-        dwarfs) -- the same convention `planetgen/db/store.py` uses via
-        `_lifespan_gy` -- since `float('inf')` round-trips through the
-        standard `json` module as a non-standard `Infinity` token that not
-        every JSON consumer accepts.
-
-        Returns:
-            dict: One entry per field in `SERIALIZABLE_FIELDS`.
-        """
-        data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
+    def _encode(self, data):
+        """`habitable_zone` is stored as a list (JSON has no tuple type). `lifespan` is stored as `None` in place of
+        `float('inf')` (white dwarfs) -- the same convention `planetgen/db/store.py` uses via `_lifespan_gy` --
+        since `float('inf')` round-trips through the standard `json` module as a non-standard `Infinity` token that
+        not every JSON consumer accepts."""
         data["habitable_zone"] = list(self.habitable_zone)
         data["lifespan"] = None if self.lifespan == float('inf') else self.lifespan
-        return data
 
-    @classmethod
-    def from_dict(cls, data, system_config):
-        """
-        Reconstructs a `Star` from a dict in the shape `to_dict()` produces,
-        without re-running any generation logic (`__init__` is bypassed
-        entirely via `object.__new__`).
-
-        Args:
-            data (dict): A dict in the shape `to_dict()` produces.
-            system_config (SystemConfig): The system's shared config,
-                                          threaded in rather than stored
-                                          per-star (see `StarSystem.from_dict`,
-                                          the single place this is resolved).
-
-        Returns:
-            Star: The reconstructed star.
-        """
-        star = object.__new__(cls)
-        star.system_config = system_config
-        fields_from_dict(star, data, cls.SERIALIZABLE_FIELDS)
-        star.habitable_zone = tuple(data["habitable_zone"])
-        star.lifespan = float('inf') if data["lifespan"] is None else data["lifespan"]
-        return star
+    def _decode(self, data):
+        self.habitable_zone = tuple(data["habitable_zone"])
+        self.lifespan = float('inf') if data["lifespan"] is None else data["lifespan"]
 
     def _calculate_initial_star_age_and_lifespan(self):
         """
@@ -934,9 +899,7 @@ class Star(LazySaladName):
         self.habitable_zone = calculate_habitable_zone(self.luminosity)
         self.system_perimeter = self.calculate_system_perimeter(self.galactic_center_dist_ly)
         self.heliosphere_radius = self.calculate_heliosphere()
-        (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
-         self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
-            generate_galactic_orbit_fields(self.galactic_center_dist_ly, kwargs.get('galactic_orbital_phase_deg'))
+        self.set_galactic_motion(self.galactic_center_dist_ly, kwargs.get('galactic_orbital_phase_deg'))
         # GEN.104: the spin, last so nothing above draws differently.
         self.rotation_period_hours = spin.star_rotation_period_hours(
             self.mass, self.radius, self.temperature, self.age, self.yerkes_class)
