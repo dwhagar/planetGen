@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1825] - 2026-10-18
+
+**Headline:** A stage on the work queue now records its own time, a killed worker fails its run at once, and a hung unit ends on a time limit that fits its stage.
+
+### Changed
+- **The unit that completes a stage stores its timing (PERF.106).** The `generation_stage_runs` row of a stage that runs as units (the massive-star, luminosity and band scatters so far) is written by the unit that finishes it, with the seconds from the stage's start to its last unit's end, the shells it visited, the shells that drew stars and the stars written; the speeds of its units go into `generation_stats` the same way (a worker reads the stored speeds fresh each time, so it never writes older ones back). The process that started the run no longer writes that row but still adds the stage to the whole job's totals. A stage's seconds count from before it is cut into units, so reading the galaxy is part of them. The band stage's row is still stored by the process that started the run, because it tops up backfilled sectors after its units.
+- **A killed worker fails its run at once.** When the process running a unit is killed (the machine out of memory, or `kill -9`) the run fails immediately, naming the unit, and the machine is free again; before, it failed when the worker's heartbeat ran out. The retry RQ makes finds the run over and does nothing.
+- **A unit has a time limit that fits its stage.** It is ten times the stage's recorded time with its settings, at least 15 minutes and at most 6 hours (6 hours for a stage never recorded), so a hung unit ends and shows as failed. No unit has no limit. The same recorded time is now the stage's ETA before its first unit reports.
+- **`docs/design/redis-and-the-work-queue.md` describes it.**
+
+TODO items resolved: none (slice two of PERF.106). Added: none.
+
 ## [8.0.1824] - 2026-10-18
 
 **Headline:** The galaxy skeleton is built by a command on the work queue, like the scatters.
