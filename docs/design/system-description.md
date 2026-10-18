@@ -140,7 +140,7 @@ current wording; GEN.218 replaces the wording.
 
 | Renderer | Where | Output |
 |---|---|---|
-| HTML | `web/lib/` (from JSON) | A body's detail is: a facts table (`<table>` in the site's `table-scroll` wrapper), the ratings table with chips and symbols, the composition bars, prose paragraphs, then its moons. Quantities are `<span class="qty" data-q="..." data-si="...">`. Same tables, chips and both themes as the rest of the site; no header levels or Markdown, so no `mdrender`. |
+| HTML | `describe/html.py` (UX.119; the page passes it the links of its own routes) | A body's detail is: a facts table (`<table>` in the site's `table-scroll` wrapper), the ratings table with chips and symbols, the composition bars, prose paragraphs, then its moons. Quantities are `<span class="qty" data-q="..." data-si="...">`. Same tables, chips and both themes as the rest of the site; no header levels or Markdown, so no `mdrender`. |
 | Markdown | `describe/markdown.py` | Today's layout: `# system`, `## planet`, `### moon`, `Property | Value` pipe tables, bold rating lines. Quantities through the text ladder; superscripts as `<sup>` as now. |
 | wikitext | `describe/wikitext.py` | Today's layout: `= system =`, the Planet Data template (Class Data for moons), the Exp template for powers of ten, `[[Category:Star Systems]]`. |
 | text | `describe/text.py` | Plain tables and sentences for the terminal (Unicode superscripts, no markup). The command line default. |

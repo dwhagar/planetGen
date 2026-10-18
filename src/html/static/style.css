@@ -647,6 +647,25 @@ tbody tr:last-child td {
 .flag-tier-2 { color: var(--tier-yellow); border-color: var(--tier-yellow); }
 .flag-tier-3 { color: var(--tier-red); border-color: var(--tier-red); }
 
+/* UX.119: a Document written as HTML (planetgen/describe/html.py). Colours come from the tokens above, so both themes
+   and the data-theme override follow them; the row headers read as labels, not as column headings. */
+.doc-section { margin: 0 0 1.25rem; }
+.doc-section .doc-section { margin-left: 0.5rem; padding-left: 0.75rem; border-left: 2px solid var(--border); }
+.doc-prose { max-width: 46rem; margin: 0.5rem 0; overflow-wrap: anywhere; }
+.doc-facts, .doc-ratings, .doc-composition { margin: 0.5rem 0 1rem; }
+.doc-facts caption, .doc-composition caption { text-align: left; font-weight: 600; color: var(--text-muted); padding: 0.25rem 0; }
+.doc-facts tbody th, .doc-ratings tbody th, .doc-composition tbody th {
+  color: var(--text); font-size: inherit; font-weight: 600; text-transform: none; letter-spacing: 0;
+  border-bottom: 1px solid var(--border);
+}
+.doc-facts tbody th { width: 40%; }
+.doc-facts td, .doc-ratings td, .doc-composition td { overflow-wrap: anywhere; }
+.tier { font-weight: 600; }
+.tier-blue { color: var(--tier-blue); }
+.tier-green { color: var(--tier-green); }
+.tier-yellow { color: var(--tier-yellow); }
+.tier-red { color: var(--tier-red); }
+
 /* POP.10: a facility's rating chips. The shape (check, triangle, cross), the dimension's name and its word carry
    the meaning, so colour is never the only signal; the Okabe-Ito fills take black text and a thin dark ring. */
 .rating-strip {
@@ -3271,6 +3290,13 @@ body.app {
   .app .table-scroll {
     margin: 0 -0.9rem;
     padding: 0 0.9rem;
+  }
+
+  /* A Document's tables sit inside its sections (UX.119), which already indent them, so they scroll inside the
+     section and not out to the panel's edge. */
+  .app .doc-section .table-scroll {
+    margin: 0;
+    padding: 0;
   }
 
   .app .table-scroll th,

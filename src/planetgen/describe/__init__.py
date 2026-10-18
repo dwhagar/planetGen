@@ -11,11 +11,12 @@ quantity and no Markdown, wikitext or HTML in it. The web page, the API, the
 command line and the wiki exports render that one Document.
 """
 
-from planetgen.describe import markdown, text, wikitext
+from planetgen.describe import html, markdown, text, wikitext
 from planetgen.describe.build import describe
 
 RENDERERS = {"text": text.render, "markdown": markdown.render, "wikitext": wikitext.render}
-"""dict: The formats a Document is written in on request, each to its renderer."""
+"""dict: The formats a Document is written in on request, each to its renderer. HTML is not one: the web page calls
+`html.render` itself, with the links of its own routes."""
 
 
 def render(document, fmt):
@@ -25,4 +26,4 @@ def render(document, fmt):
     return RENDERERS[fmt](document)
 
 
-__all__ = ["RENDERERS", "describe", "render"]
+__all__ = ["RENDERERS", "describe", "html", "render"]
