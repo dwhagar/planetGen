@@ -124,6 +124,12 @@
       "epoch": 25,
       "first_release": "8.0.1801",
       "reason": "The central black hole's mass follows the galaxy (the bulge relation for a classical bulge, else the stellar-mass relation, each with its own seeded deviation) and the nuclear star cluster's mass follows its stellar mass with a drawn slope, so a seed places a different nucleus, quasar and hypervelocity-star source (GEN.402)."
+    },
+    {
+      "epoch": 26,
+      "first_release": null,
+      "pending": true,
+      "reason": "The kit a human visitor needs is an environment suit past the Green heat or cold edge or with oxygen above the chronic limit, as the description says, so the stored equipment tier of such a world rises from a mask or none (TEST.155)."
     }
   ]
 }

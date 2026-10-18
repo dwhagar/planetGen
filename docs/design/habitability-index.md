@@ -153,7 +153,8 @@ generation scores again once it is known (`habitability_world.rescore`).
 
 **Equipment**: ideal (called "shirtsleeve" until Boss renamed it, 2026-10-10 08:08Z); breathing mask (low O2 or pressure below Blue);
 mask with scrubber (a gas above its chronic limit); environment suit (pressure
-below Green, or any domain Red); full life support with radiation
+below Green, any domain Red, a temperature past the Green heat or cold edge, or
+oxygen above the chronic limit, which is where the description asks for one); full life support with radiation
 hardening (Radiation Red). The kit is about the air, the cold or heat and the
 radiation; Water Chemistry and Suitability are about drinking and eating and do
 not change it.
