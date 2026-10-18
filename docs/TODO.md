@@ -16036,6 +16036,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   change to a drawn value bumps the generator epoch (OPS.56 rule).
   Prerequisites: GEN.558, GEN.559. Related: GEN.550.
 
+- [ ] **PERF.137 Audit the remaining `LIMIT ? OFFSET ?` queries: say which serve a big table and move those to keyset paging**
+  Found by Core 5 (3:15 AM EDT 2026-10-18 as the lane reported), filed
+  by the TODO thread. Keyset paging is done for the Systems, Uncharted
+  stars and Phenomena tables (PERF.20 umbrella and PERF.75, #2154);
+  `grep 'LIMIT ? OFFSET ?' src/planetgen` on main at 8.0.1795 still
+  finds 16 sites, as candidates only (Core 5 did not trace which serve
+  big tables): `db/query.py` lines 214, 501, 576, 618, 857, 898, 1781,
+  2270, 2365, 4234 and 6045 (11 queries), `population/model.py` 695, 778
+  and 830 (list queries), `db/stats.py` 310 (base names) and
+  `queue/work.py` 907 (task listing). The API list routes take `offset`
+  (api/routes.py MAX_PAGE_OFFSET) and `web/lib/pagination.py` clamps a
+  page past the end. Why it matters: `OFFSET` makes page n cost n times
+  as much (measured for the Systems table: rows 0, 20,000, 500,000 and
+  1,500,000 take 0.004, 0.13, 5.8 and 12.1 s idle, where a keyset page
+  costs 2 ms). Do: for each site, read the caller and the table it pages
+  (row count at a full galaxy, from the schema or a measured count) and
+  write one line per site: big or small, and the deepest page a user or
+  the API can ask for. Move the big ones to the keyset form the three
+  finished tables use (`after=<sort key, id>` next to `offset=`) and
+  leave the small ones with a one-line comment saying the table stays
+  under a few thousand rows. Done: a table of the 16 sites on this item
+  with the verdict for each, every big site on keyset paging with a test
+  that pages to the end, and the deepest-page time under 50 ms at a full
+  galaxy. Owner: Core 5 (proposed, it found the list and wrote the
+  PERF.126 and PERF.127 commands); low priority, no version blocker.
+  Prerequisites: none. Related: PERF.75, PERF.135.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -20084,6 +20111,17 @@ clears each one.
   Owner stays with whoever takes TEST.237.
   Core 5 still owes the failure text (as the lane reported at 12:47 AM
   EDT 2026-10-18); it comes with its next report.
+  Answer (Core 5, 3:15 AM EDT 2026-10-18 as the lane reported): the test
+  failed in Core 5's changed gate and again alone with `-n0` at box load
+  9.7 (the call took 5.47 s); it passed 3 of 3 on Core 5's branch and 2
+  of 2 on main at load 3. The assertion text was not kept (only the
+  verdict line), so it cannot be quoted. The lane's tree was main at
+  release 8.0.1767 or later, so it carried #2147 (8.0.1760); that is
+  inferred from the release numbers, not checked commit by commit.
+  Reading: the failure still tracks load, which fits Core 2's note that
+  the first `_still_spot` read can take seconds; the next sighting
+  should keep the assertion text. Frequency: 2 failures in 2 runs at
+  load 9.7, 0 in 5 at load 3.
   Prerequisites: none. Related: TEST.231, TEST.126.
 
 - [ ] **TEST.238 test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it fails in a gate with no hypervelocity-star stored, and passes alone (bug)**
