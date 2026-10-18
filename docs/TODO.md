@@ -8442,6 +8442,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The paper states no validity range; its Table 2 total 2.247 does not
   equal its 15 rows (2.2537). The infrared opacity grids (correlated-k)
   stay a build-time download job from the line lists.
+  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
+  coordinator relayed): a download this item makes is a static file
+  fetched at setup by the shared step that GEN.548 builds first
+  (User-Agent, sha256, cache outside the repository, labelled stand-in,
+  offline fixtures), never at run time; a run-time fetch would have to
+  say why the data needs constant updates.
   Related: GEN.87, GEN.189, DB.68.
 
 - [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
@@ -8557,6 +8563,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The paper states no validity range; its Table 2 total 2.247 does not
   equal its 15 rows (2.2537). The infrared opacity grids (correlated-k)
   stay a build-time download job from the line lists.
+  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
+  coordinator relayed): a download this item makes is a static file
+  fetched at setup by the shared step that GEN.548 builds first
+  (User-Agent, sha256, cache outside the repository, labelled stand-in,
+  offline fixtures), never at run time; a run-time fetch would have to
+  say why the data needs constant updates.
 
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8874,6 +8886,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and 930 nm bands, read from a figure). Uranus methane bracket 1.4 to 4
   percent (Karkoschka and Tomasko 2009: 1.4 to 3.2; the 4 is Voyager
   Model F or Sromovsky 2011).
+  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
+  coordinator relayed): a download this item makes is a static file
+  fetched at setup by the shared step that GEN.548 builds first
+  (User-Agent, sha256, cache outside the repository, labelled stand-in,
+  offline fixtures), never at run time; a run-time fetch would have to
+  say why the data needs constant updates.
 
 - [ ] **GEN.423 Atmosphere density, scale height and the greenhouse multiplier follow from the mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -8956,6 +8974,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is labelled 'digitized from Figures 12 to 14', never the paper's
   table. Titan haze (Tomasko 2008) is paid and not uploaded: that
   stand-in stays.
+  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
+  coordinator relayed): a download this item makes is a static file
+  fetched at setup by the shared step that GEN.548 builds first
+  (User-Agent, sha256, cache outside the repository, labelled stand-in,
+  offline fixtures), never at run time; a run-time fetch would have to
+  say why the data needs constant updates.
 
 - [ ] **GEN.424 The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -9458,6 +9482,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.438 merges, and the isochrone, white-dwarf and neutron-star data
   it needs come from GEN.548's build-time downloads (with the stand-in
   fallback until they land).
+  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
+  coordinator relayed): a download this item makes is a static file
+  fetched at setup by the shared step that GEN.548 builds first
+  (User-Agent, sha256, cache outside the repository, labelled stand-in,
+  offline fixtures), never at run time; a run-time fetch would have to
+  say why the data needs constant updates.
 
 - [ ] **GEN.440 Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9553,6 +9583,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   isochrone grids, the white-dwarf layers and the neutron-star equation
   of state (GEN.548). GEN.440 follows GEN.439; the age gate of D10 is
   8.0 Gy.
+  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
+  coordinator relayed): a download this item makes is a static file
+  fetched at setup by the shared step that GEN.548 builds first
+  (User-Agent, sha256, cache outside the repository, labelled stand-in,
+  offline fixtures), never at run time; a run-time fetch would have to
+  say why the data needs constant updates.
 
 - [ ] **GEN.441 Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -11791,6 +11827,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
   downloads this item makes at build time send the standard User-Agent
   of API.31 (one function builds it).
+  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
+  coordinator relayed): a download this item makes is a static file
+  fetched at setup by the shared step that GEN.548 builds first
+  (User-Agent, sha256, cache outside the repository, labelled stand-in,
+  offline fixtures), never at run time; a run-time fetch would have to
+  say why the data needs constant updates.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.486 Source the lava-world vapour regimes and the fraction of lava worlds that keep volatiles (AR7)**
@@ -12333,6 +12375,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
   downloads this item makes at build time send the standard User-Agent
   of API.31 (one function builds it).
+  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
+  coordinator relayed): a download this item makes is a static file
+  fetched at setup by the shared step that GEN.548 builds first
+  (User-Agent, sha256, cache outside the repository, labelled stand-in,
+  offline fixtures), never at run time; a run-time fetch would have to
+  say why the data needs constant updates.
 
 - [ ] **GEN.501 Source the activity factor of the NH3 photolysis rate from the Huebner and Mukherjee rate tables**
   Body composition research lane reconciliation of the NH3 photolysis
@@ -13669,6 +13717,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-17, 9:54 PM EDT, typed in the project chat,
   relayed by the coordinator): "I approve all your defaults". Everything
   else on this item stands as its default.
+  Decided: Boss tapped 'Shared step first' on the GEN.548 card at 12:46
+  AM EDT on 2026-10-18 (as the coordinator relayed): GEN.548 builds the
+  shared download step first (standard User-Agent of API.31, sha256
+  check, cache outside the repository in a folder `update.sh` fills, a
+  labelled stand-in when the host is down, offline fixtures for the
+  tests) and then its three datasets; AD1 to AD8 and the other download
+  jobs reuse that one step. No download step is merged yet: AD1 methane
+  is only a design and a source check so far. Standing rule: Downloads
+  of static files take place at setup (the step `update.sh` runs, into a
+  cache folder outside the repository) unless the data needs to be
+  constantly updated; any code that fetches data at run time must say in
+  its design why the data needs constant updates (Boss, 12:47 AM EDT on
+  2026-10-18, project chat, as the coordinator relayed). The three
+  datasets here are static (grids and tables that change with a paper,
+  not with the clock), so they are fetched at setup and never at run
+  time.
   Prerequisites: none. Related: GEN.439, GEN.440, GEN.502, API.31.
 
 - [ ] **GEN.549 L dwarfs hotter than 1,500 K are 2 to 4 times too rare against the 20 pc census: use a cooling track that reaches them (strict expected failure)**
