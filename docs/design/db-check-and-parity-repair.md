@@ -257,12 +257,12 @@ Scaled linearly to the 1.17 x 10^9 rows (about 161 GB) GEN.100 would write befor
 
 ### 6.4 Built (DB.8)
 
-`planetgen check-db` (`planetgen/db/check.py`) and the Generate page's "Check the database" section, which runs it as a job. It writes nothing, ends with one pass, FAIL or warn line per check, and exits 0 (clean, warnings allowed), 1 (damage) or 2 (a check could not run and none found damage). As built:
+`planetgen check-db` (`planetgen/db/check.py`, `cli/checkdb.py`) and the Generate page's "Check the database" section, which runs it as a job. Each check is a command of its own (`check-revision` ... `check-systems`, PERF.126) and `check-db` is the list of them the wrapper queues as a check run (`runrecord.CHECK`, its own slot, no banner). It writes nothing, ends with one pass, FAIL or warn line per check, and exits 0 (clean, warnings allowed), 1 (damage) or 2 (a check could not run and none found damage). As built:
 
-- `--ring` and `--sector` scope only the value, count and version-key checks; revision, table health, orphans and ids always look at the whole database.
+- `--shell` and `--sector` scope the value, count, version-key and systems checks; revision, table health, orphans and ids always look at the whole database.
 - An empty `alembic_version` is not damage: a database built whole from `schema.sql` is never stamped, only an upgrade stamps it. A different or doubled revision is.
 - The value rules (`VALUE_RULES`) are deliberately loose, only numbers no generator can write; a generated 8-sector galaxy passes with none flagged.
-- `validation.check_star_system` is not run: it takes a loaded `StarSystem`, and loading every system is far costlier than the SQL rules. It joined as `--deep` (DB.21): a `systems` check loads every star system in scope and runs it, with one failure line per bad system. `--deep` first prints a time estimate (the speed recorded under stats kind `db-check`, else a stated rough guess of 0.04 s a system), asks for a yes on a terminal and needs `--yes` off one; `--estimate-only` prints just the estimate. The Generate page's Check the database section has a Deep check box that shows the same estimate and asks to confirm.
+- `validation.check_star_system` is not run: it takes a loaded `StarSystem`, and loading every system is far costlier than the SQL rules. It joined as the `systems` check (DB.21; PERF.126 replaced the `--deep` flag with naming it, together with `tables-extended`, as the Generate page's Deep check does): it loads every star system in scope and runs it, with one failure line per bad system. It first prints a time estimate (the speed recorded under stats kind `db-check`, else a stated rough guess of 0.04 s a system), asks for a yes on a terminal and needs `--yes` off one; `--estimate-only` prints just the estimate. The Generate page's Check the database section has a Deep check box that shows the same estimate and asks to confirm. `--no-check-table` is gone: name the checks wanted.
 - A stale `sector_stats.actual_systems` is a warning, as an orbit refile moves a system without updating the stats.
 
 ## 7. Long migrations and progress (DB.15, DB.7, NAV.10)
