@@ -5802,8 +5802,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.244, GEN.282, GEN.284, TEST.159, TEST.160,
-  GEN.450, TEST.196, GEN.530, GEN.563.
+  Prerequisites: GEN.244, GEN.282, GEN.284, TEST.159, TEST.160, GEN.450,
+  TEST.196, GEN.530, GEN.563, GEN.572.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -5841,6 +5841,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.537 design, GEN.538, MAP.248, UX.137, TEST.226, goal #2095). The
   whole-sphere audits of 8.1 (TEST.159, TEST.160, TEST.185) will run
   with the switch on once it exists.
+  Boss (12:04 AM EDT, 2026-10-18, card 'Pull into 8.1', as the
+  coordinator relayed): GEN.572, the exact AU per light-year and
+  light-year per parsec, joins the 8.1 changes before the one rescatter
+  (it changes a nebula's stored radius).
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.302 A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it**
@@ -13925,6 +13929,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the registry, Quantity, sweeps and docs). None blocks 8.1 or GEN.301;
   GEN.572 changes a nebula's stored radius and so needs an epoch and a
   rescatter.
+  Boss (12:04 AM EDT, 2026-10-18, card 'Pull into 8.1', as the
+  coordinator relayed): GEN.572 (the exact unit factors, no
+  dependencies) is built in 8.1 before the one wiped rescatter and is a
+  prerequisite of GEN.301.
 
 - [ ] **GEN.552 Host registry: the five fixed `system_model` values become pointers to one gated orbiter table per host class, with no change in behaviour**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -14614,41 +14622,39 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   left. The two rounded factors are not changed here: GEN.572 does that
   as its own epoch-changing change. Done: no unit factor is declared
   outside the registry (a test greps for it).
+  Boss (12:04 AM EDT, 2026-10-18, as the coordinator relayed): the exact
+  AU per light-year and light-year per parsec moved to GEN.572 in 8.1;
+  this sweep keeps every other factor bit-identical and runs after
+  GEN.572 where they touch the same files (`hii.py`,
+  `asteroid_field.py`, `phenomena_plausibility.py`).
   Prerequisites: GEN.568. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
-- [ ] **GEN.572 The two rounded unit factors become exact: 63241.077 AU per light-year and 3.26156 light-years per parsec, as one epoch-changing change**
-  Part of the unified orbited-body plan (GEN.550; design note
-  docs/design/unified-unit-quantity.md, decided: Boss's six cards on the
-  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
-  coordinator relayed, each the recommended option: Q1 other units
-  worked out on first read and kept after, Q2 a plain float in the
-  field's declared unit with a Quantity at the edges, Q3 each column's
-  stored unit declared for precision (not forced to SI), Q4 unit
-  suffixes stay in names with a test that the suffix equals the
-  declaration, Q5 rolled out inside the host chain items with
-  bit-identical sweeps, Q6 the two rounded factors become exact in the
-  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
-  one unit code that stores any kind of unit the project uses and
-  answers in every other form, as the point in space does for position.
-  Q6 as the first sweep's one epoch-changing change. Proposed owner, not
-  assigned by a card: Core 5 with GEN.571, grouped with another
-  epoch-changing item so it takes a pending epoch with it. The rounded
-  values sit in `generation/phenomena/asteroid_field.py:35`,
+- [ ] **GEN.572 The two rounded unit factors become exact before the one rescatter: 63241.077 AU per light-year and 3.26156 light-years per parsec**
+  Part of the unified orbited-body plan (GEN.550;
+  docs/design/unified-unit-quantity.md, Boss's cards Q5 and Q6, 11:56 to
+  11:57 PM EDT, 2026-10-17, as the coordinator relayed). Boss tapped
+  'Pull into 8.1' on the card for this item at 12:04 AM EDT, 2026-10-18
+  (as the coordinator relayed), so it is built in 8.1, before the one
+  full wiped rescatter, and is a prerequisite of GEN.301. Owner: Core 5
+  (proposed). It needs no unit registry: the three sites read the exact
+  `AU_M`, `LIGHTYEAR_M` and `PARSEC_M` of `physics/constants.py`. The
+  rounded values sit in `generation/phenomena/asteroid_field.py:35`,
   `generation/phenomena_plausibility.py:79` and `physics/hii.py:40`;
   they differ from the exact ones by 1.3e-9 and 1.2e-6 in relative size.
-  Found while filing (TODO thread, 2026-10-17): `hii.region` returns
-  `radius * LY_PER_PC` as the radius in light-years of an H II region,
-  which `generation/phenomena/nebula.py:273` stores, so the exact factor
-  changes a nebula's stored radius in the last digits, and that is a
-  scatter output (a phenomenon scatter row), which needs the generator
-  epoch bump and another full wiped rescatter, not only a refill; the
-  other two sites only decide a size digit at its floor boundary. If
-  this lands after the 8.1 rescatter it costs a second one. The three
-  constants change at once, nothing else. Done: the three sites read the
-  registry's exact factors, the golden digest changes with the epoch
-  entry, and the tests that pin nebula radii are regenerated.
-  Prerequisites: GEN.568. Related: GEN.550, GEN.565, DB.74.
+  Why it is a rescatter item (found by the TODO thread, 2026-10-17):
+  `hii.region` returns `radius * LY_PER_PC` as the radius in light-years
+  of an H II region, which `generation/phenomena/nebula.py:273` stores,
+  so the exact factor changes a nebula's stored radius in the last
+  digits; that is a scatter output (a phenomenon scatter row), so the
+  item takes the next generator epoch and joins the list of changes the
+  one wiped rescatter carries (a refill would not be enough). The other
+  two sites only decide a size digit at its floor boundary. The three
+  constants change at once and nothing else; the later sweep of the
+  other ad-hoc factors is GEN.571 and stays bit-identical. Done: the
+  three sites read the exact factors, the golden digest changes with the
+  epoch entry, and the tests that pin nebula radii are regenerated.
+  Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
 - [ ] **GEN.573 The position class reads its units from the registry: length unit by key, no bare 1000 or copy of c, mass and mu a declared relation**
@@ -20111,6 +20117,17 @@ clears each one.
   and passes alone; Bug Hunt's gate d784f21a saw it too (passes alone
   under load 8.8 to 9.2). Neither lane's tree is stated to carry #2147,
   so these may predate the fix.
+  Another sighting (Core 3, GEN.243 gate, 10:10 to 11:40 PM EDT
+  2026-10-17 as the lane reported; relayed by Core 3 to the TODO thread
+  at 11:53 PM EDT): it failed in the 2-worker browser phase and failed
+  again in the alone-rerun at box load 9.6 (the anchor came back
+  (0.02996, -0.02996, 0) for the (5, -4) pixel shift instead of the star
+  at 0, 0, 0). Passes alone at low load on Core 3's branch (53 s) and on
+  main 9a879bb0 (280 s, under load). Frequency: 1 of 1 at load about 9,
+  0 of 2 at load under 3. Reproducer: run it alone while another gate
+  runs. Core 3's reading: load-sensitive, probably the `_ready()` wait
+  before the pointer sample. Fails on main: not in an unloaded run.
+  Owner stays with whoever takes TEST.237.
   Prerequisites: none. Related: TEST.231, TEST.126.
 
 - [ ] **TEST.238 test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it fails in a gate with no hypervelocity-star stored, and passes alone (bug)**
