@@ -4865,6 +4865,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   association is this item's component; the bubble field (GEN.391)
   carries only the shell enhancement and the interior suppression, so
   the association is not counted twice. GEN.391 states the split.
+  Core 3 (12:18 AM EDT 2026-10-18 as the lane reported): coded, 12
+  age-bin populations, in test; it takes Alembic revision 0110 (Core 1
+  confirmed it free). The lane said its epoch was 23 pending: epoch 23
+  was stamped by release 8.0.1776 (GEN.532/GEN.533), so it takes the
+  next free epoch after rebasing (24 is Core 1's GEN.402 if that merges
+  first). The 8.4 revision of DB.73 takes the next free number at its
+  merge.
   Prerequisites: none. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -8192,6 +8199,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the program stays free forever. The source and licence column
   stays as a record; write 'open' where none is found (the loader of
   GEN.472 already accepts that).
+  Blocker 1 (GEN.438, 12:20 AM EDT 2026-10-18 as the lane reported): the
+  molar masses in `habitability_world.MOLAR_KG` (SO2 and CH4) sit about
+  1.9e-4 above the sums of the element table of GEN.438
+  (`physics.elements.molar_mass`); it left them because changing them
+  would alter derived values. This table should take its molar masses
+  from `physics.elements.molar_mass`.
   Related: DB.71.
 
 - [ ] **GEN.411 The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree**
@@ -9052,6 +9065,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the program stays free forever. The source and licence column
   stays as a record; write 'open' where none is found (the loader of
   GEN.472 already accepts that).
+  Blocker 1 (GEN.438, 12:20 AM EDT 2026-10-18 as the lane reported): the
+  bulk materials' molar masses should come from
+  `physics.elements.molar_mass`; `habitability_world.MOLAR_KG` (SO2 and
+  CH4) is about 1.9e-4 above the element sums and is left for the table
+  items (see GEN.410).
 
 - [ ] **GEN.428 Planets and moons draw their bulk composition fractions instead of carrying a fixed text**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -14159,6 +14177,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.553, GEN.327, GEN.253, GEN.377,
   GEN.273, GEN.550.
   Owner confirmed (coordinator, 11:44 PM EDT as relayed): Core 4.
+  Core 3 (12:18 AM EDT 2026-10-18 as the lane reported, answering the
+  question owed since GEN.243): GEN.243 did not touch the planetary
+  nebula central star. It is still drawn by
+  `scatter_companions._planetary_nebula_star` (a progenitor from
+  `WHITE_DWARF_PROGENITOR_SOL` through `sample_imf_mass_sol`, the linear
+  initial-final relation `WD_IFMR_SLOPE` and `WD_IFMR_INTERCEPT` clamped
+  to `WD_MASS_RANGE_SOL`, age = the progenitor's main-sequence life); it
+  does not call `evolve_star`, so the hot and cool Gaussian-uniform
+  draws are not in that path. This item replaces that relation line, so
+  the 8.4 unification of that star is a small edit here.
 
 - [ ] **GEN.563 The black hole density depends on metallicity: the verified failed-supernova share of the stars born replaces the one constant 7e-5 per pc^3**
   From Boss's back-scatter cards on the unified orbited-body design (docs/design/unified-star-like-objects.md, GEN.550): 'BH density only' at 11:38 to 11:40 PM EDT, then Boss tapped 'Metallicity-dependent' on the GEN.563 card at 11:51 PM EDT (2026-10-17, as the coordinator relayed with the wake time converted): the black hole share is metallicity-dependent, not a kept 7e-5. Research: docs/design/black-hole-formation-sources.md (GEN.560, 11:55 PM EDT as the lane reported): the verified failed-supernova share is 0 to 45% of stars of 8 to 150 Msun (more at low metallicity), so black holes are 0 to 4.0e-4 per pc^3 and the present 7e-5 is inside the range (f = 7.8%). Scope: only the black hole density changes; the neutron star density (5.6e-4, already matching), the black hole mass law and every other kind stay as they are (a change of the mass law is for GEN.553 and GEN.554, and means a second rescatter for black hole masses unless Boss decides otherwise). Do, as the design note of GEN.567 settles it: the density at a place is the stars born there (the population mix at the place) times the IMF share of 8 to 150 Msun (0.637% of stars, from the generator's own IMF) times f(Z) of the population's [Fe/H] at that place (the galaxy's metallicity law, `metallicity.mean_fe_h` and the component peaks, GEN.158 and GEN.159) times the share that stays in the galaxy, replacing `PHENOMENON_RATES["black-hole"]`; label every number's source state (verified range, derived, or placeholder) and keep the old 7e-5 and the derived share as test targets that show the gap. It changes the scatter's output, so it bumps the generator epoch and joins the one full rescatter, which is why it is a prerequisite of GEN.301. Done: the black hole count follows the metallicity at three test places (a metal-rich disk, a metal-poor halo, a cluster), the neutron star count is unchanged, and the golden digest changes with the epoch bump. Owner: Core 3 (proposed; it owns the scatter rates and GEN.377; Boss's card D7 owners do not cover it), after GEN.243 and GEN.244/282 and after GEN.567.
@@ -19026,6 +19054,10 @@ clears each one.
   for the crumbs assertion. Core 3's "fails alone" drill-down failure
   was a different cause (TEST.236). Not reproduced in a loop, so no loop
   numbers yet.
+  Another sighting (Core 1, gate 3 of GEN.532/GEN.533, 12:22 AM EDT
+  2026-10-18 as the lane reported):
+  `test_galaxy_map_forward_to_current_jumps_to_the_newest_view` failed
+  once in gate 3, passed in gate 5 and alone twice.
   Prerequisites: none. Related: MAP.210, TEST.170, TEST.171.
 
 - [ ] **TEST.174 test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug)**
@@ -20065,6 +20097,10 @@ clears each one.
   itself is still not relayed (it is in Core 3's
   `.test-failures.jsonl`). Fails on main: not run on main. No solo
   reproducer.
+  Another sighting (Blocker 1, GEN.438 gate, 12:20 AM EDT 2026-10-18 as
+  the lane reported):
+  `test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone]`
+  failed under load and passed alone.
   Prerequisites: none. Related: TEST.126, TEST.172, TEST.213.
 
 - [ ] **TEST.228 test_stars_and_phenomena_fit_within_their_sectors_real_cells compares a dark cloud's centre with its sector's cell, but the cloud is filed by its centroid**
@@ -20304,6 +20340,15 @@ clears each one.
   generator dropped them; fix without loosening what the test proves.
   Done: the cause is on this item and the test passes 30 of 30 fresh
   draws. Owner: Bug Hunt (proposed; it saw it first).
+  Cause (Core 1, 12:22 AM EDT 2026-10-18 as the lane reported; relayed
+  to the TODO thread): the toy galaxy's reach is about 36 pc, so the
+  hypervelocity count `round(log-uniform(1e3, 1e4) x 36 / 100000)` is 0
+  in about 1 run in 6 depending on the scatter seed; this is a
+  test-assumption flake and it fails on main by chance (not seen in 4
+  runs there; it failed once in a batch run and once alone for Core 1
+  and passed 3 of 3 alone on its branch and on main). The fix is in the
+  test: pin a seed that places one or tie the expectation to the count.
+  Reproducer: loop the test 20 times from src/.
   Prerequisites: none. Related: TEST.220, TEST.224.
 
 - [ ] **TEST.239 Tests for the unified chain: determinism by host, representation counts per kind and level, rogue and comet rates, derived remnant shares**
@@ -20424,6 +20469,26 @@ clears each one.
   the sums. Done: all pass at several depths.
   Prerequisites: GEN.576. Related: GEN.550, GEN.552, GEN.315, GEN.565.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **TEST.243 Two test_web_browser_units tests errored in setup, one after 1041 s in pymysql (bug)**
+  Found by Core 1 (gate 5 of GEN.532/GEN.533, 12:22 AM EDT 2026-10-18 as
+  the lane reported; gate on its branch before the merge of #2186),
+  filed by the TODO thread. Test:
+  `src/tests/test_web_browser_units.py::test_the_server_text_is_the_automatic_text`
+  and `::test_a_saved_preference_is_applied_on_load`. Failure: both
+  errored in setup, not in the test body; the first after 1041 s with
+  `pymysql converters.py:60 Failed`, which is the per-test time limit
+  expiring while the setup waited on the database. Both pass alone.
+  Gate: the browser phase with 2 workers, box load 1.9. Fails on main:
+  not seen (not run on main separately). Frequency: once in 1 gate of
+  that lane; other loaded-browser failures (TEST.227, TEST.235) may be the same family (inferred, not checked). Reproducer: run
+  `pytest src/tests/test_web_browser_units.py` while a full gate runs,
+  and watch the setup time of the database fixture. Do: find what the
+  setup waited on (a lock or a slow fixture) and fix the cause. Done:
+  the cause is on this item and the two tests set up inside their limit
+  in 5 loaded runs. Owner: Bug Hunt (proposed; it owns the browser flake
+  family).
+  Prerequisites: none. Related: TEST.227, TEST.235, TEST.172.
 
 
 ## USR: User accounts
