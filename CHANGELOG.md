@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1782] - 2026-10-18
+
+**Headline:** A planet's or moon's life stage, pace, ages and flavour line get columns of their own, ready for generation to stop storing them as prose.
+
+### Changed
+- Migration 0110 adds `life_stage`, `evolutionary_pace`, `life_milestone_age_gyr`, `life_system_age_gyr` and `flavor_key` to `planets` and `moons`. Nothing is dropped, no row is touched and no code reads the columns yet (DB.51 does); an old-schema fixture (v109), an idempotent-upgrade test and a round-trip test cover it.
+
+TODO items resolved: DB.50 / Added: none
+
 ## [8.0.1781] - 2026-10-18
 
 **Headline:** `scripts/test.py --resume` now continues a cancelled gate after main was merged in, rerunning only the tests whose files changed.
