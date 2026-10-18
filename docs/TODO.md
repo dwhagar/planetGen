@@ -2253,6 +2253,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ahead of MAP.247 in its queue.
   Prerequisites: none. Related: MAP.239, MAP.152, MAP.147, PERF.129,
   PERF.130, PERF.131, PERF.132, PERF.133.
+  Profile result (Core 2, 5:07 AM EDT 2026-10-18 as the lane reported;
+  measured on a scaled copy of the galaxy with 528,250 bright stars,
+  387,916 of them halo, current main, tiles asked the way the page asks,
+  no cache; probe script `tileprobe.py` in Core 2's scratchpad and
+  database `lagprobe` in its container): at every camera distance from
+  300,000 pc down to 30 pc a view asks for 400 to 480 tiles (the cap is
+  512). From 10,000 pc inward a view is 7 to 8.8 MB of JSON (17,500 to
+  19,700 stars, 2,700 to 11,000 points) and takes 50 to 67 s of cold
+  server time; farther out it is 1.2 to 2 MB and 7 to 10 s. The cost is
+  the star-list piece (38 to 44 s) and the scattered-point piece (20 to
+  24 s); no single piece is over 3 s (the largest is 2.8 s). So a zoom
+  to a new level means about 450 new tiles and about 8 MB, which
+  explains the slog, and MAP.239, MAP.243, MAP.247 and MAP.250 do not
+  change it. Options put to Boss through the coordinator: (1) cut the
+  tiles per view to about 150 and set budgets so a view is about 2 MB,
+  (2) tile cache warming (PERF.130 to PERF.132), (3) both; Core 2
+  recommends (3) and starts (1) now.
 
 - [ ] **MAP.251 When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug)**
   Boss (2026-10-17, 7:38 PM EDT, typed in the project chat, relayed by
