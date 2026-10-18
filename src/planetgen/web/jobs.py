@@ -60,6 +60,8 @@ GENERATE_COMMAND = ["-m", "planetgen.cli.generate"]
 """list: Runs the generator, `planetgen.cli.generate`."""
 RESET_COMMAND = ["-m", "planetgen.cli.reset"]
 """list: Runs `planetgen.cli.reset`."""
+DATASETS_COMMAND = ["-m", "planetgen.cli.datasets"]
+"""list: Runs `planetgen.cli.datasets` (GEN.548): `status` is the data check in front of every generating job (GEN.590)."""
 
 DEFAULT_JOBS_DIR = "/var/lib/planetGen/jobs"
 """str: Used when neither `PLANETGEN_JOBS_DIR` nor `config.json`'s

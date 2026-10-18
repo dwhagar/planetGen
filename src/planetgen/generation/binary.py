@@ -20,7 +20,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.util import draw
-from planetgen.util.serialization import fields_from_dict, fields_to_dict
+from planetgen.util.serialization import fields_from_dict
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
 from planetgen.galaxy import mass_chain, scales
 from planetgen.physics.orbits import (
@@ -303,9 +303,7 @@ class BinaryStarProxy(Star):
             dict: One entry per field in `SERIALIZABLE_FIELDS`, plus
                  `primary`/`secondary` (each a full `Star.to_dict()`).
         """
-        data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
-        data["habitable_zone"] = list(self.habitable_zone)
-        data["lifespan"] = None if self.lifespan == float('inf') else self.lifespan
+        data = super().to_dict()
         data["primary"] = self._primary.to_dict()
         data["secondary"] = self._secondary.to_dict()
         return data

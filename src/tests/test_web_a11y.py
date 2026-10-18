@@ -304,9 +304,20 @@ def site_app(site_db):
         # one address: the per-IP page limits aren't under test here.
         RATELIMIT_PAGES = PAGE_LIMITS_OFF
 
-    app = create_app(SiteConfig)
-    app.testing = True
-    return app
+    # TEST.232, TEST.246: these tests check every page's layout and accessibility, not the slow-page answer (PERF.105).
+    # On a loaded run the first build of /search or /phenomena can take over `tuning.SLOW_PAGE_SECONDS`; the cost rule
+    # then marks the route slow and the next request is queued and answers 202 with the loading state, not the page.
+    # The rule is pinned off for every module that builds its pages from this app, not only this one.
+    from planetgen import tuning
+
+    kept = tuning.SLOW_PAGE_SECONDS
+    tuning.SLOW_PAGE_SECONDS = float("inf")
+    try:
+        app = create_app(SiteConfig)
+        app.testing = True
+        yield app
+    finally:
+        tuning.SLOW_PAGE_SECONDS = kept
 
 
 @pytest.fixture(scope="module")
@@ -440,20 +451,6 @@ def _page_url(app, endpoint, samples):
     with app.test_request_context("/"):
         from flask import url_for
         return url_for(endpoint, **{arg: samples[arg] for arg in rule.arguments})
-
-
-@pytest.fixture(scope="module", autouse=True)
-def pages_are_never_slow():
-    """TEST.232: these tests check every page's layout and accessibility, not the slow-page answer (PERF.105). On a
-    loaded run the first build of /search or /phenomena can take over `tuning.SLOW_PAGE_SECONDS`; the cost rule then
-    marks the route slow and the next request is queued and answers 202 with the loading state, not the page. The
-    rule is pinned off for this module."""
-    from planetgen import tuning
-
-    kept = tuning.SLOW_PAGE_SECONDS
-    tuning.SLOW_PAGE_SECONDS = float("inf")
-    yield
-    tuning.SLOW_PAGE_SECONDS = kept
 
 
 @pytest.fixture(scope="module")

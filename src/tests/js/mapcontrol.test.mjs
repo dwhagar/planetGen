@@ -109,6 +109,34 @@ test("a second click close in time and place is a double click, not a click", ()
   assert.deepEqual(seen, ["click"], "too far");
 });
 
+test("a double click is told by the time of its events, not by when the page got to them (TEST.252)", () => {
+  const canvas = h("canvas");
+  const seen = [];
+  const realNow = Date.now;
+  let wall = 1000;
+  Date.now = () => wall;
+  try {
+    MC.createPointerControl(canvas, {
+      attach: true, dragClickPx: 6,
+      onClick: () => { seen.push("click"); wall += 800; },       // a first click the page takes long to answer
+      onDoubleClick: () => seen.push("double"),
+    });
+    const tap = (x, y, stamp) => {
+      press(canvas, "pointerdown", x, y, { timeStamp: stamp });
+      press(canvas, "pointerup", x, y, { timeStamp: stamp });
+    };
+    tap(10, 10, 5000);
+    tap(10, 10, 5080);
+    assert.deepEqual(seen, ["click", "double"]);
+    seen.length = 0;
+    tap(10, 10, 9000);
+    tap(10, 10, 9600);
+    assert.deepEqual(seen, ["click", "click"], "events far apart in time are two clicks");
+  } finally {
+    Date.now = realNow;
+  }
+});
+
 test("a pan press never clicks, and the right button never clicks", () => {
   const canvas = h("canvas");
   const seen = [];

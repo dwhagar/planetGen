@@ -385,6 +385,25 @@ def test_a_double_click_on_a_star_flies_the_camera_to_it(page, base_url, site_ap
     assert "system=" not in page.url
 
 
+def test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click(page, base_url, site_app, sample_params):
+    """TEST.252: the two clicks are told apart by the time of their events, not by when the page gets to them, so a
+    first click that takes the page over the double click window (a busy machine) is still the first half of a pair."""
+    point, spot = _fly_setup(page, base_url, site_app, sample_params)
+    before = _camera(page)
+    page.evaluate("""() => {
+        let first = true;
+        document.querySelector('#galaxymap3d-canvas').addEventListener('pointerup', () => {
+            if (!first) return;
+            first = false;
+            const start = performance.now();
+            while (performance.now() - start < 500);
+        });
+    }""")
+    page.mouse.dblclick(*spot)
+    camera = _landed(page, point)
+    assert math.dist(camera["target"], point) < 1e-6 * max(1.0, before["dist"]), (camera["target"], point)
+
+
 def test_the_go_to_button_of_a_selected_star_flies_there_too(page, base_url, site_app, sample_params):
     """The info panel of a selected star has a Go to button."""
     point, spot = _fly_setup(page, base_url, site_app, sample_params)

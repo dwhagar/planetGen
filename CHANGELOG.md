@@ -2,6 +2,44 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1841] - 2026-10-18
+
+**Headline:** A double click on the map is told by the time of its two clicks, so a first click the page is slow to answer no longer makes the second one a click again.
+
+### Fixed
+- Map controls: `mapcontrol.js` decided whether a click was the second of a pair by reading the clock when the page got to the event, with the first click's time taken before its handler ran. When the first click's handler (picking the star, drawing its panel) took longer than the 350 ms window, as it can on a busy machine, the second click came out as a single click again and the camera never flew; `test_a_double_click_on_a_star_flies_the_camera_to_it` failed that way once in a loaded gate (TEST.252: camera target unchanged after the double click). The pair is now told by the events' own time stamps. A new browser test stalls the first click for 500 ms and still sees the flight (it failed on the old code), and a unit test pins the rule.
+
+TODO items resolved: TEST.252 / Added: none
+
+## [8.0.1840] - 2026-10-18
+
+**Headline:** Every browser test module that builds its pages from the shared site app now has the slow-page rule pinned off, so a loaded run no longer fails a module's setup with a 202 for /search.
+
+### Fixed
+- Tests: only `test_web_a11y.py` pinned `tuning.SLOW_PAGE_SECONDS` off (TEST.232); the layout, crumbs, edit menu and other browser modules import the same `site_app` and `page_targets` without that module's autouse fixture, so when a loaded machine made the first build of /search slower than 3 s the route was marked slow, the next request answered 202 with the loading state, and the module's `page_targets` fixture failed (`web.search: GET /search answered 202 (anonymous) / 202 (admin)`, Core 3's layout record). The pin now lives in `site_app` itself, for every module that uses it, and a test in the layout module pins it.
+
+TODO items resolved: TEST.246 / Added: none
+
+## [8.0.1839] - 2026-10-18
+
+**Headline:** Every body with a mass now shares one core class for its galactic motion and its save and load, the first step of the one object class for stars, planets, comets and wanderers.
+
+### Changed
+- New `generation/mass_object.py` (`MassObject`) holds what the nine body classes wrote out by hand: the four galactic-motion fields and the draw that sets them, and one `to_dict`/`from_dict` pair driven by each family's `SERIALIZABLE_FIELDS`, with `_encode` and `_decode` hooks for values that are not plain JSON. `Star`, `Planet`, `Comet`, `RoguePlanet`, `InterstellarComet` and `AsteroidField` use it; `BlackHole`, `NeutronStar` and `BinaryStarProxy` inherit it through `Star`, and `CompactRemnant`'s copy of `Star`'s save and load is gone.
+- No stored value, field name or draw changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.565 stays open) / Added: none
+
+## [8.0.1838] - 2026-10-18
+
+**Headline:** A star's main-sequence track, a white dwarf's radius and layers and a neutron star's crust now come from the downloaded data, and generation will not start without it
+
+### Changed
+
+Star composition reads the data files that `update.sh` downloads (MIST isochrones, white-dwarf cooling sequences, neutron-star crust tables): a main-sequence star gets its luminosity, temperature, radius and lifetime from the MIST grid, a white dwarf its radius at its temperature and its hydrogen, helium, carbon and oxygen layers, and a neutron star the outer crust of one of 20 nuclear mass models. There is no fallback value: while a file is missing, `galaxy`, `plan`, `population` and `sector --num-sectors` above 1 refuse to start and name what is missing, and so do the Sector page's neighbourhood button and the Generate page's jobs, which now begin with a "Check the data" step after "Check the math" and before anything is reset. `update.sh` and `install.sh` warn at the end if a download failed. The older white-dwarf radius table and neutron-star crust list that this replaces were removed. No stored value changes.
+
 ## [8.0.1837] - 2026-10-18
 
 **Headline:** The map luminosity fill, the habitability re-score and the nebula field run on the work queue as commands.

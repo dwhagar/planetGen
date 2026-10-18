@@ -2258,6 +2258,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   item stays open: the cache warming (PERF.130 to PERF.132, Core 2's
   next PR) is the other half of Boss's 'Both' answer, and the item's own
   Done (a before and after of the settled-view time) needs it.
+  Merged in part (Core 2, PERF.130, #2276, release 8.0.1836, reported
+  3:15 PM EDT 2026-10-18 as the coordinator relayed): `planetgen warm`
+  now builds the Galaxy Map's tiles ahead of the first visitor, a step
+  update.sh runs. On the scaled probe galaxy eight zoom views took 111 s
+  and now take 3.2 s; the warm step builds 7,112 tiles in about 12
+  minutes and 40 MB. The browser frame time was not measured. This item
+  stays open for PERF.131 and PERF.132 (separate PRs) and the settled-view
+  before and after its Done asks for.
 
 - [ ] **MAP.251 When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug)**
   Boss (2026-10-17, 7:38 PM EDT, typed in the project chat, relayed by
@@ -13556,6 +13564,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   table shape agreed first; (4) GEN.554 after GEN.553, with the
   explosion-map sources verified before use. Core 4 will not touch
   GEN.568 and GEN.569 (Core 5) or GEN.555 (Core 3).
+  Merged in part (Core 4, GEN.565a, #2274, release 8.0.1839, reported
+  4:33 PM EDT 2026-10-18 on the lane's clock; no epoch, no stored value,
+  field name or draw changes): `generation/mass_object.py`
+  (`MassObject`) holds the four galactic-motion fields and the draw that
+  sets them and one `to_dict`/`from_dict` pair driven by each family's
+  `SERIALIZABLE_FIELDS`, with `_encode` and `_decode` hooks; `Star`,
+  `Planet`, `Comet`, `RoguePlanet`, `InterstellarComet` and
+  `AsteroidField` use it, `BlackHole`, `NeutronStar` and
+  `BinaryStarProxy` inherit it through `Star`, and `CompactRemnant`'s
+  copy of `Star`'s save and load is gone. This item stays open for
+  GEN.565b (the planetary and small-body families on the same core) and
+  the removal of the nine classes. Finding fixed in the same PR: on main
+  `test_age_law.py::test_the_scatter_and_both_backfills_draw_with_the_galaxys_laws`
+  (GEN.546's test) had timed out at 900 s on every run since GEN.404
+  (#2270) made a toy galaxy hold the Milky Way's stellar mass in a 40 pc
+  disk and GEN.404's gate did not include that test; the test now reads
+  in relative units (30 s for the whole file). Owned by Core 4, so no
+  TEST item.
 
 - [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
   Part of the unified orbited-body chain (GEN.550; design note
@@ -14465,57 +14491,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   prerequisite of GEN.301.
   Prerequisites: none. Related: GEN.244, GEN.282.
 
-- [ ] **GEN.590 Wire the downloaded isochrones, white-dwarf sequences and neutron-star tables into star composition (after Boss answers the Require / Stand-in card)**
-  GEN.548 merged (#2236, release 8.0.1807; reported by Blocker 1 at 6:05
-  AM EDT on the lane's clock): the shared setup-time download step
-  (`planetgen/datasets/`, `planetgen/cli/datasets`,
-  `planetgen/util/user_agent.py`) and its three readers for the MIST
-  isochrones (SC1), the Bedard white-dwarf sequences (SC2) and the
-  neutron-star equation of state and crust (SC3). Nothing reads them
-  yet: `stellar_abundances` and `stellar_composition` still use their
-  stand-ins. Do: wire the three readers into the stellar abundances and
-  star composition, once Boss answers the card Blocker 1 holds in its
-  own thread (options: Require the data, Stand-in fallback, Not yet;
-  Blocker 1 recommends Require the data). Done: star composition reads
-  the downloaded files by way of the three reader functions, the
-  behaviour when a file is missing is the one Boss chose and a test pins
-  it offline with the fixtures, and the stand-in registry (gap plan
-  section 6) lists what is still a stand-in. Filed by the TODO thread at
-  Blocker 1's request (6:05 AM EDT as the lane reported). Owner: Blocker
-  1 (proposed). Boss's answer is recorded below (Require the data).
-  Decided (Boss, 2026-10-18, 9:38 AM EDT, project chat): "I answered
-  download files requiring data", meaning his card answer "Require the
-  data": star composition requires the downloaded files (the isochrones,
-  the white-dwarf sequences and the neutron-star tables) and does not
-  fall back to a stand-in; it is not left for later. The TODO thread's
-  reading of 'require' (Blocker 1 confirms the wording): with a file
-  missing, star composition fails with a plain message that names the
-  dataset and says which setup command fetches it (no silent stand-in),
-  and the offline tests use the fixtures of GEN.548. Blocker 1 does the
-  wiring.
-  Blocker 1 confirmed the reading and built more (reported 9:46 AM EDT
-  2026-10-18, real clock; changed gate started 9:12 AM EDT, about 56% at
-  9:40 AM, PR follows when it passes): star composition raises a plain
-  error naming the dataset and why it is missing, with no stand-in
-  value; the offline tests use the GEN.548 fixtures; bulk generation
-  (galaxy, plan, population, `sector` with more than one sector, the
-  Sector page neighbourhood button) also refuses to start with the same
-  message; Generate page jobs get a second step 'Check the data' before
-  the reset. Still stand-ins because the data cannot replace them: the
-  brown-dwarf radius and hydrogen limit against metallicity (MIST starts
-  at 0.1 solar masses) and the neutron-star radius from an equation of
-  state (GEN.463). Boss's answer covers star composition only.
-  Correction from Blocker 1 (reported 10:12 AM EDT 2026-10-18, real
-  clock): the neutron-star radius is not left as a stand-in. GEN.463
-  already merged and gives it from the measured band
-  (`physics/neutron_star.py`); what stays unbuilt is only the
-  neutron-star inner crust and core, which would integrate the 21
-  equation-of-state tables on disk (nothing does yet). Its first gate
-  run failed on test-harness faults of its own (the test machine has no
-  downloaded data, so the test fixture has to hold for the whole
-  session); fixed, gate rerun started 10:09 AM EDT.
-  Prerequisites: none. Related: GEN.548, GEN.543, GEN.439, GEN.440.
-
 - [ ] **GEN.591 An elliptical comet's aphelion can exceed its star's Hill sphere in about 10% of runs: the comet bound test fails on main (bug)**
   Found by Bug Hunt (reported 7:20 AM EDT 2026-10-18 on the lane's
   clock), filed by the TODO thread.
@@ -14616,6 +14591,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a prerequisite of GEN.301; value-changing, so it takes the next free
   epoch at its merge.
   Prerequisites: none. Related: GEN.317, GEN.555, GEN.163.
+
+- [ ] **GEN.594 Each AD dataset (AD1 to AD8) needs a refuse-or-fall-back decision: a missing file stops the run or stands in as a labelled stand-in**
+  Filed at the coordinator's request after GEN.590 merged (#2282,
+  release 8.0.1838; Blocker 1 reported 3:34 PM EDT 2026-10-18 as the
+  lane reported). The shared download catalogue (GEN.548) now treats
+  every dataset as required, and bulk generation refuses to start while
+  any catalogue file is missing. Boss's 'Require the data' answer (9:38
+  AM EDT 2026-10-18) covers star composition only (GEN.590), so each
+  atmosphere dataset still needs its own answer: AD1 (giant visible
+  absorption, GEN.422), AD2 (dust and haze spectra, GEN.423), AD3
+  (infrared opacity, GEN.413, GEN.414), AD4 (Rayleigh, GEN.422), AD5
+  (particle spectra, GEN.436, GEN.444), AD6 (hot-giant line lists,
+  GEN.485, GEN.499), AD7 (acid vapour pressure, GEN.471, GEN.491) and
+  AD8 (photochemistry rates, GEN.496, GEN.501). Do: when the first AD
+  dataset is built, the coordinator brings Boss a card for it (options:
+  Require the data, which refuses the run with a plain message naming
+  the dataset and the setup command; Stand-in fallback, which uses the
+  labelled stand-in of the gap registry and says so; Not yet) and
+  records the answer here and on the item that builds it; later datasets
+  reuse the answer unless Boss differs. Done: every AD item says what a
+  missing file does, with Boss's answer and a test that pins it offline
+  with the GEN.548 fixtures, and the gap plan section 6 registry says
+  which values are still stand-ins. Owner: the TODO thread tracks the
+  answers; each AD item's builder asks through the coordinator
+  (proposed). Not a request for Boss's data: Boss has provided all the
+  AD1 data he can (3:07 PM EDT 2026-10-18).
+  Prerequisites: none. Related: GEN.548, GEN.590, GEN.422.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -14759,7 +14761,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   command list, each command is one queue item; the stages are not wired
   in any other way. PERF.118 (the wrapper) comes first and PERF.119
   (every start path uses it) comes after this umbrella.
-  Prerequisites: PERF.106, PERF.107, PERF.108. Related: PERF.86.
+  Prerequisites: PERF.107, PERF.108. Related: PERF.86.
 
 - [ ] **PERF.99 Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
@@ -14830,72 +14832,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merged (#2159).
   Prerequisites: DB.29. Related: PERF.86, PERF.29, PERF.30, DOC.20.
 
-- [ ] **PERF.106 The plan command on the run record, with stage timing, the killed-worker handler and job timeouts**
-  Split from PERF.98 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Move the stages of `planetgen
-  plan` onto run records, units and barriers as PERF.97 did for the mass
-  scatter: the skeleton as one unit, the phenomena and luminosity
-  scatters as static chunks (each scatter its own queue item, run in
-  order), and the other plan modes (`band`, `map-luminosity`,
-  `habitability`, `nebula-field`, the redo list). This first step also
-  adds what every later stage reuses: stage timing written into
-  `generation_stage_runs` and `generation_stats` by the unit that
-  completes the stage, `work_horse_killed_handler` marking the unit and
-  the run at once, and a real `job_timeout` (a multiple of the stage's
-  expected time) on every unit instead of -1. Done: `planetgen plan` in
-  every mode runs on the new queue and gives the same galaxy for the
-  same seed at any worker count; stage rows land in MySQL as today; a
-  hard-killed horse fails the run at once; no unit has `job_timeout` -1;
-  one test per mode.
-  Built-on note (Core 2, 2026-10-17, PERF.97 merged as #1999, about 5:20
-  AM EDT as the lane reported): the massive-star scatter runs as static
-  units on the Redis run record (payload_for is shared by the old and
-  the new queue; same stars at 1 and 4 workers and as the old queue).
-  The far-shell and component tasks of the scatter run as units too, and
-  a component unit reads its component from the database, so the other
-  scatters in this item take the same payload and unit shape.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 29 of 54). This replaces any earlier owner line on this item.
-  Order (Blocker/scheduler review of 2026-10-17, applied by the
-  coordinator at 10:41 AM EDT): Core 5 starts this item after Core 1's
-  GEN.401 merges, because the plan command and the queue chain edit
-  run_plan.py, cli/generate.py and web/generate_page.py, which GEN.401
-  is changing (Core 1 reported those as its files); Core 5's small items
-  fill the gap.
-  GEN.401 merged (#2051, Core 1, 12:50 PM EDT as the lane reported), so
-  the wait on it is over: Core 5 can take the item (the coordinator told
-  Core 5 at 12:51 PM EDT).
-  Boss, 2026-10-17, 4:12 PM EDT: every stage in this item is a command
-  registered with the wrapper of PERF.118, and the wrapper builds the
-  command list, each command is one queue item; the stages are not wired
-  in any other way.
-  Decided (Boss, 2026-10-17, 4:15 PM EDT): each scatter kind (mass,
-  luminosity, phenomena, nebula field, backfill and the rest) is its own
-  command with its own parameters, never one command that groups
-  scatters; see PERF.118.
-  Decided (Boss, 2026-10-17, 4:18 PM EDT): each command here does one
-  and only one thing and knows nothing of the other stages or the order;
-  the order lives only in the wrapper's step list (PERF.118).
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, and after the
-  GEN.401 merge (the item waited for it already); PERF.118 merged
-  (#2159).
-  Merged in part (Core 5, #2259, reported 11:32 AM EDT 2026-10-18 as the
-  lane reported; releases 8.0.1822 to 8.0.1825): slices 1 to 4 (the
-  phenomena scatter as units, the luminosity and band scatters as queue
-  commands, the plan skeleton command, and the stage timing,
-  killed-worker handler and unit time limits). Stage rows now come from
-  the unit that completes the stage. Commands registered so far:
-  plan-skeleton, scatter-mass, scatter-luminosity, scatter-band,
-  scatter-phenomena, fill-map-luminosity, clean-nebula-field and
-  draw-nebula-field; rescore-habitability is slice 5. Slice 5 (the fills
-  and the nebula field as commands) is the next PR, so this item stays
-  open.
-  Prerequisites: none. Related: PERF.98.
-
 - [ ] **PERF.107 The sector units and the stages around them: start, neighborhood, sectors, link, population and settle**
   Split from PERF.98 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). Move the `galaxy` command's
@@ -14922,7 +14858,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-17, 4:18 PM EDT): each command here does one
   and only one thing and knows nothing of the other stages or the order;
   the order lives only in the wrapper's step list (PERF.118).
-  Prerequisites: PERF.106. Related: PERF.98.
+  Prerequisites: none. Related: PERF.98.
 
 - [ ] **PERF.108 The backfill as queue units: chunks of at least 10,000 cells, one enumeration (folds in PERF.18)**
   Split from PERF.98 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -15075,7 +15011,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4 workers (a test that compares the stored rows), and the units are
   static chunks, not a work-stealing split, so a rerun gives the same
   chunks.
-  Prerequisites: PERF.106. Related: PERF.98, PERF.106.
+  Prerequisites: none. Related: PERF.98, PERF.106.
 
 - [ ] **PERF.117 The map-luminosity fill (`plan --map-luminosity`): measure it, and split it into id-range chunks if the time warrants**
   Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
@@ -15097,7 +15033,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4 workers (a test that compares the stored rows), and the units are
   static chunks, not a work-stealing split, so a rerun gives the same
   chunks.
-  Prerequisites: PERF.106. Related: PERF.98, PERF.106.
+  Prerequisites: none. Related: PERF.98, PERF.106.
 
 - [ ] **PERF.119 The Generate page, the API and the one-off sector and system commands start their runs through the wrapper**
   Boss, 2026-10-17, 4:12 PM EDT: "Rework so every part of the generate
@@ -15181,7 +15117,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shim; a test runs each command alone and the wrapper builds the old
   `plan` run as a step list that gives the same galaxy for the same
   seed. Owner: Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.106, PERF.120. Related: PERF.106, PERF.118,
+  Prerequisites: PERF.120. Related: PERF.106, PERF.118,
   PERF.120.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
@@ -15200,7 +15136,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   parameters (the batch size and the id range), registered with the
   wrapper, runnable alone, with the `plan` flags removed and no shim; a
   test runs each alone. Owner: Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.106, PERF.120. Related: PERF.106, PERF.116,
+  Prerequisites: PERF.120. Related: PERF.106, PERF.116,
   PERF.117, PERF.121.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
@@ -15335,7 +15271,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changes tile content, so the build is a step the wrapper lists after
   the generation commands, never a part of one). Owner: Core 2
   (proposed; the map and cache lane).
-  Prerequisites: PERF.130, PERF.131, PERF.132, PERF.133, PERF.134.
+  Prerequisites: PERF.131, PERF.132, PERF.133, PERF.134.
   Related: PERF.41, PERF.104, PERF.120, PERF.127, MAP.158, MAP.159,
   MAP.195, MAP.239.
   Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
@@ -15344,49 +15280,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that rule bumps the tile cache stamp and the cached tiles are rebuilt
   once. The galaxy map lag Boss reported at the same time is MAP.249; if
   its cause is the missing cache, this item is brought forward.
-
-- [ ] **PERF.130 Build the first several zoom levels of the Galaxy Map ahead of the first visitor: the opening view and every level down to a chosen depth**
-  Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
-  caching, so that we build out not only the initial galactic view but
-  all the normal zoom levels for that view that we can compress and
-  serve up to the client immediately on request. Basically I want to
-  build out tiles for the first several zoom levels and then I want to
-  build it so that system is proactive and when the user visits and zoom
-  level it builds and caches all the surrounding tiles and the next zoom
-  levels. Then it keeps them until the data changes." What exists (read
-  from main, 2026-10-17): `web/lib/tilecache.py` keeps packed tiles on
-  disk (`<cache dir>/<db>/<generation>/<tile>.bin`, the PGT1 format of
-  `tilepack.py`), answers `/galaxy/tiles` by joining stored bytes, and
-  keeps stage and window payloads the same way; freshness is the content
-  stamp plus `GET /api/galaxy/changes` (the `modified_at` columns, so
-  only the changed tiles are deleted, and a change that cannot be pinned
-  to tiles starts a new generation); `prune` deletes the least recently
-  written files above `tile_cache.max_mb`; the browser keeps its own
-  copy in IndexedDB (MAP.158); `web/warmup.py` warms only the opening
-  view's tiles and the galaxy stage; Apache compresses each response at
-  send time; the admin health block shows where the cache lives and its
-  size. Done: a command (its own command, one job, PERF.118 and
-  PERF.120) builds every tile and stage view of the first N levels of
-  the tile octree (`TILE_ROOT_EDGE_PC` down; N a named setting, default
-  chosen from the measured count and size on a real galaxy and written
-  in the PR) into the cache; it runs as a step the wrapper lists after
-  the generation commands and after an update (the family of PERF.127),
-  as chunks of tiles on the queue (PERF.118) and not in the web process,
-  with progress bars of what it will build; a second run builds nothing
-  that is current; a browser test opens the map at each built level and
-  finds every tile a cache hit. Owner: Core 2 (proposed).
-  Prerequisites: none. Related: PERF.129,
-  PERF.127, PERF.104, MAP.239.
-  Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
-  stored here are built with halo and satellite-galaxy stars ranked
-  below every other star, so a budget cut removes them first; landing
-  that rule bumps the tile cache stamp and the cached tiles are rebuilt
-  once. The galaxy map lag Boss reported at the same time is MAP.249; if
-  its cause is the missing cache, this item is brought forward.
-  Decided (Boss, 2026-10-18, tapped 'Both, cut payload first' on the
-  MAP.249 card at about 8:54 AM EDT, as the coordinator relayed): the
-  tile cache work follows MAP.249's payload cut, so it starts after Core
-  2's payload PR (about 2 MB a view) and is sized for the reduced tiles.
 
 - [ ] **PERF.131 Store the tiles compressed and serve the stored bytes with their encoding, so a request does no compression**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -15465,7 +15358,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   neighbours and the next level in the cache afterwards, and a second
   visitor to the same area causes no new build. Owner: Core 2
   (proposed).
-  Prerequisites: PERF.130, PERF.131. Related: PERF.129,
+  Prerequisites: PERF.131. Related: PERF.129,
   PERF.130, PERF.131.
   Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
   stored here are built with halo and satellite-galaxy stars ranked
@@ -15517,7 +15410,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that rule bumps the tile cache stamp and the cached tiles are rebuilt
   once. The galaxy map lag Boss reported at the same time is MAP.249; if
   its cause is the missing cache, this item is brought forward.
-  Prerequisites: PERF.130. Related: PERF.129, PERF.41, PERF.104.
+  Prerequisites: none. Related: PERF.129, PERF.41, PERF.104.
 
 - [ ] **PERF.134 The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -15547,7 +15440,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of the first levels now, each through the command of PERF.130 and with
   the confirmation the other admin actions use; the actions are in the
   admin log; a test per action. Owner: Core 2 (proposed).
-  Prerequisites: PERF.130, PERF.133. Related: PERF.129, PERF.130,
+  Prerequisites: PERF.133. Related: PERF.129, PERF.130,
   PERF.133.
   Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
   stored here are built with halo and satellite-galaxy stars ranked
@@ -19725,6 +19618,22 @@ clears each one.
   fixture-setup stall as the crumbs and web edit menu cases above, so
   the family now covers three modules. Frequency: 2 of 3 gates of Core
   3.
+  Sighting (Core 2, reported about 3:25 PM EDT 2026-10-18 on the lane's
+  clock; its PERF.130 gate, 1:15 to 2:54 PM EDT, load 7.2):
+  `test_web_generate_alignment.py::test_text_boxes_line_up` had 12 setup
+  errors (web.generate and web.generate_system at 390, 820 and 1280,
+  light and dark) and every one passes alone. The same fixture-setup
+  stall under load as the web edit menu, crumbs and layout cases above,
+  so the family now covers four modules. Frequency: 1 of 1 gates of Core
+  2. It goes with Bug Hunt's setup fix. Core 2 also saw
+  `test_workers.py::test_a_batch_of_jobs_starts_no_more_workers_than_wanted_and_not_twice`
+  and
+  `::test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs`
+  fail in that gate (both pass alone): its gate started at 1:15 PM EDT,
+  before Core 5's fix #2267 (merged 1:27 PM EDT; TEST.250 retired), so
+  these two are most likely TEST.250's cause (the shared inline queue
+  context undoing its patches in the wrong order) and need no new item;
+  if either fails again on a tree that carries #2267, file it then.
   Prerequisites: none. Related: TEST.227, TEST.235.
 
 - [ ] **TEST.252 test_a_double_click_on_a_star_flies_the_camera_to_it fails once in a loaded gate and passes alone (bug)**
@@ -19787,6 +19696,36 @@ clears each one.
   on this item and the test passes 30 of 30 fresh draws. Owner: Bug Hunt
   (proposed).
   Prerequisites: none. Related: TEST.253.
+
+- [ ] **TEST.255 test_workers: two real-Redis worker tests fail in loaded gates and pass alone, again after TEST.250's fix (bug)**
+  Found by Core 2 (reported about 3:25 PM EDT 2026-10-18 on the lane's
+  clock; its PERF.130 gate, 1:15 to 2:54 PM EDT, load 7.2) and Blocker 1
+  (reported about 3:34 PM EDT; its GEN.590 gate), filed by the TODO
+  thread.
+  `src/tests/test_workers.py::test_a_batch_of_jobs_starts_no_more_workers_than_wanted_and_not_twice`
+  and
+  `::test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs`
+  failed in both gates and pass alone (3 of 3 runs, about 18 s, on an
+  idle current main at 3:40 PM EDT). Failure text not relayed. TEST.250
+  (retired) had the same two tests failing from the shared inline queue
+  context; its fix #2267 merged 1:27 PM EDT, after Core 2's gate
+  started; whether Blocker 1's tree carried it is not known (its branch
+  merged main at 3:19 PM EDT). Likely cause (inferred, not checked): the
+  two tests use the one real Redis and fixed keys (`workers.WANTED_KEY`,
+  `api_jobs.QUEUE_NAME`) that every gate in the shared environment also
+  uses, so two gates running together delete each other's wanted-worker
+  key or run each other's jobs; the killed-worker case also waits only
+  10 s for a SIGKILLed process under load. Fails on main: not shown,
+  passes alone. Frequency: 2 of 2 gates that ran beside another gate.
+  Reproducer: run `scripts/test.py changed` while a second gate runs in
+  the same environment, or loop the two tests while a second pytest
+  process runs the same file. Do: get the failure text from Core 2's
+  `.test-failures.jsonl`, confirm whether the key collision is the
+  cause, and give each run its own queue name and wanted key (or a Redis
+  database per run); no quarantine. Done: the cause is on this item and
+  both tests pass 20 of 20 runs with a second run of the same file
+  beside them. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.250, TEST.254.
 
 ## USR: User accounts
 

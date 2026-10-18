@@ -43,12 +43,11 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| PERF.130 | Build the first several zoom levels of the Galaxy Map ahead of the first visitor: the opening view and every level down to a chosen depth |  | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
 | PERF.131 | Store the tiles compressed and serve the stored bytes with their encoding, so a request does no compression |  | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
-| PERF.132 | Build proactively on a visit: the surrounding tiles and the next zoom levels are built and cached in the background | PERF.130, PERF.131 | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
-| PERF.133 | Keep every tile until the data changes: invalidate by what changed, rebuild what a change touched, and never evict a valid tile for size | PERF.130 | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
-| PERF.134 | The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions | PERF.130, PERF.133 | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
-| PERF.129 | Robust tile caching: the first zoom levels built ahead, tiles stored compressed, built proactively around every visit, kept until the data changes | PERF.130, PERF.131, PERF.132, PERF.133, PERF.134 | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
+| PERF.132 | Build proactively on a visit: the surrounding tiles and the next zoom levels are built and cached in the background | PERF.131 | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
+| PERF.133 | Keep every tile until the data changes: invalidate by what changed, rebuild what a change touched, and never evict a valid tile for size |  | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
+| PERF.134 | The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions | PERF.133 | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
+| PERF.129 | Robust tile caching: the first zoom levels built ahead, tiles stored compressed, built proactively around every visit, kept until the data changes | PERF.131, PERF.132, PERF.133, PERF.134 | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
 
 ## Phase 2: What a signed-in user gets
 

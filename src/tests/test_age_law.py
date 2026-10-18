@@ -17,6 +17,7 @@ from planetgen.generation import bright_stars, star_population
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import stellar_evolution
 from planetgen.util import draw
+from tests.toy_shape import toy_shape
 
 
 def _shape(stellar_mass):
@@ -187,7 +188,7 @@ def test_the_mass_band_draw_and_its_fraction_use_the_law():
     assert np.mean([star["age_gy"] for star in young]) < np.mean([star["age_gy"] for star in old])
 
 
-TOY_SHAPE = density.build_galaxy_shape(
+TOY_SHAPE = toy_shape(
     disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0, bulge_amplitude=2.0, arm_count=2,
     pitch_angle_rad=math.radians(15), arm_amplitude=0.4)
 EDGE_PC = 9.2
