@@ -22,7 +22,7 @@ The paper's scatter is its measurement scatter, not a spread of the objects, so 
 ## Where it shows
 
 - **A free-floating brown dwarf** (the `brown-dwarf` fill kind, 0.03 per pc^3, which is 0.21 per star against the census's
-  "1 per 4.7") takes its mass from the census mass function, draws its age, and takes its radius and temperature from the track at that age. Its page names its type
+  "1 per 4.7") takes its mass from the census mass function, draws its age as a star does, and takes its radius and temperature from the track at that age. The age (GEN.553) is the age window of the population the sector fill gives it from its place's mix, spread by that population's star formation rate (`galaxy.age_law`); made without a place it has the whole disk's window, 0 to 10 Gy. Its page names its type
   ("a free-floating T5 brown dwarf", header "Rogue Brown Dwarf, Type T5"). The type is read from the stored effective
   temperature, so there is no new column. It is its own system; its companion (15% of brown dwarfs are in pairs) is
   GEN.275's.
