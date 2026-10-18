@@ -175,6 +175,8 @@ def pytest_collection_modifyitems(config, items):
     - `generation`: files that run generation (`generate`, the work queue
       or `bughunt_support.run_cli`), which CI also runs at several worker
       counts (TEST.74).
+    - `globaldocs`: a test that compares a generated global document with its source; skipped unless
+      `PLANETGEN_GLOBAL_DOCS=1` (DOC.69).
     - `heavy`: the files that took over 100 s each in the 2026-10-14
       baseline (`tests/areas.py`); `scripts/test.py quick` leaves them out.
     - `area_<name>`: the part of planetGen a file covers (`tests/areas.py`),
@@ -185,6 +187,9 @@ def pytest_collection_modifyitems(config, items):
         fixturenames = getattr(item, "fixturenames", ())
         if "mysql_config" in fixturenames or "_mysql_server_available" in fixturenames:
             item.add_marker(pytest.mark.db)
+        if item.get_closest_marker("globaldocs") and not os.environ.get("PLANETGEN_GLOBAL_DOCS"):
+            item.add_marker(pytest.mark.skip(reason="a global document's freshness is the TODO thread's: "
+                                                    "PLANETGEN_GLOBAL_DOCS=1 or scripts/test.py --global-docs (DOC.69)"))
         if item.get_closest_marker("budget") and not os.environ.get("PLANETGEN_BUDGET"):
             item.add_marker(pytest.mark.skip(reason="the big-galaxy query budget is opt-in: scripts/test.py budget (TEST.133)"))
         name = item.path.name

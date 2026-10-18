@@ -11,6 +11,8 @@ Every note in this folder, with what it is about and where it stands. The status
 
 A note's own status line, at its top, is the authority; this page only points at it. A test (`src/tests/test_docs_links.py`) fails when a note here is missing from this page. The architecture of the whole program is [architecture.md](architecture.md); the decisions behind it are in [design-decisions.md](design-decisions.md).
 
+**Standing rule for downloaded data (Boss, 12:47 AM EDT on 2026-10-18):** Downloads of static files take place at setup (the step `update.sh` runs, into a cache folder outside the repository) unless the data needs to be constantly updated; any code that fetches data at run time must say in its design why the data needs constant updates (Boss, 12:47 AM EDT on 2026-10-18, project chat, as the coordinator relayed). The shared step is GEN.548; the rule and its offline test design are in [gap-filling-plan.md](gap-filling-plan.md) section 6.5.
+
 ## The whole program
 
 | Note | What it covers | Status |

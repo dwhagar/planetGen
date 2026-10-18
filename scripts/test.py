@@ -10,6 +10,7 @@ Picks and runs a slice of the test suite (TEST.139, docs/design/test-suite-rebui
     scripts/test.py full                  everything: the merge gate; also refreshes the map `changed` reads
     scripts/test.py full --check          ... and lists failing tests `changed` would not have selected
     scripts/test.py full -- -x -k login   anything after `--` goes to pytest as it is
+    scripts/test.py <command> --global-docs  also the freshness tests of the generated global documents (TODO's and the stamp's)
     scripts/test.py <command> --resume    continue an earlier run: skip the tests that passed in it (same build) or in
                                           an earlier run whose environment is the same and whose files that test
                                           used have not changed since (TEST.208)
@@ -346,6 +347,9 @@ def main(argv=None):
                         "automatic; the last line says the run was resumed)")
     parser.add_argument("--check", action="store_true",
                         help="for `full`: list the failing tests `changed` would not have selected")
+    parser.add_argument("--global-docs", action="store_true",
+                        help="also run the tests that compare the generated global documents with their sources "
+                        "(PLANETGEN_GLOBAL_DOCS=1; the TODO thread's and the release stamp's, DOC.69)")
     argv = sys.argv[1:] if argv is None else list(argv)
     extra = []
     if "--" in argv:  # everything after `--` is pytest's, whatever it looks like
@@ -360,6 +364,8 @@ def main(argv=None):
         parser.error(f"`{args.command}` takes no areas")
     if args.check and args.command != "full":
         parser.error("`--check` goes with `full`")
+    if args.global_docs:
+        os.environ["PLANETGEN_GLOBAL_DOCS"] = "1"
     extra = depmap_options(args.command, args.base, args.check) + extra
 
     key = args.command + (" " + " ".join(args.areas) if args.areas else "")

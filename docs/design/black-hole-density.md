@@ -1,6 +1,27 @@
 # Black hole density: metallicity-dependent (GEN.567, design for GEN.563)
 
-Status: plan, the seven cards (BH1 to BH7 = Cards 1 to 7 below) were open at 12:14 AM EDT, 2026-10-18 (as the coordinator reported); the recommended options stand in the text until Boss's taps are recorded here. Written at 12:13 AM EDT, 2026-10-18 (as the design lane's container clock reported) by a read-only design thread (no code). Inputs: `docs/design/black-hole-formation-sources.md` (GEN.560, verified; the handoff copy is `/mnt/project-files/handoffs/gen560-black-hole-formation-2026-10-18.md`), the rate sites read on main at 0c27fd8, and the numbers computed below (own computation, reproducible with the generator's own IMF and `population_densities`). Items: GEN.567 (this note), GEN.563 (the code).
+Status: plan (decided). Boss answered the seven cards BH1 to BH7 (= Cards 1 to 7) at 12:33 to 12:35 AM EDT on 2026-10-18 (as the design lane reported; the Decisions table below), six on the recommended option and card 5 on the cap, which overrides the widest verified range. Written at 12:13 AM EDT, 2026-10-18 (as the design lane's container clock reported) by a read-only design thread (no code). Inputs: `docs/design/black-hole-formation-sources.md` (GEN.560, verified; the handoff copy is `/mnt/project-files/handoffs/gen560-black-hole-formation-2026-10-18.md`), the rate sites read on main at 0c27fd8, and the numbers computed below (own computation, reproducible with the generator's own IMF and `population_densities`). Items: GEN.567 (this note), GEN.563 (the code).
+
+## Decisions (Boss's taps on the seven cards, 12:33 to 12:35 AM EDT, 2026-10-18)
+
+| Card | Answer | Tapped |
+|---|---|---|
+| 1 range and draw | Widest range, two ordered draws per galaxy (recommended) | 12:33 AM EDT |
+| 2 shape | Linear in Z, held at the solar value above solar (recommended) | 12:33 AM EDT |
+| 3 birth [Fe/H] | No, density only; GEN.553 draws it in 8.4 (recommended) | 12:33 AM EDT |
+| 4 intermediate-mass holes | Hold today's rate, 1.5e-9 per star (recommended) | 12:34 AM EDT |
+| 5 neutron star plus black hole budget | **Cap f so the sum fits (not the recommended option; see the cap below)** | 12:34 AM EDT |
+| 6 mass law | Leave it for GEN.553 and GEN.554 in 8.4 (recommended) | 12:34 AM EDT |
+| 7 mass islands | Record them for GEN.554 (recommended) | 12:35 AM EDT |
+
+**The cap (card 5).** Per galaxy, `f_cap = 1 - NS_formed / IMF_SHARE`, where `NS_formed` = the neutron star rate per star (5.6e-4 / 0.14 = 4.0e-3) times (1 + the galaxy's neutron star unbound share, `ejecta_field.unbound_fraction("neutron-star", seed)`, drawn from the seed in 0.2 to 0.4). So `f_cap` is 12.1% to 24.7% depending on that share. The draws of section 2 become:
+
+```
+f_sun ~ U(0, min(0.45, f_cap))
+f_low  = max( min( U(0.15, 0.32), f_cap ), f_sun )
+```
+
+so neutron stars plus black holes formed never exceed the stars of 8 to 150 Msun in any galaxy (the sum reaches exactly 100% only when f_low = f_cap). Order dependency: the black hole draw reads the neutron star unbound share, so that draw comes first; both are pure functions of the galaxy seed. A later change of the neutron star rate (GEN.554) moves the cap with it; nothing else changes. Effect over 300,000 sampled draws (own computation, solar-circle mix, default galaxy of 2.953e11 systems): holes range from 0.5 to 3.1 times today's 1.5e8, mean 1.5 times (2.2e8), instead of 0.6 to 5.6 times and mean 3.1 times uncapped. **Consequence for the sources:** the cap overrides the widest verified range: solar values above 25% (Sukhbold's 26 to 45%) and metal-free values above the cap (Ebinger's up to 32%) are never reached; label the cap "derived" and the truncated ranges "verified, cut by the budget" in the registry. At the cap every massive star becomes a neutron star or a black hole, leaving none for other fates; GEN.554 may want a margin.
 
 Boss's decision (11:51 PM EDT, 2026-10-17, GEN.563 card): the black hole density is **metallicity-dependent**, replacing `PHENOMENON_DENSITY_PC3["black-hole"] = 7e-5` per pc^3. Neutron stars are untouched.
 
@@ -36,7 +57,7 @@ Sourced anchors (all from GEN.560, section 3 and the table in 4; the share is of
 
 Observations (Neustadt 2021: 0.16, 90% interval 0.04 to 0.39; Byrne and Fraser 2022: upper limits 0.23 to 0.61) exclude nothing in these windows except the last few points of 45% against Neustadt's 90% upper edge.
 
-Design: two numbers per galaxy, drawn once from the galaxy seed (the precedent is `ejecta_field.unbound_fraction`, a seeded draw per galaxy; the galaxy laws table of GEN.368 is where they are listed), each uniform over its widest verified range because only the range is known:
+Design (Card 1 and Card 5 decided; the draws below are the uncapped ranges, the Decisions block shows them with the cap applied): two numbers per galaxy, drawn once from the galaxy seed (the precedent is `ejecta_field.unbound_fraction`, a seeded draw per galaxy; the galaxy laws table of GEN.368 is where they are listed), each uniform over its widest verified range because only the range is known:
 
 ```
 f_sun ~ U(0, 0.45)       (solar-metallicity failed-supernova share)
@@ -113,7 +134,7 @@ About 10 functions in 5 files (`tuning`, `phenomenon_scatter`, `phenomenon_reach
 
 **Neutron star budget.** Neutron stars are untouched, and the code reads their rate as the formed count: bound at 4.0e-3 per star and ejected on top at 20 to 40% (`ejecta_field.unbound_count`), i.e. 0.48 to 0.56% of stars, against 0.637% of stars born with 8 to 150 Msun. Formed neutron stars plus formed black holes cannot exceed the massive stars, which leaves room for f of only 25% (ejection 20%) down to 12% (ejection 40%); over the draws, the sum overshoots the massive stars in 47% of galaxies at 20% ejection, 65% at 30% and 85% at 40% (widest range; with the newest-only range 0%, 37% and 92%), by up to 0.21% of stars at the top (45% x 0.637% + 0.56% = 0.85%, 1.3 times the budget). The inconsistency exists in the current constants (neutron stars were tuned to the observed bound count, not to the mass function); the black hole range just makes it visible. GEN.554 ("remnant counts follow from the mass function and the star formation history") is the item that reconciles them.
 
-### Card 5: the budget
+### Card 5: the budget (decided: cap f; the recommended option below was not the one chosen)
 - **Leave it, register the gap, add a report test (recommended).** The gap registry (section 6 of `gap-filling-plan.md`) lists "neutron star plus black hole budget exceeds the massive-star share in about half to two thirds of galaxy draws; reconciled in GEN.554"; a test prints the overshoot and fails only if it grows. Consequence: follows both of Boss's decisions (widest range, neutron stars untouched); no galaxy is blocked.
 - **Cap f so the sum fits.** f_cap = 1 - NS_formed / IMF_SHARE (37% with no ejection, 12 to 25% with ejection). Consequence: the sum can never exceed the massive stars, but it cuts the sourced upper range and ties the black hole density to the neutron star one, against the widest-range rule.
 
@@ -140,13 +161,13 @@ The islands (which progenitor masses fail: from about 20 Msun, mostly failure ab
 - **T4 (the old constant is a target that shows the gap).** `f = 7.8%` reproduces 7e-5 per pc^3 at the reference density 0.14 (per star 5.0e-4); the new middle is reported as a multiple of it; the test asserts 7e-5 lies inside the new range and prints the ratio at the three places.
 - **T5 (ejecta).** Bound plus ejected equals the galaxy total formed; ejected = 2% of it.
 - **T6 (bound).** The `check` flag of `_group_rows` raises on no group in a galaxy with the lowest and highest draws.
-- **T7 (draw).** Over 1,000 seeds f_sun stays in 0 to 45%, f_low in 15 to 45%, f_low >= f_sun, and a seed reproduces its pair.
+- **T7 (draw).** Over 1,000 seeds f_sun stays in 0 to min(45%, f_cap), f_low >= f_sun, f_low <= max(f_cap, f_sun), f_cap lies in 12.1% to 24.7%, and a seed reproduces its pair.
 - **T8 (intermediate-mass holes, if card 4 recommended).** Their count in the default galaxy stays at about 440.
-- **T9 (budget report).** The NS plus BH overshoot over the seed sweep is printed and bounded (card 5).
+- **T9 (budget cap).** Over the seed sweep, neutron stars formed plus black holes formed is at most the 8 to 150 Msun share of stars in every galaxy, and equals it only where f_low = f_cap; the galaxy's black hole count stays between 0.5 and 3.1 times the old constant.
 
 ## 8. What goes into the one wiped GEN.301 rescatter
 
-- The black hole scatter rows (stellar-mass and intermediate-mass classes): counts change by the draw (0.6 to 5.6 times today's), positions follow `sum w_p C_p F_p`. Every scatter class's rows are redrawn once because of the per-class streams.
+- The black hole scatter rows (stellar-mass and intermediate-mass classes): counts change by the draw (0.5 to 3.1 times today's with the budget cap), positions follow `sum w_p C_p F_p`. Every scatter class's rows are redrawn once because of the per-class streams.
 - Below-cut black holes in every sector's fill (stage `BELOW_CUT`) and the rolled black holes of standalone sectors: the sector stream's draw count changes; **generator epoch bump** (the next free number in `src/tests/golden/epochs.json`; one pending epoch rides until a release stamps it) and the golden digest changes. No schema change unless card 3's second option is chosen (then one Alembic revision, next free at merge, with the others).
 - Ejecta (`SectorProfile.ejecta` mean counts for black holes) change with the galaxy total.
 - Black hole masses: **unchanged** under the recommended card 6; a second pass in 8.4 if it is left.
@@ -163,7 +184,7 @@ The islands (which progenitor masses fail: from about 20 Msun, mostly failure ab
 | anchor at the -3.5 clamp for Ebinger's 1e-4 solar ([Fe/H] about -4) | derived (a small shift) |
 | C_young 0.79, 1/(1 - IMF_SHARE) | derived |
 | RETAIN 0.98 | verified through a secondary note, primary not opened |
-| neutron star plus black hole budget | open gap, GEN.554 |
+| budget cap f_cap = 1 - NS_formed / IMF_SHARE (12.1% to 24.7%) | derived; it cuts the verified ranges (Boss, card 5); GEN.554 revisits it when the neutron star rate follows the mass function |
 | generic cluster and satellite peaks in the scatter's array path | stand-in (the sector profile uses the exact component peaks) |
 
 Not verified here (carry to GEN.563 or GEN.554): the primary paper behind the 2% retention (Sweeney et al.); Luo 2025, Zapartas 2021, Patton and Sukhbold 2020 are abstract-level in GEN.560; Maltsev 2025 has no IMF map in the text read; whether Sukhbold's four calibrations and Ebinger's two are independent enough to treat their ranges as additive evidence (they are not independent physics, GEN.560 section 3).

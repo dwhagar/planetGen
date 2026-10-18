@@ -838,3 +838,6 @@ Baseline: PR #1817.
 | GEN.438 | 8.1 | Composition tables |
 | GEN.532 | 8.1 | Galaxy laws build |
 | GEN.533 | 8.1 | Galaxy laws build |
+| GEN.567 | 8.1 | Composition research and design |
+| MAP.243 | 8.1 | Interface update |
+| DOC.69 | 8.1 | Docs |

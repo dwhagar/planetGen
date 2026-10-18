@@ -35,9 +35,10 @@ def _page():
         return handle.read()
 
 
+@pytest.mark.globaldocs
 def test_the_page_lists_every_module_of_the_package(collected):
     problems = amap.module_problems(_page(), collected)
-    assert not problems, "\n".join(problems) + "\nrun python scripts/build_architecture_map.py"
+    assert not problems, "\n".join(problems) + "\nthe TODO thread runs python scripts/build_global_docs.py"
 
 
 def test_a_new_test_module_needs_no_regeneration(collected):
@@ -116,6 +117,7 @@ def test_a_flow_naming_a_function_that_is_gone_fails_the_build(monkeypatch, coll
         amap.build_data(collected)
 
 
+@pytest.mark.globaldocs
 def test_the_check_command_reports_a_stale_module_list(tmp_path, monkeypatch, capsys):
     stale = tmp_path / "architecture-map.html"
     stale.write_text(_page().replace('"name":"planetgen.tuning"', '"name":"planetgen.tuning_old"'), encoding="utf-8")
