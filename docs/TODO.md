@@ -19643,6 +19643,15 @@ clears each one.
   Sighting (Core 2, 2026-10-17, 9:31 PM EDT as the lane reported;
   MAP.239's gate 2): `test_galaxy_map_free_camera_from_a_window_down`
   failed in the gate (call 136 s, load 10.3) and passes alone.
+  Sighting (Core 2, MAP.247's first full gate, 12:58 to 2:57 AM EDT
+  2026-10-18 as the lane reported):
+  `test_galaxy_map_forward_to_current_jumps_to_the_newest_view` failed
+  again, passing alone, with the breadcrumb 'Block 391·61·772 (9)' where
+  the test expected 'Block 385·48·772 (9)' after Current (a different
+  address from the one the test jumped to, so the page did not land on
+  the newest view). This is the same shape as TEST.236's second symptom
+  (a block address one step off), which suggests one shared cause in how
+  the breadcrumb or the stored view is updated, not load alone.
   Prerequisites: none. Related: TEST.213, TEST.194.
 
 - [ ] **TEST.224 `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed once in a full gate: the nested system's inside_nebula_id was None (bug)**
@@ -19916,6 +19925,17 @@ clears each one.
   negative band drawn in the sample galaxy), failure text not sent;
   unconfirmed. Fixed on Bug Hunt's branch bughunt-test225 once that PR
   merges.
+  Second symptom (Core 2, MAP.247's first full gate, 12:58 to 2:57 AM
+  EDT 2026-10-18 as the lane reported, relayed at 3:56 AM EDT):
+  `test_galaxy_map_drill_down_by_clicks` failed with a DIFFERENT text
+  from the negative-band regex above: the breadcrumb read 'Block
+  130·22·257 (27)' where the test expected 'Block 130·20·257 (27)' after
+  the second Back. Core 2 ran it again on plain main at idle load 4.7
+  and it failed 1 of 2, so this one fails on main without load, which
+  the regex cause does not explain (a regex rejection would not produce
+  a different block address). Bug Hunt should read the failing assertion
+  before the TEST.225 PR retires this item; if the crumb mismatch
+  persists after the `-?` fix it needs its own item.
   Prerequisites: none. Related: TEST.172, TEST.202.
 
 - [ ] **TEST.237 The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug)**
