@@ -1025,7 +1025,8 @@ STELLAR_WD_POLLUTED_SHARE = (0.25, 0.50)
 STELLAR_NS_MASS_GAUSSIANS = (("slow", 1.49, 0.19), ("recycled", 1.54, 0.23))
 """tuple: `(population, mean, sigma)` of the observed neutron-star masses in solar masses."""
 STELLAR_NS_MASS_FLOOR_SOL = 1.17
-STELLAR_NS_MASS_HEAVIEST_SOL = (2.35, 0.17)
+STELLAR_NS_MASS_HEAVIEST_SOL = 2.35
+STELLAR_NS_MASS_HEAVIEST_SIGMA_SOL = 0.17
 STELLAR_NS_MAXIMUM_NONROTATING_MASS_SOL = (2.01, 2.16)
 STELLAR_NS_RADIUS_BAND_KM = (11.6, 13.1)
 """tuple: The hull of Miller et al. 2021's 1-sigma radii at 1.4 and 2.08 solar masses; nearly mass independent, not a cap

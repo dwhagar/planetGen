@@ -365,7 +365,7 @@ def test_the_neutron_star_constants_and_outer_crust():
     low, high = tuning.STELLAR_NS_RADIUS_BAND_KM
     assert (low, high) == (11.6, 13.1) and low < 12.45 < high, "Miller 2021's R(1.4)"
     assert tuning.STELLAR_NS_MASS_FLOOR_SOL < tuning.STELLAR_NS_MAXIMUM_NONROTATING_MASS_SOL[0]
-    assert tuning.STELLAR_NS_MASS_HEAVIEST_SOL == (2.35, 0.17)
+    assert (tuning.STELLAR_NS_MASS_HEAVIEST_SOL, tuning.STELLAR_NS_MASS_HEAVIEST_SIGMA_SOL) == (2.35, 0.17)
     # Mean density of example K: 1.36 solar masses within 12.45 km is 1.22 times saturation.
     mean_density = 3 * 1.36 * 1.98841e33 / (4 * math.pi * (12.45e5) ** 3)
     assert mean_density / sa.NUCLEAR_SATURATION_DENSITY_G_CM3[0] == pytest.approx(1.22, rel=0.03)
