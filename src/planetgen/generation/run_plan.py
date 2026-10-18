@@ -1839,7 +1839,7 @@ def build_nebula_field(args, conn, skeleton, extents, progress):
     """
     mysql_config = store.mysql_config_from_args(args)
     workers = run_common._worker_count(args)
-    step = commands.Step(NEBULA_DRAW_KEY, "draw-nebula-field", "Nebula field",
+    step = commands.Step(NEBULA_DRAW_KEY, commands.KIND_OF_STAGE[NEBULA_DRAW_KEY], "Nebula field",
                          {"database": wrapper.database_args(mysql_config), "workers": workers})
     store.clear_nebula_field(conn)
     written = [0]

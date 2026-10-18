@@ -168,7 +168,7 @@ KIND_OF_STAGE = {
     "mass": "scatter-mass", "skeleton": "plan-skeleton", "phenomena": "scatter-phenomena",
     "luminosity": "scatter-luminosity", "backfill": "scatter-backfill", "band": "scatter-band",
     "map-luminosity": "fill-map-luminosity", "habitability": "rescore-habitability",
-    "nebula-field": "clean-nebula-field", "start": "generate-start-sector", "neighborhood": "generate-neighborhood",
+    "nebula-field": "clean-nebula-field", "nebula-draw": "draw-nebula-field", "start": "generate-start-sector", "neighborhood": "generate-neighborhood",
     "sectors": "generate-sectors", "link": "link-neighbours", "population": "run-population",
     "settle": "settle-sector-paths",
 }

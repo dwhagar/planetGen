@@ -423,7 +423,8 @@ def test_the_phenomena_scatter_gives_the_same_rows_at_any_worker_count_and_recor
     one = _scatter_phenomena(mysql_config, 1)
     assert len(one) > 50
     conn = redisqueue.connect()
-    assert [step["kind"] for run in runs for step in runrecord.read_steps(conn, run)] == ["scatter-phenomena"]
+    assert [step["kind"] for run in runs for step in runrecord.read_steps(conn, run)] == [
+        "scatter-phenomena", "draw-nebula-field"]
     run = runrecord.read_run(conn, runs[0])
     assert run["state"] == "done" and run["stages"][0]["done"] == run["stages"][0]["units"] > 1
     monkeypatch.setattr(wrapper, "run", real)
