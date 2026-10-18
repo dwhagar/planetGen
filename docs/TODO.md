@@ -8077,7 +8077,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fails when a gas named anywhere in the code is missing from the table;
   every number has a source.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Prerequisites: GEN.438. Related:
+  Prerequisites: none. Related:
   GEN.208,
   GEN.85,
   GEN.355, GEN.411, GEN.415, DB.71.
@@ -8991,7 +8991,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   phase, the envelopes) with the source and licence column of the F5
   rule, so the bulk recipes of GEN.428 and the taxon rows of GEN.457
   draw only among the materials a class can hold.
-  Prerequisites: GEN.438. Related:
+  Prerequisites: none. Related:
   GEN.410,
   GEN.428.
   Boss (2026-10-17, 1:47 AM EDT, typed in the body composition thread):
@@ -9316,78 +9316,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the drawn mixture and the class label becomes a summary derived from
   it.
 
-- [ ] **GEN.438 One table of the elements and their isotopes: atomic data and the radioactive isotopes' half-lives and decay energies**
-  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
-  "atmosphere composition and planet/moon/star/everything composition is
-  going to be the joint headline of v9.0 ... we need to know the
-  compounds, minerals, and such make up both atmospheres and stellar
-  bodies of all sorts, what is there and all the stats needed to include
-  it in our calculations. The idea is that every body will have figures
-  on its composition based on actual science and not made up where we
-  can avoid it. I'm perfectly ok with drawing the density and other
-  figures we draw now and then filling in compositions that fit that
-  designation. That is perfectly fine, or we can pick the most basics
-  and build either way works." Plan note:
-  docs/design/composition-model.md. A constants module for the elements
-  that matter (atomic number, symbol, molar mass, and the stable and
-  long-lived radioactive isotopes with their half-lives, decay energies
-  and decay chains: potassium-40, thorium-232, uranium-235 and -238,
-  aluminium-26 and the rest the research lists), the one table the gas,
-  materials and stellar tables take their molar masses from, and the
-  ground's radiogenic heat and dose read. Atomic physics only; no
-  abundance pattern lives here. Done: a test checks the molar mass of
-  every compound in the gas and materials tables against the sum of its
-  elements; every number has a source.
-  Owner: Blocker 1 (Boss, 2026-10-17, 6:01 PM EDT, typed in the project
-  chat: "I want Blocker 1 to set itself up with PERF.118, GEN.438, and
-  GEN.440", after GEN.314 merges; it was proposed for Core 4 and never
-  started there; Core 4 confirmed at about 6:10 PM EDT, as the lane reported, that it has not started it).
-  Part F of the Body composition research lane
-  (docs/design/body-composition-parts/F-boss-note-check.md; 2026-10-17,
-  1:28 AM EDT as the lane reported; checks Boss's research note of 1:22
-  AM EDT), filed by the TODO thread. Item F5: every data file the loader
-  reads (NIST, PubChem and USGS public domain; published compilations
-  with a citation) states its source and licence, and the loader refuses
-  a row without one; the licence question of the cross-section files
-  (Mainz, Serdyuchenko, Heays 2017, Huebner 2015) is closed (Boss, 2:35 PM
-  EDT: every acquired paper and dataset is usable; was master
-  section 6 item 13 of docs/design/atmosphere-composition.md).
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): the element table is a constants table, not a draw: it
-  has no weights and no class gate (it gains the source and licence
-  columns of the format); the weights that use it are the abundance rows
-  of GEN.439 and the recipes above it, which is why it is not a
-  possibility table itself.
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/atmosphere-composition.md and section 15 of docs/design/body-composition-research.md say what held): the dataset licence table
-  (see GEN.410) for the licence column.
-  Prerequisites: none. Related: GEN.410, GEN.427, GEN.439,
-  GEN.444.
-  Checked by the Body composition research lane against Boss's second
-  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
-  of docs/design/body-composition-research.md; the earlier 'awaiting
-  verification' note on this item is superseded for the body-related
-  claims): (part G4) licences: NIST SRD is copyrighted, JPL 19-5 is not
-  public domain, only the 2013 Mainz snapshot states CC BY 4.0, Leiden,
-  Bremen and Karkoschka state none; the licence column is mandatory (it
-  takes 'open' where none is found) and the audit (GEN.500) was removed by
-  Boss (2:35 PM EDT).
-  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/composition-model.md. Approved by Boss as recommended
-  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
-  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
-  Decided (Boss, 2026-10-17, 2:35 PM EDT, typed in the project chat,
-  GEN.500 removed): every paper and dataset Boss acquired was obtained
-  legally and is usable, so no licence audit gates this table and no
-  permission list is needed. The raw papers and downloaded datasets stay
-  out of the public repository and are never redistributed or sold; the
-  research results and the values derived from them are fine to publish,
-  and the program stays free forever. The source and licence column
-  stays as a record; write 'open' where none is found (the loader of
-  GEN.472 already accepts that).
-
 - [ ] **GEN.439 The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -9437,7 +9365,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that comes from its relation's source with the scatter stated; the
   weights of the rows that pass add up to 100 percent and a row without
   a source is `open`.
-  Prerequisites: GEN.438. Related: GEN.440,
+  Prerequisites: none. Related: GEN.440,
   GEN.428.
   Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
   answers relayed in words by the coordinator;
@@ -9825,7 +9753,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stated tolerance, the Moon and Mars the measured values, an airless
   ice moon almost no radiogenic dose; a test fails when a proxy comes
   back.
-  Prerequisites: GEN.443, GEN.441, GEN.438, GEN.453, GEN.459, GEN.478.
+  Prerequisites: GEN.443, GEN.441, GEN.453, GEN.459, GEN.478.
   Related:
   GEN.445,
   GEN.256, GEN.317, GEN.87, GEN.453.
@@ -10653,7 +10581,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tolerance (as test targets, not presets), that heat and ground dose of
   one body read the same concentrations, and that the old constants are
   gone. Owner: Core 4 (proposed, with the composition chain).
-  Prerequisites: GEN.428, GEN.438. Related: GEN.427, GEN.428, GEN.438,
+  Prerequisites: GEN.428. Related: GEN.427, GEN.428, GEN.438,
   GEN.440, GEN.442, GEN.444, GEN.441, DB.69.
   Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
   composition thread and routed by the coordinator to the Atmosphere
@@ -13242,147 +13170,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   visible (four equivalent widths read from a figure), water in the
   visible, methane 5.0 to 5.5 micron, and the 1e-5 floor below 450 nm.
   The Oxford page says 'not yet fully verified' and states no licence.
-
-- [ ] **GEN.532 The galaxy shape's thick disk, scale heights and stellar halo come from the research laws instead of the tuning.py numbers (the GEN.401 follow-up)**
-  Found by Core 1 while finishing GEN.401 (2026-10-17, 12:51 PM EDT as
-  the lane reported; GEN.401 merged as #2051), filed by the TODO thread.
-  GEN.401 now draws disk length and height, bulge radius and amplitude,
-  arm count and pitch angle from the seed. What it left, from the
-  GEN.406 research (docs/design/galaxy-laws-research.md) and the gap
-  plan (docs/design/gap-filling-plan.md): (1) the thick disk: the mass
-  ratio against Vc is widened between 0.53 (Vc/100)^-2.3 (Yoachim and
-  Dalcanton) and 0.87 (Vc/100)^-1.09 (Comeron 2018), both kept, the
-  length ratio is 1.15 (Vc/100)^-0.2 and the height ratio is drawn from
-  2.5 to 4.2 (Boss's card, 12:02 PM EDT, widen and keep both), replacing
-  the tuning ratios `THICK_DISK_*` (0.769 and 3, which are Milky Way
-  star-count numbers); the hot-component bound test applies to the mean
-  relation or carries a margin of 0.13 dex; (2) the scale heights
-  (50/300, 150/300, 1) and the dispersions (15, 25, 50) in `tuning.py`
-  come from one law, not two that cannot both hold; (3) the stellar halo
-  anchor 1.4e9 solar masses, about 2 percent of the galaxy (Deason
-  2019), replaces `HALO_MASS_SOLAR` 1.5e9, and the halo law for 3e9 to
-  2e11 solar masses is the labelled placeholder f = 0.05 (M*/5e10)^0.79
-  with 0.33 dex scatter (request R1 on GEN.531); (4) the Courteau
-  scatter of 0.097 dex (gap plan 4.9 and 7.2a) replaces the 0.09 dex
-  stand-in as a new stand-in version. Plan options already default to
-  'drawn' (done in #2051). Each value is registered in the stand-in
-  registry with its fill id and source state; the newest verified source
-  wins on a new conflict (Boss, 12:39 PM EDT) and the six
-  widen-and-keep-both answers stand. This changes numbers in `tuning.py`
-  and stored output, so it is a generator epoch change and rides the
-  pending epoch. Done: the thick-disk ratios, heights, dispersions and
-  halo anchor in `tuning.py` are replaced by the laws above with their
-  sources named in the code, the laws over many seeds follow the stated
-  trends, the same seed gives the same shape, the bound test passes, and
-  the epoch rule applies. Owner: Core 1 (proposed, GEN.401's author).
-  The stage rule of GEN.401 (Kelvin cumulative counts read as local
-  fractions) stays a listed stand-in (design note 5.13.8 and 5.13.6 item
-  6). Scope from Core 1 (12:58 PM EDT, its real clock; it sends the
-  final scope before building, after GEN.527 and before GEN.402): the
-  size-mass scatter in the shape draw becomes the Courteau 0.097 dex
-  (replacing the Shen sigma_ln between 0.47 and 0.34), and the Comeron
-  2018 fit replaces the Kregel q = 7.3 draw where it applies; the Boss
-  papers report (GR4, GR6, GR15) and the VizieR numbers are read for it.
-  Bar presence, axis ratios and angle are GEN.533, which Boss moved into
-  8.1 (card, 12:56 PM EDT): drawn from the seed and rebuilt each time,
-  not stored in a column, so nothing in 8.1 needs DB.66; the DB.66
-  wording in the GEN.401 note and docstring should read 'stored by
-  DB.66', not a dependency.
-  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): Rule outcomes for this item: halo scatter draw width 1.01 dex
-  (Dragonfly, the widest of two sources both in question; Boss 1:12 PM
-  EDT), Harmsen 0.33 dex stays in the record; thick-to-thin length ratio
-  against Vc by Comeron 2018 (newer than Yoachim and Dalcanton 2006, two verified
-  sources: newest wins), not one of the six widen-and-keep answers.
-  Citations: the pitch-angle paper is Yu and Ho 2019 (ApJ 871, 194), and
-  'Hart 2017' is MNRAS 472, 2263
-  (arXiv:1708.04628, arm shares and pitch angles; Core 1 checked it at
-  1:19 PM EDT as the lane reported), not MNRAS 468, 1850 (star formation
-  against arm number). It holds no bulge result: the bulge share cites
-  Graham and Worley 2008 and Erwin 2005 for the bar.
-  FINAL SCOPE (Core 1, 2026-10-17, 3:12 PM EDT as the lane reported;
-  built on one branch with GEN.533, one epoch bump; this replaces the
-  12:58 PM EDT scope above). Two corrections: (a) the Courteau 0.097 dex
-  is the scatter of the bulge Vc/sigma0 law (gap plan GR5), not the
-  size-mass scatter, so the Shen scatter of the shape draw stays; the
-  bulge dispersion is Vc/sigma0 = 2 (1 - B/T) scattered 0.097 dex; (b)
-  nothing replaces the Kregel q = 7.3 draw (Comeron 2018's height ratio
-  is the thick-to-thin one), so the Kregel line of the earlier scope is
-  dropped. Built in new modules galaxy/structure.py and
-  galaxy/structure_draw.py as a non-stored `structure` field on
-  GalaxyShape, drawn from the seed and rebuilt on load, nothing added to
-  the galaxy_shape row: (1) circular speed Vc from the baryonic
-  Tully-Fisher M_b = 47 Vf^4 (McGaugh 2012), M_b = M*, 0.0375 dex
-  scatter, a STAND-IN until GEN.338's potential gives Vc; (2) thick
-  disk: mass ratio log-uniform between Yoachim and Dalcanton 0.53
-  (Vc/100)^-2.3 and Comeron 2018 10^2.113 Vc^-1.086, scatter 0.268 dex,
-  length ratio Comeron 2018 10^(-1.638 + 0.817 log Vc), 0.316 dex
-  (newest wins over Yoachim's 1.15 (Vc/100)^-0.2, which stays in the
-  record), height ratio log-uniform 2.5 to 4.2, 0.13 dex; the thick
-  amplitude is derived from the mass ratio (replaces
-  THICK_DISK_LOCAL_DENSITY_RATIO 0.04); the hot-component bound (Comeron
-  2021 Eq. 1) is a test on the mean relation with the 0.13 dex margin;
-  (3) stellar halo: f = 0.05 (M*/5e10)^0.79 placeholder, scatter 1.01
-  dex (Dragonfly, the widest), cut to 0.1 to 30 percent of the stars,
-  reference anchor 1.4e9 (replaces HALO_MASS_SOLAR 1.5e9); (4) heights
-  and dispersions from one law: gas dispersion 10 +/- 2 km/s (Tamburro
-  2009), disc central vertical dispersion 0.248 Vc +/- 15 percent
-  (Martinsson 2013), heating exponent 0.441 +/- 0.03 (Sharma and Hayden
-  2020); a population's scale height is its squared vertical dispersion
-  over the old disc's; the profile dispersion is the three-axis total;
-  the halo dispersion comes from the Jeans equation (sqrt(3/3.5) Vc),
-  the bulge's from Courteau. Milky Way check: the old disc sigma_z at
-  the Sun is 16 km/s against Sharma and Hayden's 21.1, 24 percent low,
-  inside the plan's 35 percent. Caution to record: the young scale
-  height comes out 0.40 of the old disc's (116 pc for a 300 pc disc)
-  against the observed about 50 pc, because the 10 km/s is the HI
-  dispersion and molecular gas is colder (not read); it stays a STAND-IN
-  until a measured CO dispersion in a nearby-spiral sample replaces it
-  (filed as GEN.536, research). Hart 2017 and Yu and Ho 2019 citations
-  are also fixed in shape_draw.
-  Prerequisites: none. Related: GEN.401, GEN.402, GEN.531.
-
-- [ ] **GEN.533 The galaxy shape draws bar presence, axis ratios and angle from the seed, rebuilt each time and not stored in a column**
-  Found by Core 1 while finishing GEN.401 (2026-10-17, 12:51 PM EDT as
-  the lane reported; merged #2051), filed by the TODO thread. GEN.401
-  did not draw the bar: bar presence, the bar's axis ratios and its
-  angle stayed the model's constants because storing them needs the
-  DB.66 columns. Decided (Boss, 2026-10-17, 12:56 PM EDT, card "Draw it
-  in 8.1", relayed in words by the coordinator): draw them in 8.1 from
-  the seed, rebuilt each time and not stored in a column, so DB.66 stays
-  in 8.3 and later stores the drawn values (the card named Erwin and
-  Gadotti's statistics; the laws table,
-  docs/design/intergalactic-and-halo-contents.md section 5.13, holds the
-  bar fraction by stage). Do: the draw decides from the seed whether the
-  galaxy has a bar, its length, axis ratios and angle, and the density
-  model reads them; the drawn values replace
-  `tuning.BULGE_AXIS_RATIO_Y/Z` and `BULGE_BAR_ANGLE_DEG`. Done: the
-  same seed gives the same bar, the bar fraction over many seeds follows
-  the stated trend by stage, every parameter is inside its stated range,
-  nothing is added to the stored shape row, and the change rides the
-  pending generator epoch and the wiped rescatter. Owner: Core 1 (Boss's
-  card, 12:56 PM EDT; GEN.401's author), with GEN.532.
-  FINAL SCOPE (Core 1, 2026-10-17, 3:12 PM EDT as the lane reported;
-  built with GEN.532, one branch, one epoch bump). The sources were read
-  by a research worker and are filed as
-  docs/design/gen533-bar-sources.md (Core 1's PR lists it in
-  docs/design/README.md). Bar present with Erwin 2018 Eq. 6 (logistic
-  quadratic in log M*; 0.69 at 3e9, 0.58 at 10^10.5, 0.21 at 2e11; the
-  S4G early and late split, 0.63 against 0.66, is 1.1 sigma, so no split
-  by stage); in-plane axis ratio 1 - e with e ~ N(0.53, 0.15)
-  (Diaz-Garcia 2016); vertical axis ratio of a boxy or peanut bar (Erwin
-  and Debattista 2017 logistic; 0.23 +/- 0.06, a STAND-IN) or of a thin
-  bar (Luetticke 2000, 0.071 +/- 0.02); unbarred bulge axis ratios 0.83
-  +/- 0.21 and 0.54 +/- 0.19 (Costantin 2018, computed from its Table
-  C.1); bar angle uniform 0 to 180 degrees (a STAND-IN). Newest verified
-  wins: Erwin 2018 is used over the SDSS strong-bar fraction of 29
-  percent, because the model's bar is any bar, so the strong-only 0.29
-  of the laws table is not used. An unbarred galaxy has no bar gap in
-  its star formation. The Done line's 'fraction follows the stated trend
-  by stage' is replaced by 'follows the Erwin 2018 relation in stellar
-  mass'. No part needs a stored column.
-  Prerequisites: none. Related: GEN.401, GEN.532, GEN.378, DB.66.
 
 - [ ] **GEN.534 A satellite's young stars reach the system-type tables: the young-star system types name `satellite_young`**
   Residual of GEN.528 (merged #2077, 2026-10-17, about 3:02 PM EDT as
@@ -20297,7 +20084,7 @@ clears each one.
   main: no (not reached by the current seeds). Frequency: about 1 run in
   3 once GEN.532 is merged, until Core 1's exclusion lands. Reproducer:
   run the test with random seeds on GEN.532's branch.
-  Prerequisites: GEN.532. Related: GEN.532.
+  Prerequisites: none. Related: GEN.532.
 
 - [ ] **TEST.229 The browser phase of a gate stalls for minutes at one test with a headless_shell gpu process near 200% CPU (bug)**
   Found by Blocker 1 (2026-10-17, 7:02 PM EDT as the lane reported,
