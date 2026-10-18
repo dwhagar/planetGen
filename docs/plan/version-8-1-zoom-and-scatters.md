@@ -146,7 +146,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.224 | `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed once in a full gate: the nested system's inside_nebula_id was None (bug) |  | Core 5 finding at #2070: a nested system had no inside_nebula_id in one full gate. |
 | TEST.225 | `test_random_start_neighborhood_matches_the_real_skeleton_plan` generated 18,210 systems against a predicted 83,346.6 in one gate run (bug) |  | Bug Hunt: generated 18,210 systems against 83,346.6 predicted, seed A4D8564BFD80DA2331294BD96F547E67. |
 | TEST.227 | test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone] failed in a loaded browser run and passes alone (bug) |  | Core 3 sighting, 6:50 PM EDT. |
-| TEST.235 | test_stop_waiting_stops_the_polling_and_check_again_picks_it_up[light] failed once in a loaded gate and passes alone (bug) |  |  |
 | TEST.237 | The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug) |  |  |
 | TEST.238 | test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it fails in a gate with no hypervelocity-star stored, and passes alone (bug) |  |  |
 | TEST.243 | Two test_web_browser_units tests errored in setup, one after 1041 s in pymysql (bug) |  |  |
@@ -155,7 +154,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.233 | test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug) |  |  |
 | TEST.229 | The browser phase of a gate stalls for minutes at one test with a headless_shell gpu process near 200% CPU (bug) |  |  |
 | GEN.542 | scripts/star_type_by_radius.py fails with a TypeError because the plan arguments now default the disk and arm options to None (bug) |  |  |
-| TEST.220 | test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter finds `neutron-star` inside `magnetar neutron-star` (bug) |  | Core 2 finding, 2026-10-17; Bug Hunt proposed. |
 | PERF.111 | `ResponseCache.put` without a database never trims the page cache: the cache grows past `max_entries`, and the thread test fails when its last put is one of those (bug) |  | Core 2 finding in the MAP.217 gate: the db=None branch of ResponseCache.put has no eviction. |
 | TEST.219 | Browser pages still have 1 to 7 requests running 8 s after the server stops: find what keeps them busy and make it faster |  | Core 1 finding at #1997: browser pages still have requests running 8 s after the server stops. |
 | TEST.218 | `test_first_control_connections_at_once` leaves 3 idle connections open on `planetgen_test_*` when its fixture ends: the test should close its own connections (bug) |  | Core 1 finding at #1997: the test leaves 3 idle connections for the drop warning to end. |
@@ -260,12 +258,11 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 | MAP.213 | Scene, maps and the JavaScript twin for trees: per-node zoom, log-radial overview and positions_at in JavaScript | GEN.311 | Split from GEN.129. |
 | GEN.313 | Orbital update of built systems: advance_orbital_phases for nodes and the GEN.109 hooks | GEN.311 | Split from GEN.129. |
 | GEN.129 | Multi-star systems of up to twelve stars | GEN.311, GEN.312, MAP.213, GEN.313 | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
-| GEN.552 | Host registry: the five fixed `system_model` values become pointers to one gated orbiter table per host class, with no change in behaviour |  |  |
 | TEST.241 | Test: no absolute position is stored for anything inside a system, so every 8.1 item that stores a position stores it parent-relative |  |  |
-| GEN.317 | Pulsar planets and the radiation environment of neutron stars | GEN.552 | Split from GEN.130. |
+| GEN.317 | Pulsar planets and the radiation environment of neutron stars |  | Split from GEN.130. |
 | GEN.318 | White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk |  | Split from GEN.130. |
 | GEN.543 | Define "usable" for a P-type window so the design table's pair-node row (34% falling to 18%) can be reproduced |  |  |
-| GEN.130 | Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes | GEN.317, GEN.318, GEN.552 | Phenomena catalogue, Boss 2026-10-15. Step 3, rescoped. Core. |
+| GEN.130 | Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes | GEN.317, GEN.318 | Phenomena catalogue, Boss 2026-10-15. Step 3, rescoped. Core. |
 | GEN.263 | Promote every bound compact pair to the scatter, whatever its mass |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 4. Core. |
 | GEN.315 | A fill builds a system from its stored members and nodes; the system pass keeps only planets, moons, belts and disks | GEN.311 | Split from GEN.264. |
 | GEN.316 | Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired | GEN.315 | Split from GEN.264. |

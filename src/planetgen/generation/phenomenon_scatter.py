@@ -48,6 +48,7 @@ from planetgen.galaxy.sector import _sample_poisson_count
 from planetgen.generation import bright_stars, multistar
 from planetgen.generation.bright_stars import MPC_PER_PC
 from planetgen.generation.phenomena import registry
+from planetgen.physics import remnant_mass
 from planetgen.physics import stellar_evolution as stellarEvolution
 from planetgen.util import draw
 from planetgen.util.poisson import poisson_count
@@ -147,11 +148,11 @@ def mass_law(kind, subtype):
     from and whether the draw is log-uniform; `None` for a kind not drawn
     by mass (planetary nebulae, supernova remnants)."""
     if kind == "neutron-star":
-        return tuning.NEUTRON_STAR_MASS_RANGE_SOLAR, False
+        return remnant_mass.mass_range_sol(kind), False
     if kind == "black-hole" and subtype == "intermediate":
         return tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR, True
     if kind == "black-hole" and subtype == "stellar":
-        return tuning.BLACK_HOLE_MASS_RANGE_SOLAR, False
+        return remnant_mass.mass_range_sol(kind), False
     return None
 
 

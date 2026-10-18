@@ -27,7 +27,7 @@ section.
 
 import math
 
-from planetgen.physics import constants, giant_branch, metallicity, ms_lifetime, wolf_rayet
+from planetgen.physics import constants, giant_branch, metallicity, ms_lifetime, remnant_mass, wolf_rayet
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -497,8 +497,7 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
     elif massive:
         return None
     else:
-        final_mass = min(max(pc.WD_IFMR_SLOPE * mass_sol + pc.WD_IFMR_INTERCEPT_SOL, pc.WD_MASS_RANGE_SOL[0]),
-                         pc.WD_MASS_RANGE_SOL[1])
+        final_mass = remnant_mass.white_dwarf_mass_sol(mass_sol)
         cooling_age = max(age_gy - t_agb, pc.WD_MIN_COOLING_AGE_GY)
         luminosity = pc.WD_COOLING_L0_SOL * (final_mass / 0.6) * cooling_age ** pc.WD_COOLING_EXPONENT
         luminosity = min(max(luminosity, pc.WD_LUMINOSITY_RANGE_SOL[0]), pc.WD_LUMINOSITY_RANGE_SOL[1])

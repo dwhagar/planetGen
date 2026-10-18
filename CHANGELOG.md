@@ -2,6 +2,54 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1799] - 2026-10-18
+
+**Headline:** Pressing "Stop waiting" on a slow page's loading state now stays stopped, even when a progress answer was already on its way.
+
+### Changed
+- `static/slowload.js`: a status request that was in flight when "Stop waiting" was pressed used to come back and draw its progress over "Stopped waiting.", so the page read as still waiting while the Check again button showed. The answer is now dropped when the page has been stopped (checked after the request and after its body is read), so the stop holds and "Check again" starts polling again as before.
+
+### Added
+- `tests/js/slowload.test.mjs`: "an answer that arrives after Stop waiting does not undo the stop (TEST.235)" holds the status answer, stops, lets the answer arrive, and checks the stop message, the buttons, that no more polls follow, and that Check again still works. It fails without the change. The browser test `test_stop_waiting_stops_the_polling_and_check_again_picks_it_up` failed on this in two gates (`[light]` and `[dark]`, box load 10) and passed alone.
+
+TODO items resolved: TEST.235 / Added: none
+
+## [8.0.1798] - 2026-10-18
+
+**Headline:** The second system-disc browser test no longer fails when the disc's last share lands just under a whole one.
+
+### Changed
+- `tests/test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star` stops its wheel loop at a share of 0.999 and then asked for 1.0 within 1e-6, so it failed whenever the last step landed between the two (0.99988 in a gate, failing alone as well). It now asks for the share it stopped at: at least 0.999. The sibling test (`test_the_system_disc_...`, fixed under TEST.213) already did.
+
+### Added
+- Nothing.
+
+TODO items resolved: none (the same defect as TEST.213, left in this second test by its first fix) / Added: none
+
+## [8.0.1797] - 2026-10-18
+
+**Headline:** The host tables' source and note strings name the design note instead of a TODO code, so no code shows where a user can see it.
+
+### Changed
+- `phenomena/hosts.py`: the strings of the host tables (sources, limits, replacements, notes) no longer carry TODO codes; `test_no_todo_codes_shown` passes again.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1796] - 2026-10-18
+
+**Headline:** What can accompany or orbit an object is now a set of host classes with gated tables of possibilities, replacing the registry's five fixed system models; nothing the generator draws changes.
+
+### Changed
+- `phenomena/registry.py`: the `system_model` column is now `host`, the name of a host class (group node, star-like object, remnant, brown dwarf, planet, moon, small body) in the new `phenomena/hosts.py`. Each class points to a companion table and a satellite table in the format of `possibility_table` (GEN.472), with each row's source and source state and its zone rule.
+- Three tables hold what the code already did: `star-count` (the number of stars of a system by spectral class, moved out of `multistar`), `remnant-satellites` (a millisecond pulsar holds planets at 0.7%, the other remnants none; this replaces `tuning.SYSTEM_PASS_ODDS` for stage C) and `planet-satellites` (a rogue planet keeps a captured moon at 20%, a stand-in until GEN.466).
+- The system pass, a rogue planet's moon and a multi-star group's star count read those tables. The draws are the same on the same streams: a test compares each against the formula it replaced over tens of thousands of seeds, and the stream is left where it was.
+- Every host class carries a `may_host` gate (Boss's cards S5 and S6, 12:10 to 12:13 AM EDT, 2026-10-18, as the coordinator relayed, which superseded "moons are the lowest level"): a small body (comet, asteroid field) has the gate closed and no satellite table; a moon has a `moon-satellites` table with only the empty row until the tidal-survival row of GEN.579. A row states an orbiter's mass as a ratio to its host's where the source gives a ratio. The later recursion ends by the gate, not by a depth of three.
+- Left for the item that builds them (U7 of `docs/design/unified-star-like-objects.md`): the star-like object's planets and belts, a brown dwarf's satellites and a planet's bound moons are still made by `StarSystem` and `generate_moons`.
+
+- The scatter summary test (`test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter`) compares whole labels: a magnetar line contains the text of the plain neutron-star label and failed some seeds.
+
+TODO items resolved: GEN.552 / Added: none
+
 ## [8.0.1795] - 2026-10-18
 
 **Headline:** The database check is one command per check, and `planetgen check-db` hands the list of them to the wrapper.

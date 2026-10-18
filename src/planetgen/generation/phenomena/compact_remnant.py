@@ -43,7 +43,7 @@ first version.
 import math
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import activity, constants, neutron_star, spin
+from planetgen.physics import activity, constants, neutron_star, remnant_mass, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -85,17 +85,6 @@ def infer_black_hole_mass_class(mass_solar):
     if mass_solar >= tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[0]:
         return "intermediate"
     return "stellar"
-
-
-def _within(law_range, mass_range):
-    """`law_range` truncated to `mass_range` (both `(low, high)` solar
-    masses; `None` keeps the whole law)."""
-    if mass_range is None:
-        return law_range
-    low, high = max(law_range[0], mass_range[0]), min(law_range[1], mass_range[1])
-    if low > high:
-        raise ValueError(f"mass range {mass_range!r} lies outside {law_range!r}")
-    return low, high
 
 
 class CompactRemnant(Star):
@@ -293,9 +282,9 @@ class BlackHole(CompactRemnant):
             if mass_solar:
                 self.mass_solar = mass_solar
             elif mass_class == "intermediate":
-                self.mass_solar = log_uniform(*_within(tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR, mass_range))
+                self.mass_solar = log_uniform(*remnant_mass.within(tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR, mass_range))
             else:
-                self.mass_solar = draw.uniform(*_within(tuning.BLACK_HOLE_MASS_RANGE_SOLAR, mass_range))
+                self.mass_solar = remnant_mass.draw_mass_sol("black-hole", mass_range)
         self.mass = self.mass_solar * constants.SOLAR_MASS_TO_KG
 
         # Schwarzschild radius: r_s = 2GM/c^2 (the non-rotating event
@@ -424,7 +413,7 @@ class NeutronStar(CompactRemnant):
         super().__init__(system_config, name=name, galactic_center_dist_ly=galactic_center_dist_ly)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
-        self.mass_solar = mass_solar or draw.uniform(*_within(tuning.NEUTRON_STAR_MASS_RANGE_SOLAR, mass_range))
+        self.mass_solar = mass_solar or remnant_mass.draw_mass_sol("neutron-star", mass_range)
         self.mass = self.mass_solar * constants.SOLAR_MASS_TO_KG
         self.radius = neutron_star.radius_km(self.mass_solar, draw.gauss())
         self.surface_temperature_k = draw.uniform(*tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K)
