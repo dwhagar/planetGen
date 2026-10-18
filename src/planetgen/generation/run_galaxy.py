@@ -18,7 +18,7 @@ against the skeleton `run_plan` builds.
 import argparse
 import copy
 import math
-import threading
+import os
 import time
 
 import pymysql
@@ -27,7 +27,7 @@ from planetgen.db import region, sector_paths, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import density, resolution as galaxyResolution, seed as galaxySeed, version_check
 from planetgen.physics import mathcheck
-from planetgen.queue import redisqueue
+from planetgen.queue import commands, wrapper
 from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen.galaxy.profile import profile_at, sector_profile
@@ -514,16 +514,51 @@ def backfill_after_run(args, edge_pc, started_at):
     return summary
 
 
+def _sectors_since(params):
+    """The ids of the galaxy sectors a run created: those saved at or after `params["since"]` (the database's clock when
+    the run started, as text), the set a unit of the link or the settle stage works on."""
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
+        return sector_paths.sector_ids_since(conn, params["since"])
+    finally:
+        conn.close()
+
+
+def _mysql_config_of(params):
+    """The `MySQLConfig` a command's params name (`wrapper.database_args`)."""
+    return run_plan._mysql_config_of(params)
+
+
+def expand_link_neighbours(params):
+    """The `link-neighbours` command's stage (PERF.107): one unit, the neighbour step for every sector saved since
+    `params["since"]`."""
+    return commands.Expansion([(params, float(len(_sectors_since(params)) * store.LINK_PHASES))], {})
+
+
+def link_neighbours_unit(params, report):
+    """
+    The `link-neighbours` command's unit (PERF.45, PERF.107): links the sectors a `galaxy` run created to their
+    neighbours (`store.link_sector_neighbors`): containment, nearest systems and quadrants, and the new systems merged
+    into the lists of the sectors around. Done once for the whole run, in place of one locked step per saved sector,
+    so the workers no longer queue for it; the stored result is the same.
+
+    Returns:
+        dict: `linked`, how many sectors were linked.
+    """
+    created = _sectors_since(params)
+
+    def on_progress(done, total, step=""):
+        report(done, total)
+
+    return {"linked": store.link_sector_neighbors(_mysql_config_of(params), created, on_progress)}
+
+
 def link_after_run(args, started_at):
     """
-    PERF.45: links the sectors a `galaxy` run created to their neighbours
-    (`store.link_sector_neighbors`): containment, nearest systems and
-    quadrants, and the new systems merged into the lists of the sectors
-    around. Done once for the whole run, in place of one locked step per
-    saved sector, so the workers no longer queue for it; the stored result is
-    the same. Runs even when the run is cancelled or fails, for the sectors it
-    saved; a failure here only warns (the correlative update links
-    everything again).
+    PERF.45: links the sectors a `galaxy` run created to their neighbours on the new queue (PERF.107: the
+    `link-neighbours` command, one unit): the starter finds the sectors the run created, and the unit links them.
+    Runs even when the run is cancelled or fails, for the sectors it saved; a failure here only warns (the
+    correlative update links everything again).
 
     Args:
         args (argparse.Namespace): The run's arguments.
@@ -547,19 +582,8 @@ def link_after_run(args, started_at):
         stages.enter("link")
         stages.note(sectors=len(created))
         log.normal("Linking the new sectors to their neighbours...")
-        with run_common._generation_progress() as progress:
-            log.set_console(progress.console)
-            try:
-                with steps.Step("Neighbours", "link", len(created) * store.LINK_PHASES, args=args,
-                                progress=progress) as bar:
-                    def on_progress(done, total, step=""):
-                        # Never back: a batch retried after a deadlock repeats its steps.
-                        bar.update(completed=max(done, bar.done), total=total,
-                                   description="Neighbours" + (f" ({step})" if step else ""))
-
-                    linked = store.link_sector_neighbors(config, created, on_progress)
-            finally:
-                log.reset_console()
+        linked = _one_unit_stage(args, "link", "Neighbours", "link", len(created) * store.LINK_PHASES, started_at,
+                                 "linked")
     except Exception as exc:  # noqa: BLE001 -- the sectors are saved; the links can be redone
         log.normal(f"Warning: linking the new sectors to their neighbours failed: {exc}")
         return 0
@@ -567,12 +591,77 @@ def link_after_run(args, started_at):
     return linked
 
 
+def _one_unit_stage(args, key, title, kind, total, started_at, result_key, extra=None):
+    """
+    A stage of one unit on the new queue with a bar of `total` (PERF.107), for the stages that follow the sectors (link
+    and settle): the wrapper selects the stage's command from this run's steps, the unit does the whole stage for the
+    sectors saved since `started_at` and reports as it goes, and the unit that completes it stores the stage's row.
+
+    Args:
+        key (str): The stage (`link` or `settle`).
+        kind (str): The bar's kind (`steps.STEP_KINDS`).
+        result_key (str): What the unit's result counts, the value returned.
+
+    Returns:
+        int: The unit's count.
+    """
+    mysql_config = store.mysql_config_from_args(args)
+    workers = run_common._worker_count(args)
+    step, listing = wrapper.step_for(args, key, title, {
+        "database": wrapper.database_args(mysql_config), "since": started_at.isoformat(sep=" "),
+        "workers": workers, **(extra or {})})
+    row = stages.hand_over_open_stage()
+    counted = [0]
+    with run_common._generation_progress() as progress:
+        log.set_console(progress.console)
+        try:
+            with steps.Step(title, kind, total, args=args, progress=progress) as bar:
+                def on_progress(_index, _unit, done, estimate):
+                    # Never back: a batch retried after a deadlock repeats its steps.
+                    bar.update(completed=max(done, bar.done), total=estimate)
+
+                def on_result(_index, _unit, result):
+                    counted[0] = result[result_key]
+
+                wrapper.run(title, [step], lambda _index, plan: None, on_result, on_progress, workers_count=workers,
+                            who=getattr(args, "who", None), database=mysql_config.database,
+                            argv=getattr(args, "argv", None), seed=None, listing=listing,
+                            rows=None if row is None else {key: row})
+        finally:
+            log.reset_console()
+    return counted[0]
+
+
+def expand_save_sector_paths(params):
+    """The `settle-sector-paths` command's stage (PERF.107): one unit, the paths of every sector saved since
+    `params["since"]` and of the sectors around them."""
+    return commands.Expansion([(params, float(len(_sectors_since(params))))], {})
+
+
+def save_sector_paths_unit(params, report):
+    """
+    The `settle-sector-paths` command's unit (GEN.126, PERF.107): saves the path of every body in the sectors a run
+    created and in the sectors around them (`sector_paths.settle_sectors`), so each path sees the final set of
+    neighbours whatever order the workers filled sectors in. A crowded sector's bodies are integrated in
+    `params["workers"]` processes.
+
+    Returns:
+        dict: `saved`, how many paths were saved.
+    """
+    created = _sectors_since(params)
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
+        return {"saved": sector_paths.settle_sectors(conn, created, report, workers=params["workers"])}
+    finally:
+        conn.close()
+
+
 def settle_after_run(args, started_at):
     """
     The last step of a `galaxy` run (GEN.126): once every sector, bright star and population is
     final, saves the path of every body in the sectors the run created and in the sectors around
-    them (`sector_paths.settle_sectors`), so each path sees the final set of neighbours whatever
-    order the workers filled sectors in. Skipped with `--no-settle` (and for an estimate).
+    them, so each path sees the final set of neighbours whatever order the workers filled sectors in. On the new
+    queue (PERF.107): the `settle-sector-paths` command, one unit. Skipped with `--no-settle` (and for an estimate).
 
     Args:
         args (argparse.Namespace): The run's arguments.
@@ -586,25 +675,15 @@ def settle_after_run(args, started_at):
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
         created = sector_paths.sector_ids_since(conn, started_at)
-        if not created:
-            stages.skip("settle", "the run created no sectors")
-            return 0
-        stages.enter("settle")
-        stages.note(sectors=len(created))
-        log.normal("Saving the sector paths...")
-        with run_common._generation_progress() as progress:
-            log.set_console(progress.console)
-            try:
-                with steps.Step("Sector paths", "paths", len(created), args=args, progress=progress) as bar:
-                    def on_progress(done, total):
-                        bar.update(completed=done, total=total)
-
-                    saved = sector_paths.settle_sectors(conn, created, on_progress,
-                                                       workers=run_common._worker_count(args))
-            finally:
-                log.reset_console()
     finally:
         conn.close()
+    if not created:
+        stages.skip("settle", "the run created no sectors")
+        return 0
+    stages.enter("settle")
+    stages.note(sectors=len(created))
+    log.normal("Saving the sector paths...")
+    saved = _one_unit_stage(args, "settle", "Sector paths", "paths", len(created), started_at, "saved")
     log.normal(f"Saved {saved:,} sector paths.")
     return saved
 
@@ -862,6 +941,87 @@ def ensure_sector_generated(shell_index, band_index, wedge_index, config=None, b
             "summary": run_sector.sector_generation_summary_lines(sector, args)}
 
 
+SECTOR_UNITS_MAX = 4000
+"""int: The most units a stage of sectors is cut into (PERF.107): about that many static chunks, however many workers."""
+
+SECTOR_STAGE_KEYS = ("start", "neighborhood", "sectors")
+"""tuple: The stages of a `galaxy` run that generate sectors; each is a command of its own (`commands.KIND_OF_STAGE`)."""
+
+
+def _sector_args_json(args):
+    """
+    The arguments a sector's generation reads, as plain JSON: every value of the run's namespace that is a number,
+    a string, a boolean, `None` or a list of those, without the password (a worker reads that from its own settings)
+    or the connection (`database` carries it) or a value a stage worked out for itself (names that start with `_`).
+    """
+    def plain(value):
+        if isinstance(value, (list, tuple)):
+            return all(plain(item) for item in value)
+        return value is None or isinstance(value, (str, int, float, bool))
+
+    skipped = {"mysql_password", "mysql_host", "mysql_port", "mysql_user", "mysql_database"}
+    return {name: list(value) if isinstance(value, tuple) else value for name, value in vars(args).items()
+            if name not in skipped and not name.startswith("_") and plain(value)}
+
+
+def _sector_args_of(unit_args):
+    """The namespace a unit generates with: the run's arguments and the database the unit names, the password
+    from this process's settings (`store.MySQLConfig`)."""
+    named = unit_args["database"]
+    return argparse.Namespace(**unit_args["args"], mysql_host=named["host"], mysql_port=named["port"],
+                              mysql_user=named["user"], mysql_password=None, mysql_database=named["database"])
+
+
+def expand_generate_sectors(params):
+    """
+    The sector stages' cut (PERF.107; `generate-start-sector`, `generate-neighborhood` and `generate-sectors`): the
+    addresses of `params["items"]` (the run's sectors to generate, flat `shell, band, wedge` triples, in the order to
+    generate them) in about `SECTOR_UNITS_MAX` static chunks of consecutive sectors, the same at any worker count.
+    A unit's cost is its sectors.
+    """
+    items = params["items"]
+    count = len(items) // 3
+    size = max(1, -(-count // SECTOR_UNITS_MAX))
+    units = []
+    for start in range(0, count, size):
+        chunk = items[3 * start:3 * (start + size)]
+        units.append(({"database": params["database"], "args": params["args"], "edge_pc": params["edge_pc"],
+                       "items": chunk}, float(len(chunk) // 3)))
+    return commands.Expansion(units, {"sectors": count})
+
+
+def generate_sectors_unit(unit_args, report):
+    """
+    The unit of the sector stages (PERF.107): generates and saves each sector of the chunk (`generate_and_save_sector_at`,
+    one transaction each) in its own grid cell, its density resolved from its sector profile as `_BatchDensity` does for
+    the run (a density or count the run was given is used for every sector). Every draw for a sector comes from its
+    own seed (GEN.39), so the stars are the same at any worker count.
+
+    Returns:
+        dict: `pid` (this process: a unit run by the process that started the run has counted its sectors there already),
+            `sectors`, one entry per sector in order: `address`, `sector_id`, `name`, `systems`, `stars`, `density`,
+            `phenomena`, `summary` (`sector_generation_summary_lines`) and `seconds`.
+    """
+    args = _sector_args_of(unit_args)
+    edge_pc = unit_args["edge_pc"]
+    batch_density = _BatchDensity(store.mysql_config_from_args(args))
+    items = unit_args["items"]
+    done = []
+    for place in range(0, len(items), 3):
+        address = tuple(items[place:place + 3])
+        position_pc = sector_position_pc(*address, edge_pc)
+        sector_args = batch_density.resolve(args, address, position_pc)
+        started = time.monotonic()
+        sector_id, sector_name, sector = generate_and_save_sector_at(sector_args, address, position_pc, edge_pc)
+        done.append({
+            "address": list(address), "sector_id": sector_id, "name": sector_name, "systems": len(sector.entries),
+            "stars": run_sector.sector_star_count(sector), "density": run_common._sector_density(sector_args),
+            "phenomena": len(sector.phenomena), "summary": run_sector.sector_generation_summary_lines(sector, sector_args),
+            "seconds": time.monotonic() - started})
+        report(len(done), len(items) // 3)
+    return {"sectors": done, "pid": os.getpid()}
+
+
 def _log_saved(saved, address, suffix=""):
     designation = provisional_sector_designation(*address)
     log.normal(
@@ -871,76 +1031,70 @@ def _log_saved(saved, address, suffix=""):
     run_sector._log_summary(saved["summary"])
 
 
-def _submit_batch(args, batch, title, edge_pc, progress, bar, count=None):
-    """Queues every `(address, position_pc, sector_args, suffix)` of
-    `batch` (`_submit_sector`) and waits for them. `batch` may be a generator (PERF.36): then `count` says how many
-    it holds; the queue takes them as its workers are free, so a run of millions is never held at once."""
-    count = len(batch) if count is None else count
-    relay = steps.Relay(args, progress)
-    stop = threading.Event()
-    channel = drain = None
-    try:
-        with run_common._work_queue(args, title) as queue:
-            if queue.parallel:
-                channel = queue.channel("sector-progress")
-                drain = threading.Thread(target=relay.drain, args=(channel, stop), name="sector-progress", daemon=True)
-                drain.start()
-            else:
-                channel = relay   # one worker saves in this process: its reports go straight to the relay
-            queue.expect(count)
-            log.normal(f"Generating {count:,} sector(s) with {queue.workers} worker(s); each is reported below as "
-                       f"it is saved, so the first report can take a while in a dense region.")
-            for address, position_pc, sector_args, suffix in batch:
-                _submit_sector(queue, sector_args, address, position_pc, edge_pc, bar, suffix=suffix, channel=channel)
-    finally:
-        stop.set()
-        if drain is not None:
-            drain.join(timeout=5)
-        if isinstance(channel, redisqueue.Channel):
-            channel.close()
-        relay.close()
-
-
-def _fill_sector_task(payload):
+def _submit_batch(args, batch, title, edge_pc, progress, bar, count=None, base_args=None, collect=False):
     """
-    One galaxy sector, start to finish -- a work queue task (PERF.8): runs
-    in a worker process (or in this one, with one worker), generates the
-    sector in its grid cell and saves it in one transaction, and returns
-    what the run reports for it.
+    Generates every `(address, position_pc, sector_args, suffix)` of `batch` on the new queue (PERF.107): the wrapper
+    selects the stage's command (`generate-start-sector`, `generate-neighborhood` or `generate-sectors`, by the stage
+    open now) from this run's steps, cuts the sectors into units (`expand_generate_sectors`) and queues them, and this
+    process follows the units' results: it logs each sector as it is saved, counts it and adds its time to the speed
+    stats, and advances `bar` (none for a stage with no bar). `batch` may be a generator (PERF.36); `count` says how
+    many it holds. The unit that completes the stage stores the stage's row.
+
+    Args:
+        base_args (argparse.Namespace, optional): What the units generate with when it is not the run's own `args`
+            (a single sector of `galaxy --wedge` is drawn from its profile with the defaults of `sector`).
+        collect (bool): Whether to return what each sector reported instead of logging it, for a stage of few sectors
+            whose caller says it in its own words.
 
     Returns:
-        dict: `sector_id`, `name` (as saved), `systems`, `stars`,
-            `density`, `phenomena` and `summary`
-            (`sector_generation_summary_lines`).
+        list: What each sector reported, in the order it was saved (`generate_sectors_unit`), when `collect`; else `[]`.
     """
-    sector_args = payload["args"]
-    sector_id, sector_name, sector = generate_and_save_sector_at(
-        sector_args, payload["address"], payload["position_pc"], payload["edge_pc"],
-        channel=payload.get("channel"),
-    )
-    return {
-        "sector_id": sector_id, "name": sector_name, "systems": len(sector.entries),
-        "stars": run_sector.sector_star_count(sector), "density": run_common._sector_density(sector_args),
-        "phenomena": len(sector.phenomena), "summary": run_sector.sector_generation_summary_lines(sector, sector_args),
-    }
+    count = len(batch) if count is None else count
+    mysql_config = store.mysql_config_from_args(args)
+    workers = run_common._worker_count(args)
+    key = stages.open_key()
+    if key not in SECTOR_STAGE_KEYS:
+        key = "sectors"
+    items = []
+    suffixes = {}
+    for address, _position_pc, _sector_args, suffix in batch:
+        items.extend(address)
+        if suffix:
+            suffixes[tuple(address)] = suffix
+    step, listing = wrapper.step_for(args, key, title, {
+        "database": wrapper.database_args(mysql_config), "args": _sector_args_json(base_args or args),
+        "edge_pc": edge_pc,
+        "items": items, "workers": workers})
+    row = stages.hand_over_open_stage()
+    if not collect:
+        log.normal(f"Generating {count:,} sector(s) with {workers} worker(s); each is reported below as "
+                   f"it is saved, so the first report can take a while in a dense region.")
+    sector_args = base_args or args
+    reported = []
 
+    def on_result(_index, _unit, result):
+        elsewhere = result["pid"] != os.getpid()     # a worker's own RUN_COUNTS die with it; the run's are here
+        for saved in result["sectors"]:
+            address = tuple(saved["address"])
+            if elsewhere:
+                run_common.RUN_COUNTS["sectors"] += 1
+                run_common.RUN_COUNTS["systems"] += saved["systems"]
+                run_common.RUN_COUNTS["phenomena"] += saved["phenomena"]
+            run_common._record_sector(sector_args, saved, saved["seconds"])
+            if bar is not None:
+                bar.update(advance=1)
+            if collect:
+                reported.append(saved)
+            else:
+                _log_saved(saved, address, suffix=suffixes.get(address, ""))
 
-def _submit_sector(queue, sector_args, address, position_pc, edge_pc, bar, suffix="", channel=None):
-    """Queues one galaxy sector (`_fill_sector_task`); when it's saved,
-    advances `bar`, logs it and adds its time to the speed stats."""
-    def saved(result, seconds, _weight):
-        if queue.parallel:
-            # A worker's own RUN_COUNTS die with it; the run's are here.
-            run_common.RUN_COUNTS["sectors"] += 1
-            run_common.RUN_COUNTS["systems"] += result["systems"]
-            run_common.RUN_COUNTS["phenomena"] += result["phenomena"]
-        run_common._record_sector(sector_args, result, seconds)
-        bar.update(advance=1)
-        _log_saved(result, address, suffix=suffix)
-
-    payload = {"args": sector_args, "address": address, "position_pc": position_pc, "edge_pc": edge_pc,
-               "channel": channel}
-    queue.submit("sector", ",".join(str(part) for part in address), _fill_sector_task, payload, on_done=saved)
+    try:
+        wrapper.run(title, [step], lambda _index, plan: None, on_result, workers_count=workers,
+                    who=getattr(args, "who", None), database=mysql_config.database, argv=getattr(args, "argv", None),
+                    seed=None, listing=listing, rows=None if row is None else {key: row})
+    finally:
+        run_common._finish_stats(args)
+    return reported
 
 
 def _require_in_reach(bounds, shell_index, band_index, what):
@@ -1493,16 +1647,15 @@ def run_random_start(args, edge_pc, progress):
 
     for address, position_pc, sector_args in starts:
         stages.enter("start")
-        started = time.monotonic()
-        sector_id, sector_name, sector = generate_and_save_sector_at(sector_args, address, position_pc, edge_pc)
-        run_common._record_sector(args, {"density": run_common._sector_density(sector_args), "systems": len(sector.entries),
-                              "stars": run_sector.sector_star_count(sector)}, time.monotonic() - started)
+        saved = _submit_batch(args, [(address, position_pc, sector_args, "")], "Starting sector", edge_pc, progress,
+                              None, count=1, collect=True)[0]
+        sector_id = saved["sector_id"]
         designation = provisional_sector_designation(*address)
         log.normal(
-            f"Saved random starting sector '{sector_name}' [{designation}] at {_format_address(address)} "
+            f"Saved random starting sector '{saved['name']}' [{designation}] at {_format_address(address)} "
             f"(sector_id={sector_id})."
         )
-        run_sector._log_summary(run_sector.sector_generation_summary_lines(sector, sector_args))
+        run_sector._log_summary(saved["summary"])
 
         args.center_sector = sector_id
         args.radius_pc = radius_pc
@@ -1546,11 +1699,12 @@ def run_single_sector(args, edge_pc, progress):
         exists = store.get_sector_id_at(conn, *address) is not None
     finally:
         conn.close()
-    sector_args = None
+    sector_args = single = None
     if not exists:
         # As `ensure_sector_generated` does it: density-driven.
         single = _default_generation_args(config=mysql_config)
         single.density = single.num_systems = None
+        single.link_later = True            # the run links its sectors at its end
         sector_args = batch_density.resolve(single, address, position_pc)
     sectors = [sector_args] if sector_args is not None else []
     what = _format_address(address)
@@ -1564,28 +1718,32 @@ def run_single_sector(args, edge_pc, progress):
     run_common._check_estimate(args, sectors, what, progress)
     # The backfill waits for the end of the run (backfill_after_run), with
     # its own bar, instead of stalling this one at 0 of 1 (PERF.28).
-    with run_common.sector_bar(progress, args, f"Sector ({_format_address(address)})", 1) as bar:
-        result = ensure_sector_generated(*address, config=mysql_config, backfill=False,
-                                         settle=False, link=False)  # the run settles and links at its end
-        bar.update(advance=1)
-
     designation = provisional_sector_designation(*address)
-    if result["created"]:
+    if single is not None:
+        with run_common.sector_bar(progress, args, f"Sector ({_format_address(address)})", 1) as bar:
+            saved = _submit_batch(args, [(address, position_pc, sector_args, "")], f"Sector ({_format_address(address)})",
+                                  edge_pc, progress, bar, count=1, base_args=single, collect=True)[0]
+        sector_id = saved["sector_id"]
         log.normal(
-            f"Saved sector '{result['sector_name']}' [{designation}] at {_format_address(address)} "
-            f"(sector_id={result['sector_id']})."
+            f"Saved sector '{saved['name']}' [{designation}] at {_format_address(address)} "
+            f"(sector_id={sector_id})."
         )
-        run_sector._log_summary(result["summary"])
+        run_sector._log_summary(saved["summary"])
     else:
+        conn = store.get_connection(mysql_config)
+        try:
+            sector_id = store.get_sector_id_at(conn, *address)
+        finally:
+            conn.close()
         log.normal(
             f"Sector [{designation}] at {_format_address(address)} already existed "
-            f"(sector_id={result['sector_id']})."
+            f"(sector_id={sector_id})."
         )
 
     if args.radius_pc is not None:
         # Then its neighborhood, the same way random-start mode follows
         # its seed sector.
-        args.center_sector = result["sector_id"]
+        args.center_sector = sector_id
         run_local_neighborhood(args, edge_pc, progress)
 
 

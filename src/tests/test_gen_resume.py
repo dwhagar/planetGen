@@ -25,6 +25,7 @@ import pytest
 
 from planetgen.generation import run_galaxy
 from planetgen.generation import run_plan
+from planetgen.queue import units
 from planetgen.db import store
 from planetgen import tuning
 from planetgen.galaxy.spherical import sector_position_pc, wedge_count
@@ -160,7 +161,7 @@ def test_a_run_stopped_before_a_save_resumes_to_the_uninterrupted_result(
         mysql_config, second_mysql_config, monkeypatch, tmp_path, mode):
     _seed_skeleton(mysql_config, shells=SHELLS)
     calls = _fail_on_call(monkeypatch, tmp_path, run_galaxy, "generate_and_save_sector_at", 4)
-    with pytest.raises(_Interrupted):
+    with pytest.raises(units.RunStopped, match="Interrupted"):     # the failing unit stops the run (PERF.107)
         _galaxy(mysql_config, MODES[mode])
     assert worker_patches.count(calls) >= 4
     partial, *_rest = _snapshot(mysql_config)
@@ -178,7 +179,7 @@ def test_a_save_that_fails_in_its_transaction_leaves_nothing_and_resumes(
     # after the sector, its systems and their bright-star links are written.
     _seed_skeleton(mysql_config, shells=SHELLS)
     _fail_on_call(monkeypatch, tmp_path, store, "record_sector_stats", 3)
-    with pytest.raises(_Interrupted):
+    with pytest.raises(units.RunStopped, match="Interrupted"):     # the failing unit stops the run (PERF.107)
         _galaxy(mysql_config, MODES[mode])
     partial, orphans, unbuilt, dangling = _snapshot(mysql_config)
     _check_partial(partial, 2)
