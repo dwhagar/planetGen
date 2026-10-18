@@ -3,7 +3,8 @@
 `scripts/build_todo_docs.py` builds docs/plan/version-plan.html,
 docs/plan/todo-reference.html, docs/plan/todo-tree.html and
 docs/plan/release-roadmap.html from docs/TODO.md, the version files, the
-plan notes and the number map. Boss (2026-10-07) asked for them to be rebuilt
+plan notes and the number map; docs/plan/execution-plan.html (DOC.68) comes from the same data plus
+docs/plan/lanes.md, docs/plan/execution-notes.md and the history snippet. Boss (2026-10-07) asked for them to be rebuilt
 with every TODO.md change, so a change that forgets the rebuild fails here
 with the command to run. Boss (2026-10-16) turned the tiers into a version
 map: versions with phases, a blocker never in a later phase.
@@ -154,3 +155,55 @@ def test_blocker_ranking_lists_a_chain_once():
     rows = build_todo_docs.build_blockers(items, [])["overall"]
     ids = [r["id"] for r in rows]
     assert ids == ["A.1", "B.1"] and rows[0]["chain"] == ["A.2", "A.3"]
+
+
+# --- The execution plan page (DOC.68) --------------------------------------------------------------------------
+
+def test_the_execution_plan_is_generated_and_keeps_what_the_docs_index_needs():
+    page = build_todo_docs.build()[build_todo_docs.EXECUTION_OUTPUT]
+    assert '<meta name="description" content="' in page
+    assert '<a href="../index.html">Docs index</a>' in page
+    assert page == build_todo_docs.build()[build_todo_docs.EXECUTION_OUTPUT], "the page must not depend on the clock"
+    assert "__BODY__" not in page
+
+
+def test_the_lanes_file_gives_the_stamp_the_rows_and_the_merged_line():
+    lanes = build_todo_docs.parse_lanes("""# Lanes board
+
+Updated: 2026-10-18 1:02 AM EDT
+
+| Lane | Doing now | Gate | Next |
+|---|---|---|---|
+| Core 1 | a | none | b |
+| Bug Hunt | c | gate 2 | d |
+
+Merged: GEN.1 (#1), GEN.2 (#2).
+""")
+    assert lanes["updated"] == "2026-10-18 1:02 AM EDT"
+    assert lanes["rows"] == [["Core 1", "a", "none", "b"], ["Bug Hunt", "c", "gate 2", "d"]]
+    assert lanes["merged"] == "GEN.1 (#1), GEN.2 (#2)."
+    real = build_todo_docs.parse_lanes((build_todo_docs.ROOT / "docs" / "plan" / "lanes.md").read_text(encoding="utf-8"))
+    assert real["updated"] and real["merged"] and len(real["rows"]) >= 5
+
+
+def test_the_notes_become_headings_bullets_and_paragraphs_with_escaping():
+    page = build_todo_docs.render_notes("""# Notes
+
+An opening note that is not shown.
+
+## Needs Boss
+
+*Muted lead.*
+
+- **GEN.1:** a <script> and `code`
+- two
+
+### Sub
+
+A paragraph.
+""")
+    assert "opening note" not in page
+    assert "<h2>Needs Boss</h2>" in page and "<h3>Sub</h3>" in page
+    assert '<p class="muted">Muted lead.</p>' in page
+    assert "<li><b>GEN.1:</b> a &lt;script&gt; and <code>code</code></li><li>two</li>" in page
+    assert "<p>A paragraph.</p>" in page
