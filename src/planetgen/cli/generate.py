@@ -1364,7 +1364,7 @@ def build_parser():
 
     commands_parser = subparsers.add_parser(
         'commands',
-        description="Lists every command the work queue can run (PERF.118): its name, whether it runs as units on the "
+        description="Lists every command the work queue can run: its name, whether it runs as units on the "
                     "queue or inline in the process that started the run, and what it does. Writes nothing.",
         help="List the work queue's commands.")
     add_logging_arguments(commands_parser)
