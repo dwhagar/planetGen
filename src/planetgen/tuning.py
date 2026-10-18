@@ -2709,6 +2709,10 @@ NEBULA_CLOUD_CLUMP_FRACTION = 1.0 / 3.0
 """float: The protostars of a core are scattered about its centre with a Gaussian of this fraction of its radius
 [I: "clumped near the centre"], redrawn if one falls outside the cloud."""
 
+NEBULA_CLUSTER_HALF_MASS_PC = {"D": 1.0, "E": 2.0}
+"""dict: The half-mass radius, parsecs, of the Plummer sphere the ionizing members of a class D or E region are placed in
+(GEN.321; a small O and B cluster, a young massive one; the design note's 1 and 2 pc), clipped to the nebula's radius."""
+
 PLANETARY_NEBULA_CENTRAL_STAR_TYPES = ("O3VII", "O5VII", "O7VII", "O9VII", "B0VII")
 """tuple: The central star a planetary nebula is generated around (GEN.10):
 the exposed hot core of a dying 0.8-8 Msun star, 30,000 K and

@@ -349,6 +349,12 @@ def _nearest(cells, address):
                                                   sector_position_pc(*address, EDGE_PC)), cell))
 
 
+def _is_built_star(entry):
+    """Whether a sector's entry is the system built around a stored bright star (the members of an emission region are
+    preplaced too, GEN.321, and carry no row id)."""
+    return getattr(entry, "bright_star_id", None) is not None
+
+
 def _fill(mysql_config, address):
     """Fills one sector, as a galaxy run does for each of its sectors
     (no backfill: since GEN.30 that runs once after the run's sectors)."""
@@ -431,7 +437,7 @@ def test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star(mysql_c
     ring_cells = [cell for cell in _backfill_steps(mysql_config, address) if cell in leftovers]
 
     _sector_id, _name, sector = _fill(mysql_config, address)
-    assert [entry for entry in sector.entries if entry.preplaced] == []
+    assert [entry for entry in sector.entries if _is_built_star(entry)] == []
     assert _count(mysql_config, "SELECT COUNT(*) AS n FROM bright_stars WHERE star_system_id IS NOT NULL") == 0
     assert _backfill_around(mysql_config, address)["stars"] > 0
     # The backfill draws each sector's stars from its mass, and a sector it reaches can draw none (about 1 run
@@ -445,7 +451,7 @@ def test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star(mysql_c
     assert _unbuilt_leftover_cells(mysql_config, last_leftover) & (reached | {address}) == {address}
 
     _sector_id, _name, sector = _fill(mysql_config, neighbor)
-    preplaced = [entry for entry in sector.entries if entry.preplaced]
+    preplaced = [entry for entry in sector.entries if _is_built_star(entry)]
     built, unlinked = _built_in(mysql_config, neighbor)
     assert unlinked == 0
     assert preplaced and len(built) == len(preplaced)
@@ -466,7 +472,7 @@ def test_a_fill_after_failed_commits_clears_the_reached_sectors_leftovers(mysql_
     # With more workers, the shells drawn beside the heaviest left theirs too.
     assert last_leftover == 20_000 if worker_patches.workers() == 1 else last_leftover >= 20_000
     _sector_id, _name, sector = _fill(mysql_config, address)
-    assert [entry for entry in sector.entries if entry.preplaced] == []
+    assert [entry for entry in sector.entries if _is_built_star(entry)] == []
     _backfill_around(mysql_config, address)
 
     assert _count(mysql_config, "SELECT COUNT(*) AS n FROM bright_stars WHERE star_system_id IS NOT NULL") == 0
