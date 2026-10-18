@@ -17273,6 +17273,12 @@ clears each one.
   5:54 to 7:37 PM EDT) and passed alone on the retry (99.28 s on gw1,
   load 9.9). Fails on main: not tried. Frequency: now 4 loaded gate runs
   for this test (4:10 PM, 5:13 PM, 7:08 PM and about 7:30 PM EDT).
+  Sighting (Bug Hunt, 2026-10-17, 9:14 PM EDT as the lane reported):
+  `test_galaxy_breadcrumb_always_matches_the_view_its_url_names` failed
+  under load again in Bug Hunt's second gate on #2124 and passed alone
+  (71 s). Frequency: now 5 loaded gate runs for this test (4:10 PM, 5:13
+  PM, 7:08 PM, about 7:30 PM and about 9:10 PM EDT). Same
+  MAP.227/MAP.228 trail area; Core 2's reading is on this item.
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
@@ -18931,6 +18937,17 @@ clears each one.
   map247 (the test waits until the spot holds still for 3 reads, and the
   same helper is applied to the system-disc test); it goes in the
   MAP.247 PR and resolves this item when merged.
+  Sighting (Bug Hunt, 2026-10-17, 9:14 PM EDT as the lane reported, gate
+  61508d78 on the #2124 branch): the test FAILS ALONE in the gate at
+  9:08 PM EDT, same case (5, -4): the anchor is [0.03148, -0.03148, 0]
+  where the star is (0, 0, 0) (line 270, a pointer 5 px off the star
+  picks a point 0.031 pc away). Frequency now 2 of 9 runs outside Core
+  2's branch, against main as of 9:00 PM EDT. The fix (the test waits
+  until the star's screen spot holds still for 3 reads) is in Core 2's
+  branch map247 and ships with the MAP.247 PR; until it merges every
+  gate on main can fail on this test, so the TODO thread asked Core 2
+  (9:15 PM EDT) to send the test fix on its own, ahead of the MAP.247
+  gate.
   Prerequisites: none. Related: MAP.245, TEST.126.
 
 - [ ] **TEST.232 The a11y page_targets fixture fails 199 browser tests when /search answers 202 (slow-page job) under load (bug)**
