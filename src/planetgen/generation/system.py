@@ -31,12 +31,11 @@ from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.generation.planet import Planet
-from planetgen.generation.star import Star, adjust_pair_age_for_planets, compressed_heliosphere_radius
+from planetgen.generation.star import Star, adjust_pair_age_for_planets
 from planetgen.physics.formation import (
     disk_surface_density_scale, isolation_mass_kg, mmsn_surface_density_gcm2, snow_line_au,
 )
 from planetgen.physics.orbits import calculate_reflex_offset, holman_wiegert_circumbinary_a_crit_au
-from planetgen.util.format import format_distance_au, to_paragraph
 from planetgen.generation.wide_binary import WideBinaryPair
 
 HELIOSPHERE_COMPRESSION_NOTED = 0.95
@@ -259,20 +258,7 @@ class StarSystem:
             # same way the primary can be, so LARGE_STAR is forced off for
             # its own generation call -- but only transiently, on the same
             # shared `system_config` object (restored right after), rather
-            # than handing it its own `copy.deepcopy`d config. A deep copy
-            # used to fork every field (not just LARGE_STAR) into its own
-            # independent object, including MARKDOWN -- invisible at
-            # generation time (both copies start out equal), but
-            # `store.insert_star_system` re-renders the whole system in
-            # *both* formats after the fact by toggling `system_config.
-            # MARKDOWN` and calling `str(star_system)` again, which only
-            # ever reaches this shared object, not a secondary star's own
-            # disconnected copy. The secondary's own data table (and its
-            # `===`/`###` header) was therefore stuck rendering in
-            # whichever format was current at generation time regardless of
-            # which one was actually being requested, mixing wikitext
-            # template blocks into an otherwise-markdown binary system's
-            # stored `markdown_content` (and vice versa).
+            # than handing it its own `copy.deepcopy`d config (a copy would fork every field).
             original_large_star = self.system_config.LARGE_STAR
             self.system_config.LARGE_STAR = False
 
@@ -1996,222 +1982,6 @@ class StarSystem:
                  False if its existing class remained valid.
         """
         return validation.reconcile_moved_planet(planet)
-
-    def summary_paragraph(self):
-        """
-        Builds the system summary paragraph -- object counts, habitable
-        worlds, heliosphere and gravitational edge -- that `__str__` places
-        near the top of the page. Its own method so a caller rendering the
-        page piece by piece (`describe.model.split_by_body`) gets
-        exactly the same sentences.
-
-        Returns:
-            str: The paragraph, in whichever format `system_config.MARKDOWN`
-                selects (only relevant through `to_paragraph`).
-        """
-        system_summary_sentences = []
-        segments = []
-        if 0 < self.planet_count != self.m_count and self.hab_count != self.planet_count:
-            segments.append(f"{self.planet_count} planet{'s' if self.planet_count > 1 else ''}")
-        if self.belt_count > 0:
-            segments.append(f"{self.belt_count} asteroid belt{'s' if self.belt_count > 1 else ''}")
-        if self.comet_count > 0:
-            segments.append(f"{self.comet_count} comet{'s' if self.comet_count > 1 else ''}")
-        if self.moon_count > 0:
-            segments.append(f"{self.moon_count} moon{'s' if self.moon_count > 1 else ''}")
-
-        if segments:
-            system_string = "This system contains " + ", ".join(segments)
-            if len(segments) == 2:
-                system_string = system_string.replace(f", {segments[-1]}", f" and {segments[-1]}")
-            elif len(segments) > 2:
-                system_string = system_string.replace(f", {segments[-1]}", f", and {segments[-1]}")
-            system_string += "."
-            system_summary_sentences.append(system_string)
-        elif self.planet_count == 0 and self.belt_count == 0 and self.comet_count == 0 and self.moon_count == 0:
-            # No segment was built and the system is genuinely empty (as opposed to having
-            # its planet count omitted above to avoid redundancy with the habitability
-            # sentence that follows).
-            system_summary_sentences.append("There are no stellar objects in this system.")
-
-        if self.m_count == 1:
-            m_string = "1 of which is class M"
-        elif self.m_count > 1:
-            m_string = f"{self.m_count} of which are class M"
-        else:
-            m_string = "none of which are class M"
-
-        if self.hab_count == 1 and self.m_count < 1:
-            system_summary_sentences.append("There is 1 potentially habitable world in the system.")
-        elif self.hab_count == 1 and self.m_count == 1:
-            system_summary_sentences.append("There is 1 class M world in the system.")
-        elif self.hab_count > 1 and self.hab_count == self.m_count:
-            system_summary_sentences.append(f"There are {self.hab_count} class M worlds in the system.")
-        elif self.hab_count > 1:
-            system_summary_sentences.append(f"There are {self.hab_count} potentially habitable worlds ({m_string}).")
-        else:
-            system_summary_sentences.append("There are no potentially habitable worlds in this system.")
-
-        heliosphere_text = format_distance_au(self.star.heliosphere_radius)
-        cloud = getattr(self, "surrounding_cloud", None)
-        compressed = (compressed_heliosphere_radius(self.star.heliosphere_radius, cloud["density_cm3"],
-                                                    cloud["temperature_k"]) if cloud else None)
-
-        if compressed is not None and compressed < self.star.heliosphere_radius * HELIOSPHERE_COMPRESSION_NOTED:
-            system_summary_sentences.append(
-                f"The star's stellar wind creates a bubble, known as the heliosphere, which would extend out to "
-                f"approximately {heliosphere_text} in open space, but the gas of {cloud['name']} around the system "
-                f"presses it in to approximately {format_distance_au(compressed)}.")
-        else:
-            system_summary_sentences.append(
-                f"The star's stellar wind creates a bubble, known as the heliosphere, which extends out to approximately {heliosphere_text}.")
-        system_summary_sentences.append(
-            f"Beyond this, the star's gravitational influence extends out to a distance of {format_distance_au(self.star.system_perimeter)}, marking the ultimate edge of the system.")
-
-        return to_paragraph(system_summary_sentences)
-
-    def __str__(self):
-        """
-        Generates a string output for the system data, including a summary and
-        details for each celestial body.
-
-        This method compiles a comprehensive summary of the entire star system,
-        including details about the central star and each of its orbiting
-        objects. The output is formatted as a human-readable string, suitable for
-        display in a console or for writing to a file.
-
-        The method provides a high-level overview of the system, including the
-        total number of planets, asteroid belts, and moons, as well as the number
-        of potentially habitable worlds. It then lists each celestial body in
-        order, providing a detailed description of its properties. The final
-        output may also include a category tag for wiki-based systems.
-
-        Returns:
-            str: A formatted string representing the entire star system.
-        """
-        all_output_parts = []
-
-        # Add level 1 header for the system name
-        if self.system_config.MARKDOWN:
-            all_output_parts.append(f"# {self.name}\n\n")
-        else:
-            all_output_parts.append(f"= {self.name} =\n\n")
-
-        combined_system_summary_paragraph = self.summary_paragraph()
-
-        if self.binary_type == "close":
-            # Get combined binary system data and age from the proxy
-            # BinaryStarProxy.to_paragraph_list() returns [data_block, age_sentence]
-            binary_proxy_paragraphs = self.star.to_paragraph_list()
-
-            # 1. Append the combined binary system data block
-            all_output_parts.append(binary_proxy_paragraphs[0]) # Binary System Data
-            all_output_parts.append('\n\n')
-
-            # 2. Append the system summary
-            all_output_parts.append(combined_system_summary_paragraph)
-            all_output_parts.append('\n\n')
-
-            # 3. Append the combined age sentence for the binary system
-            all_output_parts.append(binary_proxy_paragraphs[1]) # Binary System Age sentence
-
-            # Flavor text was already decided at generation time; this is a pure
-            # read so repeated renders don't re-roll or double-count it.
-            if self.system_flavor_text:
-                all_output_parts.append(f"\n\nSensors show {self.system_flavor_text}")
-
-            # 4. Append individual star details for primary and secondary stars
-            for star_obj in self.stars: # self.stars contains primary and secondary Star objects
-                all_output_parts.append('\n\n') # Blank line after age sentence
-                header_level = '===' if not self.system_config.MARKDOWN else '###'
-                all_output_parts.append(f"{header_level} {star_obj.name} {header_level if not self.system_config.MARKDOWN else ''}".rstrip())
-                all_output_parts.append('\n\n') # Blank line after the header so the markdown converter treats the table as its own block
-
-                # Each individual star's to_paragraph_list() returns [data_block, age_sentence]
-                individual_star_details = star_obj.to_paragraph_list()
-                all_output_parts.append(individual_star_details[0]) # Individual Star Data block
-                all_output_parts.append('\n\n') # Blank line after data block
-                all_output_parts.append(individual_star_details[1]) # Individual Star Age sentence
-
-        elif self.binary_type == "wide":
-            # Unlike the close/P-type pair (whose circumbinary planets
-            # belong to neither star individually, and are rendered flat,
-            # after both star sections), each S-type star's own planets are
-            # interleaved right after that star's own section below --
-            # more intuitive, since each list genuinely belongs to one
-            # star, not the pair as a whole.
-
-            # 1. Append the pair's own orbital-relationship data block.
-            all_output_parts.append(self.wide_binary.to_paragraph_list()[0])
-            all_output_parts.append('\n\n')
-
-            # 2. Append the system summary.
-            all_output_parts.append(combined_system_summary_paragraph)
-
-            # Flavor text was already decided at generation time; this is a pure
-            # read so repeated renders don't re-roll or double-count it.
-            if self.system_flavor_text:
-                all_output_parts.append(f"\n\nSensors show {self.system_flavor_text}")
-
-            # 3. Append each star's own section, immediately followed by its own planets and comets.
-            for star_obj, star_planets, star_comets in ((self.primary_star, self.planets, self.comets),
-                                                          (self.secondary_star, self.secondary_planets, self.secondary_comets)):
-                all_output_parts.append('\n\n')
-                header_level = '===' if not self.system_config.MARKDOWN else '###'
-                all_output_parts.append(f"{header_level} {star_obj.name} {header_level if not self.system_config.MARKDOWN else ''}".rstrip())
-                all_output_parts.append('\n\n') # Blank line after the header so the markdown converter treats the table as its own block
-
-                individual_star_details = star_obj.to_paragraph_list()
-                all_output_parts.append(individual_star_details[0])
-                all_output_parts.append('\n\n')
-                all_output_parts.append(individual_star_details[1])
-
-                for planet in star_planets:
-                    all_output_parts.append('\n\n' + '\n\n'.join(planet.to_paragraph_list()))
-
-                for comet in star_comets:
-                    all_output_parts.append('\n\n' + '\n\n'.join(comet.to_paragraph_list()))
-
-        else:
-            # For single star:
-            # Get single star data and age from the star object
-            # Star.to_paragraph_list() returns [data_block, age_sentence]
-            single_star_paragraphs = self.star.to_paragraph_list()
-
-            # 1. Append the single star data block
-            all_output_parts.append(single_star_paragraphs[0])
-            all_output_parts.append('\n\n')
-            # 2. Append the single star age sentence
-            all_output_parts.append(single_star_paragraphs[1])
-            all_output_parts.append('\n\n')
-            # 3. Append the system summary
-            all_output_parts.append(combined_system_summary_paragraph)
-
-            # Flavor text was already decided at generation time; this is a pure
-            # read so repeated renders don't re-roll or double-count it.
-            if self.system_flavor_text:
-                all_output_parts.append(f"\n\nSensors show {self.system_flavor_text}")
-
-        # Add planet/belt paragraphs, each separated by a double newline from the previous.
-        # Skipped for an S-type (wide) binary -- its planets were already
-        # emitted above, interleaved with each star's own section.
-        if self.binary_type != "wide" and self.planets:
-            for planet in self.planets:
-                all_output_parts.append('\n\n' + '\n\n'.join(planet.to_paragraph_list()))
-
-        # Add comet paragraphs the same way -- skipped for a wide binary,
-        # whose comets were already emitted above per-star, alongside its
-        # own planets (see _generate_comets' docstring for why comets are
-        # a separate list from planets in the first place).
-        if self.binary_type != "wide" and self.comets:
-            for comet in self.comets:
-                all_output_parts.append('\n\n' + '\n\n'.join(comet.to_paragraph_list()))
-
-        # Add category tag if not markdown
-        if not self.system_config.MARKDOWN:
-            all_output_parts.append('\n\n' + '[[Category:Star Systems]]')
-
-        return ''.join(all_output_parts)
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 object_timing.track(StarSystem, "system")

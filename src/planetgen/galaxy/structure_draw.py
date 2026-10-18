@@ -81,6 +81,21 @@ DISC_CENTRAL_DISPERSION_OVER_V = (0.248, 0.15)
 """tuple: `(centre, relative scatter)`: Martinsson et al. 2013, `0.248 +/- 0.038`, 15 percent."""
 DISC_AGE_EXPONENT = (0.441, 0.03)
 BULGE_DISPERSION_SCATTER_DEX = 0.097
+NUCLEAR_CLUSTER_MASS_AT_1E9 = 6.51
+"""float: `log10` of a nuclear star cluster's mass, solar masses, in a galaxy of 1e9 solar masses of stars (Neumayer,
+Seth and Boeker 2020, arXiv:2001.03626, Eq. 1: `log M_NSC = 0.48 log(M* / 1e9) + 6.51`)."""
+NUCLEAR_CLUSTER_SLOPE_RANGE = (0.48, 1.36)
+"""tuple: The slope of that relation: uniform between Neumayer's 0.48 and Georgiev et al. 2016's 1.36 (arXiv:1601.02613:
+1.0 late types, 1.36 early types), the two verified papers that disagree; both stay (Boss, gap plan decision 2, GX3)."""
+NUCLEAR_CLUSTER_SCATTER_DEX = 0.6
+"""float: Its scatter, dex (Neumayer 2020, mostly intrinsic)."""
+NUCLEATION_PEAK = 0.85
+NUCLEATION_PEAK_MASS_SOLAR = 1.0e9
+NUCLEATION_FALL_MASS_SOLAR = 1.0e11
+NUCLEATION_FALL_FRACTION = 0.2
+"""PLACEHOLDER (gap plan 6): the share of galaxies with a nuclear star cluster. Neumayer 2020 section 4.1 gives 80 percent
+or more near 1e9 solar masses (and in over 300 late-type spirals) and a decline above it, without numbers: the share is
+0.85 up to 1e9, falls in log mass to 0.2 at 1e11 and stays there. Replaced when the occupation fractions are read."""
 SCATTER_LIMIT = 3.0
 """float: How many sigma a scatter may reach."""
 
@@ -128,6 +143,21 @@ def halo_ratio_median(stellar_mass_solar):
     return HALO_RATIO_AT_5E10 * (stellar_mass_solar / 5.0e10) ** HALO_RATIO_SLOPE
 
 
+def nucleation_fraction(stellar_mass_solar):
+    """The share of galaxies of `stellar_mass_solar` that hold a nuclear star cluster (a placeholder, see above)."""
+    span = math.log10(NUCLEATION_FALL_MASS_SOLAR / NUCLEATION_PEAK_MASS_SOLAR)
+    along = (math.log10(stellar_mass_solar / NUCLEATION_PEAK_MASS_SOLAR)) / span
+    along = min(max(along, 0.0), 1.0)
+    return NUCLEATION_PEAK + (NUCLEATION_FALL_FRACTION - NUCLEATION_PEAK) * along
+
+
+def nuclear_cluster_mass_solar(stellar_mass_solar, slope, deviation):
+    """A nuclear star cluster's mass, solar masses, in a galaxy of `stellar_mass_solar`: the power law of Neumayer and
+    Georgiev (a slope between theirs), `deviation` standard deviations of 0.6 dex about it."""
+    return 10.0 ** (NUCLEAR_CLUSTER_MASS_AT_1E9 + slope * math.log10(stellar_mass_solar / 1.0e9)
+                    + deviation * NUCLEAR_CLUSTER_SCATTER_DEX)
+
+
 def draw_structure(galaxy_seed):
     """
     The structure the galaxy of `galaxy_seed` has: the same seed gives the same structure.
@@ -159,12 +189,22 @@ def draw_structure(galaxy_seed):
     exponent = DISC_AGE_EXPONENT[0] + _scatter(_stream(galaxy_seed, "disc-heating"), DISC_AGE_EXPONENT[1])
     bulge_scatter = _scatter(_stream(galaxy_seed, "bulge-dispersion"), BULGE_DISPERSION_SCATTER_DEX)
     bar = draw_bar(galaxy_seed, mass)
+    from planetgen.galaxy import shape_draw   # the stage is drawn there (a late import: shape_draw imports this module)
+    classical = shape_draw.stage_of(galaxy_seed) == "early"
+    black_hole = _scatter(_stream(galaxy_seed, "black-hole"), 1.0)
+    if _stream(galaxy_seed, "nucleation").random() < nucleation_fraction(mass):
+        slope = _stream(galaxy_seed, "nuclear-slope").uniform(*NUCLEAR_CLUSTER_SLOPE_RANGE)
+        cluster = nuclear_cluster_mass_solar(mass, slope, _scatter(_stream(galaxy_seed, "nuclear-cluster"), 1.0))
+    else:
+        cluster = 0.0
     return Structure(
         vc_kms=vc, thick_mass_ratio=mass_ratio, thick_length_ratio=length_ratio, thick_height_ratio=height_ratio,
         bar_present=bar[0], bar_axis_ratio_y=bar[1], bar_axis_ratio_z=bar[2], bar_angle_deg=bar[3],
         halo_stellar_ratio=halo,
         disc_gas_dispersion_kms=gas, disc_central_dispersion_kms=max(central, gas * 1.05), disc_age_exponent=exponent,
-        bulge_dispersion_scatter_dex=bulge_scatter)
+        bulge_dispersion_scatter_dex=bulge_scatter,
+        stellar_mass_solar=mass, classical_bulge=classical, black_hole_deviation=black_hole,
+        nuclear_cluster_mass_solar=cluster)
 
 
 BAR_FRACTION_COEFFICIENTS = (-82.2, 17.1, -0.88)

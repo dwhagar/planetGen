@@ -16,7 +16,6 @@ the complexity of a multi-star system.
 
 import math
 
-from planetgen.names.bodies import close_pair_label
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
 from planetgen.physics.planets import calculate_orbital_period_years
@@ -24,14 +23,10 @@ from planetgen.util import draw
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
 from planetgen.galaxy import mass_chain
-from planetgen.galaxy.galactic_orbit import format_galactic_orbit
 from planetgen.physics.orbits import (
     calculate_habitable_zone, calculate_hill_sphere, circular_orbital_speed_kms, minimum_update_interval_years, orbital_position_au,
 )
 from planetgen.util.checks import finite_domain
-from planetgen.util.format import (
-    format_age_string, format_distance_au, format_distance_km, format_mass_kg, format_power_w, properties_to_string, format_period_years, format_speed_kms,
-)
 
 class BinaryStarProxy(Star):
     """
@@ -366,87 +361,6 @@ class BinaryStarProxy(Star):
         adjust_pair_age_for_planets(self._primary, self._secondary, planets, planets)
         self.age = self._primary.age
         self.lifespan = max(self._primary.lifespan, self._secondary.lifespan)
-
-    def get_table_properties(self):
-        """
-        Builds the "Binary System Data" property dict -- the exact key/value
-        pairs `to_paragraph_list` renders into the combined pair's data
-        table -- as its own method so the database persistence layer can
-        read the same as-published values without duplicating this
-        formatting logic (see `planetgen/db/store.py`). This is the combined
-        PAIR's table, distinct from `Star.get_table_properties()` (which
-        each constituent star still has its own copy of).
-
-        Returns:
-            dict: Keys `type`, `mass`, `lum`, `hab`, `separation`,
-                 `mutual_orbit`, `orbit`, `loc`, each an already-formatted
-                 display string.
-        """
-        mass_string = format_mass_kg(self.mass)
-        lum_string = format_power_w(self.luminosity)
-
-        separation_string = format_distance_au(self.binary_separation_au)
-
-        orbit_string = format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)
-        mutual_orbit_string = (
-            f"{format_speed_kms(self.binary_mutual_orbital_speed_kms)} "
-            f"({format_period_years(self.binary_mutual_orbital_period_years)} per orbit)"
-        )
-
-        # Each star's own distance from the pair's shared barycenter --
-        # both visibly orbit it, not just the secondary orbiting a fixed
-        # primary; see the offset fields' own comment in __init__.
-        primary_offset_km = math.sqrt(
-            self.binary_primary_position_x ** 2 + self.binary_primary_position_y ** 2
-            + self.binary_primary_position_z ** 2
-        ) * constants.AU_TO_KM
-        secondary_offset_km = math.sqrt(
-            self.binary_secondary_position_x ** 2 + self.binary_secondary_position_y ** 2
-            + self.binary_secondary_position_z ** 2
-        ) * constants.AU_TO_KM
-        wobble_string = (
-            f"{self._primary.name}: {format_distance_km(primary_offset_km)}, "
-            f"{self._secondary.name}: {format_distance_km(secondary_offset_km)} "
-            f"from the barycenter"
-        )
-
-        return {
-            "type": self.type,
-            "mass": mass_string,
-            "lum": lum_string,
-            "hab": f"Between {format_distance_au(self.habitable_zone[0])} and {format_distance_au(self.habitable_zone[1])}",
-            "separation": separation_string,
-            "mutual_orbit": mutual_orbit_string,
-            "wobble": wobble_string,
-            "orbit": orbit_string,
-            "loc": f"{close_pair_label(self._primary.name, self._secondary.name)} Binary System"
-        }
-
-    def to_paragraph_list(self):
-        """
-        Generates a list of descriptive paragraphs for the binary star system's
-        combined properties. It does NOT include individual star details.
-
-        Returns:
-            list: A two-element list: [combined data block, combined age sentence].
-        """
-        paragraphs = []
-
-        # 1. Combined Binary System Data Block
-        binary_properties = self.get_table_properties()
-        markdown_key_map = {
-            "type": "Type", "mass": "Mass", "lum": "Luminosity",
-            "hab": "Habitable Zone", "separation": "Stellar Separation",
-            "mutual_orbit": "Mutual Orbit", "wobble": "Barycenter Offset",
-            "orbit": "Galactic Orbit", "loc": "Location"
-        }
-        paragraphs.append(properties_to_string(self.system_config, binary_properties, "Binary System Data", markdown_key_map=markdown_key_map))
-
-        # 2. Combined Age and Evolutionary Notes (simplified for binary)
-        age_sentence = f"The binary system is approximately {format_age_string(self.age)} old."
-        paragraphs.append(age_sentence)
-
-        return paragraphs
 
     @staticmethod
     @finite_domain()

@@ -19,6 +19,7 @@ from planetgen.galaxy.skeleton import expected_system_count_at_density_1
 from planetgen.generation import fill_stages, run_galaxy, run_sector
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.util import draw
+from tests import render_support
 
 SHAPE = build_galaxy_shape(
     disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0,
@@ -137,7 +138,7 @@ def test_a_fill_draws_its_ejecta_with_a_velocity_in_place_of_an_orbit():
         assert low - 1e-9 <= speed <= high + 1e-9
         stored = entry.spatial.get_velocity_vector("galactic")
         assert tuple(c / 1000.0 for c in stored) == pytest.approx(remnant.ejecta_velocity_kms)
-        assert "Ejected from the galaxy" in str(remnant)
+        assert "Ejected from the galaxy" in render_support.facts_text(render_support.phenomenon_section(remnant))
         assert entry.phenomenon_type != "black-hole" or remnant.mass_class == "stellar"
     counts = fill_stages.counts(sector)[fill_stages.EJECTA]
     assert counts == {kind: sum(entry.phenomenon_type == kind for entry in entries) for kind in kinds}

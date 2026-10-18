@@ -37,7 +37,7 @@ def _shape(nuclear_amplitude=1.0):
 
 
 # A seed whose drawn structure keeps the toy galaxy's three shells in the tiers they are named for (core, mixed, disc).
-SEED = bytes([12]) * 16
+SEED = bytes([39]) * 16
 SHAPE = _shape()._replace(structure=structure_draw.draw_structure(SEED))   # a stored shape's seed draws its structure
 CORE_SHELL, MIXED_SHELL, DISC_SHELL = 1, 800, 40
 """A shell in the nuclear cluster, one the halo reaches near its poles and the disc crosses, and one in the disc."""

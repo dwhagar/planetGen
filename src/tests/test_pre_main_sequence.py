@@ -151,8 +151,6 @@ def test_the_star_page_says_the_star_is_contracting_and_shows_the_disk():
     rows = {row["key"]: row for row in describe_build._star_facts(star)["rows"]}
     assert "disk" in rows and rows["disk"]["label"] == "Disk"
     assert "contracting towards the main sequence" in str(describe_build._star_age_sentence(star))
-    assert "contracting" in " ".join(star.to_paragraph_list())
-    assert "Disk" in star.get_table_properties()["disk"].capitalize() or "disk" in star.get_table_properties()["disk"]
 
 
 def test_a_protostar_has_the_companions_of_the_perseus_survey():

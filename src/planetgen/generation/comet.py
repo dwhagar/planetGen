@@ -48,7 +48,6 @@ from planetgen.generation.phenomena.rogue import format_comet_composition_summar
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.names.wordsalad import LazySaladName
 from planetgen.physics.orbits import minimum_update_interval_years
-from planetgen.util.format import format_distance_au, format_period_years, format_speed_kms
 
 PERIOD_CLASS_LABELS = {
     "jupiter_family": "Jupiter-family",
@@ -207,7 +206,7 @@ class Comet(LazySaladName, HoldsOrbitPosition):
 
         Args:
             system_config (SystemConfig): The shared SystemConfig object
-                (used only for its `MARKDOWN` flag, via `to_paragraph_list`).
+                (its settings).
             primary_mass_solar (float): The host star's mass, in solar
                 masses.
             name (str, optional): An explicit name. Random if omitted.
@@ -362,58 +361,6 @@ class Comet(LazySaladName, HoldsOrbitPosition):
             str: The composition summary phrase.
         """
         return format_comet_composition_summary(self.composition)
-
-    def to_paragraph_list(self):
-        """
-        Generates a list of descriptive paragraphs for the comet: a header
-        naming it, and a description of its size, composition, orbit, and
-        current position/activity.
-
-        Returns:
-            list: A list of strings, where each string is a paragraph
-                  describing the comet.
-        """
-        header_level = '##' if self.system_config.MARKDOWN else '=='
-        kind_label = "Parabolic Comet" if self.orbit_type == "parabolic" else "Comet"
-        header = f"{header_level} {self.name} ({kind_label}) {header_level if not self.system_config.MARKDOWN else ''}".rstrip()
-
-        activity = (
-            "It currently shows an active coma and tail as its surface ices sublimate."
-            if self.is_active else
-            "It shows no current activity, its surface ices dormant for now."
-        )
-
-        if self.orbit_type == "elliptical":
-            period_label = PERIOD_CLASS_LABELS.get(self.period_class, "periodic")
-            orbit_sentence = (
-                f"It follows a {period_label} elliptical orbit around the star, with a perihelion of "
-                f"{format_distance_au(self.perihelion_distance_au)}, an eccentricity of {self.eccentricity:.3f}, and a "
-                f"period of {format_period_years(self.orbital_period_years)}, returning to the inner system "
-                f"every orbit."
-            )
-        else:
-            orbit_sentence = (
-                f"It is on a marginally unbound, near-parabolic orbit with a perihelion of "
-                f"{format_distance_au(self.perihelion_distance_au)} and an eccentricity of {self.eccentricity:.4f} -- having "
-                f"originated in this system's own outer reaches, it will not return after this passage."
-            )
-
-        description = (
-            f"{self.name} is a comet bound to this system, with a nucleus roughly "
-            f"{self.nucleus_diameter_km:.2f} km across, composed of {self.get_composition_summary()}. "
-            f"{orbit_sentence} It is currently {format_distance_au(self.distance_au)} from the star, moving at "
-            f"{format_speed_kms(self.orbital_speed_kms)}. {activity}"
-        )
-
-        return [header, description]
-
-    def __str__(self):
-        """
-        Returns a string representation of the comet, with paragraphs
-        separated by double newlines.
-        """
-        return "\n\n".join(self.to_paragraph_list())
-
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 object_timing.track(Comet, "comet")

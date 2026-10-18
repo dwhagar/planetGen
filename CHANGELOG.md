@@ -2,6 +2,132 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1808] - 2026-10-18
+
+**Headline:** The design page now says what a usable circumbinary window is and which numbers are measured
+
+### Changed
+
+The multi-star design page's table of pair nodes with a usable P-type window had no definition behind it. Two definitions were tried on the same seeded draw of the generator's trees (width above 0.3 AU with an outer edge twice the inner, and width above 0.3 AU overlapping the pair's habitable zone); neither matched the table within 7 points at every number of stars, so a P-type window counts as usable when it is wider than 0.3 AU, like the S-type row, the table's old row is marked as the earlier estimate, and a test pins the measured share. No generated value changes.
+
+## [8.0.1807] - 2026-10-18
+
+**Headline:** The generator's stellar isochrone grid, white-dwarf models and neutron-star matter tables are downloaded once at setup and checked
+
+### Changed
+
+`update.sh` and `install.sh` now run one shared download step (`python3 -m planetgen.cli.datasets fetch`) that fetches static data files into `/var/cache/planetgen/datasets`, outside the checkout. Each request sends the standard `User-Agent` (software, release and API version), is retried if the host does not answer, and each file must match the size and sha256 the catalogue states, otherwise it is not kept. A host that does not answer only prints a warning; the generator then uses a stand-in that says it is one. Nothing downloads while the site or the generator runs.
+
+Three datasets use it: the MIST v1.2 main-sequence isochrones (luminosity, temperature and radius against mass, age and [Fe/H], and main-sequence lifetimes; a 221 MB archive reduced once to 5 MB), the Bédard et al. 2020 white-dwarf cooling sequences (radius and layer masses), and 21 neutron-star equations of state with the outer-crust composition for 20 nuclear mass models. Each has a reader in `planetgen.datasets`; the first download is about 225 MB and takes a minute or two.
+
+## [8.0.1806] - 2026-10-18
+
+**Headline:** The old per-class description text, the Markdown renderer and the `markdown` dependency are gone; every page and download now comes from the one description Document.
+
+### Changed
+- Removed the old description path: each body's `to_paragraph_list` and `__str__`, the `MARKDOWN` text, `web/lib/mdrender.py`, and the `markdown` package from `setup.py` and the lock files.
+- The `markdown` recipe key of a system run is gone (`docs/api.md`, `docs/system-file-format.md`); Markdown, wikitext and text are written from the Document.
+- Tests that read the old text now read the Document through `tests/render_support.py`; `test_mdrender.py` is removed.
+- The docs no longer describe `mdrender`; the Document HTML renderer escapes every string it writes.
+
+TODO items resolved: UX.109
+
+## [8.0.1805] - 2026-10-18
+
+**Headline:** With the cursor over empty space the wheel now zooms toward where the stars thicken along the cursor's ray, not toward a flat plane through the middle of the view.
+
+### Changed
+- Where the cursor ray meets nothing pickable, the point the wheel zooms toward (and a double click on empty space flies half way to) is the first place along the ray where the column of the galaxy's stars passes half the view's distance in local-average density (`columnAnchor` in `galaxystageview.js`, `columnDensityPoint` in `mapcontrol.js`). Before, it was the point of the focus plane under the cursor, however empty or dense the space along the ray. In a dense region (a bulge, an arm, the core) the point is nearer, in space of the average density it is half way to the focus, and where the ray finds too little it is the focus plane's point as before. A point is never nearer than a quarter of the way to the focus plane, so a wheel step still moves the eye.
+- The density is the page's own galaxy model (`relativeDensity` in `galaxyprisms.js`), so no density field was added to the cell scene or the tiles. Not used in an opened system or before the galaxy has a shape.
+- A pointer within 12 px of the middle of the map (on the cross) still zooms about the cross (MAP.199): the column point is not used there. Without this the wheel on the cross drifted the view off its line of sight once the density column was thick behind it, and `test_wheel_zoom_turns_about_the_centre_and_a_shift_click_chooses_it` failed in both of two runs.
+- `docs/design/fly-through-view-distance.md` says what is built.
+
+### Added
+- A node test for `columnDensityPoint` (uniform space, a dense slab after empty space, a column that never passes, no density) and a browser test in `tests/test_web_browser_sector_reach.py`: with a sector open near the core, the anchor under two empty corners of the map lies between a fifth and a third of the view's distance from the eye, not on the focus plane.
+
+TODO items resolved: MAP.247 / Added: none
+
+## [8.0.1804] - 2026-10-18
+
+**Headline:** The neighbourhood test no longer fails when the random start lands in the dense core, where cells hold fewer systems than the plan's raw prediction by design.
+
+### Changed
+- Tests: `test_random_start_neighborhood_matches_the_real_skeleton_plan` counted a cell above the cell star ceiling at the plan's raw prediction (up to 250,000 systems), but such a cell is filled only down to its luminosity cap (GEN.281) and resolved about 100; the sum missed the 3x band in about one dense-core start in three (TEST.225). A capped cell now counts by `cell_resolution(...).resolved_systems`, and a second case starts in the dense core (`--min-start-density 1000`) so the case is covered on every run. The 3x bound is unchanged.
+- Tests: the window-address pattern in `test_web_browser_maps.py` allowed a negative number in the wedge field, but the address is `win=size.shell.band.wedge` and it is the band that goes negative below the equator; it now matches `-?` in the band, as `test_web_browser_fixture_maps.py` already does (TEST.236).
+- Tests: `test_generate_sector_real_capacity_overflow_returns_a_partial_sector` used a galaxy mass at which about 1 draw in 100 fits all 120 systems; its test mass is now 1.15e11 solar masses, where 200 of 200 draws held 8 to 26 (TEST.245).
+
+TODO items resolved: TEST.225, TEST.236, TEST.245 / Added: none
+
+## [8.0.1803] - 2026-10-18
+
+**Headline:** The admin commands each do one job: listing lockouts, lifting one, forgetting devices and resetting two-factor are four commands, and two obsolete one-off tools are gone.
+
+### Changed
+- **`cli.lockouts` only lists** (OPS.60). Lifting a lockout is `python3 -m planetgen.cli.lift_lockout` with `--ip`, `--user` or `--all`; revoking an admin's trusted-device cookies is `python3 -m planetgen.cli.forget_devices USER`; turning off two-factor is `python3 -m planetgen.cli.reset_two_factor USER`. The old `--ip`, `--user`, `--all`, `--forget-devices` and `--reset-two-factor` options of `cli.lockouts` are gone, with no shim.
+- **`cli.version_history` only records** the version key (OPS.60). Its `--list` is removed; `planetgen versions` lists the history.
+
+### Removed
+- **`cli.render_parity` and `cli.dedupe`** (OPS.61), the one-off check for schema v29 and the name backfill for v24, which migrated long ago, with their tests and the two step names (`dedupe-sectors`, `dedupe-systems`) nothing runs any more.
+
+## [8.0.1802] - 2026-10-18
+
+**Headline:** "Charted only" on the Galaxy Map now dims the black holes, neutron stars and quasars of sectors that are not filled yet.
+
+### Fixed
+- With "Charted only" on, the scattered black holes, neutron stars and quasars outside the filled sectors stayed fully lit while the stars dimmed, because the map treated every phenomenon as being in a filled sector. A scattered point now carries `charted` (true once its sector is built) and the map dims the unbuilt ones the way it dims stars outside charted sectors; phenomena of built sectors stay lit.
+
+TODO items resolved: none (MAP.252 stays open for the graded order, the next PR) / Added: none
+
+## [8.0.1801] - 2026-10-18
+
+**Headline:** Every galaxy's central black hole and nuclear star cluster come from its own mass, bulge and seed, not from fixed Milky Way figures.
+
+### Changed
+- **The central black hole follows the galaxy** (`galaxy/structure.py`, `galaxy/density.py`). A galaxy with a classical bulge (the early stage) takes the bulge relation, `M_BH / 1e9 = 0.49 (M_bulge / 1e11)^1.16` with 0.29 dex of scatter (Kormendy and Ho 2013); any other galaxy takes `log M_BH = 7.45 + 1.05 log(M* / 1e11)` with 0.24 dex (Reines and Volonteri 2015). Each galaxy's draw about the relation comes from its seed. The bulge's velocity dispersion follows from the mass by the M-sigma relation (Kormendy and Ho 2013, Eq. 3). A black hole or a quasar made with no galaxy takes the hole of a randomly drawn host galaxy.
+- **The nuclear star cluster follows the galaxy** (`galaxy/structure_draw.py`, GX3). Its mass is `log M = 6.51 + s log(M* / 1e9)` with 0.6 dex of scatter (Neumayer, Seth and Boeker 2020), and the slope `s` is drawn per galaxy uniform on 0.48 to 1.36, the Neumayer and Georgiev values both kept (Boss). The share of galaxies with a cluster is a labelled placeholder (0.85 up to 1e9 solar masses, falling to 0.2 at 1e11) until the occupation fractions are read; a galaxy without one has no nuclear disc either. The nuclear disc and size ratios stay Milky Way stand-ins.
+- Removed from `tuning.py`: `NUCLEAR_CLUSTER_BULGE_RATIO`, the supermassive black hole mass range and dispersion, and the quasar mass range. The structure gains `stellar_mass_solar`, `classical_bulge`, `black_hole_deviation` and `nuclear_cluster_mass_solar`.
+- The generator epoch is 25.
+generation-output: changed
+
+### Added
+- `tests/test_central_black_hole_and_cluster.py` (10 tests): determinism, both black hole relations, the mass trend over 1,200 seeds, M-sigma, the cluster's power law and slope range, the nucleation share, the density terms without a cluster, a hole made with no galaxy, and that the old constants are gone.
+
+TODO items resolved: GEN.402. Added: none.
+
+## [8.0.1800] - 2026-10-18
+
+**Headline:** The mass of a white dwarf, neutron star or stellar black hole comes from one place in the code instead of six; no seed's output changes.
+
+### Changed
+- New `physics/remnant_mass.py` holds the initial-final relation for white dwarfs, the uniform neutron star and black hole mass draw, and the moments the placement terms use. The star model, the multi-star member draw, the scatter's planetary-nebula central star, the compact objects, the phenomenon scatter's mass law and the placement terms call it; the six copies are gone with no shim.
+- Every draw uses the same stream the same way, so no seed gives a different object (`tests/test_remnant_mass.py` compares each rule with the line it replaced); the numbers stay in `tuning`.
+
+TODO items resolved: GEN.562 / Added: none
+
+## [8.0.1799] - 2026-10-18
+
+**Headline:** Pressing "Stop waiting" on a slow page's loading state now stays stopped, even when a progress answer was already on its way.
+
+### Changed
+- `static/slowload.js`: a status request that was in flight when "Stop waiting" was pressed used to come back and draw its progress over "Stopped waiting.", so the page read as still waiting while the Check again button showed. The answer is now dropped when the page has been stopped (checked after the request and after its body is read), so the stop holds and "Check again" starts polling again as before.
+
+### Added
+- `tests/js/slowload.test.mjs`: "an answer that arrives after Stop waiting does not undo the stop (TEST.235)" holds the status answer, stops, lets the answer arrive, and checks the stop message, the buttons, that no more polls follow, and that Check again still works. It fails without the change. The browser test `test_stop_waiting_stops_the_polling_and_check_again_picks_it_up` failed on this in two gates (`[light]` and `[dark]`, box load 10) and passed alone.
+
+TODO items resolved: TEST.235 / Added: none
+
+## [8.0.1798] - 2026-10-18
+
+**Headline:** The second system-disc browser test no longer fails when the disc's last share lands just under a whole one.
+
+### Changed
+- `tests/test_web_browser_sector_reach.py::test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star` stops its wheel loop at a share of 0.999 and then asked for 1.0 within 1e-6, so it failed whenever the last step landed between the two (0.99988 in a gate, failing alone as well). It now asks for the share it stopped at: at least 0.999. The sibling test (`test_the_system_disc_...`, fixed under TEST.213) already did.
+
+### Added
+- Nothing.
+
+TODO items resolved: none (the same defect as TEST.213, left in this second test by its first fix) / Added: none
+
 ## [8.0.1797] - 2026-10-18
 
 **Headline:** The host tables' source and note strings name the design note instead of a TODO code, so no code shows where a user can see it.

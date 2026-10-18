@@ -53,12 +53,6 @@ def _close(a, b, rel=1e-9, abs_=1e-12):
     return math.isclose(a, b, rel_tol=rel, abs_tol=abs_)
 
 
-def _config(markdown):
-    config = SystemConfig()
-    config.MARKDOWN = markdown
-    return config
-
-
 # ---------------------------------------------------------------------------
 # utils: unit conversions
 # ---------------------------------------------------------------------------
@@ -99,17 +93,16 @@ def test_unit_conversions_agree_with_each_other():
 # utils: number formatting
 # ---------------------------------------------------------------------------
 
-_SCI_MD = re.compile(r"^(-?\d+(?:\.\d+)?) × 10<sup>(-?\d+)</sup>$")
-_SCI_WIKI = re.compile(r"^\{\{Exp\|(-?\d+(?:\.\d+)?)\|(-?\d+)\}\}$")
+_SCI = re.compile(r"^(-?\d+(?:\.\d+)?) × 10<sup>(-?\d+)</sup>$")
 
 
-@given(x=normal_float, precision=st.integers(0, 8), markdown=st.booleans())
-def test_to_scientific_notation_parses_back_to_the_value(x, precision, markdown):
-    out = formatting.to_scientific_notation(_config(markdown), x, precision)
+@given(x=normal_float, precision=st.integers(0, 8))
+def test_to_scientific_notation_parses_back_to_the_value(x, precision):
+    out = formatting.to_scientific_notation(x, precision)
     if x == 0:
         assert out == "0"
         return
-    match = (_SCI_MD if markdown else _SCI_WIKI).match(out)
+    match = _SCI.match(out)
     assert match, out
     coefficient, exponent = float(match.group(1)), int(match.group(2))
     assert exponent in (math.floor(math.log10(abs(x))), math.floor(math.log10(abs(x))) + 1)
@@ -117,25 +110,25 @@ def test_to_scientific_notation_parses_back_to_the_value(x, precision, markdown)
     assert math.isclose(coefficient * 10.0 ** exponent, x, rel_tol=0.51 * 10 ** -precision + 1e-12)
 
 
-@given(x=finite.filter(lambda v: v != 0), precision=st.integers(0, 6), markdown=st.booleans())
-@example(x=9.999, precision=2, markdown=True)          # was "10.00 x 10^0"
-@example(x=99.996, precision=2, markdown=True)
-@example(x=0.0099999, precision=2, markdown=False)
-@example(x=-9.9999e30, precision=2, markdown=True)
-@example(x=1e-320, precision=2, markdown=True)          # subnormal, was "10.02 x 10^-321"
-def test_to_scientific_notation_coefficient_is_normalized(x, precision, markdown):
-    out = formatting.to_scientific_notation(_config(markdown), x, precision)
-    coefficient = float((_SCI_MD if markdown else _SCI_WIKI).match(out).group(1))
+@given(x=finite.filter(lambda v: v != 0), precision=st.integers(0, 6))
+@example(x=9.999, precision=2)          # was "10.00 x 10^0"
+@example(x=99.996, precision=2)
+@example(x=0.0099999, precision=2)
+@example(x=-9.9999e30, precision=2)
+@example(x=1e-320, precision=2)          # subnormal, was "10.02 x 10^-321"
+def test_to_scientific_notation_coefficient_is_normalized(x, precision):
+    out = formatting.to_scientific_notation(x, precision)
+    coefficient = float(_SCI.match(out).group(1))
     assert 1 <= abs(coefficient) < 10, out
 
 
-@given(x=any_float, markdown=st.booleans())
-@example(x=math.nan, markdown=True)
-@example(x=math.inf, markdown=True)
-@example(x=-math.inf, markdown=False)
-@example(x=5e-324, markdown=True)   # was ZeroDivisionError
-def test_to_scientific_notation_never_raises(x, markdown):
-    assert isinstance(formatting.to_scientific_notation(_config(markdown), x), str)
+@given(x=any_float)
+@example(x=math.nan)
+@example(x=math.inf)
+@example(x=-math.inf)
+@example(x=5e-324)   # was ZeroDivisionError
+def test_to_scientific_notation_never_raises(x):
+    assert isinstance(formatting.to_scientific_notation(x), str)
 
 
 @given(age=finite, precision=st.integers(0, 6))
@@ -147,17 +140,6 @@ def test_format_age_string_picks_the_right_unit(age, precision):
 @given(age=non_finite)
 def test_format_age_string_non_finite_does_not_raise(age):
     assert isinstance(formatting.format_age_string(age), str)
-
-
-@given(value=normal_float, threshold=finite, digits=st.integers(0, 6),
-       sci=st.one_of(st.none(), st.integers(0, 6)), markdown=st.booleans())
-def test_format_length_km_never_raises_on_finite_values(value, threshold, digits, sci, markdown):
-    out = formatting.format_length_km(_config(markdown), value, threshold, digits, sci)
-    assert out.endswith(" km")
-    if value <= threshold and "\u00d7" not in out:
-        assert float(out[:-3].replace(",", "")) == round(value, digits)
-    if value <= threshold and abs(round(value, digits)) >= 1e4:
-        assert "\u00d7 10" in out  # UX.20: 5+ whole digits go scientific
 
 
 _PERIOD_TEXT = re.compile(r"^-?[0-9.,]+(?: \u00d7 10[\u207b\u2070\u00b9\u00b2\u00b3\u2074-\u2079]+)? "
@@ -183,24 +165,6 @@ def test_format_period_years_non_positive_does_not_raise(years):
 @given(sentences=st.lists(hostile_text, max_size=6))
 def test_to_paragraph_joins_with_single_spaces(sentences):
     assert formatting.to_paragraph(sentences) == " ".join(sentences)
-
-
-@given(props=st.dictionaries(st.text(alphabet="abcdefghij_", min_size=1, max_size=12), hostile_text, max_size=8),
-       template=hostile_text, header=st.one_of(st.none(), hostile_text),
-       key_map=st.one_of(st.none(), st.dictionaries(st.text(max_size=5), hostile_text, max_size=3)))
-def test_properties_to_string_shapes(props, template, header, key_map):
-    wiki = formatting.properties_to_string(_config(False), props, template, header, key_map)
-    assert wiki.startswith("{{" + template + "\n") and wiki.endswith("\n}}")
-    for key, value in props.items():
-        assert f"\n|{key}={value}\n" in wiki
-    md = formatting.properties_to_string(_config(True), props, template, header, key_map)
-    body = md.split("| Property | Value |\n|---|---|", 1)
-    assert len(body) == 2
-    if header:
-        assert md.startswith(header)
-    # The rendered page must stay inert whatever the values hold.
-    from planetgen.web.lib import mdrender
-    assert "<script" not in mdrender.markdown_to_html(md).lower()
 
 
 # ---------------------------------------------------------------------------

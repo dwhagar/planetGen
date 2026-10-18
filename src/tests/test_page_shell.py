@@ -16,7 +16,7 @@ _HTML_DIR = os.path.join(_SRC_DIR, "html")
 
 from planetgen.web.lib import fmt  # noqa: E402
 from planetgen import web  # noqa: E402
-from planetgen.web.lib.mdrender import markdown_to_html  # noqa: E402
+from planetgen.describe import html as describe_html  # noqa: E402
 from planetgen._version import __version__  # noqa: E402
 
 
@@ -155,10 +155,12 @@ def test_favicon_and_theme_script_exist():
     assert '"planetgen-theme"' in theme and "data-theme-toggle" in theme
 
 
-def test_markdown_tables_scroll_inside_their_own_box():
-    html = markdown_to_html("| a | b |\n|---|---|\n| 1 | 2 |\n")
-    assert '<div class="table-scroll" tabindex="0"><table>' in html
-    assert "</table>\n</div>" in html
+def test_document_tables_scroll_inside_their_own_box():
+    document = {"title": "A", "sections": [{"kind": "star", "title": "A", "ref": None, "children": [], "blocks": [
+        {"type": "facts", "title": "Star", "rows": [{"key": "a", "label": "a", "value": ["1"]}]}]}]}
+    html = describe_html.render(document)
+    assert '<div class="table-scroll" tabindex="0"><table class="' in html
+    assert "</table></div>" in html
 
 
 def _stylesheet():

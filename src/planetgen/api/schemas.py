@@ -179,7 +179,6 @@ class SystemRecipe(Body):
     (`SystemConfig` minus its per-orbit `slots`); `None` lets the
     generator decide."""
 
-    markdown: StrictBool = None
     habitable_world: Optional[StrictBool] = None
     asteroid_belt: Optional[StrictBool] = None
     large_star: Optional[StrictBool] = None

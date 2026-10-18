@@ -24,8 +24,10 @@ import math
 import pytest
 
 from planetgen.db import store
+from tests import render_support
 from planetgen.physics import constants, neutron_star
 from planetgen import tuning
+from planetgen.galaxy import structure as galaxyStructure
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.phenomena.compact_remnant import (BlackHole, CompactRemnant, NeutronStar, hawking_luminosity_w,
                                                             hawking_temperature_k)
@@ -41,9 +43,9 @@ TRIALS = 8
 
 STANDALONE_PHENOMENON_CLASSES = [Nebula, SupernovaRemnant, RoguePlanet, InterstellarComet, AsteroidField]
 """list: Every phenomenon that is always standalone (never anchors a
-StarSystem) -- shares the "== Name (Type) ==" header convention and the
+StarSystem) -- shares the
 galactic-orbital-motion fields, unlike BlackHole/NeutronStar (Star
-subclasses, see test_compact_remnant_paragraph_list_renders_data_block_with_no_section_header)."""
+subclasses)."""
 
 
 def make_config(**overrides):
@@ -104,18 +106,17 @@ def test_a_galaxy_holds_hundreds_of_intermediate_mass_black_holes():
 
 def test_supermassive_black_hole_sits_still_and_glows_faintly():
     bh = BlackHole(make_config(), mass_class="supermassive")
-    low, high = tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR
-    assert bh.mass_class == "supermassive" and low <= bh.mass_solar <= high
+    assert bh.mass_class == "supermassive" and bh.mass_solar >= 0.1 * tuning.BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR
     assert bh.type == "Supermassive Black Hole"
     assert bh.galactic_orbital_period_gy is None and bh.galactic_orbital_speed_kms is None
     assert bh.has_accretion_disk
     eddington = tuning.EDDINGTON_LUMINOSITY_W_PER_SOLAR_MASS * bh.mass_solar
     assert 0 < bh.luminosity <= tuning.BLACK_HOLE_SUPERMASSIVE_EDDINGTON_RATIO_RANGE[1] * eddington
-    # Sphere of influence G*M/sigma^2: ~2 pc (~4e5 AU) for Sgr A*'s mass.
-    sigma = tuning.BLACK_HOLE_SUPERMASSIVE_VELOCITY_DISPERSION_KMS * 1000
+    # Sphere of influence G*M/sigma^2, sigma from the M-sigma relation for its mass (GEN.402).
+    sigma = galaxyStructure.black_hole_dispersion_kms(bh.mass_solar) * 1000
     assert bh.system_perimeter == pytest.approx(constants.G * bh.mass / sigma ** 2 / constants.AU_TO_M)
-    text = " ".join(bh.to_paragraph_list())
-    assert "supermassive black hole at the heart of the galaxy" in text
+    text = render_support.prose_text(render_support.phenomenon_section(bh))
+    assert "supermassive black hole at the centre of the galaxy" in text
     rebuilt = BlackHole.from_dict(bh.to_dict(), make_config())
     assert rebuilt.mass_class == "supermassive"
     with pytest.raises(ValueError):
@@ -265,7 +266,7 @@ def test_rogue_brown_dwarf():
     low, high = tuning.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER
     assert low <= dwarf.mass_kg / constants.JUPITER_MASS_TO_KG <= high
     assert dwarf.planet_type == 'g' and dwarf.kind_label == "Brown Dwarf"
-    assert "Rogue Brown Dwarf" in dwarf.to_paragraph_list()[0]
+    assert "Rogue brown dwarf" in render_support.facts_text(render_support.phenomenon_section(dwarf))
     with pytest.raises(ValueError):
         RoguePlanet(make_config(), mass_bin="moon")
     old = dwarf.to_dict()
@@ -315,7 +316,7 @@ def test_to_dict_from_dict_round_trips_render_identically(cls):
     cfg = make_config()
     obj = cls(cfg)
     reloaded = cls.from_dict(obj.to_dict(), cfg)
-    assert str(reloaded) == str(obj)
+    assert render_support.phenomenon_section(reloaded) == render_support.phenomenon_section(obj)
     assert reloaded.to_dict() == obj.to_dict()
 
 
@@ -334,57 +335,19 @@ def test_supernova_remnant_round_trip_preserves_embedded_compact_remnant():
     reloaded = SupernovaRemnant.from_dict(remnant.to_dict(), cfg)
     assert type(reloaded.compact_remnant) is type(remnant.compact_remnant)
     assert reloaded.compact_remnant.name == remnant.compact_remnant.name
-    assert str(reloaded) == str(remnant)
+    assert render_support.phenomenon_section(reloaded) == render_support.phenomenon_section(remnant)
 
 
 # ---------------------------------------------------------------------------
-# Paragraph rendering -- non-empty, correct header convention under both
-# MARKDOWN states (mirrors AsteroidBelt/Star's own '##'/'==' convention).
+# The Document section -- non-empty, titled with the phenomenon's name.
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("cls", STANDALONE_PHENOMENON_CLASSES)
-@pytest.mark.parametrize("markdown", [True, False])
-def test_standalone_phenomenon_paragraph_list_renders_section_header(cls, markdown):
-    # These five are always standalone (never anchor a StarSystem), so
-    # they follow AsteroidBelt's own "## .. ##"/"== .. ==" section-header
-    # convention -- unlike BlackHole/NeutronStar below, which are Star
-    # subclasses and never add their own header (see that test's docstring).
-    cfg = make_config(MARKDOWN=markdown)
-    obj = cls(cfg)
-    paragraphs = obj.to_paragraph_list()
-    assert paragraphs
-    assert all(isinstance(p, str) and p for p in paragraphs)
-    header = paragraphs[0]
-    if markdown:
-        assert header.startswith("##")
-        assert not header.endswith("==")
-    else:
-        assert header.startswith("==")
-        assert header.endswith("==")
-    assert str(obj) == "\n\n".join(paragraphs)
-
-
-@pytest.mark.parametrize("cls", [BlackHole, NeutronStar])
-@pytest.mark.parametrize("markdown", [True, False])
-def test_compact_remnant_paragraph_list_renders_data_block_with_no_section_header(cls, markdown):
-    # BlackHole/NeutronStar are Star subclasses (see compactRemnant.py's
-    # module docstring) and follow Star.to_paragraph_list's own
-    # convention: no self-added "== Name ==" section header (StarSystem's
-    # own __str__ adds a single top-level "= Name =" header when one of
-    # these anchors a full system -- adding a second header here would
-    # duplicate it).
-    cfg = make_config(MARKDOWN=markdown)
-    obj = cls(cfg)
-    paragraphs = obj.to_paragraph_list()
-    assert paragraphs
-    assert all(isinstance(p, str) and p for p in paragraphs)
-    data_block = paragraphs[0]
-    if markdown:
-        assert data_block.startswith("| Property | Value |")
-    else:
-        assert data_block.startswith("{{")
-        assert data_block.endswith("}}")
-    assert str(obj) == "\n\n".join(paragraphs)
+@pytest.mark.parametrize("cls", [*STANDALONE_PHENOMENON_CLASSES, BlackHole, NeutronStar])
+def test_a_phenomenon_has_a_titled_section_with_facts_and_sentences(cls):
+    obj = cls(make_config())
+    section = render_support.phenomenon_section(obj)
+    assert section["title"] == obj.name
+    assert render_support.facts_text(section) and render_support.prose_text(section)
 
 
 # ---------------------------------------------------------------------------
@@ -411,7 +374,7 @@ def test_star_system_anchored_by_neutron_star_can_force_planets():
     # A dark remnant's zero/near-zero luminosity means no real habitable
     # zone -- adjust_age_for_planets and rendering must not crash even
     # though every placed body is far outside any thermal comfort zone.
-    assert str(system)
+    assert render_support.text(system)
 
 
 def test_star_system_anchored_by_black_hole_defaults_to_no_planets():
@@ -628,10 +591,9 @@ def test_load_star_system_reconstructs_anchored_compact_remnant(cls, mysql_confi
     # shift a formatted value's last displayed digit (e.g. temperature
     # rounding right at a .5 boundary), which is expected float noise, not
     # a reconstruction bug. The "Black Hole Data"/"Neutron Star Data"
-    # header proves the remnant-specific to_paragraph_list() ran at all
-    # (a plain Star would render "Star Data" instead).
-    label = "Black Hole Data" if cls is BlackHole else "Neutron Star Data"
-    assert label in str(reloaded.star)
+    # kind proves the remnant-specific describer ran (a plain Star would be a "star" section).
+    kind = "black-hole" if cls is BlackHole else "neutron-star"
+    assert render_support.phenomenon_section(reloaded.star)["kind"] == kind
 
 
 def test_save_phenomenon_dispatches_by_type(mysql_config):
@@ -671,7 +633,7 @@ def test_a_neutron_star_younger_than_a_magnetars_active_life_may_be_born_one(mon
     assert star.pulsar_type == "magnetar" and star.type == "Neutron Star (Magnetar)"
     assert tuning.MAGNETAR_MAGNETIC_FIELD_GAUSS_RANGE[0] <= star.magnetic_field_gauss <= tuning.MAGNETAR_MAGNETIC_FIELD_GAUSS_RANGE[1]
     assert tuning.MAGNETAR_SPIN_PERIOD_MS_RANGE[0] <= star.spin_period_ms <= tuning.MAGNETAR_SPIN_PERIOD_MS_RANGE[1]
-    assert "magnetar" in " ".join(star.to_paragraph_list()).lower()
+    assert "magnetar" in render_support.prose_text(render_support.phenomenon_section(star)).lower()
     # Past the active life the field has decayed to an ordinary neutron star.
     assert all(old.pulsar_type != "magnetar" for old in _neutron_stars(40, 1e-4))
 

@@ -79,7 +79,7 @@ def run(sector, args, entries, galactic_center_dist_ly=None):
 
     Args:
         sector (SpaceSector): The sector the entries are in.
-        args (argparse.Namespace): Parsed arguments; only `args.markdown` is read.
+        args (argparse.Namespace): Parsed arguments.
         entries (iterable): `SectorPhenomenonEntry` instances with a `system_seed` (the number their roll is drawn
             from: a scatter row's seed, or a string for an object made at fill).
         galactic_center_dist_ly (float, optional): Threaded to the system, as `generate_sector` does for any.
@@ -98,7 +98,6 @@ def run(sector, args, entries, galactic_center_dist_ly=None):
         if not hosts.holds_something("remnant-satellites", key, rng):
             continue
         config = SystemConfig()
-        config.MARKDOWN = args.markdown
         with draw.bound(rng):
             system = StarSystem(system_config=config, galactic_center_dist_ly=galactic_center_dist_ly,
                                 compact_remnant=entry.phenomenon)

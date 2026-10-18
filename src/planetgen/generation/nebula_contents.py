@@ -56,7 +56,7 @@ def hosted_seed(star):
     return f"hosted-nebula:{float(star.mass)!r}:{float(star.age)!r}:{float(star.temperature)!r}"
 
 
-def hosted_nebula_of(star, chance_factor=1.0, markdown=False):
+def hosted_nebula_of(star, chance_factor=1.0):
     """
     The nebula a main-sequence or Wolf-Rayet star lights (`tuning.NEBULA_HOST_RULES`), or None: the star rolls its row's chance
     (scaled by the sector profile's `"nebula"` factor `chance_factor`) on its own stream, and on a hit the class is
@@ -65,7 +65,6 @@ def hosted_nebula_of(star, chance_factor=1.0, markdown=False):
     Args:
         star: A `Star` (or anything with `type`, `age` in Gy, `mass` and `temperature`).
         chance_factor (float): The sector profile's `"nebula"` factor (GEN.236).
-        markdown (bool): The nebula's `SystemConfig.MARKDOWN`.
 
     Returns:
         Nebula or None.
@@ -90,7 +89,6 @@ def hosted_nebula_of(star, chance_factor=1.0, markdown=False):
             if draw.random() >= chance * chance_factor:
                 return None
             config = SystemConfig()
-            config.MARKDOWN = markdown
             nebula_class = choose_weighted_class(young, "Star-hosted nebula class")
             return Nebula(config, nebula_class=nebula_class, host=host, age_myr=age_myr)
     return None

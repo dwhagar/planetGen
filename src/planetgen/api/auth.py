@@ -391,7 +391,7 @@ def totp_disable():
     """
     `POST /api/auth/totp/disable` `{"current_password", "code"}` -- turns
     two-factor sign-in off; needs the password and a current code (or a
-    recovery code). Lost both? `python3 -m planetgen.cli.lockouts --reset-two-factor`.
+    recovery code). Lost both? `python3 -m planetgen.cli.reset_two_factor USER`.
     Forgets every trusted device of this admin and gives the caller a
     new one.
     """

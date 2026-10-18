@@ -23,7 +23,11 @@
 #      missing or a library is missing, too old or broken. planetGen itself
 #      is never reinstalled: the web app, the maintenance scripts and the
 #      `planetgen` wrapper all run the checkout's code directly.
-#   3. The NLTK 'words' corpus: fetched only if it's missing.
+#   3. The NLTK 'words' corpus: fetched only if it's missing. Then the static
+#      data sets (GEN.548): `planetgen.cli.datasets fetch` downloads each file
+#      once, checks its sha256 and keeps it in /var/cache/planetgen/datasets
+#      (PLANETGEN_DATA_DIR), outside the checkout. A host that is down only
+#      warns; the generator uses a labelled stand-in until the next update.
 #   4. `planetgen check-math`: the math check (TEST.68). A failure only
 #      warns (repeated at the end); bulk generation refuses to start until
 #      it passes.
@@ -194,9 +198,10 @@ use_site_python
 ensure_update_guard required
 
 echo
-UPDATE_STEP="step 3/9, checking the NLTK words corpus"
-echo "== 3/9: Checking the NLTK 'words' corpus =="
+UPDATE_STEP="step 3/9, checking the NLTK words corpus and the downloaded data"
+echo "== 3/9: Checking the NLTK 'words' corpus and the downloaded data sets =="
 ensure_nltk_words "$NLTK_DATA_DIR"
+ensure_datasets
 
 echo
 UPDATE_STEP="step 4/9, checking the generator's math"
@@ -250,6 +255,9 @@ echo
 note_changed_example_configs "$before" "$after"
 if [[ "$MATH_CHECK_FAILED" == 1 ]]; then
     echo "warning: the math check failed (step 4): bulk generation refuses to start until it passes." >&2
+fi
+if [[ "$DATASETS_STAND_IN" == 1 ]]; then
+    echo "warning: some data sets could not be downloaded (step 3): the generator uses their labelled stand-ins." >&2
 fi
 echo "The update doesn't run the population pass (species, civilizations, territories); when wanted:"
 echo "  planetgen population"

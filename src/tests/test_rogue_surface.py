@@ -22,6 +22,7 @@ from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.web.app import create_app  # noqa: E402
 from planetgen.api.config import Config  # noqa: E402
 from planetgen.web import system_pages  # noqa: E402
+from tests import render_support
 
 EARTH = constants.EARTH_MASS_TO_KG
 JUPITER = constants.JUPITER_MASS_TO_KG
@@ -110,7 +111,7 @@ def test_seeded_conditions_repeat():
 def test_rogue_planet_carries_and_describes_its_surface():
     for mass_bin in tuning.ROGUE_PLANET_MASS_BIN_CHOICES:
         planet = RoguePlanet(SystemConfig(), mass_bin=mass_bin)
-        text = planet.to_paragraph_list()[1]
+        text = render_support.prose_text(render_support.phenomenon_section(planet))
         assert "only heat is its own" in text
         data = planet.to_dict()
         for field in rs.ROGUE_SURFACE_FIELDS:

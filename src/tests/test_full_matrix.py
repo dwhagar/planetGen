@@ -39,6 +39,7 @@ from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
 from planetgen import tuning as prog_c
+from tests import render_support
 
 SPECTRAL_CLASSES = ["O", "B", "A", "F", "G", "K", "M"]
 YERKES_CLASSES = ["0", "IA+", "IA", "IAB", "IB", "II", "III", "IV", "V", "VI", "VII"]
@@ -162,7 +163,7 @@ def test_full_system_generates_with_belt_and_habitable_world_across_every_star_t
 
     system = StarSystem(system_config=cfg)
 
-    assert str(system).strip()
+    assert render_support.text(system).strip()
     assert system.belt_count >= 1, f"{star_type}: no asteroid belt generated"
     assert system.hab_count >= 1, f"{star_type}: no habitable world generated"
 
