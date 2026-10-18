@@ -14873,6 +14873,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   27 is stamped).
   Prerequisites: none. Related: GEN.182, GEN.400, GEN.402.
 
+- [ ] **GEN.592 A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced)**
+  Observation by Bug Hunt (reported 8:51 AM EDT 2026-10-18 on the lane's
+  clock; not yet traced), filed by the TODO thread. In a galaxy run that
+  does not draw the star scatter, a capped cell (expected systems over
+  the 5,000 ceiling, in the dense core) generates 0 systems, while
+  `galaxy.resolution.cell_resolution` says it resolves 4 to 30 (no mass
+  limit passed) or 81 over a 24-cell neighbourhood (with the scatter's
+  mass limit passed, as `run_galaxy._fill_context` does). Probed with
+  the fixed seed 96901074FC015B42F2E80F1434609687: cells (4,-1,23),
+  (3,0,16), (4,0,23) and (5,0,29) resolved 10.4, 4.1, 25.8 and 29.5
+  systems and generated 0 each by `galaxy --shell --band --wedge`. Fails
+  on main: not checked by the TODO thread. Question for the GEN.281
+  owner: if the fill is meant to turn the bands drawn at the cap into
+  systems even without the scatter, it under-generates; if the scatter
+  must have run first, the plan statistics overstate what a sector run
+  produces, and the plan should say so. Do: trace why the capped cell
+  generates nothing, then either fix the fill or write down that the
+  scatter must run first and make the statistics honest. Done: a capped
+  cell generates the number `cell_resolution` gives, or the plan states
+  the precondition and the statistics follow it, with a test of the
+  chosen behaviour. Bug Hunt's own TEST.225 test no longer depends on
+  this (its next PR leaves capped cells out of the sum). Owner: Core 3
+  (proposed, GEN.281's lane).
+  Prerequisites: none. Related: GEN.281, GEN.283.
+
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
