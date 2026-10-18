@@ -30,7 +30,6 @@ The composition fractions that drive density, mass and gravity, stored and descr
 | GEN.569 | The Quantity value class: the number as given, every other unit answered on first read and kept, declared relations, checks | GEN.568 |  |
 | DB.76 | Column registry: every numeric column declares its table, kind and stored unit, loaded and stored through one list | GEN.568 |  |
 | GEN.571 | Replace the ad-hoc unit conversions with the registry, by file group, bit-identical on the golden set | GEN.568 |  |
-| GEN.572 | The two rounded unit factors become exact: 63241.077 AU per light-year and 3.26156 light-years per parsec, as one epoch-changing change | GEN.568 |  |
 | UX.139 | Display reads the registry: ladder rungs take their symbol and factor from it, and the 21 format wrappers become one format_quantity entry | GEN.569, UX.107 |  |
 | UX.140 | Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed | GEN.568 |  |
 | GEN.573 | The position class reads its units from the registry: length unit by key, no bare 1000 or copy of c, mass and mu a declared relation | GEN.568, GEN.569 |  |
