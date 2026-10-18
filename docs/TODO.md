@@ -2258,6 +2258,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   item stays open: the cache warming (PERF.130 to PERF.132, Core 2's
   next PR) is the other half of Boss's 'Both' answer, and the item's own
   Done (a before and after of the settled-view time) needs it.
+  Merged in part (Core 2, PERF.130, #2276, release 8.0.1836, reported
+  3:15 PM EDT 2026-10-18 as the coordinator relayed): `planetgen warm`
+  now builds the Galaxy Map's tiles ahead of the first visitor, a step
+  update.sh runs. On the scaled probe galaxy eight zoom views took 111 s
+  and now take 3.2 s; the warm step builds 7,112 tiles in about 12
+  minutes and 40 MB. The browser frame time was not measured. This item
+  stays open for PERF.131 and PERF.132 (separate PRs) and the settled-view
+  before and after its Done asks for.
 
 - [ ] **MAP.251 When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug)**
   Boss (2026-10-17, 7:38 PM EDT, typed in the project chat, relayed by
@@ -15335,7 +15343,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changes tile content, so the build is a step the wrapper lists after
   the generation commands, never a part of one). Owner: Core 2
   (proposed; the map and cache lane).
-  Prerequisites: PERF.130, PERF.131, PERF.132, PERF.133, PERF.134.
+  Prerequisites: PERF.131, PERF.132, PERF.133, PERF.134.
   Related: PERF.41, PERF.104, PERF.120, PERF.127, MAP.158, MAP.159,
   MAP.195, MAP.239.
   Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
@@ -15344,49 +15352,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that rule bumps the tile cache stamp and the cached tiles are rebuilt
   once. The galaxy map lag Boss reported at the same time is MAP.249; if
   its cause is the missing cache, this item is brought forward.
-
-- [ ] **PERF.130 Build the first several zoom levels of the Galaxy Map ahead of the first visitor: the opening view and every level down to a chosen depth**
-  Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
-  caching, so that we build out not only the initial galactic view but
-  all the normal zoom levels for that view that we can compress and
-  serve up to the client immediately on request. Basically I want to
-  build out tiles for the first several zoom levels and then I want to
-  build it so that system is proactive and when the user visits and zoom
-  level it builds and caches all the surrounding tiles and the next zoom
-  levels. Then it keeps them until the data changes." What exists (read
-  from main, 2026-10-17): `web/lib/tilecache.py` keeps packed tiles on
-  disk (`<cache dir>/<db>/<generation>/<tile>.bin`, the PGT1 format of
-  `tilepack.py`), answers `/galaxy/tiles` by joining stored bytes, and
-  keeps stage and window payloads the same way; freshness is the content
-  stamp plus `GET /api/galaxy/changes` (the `modified_at` columns, so
-  only the changed tiles are deleted, and a change that cannot be pinned
-  to tiles starts a new generation); `prune` deletes the least recently
-  written files above `tile_cache.max_mb`; the browser keeps its own
-  copy in IndexedDB (MAP.158); `web/warmup.py` warms only the opening
-  view's tiles and the galaxy stage; Apache compresses each response at
-  send time; the admin health block shows where the cache lives and its
-  size. Done: a command (its own command, one job, PERF.118 and
-  PERF.120) builds every tile and stage view of the first N levels of
-  the tile octree (`TILE_ROOT_EDGE_PC` down; N a named setting, default
-  chosen from the measured count and size on a real galaxy and written
-  in the PR) into the cache; it runs as a step the wrapper lists after
-  the generation commands and after an update (the family of PERF.127),
-  as chunks of tiles on the queue (PERF.118) and not in the web process,
-  with progress bars of what it will build; a second run builds nothing
-  that is current; a browser test opens the map at each built level and
-  finds every tile a cache hit. Owner: Core 2 (proposed).
-  Prerequisites: none. Related: PERF.129,
-  PERF.127, PERF.104, MAP.239.
-  Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
-  stored here are built with halo and satellite-galaxy stars ranked
-  below every other star, so a budget cut removes them first; landing
-  that rule bumps the tile cache stamp and the cached tiles are rebuilt
-  once. The galaxy map lag Boss reported at the same time is MAP.249; if
-  its cause is the missing cache, this item is brought forward.
-  Decided (Boss, 2026-10-18, tapped 'Both, cut payload first' on the
-  MAP.249 card at about 8:54 AM EDT, as the coordinator relayed): the
-  tile cache work follows MAP.249's payload cut, so it starts after Core
-  2's payload PR (about 2 MB a view) and is sized for the reduced tiles.
 
 - [ ] **PERF.131 Store the tiles compressed and serve the stored bytes with their encoding, so a request does no compression**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -15465,7 +15430,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   neighbours and the next level in the cache afterwards, and a second
   visitor to the same area causes no new build. Owner: Core 2
   (proposed).
-  Prerequisites: PERF.130, PERF.131. Related: PERF.129,
+  Prerequisites: PERF.131. Related: PERF.129,
   PERF.130, PERF.131.
   Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
   stored here are built with halo and satellite-galaxy stars ranked
@@ -15517,7 +15482,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that rule bumps the tile cache stamp and the cached tiles are rebuilt
   once. The galaxy map lag Boss reported at the same time is MAP.249; if
   its cause is the missing cache, this item is brought forward.
-  Prerequisites: PERF.130. Related: PERF.129, PERF.41, PERF.104.
+  Prerequisites: none. Related: PERF.129, PERF.41, PERF.104.
 
 - [ ] **PERF.134 The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -15547,7 +15512,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of the first levels now, each through the command of PERF.130 and with
   the confirmation the other admin actions use; the actions are in the
   admin log; a test per action. Owner: Core 2 (proposed).
-  Prerequisites: PERF.130, PERF.133. Related: PERF.129, PERF.130,
+  Prerequisites: PERF.133. Related: PERF.129, PERF.130,
   PERF.133.
   Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
   stored here are built with halo and satellite-galaxy stars ranked
