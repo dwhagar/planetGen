@@ -15072,6 +15072,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wrapper, which alone handles the sequence.
   The command inventory (docs/design/command-inventory.md, PERF.120)
   lists every other command and entry point.
+  Decided (Boss, 2026-10-18, 5:14 to 5:15 PM EDT, cards F1 to F4, all as
+  Core 5 recommended, relayed by the coordinator): F1 'One wrapper run':
+  the Generate page builds the command list and one wrapper run follows
+  it, and `web/job_runner.py` only starts that run detached (it does not
+  build or order commands). F2: reset, check-math and the like are
+  one-unit registry commands. F3: each API job is a small run of its own.
+  F4: `planetgen sector` and `planetgen system` go through the wrapper
+  (each a one-command run).
   Prerequisites: PERF.98. Related: PERF.99, PERF.118.
 
 - [ ] **PERF.120 Every command does one thing: the umbrella for reshaping every command and entry point**
@@ -15123,6 +15131,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
+  Decided (Boss, 2026-10-18, 5:15 to 5:16 PM EDT, cards F5 and F7,
+  relayed by the coordinator): F5: one `planetgen scatter` root with
+  exactly one kind flag (`--mass`, `--luminosity`, `--phenomena`,
+  `--nebula-field`, `--band`). F7: redoing a scatter is a SEPARATE
+  `planetgen clear-scatter` command, not a `--redo` flag (this is against
+  Core 5's recommendation, and Boss's answer stands); `--redo-scatters`
+  is removed with no shim.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.122 The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags**
@@ -15142,6 +15157,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
+  Decided (Boss, 2026-10-18, 5:15 to 5:16 PM EDT, card F6, relayed by
+  the coordinator): one root command each, named like the registered
+  commands: `planetgen fill-map-luminosity`, `planetgen
+  rescore-habitability` and `planetgen clean-nebula-field` (with
+  `--apply`). They replace the `plan --fill-map-luminosity`, `plan
+  --fill-habitability` and `plan --redo-nebula-field` modes.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.123 `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds**
