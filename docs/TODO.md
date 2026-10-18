@@ -623,7 +623,7 @@ with `clamp()`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 51 of 53). This replaces any earlier owner line on this item.
-  Prerequisites: NAV.61, MAP.243.
+  Prerequisites: NAV.61.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
 
 - [ ] **UX.119 An HTML renderer for the Document: facts, rating and composition tables, with unit spans, in both themes**
@@ -2305,88 +2305,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.389, UX.135. Related: MAP.232, MAP.234, MAP.235.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
-- [ ] **MAP.243 The Galaxy Map cannot select or enter anything in the halo: the halo's scatter objects are not pickable at galaxy scale and a zoom toward one stops without opening a view (bug)**
-  Boss (2026-10-16, 9:21 PM EDT): "Bug in the galactic map I cannot
-  select or zoom into sectors in the halo region of the map ... I cannot
-  say zoom in to see the space around a black hole scattered out in the
-  halo region, there's no way to select and zooming in tops out without
-  transitioning." Boss asked that an existing later item not be changed
-  if one covers it; none does (checked 2026-10-16, 9:30 PM EDT by a
-  read-only code survey, nothing run in a browser): MAP.207 only draws
-  satellites, clusters and wanderers as points beyond the outline and
-  says nothing of selecting or entering (8.8); MAP.219 makes stored
-  black holes pickable markers, with no enter step (8.8); MAP.225 zooms
-  toward a picked object but only helps if the object is pickable;
-  GEN.322 is stars only; MAP.210 is star selection inside a sector.
-  Causes found: (1) Blocks, and so every zoom hand-off, exist only
-  inside the outline: `galaxyBlocks` and `windowView`
-  (`galaxystages.js:126-157`) keep a block only if the outline holds it,
-  the outline (`galaxyOutline`, `galaxyprisms.js:936-954`) reaches only
-  the shells whose density passes `sector_min_density`, and
-  `S.sectorStage` returns null outside it (`galaxystages.js:274-277`),
-  so the wheel's hand-off `zoomAcross` (`galaxystageview.js:2163-2205`)
-  finds nothing to open and the zoom stops at its floor. (2) At the
-  whole-galaxy stage only blocks are pickable: the `phenomena` and
-  `clouds` layers are enabled only inside a window (`inContainer`,
-  `galaxystageview.js:2935`), so a black hole is drawn but cannot be
-  clicked until a window is open, and outside the outline there is no
-  window. (3) Tiles deliver scatter rows by position with no sector row
-  (`galaxy_scattered_points_in_box`, `db/query.py:4452-4500`) but the
-  scatter itself stays inside the outline today (`scatter_shell` per
-  outline shell; `hypervelocity_rows` drops landings outside it) and
-  coarse tiles list only the top three classes. (4) Tiles cannot address
-  beyond 32.8 kpc (`TILE_ROOT_EDGE_PC`, MAP.239). (5) The server already
-  opens any address in the reach (`/api/galaxy/uncharted`,
-  `/sector/at/<s>/<b>/<w>` with its profile panel, API.27 and UX.113),
-  but the map's "Show on Galaxy Map" for a halo address ends in "Sector
-  ... is outside the galaxy" (`galaxystageview.js:2636`). What Boss sees
-  before this ships: the halo's objects drawn as points with no
-  selection, the wheel stopping short of any halo cell, and a profile
-  page that cannot be shown on the map. Done: from the whole-galaxy view
-  a click or a wheel run onto an object in the halo (a black hole
-  scattered there) selects it and shows its details; the camera flies to
-  it and a further zoom opens the view of its cell, as an uncharted cell
-  with its profile when nothing is stored (the entering gate is the
-  reach of 262 kpc, not the outline); "Show on Galaxy Map" works for any
-  address in the reach; tiles carry the halo's scatter rows beyond the
-  outline once GEN.322 and GEN.323 produce them; a browser test on a
-  seeded galaxy with a halo black hole selects it, zooms into it and
-  ends in the cell's view with its neighbourhood shown. Owner: Core 2
-  proposed (the map lane that owns the infinite zoom tree and MAP.239),
-  after the tree; the Interface lane may take it with UX.115 if that
-  lane starts first.
-  Prerequisites: none. Related: MAP.207,
-  MAP.219, MAP.210, UX.115, GEN.322, API.27.
-  Second sighting, confirmed (Boss, 2026-10-17, 3:09 PM EDT, screenshots
-  under /mnt/project-files/bugs/galaxy-halo-group-2026-10-17/, folded in
-  from MAP.246): a loose group of stars far above the disc on a fresh
-  galaxy cannot be reached or selected. Bug Hunt reproduced it on Boss's
-  seed 2AFA1AD866D4BEB8646BF53C77A43DD6 (PlanetGen 8.0.1737; run: galaxy
-  --then-scatter --phenomenon-min-mass 14 --compact-min-mass star
-  --bright-star-min-luminosity 9000) at 4:30 PM EDT as the lane
-  reported: the group is one of the 11 satellite galaxies the plan drew,
-  5.7 kpc out and 2.3 kpc above the plane; the disc outline ends at
-  shell 1,511 and the group's stars sit at shells 1,604 to 1,620, so no
-  block or window exists there; the wheel stops at a camera distance of
-  6,912 pc and a click on one of its stars reports "Block 0·0·0, 0
-  sectors charted" instead of the star. This is exactly cause (1) and
-  (2) above; MAP.225's anchor problem is not involved. Screenshot of the
-  reproduction:
-  /mnt/project-files/bugs/galaxy-halo-group-2026-10-17/repro-zoom-stops-at-6911pc.png
-  (Bug Hunt's regeneration was cut off in its last stage, so star counts
-  may differ slightly). A fix lets Boss reach the satellite stars, so a
-  browser test on this seed (or a seeded satellite) selects a satellite
-  star and zooms to it.
-  Order (TODO thread, 2026-10-17, 4:25 PM EDT): this is the only open
-  bug that stops Boss reaching stars he can see, so it is worth taking
-  before the end of the infinite zoom tree. Its one hard prerequisite is
-  MAP.239 (the tile root to the reach: small, no prerequisite, Core 2,
-  queue position 31); the scatter rows beyond the outline of GEN.322 and
-  GEN.323 are only needed for the tile part, not for the pick and the
-  hand-off. It edits the wheel hand-off `zoomAcross` in
-  galaxystageview.js, which MAP.245 is also changing, so one lane should
-  hold both: Core 2 right after MAP.245 merges.
-
 - [ ] **MAP.244 The maps and pages use the atmosphere colour where they showed the planet colour**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/sky-colour-analysis.md): "Sky color should definitely
@@ -2437,7 +2355,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   exists; with a switch on everything of MAP.207, MAP.243 and MAP.239
   works as built in 8.1; a browser test per combination of the switches.
   Owner: Core 2 (proposed).
-  Prerequisites: GEN.538, GEN.539, GEN.540, MAP.243. Related: GEN.538,
+  Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.538,
   GEN.539, GEN.540, MAP.207, MAP.243, MAP.239.
 
 - [ ] **MAP.249 The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug)**
@@ -20821,6 +20739,11 @@ clears each one.
   its first PERF.118 gate): the `[light-phone]` variant failed once
   there too and passes alone. Now seen by Core 5, Bug Hunt (both
   `[light]` cases) and Blocker 1.
+  Sighting (Core 2, MAP.243's full gate, #2199, merged 12:58 AM EDT
+  10-18 as the coordinator relayed; the lane clock read 12:59): the
+  whole suite gave 19,591 passed and this one failed in the loaded gate,
+  and it passes alone. Core 2 is fixing it in its own small PR; this
+  item retires with that PR.
   Prerequisites: none. Related: TEST.227, UX.118.
 
 - [ ] **TEST.236 test_galaxy_map_drill_down_by_clicks rejects a window address with a negative band, because its regex allows a minus sign only on the wedge (bug)**
