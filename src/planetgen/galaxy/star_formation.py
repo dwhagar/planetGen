@@ -20,6 +20,9 @@ galaxy's own shape, with no value taken from the Milky Way's star-formation prof
 3. The disk makes as many stars over its life as before: the factor is normalised so the disk-wide average of the
    recent share is 1 (the populations still split the thin disk's density, so no cell's total changes).
 
+The disk-wide shares the factor multiplies come from the disk's own gas history (GEN.469, `galaxy.disk_history`,
+`disk_population_share`), not from the age windows' lengths.
+
 The factor multiplies the weights of the `young` and `intermediate` populations in
 `galaxy.density.population_densities`. It reads only the shape's scale lengths, so a galaxy of any size gets one.
 """
@@ -30,12 +33,23 @@ import math
 import numpy as np
 
 from planetgen import tuning
+from planetgen.galaxy import disk_history
 
 RECENT_POPULATIONS = ("young", "intermediate")
 """tuple: The populations the factor applies to: those formed within the bar's and the disk's recent history."""
 
 _GRID_POINTS = 6000
 """int: Points of the grid the normalisation integral is taken on (it is smooth; 6000 is converged to 1e-6)."""
+
+
+def disk_population_share(name, shape):
+    """
+    The share of the thin disk's stars in the disk population `name` (`young`, `intermediate` or `old`) over the whole
+    disk, from the disk's gas history (GEN.469, `galaxy.disk_history`): how much of its star formation fell in the
+    population's age window (`tuning.STELLAR_POPULATION_AGE_RANGES_GY`). The recent factor then moves the young and
+    intermediate shares from place to place; the three always sum to 1.
+    """
+    return disk_history.population_shares(shape)[name]
 
 
 def gap_radius_pc(shape):

@@ -168,7 +168,9 @@ def test_plan_scatter_stores_stars_and_fill_builds_their_systems(mysql_config):
     args.num_systems = 0
     position = sector_position_pc(*address, EDGE_PC)
     sector_id, _name, sector = run_galaxy.generate_and_save_sector_at(args, address, position, EDGE_PC)
-    preplaced = [entry for entry in sector.entries if entry.preplaced]
+    # The members of an emission region are preplaced too (GEN.321) but are no stored star: the built stars carry the
+    # id of their row.
+    preplaced = [entry for entry in sector.entries if getattr(entry, "bright_star_id", None) is not None]
     # The backfill (GEN.23) adds this sector's 100-500 L_sun stars first.
     assert len(preplaced) >= len(stars)
 
@@ -561,7 +563,7 @@ def test_the_backfill_waits_for_the_run_and_fills_down_to_the_step_masses(mysql_
             assert row["initial_mass_sol"] >= masses[(row["shell_index"], row["band_index"], row["wedge_index"])]
     finally:
         conn.close()
-    assert not [entry for entry in sector.entries if entry.preplaced]
+    assert not [entry for entry in sector.entries if getattr(entry, "bright_star_id", None) is not None]
 
     neighbor = (3, 0, 5)
     fill = run_galaxy._fill_context(args, neighbor)

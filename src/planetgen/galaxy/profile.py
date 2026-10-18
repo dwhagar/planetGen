@@ -28,6 +28,8 @@ A profile holds:
 
 * `kind_factors` (GEN.236): the factor by which the place scales the rate per star of each rare kind
   (`kind_factors_at`).
+* `ejecta` (GEN.238): the neutron stars and black holes a cell holds that were ejected from the galaxy, on average
+  (`ejecta_field.expected_in_cell`), which the fill adds to the cell's draw.
 
 Later items add to it (the components, GEN.237; the scatter-limit tier, GEN.279): each adds a field and its source, and
 none changes a rule.
@@ -42,7 +44,7 @@ import numpy as np
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField
 from planetgen.galaxy import density as galaxyDensity
-from planetgen.galaxy import nebula_field, spherical, superbubble_field
+from planetgen.galaxy import ejecta_field, nebula_field, spherical, superbubble_field
 from planetgen.physics import metallicity
 from planetgen.physics.units import pc_to_ly
 
@@ -132,6 +134,9 @@ class SectorProfile:
         type_ia_share (float): The share of the place's supernova remnants that are Type Ia (`type_ia_share_at`): 1
             where no young population is, `tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE` against the solar circle's
             mix.
+        ejecta (dict): Kind -> the mean number of ejected objects of that kind in the cell (`ejecta_field`, GEN.238):
+            neutron stars and black holes the galaxy lost to a kick, which stream through every cell at a density
+            that falls as 1 / r^2. Not part of the stars' rate: the fill adds it to the cell's own Poisson draw.
     """
     address: tuple | None
     position_pc: tuple
@@ -147,6 +152,7 @@ class SectorProfile:
     dark_matter: DarkMatter
     kind_factors: dict = field(default_factory=dict)
     type_ia_share: float = tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE
+    ejecta: dict = field(default_factory=dict)
 
     @property
     def center_pc(self):
@@ -374,7 +380,8 @@ def profile_at(position_pc, shape, edge_pc, expected_at_density_1, address=None,
         expected_systems=expected_at_density_1 * density, mix=mix, populations=populations, gas=gas,
         dark_matter=DarkMatter(density_solar_pc3=rho, mass_solar=rho * volume),
         kind_factors=kind_factors_at(populations, gas_fraction, cold, shape),
-        type_ia_share=type_ia_share_at(populations, shape))
+        type_ia_share=type_ia_share_at(populations, shape),
+        ejecta=ejecta_field.expected_in_cell(position_pc, volume, shape, expected_at_density_1, edge_pc, galaxy_seed))
 
 
 def sector_profile(address, skeleton):

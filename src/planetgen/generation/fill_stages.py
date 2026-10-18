@@ -20,6 +20,8 @@ E     per-star-kinds  the kinds rolled per star (rogue planets, brown dwarfs, co
 F     nebulae         the galaxy's cloud field, then the nebulae grown around the sector's hot stars
 G     below-cut       the neutron stars and black holes below the scatter's mass cut
 H     flags           runaway and hypervelocity flags, then the galactic nucleus (stream `flags:nucleus`)
+J     ejecta          the neutron stars and black holes the galaxy ejected (GEN.238), one stream per kind; it
+                      runs after G, and as the last stage added it moves no other stage's draws
 ====  ==============  ================================================================================
 
 Stage I is not a stream: `count` keeps the objects each stage made by kind in `sector.stage_counts`, which the
@@ -44,9 +46,10 @@ PER_STAR_KINDS = "per-star-kinds"
 NEBULAE = "nebulae"
 BELOW_CUT = "below-cut"
 FLAGS = "flags"
+EJECTA = "ejecta"
 
-STAGES = (PRE_PLACED, SCATTERED, SYSTEM_PASS, SYSTEMS, PER_STAR_KINDS, NEBULAE, BELOW_CUT, FLAGS)
-"""tuple: The stage names in the order a fill runs them (A to H)."""
+STAGES = (PRE_PLACED, SCATTERED, SYSTEM_PASS, SYSTEMS, PER_STAR_KINDS, NEBULAE, BELOW_CUT, EJECTA, FLAGS)
+"""tuple: The stage names in the order a fill runs them (A to H, J between G and H)."""
 
 BASE_BITS = 64
 """int: Bits of the number a fill's stage streams are seeded from."""
