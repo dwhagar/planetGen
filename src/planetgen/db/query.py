@@ -34,6 +34,7 @@ import math
 import re
 import threading
 import time
+import zlib
 
 import pymysql
 
@@ -4348,13 +4349,58 @@ def _map_key(star):
     return star["luminosity_sol"] * BRIGHT_STAR_POPULATION_WEIGHT.get(star["population"], 1.0)
 
 
-def _top_by_key(stars, limit):
+EVEN_DROP_BAND_DEX = 0.5
+"""float: The width, in powers of ten of the map key (or of the size share of a point), of the bands a list is cut
+by (MAP.251). A list that cannot hold everything keeps whole bands from the top (the most massive and the brightest
+are the last to go) and thins the band the cut falls in by a fixed number every object carries, so that band loses
+the same share of its objects in every region instead of its dimmest end being truncated wherever that lies."""
+
+EVEN_DROP_POOL = 4
+"""int: How many times the list's limit the database reads of each ranking before `_even_pick` cuts it, so the band
+the cut falls in has more candidates than it gets slots and the cut has something to thin."""
+
+
+def _thin_number(token):
+    """A fixed number in [0, 1) for an object (from its id and kind): the same object gets the same number in every
+    tile at every level, so a list that grows keeps every object a shorter one had (the lists stay nested)."""
+    mixed = (zlib.crc32(str(token).encode("utf-8")) * 2654435761) & 0xFFFFFFFF
+    return mixed / 4294967296.0
+
+
+def _even_pick(items, limit, order, band, token, tier=lambda item: 0):
+    """
+    At most `limit` of `items`, cut evenly (MAP.251): the lowest `tier` first (the halo and the satellite galaxies
+    are dropped before anything else), inside a tier the highest `band` first (the most massive and the brightest
+    go last), and inside the band the cut falls in the lowest `_thin_number(token(item))` first, so that band loses
+    the same share of its objects everywhere. Returned in (`tier`, `order`) order, `order` ascending. A pure
+    function of `items`, and one order for every tile level, so the lists stay nested wherever the database hands
+    over the same candidates.
+    """
+    if len(items) <= limit:
+        return sorted(items, key=lambda item: (tier(item), order(item)))
+    kept = sorted(items, key=lambda item: (tier(item), -band(item), _thin_number(token(item))))[:limit]
+    return sorted(kept, key=lambda item: (tier(item), order(item)))
+
+
+def _star_order(star):
+    return (-_map_key(star), -star["id"])
+
+
+def _decade_band(value):
+    return int(math.floor(math.log10(max(value, 1e-30)) / EVEN_DROP_BAND_DEX))
+
+
+def _top_by_key(stars, limit, even=True):
     """
     At most `limit` of `stars`: the lowest `_map_tier` first (the halo and the satellite galaxies come last), then
-    the highest `_map_key` first (ties by descending id). The same order at every tile level, so the list of a
-    tile inside a bigger one holds all of the bigger one's stars inside it (as long as its own limit is no smaller).
+    the highest `_map_key` first (ties by descending id). With `even` (the tiles') the band of the key the cut falls
+    in is thinned evenly (`_even_pick`, MAP.251); without it the list is the plain best `limit` (the galaxy-wide
+    sample's). The order of the list is the same at every tile level.
     """
-    return sorted(stars, key=lambda star: (_map_tier(star), -_map_key(star), -star["id"]))[:limit]
+    if not even:
+        return sorted(stars, key=lambda star: (_map_tier(star), _star_order(star)))[:limit]
+    return _even_pick(stars, limit, _star_order, lambda star: _decade_band(_map_key(star)),
+                      lambda star: star["id"], _map_tier)
 
 
 def galaxy_brightest_stars(conn, count=GALAXY_TILE_BRIGHTEST_SAMPLE):
@@ -4387,7 +4433,7 @@ def galaxy_brightest_stars(conn, count=GALAXY_TILE_BRIGHTEST_SAMPLE):
                     (population, off_plane, int(count)),
                 ).fetchall()
             ]
-    return _top_by_key(picks, int(count))
+    return _top_by_key(picks, int(count), even=False)
 
 
 def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=None, unfilled_only=False,
@@ -4489,7 +4535,7 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=None, unfilled_only=
                 selects.append(
                     f"(SELECT {columns} FROM bright_stars FORCE INDEX (idx_bright_stars_population) "
                     f"WHERE population = ? AND off_plane = ? AND {box} ORDER BY {order} LIMIT ?)")
-                params += [population, off_plane] + box_params + [int(limit)]
+                params += [population, off_plane] + box_params + [int(limit) * EVEN_DROP_POOL]
         rows = conn.execute(" UNION ALL ".join(selects), params).fetchall()
         return _top_by_key([_bright_star_entry(row) for row in rows], limit)
     clauses, params = [], []
@@ -4516,7 +4562,7 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=None, unfilled_only=
         ) ranked
         WHERE rank_in_population <= ?
         """,
-        params + box_params + [int(limit)],
+        params + box_params + [int(limit) * EVEN_DROP_POOL],
     ).fetchall()
     return _top_by_key([_bright_star_entry(row) for row in rows], limit)
 
@@ -4744,7 +4790,8 @@ def galaxy_point_phenomena_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
         limit (int): See `GALAXY_TILE_MAX_POINTS`.
 
     Returns:
-        list[dict]: Heaviest first (by `map_luminosity_sol`; ties by type, then id): `type`
+        list[dict]: Heaviest first (by `map_luminosity_sol`; ties by type, then id), the heaviest half of a full list
+            and the rest spread over the box (`_even_pick`, MAP.251): `type`
             (`"black_hole"`, `"neutron_star"` or `"quasar"`), `id`,
             `name`, `descriptor`, `mass_solar`, `luminosity_sol` (its own light), `map_luminosity_sol` (the
             luminosity of a star of its mass, `phenomenon_map_luminosity_sol`:
@@ -4762,7 +4809,7 @@ def galaxy_point_phenomena_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
             ORDER BY {mass_column} DESC, id
             LIMIT ?
             """,
-            (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], int(limit)),
+            (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], int(limit) * EVEN_DROP_POOL),
         ).fetchall()
         found += [{
             "type": type_label, "id": row["id"], "name": row["name"], "descriptor": row["descriptor"],
@@ -4771,8 +4818,9 @@ def galaxy_point_phenomena_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
             "map_luminosity_sol": float("%.4g" % phenomenon_map_luminosity_sol(type_label, row["mass_solar"])),
             "x": round(row["center_x_pc"], 3), "y": round(row["center_y_pc"], 3), "z": round(row["center_z_pc"], 3),
         } for row in rows]
-    found.sort(key=lambda point: (-point["map_luminosity_sol"], point["type"], point["id"]))
-    return found[:limit]
+    return _even_pick(found, limit, lambda point: (-point["map_luminosity_sol"], point["type"], point["id"]),
+                      lambda point: _decade_band(point["map_luminosity_sol"]),
+                      lambda point: (point["type"], point["id"]))
 
 
 SCATTERED_POINT_CLASSES = (
@@ -4806,6 +4854,9 @@ def scattered_point_size(mass_solar):
     (neutron stars, stellar, intermediate and supermassive black holes)."""
     decades = max(0.0, min(SCATTERED_SIZE_MASS_DECADES, math.log10(max(mass_solar, 1.0))))
     return round(SCATTERED_SIZE_MIN + (1.0 - SCATTERED_SIZE_MIN) * decades / SCATTERED_SIZE_MASS_DECADES, 4)
+
+SCATTERED_SIZE_BAND = 0.1
+"""float: The width of the size share bands a list of scattered points is cut by (`_even_pick`, MAP.251)."""
 
 SCATTERED_POINT_COARSE_CLASSES = 3
 """int: Tiles coarser than `POINT_PHENOMENON_MIN_LEVEL` list only this many
@@ -4841,7 +4892,7 @@ def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
         ORDER BY (kind = 'quasar') DESC, (subtype <=> 'supermassive') DESC, (subtype <=> 'intermediate') DESC, (subtype <=> 'stellar') DESC, mass_solar DESC, id
         LIMIT ?
         """,
-        (*address_params, *kind_params, *box_params, int(limit)),
+        (*address_params, *kind_params, *box_params, int(limit) * EVEN_DROP_POOL),
     ).fetchall()
     share = {(kind, subtype): (map_type, size) for kind, subtype, map_type, size in classes}
     points = []
@@ -4859,8 +4910,8 @@ def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
             "x": round(row["position_x_mpc"] / MPC_PER_PC, 3), "y": round(row["position_y_mpc"] / MPC_PER_PC, 3),
             "z": round(row["position_z_mpc"] / MPC_PER_PC, 3),
         })
-    points.sort(key=lambda point: (-point["size"], point["id"]))
-    return points[:limit]
+    return _even_pick(points, limit, lambda point: (-point["size"], point["id"]),
+                      lambda point: int(point["size"] / SCATTERED_SIZE_BAND), lambda point: point["id"])
 
 
 TILE_PIECE_SECONDS = 3.0
