@@ -2625,6 +2625,47 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ramp by their visible size, the same order as MAP.251.
   Prerequisites: none. Related: MAP.250.
 
+- [ ] **MAP.253 Map and scene read the parent chain: systemscene, body_positions, the browser twin orbitpositions.js and the systemmap branches drop the three origin conventions**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  on the System design, as the coordinator relayed with the wake times
+  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
+  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
+  stay binary'), every one the recommended option: S1 a member's stored
+  orbit is its barycentre about the central object (a planet's stored
+  state is the barycentre of the planet and its moons), S2 the central
+  object's offset is derived on read and never stored (the wobble
+  columns go), S3 the most massive member is the central object and
+  comparable-mass pairs stay binary nodes, S4 a system node takes a
+  central child and any number of members, S5 a stand-in size cut of 1
+  km diameter for hosting satellites plus fit and stability checks, S6
+  moons may have satellites through the same gate with a tidal-survival
+  gate row first (the odds start at zero; this supersedes 'moons are the
+  lowest level'), S7 the point class's system frame measures from the
+  top-level barycentre with a new local frame from the immediate
+  parent's barycentre, S8 the stored values change in the 8.4 revision
+  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
+  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
+  2026-10-18 (project chat): a System is unified rules around the
+  central object (as binary stars are done now); every object other than
+  the central object can be another system with that object as its
+  central object, down to small objects that get no satellites; all
+  objects follow the same physics, so the origin of the system's space
+  is the gravitational center and the central object may move around it.
+  Item SY7 of the note. Proposed owner, not assigned by a card: Core 2
+  for the browser and Core 4 for the Python. Do:
+  `web/maps/systemscene._star_around` (three branches),
+  `physics/body_positions.positions_at`, its browser twin
+  `html/static/orbitpositions.js` and the `systemmap.py` branches use
+  the parent chain and `system(host)`; the single star, close binary and
+  wide binary conventions go. The Python and the JS must stay in step
+  (`tests/test_js_unit.py` checks them against each other). Done: the
+  system map draws the same scene and the Python and JS positions agree
+  by test.
+  Prerequisites: GEN.576, DB.78, GEN.577. Related: GEN.550, GEN.552,
+  GEN.315, GEN.565.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
 
 ## NAV: Navigation and courses
 
@@ -5069,6 +5110,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
   lane queue); a line here that named Core 4 was the TODO thread's
   counting error, corrected 2026-10-16, 4:50 PM EDT.
+  System design (Boss's cards S1 to S9, 12:10 to 12:15 AM EDT,
+  2026-10-18, as the coordinator relayed): see the note on GEN.315
+  (offsets through one generalised function, states relative to the
+  parent link).
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.267 A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars**
@@ -6057,6 +6102,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   interface host-neutral, a function that takes a stored tree and
   returns bodies, at no extra cost, so the later `populate(host)`
   (GEN.556) can call the same code. Owner Core 3 as before.
+  System design (Boss's cards S1 to S9, 12:10 to 12:15 AM EDT,
+  2026-10-18, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md, item SY1): return each
+  body's state relative to its parent link plus the node, and compute
+  offsets through ONE function, `physics/system_tree.member_offsets_au`
+  generalised so a node can hold a central child and several members (n
+  = 1 is today's pair, bit for bit; the most massive member is the
+  central object and comparable-mass pairs stay binary nodes, card S3).
+  Keep the `orbit_nodes` copy as it is. No behaviour change, no epoch.
+  Owner Core 3.
   Prerequisites: GEN.311. Related: GEN.264.
 
 - [ ] **GEN.316 Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired**
@@ -13933,6 +13988,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator relayed): GEN.572 (the exact unit factors, no
   dependencies) is built in 8.1 before the one wiped rescatter and is a
   prerequisite of GEN.301.
+  System design (Boss, 12:03 AM EDT, 2026-10-18; his nine cards S1 to
+  S9, 12:10 to 12:15 AM EDT, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md): one System rule with the
+  barycentre as the origin. Filed: SY1 as text edits to GEN.552, GEN.315
+  and GEN.264 (8.1, no new item), SY2 TEST.241, SY3 GEN.576, SY4 DB.78,
+  SY5 GEN.577, SY6 GEN.578, SY7 MAP.253, SY8 GEN.579, SY9 GEN.580, SY10
+  TEST.242, SY11 DOC.71. Moons are no longer the lowest level (card S6);
+  the group cap of 12 is unchanged. Only TEST.241 (a test) is new in
+  8.1; the stored-value changes ride the 8.4 revision with DB.73.
 
 - [ ] **GEN.552 Host registry: the five fixed `system_model` values become pointers to one gated orbiter table per host class, with no change in behaviour**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -13944,8 +14008,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   node, star-like object, remnant, brown dwarf, planet bound or free,
   moon) pointing to a companion table and a satellite table in the
   gated-table format of GEN.472 (built): rows with classes, weights, a
-  source state and a zone rule (section 3.3 of the draft). Moons are the
-  lowest level, so no host class lists a moon among its orbiters. This
+  source state and a zone rule (section 3.3 of the draft). A host class row exists for a moon and for a small body too (Boss's cards S5 and S6 on the System design, 12:10 to 12:13 AM EDT, 2026-10-18, as the coordinator relayed, superseding 'moons are the lowest level'): each row carries a `may_host` gate, a small body's orbiter table is empty by that gate, and a moon's has no rows until the tidal-survival gate row of GEN.579 exists; the recursion of the later `populate(host)` ends by the gate, not by a depth of three. This
   step only moves what the code does into tables; the drawn values do
   not change, so it does not bump the epoch. Do: the registry column and
   the tables, each row labelled with its source state; the stage C
@@ -13958,6 +14021,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one wrapper `util/draw.py` (GEN.56), every recalled source verified by
   a lane before use under the standing source rules, and any change to a
   drawn value bumps the generator epoch (OPS.56 rule).
+  System design (Boss's cards S5 and S6, 12:10 to 12:13 AM EDT,
+  2026-10-18, as the coordinator relayed;
+  docs/design/unified-system-barycentre.md, item SY1): the text above
+  now has a moon host row and a small-body host row with a `may_host`
+  gate. Owner Core 4.
   Prerequisites: none. Related: GEN.550, GEN.315.
 
 - [ ] **GEN.553 One star-like body draw: origin, birth, state and [Fe/H], with the initial-final relation, the remnant mass, radius and age rules in one place**
@@ -14104,6 +14172,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.552, GEN.315, GEN.555, GEN.565. Related: GEN.550,
   GEN.264,
   GEN.315, GEN.346.
+  System design (Boss's card S6, 12:10 to 12:13 AM EDT, 2026-10-18, as
+  the coordinator relayed): the recursion of `populate(host)` ends by
+  the hosting gate (GEN.579), not by a depth of three; moons may have
+  satellites once the gate allows it.
 
 - [ ] **GEN.557 Wanderers: a rogue planet becomes a planet with no parent, drawn by the one body chain with an origin table, a notional formation host, the population's age and motion**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -14757,6 +14829,222 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   under two units and the suffix test of DB.76 passes.
   Prerequisites: GEN.565, GEN.570. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **GEN.576 system(host): the one function that groups bodies by their parent link and returns the barycentre sums, the central object's offset and the valid-system check**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  on the System design, as the coordinator relayed with the wake times
+  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
+  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
+  stay binary'), every one the recommended option: S1 a member's stored
+  orbit is its barycentre about the central object (a planet's stored
+  state is the barycentre of the planet and its moons), S2 the central
+  object's offset is derived on read and never stored (the wobble
+  columns go), S3 the most massive member is the central object and
+  comparable-mass pairs stay binary nodes, S4 a system node takes a
+  central child and any number of members, S5 a stand-in size cut of 1
+  km diameter for hosting satellites plus fit and stability checks, S6
+  moons may have satellites through the same gate with a tidal-survival
+  gate row first (the odds start at zero; this supersedes 'moons are the
+  lowest level'), S7 the point class's system frame measures from the
+  top-level barycentre with a new local frame from the immediate
+  parent's barycentre, S8 the stored values change in the 8.4 revision
+  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
+  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
+  2026-10-18 (project chat): a System is unified rules around the
+  central object (as binary stars are done now); every object other than
+  the central object can be another system with that object as its
+  central object, down to small objects that get no satellites; all
+  objects follow the same physics, so the origin of the system's space
+  is the gravitational center and the central object may move around it.
+  Item SY3 of the note (sections 4.1 to 4.3 and 4.6). Proposed owner,
+  not assigned by a card: Core 4, with the mass object core (GEN.565).
+  Do: `system(host)` groups the rows that share a parent link and
+  returns the cached `SystemSummary` (total mass, the sum of
+  mass-weighted relative positions, member count) and, on read, the
+  central object's offset `-sum(M_i rel_i) / M_total` and every member's
+  position, derived and cached, marked stale up the parent chain when a
+  member is added, removed or changes parent (the state is then
+  re-expressed about the new parent so no position jumps) or its mass
+  changes; it generalises `physics/system_tree.member_offsets_au` to a
+  central child plus n members (n = 1 is today's binary formula, bit for
+  bit); `valid_system(host)` checks every member is at most the
+  mass-ratio limit of the central object or is a binary node. Sums are
+  formed from relative numbers only (a double at 8 kpc has a spacing of
+  32,768 m). Done: the invariants of TEST.242 pass.
+  Prerequisites: GEN.565, GEN.315. Related: GEN.550, GEN.552, GEN.315,
+  GEN.565.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **GEN.577 Stored planet and moon states become the state of the barycentre of the body and its own members**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  on the System design, as the coordinator relayed with the wake times
+  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
+  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
+  stay binary'), every one the recommended option: S1 a member's stored
+  orbit is its barycentre about the central object (a planet's stored
+  state is the barycentre of the planet and its moons), S2 the central
+  object's offset is derived on read and never stored (the wobble
+  columns go), S3 the most massive member is the central object and
+  comparable-mass pairs stay binary nodes, S4 a system node takes a
+  central child and any number of members, S5 a stand-in size cut of 1
+  km diameter for hosting satellites plus fit and stability checks, S6
+  moons may have satellites through the same gate with a tidal-survival
+  gate row first (the odds start at zero; this supersedes 'moons are the
+  lowest level'), S7 the point class's system frame measures from the
+  top-level barycentre with a new local frame from the immediate
+  parent's barycentre, S8 the stored values change in the 8.4 revision
+  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
+  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
+  2026-10-18 (project chat): a System is unified rules around the
+  central object (as binary stars are done now); every object other than
+  the central object can be another system with that object as its
+  central object, down to small objects that get no satellites; all
+  objects follow the same physics, so the origin of the system's space
+  is the gravitational center and the central object may move around it.
+  Item SY5 of the note (card S1). Proposed owner, not assigned by a
+  card: Core 4. Do: a re-expression of existing rows so a planet's
+  stored state is the orbit of the barycentre of the planet and its
+  moons about the central object, the same rule at every level as the
+  scatter tree already stores; values change in the last digits, so it
+  is one epoch with DB.78. Consumers that need the true separation
+  (insolation, Hill sphere, tidal locking) keep reading the stored
+  relative vector, so they do not change. Done: moon and planet
+  positions agree with the old ones to the precision of the sum and the
+  golden digest changes with the epoch entry.
+  Prerequisites: GEN.576. Related: GEN.550, GEN.552, GEN.315, GEN.565.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **GEN.578 The point class gets the local frame and the barycentre system frame, and the system anchor is no longer the nearest star**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  on the System design, as the coordinator relayed with the wake times
+  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
+  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
+  stay binary'), every one the recommended option: S1 a member's stored
+  orbit is its barycentre about the central object (a planet's stored
+  state is the barycentre of the planet and its moons), S2 the central
+  object's offset is derived on read and never stored (the wobble
+  columns go), S3 the most massive member is the central object and
+  comparable-mass pairs stay binary nodes, S4 a system node takes a
+  central child and any number of members, S5 a stand-in size cut of 1
+  km diameter for hosting satellites plus fit and stability checks, S6
+  moons may have satellites through the same gate with a tidal-survival
+  gate row first (the odds start at zero; this supersedes 'moons are the
+  lowest level'), S7 the point class's system frame measures from the
+  top-level barycentre with a new local frame from the immediate
+  parent's barycentre, S8 the stored values change in the 8.4 revision
+  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
+  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
+  2026-10-18 (project chat): a System is unified rules around the
+  central object (as binary stars are done now); every object other than
+  the central object can be another system with that object as its
+  central object, down to small objects that get no satellites; all
+  objects follow the same physics, so the origin of the system's space
+  is the gravitational center and the central object may move around it.
+  Item SY6 of the note (section 4.3, card S7). Proposed owner, not
+  assigned by a card: Core 4 (with the position-class sweep of GEN.573).
+  Do: in `physics/position.py`, the system frame becomes the offset from
+  the barycentre of the top-level system of the body (was the nearest
+  star) and a new local frame is the offset from the immediate parent's
+  barycentre, both derived by walking the parent chain with the same
+  lazy forms as the sector and galactic frames; nothing else in the
+  class changes. Done: the point class's tests pass and a body's
+  absolute position equals the top barycentre plus the sum of the
+  offsets down its chain.
+  Prerequisites: GEN.576, GEN.569, GEN.573. Related: GEN.550, GEN.552,
+  GEN.315, GEN.565.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **GEN.579 The hosting gate: can_host(body) in three parts and the gated table of the satellite share by size class, as labelled stand-in rows**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  on the System design, as the coordinator relayed with the wake times
+  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
+  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
+  stay binary'), every one the recommended option: S1 a member's stored
+  orbit is its barycentre about the central object (a planet's stored
+  state is the barycentre of the planet and its moons), S2 the central
+  object's offset is derived on read and never stored (the wobble
+  columns go), S3 the most massive member is the central object and
+  comparable-mass pairs stay binary nodes, S4 a system node takes a
+  central child and any number of members, S5 a stand-in size cut of 1
+  km diameter for hosting satellites plus fit and stability checks, S6
+  moons may have satellites through the same gate with a tidal-survival
+  gate row first (the odds start at zero; this supersedes 'moons are the
+  lowest level'), S7 the point class's system frame measures from the
+  top-level barycentre with a new local frame from the immediate
+  parent's barycentre, S8 the stored values change in the 8.4 revision
+  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
+  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
+  2026-10-18 (project chat): a System is unified rules around the
+  central object (as binary stars are done now); every object other than
+  the central object can be another system with that object as its
+  central object, down to small objects that get no satellites; all
+  objects follow the same physics, so the origin of the system's space
+  is the gravitational center and the central object may move around it.
+  Item SY8 of the note (section 4.4, cards S5 and S6). Proposed owner,
+  not assigned by a card: Core 4. Depends on GEN.552 and GEN.472
+  (built). Do: `can_host(body)` in three parts, in order: a satellite
+  must fit (the 10 m floor, the mass-ratio limit, equal-mass pairs only
+  as binary nodes), a stable orbit must exist (inside 0.4895 Hill radius
+  at pericentre, outside the host plus satellite radius and the Roche
+  limit for a fluid body, and the existing hierarchical checks
+  `is_triple_stable`), and a chance that one exists at all: a gated
+  table (GEN.472 format) of the share of bodies of each size class that
+  have satellites, shipped as labelled stand-in rows with a size cut of
+  1 km diameter (a tunable placeholder, replaced when GEN.580 or GEN.566
+  gives a verified law). A moon host starts with zero rows and a
+  tidal-survival gate row that must exist before any sub-satellite is
+  drawn. The recursion ends because the gate says no, not because of a
+  level counter. Done: a body below the cut has no satellites, a moon
+  host draws none until its rows exist, and every row carries its source
+  state.
+  Prerequisites: GEN.552. Related: GEN.550, GEN.552, GEN.315, GEN.565.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **GEN.580 Research: the binary and satellite fraction of small bodies by size, and the survival of sub-satellites of moons, to replace the stand-in cut of the hosting gate**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  on the System design, as the coordinator relayed with the wake times
+  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
+  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
+  stay binary'), every one the recommended option: S1 a member's stored
+  orbit is its barycentre about the central object (a planet's stored
+  state is the barycentre of the planet and its moons), S2 the central
+  object's offset is derived on read and never stored (the wobble
+  columns go), S3 the most massive member is the central object and
+  comparable-mass pairs stay binary nodes, S4 a system node takes a
+  central child and any number of members, S5 a stand-in size cut of 1
+  km diameter for hosting satellites plus fit and stability checks, S6
+  moons may have satellites through the same gate with a tidal-survival
+  gate row first (the odds start at zero; this supersedes 'moons are the
+  lowest level'), S7 the point class's system frame measures from the
+  top-level barycentre with a new local frame from the immediate
+  parent's barycentre, S8 the stored values change in the 8.4 revision
+  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
+  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
+  2026-10-18 (project chat): a System is unified rules around the
+  central object (as binary stars are done now); every object other than
+  the central object can be another system with that object as its
+  central object, down to small objects that get no satellites; all
+  objects follow the same physics, so the origin of the system's space
+  is the gravitational center and the central object may move around it.
+  Item SY9 of the note (sections 4.4 and 4.5). Proposed owner, not
+  assigned by a card: a read-only research lane, joining GEN.566 (the
+  size-frequency research). Verify first the three items the note
+  recalled and did not verify: the binary fraction of small asteroids by
+  size (the note recalls about 15% of near-Earth asteroids above 0.3 km,
+  from Margot et al. 2002 and Pravec et al. 2006), radiation torques
+  (YORP) spinning small bodies up and shedding satellites, and tidal
+  stripping of sub-satellites of moons by the planet (the timescale).
+  Done: a handoff note with verified citations and numbers (or a
+  statement that none was found), the size cut and the satellite-share
+  rows it supports, and a list of what stays a stand-in; raw papers stay
+  out of the repo.
+  Prerequisites: none. Related: GEN.550, GEN.552, GEN.315, GEN.565.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -16812,6 +17100,52 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   10 m floor body exceeds its limit.
   Prerequisites: DB.76. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **DB.78 Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  on the System design, as the coordinator relayed with the wake times
+  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
+  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
+  stay binary'), every one the recommended option: S1 a member's stored
+  orbit is its barycentre about the central object (a planet's stored
+  state is the barycentre of the planet and its moons), S2 the central
+  object's offset is derived on read and never stored (the wobble
+  columns go), S3 the most massive member is the central object and
+  comparable-mass pairs stay binary nodes, S4 a system node takes a
+  central child and any number of members, S5 a stand-in size cut of 1
+  km diameter for hosting satellites plus fit and stability checks, S6
+  moons may have satellites through the same gate with a tidal-survival
+  gate row first (the odds start at zero; this supersedes 'moons are the
+  lowest level'), S7 the point class's system frame measures from the
+  top-level barycentre with a new local frame from the immediate
+  parent's barycentre, S8 the stored values change in the 8.4 revision
+  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
+  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
+  2026-10-18 (project chat): a System is unified rules around the
+  central object (as binary stars are done now); every object other than
+  the central object can be another system with that object as its
+  central object, down to small objects that get no satellites; all
+  objects follow the same physics, so the origin of the system's space
+  is the gravitational center and the central object may move around it.
+  Item SY4 of the note (section 4.1). Proposed owner, not assigned by a
+  card: Core 1 for the storage and Core 4 for the physics. Do, in the
+  8.4 revision shared with DB.73 and DB.67 to DB.71 (one revision, order
+  agreed by Cores 1 and 4): remove `stars.reflex_offset_*` and
+  `planets.reflex_offset_*` (6 columns),
+  `orbits.calculate_reflex_offset`, the correlated SQL updates in
+  `store.advance_orbital_phases`, and the nine
+  `binary_{primary,secondary,mutual}_position_*_km` columns of
+  `star_systems` plus the `orbit_nodes` copy that the parent links
+  replace; their values become reads of `system(host)`. A read of a
+  star's position gives the same number the wobble columns held, to the
+  precision of the sum. Stored values change in low digits: bumps the
+  generator epoch, one epoch with GEN.577. Done: no consumer reads a
+  removed column and the maps show the same positions to the precision
+  of the sum.
+  Prerequisites: GEN.576, DB.73. Related: GEN.550, GEN.552, GEN.315,
+  GEN.565.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
 ## API: The JSON API
 
@@ -20224,6 +20558,86 @@ clears each one.
   Owner: Core 4 with the test lane (Boss's card D7), 8.4 phase 4.
   Prerequisites: GEN.565, DB.74. Related: GEN.550, TEST.239.
 
+- [ ] **TEST.241 Test: no absolute position is stored for anything inside a system, so every 8.1 item that stores a position stores it parent-relative**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  on the System design, as the coordinator relayed with the wake times
+  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
+  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
+  stay binary'), every one the recommended option: S1 a member's stored
+  orbit is its barycentre about the central object (a planet's stored
+  state is the barycentre of the planet and its moons), S2 the central
+  object's offset is derived on read and never stored (the wobble
+  columns go), S3 the most massive member is the central object and
+  comparable-mass pairs stay binary nodes, S4 a system node takes a
+  central child and any number of members, S5 a stand-in size cut of 1
+  km diameter for hosting satellites plus fit and stability checks, S6
+  moons may have satellites through the same gate with a tidal-survival
+  gate row first (the odds start at zero; this supersedes 'moons are the
+  lowest level'), S7 the point class's system frame measures from the
+  top-level barycentre with a new local frame from the immediate
+  parent's barycentre, S8 the stored values change in the 8.4 revision
+  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
+  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
+  2026-10-18 (project chat): a System is unified rules around the
+  central object (as binary stars are done now); every object other than
+  the central object can be another system with that object as its
+  central object, down to small objects that get no satellites; all
+  objects follow the same physics, so the origin of the system's space
+  is the gravitational center and the central object may move around it.
+  Item SY2 of the note (section 5 point 3), an 8.1 convention with a
+  test. Proposed owner, not assigned by a card: Core 1 (it owns
+  `point_columns.py`). Do: write the rule into docs/design and the
+  header of `physics/position.py` (never store an absolute sector or
+  galactic position for anything inside a system; store the
+  parent-relative state and let the barycentre be the system's row
+  point; this is already how the scatter rows and the planets are
+  stored), and add a test that lists every table that stores a body
+  position and fails if one stores an absolute position of a body inside
+  a system. It protects GEN.317, GEN.130, GEN.327 and GEN.273. No
+  behaviour change and no epoch. Done: the test passes on main and fails
+  on a table given an absolute position.
+  Prerequisites: none. Related: GEN.550, GEN.552, GEN.315, GEN.565.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **TEST.242 Tests: invariants for any system at any time: zero mass-weighted offset sum, add and remove returns exactly, a parent change keeps every absolute position, one member equals the binary formula bit for bit**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  on the System design, as the coordinator relayed with the wake times
+  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
+  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
+  stay binary'), every one the recommended option: S1 a member's stored
+  orbit is its barycentre about the central object (a planet's stored
+  state is the barycentre of the planet and its moons), S2 the central
+  object's offset is derived on read and never stored (the wobble
+  columns go), S3 the most massive member is the central object and
+  comparable-mass pairs stay binary nodes, S4 a system node takes a
+  central child and any number of members, S5 a stand-in size cut of 1
+  km diameter for hosting satellites plus fit and stability checks, S6
+  moons may have satellites through the same gate with a tidal-survival
+  gate row first (the odds start at zero; this supersedes 'moons are the
+  lowest level'), S7 the point class's system frame measures from the
+  top-level barycentre with a new local frame from the immediate
+  parent's barycentre, S8 the stored values change in the 8.4 revision
+  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
+  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
+  2026-10-18 (project chat): a System is unified rules around the
+  central object (as binary stars are done now); every object other than
+  the central object can be another system with that object as its
+  central object, down to small objects that get no satellites; all
+  objects follow the same physics, so the origin of the system's space
+  is the gravitational center and the central object may move around it.
+  Item SY10 of the note. Proposed owner, not assigned by a card: Core 4,
+  with GEN.576. Do: tests that `sum(M_i r_i) = 0` about the barycentre;
+  adding a member and removing it returns the other positions exactly; a
+  parent change leaves every absolute position unchanged; a sub-system's
+  barycentre does not move when its members orbit; the single-member
+  case equals the existing close-pair formula of `system_tree.py` bit
+  for bit; and a 10 m body 10,000 AU from its parent keeps its metre in
+  the sums. Done: all pass at several depths.
+  Prerequisites: GEN.576. Related: GEN.550, GEN.552, GEN.315, GEN.565.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
 
 ## USR: User accounts
 
@@ -21583,6 +21997,43 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: GEN.568, GEN.569, DB.76. Related: GEN.550, GEN.565,
   DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
+
+- [ ] **DOC.71 Docs for the System rule: database-schema.md, the system view in docs/design and the header of system_tree.py**
+  Part of the unified orbited-body plan (GEN.550; design note
+  docs/design/unified-system-barycentre.md, decided: Boss's nine cards
+  on the System design, as the coordinator relayed with the wake times
+  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
+  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
+  stay binary'), every one the recommended option: S1 a member's stored
+  orbit is its barycentre about the central object (a planet's stored
+  state is the barycentre of the planet and its moons), S2 the central
+  object's offset is derived on read and never stored (the wobble
+  columns go), S3 the most massive member is the central object and
+  comparable-mass pairs stay binary nodes, S4 a system node takes a
+  central child and any number of members, S5 a stand-in size cut of 1
+  km diameter for hosting satellites plus fit and stability checks, S6
+  moons may have satellites through the same gate with a tidal-survival
+  gate row first (the odds start at zero; this supersedes 'moons are the
+  lowest level'), S7 the point class's system frame measures from the
+  top-level barycentre with a new local frame from the immediate
+  parent's barycentre, S8 the stored values change in the 8.4 revision
+  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
+  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
+  2026-10-18 (project chat): a System is unified rules around the
+  central object (as binary stars are done now); every object other than
+  the central object can be another system with that object as its
+  central object, down to small objects that get no satellites; all
+  objects follow the same physics, so the origin of the system's space
+  is the gravitational center and the central object may move around it.
+  Item SY11 of the note. Proposed owner, not assigned by a card: Core 5.
+  Do: update `docs/design/database-schema.md` for the removed columns
+  and the parent link, write the system view into docs/design (one rule
+  instead of four origin conventions), and rewrite the header of
+  `physics/system_tree.py`. Done: the docs gate passes and no page
+  describes a second origin convention.
+  Prerequisites: GEN.576, DB.78, GEN.578. Related: GEN.550, GEN.552,
+  GEN.315, GEN.565.
+  Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
 ## VIEW: The view from a planet
 

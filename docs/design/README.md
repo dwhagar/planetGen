@@ -77,6 +77,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [black-hole-density.md](black-hole-density.md) | The metallicity-dependent black hole density: the failed-supernova share f(Z) as two drawn anchors, the place factor, the rate sites, the tests and the seven open cards | plan |
 | [unified-star-like-objects.md](unified-star-like-objects.md) | One recursive chain for anything that can be orbited: stars and star-like objects, planets, moons, rogue planets, free brown dwarfs and unbound comets, built through sector fill | plan |
 | [unified-unit-quantity.md](unified-unit-quantity.md) | One registry of units, one Quantity value class and one declaration of every field's and column's quantity, copying the point-in-space class | plan |
+| [unified-system-barycentre.md](unified-system-barycentre.md) | One System rule: a central object, members that can be systems themselves, the barycentre as the origin, derived offsets, and the hosting gate | plan |
 | [mass-object-class.md](mass-object-class.md) | One master mass-object class: three family classes under it, state and parent as data, one core table plus three profile tables, a 10 m representability floor, the measured code savings | plan |
 | [star-types-by-galactic-radius.md](star-types-by-galactic-radius.md) | How star types change with distance from the core | research (proposals for Boss) |
 | [compact-remnant-regions.md](compact-remnant-regions.md) | Where neutron stars and black holes are observed | reference (feeds GEN.100) |
