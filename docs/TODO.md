@@ -17996,6 +17996,15 @@ clears each one.
   above (Bug Hunt, 7:19 PM EDT). Core 2 is checking whether it also
   fails alone on main. Frequency: now 7 loaded gate runs seen, at least
   one failing alone.
+  Sighting (Core 1, 2026-10-17, 9:58 PM EDT as the lane reported;
+  GEN.532/533 gate 3 ended 9:39 PM EDT):
+  `test_galaxy_map_forward_to_current_jumps_to_the_newest_view` failed
+  in the gate (the deepest view differed from the view after Back, Back,
+  Current: last two crumb blocks 37.3.74/111.8.223/333.23.669 against
+  37.2.73/111.7.221/335.21.664) and passed alone twice since. Fails on
+  main: not checked. Frequency: 1 in 1 gate on that branch; now 8 loaded
+  gate runs seen across this item. Same crumb-mismatch-after-Back shape
+  as the drill-down sighting (Core 2, 9:31 PM EDT).
   Prerequisites: none. Related: MAP.210, TEST.170, TEST.171.
 
 - [ ] **TEST.174 test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug)**
