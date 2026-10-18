@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.237 |
+| TEST | TEST.239 |
 | USR | USR.31 |
 | OPS | OPS.62 |
 | DOC | DOC.69 |
@@ -639,7 +639,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.49 | Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue | none | merged into DOC.50 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | none | open |
 | DOC.51 | Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder | none | open |
-| DOC.52 | A docs index page: links to every HTML page under docs/, each with a description of what it contains | none | open |
+| DOC.52 | A docs index page: links to every HTML page under docs/, each with a description of what it contains | none | done, PR #2154 |
 | DOC.53 | The tuning module header names the rule for a new signed constant: the fuzz tests accept only a dict or a positive "fall" | none | done, PR #2070 |
 | DOC.54 | Admin help: how to edit, regenerate, lock, approve and undo | none | open |
 | DOC.55 | Help: roles, edit requests and how an approval works | none | open |
@@ -654,7 +654,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.64 | Docs: the atmosphere colour, its method and its sources | none | open |
 | DOC.65 | Docs: bulk composition, the materials table and how density, mass and gravity follow | none | open |
 | DOC.66 | Docs: the composition model of stars, bodies and atmospheres, the radiation it derives and the sources of every number | none | open |
-| DOC.67 | An architecture map Boss can drill down: project areas, modules and functions with the call flow between them, generated from the code | none | open |
+| DOC.67 | An architecture map Boss can drill down: project areas, modules and functions with the call flow between them, generated from the code | none | done, PR #2154 |
 | DOC.68 | Generate docs/plan/execution-plan.html from scripts/build_todo_docs.py like the other plan pages | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
@@ -1598,7 +1598,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.17 | A time limit on web database statements | none | done, PR #223 |
 | PERF.18 | Run the GEN.30 bright-star backfill in parallel on the work queue | none | merged into PERF.108 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | PERF.19 | Everything the API or web site starts runs on the work queue (investigate) | none | done, PR #492 |
-| PERF.20 | Short-term caching through the work queue and API | none | open |
+| PERF.20 | Short-term caching through the work queue and API | none | done, PR #2154 |
 | PERF.21 | Generation works with any worker count: the parallel path is built, used and tested (bug) | none | done, PR #371 |
 | PERF.22 | On Python 3.12 a run hangs forever when a worker process dies (bug) | none | done, PR #371 |
 | PERF.23 | The bright-star progress bar can end at 101% (bug) | none | done, PR #371 |
@@ -1653,7 +1653,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.72 | Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources | none | open |
 | PERF.73 | Cut the cost of writing the phenomenon rows to the database (now the biggest part of a scatter run) | none | done, PR #1209 |
 | PERF.74 | Store a per-sector system count so the Sectors list does not count every system on each request | none | done, PR #1193 |
-| PERF.75 | The jump-by-value box for the big data tables (keyset paging is done for the Systems, Uncharted stars and Phenomena tables) | none | open |
+| PERF.75 | The jump-by-value box for the big data tables (keyset paging is done for the Systems, Uncharted stars and Phenomena tables) | none | done, PR #2154 |
 | PERF.76 | Give each Galaxy Map tile piece its own time budget and serve an "incomplete" tile | none | done, PR #1199 |
 | PERF.77 | Capped counts: "10,000 or more" where no stored count exists for a filter | none | done, PR #1199 |
 | PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them | none | done, PR #1506 |
@@ -1690,7 +1690,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.109 | Cache the Generate page estimate | none | done, PR #2050 |
 | PERF.110 | XFetch refresh for costly entries that expire by age | none | done, PR #2050 |
 | PERF.111 | `ResponseCache.put` without a database never trims the page cache: the cache grows past `max_entries`, and the thread test fails when its last put is one of those (bug) | none | open |
-| PERF.112 | The uncharted-star count runs a full COUNT(*) on every request: keep the count so the page and the API do not scan bright_stars each time (performance) | none | open |
+| PERF.112 | The uncharted-star count runs a full COUNT(*) on every request: keep the count so the page and the API do not scan bright_stars each time (performance) | none | done, PR #2154 |
 | PERF.113 | The neighbour link of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | open |
 | PERF.114 | The population pass of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | open |
 | PERF.115 | The settle stage of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | open |
@@ -2269,6 +2269,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.234 | test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug) | none | open |
 | TEST.235 | test_stop_waiting_stops_the_polling_and_check_again_picks_it_up[light] failed once in a loaded gate and passes alone (bug) | none | open |
 | TEST.236 | test_galaxy_map_drill_down_by_clicks rejects a window address with a negative band, because its regex allows a minus sign only on the wedge (bug) | none | open |
+| TEST.237 | The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

@@ -821,3 +821,8 @@ Baseline: PR #1817.
 | TEST.231 | 8.1 | Bugs and flaky tests |
 | TEST.232 | 8.1 | Bugs and flaky tests |
 | MAP.239 | 8.1 | Fly-through map |
+| PERF.20 | 8.1 | Queue, caches and performance |
+| PERF.75 | 8.1 | Queue, caches and performance |
+| PERF.112 | 8.1 | Queue, caches and performance |
+| DOC.52 | 8.1 | Docs |
+| DOC.67 | 8.1 | Docs |
