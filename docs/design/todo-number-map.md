@@ -1061,7 +1061,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.394 | The scatter bounds and the phenomena pass respect the bubble factor: a certified bound in band_majorants and per-position thinning | none | open |
 | GEN.395 | Sector build follows the bubbles: the fill count from the cell mean, star positions weighted by the factor, shown in the profile and the region query | none | open |
 | GEN.396 | Revisit the Yerkes class III luminosity range: 50 to 1000 solar luminosities sits above many dim red giants | none | open |
-| GEN.397 | `planetgen plan` stage 2 prints the progress weight as the number of phenomena to place (bug) | none | open |
+| GEN.397 | `planetgen plan` stage 2 prints the progress weight as the number of phenomena to place (bug) | none | done, PR #2124 |
 | GEN.398 | The massive-star and bright-star passes place more stars than their log lines expect: 70 and 12 percent over (bug) | none | open |
 | GEN.399 | Research the halo mass function and compare it with the halo mass approximation GEN.368 uses | none | open |
 | GEN.400 | The galaxy's mass chain: stellar mass from the Schechter function, the halo mass by the approximation, the virial radius and the concentration | none | done, PR #2011 |
@@ -1627,7 +1627,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.56 | The generator epoch counter and the PR rule that enforces it | none | done, PR #1877 |
 | OPS.57 | generator_battery_digest(): a database-free digest over 6 to 8 canned cases | none | open |
 | OPS.58 | The version history row and the galaxy's internal record carry the epoch, the battery digest and the environment | none | open |
-| OPS.59 | `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug) | none | open |
+| OPS.59 | `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug) | none | done, PR #2124 |
 | OPS.60 | The admin commands that did two things by flag: `lockouts` lists or lifts, `version_history --list` repeats `planetgen versions` | none | open |
 | OPS.61 | Remove the one-off tools `cli.render_parity` and `cli.dedupe`: they check and fix a schema and a naming rule that migrated long ago | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
@@ -1952,7 +1952,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.107 | Units in the description go through the ladders | none | open |
 | UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | none | open |
 | UX.109 | Remove the old per-class description text | none | open |
-| UX.110 | The phenomena count on the overview page is wrong (bug) | none | open |
+| UX.110 | The phenomena count on the overview page is wrong (bug) | none | done, PR #2124 |
 | UX.111 | Reads, API and web wording on shells | none | done, PR #1607 |
 | UX.112 | Maintenance mode: the site is closed to everyone but admin while the maps are rebuilt | none | done, PR #1607 |
 | UX.113 | The sector page shows the profile of any address in the reach, and heavy cells and far neighbourhoods warn before they run | none | done, PR #1919 |
@@ -1975,7 +1975,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.130 | Console design brief: colours, type, panel shapes and iconography, approved by Boss | none | open |
 | UX.131 | Console tokens, type and base template in both themes | none | open |
 | UX.132 | Console look for the shared components: buttons, tables, panels, status chips, icons and the maps' chrome | none | open |
-| UX.133 | `GET /polities` and `GET /species` answer 404 before the population pass has run: show an empty page instead (bug) | none | open |
+| UX.133 | `GET /polities` and `GET /species` answer 404 before the population pass has run: show an empty page instead (bug) | none | done, PR #2124 |
 | UX.134 | Generate page: the galaxy type shows what the seed drew and can be pinned | none | open |
 | UX.135 | One simple vector outline per galaxy family in the icon library: spiral, barred spiral, lenticular, elliptical, irregular and dwarf spheroid | none | open |
 | UX.136 | The data tables' own row fetches (scroll and sort) wait on a page job when the answer is slow, like the pages do | none | open |
@@ -2221,7 +2221,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | none | merged into GEN.198 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) | none | done, PR #1578 |
 | TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems | none | done, PR #1405 |
-| TEST.134 | test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug) | none | open |
+| TEST.134 | test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug) | none | done, PR #2124 |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads | none | open |
 | TEST.136 | A nebula-rate audit test: the nebula counts and fillings stay inside the observed bands | none | done, PR #1239 |
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) | none | open |
@@ -2257,11 +2257,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.167 | test_random_start_mode_respects_min_start_density hit a 900 s timeout in a full run and passes alone (bug) | none | merged into TEST.111 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.168 | Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs | none | open |
 | TEST.169 | Admin page browser tests: every admin page and task works end to end after the streamline | none | open |
-| TEST.170 | test_math_check::test_whole_run_is_fast and the Galaxy Map breadcrumb folding test fail under full-suite load and pass alone (bug) | none | open |
-| TEST.171 | test_gen_resume::test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards failed once under gate load with no scattered system (0 > 0) and passes alone (bug) | none | open |
-| TEST.172 | test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug) | none | open |
+| TEST.170 | test_math_check::test_whole_run_is_fast and the Galaxy Map breadcrumb folding test fail under full-suite load and pass alone (bug) | none | done, PR #2124 |
+| TEST.171 | test_gen_resume::test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards failed once under gate load with no scattered system (0 > 0) and passes alone (bug) | none | done, PR #2124 |
+| TEST.172 | test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug) | none | done, PR #2124 |
 | TEST.173 | test_gen_bright_scatter_edges::test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star failed once under gate load with an empty ring in _nearest (bug) | none | merged into TEST.171 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
-| TEST.174 | test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug) | none | open |
+| TEST.174 | test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug) | none | done, PR #2124 |
 | TEST.175 | Edit everything end to end: the headline scenarios with approval and undo | none | open |
 | TEST.176 | Plan engine properties: any sequence of edits leaves every system valid, and undo restores every row | none | open |
 | TEST.177 | Edited sectors survive repair, regeneration and the golden seed | none | open |
@@ -2276,7 +2276,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.186 | Census audit harness: fill seeded sectors per region class, count by kind and stage, compare to expectation within k Poisson sigma, print one report | none | done, PR #2040 |
 | TEST.187 | Browser-test failure reports are buried in the werkzeug request log: set that logger to WARNING in the test server | none | done, PR #2050 |
 | TEST.188 | The skimage marching-cubes call reads `.shape` in a way NumPy 2.5 deprecates: change the call and keep the warning out of the log | none | done, PR #2050 |
-| TEST.189 | A test that runs `migrate` leaves maintenance mode on: restore `state/maintenance.json` in the fixture (bug) | none | open |
+| TEST.189 | A test that runs `migrate` leaves maintenance mode on: restore `state/maintenance.json` in the fixture (bug) | none | done, PR #2124 |
 | TEST.190 | A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug) | none | open |
 | TEST.191 | The plan tests write real settings JSON into `/var/lib/planetGen/jobs/galaxy-settings` and log "No naming key drawn ... Unknown database": give them a temporary directory and a test database | none | done, PR #2070 |
 | TEST.192 | The galaxy-grid fuzz test `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on a float cancellation of the halo subtraction far above the disk (bug) | none | done, PR #1883 |
@@ -2286,16 +2286,16 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.196 | Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged | none | open |
 | TEST.197 | `test_page_is_accessible_and_fits[web.sector-phone-light]` failed under load and passed alone: find the cause and make it robust (bug) | none | merged into TEST.174 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | TEST.198 | `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug) | none | open |
-| TEST.199 | `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on main for a far-tail case: the halo subtraction loses precision, 2.4e-9 against a 1e-9 tolerance (bug) | none | open |
+| TEST.199 | `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on main for a far-tail case: the halo subtraction loses precision, 2.4e-9 against a 1e-9 tolerance (bug) | none | done, PR #2124 |
 | TEST.200 | The nightly local offset limit is documented and pinned by `test_local_offset_after_a_rotation_is_within_one_ulp_of_the_absolute_point` | none | open |
 | TEST.201 | `block_stats` totals do not depend on the order of the rows: a test | none | open |
 | TEST.202 | `test_galaxy_map_drill_down_by_clicks` failed under load and passed alone: call 28 s to 52 s on a loaded worker (bug) | none | merged into TEST.172 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
-| TEST.203 | `test_one_worker_leaves_the_runs_own_random_stream_alone` failed once under heavy load with WorkerDied "the task's job ended canceled" and passes alone (bug) | none | open |
+| TEST.203 | `test_one_worker_leaves_the_runs_own_random_stream_alone` failed once under heavy load with WorkerDied "the task's job ended canceled" and passes alone (bug) | none | done, PR #2124 |
 | TEST.204 | Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges | none | open |
 | TEST.205 | `test_no_reserved_word_is_an_unquoted_identifier` fails on main: the DB.18 migration helpers use LOCK in `ALGORITHM=INPLACE, LOCK=NONE` (bug) | none | done, PR #1927 |
 | TEST.206 | Superbubble density tests: rim excess, interior depletion, old stars unchanged, scatter against fill and determinism | none | open |
 | TEST.207 | The page_targets fixture of the web accessibility tests errors 24 tests: web.admin_backup answers 302 and 404 with the sample database (bug) | none | withdrawn: fixed before it was filed (PR #1921, NO_SAMPLE_OBJECT, 2026-10-16, 9:26 PM EDT) |
-| TEST.208 | `scripts/test.py --resume` reuses an earlier pass across builds when none of that test's own dependencies changed | none | open |
+| TEST.208 | `scripts/test.py --resume` reuses an earlier pass across builds when none of that test's own dependencies changed | none | done, PR #2124 |
 | TEST.209 | One consistency sweep over every planet and moon class: composition, density, temperature, ozone, aerosols and text all agree | none | open |
 | TEST.210 | A bulk composition sweep over every class: fractions, density, mass, radius and gravity agree | none | open |
 | TEST.211 | A star composition sweep: every kind of star, remnant and brown dwarf, fractions, trends and determinism | none | open |
@@ -2303,7 +2303,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.213 | `test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star` failed in a loaded browser run: the wheel loop opened the system before the disc reached full share (bug) | none | done, PR #2103 |
 | TEST.214 | Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence | none | open |
 | TEST.215 | The Solar System calibration rows live in test files only: a flag fences them and a test fails when a generator table reads one | none | open |
-| TEST.216 | `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed in the full parallel gate: the nested system's `inside_nebula_id` was None, and it passes alone (bug) | none | open |
+| TEST.216 | `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed in the full parallel gate: the nested system's `inside_nebula_id` was None, and it passes alone (bug) | none | done, PR #2124 |
 | TEST.217 | `test_every_column_is_written` found a NULL in every row of `moons.evolutionary_speed` in the full parallel gate, and passes alone (bug) | none | done, PR #1989 |
 | TEST.218 | `test_first_control_connections_at_once` leaves 3 idle connections open on `planetgen_test_*` when its fixture ends: the test should close its own connections (bug) | none | open |
 | TEST.219 | Browser pages still have 1 to 7 requests running 8 s after the server stops: find what keeps them busy and make it faster | none | open |
