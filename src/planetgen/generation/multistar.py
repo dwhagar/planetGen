@@ -50,7 +50,7 @@ from dataclasses import dataclass
 from statistics import NormalDist
 
 from planetgen import tuning
-from planetgen.physics import constants, ms_lifetime, neutron_star, pre_main_sequence, roche, stability
+from planetgen.physics import brown_dwarf, constants, ms_lifetime, neutron_star, pre_main_sequence, roche, stability
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 
@@ -141,7 +141,6 @@ BROWN_DWARF_DESERT_AU = 5.0
 BROWN_DWARF_DESERT_KEEP = 0.01
 """A brown dwarf inside `BROWN_DWARF_DESERT_AU` of a star is kept in 1% of draws."""
 
-BROWN_DWARF_RADIUS_SOL = 0.1
 REMNANT_WINDOW_FRACTION = 1.0 / 3.0
 """float: A remnant companion of a living star exists only in the last third of the star's
 life, so the table value (a mean over all ages) is divided by this inside the window."""
@@ -217,8 +216,9 @@ class Placed:
 class Member:
     """One member of a tree: member 0 is the placed object. `radius_au` is its extent; `flags` are the bits of
     `MEMBER_FLAGS`; `effective_age_yr` is a merger product's rejuvenated age (None: the system's age). `state` is the
-    Yerkes class of a star (`V`, `III`, `VII`, ...), `PMS` or `protostar` for a young one, and None for a remnant or
-    a brown dwarf; it is stored in `scatter_members.state`, a VARCHAR(16)."""
+    Yerkes class of a star (`V`, `III`, `VII`, ...), `PMS` or `protostar` for a young one, the spectral type of a brown
+    dwarf (`M8`, `L5`, `T2`, `Y0`; `physics/brown_dwarf.py`, GEN.252), and None for a remnant; it is stored in
+    `scatter_members.state`, a VARCHAR(16)."""
     member_no: int
     parent_node_no: int | None
     slot: int
@@ -399,8 +399,10 @@ def _radius_au(state):
 def _star_leaf(initial_mass, age_yr, rng, lighten=True):
     """A star-like member of this birth mass at the system's age."""
     if initial_mass < BROWN_DWARF_MAX_MASS_SOL:
-        return _Leaf("brown-dwarf", None, initial_mass, initial_mass,
-                     BROWN_DWARF_RADIUS_SOL * constants.SOLAR_RADIUS_M / constants.AU_M)
+        # GEN.252: the L, T or Y type its cooling gives at the system's age, and the radius the same laws fix.
+        dwarf = brown_dwarf.state(initial_mass, age_yr / 1.0e9)
+        return _Leaf("brown-dwarf", dwarf["spectral_type"], initial_mass, initial_mass,
+                     dwarf["radius_sol"] * constants.SOLAR_RADIUS_M / constants.AU_M)
     young = pre_main_sequence.state(initial_mass, age_yr)
     if young is not None:
         # GEN.242: still contracting; the radius follows from the track's luminosity and temperature.

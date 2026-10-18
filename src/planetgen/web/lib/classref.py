@@ -30,7 +30,7 @@ Sequence Star" -> ("G", "V")).
 import functools
 import math
 
-from planetgen.physics import constants as phys
+from planetgen.physics import brown_dwarf, constants as phys
 from planetgen import tuning as pc
 from planetgen.generation.comet import PERIOD_CLASS_LABELS
 from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS
@@ -355,6 +355,9 @@ def _rogue_planet():
     summary = f"A failed star, {number_range(low, high, 'Jupiter masses')}."
     classes["brown-dwarf"] = _entry("brown-dwarf", name, summary, [
         ("Mass", number_range(low, high, "Jupiter masses")),
+        ("Type", f"L from {number(round(brown_dwarf.type_temperature_k(0)))} K, T from "
+                 f"{number(round(brown_dwarf.type_temperature_k(10)))} K, Y from "
+                 f"{number(round(brown_dwarf.type_temperature_k(20)))} K down (hotter is a late-M dwarf)"),
     ])
     return {
         "name": "Rogue Planet Classes",
