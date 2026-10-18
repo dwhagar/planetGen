@@ -30,7 +30,7 @@ keys, in ascending order of life complexity -- shared by
 milestone against a `tuning.PLANET_CLASS_MAX_LIFE_STAGE` cap.
 """
 
-_MILESTONE_DISPLAY_NAMES = {
+MILESTONE_DISPLAY_NAMES = {
     "abiogenesis": "Abiogenesis",
     "photosynthesis": "Photosynthesis",
     "complex_cells": "Complex Cells",
@@ -198,7 +198,7 @@ def timeline_paragraphs(state):
     )
 
     if key is not None:
-        name = _MILESTONE_DISPLAY_NAMES[key]
+        name = MILESTONE_DISPLAY_NAMES[key]
         output_sentences.append(
             f"The most recent significant evolutionary milestone prior to this age would have been "
             f"{name} at {format_age_string(state['milestone_age_gyr'])}. {tuning.EVOLUTIONARY_TEXT[key]}"

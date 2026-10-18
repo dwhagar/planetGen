@@ -13,6 +13,7 @@ import json
 
 import pytest
 
+from planetgen import tuning
 from planetgen.db import store
 from planetgen.describe import describe, model
 from planetgen.describe import build
@@ -209,21 +210,21 @@ def test_a_world_counts_as_potentially_habitable_by_its_overall_tier(monkeypatch
     assert all(build._potentially_habitable_count(system) == 0 for _overrides, system in _systems())
 
 
-def test_the_life_and_flavour_sentences_are_the_old_ones():
-    seen = set()
+def test_the_life_sentences_are_short_and_plain():
+    """GEN.221: one sentence for the chemistry (and the pace), one each for what the life looks like."""
+    seen = 0
     for _overrides, system in _systems(4):
         document = describe(system)
         for body in system.planets + system.secondary_planets:
-            if body.body_type == "a":
+            if body.body_type == "a" or not body.life_chemical:
                 continue
-            old = " ".join(body.to_paragraph_list())
             section = next(s for s in model.sections(document) if s["title"] == body.name)
-            for block in section["blocks"]:
-                if block["type"] == "prose" and block["role"] in ("life", "flavour", "timeline"):
-                    for sentence in block["text"]:
-                        assert _plain(sentence) in old
-                        seen.add(block["role"])
-    assert {"life", "timeline"} <= seen
+            life = [_plain(sentence) for block in section["blocks"] if block["type"] == "prose" and block["role"] == "life"
+                    for sentence in block["text"]]
+            assert life and life[0].startswith(f"Life based on {body.life_chemical.lower()} could arise on this ")
+            assert all(len(sentence) < 160 and "suitable for the development" not in sentence for sentence in life)
+            seen += 1
+    assert seen > 0
 
 
 def test_an_airless_body_has_a_zero_pressure_fact_and_no_atmosphere_block():
@@ -305,3 +306,39 @@ def test_a_scored_rocky_body_carries_its_six_ratings_as_the_paragraph_says_them(
                 assert f"{block['overall']['score']:.2f}" in paragraph
                 seen += 1
     assert seen
+
+
+def test_the_star_sentence_is_two_short_sentences_and_makes_no_claim_about_the_universe():
+    """GEN.221: the age and lifespan, then what the class means for life (one sentence each)."""
+    seen = 0
+    for _overrides, system in _systems(6):
+        document = describe(system)
+        for section in model.sections(document):
+            if section["kind"] != "star":
+                continue
+            star = next(s for s in system.stars if s.name == section["title"])
+            summary = [block for block in section["blocks"] if block["type"] == "prose" and block["role"] == "summary"]
+            text = " ".join(_plain(sentence) for block in summary for sentence in block["text"])
+            assert text.startswith("The star is about ") and "in the universe" not in text and "approximately" not in text
+            if star.yerkes_class == "V" and star.type[0] in tuning.STAR_EVOLUTION:
+                assert tuning.STAR_EVOLUTION[star.type[0]]["evolutionary_constraint_notes"] in text
+                assert text.count(". ") >= 1
+            seen += 1
+    assert seen > 0
+
+
+def test_the_timeline_is_written_from_the_stored_state_with_the_ladders():
+    seen = 0
+    for _overrides, system in _systems(8):
+        document = describe(system)
+        for body in system.planets + system.secondary_planets:
+            if body.body_type == "a" or not body.evolutionary_data:
+                continue
+            section = next(s for s in model.sections(document) if s["title"] == body.name)
+            block = next((b for b in section["blocks"] if b["type"] == "prose" and b["role"] == "timeline"), None)
+            if block is None:
+                continue
+            text = " ".join(_plain(sentence) for sentence in block["text"])
+            assert "Billion Years" not in text and "Million Years" not in text and "speculative timeline" in text
+            seen += 1
+    assert seen > 0

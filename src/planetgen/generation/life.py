@@ -19,7 +19,6 @@ the star's final age rather than a provisional pre-adjustment one.
 """
 
 
-import re
 
 from planetgen.generation.evolution import get_evolutionary_state
 from planetgen import tuning
@@ -170,25 +169,10 @@ def life_ceiling(planet):
     return None
 
 
-def _set_description(planet, ceiling):
-    """A class whose own description claims life (F, G, L) says what the
-    index allows instead (`tuning.NO_LIFE_CLASS_DESCRIPTIONS`,
-    `MICROBIAL_ONLY_CLASS_DESCRIPTIONS`); with no limit, or any other class,
-    the class's own text stands."""
-    cls = planet.planet_class
-    if cls not in tuning.NO_LIFE_CLASS_DESCRIPTIONS and cls not in tuning.MICROBIAL_ONLY_CLASS_DESCRIPTIONS:
-        return
-    text = None
-    if ceiling == "none":
-        text = tuning.NO_LIFE_CLASS_DESCRIPTIONS.get(cls)
-    elif ceiling == "microbial":
-        text = tuning.MICROBIAL_ONLY_CLASS_DESCRIPTIONS.get(cls)
-    if text is None:
-        text = tuning.PLANET_CLASSES[cls]["description"]
-    if planet.is_moon:
-        text = re.sub(r'\bplanets\b', 'moons', text)
-        text = re.sub(r'\bplanet\b', 'moon', text)
-    planet.description = text
+def _set_description(planet):
+    """The class's own description. It claims no life and no planet, so a moon reads it as it stands; what the index
+    allows is said by the life sentences."""
+    planet.description = tuning.PLANET_CLASSES[planet.planet_class]["description"]
 
 
 def apply_life_data(planet):
@@ -213,7 +197,7 @@ def apply_life_data(planet):
     # GEN.206: the habitability index decides what may live here. No microbial
     # life means no chemistry, speed, timeline or claim in the description.
     ceiling = life_ceiling(planet)
-    _set_description(planet, ceiling)
+    _set_description(planet)
     if ceiling == "none":
         planet.life_chemical = None
         planet.reflection_spectrum_visible = None
