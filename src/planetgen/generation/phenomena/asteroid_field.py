@@ -24,6 +24,7 @@ import math
 from planetgen.generation.belt import format_composition_summary, generate_asteroid_composition
 from planetgen.generation.config import SystemConfig
 from planetgen import tuning
+from planetgen.physics import constants as pc
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
@@ -31,8 +32,9 @@ from planetgen.galaxy.galactic_orbit import generate_galactic_orbit_fields
 from planetgen.names.wordsalad import LazySaladName
 
 
-AU_PER_LY = 63241.077
-"""float: Astronomical units in one light-year, for the size digit."""
+AU_PER_LY = pc.LIGHTYEAR_M / pc.AU_M
+"""float: Astronomical units in one light-year, exact from the two definitions in `physics/constants.py` (GEN.572), for
+the size digit."""
 
 
 def asteroid_field_size_digit(radius_ly):

@@ -887,3 +887,4 @@ Baseline: PR #1817.
 | GEN.561 | 8.1 | Description layer |
 | UX.107 | 8.1 | Description layer |
 | DOC.45 | 8.1 | Description layer |
+| GEN.572 | 8.1 | Composition research and design |
