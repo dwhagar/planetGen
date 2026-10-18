@@ -10,8 +10,8 @@ thicker layer of the remnants and the black holes' excess at the core, the gas o
 the magnetars). A candidate lands in a group in proportion to `E * volume * bound` at a point uniform in the group,
 and is kept with probability true weight over bound. The point's own address then gives its shell, band and wedge.
 
-A class draws from a stream of its own per reach (`{seed}:phenomena:reach:{shell}`, or `far:{first shell}`), so the
-rows inside the outline are the rows they were with or without it. Rates, the mass cut, the masses and the row layout
+A class draws from a stream of its own per reach (`{seed}:phenomena:reach:{shell}:{kind}:{subtype}`, or `far:{first shell}`),
+so the rows inside the outline are the rows they were with or without it, and a change to one class moves no other's. Rates, the mass cut, the masses and the row layout
 are `phenomenon_scatter`'s. The stars a row carries with it (members) are written by the same writer as the rest.
 """
 
@@ -20,16 +20,20 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.galaxy import density, profile, remnant_distribution
+from planetgen.galaxy import black_hole_density, density, profile, remnant_distribution
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.generation import bright_stars, object_first, phenomenon_scatter
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS
 from planetgen.generation.phenomena import registry
-from planetgen.util import draw
 from planetgen.util.poisson import poisson_count
 
 CHUNK = 200_000
 """int: Candidates drawn at a time, so a reach with millions of them holds a few arrays, not all."""
+
+
+def _streams(prefix):
+    """`streams(kind, subtype)` for a reach: the random stream of each class, named by `prefix` (GEN.563)."""
+    return lambda kind, subtype: phenomenon_scatter.class_stream(prefix, kind, subtype)
 
 
 def _follows_young_stars(kind, subtype):
@@ -40,11 +44,16 @@ def _remnant_kind(kind, subtype):
     return not _follows_young_stars(kind, subtype) and kind in tuning.REMNANT_SCALE_HEIGHT_RATIO
 
 
-def class_fractions(kind, subtype):
+def _stellar_hole(kind, subtype):
+    return kind == "black-hole" and subtype == "stellar"
+
+
+def class_fractions(kind, subtype, structure):
     """
     The fractions of each population (`bright_stars.POPULATIONS`) that bound a class's weight over the whole galaxy
     per unit of density: the young stars alone for a class that follows them; the largest the remnant factors reach
-    for a neutron star or a black hole; 1 for the rest.
+    for a neutron star or a black hole, and for a stellar-mass black hole also the most its metallicity factor reaches
+    (`black_hole_density.bound_factor` of the galaxy's `structure`); 1 for the rest.
     """
     if _follows_young_stars(kind, subtype):
         return {population: 1.0 if population == "young" else 0.0 for population in POPULATIONS}
@@ -53,16 +62,18 @@ def class_fractions(kind, subtype):
         factor = tuning.REMNANT_VERTICAL_FACTOR_MAX
         if kind == "black-hole":
             factor *= 1.0 + tuning.BLACK_HOLE_CORE_EXCESS
+    if _stellar_hole(kind, subtype):
+        factor *= black_hole_density.bound_factor(structure)
     return {population: factor for population in POPULATIONS}
 
 
-def scattered_fractions(min_mass_solar):
+def scattered_fractions(min_mass_solar, structure):
     """`class_fractions` summed over the classes, each times its rate per star above the cut: the bound on the
     reach's rows per unit of stellar density, which the expected-count estimates of `bright_stars` take as the
     fractions of one tier."""
     total = {population: 0.0 for population in POPULATIONS}
     for kind, subtype, rate in phenomenon_scatter._scattered_rates(min_mass_solar):
-        for population, fraction in class_fractions(kind, subtype).items():
+        for population, fraction in class_fractions(kind, subtype, structure).items():
             total[population] += rate * fraction
     return [total]
 
@@ -76,9 +87,10 @@ def class_bounds(shape, groups, kind, subtype):
     smallest. A class that follows the young stars is bounded by their density alone.
     """
     if _follows_young_stars(kind, subtype):
-        fractions = class_fractions(kind, subtype)
+        fractions = class_fractions(kind, subtype, shape.structure)
         return object_first.extent_majorants(shape, groups.inner, groups.z_near, groups.z_far, fractions, groups.r_out)
-    ones = {population: 1.0 for population in POPULATIONS}
+    metals = black_hole_density.bound_factor(shape.structure) if _stellar_hole(kind, subtype) else 1.0
+    ones = {population: metals for population in POPULATIONS}
     bound = object_first.extent_majorants(shape, groups.inner, groups.z_near, groups.z_far, ones, groups.r_out)
     if _remnant_kind(kind, subtype):
         bound = (bound * remnant_distribution.vertical_factor_array(kind, groups.z_far, shape.disk_scale_height_pc)
@@ -91,7 +103,8 @@ def _weights(kind, subtype, x, y, z, shape):
     `phenomenon_scatter._band_rows` weighs a longitude bin by, at the points themselves."""
     if _follows_young_stars(kind, subtype):
         return np.maximum(density.population_densities_array(x, y, z, shape)["young"], 0.0)
-    weight = density.total_density_array(x, y, z, shape)
+    weight = (black_hole_density.weights_array(x, y, z, shape) if _stellar_hole(kind, subtype)
+              else density.total_density_array(x, y, z, shape))
     if _remnant_kind(kind, subtype):
         weight = (weight * remnant_distribution.vertical_factor_array(kind, z, shape.disk_scale_height_pc)
                   * remnant_distribution.radial_factor_array(kind, np.hypot(x, y)))
@@ -102,15 +115,17 @@ def _weights(kind, subtype, x, y, z, shape):
     return weight
 
 
-def _group_rows(shape, groups, high_band, edge_pc, expected_at_density_1, rng, rates, skip_addresses, min_mass_solar,
+def _group_rows(shape, groups, high_band, edge_pc, expected_at_density_1, streams, rates, skip_addresses, min_mass_solar,
                 check):
-    """The rows of the regions `groups`, class by class in `SCATTER_CLASSES` order, all from the one stream `rng`."""
+    """The rows of the regions `groups`, class by class in `SCATTER_CLASSES` order, each from the stream
+    `streams(kind, subtype)` gives it."""
     if not len(groups):
         return
     cube_low, cube_high = groups.r_in ** 3, groups.r_out ** 3
     cos_low, cos_high = groups.cos_low, groups.cos_high
     shells_low, shells_high = groups.shell_low.tolist(), groups.shell_high.tolist()
     for kind, subtype, rate in rates:
+        rng = streams(kind, subtype)
         bound = class_bounds(shape, groups, kind, subtype)
         cumulative = np.cumsum(expected_at_density_1 * rate * groups.volume * bound)
         total = float(cumulative[-1])
@@ -163,7 +178,7 @@ def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1,
         return
     groups = object_first.ReachGroups.for_shell(shell_index, high_band, edge_pc)
     yield from _group_rows(shape, groups, high_band, edge_pc, expected_at_density_1,
-                           draw.Stream(f"{seed}:phenomena:reach:{shell_index}"), rates, skip_addresses or set(),
+                           _streams(f"{seed}:phenomena:reach:{shell_index}"), rates, skip_addresses or set(),
                            min_mass_solar, check)
 
 
@@ -178,7 +193,7 @@ def scatter_far(shape, first_shell, last_shell, edge_pc, expected_at_density_1, 
         return
     groups = object_first.ReachGroups.far(first_shell, last_shell, edge_pc)
     yield from _group_rows(shape, groups, -1, edge_pc, expected_at_density_1,
-                           draw.Stream(f"{seed}:phenomena:far:{first_shell}"), rates, skip_addresses or set(),
+                           _streams(f"{seed}:phenomena:far:{first_shell}"), rates, skip_addresses or set(),
                            min_mass_solar, check)
 
 
@@ -186,16 +201,16 @@ def far_shells(shape, first_shell, last_shell, edge_pc, expected_at_density_1, m
     """`bright_stars.far_shells` for the phenomena: the first shell of the run drawn together, and the expected
     objects of each shell before it."""
     return bright_stars.far_shells(shape, first_shell, last_shell, edge_pc, expected_at_density_1,
-                                   scattered_fractions(min_mass_solar))
+                                   scattered_fractions(min_mass_solar, shape.structure))
 
 
 def reach_estimates(shape, shells, edge_pc, expected_at_density_1, min_mass_solar):
     """`bright_stars.reach_estimates` for the phenomena: `{shell: (objects, groups)}` beyond the outline."""
     return bright_stars.reach_estimates(shape, shells, edge_pc, expected_at_density_1,
-                                        scattered_fractions(min_mass_solar))
+                                        scattered_fractions(min_mass_solar, shape.structure))
 
 
 def far_expected(shape, first_shell, last_shell, edge_pc, expected_at_density_1, min_mass_solar):
     """About how many objects `scatter_far` places."""
     return bright_stars.far_expected_stars(shape, first_shell, last_shell, edge_pc, expected_at_density_1,
-                                           scattered_fractions(min_mass_solar))
+                                           scattered_fractions(min_mass_solar, shape.structure))

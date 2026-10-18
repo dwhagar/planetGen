@@ -2,6 +2,124 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1821] - 2026-10-18
+
+**Headline:** The number of black holes in a place now follows the metals of its stars, with a share that differs from one galaxy to the next.
+
+### Added
+- **Black holes from failed supernovae (GEN.563).** A black hole is what a massive star leaves when it fails to explode, and the share that fails is higher in metal-poor stars. Each galaxy draws the share at solar metallicity (0 to 45%) and at zero metallicity (15 to 32%) from its seed, cut so that its neutron stars and black holes together never exceed the massive stars born (12% to 25% at most), and the share falls linearly with the metals between the two. A place's black holes per star are the stars' populations, ages and [Fe/H] against that share: the halo and the old stars make more than the young disk and the bulge, and a galaxy holds 0.4 to 2.9 times the black holes the old fixed rate gave (1.5 times on average).
+- The sector page, the profile's black hole factor, the map's scatter, the stars beyond the outline, the clusters and satellites and the galaxy's ejected black holes all read the same factor, and the black holes formed split into those kept and those ejected without counting any twice.
+
+### Changed
+- The intermediate-mass black holes keep the rate they had, 1.5e-9 per star.
+- Every scattered class draws from a random stream of its own, so the counts of one never move the rows of another.
+- A sector rolled with no galaxy around it rolls black holes at the solar share of an average galaxy (5.8e-4 per star against 5.0e-4).
+
+generation-output: changed
+
+## [8.0.1820] - 2026-10-18
+
+**Headline:** A barred galaxy now has a gas ring at its centre that forms young stars and clusters, derived from the gas its bar carries in.
+
+### Added
+- **The central molecular zone (GEN.282).** The disk's gas inside the bar's gap flows to the centre on a gigayear, and the ring there forms stars at a small share of what comes in (the review's continuity equation, Henshaw et al. 2023): 0.7 solar masses a year of inflow and 0.06 of star formation for a Milky Way-like galaxy, against 0.8 and 0.07 measured. The ring's radius, width and height follow the bulge's scale radius. A galaxy without a bar has no ring.
+- **Its young stars and clusters.** The cluster formation efficiency of the ring's star formation rate density (Kruijssen 2012) says how much of it forms in bound clusters, which the young open cluster draw places on the ring with its tidal field and circular speed; the rest are the field's young stars, taken out of the nuclear disc (the total density does not change) so the profile, the supernova remnant, molecular cloud and nebula rates follow the ring.
+- `mathcheck` compares the inflow and the star formation rate with the published values.
+
+### Changed
+- A barred galaxy's centre has more young stars, nebulae and ring clusters than before. The ring over-produces massive clusters (the widest mass limit, no gas in the ambient density, no shock disruption); the design note lists it as a stand-in.
+
+generation-output: changed
+
+## [8.0.1819] - 2026-10-18
+
+**Headline:** A generated galaxy now has young open clusters, drawn from its own star formation, with stars of their own age.
+
+### Added
+- **Young open clusters (GEN.244).** The disk's star formation history (GEN.469) says how much mass formed in each ring in the last gigayear; the cluster formation efficiency of the ring's star formation rate density (Kruijssen 2012) puts a share of it in bound clusters, with initial masses falling as M^-2 from 50 to a million solar masses (Lamers et al. 2005). Stellar evolution and the tide of the place take mass from each (Lamers, Gieles and Portegies Zwart 2005), and one that is gone is not drawn. A cluster lies in the disk at the radius of the ring that formed it, on the arms when young, on the circular orbit, with the disk's [Fe/H] there, and a half-mass radius that grows five to ten times over its first 100 Myr (Portegies Zwart et al. 2010). Nothing is taken from the Milky Way's catalogue: a drawn galaxy has from a few thousand to tens of thousands, and the most compact have the most.
+- **Twelve age-bin populations.** All the stars of a cluster share its age, so they belong to the population of the quarter-decade of age it falls in (`open_cluster_00`, 1 to 1.78 Myr, to `open_cluster_11`, 562 Myr to 1 Gyr). The cluster adds its density to its cell in that population, the profile and the sector page name it ("Open cluster stars, 1 Myr to 1.78 Myr"), and the component pass draws its bright and massive stars. OB associations stay the disk's young population.
+
+### Changed
+- `bright_stars.population` takes the twelve new names (migration 0112, no row is touched).
+- The plan draws and stores the young open clusters with the globular clusters, so a new galaxy's stars, systems and sector profiles differ near them.
+- The galaxy's component field is built again only when the stored components' signature changes (their count, first and last id and mass sum), so a page does not read tens of thousands of cluster rows on every request.
+
+generation-output: changed
+
+## [8.0.1818] - 2026-10-18
+
+**Headline:** The phenomenon scatter tests no longer fail now and then on a galaxy seed that places no hypervelocity star.
+
+### Changed
+- Tests: `test_phenomenon_scatter.py` seeds its toy galaxy from a fixed galaxy seed. The toy galaxy reaches about 36 pc, so the hypervelocity count is 0 for about one seed in six and `test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it` failed on that draw (TEST.238); the file's 80 tests pass on the fixed seed.
+
+TODO items resolved: TEST.238 / Added: none
+
+## [8.0.1817] - 2026-10-18
+
+**Headline:** The neighbourhood test's dense-core case no longer fails by chance: it uses a fixed galaxy and checks a capped cell against the ceiling, not against a count the run does not produce.
+
+### Changed
+- Tests: `test_random_start_neighborhood_matches_the_real_skeleton_plan[dense_core]` still failed in 3 runs of 10 after the first TEST.225 fix of #2227 (a start in a cell at 1,000 times the local density). One draw in three gave a galaxy too light to hold such a cell, so the run found no start and exited with `SystemExit: 1`; the other kind counted a capped cell by `cell_resolution(...).resolved_systems` (273 expected, 2 generated; 81 expected, 1 generated), which the run does not reach, since the scatter that holds the rest is not drawn in this test. The dense-core case now plans a fixed galaxy seed that holds such cells, a capped cell is left out of the sum and checked to hold no more than the cell star ceiling (GEN.281), and the other cells keep the 3x band against the plan's prediction.
+
+TODO items resolved: none (completes TEST.225) / Added: none
+
+## [8.0.1816] - 2026-10-18
+
+**Headline:** The Galaxy Map's drill-down and forward-to-current tests no longer read the breadcrumb while the camera is still flying.
+
+### Changed
+- Tests: `_wait_settled` in `test_web_browser_maps.py` returned after 250 ms of an unchanged address and trail, but the trail follows the camera (MAP.227) and the software-drawn map's frames can be more than 250 ms apart, so a flight still in the air left both unchanged and then moved the trail to the cell it landed in. `test_galaxy_map_drill_down_by_clicks` recorded the trail of the first cell (for example `Block 124·3·238`) and Back returned to the cell the flight landed in (`Block 128·16·257`); `test_galaxy_map_forward_to_current_jumps_to_the_newest_view` failed the same way. It failed 2 runs in 3 on an idle machine. The wait now also needs the flight to have landed (and the stage's data to have loaded before it leaves), through a `galaxyMoving()` hook on the map's canvas next to the other hooks for the browser tests; with it the three Galaxy Map tests that read the trail passed 12 runs in 12.
+
+TODO items resolved: TEST.223 / Added: none
+
+## [8.0.1815] - 2026-10-18
+
+**Headline:** "Charted only" now dims uncharted objects in the order they would be cut: satellite-galaxy stars first, then the halo, then the small and dim up to the large and bright, and the farther from the focus the more.
+
+### Changed
+- Galaxy Map: under "Charted only" an uncharted star or scattered phenomenon keeps a share of its light by the cut order (Boss, 7:45 PM EDT; MAP.250's tiers and MAP.251's order): a satellite-galaxy star 0.03, a halo star 0.08, then two ramps at the same time from 0.12 to 0.5, stars by luminosity and phenomena by mass (nebulae are left out), so the smallest and dimmest dim hardest and the most massive and the brightest least. The farther an object is from the camera than its focus, the less it keeps (down to 0.35 of its share at four times as far). A charted object is untouched.
+- Wire: the tile's flag byte (`charted`) carries the star's tier in bits 1 and 2 (halo 1, satellite galaxy 2); older cached tiles read as tier 0.
+- Docs: `docs/design/zoom-star-visibility.md` section 12.
+- Tests: `starpoint.test.mjs` (the order, the ramps, the distance rule, the shader wiring), `test_tilepack.py` and `tilepack.test.mjs` (the tier rides the flag byte) and a browser test that reads each object's share from the drawn Galaxy Map on the halo fixture.
+
+TODO items resolved: MAP.252 / Added: none
+
+## [8.0.1814] - 2026-10-18
+
+**Headline:** When a Galaxy Map tile cannot list every star or point, it now thins the band it cuts evenly across space instead of keeping the brightest few wherever they cluster.
+
+### Changed
+- Galaxy Map: the pre-placed bright stars, the placed point phenomena and the scattered points of a tile are cut by one function (`_even_pick`, MAP.251). The halo and the satellite galaxies still go first (MAP.250); inside a tier the best tenth of the list and then the most massive and the brightest bands (half a power of ten of the key) are kept whole, and the band the cut falls in loses the same share of its objects everywhere, chosen by a fixed number every object carries, so a crowded corner no longer takes the whole list and the lists of finer tiles still hold what the coarser ones showed. The database reads four times the limit of each ranking so the cut band has candidates. The distance rule stays in the per-level budgets, and the generated stars (already shared out by sector) and the galaxy-wide sample are as they were.
+- Docs: `docs/design/zoom-star-visibility.md` section 11 writes the rule.
+- Tests: `test_even_drop.py` (the cut band thins by the same share in a crowded and a sparse region, no brighter band is dropped while a dimmer one is listed, longer lists keep a shorter one's objects, the tier order, order independence) and the brute-force bright-star box test and the MAP.154 weight test now expect whole bands above the cut.
+
+TODO items resolved: none (MAP.251 is done for the tile lists; the stage views, the Sector Map and the client limits remain) / Added: none
+
+## [8.0.1813] - 2026-10-18
+
+**Headline:** Brown dwarfs near the hydrogen-burning limit stay hot, so L dwarfs hotter than 1,500 K are as common as the 20 pc census counts them.
+
+### Changed
+- A brown dwarf's temperature and radius at an age come from the cooling track of Baraffe et al. (2015), continued past a track's last age at Burrows et al.'s old-age exponent, in place of a single power law that was too cool for the heaviest brown dwarfs. Its luminosity is the Stefan-Boltzmann value of the two.
+- A free-floating brown dwarf draws its age first, then takes its radius, temperature and luminosity from the track at that age, so the three agree.
+- `tests/test_brown_dwarf.py`: the expected failure for L dwarfs hotter than 1,500 K is gone; they now reach the census's share within a factor of 2. The design note `brown-dwarf-state.md` names the track and its limits.
+
+generation-output: changed
+
+TODO items resolved: GEN.549 / Added: none
+
+## [8.0.1812] - 2026-10-18
+
+**Headline:** A parsec is exactly 3.2615637772 light-years and a light-year exactly 63241.0770843 AU wherever the generator used rounded values.
+
+### Changed
+- **The three rounded unit factors are the exact ones (GEN.572).** `physics/hii.py` typed 3.26156 light-years per parsec, and `generation/phenomena/asteroid_field.py` and `generation/phenomena_plausibility.py` each typed 63241.077 AU per light-year; all three now read the definitions in `physics/constants.py` (`PARSEC_M / LIGHTYEAR_M` and `LIGHTYEAR_M / AU_M`), which differ from the old values by 1.2e-6 and 1.3e-9 in relative size. `hii.region` returns its radius in light-years with the factor, and the nebula generator stores it, so a nebula's radius changes in the last digits for a seed; an asteroid field's size digit can differ only for a radius at its floor boundary. Nothing else changes.
+- **The generator epoch is 27** (a pending epoch until a release names it); the full wiped rescatter that carries the epoch's other changes carries this one.
+generation-output: changed
+
+TODO items resolved: GEN.572. Added: none.
+
 ## [8.0.1811] - 2026-10-18
 
 **Headline:** The map's side panel, the query command's lines and the class pages' ranges write their distances, gravity and temperatures the same way as the rest of the program.

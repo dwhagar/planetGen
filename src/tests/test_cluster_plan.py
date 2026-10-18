@@ -9,6 +9,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.db import store
+from planetgen.galaxy import components
 from planetgen.generation import satellites
 from tests.test_galaxy_gen import _build_real_skeleton
 
@@ -26,7 +27,9 @@ def _rows(mysql_config):
 def test_a_plan_stores_the_clusters_and_the_shape_carries_them(mysql_config):
     _build_real_skeleton(mysql_config)
     found, info = _rows(mysql_config)
-    assert len(found) == tuning.CLUSTER_COUNT_MILKY_WAY
+    globular = [c for c in found if not components.is_open_cluster(c)]
+    assert len(globular) == tuning.CLUSTER_COUNT_MILKY_WAY
+    assert len(found) > len(globular)              # the young open clusters (GEN.244) are stored with them
     assert {c.source for c in found} == {"generated"}
     assert info.shape.components is not None and len(info.shape.components) == len(found) + len(satellites.MILKY_WAY_SATELLITES)
     assert info.shape.components.edge_pc == info.edge_pc
@@ -37,7 +40,7 @@ def test_the_clusters_scale_with_the_galaxy_so_a_toy_keeps_them_inside_it(mysql_
     _build_real_skeleton(mysql_config)         # a toy galaxy of 40 pc scale length
     found, _info = _rows(mysql_config)
     scale = 40.0 / tuning.HALO_SCALE_LENGTH_PC
-    farthest = max(sum(v * v for v in c.center_pc) ** 0.5 for c in found)
+    farthest = max(sum(v * v for v in c.center_pc) ** 0.5 for c in found if not components.is_open_cluster(c))
     assert farthest <= tuning.CLUSTER_HALO_RADIUS_RANGE_PC[1] * scale * 1.001
 
 

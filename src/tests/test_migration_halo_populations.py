@@ -56,4 +56,4 @@ def test_the_check_names_exactly_the_six_populations(mysql_config):
     finally:
         conn.close()
     assert all(name in clause for name in migration.POPULATIONS)
-    assert clause.count("_utf8mb4") == len(POPULATIONS)    # the later migrations (satellite stars) add names
+    assert clause.count("_utf8mb4") == len(POPULATIONS)    # the later migrations (satellite stars, satellite ages, open clusters) add names

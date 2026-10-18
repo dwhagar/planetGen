@@ -1576,6 +1576,31 @@ def test_galaxy_map_hover_lights_every_choice_while_picking_a_course(page, map_s
     assert (_query(page), _crumbs(page)) == before
 
 
+def test_galaxy_map_charted_only_dims_uncharted_objects_by_their_place_in_the_cut_order(page, halo_site):
+    """MAP.252: with "Charted only" on, an uncharted star keeps a share of its light by the cut order (a star of a
+    satellite galaxy the least, then the halo, then the ramp from small and dim to large and bright), a charted one
+    keeps all, and the shader that applies the share and the distance rule compiled: the scene drew."""
+    _open_galaxy(page, halo_site)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyUnchartedKeeps().entries.length > 0")
+    page.click("#galaxymap3d-menu > summary")
+    page.click('[data-action="charted-only"]')
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyUnchartedKeeps().on")
+    keeps = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyUnchartedKeeps()")
+    entries = keeps["entries"]
+    by_id = {entry["id"]: entry for entry in entries}
+    halo = [by_id[12000 + i] for i in range(40) if 12000 + i in by_id]
+    assert halo, "the loose group is drawn"
+    satellite = [e["keep"] for e in halo if e["tier"] == 2]
+    halo_tier = [e["keep"] for e in halo if e["tier"] == 1]
+    ramp = [e["keep"] for e in halo if e["tier"] == 0]
+    assert satellite and halo_tier and ramp, (len(satellite), len(halo_tier), len(ramp))
+    assert max(satellite) < min(halo_tier) and max(halo_tier) < min(ramp) and max(ramp) <= 0.5 + 1e-6, (satellite, halo_tier, ramp)
+    brighter = sorted(((e["keep"], by_id[e["id"]]) for e in halo if e["tier"] == 0), key=lambda pair: pair[0])
+    assert brighter[0][0] < brighter[-1][0], "the ramp runs from small and dim to large and bright"
+    assert all(e["keep"] == 1 for e in entries if e["id"] < 12000), "a charted star keeps all of its light"
+    assert 0.0 < keeps["far"] < 1.0
+
+
 def test_galaxy_map_charted_only_does_not_stop_picking(page, map_site):
     """MAP.112: with "Charted only" on, a choice holding nothing generated
     is lit and taken just as with it off (only choosing a NAV end needs

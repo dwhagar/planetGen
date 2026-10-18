@@ -23,6 +23,7 @@ from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
 from planetgen.generation import clusters, satellites
+from planetgen.generation import open_clusters as openClusters
 from planetgen.generation import phenomenon_reach, phenomenon_scatter
 from planetgen.generation import scatter_companions as scatterCompanions
 from planetgen.generation import star_population as starPopulation
@@ -321,13 +322,16 @@ def plan_skeleton_unit(params, report):
         dwarfs = satellites.place_satellites(
             galaxy_seed, program_constants.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * shape.disk_scale_length_pc,
             model_terms(shape)["solar_angle_rad"], epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX, scale=scale)
-        store.replace_galaxy_components(conn, found, kind="cluster")
+        young = openClusters.generate_open_clusters(
+            galaxy_seed, shape, edge_pc, e_value, epoch_unix=program_constants.SCATTER_PHASE_ORIGIN_UNIX)
+        store.replace_galaxy_components(conn, found + young, kind="cluster")
         store.replace_galaxy_components(conn, dwarfs, kind="satellite")
         conn.commit()
-        shape = shape._replace(components=componentField.ComponentField(found + dwarfs, edge_pc, e_value))
+        shape = shape._replace(components=componentField.ComponentField(found + young + dwarfs, edge_pc, e_value))
     finally:
         conn.close()
-    say(f"Drew {len(found):,} globular clusters holding {sum(c.expected_systems for c in found):,.0f} systems "
+    say(f"Drew {len(found):,} globular clusters holding {sum(c.expected_systems for c in found):,.0f} systems, "
+        f"{len(young):,} young open clusters holding {sum(c.expected_systems for c in young):,.0f} "
         f"and placed {len(dwarfs):,} satellite galaxies holding {sum(c.expected_systems for c in dwarfs):,.0f}.")
 
     t0 = time.perf_counter()

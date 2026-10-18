@@ -134,7 +134,7 @@ def tile_pack():
         "stars": [
             star(7, 1234.567, -8000.125, 40.0, 1.2e5, temperature_k=21500, radius_sol=14.0, star_type="B", system_id=3),
             star(2 ** 40 + 3, 1230.0, -7999.5, 41.5, 0.0004, star_type="M"),
-            star(9, 1240.25, -7990.0, 39.0, 3.0, temperature_k=5778, radius_sol=1.0, star_type="G"),
+            star(9, 1240.25, -7990.0, 39.0, 3.0, temperature_k=5778, radius_sol=1.0, star_type="G", tier=2),
         ],
         "generated": [star("FE81000A2B-0000005-000", 1.0, 2.0, 3.0, 0.85, temperature_k=5200, star_type="K", system_id=12),
                       star("FE81000A2B-0000006-000", 1.5, 2.0, 3.0, 0.5, star_type="M")],

@@ -42,6 +42,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from planetgen import tuning
+from planetgen.galaxy import black_hole_density as blackHoleDensity
 from planetgen.galaxy import component_field as componentField
 from planetgen.galaxy import density as galaxyDensity
 from planetgen.galaxy import ejecta_field, nebula_field, spherical, superbubble_field
@@ -50,10 +51,17 @@ from planetgen.physics import metallicity
 from planetgen.physics.units import pc_to_ly
 
 POPULATIONS = ("young", "intermediate", "old", "bulge", "halo", "cluster", "satellite", "nuclear_cluster",
-               "nuclear_disc", "satellite_young", "satellite_intermediate")
+               "nuclear_disc", "satellite_young", "satellite_intermediate", *tuning.OPEN_CLUSTER_POPULATIONS)
 """tuple: The populations of a profile's mix, in the order `galaxy.density.population_densities` has them."""
 
-_DISK = ("young", "intermediate", "old")
+_DISK = ("young", "intermediate", "old", *tuning.OPEN_CLUSTER_POPULATIONS)
+"""tuple: The populations that make up the disk's share of a region: a young open cluster lies in the disk."""
+
+_YOUNG_OPEN_CLUSTER_POPULATIONS = tuple(
+    name for name in tuning.OPEN_CLUSTER_POPULATIONS
+    if tuning.STELLAR_POPULATION_AGE_RANGES_GY[name][1] <= tuning.STELLAR_POPULATION_AGE_RANGES_GY["young"][1])
+"""tuple: The open clusters' populations whose stars are all younger than the disk's `young` window ends: they count as
+young stars where the young share matters (the supernova remnants, the molecular clouds)."""
 
 
 @dataclass(frozen=True)
@@ -183,8 +191,8 @@ def _dispersion_kms(name, shape):
     `tuning.STELLAR_POPULATION_DISPERSION_KMS`.
     """
     structure = shape.structure
-    if name in ("young", "intermediate", "old"):
-        return galaxyStructure.disc_dispersion_kms(structure, name)
+    if name in ("young", "intermediate", "old") or name in tuning.OPEN_CLUSTER_POPULATIONS:
+        return galaxyStructure.disc_dispersion_kms(structure, name)       # a young cluster's bin is heated as its age
     if name == "bulge":
         return galaxyStructure.bulge_dispersion_kms(structure, galaxyDensity.bulge_to_total(shape))
     if name == "halo":
@@ -200,7 +208,10 @@ def _fe_h(name, distance_ly, shape=None, position_pc=None):
         found = () if shape is None or shape.components is None else shape.components.fe_h_peaks(position_pc, name)
         if found:
             return found
-        return tuning.METALLICITY_CLUSTER_PEAKS if name == "cluster" else tuning.METALLICITY_SATELLITE_PEAKS
+        if name in tuning.OPEN_CLUSTER_POPULATIONS:      # a place no cluster reaches: the disk's stars of that age
+            name = metallicity.open_cluster_disk_population(name)
+        else:
+            return tuning.METALLICITY_CLUSTER_PEAKS if name == "cluster" else tuning.METALLICITY_SATELLITE_PEAKS
     mean, sigma = metallicity.mean_fe_h(name, distance_ly)
     return ((1.0, mean, sigma),)
 
@@ -223,7 +234,8 @@ def _young_and_old_against_the_solar_circle(populations, shape):
     """`(young, old)`, the young stars' share of the place's stars and the share that is not young, each divided by
     the same share around the solar circle (`_reference_young_share`): 1 and 1 for the solar circle's mix."""
     reference = _reference_young_share(shape)
-    young_share = populations["young"].share + populations["satellite_young"].share
+    young_share = (populations["young"].share + populations["satellite_young"].share
+                   + sum(populations[name].share for name in _YOUNG_OPEN_CLUSTER_POPULATIONS))
     young = 0.0 if reference <= 0.0 else young_share / reference
     old = (1.0 - young_share) / (1.0 - reference) if reference < 1.0 else 0.0
     return young, old
@@ -276,9 +288,12 @@ def kind_factors_at(populations, gas_fraction, cold_fraction, shape):
     docs/design/intergalactic-and-halo-contents.md section 5). The rates themselves stay per star
     (`tuning.phenomenon_rate_per_star`); a kind absent here is not scaled.
 
-    * **1 everywhere**: `neutron-star` and `black-hole` (bound remnants are born where massive stars were and kicked
-      into the disk's thickness, so they follow the stars; the kick's thickening belongs to the disk populations'
-      motion, not to the rate) and `brown-dwarf` (every population makes it). The 9,000 L_sun
+    * **1 everywhere**: `neutron-star` (a bound remnant is born where massive stars were and kicked into the disk's
+      thickness, so it follows the stars; the kick's thickening belongs to the disk populations' motion, not to the
+      rate) and `brown-dwarf` (every population makes it).
+    * **`black-hole`** (GEN.563): the share of the place's massive stars that failed to explode and have made their
+      remnant (`black_hole_density.place_factor_from_peaks`): the populations' shares, ages and [Fe/H] peaks, so a
+      metal-poor place makes more. Its rate per star is `black_hole_density.base_rate_per_star()`. The 9,000 L_sun
       floor under the bright stars is not a rate and stays. A runaway flag is a speed against the neighbours, so it
       needs no factor either.
     * **`supernova-remnant`**: the gas fraction (the remnant of a core collapse shines only where the shell meets gas),
@@ -310,7 +325,8 @@ def kind_factors_at(populations, gas_fraction, cold_fraction, shape):
     young, old = _young_and_old_against_the_solar_circle(populations, shape)
     young = min(1.0, young)
     return {
-        "neutron-star": 1.0, "black-hole": 1.0, "planetary-nebula": min(1.0, old), "brown-dwarf": 1.0,
+        "neutron-star": 1.0, "black-hole": blackHoleDensity.place_factor_from_peaks(populations, shape.structure),
+        "planetary-nebula": min(1.0, old), "brown-dwarf": 1.0,
         "supernova-remnant": gas_fraction * (1.0 - populations["cluster"].share),
         "molecular-cloud": cold_fraction * young,
         "nebula": cold_fraction,

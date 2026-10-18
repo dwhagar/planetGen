@@ -15,12 +15,12 @@ import pytest
 from planetgen import tuning
 from planetgen.cli import generate as generate_cli
 from planetgen.db import store
-from planetgen.galaxy import density, remnant_distribution
+from planetgen.galaxy import black_hole_density, density, remnant_distribution
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.spherical import sector_address_at, sector_position_pc, wedge_count
 from planetgen.generation import phenomenon_scatter as scatter
 from planetgen.generation import run_galaxy, run_plan, run_sector
-from planetgen.physics import stellar_evolution
+from planetgen.physics import black_hole_formation, stellar_evolution
 from planetgen.physics.units import ly_to_pc
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
@@ -83,12 +83,12 @@ def test_skipped_addresses_get_nothing():
 
 
 def test_each_kind_follows_its_rate_per_star():
-    # Neutron stars are about five times as common as black holes (tuning's
-    # rates are 5.6e-4 against 7e-5 per pc^3); a Poisson count sits well
-    # inside 5 sigma of its mean over a scatter this size.
+    # Neutron stars are a few times as common as black holes (tuning's 5.6e-4 per pc^3 against the 6e-3 of massive stars
+    # that fail and the metallicity's 0.1 to 0.2 of them, GEN.563); a Poisson count sits well inside 5 sigma of its mean
+    # over a scatter this size.
     rows = [row for shell_index, _high in EXTENTS for row in _shell(shell_index, seed=3)]
     counts = {kind: sum(1 for row in rows if row[3] == kind) for kind in scatter.SCATTERED_KINDS}
-    assert counts["neutron-star"] > 3 * counts["black-hole"] > 0
+    assert counts["neutron-star"] > 2 * counts["black-hole"] > 0
     expected = sum(scatter.shell_expected(SHAPE, shell_index, high, EDGE_PC, E_VALUE, 1.0)
                    for shell_index, high in EXTENTS)
     assert sum(counts.values()) == pytest.approx(expected, rel=0.15)
@@ -200,9 +200,16 @@ def test_the_mass_limit_must_be_a_preset(mysql_config):
     assert tuning.PHENOMENON_MIN_MASS_PRESETS[0] == 8.0 and tuning.PHENOMENON_MIN_MASS_SOLAR == 14.0
 
 
+GALAXY_SEED = bytes.fromhex("c4ca4238a0b923820dcc509a6f75849b")
+"""bytes: The galaxy seed every test here draws from. The toy galaxy reaches about 36 pc, so the number of
+hypervelocity stars the scatter places (`round(log-uniform(1e3, 1e4) x reach / 100000)`) is 0 for about one seed in six,
+and a test that needs one failed on that draw alone (TEST.238)."""
+
+
 def _seed_galaxy(mysql_config):
     store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=8,
-                            expected_system_count_at_density_1=E_VALUE, config=mysql_config, cell_star_ceiling=1e12)
+                            expected_system_count_at_density_1=E_VALUE, config=mysql_config, cell_star_ceiling=1e12,
+                            galaxy_seed=GALAXY_SEED)
     store.replace_galaxy_shells(EXTENTS, config=mysql_config)
 
 
@@ -429,9 +436,10 @@ def test_the_share_above_the_cut_follows_each_mass_law():
     assert scatter.mass_range("black-hole", "stellar", 10.0, False) == (5.0, 10.0)
     assert scatter.mass_range("neutron-star", None, 20.0, False) == (1.1, 2.2)
     assert scatter.mass_range("supernova-remnant", None, 20.0, True) is None
-    # The two black-hole classes split the kind's rate.
-    total = sum(scatter.class_rate_per_star("black-hole", subtype) for subtype in ("stellar", "intermediate"))
-    assert total == pytest.approx(tuning.phenomenon_rate_per_star("black-hole"))
+    # The stellar-mass black holes follow the metallicity (GEN.563); the intermediate-mass ones keep the rate they had,
+    # 3e-6 of 7e-5 per pc^3 at the reference density.
+    assert scatter.class_rate_per_star("black-hole", "stellar") == pytest.approx(black_hole_density.base_rate_per_star())
+    assert scatter.class_rate_per_star("black-hole", "intermediate") == pytest.approx(3.0e-6 * 7.0e-5 / 0.14)
 
 
 def test_a_mass_range_truncates_the_remnant_mass_draw():
@@ -502,7 +510,10 @@ def test_a_plan_records_its_cut_and_a_fill_draws_below_it(mysql_config, monkeypa
 
     # Rates high enough that the sector surely draws some of each below the cut.
     monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "neutron-star", 20.0)
-    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "black-hole", 100.0)
+    base = black_hole_density.base_rate_per_star()
+    monkeypatch.setattr(black_hole_density, "base_rate_per_star", lambda: 100.0 * base)
+    # The neutron stars' rate sets the share of massive stars left to black holes (GEN.563): at 20 times it leaves none.
+    monkeypatch.setattr(black_hole_formation, "share_cap", lambda unbound: 0.2)
     args = run_galaxy._default_generation_args(config=mysql_config)
     args.num_systems = 0
     address = (1, 0, 1)
