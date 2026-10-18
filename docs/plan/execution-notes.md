@@ -13,7 +13,7 @@ The head on main is 0109 (0107 GEN.526, 0108 DB.72, 0109 GEN.289); the next free
 
 ### Files two lanes both touch
 
-- **Galaxy Map files and the star-budget ranking:** Core 2 owns MAP.239, MAP.243, MAP.247, MAP.249 (galaxy map lag) and MAP.250 (satellite-galaxy stars are cut first, then halo stars, then everything else); no other lane edits them.
+- **Galaxy Map files and the star-budget ranking:** Core 2 owns MAP.243, MAP.247 and MAP.249 (galaxy map lag); MAP.239 and MAP.250 (satellite-galaxy stars are cut first, then halo stars, then everything else) are merged, and Bug Hunt builds MAP.251 and MAP.252 on top of MAP.250 in `_top_by_key` in `db/query.py`; no other lane edits the star-budget code.
 - **The gates share four cores:** a gate that sees load can fail slow browser tests (TEST.126, TEST.171, TEST.172, TEST.227); those are filed on goal #1694 and owned by Bug Hunt.
 - **The test container state:** a test that runs `migrate` can leave `state/maintenance.json` set (TEST.189); a lane that finds it works round it with `PLANETGEN_STATE_DIR`.
 

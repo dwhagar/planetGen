@@ -476,10 +476,9 @@ with `clamp()`.
   (Generate page log, CLI commands, job log files, the downloadable log,
   update.sh output, admin log pages) with an enforcement test: weeks of
   work across Python, web and shell, none of it one PR.
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 19 of 53). This replaces any earlier owner line on this item.
+  Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
+  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment, position 19 of 53).
+  Order on Core 5's lane: after PERF.135, before the DOC.18 sweep.
   Prerequisites: UX.121, UX.122, UX.123, TEST.183. Related: PERF.66.
 
 - [ ] **UX.105 The system page builds every body's detail from the document model as HTML tables**
@@ -661,10 +660,9 @@ with `clamp()`.
   the page display and labelled. Done: the note and the module with
   tests that the same records give a file line and a display line that
   agree.
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 8 of 53). This replaces any earlier owner line on this item.
+  Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
+  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment, position 8 of 53).
+  Order on Core 5's lane: after PERF.135, before the DOC.18 sweep.
   Prerequisites: none. Related: UX.102.
 
 - [ ] **UX.122 The command line, the job log files and the downloadable log use the layer**
@@ -674,10 +672,9 @@ with `clamp()`.
   end of a run, PERF.99) and the download onto the layer. Done: a run's
   CLI text, its log file and its download agree line for line; tests for
   each command family.
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 14 of 53). This replaces any earlier owner line on this item.
+  Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
+  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment, position 14 of 53).
+  Order on Core 5's lane: after PERF.135, before the DOC.18 sweep.
   Prerequisites: UX.121. Related: UX.102.
 
 - [ ] **UX.123 The Generate page log, the admin log pages and update.sh output use the layer**
@@ -687,10 +684,9 @@ with `clamp()`.
   `update.sh`'s own output onto the shared renderer and record format.
   Done: the screen and the downloaded log show the same lines; update.sh
   prints the same timestamp and marker forms; browser and shell tests.
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 15 of 53). This replaces any earlier owner line on this item.
+  Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
+  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment, position 15 of 53).
+  Order on Core 5's lane: after PERF.135, before the DOC.18 sweep.
   Prerequisites: UX.121. Related: UX.102.
 
 - [ ] **UX.124 One form-field look and error slot, piloted on the search, nearby and list-filter fields**
@@ -2459,6 +2455,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (satellite galaxies cut first, then halo, then everything else) before
   brightness. Bug Hunt was told (10:49 PM EDT as the coordinator
   relayed) it can build this item and MAP.252's grading on top of it.
+  Where the tier lives (Core 2, 2026-10-17, 10:48 PM EDT as the lane
+  reported): in `_top_by_key` in `db/query.py` (halo 1, satellite* 2,
+  ahead of `_map_key`); the even-thinning and distance ramps of this
+  item go on top of it.
   Prerequisites: none. Related: MAP.249, MAP.250.
 
 - [ ] **MAP.252 Viewing only the filled sectors does not dim the phenomena (bug)**
@@ -17930,10 +17930,9 @@ clears each one.
   report line with its own timestamp or divider instead of the layer.
   Done: the test, with the allow-list empty except for named exceptions
   with a reason.
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 17 of 53). This replaces any earlier owner line on this item.
+  Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
+  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment, position 17 of 53).
+  Order on Core 5's lane: after PERF.135, before the DOC.18 sweep.
   Prerequisites: UX.122, UX.123. Related: UX.102.
 
 - [ ] **TEST.184 Whole-sphere tests, nebula and Wolf-Rayet side: contents per class, the Wolf-Rayet count, tiling, determinism and the King solver**
@@ -18609,14 +18608,12 @@ clears each one.
   not run. Frequency: one more draw-dependent sighting, which fits the
   substring cause above (a run that places a magnetar and no plain
   neutron star).
-  Sighting with a different assertion text (Bug Hunt, 2026-10-17, 10:15
-  PM EDT as the lane reported; gate d784f21a for #2124, non-browser
-  phase ended 10:10 PM EDT): the same test failed with `no
-  hypervelocity-star`, to be checked alone. That label is not a
-  substring of another label, so the substring cause above does not
-  explain it by itself; it may be a second cause in the same line (the
-  label list against the counts). Fails on main: not checked. Frequency:
-  1 in 1 gate on that branch, 3 sightings now across lanes.
+  Correction (Bug Hunt, 2026-10-17, 10:50 PM EDT as the lane reported): the gate d784f21a failure with `no
+  hypervelocity-star` was a different test,
+  `test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it`, and it failed alone on the
+  gate's old base (stored kinds were only black-hole and neutron-star) but passes alone on origin/main
+  2ada74af and on Bug Hunt's branch merged with main: a base-age failure, not this item's substring cause
+  and not a new sighting of this test.
   Prerequisites: none. Related: TEST.213.
 
 - [ ] **TEST.222 Remove the NumPy 2.5 deprecation filter around the skimage marching-cubes call once scikit-image stops raising it**
@@ -18726,12 +18723,11 @@ clears each one.
   cap question above (the cell or sector star ceiling against an
   uncapped estimate) is the first thing to check, with the density-1000
   start as the pinned case.
-  Possibly related sighting (Bug Hunt, 2026-10-17, 10:15 PM EDT as the
-  lane reported; gate d784f21a for #2124): a cell-resolution cap test
-  (`test_gen_cell_resolution`) failed with 0 stars stored, to be checked
-  alone. Same family as the cap suspected above (a capped cell stores
-  fewer stars than the test predicts); not confirmed as the same cause
-  (inferred from the failure text only). Fails on main: not checked.
+  Possibly related sighting (Bug Hunt, 2026-10-17, 10:50 PM EDT as the lane reported; gate d784f21a for
+  #2124): `test_gen_cell_resolution::test_a_cell_above_the_ceiling_is_filled_down_to_the_cap_and_no_further`
+  failed in the gate with 0 stars stored and passed alone 2 of 2 on both the old base and origin/main. Same
+  family as the cap suspected above (a capped cell stores fewer stars than the test predicts); not confirmed
+  as the same cause (inferred from the failure text only). Fails on main alone: no (2 of 2).
   Prerequisites: none. Related: TEST.213, GEN.76.
 
 - [ ] **TEST.226 Tests for the plan configuration and its two switches: the interior is identical with each combination, off generates nothing beyond the boundaries, addresses outside them are refused, the 8.1 sphere is the all-on case**
@@ -18965,6 +18961,12 @@ clears each one.
   loosening what the test proves. Done: the cause is on this item and
   the test passes 30 of 30 runs at load 10. Owner: Core 2 (proposed; it
   fixed TEST.231).
+  Core 2's note (2026-10-17, 10:54 PM EDT as the lane reported): its fix
+  #2147 has been in main since 10:23 PM EDT, so Core 5's tree needs a
+  merge of main from after that to carry it. The anchor test still
+  depends on the camera settling: at load 9.7 the first `_still_spot`
+  read can take several seconds, so a timeout in `_still_spot` or
+  `_ready` is a different cause than the neighbour-star one it fixed.
   Prerequisites: none. Related: TEST.231, TEST.126.
 
 
@@ -19950,10 +19952,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   docs/html-interface.md (Generate page and job log) and docs/testing.md
   need a short section on it. Done: the standard is described once and
   the three docs link to it.
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 20 of 53). This replaces any earlier owner line on this item.
+  Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
+  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment, position 20 of 53).
+  Order on Core 5's lane: after PERF.135, before the DOC.18 sweep.
   Prerequisite: UX.102.
 
 - [ ] **DOC.20 After PERF.86: rewrite the queue and scatter notes and the queue docstrings**
