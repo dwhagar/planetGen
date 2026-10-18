@@ -14868,6 +14868,36 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1 (proposed). Boss's answer is not recorded yet.
   Prerequisites: none. Related: GEN.548, GEN.543, GEN.439, GEN.440.
 
+- [ ] **GEN.591 An elliptical comet's aphelion can exceed its star's Hill sphere in about 10% of runs: the comet bound test fails on main (bug)**
+  Found by Bug Hunt (reported 7:20 AM EDT 2026-10-18 on the lane's
+  clock), filed by the TODO thread.
+  `src/tests/test_comet_data.py::test_every_elliptical_comet_is_bound_and_stays_inside_the_stars_hill_sphere`
+  fails with `AssertionError: (0.08, 0.998818116460001,
+  6159.290676884793, 5814.6170006007005)`: an elliptical comet's
+  aphelion is 6159 AU, above the 5815 AU Hill sphere of a 0.08
+  solar-mass star at 2000 pc. Fails on main: yes. Bug Hunt's tree failed
+  17 of 120 fresh runs alone at idle (14%); the TODO thread's re-run on
+  main d6367912 at 7:41 to 7:43 AM EDT failed 3 of 30 (10%). So it is
+  unseeded draws, not load. Reading of the code (TODO thread, not yet
+  traced to a commit): `generation/comet.py` draws the eccentricity from
+  the period class's range and sets no cap from the star's Hill sphere,
+  while the test takes the Hill radius from
+  `mass_chain.current_central_mass_kg()` (the galaxy's virial mass,
+  GEN.400); a lighter galaxy gives a smaller Hill sphere, so the
+  tightest star (0.08 solar masses at the inner edge) can have a
+  long-period comet that leaves it. Either the generator must cap a
+  closed orbit's aphelion at the Hill sphere of its star (GEN.182 says a
+  closed orbit never leaves its star), or the test's bound must be the
+  one the generator uses; Bug Hunt suggests it started after GEN.402
+  (#2224). Frequency: 10 to 14% of runs alone. Reproducer: `for i in
+  $(seq 1 120); do python3 -m pytest src/tests/test_comet_data.py -k
+  bound_and_stays_inside -q; done`. Done: an elliptical comet's aphelion
+  is below its star's Hill sphere for every draw, by a cap in the
+  generator (an epoch if values change) or by a corrected bound, and the
+  test passes 300 of 300 fresh runs with no quarantine. Owner: Core 1
+  (proposed by Bug Hunt; GEN.400 and GEN.402 are its mass chain).
+  Prerequisites: none. Related: GEN.182, GEN.400, GEN.402.
+
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
