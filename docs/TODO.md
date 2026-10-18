@@ -2431,6 +2431,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   yet): step 1 rides the combined PR with TEST.225; the graded version
   (the tier on the wire, a keep share per object, the distance rule in
   the shader) is coded after it.
+  Step 1 merged (Bug Hunt, #2227, release 8.0.1802, reported 4:45 AM EDT
+  2026-10-18 as the lane reported): choosing Charted only now dims the
+  scattered phenomena of the sectors that are not filled, as the Map
+  page already dims stars. This item stays open for the graded order
+  (the dim by how far a sector is filled).
   Prerequisites: none. Related: MAP.250.
 
 - [ ] **MAP.253 Map and scene read the parent chain: systemscene, body_positions, the browser twin orbitpositions.js and the systemmap branches drop the three origin conventions**
@@ -19565,6 +19570,19 @@ clears each one.
   the newest view). This is the same shape as TEST.236's second symptom
   (a block address one step off), which suggests one shared cause in how
   the breadcrumb or the stored view is updated, not load alone.
+  Cause found (Bug Hunt, reported 4:45 AM EDT 2026-10-18 as the lane
+  reported; reproduced at idle, 2 of 3 runs, and each passes alone): the
+  tests' `_wait_settled` returns after 250 ms of an unchanged state
+  while the camera flight is still landing (software drawing leaves
+  frames more than 250 ms apart), so the breadcrumb is read mid-flight
+  (for example 124·3·238 right after the click and 128·16·257 three
+  seconds later). This covers
+  `test_galaxy_map_forward_to_current_jumps_to_the_newest_view` and the
+  crumb mismatch of `test_galaxy_map_drill_down_by_clicks` (TEST.236's
+  regex half was fixed and retired in #2227). Fix as the lane reported:
+  a `canvas.galaxyFlying` hook plus `_wait_settled` waiting for it, in
+  Bug Hunt's next PR with MAP.251 and MAP.252; this item retires with
+  that PR.
   Prerequisites: none. Related: TEST.213, TEST.194.
 
 - [ ] **TEST.224 `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed once in a full gate: the nested system's inside_nebula_id was None (bug)**
@@ -19590,61 +19608,6 @@ clears each one.
   given: loop the test with `-n0`. The same test is TEST.216 (Bug Hunt's
   #2124 branch).
   Prerequisites: none. Related: TEST.208, TEST.213.
-
-- [ ] **TEST.225 `test_random_start_neighborhood_matches_the_real_skeleton_plan` generated 18,210 systems against a predicted 83,346.6 in one gate run (bug)**
-  Found by Bug Hunt (2026-10-17, 4:05 PM EDT as the lane reported, kind:
-  test failure, non-browser phase of its gate, build e0eba2695164ff35,
-  finished 2:48 PM EDT, 4 workers), filed by the TODO thread.
-  `src/tests/test_galaxy_gen.py::test_random_start_neighborhood_matches_the_real_skeleton_plan`
-  failed with 'generated 18210 systems across this neighborhood, but the
-  real skeleton predicted 83346.6 -- generation doesn't look
-  density-driven any more' (`assert 83346.6/3.0 <= 18210`, the actual
-  total is 4.6 times below the prediction). The run drew a random galaxy
-  seed A4D8564BFD80DA2331294BD96F547E67 and a random start at shell 18,
-  band 13, wedge 7 (29 sectors). It passed 3 of 3 alone on the same
-  tree, each with its own random draw. Fails on main: unknown (not run
-  on main). Frequency: 1 of 1 gate runs on this tree; the earlier gate
-  build 8cedd973 did not show it. Reproducer: none yet; the seed and the
-  random start are drawn per run, so pin the seed above and the start
-  (shell 18, band 13, wedge 7) and run the test. Do: reproduce with the
-  pinned seed and start, then find whether the 29-sector total is capped
-  (the cell star ceiling, PERF.36's caps, or a sector's star ceiling)
-  while the plan's estimate is not, or whether the estimate is wrong for
-  dense sectors; fix the cause, in the test (the expected sum must
-  include the cap) or in the generator, without widening the 3x bound. A
-  loop of fresh random draws on an idle box is the first step, since
-  'passes alone' only means a different draw. Done: the cause is on this
-  item, the test passes for the pinned draw and for 100 fresh draws, and
-  nothing is quarantined. Owner: Bug Hunt.
-  Reproduced on main and narrowed (Core 3, 2026-10-17, 5:25 PM EDT as
-  the lane reported, its GEN.321 gate, relayed directly): the gate run
-  failed with 38,567 systems against a predicted 261,983. Forcing a
-  dense random start with `--min-start-density 1000` on clean
-  origin/main (3f14c273) failed 2 of 3 runs (shell 9, band -6: 3 against
-  690,692; shell 5, band 1: 31,972 against 571,426) and 1 stopped early.
-  18 normal runs plus 2 with density 5 and 50 (shell 8) on Core 3's
-  branch all passed in 15 to 430 s. Only starts in the dense core fail
-  (shells 5 to 9, and one at shell 54), about 1 gate in 3. Fails on
-  main: yes. Reproducer: add "--min-start-density", "1000" to the
-  `_run_cli` argv in the test and run it alone. The actual count is far
-  under a third of the plan in the core; the cause is not found, so the
-  cap question above (the cell or sector star ceiling against an
-  uncapped estimate) is the first thing to check, with the density-1000
-  start as the pinned case.
-  Possibly related sighting (Bug Hunt, 2026-10-17, 10:50 PM EDT as the lane reported; gate d784f21a for
-  #2124): `test_gen_cell_resolution::test_a_cell_above_the_ceiling_is_filled_down_to_the_cap_and_no_further`
-  failed in the gate with 0 stars stored and passed alone 2 of 2 on both the old base and origin/main. Same
-  family as the cap suspected above (a capped cell stores fewer stars than the test predicts); not confirmed
-  as the same cause (inferred from the failure text only). Fails on main alone: no (2 of 2).
-  Plan (Bug Hunt, 12:50 AM EDT 2026-10-18 as the lane reported): one
-  combined PR with OPS.60, OPS.61, MAP.252 step 1 and TEST.236 under one
-  shared gate, built on main in a side worktree after #2124 merges;
-  TEST.236 retires when this PR merges, not before.
-  Status (Bug Hunt, 2:37 AM EDT 2026-10-18 as the lane reported):
-  TEST.225 and TEST.236 are coded on branch bughunt-test225 with OPS.60,
-  OPS.61 and MAP.252 step 1, no PR yet; the last #2124 gate (3a852818)
-  failed only TEST.245 and TEST.235.
-  Prerequisites: none. Related: TEST.213, GEN.76.
 
 - [ ] **TEST.226 Tests for the plan configuration and its two switches: the interior is identical with each combination, off generates nothing beyond the boundaries, addresses outside them are refused, the 8.1 sphere is the all-on case**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
@@ -19800,68 +19763,6 @@ clears each one.
   proposed), or Core 5 (owns the TEST/DOC small items) if Core 3 is
   busy.
   Prerequisites: none. Related: TEST.126, TEST.223.
-
-- [ ] **TEST.236 test_galaxy_map_drill_down_by_clicks rejects a window address with a negative band, because its regex allows a minus sign only on the wedge (bug)**
-  Found by Core 3 (2026-10-17, 10:09 PM EDT as the lane reported, its
-  GEN.321 gate: the test failed alone), filed by the TODO thread.
-  `src/tests/test_web_browser_maps.py:371` asserts
-  `re.fullmatch(r"win=(81|27|9|3|1)\.\d+\.\d+\.-?\d+", query)`; the
-  failure text is `AssertionError: win=81.13.-21.4`. The address is
-  `win=m.shell.band.wedge` (the helper in
-  `src/tests/test_web_browser_fixture_maps.py:425` builds it that way),
-  and the band is the signed field (a block below the plane), so the
-  third number is the one that can be negative, but the regex puts the
-  `-?` on the fourth. The fixture-galaxy test beside it
-  (`test_web_browser_fixture_maps.py:705`) has it right:
-  `win=(81|27|9|3|1)\.\d+\.-?\d+\.\d+`. Core 3's report said groups 2
-  and 3; the code says only the band (group 3) is signed, which the TODO
-  thread checked against the helper. Fails on main: yes by reading (main
-  at 5c49fc42 still has the old regex); whether it fires depends on the
-  sample galaxy's drawn block reaching a band below the plane, so it is
-  intermittent. Frequency: once in Core 3's gate and again alone; an
-  earlier sighting of this test on TEST.172 failed on a different
-  assertion (the crumbs after the 2nd Back), so this is a second,
-  separate cause. Reproducer: run the test alone repeatedly, or click
-  down into a block with a negative band. Do: move the `-?` to the band
-  (group 3), as in the fixture test, and check the same regex does not
-  appear in other browser tests. Done: the test passes 30 of 30 runs
-  alone with the draw forced to a negative band. Owner: Bug Hunt
-  (proposed; it owns TEST.172 and the drill-down test, and a one-line
-  fix can ride its #2124 branch or the next small PR).
-  Fix coded (Bug Hunt, 2026-10-17, 10:15 PM EDT as the lane reported):
-  the `-?` moved to the band on branch bughunt-test225; it rides the
-  TEST.225 PR, which retires this item when it merges.
-  Sighting (Core 4, 11:09 PM EDT as the lane reported; its
-  GEN.252/GEN.541 gate):
-  `test_web_browser_maps.py::test_galaxy_map_drill_down_by_clicks`
-  failed once in the gate and passed alone (8.2 s). Fits this item (a
-  negative band drawn in the sample galaxy), failure text not sent;
-  unconfirmed. Fixed on Bug Hunt's branch bughunt-test225 once that PR
-  merges.
-  Second symptom (Core 2, MAP.247's first full gate, 12:58 to 2:57 AM
-  EDT 2026-10-18 as the lane reported, relayed at 3:56 AM EDT):
-  `test_galaxy_map_drill_down_by_clicks` failed with a DIFFERENT text
-  from the negative-band regex above: the breadcrumb read 'Block
-  130·22·257 (27)' where the test expected 'Block 130·20·257 (27)' after
-  the second Back. Core 2 ran it again on plain main at idle load 4.7
-  and it failed 1 of 2, so this one fails on main without load, which
-  the regex cause does not explain (a regex rejection would not produce
-  a different block address). Bug Hunt should read the failing assertion
-  before the TEST.225 PR retires this item; if the crumb mismatch
-  persists after the `-?` fix it needs its own item.
-  Third data point (Core 1, GEN.402's gate, reported 4:36 AM EDT
-  2026-10-18 as the lane reported):
-  `test_galaxy_map_drill_down_by_clicks` failed in the gate with `assert
-  'win=3.550.13.1088' != previous` (message 'the URL names the new
-  stage'), failed alone 2 of 2 on Core 1's branch, and on plain main 1
-  of 2 runs failed (a 4 minute and a 2 minute run). Together with Core
-  2's crumb mismatch this makes the drill-down test fail on main without
-  load; a click that did not move the view to a new stage fits the same
-  family as the one-step-off crumbs, so the cause is likely in the
-  test's wait for the camera, not the regex above. Bug Hunt reproduces
-  both tests alone after its gate (about 4:25 AM EDT as the lane
-  reported).
-  Prerequisites: none. Related: TEST.172, TEST.202.
 
 - [ ] **TEST.237 The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug)**
   Found by Core 5 (2026-10-17, relayed by the coordinator at 10:46 PM
@@ -20167,42 +20068,6 @@ clears each one.
   Prerequisites: GEN.576, GEN.578, GEN.581, GEN.583. Related: GEN.550,
   GEN.565, GEN.576, GEN.578.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
-
-- [ ] **TEST.245 test_generate_sector_real_capacity_overflow_returns_a_partial_sector fails in about 1 run in 100 because it draws an unseeded sector, so the draw sometimes fits all 120 systems (bug)**
-  Found by Core 5 (the `changed` gate of DOC.69, #2172, 12:58 AM EDT
-  2026-10-18 as the lane reported, box load about 9), filed by the TODO
-  thread after measuring it on main. Test:
-  `src/tests/test_sector_gen.py::test_generate_sector_real_capacity_overflow_returns_a_partial_sector`.
-  Failure text: `assert 0 < len(sector.entries) < 120` -> `assert 120 <
-  120` (test_sector_gen.py:382). Cause (measured, not inferred): the
-  test builds its arguments with no seed (`_real_sector_args` leaves
-  `seed` as None), so every run draws a different sector; in 390 runs on
-  an idle main (TODO thread, 2026-10-18, 1:08 to 1:12 AM EDT; 13.0 ly
-  cube, 120 systems requested, galaxy mass pinned at 1.15e12) the sector
-  held between 43 and 120 systems and 4 of the 390 runs fitted all 120,
-  so the test fails about 1 run in 100 whatever the load. Fails on main:
-  yes, by chance, 4 of 390 idle runs. Frequency: 1 in 1 gate of Core 5;
-  any gate that runs the test has about a 1% chance. Reproducer: loop
-  `generate_sector` on `_real_sector_args(120,
-  'RealCapacityOverflowSector', planets=False)` with the galaxy mass
-  pinned and count the runs with 120 entries. Do: make the overflow
-  certain, by pinning the seed (and the cube size or the count so that
-  the chosen seed overflows) or by asking for enough systems that no
-  draw can fit them all, and keep the assertion that a partial sector is
-  returned. Done: 500 runs of the test pass, or the seed is pinned and
-  the test states why that seed overflows. Owner: Bug Hunt (proposed;
-  strictly a test bug).
-  Fix coded (Bug Hunt, 2:37 AM EDT 2026-10-18 as the lane reported; not
-  yet a PR, it rides the combined PR with TEST.225 and TEST.236): the
-  test galaxy mass is 1.15e11 so the overflow is certain, measured 200
-  of 200 draws overflow where 4 of 390 fitted before.
-  Another sighting (Core 1, GEN.402's gate, 4:36 AM EDT 2026-10-18 as
-  the lane reported): the test failed once in the gate with 120 of 120
-  systems fitting (`assert 120 < 120`) and passed 6 of 6 alone on main
-  and on Core 1's branch; the test's own comment already says a lucky
-  draw can fit, which matches the unseeded-draw cause measured above.
-  Prerequisites: none. Related: TEST.243, TEST.235.
-
 
 ## USR: User accounts
 
@@ -20957,44 +20822,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 9 of 43). This replaces any earlier owner line on this item.
   Prerequisites: OPS.57. Related: OPS.28.
-
-- [ ] **OPS.60 The admin commands that did two things by flag: `lockouts` lists or lifts, `version_history --list` repeats `planetgen versions`**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/command-inventory.md. Done: listing the
-  lockouts and lifting a lockout are two commands (list; lift with the
-  address, the user, all, or the forgotten devices);
-  `cli.version_history` only records the version key, and listing is
-  only `planetgen versions` (`--list` removed, no shim); a test per
-  command; the docs and `update.sh` lines follow.
-  Owner: Bug Hunt (Boss, 2026-10-17, 4:25 PM EDT, relayed by the
-  coordinator: "hand OPS.60 and OPS.61 to bug hunt to work on while
-  the galaxy generates"; Boss's explicit exception to "Bug Hunt
-  strictly bugs", for these two items only).
-  Prerequisites: none. Related: PERF.120.
-  Design: [docs/design/command-inventory.md](design/command-inventory.md)
-
-- [ ] **OPS.61 Remove the one-off tools `cli.render_parity` and `cli.dedupe`: they check and fix a schema and a naming rule that migrated long ago**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/command-inventory.md. `cli.render_parity` is
-  the pre-upgrade check for schema v29 (stored page text dropped) and
-  `cli.dedupe` the one-off backfill for names that predate the
-  uniqueness rule (v24); neither runs from `update.sh` or `install.sh`,
-  and the database is at revision 0109. Done: both modules, their tests
-  (src/tests/test_admin_script_cli.py and the render-parity cases of
-  src/tests/test_system_render.py) and their docs lines are removed with
-  no shim; nothing else imports them.
-  Owner: Bug Hunt (Boss, 2026-10-17, 4:25 PM EDT, relayed by the
-  coordinator: "hand OPS.60 and OPS.61 to bug hunt to work on while
-  the galaxy generates"; Boss's explicit exception to "Bug Hunt
-  strictly bugs", for these two items only).
-  Prerequisites: none. Related: PERF.120.
-  Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 ## DOC: Documentation
 
