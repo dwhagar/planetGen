@@ -4800,6 +4800,32 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   next free epoch after rebasing (24 is Core 1's GEN.402 if that merges
   first). The 8.4 revision of DB.73 takes the next free number at its
   merge.
+  Progress (Core 3, 12:52 and 12:56 AM EDT 2026-10-18 as the lane
+  reported): coded, gate started 12:56 AM EDT from zero (build 1fe4d597,
+  rebased on main d78c3408). Built: `physics/open_cluster_evolution.py`
+  and `generation/open_clusters.py` (formation efficiency Kruijssen 2012
+  eq. 45, a mass function of M^-2 from 50 to 1e6 solar masses at the
+  widest limit from Lamers 2005 and Lada and Lada 2003, disruption and
+  stellar-evolution loss Lamers 2005 and Lamers, Gieles and Portegies
+  Zwart 2005, size Portegies Zwart 2010, all read); labelled stand-ins:
+  [Fe/H] sigma 0.05, a cap at 1/6 of the Jacobi radius, gas left out of
+  the ambient density. Clusters are `galaxy_components` rows (kind
+  cluster, profile plummer) stored beside the globular clusters; their
+  stars are 12 new age-bin populations open_cluster_00 to
+  open_cluster_11 (migration 0110, schema v110 doc, fixture v109 and
+  migration test done); OB associations stay the disk young population.
+  The design note is a NEW section 5.14 of
+  docs/design/intergalactic-and-halo-contents.md (5.13 was taken) and
+  the later-phenomena row of this item points to it. Finding: counts
+  follow the star formation rate density, so a drawn galaxy gets about
+  5,000 (stellar mass 7e9, scale 4.6 kpc) to 92,000 (1.2e10, 2.4 kpc)
+  clusters and the 40 pc toy of the plan tests got 507,000; Core 3 made
+  `ComponentField.bound`, `high_band` and `_contributions` fast for tens
+  of thousands of components (sorted-radius windows, checked equal to
+  brute force, 2,000 bounds in 0.33 s) and the toy plan helper keeps
+  only clusters above 2e4 solar masses. The epoch in the note reads 24
+  pending and is renumbered at merge (Core 1's GEN.402 and Core 4's
+  bundle also claim 24; the first to merge takes it).
   Prerequisites: none. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -7759,6 +7785,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass slope 0.48 (Neumayer 2020, zero point 6.51 at M* 1e9), against
   Georgiev 1.0 to 1.36: both kept (widened, Boss's decision 2); Gemini's
   0.65 is attributed to Neumayer and is not in the paper.
+  Progress (Core 1, 12:47 AM EDT 2026-10-18 as the lane reported): coded
+  and rebased on main including #2187, epoch 24; changed gate (pid
+  18022) started 12:22 AM EDT, non-browser phase at 47% with no
+  failures, expected end about 2:20 AM EDT; PR and squash follow if
+  green. It resolves this item and adds none.
   Prerequisites: none. Related: GEN.280, GEN.387, GEN.368.
 
 - [ ] **GEN.403 The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157**
@@ -7856,6 +7887,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   gives the default: draw eta over the widest range, 2.9e-5 to 6e-5,
   keep all three sources. Applied by the TODO thread from that rule, not
   a new tap; a card is possible if Boss wants a narrower choice.
+  Decided (Boss, 1:14 AM EDT on 2026-10-18, typed in the project chat,
+  as the coordinator relayed; answering the eta question): 'No, I think
+  we're good for now. We can tune it later.' The cluster system mass
+  fraction eta keeps the widest range, 2.9e-5 to 6e-5 with all three
+  sources, as applied above; no card; he tunes it later.
   Prerequisites: none. Related: GEN.297, GEN.366, GEN.387.
 
 - [ ] **GEN.404 The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position**
@@ -7938,6 +7974,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   once they land, so the "Done" density check here states the factor it
   measures and GEN.544 and GEN.545 bring it back toward the old local
   density. Owner of all three: Core 1.
+  Progress (Core 1, 12:47 AM EDT 2026-10-18 as the lane reported): coded
+  and committed on its own branch; it needs a rebase, epoch 25, a test
+  sweep and its own gate after GEN.402. The Done check states the
+  measured density factor, about 0.38 of the old pinned value before
+  GEN.544 and GEN.545 land (they follow it, Boss 9:00 PM EDT).
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -9406,6 +9447,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (User-Agent, sha256, cache outside the repository, labelled stand-in,
   offline fixtures), never at run time; a run-time fetch would have to
   say why the data needs constant updates.
+  Progress (Blocker 1, 12:47 AM EDT 2026-10-18 as the lane reported):
+  GEN.439 and GEN.440 are one branch (claude/gen439-stellar-relations,
+  rebased on main at 12:19 AM EDT after #2184) and one PR; changed gate
+  started 12:20 AM EDT (pid 7278), 61% at 12:47 and 74% at 12:50 AM EDT.
+  Built: `physics/stellar_abundances.py` (Asplund 2021 scale, the age
+  gate 8.0 Gy and the Bensby logistic as the gated row table
+  'stellar-abundance-branch', hinge [X/Fe] fits with Cholesky residuals,
+  CEMP, X, Y and Z and element fractions, the Fe/Si, Mg/Si and C/O
+  ratios, first dredge-up, birth Eu, Th and U, the white-dwarf
+  mass-radius table in `physics/data/white_dwarf_mass_radius.json` built
+  by `scripts/build_white_dwarf_table.py`, the neutron-star outer crust,
+  black-hole formulas, brown-dwarf limits and radius, and a RELATIONS
+  list with source and state per relation; fit constants in tuning.py).
+  New modules for the architecture page:
+  `planetgen.physics.stellar_abundances`,
+  `planetgen.physics.stellar_composition` (and
+  `planetgen.physics.elements`, `planetgen.queue.commands`,
+  `planetgen.queue.wrapper`, already merged). Open states left in
+  RELATIONS (neon follows O or Mg, white-dwarf layers, neutron-star
+  inner crust and core, the brown-dwarf radius and hydrogen limit
+  against Z) wait on GEN.548.
 
 - [ ] **GEN.440 Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9507,6 +9569,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (User-Agent, sha256, cache outside the repository, labelled stand-in,
   offline fixtures), never at run time; a run-time fetch would have to
   say why the data needs constant updates.
+  Progress: built with GEN.439 as one PR
+  (`physics/stellar_composition.py`: `star_makeup` from kind, [Fe/H],
+  age, mass and a key, drawing from the stream abundance:{key}); in the
+  gate with it. See GEN.439.
 
 - [ ] **GEN.441 Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -13889,6 +13955,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its host except through the pair builder, where the primary-first step
   (GEN.581) lives. A wording edit on a table being written anyway; no
   behaviour change.
+  As built so far (Core 4, 12:47 AM EDT 2026-10-18 as the lane reported;
+  coded on a branch, not merged, byte-identical draws proven over 30,000
+  seeds): the host class names are group-node, star-like, remnant,
+  brown-dwarf, planet and moon, with three tables (star-count,
+  remnant-satellites, planet-satellites); `SYSTEM_PASS_ODDS` and
+  `multistar.STAR_COUNT_PROBABILITIES` are gone; it is built in 8.1
+  phase 3 (the unified-objects note said U2 is 8.4, which is wrong: U2
+  is 8.1). Not yet applied by the lane: the System-card rewording above
+  (drop 'moons lowest level', moon and small-body host rows with a
+  `may_host` gate, orbiter mass as a ratio to host mass); it is in this
+  item's text now, so the lane should read it before the merge.
   Prerequisites: none. Related: GEN.550, GEN.315.
 
 - [ ] **GEN.553 One star-like body draw: origin, birth, state and [Fe/H], with the initial-final relation, the remnant mass, radius and age rules in one place**
@@ -16032,6 +16109,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
+  Progress (Core 5, 12:47 and 12:58 AM EDT 2026-10-18 as the lane
+  reported): written and committed on claude/core5-perf126, held behind
+  DOC.69 (merged as #2172); nine `check-*` commands run as a CHECK-kind
+  run; it needs Redis now and `--deep` and `--no-check-table` are gone.
+  Merging main, then its gate.
   Prerequisites: PERF.120. Related: PERF.118, PERF.120.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
@@ -20550,6 +20632,10 @@ clears each one.
   failed in the gate with 0 stars stored and passed alone 2 of 2 on both the old base and origin/main. Same
   family as the cap suspected above (a capped cell stores fewer stars than the test predicts); not confirmed
   as the same cause (inferred from the failure text only). Fails on main alone: no (2 of 2).
+  Plan (Bug Hunt, 12:50 AM EDT 2026-10-18 as the lane reported): one
+  combined PR with OPS.60, OPS.61, MAP.252 step 1 and TEST.236 under one
+  shared gate, built on main in a side worktree after #2124 merges;
+  TEST.236 retires when this PR merges, not before.
   Prerequisites: none. Related: TEST.213, GEN.76.
 
 - [ ] **TEST.226 Tests for the plan configuration and its two switches: the interior is identical with each combination, off generates nothing beyond the boundaries, addresses outside them are refused, the 8.1 sphere is the all-on case**
@@ -20744,6 +20830,18 @@ clears each one.
   whole suite gave 19,591 passed and this one failed in the loaded gate,
   and it passes alone. Core 2 is fixing it in its own small PR; this
   item retires with that PR.
+  Sighting 2 (Core 2, MAP.243's full gate, #2199, 12:58 AM EDT
+  2026-10-18 as the lane reported): the [dark] variant failed this time
+  (`assert _status_line(page).startswith("Stopped waiting.")`, the
+  status line was 'About 30% (an estimate: 300 of 1,000 rows), about 5 s
+  left.', page /phenomena, call 0.46 s on gw0, box load 10.0), where the
+  earlier sighting was [light]; Core 4's gate and Bug Hunt's re-gate
+  (12:20 AM EDT) also saw it, each passing alone. Cause as Core 2 reads
+  it: the test reads the status line once right after `.click()` before
+  the page applied the stop. Core 2 fixes it in its own small PR (wait
+  for the status text instead of reading it once); this item retires
+  with that PR. Frequency: 1 of 2 full gates for [light] and [dark]
+  together.
   Prerequisites: none. Related: TEST.227, UX.118.
 
 - [ ] **TEST.236 test_galaxy_map_drill_down_by_clicks rejects a window address with a negative band, because its regex allows a minus sign only on the wedge (bug)**
@@ -20825,6 +20923,8 @@ clears each one.
   runs. Core 3's reading: load-sensitive, probably the `_ready()` wait
   before the pointer sample. Fails on main: not in an unloaded run.
   Owner stays with whoever takes TEST.237.
+  Core 5 still owes the failure text (as the lane reported at 12:47 AM
+  EDT 2026-10-18); it comes with its next report.
   Prerequisites: none. Related: TEST.231, TEST.126.
 
 - [ ] **TEST.238 test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it fails in a gate with no hypervelocity-star stored, and passes alone (bug)**
@@ -20863,6 +20963,12 @@ clears each one.
   and passed 3 of 3 alone on its branch and on main). The fix is in the
   test: pin a seed that places one or tie the expectation to the count.
   Reproducer: loop the test 20 times from src/.
+  Sighting (Core 4, its description-layer gate, 12:47 AM EDT 2026-10-18
+  as the lane reported): failed in the gate with 'hypervelocity-star' in
+  the stored kinds, which is the toy-galaxy case this item already
+  explains (reach 36 pc, the hypervelocity count 0 in about 1 run in 6);
+  Core 4 was checking whether its own change contributed and none is
+  known.
   Prerequisites: none. Related: TEST.220, TEST.224.
 
 - [ ] **TEST.239 Tests for the unified chain: determinism by host, representation counts per kind and level, rogue and comet rates, derived remnant shares**
@@ -21068,6 +21174,32 @@ clears each one.
   Prerequisites: GEN.576, GEN.578, GEN.581, GEN.583. Related: GEN.550,
   GEN.565, GEN.576, GEN.578.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **TEST.245 test_generate_sector_real_capacity_overflow_returns_a_partial_sector fails in about 1 run in 100 because it draws an unseeded sector, so the draw sometimes fits all 120 systems (bug)**
+  Found by Core 5 (the `changed` gate of DOC.69, #2172, 12:58 AM EDT
+  2026-10-18 as the lane reported, box load about 9), filed by the TODO
+  thread after measuring it on main. Test:
+  `src/tests/test_sector_gen.py::test_generate_sector_real_capacity_overflow_returns_a_partial_sector`.
+  Failure text: `assert 0 < len(sector.entries) < 120` -> `assert 120 <
+  120` (test_sector_gen.py:382). Cause (measured, not inferred): the
+  test builds its arguments with no seed (`_real_sector_args` leaves
+  `seed` as None), so every run draws a different sector; in 390 runs on
+  an idle main (TODO thread, 2026-10-18, 1:08 to 1:12 AM EDT; 13.0 ly
+  cube, 120 systems requested, galaxy mass pinned at 1.15e12) the sector
+  held between 43 and 120 systems and 4 of the 390 runs fitted all 120,
+  so the test fails about 1 run in 100 whatever the load. Fails on main:
+  yes, by chance, 4 of 390 idle runs. Frequency: 1 in 1 gate of Core 5;
+  any gate that runs the test has about a 1% chance. Reproducer: loop
+  `generate_sector` on `_real_sector_args(120,
+  'RealCapacityOverflowSector', planets=False)` with the galaxy mass
+  pinned and count the runs with 120 entries. Do: make the overflow
+  certain, by pinning the seed (and the cube size or the count so that
+  the chosen seed overflows) or by asking for enough systems that no
+  draw can fit them all, and keep the assertion that a partial sector is
+  returned. Done: 500 runs of the test pass, or the seed is pinned and
+  the test states why that seed overflows. Owner: Bug Hunt (proposed;
+  strictly a test bug).
+  Prerequisites: none. Related: TEST.243, TEST.235.
 
 
 ## USR: User accounts
