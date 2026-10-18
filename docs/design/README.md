@@ -75,6 +75,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [brown-dwarf-state.md](brown-dwarf-state.md) | A brown dwarf as a star: its L, T or Y type, temperature and radius from the cooling laws and the 20 pc census | built |
 | [black-hole-formation-sources.md](black-hole-formation-sources.md) | The verified failed-supernova and direct-collapse shares and black hole remnant masses behind the black hole density (GEN.560, GEN.563) | research |
 | [unified-star-like-objects.md](unified-star-like-objects.md) | One recursive chain for anything that can be orbited: stars and star-like objects, planets, moons, rogue planets, free brown dwarfs and unbound comets, built through sector fill | plan |
+| [unified-unit-quantity.md](unified-unit-quantity.md) | One registry of units, one Quantity value class and one declaration of every field's and column's quantity, copying the point-in-space class | plan |
 | [mass-object-class.md](mass-object-class.md) | One master mass-object class: three family classes under it, state and parent as data, one core table plus three profile tables, a 10 m representability floor, the measured code savings | plan |
 | [star-types-by-galactic-radius.md](star-types-by-galactic-radius.md) | How star types change with distance from the core | research (proposals for Boss) |
 | [compact-remnant-regions.md](compact-remnant-regions.md) | Where neutron stars and black holes are observed | reference (feeds GEN.100) |
