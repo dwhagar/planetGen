@@ -2178,7 +2178,7 @@ def test_sector_map_click_on_the_selected_nebula_clears_it(page, map_site):
 def _url_settled(page, quiet_ms=900):
     """The page's URL once it has stopped changing. The map writes the camera into the address 350 ms after the
     camera last moved, in its frame loop, so on a loaded machine the scale bar can hold still (`_settle`) before
-    the address names where the camera ended (TEST.126, TEST.172)."""
+    the address names where the camera ended (TEST.126)."""
     last, held = None, 0
     for _ in range(200):
         if page.url == last:
