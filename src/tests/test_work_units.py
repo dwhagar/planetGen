@@ -220,10 +220,10 @@ def test_only_the_table_names_what_a_unit_runs():
     for kind in ("os.system", "nope"):
         with pytest.raises(KeyError):
             commands.unit_function(kind)
-    for kind in ("scatter-luminosity", "scatter-band"):
+    for kind in ("scatter-luminosity", "scatter-band", "scatter-phenomena"):
         assert callable(commands.unit_function(kind)) and callable(commands.expand_function(kind))
     with pytest.raises(ValueError, match="inline"):
-        commands.unit_function("scatter-phenomena")
+        commands.unit_function("scatter-backfill")
 
 
 # --- The massive-star scatter on the new queue (the stage PERF.97 moves, the wrapper queues, PERF.118) ----------
@@ -393,6 +393,68 @@ def test_a_unit_of_the_mass_scatter_runs_alone_from_its_json_arguments(mysql_con
             stars += sum(result["counts"].values())
         assert stars > 5
         assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == stars
+    finally:
+        conn.close()
+
+
+def _scatter_phenomena(mysql_config, workers):
+    """Scatters the toy galaxy's phenomena and returns the rows stored (no id), sorted."""
+    import json
+
+    from planetgen.db import store
+    from planetgen.generation import run_plan
+    from tests.test_bright_star_scatter import _plan_args, _seed_galaxy
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_plan_args(mysql_config, "--workers", str(workers)))
+    conn = store.get_connection(mysql_config)
+    try:
+        rows = conn.execute("SELECT * FROM phenomenon_scatter").fetchall()
+    finally:
+        conn.close()
+    return sorted(json.dumps({key: str(value) for key, value in row.items() if key != "id"}, sort_keys=True)
+                  for row in rows)
+
+
+@pytest.mark.fresh_database
+def test_the_phenomena_scatter_gives_the_same_rows_at_any_worker_count_and_records_its_run(mysql_config, monkeypatch):
+    runs = []
+    real = wrapper.run
+    monkeypatch.setattr(wrapper, "run", lambda *args, **kwargs: runs.append(real(*args, **kwargs)) or runs[-1])
+    one = _scatter_phenomena(mysql_config, 1)
+    assert len(one) > 50
+    conn = redisqueue.connect()
+    assert [step["kind"] for run in runs for step in runrecord.read_steps(conn, run)] == ["scatter-phenomena"]
+    run = runrecord.read_run(conn, runs[0])
+    assert run["state"] == "done" and run["stages"][0]["done"] == run["stages"][0]["units"] > 1
+    monkeypatch.setattr(wrapper, "run", real)
+    assert _scatter_phenomena(mysql_config, 4) == one
+
+
+@pytest.mark.fresh_database
+def test_a_unit_of_the_phenomena_scatter_runs_alone_from_its_json_arguments(mysql_config):
+    import json
+
+    from planetgen.db import store
+    from planetgen.generation import run_plan
+    from tests.test_bright_star_scatter import _seed_galaxy
+    _seed_galaxy(mysql_config)
+    params = {"database": wrapper.database_args(mysql_config), "min_mass_solar": 1.0, "seed": 77}
+    expansion = run_plan.expand_scatter_phenomena(params)
+    assert expansion.units == run_plan.expand_scatter_phenomena(json.loads(json.dumps(params))).units
+    assert expansion.plan == json.loads(json.dumps(expansion.plan))
+    shape = run_plan._PhenomenaShape.from_json(expansion.plan)
+    assert shape.to_json() == expansion.plan and len(shape.tasks) == len(expansion.units) > 1
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("DELETE FROM phenomenon_scatter")
+        conn.commit()
+        placed = 0
+        for args, _cost in expansion.units:
+            assert json.loads(json.dumps(args)) == args and "password" not in args["database"]
+            result = commands.run_alone("scatter-phenomena", json.loads(json.dumps(args)))
+            placed += sum(result["counts"].values())
+        assert placed > 50
+        assert conn.execute("SELECT COUNT(*) AS n FROM phenomenon_scatter").fetchone()["n"] == placed
     finally:
         conn.close()
 
