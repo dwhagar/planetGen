@@ -13596,6 +13596,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and load, so GEN.565b and the kinematic record of GEN.584 must bring
   the planetary and lunar trajectory into the same core functions; Core
   4 was told to check GEN.565b against this rule.
+  Re-scope (Core 4, reported 5:25 PM EDT 2026-10-18 on the lane's clock,
+  after Boss's standing rule above): GEN.565b changes from 'the
+  planetary and small-body families' to 'motion in the core'. One state
+  vector relative to the parent (position, velocity, epoch and parent
+  mass) and one `advance(seconds)` on `kepler.universal_step` for every
+  body, whatever its parent (a star, a planet or the galaxy);
+  `HoldsOrbitPosition` folds into `MassObject`. The family classes
+  follow after that slice. No output change in this slice. GEN.584,
+  DB.73 and DB.74 (Core 1) should store this same state vector.
 
 - [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
   Part of the unified orbited-body chain (GEN.550; design note
@@ -14343,6 +14352,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass object functions, since they are all the same rules. The
   kinematic record is the state those functions advance for every kind
   of object.
+  Core 4's re-scope of GEN.565b (5:25 PM EDT 2026-10-18 on the lane's
+  clock): the core's one state vector relative to the parent is
+  position, velocity, epoch and parent mass, advanced by one
+  `advance(seconds)` on `kepler.universal_step` for every body (parent =
+  star, planet or the galaxy). This item, DB.73 and DB.74 store that
+  same state vector.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
 - [ ] **GEN.585 Dimensions and unit systems in the registry: every unit carries its exponent vector, the derived kinds are listed, and a constant's number in any coherent system follows from its dimension**
@@ -16509,6 +16524,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Revision number (11:12 AM EDT 2026-10-18): GEN.244 took 0112 (#2253);
   the head is 0112 and this item's revision takes the next free number,
   0113 or later, at its own merge.
+  Core 4's re-scope of GEN.565b (5:25 PM EDT 2026-10-18 on the lane's
+  clock; Boss's standing rule of 5:20 PM EDT, see GEN.565): the core's
+  one state vector relative to the parent is position, velocity, epoch
+  and parent mass, advanced by one `advance(seconds)` for every body,
+  galactic, planetary and lunar. Storage here should hold that same
+  state vector (with GEN.584).
   Prerequisites: none. Related: GEN.550, DB.69, DB.70.
 
 - [ ] **DB.74 One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables**
@@ -16553,6 +16574,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   GEN.565 slice 1 and Core 1 fits DB.74 and DB.73 to them when they come
   up in its queue (after GEN.404, PERF.138, GEN.591, GEN.544, GEN.545
   and TEST.241).
+  Core 4's re-scope of GEN.565b (5:25 PM EDT 2026-10-18 on the lane's
+  clock; Boss's standing rule of 5:20 PM EDT, see GEN.565): the core's
+  one state vector relative to the parent is position, velocity, epoch
+  and parent mass, advanced by one `advance(seconds)` for every body,
+  galactic, planetary and lunar. Storage here should hold that same
+  state vector (with GEN.584).
   Prerequisites: DB.73, GEN.565. Related: GEN.550, DB.73, DB.67, DB.70.
 
 - [ ] **DB.75 Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID**
