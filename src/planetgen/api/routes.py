@@ -532,6 +532,10 @@ def _parse_sector_id_filter(raw_sector_id):
     return 0 if found is None else found  # a sector that is not there holds no systems
 
 
+MAX_START_LENGTH = 80
+"""int: Longest `from=` text kept (the jump-by-value box)."""
+
+
 @bp.route("/systems")
 def systems():
     """
@@ -541,7 +545,10 @@ def systems():
     `placement=sector|standalone` and `octant` (repeatable), and `facets=1`
     for the filter menus' option counts (`facets`: `placement`, `binary`,
     `octant`). `total` counts the systems that pass the filters. `after=<system ID>` starts the page after that system in the
-    name sort instead of skipping `offset` rows (PERF.75: page 40,000 costs what page 1 does).
+    name sort instead of skipping `offset` rows (PERF.75: page 40,000 costs what page 1 does). `from=<text>` is the
+    jump-by-value box (PERF.75): with the `name` sort the list begins at the first name from that text on (a letter, or
+    the start of a name), with the `sector` sort at the first sector from it on, in the sort's direction; `total`
+    counts the systems from there and `offset` and `after` count from there too. The other sorts ignore it.
     """
     star_type = request.args.get("star_type")
     sector_id = _parse_sector_id_filter(request.args.get("sector_id"))
@@ -564,9 +571,11 @@ def systems():
         except ids.IdError:
             raise ApiError(f"after must be a system ID, got {request.args['after']!r}")
         after = ids.row_id(db, "system", request.args["after"])
+    start = (request.args.get("from") or "").strip()[:MAX_START_LENGTH] or None
     rows = list_systems(db, star_type_prefix=star_type, sector_id=sector_id, limit=limit, offset=offset,
-                        sort=sort, descending=descending, after=after, **filters)
-    total = count_systems(db, star_type_prefix=star_type, sector_id=sector_id, **filters)
+                        sort=sort, descending=descending, after=after, start=start, **filters)
+    total = count_systems(db, star_type_prefix=star_type, sector_id=sector_id, start=start, sort=sort,
+                          descending=descending, **filters)
     body = {
         "items": rows,
         "total": total,
@@ -1201,7 +1210,8 @@ def uncharted_systems():
     default -- `temperature`, `type`, `sector` or `age`) with `order`
     (`asc` or `desc`; `desc` for luminosity when omitted, else `asc`), `limit`
     and `offset`. `after=<star id>` starts the page after that star in the sort instead of skipping `offset`
-    rows (PERF.75). `total` counts every star waiting.
+    rows (PERF.75). `total` counts every star waiting (`total_capped`: it stopped at 10,000 before the first stored
+    count was made, PERF.112).
     """
     limit, offset = _paginate(request.args)
     sort, descending = _parse_sort(request.args, UNCHARTED_SYSTEM_SORTS)
@@ -1214,10 +1224,11 @@ def uncharted_systems():
         except ValueError:
             raise ApiError(f"after must be a star id, got {request.args['after']!r}")
     db = get_db()
+    total = count_uncharted_systems(db)
     return jsonify({
         "items": list_uncharted_systems(db, limit=limit, offset=offset, sort=sort, descending=descending,
                                         after=after),
-        "total": count_uncharted_systems(db), "limit": limit, "offset": offset,
+        "total": total, "total_capped": is_capped(total), "limit": limit, "offset": offset,
     })
 
 

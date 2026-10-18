@@ -1,6 +1,6 @@
 # Radiation model: transmission and greenhouse by band, shielding by column, and the ground's own dose
 
-Status: draft for Boss to approve. Item GEN.436 (owner Blocker 1, built after TEST.186; GEN.437 and GEN.472 wait on it). Evidence date 2026-10-17. This file is docs/design/radiation-model.md and changes no code. Revised after Boss's papers report (docs/design/boss-papers-2026-10-17.md, read from origin/main, sections 2.4, 2.5, 2.8, 3 and 4): where a paper contradicts a second-hand value the paper wins and both values are stated.
+Status: approved by Boss as recommended (2026-10-17, 9:40 to 9:55 PM EDT). Item GEN.436 (owner Blocker 1, built after TEST.186; GEN.437 and GEN.472 wait on it). Evidence date 2026-10-17. This file is docs/design/radiation-model.md and changes no code. Revised after Boss's papers report (docs/design/boss-papers-2026-10-17.md, read from origin/main, sections 2.4, 2.5, 2.8, 3 and 4): where a paper contradicts a second-hand value the paper wins and both values are stated.
 
 Short names. master = docs/design/atmosphere-composition.md. Part NN = docs/design/atmosphere-composition-parts/NN-*.md (08A, 08B and 10B are the lane checks of Boss's two research notes). Body part E, F, G2 = docs/design/body-composition-parts/. CM = composition-model.md. GFP = gap-filling-plan.md. SC = atmosphere-sources-check.md. Code = src/planetgen/physics/.
 
@@ -362,9 +362,9 @@ Rules (Boss, 12:39 PM EDT): V = verified wins; N = newest wins between two verif
 | Mars dust omega0 | 0.92 to 0.95 (Boss) against solar mean 0.89 to 0.94, UV 0.67 to 0.74 | ranges stated per band, Wolff has no tables | M |
 | Moon and Mars anchors below 100 g/cm2 | dose-equivalent anchors with different Q against each other | both kept as stand-ins with the range between | M |
 
-## 16. For Boss to approve
+## 16. Approved by Boss
 
-Each item is a decision I took as default or left open; I recommend the answer in the second sentence.
+**Decided (Boss, 2026-10-17, 9:40 to 9:55 PM EDT, cards answered in the project chat, relayed by the coordinator): rows 1 to 3 by tap, rows 4 to 12 and 14 by his typed "I approve all your defaults" at 9:54 PM EDT; every ruling is approved as recommended.** Row 13 needed none. Row 6 approves fetching ICRP 103 sections 4 and 5.10; the pages are still Boss's to supply (the secondary values are used meanwhile). Each item was a decision taken as default or left open, with the recommendation in the second sentence:
 
 1. **R6 band edges** (100, 280, 315, 400, 700 nm, 4 micron). Approve; 4 micron leaks under 1 percent for Sun-like and cool-Earth blackbodies.
 2. **R12 stored dose quantity**, open-air full-time effective dose, with the UNSCEAR occupancy rebuilt only as the Earth test. Approve; the rebuild gives 2.22 against 2.4 mSv/yr.

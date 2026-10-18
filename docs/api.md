@@ -153,6 +153,13 @@ connectivity to that specific schema rather than the default one.
   (the exact figure follows once the background count finishes). `after=<system
   ID>` starts the page after that system in the name sort and ignores
   `offset`, so page 40,000 costs what page 1 does (an unknown ID is a 400);
+  `from=<text>` (PERF.75, the Systems table's jump-by-value box) begins the
+  list at the first name from that text on under the name sort (`M` starts
+  at the first name from M; under `order=desc` the names that begin with M
+  come first and the list runs down from them) or at the first sector from
+  it on under the sector sort (systems with no sector still come last),
+  `total` counts the systems from there, and `offset` and `after` count from
+  there; the other sorts ignore it;
   a bad `sort`, `order`, `binary` or `placement` is a 400.
 - `GET /api/uncharted-systems?sort=<luminosity|temperature|type|sector|age>&order=asc|desc&limit=<n>&offset=<n>&after=<star id>` —
   (`after` starts the page after that star in the sort and ignores `offset`, PERF.75; equal sort values are ordered by id in the
@@ -364,8 +371,8 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/galaxy/tiles?tiles=<key>,<key>,...` — the 3D
   Galaxy Map's data, one fixed cube of space ("tile") at a time
   (`queryDb.galaxy_tiles`). Space is an octree: level 0 is one cube
-  65,536 pc on a side centered on the galactic origin, each level halves
-  the edge down to 16 pc at level 12, and a key is `level/ix/iy/iz`
+  524,288 pc on a side centered on the galactic origin (the grid's whole 262 kpc reach either side, MAP.239), each level halves
+  the edge down to 16 pc at level 15, and a key is `level/ix/iy/iz`
   (`ix` counts cubes along x from the root cube's −x face). A part that took
   too long is left empty and named in the tile's `incomplete` list. Returns
   `{"tiles": {"<key>": {"placed": [...], "planned": [...], "sector_count": n,

@@ -65,6 +65,7 @@ from planetgen.names import naming_key
 from planetgen.galaxy.sector import classify_octant
 from planetgen.galaxy.viewport import (
     TILE_MAX_LEVEL,
+    TILE_ROOT_EXTRA_LEVELS,
     parse_tile_key,
     planned_slots_in_tile,
     tile_bounds_pc,
@@ -336,12 +337,54 @@ SYSTEM_SORTS = {"name": "ss.name", "sector": "sec.name", "octant": "ss.quadrant"
 keys) -> the SQL they order by. Ties fall back to name, then id."""
 
 
-def _systems_filter_clause(star_type_prefix, sector_id, binary=None, octants=(), in_sector=None):
+def _after_prefix(text):
+    """The smallest text that sorts after every text starting with `text` (its last character stepped up), or `None`
+    when there is none: the bound a descending "starting at M" list ends below, so the names that start with M come
+    first."""
+    characters = list(text)
+    while characters:
+        code = ord(characters[-1]) + 1
+        if code == 0xD800:
+            code = 0xE000
+        if code <= 0x10FFFF:
+            characters[-1] = chr(code)
+            return "".join(characters)
+        characters.pop()
+    return None
+
+
+def _start_condition(sort, descending, start):
+    """
+    The condition that keeps a systems list to the rows from `start` on in its `sort` and direction (the jump-by-value
+    box, PERF.75): the names from `start` (`sort="name"`), or the systems of the sectors named from `start` on, with
+    the systems that have no sector, which sort last, kept (`sort="sector"`). A descending list starts at the names
+    that begin with `start` and runs down from them.
+
+    Returns:
+        tuple or None: `(condition_sql, params)`, or `None` for an empty `start`, a sort that has no start (octant,
+            binary) or a descending start that nothing sorts above.
+    """
+    if not start or sort not in ("name", "sector"):
+        return None
+    if descending:
+        bound = _after_prefix(start)
+        if bound is None:
+            return None
+        operator, value = "<", bound
+    else:
+        operator, value = ">=", start
+    if sort == "name":
+        return f"ss.name {operator} ?", [value]
+    return (f"(ss.sector_id IS NULL OR ss.sector_id IN (SELECT id FROM sectors WHERE name {operator} ?))", [value])
+
+
+def _systems_filter_clause(star_type_prefix, sector_id, binary=None, octants=(), in_sector=None, start=None,
+                           sort="name", descending=False):
     """
     Builds the shared `JOIN`/`WHERE`/params fragment `list_systems` and
     `count_systems` both need -- factored out so the count query can't
     silently drift out of sync with what the listing query actually
-    matches.
+    matches. `start` keeps the rows from that value on in `sort` (`_start_condition`).
 
     Returns:
         tuple: `(join_sql, where_sql, params)`, each usable standalone
@@ -370,13 +413,17 @@ def _systems_filter_clause(star_type_prefix, sector_id, binary=None, octants=(),
         params.extend(octants)
     if in_sector is not None:
         conditions.append("ss.sector_id IS NOT NULL" if in_sector else "ss.sector_id IS NULL")
+    begun = _start_condition(sort, descending, start)
+    if begun:
+        conditions.append(begun[0])
+        params.extend(begun[1])
 
     where_sql = (" WHERE " + " AND ".join(conditions)) if conditions else ""
     return join_sql, where_sql, params
 
 
 def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset=None, sort="name",
-                 descending=False, binary=None, octants=(), in_sector=None, after=None):
+                 descending=False, binary=None, octants=(), in_sector=None, after=None, start=None):
     """
     Returns systems, optionally filtered by star type and/or sector.
 
@@ -405,6 +452,9 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
         after (int, optional): A system's row ID: with `sort="name"` the page starts after that system (a
             keyset page, PERF.75: the rows before it are not read and `offset` is ignored). Other sorts, and a
             system that is gone, use `offset`.
+        start (str, optional): The jump-by-value box (PERF.75): the list begins at the first name (`sort="name"`) or
+            the first sector (`sort="sector"`) from this text on, in the sort's direction, and `offset` counts from
+            there. Ignored for the other sorts.
 
     Returns:
         list[dict]: One row per matching system, with `id`, `name`,
@@ -417,7 +467,12 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
     """
     if sort not in SYSTEM_SORTS:
         raise ValueError(f"unknown system sort {sort!r}")
-    join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id, binary, octants, in_sector)
+    # The sector walk begins at its first sector itself (`_systems_by_group`), so its groups carry no start condition.
+    walked = (limit is not None and star_type_prefix is None and sector_id is None and in_sector is None
+              and sort in _GROUP_WALK_SORTS)
+    join_sql, where_sql, params = _systems_filter_clause(
+        star_type_prefix, sector_id, binary, octants, in_sector,
+        start=None if walked and sort == "sector" else start, sort=sort, descending=descending)
     column = SYSTEM_SORTS[sort]
     direction = "DESC" if descending else "ASC"
     if after is not None and limit is not None and sort == "name":
@@ -427,9 +482,8 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
             where_sql = _and_where(where_sql, condition)
             params = params + keyset_params
             offset = 0
-    if (limit is not None and not join_sql and sector_id is None and in_sector is None
-            and sort in _GROUP_WALK_SORTS):
-        rows = _systems_by_group(conn, sort, descending, where_sql, params, limit, offset or 0)
+    if walked:
+        rows = _systems_by_group(conn, sort, descending, where_sql, params, limit, offset or 0, start)
         return _system_rows(conn, rows)
     nulls_last = f"{column} IS NULL, " if sort in ("sector", "octant") else ""
     # The name sort's ties follow its direction, so one walk of the name index serves either way round (PERF.75).
@@ -522,13 +576,14 @@ def _read_group(conn, where_sql, params, condition, group_params, need, offset):
         f"ORDER BY ss.name, ss.id LIMIT ? OFFSET ?", list(params) + group_params + [need, offset]).fetchall()
 
 
-def _systems_by_group(conn, sort, descending, where_sql, params, limit, offset):
+def _systems_by_group(conn, sort, descending, where_sql, params, limit, offset, start=None):
     """
     One page of `list_systems` sorted by sector, octant or binary, without sorting the table (PERF.70): the
     sort is `<group>, name, id` with the systems that have no sector or octant last, so the page is found by
     counting group after group (an index range each: `idx_star_systems_sector_id`, `idx_star_systems_quadrant`,
     `idx_star_systems_binary_name`) until `offset` is used up, then reading the rows from the group it lands in
-    and the groups after it. The sectors are taken in chunks, counted by one query per chunk.
+    and the groups after it. The sectors are taken in chunks, counted by one query per chunk. A `start` (the
+    jump-by-value box) begins the sector sort at the first sector from that name on.
 
     Returns:
         list: `star_systems` rows, `limit` at most.
@@ -554,11 +609,14 @@ def _systems_by_group(conn, sort, descending, where_sql, params, limit, offset):
         return rows
 
     direction = "DESC" if descending else "ASC"
-    start, size = 0, 20
+    begun = _start_condition("sector", descending, start)
+    first = _and_where("", f"name {'<' if descending else '>='} ?") if begun else ""
+    first_params = [begun[1][0]] if begun else []
+    taken, size = 0, 20
     while True:
         ids = [r["id"] for r in conn.execute(
-            f"SELECT id FROM sectors ORDER BY name {direction}, id {direction} LIMIT ? OFFSET ?",
-            (size, start)).fetchall()]
+            f"SELECT id FROM sectors{first} ORDER BY name {direction}, id {direction} LIMIT ? OFFSET ?",
+            first_params + [size, taken]).fetchall()]
         if not ids:
             break
         marks = ", ".join("?" for _ in ids)
@@ -572,10 +630,9 @@ def _systems_by_group(conn, sort, descending, where_sql, params, limit, offset):
                 continue
             if take("ss.sector_id = ?", [sector]):
                 return rows
-        start += len(ids)
+        taken += len(ids)
         size = min(size * 2, 500)
     take("ss.sector_id IS NULL", [])
-    return rows
     return rows
 
 
@@ -646,7 +703,13 @@ def _star_summary(row):
     return row["binary_type"]
 
 
-def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octants=(), in_sector=None):
+def _start_key(sort, descending, start):
+    """The part of a count's stored key that a jump-by-value start adds: none without a usable start."""
+    return None if _start_condition(sort, descending, start) is None else [sort, descending, start]
+
+
+def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octants=(), in_sector=None, start=None,
+                  sort="name", descending=False):
     """
     Returns the total number of systems matching the same filters
     `list_systems` accepts, ignoring any pagination -- the denominator
@@ -657,11 +720,14 @@ def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octa
         conn (planetgen.db.store.Connection): An open, read-only connection.
         star_type_prefix (str, optional): Same meaning as `list_systems`.
         sector_id (int or NO_SECTOR, optional): Same meaning as `list_systems`.
+        start, sort, descending: The jump-by-value box's start (PERF.75), as in `list_systems`: only the systems from
+            it on are counted.
 
     Returns:
         int: Total matching system count.
     """
-    join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id, binary, octants, in_sector)
+    join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id, binary, octants, in_sector,
+                                                         start, sort, descending)
     # A system matches a star type once however many of its stars do; with no star join every row is its own.
     counted = "COUNT(DISTINCT ss.id)" if join_sql else "COUNT(*)"
 
@@ -674,8 +740,8 @@ def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octa
         return _capped(c.execute(f"SELECT COUNT(*) AS n FROM (SELECT DISTINCT ss.id FROM star_systems ss{join_sql}{where_sql} "
                                  f"LIMIT ?) c", list(params) + [COUNT_FALLBACK_CAP]).fetchone()["n"])
 
-    return _counted(conn, ["count_systems", star_type_prefix, sector_id, binary, list(octants), in_sector],
-                    exact, estimate)
+    return _counted(conn, ["count_systems", star_type_prefix, sector_id, binary, list(octants), in_sector,
+                           _start_key(sort, descending, start)], exact, estimate)
 
 
 def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None):
@@ -3979,9 +4045,24 @@ UNCHARTED_SYSTEM_SORTS = {
 
 
 def count_uncharted_systems(conn):
-    """How many scattered stars are not yet built into a system (UX.87):
-    the `bright_stars` rows with no `star_system_id`."""
-    return conn.execute("SELECT COUNT(*) AS n FROM bright_stars WHERE star_system_id IS NULL").fetchone()["n"]
+    """
+    How many scattered stars are not yet built into a system (UX.87): the `bright_stars` rows with no
+    `star_system_id`.
+
+    Returns:
+        int: The count. Kept by `countcache` (PERF.112): the scan of the whole scatter table is made once under a
+            galaxy content stamp and read from the stored answer after that (a star built into a system, a
+            rescatter and a reset each move the stamp, so the next read makes a new one in the background); a
+            capped count (`CappedCount`) before the first.
+    """
+    def exact(c):
+        return c.execute("SELECT COUNT(*) AS n FROM bright_stars WHERE star_system_id IS NULL").fetchone()["n"]
+
+    def estimate(c):
+        return _capped(c.execute("SELECT COUNT(*) AS n FROM (SELECT 1 FROM bright_stars WHERE star_system_id IS NULL "
+                                 "LIMIT ?) c", (COUNT_FALLBACK_CAP,)).fetchone()["n"])
+
+    return _counted(conn, ["count_uncharted_systems"], exact, estimate)
 
 
 def list_uncharted_systems(conn, limit=None, offset=None, sort="luminosity", descending=True, after=None):
@@ -4132,6 +4213,19 @@ bring the top of each population to about the same key (400 x 2,500 =
 child tile lists every star its parent listed inside the child's box."""
 
 
+LOWEST_PRIORITY_TIER = {"halo": 1, "satellite": 2, "satellite_young": 2, "satellite_intermediate": 2}
+"""dict: The tier of the populations every map lists last (MAP.250); a population not here is tier 0. Stars of the
+stellar halo (tier 1) and of the satellite galaxies (tier 2) are the lowest priority of any star budget: a list that
+cannot hold every star drops the satellite galaxies' first, then the halo's, and only then a star of the disc, the
+bulge, the nuclei or a globular cluster, whatever the brightness. The tier comes before `_map_key`, so the order is
+still one for every tile level and the lists stay nested."""
+
+
+def _map_tier(star):
+    """A bright star's tier (`LOWEST_PRIORITY_TIER`): 0 listed first, the larger last."""
+    return LOWEST_PRIORITY_TIER.get(star["population"], 0)
+
+
 def _map_key(star):
     """A bright star's rank key (`BRIGHT_STAR_POPULATION_WEIGHT`), larger is listed first."""
     return star["luminosity_sol"] * BRIGHT_STAR_POPULATION_WEIGHT.get(star["population"], 1.0)
@@ -4139,12 +4233,11 @@ def _map_key(star):
 
 def _top_by_key(stars, limit):
     """
-    At most `limit` of `stars`, the highest `_map_key` first (ties by
-    descending id). The same key at every tile level, so the list of a tile
-    inside a bigger one holds all of the bigger one's stars inside it (as long
-    as its own limit is no smaller).
+    At most `limit` of `stars`: the lowest `_map_tier` first (the halo and the satellite galaxies come last), then
+    the highest `_map_key` first (ties by descending id). The same order at every tile level, so the list of a
+    tile inside a bigger one holds all of the bigger one's stars inside it (as long as its own limit is no smaller).
     """
-    return sorted(stars, key=lambda star: (-_map_key(star), -star["id"]))[:limit]
+    return sorted(stars, key=lambda star: (_map_tier(star), -_map_key(star), -star["id"]))[:limit]
 
 
 def galaxy_brightest_stars(conn, count=GALAXY_TILE_BRIGHTEST_SAMPLE):
@@ -4328,7 +4421,8 @@ k-th, by a hash of the id) instead, so the request stays bounded; zooming in rea
 tiles small enough to read all of them."""
 
 
-GALAXY_TILE_STAR_BUDGET = {3: 30, 4: 40, 5: 40, 6: 60, 7: 80, 8: 100, 9: 100, 10: 130, 11: 160}
+GALAXY_TILE_STAR_BUDGET = {level + TILE_ROOT_EXTRA_LEVELS: stars for level, stars in
+                           {3: 30, 4: 40, 5: 40, 6: 60, 7: 80, 8: 100, 9: 100, 10: 130, 11: 160}.items()}
 """dict: How many generated stars a Galaxy Map tile lists, by tile level
 (MAP.116, refit by MAP.152 for tiles chosen by distance), the brightest
 first and with no brightness floor: a tile is as sparse or as full as its
@@ -4337,10 +4431,13 @@ or two tiles of the coarsest levels and up to about sixty of each level
 finer, so the budgets are set (nearer, finer tiles list the most) until
 the cut's caps add up to under `GALAXY_VIEW_MAX_STARS`
 (`galaxy_view_star_cap`). Tiles coarser than
-level 3 list none: the pre-placed bright stars show everything that bright.
+8,192 pc (level 3 of the 65,536 pc root this was set for; the keys are shifted by `TILE_ROOT_EXTRA_LEVELS`, MAP.239) list none: the pre-placed bright stars show everything that bright.
 A finest tile lists up to `GALAXY_TILE_MAX_DETAIL_STARS` instead."""
 
-GALAXY_TILE_BRIGHT_BUDGET = {0: 300, 1: 300, 2: 300, 3: 300, 4: 120, 5: 100, 6: 60, 7: 50, 8: 40, 9: 40, 10: 40, 11: 40}
+GALAXY_TILE_BRIGHT_BUDGET = {**dict.fromkeys(range(TILE_ROOT_EXTRA_LEVELS), 300),
+                             **{level + TILE_ROOT_EXTRA_LEVELS: stars for level, stars in
+                                {0: 300, 1: 300, 2: 300, 3: 300, 4: 120, 5: 100, 6: 60, 7: 50, 8: 40, 9: 40, 10: 40,
+                                 11: 40}.items()}}
 """dict: Most pre-placed bright stars (`bright_stars`, v43) a tile lists by
 level, the most luminous first (MAP.152 settles the old flat 400 a tile,
 which a cut of hundreds of tiles cannot afford). The map draws each as a
@@ -4355,7 +4452,8 @@ the tile, its brightest, so one dense sector can't take the whole budget
 while a sparse sector, which has fewer stars than that, keeps all it has
 and the leftover room goes to the brighter stars of the dense ones."""
 
-GALAXY_TILE_POINT_BUDGET = {8: 30, 9: 40, 10: 40, 11: 100}
+GALAXY_TILE_POINT_BUDGET = {level + TILE_ROOT_EXTRA_LEVELS: points for level, points in
+                            {8: 30, 9: 40, 10: 40, 11: 100}.items()}
 """dict: Most point phenomena (black holes, neutron stars, quasars) a tile
 of that level lists (MAP.116); a finest tile lists up to
 `GALAXY_TILE_MAX_POINTS`. The most luminous come first, so a remnant shows
@@ -4493,10 +4591,10 @@ def _generated_star_entry(row):
     }
 
 
-POINT_PHENOMENON_MIN_LEVEL = 8
-"""int: The coarsest tile level (160 pc tiles) that lists the point-like
+POINT_PHENOMENON_MIN_LEVEL = 8 + TILE_ROOT_EXTRA_LEVELS
+"""int: The coarsest tile level (256 pc tiles) that lists the point-like
 phenomena -- black holes, neutron stars (pulsars) and quasars (MAP.80).
-Since MAP.155 that is level 8, not 10: a black hole or neutron star comes
+Since MAP.155 that is 256 pc, not 64 pc: a black hole or neutron star comes
 in with the stars around it, through its tile's share (`static/starfade.js`),
 instead of appearing all at once at sector depth. Tiles coarser than this list only
 the biggest scattered classes (`SCATTERED_POINT_COARSE_CLASSES`)."""

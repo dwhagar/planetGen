@@ -766,9 +766,10 @@ PROTOSTAR_MULTIPLICITY_BY_CLASS = {"0": 0.57, "I": 0.23}
 
 # Stellar populations by age (galaxy.density.population_densities,
 # star_population). Each has its own age range (uniform within it); the
-# three disk populations share the disk's star formation evenly in time,
-# so each one's share of disk stars is its age range's length over
-# STAR_FORMATION_AGE_RANGE_GY's. Young stars sit close to the plane and
+# three disk populations share the disk's stars in proportion to the star
+# formation that fell in their age range (GEN.469, galaxy.disk_history: the
+# disk's own gas history; it was the range's length over
+# STAR_FORMATION_AGE_RANGE_GY's when the history was flat). Young stars sit close to the plane and
 # crowd the spiral arms; old stars are puffed up by billions of years of
 # scattering and spread evenly in azimuth. Scale heights are relative to
 # the galaxy's own thin-disk scale height, all exponential scale heights
@@ -815,6 +816,42 @@ BAR_GAP_EDGE_POWER = 4.0
 """float: How sharp the gap's edge is: the rate rises as `u^p / (1 + u^p)` with `u` the radius over the gap radius.
 The bar's gas is swept in over its length and what lies beyond is untouched, so the edge is steep; 2 gives a ramp
 that never leaves a ring, 4 a ring at the bar's end [a model default, open]."""
+
+# The thin disk's star formation history over time (GEN.469, `galaxy.disk_history`,
+# docs/design/disk-star-formation-history.md): gas continuity per ring, the inflow from the halo's growth, the
+# Kennicutt-Schmidt law above as the depletion. The Milky Way's own history is only a test target.
+# The cosmology is the mass chain's (`galaxy.mass_chain.HUBBLE_H`, `OMEGA_MATTER`: Planck-like, 13.8 Gy old).
+HALO_GROWTH_MASS_EXPONENT = 1.1
+"""float: How the mean growth rate of a halo's mass goes with its mass, `M^1.1` (Fakhouri, Ma and Boylan-Kolchin 2010,
+MNRAS 406, 2267, arXiv 1001.2304, eq. 2, read: fitted to the Millennium simulations)."""
+HALO_GROWTH_REDSHIFT_SLOPE = 1.11
+"""float: The `1 + 1.11 z` in the same fit's mean growth rate, `46.1 Msun/yr (M / 1e12)^1.1 (1 + 1.11 z) E(z)`."""
+STELLAR_TO_HALO_EVOLUTION = {"log_m1": 1.195, "norm": -0.0247, "beta": -0.826, "gamma": 0.329}
+"""dict: How the stellar-to-halo mass relation moves with redshift: each of its four parameters is its present value
+(`galaxy.mass_chain.LOG_M1`, `N_NORM`, `BETA`, `GAMMA`) plus this times `z / (z + 1)` (Moster, Naab and White 2013,
+MNRAS 428, 3121, arXiv 1205.5807, eqs. 11 to 14 and Table 1, read: the multi-epoch abundance-matching fit with errors
+in the observed masses). It gives the stars a halo of a given mass and age holds, so the disk's gas inflow
+follows the stellar mass the halo's growth builds."""
+HALO_GROWTH_RATE_AT_1E12_MSUN_YR = 46.1
+"""float: That fit's amplitude, solar masses per year for a halo of 1e12 solar masses at z = 0. It only sets how the
+halo's mass went back in time; the disk's inflow is scaled to the stars it must build, so its size drops out."""
+WHITE_DWARF_REMNANT_MASS_SOL = {"intercept": 0.444, "slope": 0.084}
+"""dict: A star of 1 to 7 solar masses leaves a white dwarf of `intercept + slope * m` (Weidemann 2000's initial-final masses
+as Madau and Dickinson 2014, ARA&A 52, 415, arXiv 1403.0007, quote them, read)."""
+NEUTRON_STAR_RETURN_REMNANT_SOL = 1.4
+"""float: The remnant of a star of 8 to `BLACK_HOLE_RETURN_MASS_SOL` solar masses (the same source's choice)."""
+BLACK_HOLE_RETURN_MASS_SOL = 40.0
+"""float: Above this birth mass a star keeps all its mass, collapsing to a black hole (the same source's choice; few
+stars form above it)."""
+RECYCLING_MASS_SOL = 1.0
+"""float: Stars above this mass return their gas within the history's step, stars below it never (the instantaneous
+recycling approximation, Madau and Dickinson 2014, who take 1 solar mass; it fails only between 0.9 and 2.5)."""
+DISK_HISTORY_RINGS = 40
+"""int: The rings, over 0 to `DISK_HISTORY_MAX_RADIUS_SCALE_LENGTHS` scale lengths, each with its own gas history."""
+DISK_HISTORY_MAX_RADIUS_SCALE_LENGTHS = 10.0
+"""float: The outermost ring, in disk scale lengths (the disk holds 0.05% of its stars beyond)."""
+DISK_HISTORY_TIME_STEPS = 800
+"""int: Steps of the gas history over the disk's age (12.5 Myr each at 10 Gyr)."""
 
 # Metallicity ([Fe/H], dex; GEN.158, docs/design/globular-clusters.md 5). The
 # disc populations follow a mild radial gradient of -0.06 dex per kpc [recalled,
@@ -2361,11 +2398,11 @@ MAGNETAR_SPIN_PERIOD_MS_RANGE = (2000.0, 12000.0)
 # so 1e-7 of them. They follow the young population, not the stars, so the
 # rate per star is divided by the young population's share of all stars in
 # a Milky Way-like galaxy (the integral of the young density over that of
-# every component, 0.44% since GEN.134 made the bulge and bar gap hold
-# fewer young stars: test_gen_magnetar_scatter checks it); a galaxy
+# every component, 0.19% since GEN.469 gave the disk's populations their
+# shares from its gas history (a galaxy of 5e10 solar masses; a lighter one forms its stars later and holds more young ones): test_gen_magnetar_scatter checks it); a galaxy
 # with a different young share holds proportionally more or fewer.
 MAGNETAR_PER_NEUTRON_STAR = 1.0e-7
-MAGNETAR_YOUNG_STAR_SHARE = 0.0044
+MAGNETAR_YOUNG_STAR_SHARE = 0.0019
 # A scattered magnetar's age: from the first century to the end of its active life.
 MAGNETAR_AGE_RANGE_GY = (1.0e-7, MAGNETAR_ACTIVE_LIFETIME_YR / 1e9)
 
@@ -2671,6 +2708,10 @@ NEBULA_CLOUD_PROTOSTAR_MAX = 4
 NEBULA_CLOUD_CLUMP_FRACTION = 1.0 / 3.0
 """float: The protostars of a core are scattered about its centre with a Gaussian of this fraction of its radius
 [I: "clumped near the centre"], redrawn if one falls outside the cloud."""
+
+NEBULA_CLUSTER_HALF_MASS_PC = {"D": 1.0, "E": 2.0}
+"""dict: The half-mass radius, parsecs, of the Plummer sphere the ionizing members of a class D or E region are placed in
+(GEN.321; a small O and B cluster, a young massive one; the design note's 1 and 2 pc), clipped to the nebula's radius."""
 
 PLANETARY_NEBULA_CENTRAL_STAR_TYPES = ("O3VII", "O5VII", "O7VII", "O9VII", "B0VII")
 """tuple: The central star a planetary nebula is generated around (GEN.10):

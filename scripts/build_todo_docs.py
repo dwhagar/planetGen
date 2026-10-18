@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Builds the four browsable TODO pages from the TODO sources.
+Builds the five browsable TODO pages from the TODO sources.
 
 Why this exists
 ===============
@@ -21,6 +21,10 @@ already keeps, so one command refreshes them:
 - `docs/plan/todo-tree.html`: every open item as a tree, each item under the
   prerequisite that finishes last, with version and bug marks, search and
   filters (Boss 2026-10-09 07:03Z: "a TODO as a tree structure").
+- `docs/plan/execution-plan.html` (DOC.68): where each build lane is (`docs/plan/lanes.md`), the headline
+  panel, the open items by version and 8.1 phase, the goal issues, and the conflicts and needs-Boss sections
+  (`docs/plan/execution-notes.md`) with the older decisions (`scripts/todo_docs/execution-history.snippet.html`).
+  Every part comes from a file in the repo, none from the clock, so a test can tell when it is stale.
 - `docs/plan/release-roadmap.html`: the releases from 8.1 to 9.3, each with
   its headline, its phases, the open items it holds, what it needs, its share
   finished and the suggestions not yet filed (Boss, 2026-10-16).
@@ -52,6 +56,7 @@ byte-identical pages. Templates live in `scripts/todo_docs/`.
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import re
 import sys
@@ -65,6 +70,9 @@ OUTPUTS = {
     "todo-tree.template.html": ROOT / "docs" / "plan" / "todo-tree.html",
     "release-roadmap.template.html": ROOT / "docs" / "plan" / "release-roadmap.html",
 }
+EXECUTION_TEMPLATE = TEMPLATES / "execution-plan.template.html"
+EXECUTION_OUTPUT = ROOT / "docs" / "plan" / "execution-plan.html"
+ISSUES_URL = "https://github.com/dwhagar/planetGen/issues/"
 ID_RE = re.compile(r"^[A-Z]+\.\d+$")
 HEADLINE_RE = re.compile(r"Headline:\s*(\d+\.\d+)\s*\(([^)]*)\)")
 ITEM_RE = re.compile(r"^(\s*)- \[[ x]\] \*\*([A-Z]+\.\d+) (.*?)\*\*\s*$")
@@ -549,6 +557,152 @@ def build_headlines(items: dict, todo: dict) -> list[dict]:
     return sorted(out, key=lambda h: tuple(int(x) for x in h["version"].split(".")))
 
 
+def _inline(text: str) -> str:
+    """`text` as HTML: escaped, with `**bold**` and `code` spans."""
+    text = html.escape(text, quote=False)
+    text = re.sub(r"`([^`]+)`", r"<code>\1</code>", text)
+    return re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", text)
+
+
+def parse_lanes(text: str) -> dict:
+    """`docs/plan/lanes.md`: the `Updated:` stamp, the table rows (`Lane | Doing now | Gate | Next`) and the `Merged:`
+    line."""
+    stamp = re.search(r"^Updated: (.+)$", text, re.M)
+    merged = re.search(r"^Merged: (.+)$", text, re.M)
+    rows = []
+    for line in text.splitlines():
+        cells = [cell.strip() for cell in line.strip().strip("|").split("|")] if line.startswith("|") else []
+        if len(cells) == 4 and cells[0] != "Lane" and not set(cells[0]) <= {"-", ":", " "}:
+            rows.append(cells)
+    return {"updated": stamp.group(1).strip() if stamp else "", "rows": rows,
+            "merged": merged.group(1).strip() if merged else ""}
+
+
+def render_notes(text: str) -> str:
+    """The sections of `docs/plan/execution-notes.md` below its first paragraph block as HTML: `##` and `###` headings,
+    `- ` bullets, paragraphs (one wholly in `*...*` is muted). Everything before the first `##` is the file's own note."""
+    text = text[text.index("\n## "):] if "\n## " in text else ""
+    out, bullets = [], []
+
+    def close():
+        if bullets:
+            out.append('<ul class="tight">' + "".join(f"<li>{_inline(b)}</li>" for b in bullets) + "</ul>")
+            bullets.clear()
+
+    for line in text.splitlines():
+        line = line.rstrip()
+        if line.startswith("- "):
+            bullets.append(line[2:])
+            continue
+        close()
+        if line.startswith("### "):
+            out.append(f"<h3>{_inline(line[4:])}</h3>")
+        elif line.startswith("## "):
+            out.append(f"<h2>{_inline(line[3:])}</h2>")
+        elif len(line) > 2 and line.startswith("*") and line.endswith("*") and not line.startswith("**"):
+            out.append(f'<p class="muted">{_inline(line[1:-1])}</p>')
+        elif line:
+            out.append(f"<p>{_inline(line)}</p>")
+    close()
+    return "\n".join(out)
+
+
+def build_execution_plan(root: Path, data: dict) -> str:
+    """`docs/plan/execution-plan.html` (DOC.68): the lanes board from `docs/plan/lanes.md`, the headline panel, the open
+    items by version and by 8.1 phase and the goal issues from the TODO data, the conflicts and needs-Boss sections from
+    `docs/plan/execution-notes.md`, and the older decisions from `scripts/todo_docs/execution-history.snippet.html`.
+    Nothing is read from the clock, so the page is the same on every run until a source changes."""
+    esc = lambda value: html.escape(str(value), quote=True)
+    reference, plan = data["reference"], data["plan"]
+    items, issues = reference["items"], reference["issues"]
+    opened = {i for i, item in items.items() if item["status"] == "open"}
+
+    def idspan(item_id):
+        item = items.get(item_id)
+        if not item:
+            return f'<span class="id">{esc(item_id)}</span>'
+        title = esc(item["title"])
+        if item["issues"]:
+            number = item["issues"][0]
+            return f'<a class="id" href="{ISSUES_URL}{number}" title="{title} (#{number})">{esc(item_id)}</a>'
+        return f'<span class="id" title="{title}">{esc(item_id)}</span>'
+
+    lanes = parse_lanes((root / "docs" / "plan" / "lanes.md").read_text(encoding="utf-8"))
+    lane_html = "".join(f"<tr><td><b>{esc(row[0])}</b></td><td>{esc(row[1])}</td><td>{esc(row[2])}</td><td>{esc(row[3])}</td></tr>"
+                        for row in lanes["rows"])
+    headlines = ""
+    for headline in plan["headlines"]:
+        entries = "".join(
+            f'<li>{idspan(row["id"])} {esc(row["title"])} <span class="muted">'
+            f'{esc(row["phase"].replace("-", " phase ") if row["phase"] else "unplaced")} · '
+            f'{"ready" if row["ready"] else "needs " + ", ".join(row["deps"])}</span></li>'
+            for row in headline["items"])
+        headlines += (f'<details><summary><b>{esc(headline["version"])}</b> {esc(headline["name"])} <span class="muted">'
+                      f'({headline["remaining"]} open items needed, {headline["ready"]} ready to start)</span></summary>'
+                      f'<ol class="tight">{entries}</ol></details>\n')
+    per_version, bugs = {}, {}
+    for item_id in opened:
+        item = items[item_id]
+        key = item["version"] or "unplaced"
+        per_version[key] = per_version.get(key, 0) + 1
+        bugs[key] = bugs.get(key, 0) + (1 if item["bug"] else 0)
+    order = sorted(per_version, key=lambda v: (v == "later", v == "unplaced",
+                                                [int(x) for x in v.split(".")] if v[0].isdigit() else [99]))
+    version_rows = "".join(f'<tr><td>{esc(v)}</td><td class="k">{per_version[v]}</td><td class="k">{bugs[v]}</td></tr>'
+                           for v in order)
+    per_phase = {}
+    for item_id in opened:
+        if items[item_id]["version"] == "8.1":
+            per_phase[items[item_id]["phase"]] = per_phase.get(items[item_id]["phase"], 0) + 1
+    labels = {p["key"]: f'{p["label"]}: {p["theme"]}' for p in reference["phases"]}
+    phase_rows = "".join(f'<tr><td>{esc(labels.get(k, k or "unplaced"))}</td><td class="k">{per_phase[k]}</td></tr>'
+                         for k in sorted(per_phase, key=lambda k: (k == "", k or "")))
+    goal_rows = ""
+    for number in sorted(issues, key=int, reverse=True):
+        issue = issues[number]
+        members = [i for i, item in items.items() if int(number) in item["issues"] and item["status"] == "open"]
+        if issue["state"] != "open" or not members:
+            continue
+        chips = " ".join(f'<span class="id" title="{esc(items[i]["title"])}">{esc(i)}</span>' for i in members)
+        goal_rows += (f'<tr><td><a href="{ISSUES_URL}{number}">#{number}</a></td><td>{esc(issue["title"])}</td>'
+                      f'<td class="k">{len(members)}</td><td><div class="chips">{chips}</div></td></tr>')
+    goals = goal_rows.count("<tr>")
+    bug_count = sum(1 for i in opened if items[i]["bug"])
+    notes = render_notes((root / "docs" / "plan" / "execution-notes.md").read_text(encoding="utf-8"))
+    history = (TEMPLATES / "execution-history.snippet.html").read_text(encoding="utf-8").rstrip()
+    body = f'''<header>
+  <div class="eyebrow">planetGen · version map 8.1 to 10.0, Core lanes 1 to 5, Blocker 1 and Bug Hunt · updated {esc(lanes["updated"])}</div>
+  <div class="meta"><a href="../index.html">Docs index</a> · <a href="version-plan.html">Version plan</a></div>
+  <h1>Execution Plan</h1>
+  <p class="lede">{len(opened)} open items, {bug_count} of them bugs. Version 8.1 (the infinite zoom map and the new generate scatters, halo and satellite galaxies included) is the headline in progress; its stamp comes when every item of its six phases is done. Five Core lanes, a blocker lane and a bug lane build it in parallel, each through its own gate; the TODO lane keeps this page, the plan documents, the number map and the GitHub issues true, and every item ID below links to the issue that groups it with the other items of its goal.</p>
+</header>
+
+<h2>Where each lane is</h2>
+<p class="muted">Updated {esc(lanes["updated"])} from the lanes' own status lines (<code>docs/plan/lanes.md</code>); times are the lanes' clocks as reported. A gate is the <code>scripts/test.py changed</code> run that has to be green before a lane's PR merges (Boss: merges need no human review).</p>
+<div class="tw"><table><thead><tr><th>Lane</th><th>Doing</th><th>Gate</th><th>Next</th></tr></thead><tbody>{lane_html}</tbody></table></div>
+<p class="note">Merged: {esc(lanes["merged"])}</p>
+
+<h2>Headline features and what each needs</h2>
+<p class="muted">Boss, 2026-10-10: every release has one headline feature. The open items each one needs, in build order (generated from docs/TODO.md; the TODO tree, version plan and TODO reference carry the same panel).</p>
+{headlines}
+<h2>Open items by version</h2>
+<div class="split">
+<div><div class="tw"><table><thead><tr><th>Version</th><th>Open items</th><th>Bugs</th></tr></thead><tbody>{version_rows}</tbody></table></div></div>
+<div><div class="tw"><table><thead><tr><th>8.1 phase</th><th>Open items</th></tr></thead><tbody>{phase_rows}</tbody></table></div></div>
+</div>
+
+<h2>Goals and their GitHub issues</h2>
+<p class="muted">{goals} open goal issues. Each groups the TODO items of one goal and is what we are working toward; a goal issue carries the status label "in progress" only while code for one of its items is being written, plus a dated comment with where it stands. Findings that belong to a goal (a failed test, a bug noticed in passing) are comments on its issue. Closed goals are on GitHub.</p>
+<div class="tw"><table><thead><tr><th>Issue</th><th>Goal</th><th>Open items</th><th>Items</th></tr></thead><tbody>{goal_rows}</tbody></table></div>
+
+{notes}
+
+<h2>Earlier decisions</h2>
+{history}
+<p class="muted">Links: <a href="version-plan.html">version plan</a> · <a href="todo-tree.html">TODO tree</a> · <a href="todo-reference.html">every ID explained</a> · <a href="release-roadmap.html">release roadmap</a> · <a href="https://github.com/dwhagar/planetGen/issues?q=is%3Aissue+is%3Aopen+label%3Agoal">goal issues on GitHub</a></p>'''
+    return EXECUTION_TEMPLATE.read_text(encoding="utf-8").replace("__BODY__", body)
+
+
 def render(template: str, data: dict) -> str:
     payload = json.dumps(data, ensure_ascii=False, sort_keys=True).replace("</", "<\\/")
     snippet = (TEMPLATES / "headlines.snippet.html").read_text(encoding="utf-8")
@@ -563,6 +717,7 @@ def build(root: Path = ROOT) -> dict[Path, str]:
         key = ("reference" if name.startswith("todo-reference") else
                "roadmap" if name.startswith("release-roadmap") else "plan")
         out[target] = render(template, data[key])
+    out[EXECUTION_OUTPUT] = build_execution_plan(root, data)
     return out
 
 

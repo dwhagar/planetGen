@@ -16,6 +16,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | Note | What it covers | Status |
 |---|---|---|
 | [architecture.md](architecture.md) | Every file and the main flows | reference (the code map is being rewritten, DOC.28) |
+| [architecture-map.html](architecture-map.html) | The generated code map: areas, modules, functions and calls, with the main flows traced from the code (DOC.67) | generated page (open it in a browser; `scripts/build_architecture_map.py`) |
 | [design-decisions.md](design-decisions.md) | The choices that shape the project, each with its status | reference |
 | [later-phenomena-scatter-rules.md](later-phenomena-scatter-rules.md) | Which later phenomena are scattered, backfilled or fill-only (goal issue #1677): what each item stores, the magnetar scatter class, what the rule set and the profile gain, the columns for Core 1, and the changes to the TODO items | recommendation (Core 3, 2026-10-16; defaults stand, nothing built yet) |
 | [todo-number-map.md](todo-number-map.md) | Old TODO numbers to category IDs, and the next free ID of each category | reference |
@@ -70,6 +71,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [spherical-region-queries.md](spherical-region-queries.md) | Selecting a sphere of the galaxy with a database query: the cell key, key runs, a covering index, measured against the box, the spatial index and the sector walk | research (2026-10-15; nothing built) |
 | [phenomena-catalogue-and-fill.md](phenomena-catalogue-and-fill.md) | The master list of every phenomenon kind: observed rate, system odds, required contents, profile gate, scatter or fill, and the fill rules and audit | design (rules of 2026-10-15; items for TODO) |
 | [multi-star-systems.md](multi-star-systems.md) | Multi-star and star-like systems at scatter time: the census, limits and probabilities, the stored member tree, motion, and the catalogue of about sixty observed and theoretical system types | design (plan of 2026-10-15; nothing built yet) |
+| [disk-star-formation-history.md](disk-star-formation-history.md) | The thin disk's young, middle-aged and old star shares from its own gas history | built |
 | [star-types-by-galactic-radius.md](star-types-by-galactic-radius.md) | How star types change with distance from the core | research (proposals for Boss) |
 | [compact-remnant-regions.md](compact-remnant-regions.md) | Where neutron stars and black holes are observed | reference (feeds GEN.100) |
 

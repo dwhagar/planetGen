@@ -1,11 +1,12 @@
 """PERF.97: a stage of a run on the new work queue -- its units cut from the work alone, queued as JSON on the bulk queue,
-run by workers, joined by the done set and followed by the process that started the run (`planetgen/queue/units.py`).
+run by workers, joined by the done set and followed by the process that started the run (`planetgen/queue/units.py`,
+started by the wrapper, `planetgen/queue/wrapper.py`, PERF.118).
 The autouse `_run_queue_inline` fixture gives each test a queue and key prefix of its own and runs the waiting units
 in this process when `ensure_workers` is called."""
 
 import pytest
 
-from planetgen.queue import redisqueue, runrecord, units
+from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
 
 
 @pytest.fixture
@@ -14,9 +15,13 @@ def conn(redis_server):
 
 
 def _handlers(monkeypatch, **named):
+    """Registers a test command for each `kind=handler`: its units run `handler(args, report)`, and its stage is cut
+    into `params["count"]` units of cost `1 + n`."""
     for kind in named:
-        monkeypatch.setitem(units.HANDLERS, kind, (__name__, "_square"))
-    monkeypatch.setattr(units, "handler_for", lambda kind: named[kind])
+        monkeypatch.setitem(commands.REGISTRY, kind, commands.CommandSpec(kind, "A test", unit=(__name__, "_square"),
+                                                                          expand=(__name__, "_cut")))
+    monkeypatch.setattr(commands, "unit_function", lambda kind: named[kind])
+    monkeypatch.setattr(commands, "expand_function", lambda kind: _cut)
 
 
 def _square(args, report):
@@ -24,11 +29,21 @@ def _square(args, report):
     return {"value": args["n"] ** 2}
 
 
-def _run(monkeypatch, handler, count=5, **kwargs):
+def _cut(params):
+    return commands.Expansion([({"n": n}, 1.0 + n) for n in range(params["count"])], {"count": params["count"]})
+
+
+def _step(count, key="test", kind="test"):
+    return commands.Step(key, kind, "A test stage", {"count": count})
+
+
+def _run(monkeypatch, handler, count=5, on_progress=None, **kwargs):
     _handlers(monkeypatch, test=handler)
     results = {}
-    run_id = units.run_stage("Test", "test", "A test stage", "test", [({"n": n}, 1.0 + n) for n in range(count)],
-                             lambda unit, result: results.__setitem__(unit, result), **kwargs)
+    run_id = wrapper.run("Test", [_step(count)], lambda index, plan: None,
+                         lambda index, unit, result: results.__setitem__(unit, result),
+                         None if on_progress is None else lambda index, unit, done, estimate: on_progress(unit, done, estimate),
+                         **kwargs)
     return run_id, results
 
 
@@ -103,8 +118,7 @@ def test_a_failing_unit_fails_the_run_and_the_starter_says_so(monkeypatch, conn)
     _handlers(monkeypatch, test=handler)
     stopped = []
     with pytest.raises(units.RunStopped, match="unit 2 of stage 0 failed: ValueError: no stars here"):
-        units.run_stage("T", "test", "A test", "test", [({"n": n}, 1.0) for n in range(4)],
-                        lambda unit, result: stopped.append(unit))
+        wrapper.run("T", [_step(4)], lambda index, plan: None, lambda index, unit, result: stopped.append(unit))
     run_id = runrecord.recent_runs(conn)[0]
     run = runrecord.read_run(conn, run_id)
     assert run["state"] == "failed" and "no stars here" in run["error"]
@@ -128,9 +142,9 @@ def test_an_interrupt_in_the_starter_cancels_the_run_and_frees_the_machine(monke
     def interrupted(*args, **kwargs):
         raise KeyboardInterrupt
 
-    monkeypatch.setattr(units.workers, "ensure_workers", interrupted)      # Ctrl+C while the starter waits
+    monkeypatch.setattr(wrapper.workers, "ensure_workers", interrupted)      # Ctrl+C while the starter waits
     with pytest.raises(KeyboardInterrupt):
-        units.run_stage("T", "test", "A test", "test", [({"n": 1}, 1.0), ({"n": 2}, 1.0)], lambda unit, result: None)
+        wrapper.run("T", [_step(2)], lambda index, plan: None, lambda index, unit, result: None)
     run = runrecord.read_run(conn, runrecord.recent_runs(conn)[0])
     assert run["state"] == "cancelled" and runrecord.active_run(conn) is None
 
@@ -139,7 +153,7 @@ def test_a_second_run_is_refused_while_one_has_the_machine(monkeypatch, conn):
     _handlers(monkeypatch, test=_square)
     first = runrecord.start_run(conn, "First", [runrecord.Stage("test", "T", units=1)])
     with pytest.raises(runrecord.Busy):
-        units.run_stage("Second", "test", "A test", "test", [({"n": 1}, 1.0)], lambda unit, result: None)
+        wrapper.run("Second", [_step(1)], lambda index, plan: None, lambda index, unit, result: None)
     assert runrecord.active_run(conn) == first
 
 
@@ -159,13 +173,15 @@ def test_more_units_than_the_cap_are_refused(monkeypatch, conn):
 
 
 def test_only_the_table_names_what_a_unit_runs():
-    assert set(units.HANDLERS) == {"mass-scatter"}
-    assert callable(units.handler_for("mass-scatter"))
-    with pytest.raises(KeyError):
-        units.handler_for("os.system")
+    assert callable(commands.unit_function("scatter-mass")) and callable(commands.expand_function("scatter-mass"))
+    for kind in ("os.system", "nope"):
+        with pytest.raises(KeyError):
+            commands.unit_function(kind)
+    with pytest.raises(ValueError, match="inline"):
+        commands.unit_function("scatter-luminosity")
 
 
-# --- The massive-star scatter on the new queue (the stage PERF.97 moves) -------------------------------------
+# --- The massive-star scatter on the new queue (the stage PERF.97 moves, the wrapper queues, PERF.118) ----------
 
 def _scatter_mass(mysql_config, workers, on_run_record):
     """Draws the toy galaxy's massive stars (8 solar masses and up) and returns the stars stored, sorted."""
@@ -183,11 +199,14 @@ def _scatter_mass(mysql_config, workers, on_run_record):
         conn.commit()
     finally:
         conn.close()
-    limits = scatter_limits.ScatterLimits.of(skeleton, 1000.0, 8.0)
-    tiered = scatter_limits.mass_pass(limits, starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL)
-    run_plan._scatter_shells(args, mysql_config, skeleton, EXTENTS, set(), starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL,
-                             77, "Massive stars", stats_kind="scatter-mass", task_kind="mass-stars", tiered=tiered,
-                             on_run_record=on_run_record)
+    if on_run_record:
+        run_plan._scatter_mass(args, mysql_config, 1000.0, 8.0, 77)
+    else:
+        limits = scatter_limits.ScatterLimits.of(skeleton, 1000.0, 8.0)
+        tiered = scatter_limits.mass_pass(limits, starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL)
+        run_plan._scatter_shells(args, mysql_config, skeleton, EXTENTS, set(),
+                                 starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL, 77, "Massive stars",
+                                 stats_kind="scatter-mass", task_kind="mass-stars", tiered=tiered)
     conn = store.get_connection(mysql_config)
     try:
         columns = ", ".join(store.BRIGHT_STAR_COLUMNS)
@@ -207,13 +226,47 @@ def test_the_mass_scatter_gives_the_same_stars_at_any_worker_count_and_as_the_ol
 @pytest.mark.fresh_database
 def test_the_mass_scatter_records_its_run_with_a_unit_per_run_of_shells(mysql_config, monkeypatch):
     runs = []
-    real = units.run_stage
-    monkeypatch.setattr(units, "run_stage", lambda *args, **kwargs: runs.append(real(*args, **kwargs)) or runs[-1])
+    real = wrapper.run
+    monkeypatch.setattr(wrapper, "run", lambda *args, **kwargs: runs.append(real(*args, **kwargs)) or runs[-1])
     _scatter_mass(mysql_config, 2, True)
-    run = runrecord.read_run(redisqueue.connect(), runs[0])
+    conn = redisqueue.connect()
+    run = runrecord.read_run(conn, runs[0])
     assert run["state"] == "done" and run["database"] == mysql_config.database
     assert [stage["key"] for stage in run["stages"]] == ["mass"]
     assert run["stages"][0]["done"] == run["stages"][0]["units"] > 0
+    plan = runrecord.read_plan(conn, runs[0], 0)
+    assert plan["kind"] == "scatter-mass" and plan["units"] == run["stages"][0]["units"]
+    assert [step["kind"] for step in runrecord.read_steps(conn, runs[0])] == ["scatter-mass"]
+
+
+@pytest.mark.fresh_database
+def test_a_unit_of_the_mass_scatter_runs_alone_from_its_json_arguments(mysql_config):
+    import json
+
+    from planetgen.db import store
+    from planetgen.generation import run_plan
+    from tests.test_bright_star_scatter import _seed_galaxy
+    _seed_galaxy(mysql_config)
+    params = {"database": wrapper.database_args(mysql_config), "min_luminosity_sol": 1000.0, "mass_limit_sol": 8.0,
+              "seed": 77}
+    expansion = run_plan.expand_scatter_mass(params)
+    again = run_plan.expand_scatter_mass(json.loads(json.dumps(params)))
+    assert expansion.units == again.units and expansion.plan == again.plan, "the same params give the same units"
+    assert len(expansion.units) == len(expansion.plan["tasks"]) > 1
+    for args, cost in expansion.units:
+        assert json.loads(json.dumps(args)) == args and "password" not in args["database"]
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("DELETE FROM bright_stars")
+        conn.commit()
+        stars = 0
+        for args, _cost in expansion.units:
+            result = commands.run_alone("scatter-mass", json.loads(json.dumps(args)))
+            stars += sum(result["counts"].values())
+        assert stars > 5
+        assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == stars
+    finally:
+        conn.close()
 
 
 def test_the_shells_are_cut_into_the_same_units_whatever_the_worker_count():
