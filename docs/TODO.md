@@ -2270,6 +2270,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tiles per view to about 150 and set budgets so a view is about 2 MB,
   (2) tile cache warming (PERF.130 to PERF.132), (3) both; Core 2
   recommends (3) and starts (1) now.
+  Option 1 measured (Core 2, 5:15 AM EDT 2026-10-18 as the lane
+  reported, through the coordinator): cutting the payload about 40% (the
+  view cone from 70 to 50 degrees and the budget factor 3) costs about a
+  third of the stars and still leaves 23 to 37 s of cold server time for
+  each new level; the cut factor alone helps little when zoomed in. Core
+  2's updated recommendation is tile cache warming first (PERF.130 to
+  PERF.132), then trimming the cone and budgets only if a view is still
+  heavy. Boss's card was replaced with the three options (warm the cache
+  first, cut the payload first, both); his choice is not recorded yet.
 
 - [ ] **MAP.251 When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug)**
   Boss (2026-10-17, 7:38 PM EDT, typed in the project chat, relayed by
