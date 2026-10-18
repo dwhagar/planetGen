@@ -14184,6 +14184,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   every recalled source verified by a lane before use under the standing
   source rules, and any change to a drawn value bumps the generator
   epoch (OPS.56 rule).
+  Lane (coordinator, 11:44 PM EDT as relayed): a read-only research
+  thread 'Black hole formation research (2026-10-18)' (effort high) runs
+  the black hole part first, because GEN.563 and so GEN.301 wait on it;
+  its findings go to
+  /mnt/project-files/handoffs/gen560-black-hole-formation-2026-10-18.md
+  and the coordinator relays them. The other research parts of this item
+  (moons of ejected planets, disks of isolated planetary-mass objects,
+  the interstellar size law) have no lane yet.
   Prerequisites: none. Related: GEN.550.
 
 - [ ] **GEN.561 The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own**
@@ -14226,6 +14234,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are Core 3's files, so the two lanes agree who edits them).
   Prerequisites: none. Related: GEN.553, GEN.327, GEN.253, GEN.377,
   GEN.273, GEN.550.
+  Owner confirmed (coordinator, 11:44 PM EDT as relayed): Core 4.
 
 - [ ] **GEN.563 The black hole density follows the mass function and the verified failed-supernova share: one constant changes, the neutron star density stays**
   From Boss's back-scatter cards (Boss's back-scatter cards, taps 11:38
@@ -14255,6 +14264,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shows the gap to the derived share. Owner: Core 3 (proposed: it owns
   the scatter rates and GEN.377); the verification is the research
   lane's, GEN.560.
+  Owner confirmed (coordinator, 11:44 PM EDT as relayed): Core 3.
   Prerequisites: GEN.560. Related: GEN.560, GEN.554, GEN.377, GEN.301.
 
 
@@ -18147,22 +18157,7 @@ clears each one.
   the pin Bug Hunt has in its #2124 branch should cover it; Bug Hunt is
   asked to check that the pinned seed gives a nonzero forced total (this
   assertion) as well as the scattered system count (line 299).
-  Sighting at line 299 again, reported as deterministic (Core 1, 11:20
-  PM EDT as the lane reported; its gate 5 and one run alone in a clean
-  worktree at 5c49fc42, release 8.0.1759): `assert some_scattered > 0`
-  (no bright star in shell 8 band 0 wedges 0..7 after the forced scatter
-  and the galaxy run); Core 1 said it passed at 7f17820b and suspected
-  GEN.321 or GEN.469. Checked by the TODO thread at 11:18 PM EDT (own
-  clock): the test passed alone 2 of 2 on current main bc97f757 (about
-  24 s) and 1 of 1 on 5c49fc42 (32 s), so it does not fail
-  deterministically on main; Core 1's runs differ from these in the
-  machine (a gate or other lane's load) or the test database state, not
-  in the commit. Frequency: 2 of 2 for Core 1, 0 of 3 for the TODO
-  thread. Fails on main: no (0 of 3 alone). Same unpinned galaxy seed as
-  the sightings above; Bug Hunt's #2124 pin should cover it, and Bug
-  Hunt is asked to run it 10 times under load after its re-gate. If Core
-  1 can still reproduce it in a clean tree, the next step is to print
-  the seed and the sector it drew.
+  Sighting withdrawn (Core 1, 11:40 PM EDT as the lane reported, correcting its 11:20 PM EDT report): the failure at line 299 was its own GEN.532/533 branch's, not main's: it failed 5 of 5 there and passed 3 of 3 on 5c49fc42 (the one earlier failure on that commit was in a worktree checked out from an older commit, probably stale bytecode); its test seed's drawn bar left shell 8 band 0 wedges 0 to 6 without bright stars and the PR fills band 1. The TODO thread's own runs agreed (0 of 3 failures on main). Not a sighting of this item.
   Prerequisites: none. Related: TEST.170, TEST.111.
 
 - [ ] **TEST.172 test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug)**
