@@ -91,23 +91,11 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.218 | One habitability describer, in the short wording |  |  |
-| GEN.561 | The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own | GEN.218 |  |
-| GEN.219 | The habitability levels page and tooltips are generated from the limits |  |  |
-| DB.50 | Migration only: structure columns for life and flavour |  | Split from DB.31. Core 1 owns migrations. |
-| DB.51 | Generation stores structure, not prose; the readers and the string searches go | DB.50, GEN.218 | Split from DB.31. Core 1 owns migrations. |
-| UX.119 | An HTML renderer for the Document: facts, rating and composition tables, with unit spans, in both themes |  | Split from UX.105. |
-| UX.120 | The system page and the one-off system page use it: every body's detail from the Document | UX.119 | Split from UX.105. |
-| UX.105 | The system page builds every body's detail from the document model as HTML tables | UX.119, UX.120 |  |
-| GEN.220 | "Habitable" means the index | GEN.218, UX.120 |  |
-| UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document |  |  |
-| GEN.221 | Short plain prose for the fixed text |  |  |
-| UX.109 | Remove the old per-class description text | UX.120, UX.108 |  |
-| DB.52 | Migration only: drop the prose columns and tables | DB.51 | Split from DB.31. Core 1 owns migrations. |
-| DB.31 | Store structure, not prose, for life and flavour | DB.50, DB.51, DB.52 |  |
-| TEST.155 | Wording and index agree: property test | GEN.218 |  |
+| GEN.561 | The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own |  |  |
+| UX.109 | Remove the old per-class description text |  |  |
+| DB.31 | Store structure, not prose, for life and flavour |  |  |
 | UX.107 | Units in the description go through the ladders |  |  |
-| DOC.45 | Reference docs follow the description layer | UX.105, GEN.218, GEN.219 |  |
+| DOC.45 | Reference docs follow the description layer |  |  |
 
 ### Admin and API housekeeping
 
