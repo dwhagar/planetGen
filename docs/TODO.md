@@ -836,6 +836,33 @@ with `clamp()`.
   Prerequisites: GEN.568. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
+- [ ] **UX.141 List pages for every kind: systems, stars, planets, moons, belts, comets and each phenomenon type, and the name search, read the object index with keyset paging**
+  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
+  warm-up that occurs after an update, generation, or change. That is
+  where we rebuild our tile cache, and I want us to go as deep as we
+  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
+  times that amount of stored data. If we can precalculate it, prepare
+  it, and get it ready to ship, let's do it. Same thing for caches of
+  all the lists. I had a serious problem with trying to find objects. I
+  need an index. I need a list of systems. I need a list of basically
+  every list the site wants, from phenomena in each type to planets to
+  moons to stars to whatever. We should build a cached index. Once
+  generation or updates are done, anytime anything changes, the cache it
+  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
+  say I'm perfectly happy with the cache up to 1 GB. There should be a
+  setting for that: how big the cache should be, on a slider on the
+  settings page and also, of course, in the config JSON file." Today
+  there is a systems list, a phenomena list and sector lists, but stars,
+  planets and moons are only search panels, and the search panels page
+  by `OFFSET`. Do: one list page per kind (stars, planets, moons, belts,
+  comets, each phenomenon type, systems) reading `object_index` with
+  keyset paging, filters and sort on the indexed columns, and the search
+  panels and the phenomena name search read the same index. Done: each
+  list opens on a large test galaxy in the time the Generate page's
+  probe sets, the phenomenon name search finds a name, and none of these
+  queries uses `OFFSET`. Suggested owner: Core 2; headline 8.2.
+  Prerequisites: PERF.140. Related: PERF.137.
+
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -15425,6 +15452,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that rule bumps the tile cache stamp and the cached tiles are rebuilt
   once. The galaxy map lag Boss reported at the same time is MAP.249; if
   its cause is the missing cache, this item is brought forward.
+  Boss (2026-10-18, 5:43 PM EDT) widened this goal: the warm-up after
+  every update, generation or change runs in phases and goes as deep as
+  it can; the stored data may be about 10 times the 40 MB the first tile
+  cache cost; the cache is capped at 1 GB by a setting (`cache.max_mb`,
+  a slider on the settings page and a key in `config.json`); and every
+  list of the site gets a cached index that regenerates when its data
+  changes. Filed as PERF.139 (the setting), ADM.97 (the slider),
+  PERF.141 (the phased warm-up) and, as one goal with the index and
+  lists, DB.79, PERF.140 and UX.141 (issue #2293). Full wording on
+  PERF.139.
 
 - [ ] **PERF.131 Store the tiles compressed and serve the stored bytes with their encoding, so a request does no compression**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -15470,6 +15507,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.249 card at about 8:54 AM EDT, as the coordinator relayed): the
   tile cache work follows MAP.249's payload cut, so it starts after Core
   2's payload PR (about 2 MB a view) and is sized for the reduced tiles.
+  Boss (2026-10-18, 5:43 PM EDT): about 10 times the first tile cache's
+  40 MB is acceptable, up to 1 GB by the `cache.max_mb` setting
+  (PERF.139); stored data that can be precomputed and shipped ready
+  should be.
   Prerequisites: none. Related: PERF.129, MAP.159, MAP.158.
 
 - [ ] **PERF.132 Build proactively on a visit: the surrounding tiles and the next zoom levels are built and cached in the background**
@@ -15515,6 +15556,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.249 card at about 8:54 AM EDT, as the coordinator relayed): the
   tile cache work follows MAP.249's payload cut, so it starts after Core
   2's payload PR (about 2 MB a view) and is sized for the reduced tiles.
+  Boss (2026-10-18, 5:43 PM EDT): the warm-up goes "as deep as we can"
+  in phases after every update, generation or change; see PERF.141 for
+  the phases and PERF.139 for the budget.
 
 - [ ] **PERF.133 Keep every tile until the data changes: invalidate by what changed, rebuild what a change touched, and never evict a valid tile for size**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -15555,6 +15599,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that rule bumps the tile cache stamp and the cached tiles are rebuilt
   once. The galaxy map lag Boss reported at the same time is MAP.249; if
   its cause is the missing cache, this item is brought forward.
+  OPEN CONFLICT (2026-10-18, found when filing PERF.139): this item says
+  a valid tile is never evicted for size and the admin page only says
+  when the cache is over `tile_cache.max_mb`; Boss (2026-10-18, 5:43 PM
+  EDT) then set a cap of up to 1 GB as a setting. What happens when the
+  cap is full is not decided; it goes to Boss as a card (coordinator
+  posts it). Until he answers, this item's no-eviction wording stands
+  and PERF.139 builds only the setting and the display.
   Prerequisites: none. Related: PERF.129, PERF.41, PERF.104.
 
 - [ ] **PERF.134 The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions**
@@ -15674,6 +15725,102 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (the nuclear cluster majorant); the stack adds nothing beyond the ring
   term.
   Prerequisites: none. Related: GEN.402, GEN.322, PERF.106.
+
+- [ ] **PERF.139 One cache size setting, `cache.max_mb`, default 1024: tiles, stored lists and indexes share one disk budget**
+  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
+  warm-up that occurs after an update, generation, or change. That is
+  where we rebuild our tile cache, and I want us to go as deep as we
+  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
+  times that amount of stored data. If we can precalculate it, prepare
+  it, and get it ready to ship, let's do it. Same thing for caches of
+  all the lists. I had a serious problem with trying to find objects. I
+  need an index. I need a list of systems. I need a list of basically
+  every list the site wants, from phenomena in each type to planets to
+  moons to stars to whatever. We should build a cached index. Once
+  generation or updates are done, anytime anything changes, the cache it
+  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
+  say I'm perfectly happy with the cache up to 1 GB. There should be a
+  setting for that: how big the cache should be, on a slider on the
+  settings page and also, of course, in the config JSON file." Today
+  `tile_cache.max_mb` (default 200, a separate text box on the settings
+  page) bounds only the tile cache, and nothing bounds the stored lists.
+  Do: one key `cache.max_mb` in `config.json` (default 1024, 0 turns the
+  stored caches off) replaces `tile_cache.max_mb`, with no shim; the
+  tile cache, the stored lists and the object index share it; the admin
+  cache view (PERF.134) shows used and budget per kind. What happens
+  when the budget is full is a question for Boss (PERF.133 says a valid
+  tile is never evicted for size; see the open fork on that item).
+  `page_cache.max_mb` is memory per process, a different thing, and
+  stays. Done: the key exists in the settings model,
+  `config.schema.json`, `config.json.example` and docs/config.md, the
+  tile cache reads it, a test fills a small budget and checks the stated
+  behaviour, and the admin page shows the budget. Suggested owner: Core
+  2 (the tile cache lane); headline 8.2.
+  Prerequisites: none.
+
+- [ ] **PERF.140 The index builder and its automatic refresh: each kind is rebuilt from what changed whenever generation, an orbital update or an edit changes it**
+  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
+  warm-up that occurs after an update, generation, or change. That is
+  where we rebuild our tile cache, and I want us to go as deep as we
+  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
+  times that amount of stored data. If we can precalculate it, prepare
+  it, and get it ready to ship, let's do it. Same thing for caches of
+  all the lists. I had a serious problem with trying to find objects. I
+  need an index. I need a list of systems. I need a list of basically
+  every list the site wants, from phenomena in each type to planets to
+  moons to stars to whatever. We should build a cached index. Once
+  generation or updates are done, anytime anything changes, the cache it
+  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
+  say I'm perfectly happy with the cache up to 1 GB. There should be a
+  setting for that: how big the cache should be, on a slider on the
+  settings page and also, of course, in the config JSON file." Do: build
+  `object_index` per kind after generation and after `planetgen orbits`,
+  and refresh a kind when its data version tag moves (the page cache
+  already has per-kind tags in `web/lib/pagetags.py` and counters in
+  `db/dataversion.py`, but nothing consumes a tag bump to rebuild): only
+  the changed rows are rewritten, with a full rebuild as the fallback
+  and a check that the index matches the live tables. The index counts
+  against `cache.max_mb`. Done: after a generation run, an orbital
+  update and an API edit each leave the index matching the live tables,
+  a test changes one object and sees only its row rewritten, and the
+  admin page shows the index size and age per kind. Suggested owner:
+  Core 2; headline 8.2.
+  Prerequisites: DB.79, PERF.139.
+
+- [ ] **PERF.141 The warm-up runs in phases after every generation, update or change, as deep as the budget allows**
+  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
+  warm-up that occurs after an update, generation, or change. That is
+  where we rebuild our tile cache, and I want us to go as deep as we
+  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
+  times that amount of stored data. If we can precalculate it, prepare
+  it, and get it ready to ship, let's do it. Same thing for caches of
+  all the lists. I had a serious problem with trying to find objects. I
+  need an index. I need a list of systems. I need a list of basically
+  every list the site wants, from phenomena in each type to planets to
+  moons to stars to whatever. We should build a cached index. Once
+  generation or updates are done, anytime anything changes, the cache it
+  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
+  say I'm perfectly happy with the cache up to 1 GB. There should be a
+  setting for that: how big the cache should be, on a slider on the
+  settings page and also, of course, in the config JSON file." Today
+  `planetgen warm` (`cli/warm.py`, `web/warmup.py`) runs seven families
+  in a flat order (galaxy-map, galaxy-tiles, lists, sectors, systems,
+  phenomena, search), warms only the first page of each list and the
+  empty search page, stops at level caps (`warm_levels` 8,
+  `warm_zoom_levels` 14, 150,000 tiles) rather than a budget, and only
+  `update.sh` starts it. Do: name the phases and run them in order, each
+  with its own cap and each stopping at the budget: (1) the opening
+  views and the first page of each list, (2) the tiles to the built
+  levels, (3) the deep tiles and the deeper list pages, (4) the object
+  pages, (5) the name-search and facet answers. It starts by itself
+  after generation, `planetgen orbits` and any change that moves a data
+  version tag (and still from `update.sh`), rebuilds only what the
+  change touched (PERF.133), and the admin page shows each phase's
+  state. Done: a test runs a small galaxy through every phase, a change
+  in one sector re-runs only the affected phases for it, and a run stops
+  cleanly at a small budget. Suggested owner: Core 2 (owner of PERF.130
+  to 132); headline 8.2.
+  Prerequisites: PERF.139, PERF.140, PERF.131, PERF.132, PERF.133.
 
 ## DB: Database and schema
 
@@ -16805,6 +16952,36 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: GEN.576, DB.73. Related: GEN.550, GEN.552, GEN.315,
   GEN.565.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **DB.79 The object index table (migration only): one row per object of every kind the site lists, with keyset order keys and a name index**
+  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
+  warm-up that occurs after an update, generation, or change. That is
+  where we rebuild our tile cache, and I want us to go as deep as we
+  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
+  times that amount of stored data. If we can precalculate it, prepare
+  it, and get it ready to ship, let's do it. Same thing for caches of
+  all the lists. I had a serious problem with trying to find objects. I
+  need an index. I need a list of systems. I need a list of basically
+  every list the site wants, from phenomena in each type to planets to
+  moons to stars to whatever. We should build a cached index. Once
+  generation or updates are done, anytime anything changes, the cache it
+  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
+  say I'm perfectly happy with the cache up to 1 GB. There should be a
+  setting for that: how big the cache should be, on a slider on the
+  settings page and also, of course, in the config JSON file." Today the
+  lists are queries over the live tables: the phenomena list is a `UNION
+  ALL` over about eight tables with a `COUNT(*)` and `ORDER BY` over the
+  union, stars, planets and moons have no list page at all, and no
+  phenomenon table has a FULLTEXT name index. Do (schema and migration
+  only, Core 1 numbers it): `object_index`, one row per object: kind
+  (system, star, planet, moon, belt, comet, and each phenomenon type),
+  object ID (96 bit), name, sector, parent, class or type, mass, and the
+  columns the list pages sort and filter on; a unique key on kind and
+  ID, keyset keys per kind and sort, and a FULLTEXT index on the name.
+  Done: the migration, the model and schema.sql agree, and the index is
+  empty until PERF.141 fills it. Suggested owner: Core 1; headline 8.2
+  (whether 8.1 or 8.2 is a question for Boss).
+  Prerequisites: none.
 
 ## API: The JSON API
 
@@ -17986,6 +18163,35 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   stalled run (the stalled one links to the incomplete uploads page,
   ADM.13).
   Prerequisites: API.8. Related: API.3.
+
+- [ ] **ADM.97 The settings page can show a number as a slider: the cache size is the first one**
+  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
+  warm-up that occurs after an update, generation, or change. That is
+  where we rebuild our tile cache, and I want us to go as deep as we
+  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
+  times that amount of stored data. If we can precalculate it, prepare
+  it, and get it ready to ship, let's do it. Same thing for caches of
+  all the lists. I had a serious problem with trying to find objects. I
+  need an index. I need a list of systems. I need a list of basically
+  every list the site wants, from phenomena in each type to planets to
+  moons to stars to whatever. We should build a cached index. Once
+  generation or updates are done, anytime anything changes, the cache it
+  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
+  say I'm perfectly happy with the cache up to 1 GB. There should be a
+  setting for that: how big the cache should be, on a slider on the
+  settings page and also, of course, in the config JSON file." The
+  settings page is generated from the settings model and renders every
+  number as a text box; only the Generate page has sliders
+  (`web/limit_sliders.py`, `static/limitsliders.js`, UX.116, log or
+  linear stops with a number box). Do: a `slider` option kind in the
+  generated form that reuses that widget (a number box beside it, stops
+  from the option's own range), the page and `config.json` stay in step,
+  and `cache.max_mb` uses it (range 64 MB to 8 GB on log stops, default
+  1 GB). Done: the settings page shows the slider for `cache.max_mb`,
+  moving it writes the key, editing `config.json` moves the slider, and
+  a test covers the round trip. Suggested owner: Core 2 with the
+  settings page code; headline 8.2.
+  Prerequisites: PERF.139.
 
 ## SEC: Security
 
