@@ -29,13 +29,13 @@ from planetgen.physics import atmosphere, constants, habitability_world, hydrosp
 from planetgen.physics.position import HoldsOrbitPosition, axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
-from planetgen.util.serialization import fields_from_dict, fields_to_dict
+from planetgen.generation.mass_object import MassObject
 from planetgen.util.format import (
     format_number, to_paragraph, format_pressure_pa, format_temperature_k,
 )
 
 
-class Planet(HoldsOrbitPosition):
+class Planet(MassObject, HoldsOrbitPosition):
     """
     A class representing a single planet or moon and all of its properties.
 
@@ -379,30 +379,18 @@ class Planet(HoldsOrbitPosition):
             return draw.random() < prevalence.scaled_chance(self.system_config, "moons", 0.5)
         return draw.randrange(2) == 1
 
-    def to_dict(self):
-        """
-        Returns a JSON-serializable dict of this planet's (or moon's)
-        properties, per `SERIALIZABLE_FIELDS`, plus its `moons` recursively
-        serialized the same way.
-
-        `habitable_zone` is stored as a list (JSON has no tuple type).
-
-        Returns:
-            dict: One entry per field in `SERIALIZABLE_FIELDS`, plus
-                 `moons` (a list of further such dicts, `[]` for a moon).
-        """
-        data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
+    def _encode(self, data):
+        """`habitable_zone` is stored as a list (JSON has no tuple type); `moons` are serialized the same way,
+        recursively."""
         data["habitable_zone"] = list(self.habitable_zone)
         data["moons"] = [moon.to_dict() for moon in self.moons]
-        return data
 
     @classmethod
     def from_dict(cls, data, star, system_config):
         """
         Reconstructs a `Planet` (or moon) from a dict in the shape
-        `to_dict()` produces, without re-running generation (`__init__` is
-        bypassed via `object.__new__`). Recurses into `moons`, threading the
-        same `star`/`system_config` into each one.
+        `to_dict()` produces, without re-running generation. Recurses into
+        `moons`, threading the same `star`/`system_config` into each one.
 
         Args:
             data (dict): A dict in the shape `to_dict()` produces.
@@ -414,13 +402,12 @@ class Planet(HoldsOrbitPosition):
         Returns:
             Planet: The reconstructed planet or moon.
         """
-        planet = object.__new__(cls)
-        planet.system_config = system_config
-        planet.star = star
-        fields_from_dict(planet, data, cls.SERIALIZABLE_FIELDS)
-        planet.habitable_zone = tuple(data["habitable_zone"])
+        planet = cls._rebuild(data, system_config, star=star)
         planet.moons = [cls.from_dict(moon_data, star, system_config) for moon_data in data.get("moons", [])]
         return planet
+
+    def _decode(self, data):
+        self.habitable_zone = tuple(data["habitable_zone"])
 
     def _generate_life_and_flavor_paragraphs(self, object_type_desc, sentences):
         """

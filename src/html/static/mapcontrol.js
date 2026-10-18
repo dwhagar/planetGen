@@ -238,7 +238,7 @@ export function createPointerControl(canvasEl, options) {
   // Hands a click to onClick, or, when it is the second of a pair, to onDoubleClick.
   function deliver(event, type) {
     if (o.onDoubleClick) {
-      const t = o.now ? o.now() : Date.now();
+      const t = o.now ? o.now() : (Number.isFinite(event.timeStamp) ? event.timeStamp : Date.now());
       if (lastClick && t - lastClick.t <= doubleMs
           && Math.abs(event.clientX - lastClick.x) + Math.abs(event.clientY - lastClick.y) <= doublePx) {
         lastClick = null;

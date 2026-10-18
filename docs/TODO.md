@@ -836,6 +836,36 @@ with `clamp()`.
   Prerequisites: GEN.568. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
+- [ ] **UX.141 List pages for every kind: systems, stars, planets, moons, belts, comets and each phenomenon type, and the name search, read the object index with keyset paging**
+  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
+  warm-up that occurs after an update, generation, or change. That is
+  where we rebuild our tile cache, and I want us to go as deep as we
+  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
+  times that amount of stored data. If we can precalculate it, prepare
+  it, and get it ready to ship, let's do it. Same thing for caches of
+  all the lists. I had a serious problem with trying to find objects. I
+  need an index. I need a list of systems. I need a list of basically
+  every list the site wants, from phenomena in each type to planets to
+  moons to stars to whatever. We should build a cached index. Once
+  generation or updates are done, anytime anything changes, the cache it
+  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
+  say I'm perfectly happy with the cache up to 1 GB. There should be a
+  setting for that: how big the cache should be, on a slider on the
+  settings page and also, of course, in the config JSON file." Today
+  there is a systems list, a phenomena list and sector lists, but stars,
+  planets and moons are only search panels, and the search panels page
+  by `OFFSET`. Do: one list page per kind (stars, planets, moons, belts,
+  comets, each phenomenon type, systems) reading `object_index` with
+  keyset paging, filters and sort on the indexed columns, and the search
+  panels and the phenomena name search read the same index. Done: each
+  list opens on a large test galaxy in the time the Generate page's
+  probe sets, the phenomenon name search finds a name, and none of these
+  queries uses `OFFSET`. Suggested owner: Core 2; filed in 8.2.
+  Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
+  coordinator reported them): the list pages are filed in 8.2 with the
+  tile cache; their index is kept first when the shared budget is short.
+  Prerequisites: PERF.140. Related: PERF.137.
+
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -3456,6 +3486,71 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its last update (one day of real time is one day of orbit), and an
   option advances it by a stated extra span in one go. Done when its
   subitems are.
+  Boss statement (2026-10-18, 5:24 PM EDT): "And let's also double-check that the orbital motion updates:
+  1. Checks for whatever records require an update. 2. New records
+  without a next update field will always get an update, where the next
+  update field will be set. 3. Calculate any required position changes
+  first. 4. Change the motion vector of each object to account for
+  gravitational effects, given the point mass, calculated gradient of
+  the sector and area surrounding the sector, using the algorithm of:
+  the largest hill radius present in the galaxy becomes the search
+  radius for gravitational objects. So that we can calculate the vector
+  field and the gravitational gradient at the exact location of the
+  object to update its motion vector. Based on speed the system will
+  then set an entry in the database for that object for when it next
+  needs a position or motion update. According to the floor, it is
+  already approved". The
+  read-only check is [docs/design/orbital-update-check-2026-10-18.md](design/orbital-update-check-2026-10-18.md).
+  The four steps are the order of one run: find the due records (a
+  record with no next-update value is always due), advance each due
+  object's position, change its motion vector from the influence set
+  and the galactic gradient, then set its next-update value from its
+  speed.
+  Decided (Boss, card taps of 2026-10-18, 5:30 to 5:33 PM EDT, as the coordinator reported them (the cards are in the project chat; the tap results are not readable by this thread)). F1 search
+  radius: the largest Hill radius of any object in the galaxy, one
+  stored number, Sgr A* left out of that maximum (it is in the smooth
+  potential); the nearest 64 are summed exactly and the rest as one
+  point mass per sector; GEN.370 first so the radius uses the galaxy's
+  own enclosed mass. F2: step 4 runs for every object through the one
+  core function (amends card S13: a bound planet or moon works in its
+  host's frame with the host's pull taken out; the tide screens stay as
+  validity checks). F3 order: per object steps, each object moves and
+  then gets its vector in turn, not two phases; Boss's "position
+  changes first" is read as position before vector within each object,
+  so later objects see a mix of old and new positions of the others
+  (the result depends on the order rows are visited, so the order must
+  be fixed and tested). F4 next due: the speed from the new vector,
+  capped at the time for the influence set to change. F5 new records:
+  always visited, the position advances only from the record's own
+  epoch, then the next-update value is set. The last card, "Is the
+  orbital motion update (your four steps) approved to build as
+  written?", was answered "Approved as the cards say": the orbital
+  motion update with F1 to F5 is APPROVED to build. That answers
+  his unclear last sentence ("According to the floor, it is already
+  approved"), whose meaning stays unknown. Where this note and older
+  text on GEN.109, GEN.139, GEN.290, GEN.340, GEN.341, GEN.342 or
+  orbital-updates.md differ, this note wins; those items are reworded
+  as their lanes pick them up. Owner lane: Core 3, after its 8.1 queue,
+  in the order GEN.370, GEN.341, GEN.342.
+  Decided (Boss, 2026-10-18; his words 5:38 PM EDT, card tap "Tier first,
+  then mass" as the coordinator reported it, 5:41 PM EDT): the order of
+  the due objects is a stable sort on (tier, mass heaviest first, ties
+  by id). Boss: "Overall this should support our most massive to least
+  massive. Even within the galactic span high-mass objects are moved
+  before low-mass objects. Objects in the galactic frame of reference
+  ... such as a rogue planet, an interstellar comet, or a single primary
+  star, should all be moved before anything inside a system." Tier is
+  the number of hops from the galactic frame, derived from the parent
+  link and not stored; the names are labels only: tier 0 (his
+  "primary") is every top-level object (rogues, interstellar comets,
+  single stars, each system's primary), tier 1 ("secondary") is planets
+  and companion stars, tier 2 ("tertiary") is moons, tier 3 ("quinary")
+  is small moon satellites; a rogue planet's moon is tier 1. Rows run in
+  ordered chunks (tier, then mass band), each seeing the state at its
+  start. A planet heavier than a companion star stays in its tier and is
+  ordered by mass there (the "bizarre quirk" he accepts); a capture in
+  the middle of a run takes effect in the next run's order. Open
+  measurement: the sort cost on millions of due rows is not measured yet.
   Headline: 8.3 (the orbital update system).
   Prerequisites: GEN.290, GEN.291.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
@@ -4006,6 +4101,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   closed-form step on read, and the thresholds only schedule
   perturbation re-fits; GEN.289 replaces the phase columns that the
   earlier wording relied on.
+  Decided (Boss, 2026-10-18, F4 and F5, approved to build; card taps as
+  the coordinator reported them, 5:32 PM EDT): the next-update value
+  comes from the speed of the new vector after step 4, capped at the
+  time for the influence set to change; a new record with no
+  next-update value is always visited, its position advances only from
+  its own epoch (generation stamps the epoch), then the value is set.
+  Full wording on GEN.105.
   Prerequisites: none.
   Design: [docs/design/orbital-solvers-and-integrators.md](design/orbital-solvers-and-integrators.md)
 
@@ -6094,7 +6196,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   at the core, mid radius, the rim, the top and bottom layers and across
   the slot-0 seam, the exact pairwise Hill criterion, a negative control
   without the margin, the cap, and a seed-reproducibility test.
-  Prerequisites: none. Related: GEN.109.
+  Decided (Boss, 2026-10-18, F1, approved to build; card tap as the
+  coordinator reported it, 5:30 PM EDT): the search radius is the
+  largest Hill radius of any object in the galaxy (one stored number,
+  Sgr A* left out of the maximum), which replaces the largest-nearby-
+  object scan and its cover lists; the cap of 64 exact members with one
+  point mass per sector for the rest stays. GEN.370 comes first. Full
+  wording on GEN.105.
+  Prerequisites: GEN.370. Related: GEN.109.
 
 - [ ] **GEN.342 The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6113,6 +6222,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The force on a body comes from the shared field kernel (PERF.88); this
   item adds the influence-set term, the galactic gradient hook and the
   velocity update (2026-10-16 review).
+  Decided (Boss, 2026-10-18, F2 and F3, approved to build; card taps as
+  the coordinator reported them, 5:31 and 5:32 PM EDT): the kernel runs
+  for every object, evaluated at the object's own location right after
+  its position change, in per object order; later objects see a mix of
+  old and new positions. Full wording on GEN.105.
+  Decided (Boss, 2026-10-18, 5:38 PM EDT words, tap 5:41 PM EDT as the
+  coordinator reported it): due objects are visited in the order of
+  GEN.105's tier-then-mass sort (a stable sort on tier, heaviest first,
+  ties by id); tier names are labels only. Sort cost on millions of due
+  rows is an open measurement.
   Prerequisites: GEN.341, GEN.338, GEN.340. Related: GEN.109.
 
 - [ ] **GEN.343 The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter**
@@ -13564,6 +13683,47 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   table shape agreed first; (4) GEN.554 after GEN.553, with the
   explosion-map sources verified before use. Core 4 will not touch
   GEN.568 and GEN.569 (Core 5) or GEN.555 (Core 3).
+  Merged in part (Core 4, GEN.565a, #2274, release 8.0.1839, reported
+  4:33 PM EDT 2026-10-18 on the lane's clock; no epoch, no stored value,
+  field name or draw changes): `generation/mass_object.py`
+  (`MassObject`) holds the four galactic-motion fields and the draw that
+  sets them and one `to_dict`/`from_dict` pair driven by each family's
+  `SERIALIZABLE_FIELDS`, with `_encode` and `_decode` hooks; `Star`,
+  `Planet`, `Comet`, `RoguePlanet`, `InterstellarComet` and
+  `AsteroidField` use it, `BlackHole`, `NeutronStar` and
+  `BinaryStarProxy` inherit it through `Star`, and `CompactRemnant`'s
+  copy of `Star`'s save and load is gone. This item stays open for
+  GEN.565b (the planetary and small-body families on the same core) and
+  the removal of the nine classes. Finding fixed in the same PR: on main
+  `test_age_law.py::test_the_scatter_and_both_backfills_draw_with_the_galaxys_laws`
+  (GEN.546's test) had timed out at 900 s on every run since GEN.404
+  (#2270) made a toy galaxy hold the Milky Way's stellar mass in a 40 pc
+  disk and GEN.404's gate did not include that test; the test now reads
+  in relative units (30 s for the whole file). Owned by Core 4, so no
+  TEST item.
+  Standing design rule (Boss, 2026-10-18, 5:20 PM EDT, typed in the
+  project chat, relayed by the coordinator;
+  docs/design/mass-object-class.md): "For all objects are objects with
+  mass in the system. I want to make sure that galactic motion is not
+  the only thing that they handle because the trajectory of all motion,
+  including planetary and lunar, should both be built into the object
+  mass functions (since they're all the same rules)". The mass object
+  core carries the trajectory of every kind of motion with one set of
+  rules: galactic motion, a planet's and a moon's orbit about its
+  parent, a comet's Kepler state and a star's orbit about a barycentre.
+  GEN.565a (#2274) covers only the galactic-motion fields and the save
+  and load, so GEN.565b and the kinematic record of GEN.584 must bring
+  the planetary and lunar trajectory into the same core functions; Core
+  4 was told to check GEN.565b against this rule.
+  Re-scope (Core 4, reported 5:25 PM EDT 2026-10-18 on the lane's clock,
+  after Boss's standing rule above): GEN.565b changes from 'the
+  planetary and small-body families' to 'motion in the core'. One state
+  vector relative to the parent (position, velocity, epoch and parent
+  mass) and one `advance(seconds)` on `kepler.universal_step` for every
+  body, whatever its parent (a star, a planet or the galaxy);
+  `HoldsOrbitPosition` folds into `MassObject`. The family classes
+  follow after that slice. No output change in this slice. GEN.584,
+  DB.73 and DB.74 (Core 1) should store this same state vector.
 
 - [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
   Part of the unified orbited-body chain (GEN.550; design note
@@ -14305,6 +14465,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   relayed). The kernels are SI floats; GEN.586 is not a hard
   prerequisite, write the same formulas once if it is not yet merged and
   let GEN.587 move them.
+  Standing design rule (Boss, 5:20 PM EDT 2026-10-18; see GEN.565 and
+  docs/design/mass-object-class.md): the trajectory of all motion,
+  planetary and lunar as well as galactic, is built into the one set of
+  mass object functions, since they are all the same rules. The
+  kinematic record is the state those functions advance for every kind
+  of object.
+  Core 4's re-scope of GEN.565b (5:25 PM EDT 2026-10-18 on the lane's
+  clock): the core's one state vector relative to the parent is
+  position, velocity, epoch and parent mass, advanced by one
+  `advance(seconds)` on `kepler.universal_step` for every body (parent =
+  star, planet or the galaxy). This item, DB.73 and DB.74 store that
+  same state vector.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
 - [ ] **GEN.585 Dimensions and unit systems in the registry: every unit carries its exponent vector, the derived kinds are listed, and a constant's number in any coherent system follows from its dimension**
@@ -15054,6 +15226,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wrapper, which alone handles the sequence.
   The command inventory (docs/design/command-inventory.md, PERF.120)
   lists every other command and entry point.
+  Decided (Boss, 2026-10-18, 5:14 to 5:15 PM EDT, cards F1 to F4, all as
+  Core 5 recommended, relayed by the coordinator): F1 'One wrapper run':
+  the Generate page builds the command list and one wrapper run follows
+  it, and `web/job_runner.py` only starts that run detached (it does not
+  build or order commands). F2: reset, check-math and the like are
+  one-unit registry commands. F3: each API job is a small run of its own.
+  F4: `planetgen sector` and `planetgen system` go through the wrapper
+  (each a one-command run).
   Prerequisites: PERF.98. Related: PERF.99, PERF.118.
 
 - [ ] **PERF.120 Every command does one thing: the umbrella for reshaping every command and entry point**
@@ -15105,6 +15285,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
+  Decided (Boss, 2026-10-18, 5:15 to 5:16 PM EDT, cards F5 and F7,
+  relayed by the coordinator): F5: one `planetgen scatter` root with
+  exactly one kind flag (`--mass`, `--luminosity`, `--phenomena`,
+  `--nebula-field`, `--band`). F7: redoing a scatter is a SEPARATE
+  `planetgen clear-scatter` command, not a `--redo` flag (this is against
+  Core 5's recommendation, and Boss's answer stands); `--redo-scatters`
+  is removed with no shim.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.122 The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags**
@@ -15124,6 +15311,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
+  Decided (Boss, 2026-10-18, 5:15 to 5:16 PM EDT, card F6, relayed by
+  the coordinator): one root command each, named like the registered
+  commands: `planetgen fill-map-luminosity`, `planetgen
+  rescore-habitability` and `planetgen clean-nebula-field` (with
+  `--apply`). They replace the `plan --fill-map-luminosity`, `plan
+  --fill-habitability` and `plan --redo-nebula-field` modes.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.123 `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds**
@@ -15262,6 +15455,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that rule bumps the tile cache stamp and the cached tiles are rebuilt
   once. The galaxy map lag Boss reported at the same time is MAP.249; if
   its cause is the missing cache, this item is brought forward.
+  Boss (2026-10-18, 5:43 PM EDT) widened this goal: the warm-up after
+  every update, generation or change runs in phases and goes as deep as
+  it can; the stored data may be about 10 times the 40 MB the first tile
+  cache cost; the cache is capped at 1 GB by a setting (`cache.max_mb`,
+  a slider on the settings page and a key in `config.json`); and every
+  list of the site gets a cached index that regenerates when its data
+  changes. Filed as PERF.139 (the setting), ADM.97 (the slider),
+  PERF.141 (the phased warm-up) and, as one goal with the index and
+  lists, DB.79, PERF.140 and UX.141 (issue #2293). Full wording on
+  PERF.139.
 
 - [ ] **PERF.131 Store the tiles compressed and serve the stored bytes with their encoding, so a request does no compression**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -15307,6 +15510,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.249 card at about 8:54 AM EDT, as the coordinator relayed): the
   tile cache work follows MAP.249's payload cut, so it starts after Core
   2's payload PR (about 2 MB a view) and is sized for the reduced tiles.
+  Boss (2026-10-18, 5:43 PM EDT): about 10 times the first tile cache's
+  40 MB is acceptable, up to 1 GB by the `cache.max_mb` setting
+  (PERF.139); stored data that can be precomputed and shipped ready
+  should be.
   Prerequisites: none. Related: PERF.129, MAP.159, MAP.158.
 
 - [ ] **PERF.132 Build proactively on a visit: the surrounding tiles and the next zoom levels are built and cached in the background**
@@ -15352,6 +15559,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.249 card at about 8:54 AM EDT, as the coordinator relayed): the
   tile cache work follows MAP.249's payload cut, so it starts after Core
   2's payload PR (about 2 MB a view) and is sized for the reduced tiles.
+  Boss (2026-10-18, 5:43 PM EDT): the warm-up goes "as deep as we can"
+  in phases after every update, generation or change; see PERF.141 for
+  the phases and PERF.139 for the budget.
 
 - [ ] **PERF.133 Keep every tile until the data changes: invalidate by what changed, rebuild what a change touched, and never evict a valid tile for size**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -15378,20 +15588,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rebuilds the tiles it touched (the changed tiles and their coarser
   parents, in the background at once rather than on the next visit);
   `prune` no longer deletes a valid tile because of age, so
-  `tile_cache.max_mb` is sized from the measured size of the built
-  levels plus the visited ones and the admin page says when the cache is
-  over it instead of evicting; a new tile format or a new generator
+  `cache.max_mb` is sized from the measured size of the built levels
+  plus the visited ones, the admin page says when the cache is at the
+  budget, and only the least recently visited on-demand tiles are
+  dropped to make room (see the Decided note below); a new tile format or a new generator
   epoch (PERF.41) drops the stored tiles once and starts a new
   generation; the generation and stamp logic keeps working for stage and
   window payloads; tests for a change inside one sector (only its tiles
   and parents rebuilt), a re-planned galaxy (a new generation) and a
-  full cache (nothing valid deleted). Owner: Core 2 (proposed).
+  full cache (warming stops, built-ahead tiles stay, the oldest visited tile goes). Owner: Core 2 (proposed).
   Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
   stored here are built with halo and satellite-galaxy stars ranked
   below every other star, so a budget cut removes them first; landing
   that rule bumps the tile cache stamp and the cached tiles are rebuilt
   once. The galaxy map lag Boss reported at the same time is MAP.249; if
   its cause is the missing cache, this item is brought forward.
+  Decided (Boss, 2026-10-18, card tap 5:56 to 5:57 PM EDT "Stop warming,
+  drop oldest visits", as the coordinator reported it; REPLACES this
+  item's earlier "never evict for size, warn only" wording): when the
+  `cache.max_mb` budget (PERF.139, default 1 GB) is full, the warm-up
+  stops, the built-ahead tiles are kept, and only the least recently
+  visited on-demand tiles are dropped to make room. A tile is still never
+  dropped because of age, and a change to the data still rebuilds what it
+  touched. Where the Done text below says "instead of evicting" or
+  "nothing valid deleted", this decision wins.
   Prerequisites: none. Related: PERF.129, PERF.41, PERF.104.
 
 - [ ] **PERF.134 The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions**
@@ -15511,6 +15731,116 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (the nuclear cluster majorant); the stack adds nothing beyond the ring
   term.
   Prerequisites: none. Related: GEN.402, GEN.322, PERF.106.
+
+- [ ] **PERF.139 One cache size setting, `cache.max_mb`, default 1024: tiles, stored lists and indexes share one disk budget**
+  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
+  warm-up that occurs after an update, generation, or change. That is
+  where we rebuild our tile cache, and I want us to go as deep as we
+  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
+  times that amount of stored data. If we can precalculate it, prepare
+  it, and get it ready to ship, let's do it. Same thing for caches of
+  all the lists. I had a serious problem with trying to find objects. I
+  need an index. I need a list of systems. I need a list of basically
+  every list the site wants, from phenomena in each type to planets to
+  moons to stars to whatever. We should build a cached index. Once
+  generation or updates are done, anytime anything changes, the cache it
+  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
+  say I'm perfectly happy with the cache up to 1 GB. There should be a
+  setting for that: how big the cache should be, on a slider on the
+  settings page and also, of course, in the config JSON file." Today
+  `tile_cache.max_mb` (default 200, a separate text box on the settings
+  page) bounds only the tile cache, and nothing bounds the stored lists.
+  Do: one key `cache.max_mb` in `config.json` (default 1024, 0 turns the
+  stored caches off) replaces `tile_cache.max_mb`, with no shim; the
+  tile cache, the stored lists and the object index share it; the admin
+  cache view (PERF.134) shows used and budget per kind. What happens when the budget is full is
+  decided (Boss, card taps 2026-10-18, 5:56 to 5:57 PM EDT, as the coordinator reported them): warming stops at the budget, built-ahead tiles are kept
+  and only the least recently visited on-demand tiles are dropped (see PERF.133);
+  when the budget is short, the object index and stored lists are kept first and
+  the tiles take the remaining space. `page_cache.max_mb` is memory per process,
+  a different thing, and stays. Done: the key exists in the settings model,
+  `config.schema.json`, `config.json.example` and docs/config.md, the
+  tile cache reads it, a test fills a small budget and checks the stated
+  behaviour, and the admin page shows the budget. Suggested owner: Core
+  2 (the tile cache lane); filed in 8.2.
+  Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
+  coordinator reported them): the cache budget is full: warming stops,
+  built-ahead tiles stay, only the least recently visited on-demand
+  tiles are dropped (PERF.133 amended); the budget is short: indexes and
+  stored lists first, tiles take the rest.
+  Prerequisites: none.
+
+- [ ] **PERF.140 The index builder and its automatic refresh: each kind is rebuilt from what changed whenever generation, an orbital update or an edit changes it**
+  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
+  warm-up that occurs after an update, generation, or change. That is
+  where we rebuild our tile cache, and I want us to go as deep as we
+  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
+  times that amount of stored data. If we can precalculate it, prepare
+  it, and get it ready to ship, let's do it. Same thing for caches of
+  all the lists. I had a serious problem with trying to find objects. I
+  need an index. I need a list of systems. I need a list of basically
+  every list the site wants, from phenomena in each type to planets to
+  moons to stars to whatever. We should build a cached index. Once
+  generation or updates are done, anytime anything changes, the cache it
+  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
+  say I'm perfectly happy with the cache up to 1 GB. There should be a
+  setting for that: how big the cache should be, on a slider on the
+  settings page and also, of course, in the config JSON file." Do: build
+  `object_index` per kind after generation and after `planetgen orbits`,
+  and refresh a kind when its data version tag moves (the page cache
+  already has per-kind tags in `web/lib/pagetags.py` and counters in
+  `db/dataversion.py`, but nothing consumes a tag bump to rebuild): only
+  the changed rows are rewritten, with a full rebuild as the fallback
+  and a check that the index matches the live tables. The index counts
+  against `cache.max_mb`. Done: after a generation run, an orbital
+  update and an API edit each leave the index matching the live tables,
+  a test changes one object and sees only its row rewritten, and the
+  admin page shows the index size and age per kind. Suggested owner:
+  Core 2; filed in 8.2.
+  Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
+  coordinator reported them): the index and lists are filed in 8.2 with
+  the tile cache, after PERF.131 to 133; their space is taken first when
+  the shared budget is short, tiles take the rest.
+  Prerequisites: DB.79, PERF.139.
+
+- [ ] **PERF.141 The warm-up runs in phases after every generation, update or change, as deep as the budget allows**
+  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
+  warm-up that occurs after an update, generation, or change. That is
+  where we rebuild our tile cache, and I want us to go as deep as we
+  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
+  times that amount of stored data. If we can precalculate it, prepare
+  it, and get it ready to ship, let's do it. Same thing for caches of
+  all the lists. I had a serious problem with trying to find objects. I
+  need an index. I need a list of systems. I need a list of basically
+  every list the site wants, from phenomena in each type to planets to
+  moons to stars to whatever. We should build a cached index. Once
+  generation or updates are done, anytime anything changes, the cache it
+  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
+  say I'm perfectly happy with the cache up to 1 GB. There should be a
+  setting for that: how big the cache should be, on a slider on the
+  settings page and also, of course, in the config JSON file." Today
+  `planetgen warm` (`cli/warm.py`, `web/warmup.py`) runs seven families
+  in a flat order (galaxy-map, galaxy-tiles, lists, sectors, systems,
+  phenomena, search), warms only the first page of each list and the
+  empty search page, stops at level caps (`warm_levels` 8,
+  `warm_zoom_levels` 14, 150,000 tiles) rather than a budget, and only
+  `update.sh` starts it. Do: name the phases and run them in order, each
+  with its own cap and each stopping at the budget: (1) the opening
+  views and the first page of each list, (2) the tiles to the built
+  levels, (3) the deep tiles and the deeper list pages, (4) the object
+  pages, (5) the name-search and facet answers. It starts by itself
+  after generation, `planetgen orbits` and any change that moves a data
+  version tag (and still from `update.sh`), rebuilds only what the
+  change touched (PERF.133), and the admin page shows each phase's
+  state. Done: a test runs a small galaxy through every phase, a change
+  in one sector re-runs only the affected phases for it, and a run stops
+  cleanly at a small budget. Suggested owner: Core 2 (owner of PERF.130
+  to 132); filed in 8.2.
+  Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
+  coordinator reported them): the warm-up stops at the budget and keeps
+  built-ahead tiles; indexes and lists are warmed and kept first, tiles
+  take the remaining space; the phases are filed in 8.2.
+  Prerequisites: PERF.139, PERF.140, PERF.131, PERF.132, PERF.133.
 
 ## DB: Database and schema
 
@@ -16450,6 +16780,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Revision number (11:12 AM EDT 2026-10-18): GEN.244 took 0112 (#2253);
   the head is 0112 and this item's revision takes the next free number,
   0113 or later, at its own merge.
+  Core 4's re-scope of GEN.565b (5:25 PM EDT 2026-10-18 on the lane's
+  clock; Boss's standing rule of 5:20 PM EDT, see GEN.565): the core's
+  one state vector relative to the parent is position, velocity, epoch
+  and parent mass, advanced by one `advance(seconds)` for every body,
+  galactic, planetary and lunar. Storage here should hold that same
+  state vector (with GEN.584).
   Prerequisites: none. Related: GEN.550, DB.69, DB.70.
 
 - [ ] **DB.74 One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables**
@@ -16494,6 +16830,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   GEN.565 slice 1 and Core 1 fits DB.74 and DB.73 to them when they come
   up in its queue (after GEN.404, PERF.138, GEN.591, GEN.544, GEN.545
   and TEST.241).
+  Core 4's re-scope of GEN.565b (5:25 PM EDT 2026-10-18 on the lane's
+  clock; Boss's standing rule of 5:20 PM EDT, see GEN.565): the core's
+  one state vector relative to the parent is position, velocity, epoch
+  and parent mass, advanced by one `advance(seconds)` for every body,
+  galactic, planetary and lunar. Storage here should hold that same
+  state vector (with GEN.584).
   Prerequisites: DB.73, GEN.565. Related: GEN.550, DB.73, DB.67, DB.70.
 
 - [ ] **DB.75 Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID**
@@ -16630,6 +16972,39 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: GEN.576, DB.73. Related: GEN.550, GEN.552, GEN.315,
   GEN.565.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **DB.79 The object index table (migration only): one row per object of every kind the site lists, with keyset order keys and a name index**
+  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
+  warm-up that occurs after an update, generation, or change. That is
+  where we rebuild our tile cache, and I want us to go as deep as we
+  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
+  times that amount of stored data. If we can precalculate it, prepare
+  it, and get it ready to ship, let's do it. Same thing for caches of
+  all the lists. I had a serious problem with trying to find objects. I
+  need an index. I need a list of systems. I need a list of basically
+  every list the site wants, from phenomena in each type to planets to
+  moons to stars to whatever. We should build a cached index. Once
+  generation or updates are done, anytime anything changes, the cache it
+  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
+  say I'm perfectly happy with the cache up to 1 GB. There should be a
+  setting for that: how big the cache should be, on a slider on the
+  settings page and also, of course, in the config JSON file." Today the
+  lists are queries over the live tables: the phenomena list is a `UNION
+  ALL` over about eight tables with a `COUNT(*)` and `ORDER BY` over the
+  union, stars, planets and moons have no list page at all, and no
+  phenomenon table has a FULLTEXT name index. Do (schema and migration
+  only, Core 1 numbers it): `object_index`, one row per object: kind
+  (system, star, planet, moon, belt, comet, and each phenomenon type),
+  object ID (96 bit), name, sector, parent, class or type, mass, and the
+  columns the list pages sort and filter on; a unique key on kind and
+  ID, keyset keys per kind and sort, and a FULLTEXT index on the name.
+  Done: the migration, the model and schema.sql agree, and the index is
+  empty until PERF.141 fills it. Suggested owner: Core 1; filed in 8.2 with the tile cache
+  (Boss, card tap 5:56 to 5:57 PM EDT).
+  Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
+  coordinator reported them): the index table is filed in 8.2 with the
+  tile cache; the index is kept first when the shared budget is short.
+  Prerequisites: none.
 
 ## API: The JSON API
 
@@ -17811,6 +18186,35 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   stalled run (the stalled one links to the incomplete uploads page,
   ADM.13).
   Prerequisites: API.8. Related: API.3.
+
+- [ ] **ADM.97 The settings page can show a number as a slider: the cache size is the first one**
+  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
+  warm-up that occurs after an update, generation, or change. That is
+  where we rebuild our tile cache, and I want us to go as deep as we
+  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
+  times that amount of stored data. If we can precalculate it, prepare
+  it, and get it ready to ship, let's do it. Same thing for caches of
+  all the lists. I had a serious problem with trying to find objects. I
+  need an index. I need a list of systems. I need a list of basically
+  every list the site wants, from phenomena in each type to planets to
+  moons to stars to whatever. We should build a cached index. Once
+  generation or updates are done, anytime anything changes, the cache it
+  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
+  say I'm perfectly happy with the cache up to 1 GB. There should be a
+  setting for that: how big the cache should be, on a slider on the
+  settings page and also, of course, in the config JSON file." The
+  settings page is generated from the settings model and renders every
+  number as a text box; only the Generate page has sliders
+  (`web/limit_sliders.py`, `static/limitsliders.js`, UX.116, log or
+  linear stops with a number box). Do: a `slider` option kind in the
+  generated form that reuses that widget (a number box beside it, stops
+  from the option's own range), the page and `config.json` stay in step,
+  and `cache.max_mb` uses it (range 64 MB to 8 GB on log stops, default
+  1 GB). Done: the settings page shows the slider for `cache.max_mb`,
+  moving it writes the key, editing `config.json` moves the slider, and
+  a test covers the round trip. Suggested owner: Core 2 with the
+  settings page code; filed in 8.2.
+  Prerequisites: PERF.139.
 
 ## SEC: Security
 
@@ -19129,30 +19533,6 @@ clears each one.
   the requirements are next locked.
   Prerequisites: none. Related: TEST.188.
 
-- [ ] **TEST.224 `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed once in a full gate: the nested system's inside_nebula_id was None (bug)**
-  Found by Core 5 (2026-10-17, about 2:20 PM EDT as the lane reported,
-  #2070 gate), relayed by the coordinator, filed by the TODO thread.
-  `src/tests/test_db_persistence.py::test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins`
-  failed once in the gate with `assert None == 1` at line 1259 (the
-  nested system's `inside_nebula_id` was None, expected 1); it passes
-  alone in 0.34 s. Fails on main: not seen. Frequency: 1 of 1 full
-  gates. Reproducer: the full gate under load; alone it passes. Do: find
-  whether the test depends on a draw or on test order (a shared nebula
-  id, an unseeded stream, a stale row), and make it deterministic with
-  no quarantine. Done: the cause is named, the test passes in the full
-  gate on 3 runs, and a test pins the condition it depended on. Owner:
-  Bug Hunt (proposed).
-  Sighting (Core 5, 2026-10-17, relayed by the coordinator at 10:46 PM
-  EDT on the lane's clock, its gate 7): `assert
-  nested["inside_nebula_id"] == big` gave None == 1 (line about 1262), 1
-  of 9 runs in the gate and 8 of 8 alone. Core 5's reading (inferred,
-  not checked): the small nebula's centre is random inside its own
-  shape, not necessarily inside the big one's, so the nested system can
-  land outside the big nebula. Fails on main: not checked. Reproducer
-  given: loop the test with `-n0`. The same test is TEST.216 (Bug Hunt's
-  #2124 branch).
-  Prerequisites: none. Related: TEST.208, TEST.213.
-
 - [ ] **TEST.226 Tests for the plan configuration and its two switches: the interior is identical with each combination, off generates nothing beyond the boundaries, addresses outside them are refused, the 8.1 sphere is the all-on case**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
   intergalactic generation to be a switch that defaults to off, put that
@@ -19183,35 +19563,6 @@ clears each one.
   and satellite galaxy switches to on if it holds that content (each
   switch on its own); only a galaxy created after 8.5 defaults both off.
   No change to 8.1.
-
-- [ ] **TEST.227 test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone] failed in a loaded browser run and passes alone (bug)**
-  Found by Core 3 (2026-10-17, 6:50 PM EDT as the lane reported,
-  GEN.321's second changed gate, ended 6:41 PM EDT, load 8 to 10; 19,437
-  passed, 4 failed), filed by the TODO thread.
-  `src/tests/test_web_browser_slow_pages.py::test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone]`
-  failed in the browser phase and passed when run alone. The failure
-  text was not relayed. Fails on main: not run on main. Frequency: 1 of
-  1 gates since this test was seen; unknown before. Reproducer: run
-  `scripts/test.py changed` with another lane's gate sharing the box, or
-  the test alone repeated under `stress` load. Do: take the failure text
-  from the gate log (Core 3's `.test-failures.jsonl`), find whether the
-  wait is too short under load or the page races the job, fix the cause
-  in the test or the page without lengthening a wait blindly and without
-  quarantining. Done: the cause is on this item and the test passes
-  under load in a gate. Owner: Bug Hunt (proposed).
-  Detail from Core 3 (2026-10-17, 7:09 PM EDT as the lane reported,
-  filed by the TODO thread): the failure was in the browser phase of
-  GEN.321's second gate (ended 6:41 PM EDT, load 8 to 10 from other
-  lanes' gates); on the rerun alone it passed in 9.4 s at load 8.2. It
-  passed in Core 3's earlier gate at 4:35 PM EDT. The failure text
-  itself is still not relayed (it is in Core 3's
-  `.test-failures.jsonl`). Fails on main: not run on main. No solo
-  reproducer.
-  Another sighting (Blocker 1, GEN.438 gate, 12:20 AM EDT 2026-10-18 as
-  the lane reported):
-  `test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone]`
-  failed under load and passed alone.
-  Prerequisites: none. Related: TEST.126, TEST.172, TEST.213.
 
 - [ ] **TEST.228 test_stars_and_phenomena_fit_within_their_sectors_real_cells compares a dark cloud's centre with its sector's cell, but the cloud is filed by its centroid**
   Observation by Core 1 (2026-10-17, 7:07 PM EDT as the lane reported),
@@ -19251,7 +19602,7 @@ clears each one.
   run that test in a way that does not take two cores. Done: the cause
   is on this item and the browser phase shows no multi-minute stall in a
   gate. Owner: Bug Hunt (proposed).
-  Prerequisites: none. Related: TEST.126, TEST.171, TEST.172, TEST.227.
+  Prerequisites: none. Related: TEST.126, TEST.171, TEST.172.
 
 - [ ] **TEST.233 test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug)**
   Found by Core 3 (2026-10-17, about 8:28 PM EDT as the lane reported;
@@ -19492,26 +19843,6 @@ clears each one.
   Prerequisites: GEN.576. Related: GEN.550, GEN.552, GEN.315, GEN.565.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
-- [ ] **TEST.243 Two test_web_browser_units tests errored in setup, one after 1041 s in pymysql (bug)**
-  Found by Core 1 (gate 5 of GEN.532/GEN.533, 12:22 AM EDT 2026-10-18 as
-  the lane reported; gate on its branch before the merge of #2186),
-  filed by the TODO thread. Test:
-  `src/tests/test_web_browser_units.py::test_the_server_text_is_the_automatic_text`
-  and `::test_a_saved_preference_is_applied_on_load`. Failure: both
-  errored in setup, not in the test body; the first after 1041 s with
-  `pymysql converters.py:60 Failed`, which is the per-test time limit
-  expiring while the setup waited on the database. Both pass alone.
-  Gate: the browser phase with 2 workers, box load 1.9. Fails on main:
-  not seen (not run on main separately). Frequency: once in 1 gate of
-  that lane; other loaded-browser failures (TEST.227, TEST.235) may be the same family (inferred, not checked). Reproducer: run
-  `pytest src/tests/test_web_browser_units.py` while a full gate runs,
-  and watch the setup time of the database fixture. Do: find what the
-  setup waited on (a lock or a slow fixture) and fix the cause. Done:
-  the cause is on this item and the two tests set up inside their limit
-  in 5 loaded runs. Owner: Bug Hunt (proposed; it owns the browser flake
-  family).
-  Prerequisites: none. Related: TEST.227, TEST.235, TEST.172.
-
 - [ ] **TEST.244 Tests: re-primary and reparent invariants, frame round trips, momentum conservation, a moon's velocity as the sum of its hops, a locked body's rate follows a primary change**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/unified-system-barycentre.md, decided: Boss's nine cards
@@ -19566,75 +19897,6 @@ clears each one.
   Prerequisites: GEN.576, GEN.578, GEN.581, GEN.583. Related: GEN.550,
   GEN.565, GEN.576, GEN.578.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
-
-- [ ] **TEST.246 The web edit menu tests time out in setup in a loaded gate: the accessibility site database backfill took 1024 s while other tests ran, and the tests pass alone in 46 to 49 s (bug)**
-  Found by Core 5 (reported 8:06 AM EDT 2026-10-18 on the lane's clock,
-  its GEN.572 gate of 71 minutes), filed by the TODO thread. Five
-  `test_web_edit_menu` tests failed with setup timeouts; the setup
-  builds the accessibility site database (the a11y site_db backfill),
-  which took 1024 s while concurrent tests ran, and each test passes
-  alone in 46 to 49 s. Core 5 also saw TEST.235's slow-pages [dark] case
-  fail once and pass alone. Fails on main: not checked (load only).
-  Frequency: 1 of 1 gates with other tests running beside it.
-  Reproducer: `scripts/test.py changed` while another gate runs, or the
-  web edit menu tests with the backfill under CPU load. Do: build the
-  site database once per run (a shared fixture) or give the setup a
-  deadline that scales with load, so no test waits on a 1000 s backfill;
-  no quarantine. Done: the five tests pass in a gate that runs beside
-  another gate, and the backfill time is printed in the run log. Owner:
-  Bug Hunt (proposed).
-  Sighting (Core 3, reported 11:07 AM EDT 2026-10-18, real clock; its
-  stacked GEN.244, GEN.282 and GEN.563 gate 2, 8:55 to 10:52 AM EDT,
-  load 5.3):
-  `test_web_browser_crumbs.py::test_a_pages_breadcrumb_is_one_line_at_any_width[1280]`
-  and `[320]` had two module-fixture setup errors at 953.7 s, past the
-  900 s limit, where the same module's database builds in 37 s alone;
-  all three failures of that gate passed alone. Frequency: 1 of 2 gates
-  of Core 3. Same family as the web edit menu setups above (a fixture
-  database build that stalls under load, possibly a mysqld stall); no
-  solo reproducer yet. It goes with Bug Hunt's setup fix.
-  Sighting (Core 3, reported 1:18 PM EDT 2026-10-18 on the lane's clock;
-  its GEN.317 gate, 11:17 AM to 1:14 PM EDT, load 8 to 9):
-  `test_web_browser_layout.py::test_controls_do_not_overlap[web.logout-390/600]`
-  failed in setup after 794.89 s; it passes alone. The same
-  fixture-setup stall as the crumbs and web edit menu cases above, so
-  the family now covers three modules. Frequency: 2 of 3 gates of Core
-  3.
-  Sighting (Core 2, reported about 3:25 PM EDT 2026-10-18 on the lane's
-  clock; its PERF.130 gate, 1:15 to 2:54 PM EDT, load 7.2):
-  `test_web_generate_alignment.py::test_text_boxes_line_up` had 12 setup
-  errors (web.generate and web.generate_system at 390, 820 and 1280,
-  light and dark) and every one passes alone. The same fixture-setup
-  stall under load as the web edit menu, crumbs and layout cases above,
-  so the family now covers four modules. Frequency: 1 of 1 gates of Core
-  2. It goes with Bug Hunt's setup fix. Core 2 also saw
-  `test_workers.py::test_a_batch_of_jobs_starts_no_more_workers_than_wanted_and_not_twice`
-  and
-  `::test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs`
-  fail in that gate (both pass alone): its gate started at 1:15 PM EDT,
-  before Core 5's fix #2267 (merged 1:27 PM EDT; TEST.250 retired), so
-  these two are most likely TEST.250's cause (the shared inline queue
-  context undoing its patches in the wrong order) and need no new item;
-  if either fails again on a tree that carries #2267, file it then.
-  Prerequisites: none. Related: TEST.227, TEST.235.
-
-- [ ] **TEST.252 test_a_double_click_on_a_star_flies_the_camera_to_it fails once in a loaded gate and passes alone (bug)**
-  Found by Core 3 (reported 1:18 PM EDT 2026-10-18 on the lane's clock;
-  its GEN.317 gate, 11:17 AM to 1:14 PM EDT, load 9.1), filed by the
-  TODO thread.
-  `src/tests/test_web_browser_sector_reach.py::test_a_double_click_on_a_star_flies_the_camera_to_it`
-  failed once after 3.8 s and passes alone. Failure text not relayed
-  (Core 3 has it in its `.test-failures.jsonl`). Fails on main: not run
-  on main. Frequency: 1 of 1 gate with the others of its kind red the
-  same way (a loaded browser phase). Reproducer: the test while another
-  gate runs; no solo reproducer. Do: get the failure text from Core 3,
-  then find whether the double click lands before the star list has
-  loaded or before the camera hook is ready (the same shape as TEST.223
-  and TEST.248), and wait for that state in the test or fix the page if
-  a click is lost; no quarantine. Done: the cause is on this item and
-  the test passes in a browser phase that runs beside another gate.
-  Owner: Bug Hunt (proposed).
-  Prerequisites: none. Related: TEST.223, TEST.248.
 
 - [ ] **TEST.253 test_nebula_shape_endpoint_serves_a_mesh fails once under load: the largest vertex radius is 1.0288 against a bound of 1.0, and it passes alone (bug)**
   Found by Core 4 (reported 1:29 PM EDT 2026-10-18 on the lane's clock;
