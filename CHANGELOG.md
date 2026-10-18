@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1786] - 2026-10-18
+
+**Headline:** The habitability levels page now takes every number from the limits the score uses, so it cannot say one thing while the rating does another.
+
+### Changed
+- `web/lib/habitability_ref.py` builds the Pressure, Temperature, Air, Water and Radiation tables from `habitability.HUMAN` (the `protection_limits` values) and the gas, water and chaotropicity constants. A test fails when a number on the page differs from its constant, and when a changed limit does not move the page.
+- Oxygen moves from Pressure to Air, where the score reads it, and is split into too little (a mask works) and too much (50 to 160 kPa). Carbon monoxide, hydrogen sulfide and sulfur dioxide each get their own row with their own numbers, water gets a chaotropicity row, and the equipment rule names the 140 C heat-shielded-suit limit.
+- Docstrings that called the overall rating PHI-4 say PHI-6; the stored key `"PHI-4"` and the `phi4` columns stay.
+
+TODO items resolved: GEN.219 / Added: none
+
 ## [8.0.1785] - 2026-10-18
 
 **Headline:** The habitability wording now comes from one module: the second explainer, which nothing used, is gone, and the numbers in the sentences use the unit ladders' own formatter.
