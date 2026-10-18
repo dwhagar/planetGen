@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1797] - 2026-10-18
+
+**Headline:** The host tables' source and note strings name the design note instead of a TODO code, so no code shows where a user can see it.
+
+### Changed
+- `phenomena/hosts.py`: the strings of the host tables (sources, limits, replacements, notes) no longer carry TODO codes; `test_no_todo_codes_shown` passes again.
+
+TODO items resolved: none / Added: none
+
 ## [8.0.1796] - 2026-10-18
 
 **Headline:** What can accompany or orbit an object is now a set of host classes with gated tables of possibilities, replacing the registry's five fixed system models; nothing the generator draws changes.
