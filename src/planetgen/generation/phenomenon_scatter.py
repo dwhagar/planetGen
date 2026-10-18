@@ -478,18 +478,19 @@ def _expectation_factor(shape, kind, subtype, plane, z):
     return factor
 
 
-def nucleus_row(seed):
+def nucleus_row(seed, shape):
     """
     The galaxy's nucleus: an active quasar with
     `tuning.QUASAR_ACTIVE_NUCLEUS_CHANCE`, else the quiescent supermassive
     black hole every galaxy has, at the galactic origin in `NUCLEUS_ADDRESS`'s
-    cell. Drawn once per scatter, from its own stream.
+    cell, either way the black hole the galaxy's bulge and stellar mass give
+    (`density.central_black_hole_mass_solar`, GEN.402). Drawn once per scatter, from its own stream.
     """
     rng = draw.Stream(f"{seed}:phenomena:{NUCLEUS_STREAM}")
+    mass_solar = density.central_black_hole_mass_solar(shape)
     if rng.random() < tuning.QUASAR_ACTIVE_NUCLEUS_CHANCE:
-        return _row(*NUCLEUS_ADDRESS, "quasar", (0, 0, 0), rng)
-    return _row(*NUCLEUS_ADDRESS, "black-hole", (0, 0, 0), rng, subtype=NUCLEUS_SUBTYPE,
-                mass_solar=log_uniform(*tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR, rng=rng))
+        return _row(*NUCLEUS_ADDRESS, "quasar", (0, 0, 0), rng, mass_solar=mass_solar)
+    return _row(*NUCLEUS_ADDRESS, "black-hole", (0, 0, 0), rng, subtype=NUCLEUS_SUBTYPE, mass_solar=mass_solar)
 
 
 def hypervelocity_rows(extents, edge_pc, seed, reach_shell=None):
@@ -530,9 +531,9 @@ def hypervelocity_rows(extents, edge_pc, seed, reach_shell=None):
                    velocity=tuple(speed * component for component in direction))
 
 
-def special_rows(extents, edge_pc, seed, filled=(), reach_shell=None):
+def special_rows(extents, edge_pc, seed, shape, filled=(), reach_shell=None):
     """The nucleus and the hypervelocity stars (to the grid's `reach_shell`), minus any in a cell
     already `filled`: the rows no shell draws."""
-    rows = [nucleus_row(seed)] + list(hypervelocity_rows(extents, edge_pc, seed, reach_shell))
+    rows = [nucleus_row(seed, shape)] + list(hypervelocity_rows(extents, edge_pc, seed, reach_shell))
     return [row for row in rows if tuple(row[:3]) not in filled]
 

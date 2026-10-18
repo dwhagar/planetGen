@@ -178,6 +178,14 @@ def stage_of(galaxy_seed):
     return "late" if _stream(galaxy_seed, "stage").random() < late_share(mass) else "early"
 
 
+def random_nucleus_mass_solar():
+    """The mass, solar masses, of the central black hole of a galaxy that no plan names (a black hole or quasar made
+    on its own is the nucleus of some other galaxy): a whole galaxy is drawn from the run's random stream and the
+    black hole its bulge and stellar mass give is taken (`structure.black_hole_mass_solar`, GEN.402)."""
+    drawn = draw_galaxy(draw.getrandbits(128).to_bytes(16, "big"))
+    return galaxyStructure.black_hole_mass_solar(drawn.structure, drawn.bulge_to_total)
+
+
 def structure_for(galaxy_seed):
     """The structure of the galaxy a seed makes (`structure_draw.draw_structure`): what a loaded shape is rebuilt with,
     since no column stores it."""

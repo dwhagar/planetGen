@@ -512,9 +512,8 @@ def check_hard_invariants(record):
 
     elif phenomenon_type == "quasar":
         mass = record["black_hole_mass_solar"]
-        lo, hi = prog_c.QUASAR_BLACK_HOLE_MASS_RANGE_SOLAR
-        if not (lo <= mass <= hi):
-            issues.append(f"black_hole_mass_solar={mass!r} outside {prog_c.QUASAR_BLACK_HOLE_MASS_RANGE_SOLAR}")
+        if not (mass > 0.0 and math.isfinite(mass)):
+            issues.append(f"black_hole_mass_solar={mass!r} is not a positive mass")
         lo, hi = prog_c.QUASAR_EDDINGTON_RATIO_RANGE
         if not (lo <= record["eddington_ratio"] <= hi):
             issues.append(f"eddington_ratio={record['eddington_ratio']!r} outside {prog_c.QUASAR_EDDINGTON_RATIO_RANGE}")

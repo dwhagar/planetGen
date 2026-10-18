@@ -26,6 +26,7 @@ its Eddington ratio:
 """
 
 
+from planetgen.galaxy import shape_draw as shapeDraw
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants as physical_constants
 from planetgen import tuning
@@ -70,7 +71,7 @@ class Quasar(LazySaladName):
     """Every attribute set by `__init__`, excluding `system_config` (a
     shared back-reference)."""
 
-    def __init__(self, system_config: SystemConfig, name=None):
+    def __init__(self, system_config: SystemConfig, name=None, black_hole_mass_solar=None):
         """
         Initializes a Quasar object.
 
@@ -78,12 +79,14 @@ class Quasar(LazySaladName):
             system_config (SystemConfig): The shared SystemConfig object
                 (used only for its `MARKDOWN` flag, via `to_paragraph_list`).
             name (str, optional): An explicit name. Random if omitted.
+            black_hole_mass_solar (float, optional): The galaxy's central black hole (`galaxy.structure`, GEN.402);
+                a quasar made on its own is the nucleus of a galaxy drawn for it (`shape_draw.random_nucleus_mass_solar`).
         """
         self.system_config = system_config
         self._init_salad_name(name)  # drawn on first read (PERF.43)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
-        self.black_hole_mass_solar = log_uniform(*tuning.QUASAR_BLACK_HOLE_MASS_RANGE_SOLAR)
+        self.black_hole_mass_solar = black_hole_mass_solar or shapeDraw.random_nucleus_mass_solar()
         mass_kg = self.black_hole_mass_solar * physical_constants.SOLAR_MASS_TO_KG
         self.event_horizon_radius_km = (
             2 * physical_constants.G * mass_kg / physical_constants.SPEED_OF_LIGHT_M_S ** 2 / 1000

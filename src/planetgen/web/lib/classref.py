@@ -313,7 +313,6 @@ def _black_hole():
     ranges = {
         "stellar": pc.BLACK_HOLE_MASS_RANGE_SOLAR,
         "intermediate": pc.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR,
-        "supermassive": pc.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR,
     }
     origins = {
         "stellar": f"The collapsed core of a massive star; {percent(1 - pc.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE)} "
@@ -326,12 +325,17 @@ def _black_hole():
         facts = []
         if code in ranges:
             facts.append(("Mass", number_range(*ranges[code], "solar masses")))
+        elif code == "supermassive":
+            facts.append(("Mass", f"{number(pc.BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR)} solar masses or more "
+                                  "(the galaxy's bulge or stellar mass sets it)"))
         if code in origins:
             facts.append(("Where found", origins[code]))
         facts.append(("Spin", number_range(*pc.BLACK_HOLE_SPIN_RANGE, "(dimensionless)")))
         summary = f"{_label(code)} black holes"
         if code in ranges:
             summary += f", {number_range(*ranges[code], 'solar masses')}"
+        elif code == "supermassive":
+            summary += f", {number(pc.BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR)} solar masses or more"
         classes[code] = _entry(code, f"{_label(code)} black hole", summary + ".", facts)
     return {
         "name": "Black Hole Classes",

@@ -26,6 +26,7 @@ import pytest
 from planetgen.db import store
 from planetgen.physics import constants, neutron_star
 from planetgen import tuning
+from planetgen.galaxy import structure as galaxyStructure
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.phenomena.compact_remnant import (BlackHole, CompactRemnant, NeutronStar, hawking_luminosity_w,
                                                             hawking_temperature_k)
@@ -104,15 +105,14 @@ def test_a_galaxy_holds_hundreds_of_intermediate_mass_black_holes():
 
 def test_supermassive_black_hole_sits_still_and_glows_faintly():
     bh = BlackHole(make_config(), mass_class="supermassive")
-    low, high = tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR
-    assert bh.mass_class == "supermassive" and low <= bh.mass_solar <= high
+    assert bh.mass_class == "supermassive" and bh.mass_solar >= 0.1 * tuning.BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR
     assert bh.type == "Supermassive Black Hole"
     assert bh.galactic_orbital_period_gy is None and bh.galactic_orbital_speed_kms is None
     assert bh.has_accretion_disk
     eddington = tuning.EDDINGTON_LUMINOSITY_W_PER_SOLAR_MASS * bh.mass_solar
     assert 0 < bh.luminosity <= tuning.BLACK_HOLE_SUPERMASSIVE_EDDINGTON_RATIO_RANGE[1] * eddington
-    # Sphere of influence G*M/sigma^2: ~2 pc (~4e5 AU) for Sgr A*'s mass.
-    sigma = tuning.BLACK_HOLE_SUPERMASSIVE_VELOCITY_DISPERSION_KMS * 1000
+    # Sphere of influence G*M/sigma^2, sigma from the M-sigma relation for its mass (GEN.402).
+    sigma = galaxyStructure.black_hole_dispersion_kms(bh.mass_solar) * 1000
     assert bh.system_perimeter == pytest.approx(constants.G * bh.mass / sigma ** 2 / constants.AU_TO_M)
     text = " ".join(bh.to_paragraph_list())
     assert "supermassive black hole at the heart of the galaxy" in text
