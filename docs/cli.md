@@ -635,6 +635,7 @@ Besides `planetgen`, a few modules run on their own with `python3 -m`. Run them 
 | `python3 -m planetgen.cli.worker` | Runs one queue worker. |
 | `python3 -m planetgen.cli.query` | Lists what is stored. |
 | `python3 -m planetgen.cli.migrate` | Brings the database up to the current schema. |
+| `python3 -m planetgen.cli.datasets` | Downloads the static data the generator reads (isochrone grids and the like) or says where each set stands. |
 | `python3 -m planetgen.cli.reset` | Empties the galaxy. |
 | `python3 -m planetgen.cli.lockouts` | Lists the login lockouts. |
 | `python3 -m planetgen.cli.lift_lockout` | Lifts a login lockout. |
@@ -684,6 +685,15 @@ Applies any schema migration the database is missing and does nothing if it is c
 
 ```bash
 python3 -m planetgen.cli.migrate --status
+```
+
+### datasets
+
+Downloads the static data files the generator reads (GEN.548) into a cache folder outside the checkout, `/var/cache/planetgen/datasets` (`PLANETGEN_DATA_DIR` moves it). `install.sh` and `update.sh` run `fetch` once at setup, as root, and make the folder readable for Apache's user; nothing downloads while the site or the generator runs. Each file is requested with the standard `User-Agent`, must have the size and sha256 the catalogue states, and is kept by an atomic rename, so an interrupted run leaves no half file. A dataset whose host does not answer, or whose file does not match, stays on a labelled stand-in; `fetch` then prints the reason and exits 1, which the scripts report as a warning and not as a failure. `status` fetches nothing and says which datasets are present.
+
+```bash
+python3 -m planetgen.cli.datasets fetch
+python3 -m planetgen.cli.datasets status
 ```
 
 ### reset

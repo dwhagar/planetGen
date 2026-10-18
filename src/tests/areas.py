@@ -40,7 +40,7 @@ AREA_RULES = (
                    r"neighborhood|directives|single_system|skeleton|poisson|redo|span|stages|steps|step_registry|"
                    r"near|search|save_progress|failed_run|validation|examples|full_matrix|space_sector|"
                    r"system_velocity|system_|systems|planets|benchmark|sector_|serialization|end_to_end"),
-    ("ops", r"admin_script|edge_|deploy|install|bump|version|todo|update_|modulegraph|debug_log|job_tree|"
+    ("ops", r"admin_script|edge_|deploy|install|bump|version|todo|update_|modulegraph|debug_log|job_tree|datasets_|"
             r"private_dirs|admin|state|activity_log|cli|utils_and_config"),
 )
 
