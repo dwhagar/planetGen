@@ -9508,10 +9508,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
   downloads this item makes at build time send the standard User-Agent
   of API.31 (one function builds it).
-  Design note merged as #2063 (Blocker 1, 2026-10-17) and awaiting Boss
-  approval; Boss has not approved it: docs/design/stellar-composition.md
-  ends with a 'For Boss to approve' list with a recommendation per item;
-  a ruling that differs changes this item.
+  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/stellar-composition.md.
+  Decided (Boss, 2026-10-17, 9:40 to 9:45 PM EDT, cards answered in the
+  project chat, relayed by the coordinator at 9:46 PM EDT): section 14
+  of docs/design/stellar-composition.md is approved as recommended: D9
+  (the branch and four offsets derive from a seeded key, nothing
+  stored), D10 (age gate at 8.0 Gy, range 6.5 to 9.5, the logistic
+  unscaled), D11 (oxygen from the NLTE fit, neon follows oxygen,
+  magnesium a switch), D12 ([Fe/H] independent of age), D13 (the
+  white-dwarf radius law is replaced, the observed neutron-star mass
+  mixture, no black-hole composition; the white-dwarf change is a
+  generator epoch change joined to the one rescatter), D14 (birth
+  composition, no photospheric correction), D15 (no GEN.407 table
+  changes, the tip follows Z through GEN.502), D16 (shared [Fe/H],
+  branch and offsets in groups and clusters, flagged default). Brewer
+  scatter: no, keep part A and carry the 0.1 dex mean difference as
+  uncertainty. Research gap: a build-time download is approved for the
+  isochrone grids, the white-dwarf layers and the neutron-star equation
+  of state (GEN.548). The item builds exactly this; it starts after
+  GEN.438 merges, and the isochrone, white-dwarf and neutron-star data
+  it needs come from GEN.548's build-time downloads (with the stand-in
+  fallback until they land).
 
 - [ ] **GEN.440 Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9589,6 +9606,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
   downloads this item makes at build time send the standard User-Agent
   of API.31 (one function builds it).
+  Decided (Boss, 2026-10-17, 9:40 to 9:45 PM EDT, cards answered in the
+  project chat, relayed by the coordinator at 9:46 PM EDT): section 14
+  of docs/design/stellar-composition.md is approved as recommended: D9
+  (the branch and four offsets derive from a seeded key, nothing
+  stored), D10 (age gate at 8.0 Gy, range 6.5 to 9.5, the logistic
+  unscaled), D11 (oxygen from the NLTE fit, neon follows oxygen,
+  magnesium a switch), D12 ([Fe/H] independent of age), D13 (the
+  white-dwarf radius law is replaced, the observed neutron-star mass
+  mixture, no black-hole composition; the white-dwarf change is a
+  generator epoch change joined to the one rescatter), D14 (birth
+  composition, no photospheric correction), D15 (no GEN.407 table
+  changes, the tip follows Z through GEN.502), D16 (shared [Fe/H],
+  branch and offsets in groups and clusters, flagged default). Brewer
+  scatter: no, keep part A and carry the 0.1 dex mean difference as
+  uncertainty. Research gap: a build-time download is approved for the
+  isochrone grids, the white-dwarf layers and the neutron-star equation
+  of state (GEN.548). GEN.440 follows GEN.439; the age gate of D10 is
+  8.0 Gy.
 
 - [ ] **GEN.441 Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -13829,6 +13864,37 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   failure is removed, or the item says which input is unknown and Boss
   has decided. Owner: Core 4 (proposed), after the age item.
   Prerequisites: GEN.546. Related: GEN.469, GEN.134, GEN.546.
+
+- [ ] **GEN.548 Build-time downloads for the isochrone grids, the white-dwarf layers and the neutron-star equation of state, each with a checksum and a labelled stand-in until it lands**
+  Boss (2026-10-17, 9:40 to 9:45 PM EDT, card answer relayed by the
+  coordinator at 9:46 PM EDT): the research gap in
+  docs/design/stellar-composition.md section 14 is closed by a
+  build-time download for the isochrone grids (luminosity, temperature
+  and lifetime against Z), the white-dwarf layers and the neutron-star
+  equation of state, as in D6 and the AD1 methane pattern
+  (docs/design/gap-filling-plan.md section 8: data is downloaded at
+  build time, no derived table is stored in the repository, the design
+  says how tests run offline). Filed by the TODO thread. Do: for each of
+  the three, name the dataset and its verified source (the lane verifies
+  each citation before use, the standing source rules apply), fetch an
+  extract with its sha256 at build time with the standard User-Agent of
+  API.31, keep a labelled stand-in as the fallback when the network is
+  down (the AD1 methane build does this), and let GEN.439 and GEN.440
+  read the result through one function per dataset. Network note: arXiv,
+  doi.org, NTRS, NIST, PubChem, USGS, HITRAN, Crossref, Zenodo, Nature
+  and PMC are reachable from the project environment; ADS, Science, OUP,
+  ScienceDirect, A&A, Annual Reviews, Europe PMC and LPI are refused, so
+  a dataset that lives only there is fetched from a Zenodo or arXiv copy
+  or Boss supplies it. Raw papers and downloaded datasets stay out of
+  the repository (Boss, 2:35 PM EDT, 2026-10-17: results and derived
+  values may be committed; the program stays free). Default (stands
+  unless Boss overrules): the three datasets are separate small pieces,
+  so GEN.439 can use the stand-ins first and swap each in as it lands.
+  Done: each dataset has a function, a checksum and a stand-in labelled
+  as one in the stand-in registry (gap plan section 6), a test builds a
+  fixture offline, and the design note names the three sources. Owner:
+  Blocker 1 (proposed, with GEN.439).
+  Prerequisites: none. Related: GEN.439, GEN.440, GEN.502, API.31.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
