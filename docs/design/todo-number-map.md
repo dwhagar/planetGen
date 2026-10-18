@@ -638,7 +638,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.42 | Describe what update.sh and install.sh really do today in INSTALL.md and the Apache and macOS guides | none | done, PR #1584 |
 | DOC.43 | Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer | none | done, PR #1584 |
 | DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it | none | done, PR #1584 |
-| DOC.45 | Reference docs follow the description layer | none | open |
+| DOC.45 | Reference docs follow the description layer | none | done, PR #2240 |
 | DOC.46 | Docs for the spherical sector grid | none | done, PR #1627 |
 | DOC.47 | Rebuild docs/design/architecture.html from the new architecture.md | none | done, PR #2037 |
 | DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | none | open |
@@ -1225,7 +1225,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.558 | Moons of wanderers: ejection survivors and isolated-disk moons are table rows, and the fixed 20% boolean is gone | none | open |
 | GEN.559 | Unbound comets: a size law and a cut, composition from the comet table, derived activity and velocity | none | open |
 | GEN.560 | Research list for the chain: ejection survival of moons, circumplanetary disks of isolated planetary-mass objects, failed-supernova and direct-collapse shares, the size law of interstellar objects | none | open |
-| GEN.561 | The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own | none | open |
+| GEN.561 | The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own | none | done, PR #2240 |
 | GEN.562 | One function for the white-dwarf initial-final relation and for the neutron star and black hole mass draw, with no change in what any seed generates | none | done, PR #2220 |
 | GEN.563 | The black hole density follows the mass function and the verified failed-supernova share: one constant changes, the neutron star density stays | none | open |
 | GEN.564 | A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter | none | open |
@@ -1952,7 +1952,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.104 | Build the document model for stars, pairs, planets, moons, belts, comets and the overview | none | done, PR #1509 |
 | UX.105 | The system page builds every body's detail from the document model as HTML tables | none | done, PR #2206 |
 | UX.106 | CLI output as plain text by default, Markdown and wikitext on request | none | done, PR #1533 |
-| UX.107 | Units in the description go through the ladders | none | open |
+| UX.107 | Units in the description go through the ladders | none | done, PR #2240 |
 | UX.108 | Describe phenomena, sectors, galaxy and facilities in the same Document | none | done, PR #2206 |
 | UX.109 | Remove the old per-class description text | none | done, PR #2234 |
 | UX.110 | The phenomena count on the overview page is wrong (bug) | none | done, PR #2124 |
