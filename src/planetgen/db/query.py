@@ -2834,8 +2834,9 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
 
     Returns:
         dict: Every column of the phenomenon's own row, plus `type`,
-            `sector_name` (`None` if it has no `sector_id`) and `nearest`
-            (its stored nearest star systems, see `nearest_systems`). An
+            `sector_name` (`None` if it has no `sector_id`), `nearest`
+            (its stored nearest star systems, see `nearest_systems`) and, for a black hole, neutron star or rogue
+            planet in a charted galaxy, `reference_radius_pc` (the observer its Einstein radius is worked out for). An
             asteroid field also gets `composition` (`[{"component",
             "concentration"}]`, from `asteroid_field_composition`) and an
             interstellar comet `composition` (its components, from
@@ -2866,6 +2867,11 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
     if table == "rogue_planets":
         detail["gravity_g"] = rogue_planet_gravity_g(detail.get("mass_kg"), detail.get("radius_km"))
     detail["nearest"] = nearest_systems(conn, table, [phenomenon_id]).get(phenomenon_id, [])
+    if phenomenon_type in ("black_hole", "neutron_star", "rogue_planet"):
+        # The Einstein radius (GEN.154) is seen from the galaxy's reference radius: no home position is stored (GEN.404).
+        skeleton = get_galaxy_shape(conn)
+        if skeleton is not None:
+            detail["reference_radius_pc"] = tuning.REFERENCE_RADIUS_SCALE_LENGTHS * skeleton.shape.disk_scale_length_pc
     # DB.2: the composition rows saved beside an asteroid field or an
     # interstellar comet, in their saved order (`composition_summary` is
     # the same list written out as a phrase).

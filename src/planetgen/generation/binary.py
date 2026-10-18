@@ -22,7 +22,7 @@ from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.util import draw
 from planetgen.util.serialization import fields_from_dict
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.galaxy import mass_chain
+from planetgen.galaxy import mass_chain, scales
 from planetgen.physics.orbits import (
     calculate_habitable_zone, calculate_hill_sphere, circular_orbital_speed_kms, minimum_update_interval_years, orbital_position_au,
 )
@@ -95,8 +95,7 @@ class BinaryStarProxy(Star):
                 distance from the galactic center, in light-years, threaded
                 into `_calculate_system_perimeter_static` -- see
                 `Star.calculate_system_perimeter`'s docstring for the same
-                parameter. `None` (the default) uses the fixed
-                `constants.GALACTIC_CENTER_DISTANCE_LY` constant.
+                parameter. `None` (the default) uses the radius that holds half of the galaxy's disc stars (`galaxy.scales`).
             galactic_orbital_phase_deg (float, optional): This system's
                 current angular position around its galactic orbit, in
                 degrees -- see `Star.__init__`'s docstring for the same
@@ -374,14 +373,13 @@ class BinaryStarProxy(Star):
             galactic_center_dist_ly (float, optional): This system's actual
                 distance from the galactic center, in light-years -- see
                 `Star.calculate_system_perimeter`'s docstring. `None` (the
-                default) uses the fixed
-                `constants.GALACTIC_CENTER_DISTANCE_LY` constant.
+                default) uses the radius that holds half of the galaxy's disc stars (`galaxy.scales`).
 
         Returns:
             float: The radius of the Hill sphere in Astronomical Units (AU).
         """
         if galactic_center_dist_ly is None:
-            galactic_center_dist_ly = constants.GALACTIC_CENTER_DISTANCE_LY
+            galactic_center_dist_ly = scales.default_galactocentric_ly()
         galactic_center_dist_m = max(galactic_center_dist_ly, constants.MIN_TIDAL_DISTANCE_LY) * constants.LY_TO_M
         hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, mass, mass_chain.current_central_mass_kg())
         return hill_radius_m / constants.AU_TO_M

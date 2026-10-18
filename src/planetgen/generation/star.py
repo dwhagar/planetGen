@@ -28,7 +28,7 @@ from planetgen.util import draw
 from planetgen.util import log
 from planetgen.physics.stellar_evolution import (YERKES_CLASS_NAMES, evolve_star, sample_living_star, sample_star_age_gy,
                                star_params)
-from planetgen.galaxy import mass_chain
+from planetgen.galaxy import mass_chain, scales
 from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
 from planetgen.names.wordsalad import LazySaladName
 from planetgen.generation.mass_object import GALACTIC_MOTION_FIELDS, MassObject
@@ -635,8 +635,7 @@ class Star(LazySaladName, MassObject):
                 from its owning sector's `galactic_radius_pc` once sectors
                 are placed in galaxy-space (see
                 `docs/design/galaxy-coordinate-system.md` section 5). `None`
-                (the default) falls back to the fixed
-                `constants.GALACTIC_CENTER_DISTANCE_LY` constant --
+                (the default) falls back to the radius that holds half of the galaxy's disc stars (`galaxy.scales`) --
                 the correct behavior for a system generated outside any
                 galaxy context (e.g. `generation/run_sector.py`'s own standalone CLI,
                 whose sectors are never placed in a galaxy).
@@ -645,7 +644,7 @@ class Star(LazySaladName, MassObject):
             float: The radius of the Hill sphere in Astronomical Units (AU).
         """
         if galactic_center_dist_ly is None:
-            galactic_center_dist_ly = constants.GALACTIC_CENTER_DISTANCE_LY
+            galactic_center_dist_ly = scales.default_galactocentric_ly()
         galactic_center_dist_m = max(galactic_center_dist_ly, constants.MIN_TIDAL_DISTANCE_LY) * constants.LY_TO_M
         hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, mass_chain.current_central_mass_kg())
         return hill_radius_m / constants.AU_TO_M
@@ -665,15 +664,14 @@ class Star(LazySaladName, MassObject):
             galactic_center_dist_ly (float, optional): This system's actual
                 distance from the galactic center, in light-years -- see
                 `calculate_system_perimeter`'s docstring for the same
-                parameter. `None` (the default) uses the fixed
-                `constants.GALACTIC_CENTER_DISTANCE_LY` constant.
+                parameter. `None` (the default) uses the radius that holds half of the galaxy's disc stars (`galaxy.scales`).
 
         Returns:
             tuple: `(orbital_speed_kms, orbital_period_gy)` -- see
                   `galactic_orbit.calculate_galactic_orbit`.
         """
         if galactic_center_dist_ly is None:
-            galactic_center_dist_ly = constants.GALACTIC_CENTER_DISTANCE_LY
+            galactic_center_dist_ly = scales.default_galactocentric_ly()
         return calculate_galactic_orbit(galactic_center_dist_ly)
 
     @staticmethod
@@ -844,8 +842,7 @@ class Star(LazySaladName, MassObject):
             galactic_center_dist_ly (float, optional): This star's actual
                 distance from the galactic center, in light-years, threaded
                 into `calculate_system_perimeter` -- see that method's
-                docstring. `None` (the default) uses the fixed
-                `constants.GALACTIC_CENTER_DISTANCE_LY` constant.
+                docstring. `None` (the default) uses the radius that holds half of the galaxy's disc stars (`galaxy.scales`).
             galactic_orbital_phase_deg (float, optional): This star's
                 current angular position around its galactic orbit, in
                 degrees -- the value `planetgen.db.store.advance_orbital_phases`
@@ -914,7 +911,7 @@ class Star(LazySaladName, MassObject):
         if self.metallicity_fe_h is None:
             self.metallicity_fe_h = metallicity.sample_fe_h(
                 getattr(self.system_config, "POPULATION", None),
-                constants.GALACTIC_CENTER_DISTANCE_LY if self.galactic_center_dist_ly is None
+                scales.default_galactocentric_ly() if self.galactic_center_dist_ly is None
                 else self.galactic_center_dist_ly,
                 draw.Stream(f"metallicity:{self.mass!r}:{self.age!r}:{self.galactic_center_dist_ly!r}"),
                 peaks=getattr(self.system_config, "FE_H_PEAKS", None))

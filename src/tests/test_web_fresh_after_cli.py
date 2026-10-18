@@ -48,6 +48,7 @@ from planetgen.web.lib import pagecache  # noqa: E402
 from planetgen.web.lib import tilecache  # noqa: E402
 from planetgen.db import store  # noqa: E402
 from planetgen import tuning
+from tests.toy_shape import toy_shape
 from tests.publicids import pid
 from planetgen.galaxy import spherical
 from planetgen.galaxy.density import build_galaxy_shape  # noqa: E402
@@ -59,7 +60,7 @@ EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 
 # The same small toy galaxy test_galaxy_gen.py plans: shell 0 is one core
 # sector, deep inside it, so `galaxy --shell 0` is quick.
-_SHAPE = build_galaxy_shape(
+_SHAPE = toy_shape(
     disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
     bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
 )

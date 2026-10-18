@@ -12,6 +12,9 @@ import pytest
 from planetgen.util import draw
 from planetgen import tuning
 
+from planetgen.galaxy import density
+from planetgen.physics import constants as physicalConstants
+from planetgen.physics.units import ly_to_pc
 from planetgen.galaxy.density import (
     build_galaxy_shape,
     predicted_star_count,
@@ -29,16 +32,24 @@ SHAPE = build_galaxy_shape(
 )
 
 
-def test_relative_density_is_exactly_one_at_calibration_point():
-    calibration_radius_pc = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * SHAPE.disk_scale_length_pc
-    theta_arm = math.log(calibration_radius_pc / SHAPE.disk_scale_length_pc) / math.tan(SHAPE.pitch_angle_rad)
-    theta_interarm = theta_arm + math.pi / SHAPE.arm_count
-    position = (
-        calibration_radius_pc * math.cos(theta_interarm),
-        calibration_radius_pc * math.sin(theta_interarm),
-        0.0,
-    )
-    assert relative_density(position, SHAPE) == pytest.approx(1.0)
+def _systems_per_raw_unit(shape):
+    return shape.k_norm * physicalConstants.LOCAL_STELLAR_DENSITY_LY3 / ly_to_pc(1.0) ** 3
+
+
+def test_the_galaxy_holds_the_systems_its_stellar_mass_makes():
+    """GEN.404: no point of the galaxy is pinned to 1.0; the whole holds its stellar mass at the mean system mass."""
+    systems = density.total_mass(SHAPE) * _systems_per_raw_unit(SHAPE)
+    assert systems == pytest.approx(SHAPE.structure.stellar_mass_solar / tuning.MEAN_SYSTEM_MASS_SOLAR, rel=1e-12)
+
+
+def test_a_more_massive_galaxy_of_the_same_shape_is_proportionally_denser():
+    heavy = build_galaxy_shape(
+        disk_scale_length_pc=SHAPE.disk_scale_length_pc, disk_scale_height_pc=SHAPE.disk_scale_height_pc,
+        bulge_scale_radius_pc=SHAPE.bulge_scale_radius_pc, bulge_amplitude=SHAPE.bulge_amplitude,
+        arm_count=SHAPE.arm_count, pitch_angle_rad=SHAPE.pitch_angle_rad, arm_amplitude=SHAPE.arm_amplitude,
+        structure=SHAPE.structure._replace(stellar_mass_solar=2.0 * SHAPE.structure.stellar_mass_solar))
+    assert heavy.k_norm / SHAPE.k_norm == pytest.approx(2.0, rel=1e-6)
+    assert relative_density((9000.0, 0.0, 0.0), heavy) == pytest.approx(2.0 * relative_density((9000.0, 0.0, 0.0), SHAPE), rel=1e-6)
 
 
 def test_relative_density_peaks_at_galactic_center():
@@ -92,16 +103,11 @@ def test_relative_density_does_not_overflow_far_off_the_galactic_plane():
     )
 
 
-def test_build_galaxy_shape_default_calibration_radius():
-    shape_default = build_galaxy_shape(
+def test_a_toy_galaxy_is_normalized_to_its_own_mass_too():
+    toy = build_galaxy_shape(
         disk_scale_length_pc=40.0, disk_scale_height_pc=12.0,
         bulge_scale_radius_pc=10.0, bulge_amplitude=2.0,
         arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
     )
-    shape_explicit = build_galaxy_shape(
-        disk_scale_length_pc=40.0, disk_scale_height_pc=12.0,
-        bulge_scale_radius_pc=10.0, bulge_amplitude=2.0,
-        arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
-        calibration_radius_pc=tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * 40.0,
-    )
-    assert shape_default.k_norm == pytest.approx(shape_explicit.k_norm)
+    assert density.total_mass(toy) * _systems_per_raw_unit(toy) == pytest.approx(
+        toy.structure.stellar_mass_solar / tuning.MEAN_SYSTEM_MASS_SOLAR, rel=1e-12)

@@ -34,9 +34,9 @@ def _density(kind, radius_pc, seed=None):
     return ejecta_field.density_pc3(kind, radius_pc, SHAPE, E_VALUE, EDGE_PC, seed)
 
 
-def test_the_galaxys_systems_are_about_three_hundred_billion():
+def test_the_galaxys_systems_are_its_stellar_mass_over_the_mean_system_mass():
     systems = ejecta_field.galaxy_systems(SHAPE, E_VALUE, EDGE_PC)
-    assert 2.0e11 < systems < 4.5e11      # the 3.0e11 the halo's share is built on (HALO_SYSTEM_FRACTION)
+    assert systems == pytest.approx(5.0e10 / tuning.MEAN_SYSTEM_MASS_SOLAR, rel=1e-6)   # GEN.404: the mass sets the count
 
 
 def test_the_unbound_share_is_a_draw_of_the_range_for_neutron_stars_and_two_percent_for_black_holes():
@@ -66,10 +66,10 @@ def test_the_density_is_n_over_four_pi_r_squared_v_t_out_to_v_t_and_none_beyond(
 
 def test_a_cell_far_out_holds_about_the_expected_ejecta_of_the_design_note():
     """docs/design/intergalactic-and-halo-contents.md 5.6: 1.3e-7 of a 4 pc cell at 50 kpc and 3.3e-8 at 100 kpc for
-    2e8 unbound neutron stars; this galaxy has about 3.8e8 at the middle of the range, so about twice that."""
+    2e8 unbound neutron stars; this galaxy has about 1.4e8 at the middle of the range, so about 0.6 of that."""
     near = _density("neutron-star", 5.0e4) * CELL_PC3
     far = _density("neutron-star", 1.0e5) * CELL_PC3
-    assert 1.0e-7 < near < 4.0e-7 and 2.5e-8 < far < 1.0e-7
+    assert 5.0e-8 < near < 2.0e-7 and 1.2e-8 < far < 5.0e-8
     assert _density("black-hole", 5.0e4) < _density("neutron-star", 5.0e4) / 50
 
 

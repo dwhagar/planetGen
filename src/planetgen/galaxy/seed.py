@@ -105,20 +105,36 @@ def current_galaxy_seed():
     return _current_galaxy_seed.get()
 
 
+_current_disk_scale_length_pc = contextvars.ContextVar("disk_scale_length_pc", default=None)
+
+
+def current_disk_scale_length_pc():
+    """The thin disk's scale length, parsecs, of the galaxy the running unit belongs to, when `seeded` was given it
+    (a planned galaxy's real shape, whatever options drew it), or `None`: `galaxy.scales` then takes the length the seed
+    draws."""
+    return _current_disk_scale_length_pc.get()
+
+
 @contextlib.contextmanager
-def seeded(galaxy_seed, kind, address):
+def seeded(galaxy_seed, kind, address, disk_scale_length_pc=None):
     """
     Runs one unit on its own seed: binds a `draw.Stream` seeded from
     `unit_seed` for the length of the block (in this thread only), so
     what ran before and after carries on as if the unit hadn't run here.
     With no galaxy seed (`None`: nothing planned) it changes nothing.
+
+    Args:
+        disk_scale_length_pc (float, optional): The galaxy's thin disk scale length, which the laws quoted in the
+            galaxy's own scales (GEN.404) read through `galaxy.scales`.
     """
     if galaxy_seed is None:
         yield
         return
     token = _current_galaxy_seed.set(bytes(galaxy_seed))
+    length_token = _current_disk_scale_length_pc.set(disk_scale_length_pc)
     try:
         with draw.bound(unit_seed(galaxy_seed, kind, address)):
             yield
     finally:
+        _current_disk_scale_length_pc.reset(length_token)
         _current_galaxy_seed.reset(token)
