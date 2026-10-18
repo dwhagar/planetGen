@@ -17807,6 +17807,19 @@ clears each one.
   Reproducer: run `scripts/test.py changed` while another lane's gate
   shares the box. Bug Hunt's big branch carries the fix for this item
   (#1694).
+  Sighting at a second assertion (Core 4, 2026-10-17, 9:25 PM EDT as the
+  lane reported; found inside its GEN.469 gate work, not its chain): the
+  same test failed at `src/tests/test_gen_resume.py:259`, `assert
+  forced["total"] > 0` -> `assert 0 > 0` (the forced bright-star scatter
+  placed 0 stars). Frequency: about 1 of 5 runs inside a full gate (two
+  xdist workers, load about 10), 0 of 5 alone. Fails on main: not
+  checked (line 259 is on main, which has no seed pin yet). Reproducer:
+  run the test alone repeatedly while a gate or the browser phase loads
+  the machine; the seed is not fixed in the test. This is the same
+  unpinned galaxy seed in `_seed_galaxy` as the line 299 sighting, so
+  the pin Bug Hunt has in its #2124 branch should cover it; Bug Hunt is
+  asked to check that the pinned seed gives a nonzero forced total (this
+  assertion) as well as the scattered system count (line 299).
   Prerequisites: none. Related: TEST.170, TEST.111.
 
 - [ ] **TEST.172 test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug)**
