@@ -23,6 +23,7 @@ import time
 
 import pymysql
 
+from planetgen.datasets import catalogue as datasetCatalogue
 from planetgen.db import region, sector_paths, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import density, resolution as galaxyResolution, seed as galaxySeed, version_check
@@ -1202,6 +1203,28 @@ def require_math_check():
             f"Run 'planetgen check-math' for details.")
 
 
+class DatasetsMissing(RuntimeError):
+    """GEN.590: a file the generator reads was never downloaded (`planetgen.datasets`), so a bulk generation was refused
+    before writing anything; the message names the datasets."""
+
+
+def require_datasets():
+    """
+    The second gate in front of every bulk generation (GEN.590, Boss's "Require the data"): the data files star composition
+    reads (isochrones, white-dwarf sequences, neutron-star tables) must be in the cache folder that setup fills. Nothing is
+    downloaded here (setup does that); the files are looked at and hashed once per process.
+
+    Raises:
+        DatasetsMissing: Naming each dataset that is missing and why.
+    """
+    missing = datasetCatalogue.missing()
+    if missing:
+        named = "; ".join(f"{located.dataset.key} ({located.dataset.fill}): {located.reason}" for located in missing)
+        raise DatasetsMissing(
+            f"the downloaded data is missing ({named}), so nothing was generated. Setup downloads it "
+            f"('python3 -m planetgen.cli.datasets status' says which files are missing).")
+
+
 def estimate_cell(density, systems, config=None):
     """
     The size and time of filling one cell (UX.113), from the server's own stored speeds and sizes
@@ -1265,6 +1288,8 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
         RuntimeError: If the galaxy's skeleton has never been built.
         MathCheckFailed: If the math check failed (a real run only);
             nothing is written.
+        DatasetsMissing: If a downloaded data file is missing (a real run only);
+            nothing is written.
     """
     edge_pc = run_common._edge_pc()
     radius_pc = (
@@ -1274,6 +1299,7 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
     config = config or store.DEFAULT_MYSQL_CONFIG
     if not estimate_only:
         require_math_check()
+        require_datasets()
 
     conn = store.get_connection(config)
     try:

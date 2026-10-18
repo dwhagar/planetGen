@@ -1556,11 +1556,13 @@ def main():
               f"from the galaxy's own seed instead.")
 
     # TEST.68: a bulk run checks the math first and writes nothing at all
-    # (not even the activity log's start line) when it fails.
+    # (not even the activity log's start line) when it fails. GEN.590: so it
+    # does when a downloaded data file is missing.
     if is_bulk_run(args):
         try:
             run_galaxy.require_math_check()
-        except run_galaxy.MathCheckFailed as exc:
+            run_galaxy.require_datasets()
+        except (run_galaxy.MathCheckFailed, run_galaxy.DatasetsMissing) as exc:
             _fatal(str(exc))
 
     # One start and one finish line per run in the activity log (SEC.28);

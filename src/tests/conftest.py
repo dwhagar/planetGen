@@ -527,6 +527,20 @@ def _reset_login_backoff():
 
 
 @pytest.fixture(autouse=True)
+def _downloaded_data_present(monkeypatch, request):
+    """
+    Bulk generation refuses to start while a downloaded data file is missing (GEN.590, `run_galaxy.require_datasets`), and a
+    test machine's cache folder is empty (a server's is filled by `update.sh`), so every test sees the check report nothing
+    missing. A test that checks the refusal itself is marked `real_datasets` and gets the real check.
+    """
+    if request.node.get_closest_marker("real_datasets"):
+        return
+    from planetgen.datasets import catalogue
+
+    monkeypatch.setattr(catalogue, "missing", lambda: [])
+
+
+@pytest.fixture(autouse=True)
 def _run_queue_inline(monkeypatch, request):
     """
     A stage on the new work queue (PERF.97, `planetgen/queue/units.py`) queues its units on Redis and has workers

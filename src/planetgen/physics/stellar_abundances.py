@@ -26,17 +26,19 @@ The chain:
 4. **The fractions.** `composition` turns [Fe/H] and the offsets into X, Y, Z and each element's mass fraction, and
    `mass_ratio` and `number_ratio` give Fe/Si, Mg/Si, C/O and O/Si, which the planets inherit (GEN.428).
 5. **The rest.** Surface changes of the first dredge-up, the radioactive birth abundances (Eu, Th and U for GEN.459), the white
-   dwarf mass-radius table and core type, the neutron-star constants and outer-crust sequence, the black hole's formulas and
-   the brown dwarf's limits and radius.
+   dwarf core type, the neutron-star constants, the black hole's formulas and the brown dwarf's limits and radius.
+
+What the downloaded data files give (GEN.548, wired in by GEN.590) is not here: the main-sequence luminosity, temperature,
+radius and lifetime (MIST), the white dwarf's radius and layers (Bedard et al. 2020) and the neutron star's outer crust
+(Servais and Chamel 2026) are read in `stellar_composition` from `planetgen.datasets`, which refuses to answer when the files
+were not downloaded (bulk generation refuses to start in that case, `run_galaxy.require_datasets`).
 
 `RELATIONS` lists every relation with its source and its verification state (verified, partly verified, open or stand-in),
-so the open ones are found and replaced (build-time grids and tables: GEN.548).
+so the open ones are found and replaced.
 """
 
 import bisect
-import json
 import math
-import os
 from dataclasses import dataclass
 
 from planetgen import tuning
@@ -51,8 +53,6 @@ BRANCHES = (BRANCH_THIN, BRANCH_HIGH_ALPHA)
 
 RESIDUAL_ELEMENTS = ("C", "O", "Mg", "Si")
 """tuple: The elements that carry a correlated residual, in the order of `tuning.STELLAR_XFE_CORRELATION`."""
-
-DATA_DIRECTORY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
 
 VERIFIED = pt.VERIFIED
 PARTLY_VERIFIED = pt.PARTLY_VERIFIED
@@ -106,24 +106,32 @@ RELATIONS = (
     Relation("first dredge-up", "Boothroyd and Sackmann 1999 Tables 2 and 4", PARTLY_VERIFIED,
              "1 to 2.5 solar masses, Z 0.001 to 0.02; nitrogen at low Z not extracted, held at the Z = 0.02 factor"),
     Relation("Wolf-Rayet surface fractions", "Crowther 2007 section 3.5", PARTLY_VERIFIED, "the helium and oxygen split is open"),
-    Relation("white dwarf mass-radius", "Chandrasekhar equation of state integrated by scripts/build_white_dwarf_table.py; "
-             "Sirius B (Joyce et al. 2018)", VERIFIED, "no Coulomb or temperature correction: 3 to 5 percent is the test limit"),
+    Relation("main-sequence luminosity, temperature, radius and lifetime", "MIST v1.2 basic isochrones, v/vcrit 0.4 (Choi et al. "
+             "2016; Dotter 2016), downloaded at setup (SC1, datasets.isochrones)", PARTLY_VERIFIED,
+             "solar-scaled, 0.1 solar masses and up, 0.1 Myr to about 20 Gy; a star's present mass stands for its initial one"),
+    Relation("white dwarf radius against mass and temperature", "Bedard et al. 2020 cooling sequences, downloaded at setup (SC2, "
+             "datasets.white_dwarf_models)", PARTLY_VERIFIED,
+             "carbon-oxygen cores, 0.20 to 1.30 solar masses; a helium-core or oxygen-neon white dwarf takes the same sequences"),
     Relation("white dwarf core type by mass", "Althaus et al. 2010 (oxygen-neon above 1.05 solar masses)", PARTLY_VERIFIED,
              "the helium-core limit of 0.45 is recalled; the carbon-oxygen split and the layer masses are open"),
     Relation("white dwarf atmosphere shares and pollution", "Xu, Rogers and Blouin 2024", VERIFIED),
-    Relation("white dwarf layers", "none read", OPEN, "layer masses and the C:O split wait for the build-time tables"),
+    Relation("white dwarf layers", "Bedard et al. 2020 (thick: q_H 1e-4, thin: q_H 1e-10, q_He 1e-2; SC2)", PARTLY_VERIFIED,
+             "the sequences assume an even C:O core, not a measured split; none for a helium-core or oxygen-neon white dwarf"),
     Relation("neutron star mass populations", "Ozel and Freire 2016; Romani 2022", VERIFIED),
     Relation("neutron star radius band", "Miller et al. 2021 (hull of the 1-sigma intervals)", VERIFIED),
-    Relation("neutron star outer crust sequence", "Chamel and Haensel 2008 Table 2", VERIFIED),
-    Relation("neutron star inner crust and core", "none: needs an equation of state", OPEN, "the build-time equation-of-state tables"),
+    Relation("neutron star outer crust sequence", "Servais and Chamel 2026, 20 nuclear mass models, downloaded at setup (SC3, "
+             "datasets.neutron_star_matter); it replaced Chamel and Haensel 2008 Table 2", PARTLY_VERIFIED,
+             "one mass model is drawn per star; the unmagnetised files only"),
+    Relation("neutron star inner crust and core", "Malik, Pais and Providencia 2024, 21 equations of state, downloaded (SC3)",
+             OPEN, "the tables are on disk and nothing integrates them yet: the radius from an equation of state is GEN.463's"),
     Relation("black hole quantities", "Kerr-Newman formulas (Bardeen, Press and Teukolsky 1972); the no-hair theorem "
              "(Chrusciel, Costa and Heusler 2012)", VERIFIED),
     Relation("brown dwarf deuterium limit", "Spiegel, Burrows and Milsom 2011 Table 1", VERIFIED),
     Relation("brown dwarf lithium and hydrogen limits", "Burrows et al. 2001", VERIFIED, "at solar metallicity"),
     Relation("brown dwarf hydrogen limit against metallicity", "Burrows et al. 2001 (0.092 at Z = 0)", STAND_IN,
-             "linear in Z between the two values; the real dependence needs the build-time isochrone grids"),
+             "linear in Z between the two values; the MIST grid (SC1) starts at 0.1 solar masses and cannot give it"),
     Relation("brown dwarf radius", "Baraffe et al. 2015 (BHAC15) track at 1 Gyr, solar Z", STAND_IN,
-             "one age and one metallicity; the build-time grid replaces it"),
+             "one age and one metallicity; the MIST grid (SC1) starts at 0.1 solar masses, above every brown dwarf"),
 )
 
 # --- The reference scale -----------------------------------------------------------------------------------------------
@@ -490,37 +498,10 @@ def birth_radiogenic(star, branch, eu_normal=0.0, th_eu_normal=0.0):
 
 # --- White dwarfs ------------------------------------------------------------------------------------------------------
 
-def _load_white_dwarf_table():
-    path = os.path.join(DATA_DIRECTORY, "white_dwarf_mass_radius.json")
-    with open(path, encoding="utf-8") as handle:
-        data = json.load(handle)
-    for field in ("sources", "licence", "retrieved", "title", "rows", "limiting_mass_solar"):
-        if not data.get(field):
-            raise StellarAbundanceError(f"white_dwarf_mass_radius.json states no {field}")
-    rows = data["rows"]
-    return tuple(row[1] for row in rows), tuple(row[2] for row in rows), data["limiting_mass_solar"]
-
-
-_WD_MASSES, _WD_RADII, WHITE_DWARF_LIMITING_MASS_SOL = _load_white_dwarf_table()
-
-
-def white_dwarf_radius_solar(mass_sol):
-    """The radius (solar radii) of a zero-temperature white dwarf of `mass_sol` solar masses, interpolated in the integrated table
-    (Chandrasekhar equation of state, mu_e = 2): 0.0127 at 0.6, 0.0082 at 1.0, 0.0080 at Sirius B's 1.018.
-
-    Raises:
-        StellarAbundanceError: The mass is outside the table (0.11 to 1.41 solar masses).
-    """
-    if not _WD_MASSES[0] <= mass_sol <= _WD_MASSES[-1]:
-        raise StellarAbundanceError(f"a {mass_sol} solar mass white dwarf is outside the table "
-                                    f"({_WD_MASSES[0]:.2f} to {_WD_MASSES[-1]:.2f})")
-    return _interpolate(_WD_MASSES, _WD_RADII, mass_sol)
-
-
 def white_dwarf_core(mass_sol):
     """The core type of a white dwarf: "helium" below `tuning.STELLAR_WD_HELIUM_CORE_MAX_SOL` (recalled, open), "oxygen-neon"
-    above `tuning.STELLAR_WD_ONE_CORE_MIN_SOL` (Althaus et al. 2010), "carbon-oxygen" between. The carbon-to-oxygen split and
-    the layers are open."""
+    above `tuning.STELLAR_WD_ONE_CORE_MIN_SOL` (Althaus et al. 2010), "carbon-oxygen" between. The downloaded sequences are
+    carbon-oxygen only (`datasets.white_dwarf_models`), so the other two cores have no layers."""
     if mass_sol < tuning.STELLAR_WD_HELIUM_CORE_MAX_SOL:
         return "helium"
     if mass_sol > tuning.STELLAR_WD_ONE_CORE_MIN_SOL:
@@ -529,25 +510,9 @@ def white_dwarf_core(mass_sol):
 
 
 # --- Neutron stars -----------------------------------------------------------------------------------------------------
+# The outer crust and the equations of state come from the downloaded tables (`stellar_composition`).
 
-NEUTRON_STAR_OUTER_CRUST = (
-    ("Fe-56", 8.02e6), ("Ni-62", 2.71e8), ("Ni-64", 1.33e9), ("Ni-66", 1.50e9), ("Kr-86", 3.09e9), ("Se-84", 1.06e10),
-    ("Ge-82", 2.79e10), ("Zn-80", 6.07e10), ("Zn-82", 8.46e10), ("Pd-128", 9.67e10), ("Ru-126", 1.47e11), ("Mo-124", 2.11e11),
-    ("Zr-122", 2.89e11), ("Sr-120", 3.97e11), ("Kr-118", 4.27e11))
-"""tuple: `(nucleus, density at which it stops being the ground state, g/cm3)` from the surface inward (Chamel and Haensel 2008
-Table 2, Ruster et al. data and BSk8). Neutron drip follows at about 4e11 g/cm3; the inner crust (Zr and Sn clusters) and the core
-(neutrons, protons and electrons) need an equation of state and are open."""
-
-NEUTRON_DRIP_DENSITY_G_CM3 = 4.0e11
 NUCLEAR_SATURATION_DENSITY_G_CM3 = (2.7e14, 2.8e14)
-
-
-def neutron_star_crust_nucleus(density_g_cm3):
-    """The nucleus of the outer crust at this density, or `None` from neutron drip inward (the inner crust)."""
-    for nucleus, stops in NEUTRON_STAR_OUTER_CRUST:
-        if density_g_cm3 <= stops:
-            return nucleus
-    return None
 
 
 # --- Black holes -------------------------------------------------------------------------------------------------------
@@ -597,7 +562,7 @@ BROWN_DWARF_RADIUS_1_GY = (
     (0.050, 0.0960), (0.060, 0.0940), (0.070, 0.0944), (0.075, 0.0971), (0.080, 0.102), (0.090, 0.113), (0.100, 0.124),
     (0.150, 0.174), (0.300, 0.291), (0.500, 0.460))
 """tuple: `(mass in solar masses, radius in solar radii)` of a brown dwarf or low-mass star at 1 Gyr, solar metallicity (BHAC15
-track file, Baraffe et al. 2015, interpolated; part A 2.14). A stand-in: one age and one Z until the grids of GEN.548 land."""
+track file, Baraffe et al. 2015, interpolated; part A 2.14). A stand-in: one age and one Z; the MIST grid does not reach brown dwarfs."""
 
 BROWN_DWARF_TEFF_1_GY = (
     (0.050, 1383.0), (0.060, 1586.0), (0.070, 2051.0), (0.080, 2401.0), (0.100, 2810.0), (0.150, 3130.0))

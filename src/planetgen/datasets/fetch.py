@@ -2,17 +2,18 @@
 
 """
 The shared setup-time download step (GEN.548): fetch a dataset's files once, check them, keep them outside the
-checkout, and hand a reader either the files or a labelled stand-in.
+checkout, and hand a reader the files or say that they are missing.
 
 Boss's rule (2026-10-18): a static file is downloaded at setup, never at run time, unless the data needs constant
 updating. So the two halves are separate. `fetch` is the setup half: `python -m planetgen.cli.datasets fetch`, run by
 `update.sh` and `install.sh`, sends the standard User-Agent (`planetgen.util.user_agent`, API.31), reads at most the
 size the catalogue states, compares the sha256 and puts the file in the cache folder by an atomic rename. Any failure
 (host down, timeout, HTTP error, too many bytes, wrong hash) keeps what was there before, gives a reason and leaves the
-dataset on its stand-in; it never raises, so a host that is down cannot stop an update. `locate` is the run-time half:
+dataset missing; it never raises, so a host that is down cannot stop an update. `locate` is the run-time half:
 it opens no connection, only looks in the folder (hashing each file once per process), and answers with the folder or
-with the stand-in label. A reader that gets a stand-in must say so in what it returns (the stand-in registry,
-docs/design/gap-filling-plan.md section 6).
+that the dataset is missing. The generator requires every dataset (GEN.590, Boss's answer on the card): a reader raises
+`DataMissing` and bulk generation refuses to start (`run_galaxy.require_datasets`), so no value ever comes from a fallback.
+What each fill replaced is in the stand-in registry (docs/design/gap-filling-plan.md section 6).
 
 Some sources are large archives of which only a few columns are used (the MIST isochrones are 220 MB). A dataset can
 then name a `derive` function and the compact files it writes (`derived`); its archive piece is `transient`: the step
@@ -46,7 +47,7 @@ DEFAULT_CACHE_DIR = "/var/cache/planetgen/datasets"
 and makes it world-readable, since the web app only reads."""
 
 TIMEOUT_SECONDS = 30
-"""int: How long one request may wait for the host before the dataset falls back to its stand-in."""
+"""int: How long one request may wait for the host before the dataset is given up as missing."""
 
 ATTEMPTS = 3
 """int: How many times a file is requested when the host does not answer (a wrong size or hash is never retried)."""
@@ -89,8 +90,8 @@ class Dataset:
     """A set of files from one published source and what stands in for it until they are present.
 
     `key` names the cache sub-folder. `source` is the citation and `licence` the licence of the data (a record only).
-    `standin` says in a few words what the readers use when the files are missing, and `fill` is the stand-in
-    registry id (gap plan section 6) of that fill. A dataset that keeps only compact files derived from a large
+    `replaces` says in a few words what the data replaced (the stand-in of the gap plan's registry, named in the message
+    when the files are missing), and `fill` is the registry id (gap plan section 6) of that fill. A dataset that keeps only compact files derived from a large
     archive names them in `derived`, the function that writes them in `derive` (`derive(folder)` returns
     `{file name: bytes}` from the verified pieces in `folder`) and a `derive_version` to raise when that function
     changes; the archive pieces are marked `transient` and are removed once derived.
@@ -101,7 +102,7 @@ class Dataset:
     source: str
     licence: str
     pieces: tuple
-    standin: str
+    replaces: str
     fill: str
     derived: tuple = ()
     derive: object = None
@@ -125,7 +126,7 @@ class Dataset:
 @dataclass(frozen=True)
 class Result:
     """What `fetch` did: `status` is `fetched` (something was downloaded), `present` (everything was already there)
-    or `stand-in` (a file could not be had; `reasons` say why for each)."""
+    or `missing` (a file could not be had; `reasons` say why for each)."""
 
     dataset: Dataset
     status: str
@@ -134,34 +135,34 @@ class Result:
 
 @dataclass(frozen=True)
 class Located:
-    """What a reader gets: the folder holding every verified file, or `folder` None and the reason for the stand-in."""
+    """What a reader gets: the folder holding every verified file, or `folder` None and the reason it is missing."""
 
     dataset: Dataset
     folder: str
     reason: str = ""
 
     @property
-    def standin(self):
-        """True when the files are missing and the reader must use the stand-in."""
+    def missing(self):
+        """True when the files are missing and the reader cannot answer."""
         return self.folder is None
 
     @property
     def label(self):
         """A few words saying where the numbers come from, for a reader to pass on."""
-        if self.standin:
-            return f"stand-in ({self.dataset.fill}): {self.dataset.standin}"
+        if self.missing:
+            return f"missing ({self.dataset.fill}, replaces {self.dataset.replaces})"
         return f"downloaded: {self.dataset.source}"
 
     def require(self):
-        """Self, or `StandIn` when the files are missing, for a reader that has no value of its own to give."""
-        if self.standin:
-            raise StandIn(f"{self.label} ({self.reason})")
+        """Self, or `DataMissing` when the files are missing, for a reader that has no value of its own to give."""
+        if self.missing:
+            raise DataMissing(f"{self.label} ({self.reason})")
         return self
 
     def path(self, name):
-        """The path of the file `name`; not available on a stand-in."""
-        if self.standin:
-            raise FileNotFoundError(f"{self.dataset.key} is on its stand-in ({self.reason}); it has no file {name}")
+        """The path of the file `name`; not available while the files are missing."""
+        if self.missing:
+            raise FileNotFoundError(f"{self.dataset.key} is missing ({self.reason}); it has no file {name}")
         if name not in {piece.name for piece in self.dataset.pieces if not piece.transient} | set(self.dataset.derived):
             raise KeyError(f"{self.dataset.key} has no file {name!r}")
         return os.path.join(self.folder, name)
@@ -243,8 +244,8 @@ def _derived_piece(name, sha256, size):
 
 
 def locate(dataset):
-    """Where the dataset's files are, or that it is on its stand-in. Opens no connection (setup downloads, run time
-    only reads): a missing, short or altered file is a stand-in with the reason, never an error."""
+    """Where the dataset's files are, or that they are missing. Opens no connection (setup downloads, run time
+    only reads): a missing, short or altered file gives a `Located` with the reason, never an error."""
     where = folder(dataset)
     for piece in dataset.pieces:
         if piece.transient:
@@ -260,8 +261,8 @@ def locate(dataset):
     return Located(dataset, where)
 
 
-class StandIn(LookupError):
-    """A reader asked for a dataset that is on its stand-in; the message is the stand-in's label and reason."""
+class DataMissing(LookupError):
+    """A reader asked for a dataset whose files were not downloaded; the message is the label and the reason."""
 
 
 class DownloadError(Exception):
@@ -359,7 +360,7 @@ def _derive(dataset):
 
 def fetch(dataset, *, opener=None):
     """Brings the dataset's files into the cache folder. A file already there with the right size and sha256 is left
-    alone; a different one is replaced. Never raises for a network or disk problem: the result is `stand-in` with a
+    alone; a different one is replaced. Never raises for a network or disk problem: the result is `missing` with a
     reason per file that could not be had, and the files that were fine stay. A dataset with a derive function whose
     derived files are current does not download its archive again."""
     opener = opener or urllib.request.urlopen
@@ -367,7 +368,7 @@ def fetch(dataset, *, opener=None):
     try:
         os.makedirs(where, mode=0o755, exist_ok=True)
     except OSError as exc:
-        return Result(dataset, "stand-in", (f"{where}: cannot be made ({exc})",))
+        return Result(dataset, "missing", (f"{where}: cannot be made ({exc})",))
     needs_derive = bool(dataset.derived) and not _derived_ok(dataset)
     changed, reasons = False, []
     for piece in dataset.pieces:
@@ -382,11 +383,11 @@ def fetch(dataset, *, opener=None):
         except DownloadError as exc:
             reasons.append(str(exc))
     if reasons:
-        return Result(dataset, "stand-in", tuple(reasons))
+        return Result(dataset, "missing", tuple(reasons))
     if needs_derive:
         try:
             _derive(dataset)
             changed = True
         except Exception as exc:  # a parser meeting an unexpected file must not stop an update
-            return Result(dataset, "stand-in", (f"{dataset.key}: deriving its files failed ({type(exc).__name__}: {exc})",))
+            return Result(dataset, "missing", (f"{dataset.key}: deriving its files failed ({type(exc).__name__}: {exc})",))
     return Result(dataset, "fetched" if changed else "present")

@@ -5,7 +5,7 @@ What a star is made of, derived from the values already stored (GEN.440, docs/de
 ======================================================================================================================================
 
 `star_makeup` returns the composition of any star, brown dwarf or remnant from its kind, its stored [Fe/H], its age, its mass and a
-key. It adds no column to the 75 million stars and changes no stored value: the branch, the four offsets and the rest of the
+key (and a white dwarf's temperature). It adds no column to the 75 million stars and changes no stored value: the branch, the four offsets and the rest of the
 star's draws come from a stream of their own keyed on the star (`abundance:{key}`, separate from every other draw, so no earlier
 draw moves), always consumed in the same fixed order, so the same star has the same composition at any worker count and an
 edited [Fe/H], age or mass re-derives it with nothing to repair. The relations are those of `stellar_abundances` (GEN.439); this
@@ -23,14 +23,16 @@ The kinds and what each returns:
 
 =================== ===================================================================================================
 protostar, PMS       the natal composition of the cloud, as a main-sequence star
-main sequence        the birth composition (a fully convective star is homogeneous; a star's surface is its birth value)
+main sequence        the birth composition (a fully convective star is homogeneous; a star's surface is its birth value);
+                     the MIST luminosity, temperature, radius and lifetime at its mass, age and [Fe/H] (downloaded)
 subgiant             the birth composition
 red giant            the birth composition with the first dredge-up applied (`stellar_abundances.after_first_dredge_up`)
 agb, supergiant      the birth composition; the shifts are open (the dredge-up grid stops at 2.5 solar masses)
 wolf-rayet           the surface fractions of its subtype (hydrogen-free; carbon drawn within the subtype's range for WC)
 brown dwarf          the birth composition; the deuterium, lithium and hydrogen limits at its mass and Z; the radius (stand-in)
-white dwarf          the core type, an atmosphere draw (DA with probability 0.80), the radius from the integrated table
-neutron star         the outer-crust nuclei by density; no composition of its own (it stores no [Fe/H])
+white dwarf          the core type, an atmosphere draw (DA with probability 0.80), the radius and the layers from the
+                     Bedard et al. sequences at its temperature (downloaded)
+neutron star         the outer-crust nuclei of one of 20 nuclear mass models (downloaded); no composition of its own
 black hole           none (no hair): mass, spin and the horizon quantities by formula
 =================== ===================================================================================================
 
@@ -38,11 +40,17 @@ What the planet draws (GEN.428), the description layer and the radiation model r
 fractions and, through `stellar_abundances.mass_ratio`, Fe/Si, Mg/Si, C/O and O/Si). The birth composition is what is returned
 and not the photosphere (stellar-composition.md D14); an age law for the photospheric correction (0.06 to 0.07 dex over the Sun's life)
 has not been read.
+
+The downloaded files (`planetgen.datasets`, GEN.548) are required (GEN.590, Boss's answer on the card): a kind that reads them
+raises `fetch.StandIn` when they were not downloaded, and there is no fallback value. Bulk generation does not start without them
+(`run_galaxy.require_datasets`), so a derived makeup never differs between a machine with the files and one without.
 """
 
 from dataclasses import dataclass, field
 
 from planetgen import tuning
+from planetgen.datasets import isochrones, neutron_star_matter, white_dwarf_models
+from planetgen.physics import elements
 from planetgen.physics import stellar_abundances as sa
 from planetgen.util import draw
 
@@ -95,6 +103,7 @@ class StarDraws:
         th_eu_normal (float): The [Th/Eu] residual in units of its scatter.
         u_atmosphere (float): Decides a white dwarf's atmosphere.
         u_wolf_rayet (float): Places a Wolf-Rayet star's carbon inside its subtype's range.
+        u_crust_model (float): Picks the nuclear mass model of a neutron star's outer crust.
     """
 
     u_branch: float
@@ -105,6 +114,7 @@ class StarDraws:
     th_eu_normal: float
     u_atmosphere: float
     u_wolf_rayet: float
+    u_crust_model: float
 
 
 def abundance_key(uid=None, mass=None, age_gy=None, distance_ly=None, bright_seed=None, group=None):
@@ -139,7 +149,7 @@ def key_draws(key):
     u_branch = stream.random()
     normals = tuple(stream.gauss(0.0, 1.0) for _ in range(4))
     return StarDraws(u_branch, normals, stream.random(), stream.random(), stream.gauss(0.0, 1.0), stream.gauss(0.0, 1.0),
-                     stream.random(), stream.random())
+                     stream.random(), stream.random(), stream.random())
 
 
 @dataclass(frozen=True)
@@ -216,7 +226,19 @@ def wolf_rayet_surface(subtype, u):
     return fractions
 
 
-def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet=None, spin=0.0):
+def _neutron_star_crust(draws):
+    """The outer crust of a neutron star: the nuclei, surface inward, of the nuclear mass model `draws.u_crust_model` picks among
+    the downloaded ones (the 20 models are the spread of the theory, so one is drawn per star), and the density at which
+    neutron drip ends it."""
+    models = neutron_star_matter.crust_models()
+    model = models[min(int(draws.u_crust_model * len(models)), len(models) - 1)]
+    layers = neutron_star_matter.outer_crust(model)
+    return {"crust_model": model, "outer_crust": tuple(f"{elements.element(layer.z).symbol}-{layer.a}" for layer in layers),
+            "neutron_drip_g_cm3": neutron_star_matter.mass_density_g_cm3(layers[-1].upper_density_fm3),
+            "radius_band_km": tuning.STELLAR_NS_RADIUS_BAND_KM}
+
+
+def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet=None, spin=0.0, teff_k=None):
     """
     The composition of a star or remnant.
 
@@ -228,9 +250,12 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet=None, spin=0.0):
         key (str): `abundance_key(...)`: the draws are `key_draws(key)`.
         wolf_rayet (str or None): The subtype, for a Wolf-Rayet star.
         spin (float): A black hole's dimensionless spin.
+        teff_k (float or None): A white dwarf's effective temperature, K (its stored one).
 
     Raises:
-        StarMakeupError: An unknown kind, or a kind that needs a [Fe/H] with none.
+        StarMakeupError: An unknown kind, or a kind that needs a [Fe/H], a subtype or a temperature and has none.
+        planetgen.datasets.fetch.StandIn: The kind reads a downloaded file (main sequence, white dwarf, neutron star) and
+            the file was not downloaded.
     """
     if kind not in KINDS:
         raise StarMakeupError(f"unknown kind {kind!r}; expected one of {', '.join(KINDS)}")
@@ -238,10 +263,8 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet=None, spin=0.0):
     if kind == BLACK_HOLE:
         return StarMakeup(kind, None, None, None, draws, {"hole": sa.black_hole(mass_sol, spin)})
     if kind == NEUTRON_STAR:
-        return StarMakeup(kind, None, None, None, draws, {
-            "outer_crust": tuple(nucleus for nucleus, _density in sa.NEUTRON_STAR_OUTER_CRUST),
-            "neutron_drip_g_cm3": sa.NEUTRON_DRIP_DENSITY_G_CM3, "radius_band_km": tuning.STELLAR_NS_RADIUS_BAND_KM},
-            open_items=("inner crust and core need an equation of state",))
+        return StarMakeup(kind, None, None, None, draws, _neutron_star_crust(draws),
+                          open_items=("inner crust and core need the equation of state integrated (GEN.463)",))
     if fe_h is None:
         raise StarMakeupError(f"a {kind} needs a [Fe/H]")
     branch = sa.branch_from_uniform(fe_h, age_gy, draws.u_branch)
@@ -255,6 +278,12 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet=None, spin=0.0):
         detail["can_be_carbon_star"] = kind == ASYMPTOTIC_GIANT and mass_sol >= carbon_star_minimum_mass_sol(birth.z)
         open_items = ("surface shifts of the later phases (the dredge-up grid stops at 2.5 solar masses)",
                       "the carbon-to-oxygen ratio of a carbon star")
+    elif kind == MAIN_SEQUENCE:
+        point = isochrones.main_sequence_point(mass_sol, age_gy, fe_h)
+        detail["main_sequence"] = None if point is None else dict(zip(("log_luminosity_sol", "log_teff_k", "log_radius_sol"), point))
+        detail["main_sequence_lifetime_gy"] = isochrones.main_sequence_lifetime_gy(mass_sol, fe_h)
+        if point is None:
+            open_items = ("the track does not cover this mass or age (0.1 solar masses and up, 0.1 Myr to about 20 Gy)",)
     elif kind == WOLF_RAYET:
         if wolf_rayet is None:
             raise StarMakeupError("a Wolf-Rayet star needs its subtype")
@@ -273,11 +302,14 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet=None, spin=0.0):
             detail["radius_solar_at_1_gy"] = None
         open_items = ("radius at other ages and metallicities", "the hydrogen limit against metallicity")
     elif kind == WHITE_DWARF:
+        if teff_k is None:
+            raise StarMakeupError("a white dwarf needs its effective temperature")
         detail["core"] = sa.white_dwarf_core(mass_sol)
         detail["atmosphere"] = "DA" if draws.u_atmosphere < DA_SHARE else "non-DA"
-        try:
-            detail["radius_solar"] = sa.white_dwarf_radius_solar(mass_sol)
-        except sa.StellarAbundanceError:
-            detail["radius_solar"] = None
-        open_items = ("the carbon-to-oxygen split of the core", "the masses of the helium and hydrogen layers")
+        envelope = "thick" if detail["atmosphere"] == "DA" else "thin"
+        detail["envelope"] = envelope
+        detail["radius_solar"] = white_dwarf_models.radius_solar(mass_sol, teff_k, envelope)
+        detail["layers"] = white_dwarf_models.layer_mass_fractions(mass_sol, envelope) if detail["core"] == "carbon-oxygen" else None
+        open_items = ("the carbon-to-oxygen split of the core (the sequences assume an even one)",
+                      "the layers and the radius of a helium-core or oxygen-neon white dwarf (the sequences are carbon-oxygen)")
     return StarMakeup(kind, branch, birth, surface, draws, detail, open_items)
