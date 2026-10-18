@@ -438,6 +438,16 @@ Standing rule (Boss, 12:47 AM EDT on 2026-10-18, project chat, as the coordinato
 
 As built (GEN.548, the shared step; the datasets themselves follow in the same item). `planetgen/datasets/fetch.py` holds the one step every download job uses: a `Dataset` (key, citation, licence, files, the stand-in's label and its registry id) lists its files as `Piece`s with an https URL, an exact size and a sha256, and the entries live in `planetgen/datasets/catalogue.py`. `python -m planetgen.cli.datasets fetch` is the setup half: `update.sh` (step 3) and `install.sh` run it once as root. It sends the User-Agent that `planetgen/util/user_agent.py` builds (the one place that spells it, API.31 reuses it), reads at most the stated size, refuses a wrong size or hash and keeps nothing of it, writes by atomic rename into `/var/cache/planetgen/datasets/<key>/` (`PLANETGEN_DATA_DIR` moves it) and never raises: a host that is down gives a `stand-in` result with a reason per file and exit code 1, which the scripts print as a warning. Files already there with the right hash are not requested again, and a catalogue entry with a new hash replaces the old file. `fetch.locate(dataset)` is the run-time half: it opens no connection, hashes each file once per process, and returns the folder or the stand-in with its label (`stand-in (AD1): ...`), which a reader passes on with what it returns. A test (`test_datasets_fetch.py`) keeps the generator's packages free of any module that opens a URL. Offline tests pass a fake `opener` that serves bytes the test built and whose sha256 the test computes, so no test reaches the network and no fixture of downloaded data is committed.
 
+### 6.6 Fills of the shared download step (GEN.548)
+
+| fill_id | kind | evidence | stand-in | replaced_by | sources | licence |
+|---|---|---|---|---|---|---|
+| SC1 | D | DATA (MIST v1.2 main-sequence rows, downloaded) | Baraffe et al. 2015 track at solar metallicity and fitted relations | the MIST download (`isochrones.py`) | Choi et al. 2016; Dotter 2016 | open, cited |
+| SC2 | D | DATA (Bédard et al. 2020 sequences, downloaded) | the D13 radius law and a fixed layer split | the sequence download (`white_dwarf_models.py`) | Bédard et al. 2020 | open, cited |
+| SC3 | D | DATA (Zenodo tables, downloaded) | the nickel-to-krypton crust table and the D13 radius floor | the equation-of-state and crust download (`neutron_star_matter.py`) | Malik et al. 2024; Servais and Chamel 2026 | CC BY 4.0 |
+
+Each is "stand-in" in the loader report until the files are in the cache folder and "partly verified" after (the files are the sources' own; the readers interpolate them). The follow-up that wires the readers into the stellar-composition modules moves each fill's `replaced_by` from a plan to code.
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation

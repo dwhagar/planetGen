@@ -54,6 +54,7 @@ class _Host:
 def cache(tmp_path, monkeypatch):
     monkeypatch.setenv(fetch.CACHE_DIR_ENV, str(tmp_path / "cache"))
     fetch._VERIFIED.clear()
+    monkeypatch.setattr(fetch.time, "sleep", lambda seconds: None)
     return tmp_path / "cache"
 
 
@@ -128,8 +129,34 @@ def test_a_failure_keeps_the_good_files_already_there(cache):
     (cache / "fixture" / "part1.dat").write_bytes(b"damaged")
     host = _Host({dataset.pieces[0].url: b"first"}, urllib.error.URLError("down"))
     result = fetch.fetch(dataset, opener=host)
-    assert result.status == "stand-in" and len(host.requests) == 1
+    assert result.status == "stand-in" and len(host.requests) == fetch.ATTEMPTS
     assert (cache / "fixture" / "part0.dat").read_bytes() == b"first"
+
+
+class _Flaky(_Host):
+    """Fails the first `failures` requests, then serves."""
+
+    def __init__(self, files, failures):
+        super().__init__(files)
+        self.failures = failures
+
+    def __call__(self, request, timeout=None):
+        if len(self.requests) < self.failures:
+            self.requests.append((request.full_url, {}, timeout))
+            raise urllib.error.URLError("reset")
+        return super().__call__(request, timeout)
+
+
+def test_a_host_that_answers_on_a_second_attempt_is_fine(cache):
+    dataset = _dataset(b"abcdef")
+    host = _Flaky({dataset.pieces[0].url: b"abcdef"}, failures=2)
+    assert fetch.fetch(dataset, opener=host).status == "fetched" and len(host.requests) == 3
+
+
+def test_a_wrong_answer_is_not_retried(cache):
+    dataset = _dataset(b"abcdef")
+    host = _serve(dataset, b"zzzzzz")
+    assert fetch.fetch(dataset, opener=host).status == "stand-in" and len(host.requests) == 1
 
 
 def test_a_changed_source_replaces_the_old_file(cache):
@@ -255,3 +282,66 @@ def test_the_scripts_run_the_download_step_at_setup():
     assert "run_cli datasets fetch" in common
     assert "ensure_datasets" in update and "ensure_datasets" in install
     assert update.index("ensure_nltk_words") < update.index("ensure_datasets") < update.index("== 4/9")
+
+
+# ---- datasets that keep compact files derived from a large archive ----
+
+def _archive_dataset(derive=None, version=1, payload=b"1,2\n3,4\n"):
+    piece = fetch.Piece("big.csv", "https://example.org/big.csv", hashlib.sha256(payload).hexdigest(), len(payload),
+                        transient=True)
+
+    def sums(folder):
+        text = (pathlib.Path(folder) / "big.csv").read_text()
+        return {"sum.txt": str(sum(int(v) for line in text.split() for v in line.split(","))).encode()}
+
+    return fetch.Dataset("archive", "A fixture", "Nobody 2026", "open", (piece,), "a flat table", "XX2",
+                         derived=("sum.txt",), derive=derive or sums, derive_version=version), payload
+
+
+def test_an_archive_is_derived_once_and_then_removed(cache):
+    dataset, payload = _archive_dataset()
+    host = _Host({dataset.pieces[0].url: payload})
+    assert fetch.fetch(dataset, opener=host).status == "fetched"
+    assert (cache / "archive" / "sum.txt").read_text() == "10"
+    assert not (cache / "archive" / "big.csv").exists()
+    located = fetch.locate(dataset)
+    assert not located.standin and pathlib.Path(located.path("sum.txt")).read_text() == "10"
+    again = _Host({dataset.pieces[0].url: payload})
+    assert fetch.fetch(dataset, opener=again).status == "present" and again.requests == []
+
+
+def test_a_new_derive_version_or_catalogue_hash_derives_again(cache):
+    dataset, payload = _archive_dataset()
+    fetch.fetch(dataset, opener=_Host({dataset.pieces[0].url: payload}))
+    newer, _ = _archive_dataset(version=2)
+    assert fetch.locate(newer).standin
+    assert fetch.fetch(newer, opener=_Host({newer.pieces[0].url: payload})).status == "fetched"
+    assert not fetch.locate(newer).standin
+    other, other_payload = _archive_dataset(payload=b"5,6\n")
+    assert fetch.locate(other).standin
+
+
+def test_a_derived_file_altered_afterwards_is_a_stand_in(cache):
+    dataset, payload = _archive_dataset()
+    fetch.fetch(dataset, opener=_Host({dataset.pieces[0].url: payload}))
+    (cache / "archive" / "sum.txt").write_text("11")
+    assert fetch.locate(dataset).standin
+
+
+def test_a_derive_function_that_fails_is_a_stand_in_not_an_exception(cache):
+    def broken(folder):
+        raise ValueError("a column moved")
+    dataset, payload = _archive_dataset(derive=broken)
+    result = fetch.fetch(dataset, opener=_Host({dataset.pieces[0].url: payload}))
+    assert result.status == "stand-in" and "a column moved" in result.reasons[0]
+    assert fetch.locate(dataset).standin and not (cache / "archive" / ".derived.json").exists()
+
+
+def test_derive_must_make_exactly_the_files_the_catalogue_names(cache):
+    dataset, payload = _archive_dataset(derive=lambda folder: {"other.txt": b"x"})
+    assert fetch.fetch(dataset, opener=_Host({dataset.pieces[0].url: payload})).status == "stand-in"
+
+
+def test_a_transient_file_needs_a_derive_function():
+    with pytest.raises(ValueError):
+        fetch.Dataset("a", "t", "s", "l", (fetch.Piece("x", "https://e.org/x", "0" * 64, 1, transient=True),), "s", "f")
