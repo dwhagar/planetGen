@@ -13899,6 +13899,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Cores 1 and 4); nothing else of the chain moves. Core 1 is asked to
   confirm that a refill, not a rescatter, is enough for every fill-level
   8.4 item (answer pending).
+  Refill answer (Core 1's read-only code audit of main at 5c49fc42
+  (11:50 PM EDT as the lane reported; a helper read it, Core 1 did not
+  re-verify each line, no code was run)): a refill, not a rescatter, is
+  enough for every fill-level 8.4 item (stars, systems, planets, moons,
+  belts, comets, rogue planets, free brown dwarfs), and no scatter row
+  depends on fill draws; but the existing regenerate path leaves four
+  gaps (phenomena built flags, sector-less uncharted systems, population
+  rerun, body UIDs shifting when counts change), filed as GEN.564.
+  Migration without a wipe: yes (details on DB.73).
 
 - [ ] **GEN.552 Host registry: the five fixed `system_model` values become pointers to one gated orbiter table per host class, with no change in behaviour**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -14266,6 +14275,61 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane's, GEN.560.
   Owner confirmed (coordinator, 11:44 PM EDT as relayed): Core 3.
   Prerequisites: GEN.560. Related: GEN.560, GEN.554, GEN.377, GEN.301.
+
+- [ ] **GEN.564 A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter**
+  Filed proposed, not assigned, from Core 1's read-only code audit of
+  main at 5c49fc42 (11:50 PM EDT as the lane reported; a helper read it,
+  Core 1 did not re-verify each line, no code was run), answering the
+  back-scatter question whether a refill is enough for the fill-level
+  8.4 changes (unified chain GEN.553 to GEN.559, the composition chain,
+  DB.73 and DB.67 to DB.71). Result: yes for stars, systems, planets,
+  moons, belts and comets; not yet for scattered phenomena. What exists:
+  `POST /api/sectors/<id>/regenerate` (`api/edits.py`, job
+  `regenerate_sector`, `queue/api_jobs.py` about 270 to 300) calls
+  `delete_sector_with_contents` (`db/edits.py` 346 to 375) then
+  `run_galaxy.ensure_sector_generated`; it deletes a sector's star
+  systems (planets, moons, stars, belts and comets by cascade) and its
+  stand-alone phenomenon rows (black holes, neutron stars, nebulae,
+  supernova remnants, rogue planets, interstellar comets, asteroid
+  fields, quasars), facilities and nearest systems, and keeps
+  `phenomenon_scatter`, `scatter_members`, `scatter_nodes`,
+  `nebula_field` and `bright_stars` (foreign key ON DELETE SET NULL, so
+  they become unbuilt and rebuild). Gaps a bulk job must close: (A) the
+  delete does not reset `phenomenon_scatter.built_at` or
+  `phenomenon_scatter_classes.built` (only `mark_phenomena_built` writes
+  `built_at`, `store.py` 6212 to 6223, and the fill reads `built_at IS
+  NULL`, 6204 to 6209), so scattered black holes, neutron stars,
+  remnants, planetary nebulae, hypervelocity stars and the nucleus would
+  vanish and not come back: the job resets them for the cell (a write to
+  a scatter table, no redraw); (B) systems built from one bright star
+  with no sector (`generate_uncharted_system_job`, `api/routes.py` 1245
+  to 1272) are missed by a sector-keyed clear: select them through
+  `bright_stars.star_system_id`; (C) `species.homeworld_planet_id` and
+  facilities cascade, so the population and sector paths rerun; (D)
+  object UIDs are issued in insertion order (`store.py` 7737 and after)
+  and are public in URLs, so if 8.4 changes how many planets or moons a
+  system gets, body UIDs shift: a decision for Boss and the identity
+  chain (it bears on 'a planet that leaves its star keeps its ID'); (E)
+  the generator epoch is never compared at runtime
+  (`util/generator_epoch.py` feeds the estimate cache key and the
+  bump_version check only, no database column stores it; each sector
+  records `version_key` and `planetgen_version`), so a job needs a way
+  to tell which sectors are old. Findings on dependence: the fill copies
+  scatter values in and links back, so a changed fill draw breaks no
+  link; nothing in `generation/` or `db/store.py` reads
+  `scatter_members`, `scatter_nodes` or `member_count` today, and the
+  planned 'fill builds from stored members' (GEN.264, GEN.315, 8.1)
+  would make a clear lose the stored trees, so a refill after GEN.315
+  must keep or rebuild them. Do: a bulk job (CLI and queue command)
+  that, for every sector or a chosen range, clears the fill-level rows,
+  resets the phenomena built flags, handles the sector-less uncharted
+  systems, reruns population, and rebuilds; it refuses when a sector's
+  version marks it current. Done: after an epoch bump that changes only
+  fill output, the job brings a test galaxy to the same rows as a fresh
+  fill of the same seed, without touching a scatter row, and says what
+  it did per sector. Owner: Core 1 (proposed; it owns the identity and
+  repair chain and the regenerate path), 8.4 phase 1.
+  Prerequisites: none. Related: GEN.550, GEN.315, DB.73.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -16172,6 +16236,32 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   EDT, 2026-10-17, as the coordinator relayed): ONE 8.4 revision carries
   this item and DB.67 to DB.71, in the order Cores 1 and 4 agree;
   nothing of it moves to 8.1.
+  Migration facts from Core 1's read-only code audit of main at 5c49fc42
+  (11:50 PM EDT as the lane reported; a helper read it, Core 1 did not
+  re-verify each line, no code was run): relaxing `moons.planet_id` and
+  `star_system_id` (NOT NULL, ON DELETE CASCADE, with KEYs) is a plain
+  MODIFY COLUMN ... BIGINT UNSIGNED NULL with rows kept (precedents
+  0108, 0099, 0107, 0078); `parent_type`, `parent_id` and
+  `dynamical_state` already exist on planets and moons (0102;
+  `parent_id` nullable, no foreign key, no index); head is 0109, so the
+  next revision is 0110; widening the `chk_moons_parent_type` CHECK is
+  DROP CHECK plus MODIFY (precedent 0099, 0107; verify on MariaDB); new
+  albedo and greenhouse columns (DB.67) are ADD COLUMN NULL. Not
+  trivial: the `sector_objects` view (`schema.sql` 4122 to 4128)
+  inner-joins moons on `star_system_id`, so moons with NULL there vanish
+  from it; `parent_id` has no foreign key, so dropping the two foreign
+  keys loses the system and planet cascades (keep the foreign keys on
+  the nullable columns or add explicit deletes at `db/edits.py` 100,
+  `api/routes.py` 2072 and `delete_sector_with_contents`); code reading
+  the old columns: `db/query.py` 824 to 828, 3140, 5119, 5968 to 5974,
+  `db/near.py` 209, `db/store.py` 8702 and 9410 to 9426, `db/edits.py`
+  95 to 100 and 201, `db/check.py` 95, `db/fingerprint.py` 50 (a NULL
+  `star_system_id` drops out of sector digests), `insert_moon`
+  (`store.py` 2977 to 2986); it needs an index on `parent_id`; per
+  revision housekeeping: the `schema.sql` header, `db/models.py`,
+  `_VERSION_MARKERS` (`store.py` 1526 and after), a
+  `tests/fixtures/old_schemas/schema_v109.sql.gz` and a
+  `test_migration_*.py`. Migration without a wipe: yes.
   Prerequisites: none. Related: GEN.550, DB.69, DB.70.
 
 ## API: The JSON API
