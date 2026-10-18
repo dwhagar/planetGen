@@ -129,6 +129,12 @@
       "epoch": 26,
       "first_release": "8.0.1810",
       "reason": "The kit a human visitor needs is an environment suit past the Green heat or cold edge or with oxygen above the chronic limit, as the description says, so the stored equipment tier of such a world rises from a mask or none (TEST.155)."
+    },
+    {
+      "epoch": 27,
+      "first_release": null,
+      "pending": true,
+      "reason": "A brown dwarf's temperature, radius and luminosity follow the cooling track of Baraffe et al. (2015) in place of a single old-age power law, so the heaviest brown dwarfs stay as hot L dwarfs and a free-floating brown dwarf's radius, flux and surface change with its drawn age (GEN.549)."
     }
   ]
 }
