@@ -38,13 +38,18 @@ stellar-to-halo relation).
 
 Disk-wide, for a disk scale length of 2.6 kpc and the median halo of each stellar mass (`tests/test_disk_history.py`):
 
-| Stellar mass | Halo | Young (0 to 0.1 Gy) | Intermediate (0.1 to 3) | Old | Present rate over the mean | Local B-star share (between arms) |
+| Stellar mass | Halo | Young (0 to 0.1 Gy) | Intermediate (0.1 to 3) | Old | Present rate over the mean | Local B-star share (between arms, 2026-10-18) |
 |---|---|---|---|---|---|---|
-| flat history | | 1.00% | 29.0% | 70.0% | 1 | 0.19% |
-| 1e10 | 3.2e11 | 2.93% | 62.0% | 35.1% | 2.95 | 0.38% |
-| 3e10 | 8.3e11 | 1.20% | 42.3% | 56.5% | 1.18 | 0.26% |
-| 5e10 | 2.0e12 | 0.39% | 19.0% | 80.6% | 0.38 | 0.12% |
-| 6.1e10 | 3.1e12 | 0.27% | 12.7% | 87.1% | 0.27 | 0.085% |
+| flat history | | 1.00% | 29.0% | 70.0% | 1 | 0.10% |
+| 1e10 | 3.2e11 | 2.93% | 62.0% | 35.1% | 2.95 | 0.26% |
+| 3e10 | 8.3e11 | 1.20% | 42.3% | 56.5% | 1.18 | 0.13% |
+| 5e10 | 2.0e12 | 0.39% | 19.0% | 80.6% | 0.38 | 0.050% |
+| 6.1e10 | 3.1e12 | 0.27% | 12.7% | 87.1% | 0.27 | 0.033% |
+
+The last column was recomputed on 2026-10-18 with the generator's own sampler, 100,000 draws a population, the flat row with
+ages spread evenly inside the windows and the others with the ages spread by the history's rate (GEN.546, below). GEN.469
+recorded 0.19, 0.38, 0.26, 0.12 and 0.085% for the same rows with even ages; the same measure gives 0.10, 0.20, 0.14,
+0.069 and 0.047% today, so the sampler or the mass function has moved since.
 
 A light spiral has a rising history and forms its stars late; a heavy one formed them early. That is the known pattern
 (downsizing) and it comes out of the halo's growth and the relation, with nothing typed. It also makes a galaxy's
@@ -80,8 +85,8 @@ star is drawn from the history's own rate inside its window.
   The shares of each window are still the history's (GEN.469), but the share of bright stars in a window changes with the
   ages: a front-loaded intermediate window holds more bright main-sequence stars.
 - **The local B-star share** between the arms at the solar radius, with 100,000 draws a population, falls from 0.069% to
-  0.050% (0.046 to 0.055% over four seeds), against the observed 0.04%. The 0.12% in the table above is GEN.469's own
-  figure at the time and is kept as recorded.
+  0.050% (0.046 to 0.055% over four seeds), against the observed 0.04%; the table above shows the effect for each
+  galaxy mass.
 
 ## What it does not do
 
