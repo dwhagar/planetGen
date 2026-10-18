@@ -17900,6 +17900,16 @@ clears each one.
   main: not checked. Frequency: 1 in 1 gate on that branch; now 8 loaded
   gate runs seen across this item. Same crumb-mismatch-after-Back shape
   as the drill-down sighting (Core 2, 9:31 PM EDT).
+  Check on main (Core 2, 2026-10-17, reported as 10:30 PM EDT on the
+  lane's clock): `test_galaxy_map_drill_down_by_clicks` passed when run
+  alone on a main-based worktree and on the MAP.239 worktree; it failed
+  twice inside full gates under load (MAP.239 gates 1 and 2, with 3
+  other failures each, all passing alone afterwards). So it does not
+  fail alone on main in Core 2's runs and is not MAP.239-specific; the
+  earlier "fails alone" note on this item (9:31 PM EDT) is superseded
+  for the crumbs assertion. Core 3's "fails alone" drill-down failure
+  was a different cause (TEST.236). Not reproduced in a loop, so no loop
+  numbers yet.
   Prerequisites: none. Related: MAP.210, TEST.170, TEST.171.
 
 - [ ] **TEST.174 test_web_a11y::test_page_is_accessible_and_fits[web.sector-desktop-light] failed once under gate load and passes alone (bug)**
