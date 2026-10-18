@@ -147,14 +147,16 @@ def test_sector_and_system_pages_use_a_fixed_number_of_queries(mysql_config, mon
         assert all(system["stars"] for system in detail["systems"])
 
         system_id = detail["systems"][0]["id"]
+        # One host lookup per star that has planets (`system_detail`'s `hosts`), so the fixed part is what is left
+        # after those: a system with no planets or moons sends none of them (TEST.249).
         counter.count = 0
         page = queryDb.system_detail(conn, system_id)
-        with_planets = counter.count
+        with_planets = counter.count - len({planet["star_id"] for planet in page["planets"]})
         assert sum(len(planet["moons"]) for planet in page["planets"]) >= 0
         lone_id = queryDb.sector_detail(conn, small_id)["systems"][0]["id"]
         counter.count = 0
-        queryDb.system_detail(conn, lone_id)
-        assert counter.count == with_planets
+        lone = queryDb.system_detail(conn, lone_id)
+        assert counter.count - len({planet["star_id"] for planet in lone["planets"]}) == with_planets
 
         counter.count = 0
         rows = queryDb.list_systems(conn, limit=50)

@@ -2,6 +2,75 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1836] - 2026-10-18
+
+**Headline:** `planetgen warm` now builds the Galaxy Map's tiles ahead of the first visitor, the first levels in full and the zoom run in to the centre.
+
+### Added
+- **`warm-galaxy-tiles`, a new cache family and command (PERF.130).** `planetgen warm` (and so every update) now builds every tile of the first `tile_cache.warm_levels` levels of the map's tile octree (default 8: 4,713 tiles on the scaled test galaxy), then the tiles of a zoom run from the opening view in to the galaxy's centre along the opening camera's line, down to level `tile_cache.warm_zoom_levels` (default 14, the finest the map's cut uses; 7,112 tiles in all). The work is cut into chunks of 128 tiles that the queue's workers build, coarsest level first, so a stopped run has built what the most views use; a second run finds every tile stored and builds none. On the scaled test galaxy the defaults took 12 minutes 3 seconds in one process and 40 MB, and the time for a fresh visitor to get every tile of a view along the zoom run fell from 111 seconds over eight views (53.5 s at 3,000 pc) to 3.2 seconds. A level count that would build more than 150,000 tiles is refused with its count. Two new settings, `tile_cache.warm_levels` and `tile_cache.warm_zoom_levels`, in `config.json`, the example, the schema and `docs/config.md`.
+
+### Changed
+- `planetgen warm` lists seven families instead of six (`galaxy-tiles` follows `galaxy-map`).
+
+TODO items resolved: PERF.130 / Added: none
+
+## [8.0.1835] - 2026-10-18
+
+**Headline:** The test that an orbital facility's phase advances no longer fails when the random giant it orbits is small enough that a quarter turn is not yet due.
+
+### Fixed
+- Tests: `test_orbital_facilities_advance_their_phase` stepped the orbit clock a quarter of the facility's period, but the update moves a facility only once it is due, which is when it has moved the planetary threshold (100,000 km). A facility on a close orbit round a small giant (about 56,000 km from the centre) moves 88,000 km in a quarter turn, so it is correctly not due and the update returned 0 (1 draw in 20). The test now steps whole turns past the due time plus the quarter (whole turns wrap away), so it still checks the 90 degrees whatever the giant. The update itself is right.
+
+TODO items resolved: TEST.251 / Added: none
+
+## [8.0.1834] - 2026-10-18
+
+**Headline:** A new test pins that a patch a test makes over the inline test queue is undone before the queue's own, so the real-worker tests that follow find the real functions.
+
+### Changed
+- Tests: `test_inline_queue.py` patches `ensure_workers` over the inline stand-in in one test and checks in the next (marked `real_queue`) that the real function, queue name and key prefix are back. It fails on the order the inline queue used to undo its patches in (TEST.250, fixed by Core 5 in the same hours) and passes now.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1833] - 2026-10-18
+
+**Headline:** The query-count test for the sector and system pages no longer fails when the two random systems differ in how many stars have planets.
+
+### Changed
+- Tests: `test_sector_and_system_pages_use_a_fixed_number_of_queries` compared the statement count of two random systems, but `system_detail` sends one host lookup (`compact_host_of_star`) for each star that has planets, by design ("one lookup per host star, not per planet"), so a system whose planets orbit one star sent one more than a system with none, and the test failed 5 runs in 40 on an idle machine (12 against 11 statements; the differing statement in every failing run was that lookup). The count now leaves out one statement per star that has planets, which keeps what the test is for: no statement grows with the number of planets or moons.
+
+TODO items resolved: TEST.249 / Added: none
+
+## [8.0.1832] - 2026-10-18
+
+**Headline:** The dense-core case of the neighbourhood test runs in about three minutes instead of up to ten, so it no longer times out in a loaded gate.
+
+### Changed
+- Tests: `test_random_start_neighborhood_matches_the_real_skeleton_plan[dense_core]` took about 466 s alone (240 to 650 s over 10 idle runs) and hit the 900 s limit in a loaded gate. Its start sits in cells over the cell star ceiling, which the run takes down to their luminosity cap and which cost the most; the case now reaches 18 ly round its start instead of 25 ly (the random case keeps 25 ly), so it generates a handful of sectors instead of 24 and runs in 173 to 197 s. The plan's skeleton build (about 150 s) is the rest and is shared with the other plan tests.
+
+TODO items resolved: TEST.247 / Added: none
+
+## [8.0.1831] - 2026-10-18
+
+**Headline:** A galaxy's star count comes from its stellar mass and every radius once quoted at the Sun is now in the galaxy's own units, so no Sun or home position is read anywhere.
+
+### Changed
+- **The density is normalized to the stellar mass** (`galaxy/density.py`). `build_galaxy_shape` no longer pins relative density 1.0 at a calibration point at the Sun's radius; `k_norm` is set so the whole model, in units of the real local stellar density, holds the systems the galaxy's stellar mass makes (`stellar_mass_solar` over `tuning.MEAN_SYSTEM_MASS_SOLAR`). The `--calibration-radius-pc` option is gone. A galaxy of 5e10 solar masses now holds 1.25e11 systems, not about 3.3e11, so the reference galaxy's density at its reference radius is 0.38 of what the old pin gave and its outline ends at shell 3,147, not 3,762. The vertical disc profile that makes up the rest of that gap is not changed here.
+- The nuclear cluster and the stellar halo are scaled in solar masses through the same normalization (`MODEL_SYSTEMS_PER_STELLAR_MASS` and `halo_local_density_scale` are gone; the halo's share of the systems is its mass over the rest of the stars).
+- **Radii once quoted at the Sun are the galaxy's own** (`galaxy/scales.py`, new). The reference radius (`tuning.REFERENCE_RADIUS_SCALE_LENGTHS`, renamed from `GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH`), the hypervelocity stars' reference radius, the clusters' size reference and the pulsar profile's radius and disc length are ratios to the galaxy's thin disc scale length. `GALAXY_SUN_RADIUS_PC`, `GALAXY_DISK_SCALE_LENGTH_PC`, `HVS_REFERENCE_RADIUS_PC` and the cluster code's fixed 8,000 pc are removed.
+- **No default distance from the Sun.** `GALACTIC_CENTER_DISTANCE_LY` is removed. A system, star or movement vector with no place in the galaxy is taken at the radius that holds half of an exponential disc's stars, 1.678 scale lengths (`scales.default_galactocentric_pc`), for the Hill sphere, the galactic orbit, the metallicity and the hypervelocity chance. The metallicity gradient's zero point is the reference radius until GEN.405 replaces it.
+- The Einstein radius of a black hole, neutron star or rogue planet (GEN.154) is shown as seen from the reference radius, not from Sol.
+- `SUN_GALACTIC_RADIUS_PC` (the supernova profile in `physics/activity.py`) stays for GEN.405, which owns the rates quoted at the Sun.
+- **Measured effect:** a galaxy of 5e10 solar masses holds 1.25e11 systems (it held about 3.3e11 with the pinned density); the density at the reference radius is 0.377 of the old pinned value (about 2.6 times sparser) and the reference outline ends at shell 3,147 (was 3,762). The causes are the model's vertical profile, whose sech^2(z/2h) midplane density is half that of the exponential fits for the same column (GEN.544), and the mean system mass of 0.4 solar masses, which is a recalled figure (GEN.545); both are approved follow-ups.
+- The prevalence base shares were remeasured over 20,000 systems because a system with no place now sits at the half-mass radius: planets 0.953 (was 0.961), asteroid belts 0.582 (was 0.607), habitable worlds 0.253 (was 0.257), large stars 0.051 (was 0.050).
+- The generator epoch is 34.
+generation-output: changed
+
+### Added
+- `tests/test_galaxy_scales.py` (7 tests): that no source reads a Sun radius or the old calibration, the scales following the running unit's galaxy, the half-mass radius, the pulsar profile and the cluster sizes scaling with the galaxy, and the metallicity zero point. The density, halo, nuclear, outline and math-check tests state the stellar-mass normalization in place of the calibration point.
+
+TODO items resolved: GEN.404. Added: none.
+
 ## [8.0.1830] - 2026-10-18
 
 **Headline:** A disk star's age is drawn from the galaxy's star formation rate inside its age window, so old and middle-aged stars cluster where the galaxy formed most, not evenly across the window.

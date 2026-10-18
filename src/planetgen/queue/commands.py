@@ -105,9 +105,18 @@ REGISTRY = _commands(
                 unit=("planetgen.generation.run_plan", "scatter_shells_unit"),
                 expand=("planetgen.generation.run_plan", "expand_scatter_band"),
                 finish=("planetgen.generation.run_plan", "finish_scatter")),
-    CommandSpec("fill-map-luminosity", "Fill the map luminosity"),
-    CommandSpec("rescore-habitability", "Re-score the habitability"),
-    CommandSpec("clean-nebula-field", "Clean up the nebula field"),
+    CommandSpec("fill-map-luminosity", "Fill the map luminosity: one unit per run of ids",
+                unit=("planetgen.generation.run_plan", "fill_map_luminosity_unit"),
+                expand=("planetgen.generation.run_plan", "expand_fill_map_luminosity")),
+    CommandSpec("rescore-habitability", "Re-score the habitability: one unit per run of ids",
+                unit=("planetgen.generation.run_plan", "rescore_habitability_unit"),
+                expand=("planetgen.generation.run_plan", "expand_rescore_habitability")),
+    CommandSpec("clean-nebula-field", "Clean up the nebula field: one unit",
+                unit=("planetgen.generation.run_plan", "clean_nebula_field_unit"),
+                expand=("planetgen.generation.run_plan", "expand_clean_nebula_field")),
+    CommandSpec("draw-nebula-field", "Draw the nebula field: one unit per slab of cells",
+                unit=("planetgen.generation.run_plan", "draw_nebula_field_unit"),
+                expand=("planetgen.generation.run_plan", "expand_draw_nebula_field")),
     CommandSpec("generate-start-sector", "Generate the starting sector: one unit per run of sectors",
                 unit=("planetgen.generation.run_galaxy", "generate_sectors_unit"),
                 expand=("planetgen.generation.run_galaxy", "expand_generate_sectors")),
@@ -127,6 +136,10 @@ REGISTRY = _commands(
     CommandSpec("warm-galaxy-map", "Warm the Galaxy Map's opening view, its shape, sectors and phenomena",
                 unit=("planetgen.web.warmup", "warm_galaxy_map_unit"),
                 expand=("planetgen.web.warmup", "expand_warm_galaxy_map")),
+    CommandSpec("warm-galaxy-tiles", "Warm the Galaxy Map's tiles: the first levels in full, and the zoom run in to the centre",
+                unit=("planetgen.web.warmup", "warm_galaxy_tiles_unit"),
+                expand=("planetgen.web.warmup", "expand_warm_galaxy_tiles"),
+                finish=("planetgen.web.warmup", "finish_warm_galaxy_tiles")),
     CommandSpec("warm-lists", "Warm the first page of every list, and its counts",
                 unit=("planetgen.web.warmup", "warm_lists_unit"), expand=("planetgen.web.warmup", "expand_warm_lists")),
     CommandSpec("warm-sectors", "Warm every sector page",
@@ -171,7 +184,8 @@ KIND_OF_STAGE = {
     "mass": "scatter-mass", "skeleton": "plan-skeleton", "phenomena": "scatter-phenomena",
     "luminosity": "scatter-luminosity", "backfill": "scatter-backfill", "band": "scatter-band",
     "map-luminosity": "fill-map-luminosity", "habitability": "rescore-habitability",
-    "nebula-field": "clean-nebula-field", "start": "generate-start-sector", "neighborhood": "generate-neighborhood",
+    "nebula-field": "clean-nebula-field", "nebula-draw": "draw-nebula-field", "start": "generate-start-sector",
+    "neighborhood": "generate-neighborhood",
     "sectors": "generate-sectors", "link": "link-neighbours", "population": "run-population",
     "settle": "settle-sector-paths",
 }
@@ -179,7 +193,7 @@ KIND_OF_STAGE = {
 
 
 KIND_OF_WARM_FAMILY = {family: f"warm-{family}" for family in
-                       ("galaxy-map", "lists", "sectors", "systems", "phenomena", "search")}
+                       ("galaxy-map", "galaxy-tiles", "lists", "sectors", "systems", "phenomena", "search")}
 """dict: The command that warms each cache family (`web/warmup.FAMILIES`), the steps of `planetgen warm`."""
 
 KIND_OF_CHECK = {name: f"check-{name}" for name in (

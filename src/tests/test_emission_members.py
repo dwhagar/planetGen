@@ -234,7 +234,7 @@ def test_a_sector_reads_the_regions_of_its_neighbours_hot_stars_from_their_rows(
     conn = store.get_connection(mysql_config)
     try:
         skeleton = store.get_galaxy_shape(conn)
-        host_point = (SHAPE.disk_scale_length_pc * tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH, 0.0, 0.0)
+        host_point = (SHAPE.disk_scale_length_pc * tuning.REFERENCE_RADIUS_SCALE_LENGTHS, 0.0, 0.0)
         host_address = spherical.sector_address_at(host_point, EDGE_PC)
         factor = sector_profile(host_address, skeleton).kind_factors["nebula"]
         assert factor > 0.0

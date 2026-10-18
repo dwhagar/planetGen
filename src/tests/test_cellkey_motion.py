@@ -25,6 +25,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import constants as physical_constants
 from planetgen.physics.units import pc_to_ly
+from tests.toy_shape import toy_shape
 from tests.rich_galaxy_support import rich_galaxy  # noqa: F401  (the fixture)
 
 EDGE_PC = 4.0
@@ -110,7 +111,7 @@ def _place_at(points, name):
 
 def _seed_scatter_grid(mysql_config):
     from planetgen.galaxy.density import build_galaxy_shape
-    shape = build_galaxy_shape(disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
+    shape = toy_shape(disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
                                bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4)
     store.save_galaxy_shape(shape, edge_pc=EDGE_PC, outer_shell_index=8, expected_system_count_at_density_1=2000.0,
                             config=mysql_config)

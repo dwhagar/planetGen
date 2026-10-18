@@ -423,7 +423,8 @@ def test_the_phenomena_scatter_gives_the_same_rows_at_any_worker_count_and_recor
     one = _scatter_phenomena(mysql_config, 1)
     assert len(one) > 50
     conn = redisqueue.connect()
-    assert [step["kind"] for run in runs for step in runrecord.read_steps(conn, run)] == ["scatter-phenomena"]
+    assert [step["kind"] for run in runs for step in runrecord.read_steps(conn, run)] == [
+        "scatter-phenomena", "draw-nebula-field"]
     run = runrecord.read_run(conn, runs[0])
     assert run["state"] == "done" and run["stages"][0]["done"] == run["stages"][0]["units"] > 1
     monkeypatch.setattr(wrapper, "run", real)
@@ -542,6 +543,70 @@ def test_the_skeleton_stage_is_stored_once_by_its_unit(control_database, monkeyp
     finally:
         conn.close()
     assert len(rows) == 1 and rows[0]["seconds"] > 0 and rows[0]["settings"]["workers"] == 2
+
+
+def test_the_batch_fills_are_units_of_id_ranges_recorded_as_their_commands(mysql_config, monkeypatch):
+    from planetgen.generation import run_plan
+    from tests.test_map_luminosity import _seed_galaxy
+    from tests.test_phenomenon_scatter import _plan_args
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    monkeypatch.setattr(run_plan, "MAP_LUMINOSITY_BATCH_IDS", 5000)
+    monkeypatch.setattr(run_plan, "HABITABILITY_BATCH_SYSTEMS", 1)
+    runs = []
+    real = wrapper.run
+    monkeypatch.setattr(wrapper, "run", lambda *args, **kwargs: runs.append(real(*args, **kwargs)) or runs[-1])
+    for flag, fill in (("--fill-map-luminosity", run_plan.fill_map_luminosity),
+                       ("--fill-habitability", run_plan.fill_habitability)):
+        fill(_plan_args(mysql_config, flag))
+    conn = redisqueue.connect()
+    kinds = [[step["kind"] for step in runrecord.read_steps(conn, run)] for run in runs]
+    assert kinds == [["fill-map-luminosity"], ["rescore-habitability"]]
+    stage = runrecord.read_run(conn, runs[0])["stages"][0]
+    top = run_plan.expand_fill_map_luminosity(
+        {"database": wrapper.database_args(mysql_config)}).plan["top"]
+    assert stage["units"] == -(-top // 5000) > 1
+
+
+def test_a_batch_fill_unit_runs_alone_from_its_json_arguments(mysql_config):
+    import json
+
+    from planetgen.generation import run_plan
+    from tests.test_map_luminosity import _seed_galaxy
+    from tests.test_phenomenon_scatter import _plan_args
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    params = json.loads(json.dumps({"database": wrapper.database_args(mysql_config)}))
+    expansion = run_plan.expand_fill_map_luminosity(params)
+    assert sum(cost for _args, cost in expansion.units) == expansion.plan["top"]
+    result = commands.run_alone("fill-map-luminosity", json.loads(json.dumps(expansion.units[0][0])))
+    assert result["ids"] == expansion.units[0][1] and result["filled"] == 0
+
+
+def test_the_nebula_field_is_a_unit_per_slab_and_the_clean_up_one_unit(mysql_config, monkeypatch):
+    import json
+
+    from planetgen.generation import run_plan
+    from tests.test_nebula_field_table import _seed_galaxy, _table, no_superbubbles, plenty_of_clouds  # noqa: F401
+    from tests.test_phenomenon_scatter import _plan_args
+    _seed_galaxy(mysql_config)
+    runs = []
+    real = wrapper.run
+    monkeypatch.setattr(wrapper, "run", lambda *args, **kwargs: runs.append(real(*args, **kwargs)) or runs[-1])
+    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    conn = redisqueue.connect()
+    drawn = [run for run in runs if [step["kind"] for step in runrecord.read_steps(conn, run)] == ["draw-nebula-field"]]
+    assert len(drawn) == 1
+    slabs = runrecord.read_run(conn, drawn[0])["stages"][0]["units"]
+    assert slabs > 1 and sum(len(_table(mysql_config, f"cell_i = {i}")) for i in range(-slabs, slabs)) == len(_table(mysql_config))
+    params = {"database": wrapper.database_args(mysql_config)}
+    expansion = run_plan.expand_draw_nebula_field(params)
+    assert len(expansion.units) == slabs and expansion.plan["slabs"] == slabs
+    unit = json.loads(json.dumps(expansion.units[slabs // 2][0]))
+    result = commands.run_alone("draw-nebula-field", unit)
+    assert result["slab"] == unit["i"] and set(result) >= {"written", "counts", "shells", "slab"}
+    check = commands.run_alone("clean-nebula-field", {**params, "apply": False}, lambda done, estimate: None)
+    assert check["deleted"] == 0 and check["lines"][0].startswith("Nebula field cleanup (dry run)")
 
 
 def test_the_shells_are_cut_into_the_same_units_whatever_the_worker_count():

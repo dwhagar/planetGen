@@ -20,7 +20,7 @@ import pytest
 from planetgen.util import draw
 from planetgen.physics import constants
 from planetgen import tuning as program_constants
-from planetgen.galaxy import mass_chain
+from planetgen.galaxy import mass_chain, scales
 from planetgen.galaxy import sector as spaceSector_module
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import (
@@ -36,6 +36,7 @@ from planetgen.galaxy.sector import (
     required_separation_ly,
 )
 from planetgen.generation.system import StarSystem
+from planetgen.physics.units import pc_to_ly
 from tests import render_support
 
 TRIALS = 3
@@ -120,6 +121,9 @@ def test_hill_radius_ly_matches_real_solar_neighborhood_data(monkeypatch):
     central mass.
     """
     monkeypatch.setattr(mass_chain, "current_central_mass_kg", lambda: 1.15e12 * constants.SOLAR_MASS_TO_KG)
+    # The Sun's galactocentric distance, 8,200 pc (a test value, the plausibility target): a system with no place is
+    # taken at the galaxy's half-mass radius instead (GEN.404).
+    monkeypatch.setattr(scales, "default_galactocentric_ly", lambda: pc_to_ly(8200.0))
     sun_like, _ = make_system(star_type="G2V")
     assert 1.5 <= hill_radius_ly(sun_like) <= 2.5
 

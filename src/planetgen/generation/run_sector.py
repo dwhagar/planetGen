@@ -18,6 +18,7 @@ import sys
 from collections import Counter
 
 from planetgen.db import store
+from planetgen.galaxy import scales
 from planetgen.galaxy import seed as galaxySeed
 from planetgen.generation import directives
 from planetgen.generation import fill_stages
@@ -416,14 +417,13 @@ def flag_fast_stars(sector, galactic_center_dist_ly=None, scattered=False):
     ordinary generated system moving unusually fast, not a separate
     phenomenon. Each system rolls a hypervelocity chance first -- the
     "hypervelocity-star" rate per star scaled by
-    `(HVS_REFERENCE_RADIUS_PC / r)^2`, since the central black hole ejects
+    `(scales.hypervelocity_reference_radius_pc() / r)^2`, since the central black hole ejects
     them -- then the runaway chance (about 1.5%).
 
     Args:
         sector (SpaceSector): The populated sector, changed in place.
         galactic_center_dist_ly (float, optional): The sector's distance
-            from the galactic center; `None` uses
-            `constants.GALACTIC_CENTER_DISTANCE_LY`.
+            from the galactic center; `None` uses `scales.default_galactocentric_ly()`.
         scattered (bool): The galaxy's phenomenon scatter ran (GEN.100):
             its hypervelocity stars are real rows already, so none is
             flagged here. Runaway stars still are.
@@ -432,11 +432,11 @@ def flag_fast_stars(sector, galactic_center_dist_ly=None, scattered=False):
         int: How many systems were flagged.
     """
     if galactic_center_dist_ly is None:
-        galactic_center_dist_ly = constants.GALACTIC_CENTER_DISTANCE_LY
+        galactic_center_dist_ly = scales.default_galactocentric_ly()
     radius_pc = max(ly_to_pc(galactic_center_dist_ly), 1.0)
     hvs_chance = 0.0 if scattered else min(
         1.0, program_constants.phenomenon_rate_per_star("hypervelocity-star")
-        * (program_constants.HVS_REFERENCE_RADIUS_PC / radius_pc) ** 2)
+        * (scales.hypervelocity_reference_radius_pc() / radius_pc) ** 2)
     runaway_chance = program_constants.phenomenon_rate_per_star("runaway-star")
     flagged = 0
     for entry in sector.entries:
@@ -716,8 +716,8 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
             from the galactic center, in light-years, threaded down into
             every generated system's Hill-sphere calculation (see
             `Star.calculate_system_perimeter`'s docstring). `None` (the
-            default) falls back to the fixed `GALACTIC_CENTER_DISTANCE_LY`
-            constant -- the `sector` subcommand (no galaxy context) always
+            default) falls back to the radius that holds half of the galaxy's disc stars
+            (`galaxy.scales.default_galactocentric_ly`) -- the `sector` subcommand (no galaxy context) always
             calls this with the default, so it keeps producing "unplaced"
             sectors.
         cell (galaxy.spherical.SectorCell, optional): The sector's real

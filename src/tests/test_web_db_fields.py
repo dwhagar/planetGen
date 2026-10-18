@@ -217,17 +217,18 @@ def test_phenomenon_and_system_detail_carry_stored_nearest_systems(mysql_config)
 
 
 def test_compact_objects_show_the_einstein_radius_against_the_galactic_centre():
-    label = "Einstein Radius (seen from Sol, against the galactic centre)"
-    from planetgen.physics import constants
-    sol_pc = constants.GALACTIC_CENTER_DISTANCE_LY * constants.LY_TO_M / constants.PARSEC_M
-    near = sol_pc - 1000.0  # 1 kpc from Sol on the line to the centre
-    hole = _fields("black_hole", {"mass_solar": 10.0, "has_accretion_disk": True, "galactic_radius_pc": near})
+    label = "Einstein Radius (seen from the reference radius, against the galactic centre)"
+    sol_pc = 8200.0  # the observer's radius the page is given
+    near = sol_pc - 1000.0  # 1 kpc from the observer on the line to the centre
+    hole = _fields("black_hole", {"mass_solar": 10.0, "has_accretion_disk": True, "galactic_radius_pc": near,
+                                  "reference_radius_pc": sol_pc})
     assert "AU" in hole[label] or "au" in hole[label].lower()
-    star = _fields("neutron_star", {"mass_solar": 1.4, "galactic_radius_pc": near})
+    star = _fields("neutron_star", {"mass_solar": 1.4, "galactic_radius_pc": near, "reference_radius_pc": sol_pc})
     assert label in star
-    rogue = _fields("rogue_planet", {"mass_kg": 2e27, "galactic_radius_pc": near})
+    rogue = _fields("rogue_planet", {"mass_kg": 2e27, "galactic_radius_pc": near, "reference_radius_pc": sol_pc})
     assert label in rogue
-    # Beyond Sol's distance from the centre nothing lies between us and it.
-    assert label not in _fields("black_hole", {"mass_solar": 10.0, "galactic_radius_pc": sol_pc + 100.0})
+    # Beyond the observer's radius from the centre nothing lies between it and the centre.
+    assert label not in _fields("black_hole", {"mass_solar": 10.0, "galactic_radius_pc": sol_pc + 100.0,
+                                               "reference_radius_pc": sol_pc})
     assert label not in _fields("black_hole", {"mass_solar": 10.0})
-    assert label not in _fields("nebula", {"galactic_radius_pc": near})
+    assert label not in _fields("nebula", {"galactic_radius_pc": near, "reference_radius_pc": sol_pc})
