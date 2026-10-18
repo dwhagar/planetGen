@@ -478,7 +478,14 @@ with `clamp()`.
   work across Python, web and shell, none of it one PR.
   Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
   this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment, position 19 of 53).
-  Order on Core 5's lane: after PERF.135, before the DOC.18 sweep.
+  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
+  relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
+  PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
+  Decided (Boss, 2026-10-17, 10:57 PM EDT, two cards answered in the
+  project chat, relayed by the coordinator): Core 5 builds the command
+  follow-ups first (PERF.99, PERF.100, DB.29, PERF.120 to PERF.128)
+  after PERF.135; this logging standard chain (UX.121 to UX.123,
+  TEST.183) comes after them. Core 5 is the proposed owner.
   Prerequisites: UX.121, UX.122, UX.123, TEST.183. Related: PERF.66.
 
 - [ ] **UX.105 The system page builds every body's detail from the document model as HTML tables**
@@ -662,7 +669,9 @@ with `clamp()`.
   agree.
   Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
   this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment, position 8 of 53).
-  Order on Core 5's lane: after PERF.135, before the DOC.18 sweep.
+  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
+  relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
+  PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
   Prerequisites: none. Related: UX.102.
 
 - [ ] **UX.122 The command line, the job log files and the downloadable log use the layer**
@@ -674,7 +683,9 @@ with `clamp()`.
   each command family.
   Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
   this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment, position 14 of 53).
-  Order on Core 5's lane: after PERF.135, before the DOC.18 sweep.
+  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
+  relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
+  PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
   Prerequisites: UX.121. Related: UX.102.
 
 - [ ] **UX.123 The Generate page log, the admin log pages and update.sh output use the layer**
@@ -686,7 +697,9 @@ with `clamp()`.
   prints the same timestamp and marker forms; browser and shell tests.
   Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
   this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment, position 15 of 53).
-  Order on Core 5's lane: after PERF.135, before the DOC.18 sweep.
+  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
+  relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
+  PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
   Prerequisites: UX.121. Related: UX.102.
 
 - [ ] **UX.124 One form-field look and error slot, piloted on the search, nearby and list-filter fields**
@@ -13921,6 +13934,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 37 of 54). This replaces any earlier owner line on this item.
+  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
+  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
+  merged (#2159).
   Prerequisites: PERF.98, PERF.119. Related: PERF.86, UX.3.
 
 - [ ] **PERF.100 Work queue step 6: delete the old machinery and the work_* tables (Alembic migration)**
@@ -13951,6 +13968,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 42 of 54). This replaces any earlier owner line on this item.
+  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
+  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
+  merged (#2159).
   Prerequisites: DB.29. Related: PERF.86, PERF.29, PERF.30, DOC.20.
 
 - [ ] **PERF.106 The plan command on the run record, with stage timing, the killed-worker handler and job timeouts**
@@ -14001,7 +14022,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-17, 4:18 PM EDT): each command here does one
   and only one thing and knows nothing of the other stages or the order;
   the order lives only in the wrapper's step list (PERF.118).
-  Prerequisites: PERF.118. Related: PERF.98.
+  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
+  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, and after the
+  GEN.401 merge (the item waited for it already); PERF.118 merged
+  (#2159).
+  Prerequisites: none. Related: PERF.98.
 
 - [ ] **PERF.107 The sector units and the stages around them: start, neighborhood, sectors, link, population and settle**
   Split from PERF.98 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -14206,74 +14232,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chunks.
   Prerequisites: PERF.106. Related: PERF.98, PERF.106.
 
-- [ ] **PERF.118 Generation as commands: every stage is its own command, and one wrapper builds the command list and queues each command as one queue item**
-  Boss, 2026-10-17, 4:12 PM EDT: "Rework so every part of the generate
-  process, all the scatter phases, are individual commands, then a
-  general process wrapper makes a list of the commands that need to be
-  run, and then puts those into the redis queue individually." The
-  wrapper builds the command list, each command is one queue item. Today
-  `run_plan` and `run_galaxy` run their stages one after another in one
-  process, and only the scatter shells fan out as units
-  (`queue/units.py` HANDLERS, `run_plan.scatter_shells_unit`, built by
-  PERF.97); the stage list of `generation/stages.py` is used for the
-  bars, not to drive the run. Shape: (1) a command registry: every
-  stage, and every chunk of a chunked stage, is a command, a kind in the
-  units registry with JSON arguments and a JSON result, that can also be
-  run alone from the command line for a test or a rerun with the same
-  arguments; (2) the wrapper: a pure function from the parsed arguments
-  of `planetgen galaxy` and `planetgen plan` to the ordered stages, each
-  stage a list of commands with its arguments and predicted cost (this
-  is what `stages.galaxy_stages` and `plan_stages` become), so the list
-  can be printed without running anything; (3) the enqueue: the wrapper
-  writes the run record and queues the first stage's commands, and the
-  done-set barrier of the run record queues the next stage's, as
-  designed in docs/design/redis-and-the-work-queue.md 5.1; (4)
-  `planetgen galaxy` and `planetgen plan` become thin: build the list,
-  queue it, follow the events, with `--workers 1` on the same path.
-  Done: the mass scatter, already a unit, is the first stage built and
-  queued by the wrapper and its commands each run alone; the list for
-  the same arguments is the same every time; a test lists a `galaxy` run
-  and a `plan` run and checks every command named is registered; the
-  PERF.106 to PERF.108 stages are each added as commands of this wrapper
-  and nothing else starts a stage. Owner: Blocker 1 (Boss, 2026-10-17,
-  6:01 PM EDT, typed in the project chat: "I want Blocker 1 to set itself
-  up with PERF.118, GEN.438, and GEN.440", after GEN.314 merges; it was
-  Core 5's, which had only read it). Core 5 keeps the stage items
-  PERF.106 to PERF.108 and PERF.98 and builds them on this wrapper once
-  it has merged. Core 5 confirmed at about 6:10 PM EDT, as the lane reported, that nothing exists for PERF.118 or its chain.
-  Prerequisites: none. Related: PERF.86, PERF.97, PERF.98, PERF.106,
-  PERF.107, PERF.108.
-  Decided (Boss, 2026-10-17, 4:15 PM EDT): from the command line Boss
-  runs `plan`, then `scatter`; each scatter kind is its own command even
-  where the root command is the same (a scatter command for only mass,
-  only luminosity, only phenomena, only the nebula field, only the
-  backfill, and so on, never one command that groups them). Each command
-  has its own parameters, which the UX sets when it runs the commands
-  through the API and which Boss sets on the command line. When a new
-  generate job is called, the wrapper ONLY selects the commands that
-  will run and never touches the others; they run in sequence; the
-  progress bars are dynamic to the current context and show only what is
-  going to run (the overall bar, the stage count and the estimate come
-  from the selected commands alone). A grouped scatter command or a
-  stage list that includes commands which will not run is wrong.
-  Decided (Boss, 2026-10-17, 4:18 PM EDT), the governing principle:
-  modular commands, each command does one and only one thing and does it
-  exceptionally well. A scatter for mass does that and only that and
-  never worries about anything but what it does: no command knows about
-  another stage, about what ran before it or what runs after it, or
-  about the order. The list of steps is built from what the user
-  requested and handed to the wrapper, which handles the sequence; the
-  order lives only in the wrapper's step list, kept as data, so the
-  sequence can be changed without touching any command. A command that
-  reaches into another stage's work, or a stage that must run in a fixed
-  place because a command assumes it, is wrong.
-  Decided (Boss, 2026-10-17, 4:19 PM EDT): the principle applies to ALL
-  commands, not only the generate stages: every command of the inventory
-  in docs/design/command-inventory.md does one and only one thing, so
-  any sequence can be built. The umbrella is PERF.120 and its subitems
-  are PERF.121 to PERF.128, OPS.60 and OPS.61.
-  Design: [docs/design/redis-and-the-work-queue.md](design/redis-and-the-work-queue.md)
-
 - [ ] **PERF.119 The Generate page, the API and the one-off sector and system commands start their runs through the wrapper**
   Boss, 2026-10-17, 4:12 PM EDT: "Rework so every part of the generate
   process, all the scatter phases, are individual commands, then a
@@ -14311,7 +14269,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wrapper, which alone handles the sequence.
   The command inventory (docs/design/command-inventory.md, PERF.120)
   lists every other command and entry point.
-  Prerequisites: PERF.98, PERF.118. Related: PERF.99, PERF.118.
+  Prerequisites: PERF.98. Related: PERF.99, PERF.118.
 
 - [ ] **PERF.120 Every command does one thing: the umbrella for reshaping every command and entry point**
   Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
@@ -14328,8 +14286,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a docs line. The nightly orbital update of GEN.105 follows the same
   rules (it replaces `cli.orbits`). Owner: Core 5 (proposed; the
   PERF.118 chain).
-  Prerequisites: PERF.118. Related: PERF.118, PERF.121, PERF.122,
+  Prerequisites: none. Related: PERF.118, PERF.121, PERF.122,
   PERF.123, PERF.124, PERF.125, PERF.126, PERF.127, PERF.128.
+  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
+  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
+  merged (#2159).
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.121 `plan` does only the skeleton, and the scatters become one `scatter` command with exactly one kind per run (mass, luminosity, phenomena, nebula field, band)**
@@ -14354,6 +14316,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   seed. Owner: Core 5 (proposed; the PERF.118 chain).
   Prerequisites: PERF.106, PERF.120. Related: PERF.106, PERF.118,
   PERF.120.
+  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
+  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
+  merged (#2159).
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.122 The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags**
@@ -14369,6 +14335,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test runs each alone. Owner: Core 5 (proposed; the PERF.118 chain).
   Prerequisites: PERF.106, PERF.120. Related: PERF.106, PERF.116,
   PERF.117, PERF.121.
+  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
+  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
+  merged (#2159).
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.123 `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds**
@@ -14392,6 +14362,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (proposed; the PERF.118 chain).
   Prerequisites: PERF.107, PERF.108, PERF.121. Related: PERF.107,
   PERF.108, PERF.118, PERF.120.
+  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
+  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
+  merged (#2159).
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.124 `sector` and `phenomenon` only generate: the population pass leaves `sector` and the settle leaves `phenomenon`**
@@ -14410,6 +14384,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.118 chain).
   Prerequisites: PERF.123. Related: PERF.119, PERF.120,
   PERF.123, PERF.125.
+  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
+  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
+  merged (#2159).
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.125 The population pass and the territories pass are separate commands**
@@ -14427,6 +14405,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Core 5 (proposed; the PERF.118 chain).
   Prerequisites: PERF.107, PERF.120. Related: PERF.107, PERF.114,
   PERF.120.
+  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
+  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
+  merged (#2159).
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.126 `check-db`: each check is its own command and the report is the list the wrapper runs**
@@ -14443,7 +14425,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   today's report and the same exit codes (1 on damage, 2 when a check
   could not run), and the flags that grouped them are gone with no shim.
   Owner: Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.118, PERF.120. Related: PERF.118, PERF.120.
+  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
+  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
+  merged (#2159).
+  Prerequisites: PERF.120. Related: PERF.118, PERF.120.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.127 `warm_map`: each cache family is its own command and `update.sh` builds the list**
@@ -14460,8 +14446,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   parameters, runnable alone; the step list of all of them is what
   `update.sh` hands to the wrapper after an update; `--only` is gone
   with no shim. Owner: Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.118, PERF.120. Related: PERF.118, PERF.120,
+  Prerequisites: PERF.120. Related: PERF.118, PERF.120,
   PERF.104.
+  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
+  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
+  merged (#2159).
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.128 `benchmark` is a step list handed to the wrapper, not a sequence of its own**
@@ -14476,6 +14466,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the small shell) and hands it to the wrapper in the scratch databases,
   reading the stage timings the run record already holds; it runs no
   stage itself. Owner: Core 5 (proposed; the PERF.118 chain).
+  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
+  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
+  merged (#2159).
   Prerequisites: PERF.123. Related: PERF.31, PERF.118, PERF.120.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
@@ -14557,7 +14551,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with progress bars of what it will build; a second run builds nothing
   that is current; a browser test opens the map at each built level and
   finds every tile a cache hit. Owner: Core 2 (proposed).
-  Prerequisites: PERF.118, PERF.127. Related: PERF.129,
+  Prerequisites: PERF.127. Related: PERF.129,
   PERF.127, PERF.104, MAP.239.
   Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
   stored here are built with halo and satellite-galaxy stars ranked
@@ -14606,7 +14600,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that rule bumps the tile cache stamp and the cached tiles are rebuilt
   once. The galaxy map lag Boss reported at the same time is MAP.249; if
   its cause is the missing cache, this item is brought forward.
-  Prerequisites: PERF.118. Related: PERF.129, MAP.159, MAP.158.
+  Prerequisites: none. Related: PERF.129, MAP.159, MAP.158.
 
 - [ ] **PERF.132 Build proactively on a visit: the surrounding tiles and the next zoom levels are built and cached in the background**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -14639,7 +14633,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   neighbours and the next level in the cache afterwards, and a second
   visitor to the same area causes no new build. Owner: Core 2
   (proposed).
-  Prerequisites: PERF.118, PERF.130, PERF.131. Related: PERF.129,
+  Prerequisites: PERF.130, PERF.131. Related: PERF.129,
   PERF.130, PERF.131.
   Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
   stored here are built with halo and satellite-galaxy stars ranked
@@ -14905,6 +14899,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 41 of 54). This replaces any earlier owner line on this item.
+  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
+  coordinator relayed): right after PERF.135; the UX.102 chain (UX.121,
+  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
+  merged (#2159).
 
 - [ ] **DB.30 One migration for the per-species environment limits**
   Needed by POP.12 (done, PR #1554; Generate), same rule as DB.27 and
@@ -17932,7 +17930,9 @@ clears each one.
   with a reason.
   Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
   this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment, position 17 of 53).
-  Order on Core 5's lane: after PERF.135, before the DOC.18 sweep.
+  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
+  relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
+  PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
   Prerequisites: UX.122, UX.123. Related: UX.102.
 
 - [ ] **TEST.184 Whole-sphere tests, nebula and Wolf-Rayet side: contents per class, the Wolf-Rayet count, tiling, determinism and the King solver**
@@ -19935,7 +19935,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   know about. Done: the sweep is run again on main, anything new is
   fixed in the same pass, README's headline feature list and the release
   headline are checked, and the result is recorded here.
-  Prerequisites: DOC.19, DOC.20, DOC.48, DOC.50, DOC.51.
+  Prerequisites: DOC.20, DOC.48, DOC.50, DOC.51.
   Related: DOC.4.
   Runs last: re-run the sweep when the other 8.1 DOC items are done
   (2026-10-16 review).
@@ -19943,6 +19943,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 54 of 54). This replaces any earlier owner line on this item.
+  Decided (Boss, 2026-10-17, 10:57 PM EDT, two cards answered in the
+  project chat, relayed by the coordinator): 'Sweep first': DOC.19 is
+  dropped from this sweep's prerequisites, so the sweep runs without it;
+  DOC.19 is written after the logging standard (UX.102's chain) is
+  built. DOC.47 is done (#2037). The sweep still waits on the other
+  prerequisites listed.
 
 - [ ] **DOC.19 After UX.102: document the log output standard for the CLI, the Generate page and admin logs**
   Requested by the coordinator from Boss's instruction of 2026-10-14
@@ -19954,7 +19960,14 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the three docs link to it.
   Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
   this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment, position 20 of 53).
-  Order on Core 5's lane: after PERF.135, before the DOC.18 sweep.
+  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
+  relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
+  PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
+  Decided (Boss, 2026-10-17, 10:57 PM EDT, two cards answered in the
+  project chat, relayed by the coordinator): 'Sweep first': the DOC.18
+  sweep no longer waits on this item; it is written after the logging
+  standard (UX.121, UX.122, UX.123, TEST.183) is built. Core 5 is its
+  proposed owner, after the command follow-ups.
   Prerequisite: UX.102.
 
 - [ ] **DOC.20 After PERF.86: rewrite the queue and scatter notes and the queue docstrings**
