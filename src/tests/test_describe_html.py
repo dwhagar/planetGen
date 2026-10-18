@@ -69,6 +69,14 @@ def test_prose_carries_its_role_and_a_link_only_when_the_page_gives_one():
     assert "Terra" in html.render(_document(block), link=lambda ref: None)
 
 
+def test_a_sections_blocks_alone_have_no_heading_and_no_children():
+    child = model.section("moon", "moon:1", "Luna", [model.prose("summary", "A moon.")])
+    top = _document(model.prose("summary", "A star.", ), children=[child])["sections"][0]
+    out = html.blocks_html(top["blocks"])
+    assert out == '<p class="doc-prose doc-summary">A star.</p>'
+    assert html.blocks_html([]) == ""
+
+
 def test_children_nest_one_heading_deeper():
     child = model.section("moon", "moon:1", "Luna", [model.prose("summary", "A moon.")])
     out = html.render(_document(children=[child]), first_heading=3)

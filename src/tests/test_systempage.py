@@ -13,7 +13,7 @@ import re
 from planetgen.web.lib.systempage import _planet_row_html, comet_orbit_key_km, system_list_html  # noqa: E402
 
 AU_KM = 149_597_870.7
-_SECTIONS = {"overview": "", "stars": {}, "planets": {}, "moons": {}, "belts": {}, "comets": {}}
+_SECTIONS = {"overview": [], "stars": {}, "planets": {}, "moons": {}, "belts": {}, "comets": {}}
 
 
 def _body(id_, name, au, body_type="t", planet_class="M", habitable=False, moons=(), index=0):

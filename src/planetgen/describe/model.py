@@ -123,6 +123,33 @@ def sections(document_or_section):
         yield from sections(child)
 
 
+SPLIT_KEYS = {"star": "stars", "planet": "planets", "moon": "moons", "belt": "belts", "comet": "comets"}
+"""dict: The section kinds `split_by_body` gives their own entry, each to the key it is filed under."""
+
+
+def split_by_body(document):
+    """
+    A system's Document split into the pieces the web page shows under each row: `overview` (the blocks above the
+    list: a binary pair's own facts, the system overview, a close pair's age sentence and any system flavour text, in
+    page order) and `stars`, `planets`, `moons`, `belts` and `comets`, each mapping the `id` in a section's `ref`
+    (`"planet:12"` -> `"12"`) to that section's own blocks, without its heading or its child sections. A section
+    with no `ref` (a body that was never stored) has no entry.
+    """
+    top = document["sections"][0]
+    overview = list(top["blocks"])
+    pair = next((child for child in top["children"] if child["kind"] == "pair"), None)
+    if pair is not None:
+        overview = [pair["blocks"][0], *overview[:1], *pair["blocks"][1:], *overview[1:]]
+    pieces = {"overview": overview, **{key: {} for key in SPLIT_KEYS.values()}}
+    for piece in sections(top):
+        if piece is top or not piece["ref"]:
+            continue
+        kind, _, db_id = piece["ref"].partition(":")
+        if kind in SPLIT_KEYS:
+            pieces[SPLIT_KEYS[kind]][db_id] = piece["blocks"]
+    return pieces
+
+
 def check(node):
     """Raises ValueError unless `node` (a Document) has the documented shape: known section kinds, block
     types and quantity kinds, finite-or-None quantities, JSON-safe values."""

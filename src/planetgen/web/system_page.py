@@ -2,19 +2,20 @@
 
 """
 `/admin/generate/system`: a one-off star system from the browser, with
-every option `planetgen system` takes, shown as Markdown (or wikitext)
-on the page and never saved to the database.
+every option `planetgen system` takes, shown as the page a saved system gets
+and never saved to the database.
 
 The page runs the real command-line generator, `planetgen system
---output FILE`, in a throwaway directory and reads the page back, so the
+--output FILE --format=document`, in a throwaway directory and reads the
+system's Document back (`planetgen.describe`), so the
 browser and the terminal can never disagree on what an option means. A
 separate process also keeps the flavor-text overrides (which set
 `program_constants` globals) out of the web server. A system takes about
 a second, so the page waits for it rather than starting a background job.
 
-The result's code box sits inside a second form: its Download button
-posts the text back to `/admin/generate/system/download`, which returns
-it as a file, and Copy uses `static/copycode.js` like the system page.
+The Document is shown as HTML (`describe.html`), and a Download button for
+each text format posts that format's text to `/admin/generate/system/download`,
+which returns it as a file.
 
 Admins only, like the rest of `/admin/generate` (`generate_page.py`).
 """
@@ -31,7 +32,8 @@ from .generate_page import FormError, _admin_or_403, _admin_or_redirect, _no_sto
 from .helpers import crumb, render_page, trusted_html
 
 from planetgen.queue import api_jobs
-from planetgen.web.lib.mdrender import markdown_to_html
+from planetgen import describe
+from planetgen.describe import DOCUMENT_FORMAT, html as describe_html
 from planetgen.generation.limits import MAX_NUM_ORBITS
 
 TRISTATE_FIELDS = (
@@ -51,7 +53,12 @@ TRISTATE_FIELDS = (
 
 TRISTATE_CHOICES = (("", "Generator decides"), ("yes", "Yes"), ("no", "No"))
 
-FORMATS = (("markdown", "Markdown"), ("wikitext", "Wikitext"))
+FORMATS = (("markdown", "Markdown", "md", "text/markdown"), ("wikitext", "Wikitext", "wiki", "text/plain"),
+           ("text", "Plain text", "txt", "text/plain"))
+"""tuple: The text formats offered for download: `(format, label, file extension, mimetype)`."""
+
+_FORMAT_EXTENSIONS = {fmt: extension for fmt, _label, extension, _mimetype in FORMATS}
+_FORMAT_MIMETYPES = {fmt: mimetype for fmt, _label, _extension, mimetype in FORMATS}
 
 SYSTEM_FILE_EXAMPLE = """{
   "num_orbits": 5,
@@ -89,7 +96,7 @@ def system_request(form):
 
     Returns:
         dict: `argv` (the options after `system`, without `--output` or
-        the logging flags), `format`, `debug` and `system_file` (the
+        the logging flags), `debug` and `system_file` (the
         parsed JSON, or `None`).
 
     Raises:
@@ -105,9 +112,6 @@ def system_request(form):
     chance_system = _number(form, "flavor_chance_system", "System flavor chance", float, minimum=0.0, maximum=1.0)
     chance_planet = _number(form, "flavor_chance_planet", "Planet flavor chance", float, minimum=0.0, maximum=1.0)
     max_flavor = bool(form.get("max_planet_flavor"))
-    fmt = form.get("format") or "markdown"
-    if fmt not in dict(FORMATS):
-        raise FormError("Choose Markdown or Wikitext.")
 
     if states["planets"] is False and (states["moons"] or states["max_planets"] or states["habitable_world"]):
         raise FormError("No planets can't be combined with moons, maximum orbits or a habitable world.")
@@ -134,7 +138,7 @@ def system_request(form):
     for option, _label in TRISTATE_FIELDS:
         if states[option] is not None:
             argv.append(("+" if states[option] else "-") + option)
-    argv.append(f"--format={fmt}")
+    argv.append(f"--format={DOCUMENT_FORMAT}")
     # `--flag=value`, so a name starting with "-" is never read as an option.
     if name:
         argv.append(f"--name={name}")
@@ -150,7 +154,7 @@ def system_request(form):
         argv.append(f"--flavor-chance-planet={chance_planet}")
     if max_flavor:
         argv.append("--max-planet-flavor")
-    return {"argv": argv, "format": fmt, "debug": bool(form.get("debug")), "system_file": system_file}
+    return {"argv": argv, "debug": bool(form.get("debug")), "system_file": system_file}
 
 
 def _read(path):
@@ -168,15 +172,15 @@ def _tail(text, limit=MAX_LOG_BYTES):
 def run_generator(spec):
     """
     Runs `planetgen system --output` for a `system_request` and reads
-    the page back. Nothing touches the database.
+    the Document back. Nothing touches the database.
 
     Returns:
-        dict: `ok`, `text` (the page), `output` (anything the generator
+        dict: `ok`, `text` (the Document as JSON), `output` (anything the generator
         printed) and `debug_log` (the same output, when `--debug` was
         asked for).
     """
     with tempfile.TemporaryDirectory(prefix="planetgen-system-") as tmp:
-        page_path = os.path.join(tmp, "system.txt")
+        page_path = os.path.join(tmp, "system.json")
         # With --debug the generator narrates every choice to stdout, which
         # the page shows as the debug log; otherwise only errors.
         argv = [jobs.python_executable(), *jobs.GENERATE_COMMAND, "system", "--output", page_path,
@@ -199,17 +203,16 @@ def run_generator(spec):
     return {"ok": ok and bool(text), "text": text, "output": output, "debug_log": output if spec["debug"] else ""}
 
 
-def _title_of(text, fmt):
-    """The system's name, from the page's first heading."""
-    first = text.lstrip().split("\n", 1)[0] if text else ""
-    match = re.match(r"^#\s+(.+)$", first) if fmt == "markdown" else re.match(r"^=\s*(.+?)\s*=$", first)
-    return match.group(1).strip() if match else "System"
-
-
 def download_name(title, fmt):
-    """`"Ilkone.md"` / `"Ilkone.wiki"`, keeping only safe characters."""
+    """`"Ilkone.md"` / `"Ilkone.wiki"` / `"Ilkone.txt"`, keeping only safe characters."""
     stem = re.sub(r"[^A-Za-z0-9._-]+", "-", title).strip("-.") or "system"
-    return f"{stem[:80]}.{'md' if fmt == 'markdown' else 'wiki'}"
+    return f"{stem[:80]}.{_FORMAT_EXTENSIONS[fmt]}"
+
+
+def _downloads(document, title):
+    """One entry per text format: `format`, `label`, `filename` and the Document written in it as `text`."""
+    return [{"format": fmt, "label": label, "filename": download_name(title, fmt), "text": describe.render(document, fmt)}
+            for fmt, label, _extension, _mimetype in FORMATS]
 
 
 def _page(admin, form=None, result=None, error=None, status=200):
@@ -223,7 +226,6 @@ def _page(admin, form=None, result=None, error=None, status=200):
         form=form or {},
         tristate_fields=TRISTATE_FIELDS,
         tristate_choices=TRISTATE_CHOICES,
-        formats=FORMATS,
         system_file_example=SYSTEM_FILE_EXAMPLE,
         max_num_orbits=MAX_NUM_ORBITS,
         result=result,
@@ -249,16 +251,14 @@ def generate_system():
     if not run["ok"]:
         return _page(admin, form=request.form, error="The generator failed; its output is below.",
                      result={"failed": True, **run}, status=500)
-    title = _title_of(run["text"], spec["format"])
+    document = json.loads(run["text"])
+    title = document["title"] or "System"
     result = {
         **run,
         "failed": False,
-        "format": spec["format"],
-        "format_label": dict(FORMATS)[spec["format"]],
         "title": title,
-        "filename": download_name(title, spec["format"]),
-        "rows": min(run["text"].count("\n") + 3, 30),
-        "preview": trusted_html(markdown_to_html(run["text"])) if spec["format"] == "markdown" else None,
+        "page": trusted_html(describe_html.render(document)),
+        "downloads": _downloads(document, title),
     }
     return _page(admin, form=request.form, result=result)
 
@@ -267,10 +267,9 @@ def generate_system():
 def generate_system_download():
     """The code box's text back as a file (the page's Download button)."""
     _admin_or_403()
-    fmt = request.form.get("format") if request.form.get("format") in dict(FORMATS) else "markdown"
+    fmt = request.form.get("format") if request.form.get("format") in _FORMAT_EXTENSIONS else "markdown"
     text = (request.form.get("text") or "").replace("\r\n", "\n")
     filename = download_name(request.form.get("title") or "system", fmt)
-    mimetype = "text/markdown" if fmt == "markdown" else "text/plain"
-    response = Response(text, mimetype=mimetype)
+    response = Response(text, mimetype=_FORMAT_MIMETYPES[fmt])
     response.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
     return _no_store(response)

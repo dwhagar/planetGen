@@ -102,6 +102,12 @@ def _block(block, link):
     return _ratings(block, link)
 
 
+def blocks_html(blocks, link=None):
+    """The blocks of one section as HTML, with no heading and no child sections: what a row of the system page
+    shows under the body's own name. `link` is as in `inline_html`."""
+    return "".join(_block(block, link) for block in blocks)
+
+
 def _section(section, depth, link):
     level = min(depth, 6)
     ref = f' data-ref="{html.escape(section["ref"], quote=True)}"' if section["ref"] else ""

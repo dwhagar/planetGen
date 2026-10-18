@@ -26,6 +26,8 @@ from unittest import mock
 
 import pytest
 
+from planetgen.describe.html import blocks_html
+from planetgen.describe.model import split_by_body
 from planetgen.util.format import format_number
 from hypothesis import assume, example, given, settings
 from hypothesis import strategies as st
@@ -104,6 +106,8 @@ def _assert_no_active_content(markup, allowed_tags, allowed_attrs, trusted_targe
 
 _MD_TAGS = {"h1", "h2", "h3", "h4", "h5", "h6", "p", "br", "div", "table", "thead", "tbody", "tr", "th", "td", "sup"}
 _MD_ATTRS = {"id", "class", "tabindex", "align"}
+_BLOCK_TAGS = {"p", "table", "caption", "thead", "tbody", "tr", "th", "td", "div", "span", "strong", "a", "sup"}
+_BLOCK_ATTRS = {"class", "tabindex", "scope", "href", "data-q", "data-si", "data-nc"}
 
 
 @given(text=markdown_text)
@@ -432,32 +436,6 @@ def test_render_system_text_rejects_unknown_formats_before_touching_the_database
         systemRender.render_system_text(None, 1, fmt_)
 
 
-@given(paragraphs=st.lists(hostile_text, max_size=6))
-def test_without_header_drops_only_a_leading_heading(paragraphs):
-    out = systemRender._without_header(paragraphs)
-    if paragraphs and paragraphs[0].lstrip().startswith("#"):
-        assert out == paragraphs[1:]
-    else:
-        assert out == paragraphs
-
-
-@given(own=st.lists(hostile_text, max_size=4), moons=st.lists(st.lists(hostile_text, min_size=1, max_size=3),
-                                                              max_size=3))
-def test_body_markdown_strips_heading_and_moon_sections(own, moons):
-    class _Body:
-        def __init__(self, paragraphs, children=()):
-            self._p = paragraphs
-            self.moons = list(children)
-
-        def to_paragraph_list(self):
-            return list(self._p)
-
-    children = [_Body(m) for m in moons]
-    body = _Body(own + [p for m in moons for p in m], children)
-    expected = own[1:] if own and own[0].lstrip().startswith("#") else own
-    assert systemRender._body_markdown(body) == "\n\n".join(expected)
-
-
 _HOSTILE_NAMES = ["<script>alert(1)</script>", '"><img src=x onerror=alert(1)>', "# Heading\n\n| a |\n|--|",
                   "javascript:alert(1)", "<sup onmouseover=alert(1)>2</sup>", "𝔘𝔫𝔦𝔠𝔬𝔡𝔢 ‮", "\x00\t\r\n", ""]
 
@@ -475,7 +453,7 @@ def test_generated_system_with_hostile_name_renders_to_inert_html(name):
                               _MD_TAGS, _MD_ATTRS)
 
 
-def test_render_system_sections_with_hostile_names_is_inert(mysql_config):
+def test_the_split_system_description_with_hostile_names_is_inert(mysql_config):
     from planetgen.db import store
     for name in _HOSTILE_NAMES[:4]:
         config = SystemConfig()
@@ -487,11 +465,11 @@ def test_render_system_sections_with_hostile_names_is_inert(mysql_config):
         system_id = store.save_system(StarSystem(system_config=config), config, config=mysql_config)
         conn = store.get_connection(mysql_config)
         try:
-            sections = systemRender.render_system_sections(conn, system_id)
+            sections = split_by_body(systemRender.describe_system(conn, system_id))
         finally:
             conn.close()
         chunks = [sections["overview"]] + [t for key in ("stars", "planets", "moons", "belts", "comets")
                                            for t in sections[key].values()]
         assert all(chunks)
         for chunk in chunks:
-            _assert_no_active_content(mdrender.markdown_to_html(chunk), _MD_TAGS, _MD_ATTRS)
+            _assert_no_active_content(blocks_html(chunk, lambda ref: f"#{ref}"), _BLOCK_TAGS, _BLOCK_ATTRS)

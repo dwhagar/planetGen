@@ -41,7 +41,7 @@ this API instead.
 Every `/api` answer carries the API version in the `X-PlanetGen-API-Version` header, and `/api/health` reports it as `api_version` (`src/planetgen/api/version.py`, API.22). A breaking change bumps it, the route snapshot `src/tests/fixtures/api_routes.json` moves with it, and it gets a line here.
 
 - **4** (ADM.50): `GET /api/admin/galaxy-settings` and `GET /api/admin/galaxy-settings/<name>` are gone with the galaxy settings files.
-- **3** (API.23, stage 2): stars, planets, moons, asteroid belts, comets and facilities are named by their object ID too, in the same way: `id`, `star_id`, `planet_id`, `moon_id`, `belt_id`, `comet_id`, `host_id` and `homeworld_planet_id` fields, `<kind>:<ID>` references (including the keys of `class-options` and the `around`/`parent` fields of a system scene), the section keys of `/api/systems/<id>/sections`, and the URLs (`/api/planets/<id>`, `/api/moons/<id>/class`, `/api/facilities/<id>`, ...). A facility's `host_id` (on `POST /api/facilities` and `GET /api/facilities/orbit`) is the host's ID: a sector's for `host_type` `space`. A row number is refused.
+- **3** (API.23, stage 2): stars, planets, moons, asteroid belts, comets and facilities are named by their object ID too, in the same way: `id`, `star_id`, `planet_id`, `moon_id`, `belt_id`, `comet_id`, `host_id` and `homeworld_planet_id` fields, `<kind>:<ID>` references (including the keys of `class-options` and the `around`/`parent` fields of a system scene), the `ref` of every section and link of `/api/systems/<id>/description`, and the URLs (`/api/planets/<id>`, `/api/moons/<id>/class`, `/api/facilities/<id>`, ...). A facility's `host_id` (on `POST /api/facilities` and `GET /api/facilities/orbit`) is the host's ID: a sector's for `host_type` `space`. A row number is refused.
 - **2** (API.23, stage 1): sectors, systems and phenomena are named by their object ID, printed as `0008000000-4000000-000`, and not by their database row number. IDs appear in every `id`, `sector_id` and `ref` field of those answers, in the URLs (`/api/systems/<id>`, `/api/sectors/<id>`, `/api/phenomena/<type>/<id>`, `/api/nebulae/<id>/...`) and in `from`/`to`/`course` references such as `system:0008000000-4000000-000`. A row number is refused (404). A sector's ID is the hex designation of its grid address (shell, band and wedge bit-packed, e.g. `FE81000A2B`), or `(1 << 40) + id` when it was made by hand with no grid address.
 - **1**: the first numbered version.
 
@@ -227,12 +227,6 @@ connectivity to that specific schema rather than the default one.
   description written out on request, `{"id", "format", "content"}`
   (`planetgen/db/render.py`; no page text is stored since schema v29).
   `format` defaults to `wikitext`; any other value is a `400`.
-- `GET /api/systems/<id>/sections` — the same page as Markdown split for
-  the system page's expandable list: `overview` (a binary pair's own data
-  table, the system summary, flavor text) plus `stars`, `planets`,
-  `moons`, `belts` and `comets`, each an object mapping a row `id` (as a
-  string) to that body's own Markdown, without its heading (and, for a
-  planet, without its moons' sections).
 - `GET /api/systems/<id>/scene` — the 3D system view's data (MAP.69):
   `system`, `epoch`/`epoch_unix` (when the stored phases were last
   advanced, `null` if never), `stars`, `planets` (each with `moons`),

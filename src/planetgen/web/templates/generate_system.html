@@ -12,11 +12,6 @@
 </label>
 {%- endmacro -%}
 {% block main_class %} aligned-fields{% endblock %}
-{% block head %}
-{%- if result and not result.failed %}
-<script type="module" src="{{ static_url('copycode.js') }}"></script>
-{%- endif %}
-{% endblock %}
 {% block content %}
 {%- if error %}
 <p class="error" role="alert">{{ error }}</p>
@@ -69,13 +64,6 @@
       </label>
     </details>
     <div class="search-fields system-format">
-      <label class="search-field">Format
-        <select name="format">
-          {%- for value, label in formats %}
-          <option value="{{ value }}"{% if form.get("format", "markdown") == value %} selected{% endif %}>{{ label }}</option>
-          {%- endfor %}
-        </select>
-      </label>
       <label class="search-field generate-check"><span><input type="checkbox" name="debug" value="1"{% if form.get("debug") %} checked{% endif %}> Show the generator's reasoning (debug log)</span></label>
     </div>
     <div class="search-actions">
@@ -91,25 +79,18 @@
   <textarea readonly rows="12" class="content-box" aria-label="Generator output">{{ result.output or "No output." }}</textarea>
   {%- else %}
   <h2 id="system-result-heading">{{ result.title }}</h2>
-  <form method="post" action="{{ url_for('web.generate_system_download') }}" class="code-view">
-    {{ csrf_field() }}
-    <input type="hidden" name="format" value="{{ result.format }}">
-    <input type="hidden" name="title" value="{{ result.title }}">
-    <div class="code-view-header">
-      <span class="view-toggle-current">{{ result.format_label }}</span>
-      <span class="search-actions">
-        <button type="button" class="btn copy-btn" data-copy-target="system-code">Copy</button>
-        <button type="submit" class="btn" title="Save as {{ result.filename }}">Download</button>
-      </span>
-    </div>
-    <textarea readonly name="text" rows="{{ result.rows }}" id="system-code" class="content-box" aria-label="{{ result.format_label }} source">{{ result.text }}</textarea>
-  </form>
-  {%- if result.preview %}
-  <details class="search-more system-preview">
-    <summary>Preview</summary>
-    <div class="prose">{{ result.preview }}</div>
-  </details>
-  {%- endif %}
+  <div class="system-downloads search-actions">
+    {%- for download in result.downloads %}
+    <form method="post" action="{{ url_for('web.generate_system_download') }}">
+      {{ csrf_field() }}
+      <input type="hidden" name="format" value="{{ download.format }}">
+      <input type="hidden" name="title" value="{{ result.title }}">
+      <input type="hidden" name="text" value="{{ download.text }}">
+      <button type="submit" class="btn" title="Save as {{ download.filename }}">Download {{ download.label }}</button>
+    </form>
+    {%- endfor %}
+  </div>
+  <div class="prose system-document">{{ result.page }}</div>
   {%- endif %}
   {%- if result.debug_log and not result.failed %}
   <details class="search-more">

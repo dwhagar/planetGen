@@ -13,9 +13,8 @@ formats one for the page's Facilities panel.
 Moved here unchanged from the old CGI `system.py`. Every value taken from
 the database is escaped with `fmt.esc`; the only raw markup comes from
 `tabledisplay.py`'s unit formatters (built from floats and fixed unit
-literals, e.g. `<sup>`) and from `mdrender.markdown_to_html`, which
-escapes its own input. So the page wraps what these return in
-`trusted_html`.
+literals, e.g. `<sup>`) and from `describe.html`, which escapes all of the
+Document's text. So the page wraps what these return in `trusted_html`.
 
 Class labels (a star's type, a planet's class) link to their class
 reference pages (`/classes/...`) through an optional `class_url(type_slug,
@@ -26,13 +25,24 @@ disclosure button would be a control nested in a control); it opens the
 row's detail instead.
 """
 
+from planetgen.describe.html import blocks_html
 from planetgen.physics.habitability_world import DOMAINS, EQUIPMENT_LABELS
 from planetgen.web.lib.classref import PARABOLIC_COMET_CLASS, class_entry, star_type_classes
 from planetgen.web.lib.fmt import (
     distance_km_html, esc, format_gravity_g_short, format_number, period_years_html, quantity_html, speed_kms_html,
 )
-from planetgen.web.lib.mdrender import markdown_to_html
 from planetgen.web.lib.tabledisplay import format_star_radius
+
+
+def _ref_url(ref):
+    """The page fragment of the row a Document reference (`"planet:12"`) names."""
+    kind, _, db_id = ref.partition(":")
+    return f"#{body_anchor(kind, db_id)}" if kind in ("star", "planet", "moon", "belt", "comet") else None
+
+
+def _document_html(blocks):
+    """A row's Document blocks (`planetgen.describe.model.split_by_body`) as HTML, or `""` for none."""
+    return blocks_html(blocks, _ref_url) if blocks else ""
 
 
 def _link(url, text_html):
@@ -101,7 +111,7 @@ def star_notes_html(system, sections, class_url=None, facilities=()):
     for star in system["stars"]:
         if _star_has_list_row(system, star, by_host):
             continue
-        text = sections["stars"].get(str(star["id"]))
+        blocks = sections["stars"].get(str(star["id"]))
         links = []
         classes = star_type_classes(star["star_type"]) if class_url else None
         if classes:
@@ -109,11 +119,11 @@ def star_notes_html(system, sections, class_url=None, facilities=()):
             links = [_link(spectral_url, f"Spectral class {esc(classes[0])}") if spectral_url else "",
                      _link(luminosity_url, f"Luminosity class {esc(classes[1])}") if luminosity_url else ""]
         links = [link for link in links if link]
-        if not text and not links:
+        if not blocks and not links:
             continue
         heading = f"<h3>{esc(star['name'])}</h3>" if len(system["stars"]) > 1 else ""
         link_line = f'<p class="class-links">{" &middot; ".join(links)}</p>' if links else ""
-        body = markdown_to_html(text) if text else ""
+        body = _document_html(blocks)
         notes.append(f'<div class="star-note prose">{heading}{body}{link_line}</div>')
     return "".join(notes)
 
@@ -212,7 +222,7 @@ def body_anchor(kind, body_id):
     return f"{kind}-{body_id}"
 
 
-def _row_html(title, stats, markdown, children_html="", children_visible=False, links=(), facilities=(), admin="",
+def _row_html(title, stats, blocks, children_html="", children_visible=False, links=(), facilities=(), admin="",
               anchor=None):
     """
     One clickable row of the system list: a native `<details>` whose
@@ -230,7 +240,7 @@ def _row_html(title, stats, markdown, children_html="", children_visible=False, 
     at the row's right end. `anchor` (`body_anchor`) is the row's `id`.
     """
     stats_html = "".join(stats) + _facility_stat(facilities)
-    description = _facilities_html(facilities) + (markdown_to_html(markdown) if markdown else "")
+    description = _facilities_html(facilities) + _document_html(blocks)
     links = [link for link in links if link]
     if links:
         description = f'<p class="class-links">{" &middot; ".join(links)}</p>{description}'
@@ -456,7 +466,7 @@ def system_list_html(system, sections, class_url=None, facilities=(), species=No
     list of its stars, planets (with their moons nested under them),
     asteroid belts and comets. Each row shows compact stats and opens onto
     that body's own generated description -- see
-    `planetgen.db.render.render_system_sections`.
+    `planetgen.describe.model.split_by_body`.
 
     A `'wide'` (S-type) pair's bodies each orbit one of its two stars, so
     they're nested under that star's own row; a single star's or a
@@ -496,7 +506,7 @@ def system_list_html(system, sections, class_url=None, facilities=(), species=No
                             for star in stars if _star_has_list_row(system, star, by_host))
         rows_html += _orbiting_rows_html(planets, belts, comets, sections, class_url, by_host, species, admin_rows)
 
-    overview_html = markdown_to_html(sections["overview"]) if sections["overview"] else ""
+    overview_html = _document_html(sections["overview"])
     scored = any(body.get("equipment_tier") is not None
                  for planet in planets for body in [planet, *(planet.get("moons") or [])])
     help_html = (f'<p class="hint inline-links"><a href="{esc(habitability_url)}">Habitability levels</a>: what the equipment '

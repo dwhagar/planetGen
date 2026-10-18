@@ -14,6 +14,7 @@ import pytest
 from planetgen.web.app import create_app
 from planetgen.api.config import Config
 
+from planetgen.describe import model  # noqa: E402
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import classref  # noqa: E402
 from markupsafe import escape  # noqa: E402
@@ -205,7 +206,7 @@ def test_class_url_parts_resolve_aliases():
 
 # --- Links from the system and phenomenon pages ----------------------------------------------
 
-_SECTIONS = {"overview": "", "stars": {}, "planets": {}, "moons": {}, "belts": {}, "comets": {}}
+_SECTIONS = {"overview": [], "stars": {}, "planets": {}, "moons": {}, "belts": {}, "comets": {}}
 
 
 def _planet(planet_class="M"):
@@ -283,8 +284,8 @@ class _Fake:
     def get_system(self, db, system_id):
         return self.system
 
-    def get_system_sections(self, db, system_id):
-        return _SECTIONS
+    def get_system_description(self, db, system_id):
+        return model.document("system", "system:1", "Sol", [model.section("system", "system:1", "Sol")])
 
     def get_system_facilities(self, db, system_id):
         return []
@@ -299,7 +300,7 @@ class _Fake:
 @pytest.fixture
 def fake(monkeypatch):
     data = _Fake()
-    for name in ("get_system", "get_system_sections", "get_system_facilities", "get_phenomenon", "auth_me"):
+    for name in ("get_system", "get_system_description", "get_system_facilities", "get_phenomenon", "auth_me"):
         monkeypatch.setattr(apiclient, name, getattr(data, name))
     return data
 

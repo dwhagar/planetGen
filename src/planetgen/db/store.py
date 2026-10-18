@@ -8534,7 +8534,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
 
     Each reconstructed star/planet/moon/belt/comet also carries `db_id`,
     its own row's `id`, so a caller rendering per-body text
-    (`systemRender.render_system_sections`) can match it back to the
+    (`describe.model.split_by_body`) can match it back to the
     rows `db.query.system_detail` returns.
 
     Args:

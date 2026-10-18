@@ -14,6 +14,9 @@ command line and the wiki exports render that one Document.
 from planetgen.describe import html, markdown, text, wikitext
 from planetgen.describe.build import describe
 
+DOCUMENT_FORMAT = "document"
+"""str: The name the command line gives the Document itself, written as JSON, beside the formats of `RENDERERS`."""
+
 RENDERERS = {"text": text.render, "markdown": markdown.render, "wikitext": wikitext.render}
 """dict: The formats a Document is written in on request, each to its renderer. HTML is not one: the web page calls
 `html.render` itself, with the links of its own routes."""
@@ -26,4 +29,4 @@ def render(document, fmt):
     return RENDERERS[fmt](document)
 
 
-__all__ = ["RENDERERS", "describe", "html", "render"]
+__all__ = ["DOCUMENT_FORMAT", "RENDERERS", "describe", "html", "render"]

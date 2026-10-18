@@ -254,8 +254,8 @@ def add_system_arguments(parser):
 
     # Write the description instead of saving (a one-off system)
     parser.add_argument('--format', choices=run_system.OUTPUT_FORMATS, default=run_system.OUTPUT_FORMATS[0],
-                        help="With --output, how to write the system: plain text (the default), Markdown "
-                             "or wikitext.")
+                        help="With --output, how to write the system: plain text (the default), Markdown, "
+                             "wikitext or the Document as JSON.")
     parser.add_argument('--output', '-o', type=str, metavar='FILE',
                         help="Write the system's description (in --format) to FILE "
                              "instead of saving the system to the database; '-' writes it to stdout.")

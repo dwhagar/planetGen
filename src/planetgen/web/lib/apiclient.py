@@ -472,11 +472,11 @@ def get_system_text(db, system_id, fmt):
     return _request(f"/systems/{system_id}/text", {"db": db, "format": fmt})
 
 
-def get_system_sections(db, system_id):
-    """Returns `GET /api/systems/<id>/sections` -- the page's Markdown split
-    per body, see `planetgen.db.render.render_system_sections`."""
+def get_system_description(db, system_id):
+    """Returns `GET /api/systems/<id>/description` -- the system's Document,
+    see `planetgen.describe`."""
     _require_db(db)
-    return _request(f"/systems/{system_id}/sections", {"db": db})
+    return _request(f"/systems/{system_id}/description", {"db": db})
 
 
 def get_system_scene(db, system_id):
