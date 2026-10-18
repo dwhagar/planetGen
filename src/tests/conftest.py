@@ -527,7 +527,7 @@ def _reset_login_backoff():
 
 
 @pytest.fixture(autouse=True)
-def _run_queue_inline(request):
+def _run_queue_inline(monkeypatch, request):
     """
     A stage on the new work queue (PERF.97, `planetgen/queue/units.py`) queues its units on Redis and has workers
     run them. A test gets a queue and a key prefix of its own, so parallel tests (pytest-xdist) neither share the
@@ -540,7 +540,7 @@ def _run_queue_inline(request):
     if request.node.get_closest_marker("real_queue"):
         yield
         return
-    with inline_queue.inline_queue():
+    with inline_queue.inline_queue(monkeypatch):
         yield
 
 
