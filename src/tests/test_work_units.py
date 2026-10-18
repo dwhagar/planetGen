@@ -582,6 +582,32 @@ def test_a_batch_fill_unit_runs_alone_from_its_json_arguments(mysql_config):
     assert result["ids"] == expansion.units[0][1] and result["filled"] == 0
 
 
+def test_the_nebula_field_is_a_unit_per_slab_and_the_clean_up_one_unit(mysql_config, monkeypatch):
+    import json
+
+    from planetgen.generation import run_plan
+    from tests.test_nebula_field_table import _seed_galaxy, _table, no_superbubbles, plenty_of_clouds  # noqa: F401
+    from tests.test_phenomenon_scatter import _plan_args
+    _seed_galaxy(mysql_config)
+    runs = []
+    real = wrapper.run
+    monkeypatch.setattr(wrapper, "run", lambda *args, **kwargs: runs.append(real(*args, **kwargs)) or runs[-1])
+    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    conn = redisqueue.connect()
+    drawn = [run for run in runs if [step["kind"] for step in runrecord.read_steps(conn, run)] == ["draw-nebula-field"]]
+    assert len(drawn) == 1
+    slabs = runrecord.read_run(conn, drawn[0])["stages"][0]["units"]
+    assert slabs > 1 and sum(len(_table(mysql_config, f"cell_i = {i}")) for i in range(-slabs, slabs)) == len(_table(mysql_config))
+    params = {"database": wrapper.database_args(mysql_config)}
+    expansion = run_plan.expand_draw_nebula_field(params)
+    assert len(expansion.units) == slabs and expansion.plan["slabs"] == slabs
+    unit = json.loads(json.dumps(expansion.units[slabs // 2][0]))
+    result = commands.run_alone("draw-nebula-field", unit)
+    assert result["slab"] == unit["i"] and set(result) >= {"written", "counts", "shells", "slab"}
+    check = commands.run_alone("clean-nebula-field", {**params, "apply": False}, lambda done, estimate: None)
+    assert check["deleted"] == 0 and check["lines"][0].startswith("Nebula field cleanup (dry run)")
+
+
 def test_the_shells_are_cut_into_the_same_units_whatever_the_worker_count():
     from planetgen.generation import run_plan
     rows = [(shell, 3, 1.0 + shell % 5) for shell in range(300)]

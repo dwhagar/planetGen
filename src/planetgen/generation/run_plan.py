@@ -1760,6 +1760,54 @@ def _nebula_field_task(payload):
     return {"written": written, "counts": counts, "shells": shells}
 
 
+NEBULA_DRAW_KEY = "nebula-draw"
+"""str: The key of the step that draws the nebula field: a step of a run of its own, not a stage the plan lists."""
+
+
+def expand_draw_nebula_field(params):
+    """
+    The `draw-nebula-field` command's stage (PERF.106, DB.24): a unit per first-index slab of the field's cells, from
+    the stored galaxy alone. `detail` holds the cell edge, so a follower can name a slab's extent.
+    """
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
+        skeleton = store.get_galaxy_shape(conn)
+        extents = _outline(conn)
+    finally:
+        conn.close()
+    outer_shell = max(shell for shell, _high in extents)
+    radius_pc, half_height_pc = nebulaField.field_extent_pc(skeleton.edge_pc, extents)
+    edge = program_constants.NEBULA_FIELD_CELL_PC
+    slabs = range(math.floor(-radius_pc / edge), math.floor(radius_pc / edge) + 1)
+    return commands.Expansion(
+        [({"database": params["database"], "i": i, "radius_pc": radius_pc, "half_height_pc": half_height_pc,
+           "edge_pc": skeleton.edge_pc, "outer_shell": outer_shell}, 1.0) for i in slabs],
+        {"cell_pc": edge, "slabs": len(slabs)})
+
+
+def draw_nebula_field_unit(params, report):
+    """
+    The `draw-nebula-field` command's unit: the kept classes M and N clouds of one slab, from the galaxy's seed and
+    shape, written to `nebula_field` (`_nebula_field_task`). The table is cleared before the run.
+
+    Returns:
+        dict: `_nebula_field_task`'s, plus `slab`, the slab's first index.
+    """
+    mysql_config = _mysql_config_of(params)
+    conn = store.get_connection(mysql_config)
+    try:
+        skeleton = store.get_galaxy_shape(conn)
+        galaxy_seed = store.get_galaxy_seed(conn)
+    finally:
+        conn.close()
+    result = _nebula_field_task({
+        "mysql_config": mysql_config, "galaxy_seed": galaxy_seed, "shape": skeleton.shape, "i": params["i"],
+        "radius_pc": params["radius_pc"], "half_height_pc": params["half_height_pc"], "edge_pc": params["edge_pc"],
+        "outer_shell": params["outer_shell"]})
+    result["slab"] = params["i"]
+    return result
+
+
 def _shell_range_text(shells):
     """`shells` (lowest, highest) as "shell 2" or "shells 1 to 3"."""
     low, high = shells
@@ -1780,36 +1828,36 @@ def _log_nebula_slab(i, edge_pc, result):
 
 def build_nebula_field(args, conn, skeleton, extents, progress):
     """
-    Draws `nebula_field` (DB.24): every kept cloud of classes M and N of the galaxy's molecular cloud field, from
-    the seed, one slab of field cells per task, replacing the earlier table. A nebula already stored from the field
-    is linked back to its row afterwards. Returns the rows written.
+    Draws `nebula_field` (DB.24) on the new queue: clears the earlier table, then the `draw-nebula-field` command
+    draws every kept cloud of classes M and N of the galaxy's molecular cloud field from the seed, a unit per slab of
+    field cells (`draw_nebula_field_unit`). A nebula already stored from the field is linked back to its row
+    afterwards. Returns the rows written.
     """
-    galaxy_seed = store.get_galaxy_seed(conn)
-    outer_shell = max(shell for shell, _high in extents)
-    radius_pc, half_height_pc = nebulaField.field_extent_pc(skeleton.edge_pc, extents)
-    edge = program_constants.NEBULA_FIELD_CELL_PC
-    slabs = range(math.floor(-radius_pc / edge), math.floor(radius_pc / edge) + 1)
+    mysql_config = store.mysql_config_from_args(args)
+    workers = run_common._worker_count(args)
+    step = commands.Step(NEBULA_DRAW_KEY, "draw-nebula-field", "Nebula field",
+                         {"database": wrapper.database_args(mysql_config), "workers": workers})
     store.clear_nebula_field(conn)
     written = [0]
-    with steps.Step(f"Drawing the nebula field (0 of {len(slabs):,} slabs)", "nebula-field", len(slabs), args=args,
-                    progress=progress, workers=run_common._worker_count(args)) as bar:
+    with steps.Step("Drawing the nebula field", "nebula-field", 1, args=args, progress=progress,
+                    workers=workers) as bar:
         done = [0]
+        held = {}
 
-        def on_done_slab(i):
-            def on_done(result, _seconds, _weight):
-                written[0] += result["written"]
-                _log_nebula_slab(i, edge, result)
-                done[0] += 1
-                bar.update(advance=1, description=f"Drawing the nebula field ({done[0]:,} of {len(slabs):,} slabs)")
-            return on_done
+        def on_plan(_index, plan):
+            bar.update(total=max(plan["detail"]["slabs"], 1),
+                       description=f"Drawing the nebula field (0 of {plan['detail']['slabs']:,} slabs)")
+            held["detail"] = plan["detail"]
 
-        mysql_config = store.mysql_config_from_args(args)
-        with run_common._work_queue(args, "Nebula field") as queue:
-            queue.submit_each("nebula-field", [
-                (f"slab {i}", {"mysql_config": mysql_config, "galaxy_seed": galaxy_seed, "shape": skeleton.shape,
-                               "i": i, "radius_pc": radius_pc, "half_height_pc": half_height_pc,
-                               "edge_pc": skeleton.edge_pc, "outer_shell": outer_shell}, 1.0, on_done_slab(i))
-                for i in slabs], _nebula_field_task)
+        def on_result(_index, _unit, result):
+            written[0] += result["written"]
+            _log_nebula_slab(result["slab"], held["detail"]["cell_pc"], result)
+            done[0] += 1
+            bar.update(advance=1,
+                       description=f"Drawing the nebula field ({done[0]:,} of {held['detail']['slabs']:,} slabs)")
+
+        wrapper.run("Nebula field", [step], on_plan, on_result, workers_count=workers, who=getattr(args, "who", None),
+                    database=mysql_config.database, argv=getattr(args, "argv", None), seed=None, listing=[step])
     linked = store.link_nebula_field_stored(conn)
     log.normal(f"Nebula field: {written[0]:,} clouds of classes M and N"
                + (f", {linked:,} already stored." if linked else "."))
@@ -1994,21 +2042,29 @@ def fill_habitability(args):
     return updated
 
 
-def redo_nebula_field(args):
+def expand_clean_nebula_field(params):
+    """The `clean-nebula-field` command's stage (PERF.106): one unit, the whole check and, with `apply`, the delete."""
+    return commands.Expansion([(params, 1.0)], {})
+
+
+def clean_nebula_field_unit(params, report):
     """
-    Brings an existing galaxy's stored field clouds in line with the current keep rates (GEN.205). Every stored dark
-    nebula that is a field cloud (found in its cell's draw by its centre) is checked against `cloud_kept`; the ones
-    the rule now rejects are counted per class (the dry run, always done first). With `--redo-nebula-field apply` they are deleted,
-    which clears the `inside_nebula_id` of everything inside them (the foreign key sets it to NULL), containment is
-    refreshed in the sectors they reached, and `nebula_field` is drawn again. Nothing else is touched: a nebula
-    with no cell draw at its centre was not made by the field and stays.
+    The `clean-nebula-field` command's unit (GEN.205): brings an existing galaxy's stored field clouds in line with
+    the current keep rates. Every stored dark nebula that is a field cloud (found in its cell's draw by its centre) is
+    checked against `cloud_kept`; the ones the rule now rejects are counted per class (the dry run, always done first).
+    With `apply` they are deleted, which clears the `inside_nebula_id` of everything inside them (the foreign key sets
+    it to NULL), and containment is refreshed in the sectors they reached. Nothing else is touched: a nebula with no
+    cell draw at its centre was not made by the field and stays. Drawing `nebula_field` again is the starter's next
+    command (`draw-nebula-field`).
 
     Returns:
-        dict: `stored` and `rejected` (per class, field clouds only) and `deleted` (the count removed).
+        dict: `stored` and `rejected` (per class, field clouds only), `deleted` (the count removed) and `lines`, what
+            the run says about it, for the process that started the run to log (this unit may run in a worker).
+
+    Raises:
+        RuntimeError: The galaxy's skeleton has never been built.
     """
-    apply = args.redo_nebula_field == "apply"
-    mysql_config = store.mysql_config_from_args(args)
-    conn = store.get_connection(mysql_config)
+    conn = store.get_connection(_mysql_config_of(params))
     try:
         skeleton = store.get_galaxy_shape(conn)
         if skeleton is None:
@@ -2031,37 +2087,78 @@ def redo_nebula_field(args):
             if not nebulaField.cloud_kept(galaxy_seed, index, match[0], match[1], center, skeleton.shape):
                 rejected[row["nebula_class"]] += 1
                 doomed.append((row["id"], center, row["radius_ly"]))
-        log.normal("Nebula field cleanup (dry run): " + (
+        lines = ["Nebula field cleanup (dry run): " + (
             ", ".join(f"class {letter}: {rejected[letter]:,} of {stored[letter]:,} stored field clouds rejected"
-                      for letter in sorted(stored)) or "no stored field clouds") + f"; {len(doomed):,} would be deleted.")
-        if not apply:
-            log.normal("Nothing was changed. Run again with --redo-nebula-field apply to delete them and draw "
-                       "the nebula_field table again.")
-            return {"stored": dict(stored), "rejected": dict(rejected), "deleted": 0}
-        with run_common._generation_progress() as progress:
-            log.set_console(progress.console)
-            try:
-                with steps.Step("Deleting the rejected field clouds", "nebula-field-clean", max(len(doomed), 1),
-                                args=args, progress=progress) as bar:
-                    sector_ids = set()
-                    for _nebula_id, center, radius_ly in doomed:
-                        sector_ids.update(store.sectors_reached_by(conn, center, ly_to_pc(radius_ly)))
-                    for start in range(0, len(doomed), 500):
-                        ids = [nebula_id for nebula_id, _c, _r in doomed[start:start + 500]]
-                        conn.execute(f"DELETE FROM nebulae WHERE id IN ({','.join('?' * len(ids))})", ids)
-                        conn.commit()
-                        bar.update(advance=len(ids))
-                    store.refresh_containment(conn, sorted(sector_ids))
-                    conn.commit()
-                extents = _outline(conn)
-                if extents:
-                    build_nebula_field(args, conn, skeleton, extents, progress)
-            finally:
-                log.reset_console()
-        log.normal(f"Deleted {len(doomed):,} stored field clouds the current keep rates reject.")
-        return {"stored": dict(stored), "rejected": dict(rejected), "deleted": len(doomed)}
+                      for letter in sorted(stored)) or "no stored field clouds") + f"; {len(doomed):,} would be deleted."]
+        if not params["apply"]:
+            lines.append("Nothing was changed. Run again with --redo-nebula-field apply to delete them and draw "
+                         "the nebula_field table again.")
+            return {"stored": dict(stored), "rejected": dict(rejected), "deleted": 0, "lines": lines}
+        sector_ids = set()
+        for _nebula_id, center, radius_ly in doomed:
+            sector_ids.update(store.sectors_reached_by(conn, center, ly_to_pc(radius_ly)))
+        for start in range(0, len(doomed), 500):
+            ids = [nebula_id for nebula_id, _c, _r in doomed[start:start + 500]]
+            conn.execute(f"DELETE FROM nebulae WHERE id IN ({','.join('?' * len(ids))})", ids)
+            conn.commit()
+            report(min(start + 500, len(doomed)), len(doomed))
+        store.refresh_containment(conn, sorted(sector_ids))
+        conn.commit()
+        lines.append(f"Deleted {len(doomed):,} stored field clouds the current keep rates reject.")
+        return {"stored": dict(stored), "rejected": dict(rejected), "deleted": len(doomed), "lines": lines}
     finally:
         conn.close()
+
+
+def redo_nebula_field(args):
+    """
+    Brings an existing galaxy's stored field clouds in line with the current keep rates (GEN.205), on the new queue:
+    the `clean-nebula-field` command checks them and, with `--redo-nebula-field apply`, deletes the rejected ones
+    (`clean_nebula_field_unit`), and `nebula_field` is drawn again (`build_nebula_field`).
+
+    Returns:
+        dict: `stored` and `rejected` (per class, field clouds only) and `deleted` (the count removed).
+    """
+    apply = args.redo_nebula_field == "apply"
+    mysql_config = store.mysql_config_from_args(args)
+    workers = run_common._worker_count(args)
+    step, listing = wrapper.step_for(args, "nebula-field", "Nebula field", {
+        "apply": apply, "workers": workers, "database": wrapper.database_args(mysql_config)})
+    row = stages.hand_over_open_stage()
+    held = {}
+
+    def on_result(_index, _unit, result):
+        for line in result["lines"]:
+            log.normal(line)
+        held["result"] = result
+
+    with run_common._generation_progress() as progress:
+        log.set_console(progress.console)
+        try:
+            with steps.Step("Cleaning up the nebula field", "nebula-field-clean", 1, args=args, progress=progress):
+                try:
+                    wrapper.run("Nebula field", [step], lambda _index, plan: None, on_result, workers_count=workers,
+                                who=getattr(args, "who", None), database=mysql_config.database,
+                                argv=getattr(args, "argv", None), seed=None, listing=listing,
+                                rows=None if row is None else {"nebula-field": row})
+                except units.RunStopped as exc:
+                    marker = "RuntimeError: "
+                    if marker not in str(exc):
+                        raise
+                    raise RuntimeError(str(exc).split(marker, 1)[1]) from exc
+            result = held["result"]
+            if apply:
+                conn = store.get_connection(mysql_config)
+                try:
+                    skeleton = store.get_galaxy_shape(conn)
+                    extents = _outline(conn)
+                    if extents:
+                        build_nebula_field(args, conn, skeleton, extents, progress)
+                finally:
+                    conn.close()
+        finally:
+            log.reset_console()
+    return {key: result[key] for key in ("stored", "rejected", "deleted")}
 
 
 def scatter_phenomena(args):
