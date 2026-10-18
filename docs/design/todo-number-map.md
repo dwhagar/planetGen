@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.138 |
 | MAP | MAP.253 |
 | NAV | NAV.63 |
-| GEN | GEN.544 |
+| GEN | GEN.546 |
 | PERF | PERF.135 |
 | DB | DB.73 |
 | API | API.32 |
@@ -1199,6 +1199,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.541 | The wide-pair perturber mass: black holes carry about twice the second moment of all stars; decide whether remnants stay in it, with the black-hole mass function checked | none | open |
 | GEN.542 | scripts/star_type_by_radius.py fails with a TypeError because the plan arguments now default the disk and arm options to None (bug) | none | open |
 | GEN.543 | Define "usable" for a P-type window so the design table's pair-node row (34% falling to 18%) can be reproduced | none | open |
+| GEN.544 | Revisit the disc's vertical profile: the sech-squared core has half the midplane density of the exponential fits its scale heights come from | none | open |
+| GEN.545 | The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
