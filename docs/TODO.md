@@ -488,42 +488,6 @@ with `clamp()`.
   TEST.183) comes after them. Core 5 is the proposed owner.
   Prerequisites: UX.121, UX.122, UX.123, TEST.183. Related: PERF.66.
 
-- [ ] **UX.105 The system page builds every body's detail from the document model as HTML tables**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. Facts table, rating table (with the six symbols UX.101
-  draws), life, orbit and moons, styled like the rest of the site in
-  both themes and every size class, quantities as qty spans so the unit
-  preference applies. Removes web/lib/mdrender.py, GET
-  /api/systems/<id>/sections, render_system_sections, the markdown
-  dependency from the web lock file, and the Markdown tests. The
-  overview stays prose (Boss, 2026-10-10). The one-off system page
-  previews the same HTML for a system that is never saved. This is the
-  build of UX.30, absorbed here; UX.30's text and Boss's 2026-10-01
-  quote are kept below.
-    UX.30, Boss (2026-10-01 23:53Z): "Rework planet information displays
-  to pull away from the markdown render and instead fits with the modern
-  web UI as we've seen it so far." Plan change (Boss, 2026-10-15
-  04:21Z): markdown is no longer the web default for any planet or
-  system text; the richer tables replace it, and markdown and wikitext
-  are generated on the fly only when the user asks.
-  Prerequisites: UX.119, UX.120. Related: UX.30, UX.100, UX.101.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: UX.119, UX.120. A renderer and a page rewrite
-  in one item, plus a removal list that UX.109 repeats: UX.105 'removes
-  web/lib/mdrender.py, GET /api/systems/<id>/sections,
-  render_system_sections, the markdown dependency and the Markdown
-  tests' and UX.109 removes 'the /sections endpoint, mdrender,
-  db/render.py render_system_sections' again.
-  Deletions moved to UX.109 (2026-10-16 review): this item builds the
-  renderer and moves the system page and the one-off page onto it; it
-  removes nothing.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 11 of 54). This replaces any earlier owner line on this item.
-
 - [ ] **UX.107 Units in the description go through the ladders**
   Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
   Owner lane: Foundations Wording (2026-10-15), which writes the code
@@ -544,22 +508,6 @@ with `clamp()`.
   on this item.
   Prerequisites: none. Related: UX.22 (done, PR #1504), UX.81 (done, PR #1504).
 
-- [ ] **UX.108 Describe phenomena, sectors, galaxy and facilities in the same Document**
-  Nebulae, remnants, quasar, rogue planets, asteroid fields, sector
-  summaries and facilities are still described by their own per-class
-  text. Build them into the same document model as UX.104 so one set of
-  renderers (text, HTML tables, Markdown, wikitext) covers everything
-  the program describes. Foundations Wording (filed 05:50Z, split out of
-  API.25 (done, PR #1527), which was too big for one PR).
-  Done also: each kind's text is written in short plain prose as it
-  moves into the Document, so the phenomenon prose is not rewritten
-  twice (GEN.221 drops it).
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 13 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none.
-
 - [ ] **UX.109 Remove the old per-class description text**
   Remove SystemConfig.MARKDOWN, the per-class to_paragraph_list and
   __str__ text, db/render.py render_system_sections, the /sections
@@ -579,7 +527,7 @@ with `clamp()`.
   page's mdrender.py row (`docs/design/architecture.md` line 508 and the
   generated map) goes; the TODO thread removes it with the next
   global-document regeneration, the lane does not touch it.
-  Prerequisites: UX.120, UX.108.
+  Prerequisites: none.
 
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
@@ -608,44 +556,6 @@ with `clamp()`.
   position 51 of 53). This replaces any earlier owner line on this item.
   Prerequisites: NAV.61.
   Related: UX.114, MAP.207, MAP.121, API.26, NAV.60.
-
-- [ ] **UX.119 An HTML renderer for the Document: facts, rating and composition tables, with unit spans, in both themes**
-  Split from UX.105 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). Add the fourth renderer beside text,
-  markdown and wikitext in `planetgen/describe/`: the Document's facts,
-  ratings (with the six symbols UX.101 draws), composition, life and
-  orbit-and-moon blocks as HTML tables, every quantity as a `qty` span
-  so the unit preference applies, text escaped, styled like the rest of
-  the site in both themes and every size class. No page changes yet.
-  Done: the renderer with snapshot and escaping tests for every block
-  type, and the CSS, checked in light and dark and at phone width in one
-  browser test over a fixture Document.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 9 of 54). This replaces any earlier owner line on this item.
-  Units (Boss's cards, 11:56 to 11:57 PM EDT, as the coordinator
-  relayed): GEN.574 changes the Document's quantity shape to `{kind,
-  value, unit}` after this renderer exists.
-  Prerequisites: none. Related: UX.105.
-
-- [ ] **UX.120 The system page and the one-off system page use it: every body's detail from the Document**
-  Split from UX.105 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). `web/lib/systempage.py` builds each
-  body's detail (facts table, rating table, life, orbit and moons) from
-  the Document through child a instead of from Markdown; the overview
-  stays prose (Boss, 2026-10-10) but is plain paragraphs, not Markdown;
-  the one-off system page previews the same HTML for a system that is
-  never saved (the Markdown branch of `web/system_page.py` goes).
-  Nothing is deleted here: the deletions are UX.109's. Done: the system
-  page and the one-off page render from the Document; browser tests in
-  light and dark, desktop and phone; no call to `markdown_to_html`
-  remains in the two page modules.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 10 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: UX.119. Related: UX.105.
 
 - [ ] **UX.121 The logging layer and the written standard**
   Split from UX.102 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -4612,72 +4522,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.340. Related: GEN.105, PERF.88.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
-- [ ] **GEN.218 One habitability describer, in the short wording**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. Fold physics/protection.paragraph and
-  physics/habitability_explain into one module that returns the rating
-  rows (domain, colour, score, sentence) in Boss's wording from GEN.216 (done, PR #1482)
-  (his example lines are the spec): one number formatter on the ladders,
-  one gas-name table, PHI-6 everywhere, dead code deleted
-  (habitability_explain.factors and helpers unless a row sentence needs
-  them). Keeps GEN.148's temperature behaviour.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 5 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none.
-
-- [ ] **GEN.219 The habitability levels page and tooltips are generated from the limits**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. web/lib/habitability_ref.py reads the protection_limits
-  and habitability constants (adds the chaotropicity, oxygen-high and
-  heat-shielded rows; oxygen is listed under Pressure but scored in Air,
-  fix the page to match the code), a test fails when a number on the
-  page differs from the constant, and the page, chips, tooltips,
-  class_pages.py and docs name PHI-6.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 6 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none.
-
-- [ ] **GEN.220 "Habitable" means the index**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. The system overview counts worlds by their PHI-6 rating
-  (default: potentially habitable = overall Green or Blue; Boss can move
-  the line), the row chip and search facet say what they mean (the
-  rating, or "Habitable class" where it is the class flag), and the
-  class pages label the flag "Habitable class". Touches UX
-  (UX.32 chip decision, UX.101 symbols): coordinate before editing
-  systempage.py.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 12 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.218, UX.120. Related: UX.100, UX.101.
-
-- [ ] **GEN.221 Short plain prose for the fixed text**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. One pass, with Boss's example lines as the model: the
-  planet and moon paragraph (class description, atmosphere, composition;
-  the "of a mix of" run-ons), the gas giant depth sentences (keep the
-  data, drop the jargon), the star age and lifespan sentence and the
-  STAR_EVOLUTION notes (split into a sentence about lifespan and one
-  about life), comet, belt, wide and close binary sentences, the planet
-  class descriptions that claim life or water (tuning.PLANET_CLASSES,
-  class pages), and the phenomenon prose. In-universe wording per UX.42
-  on public pages. Wording moves into the describer as it is rewritten.
-  The phenomenon prose is not part of this item (2026-10-16 review):
-  UX.108 writes it as it moves each kind into the Document.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 14 of 54). This replaces any earlier owner line on this item.
-
 - [ ] **GEN.229 Repair or re-roll the wide binaries that already break the stability rule**
   GEN.228 (PR #1610) makes new wide binaries stable and adds `planetgen
   check-db --deep --wide-binaries`, which counts the existing unstable
@@ -4821,6 +4665,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.282 and GEN.563, merged in order (the epoch 24 pending rides all
   three). The core ring's over-production of massive clusters is
   GEN.589.
+  Migration number (Core 4's description-layer bundle merged as #2206,
+  about 2:50 AM EDT lane clock as the coordinator relayed): Alembic
+  revisions 0110 and 0111 are now taken by that bundle, so the head is
+  0111 and this item's migration takes the next free number at its merge
+  (0112 if nothing else lands first); the schema doc and fixture version
+  follow it. The epoch 24 pending in the epochs file is also claimed by
+  Core 1's GEN.402; the next merger renumbers.
   Prerequisites: none. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
@@ -8520,7 +8371,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in the text is in the stored mixture above a stated threshold, and
   that the text, the composition table and the molar density agree.
   Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Prerequisites: GEN.410, GEN.411, GEN.413, GEN.221. Related: GEN.208,
+  Prerequisites: GEN.410, GEN.411, GEN.413. Related: GEN.208,
   GEN.218,
   TEST.209.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
@@ -9147,7 +8998,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test target here and in TEST.210), not 3.9 to 5.4. Core mass fraction
   from the star is 0.2 to 0.47 with the Thiabaud box used only as a
   plausibility box.
-  Prerequisites: GEN.427, GEN.440, GEN.458, GEN.557. Related: GEN.429,
+  Prerequisites: GEN.427, GEN.458, GEN.557. Related: GEN.429,
   DB.69,
   GEN.430.
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
@@ -9323,7 +9174,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   named in the text is in the stored fractions above a stated share and
   that the shares quoted equal the stored ones.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
-  Prerequisites: GEN.428, GEN.429, GEN.221. Related: GEN.415, GEN.218,
+  Prerequisites: GEN.428, GEN.429. Related: GEN.415, GEN.218,
   GEN.208.
   Section 14.6 of the Body composition research lane's note
   (docs/design/body-composition-research.md; 2026-10-17, 1:48 AM EDT as
@@ -9334,230 +9185,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   code; the planet classes' fixed composition strings are replaced by
   the drawn mixture and the class label becomes a summary derived from
   it.
-
-- [ ] **GEN.439 The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers**
-  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
-  "atmosphere composition and planet/moon/star/everything composition is
-  going to be the joint headline of v9.0 ... we need to know the
-  compounds, minerals, and such make up both atmospheres and stellar
-  bodies of all sorts, what is there and all the stats needed to include
-  it in our calculations. The idea is that every body will have figures
-  on its composition based on actual science and not made up where we
-  can avoid it. I'm perfectly ok with drawing the density and other
-  figures we draw now and then filling in compositions that fit that
-  designation. That is perfectly fine, or we can pick the most basics
-  and build either way works." Plan note:
-  docs/design/composition-model.md. A constants-and-functions module
-  with the relations the design (GEN.435) chose: the mass fractions X, Y
-  and Z and the main element abundances as functions of [Fe/H],
-  [alpha/Fe] and age, the evolutionary changes at the surface, and the
-  layer structure of white dwarfs, neutron stars and brown dwarfs, each
-  with its source. No database access; nothing copied from one star.
-  Done: a test checks that the fractions sum to one, that they follow
-  [Fe/H] monotonically where the sources say so, and that the Sun's
-  measured composition is reproduced at its [Fe/H] and age inside a
-  stated tolerance (a target, not a preset).
-  Owner: Blocker 1 (it is the middle of the chain Boss gave Blocker 1,
-  GEN.438, GEN.439, GEN.440, 2026-10-17, 6:01 PM EDT, typed in the
-  project chat: "Unless it's already started elsewhere blocker can grab
-  whatever items it needs to complete those 3 once the current
-  finishes"; Core 4 confirmed at about 6:10 PM EDT, as the lane
-  reported, that it has not started it; it was Boss's card tap for Core
-  4 of 12:13 AM EDT), after GEN.314 and after GEN.438.
-  Merged research (2026-10-17, TODO thread, from the Body composition
-  research lane: docs/design/body-composition-research.md and its five
-  parts in docs/design/body-composition-parts/). Part A holds the [X/Fe]
-  model (hinge parameters, standard deviations and the Cholesky matrix
-  of its section 2.7), the remnant tables (white-dwarf initial-final
-  mass relation, Chandrasekhar integration reproducing Sirius B to 0.1
-  percent, the neutron-star crust sequence and mass mixture, brown-dwarf
-  burning limits and the BHAC15 radius grid) and the birth Eu, Th, U and
-  K abundances (A-D5, read by GEN.459). The neutron-star radius is
-  GEN.463's, not this table's, until Boss's decided replacement lands.
-  Abundance scale: Asplund 2021 (Decided, 1:24 AM EDT).
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): the abundance relations become gated rows: each row is
-  a population (thin disk, thick disk, halo, bulge, young cluster) and a
-  remnant or star kind, with the supported classes as the gate and a
-  weight or weight function (of [Fe/H], age and galactocentric position)
-  that comes from its relation's source with the scatter stated; the
-  weights of the rows that pass add up to 100 percent and a row without
-  a source is `open`.
-  Prerequisites: none. Related: GEN.440,
-  GEN.428.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/gap-filling-plan.md section 8): BC2 star abundances
-  (Brewer 2016, Hypatia). Data from HITRAN, ExoMol, Brewer 2016 or
-  Hypatia is downloaded at build time and no derived table is stored in
-  the repository, so builds need the network; the design states how
-  tests run offline (fixtures built by the test or a cache of earlier
-  downloads kept outside the repository, plan 6.5), and the data work of
-  group X9 waits on that design, not on the licence read.
-  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
-  downloads this item makes at build time send the standard User-Agent
-  of API.31 (one function builds it).
-  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/stellar-composition.md.
-  Decided (Boss, 2026-10-17, 9:40 to 9:45 PM EDT, cards answered in the
-  project chat, relayed by the coordinator at 9:46 PM EDT): section 14
-  of docs/design/stellar-composition.md is approved as recommended: D9
-  (the branch and four offsets derive from a seeded key, nothing
-  stored), D10 (age gate at 8.0 Gy, range 6.5 to 9.5, the logistic
-  unscaled), D11 (oxygen from the NLTE fit, neon follows oxygen,
-  magnesium a switch), D12 ([Fe/H] independent of age), D13 (the
-  white-dwarf radius law is replaced, the observed neutron-star mass
-  mixture, no black-hole composition; the white-dwarf change is a
-  generator epoch change joined to the one rescatter), D14 (birth
-  composition, no photospheric correction), D15 (no GEN.407 table
-  changes, the tip follows Z through GEN.502), D16 (shared [Fe/H],
-  branch and offsets in groups and clusters, flagged default). Brewer
-  scatter: no, keep part A and carry the 0.1 dex mean difference as
-  uncertainty. Research gap: a build-time download is approved for the
-  isochrone grids, the white-dwarf layers and the neutron-star equation
-  of state (GEN.548). The item builds exactly this; it starts after
-  GEN.438 merges, and the isochrone, white-dwarf and neutron-star data
-  it needs come from GEN.548's build-time downloads (with the stand-in
-  fallback until they land).
-  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
-  coordinator relayed): a download this item makes is a static file
-  fetched at setup by the shared step that GEN.548 builds first
-  (User-Agent, sha256, cache outside the repository, labelled stand-in,
-  offline fixtures), never at run time; a run-time fetch would have to
-  say why the data needs constant updates.
-  Progress (Blocker 1, 12:47 AM EDT 2026-10-18 as the lane reported):
-  GEN.439 and GEN.440 are one branch (claude/gen439-stellar-relations,
-  rebased on main at 12:19 AM EDT after #2184) and one PR; changed gate
-  started 12:20 AM EDT (pid 7278), 61% at 12:47 and 74% at 12:50 AM EDT.
-  Built: `physics/stellar_abundances.py` (Asplund 2021 scale, the age
-  gate 8.0 Gy and the Bensby logistic as the gated row table
-  'stellar-abundance-branch', hinge [X/Fe] fits with Cholesky residuals,
-  CEMP, X, Y and Z and element fractions, the Fe/Si, Mg/Si and C/O
-  ratios, first dredge-up, birth Eu, Th and U, the white-dwarf
-  mass-radius table in `physics/data/white_dwarf_mass_radius.json` built
-  by `scripts/build_white_dwarf_table.py`, the neutron-star outer crust,
-  black-hole formulas, brown-dwarf limits and radius, and a RELATIONS
-  list with source and state per relation; fit constants in tuning.py).
-  New modules for the architecture page:
-  `planetgen.physics.stellar_abundances`,
-  `planetgen.physics.stellar_composition` (and
-  `planetgen.physics.elements`, `planetgen.queue.commands`,
-  `planetgen.queue.wrapper`, already merged). Open states left in
-  RELATIONS (neon follows O or Mg, white-dwarf layers, neutron-star
-  inner crust and core, the brown-dwarf radius and hydrogen limit
-  against Z) wait on GEN.548.
-  Update (Blocker 1, 1:13 AM EDT 2026-10-18 as the lane reported): the
-  first gate had one real failure (the tuning pair test:
-  `STELLAR_NS_MASS_HEAVIEST_SOL` was a (mean, sigma) tuple and is now
-  two constants) plus the three architecture-page tests, which are
-  opt-in since DOC.69; rebased on main 6ed27d7, second changed gate
-  started 1:12 AM EDT. A fourth new module for the architecture page:
-  `planetgen.physics.wolf_rayet`.
-
-- [ ] **GEN.440 Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf**
-  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
-  "atmosphere composition and planet/moon/star/everything composition is
-  going to be the joint headline of v9.0 ... we need to know the
-  compounds, minerals, and such make up both atmospheres and stellar
-  bodies of all sorts, what is there and all the stats needed to include
-  it in our calculations. The idea is that every body will have figures
-  on its composition based on actual science and not made up where we
-  can avoid it. I'm perfectly ok with drawing the density and other
-  figures we draw now and then filling in compositions that fit that
-  designation. That is perfectly fine, or we can pick the most basics
-  and build either way works." Plan note:
-  docs/design/composition-model.md. A function in the physics layer
-  (`physics/stellar_composition.py`) that returns the composition of any
-  star from the values already stored (GEN.158's [Fe/H], the age, the
-  population and the kind), with no new column and no change to stored
-  values, and that the planet draws (GEN.428, the host's iron, magnesium
-  and silicon), the description layer and the radiation model read.
-  Done: the same star gives the same composition at any worker count; a
-  test sweeps every kind of star in a generated galaxy and finds
-  fractions that sum to one and match GEN.439's relations.
-  Owner: Blocker 1 (Boss, 2026-10-17, 6:01 PM EDT, typed in the project
-  chat: "I want Blocker 1 to set itself up with PERF.118, GEN.438, and
-  GEN.440", after GEN.314 merges, with leave to take what it needs to
-  finish them unless already started elsewhere, 6:01 PM EDT: "Unless
-  it's already started elsewhere blocker can grab whatever items it
-  needs to complete those 3 once the current finishes"; it replaces
-  Boss's card tap for Core 4 of 12:13 AM EDT). The chain is GEN.438, then
-  GEN.439, then this item; GEN.439 moves to Blocker 1 too unless Core 4
-  has started it. Core 4 confirmed at about 6:10 PM EDT, as the lane reported, that it has not started GEN.438, GEN.439 or GEN.440.
-  Sources check (GEN.425): it returns the abundances the planet draws
-  need, not only X, Y and Z: the iron, magnesium, silicon, oxygen and
-  carbon ratios (Fe/Si, Mg/Si, C/O) with the scatter of the relations
-  against [Fe/H], from a cited solar abundance set (the check typed
-  Asplund-style values from memory; Lodders 2003 and Asplund 2009 were
-  not read).
-  Prerequisites: GEN.439. Related: GEN.428, GEN.446, GEN.158,
-  GEN.242,
-  GEN.243, GEN.252, GEN.269, GEN.253, GEN.249.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): it reads each star kind and flag the other items add
-  (pre-main-sequence GEN.242, Wolf-Rayet GEN.243, brown dwarfs GEN.252,
-  the stripped-helium and other kinds of GEN.269, the white-dwarf
-  pollution and carbon-star flags of GEN.253 and GEN.249) instead of
-  contradicting them: a polluted white dwarf reports its debris metals,
-  a carbon star C/O above 1 from its flag. Core 3 owns `evolve_star`
-  edits; ask it first.
-  Merged research (2026-10-17, TODO thread, from the Body composition
-  research lane: docs/design/body-composition-research.md and its five
-  parts in docs/design/body-composition-parts/). The star-side draws are
-  A-D1 (the branch and ratio draw seeded through `draw.py`, correlated
-  residuals, the CEMP branch), A-D2 (X, Y, Z in closed form from [Fe/H]
-  and the ratios, Y = Y_P + 1.68 Z with Y_P = 0.2467), A-D4 (the
-  evolved-star surface shifts after first dredge-up, carbon stars,
-  Wolf-Rayet types, Pop III) and A-D5 (birth radioisotopes); whether any
-  of it is stored is the open point of GEN.435. The disk solids law
-  reads Z / Z0 (GEN.464).
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): the derived star composition draws its row
-  (population, kind) through the loader from the stored [Fe/H], age and
-  population, so the gate is the star's kind and the weight function is
-  the star's own stored values; no new column, and the derived fractions
-  are normalised after the draw.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/gap-filling-plan.md section 8): BC2 star abundances
-  (Brewer 2016, Hypatia). Data from HITRAN, ExoMol, Brewer 2016 or
-  Hypatia is downloaded at build time and no derived table is stored in
-  the repository, so builds need the network; the design states how
-  tests run offline (fixtures built by the test or a cache of earlier
-  downloads kept outside the repository, plan 6.5), and the data work of
-  group X9 waits on that design, not on the licence read.
-  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
-  downloads this item makes at build time send the standard User-Agent
-  of API.31 (one function builds it).
-  Decided (Boss, 2026-10-17, 9:40 to 9:45 PM EDT, cards answered in the
-  project chat, relayed by the coordinator at 9:46 PM EDT): section 14
-  of docs/design/stellar-composition.md is approved as recommended: D9
-  (the branch and four offsets derive from a seeded key, nothing
-  stored), D10 (age gate at 8.0 Gy, range 6.5 to 9.5, the logistic
-  unscaled), D11 (oxygen from the NLTE fit, neon follows oxygen,
-  magnesium a switch), D12 ([Fe/H] independent of age), D13 (the
-  white-dwarf radius law is replaced, the observed neutron-star mass
-  mixture, no black-hole composition; the white-dwarf change is a
-  generator epoch change joined to the one rescatter), D14 (birth
-  composition, no photospheric correction), D15 (no GEN.407 table
-  changes, the tip follows Z through GEN.502), D16 (shared [Fe/H],
-  branch and offsets in groups and clusters, flagged default). Brewer
-  scatter: no, keep part A and carry the 0.1 dex mean difference as
-  uncertainty. Research gap: a build-time download is approved for the
-  isochrone grids, the white-dwarf layers and the neutron-star equation
-  of state (GEN.548). GEN.440 follows GEN.439; the age gate of D10 is
-  8.0 Gy.
-  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
-  coordinator relayed): a download this item makes is a static file
-  fetched at setup by the shared step that GEN.548 builds first
-  (User-Agent, sha256, cache outside the repository, labelled stand-in,
-  offline fixtures), never at run time; a run-time fetch would have to
-  say why the data needs constant updates.
-  Progress: built with GEN.439 as one PR
-  (`physics/stellar_composition.py`: `star_makeup` from kind, [Fe/H],
-  age, mass and a key, drawing from the stream abundance:{key}); in the
-  gate with it. See GEN.439.
 
 - [ ] **GEN.441 Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9939,7 +9566,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bodies of every kind and checks that every material named is in the
   stored or derived composition above a stated share and that the quoted
   figures equal them.
-  Prerequisites: GEN.440, GEN.441, GEN.442, GEN.444, GEN.445, GEN.221.
+  Prerequisites: GEN.441, GEN.442, GEN.444, GEN.445.
   Related:
   GEN.430, GEN.415, GEN.420, GEN.208.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
@@ -10894,7 +10521,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Th/Fe rises as [Fe/H] falls only inside +/- 0.1 dex of solar (slope
   -0.338 +/- 0.049) and U is not measured in disc stars (part G2), so
   the solids law does not take a Th or U trend from the note.
-  Prerequisites: GEN.440. Related: GEN.405, GEN.435, GEN.439, GEN.440.
+  Prerequisites: none. Related: GEN.405, GEN.435, GEN.439, GEN.440.
 
 - [ ] **GEN.465 A second extraction pass over the sources the body and atmosphere research could not reach and that are reachable now**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -11355,7 +10982,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   environment. Size: medium. Done: a note with the derivation and its
   sources, GEN.459 reading it, and TEST.214 listing no Al-26 stand-in.
   Owner: unowned (research; Boss or a read-only research lane).
-  Prerequisites: GEN.459, GEN.440. Related: GEN.459, GEN.440, GEN.472,
+  Prerequisites: GEN.459. Related: GEN.459, GEN.440, GEN.472,
   TEST.214.
 
 - [ ] **GEN.477 The asteroid belt and field composition is drawn from the star, the distance and the belt's mass, not four names drawn uniformly from a list of 84 (bug)**
@@ -13702,6 +13329,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   datasets here are static (grids and tables that change with a paper,
   not with the clock), so they are fetched at setup and never at run
   time.
+  Progress (Blocker 1, reported about 2:46 AM EDT 2026-10-18 as the lane
+  clock read, through the coordinator): coded; its changed gate started
+  about 2:46 AM EDT. It is the shared setup-time download step:
+  update.sh and install.sh run it, the cache is
+  /var/cache/planetgen/datasets, every file is checked against a sha256,
+  a stand-in is used when a host is down, and it fetches the MIST
+  isochrones, the Bedard white-dwarf sequences and the neutron-star
+  equation of state and crust tables. GEN.439 and GEN.440 merged as
+  #2208 (the open states in their RELATIONS list wait on this step).
+  Detail (Blocker 1, 2:47 AM EDT 2026-10-18 as the lane reported):
+  branch claude/gen548-download-step holds
+  `planetgen/datasets/fetch.py`, the command `python -m
+  planetgen.cli.datasets fetch`, step 3 of update.sh and install.sh, the
+  cache directory override PLANETGEN_DATA_DIR, and the three datasets
+  (MIST main-sequence isochrones SC1, Bedard 2020 white-dwarf sequences
+  SC2, neutron-star equation of state and outer-crust compositions SC3);
+  a real fetch was verified (82 s, 225 MB). The stand-in fills SC1 to
+  SC3 are in gap-filling-plan 6.6 and design note stellar-composition
+  14.1 names the sources. After it merges, Blocker 1 wires the readers
+  into the stellar modules.
   Prerequisites: none. Related: GEN.439, GEN.440, GEN.502, API.31.
 
 - [ ] **GEN.549 L dwarfs hotter than 1,500 K are 2 to 4 times too rare against the 20 pc census: use a cooling track that reaches them (strict expected failure)**
@@ -13985,7 +13632,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `util/draw.py` (GEN.56), every recalled source verified by a lane
   before use under the standing source rules, and any change to a drawn
   value bumps the generator epoch (OPS.56 rule).
-  Prerequisites: GEN.439, GEN.440. Related: GEN.550, GEN.252,
+  Prerequisites: none. Related: GEN.550, GEN.252,
   GEN.463, GEN.467, GEN.469.
   Back-scatter answer (Boss's back-scatter cards, taps 11:38 to 11:40 PM
   EDT, 2026-10-17, as the coordinator relayed): the relation function
@@ -14283,7 +13930,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merges). Done: the gear class and the equipment label agree for every random and example world. Owner: Core 4 (its own
   queue, after the description-layer bundle, UX.109, UX.107 and DOC.45; its branch note cites GEN.561). Filed by the TODO
   thread at Core 4's request (11:27 PM EDT as the lane reported).
-  Prerequisites: GEN.218. Related: TEST.155, GEN.218, GEN.288.
+  Prerequisites: none. Related: TEST.155, GEN.218, GEN.288.
 
 - [ ] **GEN.562 One function for the white-dwarf initial-final relation and for the neutron star and black hole mass draw, with no change in what any seed generates**
   From Boss's back-scatter cards (Boss's back-scatter cards, taps 11:38
@@ -14723,6 +14370,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   other ad-hoc factors is GEN.571 and stays bit-identical. Done: the
   three sites read the exact factors, the golden digest changes with the
   epoch entry, and the tests that pin nebula radii are regenerated.
+  Progress (Core 5, 2:54 AM EDT 2026-10-18 as the lane reported): coded;
+  its changed gate started 2:53 AM EDT, and it takes epoch 25 (epoch 24
+  is pending for GEN.402, GEN.244 or the next of them to merge; the
+  later merger renumbers). PR follows when the gate is green.
   Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
@@ -14771,7 +14422,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it (no backward shim otherwise); `describe/quantity.py` loses its
   `_KM_M`. Done: the Document and API tests pass on the new shape and
   the HTML renderer shows the same text.
-  Prerequisites: GEN.569, UX.107, UX.119. Related: GEN.550, GEN.565,
+  Prerequisites: GEN.569, UX.107. Related: GEN.550, GEN.565,
   DB.74.
   Design: [docs/design/unified-unit-quantity.md](design/unified-unit-quantity.md)
 
@@ -16102,32 +15753,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merged (#2159).
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
-- [ ] **PERF.126 `check-db`: each check is its own command and the report is the list the wrapper runs**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/command-inventory.md. Today `planetgen
-  check-db` runs the schema revision check, the table health check, the
-  rows-without-parents check and, with `--deep`, the sector and
-  wide-binary checks, picked by flags. Done: each check is its own
-  read-only command with its own parameters (the scope, `--deep`
-  becoming its own check), a wrapper step list of all of them gives
-  today's report and the same exit codes (1 on damage, 2 when a check
-  could not run), and the flags that grouped them are gone with no shim.
-  Owner: Core 5 (proposed; the PERF.118 chain).
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Progress (Core 5, 12:47 and 12:58 AM EDT 2026-10-18 as the lane
-  reported): written and committed on claude/core5-perf126, held behind
-  DOC.69 (merged as #2172); nine `check-*` commands run as a CHECK-kind
-  run; it needs Redis now and `--deep` and `--no-check-table` are gone.
-  Merging main, then its gate.
-  Prerequisites: PERF.120. Related: PERF.118, PERF.120.
-  Design: [docs/design/command-inventory.md](design/command-inventory.md)
-
 - [ ] **PERF.128 `benchmark` is a step list handed to the wrapper, not a sequence of its own**
   Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
   we can build whatever sequences we want" (the principle of 4:18 PM
@@ -16411,6 +16036,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   change to a drawn value bumps the generator epoch (OPS.56 rule).
   Prerequisites: GEN.558, GEN.559. Related: GEN.550.
 
+- [ ] **PERF.137 Audit the remaining `LIMIT ? OFFSET ?` queries: say which serve a big table and move those to keyset paging**
+  Found by Core 5 (3:15 AM EDT 2026-10-18 as the lane reported), filed
+  by the TODO thread. Keyset paging is done for the Systems, Uncharted
+  stars and Phenomena tables (PERF.20 umbrella and PERF.75, #2154);
+  `grep 'LIMIT ? OFFSET ?' src/planetgen` on main at 8.0.1795 still
+  finds 16 sites, as candidates only (Core 5 did not trace which serve
+  big tables): `db/query.py` lines 214, 501, 576, 618, 857, 898, 1781,
+  2270, 2365, 4234 and 6045 (11 queries), `population/model.py` 695, 778
+  and 830 (list queries), `db/stats.py` 310 (base names) and
+  `queue/work.py` 907 (task listing). The API list routes take `offset`
+  (api/routes.py MAX_PAGE_OFFSET) and `web/lib/pagination.py` clamps a
+  page past the end. Why it matters: `OFFSET` makes page n cost n times
+  as much (measured for the Systems table: rows 0, 20,000, 500,000 and
+  1,500,000 take 0.004, 0.13, 5.8 and 12.1 s idle, where a keyset page
+  costs 2 ms). Do: for each site, read the caller and the table it pages
+  (row count at a full galaxy, from the schema or a measured count) and
+  write one line per site: big or small, and the deepest page a user or
+  the API can ask for. Move the big ones to the keyset form the three
+  finished tables use (`after=<sort key, id>` next to `offset=`) and
+  leave the small ones with a one-line comment saying the table stays
+  under a few thousand rows. Done: a table of the 16 sites on this item
+  with the verdict for each, every big site on keyset paging with a test
+  that pages to the end, and the deepest-page time under 50 ms at a full
+  galaxy. Owner: Core 5 (proposed, it found the list and wrote the
+  PERF.126 and PERF.127 commands); low priority, no version blocker.
+  Prerequisites: none. Related: PERF.75, PERF.135.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -16619,7 +16271,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 17 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: DB.50, DB.51, DB.52.
+  Prerequisites: none.
 
 - [ ] **DB.33 MySQL 8.0.46 reflects the foreign keys fk_facilities_type and fk_facility_field_values_field as RESTRICT, so check-db calls a healthy database damaged (bug)**
   Reported by Quality (2026-10-15, 4:56 PM EDT run, relayed by the
@@ -16933,58 +16585,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 5 of 43). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.136.
-
-- [ ] **DB.50 Migration only: structure columns for life and flavour**
-  Split from DB.31 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). One Alembic revision adds, on
-  `planets` and `moons`, the structure that replaces the evolutionary
-  paragraphs (the life stage, the pace and the ages; the PR names the
-  columns) and a flavour key that replaces `flavor_text`. Nothing is
-  dropped. Core 1 owns the migration number. Done: the migration,
-  regenerated models, an old-schema fixture, an idempotent upgrade and a
-  round-trip test; no code reads the columns yet.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 7 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: DB.31.
-
-- [ ] **DB.51 Generation stores structure, not prose; the readers and the string searches go**
-  Split from DB.31 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). Generation writes the stage, pace,
-  ages and flavour key; readers move to them: `db/query._life_stages`,
-  `population/model.py`, `db/edits.py`, `db/fingerprint.py`;
-  `life_stage_from_paragraphs` and the string searches in
-  `decide_flavor_text` are deleted; `hab_note` is computed from the
-  describer's rating rows (GEN.218) instead of stored and parsed by
-  regex in `generation/planet.py`; the run-config
-  `system_configs.markdown` column is no longer read. The fingerprint's
-  content changes, so it bumps the generator epoch if OPS.28 child a has
-  landed (a PR rule, not a build blocker). Draws are unchanged. Done:
-  the same seed gives the same stage, pace, ages and flavour as before
-  the change (a test compares them with the old paragraphs on a fixture
-  galaxy); nothing reads the old columns or tables.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 8 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: DB.50, GEN.218. Related: DB.31.
-
-- [ ] **DB.52 Migration only: drop the prose columns and tables**
-  Split from DB.31 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). One Alembic revision drops
-  `planet_evolutionary_paragraphs`, `moon_evolutionary_paragraphs`,
-  `flavor_text` (keep `flavor_text_count` only if the flavour key logic
-  still reads it), `hab_note` on planets and moons and
-  `system_configs.markdown`. Core 1 owns the number. Done: the
-  migration, regenerated models, the old-schema fixture updated, an
-  idempotent upgrade and a round-trip test; the models and `schema.sql`
-  have none of them.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 16 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: DB.51. Related: DB.31.
 
 - [ ] **DB.56 The orbital_events table (migration only): collision outcomes, mergers, splits, ejections, captures, unbinds and warnings**
   Split from GEN.143 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -17394,6 +16994,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   rotation period and a* become derived and their columns are dropped in
   this revision with the wobble columns (DB.78) and the kinematic record
   of GEN.584.
+  Revision number (2026-10-18 about 2:50 AM EDT lane clock): the head is
+  0111 after Core 4's description-layer bundle (#2206 took 0110 and
+  0111) and GEN.244 takes the next free one; this item's 8.4 revision
+  takes the next free number at its own merge.
   Prerequisites: none. Related: GEN.550, DB.69, DB.70.
 
 - [ ] **DB.74 One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables**
@@ -18021,6 +17625,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 2, proposed (the interface housekeeping line beside API.15
   and API.26; not asked yet, the coordinator tells Core 2 when it
   reaches the item).
+  Detail (Blocker 1, 2:47 AM EDT 2026-10-18 as the lane reported):
+  GEN.548 adds `planetgen/util/user_agent.py` with `user_agent()`, the
+  one function that builds the identifying User-Agent string; this item
+  reuses it instead of writing a second one (it is on the GEN.548
+  branch, so it is on main once GEN.548 merges).
   Prerequisites: none. Related: API.5, API.15, API.30.
 
 ## ADM: Admin tools
@@ -19203,23 +18812,6 @@ clears each one.
   runs, full gate under load.
   Prerequisites: none. Related: TEST.128, TEST.132 (done, PR #1578), TEST.134.
 
-- [ ] **TEST.155 Wording and index agree: property test**
-  Audit: /mnt/project-files/wording/text-output-audit-2026-10-15.md.
-  Owner lane: Foundations Wording (2026-10-15), which writes the code
-  for this item. A property test over random worlds and the sample
-  systems that fails when a domain's colour, score, the band its
-  sentence names, the gear and the equipment label disagree; when a body
-  has life text but the index gives it no life (check the 130 C case
-  first); when an airless body shows Air as anything but Red (shared
-  with GEN.215, done in PR #1478); and when any quantity in the describer is formatted
-  with a raw :.Nf. Test items are owned by Test Suite Rebuild: that
-  thread approves, Foundations Wording writes it.
-  Owner: Core 4 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
-  position 18 of 54). This replaces any earlier owner line on this item.
-  Prerequisite: GEN.218.
-
 - [ ] **TEST.159 Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population**
   Step 15 of the whole-sphere train. Tests: no emission, reflection or
   core-collapse remnant in a halo or old cluster cell; a planetary
@@ -19918,7 +19510,7 @@ clears each one.
   star-composition rows that pass a star's gate add up to 100 percent;
   the check is TEST.214's registry walk and this sweep adds the
   star-specific cases.
-  Prerequisites: GEN.440. Related: TEST.210, GEN.439.
+  Prerequisites: none. Related: TEST.210, GEN.439.
 
 - [ ] **TEST.212 A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -19976,7 +19568,7 @@ clears each one.
   table the build has and fails when a weight, a gate or a source is
   broken on purpose in a copy of a table. Owner: Core 4 (proposed, with
   the composition chain).
-  Prerequisites: GEN.410, GEN.427, GEN.439. Related: TEST.211,
+  Prerequisites: GEN.410, GEN.427. Related: TEST.211,
   TEST.210, TEST.209, GEN.428, GEN.411.
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
   (1) 1:43 AM EDT, "Weights, Dirichlet where unsure": the mixture
@@ -20519,6 +20111,17 @@ clears each one.
   Owner stays with whoever takes TEST.237.
   Core 5 still owes the failure text (as the lane reported at 12:47 AM
   EDT 2026-10-18); it comes with its next report.
+  Answer (Core 5, 3:15 AM EDT 2026-10-18 as the lane reported): the test
+  failed in Core 5's changed gate and again alone with `-n0` at box load
+  9.7 (the call took 5.47 s); it passed 3 of 3 on Core 5's branch and 2
+  of 2 on main at load 3. The assertion text was not kept (only the
+  verdict line), so it cannot be quoted. The lane's tree was main at
+  release 8.0.1767 or later, so it carried #2147 (8.0.1760); that is
+  inferred from the release numbers, not checked commit by commit.
+  Reading: the failure still tracks load, which fits Core 2's note that
+  the first `_still_spot` read can take seconds; the next sighting
+  should keep the assertion text. Frequency: 2 failures in 2 runs at
+  load 9.7, 0 in 5 at load 3.
   Prerequisites: none. Related: TEST.231, TEST.126.
 
 - [ ] **TEST.238 test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it fails in a gate with no hypervelocity-star stored, and passes alone (bug)**
@@ -21821,7 +21424,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 20 of 54). This replaces any earlier owner line on this item.
-  Prerequisites: UX.105, GEN.218, GEN.219.
+  Prerequisites: none.
 
 - [ ] **DOC.48 Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes**
   Step 14 of the whole-sphere train.

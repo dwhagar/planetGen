@@ -117,8 +117,7 @@
     },
     {
       "epoch": 24,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1783",
       "reason": "A body stores its life stage, pace, exact ages and flavour key as data instead of paragraphs and a habitability note, and the class texts the generator writes no longer claim life, so the stored description and life columns change (DB.51, GEN.221)."
     }
   ]

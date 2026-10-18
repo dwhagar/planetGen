@@ -112,6 +112,27 @@ REGISTRY = _commands(
                 expand=("planetgen.web.warmup", "expand_warm_phenomena")),
     CommandSpec("warm-search", "Warm the search page",
                 unit=("planetgen.web.warmup", "warm_search_unit"), expand=("planetgen.web.warmup", "expand_warm_search")),
+    CommandSpec("check-revision", "Check the schema revision records and that the tables match the models",
+                unit=("planetgen.db.check", "check_revision_unit"), expand=("planetgen.db.check", "expand_check")),
+    CommandSpec("check-tables", "Check every table (CHECK TABLE ... QUICK)",
+                unit=("planetgen.db.check", "check_tables_unit"), expand=("planetgen.db.check", "expand_check")),
+    CommandSpec("check-tables-extended", "Check every table thoroughly (CHECK TABLE ... EXTENDED, slow)",
+                unit=("planetgen.db.check", "check_tables_extended_unit"),
+                expand=("planetgen.db.check", "expand_check")),
+    CommandSpec("check-orphans", "Check that every row has its parent",
+                unit=("planetgen.db.check", "check_orphans_unit"), expand=("planetgen.db.check", "expand_check")),
+    CommandSpec("check-ids", "Check that the id blocks are ahead of every id",
+                unit=("planetgen.db.check", "check_ids_unit"), expand=("planetgen.db.check", "expand_check")),
+    CommandSpec("check-values", "Check that columns hold values a generator could write",
+                unit=("planetgen.db.check", "check_values_unit"), expand=("planetgen.db.check", "expand_check")),
+    CommandSpec("check-counts", "Check that each sector's stats count its systems",
+                unit=("planetgen.db.check", "check_counts_unit"), expand=("planetgen.db.check", "expand_check")),
+    CommandSpec("check-version-keys", "Check that every sector has a well formed version key",
+                unit=("planetgen.db.check", "check_version_keys_unit"),
+                expand=("planetgen.db.check", "expand_check")),
+    CommandSpec("check-systems", "Check every star system against the validation rules (slow)",
+                unit=("planetgen.db.check", "check_systems_unit"),
+                expand=("planetgen.db.check", "expand_check_systems")),
     CommandSpec("end-map-rebuild-maintenance", "Open the site again after the sector-grid switch closed it",
                 unit=("planetgen.web.warmup", "end_map_rebuild_unit"),
                 expand=("planetgen.web.warmup", "expand_end_map_rebuild")),
@@ -132,6 +153,16 @@ KIND_OF_STAGE = {
 KIND_OF_WARM_FAMILY = {family: f"warm-{family}" for family in
                        ("galaxy-map", "lists", "sectors", "systems", "phenomena", "search")}
 """dict: The command that warms each cache family (`web/warmup.FAMILIES`), the steps of `planetgen warm`."""
+
+KIND_OF_CHECK = {name: f"check-{name}" for name in (
+    "revision", "tables", "tables-extended", "orphans", "ids", "values", "counts", "version-keys", "systems")}
+"""dict: The command that does each database check (`db/check.CHECKS`), the steps of `planetgen check-db`, in order."""
+
+DEFAULT_CHECKS = ("revision", "tables", "orphans", "ids", "values", "counts", "version-keys")
+"""tuple: The checks `planetgen check-db` runs when none is named: every check but the two slow ones."""
+
+DEEP_CHECKS = ("revision", "tables-extended", "orphans", "ids", "values", "counts", "version-keys", "systems")
+"""tuple: The list of the slow checks: the default one with the thorough table check and the star systems."""
 
 END_MAP_REBUILD = "end-map-rebuild-maintenance"
 """str: The command that opens the site after a full warm-up; the last step of a list that warms every family."""
@@ -179,20 +210,54 @@ def expand_function(kind):
 
 def build_steps(command, args):
     """
-    The steps a `planetgen galaxy`, `planetgen plan` or `planetgen warm` run with the parsed `args` will take, in
-    order: exactly the commands the request selects (the stages of `generation.stages`, or the cache families of
-    `web/warmup`), each with the settings that shape it. A pure function of the arguments.
+    The steps a `planetgen galaxy`, `plan`, `warm` or `check-db` run with the parsed `args` will take, in order:
+    exactly the commands the request selects (the stages of `generation.stages`, the cache families of
+    `web/warmup`, or the checks of `db/check`), each with the settings that shape it. A pure function of the
+    arguments.
 
     Raises:
-        ValueError: For any other command, or a cache family that does not exist.
+        ValueError: For any other command, a cache family or a check that does not exist, or a setting for a
+            command that is not in the list.
     """
     if command == "warm":
         return _warm_steps(args)
+    if command == "check-db":
+        return _check_steps(args)
     from planetgen.generation import stages
     if command not in ("galaxy", "plan"):
-        raise ValueError(f"the wrapper builds steps for galaxy, plan and warm, not {command!r}")
+        raise ValueError(f"the wrapper builds steps for galaxy, plan, warm and check-db, not {command!r}")
     return [Step(stage.key, KIND_OF_STAGE[stage.key], stage.label, stages.stage_settings(stage.key, args))
             for stage in stages.for_command(command, args) if stage.skip is None]
+
+
+def _check_steps(args):
+    """
+    The steps of `planetgen check-db`: one command for each check named (`args.checks`, `DEFAULT_CHECKS` when none),
+    in the order of `KIND_OF_CHECK`, each with the database (`args.database`, `wrapper.database_args`) and only the
+    settings it takes: the scope (`args.shell`, `args.sector`) for the value, count, version-key and systems checks,
+    and `wide_binaries` for the systems check.
+
+    Raises:
+        ValueError: A check that does not exist, or `--wide-binaries` with no systems check in the list.
+    """
+    asked = list(getattr(args, "checks", None) or DEFAULT_CHECKS)
+    unknown = [name for name in asked if name not in KIND_OF_CHECK]
+    if unknown:
+        raise ValueError(f"no such check {unknown[0]!r}; one of {', '.join(KIND_OF_CHECK)}")
+    scope = {"shells": list(args.shell or ()), "addresses": [list(address) for address in args.sector or ()]}
+    steps = []
+    for name in KIND_OF_CHECK:
+        if name not in asked:
+            continue
+        params = {"database": args.database}
+        if name in ("values", "counts", "version-keys", "systems"):
+            params.update(scope)
+        if name == "systems":
+            params["wide_binaries"] = bool(args.wide_binaries)
+        steps.append(Step(name, KIND_OF_CHECK[name], f"Check {name}", params))
+    if getattr(args, "wide_binaries", False) and "systems" not in asked:
+        raise ValueError("--wide-binaries is for the systems check")
+    return steps
 
 
 def _warm_steps(args):
