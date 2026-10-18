@@ -867,3 +867,5 @@ Baseline: PR #1817.
 | GEN.221 | 8.1 | Description layer |
 | DB.52 | 8.1 | Description layer |
 | TEST.155 | 8.1 | Description layer |
+| GEN.439 | 8.1 | Composition tables |
+| GEN.440 | 8.1 | Star composition |
