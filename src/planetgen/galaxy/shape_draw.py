@@ -24,11 +24,12 @@ draws about the median laws, each through the one random wrapper (`planetgen.uti
    Table 5: S0-Sab 1.29 +/- 0.54, Sc-Sd 0.57 +/- 0.44) inside 0.2 to 3 (Erwin's smallest, and Gadotti 2011,
    arXiv:1003.1719: no bar reaches 3 scale lengths). The profile `exp(-r_s^2 / 2)` is down to 1.1 percent of its
    centre at three scale radii, taken as the bar's end. The bar's own mass (Gadotti 2009: 0.09 of the total in barred
-   galaxies) is not added to `B/T`, and whether a bar is present, its axis ratios and angle stay the model's
-   constants until DB.66 stores them.
+   galaxies) is not added to `B/T`. Whether a bar is present, the bulge's axis ratios and the bar's angle are
+   drawn with the thick disk and the halo (`structure_draw`, GEN.532 and GEN.533) and not stored: DB.66 stores them
+   later.
 6. **Arms.** The count follows the shares of Hart et al. 2017 (arXiv:1708.04628, Table 1: 1, 2, 3, 4 and 5 or more arms
    are 3.9, 64.5, 17.8, 6.5 and 7.3 percent; "5 or more" is taken as 5), independent of mass (their rank correlation
-   with total mass is +0.05). The pitch angle falls with mass as the two binned means of Yu and Ho 2018
+   with total mass is +0.05). The pitch angle falls with mass as the two binned means of Yu and Ho 2019 (ApJ 871, 194)
    (arXiv:1812.06010: 26.0 degrees at log M* = 9.6, 13.8 at 11.1; no fit is published, so the line through them) with
    their 5 to 6 degree scatter, kept inside Hart's 10 to 40 degrees. The two papers disagree on how strong the mass
    trend is (5.13.6 item 7).
@@ -44,6 +45,8 @@ import math
 
 from planetgen import tuning
 from planetgen.galaxy import density, mass_chain, seed as galaxySeed
+from planetgen.galaxy import structure as galaxyStructure
+from planetgen.galaxy import structure_draw
 from planetgen.util import draw
 
 SPIRAL = "spiral"
@@ -102,6 +105,7 @@ class GalaxyDraw:
 
     chain: mass_chain.MassChain
     stage: str
+    structure: galaxyStructure.Structure
     disk_scale_length_pc: float
     disk_scale_height_pc: float
     bulge_to_total: float
@@ -149,28 +153,35 @@ def pitch_median_deg(stellar_mass_solar):
     return min(max(value, PITCH_RANGE_DEG[0]), PITCH_RANGE_DEG[1])
 
 
-def disk_masses(disk_scale_length_pc, disk_scale_height_pc, arm_level=1.0):
+def disk_masses(disk_scale_length_pc, disk_scale_height_pc, structure, arm_level=1.0):
     """`(thin, thick)` disk masses in the model's units (central thin density 1): `2 pi L^2 x 4 h` for the thin
-    disk (its `sech^2` profile integrates to `4 h`) times its level, and the same for the thick disk, whose length,
-    height and local density follow from the thin disk's by the model's ratios."""
-    length, height = disk_scale_length_pc, disk_scale_height_pc
-    solar_radius = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * length
-    thick_length = tuning.THICK_DISK_SCALE_LENGTH_RATIO * length
-    thick_height = tuning.THICK_DISK_SCALE_HEIGHT_RATIO * height
-    thick_amplitude = tuning.THICK_DISK_LOCAL_DENSITY_RATIO * math.exp(solar_radius / thick_length - solar_radius / length)
-    thin = arm_level * 2.0 * math.pi * length ** 2 * 4.0 * height
-    thick = thick_amplitude * 2.0 * math.pi * thick_length ** 2 * 4.0 * thick_height
-    return thin, thick
+    disk (its `sech^2` profile integrates to `4 h`) times its level, and the thick disk's, whose mass is the
+    structure's ratio to the thin disk's (`density.thick_disk_amplitude`)."""
+    thin = arm_level * 2.0 * math.pi * disk_scale_length_pc ** 2 * 4.0 * disk_scale_height_pc
+    return thin, thin * structure.thick_mass_ratio
 
 
-def bulge_amplitude_for(bulge_to_total, disk_scale_length_pc, disk_scale_height_pc, bulge_scale_radius_pc, arm_level=1.0):
+def bulge_amplitude_for(bulge_to_total, disk_scale_length_pc, disk_scale_height_pc, bulge_scale_radius_pc, structure,
+                        arm_level=1.0):
     """The bulge's central density, against the thin disk's 1, that makes its mass `bulge_to_total` of the bulge plus
     the thin and thick disks (the model's `bulge_mass` formula, `density.model_terms`)."""
-    thin, thick = disk_masses(disk_scale_length_pc, disk_scale_height_pc, arm_level)
+    thin, thick = disk_masses(disk_scale_length_pc, disk_scale_height_pc, structure, arm_level)
     bulge_mass = (thin + thick) * bulge_to_total / (1.0 - bulge_to_total)
-    unit = (bulge_scale_radius_pc * tuning.BULGE_AXIS_RATIO_Y * bulge_scale_radius_pc
-            * tuning.BULGE_AXIS_RATIO_Z * bulge_scale_radius_pc * density.BULGE_UNIT_INTEGRAL)
+    unit = (bulge_scale_radius_pc * structure.bar_axis_ratio_y * bulge_scale_radius_pc
+            * structure.bar_axis_ratio_z * bulge_scale_radius_pc * density.BULGE_UNIT_INTEGRAL)
     return bulge_mass / unit
+
+
+def stage_of(galaxy_seed):
+    """"late" or "early": the stage the seed's galaxy is (Sc and later, or Sa to Sb)."""
+    mass = mass_chain.draw_mass_chain(galaxy_seed).stellar_mass_solar
+    return "late" if _stream(galaxy_seed, "stage").random() < late_share(mass) else "early"
+
+
+def structure_for(galaxy_seed):
+    """The structure of the galaxy a seed makes (`structure_draw.draw_structure`): what a loaded shape is rebuilt with,
+    since no column stores it."""
+    return structure_draw.draw_structure(galaxy_seed)
 
 
 def _truncated(stream, mean, sigma, low, high):
@@ -218,8 +229,9 @@ def draw_galaxy(galaxy_seed, family=SPIRAL, arm_level=1.0, **fixed):
         q = 10.0 ** (math.log10(KREGEL_Q) + _stream(galaxy_seed, "height").gauss(0.0, KREGEL_SCATTER_DEX))
         height = length / q
 
-    late = _stream(galaxy_seed, "stage").random() < late_share(mass)
-    stage = "late" if late else "early"
+    stage = stage_of(galaxy_seed)
+    late = stage == "late"
+    structure = structure_draw.draw_structure(galaxy_seed)
     log_bd = _stream(galaxy_seed, "bulge-share").gauss(
         LOG_BD_LATE if late else LOG_BD_EARLY, LOG_BD_LATE_SIGMA if late else LOG_BD_EARLY_SIGMA)
     bulge_to_total = 1.0 / (1.0 + 10.0 ** -log_bd)
@@ -230,7 +242,7 @@ def draw_galaxy(galaxy_seed, family=SPIRAL, arm_level=1.0, **fixed):
         bulge_radius = bar_length / BAR_LENGTH_PER_SCALE_RADIUS
     amplitude = fixed.get("bulge_amplitude")
     if amplitude is None:
-        amplitude = bulge_amplitude_for(bulge_to_total, length, height, bulge_radius, arm_level)
+        amplitude = bulge_amplitude_for(bulge_to_total, length, height, bulge_radius, structure, arm_level)
 
     arms = fixed.get("arm_count")
     if arms is None:
@@ -242,7 +254,7 @@ def draw_galaxy(galaxy_seed, family=SPIRAL, arm_level=1.0, **fixed):
     pitch = fixed.get("pitch_angle_deg")
     if pitch is None:
         pitch = _truncated(_stream(galaxy_seed, "pitch"), pitch_median_deg(mass), PITCH_SCATTER_DEG, *PITCH_RANGE_DEG)
-    return GalaxyDraw(chain, stage, length, height, bulge_to_total, bar_length, bulge_radius, amplitude, arms, pitch)
+    return GalaxyDraw(chain, stage, structure, length, height, bulge_to_total, bar_length, bulge_radius, amplitude, arms, pitch)
 
 
 def plan_shape(args, galaxy_seed):
@@ -274,5 +286,6 @@ def plan_shape(args, galaxy_seed):
         nuclear_amplitude=args.nuclear_amplitude,
         calibration_radius_pc=args.calibration_radius_pc,
         masses=(drawn.chain.stellar_mass_solar, drawn.chain.halo_mass_solar),
+        structure=drawn.structure,
     )
     return shape, drawn

@@ -45,6 +45,7 @@ from planetgen import tuning
 from planetgen.galaxy import component_field as componentField
 from planetgen.galaxy import density as galaxyDensity
 from planetgen.galaxy import ejecta_field, nebula_field, spherical, superbubble_field
+from planetgen.galaxy import structure as galaxyStructure
 from planetgen.physics import metallicity
 from planetgen.physics.units import pc_to_ly
 
@@ -173,6 +174,22 @@ def _region(mix):
         if terms[name] >= best:
             return name
     return "halo"
+
+
+def _dispersion_kms(name, shape):
+    """
+    The velocity dispersion of population `name` for this galaxy, km/s (three-axis total): the thin-disc populations',
+    the bulge's and the halo's follow from the galaxy's own structure (`galaxy.structure`, GEN.532); the others are
+    `tuning.STELLAR_POPULATION_DISPERSION_KMS`.
+    """
+    structure = shape.structure
+    if name in ("young", "intermediate", "old"):
+        return galaxyStructure.disc_dispersion_kms(structure, name)
+    if name == "bulge":
+        return galaxyStructure.bulge_dispersion_kms(structure, galaxyDensity.bulge_to_total(shape))
+    if name == "halo":
+        return galaxyStructure.halo_dispersion_kms(structure)
+    return tuning.STELLAR_POPULATION_DISPERSION_KMS[name]
 
 
 def _fe_h(name, distance_ly, shape=None, position_pc=None):
@@ -364,7 +381,7 @@ def profile_at(position_pc, shape, edge_pc, expected_at_density_1, address=None,
     populations = {
         name: PopulationProfile(
             name=name, density=mix[name], share=mix[name] / total if total > 0.0 else 0.0, age_gy=tuple(ages[name]),
-            fe_h=_fe_h(name, distance_ly, shape, position_pc), dispersion_kms=tuning.STELLAR_POPULATION_DISPERSION_KMS[name],
+            fe_h=_fe_h(name, distance_ly, shape, position_pc), dispersion_kms=_dispersion_kms(name, shape),
             rotation=tuning.STELLAR_POPULATION_ROTATION[name])
         for name in POPULATIONS}
     bubble = None if galaxy_seed is None else superbubble_field.containing(galaxy_seed, shape, position_pc)
