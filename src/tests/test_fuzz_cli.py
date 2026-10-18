@@ -448,7 +448,9 @@ def test_sector_runs_clean(mysql_config, argv, seed):
 def test_sector_with_absurd_density_stops_when_full(mysql_config, density):
     """An infinite/astronomical --density must not try to generate
     ~infinity systems: placement stops once the cube is full."""
-    assert_clean(["sector", "--quiet", "--density", density] + mysql_argv(mysql_config), limit=90)
+    # (a full cube of systems is a few minutes of work where the galaxy puts the default sector, a place nearer the
+    # centre since GEN.404; the limit is for a hang)
+    assert_clean(["sector", "--quiet", "--density", density] + mysql_argv(mysql_config), limit=240)
 
 
 def test_sector_density_nan_does_not_hang(mysql_config):

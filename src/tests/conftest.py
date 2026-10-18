@@ -434,6 +434,17 @@ def _toy_galaxies_scatter_inside_their_outline(monkeypatch):
     yield
 
 
+@pytest.fixture
+def unit_density_plans(monkeypatch):
+    """A test that plans a toy galaxy (a disk of a few dozen parsecs) from the command line gets it in relative units,
+    density 1 at its reference radius (`tests/toy_shape.py`): the plan's own shape would hold the stellar mass its seed
+    draws in that tiny volume (GEN.404)."""
+    from planetgen.galaxy import shape_draw
+    from tests import toy_shape
+    monkeypatch.setattr(shape_draw, "plan_shape", toy_shape.plan_at_unit_density(shape_draw.plan_shape))
+    yield
+
+
 @pytest.fixture(autouse=True)
 def _settle_jobs_run_inline(monkeypatch):
     """A sector generated on the spot queues a settle job (GEN.126:

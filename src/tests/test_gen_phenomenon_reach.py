@@ -146,8 +146,8 @@ def test_the_expected_objects_and_the_far_screen_follow_the_rates():
     assert reach.far_expected(SHAPE, 1500, 1540, EDGE_PC, E_VALUE, CUT) > 0.0
     assert reach.far_expected(SHAPE, 100, 99, EDGE_PC, E_VALUE, CUT) == 0.0
     # (the seed's drawn halo holds 8.8% of the stars, so the far run starts past shell 40,000)
-    first, means = reach.far_shells(SHAPE, 5, 80000, EDGE_PC, E_VALUE, CUT)
-    assert 5 < first <= 80000 and len(means) == first - 5 and means[-1] > 0.0
+    first, means = reach.far_shells(SHAPE, 5, 200000, EDGE_PC, E_VALUE, CUT)
+    assert 40000 < first <= 200000 and len(means) == first - 5 and means[-1] > 0.0
     # A thinner galaxy sends the far run nearer in.
     assert reach.far_shells(SHAPE, 5, 40000, EDGE_PC, E_VALUE / 1000.0, CUT)[0] < first
 
