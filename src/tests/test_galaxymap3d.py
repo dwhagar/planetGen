@@ -32,6 +32,7 @@ from planetgen.web.maps.galaxymap3d import (  # noqa: E402
 )
 
 from planetgen.galaxy.viewport import (  # noqa: E402
+    TILE_MAX_LEVEL,
     fetch_cut_tiles,
     parse_tile_key,
     tiles_intersecting_sphere,
@@ -301,7 +302,7 @@ def test_initial_tile_request_is_the_distance_cut_round_the_starting_camera(orbi
     bounds = tile_bounds_pc(EDGE_PC, {"outer_shell_index": 3750})
     keys = initial_tile_request(orbit_radius, center, bounds)
     cut = fetch_cut_tiles(camera_position_pc(orbit_radius, center), center, bounds)
-    detail = tiles_intersecting_sphere(12, center, 8.0) if orbit_radius <= 120.0 else []
+    detail = tiles_intersecting_sphere(TILE_MAX_LEVEL, center, 8.0) if orbit_radius <= 120.0 else []
     assert keys == (detail + cut)[:INITIAL_TILE_LIMIT]
     assert len(keys) <= INITIAL_TILE_LIMIT <= 128
     for key in keys:

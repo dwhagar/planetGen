@@ -23,6 +23,7 @@ import pytest
 sync_api = pytest.importorskip("playwright.sync_api")
 Image = pytest.importorskip("PIL.Image")
 
+from planetgen.galaxy.viewport import TILE_MAX_LEVEL  # noqa: E402
 from planetgen.galaxy.spherical import provisional_sector_designation  # noqa: E402
 from tests.map_site_support import PHENOMENA, POINT_FIELD, SECTOR_ID, SECTORS, SYSTEMS, UNCHARTED_CELL, map_site  # noqa: E402,F401 -- fixture
 
@@ -1905,11 +1906,11 @@ def test_galaxy_map_fetches_the_finest_tiles_around_a_sector_it_shows(page, map_
     page.wait_for_timeout(2500)
     requests = [[int(key.split("/")[0]) for key in parse_qs(urlparse(url).query)["tiles"][0].split(",")]
                 for url in urls]
-    # The finest tiles (12) around the sector are asked for first, and only
-    # then (the rest of the view is the distance cut, which stops at 11).
-    assert requests[0][0] == 12, requests
-    assert any(11 in levels for levels in requests), requests
-    assert not any(12 in levels for levels in requests[1:]), requests
+    # The finest tiles around the sector are asked for first, and only then
+    # (the rest of the view is the distance cut, which stops one level short).
+    assert requests[0][0] == TILE_MAX_LEVEL, requests
+    assert any(0 < min(levels) < TILE_MAX_LEVEL - 1 for levels in requests), requests
+    assert not any(TILE_MAX_LEVEL in levels for levels in requests[1:]), requests
 
 
 def _point_colored_spots(page, selector, limit=80):
@@ -2060,7 +2061,9 @@ def test_galaxy_map_stars_fade_in_with_the_zoom(page, map_site):
     here = page.evaluate(opacity, 1.0)
     camera = here["camera"]
     assert here["count"] > 0 and here["camera"] > 0, here
-    steps = [camera * 2 ** (k / 8) for k in range(-8, 9)]
+    # Out to 1.4 times the camera's distance: further out the cut would hand the stars over to coarser tiles (the
+    # tile root reaches 262 kpc, MAP.239) that this view has not fetched, so the loaded tiles alone fade out there.
+    steps = [camera * 2 ** (k / 8) for k in range(-8, 5)]
     sums = [page.evaluate(opacity, r)["sum"] for r in steps]
     assert all(0 <= s <= here["count"] + 1e-6 for s in sums), sums
     for before, after in zip(sums, sums[1:]):
@@ -2621,7 +2624,7 @@ def test_galaxy_map_prefetches_only_the_way_in_and_only_when_still(page, map_sit
         eye = [target[i] + (camera[i] - target[i]) * scale for i in range(3)]
         return set(fetch_cut_tiles(eye, target, bounds))
 
-    asked = {key for _at, keys in requests for key in keys if not key.startswith("12/")}
+    asked = {key for _at, keys in requests for key in keys if not key.startswith(f"{TILE_MAX_LEVEL}/")}
     here, in_one, out_one = cut_at(1.0), cut_at(1.0 / 3.0), cut_at(3.0)
     way_out = out_one - here - in_one
     assert way_out, "the way out needs tiles of its own for this test to mean anything"
