@@ -21,8 +21,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) |  | Research follow-up to PERF.25 (built). |
 | PERF.135 | The Uncharted stars and Phenomena tables get a jump-by-value box for their numeric and scatter-id sorts |  |  |
 | PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply |  |  |
-| PERF.118 | Generation as commands: every stage is its own command, and one wrapper builds the command list and queues each command as one queue item |  | Boss, 2026-10-17, 4:12 PM EDT: the wrapper builds the command list, each command is one queue item. |
-| PERF.106 | The plan command on the run record, with stage timing, the killed-worker handler and job timeouts | PERF.118 | Split from PERF.98. |
+| PERF.106 | The plan command on the run record, with stage timing, the killed-worker handler and job timeouts |  | Split from PERF.98. |
 | PERF.107 | The sector units and the stages around them: start, neighborhood, sectors, link, population and settle | PERF.106 | Split from PERF.98. |
 | PERF.108 | The backfill as queue units: chunks of at least 10,000 cells, one enumeration (folds in PERF.18) | PERF.107 | Split from PERF.98. |
 | PERF.113 | The neighbour link of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | PERF.107 | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
@@ -31,15 +30,15 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | PERF.116 | The habitability re-score (`plan --habitability`): measure it, and split it into chunks of systems if the time warrants | PERF.106 | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
 | PERF.117 | The map-luminosity fill (`plan --map-luminosity`): measure it, and split it into id-range chunks if the time warrants | PERF.106 | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
 | PERF.98 | Work queue step 4: the remaining stages and the sector and backfill units on the new queue | PERF.106, PERF.107, PERF.108 | PERF.86 step 4 |
-| PERF.119 | The Generate page, the API and the one-off sector and system commands start their runs through the wrapper | PERF.98, PERF.118 | Boss, 2026-10-17, 4:12 PM EDT: every start path uses the wrapper. |
-| PERF.120 | Every command does one thing: the umbrella for reshaping every command and entry point | PERF.118 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
+| PERF.119 | The Generate page, the API and the one-off sector and system commands start their runs through the wrapper | PERF.98 | Boss, 2026-10-17, 4:12 PM EDT: every start path uses the wrapper. |
+| PERF.120 | Every command does one thing: the umbrella for reshaping every command and entry point |  | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | PERF.121 | `plan` does only the skeleton, and the scatters become one `scatter` command with exactly one kind per run (mass, luminosity, phenomena, nebula field, band) | PERF.106, PERF.120 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | PERF.122 | The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags | PERF.106, PERF.120 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | PERF.123 | `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds | PERF.107, PERF.108, PERF.121 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | PERF.124 | `sector` and `phenomenon` only generate: the population pass leaves `sector` and the settle leaves `phenomenon` | PERF.123 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | PERF.125 | The population pass and the territories pass are separate commands | PERF.107, PERF.120 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
-| PERF.126 | `check-db`: each check is its own command and the report is the list the wrapper runs | PERF.118, PERF.120 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
-| PERF.127 | `warm_map`: each cache family is its own command and `update.sh` builds the list | PERF.118, PERF.120 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
+| PERF.126 | `check-db`: each check is its own command and the report is the list the wrapper runs | PERF.120 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
+| PERF.127 | `warm_map`: each cache family is its own command and `update.sh` builds the list | PERF.120 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | PERF.128 | `benchmark` is a step list handed to the wrapper, not a sequence of its own | PERF.123 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | OPS.60 | The admin commands that did two things by flag: `lockouts` lists or lifts, `version_history --list` repeats `planetgen versions` |  | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | OPS.61 | Remove the one-off tools `cli.render_parity` and `cli.dedupe`: they check and fix a schema and a naming rule that migrated long ago |  | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
@@ -219,9 +218,8 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.140 | Double-click on a selected object goes there and opens its information |  | GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714). |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below |  | GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716), one context view. The #716 bug label was overruled. |
 | MAP.249 | The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug) |  | Boss 6:48 PM EDT; Core 2 profiles first. |
-| MAP.250 | When a map chooses which stars to show, halo and satellite-galaxy stars are the lowest priority and are always cut first, before anything else |  | Boss 6:48 PM EDT, Decided; order among the two confirmed 6:57 PM EDT: satellite galaxies first, then halo. |
 | MAP.252 | Viewing only the filled sectors does not dim the phenomena (bug) |  |  |
-| MAP.251 | When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug) | MAP.250 |  |
+| MAP.251 | When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug) |  |  |
 | MAP.247 | The wheel zoom's column-density ray fallback: where the cursor ray hits nothing pickable, the point is the first sample where the integrated column density passes a threshold |  |  |
 | MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine |  | Folds MAP.127, the Galaxy Map's neighbouring blocks and slabs (Boss 2026-10-07 16:27Z: one map engine for all maps). |
 | MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field |  | Boss 2026-10-09 22:24Z and 22:56Z. Umbrella for MAP.148 to MAP.152; replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
@@ -407,7 +405,6 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 |---|---|---|---|
 | DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | UX.102 |  |
 | DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | PERF.86 |  |
-| DOC.68 | Generate docs/plan/execution-plan.html from scripts/build_todo_docs.py like the other plan pages |  |  |
 | DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | GEN.243 | Whole-sphere build train, Boss 2026-10-15. Step 14. Quality. |
 | DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | GEN.264, TEST.164, GEN.130 | Multi-star systems at scatter time, Boss 2026-10-15. Step 10. Quality. |
 | DOC.51 | Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder |  | Spherical region query, stage C. Step 8. Quality. |

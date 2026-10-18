@@ -3,12 +3,13 @@
 """
 A stage of a run on the new work queue (PERF.97, step 3 of the rebuild, docs/design/redis-and-the-work-queue.md
 5.1): the units of one stage queued on the bulk queue, run by the idle-timeout workers (`workers.ensure_workers`),
-and followed by the process that started the run until the stage is done.
+and followed by the process that started the run until the stage is done. The wrapper (`queue/wrapper.py`, PERF.118)
+cuts a stage into its units and starts a run; this file queues, runs and follows them.
 
 * **A unit is data.** It is an RQ job for `run_unit` with the run id, the stage, the unit's index, a `kind` and a
   JSON dict (`planetgen.queue.redisqueue.JsonSerializer`: the queue carries data, not code). The `kind` names
-  the function that does the work in `HANDLERS`, a table in this file, so what Redis holds can pick a handler but
-  can't name one. A unit carries no password: the worker reads the database's credentials from its own settings.
+  a command in `commands.REGISTRY`, a table in code, so what Redis holds can pick a command but can't name a
+  function. A unit carries no password: the worker reads the database's credentials from its own settings.
 * **The barrier is the done set.** A unit that finishes stores its result (a JSON value), then adds its index to
   the stage's done set (`runrecord.unit_done`); the unit that completes the set is the one that moves the run on.
   A unit that runs twice (RQ's retry after a killed worker) counts once. The result is written before the index,
@@ -21,18 +22,17 @@ and followed by the process that started the run until the stage is done.
 * **A failed unit ends the run** (`unit_failed`, RQ's `on_failure` after the one retry); the units still waiting
   see the run is no longer live and do nothing.
 
-A run on this spine has the one stage until PERF.98 moves the other stages over: the unit that completes the last
-stage finishes the run, and a unit that completes an earlier one has nothing queued to start yet.
+The unit that completes the last stage finishes the run; the unit that completes an earlier one has the wrapper queue
+the next (`wrapper.advance`).
 """
 
-import importlib
 import json
 import time
 
 import rq
 from rq.job import Callback
 
-from planetgen.queue import redisqueue, runrecord, workers
+from planetgen.queue import commands, redisqueue, runrecord
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
 FAILURE_FUNCTION = "planetgen.queue.units.unit_failed"
@@ -64,13 +64,6 @@ REPORT_SECONDS = 0.25
 ENQUEUE_BATCH = 500
 """int: How many units go to Redis in one pipeline."""
 
-HANDLERS = {
-    "mass-scatter": ("planetgen.generation.run_plan", "scatter_shells_unit"),
-}
-"""dict: A unit's `kind` -> the `(module, function)` that does it. The function takes the unit's args (a dict) and
-`report(done, estimate)`, and returns a JSON-able result."""
-
-
 class RunStopped(RuntimeError):
     """The run ended (failed, was cancelled or went stale) before its stage was done."""
 
@@ -78,16 +71,6 @@ class RunStopped(RuntimeError):
 def job_id(run_id, stage, unit):
     """The RQ job id of a unit, so a unit can be found from the run (cancel, PERF.99)."""
     return f"{run_id}-s{stage}-u{unit}"
-
-
-def handler_for(kind):
-    """The function a unit of `kind` runs.
-
-    Raises:
-        KeyError: No such kind.
-    """
-    module, name = HANDLERS[kind]
-    return getattr(importlib.import_module(module), name)
 
 
 def static_chunks(rows, units=STATIC_UNITS, max_rows=None):
@@ -127,9 +110,9 @@ def enqueue_units(conn, run_id, stage, kind, units, queue_name=None):
             and the unit's predicted cost for the stage's bar and ETA.
 
     Raises:
-        ValueError: More than `MAX_UNITS` units, or a kind with no handler.
+        ValueError: More than `MAX_UNITS` units, or a kind that is not a command with units.
     """
-    if kind not in HANDLERS:
+    if kind not in commands.REGISTRY or commands.spec(kind).inline:
         raise ValueError(f"no unit kind {kind!r}")
     if len(units) > MAX_UNITS:
         raise ValueError(f"a stage queues at most {MAX_UNITS} units, not {len(units)}")
@@ -160,8 +143,9 @@ class _Reporter:
 
 def run_unit(run_id, stage, unit, kind, args, cost=None):
     """
-    The RQ job of one unit: does it, stores its result, joins the done set, and, when it completes the last stage,
-    ends the run. A unit that finds the run no longer live (cancelled, failed) does nothing.
+    The RQ job of one unit: does it, stores its result, joins the done set, and, when it completes its stage, has the
+    wrapper queue the next one or, after the last, ends the run. A unit that finds the run no longer live (cancelled,
+    failed) does nothing.
 
     Returns:
         dict: `seconds` the unit took, or `skipped`.
@@ -170,13 +154,14 @@ def run_unit(run_id, stage, unit, kind, args, cost=None):
     if runrecord._s(conn.hget(runrecord.run_key(run_id), "state")) != "running":
         return {"skipped": True}
     started = time.monotonic()
-    result = handler_for(kind)(args, _Reporter(conn, run_id, stage, unit))
+    result = commands.unit_function(kind)(args, _Reporter(conn, run_id, stage, unit))
     seconds = time.monotonic() - started
     conn.hset(runrecord.results_key(run_id, stage), unit, json.dumps(result))
     outcome = runrecord.unit_done(conn, run_id, stage, unit, cost=cost, seconds=seconds)
     conn.hdel(runrecord.progress_key(run_id, stage), unit)
-    if outcome.advance and stage == len(json.loads(conn.hget(runrecord.run_key(run_id), "stages"))) - 1:
-        runrecord.finish_run(conn, run_id, "done")
+    if outcome.advance:
+        from planetgen.queue import wrapper         # the wrapper queues units, so it imports this file
+        wrapper.advance(conn, run_id, stage + 1)
     return {"seconds": seconds}
 
 
@@ -239,44 +224,3 @@ def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure
             last_ensure = clock()
             ensure()
         sleep(POLL_SECONDS)
-
-
-def run_stage(title, key, label, kind, units, on_result, on_progress=None, workers_count=None, who=None,
-              database=None, argv=None, seed=None, url=None):
-    """
-    Runs one stage as a run of its own: starts the run record (the machine is busy for it), queues the `units`
-    (`enqueue_units`'s `(args, cost)` pairs), makes sure workers are running (`workers_count` of them at most:
-    the run's `--workers`) and follows the stage to its end. The run ends in Redis as `done`, or `failed` or
-    `cancelled` if this process stops on an error or an interrupt first.
-
-    Returns:
-        str: The run id.
-
-    Raises:
-        redisqueue.Unavailable: No Redis server answers.
-        runrecord.Busy: Another run owns the machine.
-        RunStopped: A unit failed or the run was cancelled.
-    """
-    url = url or redisqueue.redis_url()
-    conn = redisqueue.connect(url)
-    try:
-        conn.ping()
-    except Exception as exc:  # noqa: BLE001 -- any connection failure
-        raise redisqueue.Unavailable(f"no Redis server answers at {url} (config.json's redis.url); "
-                                     f"start Redis to run this: {exc}") from exc
-    cost = sum(unit_cost for _args, unit_cost in units)
-    run_id = runrecord.start_run(
-        conn, title, [runrecord.Stage(key, label, units=len(units), cost=cost, workers=workers_count or 1)],
-        who=who, database=database, argv=argv, seed=seed)
-    try:
-        runrecord.begin_stage(conn, run_id, 0)
-        enqueue_units(conn, run_id, 0, kind, units)
-        ensure = None if not units else (lambda: workers.ensure_workers(
-            redisqueue.BULK_QUEUE, conn, url, count=workers_count))
-        follow_stage(conn, run_id, 0, len(units), on_result, on_progress, ensure)
-        runrecord.finish_run(conn, run_id, "done")      # a stage of no units has no last unit to do it
-    except BaseException as exc:
-        runrecord.finish_run(conn, run_id, "cancelled" if isinstance(exc, KeyboardInterrupt) else "failed",
-                             error=str(exc) or type(exc).__name__)
-        raise
-    return run_id

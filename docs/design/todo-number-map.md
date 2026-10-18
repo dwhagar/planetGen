@@ -655,7 +655,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.65 | Docs: bulk composition, the materials table and how density, mass and gravity follow | none | open |
 | DOC.66 | Docs: the composition model of stars, bodies and atmospheres, the radiation it derives and the sources of every number | none | open |
 | DOC.67 | An architecture map Boss can drill down: project areas, modules and functions with the call flow between them, generated from the code | none | done, PR #2154 |
-| DOC.68 | Generate docs/plan/execution-plan.html from scripts/build_todo_docs.py like the other plan pages | none | open |
+| DOC.68 | Generate docs/plan/execution-plan.html from scripts/build_todo_docs.py like the other plan pages | none | done, PR #2157 |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -1453,7 +1453,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.247 | The wheel zoom's column-density ray fallback: where the cursor ray hits nothing pickable, the point is the first sample where the integrated column density passes a threshold | none | open |
 | MAP.248 | The maps and pages follow the plan configuration: with the halo or the satellite galaxies off, nothing is drawn, picked or offered beyond the configured boundaries | none | open |
 | MAP.249 | The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug) | none | open |
-| MAP.250 | When a map chooses which stars to show, halo and satellite-galaxy stars are the lowest priority and are always cut first, before anything else | none | open |
+| MAP.250 | When a map chooses which stars to show, halo and satellite-galaxy stars are the lowest priority and are always cut first, before anything else | none | done, PR #2155 |
 | MAP.251 | When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug) | none | open |
 | MAP.252 | Viewing only the filled sectors does not dim the phenomena (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
@@ -1696,7 +1696,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.115 | The settle stage of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | open |
 | PERF.116 | The habitability re-score (`plan --habitability`): measure it, and split it into chunks of systems if the time warrants | none | open |
 | PERF.117 | The map-luminosity fill (`plan --map-luminosity`): measure it, and split it into id-range chunks if the time warrants | none | open |
-| PERF.118 | Generation as commands: every stage is its own command, and one wrapper builds the command list and queues each command as one queue item | none | open |
+| PERF.118 | Generation as commands: every stage is its own command, and one wrapper builds the command list and queues each command as one queue item | none | done, PR #2159 |
 | PERF.119 | The Generate page, the API and the one-off sector and system commands start their runs through the wrapper | none | open |
 | PERF.120 | Every command does one thing: the umbrella for reshaping every command and entry point | none | open |
 | PERF.121 | `plan` does only the skeleton, and the scatters become one `scatter` command with exactly one kind per run (mass, luminosity, phenomena, nebula field, band) | none | open |
