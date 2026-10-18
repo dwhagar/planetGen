@@ -1723,7 +1723,8 @@ def scatter_phenomena(args):
             try:
                 with steps.Step("Drawing the special phenomena", "phenomena-special", max(len(extents), 1), args=args,
                                 progress=progress):
-                    special = list(phenomenon_scatter.special_rows(extents, skeleton.edge_pc, seed, filled))
+                    reach = getattr(skeleton, "reach_shell_index", None) if program_constants.SCATTER_COVERS_REACH else None
+                    special = list(phenomenon_scatter.special_rows(extents, skeleton.edge_pc, seed, filled, reach))
                 with steps.Step("Writing the special phenomena", "phenomena-insert", max(len(special), 1), args=args,
                                 progress=progress):
                     store.insert_phenomenon_scatter(conn, special)
