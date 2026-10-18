@@ -107,6 +107,7 @@ flowchart LR
 | `scripts/build_unit_ladders.py` | Writes the browser's copy of the unit ladders (`static/unitladders.js`) from `planetgen/util/ladders.py` (UX.23). |
 | `scripts/vendor_shoelace.py` | Copies the parts of Shoelace the site uses into `static/vendor/shoelace/`. |
 | `scripts/build_todo_docs.py`, `scripts/todo_docs/` | Builds the three browsable TODO pages from the TODO sources. |
+| [`scripts/build_global_docs.py`](../../scripts/build_global_docs.py) | Rebuilds, or with `--check` checks, every global document in order (the architecture map, the plan pages, the docs index); only the TODO thread runs it, and the tests that compare them with their sources are the `globaldocs` tests, skipped unless `PLANETGEN_GLOBAL_DOCS=1` (DOC.69). |
 | `scripts/bench_nav.py`, `scripts/star_type_by_radius.py` | Developer tools: times `nav_between` on a large synthetic galaxy (NAV.10); star types against distance from the core (GEN.133). |
 | `scripts/lock-requirements.sh` | Rewrites `requirements.lock` with `uv`. Run by a developer after changing a requirement, never on a server. |
 | [`scripts/bump_version.py`](../../scripts/bump_version.py) | Turns `changes/` notes into releases: bumps `_version.py`, the README badge and `CHANGELOG.md` together. Also the PR check (`--check-pr`). |

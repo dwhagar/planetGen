@@ -419,6 +419,12 @@ These skip unless you turn them on:
   again. A case that is known to read too much is an expected failure naming the item that will fix it; when the
   fix lands the case fails as an unexpected pass, and its mark is removed. `test_budget_support.py` runs every
   case on a 3,000-system galaxy in the ordinary run, so the tier cannot rot unseen.
+- The `globaldocs` tests (DOC.69) compare a generated global document with its source: the architecture map's module list
+  (`test_architecture_map.py`), the docs index (`test_docs_index.py`) and the plan pages (`test_todo_docs.py`). Only the TODO
+  thread regenerates those files (`python scripts/build_global_docs.py`, after a batch of merges; `--check` lists the stale
+  ones), so a lane's pull request never carries one and a stale one never fails a lane's gate: the tests skip unless
+  `PLANETGEN_GLOBAL_DOCS=1`, which `scripts/test.py <command> --global-docs` sets. The release stamp runs
+  `scripts/test.py full --check --global-docs`.
 - `test_sector_generation_perf.py` is a timing benchmark:
   `PLANETGEN_RUN_PERF_BENCHMARK=1 pytest -s src/tests/test_sector_generation_perf.py`.
 
