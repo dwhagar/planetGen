@@ -2,6 +2,42 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1835] - 2026-10-18
+
+**Headline:** The test that an orbital facility's phase advances no longer fails when the random giant it orbits is small enough that a quarter turn is not yet due.
+
+### Fixed
+- Tests: `test_orbital_facilities_advance_their_phase` stepped the orbit clock a quarter of the facility's period, but the update moves a facility only once it is due, which is when it has moved the planetary threshold (100,000 km). A facility on a close orbit round a small giant (about 56,000 km from the centre) moves 88,000 km in a quarter turn, so it is correctly not due and the update returned 0 (1 draw in 20). The test now steps whole turns past the due time plus the quarter (whole turns wrap away), so it still checks the 90 degrees whatever the giant. The update itself is right.
+
+TODO items resolved: TEST.251 / Added: none
+
+## [8.0.1834] - 2026-10-18
+
+**Headline:** A new test pins that a patch a test makes over the inline test queue is undone before the queue's own, so the real-worker tests that follow find the real functions.
+
+### Changed
+- Tests: `test_inline_queue.py` patches `ensure_workers` over the inline stand-in in one test and checks in the next (marked `real_queue`) that the real function, queue name and key prefix are back. It fails on the order the inline queue used to undo its patches in (TEST.250, fixed by Core 5 in the same hours) and passes now.
+
+TODO items resolved: none / Added: none
+
+## [8.0.1833] - 2026-10-18
+
+**Headline:** The query-count test for the sector and system pages no longer fails when the two random systems differ in how many stars have planets.
+
+### Changed
+- Tests: `test_sector_and_system_pages_use_a_fixed_number_of_queries` compared the statement count of two random systems, but `system_detail` sends one host lookup (`compact_host_of_star`) for each star that has planets, by design ("one lookup per host star, not per planet"), so a system whose planets orbit one star sent one more than a system with none, and the test failed 5 runs in 40 on an idle machine (12 against 11 statements; the differing statement in every failing run was that lookup). The count now leaves out one statement per star that has planets, which keeps what the test is for: no statement grows with the number of planets or moons.
+
+TODO items resolved: TEST.249 / Added: none
+
+## [8.0.1832] - 2026-10-18
+
+**Headline:** The dense-core case of the neighbourhood test runs in about three minutes instead of up to ten, so it no longer times out in a loaded gate.
+
+### Changed
+- Tests: `test_random_start_neighborhood_matches_the_real_skeleton_plan[dense_core]` took about 466 s alone (240 to 650 s over 10 idle runs) and hit the 900 s limit in a loaded gate. Its start sits in cells over the cell star ceiling, which the run takes down to their luminosity cap and which cost the most; the case now reaches 18 ly round its start instead of 25 ly (the random case keeps 25 ly), so it generates a handful of sectors instead of 24 and runs in 173 to 197 s. The plan's skeleton build (about 150 s) is the rest and is shared with the other plan tests.
+
+TODO items resolved: TEST.247 / Added: none
+
 ## [8.0.1831] - 2026-10-18
 
 **Headline:** A galaxy's star count comes from its stellar mass and every radius once quoted at the Sun is now in the galaxy's own units, so no Sun or home position is read anywhere.
