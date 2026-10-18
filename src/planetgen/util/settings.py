@@ -165,7 +165,15 @@ class TileCache(_Section):
                            "of the one above; 0 builds none).", unit="levels", category="cache", ge=0, le=15)
     warm_zoom_levels: int = opt(14, "Finest tile level of the zoom run `planetgen warm` builds from the opening "
                                 "view in to the galaxy's centre, on top of the levels above (level 14 is tiles 32 pc "
-                                "across and the finest the map's cut uses; at most 15; 0 builds no run).", unit="levels", category="cache", ge=0, le=15)
+                                "across and the finest the map's cut uses; at most 15; 0 builds no run).",
+                                unit="levels", category="cache", ge=0, le=15)
+    prefetch_per_visit: int = opt(128, "Most tiles one request for tiles queues to be built in the background: the "
+                                  "next few zoom steps along the camera's line, then the neighbours of the tiles it "
+                                  "asked for and the next level inside them (0 turns the background build off).", unit="tiles", category="cache", ge=0)
+    prefetch_per_minute: int = opt(600, "Most tiles the background build queues in a minute, all requests together.",
+                                   unit="tiles", category="cache", ge=0)
+    prefetch_max_queued: int = opt(8, "The background build queues nothing while this many of its jobs (16 tiles "
+                                   "each) or other bulk work already wait.", unit="jobs", category="cache", ge=1)
 
 
 class PageCache(_Section):
