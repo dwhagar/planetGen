@@ -17309,6 +17309,13 @@ clears each one.
   reproduce. 24 runs of the test under load all passed. Needed next
   time: The failing parametrisation, the text of the failure and the
   load at the time. Running log: the comments on issue #1694.
+  Sighting (Blocker 1, 2026-10-17, 10:52 PM EDT as the lane reported;
+  its second PERF.118 changed gate, 84 minutes, 4 failures, tree with
+  GEN.238 #2132): `[15-True]` failed with `assert jobs and
+  all(job["state"] == "cancelled")`, got [queue failed, galaxy failed];
+  1 of 1 gate runs, passes alone 2 of 2. Fails on main: not checked.
+  Reproducer given: SIGTERM to the process group while the 4-core gate
+  runs, full gate under load.
   Prerequisites: none. Related: TEST.128, TEST.132 (done, PR #1578), TEST.134.
 
 - [ ] **TEST.155 Wording and index agree: property test**
@@ -18909,6 +18916,10 @@ clears each one.
   about 9 with the status line 'About 30% (an estimate: 300 of 1,000
   rows), about 5 s left.' and passed alone: the same shape as the
   `[light]` failure above.
+  Sighting (Blocker 1, 2026-10-17, 10:52 PM EDT as the lane reported;
+  its first PERF.118 gate): the `[light-phone]` variant failed once
+  there too and passes alone. Now seen by Core 5, Bug Hunt (both
+  `[light]` cases) and Blocker 1.
   Prerequisites: none. Related: TEST.227, UX.118.
 
 - [ ] **TEST.236 test_galaxy_map_drill_down_by_clicks rejects a window address with a negative band, because its regex allows a minus sign only on the wedge (bug)**
@@ -18967,7 +18978,41 @@ clears each one.
   depends on the camera settling: at load 9.7 the first `_still_spot`
   read can take several seconds, so a timeout in `_still_spot` or
   `_ready` is a different cause than the neighbour-star one it fixed.
+  Sighting (Blocker 1, 2026-10-17, 10:52 PM EDT as the lane reported;
+  its second PERF.118 gate): the wheel-anchor test failed in the gate
+  and passes alone; Bug Hunt's gate d784f21a saw it too (passes alone
+  under load 8.8 to 9.2). Neither lane's tree is stated to carry #2147,
+  so these may predate the fix.
   Prerequisites: none. Related: TEST.231, TEST.126.
+
+- [ ] **TEST.238 test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it fails in a gate with no hypervelocity-star stored, and passes alone (bug)**
+  Found by Bug Hunt (2026-10-17, 10:50 PM EDT as the lane reported, gate
+  d784f21a on #2124, base 90c43398) and Blocker 1 (10:52 PM EDT as the
+  lane reported, its second PERF.118 changed gate, 84 minutes, tree with
+  GEN.238 #2132), filed by the TODO thread.
+  `src/tests/test_phenomenon_scatter.py:242` asserts
+  `{"hypervelocity-star", "neutron-star"} <= kinds`; both gates got
+  kinds of black-hole, neutron-star and planetary-nebula (and so on)
+  with no hypervelocity-star placed. Passes alone: Blocker 1 2 of 2 on
+  its tree; Bug Hunt says it FAILED alone on the gate's old base but
+  passes alone on origin/main 2ada74af and on its branch merged with
+  main (so for Bug Hunt it was a base-age failure, and for Blocker 1 a
+  gate-only one: the two reports differ). Fails on main: no on 2ada74af
+  (Bug Hunt). Frequency: 2 gate runs on two lanes, 0 in the alone runs
+  on current main. Suspect (inferred, not checked): the test draws a
+  plan run with no pinned seed and a small shape, so whether a
+  hypervelocity star is placed depends on the draw; the earlier TEST.220
+  note (my wrong grouping of this failure with that item) is corrected
+  there. Reproducer: loop the test alone on current main with fresh
+  draws, `pytest src/tests/test_phenomenon_scatter.py -k
+  stores_the_scatter --count 30` or a shell loop; if it fails, print the
+  seed and the stored kinds. Do: find whether the hypervelocity count
+  can be zero for a valid draw (then the test needs a seed that places
+  one, or a count-based expectation tied to the shape) or whether the
+  generator dropped them; fix without loosening what the test proves.
+  Done: the cause is on this item and the test passes 30 of 30 fresh
+  draws. Owner: Bug Hunt (proposed; it saw it first).
+  Prerequisites: none. Related: TEST.220, TEST.224.
 
 
 ## USR: User accounts
