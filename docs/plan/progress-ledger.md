@@ -841,3 +841,17 @@ Baseline: PR #1817.
 | GEN.567 | 8.1 | Composition research and design |
 | MAP.243 | 8.1 | Interface update |
 | DOC.69 | 8.1 | Docs |
+| OPS.59 | 8.1 | Queue, caches and performance |
+| UX.110 | 8.1 | Description layer |
+| TEST.134 | 8.1 | Bugs and flaky tests |
+| TEST.170 | 8.1 | Bugs and flaky tests |
+| TEST.171 | 8.1 | Bugs and flaky tests |
+| TEST.172 | 8.1 | Bugs and flaky tests |
+| TEST.174 | 8.1 | Bugs and flaky tests |
+| UX.133 | 8.1 | Bugs and flaky tests |
+| TEST.189 | 8.1 | Bugs and flaky tests |
+| TEST.216 | 8.1 | Bugs and flaky tests |
+| TEST.203 | 8.1 | Bugs and flaky tests |
+| TEST.199 | 8.1 | Bugs and flaky tests |
+| GEN.397 | 8.1 | Bugs and flaky tests |
+| TEST.208 | 8.1 | Bugs and flaky tests |
