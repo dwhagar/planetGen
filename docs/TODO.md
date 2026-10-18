@@ -5804,6 +5804,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   post-AGB circumbinary disk descriptor and no planets. Stand-ins left
   out: eccentricity excitation, the swallowed-giant flag, the rare close
   giant.
+  Epoch note (1:35 PM EDT 2026-10-18, real clock): epoch 33 is stamped
+  by GEN.546 (release 8.0.1830, #2268), so a change here takes the next
+  free epoch at its merge, 34 unless another lane merges first (Core 3's
+  GEN.318 carried 33 pending and renumbers to 34); Alembic head is 0112,
+  next free 0113.
   Prerequisites: none. Related: GEN.130.
 
 - [ ] **GEN.325 Planet cull in dense components by the survival formula and the metallicity factor**
@@ -7571,6 +7576,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by GEN.317 (release 8.0.1828), so a change here takes the next free
   epoch at its merge, 33 unless another lane merges first (Core 3's
   GEN.318 carries 33 pending); Alembic head is 0112, next free 0113.
+  Epoch note (1:35 PM EDT 2026-10-18, real clock): epoch 33 is stamped
+  by GEN.546 (release 8.0.1830, #2268), so a change here takes the next
+  free epoch at its merge, 34 unless another lane merges first (Core 3's
+  GEN.318 carried 33 pending and renumbers to 34); Alembic head is 0112,
+  next free 0113.
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -13002,80 +13012,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   follow GEN.404).
   Prerequisites: GEN.404. Related: GEN.404, GEN.103, GEN.366.
 
-- [ ] **GEN.546 Draw a disk star's age from the star formation history inside its window, not uniformly**
-  Follow-up of GEN.469 (merged #2139, Core 4, 2026-10-17, 9:34 PM EDT as
-  the lane reported; design note
-  docs/design/disk-star-formation-history.md, "Ages stay uniform inside
-  a window"), filed by the TODO thread. GEN.469 sets the share of young
-  (under 0.1 Gy), intermediate (0.1 to 3 Gy) and old (3 to 10 Gy) disk
-  stars from the gas history, but a star's age inside its window is
-  still drawn uniformly, though the star formation rate varies across a
-  window (by a factor of 1.0, 2.5 and a smaller one across the three
-  windows, per the note). Do: draw the age inside the window from the
-  history's own rate (the inverse of its cumulative within the window),
-  in the sampler that draws ages; the sampler files belong to Core 3, so
-  ask Core 3 before touching them. This may lower the local B-star share
-  the GEN.469 test still expects to fail, so do it before the item on
-  that share. Changes stored values, so it bumps the generator epoch
-  (OPS.56 rule); default (stands unless Boss overrules): not a
-  prerequisite of GEN.301, and it rides the one full rescatter only if
-  it merges before it. Done: a test draws many stars of one window and
-  checks the age histogram follows the history's rate across it, the
-  design note says so, and the star-type share test is rerun. Owner:
-  Core 4 (proposed; it built GEN.469), with Core 3 asked first.
-  Core 4's report (reported at 9:46 AM EDT 2026-10-18 as the lane
-  reported, filed by the TODO thread; its gate `scripts/test.py changed`
-  is running, PR follows when it passes): the design is
-  `galaxy/age_law.py` with an `AgeLaw`, threaded through the star
-  population, the scatter, both backfills and the fill context
-  (`SystemConfig.AGE_LAW`); the bulge, the halo, the clusters and the
-  satellites stay even, as the item says. Generator epoch 29 is pending
-  (28 is stamped); GEN.404 and GEN.244 want it too, so the next merger
-  renumbers. The local B-star share between the arms falls from 0.069
-  percent to 0.050 percent against 0.04 percent observed, and the strict
-  expected failure `test_the_local_b_share_reaches_the_observed_one` was
-  removed. `docs/design/disk-star-formation-history.md` still shows
-  GEN.469's 0.12 percent and is updated after the merge.
-  Epoch note (11:12 AM EDT 2026-10-18): epochs 29, 30 and 31 are stamped
-  by GEN.244 (release 8.0.1819), GEN.282 (8.0.1820) and GEN.563
-  (8.0.1821), so a change here takes the next free epoch at its merge,
-  32 unless another lane merges first; Alembic head is 0112 and the next
-  free id is 0113.
-  Epoch note (1:20 PM EDT 2026-10-18, real clock): epoch 32 is stamped
-  by GEN.317 (release 8.0.1828), so a change here takes the next free
-  epoch at its merge, 33 unless another lane merges first (Core 3's
-  GEN.318 carries 33 pending); Alembic head is 0112, next free 0113.
-  Prerequisites: none. Related: GEN.469, GEN.134, GEN.301.
-
-- [ ] **GEN.547 The local B-star share is 0.12 percent against 0.04 observed: find what keeps it three times too high (strict expected failure)**
-  Follow-up of GEN.469 (merged #2139, Core 4, 2026-10-17, 9:34 PM EDT as
-  the lane reported), filed by the TODO thread. GEN.469 lowered the
-  local B-star share between the arms from 0.19 percent to 0.12 percent,
-  against 0.04 percent observed (Mamajek); `tests/test_disk_history.py`
-  keeps the gap as a strict expected failure so it fails loudly when
-  closed. The observed share stays a test target and never an input (NO
-  FIXED CONTENT). What GEN.469 reports: the present star formation is
-  0.38 of the disk's ten-Gy mean (the Milky Way's is about 0.2), so the
-  history's recent rate is probably the part that is too high, and ages
-  are uniform inside the young window (the item above). Do: after that
-  item, find what else sets the recent rate (the inflow history from the
-  halo, the return fraction, the Kennicutt-Schmidt exponent or a star
-  formation threshold) from the sources and say which source moves it;
-  if the sources do not settle it Boss decides on a card. Changes stored
-  values (epoch rule, OPS.56); default (stands unless Boss overrules):
-  not a prerequisite of GEN.301. Done: the local B share is within the
-  observed one's uncertainty from the derivation, the strict expected
-  failure is removed, or the item says which input is unknown and Boss
-  has decided. Owner: Core 4 (proposed), after the age item.
-  Core 4's report (reported at 9:46 AM EDT 2026-10-18 as the lane
-  reported, filed by the TODO thread): GEN.546's age law brings the
-  local B-star share to 0.050 percent against 0.04 percent observed and
-  the strict expected failure is removed, so Core 4 lists this item as
-  resolved with GEN.546 (retire both when its PR merges). Core 4 offers
-  to reopen it if Boss wants the Kroupa and binary analysis anyway; that
-  stays a Boss call.
-  Prerequisites: GEN.546. Related: GEN.469, GEN.134, GEN.546.
-
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
   Boss's request (2026-10-17, 11:19 PM EDT, project chat, and an
   addendum typed in the design thread at 11:21 PM EDT, both as the
@@ -14693,6 +14629,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by GEN.317 (release 8.0.1828), so a change here takes the next free
   epoch at its merge, 33 unless another lane merges first (Core 3's
   GEN.318 carries 33 pending); Alembic head is 0112, next free 0113.
+  Epoch note (1:35 PM EDT 2026-10-18, real clock): epoch 33 is stamped
+  by GEN.546 (release 8.0.1830, #2268), so a change here takes the next
+  free epoch at its merge, 34 unless another lane merges first (Core 3's
+  GEN.318 carried 33 pending and renumbers to 34); Alembic head is 0112,
+  next free 0113.
   Prerequisites: none. Related: GEN.182, GEN.400, GEN.402.
 
 - [ ] **GEN.592 A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced)**
@@ -19899,28 +19840,11 @@ clears each one.
   on origin/main and on Core 4's branch; the query count flips between
   11 and 12 with random system content. So it fails on main, about 1 run
   in 6; Bug Hunt does not need to wait for it to appear in a gate.
+  Sighting (Core 5, reported 1:27 PM EDT 2026-10-18 on the lane's clock;
+  its PERF.106 slice 5 gate): failed once with 12 vs 11 queries and
+  passed alone; one more run of the same flake (with Core 4's 1 in 6
+  alone on main).
   Prerequisites: none. Related: TEST.238.
-
-- [ ] **TEST.250 test_workers.py: two tests fail once in a full run because ensure_workers is the inline test stand-in although the module is marked real_queue (something left the inline queue patch active in that xdist worker) (bug)**
-  Found by Core 5 (reported 11:32 AM EDT 2026-10-18 as the lane
-  reported; its PERF.106 slices 1 to 4 gate), filed by the TODO thread.
-  In the gate's full run on worker gw3,
-  `src/tests/test_workers.py::test_a_batch_of_jobs_starts_no_more_workers_than_wanted_and_not_twice`
-  and
-  `::test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs`
-  failed once: `ensure_workers` was the inline test stand-in although
-  the module is marked `real_queue`, so a module that ran before it on
-  that worker left the inline queue patch active. Both pass alone and
-  after modules that build a galaxy with `run_cli`. Fails on main: not
-  seen. Frequency: 1 full run. Reproducer: none yet; Core 5 will watch
-  the next gates (the failing order is a module that patches the queue
-  inline, then test_workers on the same worker). Do: find the module
-  whose patch outlives its test (a module-level or session fixture that
-  is not undone) from the failing worker's order, and undo it; no
-  quarantine. Done: the cause is on this item and test_workers passes
-  after every module on one worker. Owner: Bug Hunt (proposed; Core 5
-  owns PERF.106, the area it touches).
-  Prerequisites: none. Related: TEST.238, PERF.106.
 
 - [ ] **TEST.251 test_orbital_facilities_advance_their_phase fails once in a gate: advance_facility_orbits returns 0 where 1 is expected for orbit_clock(period / 4) (bug)**
   Found by Core 2 (reported about 12:55 PM EDT 2026-10-18 on the lane's
@@ -19961,6 +19885,25 @@ clears each one.
   the test passes in a browser phase that runs beside another gate.
   Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.223, TEST.248.
+
+- [ ] **TEST.253 test_nebula_shape_endpoint_serves_a_mesh fails once under load: the largest vertex radius is 1.0288 against a bound of 1.0, and it passes alone (bug)**
+  Found by Core 4 (reported 1:29 PM EDT 2026-10-18 on the lane's clock;
+  its GEN.546 gate 2, 11:38 AM to 1:23 PM EDT), filed by the TODO
+  thread.
+  `src/tests/test_api.py::test_nebula_shape_endpoint_serves_a_mesh`
+  failed once with a maximum vertex radius of 1.0288 where the test
+  bounds it by 1.0; it passes alone. A load dependence is unlikely for a
+  mesh radius, so the likelier cause is an unseeded nebula shape whose
+  noise can push a vertex past the unit sphere (inferred, not checked).
+  Fails on main: unknown. Frequency: 1 of 2 gates of Core 4. Reproducer:
+  loop the test alone on idle main with fresh draws and print the shape
+  seed and the largest radius. Do: find whether the shape generator can
+  place a vertex beyond 1.0 for some seeds (then the endpoint promises a
+  bound it does not keep, and the generator or the doc is the bug) or
+  whether the test's bound is too tight; fix without loosening what the
+  test proves; no quarantine. Done: the cause is on this item and the
+  test passes 30 of 30 fresh draws. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.249, TEST.251.
 
 ## USR: User accounts
 
