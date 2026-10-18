@@ -76,8 +76,8 @@ shared list, since these seven types share almost no metric names."""
 # inside it from ROGUE_PLANET_MASS_FUNCTION_SLOPE's power law). Computed here (not hand-picked) so it stays
 # correct if any of those constants ever changes.
 
-_AU_PER_LY = 63241.077
-"""float: Astronomical units per light-year (for asteroid field size digits)."""
+_AU_PER_LY = pc.LIGHTYEAR_M / pc.AU_M
+"""float: Astronomical units per light-year, exact from `physics/constants.py` (GEN.572), for asteroid field size digits."""
 
 def _freely_drawn(data):
     return data["family"] != "supernova-remnant" and not data.get("host_only")
