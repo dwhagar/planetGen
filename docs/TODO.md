@@ -14473,57 +14473,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   prerequisite of GEN.301.
   Prerequisites: none. Related: GEN.244, GEN.282.
 
-- [ ] **GEN.590 Wire the downloaded isochrones, white-dwarf sequences and neutron-star tables into star composition (after Boss answers the Require / Stand-in card)**
-  GEN.548 merged (#2236, release 8.0.1807; reported by Blocker 1 at 6:05
-  AM EDT on the lane's clock): the shared setup-time download step
-  (`planetgen/datasets/`, `planetgen/cli/datasets`,
-  `planetgen/util/user_agent.py`) and its three readers for the MIST
-  isochrones (SC1), the Bedard white-dwarf sequences (SC2) and the
-  neutron-star equation of state and crust (SC3). Nothing reads them
-  yet: `stellar_abundances` and `stellar_composition` still use their
-  stand-ins. Do: wire the three readers into the stellar abundances and
-  star composition, once Boss answers the card Blocker 1 holds in its
-  own thread (options: Require the data, Stand-in fallback, Not yet;
-  Blocker 1 recommends Require the data). Done: star composition reads
-  the downloaded files by way of the three reader functions, the
-  behaviour when a file is missing is the one Boss chose and a test pins
-  it offline with the fixtures, and the stand-in registry (gap plan
-  section 6) lists what is still a stand-in. Filed by the TODO thread at
-  Blocker 1's request (6:05 AM EDT as the lane reported). Owner: Blocker
-  1 (proposed). Boss's answer is recorded below (Require the data).
-  Decided (Boss, 2026-10-18, 9:38 AM EDT, project chat): "I answered
-  download files requiring data", meaning his card answer "Require the
-  data": star composition requires the downloaded files (the isochrones,
-  the white-dwarf sequences and the neutron-star tables) and does not
-  fall back to a stand-in; it is not left for later. The TODO thread's
-  reading of 'require' (Blocker 1 confirms the wording): with a file
-  missing, star composition fails with a plain message that names the
-  dataset and says which setup command fetches it (no silent stand-in),
-  and the offline tests use the fixtures of GEN.548. Blocker 1 does the
-  wiring.
-  Blocker 1 confirmed the reading and built more (reported 9:46 AM EDT
-  2026-10-18, real clock; changed gate started 9:12 AM EDT, about 56% at
-  9:40 AM, PR follows when it passes): star composition raises a plain
-  error naming the dataset and why it is missing, with no stand-in
-  value; the offline tests use the GEN.548 fixtures; bulk generation
-  (galaxy, plan, population, `sector` with more than one sector, the
-  Sector page neighbourhood button) also refuses to start with the same
-  message; Generate page jobs get a second step 'Check the data' before
-  the reset. Still stand-ins because the data cannot replace them: the
-  brown-dwarf radius and hydrogen limit against metallicity (MIST starts
-  at 0.1 solar masses) and the neutron-star radius from an equation of
-  state (GEN.463). Boss's answer covers star composition only.
-  Correction from Blocker 1 (reported 10:12 AM EDT 2026-10-18, real
-  clock): the neutron-star radius is not left as a stand-in. GEN.463
-  already merged and gives it from the measured band
-  (`physics/neutron_star.py`); what stays unbuilt is only the
-  neutron-star inner crust and core, which would integrate the 21
-  equation-of-state tables on disk (nothing does yet). Its first gate
-  run failed on test-harness faults of its own (the test machine has no
-  downloaded data, so the test fixture has to hold for the whole
-  session); fixed, gate rerun started 10:09 AM EDT.
-  Prerequisites: none. Related: GEN.548, GEN.543, GEN.439, GEN.440.
-
 - [ ] **GEN.591 An elliptical comet's aphelion can exceed its star's Hill sphere in about 10% of runs: the comet bound test fails on main (bug)**
   Found by Bug Hunt (reported 7:20 AM EDT 2026-10-18 on the lane's
   clock), filed by the TODO thread.
@@ -14624,6 +14573,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a prerequisite of GEN.301; value-changing, so it takes the next free
   epoch at its merge.
   Prerequisites: none. Related: GEN.317, GEN.555, GEN.163.
+
+- [ ] **GEN.594 Each AD dataset (AD1 to AD8) needs a refuse-or-fall-back decision: a missing file stops the run or stands in as a labelled stand-in**
+  Filed at the coordinator's request after GEN.590 merged (#2282,
+  release 8.0.1838; Blocker 1 reported 3:34 PM EDT 2026-10-18 as the
+  lane reported). The shared download catalogue (GEN.548) now treats
+  every dataset as required, and bulk generation refuses to start while
+  any catalogue file is missing. Boss's 'Require the data' answer (9:38
+  AM EDT 2026-10-18) covers star composition only (GEN.590), so each
+  atmosphere dataset still needs its own answer: AD1 (giant visible
+  absorption, GEN.422), AD2 (dust and haze spectra, GEN.423), AD3
+  (infrared opacity, GEN.413, GEN.414), AD4 (Rayleigh, GEN.422), AD5
+  (particle spectra, GEN.436, GEN.444), AD6 (hot-giant line lists,
+  GEN.485, GEN.499), AD7 (acid vapour pressure, GEN.471, GEN.491) and
+  AD8 (photochemistry rates, GEN.496, GEN.501). Do: when the first AD
+  dataset is built, the coordinator brings Boss a card for it (options:
+  Require the data, which refuses the run with a plain message naming
+  the dataset and the setup command; Stand-in fallback, which uses the
+  labelled stand-in of the gap registry and says so; Not yet) and
+  records the answer here and on the item that builds it; later datasets
+  reuse the answer unless Boss differs. Done: every AD item says what a
+  missing file does, with Boss's answer and a test that pins it offline
+  with the GEN.548 fixtures, and the gap plan section 6 registry says
+  which values are still stand-ins. Owner: the TODO thread tracks the
+  answers; each AD item's builder asks through the coordinator
+  (proposed). Not a request for Boss's data: Boss has provided all the
+  AD1 data he can (3:07 PM EDT 2026-10-18).
+  Prerequisites: none. Related: GEN.548, GEN.590, GEN.422.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -19702,6 +19678,36 @@ clears each one.
   on this item and the test passes 30 of 30 fresh draws. Owner: Bug Hunt
   (proposed).
   Prerequisites: none. Related: TEST.253.
+
+- [ ] **TEST.255 test_workers: two real-Redis worker tests fail in loaded gates and pass alone, again after TEST.250's fix (bug)**
+  Found by Core 2 (reported about 3:25 PM EDT 2026-10-18 on the lane's
+  clock; its PERF.130 gate, 1:15 to 2:54 PM EDT, load 7.2) and Blocker 1
+  (reported about 3:34 PM EDT; its GEN.590 gate), filed by the TODO
+  thread.
+  `src/tests/test_workers.py::test_a_batch_of_jobs_starts_no_more_workers_than_wanted_and_not_twice`
+  and
+  `::test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs`
+  failed in both gates and pass alone (3 of 3 runs, about 18 s, on an
+  idle current main at 3:40 PM EDT). Failure text not relayed. TEST.250
+  (retired) had the same two tests failing from the shared inline queue
+  context; its fix #2267 merged 1:27 PM EDT, after Core 2's gate
+  started; whether Blocker 1's tree carried it is not known (its branch
+  merged main at 3:19 PM EDT). Likely cause (inferred, not checked): the
+  two tests use the one real Redis and fixed keys (`workers.WANTED_KEY`,
+  `api_jobs.QUEUE_NAME`) that every gate in the shared environment also
+  uses, so two gates running together delete each other's wanted-worker
+  key or run each other's jobs; the killed-worker case also waits only
+  10 s for a SIGKILLed process under load. Fails on main: not shown,
+  passes alone. Frequency: 2 of 2 gates that ran beside another gate.
+  Reproducer: run `scripts/test.py changed` while a second gate runs in
+  the same environment, or loop the two tests while a second pytest
+  process runs the same file. Do: get the failure text from Core 2's
+  `.test-failures.jsonl`, confirm whether the key collision is the
+  cause, and give each run its own queue name and wanted key (or a Redis
+  database per run); no quarantine. Done: the cause is on this item and
+  both tests pass 20 of 20 runs with a second run of the same file
+  beside them. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.250, TEST.254.
 
 ## USR: User accounts
 
