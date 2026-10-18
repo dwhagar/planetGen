@@ -14167,26 +14167,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.550.
 
 - [ ] **GEN.561 The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own**
-  Core 4's report to the TODO thread (11:27 PM EDT as the lane
-  reported): on a card at 10:55 PM EDT as the lane reported, Boss chose
-  'kit follows words' for the gear and equipment tier of the
-  habitability description. This resolves the kit-versus-words finding
-  that Core 4 recorded with TEST.155 (the wording and index property
-  test: the colour, score, band sentence, gear and equipment label must
-  agree; the finding itself is in Core 4's description-layer PR and was
-  not in docs/TODO.md at the time of filing, so the TODO thread has
-  asked Core 4 for its text). Meaning, as the lane gave it: where the
-  gear or equipment label and the sentence the describer writes
-  disagree, the label is derived from the sentence's tier and the
-  sentence is the source. Filed by the TODO thread as its own small item
-  as Core 4 asked; the Do and Done lines are completed from Core 4's
-  finding. Do: derive the kit label from the sentence tier in the one
-  habitability describer (GEN.218); remove any separate draw or table
-  that can disagree. Done: TEST.155's property test passes for the gear
-  and equipment label on random worlds and the sample systems. Changes
-  only description text, so it bumps no generator epoch unless the label
-  is stored. Owner: Core 4 (its own queue, after the description-layer
-  bundle, UX.109, UX.107 and DOC.45).
+  Failure (Core 4, 11:41 PM EDT as the lane reported; found in its TEST.155 branch, whose finding text is in
+  `changes/test155-wording-agrees-with-the-index.patch.md` there, merging with the description-layer bundle): the
+  description (`protection.requirements`) asks for an environment suit in a Yellow heat (air temperature above the
+  `heat_garment_c` limit, 45 to 122 C), a Yellow cold (below `cold_suit_c`) or an inspired oxygen above the chronic
+  limit, while `habitability.equipment`, stored as `equipment_tier`, returns a mask or ideal there. The strict expected
+  failure is `test_the_gear_and_the_equipment_label_agree_in_a_yellow_heat_cold_or_oxygen_excess` in
+  `tests/test_wording_agrees_with_the_index.py`. Decided (Boss, card "Which wins when the gear sentence and the stored
+  kit disagree in a Yellow heat?", tapped "Kit follows words", option A, 10:55 PM EDT as the lane reported; the other
+  options were "Words follow kit" and "Leave it"): the sentence wins and the kit follows it. Do: `habitability.equipment`
+  returns "environment suit" when `temperature_c` is outside [`cold_suit_c`, `heat_garment_c`] or the inspired oxygen
+  exceeds `o2_chronic`; the strict expected failure becomes a passing test. Stored `equipment_tier` of such worlds rises, so
+  it is a generator epoch change (epoch 23 pending on Core 4's branch as the lane reported; the number follows the order of
+  merges). Done: the gear class and the equipment label agree for every random and example world. Owner: Core 4 (its own
+  queue, after the description-layer bundle, UX.109, UX.107 and DOC.45; its branch note cites GEN.561). Filed by the TODO
+  thread at Core 4's request (11:27 PM EDT as the lane reported).
   Prerequisites: GEN.218. Related: TEST.155, GEN.218, GEN.288.
 
 
