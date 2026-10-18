@@ -144,7 +144,8 @@ def test_the_scene_fades_in_with_the_distance_and_is_dropped_far_out(page, reach
     page.wait_for_function("() => (document.querySelector('#galaxymap3d-canvas').galaxyAmbient() || {}).share > 0.999", timeout=30000)
     shares.append(_ambient(page)["share"])
     assert shares == sorted(shares), shares
-    assert shares[-1] == pytest.approx(1.0, abs=1e-6), shares
+    # The loop stops at 0.999, the share from which the disc counts as whole; the step that crosses it may land short of 1.
+    assert shares[-1] >= 0.999, shares
     assert _camera(page)["zoom"] > 0, "the camera is still in the window"
     # Away again: dropped past 3 edges, and the address never changed.
     for _ in range(80):
