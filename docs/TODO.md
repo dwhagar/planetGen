@@ -17279,6 +17279,16 @@ clears each one.
   (71 s). Frequency: now 5 loaded gate runs for this test (4:10 PM, 5:13
   PM, 7:08 PM, about 7:30 PM and about 9:10 PM EDT). Same
   MAP.227/MAP.228 trail area; Core 2's reading is on this item.
+  Cause found and fix coded (Core 2, 2026-10-17, 9:15 PM EDT as the lane
+  reported; branch test231, commit 23373df3, shipped with the TEST.231
+  fix): the test read `page.url` before the app had written the camera
+  into the address, which it does 350 ms after the camera stops, so a
+  fresh load of the stale URL showed 'Sector 1·0·1' against the live
+  trail's 'Sector 1·0·2'; 3 of 3 runs at load 14 to 16 pass with the fix
+  and 1 of 4 failed without it. This corrects the earlier inference on
+  this item (a trail race in MAP.227 and MAP.228): it is a test timing,
+  not an app race. The fix resolves this item when merged; the sightings
+  under TEST.172 (a block number off by one) are not covered by it.
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
@@ -18948,6 +18958,11 @@ clears each one.
   gate on main can fail on this test, so the TODO thread asked Core 2
   (9:15 PM EDT) to send the test fix on its own, ahead of the MAP.247
   gate.
+  Fix coded (Core 2, 2026-10-17, 9:15 PM EDT as the lane reported): its
+  own branch test231 (commit 79e6ebe0, off current main), not waiting
+  for the MAP.247 PR. Its small gate starts when MAP.239's gate 2 ends
+  (gates run one at a time), then PR and merge; Core 2 tells the TODO
+  thread and Bug Hunt at merge.
   Prerequisites: none. Related: MAP.245, TEST.126.
 
 - [ ] **TEST.232 The a11y page_targets fixture fails 199 browser tests when /search answers 202 (slow-page job) under load (bug)**
@@ -18989,6 +19004,9 @@ clears each one.
   (`/phenomena` too). Done: the fixture passes with `SLOW_PAGE_SECONDS`
   at 0.01 and the cause is on this item. Owner: Core 2 (owns UX.118 and
   the slow pages; proposed).
+  Fix coded (Core 2, 2026-10-17, 9:15 PM EDT as the lane reported):
+  branch test232 pins `SLOW_PAGE_SECONDS` off for the a11y fixture's
+  app. It waits for Core 2's gates in order (TEST.231 first).
   Prerequisites: none. Related: UX.118, PERF.105, TEST.223.
 
 - [ ] **TEST.233 test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug)**
