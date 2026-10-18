@@ -172,6 +172,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.237 | The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug) |  |  |
 | TEST.238 | test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it fails in a gate with no hypervelocity-star stored, and passes alone (bug) |  |  |
 | TEST.243 | Two test_web_browser_units tests errored in setup, one after 1041 s in pymysql (bug) |  |  |
+| TEST.245 | test_generate_sector_real_capacity_overflow_returns_a_partial_sector fails in about 1 run in 100 because it draws an unseeded sector, so the draw sometimes fits all 120 systems (bug) |  |  |
 | TEST.234 | test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug) |  |  |
 | TEST.233 | test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug) |  |  |
 | TEST.229 | The browser phase of a gate stalls for minutes at one test with a headless_shell gpu process near 200% CPU (bug) |  |  |
@@ -389,6 +390,7 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.282 | Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec) | GEN.244 | Core 3; step 3 of the galactic core note |
+| GEN.589 | Research: the central molecular zone's upper cluster mass and its cloud-shock disruption, so the young clusters of the core match the few that are observed | GEN.244 | Finding from Core 3; research. |
 | GEN.377 | Scatter limits by place for the neutron star and black hole scatter below the cut: the core and halo tiers apply to it, not one global mass cut | GEN.562 | Core 3 finding after GEN.333. |
 | GEN.563 | The black hole density depends on metallicity and is capped by the neutron star budget, and every scatter class gets its own random stream | GEN.560 |  |
 | GEN.303 | Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000 |  | Core 3 wires it; Boss 1:47 PM EDT. |
@@ -411,7 +413,6 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | GEN.264, TEST.164, GEN.130 | Multi-star systems at scatter time, Boss 2026-10-15. Step 10. Quality. |
 | DOC.51 | Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder |  | Spherical region query, stage C. Step 8. Quality. |
 | DOC.18 | Last pass: re-run the documentation sweep when the other DOC items are done and Phase 1 is complete | DOC.19, DOC.20, DOC.48, DOC.50, DOC.51 |  |
-| DOC.69 | Global documents are regenerated only by the TODO thread: a stale generated page never fails a lane's gate and a lane's PR never touches one |  |  |
 
 ### Globular clusters
 

@@ -178,7 +178,7 @@ def test_the_systems_route_pages_by_key(client, galaxy):
 def test_the_phenomena_counts_go_through_the_stored_count_cache(galaxy, monkeypatch):
     asked = []
 
-    def counted(conn, key, compute, fallback):
+    def counted(conn, key, compute, fallback, stamp=None):
         asked.append(key[0])
         return fallback(conn)
 
