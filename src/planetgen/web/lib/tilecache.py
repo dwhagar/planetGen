@@ -402,7 +402,7 @@ def _trim_star(star):
     """One star of a tile as the page reads it (MAP.157): the fields in
     `_TILE_STAR_KEYS`, `star_type` as its class letter, positions to 3
     decimals, luminosity to 4 and radius to 3 significant digits and
-    temperature to 10 K. No `system_id` when there is none."""
+    temperature to 10 K. No `system_id` when there is none, no `tier` for a star of the disc, the bulge and the rest."""
     trimmed = {
         "id": star["id"],
         "x": round(star["x"], 3), "y": round(star["y"], 3), "z": round(star["z"], 3),
@@ -419,6 +419,8 @@ def _trim_star(star):
         trimmed["star_type"] = str(star_type)[0]
     if star.get("system_id") is not None:
         trimmed["system_id"] = star["system_id"]
+    if star.get("tier"):
+        trimmed["tier"] = star["tier"]  # 1 the halo, 2 a satellite galaxy: the first to dim (MAP.252)
     return trimmed
 
 

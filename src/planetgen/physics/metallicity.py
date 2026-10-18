@@ -39,12 +39,21 @@ def halo_mean_fe_h(galactic_center_dist_ly):
     return halo["inner"] if kpc < halo["break_kpc"] else halo["outer"]
 
 
+def open_cluster_disk_population(population):
+    """The disk population (`young` or `intermediate`) whose [Fe/H] a young open cluster's stars follow where no
+    cluster's own value is given: by the population's age window against the end of the `young` one."""
+    young = tuning.STELLAR_POPULATION_AGE_RANGES_GY[population][1] <= tuning.OPEN_CLUSTER_DISK_POPULATION_EDGE_GY
+    return "young" if young else "intermediate"
+
+
 def mean_fe_h(population, galactic_center_dist_ly):
     """The mean and scatter `(mean, sigma)` of [Fe/H] for a population at this distance from the centre."""
     if population == "halo":
         return halo_mean_fe_h(galactic_center_dist_ly), tuning.METALLICITY_HALO["sigma"]
     if population in ("cluster", "satellite", "satellite_young", "satellite_intermediate"):
         raise ValueError(f"a {population} carries its own [Fe/H]; pass its peaks instead of sampling one")
+    if population in tuning.OPEN_CLUSTER_POPULATIONS:
+        population = open_cluster_disk_population(population)      # the disk's [Fe/H] for stars of that age
     try:
         row = tuning.METALLICITY_BY_POPULATION[population]
     except KeyError:

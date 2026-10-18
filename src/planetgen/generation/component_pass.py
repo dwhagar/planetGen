@@ -31,14 +31,15 @@ import numpy as np
 from planetgen import tuning
 from planetgen.generation import bright_stars, phenomenon_reach, phenomenon_scatter
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS
-from planetgen.galaxy import component_field, nebula_field, profile
+from planetgen.galaxy import component_field, components as component_table, nebula_field, profile
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.physics import component_profiles
 from planetgen.util import draw
 from planetgen.util.poisson import poisson_count
 
 COMPONENT_KINDS = ("cluster", "satellite")
-"""tuple: The kinds of component the pass draws; each is also the population of its stars."""
+"""tuple: The kinds of component the pass draws; each is also the population of its stars (a satellite's three, a young
+open cluster's one by its age)."""
 
 
 def systems_of(component):
@@ -153,7 +154,10 @@ def satellite_rates(min_mass_solar):
 
 def expected_phenomena(component, min_mass_solar):
     """About how many phenomena the pass places for one component, the progress bar's weight: its systems times the
-    rates it has (a satellite's gas-kept and young-born classes at their full rate, an upper bound)."""
+    rates it has (a satellite's gas-kept and young-born classes at their full rate, an upper bound). A young open cluster
+    (GEN.244) places none: its remnants are the disk's, and its stars are a fraction of a percent of the disk's."""
+    if component_table.is_open_cluster(component):
+        return 0.0
     rates = phenomenon_rates(min_mass_solar)
     if component.kind == "satellite":
         rates = rates + satellite_rates(min_mass_solar)
@@ -222,7 +226,7 @@ def scatter_phenomena(components, edge_pc, seed, skip_addresses=None, min_mass_s
     extra = satellite_rates(min_mass_solar)
     skip_addresses = skip_addresses or set()
     for component in components:
-        if component.kind not in COMPONENT_KINDS:
+        if component.kind not in COMPONENT_KINDS or component_table.is_open_cluster(component):
             continue
         rng = draw.Stream(f"{seed}:phenomena:component:{component.kind}:{component.name}")
         gas = gas_by_radius(component, shape) if component.kind == "satellite" else None
