@@ -19624,6 +19624,22 @@ clears each one.
   fixture-setup stall as the crumbs and web edit menu cases above, so
   the family now covers three modules. Frequency: 2 of 3 gates of Core
   3.
+  Sighting (Core 2, reported about 3:25 PM EDT 2026-10-18 on the lane's
+  clock; its PERF.130 gate, 1:15 to 2:54 PM EDT, load 7.2):
+  `test_web_generate_alignment.py::test_text_boxes_line_up` had 12 setup
+  errors (web.generate and web.generate_system at 390, 820 and 1280,
+  light and dark) and every one passes alone. The same fixture-setup
+  stall under load as the web edit menu, crumbs and layout cases above,
+  so the family now covers four modules. Frequency: 1 of 1 gates of Core
+  2. It goes with Bug Hunt's setup fix. Core 2 also saw
+  `test_workers.py::test_a_batch_of_jobs_starts_no_more_workers_than_wanted_and_not_twice`
+  and
+  `::test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs`
+  fail in that gate (both pass alone): its gate started at 1:15 PM EDT,
+  before Core 5's fix #2267 (merged 1:27 PM EDT; TEST.250 retired), so
+  these two are most likely TEST.250's cause (the shared inline queue
+  context undoing its patches in the wrong order) and need no new item;
+  if either fails again on a tree that carries #2267, file it then.
   Prerequisites: none. Related: TEST.227, TEST.235.
 
 - [ ] **TEST.252 test_a_double_click_on_a_star_flies_the_camera_to_it fails once in a loaded gate and passes alone (bug)**
