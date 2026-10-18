@@ -27,7 +27,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.galaxy import density, spherical
+from planetgen.galaxy import core_gas as coreGas, density, spherical
 from planetgen.galaxy import star_formation as starFormation
 
 
@@ -145,6 +145,9 @@ def extent_majorants(shape, inner, z_near, z_far, fractions, outer):
              + np.maximum(k * thick, 0.0) * fractions["old"]
              + np.maximum(k * halo, 0.0) * fractions["halo"]
              + np.maximum(k * thin, 0.0) * arm * disk_share)
+    # The central molecular zone's young stars are taken out of the nuclear disc's density into the young population's
+    # (GEN.282, `density.population_densities`): the ring's own density bounds what moved.
+    bound = bound + k * coreGas.young_bound(inner, outer, z_near, coreGas.core_gas(shape)) * fractions["young"]
     return bound * (1.0 + 1e-12)
 
 

@@ -5,6 +5,7 @@ The Sector Profile as the sector pages show it (UX.113): `profile_view(profile)`
 `GET /api/galaxy/profile` (`galaxy/profile_report.py`) into the words and numbers of `partials/profile.html`.
 """
 
+from planetgen import tuning
 from planetgen.generation.run_galaxy import LARGE_RUN_WARNING_THRESHOLD
 from planetgen.generation.stats import format_bytes, format_duration
 from planetgen.web.lib.fmt import format_number, format_speed_kms
@@ -18,6 +19,13 @@ FAR_RUN_SECTORS = LARGE_RUN_WARNING_THRESHOLD
 SHOWN_SHARE = 0.0005
 """float: A population holding less than this share of a cell is left out of its table."""
 
+def _age_label(age_gy):
+    """An age in Gy as the label of an open cluster's population names it: Myr below a Gy, three significant figures."""
+    if age_gy >= 1.0:
+        return f"{age_gy:.3g} Gy"
+    return f"{age_gy * 1000.0:.3g} Myr"
+
+
 REGION_LABELS = {
     "nuclear": "Galactic nucleus", "bulge": "Bulge", "disk": "Disk", "halo": "Halo", "cluster": "Star cluster",
     "satellite": "Satellite galaxy",
@@ -28,6 +36,11 @@ POPULATION_LABELS = {
     "nuclear_disc": "Nuclear disc", "satellite_young": "Young satellite stars",
     "satellite_intermediate": "Intermediate satellite stars",
 }
+POPULATION_LABELS.update({
+    name: "Open cluster stars, {low} to {high}".format(
+        low=_age_label(tuning.STELLAR_POPULATION_AGE_RANGES_GY[name][0]),
+        high=_age_label(tuning.STELLAR_POPULATION_AGE_RANGES_GY[name][1]))
+    for name in tuning.OPEN_CLUSTER_POPULATIONS})
 ROTATION_LABELS = {"disk": "Follows the disk", "bar": "Follows the bar", "orbit": "Orbits the galaxy", "none": "No net motion"}
 AMBIENT_LABELS = {
     "disk": "Disk gas", "superbubble": "Superbubble cavity (hot, ionised gas)", "hot-halo": "Hot halo gas",

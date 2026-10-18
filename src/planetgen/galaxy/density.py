@@ -43,6 +43,7 @@ import numpy as np
 
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField
+from planetgen.galaxy import core_gas as coreGas
 from planetgen.galaxy import star_formation as starFormation
 from planetgen.galaxy import structure as galaxyStructure
 from planetgen.util import detmath
@@ -525,6 +526,11 @@ def population_densities(position_pc, shape):
     r_cyl = detmath.hypot(position_pc[0], position_pc[1])
     densities["nuclear_cluster"] = shape.k_norm * _nuclear_cluster(detmath.hypot(r_cyl, z), terms)
     densities["nuclear_disc"] = shape.k_norm * _nuclear_disc(r_cyl, z, terms)
+    core = coreGas.core_gas(shape)
+    if core.young_density:      # the ring's young field stars are the nuclear disc's own (GEN.282)
+        moved = min(shape.k_norm * coreGas.young_density(r_cyl, z, core), densities["nuclear_disc"])
+        densities["young"] += moved
+        densities["nuclear_disc"] -= moved
     return densities
 
 
@@ -579,12 +585,15 @@ def population_densities_array(x, y, z, shape):
     densities["halo"] = np.maximum(halo, 0.0)
     # The components are not in the array form: its points are band bins far wider than a cluster, and the scatter's
     # per-band weights leave components to their own pass (GEN.161, GEN.240); the one-point form is the cell's.
-    densities["cluster"] = np.zeros_like(densities["halo"])
-    densities["satellite"] = np.zeros_like(densities["halo"])
-    densities["satellite_young"] = np.zeros_like(densities["halo"])
-    densities["satellite_intermediate"] = np.zeros_like(densities["halo"])
+    for name in componentField.POPULATIONS_IN_THE_GATE:
+        densities[name] = np.zeros_like(densities["halo"])
     densities["nuclear_cluster"] = shape.k_norm * _nuclear_cluster_array(np.sqrt(r_cyl ** 2 + np.square(z)), terms)
     densities["nuclear_disc"] = shape.k_norm * _nuclear_disc_array(r_cyl, z, terms)
+    core = coreGas.core_gas(shape)
+    if core.young_density:      # the ring's young field stars are the nuclear disc's own (GEN.282)
+        moved = np.minimum(shape.k_norm * coreGas.young_density_array(r_cyl, z, core), densities["nuclear_disc"])
+        densities["young"] = densities["young"] + moved
+        densities["nuclear_disc"] = densities["nuclear_disc"] - moved
     return densities
 
 

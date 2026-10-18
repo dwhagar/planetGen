@@ -18,6 +18,8 @@ any kind and `giant_occurrence_factor` for giants, both 1 at and above `floor_fe
 
 import math
 
+import numpy as np
+
 from planetgen import tuning
 from planetgen.physics import constants
 from planetgen.util import draw
@@ -39,12 +41,21 @@ def halo_mean_fe_h(galactic_center_dist_ly):
     return halo["inner"] if kpc < halo["break_kpc"] else halo["outer"]
 
 
+def open_cluster_disk_population(population):
+    """The disk population (`young` or `intermediate`) whose [Fe/H] a young open cluster's stars follow where no
+    cluster's own value is given: by the population's age window against the end of the `young` one."""
+    young = tuning.STELLAR_POPULATION_AGE_RANGES_GY[population][1] <= tuning.OPEN_CLUSTER_DISK_POPULATION_EDGE_GY
+    return "young" if young else "intermediate"
+
+
 def mean_fe_h(population, galactic_center_dist_ly):
     """The mean and scatter `(mean, sigma)` of [Fe/H] for a population at this distance from the centre."""
     if population == "halo":
         return halo_mean_fe_h(galactic_center_dist_ly), tuning.METALLICITY_HALO["sigma"]
     if population in ("cluster", "satellite", "satellite_young", "satellite_intermediate"):
         raise ValueError(f"a {population} carries its own [Fe/H]; pass its peaks instead of sampling one")
+    if population in tuning.OPEN_CLUSTER_POPULATIONS:
+        population = open_cluster_disk_population(population)      # the disk's [Fe/H] for stars of that age
     try:
         row = tuning.METALLICITY_BY_POPULATION[population]
     except KeyError:
@@ -117,3 +128,30 @@ def expected_factor(function, peaks):
         return function(0.0)
     return sum(weight * node_weight * function(min(max(mean + sigma * node, low), high))
                for weight, mean, sigma in peaks for node, node_weight in _HERMITE_NODES) / total
+
+
+def mean_fe_h_array(population, galactic_center_dist_ly):
+    """`mean_fe_h` at an array of distances from the centre (`np.ndarray` of the same shape for the mean, the scatter one
+    number): the same laws, so a point's mean matches the one-point form."""
+    distance = np.asarray(galactic_center_dist_ly, dtype=float)
+    if population == "halo":
+        halo = tuning.METALLICITY_HALO
+        kpc = distance / _KPC_IN_LY
+        return np.where(kpc < halo["break_kpc"], halo["inner"], halo["outer"]), halo["sigma"]
+    if population in tuning.OPEN_CLUSTER_POPULATIONS:
+        population = open_cluster_disk_population(population)
+    row = tuning.METALLICITY_BY_POPULATION[population]
+    gradient = disc_gradient_fe_h(distance) if row["gradient"] else 0.0
+    return row["offset"] + gradient + np.zeros_like(distance), row["sigma"]
+
+
+_HERMITE_NODE_VALUES = np.array([node for node, _weight in _HERMITE_NODES])
+_HERMITE_NODE_WEIGHTS = np.array([weight for _node, weight in _HERMITE_NODES])
+
+
+def expected_factor_array(function, means, sigma):
+    """`expected_factor` of one normal peak at arrays of means (`function` takes an array): the mean of `function([Fe/H])`
+    over a normal of scatter `sigma` about each mean, clamped to `tuning.METALLICITY_RANGE_FE_H`."""
+    low, high = tuning.METALLICITY_RANGE_FE_H
+    values = np.clip(np.asarray(means, dtype=float)[..., None] + sigma * _HERMITE_NODE_VALUES, low, high)
+    return (function(values) * _HERMITE_NODE_WEIGHTS).sum(axis=-1)

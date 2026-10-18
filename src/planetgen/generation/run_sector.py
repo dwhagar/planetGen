@@ -24,7 +24,7 @@ from planetgen.generation import fill_stages
 from planetgen.generation import nebula_contents
 from planetgen.generation import system_pass
 from planetgen.generation import bright_stars as brightStars
-from planetgen.galaxy import ejecta_field, nebula_field
+from planetgen.galaxy import black_hole_density, ejecta_field, nebula_field
 from planetgen.galaxy.frame import galaxy_to_local_pc, local_to_galaxy_pc
 from planetgen.galaxy.system_position import random_unit_vector
 from planetgen.physics import constants, stellar_evolution
@@ -217,8 +217,9 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
         # Each kind draws from a stream of its own (stage E), so adding a kind moves no other kind's draws.
         stage = fill_stages.NEBULAE if kind == "molecular-cloud" else fill_stages.PER_STAR_KINDS
         with fill_stages.stage(sector, stage, kind):
-            count = _sample_poisson_count(
-                program_constants.phenomenon_rate_per_star(kind) * star_count * kind_factors.get(kind, 1.0))
+            rate = (black_hole_density.rate_per_star(kind_factors) if kind == "black-hole"
+                    else program_constants.phenomenon_rate_per_star(kind) * kind_factors.get(kind, 1.0))
+            count = _sample_poisson_count(rate * star_count)
             for _ in range(count):
                 phenomenon_config = SystemConfig()
                 phenomenon_config.TYPE_IA_SHARE = type_ia_share
