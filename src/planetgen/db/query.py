@@ -4352,8 +4352,12 @@ def _map_key(star):
 EVEN_DROP_BAND_DEX = 0.5
 """float: The width, in powers of ten of the map key (or of the size share of a point), of the bands a list is cut
 by (MAP.251). A list that cannot hold everything keeps whole bands from the top (the most massive and the brightest
-are the last to go) and thins the band the cut falls in by a fixed number every object carries, so that band loses
+are the last to go) and thins the band the cut falls in by a fixed number every object carries (the best tenth of the list, at least one object, is kept whatever the band, `EVEN_DROP_ANCHOR_SHARE`), so that band loses
 the same share of its objects in every region instead of its dimmest end being truncated wherever that lies."""
+
+EVEN_DROP_ANCHOR_SHARE = 0.1
+"""float: The share of a full list, at least one object, that is the plain best of it by rank whatever the band, so
+the single most massive or brightest object is never the one a thinned band leaves out."""
 
 EVEN_DROP_POOL = 4
 """int: How many times the list's limit the database reads of each ranking before `_even_pick` cuts it, so the band
@@ -4372,13 +4376,17 @@ def _even_pick(items, limit, order, band, token, tier=lambda item: 0):
     At most `limit` of `items`, cut evenly (MAP.251): the lowest `tier` first (the halo and the satellite galaxies
     are dropped before anything else), inside a tier the highest `band` first (the most massive and the brightest
     go last), and inside the band the cut falls in the lowest `_thin_number(token(item))` first, so that band loses
-    the same share of its objects everywhere. Returned in (`tier`, `order`) order, `order` ascending. A pure
+    the same share of its objects everywhere; the first `EVEN_DROP_ANCHOR_SHARE` of the slots, at least one, go to
+    the best by `order` whatever the band. Returned in (`tier`, `order`) order, `order` ascending. A pure
     function of `items`, and one order for every tile level, so the lists stay nested wherever the database hands
     over the same candidates.
     """
     if len(items) <= limit:
         return sorted(items, key=lambda item: (tier(item), order(item)))
-    kept = sorted(items, key=lambda item: (tier(item), -band(item), _thin_number(token(item))))[:limit]
+    ranked = sorted(items, key=lambda item: (tier(item), order(item)))
+    anchors = max(1, int(math.ceil(limit * EVEN_DROP_ANCHOR_SHARE))) if limit > 0 else 0
+    kept = ranked[:anchors]
+    kept += sorted(ranked[anchors:], key=lambda item: (tier(item), -band(item), _thin_number(token(item))))[:limit - anchors]
     return sorted(kept, key=lambda item: (tier(item), order(item)))
 
 

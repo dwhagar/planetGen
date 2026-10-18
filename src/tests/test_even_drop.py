@@ -85,3 +85,10 @@ def test_points_are_cut_the_same_way():
                               lambda p: p["id"])
     assert len(listed) == 40 and listed[0]["id"] == "big"
     assert max(int(p["id"][1:]) for p in listed if p["id"] != "big") > 200, "the cut band reaches the whole range"
+
+
+def test_the_single_brightest_object_is_kept_even_by_a_list_of_one():
+    crowd, far, bright = _field()
+    everything = crowd + far + bright
+    assert [s["id"] for s in query._top_by_key(everything, 1)] == [max(bright, key=lambda s: s["luminosity_sol"])["id"]]
+    assert query._top_by_key(everything, 20)[0]["id"] == query._top_by_key(everything, 20, even=False)[0]["id"]
