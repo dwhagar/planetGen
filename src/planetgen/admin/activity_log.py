@@ -49,6 +49,7 @@ checkout without the folder stays quiet) and later events are dropped.
 With the debug log on, every line is copied there too.
 """
 
+import getpass
 import ipaddress
 import logging
 import logging.handlers
@@ -268,6 +269,16 @@ def event(category, action, user=None, ip=None, **fields):
     from planetgen.util import log
     log.trace("activity: %s", line)
     return line
+
+
+def login_name():
+    """Who is running this process: the login name (`getpass.getuser`), or
+    `None` where the environment has none. The `user=` of a command-line
+    event."""
+    try:
+        return getpass.getuser()
+    except Exception:  # noqa: BLE001 -- no user name in this environment
+        return None
 
 
 def log_path():

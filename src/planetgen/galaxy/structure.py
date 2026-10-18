@@ -53,6 +53,7 @@ Structure = namedtuple(
         "halo_stellar_ratio",
         "disc_gas_dispersion_kms", "disc_central_dispersion_kms", "disc_age_exponent",
         "bulge_dispersion_scatter_dex",
+        "stellar_mass_solar", "classical_bulge", "black_hole_deviation", "nuclear_cluster_mass_solar",
     ],
 )
 """A galaxy's thick disk, bar, stellar halo and population motions (not stored; see the module docstring).
@@ -62,7 +63,12 @@ mass, scale length and scale height over the thin disk's; `bar_present` says whe
 component along `bar_angle_deg` from the Sun-centre line with axes `bar_axis_ratio_y` and `bar_axis_ratio_z` of its
 length) or a spheroid with those axis ratios; `halo_stellar_ratio` is the stellar halo's mass over the galaxy's stellar
 mass; the three `disc_*` fields are the gas dispersion, the central vertical dispersion of the disc and the age
-exponent of its heating; `bulge_dispersion_scatter_dex` is the bulge's dispersion draw about its law."""
+exponent of its heating; `bulge_dispersion_scatter_dex` is the bulge's dispersion draw about its law.
+
+`stellar_mass_solar` is the galaxy's stellar mass; `classical_bulge` says whether its bulge is a classical one (the
+black hole follows the bulge's mass) or not (it follows the stellar mass); `black_hole_deviation` is the central black
+hole's draw about its law in standard deviations; `nuclear_cluster_mass_solar` is the nuclear star cluster's mass,
+zero for a galaxy that has none (GEN.402)."""
 
 SOLAR_RADIUS_OVER_TWO_LENGTHS = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH / 2.0
 """float: `R / 2 h_R` at the solar-like radius, the exponent of the fall of the dispersion."""
@@ -107,6 +113,7 @@ REFERENCE_STRUCTURE = Structure(
     halo_stellar_ratio=1.4e9 / 5.0e10,
     disc_gas_dispersion_kms=6.5, disc_central_dispersion_kms=0.248 * 220.0, disc_age_exponent=0.441,
     bulge_dispersion_scatter_dex=0.0,
+    stellar_mass_solar=5.0e10, classical_bulge=False, black_hole_deviation=0.0, nuclear_cluster_mass_solar=2.5e7,
 )
 """Structure: The Milky Way's published structure, the check target of the math check and the structure of a shape
 built with no seed. The thick disk and the bar are the Bland-Hawthorn and Gerhard 2016 (ARA&A 54:529) and Dwek et al.
@@ -167,3 +174,43 @@ def bulge_dispersion_kms(structure, bulge_to_total):
     scatter (Courteau et al. 2007)."""
     sigma_0 = structure.vc_kms / (2.0 * (1.0 - bulge_to_total)) * 10.0 ** structure.bulge_dispersion_scatter_dex
     return math.sqrt(3.0) * sigma_0
+
+
+BLACK_HOLE_BULGE_MASS_AT_1E11 = 0.49e9
+"""float: The black hole's mass, solar masses, in a classical bulge of 1e11 solar masses (Kormendy and Ho 2013,
+arXiv:1304.7762, Eq. 10: `M_BH / 1e9 = 0.49 (M_bulge / 1e11)^1.16`)."""
+BLACK_HOLE_BULGE_SLOPE = 1.16
+BLACK_HOLE_BULGE_SCATTER_DEX = 0.29
+"""float: The scatter of that relation, dex (Kormendy and Ho 2013, classical bulges and ellipticals)."""
+BLACK_HOLE_STELLAR_INTERCEPT = 7.45
+BLACK_HOLE_STELLAR_SLOPE = 1.05
+BLACK_HOLE_STELLAR_SCATTER_DEX = 0.24
+"""float: The relation of a galaxy without a classical bulge, `log M_BH = 7.45 + 1.05 log(M* / 1e11)`, intrinsic
+scatter 0.24 dex (Reines and Volonteri 2015, Eq. 5, broad-line active nuclei: virial masses, a different population
+from the bulge relation's dynamical ones)."""
+M_SIGMA_INTERCEPT = -0.510
+M_SIGMA_SLOPE = 4.377
+"""float: `log(M_BH / 1e9) = -0.510 + 4.377 log(sigma / 200 km/s)` (Kormendy and Ho 2013, Eq. 3)."""
+
+
+def black_hole_mass_solar(structure, bulge_to_total):
+    """
+    The galaxy's central black hole, solar masses: the mass in a classical bulge's `bulge_to_total` share of the stars
+    (Kormendy and Ho 2013), or the stellar mass without one (Reines and Volonteri 2015), times the galaxy's draw about
+    the law.
+    """
+    if structure.classical_bulge:
+        bulge = max(bulge_to_total, 1.0e-6) * structure.stellar_mass_solar
+        mass = BLACK_HOLE_BULGE_MASS_AT_1E11 * (bulge / 1.0e11) ** BLACK_HOLE_BULGE_SLOPE
+        scatter = BLACK_HOLE_BULGE_SCATTER_DEX
+    else:
+        mass = 10.0 ** (BLACK_HOLE_STELLAR_INTERCEPT
+                        + BLACK_HOLE_STELLAR_SLOPE * math.log10(structure.stellar_mass_solar / 1.0e11))
+        scatter = BLACK_HOLE_STELLAR_SCATTER_DEX
+    return mass * 10.0 ** (structure.black_hole_deviation * scatter)
+
+
+def black_hole_dispersion_kms(mass_solar):
+    """The bulge velocity dispersion, km/s, of a galaxy whose central black hole weighs `mass_solar`: the M-sigma
+    relation inverted (Kormendy and Ho 2013, Eq. 3; its scatter is the hole's own draw)."""
+    return 200.0 * 10.0 ** ((math.log10(mass_solar / 1.0e9) - M_SIGMA_INTERCEPT) / M_SIGMA_SLOPE)

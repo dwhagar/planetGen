@@ -77,9 +77,9 @@ orbit ticks" (CHANGELOG 5.52.0). Stored text went stale whenever a row
 changed after generation. Wiki upload uses the fresh render.
 
 **Rejected:** keeping the stored text and regenerating it on every change.
-Not discussed in the record beyond the reasons above. `planetgen.cli.render_parity`
-was written to compare stored and rendered text on an old database before
-upgrading, and to export the stored copies.
+Not discussed in the record beyond the reasons above. A one-off command,
+`planetgen.cli.render_parity` (removed by OPS.61), compared stored and
+rendered text on an old database before upgrading.
 
 **Cost:** the migration deletes the stored copies; the release note says to
 back up first. The rendered page must match generation exactly, which is

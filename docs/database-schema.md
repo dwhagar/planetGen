@@ -808,7 +808,7 @@ tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
   value), `expires_at` (90 days after the login that made it),
   `last_used_at`. A login from a browser holding a valid one for that
   username skips the per-username lock. Deleted on a credentials change,
-  with `python3 -m planetgen.cli.lockouts --forget-devices <user>`, and (expired ones)
+  with `python3 -m planetgen.cli.forget_devices <user>`, and (expired ones)
   when the admin's next device is made.
 - **`admin_totp`** (v4, SEC.26) — one row per admin who has set up an
   authenticator app: `secret` (the base32 key itself, as sensitive as a
@@ -924,7 +924,7 @@ No rendered page text is stored (v29 dropped `star_systems.wikitext_content`/
 same `StarSystem.__str__` generation used to run once before saving, so
 the text is identical, except that it now follows later changes (renames,
 names made unique, orbit ticks' current wobble and comet positions).
-`planetgen.cli.render_parity` compares the two on a database still at v28.
+(`planetgen.cli.render_parity`, since removed, compared the two on a database still at v28.)
 `mediawiki_url`/`wikijs_url` (v23 — see `schema.sql`'s header comment)
 record where that page lives on each wiki, once `POST
 /api/systems/<id>/wiki` (`src/planetgen/wiki/`, `web/system_pages.py`'s "Upload to

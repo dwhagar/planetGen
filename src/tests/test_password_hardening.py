@@ -238,7 +238,7 @@ def test_change_credentials_refuses_a_common_password_and_reissues_the_device(re
 
 
 def test_command_line_forgets_devices(mysql_config, capsys, monkeypatch):
-    from planetgen.cli import lockouts as loginLockouts
+    from planetgen.cli import forget_devices
     adminAuth.bootstrap_control_schema(mysql_config)
     conn = store.get_control_connection(mysql_config)
     try:
@@ -250,7 +250,7 @@ def test_command_line_forgets_devices(mysql_config, capsys, monkeypatch):
             "--mysql-user", mysql_config.user, "--mysql-password", mysql_config.password,
             "--mysql-database", mysql_config.database]
     monkeypatch.setattr(store, "configured_control_database", lambda: mysql_config.database)
-    assert loginLockouts.main(["--forget-devices", "admin"] + args) == 0
+    assert forget_devices.main(["admin"] + args) == 0
     assert "Revoked 1 trusted device of admin." in capsys.readouterr().out
     conn = store.get_control_connection(mysql_config)
     try:
@@ -258,4 +258,4 @@ def test_command_line_forgets_devices(mysql_config, capsys, monkeypatch):
     finally:
         conn.close()
     with pytest.raises(SystemExit):
-        loginLockouts.main(["--forget-devices", "nobody"] + args)
+        forget_devices.main(["nobody"] + args)
