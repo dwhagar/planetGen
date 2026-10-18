@@ -64,7 +64,6 @@ import math
 
 from planetgen.galaxy import spherical
 from planetgen.physics import constants as physical_constants
-from planetgen.physics import state_vectors
 from planetgen.util import detmath
 
 FRAMES = ("galactic", "sector", "system")
@@ -583,7 +582,7 @@ class SpatialPosition3D:
 def axis_property(index):
     """
     A property for one Cartesian axis (0 x, 1 y, 2 z), in AU, of a body that
-    holds a `SpatialPosition3D` as `spatial` and mixes in `HoldsOrbitPosition`.
+    holds a `SpatialPosition3D` as `spatial` and is a `MassObject` (`generation/mass_object.py`).
     Reading gives the body's offset from its primary (the "system" frame);
     writing before the body has a position stages the value until all three
     axes are given, so `fields_from_dict` and `None` defaults keep working.
@@ -608,7 +607,7 @@ def velocity_axis_property(index):
     """
     `axis_property`'s counterpart for the velocity: a property for one
     Cartesian axis (0 x, 1 y, 2 z), in km/s, of a body that holds a
-    `SpatialPosition3D` as `spatial` and mixes in `HoldsOrbitPosition`.
+    `SpatialPosition3D` as `spatial` and is a `MassObject` (`generation/mass_object.py`).
     Reading gives the body's velocity relative to its primary (the "system"
     frame); writing before the body has a position stages the value until
     all three axes are given.
@@ -627,88 +626,3 @@ def velocity_axis_property(index):
             self.set_velocity_kms(*staged)
 
     return property(read, write)
-
-
-class HoldsOrbitPosition:
-    """
-    Mixin for a planet, moon or comet: its position is a `SpatialPosition3D`
-    in AU (`spatial`), whose "system" frame is the offset from the body's
-    primary (the star, or the parent planet for a moon). The subclass
-    declares its three attributes with `axis_property`; `set_position_au`
-    is the one way to move it. Its velocity relative to the primary is the
-    "system" frame velocity of `spatial`, in km/s (`velocity_axis_property`);
-    `set_velocity_kms` sets it.
-    """
-
-    spatial = None
-    _staged_au = None
-    _staged_velocity_kms = None
-
-    def set_position_au(self, x, y, z):
-        """Puts the body at `(x, y, z)` AU from its primary; creates its
-        position (anchors at the origin until it is placed in a sector)
-        on first use, with the mass and mu it has by then."""
-        if self.spatial is None:
-            self.spatial = SpatialPosition3D((x, y, z), (0.0, 0.0, 0.0), star_center_galactic=(0.0, 0.0, 0.0),
-                                             length_unit_m=physical_constants.AU_M)
-        else:
-            self.spatial.set_system_cartesian(x, y, z)
-        self._staged_au = None
-        mass = getattr(self, "mass", None)
-        if isinstance(mass, (int, float)) and not isinstance(mass, bool) and mass >= 0:
-            self.spatial.set_mass(mass)
-        if self._staged_velocity_kms is not None and all(v is not None for v in self._staged_velocity_kms):
-            self.set_velocity_kms(*self._staged_velocity_kms)
-
-    def orbit_mu_au3_per_year2(self):
-        """The gravitational parameter, AU^3/yr^2, of what the body orbits;
-        each class that holds an orbit position defines it."""
-        raise NotImplementedError
-
-    def orbit_from_vector(self):
-        """
-        The orbit the body is on right now, worked out from its position
-        and velocity relative to its primary (`state_vectors.elements_from_state`,
-        AU and years): periapsis distance, eccentricity, inclination,
-        ascending node, argument of periapsis, true anomaly (radians),
-        semi-major axis, period, `kind` and energy. Never stored, so it
-        cannot fall out of step with the vector: anything that moves the
-        body or changes its velocity changes this orbit with it.
-
-        Raises:
-            ValueError: With no position or velocity yet, or for a body
-                moving straight at or away from its primary.
-        """
-        if self.spatial is None or self.spatial.get_velocity_vector("system") is None:
-            raise ValueError("the body has no position and velocity yet")
-        to_au_per_year = physical_constants.SECONDS_PER_YEAR / physical_constants.AU_M
-        position = self.spatial.get_coordinates("system", "cartesian")
-        velocity = tuple(v * to_au_per_year for v in self.spatial.get_velocity_vector("system"))
-        return state_vectors.elements_from_state(position, velocity, self.orbit_mu_au3_per_year2())
-
-    def projected_orbit_au(self, count=128):
-        """
-        `count` points, AU from the primary, round the closed ellipse the
-        body is on now (`orbit_from_vector`), starting at periapsis: the
-        course it follows when nothing disturbs it. Wobble and other
-        perturbations in the vector are not part of it.
-
-        Raises:
-            ValueError: For an orbit that does not close (parabolic or
-                hyperbolic), or as `orbit_from_vector`.
-        """
-        orbit = self.orbit_from_vector()
-        if orbit["kind"] != "elliptical":
-            raise ValueError(f"a {orbit['kind']} orbit does not close")
-        return state_vectors.closed_orbit_points(
-            orbit["periapsis_distance"], orbit["eccentricity"], orbit["inclination"], orbit["ascending_node"],
-            orbit["arg_periapsis"], count)
-
-    def set_velocity_kms(self, vx, vy, vz):
-        """Sets the velocity relative to the primary, km/s. A body with no
-        position yet keeps it until it has one."""
-        if self.spatial is None:
-            self._staged_velocity_kms = (vx, vy, vz)
-            return
-        self.spatial.set_velocity_cartesian(vx * 1000.0, vy * 1000.0, vz * 1000.0, frame="system")
-        self._staged_velocity_kms = None
