@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.139 |
 | MAP | MAP.253 |
 | NAV | NAV.63 |
-| GEN | GEN.567 |
+| GEN | GEN.568 |
 | PERF | PERF.137 |
 | DB | DB.76 |
 | API | API.32 |
@@ -902,7 +902,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.240 | The three scatters fill the whole sphere with one algorithm: band groups, the phenomena pass on the object-first sampler, and a component pass | none | done, PR #1994 |
 | GEN.241 | Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds | none | done, PR #2144 |
 | GEN.242 | A pre-main-sequence state for young stars, so protostars can exist as real stars | none | done, PR #2009 |
-| GEN.243 | Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X | none | open |
+| GEN.243 | Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X | none | done, PR #2178 |
 | GEN.244 | Young open clusters and OB associations as components (later) | none | open |
 | GEN.245 | Debris disks around A and F stars (later) | none | open |
 | GEN.246 | Luminous blue variables and hypergiants (later) | none | open |
@@ -1226,6 +1226,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.564 | A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter | none | open |
 | GEN.565 | The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes | none | open |
 | GEN.566 | Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560 | none | open |
+| GEN.567 | Design note: the metallicity-dependent black hole density: the form of f(Z), the birth [Fe/H] of a remnant, and what the scatter reads | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
