@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import pytest
 
 from planetgen import tuning
-from planetgen.generation import companion_classes, place_terms
+from planetgen.generation import companion_classes, multistar, place_terms
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.util import draw
@@ -77,6 +77,28 @@ def test_the_remnants_raise_the_perturber_mass_and_the_black_holes_do_most_of_it
     everything = place_terms.mass_weighted_perturber_mass_solar(disk)
     assert 2.0 < everything / stars < 4.0
     assert place_terms.PlaceTerms(1.0, 30.0).perturber_mass_solar == pytest.approx(everything)
+
+
+def test_the_black_hole_inputs_lie_inside_the_published_ranges():
+    """GEN.541 (docs/design/placement-by-population.md): the share of core-collapse stars that leave a hole
+    (Sukhbold et al. 2016, Table 4: 26 to 45 percent), the mean hole mass (Sukhbold et al.: 9 to 14 solar masses;
+    Olejak et al. 2020: 11.7 bulge, 14.2 disk) and the number in a galaxy of 5e10 solar masses of stars (Olejak et al.:
+    1.3e8; the older estimates they list: 1e8 to 1e9)."""
+    low, high = multistar.BLACK_HOLE_PROGENITOR_SOL[0], tuning.IMF_BREAKS_SOL[-1]
+    collapse = place_terms._imf_integral(0.0, multistar.NEUTRON_STAR_PROGENITOR_SOL[0], high)
+    assert 0.26 <= place_terms._imf_integral(0.0, low, high) / collapse <= 0.45
+    assert 9.0 <= sum(tuning.BLACK_HOLE_MASS_RANGE_SOLAR) / 2.0 <= 14.2
+    per_solar_mass_formed = place_terms._imf_integral(0.0, low, high) / place_terms._imf_integral(
+        1.0, tuning.IMF_BREAKS_SOL[0], high)
+    assert 1.0e8 <= 5.0e10 * per_solar_mass_formed <= 1.0e9
+
+
+def test_the_black_holes_carry_the_share_of_the_second_moment_the_design_note_records():
+    disk = [(1.0, tuning.STAR_FORMATION_AGE_RANGE_GY)]
+    stars = place_terms.mass_weighted_perturber_mass_solar(disk, remnants=False)
+    everything = place_terms.mass_weighted_perturber_mass_solar(disk)
+    assert stars == pytest.approx(0.55, abs=0.06)
+    assert everything == pytest.approx(1.44, abs=0.08)
 
 
 def test_a_young_population_has_the_heavier_perturbers():

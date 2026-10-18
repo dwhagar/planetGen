@@ -72,6 +72,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [phenomena-catalogue-and-fill.md](phenomena-catalogue-and-fill.md) | The master list of every phenomenon kind: observed rate, system odds, required contents, profile gate, scatter or fill, and the fill rules and audit | design (rules of 2026-10-15; items for TODO) |
 | [multi-star-systems.md](multi-star-systems.md) | Multi-star and star-like systems at scatter time: the census, limits and probabilities, the stored member tree, motion, and the catalogue of about sixty observed and theoretical system types | design (plan of 2026-10-15; nothing built yet) |
 | [disk-star-formation-history.md](disk-star-formation-history.md) | The thin disk's young, middle-aged and old star shares from its own gas history | built |
+| [brown-dwarf-state.md](brown-dwarf-state.md) | A brown dwarf as a star: its L, T or Y type, temperature and radius from the cooling laws and the 20 pc census | built |
 | [star-types-by-galactic-radius.md](star-types-by-galactic-radius.md) | How star types change with distance from the core | research (proposals for Boss) |
 | [compact-remnant-regions.md](compact-remnant-regions.md) | Where neutron stars and black holes are observed | reference (feeds GEN.100) |
 

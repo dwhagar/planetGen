@@ -22,7 +22,7 @@ import math
 
 from planetgen.generation.config import SystemConfig
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, SURFACE_REGIME_LABELS, rogue_surface_conditions
-from planetgen.physics import constants, planets as planetPhysics, spin
+from planetgen.physics import brown_dwarf as brownDwarf, constants, planets as planetPhysics, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -214,9 +214,8 @@ class RoguePlanet(LazySaladName):
         self.mass_bin = mass_bin
 
         if mass_bin == "brown-dwarf":
-            low, high = (m * constants.JUPITER_MASS_TO_KG
-                         for m in tuning.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER)
-            self.mass_kg = math.exp(draw.uniform(math.log(low), math.log(high)))
+            # GEN.252: the substellar mass function of the 20 pc census (Kirkpatrick et al. 2021), not log-uniform.
+            self.mass_kg = brownDwarf.sample_mass_solar(draw) * constants.SOLAR_MASS_TO_KG
         else:
             # The same mass function the bins' rates come from (GEN.45).
             low, high, _rate = tuning.ROGUE_PLANET_MASS_BINS[mass_bin]
@@ -227,9 +226,10 @@ class RoguePlanet(LazySaladName):
         if mass_bin == "brown-dwarf":
             log.choice("Rogue planet type", "brown dwarf", "mass_bin 'brown-dwarf'")
             self.planet_type = 'g'
-            # Brown dwarfs share Jupiter's near-flat mass-radius relation
-            # (Chabrier & Baraffe 2000), slightly smaller when old.
-            self.radius_km = constants.JUPITER_RADIUS_KM * draw.uniform(0.75, 1.1)
+            # The radius the two Burrows et al. 2001 cooling laws fix (GEN.252): near Jupiter's, a little smaller
+            # for a heavier brown dwarf.
+            self.radius_km = brownDwarf.radius_sol(self.mass_kg / constants.SOLAR_MASS_TO_KG) \
+                * constants.SOLAR_RADIUS_M / constants.KM_TO_M_FACTOR
             self.composition = (
                 "hydrogen and helium, a failed star that briefly fused deuterium and now glows faintly "
                 "in the infrared as it cools"
@@ -329,6 +329,13 @@ class RoguePlanet(LazySaladName):
             return "Brown Dwarf"
         return "Gas Giant" if self.planet_type == 'g' else "Terrestrial"
 
+    @property
+    def spectral_type(self):
+        """A brown dwarf's L, T or Y type (`"T5"`) from its effective temperature (GEN.252), or `None` for a planet."""
+        if getattr(self, "mass_bin", None) != "brown-dwarf":
+            return None
+        return brownDwarf.spectral_type(self.effective_temperature_k)
+
     def to_paragraph_list(self):
         """
         Generates a list of descriptive paragraphs for the rogue planet: a
@@ -343,9 +350,11 @@ class RoguePlanet(LazySaladName):
         kind_label = self.kind_label
         if getattr(self, "planet_class", None):
             kind_label += f", Class {self.planet_class}"
+        elif self.spectral_type:
+            kind_label += f", Type {self.spectral_type}"
         header = f"{header_level} {self.name} (Rogue {kind_label}) {header_level if not self.system_config.MARKDOWN else ''}".rstrip()
 
-        what = "brown dwarf" if self.kind_label == "Brown Dwarf" else "planet"
+        what = f"{self.spectral_type} brown dwarf" if self.spectral_type else "planet"
         description = (
             f"{self.name} is a free-floating {what} adrift in interstellar space, bound to no star. It has a "
             f"radius of roughly {format_body_radius_km(self.system_config, self.radius_km)} and is composed of "

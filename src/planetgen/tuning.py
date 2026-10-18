@@ -2863,6 +2863,39 @@ shrunken body; a brown dwarf younger than a few hundred million years is
 still puffed up, so the law (with today's radius) overshoots. Young brown
 dwarfs near the hydrogen-burning limit are late-M dwarfs, ~2,800 K."""
 
+# Brown dwarfs as stars (GEN.252, docs/design/brown-dwarf-state.md). The luminosity law is the ROGUE_BROWN_DWARF_*
+# pair above; these are the rest of Burrows et al. 2001's (Rev. Mod. Phys. 73:719, eqs. 1 and 2, read, arXiv
+# astro-ph/0103383) pair of power laws, the mass function and the map from temperature to spectral type.
+BROWN_DWARF_TEMPERATURE_AT_1_GY_K = 1550.0
+"""float: A 0.05 solar mass brown dwarf's effective temperature at 1 Gy (Burrows et al. 2001, eq. 2, solar
+metallicity)."""
+
+BROWN_DWARF_TEMPERATURE_AGE_EXPONENT = -0.32
+"""float: Burrows et al. 2001, eq. 2: `Teff` falls as `t^-0.32`. With the luminosity's `t^-1.3` it leaves the radius
+nearly constant (`t^-0.01`), which the radius uses (a young brown dwarf is larger; `ROGUE_MAX_EFFECTIVE_TEMPERATURE_K`
+caps the overshoot)."""
+
+BROWN_DWARF_TEMPERATURE_MASS_EXPONENT = 0.83
+"""float: Burrows et al. 2001, eq. 2: `Teff` grows as `M^0.83`. With the luminosity's `M^2.64` the radius falls as
+`M^-0.34` (0.088 solar radii at 0.05 solar masses)."""
+
+BROWN_DWARF_MASS_FUNCTION_SLOPE = 0.6
+"""float: The substellar mass function `dN/dM ~ M^-0.6` (Kirkpatrick et al. 2021, ApJS 253:7, arXiv 2011.11616, read:
+alpha = 0.6 +- 0.1 from the 20 pc census of 525 L, T and Y dwarfs). It is drawn between
+`ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER`; the generator's own stellar mass function is not continued below
+`IMF_BREAKS_SOL[0]`, since continuing it would give 0.7 brown dwarfs per star against the census's 0.2 (the
+free-floating rate `PHENOMENON_DENSITY_PC3["brown-dwarf"]`)."""
+
+BROWN_DWARF_SPECTRAL_TYPE_FITS = (
+    (0.0, 8.75, (2237.5, -144.96, 4.0301), 134.0),
+    (8.75, 14.75, (1437.9, -18.309, 0.0), 79.0),
+    (14.75, 22.0, (5141.3, -368.65, 6.7301), 79.0),
+)
+"""tuple: Kirkpatrick et al. 2021 Table 13 (read): `Teff` (K) as a polynomial in the spectral subclass number
+(0 = L0, 10 = T0, 20 = Y0), per range of that number: `(low, high, coefficients c0 + c1 x + c2 x^2, rms K)` (T0 to T6 is a straight line, so its c2 is 0). The
+scatter is the fit's, the measurement's, and is not drawn. Y0 falls at 461 K, inside the 371 to 510 K the paper
+measured."""
+
 ROGUE_GIANT_PHOTOSPHERE_PRESSURE_BAR = 0.3
 """float: Where a Jupiter-gravity giant's photosphere (optical depth 2/3)
 sits. It fixes one Rosseland mean opacity (kappa = (2/3) g / P) for every
