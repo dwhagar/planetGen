@@ -244,7 +244,7 @@ def test_reset_yes_with_dry_run_only_lists(seeded, monkeypatch, capsys):
 def test_update_orbits_never_moves_backwards_when_the_clock_goes_back(seeded, monkeypatch, capsys):
     assert _run_main(orbits, mysql_argv(seeded), monkeypatch) == 0  # starting point
     _execute(seeded, "UPDATE orbit_simulation_state SET last_updated_at = NOW() + INTERVAL 30 DAY WHERE id = 1")
-    phases = "SELECT id, orbital_phase_deg FROM planets ORDER BY id"
+    phases = "SELECT id, position_x_km, position_y_km, position_z_km, epoch_unix FROM planets ORDER BY id"
     before = _query(seeded, phases)
     assert before, "the seeded systems need planets"
     capsys.readouterr()
@@ -255,7 +255,9 @@ def test_update_orbits_never_moves_backwards_when_the_clock_goes_back(seeded, mo
     after = _query(seeded, phases)
     assert [r["id"] for r in after] == [r["id"] for r in before]
     for old, new in zip(before, after):
-        assert new["orbital_phase_deg"] == pytest.approx(old["orbital_phase_deg"], abs=1e-9)
+        assert (new["position_x_km"], new["position_y_km"], new["position_z_km"]) == pytest.approx(
+            (old["position_x_km"], old["position_y_km"], old["position_z_km"]), abs=1e-6)
+        assert new["epoch_unix"] == old["epoch_unix"]
     # The clock starts again from now, so the next run advances normally.
     elapsed = _query(seeded, "SELECT TIMESTAMPDIFF(SECOND, last_updated_at, NOW()) AS s "
                              "FROM orbit_simulation_state WHERE id = 1")[0]["s"]

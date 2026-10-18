@@ -2,6 +2,164 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1757] - 2026-10-18
+
+**Headline:** Hypervelocity stars, kicked neutron stars and ejected black holes now stream through the whole galaxy and out to the grid's reach, on straight lines, instead of stopping at the disk's outline.
+
+### Changed
+- **Hypervelocity stars are placed out to the grid's reach (GEN.238).** They were drawn inside the galaxy's outline and redrawn if they fell outside. They now follow the count the galaxy ejects (`HYPERVELOCITY_STARS_PER_GALAXY`, 1,000 to 10,000 out to 100 kpc) times the plan's reach over that radius, with the distance falling as `r^-2` to the reach (262 kpc by default), a direction uniform on the sphere and 500 to 1,000 km/s outward. With the default reach more than 99% of them lie beyond the disk's outline, in the halo and the space around it.
+- **Neutron stars and black holes the galaxy ejected stream through every sector (GEN.238).** Each kind's unbound share of the galaxy (a fifth to two fifths of neutron stars, 2% of black holes) spreads over a sphere of the distance a 400 km/s remnant covers in 10 Gy, as `N / (4 pi r^2 v T)`. The sector profile carries each kind's mean for its cell, the fill draws a count from it in a stage of its own (`ejecta`), places each remnant clear of the other Hill spheres and gives it a velocity of 300 to 500 km/s along a random direction instead of a galactic orbit. The nightly update moves such a remnant on a straight line from its epoch and keeps its velocity. They carry no planets, and a black hole drawn here is stellar-mass. A cell draws at most 50 of a kind (`EJECTA_MAX_PER_CELL`, a program limit that only a galaxy shaped to hold astronomically many systems in a few cells reaches).
+- **A remnant in a superbubble is sized by the cavity's thin gas (GEN.298).** A remnant's radius (the Sedov-Taylor blast wave, held at the snowplow onset, GEN.151) took its own class's density however thin the gas around it was, so a remnant inside a cavity was sized as if in the disk. Where the sector's profile places it in a superbubble, the remnant, rolled by the fill or built from the scatter, takes the cavity's interior density, 0.001 to 0.01 cm^-3 (`SystemConfig.AMBIENT_DENSITY_CM3`), so it grows to a few hundred light-years where the disk's would have stopped at tens. The class contents and every draw are unchanged, and outside a bubble nothing changes. The remnant rate keeps its factor: the cavity is where the explosions went off.
+
+generation-output: changed
+
+TODO items resolved: GEN.238, GEN.298. Added: none.
+
+## [8.0.1756] - 2026-10-17
+
+**Headline:** The O-star nebula test no longer fails on the hotter cluster stars that now live as long as real ones do.
+
+### Changed
+- **`test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing` (TEST.230).** It assumed the stars of a class D or E region begin with the nebula's own O5V. Since the stellar bundle (#2112, GEN.467) a star's life follows the sourced stellar tables, so at 4 million years the cluster behind the host still holds O3V and O5V stars (an O3V or O5V lives about 4 million years; the old law gave them under 1) and the host list may begin with a hotter type or count several O5V. The test now asks that the host is among the stars, and that a class C nebula (the host alone) lists exactly `O5V x1`. The generator is unchanged.
+
+TODO items resolved: TEST.230. Added: none.
+
+## [8.0.1755] - 2026-10-17
+
+**Headline:** One function now works out where a planet can stay in a hierarchy of stars and how much light it gets there.
+
+### Added
+- **Planet zones in a hierarchy, and the flux a planet receives from every member (GEN.314).** `physics/planet_zones.py` gives an S-type window round every member (the Holman and Wiegert limit or the Hill radius against the sibling subtree as a point mass, whichever is tighter, from the member's engulfment floor) and a P-type window round every pair node (the circumbinary fit or the highest floor of a member below it, up to the pair's own S-type limit against its sibling), all capped at 100 AU (`PLANET_ZONE_DISK_CAP_AU`). For two stars the windows are the ones `Star.a_crit_au` and `StarSystem._orbit_floor_au` hold. `flux_at` sums the host's own light and every other member's at the time-averaged inverse square of the node they meet at. On a seeded draw of the generator's trees the share of stars with an S-type window above 0.3 AU falls from 73% at two stars to 15% at seven, the design table's row within 7 points. GEN.264 stage C, GEN.130 and GEN.275 call it and work out no zones of their own.
+
+TODO items resolved: GEN.314. Added: none.
+
+## [8.0.1754] - 2026-10-17
+
+**Headline:** The track of a young star now takes its numbers from published tables, and red dwarfs stay young stars for as long as the tables say.
+
+### Changed
+- **The pre-main-sequence track reads its constants from the BHAC15 tracks (GEN.529).** The Hayashi temperature (4357 K at one solar mass, rising as mass to the 0.1815), the birthline radius (3.19 solar radii at one solar mass, rising as mass to the 0.4335) and the energy factor (3.0, from 3.5) were remembered figures; they are now fitted to the Baraffe et al. 2015 tables (18 masses from 0.1 to 1.4 solar masses). The contraction time of a solar-mass star comes out at 37 Myr (the tables give 39), 0.5 solar masses at 92 Myr (146), 0.2 at 340 Myr (241) and 0.1 at 735 Myr (554); the fit is within 0.106 dex over all 18 masses and within 0.06 dex from 0.7 to 1.4 solar masses.
+- **The 10 Myr cap on the state is gone.** A star under 8 solar masses younger than its contraction time is a pre-main-sequence star at any age, so a red dwarf of 0.2 solar masses is still one at 100 Myr and a 0.1 solar-mass star up to 0.7 Gyr. About 3.6% of the disk's stars are drawn that way (1.1e-4 before). A system generated before this keeps the star it was drawn with.
+
+generation-output: changed
+
+TODO items resolved: GEN.529. Added: none.
+
+## [8.0.1753] - 2026-10-17
+
+**Headline:** A light star's red giant branch now follows the published core-mass-luminosity law, so its length, its top and how many giants are bright come from the star, and the horizontal branch lasts the same 100 Myr in every star.
+
+### Changed
+- **The red giant branch of a star lighter than 2.2 solar masses is the Hurley, Pols and Tout 2000 branch (GEN.502).** It started at a fixed 1.1 of the star's main-sequence lifetime, ended at a fixed 1.2, brightened by a fixed 3.5 times and ran to a fixed 2,500 solar luminosities at a fixed time slope. It now starts at the paper's time to the base of the branch, its base luminosity is the paper's equation 10, the helium core grows by the shell's burning with the luminosity a power of the core mass, and the branch ends at helium ignition (equation 49). For 0.95 solar masses the branch lasts 750 Myr from 2.5 to 2,700 solar luminosities (the median giant is 5.7), and the paper's Table 1 durations are reproduced (6.4% of the time to the base at one solar mass, 2.0% at two). At Z = 1e-4 the tip is 1,900 solar luminosities against the 1,650 to 1,780 of Serenelli et al. 2017 (`physics/giant_branch.py`). The scatter's tables, windows and bounds, the multi-star progenitor ages and the star's own phases all read the same functions, so a scattered star and a filled one agree. A heavier star, a bright giant, a supergiant and the asymptotic giant branch are unchanged.
+- **The horizontal branch lasts 100 Myr in every star** (`HORIZONTAL_BRANCH_DURATION_GY`), where it was 0.010 of the main-sequence lifetime (114 Myr at 0.95 solar masses and 250 Myr at 0.8). The ratio of its time to the red giant branch's time above it is 1.45 for 0.8 to 1.0 solar masses, against the 1.47 +- 0.025 of the 57 globular clusters of Salaris et al. 2004 (it was 1.8 at 0.95 and 2.8 at 0.85).
+
+generation-output: changed
+
+TODO items resolved: GEN.502. Added: none.
+
+## [8.0.1752] - 2026-10-17
+
+**Headline:** How long a star lives on the main sequence now comes from a published fit to stellar models, not a law anchored on the Sun.
+
+### Changed
+- **The main-sequence lifetime is the fit of Hurley, Pols and Tout 2000 (GEN.467).** It was `10 Gy * M^-2.5`; it is now the time to the base of the giant branch from their analytic formulae (equations 4 to 7, rms 1.9% against the detailed models), a function of mass and metallicity (`physics/ms_lifetime.py`). A solar mass lasts 10.2 Gy at the reference composition (the proto-solar Z of the composition scale, 0.0154), 5 solar masses 103 Myr (179 before), 20 solar masses 9.0 Myr (5.6), 150 solar masses 3.2 Myr (0.04) and 0.5 solar masses 124 Gy (57), so the massive stars live much longer than the old law gave and the red dwarfs about twice as long; the heaviest star still on the main sequence at 13.8 Gy is 0.93 solar masses (0.87 before). Metallicity is in the function (a poorer star lives shorter) and every caller passes a star of the reference composition until the composition is drawn first.
+- Everything that reads the lifetime follows: the age windows of giants and supergiants, which stars of a young cluster have collapsed, the companions' mass cap and the window for a compact companion, the planetary nebula's central star age and the scatter's phase windows. The mass whose lifetime is a given age comes from a bisection (`mass_for_lifetime_gy`), since the law is no longer a power.
+
+generation-output: changed
+
+TODO items resolved: GEN.467. Added: none.
+
+## [8.0.1751] - 2026-10-17
+
+**Headline:** A neutron star's radius now follows from its mass and the measured radius band, no longer a flat draw from 10 to 13 km.
+
+### Changed
+- **The neutron star radius is the band of Miller et al. 2021 (GEN.463).** It was drawn uniformly from 10 to 13 km, a floor the NICER and gravitational-wave radii do not support (they give 11.6 to 13.1 km). It is now the centre of the band at the star's mass, 12.45 km at 1.4 solar masses and 12.35 km at 2.08 (the line between the two, carried on to 1.1 and 2.2), plus a normal draw of the spread (0.65 and 0.75 km) clipped at two deviations, so the radius lies in 11.1 to 13.8 km at 1.4 solar masses and no star is under 10.8 km. The measured radii of PSR J0030+0451 (12.71 km) and PSR J0740+6620 (13.7 km) lie inside the band (`physics/neutron_star.py`).
+- A neutron star that is a companion in a multiple system takes the centre radius of its mass in place of a fixed 12 km, and the plausibility check reads the band at the star's mass. `NEUTRON_STAR_RADIUS_RANGE_KM` is gone.
+
+generation-output: changed
+
+TODO items resolved: GEN.463. Added: none.
+
+## [8.0.1750] - 2026-10-17
+
+**Headline:** A galaxy now holds hundreds of intermediate-mass black holes, not a hundred thousand.
+
+### Changed
+- **The share of black holes that are intermediate-mass is 3e-6, from 0.1% (GEN.259).** The Galaxy's 1e8 black holes gave about 1e5 of them, four orders above the handful of candidates and none confirmed in the field; Boss chose "hundreds, as the observations suggest" (decision card, 2026-10-16, 3:00 PM EDT). The Galaxy now holds about 300, carrying 0.35% of the black-hole mass instead of 53%, the scatter's intermediate-mass rows fall by the same factor, and a free-floating black hole is intermediate-mass in one draw of 330,000 (`BLACK_HOLE_INTERMEDIATE_MASS_CHANCE`).
+
+generation-output: changed
+
+TODO items resolved: GEN.259. Added: none.
+
+## [8.0.1749] - 2026-10-17
+
+**Headline:** A planet or moon is now its state vector, moved by Kepler's universal step, with no stored orbital phase.
+
+### Changed
+- **Planets and moons are stored as a point with a parent (GEN.289).** The nightly update steps each due body's position and velocity with `kepler.universal_step` (a compiled batch step, `physics/state_kernel.py`) from its own epoch, taking `mu` from the stored distance and period, and sets the next due time from the speed the new state has. `orbital_phase_deg` is gone from `planets` and `moons` (migration 0109, schema v109); the phase a page needs is read from the position. `insert_planet` and `insert_moon` now fill `parent_type` and `parent_id`, and the migration points a circumbinary planet at its system. The system scene API carries each body's `position_km`, `velocity_kms` and `epoch_unix` in place of `phase_deg`, and `orbitpositions.js` steps that state with a port of the same algorithm, so the browser and Python positions still agree. Tests hold the compiled step to the Python one, a quiet system to the cost of the old update, and the migration to a stopped run being started again.
+
+TODO items resolved: GEN.289. Added: none.
+
+## [8.0.1748] - 2026-10-17
+
+**Headline:** The wheel zoom toward a star in an opened sector now ends at the star instead of sliding past it, never passes through a star on the way, and a double click on empty space flies half way toward the point under the pointer.
+
+### Changed
+- In an opened sector the point the wheel zooms toward is the star under the pointer (within 14 px of it on the screen; one with a system, not left off the map). Before, the picker's cell behind the star (2.3 pc away when the star was 0.28 pc away) was taken for the point, so the camera slid sideways past the star; this was the real cause of TEST.213 (`test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star`, "the system's scene never came in"). The sector's own cell is never the point inside the opened sector; the focus plane is, when no star is there.
+- A wheel step in is also limited so the eye never comes within the clearance (2% of the view's distance) of any star of the sector on its way to the point (`limitPathClearance` in `mapcontrol.js`).
+- A double click on empty space (nothing picked) flies half way toward the point under the pointer, which stays where it is on the screen; on a block it is still two clicks, on a star or other object the flight to it.
+- `docs/design/fly-through-view-distance.md` says what is built.
+
+### Added
+- `canvasEl.galaxyAnchorUnder` (the point the wheel zooms toward at a screen point) for the browser tests; `sectorStage.hides(entry)`.
+- A node test for `limitPathClearance`, and browser tests in `tests/test_web_browser_sector_reach.py`: the anchor is the star under and a few pixels from the pointer, twelve wheel ticks bring the eye nearer the star every time with the star staying under the pointer, and a double click on empty space halves the distance.
+- Not built, as a new item for TODO: the column-density ray fallback. It would only act where the cursor ray meets no cell, and the cell scene has no density field to sample there.
+
+TODO items resolved: MAP.245 (the clearance and the half-way double click; TEST.213 fixed) / Added: the column-density ray fallback as its own item
+
+## [8.0.1747] - 2026-10-17
+
+**Headline:** Mid and early B stars now have companions at the frequencies Moe and Di Stefano measured: 76% and 84%, with more triples and quadruples.
+
+### Changed
+- B stars of 5 to 9 solar masses at birth (mid B) have a companion with chance 0.76 and those of 9 to 16 (early B) 0.84, from Table 13's single-star fractions of 0.24 and 0.16, where every B star had 0.65. B stars under 5 solar masses keep 0.65, which sits inside the 0.59 +-0.11 of Table 13's bin for A and late B.
+- The star counts of those two classes follow Table 13's single, binary and triple-or-more fractions (mid B 0.24, 0.36, 0.40; early B 0.16, 0.32, 0.52; was 0.25, 0.40, 0.35 for all B), the rest split across three to seven stars in the B row's proportions. Mean star count 2.37 and 2.63 against 2.28.
+- `tuning.MULTIPLICITY_BY_PRIMARY_MASS_BIN` names Table 13's rows (companion frequency, close frequency, single, binary and multiple fractions by mass bin), `tuning.B_SUBCLASS_LOWER_MASS_SOL` the B bins, and `multistar.companion_class` picks the class from the birth mass.
+- `docs/design/multistar-and-compact-systems.md` 3.3 records the rows and the check against the table.
+
+generation-output: changed
+
+TODO items resolved: GEN.449 / Added: Table 13's close-binary frequency by mass (0.15 to 1.0) is named in `tuning` but not yet drawn from, for TEST.196
+
+## [8.0.1746] - 2026-10-17
+
+**Headline:** Stars now have companions at every separation from 0.05 AU outward, from one distribution over orbital period, instead of a close pair or one 50 AU and wider with nothing between.
+
+### Changed
+- A star's companion chance is shared between three ranges by Moe and Di Stefano's (2017, Table 13) companions per decade of period for its mass: close (0.05 to 0.25 AU, a P-type pair), inner (0.25 to 10 AU) and outer (10 AU and out). The coin flip between close and wide (`WIDE_BINARY_DEFAULT_CHANCE`) is gone. For a G dwarf about 5.7% of its companions are inside 0.25 AU, 24% from 0.25 to 10 AU and the rest beyond; massive stars have more close ones.
+- A wide pair now starts at 0.25 AU (`WIDE_BINARY_SEPARATION_MIN_AU`, was 50 AU) and its axis is drawn from the same lines up to the place's survival limit, so pairs of a few AU exist and their planets and comets are limited to the fraction of an AU the Holman and Wiegert limit leaves. A forced comet with no room around a tight pair is reported as an unmet requirement (`StarSystem.unmet_requirements`).
+- The metallicity trend of GEN.103 now moves the odds of the close and inner ranges together (Moe, Kratter and Badenes 2019 measured periods under 10^4 days, 10 AU); the outer range stays flat in [Fe/H]. A place that keeps no pair wider than 0.25 AU loses the wide chance; one that keeps part of the range loses that part.
+- The usual shares on the Generate page and in the prevalence checks are remeasured over 20,000 systems: systems with two stars 0.260 (was 0.303; the metallicity boost now applies to the inside-10-AU part only, not to the whole close half), binaries that are wide 0.928 (was 0.499, the close class being 0.05 to 0.25 AU only), systems with comets 0.321 (was 0.334), habitable world 0.257 (was 0.242), asteroid belt 0.607 (was 0.590).
+- New `generation/companion_classes.py`, `tuning.COMPANIONS_PER_DECADE_BY_PRIMARY_MASS` and `tuning.COMPANION_LOG_PERIODS_DAYS`; `docs/design/multistar-and-compact-systems.md` 4 and `placement-by-population.md` 3.1 to 3.3 describe the model and its levels (a G dwarf inside 10 AU is about 0.6 of the pooled line's level; the cause is open).
+
+generation-output: changed
+
+TODO items resolved: GEN.448 / Added: the inside-10-AU level against the pooled line (0.13 against 0.20 at [Fe/H] 0) and the O and B flatness ratios (1.32, 1.43) for TEST.196 and Boss
+
+## [8.0.1745] - 2026-10-17
+
+**Headline:** The widest orbit a wide pair keeps now uses the relative velocity of the passing stars and the mass-weighted mass of everything that passes, remnants included.
+
+### Changed
+- The encounter limit of a wide pair (Jiang and Tremaine 2010, equation 1) takes the dispersion of the relative velocity, root 2 times a population's own, where it used the population's own, and the second moment of the perturbers' mass over its first, `<M^2> / <M>`, where it used the mean system mass (0.4 solar masses). The mass function is the generator's own initial mass function aged to each population's age range, with the white dwarfs, neutron stars and black holes of what has left the main sequence. For the stars alone it gives 0.59 solar masses against Jiang and Tremaine's 0.64; with the remnants 1.46 for the whole disk, and the black holes alone hold about twice the second moment of all the stars. The widest axis a wide pair keeps is about 2.5 times narrower than before in every place (11,400 AU at the Sun's distance for two solar masses at 10 Gyr, against 29,000).
+- `place_terms.mass_weighted_perturber_mass_solar(populations, remnants=True)` (the stars alone with `remnants=False`) and `place_terms.RELATIVE_VELOCITY_FACTOR`; `PlaceTerms.perturber_mass_solar` defaults to the whole disk's value; `from_profile` mixes the populations a cell holds.
+- `docs/design/placement-by-population.md` 3.3 records the derivation, the paper's definitions and the new table.
+
+generation-output: changed
+
+TODO items resolved: GEN.447 / Added: whether the dark remnants should count as perturbers (the black holes do most of the second moment), for Boss and TEST.196
+
 ## [8.0.1744] - 2026-10-17
 
 **Headline:** The Phenomena list and the Search page show a progress bar while a slow answer is being built, then swap the finished page in without a reload.

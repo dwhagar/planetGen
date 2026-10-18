@@ -26,6 +26,18 @@ The saved course record and its list, open and rename.
 | NAV.23 | Open a saved course on the map | NAV.4, NAV.21 |  |
 | NAV.39 | Saved courses remember their unknown-space jumps and check them again | NAV.17 | With NAV.17. |
 
+### Halo and intergalactic switch
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.537 | Design the plan configuration: the boundaries of the sector plan, how far scatters go, which sector addresses are valid, and the two switches halo and satellite galaxies (both default off) |  | Boss, 2026-10-17, 4:48 PM EDT (two switches, plan configuration). |
+| GEN.538 | The plan configuration is the single source of the plan's boundaries, scatter reach and valid sector addresses: scatter and sector generation read it and never decide them | GEN.537, GEN.301, PERF.121 | Boss, 2026-10-17, 4:48 PM EDT (two switches, plan configuration). |
+| GEN.539 | The halo command: its own command that switches the halo on or off in the plan configuration (default off) and sets how far the halo reaches | GEN.538, PERF.121 | Boss, 2026-10-17, 4:48 PM EDT (two switches, plan configuration). |
+| GEN.540 | The satellite galaxies command: its own command that switches the satellite galaxies on or off in the plan configuration (default off), separate from the halo | GEN.538, PERF.121 | Boss, 2026-10-17, 4:48 PM EDT (two switches, plan configuration). |
+| MAP.248 | The maps and pages follow the plan configuration: with the halo or the satellite galaxies off, nothing is drawn, picked or offered beyond the configured boundaries | GEN.538, GEN.539, GEN.540, MAP.243 | Boss, 2026-10-17, 4:48 PM EDT (two switches, plan configuration). |
+| UX.137 | The Generate page, the settings and the command line set the halo and the satellite galaxies switches, each through its own command, and say what they are | GEN.539, GEN.540 | Boss, 2026-10-17, 4:48 PM EDT (two switches, plan configuration). |
+| TEST.226 | Tests for the plan configuration and its two switches: the interior is identical with each combination, off generates nothing beyond the boundaries, addresses outside them are refused, the 8.1 sphere is the all-on case | GEN.538, GEN.539, GEN.540 | Boss, 2026-10-17, 4:48 PM EDT (two switches, plan configuration). |
+
 ## Phase 2: Courses on the maps and around wells
 
 Showing courses on the maps and bending them around keep-out spheres.
@@ -47,7 +59,7 @@ Showing courses on the maps and bending them around keep-out spheres.
 | NAV.25 | Find the obstacles along a path | NAV.54 | Corridor query from NAV.10; sectors along the line from NAV.38. |
 | NAV.56 | Census of overlapping keep-out spheres in a generated galaxy | NAV.54 | Research: decides the overlap policy. |
 | NAV.26 | Bend the path around keep-out spheres | NAV.25, NAV.56, NAV.62, NAV.54 |  |
-| NAV.27 | Moving bodies inside a system | NAV.26, GEN.289 |  |
+| NAV.27 | Moving bodies inside a system | NAV.26 |  |
 | NAV.28 | Show and save the adjusted course | NAV.26, NAV.4 |  |
 | NAV.51 | Courses route around asteroid fields | NAV.25, NAV.26, NAV.54 | Boss 2026-10-09 01:02Z. Parked with the NAV chain (2026-10-09). |
 | NAV.6 | Courses that steer clear of gravity wells | NAV.25, NAV.26, NAV.27, NAV.28, NAV.51 | Parent; closes with its subitems. |

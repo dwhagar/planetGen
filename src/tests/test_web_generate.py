@@ -20,6 +20,7 @@ import time
 
 import pytest
 
+from planetgen import tuning
 from planetgen.web.app import create_app
 from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.api.config import Config
@@ -772,7 +773,7 @@ def test_page_starts_every_prevalence_field_at_its_usual_share(site, client):
     html = client.get("/admin/generate").get_data(as_text=True)
     for name, _label, usual in generate_page.PREVALENCE_FIELDS:
         assert html.count(f'name="{name}" value="{usual}"') == 2  # New galaxy and Generate sectors
-    assert 'name="prevalence_habitable_world" value="24.2"' in html
+    assert f'name="prevalence_habitable_world" value="{tuning.PREVALENCE_BASE_SHARES["habitable_world"] * 100:g}"' in html
 
 
 def test_the_generator_accepts_the_prevalence_argv():

@@ -50,7 +50,7 @@ from dataclasses import dataclass
 from statistics import NormalDist
 
 from planetgen import tuning
-from planetgen.physics import constants, pre_main_sequence, roche, stability
+from planetgen.physics import constants, ms_lifetime, neutron_star, pre_main_sequence, roche, stability
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 
@@ -61,10 +61,13 @@ STAR_COUNT_PROBABILITIES = {
     "F": (0.50000, 0.34000, 0.11000, 0.04003, 0.00881, 0.00106, 0.00011),
     "A": (0.40000, 0.40000, 0.15000, 0.03741, 0.01048, 0.00189, 0.00023),
     "B": (0.25000, 0.40000, 0.22000, 0.08962, 0.03137, 0.00784, 0.00118),
+    "B-mid": (0.24000, 0.36000, 0.25143, 0.10241, 0.03585, 0.00896, 0.00135),
+    "B-early": (0.16000, 0.32000, 0.32686, 0.13314, 0.04660, 0.01165, 0.00175),
     "O": (0.10000, 0.25000, 0.30000, 0.21354, 0.09610, 0.03363, 0.00673),
 }
 """dict: The chance of 1 to 7 stars to a system, by the placed star's spectral
-class (multistar-and-compact-systems.md 3.3)."""
+class (multistar-and-compact-systems.md 3.3). The B-mid and B-early rows (GEN.449) take the single and binary fractions
+of `tuning.MULTIPLICITY_BY_PRIMARY_MASS_BIN` and split the rest across 3 to 7 stars in the proportions of the B row."""
 
 SPECTRAL_CLASS_LOWER_MASS_SOL = (("O", 16.0), ("B", 2.1), ("A", 1.4), ("F", 1.04), ("G", 0.8), ("K", 0.45), ("M", 0.0))
 """tuple: The initial mass at which each spectral class begins, heaviest first."""
@@ -139,7 +142,6 @@ BROWN_DWARF_DESERT_KEEP = 0.01
 """A brown dwarf inside `BROWN_DWARF_DESERT_AU` of a star is kept in 1% of draws."""
 
 BROWN_DWARF_RADIUS_SOL = 0.1
-NEUTRON_STAR_RADIUS_KM = 12.0
 REMNANT_WINDOW_FRACTION = 1.0 / 3.0
 """float: A remnant companion of a living star exists only in the last third of the star's
 life, so the table value (a mean over all ages) is divided by this inside the window."""
@@ -304,6 +306,18 @@ def spectral_class(initial_mass_sol):
     return "M"
 
 
+def companion_class(initial_mass_sol, letter=None):
+    """The key into `STAR_COUNT_PROBABILITIES` and `tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS` of a star: its
+    spectral letter (from the mass when `letter` is None), with the B stars of 5 to 16 solar masses split into B-mid and
+    B-early (Moe and Di Stefano's bins, GEN.449)."""
+    letter = letter or spectral_class(initial_mass_sol)
+    if letter == "B":
+        for name, lower in tuning.B_SUBCLASS_LOWER_MASS_SOL:
+            if initial_mass_sol >= lower:
+                return name
+    return letter
+
+
 def placed_class(placed):
     """The `MEMBER_STATE_BY_PLACED` key of a placed object, or None when it has no companion table
     (a star of under 2 solar masses)."""
@@ -362,7 +376,7 @@ def same_class_companions(kind, recycled_share=0.0):
 def star_count_weights(initial_mass_sol, prevalence=1.0):
     """The weights of 1 to 7 stars for a star of this initial mass, the five-or-more columns scaled by
     `prevalence`."""
-    row = STAR_COUNT_PROBABILITIES[spectral_class(initial_mass_sol)]
+    row = STAR_COUNT_PROBABILITIES[companion_class(initial_mass_sol)]
     return tuple(weight * (prevalence if count >= 5 else 1.0) for count, weight in enumerate(row, start=1))
 
 
@@ -415,19 +429,33 @@ def _remnant_leaf(kind, progenitor, mass, direct=False):
         radius = evolution.white_dwarf_radius_km(mass) * constants.KM_TO_M_FACTOR / constants.AU_M
         return _Leaf(kind, "VII", mass, progenitor, radius)
     if kind == "neutron-star":
-        return _Leaf(kind, None, mass, progenitor, NEUTRON_STAR_RADIUS_KM * constants.KM_TO_M_FACTOR / constants.AU_M)
+        return _Leaf(kind, None, mass, progenitor,
+                     neutron_star.radius_km(mass) * constants.KM_TO_M_FACTOR / constants.AU_M)
     return _Leaf(kind, None, mass, progenitor, _schwarzschild_au(mass), MEMBER_DIRECT_COLLAPSE if direct else 0)
 
 
 def _youngest_progenitor_sol(age_yr):
     """The lightest star whose giant phases have ended by this age (a star lighter than
-    `HELIUM_FLASH_MASS_SOL` also burns helium on the horizontal branch and climbs the asymptotic giant branch)."""
-    def mass(fraction):
-        return (tuning.SOLAR_MS_LIFESPAN_GY * fraction * 1.0e9 / age_yr) ** (1.0 / -tuning.MS_LIFESPAN_MASS_EXPONENT)
-    light = mass(evolution.remnant_age_fraction(0.0))
-    if light < tuning.HELIUM_FLASH_MASS_SOL:
-        return light
-    return max(mass(tuning.GIANT_PHASE_END_MS_FRACTION), tuning.HELIUM_FLASH_MASS_SOL)
+    `HELIUM_FLASH_MASS_SOL` also burns helium on the horizontal branch and climbs the asymptotic giant branch, and its
+    giant branch has the length of `giant_branch`, GEN.502)."""
+    age_gy = age_yr / 1.0e9
+    flash = tuning.HELIUM_FLASH_MASS_SOL
+
+    def life_gy(mass):
+        return ms_lifetime.lifetime_gy(mass) * evolution.remnant_age_fraction(mass)
+
+    if life_gy(flash * (1.0 - 1.0e-9)) <= age_gy:
+        low, high = ms_lifetime.MIN_MASS_SOL, flash
+        if life_gy(low) <= age_gy:
+            return low
+        for _ in range(50):
+            middle = math.sqrt(low * high)
+            if life_gy(middle) > age_gy:
+                low = middle
+            else:
+                high = middle
+        return high
+    return max(ms_lifetime.mass_for_lifetime_gy(age_gy / tuning.GIANT_PHASE_END_MS_FRACTION), flash)
 
 
 def _remnant(kind, age_yr, lowest, rng, limit_mass=None):
@@ -453,7 +481,7 @@ def _remnant(kind, age_yr, lowest, rng, limit_mass=None):
 def _alive_star_mass(low, high, age_yr, rng):
     """An IMF mass in `[low, high]` that is still on the main sequence at this age (the heaviest such mass
     caps the range)."""
-    cap = (tuning.SOLAR_MS_LIFESPAN_GY * 1.0e9 / age_yr) ** (1.0 / -tuning.MS_LIFESPAN_MASS_EXPONENT)
+    cap = ms_lifetime.mass_for_lifetime_gy(age_yr / 1.0e9)
     high = max(min(high, cap), low * 1.0001)
     return evolution.sample_imf_mass_sol(low, high, rng)
 

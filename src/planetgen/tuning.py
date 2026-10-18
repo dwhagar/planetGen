@@ -120,6 +120,11 @@ DISK_MASS_STELLAR_MASS_EXPONENT = 1.8
 # `StarSystem._estimate_max_objects_from_disk_physics`.
 DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER = 18
 
+# The farthest a planet zone in a hierarchy of stars reaches (GEN.314,
+# `physics.planet_zones`): a protoplanetary disk around a star or a pair is
+# not larger than this, whatever the stability limit allows.
+PLANET_ZONE_DISK_CAP_AU = 100.0
+
 # The disk-physics walk (`StarSystem._estimate_max_objects_from_disk_physics`)
 # first counts how many isolation-mass "oligarchs" (Kokubo & Ida
 # 2000/2002) the disk's solid budget can support, spaced by their own
@@ -164,30 +169,32 @@ SINGLE_SYSTEM_GENERATION_ATTEMPTS = 5
 HOLMAN_WIEGERT_P_TYPE_MU_RANGE = (0.1, 0.5)
 HOLMAN_WIEGERT_P_TYPE_ECCENTRICITY_RANGE = (0.0, 0.7)
 
-# Probability an S-type (wide) binary is chosen over a P-type (close) one
-# when BINARY_SYSTEM is True and WIDE_BINARY is left at None. A plain
-# coin-flip, not an attempt to model true field-star multiplicity
-# demographics (real wide pairs vastly outnumber sub-0.25-AU pairs) --
-# BINARY_SYSTEM's own binary-vs-none split is already a game-design toggle
-# rather than a demographic model, so this keeps the two forceable binary
-# configurations symmetric with each other.
-WIDE_BINARY_DEFAULT_CHANCE = 0.5
+# The companions of a star by orbital period, for a primary of each mass (Moe & Di Stefano 2017, ApJS 230:15, Table 13,
+# arXiv 1606.05347, "after correcting for observational selection effects"): the companions per decade of log10 of the
+# period in days (mass ratios above 0.1) at log P 1, 3, 5 and 7 (each across a decade centred there, a = 0.1 to 10^3
+# AU for a pair of two solar masses), for the five mass bins the table has: solar-type (0.8 to 1.2 Msun), A and
+# late B (2 to 5), mid-B (5 to 9), early-B (9 to 16) and O (above 16). `generation.companion_classes` draws a
+# companion's class and axis from the straight lines between the four points (GEN.448). The bins' centres are the
+# geometric means of their edges, and 25 Msun for the open-ended O bin (a design default: the IMF-weighted middle
+# of 16 to 150 Msun). The 1 sigma errors (0.009 to 0.11) are reference values for TEST.196, not inputs.
+COMPANION_LOG_PERIODS_DAYS = (1.0, 3.0, 5.0, 7.0)
+COMPANIONS_PER_DECADE_BY_PRIMARY_MASS = (
+    (1.0, (0.027, 0.057, 0.095, 0.075)),
+    (3.16, (0.07, 0.12, 0.13, 0.09)),
+    (6.71, (0.14, 0.22, 0.20, 0.11)),
+    (12.0, (0.19, 0.26, 0.23, 0.13)),
+    (25.0, (0.29, 0.32, 0.30, 0.18)),
+)
 
-# S-type binary separation is sampled log-uniformly from this lower bound
-# (see binary.WideBinaryPair.generate) rather than with plain
-# random.uniform -- real wide-binary separations are observed roughly
-# log-uniform/log-normal over several decades (Duquennoy & Mayor 1991;
-# Raghavan et al. 2010), and a flat-uniform draw would spend almost all its
-# density in the single largest order of magnitude (the same reasoning
-# `physics.planets.generate_moons` already applies to moon spacing). The lower
-# bound sits comfortably above the close/P-type BinaryStarProxy separation
-# range (0.05-0.25 AU) so the two configurations' separations never overlap.
+# S-type binary separation is drawn from the companions-per-decade lines above (GEN.448), from this lower bound,
+# the top of the close/P-type BinaryStarProxy separation range (0.05-0.25 AU), so the two configurations'
+# separations never overlap.
 # The upper bound is not a constant: a pair survives only inside the
 # widest axis its place allows (GEN.103, `generation.place_terms.
 # wide_axis_limit_au`: passing stars and the galactic tide, from the place's
 # density, velocity dispersion and the pair's age), and a place that allows
 # none under this lower bound keeps no wide pair.
-WIDE_BINARY_SEPARATION_MIN_AU = 50.0
+WIDE_BINARY_SEPARATION_MIN_AU = 0.25
 WIDE_BINARY_SEPARATION_CEILING_AU = 1.0e6
 """float: Only where a place's density is zero is the survival limit infinite; no pair is a pair past a few parsecs
 (the Jacobi radius at the halo's density is under 10 pc), and this keeps the log-uniform draw finite."""
@@ -384,16 +391,18 @@ WHITE_DWARF_MAX_AGE_GY = 12.0
 # only present-day temperature, not a lifespan (see
 # get_star_evolutionary_profile in utils.py for the same issue on the
 # planet-life side). Instead, the star's own already-generated mass is run
-# through the standard mass-luminosity-based main-sequence lifetime scaling
-# (the same t = 10 Gy * (M/Msun)^-2.5 relation used to derive the
-# STAR_EVOLUTION table above, anchored to the Sun), then extended by the
-# standard rule-of-thumb that a star spends about 90% of its total lifetime
-# on the main sequence -- so the star must already be at least as old as
-# that main-sequence lifespan (it has to have finished that phase to be
-# observed as an evolved class), and at most its total (MS + post-MS)
-# lifespan.
-SOLAR_MS_LIFESPAN_GY = 10.0
-MS_LIFESPAN_MASS_EXPONENT = -2.5
+# through the main-sequence lifetime of physics/ms_lifetime.py (the fit of
+# Hurley, Pols and Tout 2000 to detailed models, GEN.467; the STAR_EVOLUTION
+# table above was derived from the older t = 10 Gy * (M/Msun)^-2.5 law),
+# then extended by the standard rule-of-thumb that a star spends about 90%
+# of its total lifetime on the main sequence -- so the star must already be
+# at least as old as that main-sequence lifespan (it has to have finished
+# that phase to be observed as an evolved class), and at most its total
+# (MS + post-MS) lifespan.
+# The heavy-element mass fraction the lifetime's [Fe/H] is measured from:
+# the proto-solar Z of the composition scale, Asplund 2021 (stellar-
+# composition.md D1). A solar mass lasts 10.2 Gy at it.
+MS_LIFETIME_REFERENCE_Z = 0.0154
 MS_LIFESPAN_FRACTION_OF_TOTAL = 0.9
 # Subdwarfs (Yerkes VI, e.g. real sdB/sdO stars) are excluded from the
 # mass-derived model above -- not just from its mass-sampling rejection
@@ -416,8 +425,8 @@ SUBDWARF_MIN_AGE_GY = 1.0
 SUBDWARF_MAX_AGE_GY = 13.5
 SUBDWARF_REMAINING_PHASE_MIN_GY = 0.05
 SUBDWARF_REMAINING_PHASE_MAX_GY = 0.3
-# A sub-solar-mass progenitor (roughly under ~0.88 Msun, per the
-# SOLAR_MS_LIFESPAN_GY/MS_LIFESPAN_MASS_EXPONENT formula above) already has
+# A sub-solar-mass progenitor (roughly under ~0.93 Msun, per the
+# ms_lifetime.py lifetime above) already has
 # a main-sequence lifespan longer than the universe itself -- it couldn't
 # possibly have evolved off the main sequence yet, so it must never be
 # accepted as an evolved-class star's progenitor mass in the first place
@@ -426,7 +435,7 @@ SUBDWARF_REMAINING_PHASE_MAX_GY = 0.3
 # SECTOR_MAX_PLACEMENT_ATTEMPTS caps SpaceSector's own reject-and-resample
 # loop: most classes' allowed mass range sits entirely clear of the cutoff
 # (so the very first draw is accepted) and only the class III (Giant) low
-# end (0.8-~0.88 Msun, out of an 0.8-8 Msun range) ever needs a resample,
+# end (0.8-~0.93 Msun, out of an 0.8-8 Msun range) ever needs a resample,
 # so 100 attempts leaves effectively zero chance of exhausting this for any
 # class it's actually applied to.
 EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS = 100
@@ -457,13 +466,39 @@ SPECTRAL_PROBABILITIES_NORMAL = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G'
 #   A, B: 0.55/0.65 -- Duchene & Kraus 2013 describe intermediate-mass
 #               (A/B) multiplicity as ">=50%"; split across the two
 #               letters along the same mass trend, both comfortably at or
-#               above that floor.
+#               above that floor. Moe & Di Stefano 2017 Table 13 puts the
+#               A / late-B bin (2 to 5 solar masses) at 0.59 +/- 0.11, so the
+#               letter's 0.65 stands for late B (9 to 16 and 5 to 9 solar
+#               masses are the two rows below).
+#   B-mid, B-early: 0.76/0.84 -- Table 13's mid-B (5 to 9 solar masses) and
+#               early-B (9 to 16 solar masses) single-star fractions, 0.24
+#               and 0.16 (`MULTIPLICITY_BY_PRIMARY_MASS_BIN`), taken from
+#               the primary's birth mass (GEN.449).
 #   O: 0.90  -- Moe & Di Stefano 2017 (ApJS 230:15) revise O-star
 #               multiplicity up to 94 +/- 14%; kept just under certainty
 #               given that real uncertainty rather than treating O stars
 #               as *always* binary.
+MULTIPLICITY_BY_PRIMARY_MASS_BIN = {
+    "solar": {"masses": (0.8, 1.2), "multiplicity": 0.50, "close": 0.15, "single": 0.60, "binary": 0.30, "multiple": 0.10},
+    "A / late B": {"masses": (2.0, 5.0), "multiplicity": 0.84, "close": 0.37, "single": 0.41, "binary": 0.37, "multiple": 0.22},
+    "mid B": {"masses": (5.0, 9.0), "multiplicity": 1.3, "close": 0.63, "single": 0.24, "binary": 0.36, "multiple": 0.40},
+    "early B": {"masses": (9.0, 16.0), "multiplicity": 1.6, "close": 0.8, "single": 0.16, "binary": 0.32, "multiple": 0.52},
+    "O": {"masses": (16.0, 40.0), "multiplicity": 2.1, "close": 1.0, "single": 0.06, "binary": 0.21, "multiple": 0.73},
+}
+"""dict: Moe and Di Stefano 2017 (ApJS 230, 15), Table 13, multiplicity statistics after correction for selection effects,
+by primary mass bin (solar masses). `multiplicity`: companions per primary with q above 0.1; `close`: companions
+per primary inside log P (days) 3.7; `single`, `binary`, `multiple`: the fractions of primaries with no companion, one,
+and two or more (triples and quadruples). The chance of a companion is 1 - `single`. The rows of
+`generation.multistar.STAR_COUNT_PROBABILITIES` for mid and early B stars are rederived from these (GEN.449)."""
+
+B_SUBCLASS_LOWER_MASS_SOL = (("B-early", 9.0), ("B-mid", 5.0))
+"""tuple: The birth mass at which the B-star sub-classes begin, heaviest first (Table 13's bins); a B star below the
+last is late B and keeps the letter's row."""
+
 BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS = {
     'O': 0.90, 'B': 0.65, 'A': 0.55, 'F': 0.47, 'G': 0.44, 'K': 0.40, 'M': 0.26,
+    'B-mid': round(1.0 - MULTIPLICITY_BY_PRIMARY_MASS_BIN["mid B"]["single"], 2),
+    'B-early': round(1.0 - MULTIPLICITY_BY_PRIMARY_MASS_BIN["early B"]["single"], 2),
 }
 
 # --- Star population model (stellarEvolution.py) ---
@@ -488,17 +523,26 @@ IMF_SLOPES = (1.3, 2.3)
 STAR_FORMATION_AGE_RANGE_GY = (0.0, 10.0)
 
 # Post-main-sequence phases, as multiples of the main-sequence lifetime
-# (SOLAR_MS_LIFESPAN_GY * M^MS_LIFESPAN_MASS_EXPONENT above): subgiant up
-# to 1.1, giant or supergiant up to 1.2, then a remnant. Real post-MS
-# phases take roughly 10-20% of the main-sequence time. A star lighter than
-# HELIUM_FLASH_MASS_SOL burns helium in its core after the red giant branch
-# (the horizontal branch) and then climbs the asymptotic giant branch before
-# it becomes a white dwarf (GEN.286): HORIZONTAL_BRANCH_MS_FRACTION and
-# AGB_MS_FRACTION are added to GIANT_PHASE_END_MS_FRACTION for it.
+# (physics/ms_lifetime.py, above). A star lighter than HELIUM_FLASH_MASS_SOL
+# burns helium in its core after the red giant branch (the horizontal branch)
+# and then climbs the asymptotic giant branch before it becomes a white dwarf
+# (GEN.286). For it the subgiant phase ends at, and the red giant branch ends
+# at, the times of physics/giant_branch.py (GEN.502, Hurley, Pols and Tout
+# 2000: 1.05 and 1.12 of the main-sequence lifetime at a solar mass, from the
+# core-mass-luminosity relation of the branch), and HORIZONTAL_BRANCH_DURATION_GY
+# and AGB_MS_FRACTION are added for it. A heavier star keeps the two figures
+# below, a subgiant phase up to 1.1 and a giant or supergiant phase up to 1.2,
+# then a remnant (real post-MS phases take roughly 10-20% of the
+# main-sequence time) [R]: its core helium burning is not modelled.
 SUBGIANT_PHASE_END_MS_FRACTION = 1.1
 GIANT_PHASE_END_MS_FRACTION = 1.2
 HELIUM_FLASH_MASS_SOL = 2.2
-HORIZONTAL_BRANCH_MS_FRACTION = 0.010
+# Core helium burning lasts the same 100 Myr in every star that ignites it in a
+# flash, since the degenerate core is about 0.5 solar masses whatever the star's
+# mass (Salaris et al. 2004, the 1.44 +- 0.06 horizontal-branch stars to each red
+# giant brighter than the branch in globular clusters, against the 69 Myr the
+# giant branch of physics/giant_branch.py spends there) [R].
+HORIZONTAL_BRANCH_DURATION_GY = 0.100
 AGB_MS_FRACTION = 0.002
 
 # Stars at or above this initial mass end as supergiants and then neutron
@@ -507,30 +551,28 @@ SUPERGIANT_MIN_MASS_SOL = 8.0
 # Giants at or above this initial mass are bright giants (II), not III.
 BRIGHT_GIANT_MIN_MASS_SOL = 4.0
 # Giant-branch luminosities (Lsun) and temperatures (K). A giant lighter than
-# BRIGHT_GIANT_MIN_MASS_SOL is on the red giant branch: it rises from the
-# base (SUBGIANT_MAX_BRIGHTENING times the star's main-sequence luminosity,
-# where its subgiant phase ended) to the tip, and the time it spends at each
-# luminosity falls as L^-GIANT_BRANCH_TIME_SLOPE per unit of ln L (GEN.287).
-# That is the real luminosity function, and it follows from the physics: the
-# helium core grows by the hydrogen shell burning at the star's luminosity, so
-# dt = (X Q / L) dMc, and the luminosity climbs as a power Mc^p of the core
-# mass, which gives dt/dlnL proportional to L^(1/p - 1) [R, Refsdal and Weigert
-# 1970; Salaris and Cassisi 2005; recalled, unconfirmed]. p is about 10 at the
-# base and about 5 at the tip, so the true slope flattens from -0.83 to -0.56
-# along the branch (the core-mass-luminosity fit of arXiv 2503.17772, eq. 1:
-# one data point [P]); one exponent, 0.78, reproduces that fit's share of the
-# branch spent above 50, 100, 500 and 1,000 Lsun (9.6, 5.5, 1.3 and 0.59%)
-# within 15% (stellar tables check, 2026-10-17); the first value, 0.9, undercounted
-# the giants above 500 Lsun by a factor of two. The tip is where the core
-# helium ignites: near 2,500 Lsun for a solar-metallicity star (Serenelli et al.
-# 2017, table 2: 2,410 to 2,450 at Z 0.004), 1,650 to 1,780 at Z 0.0001, so 15 to
-# 50% high for an [Fe/H] -2 halo star [P]; one tip, until the giant knows its [Fe/H].
-# Log-uniform spreading over 50 to 1,000 Lsun, which this replaces, put every
-# giant above 50 Lsun and overstated the bright ones many times against real
-# counts: the real branch spends most of its time near its base (its
-# observed ratio of horizontal-branch stars to red giants brighter than the
-# horizontal branch is 1.44 +- 0.06 for the 41 halo clusters of Salaris et
-# al. 2004, table 2, and 1.51 +- 0.05 for all 57 [P]).
+# HELIUM_FLASH_MASS_SOL is on the red giant branch of physics/giant_branch.py
+# (GEN.502): the helium core grows by the hydrogen shell burning at the star's
+# luminosity, dMc/dt = A_H L, and the luminosity climbs with the core mass as
+# L = min(B Mc^q, D Mc^p) (Hurley, Pols and Tout 2000, eq. 37, p = 6 and q = 3
+# at low mass), so the time at each luminosity, the branch's duration and its
+# tip (where the core helium ignites, about 2,700 Lsun at the reference
+# composition, 1,900 at Z 0.0001 against Serenelli et al. 2017's 1,650 to
+# 1,780) follow from the relation, the slope flattening from -0.83 to -0.67
+# along the branch [V]. It reproduces the paper's Table 1 durations
+# and the observed ratio of horizontal-branch stars to red giants brighter
+# than the horizontal branch, 1.44 +- 0.06 for the 41 halo clusters of Salaris
+# et al. 2004, table 2 (1.51 +- 0.05 for all 57) [P]. The shares of the branch
+# spent above 50, 100, 500 and 1,000 Lsun (8.7, 4.7, 1.0 and 0.42%) are 10 to
+# 30% under the 9.6, 5.5, 1.3 and 0.59% of the fit of arXiv 2503.17772
+# (eq. 1, one data point [P]), whose slope flattens further, to -0.56 at the tip.
+# The two figures below are what is left of the older single-exponent law
+# (GEN.287): the intermediate-mass giants, lighter than
+# BRIGHT_GIANT_MIN_MASS_SOL but not lighter than HELIUM_FLASH_MASS_SOL, rise from
+# SUBGIANT_MAX_BRIGHTENING times the main-sequence luminosity to the tip, the
+# time at each luminosity falling as L^-GIANT_BRANCH_TIME_SLOPE per unit of ln L,
+# and the asymptotic giant branch (AGB_LUMINOSITY_RANGE_SOL) takes the same slope
+# [R, recalled, unconfirmed: Refsdal and Weigert 1970; Salaris and Cassisi 2005].
 GIANT_BRANCH_TIP_LUMINOSITY_SOL = 2500.0
 GIANT_BRANCH_TIME_SLOPE = 0.78
 BRIGHT_GIANT_LUMINOSITY_RANGE_SOL = (1000.0, 10000.0)  # log-uniform
@@ -665,36 +707,50 @@ LIFE_MIN_STAR_AGE_GY = 0.1
 GIANT_ENGULFMENT_RADIUS_FACTOR = 2.0
 WD_PROGENITOR_ENGULFMENT_AU = 1.5
 
-# The pre-main-sequence state (GEN.242, physics/pre_main_sequence.py). A star
-# below PRE_MAIN_SEQUENCE_MAX_MASS_SOL younger than its contraction time is a
-# protostar (Class 0 and I, under PROTOSTAR_MAX_AGE_YR) or a pre-main-sequence
-# star (Class II and III). The track is derived, not tabulated: a convective
-# star (polytrope n = 3/2) holds 3/7 G M^2 / R of energy and a radiative one
-# (n = 3) 3/4 G M^2 / R, it shrinks at the luminosity it radiates, and on its
-# Hayashi line (convective) the effective temperature stays put, so
-# R^-3 grows in step with time. The three numbers below are the inferred part
-# [I]: they were set from the published tracks as remembered (Baraffe et al.
-# 2015, arXiv:1503.04107, could be fetched but not its tables), and a TODO
-# finding asks for a sourced replacement. The state is drawn only under
-# PRE_MAIN_SEQUENCE_MAX_AGE_YR, the age limit of T Tauri and Herbig Ae/Be stars
-# and of planet formation (PLANET_MIN_STAR_AGE_GY): a red dwarf still shrinking
-# towards the main sequence at 100 Myr (the track takes 0.1 solar masses 860
-# Myr) is drawn on it, a known simplification that costs it up to a few times
-# its light.
+# The pre-main-sequence state (GEN.242, GEN.529, physics/pre_main_sequence.py).
+# A star below PRE_MAIN_SEQUENCE_MAX_MASS_SOL younger than its contraction time
+# is a protostar (Class 0 and I, under PROTOSTAR_MAX_AGE_YR) or a
+# pre-main-sequence star (Class II and III), however old that time is: the
+# track takes 0.1 solar masses about a billion years, and a red dwarf still
+# shrinking at 100 Myr keeps its pre-main-sequence class. The track is
+# derived: a convective star (polytrope n = 3/2) holds 3/7 G M^2 / R of
+# energy and a radiative one (n = 3) 3/4 G M^2 / R, it shrinks at the
+# luminosity it radiates, and on its Hayashi line (convective) the effective
+# temperature stays put, so R^-3 grows in step with time. Three numbers are
+# read from the published tracks, not recalled (GEN.529): Baraffe, Homeier,
+# Allard and Chabrier 2015 (A&A 577, A42, arXiv:1503.04107, the BHAC15 tracks
+# table at perso.ens-lyon.fr/isabelle.baraffe/BHAC15dir, solar metallicity,
+# 0.1 to 1.4 solar masses, from 0.5 Myr) [V]. The Hayashi temperature is the
+# effective temperature at 1 Myr, 4357 K at one solar mass and rising as
+# m^0.1815 (18 masses, rms 0.004 dex); the birthline radius is the radius at
+# the table's first age, 3.19 solar radii at one solar mass and rising as
+# m^0.4335 (rms 0.03 dex); both are extended past 1.4 solar masses by their
+# power law. The energy factor is the one number the table fixes only through
+# its end: contraction alone, at the luminosity the star radiates, is too
+# quick, and deuterium burning and the heat of the interior pay for part of
+# the light, so the time is stretched by 3.0, the value at which the model
+# reaches the main sequence at the age the table's radius settles to within
+# 2% of its minimum, rms 0.106 dex over the 18 masses (0.7 to 1.4 solar masses
+# within 0.06 dex, 0.1 to 0.2 up to 0.21 dex too slow). The model ends on the
+# generator's own main sequence (`stellar_evolution`), which is 0.05 to 0.28
+# dex brighter than the table's 1 Gyr star below 1.2 solar masses (the table
+# is solar-composition at 1 Gyr, the generator's relation is anchored on the
+# Sun), so a state against the table is that much too bright at the end of the
+# contraction. At 1 to 10 Myr the luminosity is within 0.25 dex of the table up
+# to 0.3 solar masses and up to 0.35 dex too bright from 0.5 to 1.4, where the
+# derived Hayashi phase falls more slowly than the table's.
 PRE_MAIN_SEQUENCE_MAX_MASS_SOL = 8.0
-PRE_MAIN_SEQUENCE_MAX_AGE_YR = 10.0e6
+# No star contracts longer than this: the track takes the lightest star (0.08 solar masses) 0.94 Gyr. A shortcut for
+# the old stars, which are nearly all of them; the test checks it against the track.
+PRE_MAIN_SEQUENCE_LONGEST_YR = 1.0e9
 PROTOSTAR_MAX_AGE_YR = 0.5e6
-HAYASHI_TEMPERATURE_1_SOL_K = 4300.0
-HAYASHI_TEMPERATURE_MASS_EXPONENT = 0.17
-BIRTHLINE_RADIUS_1_SOL_RSUN = 2.5
-BIRTHLINE_RADIUS_MASS_EXPONENT = 1.0 / 3.0
+HAYASHI_TEMPERATURE_1_SOL_K = 4357.0
+HAYASHI_TEMPERATURE_MASS_EXPONENT = 0.1815
+BIRTHLINE_RADIUS_1_SOL_RSUN = 3.187
+BIRTHLINE_RADIUS_MASS_EXPONENT = 0.4335
 CONVECTIVE_BINDING_COEFFICIENT = 3.0 / 7.0
 RADIATIVE_BINDING_COEFFICIENT = 3.0 / 4.0
-# Contraction alone, at the luminosity the star radiates, takes a solar-mass star to the main sequence in 12 Myr and
-# a 0.1 solar-mass star in 245 Myr, where the published tracks give about 40 Myr and 1 Gyr: deuterium burning and
-# the heat of the interior pay for part of the light. The time is stretched by this factor [I], set to that one
-# remembered anchor (1 solar mass, 40 Myr); the shape in mass is the derived one.
-PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR = 3.5
+PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR = 3.0
 # The disk (VANDAM and the TODO text, GEN.242): Class 0 under 0.15 Myr, I under
 # 0.5, II under 3, and none after; mass 0.01 to 0.3 of the star and outer
 # radius 10 to 300 AU, each log-uniform; the inner edge is where a blackbody
@@ -1086,14 +1142,16 @@ CLOSE_BINARY_FRACTION_BY_FE_H = {-3.0: 0.53, -1.0: 0.40, -0.2: 0.24, 0.5: 0.10}
 
 # The semi-major axis at which half of the pairs of age t survive passing stars is
 # `ENCOUNTER_LIMIT_COEFFICIENT * (M1 + M2) * sigma / (G * rho_2 * t)` (Bahcall, Hut & Tremaine 1985, ApJ 290:15, as
-# Jiang & Tremaine 2010, MNRAS 401:977 restate it, arXiv 0907.2952). The coefficient is that source's; what it folds
-# in (the Coulomb logarithm, the encounter integral) was not checked.
+# Jiang & Tremaine 2010, MNRAS 401:977 restate it in their equation (1), arXiv 0907.2952), with sigma the dispersion of
+# the relative velocity (root 2 times a population's one-dimensional dispersion) and rho_2 the second moment of the
+# perturbers' mass function (GEN.447, `generation.place_terms`). The coefficient reproduces their worked 3.1e4 AU.
 ENCOUNTER_LIMIT_COEFFICIENT = 0.002
 
 # A system drawn with no galaxy placement (a single system from the command line) has no cell to read a density and
 # a dispersion from; it takes the Sun's neighbourhood, the way `constants.GALACTIC_CENTER_DISTANCE_LY` stands for its
-# distance from the centre. Recalled round values (Jiang & Tremaine 2010: 0.1 Msun/pc^3 in mass, a field dispersion
-# of 30 km/s), to verify.
+# distance from the centre. Recalled round values (a mass density of 0.1 Msun/pc^3 and a field dispersion of
+# 30 km/s; Jiang & Tremaine 2010 use 0.045 Msun/pc^3 for the observed stars and 29 km/s, their equation 47 and section 5),
+# to verify.
 SOLAR_NEIGHBOURHOOD_MASS_DENSITY_SOLAR_PC3 = 0.1
 SOLAR_NEIGHBOURHOOD_DISPERSION_KMS = 30.0
 
@@ -2180,11 +2238,14 @@ HABITABLE_FLAVOR = [ # Flavor text for any habitable world.
 # instead draws an intermediate-mass black hole (IMBH), log-uniform over
 # ~1e2-1e5 Msun -- the range between stellar and supermassive black
 # holes (Greene, Strader & Ho 2020, ARA&A 58:257). Boss (2026-09-30)
-# wants them "a smattering (rare)": retuned 2026-10-09 from 2% to 0.1%
-# (about 1e5 in a Milky Way-sized galaxy; the observed candidates number a handful).
+# wants them "a smattering (rare)": retuned 2026-10-09 from 2% to 0.1%, which
+# gave about 1e5 in a Milky Way-sized galaxy against the handful of observed
+# candidates, and on 2026-10-16 (Boss, decision card, GEN.259) to 3e-6, so that
+# a Milky Way-sized galaxy, with about 1e8 black holes, holds about 300 of them
+# ("hundreds, as the observations suggest") [R].
 BLACK_HOLE_MASS_RANGE_SOLAR = (5.0, 20.0)
 BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR = (1e2, 1e5)
-BLACK_HOLE_INTERMEDIATE_MASS_CHANCE = 0.001
+BLACK_HOLE_INTERMEDIATE_MASS_CHANCE = 3.0e-6
 
 # A quiescent supermassive black hole sits at the center of every galaxy
 # whose nucleus isn't an active quasar (generate.add_galactic_nucleus).
@@ -2246,11 +2307,14 @@ GALAXY_DISK_SCALE_LENGTH_PC = 2600.0
 # Freire 2016, ARA&A 54:401, compiling radio pulsar timing masses).
 NEUTRON_STAR_MASS_RANGE_SOLAR = (1.1, 2.2)
 
-# Neutron star radius range in km, from NICER x-ray pulse-profile
-# modeling of PSR J0030+0451 and PSR J0740+6620 (Miller et al. 2019,
-# ApJL 887:L24; Miller et al. 2021, ApJL 918:L28), which converged on
-# radii clustering near 11-13 km across the measured mass range.
-NEUTRON_STAR_RADIUS_RANGE_KM = (10.0, 13.0)
+# Neutron star radius (GEN.463, physics/neutron_star.py): the centre and the
+# spread, km, at two masses, from Miller et al. 2021 (ApJL 918:L28,
+# arXiv:2105.06979): R(1.4 Msun) = 12.45 +- 0.65 and R(2.08 Msun) = 12.35 +-
+# 0.75, the full range of the 68% intervals over three equation-of-state
+# frameworks; a star draws a normal deviation about the line between them,
+# clipped at NEUTRON_STAR_RADIUS_CLIP_SIGMA deviations (the 95% band).
+NEUTRON_STAR_RADIUS_ANCHORS = ((1.4, 12.45, 0.65), (2.08, 12.35, 0.75))
+NEUTRON_STAR_RADIUS_CLIP_SIGMA = 2.0
 
 # Pulsar spin period, in milliseconds, split into the two real observed
 # populations (Lorimer 2008, "Binary and Millisecond Pulsars", Living
@@ -2971,27 +3035,31 @@ SYSTEM_COMET_CHANCE = 0.3
 # --- Prevalence (generation/prevalence.py, GEN.52) ---
 # The share of systems that come out with each feature that no single draw
 # decides, measured over 20,000 systems generated with default options
-# (four seeds of 5,000; 2026-10-07). A sector or galaxy run's
+# (four seeds of 5,000; 2026-10-07, remeasured 2026-10-17 after GEN.447 to
+# GEN.449 changed the companions). A sector or galaxy run's
 # `--prevalence feature=+50` forces the feature on in enough systems to
 # make that share 1.5 times as large. Remeasure after a change to
 # generation moves one of them: tests/test_prevalence.py checks they still
 # hold within a few points.
 PREVALENCE_BASE_SHARES = {
-    "habitable_world": 0.242,   # a habitable planet or moon
-    "asteroid_belt": 0.590,     # an asteroid belt
-    "large_star": 0.052,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
-    "planets": 0.959,           # at least one planet or belt
+    "habitable_world": 0.257,   # a habitable planet or moon
+    "asteroid_belt": 0.607,     # an asteroid belt
+    "large_star": 0.050,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
+    "planets": 0.961,           # at least one planet or belt
 }
 
 # The usual share of each feature one draw decides (ADM.16: the Generate
 # page starts each prevalence field at its usual share), measured over
-# 10,000 systems with default options (four seeds of 2,500; 2026-10-08).
+# 10,000 systems with default options (four seeds of 2,500; 2026-10-08;
+# comets, binary_system and wide_binary remeasured 2026-10-17 over 20,000
+# systems, four seeds of 5,000: GEN.448 puts 93% of the binaries in the wide
+# class, the close class being the 0.05 to 0.25 AU range only).
 # Each is a share of the things in its comment, not always of systems.
 # Remeasure with PREVALENCE_BASE_SHARES.
 PREVALENCE_DRAW_SHARES = {
-    "comets": 0.334,            # systems with comets (each star of a wide pair draws)
-    "binary_system": 0.303,     # systems with two stars
-    "wide_binary": 0.499,       # binaries that are wide pairs
+    "comets": 0.321,            # systems with comets (each star of a wide pair draws)
+    "binary_system": 0.260,     # systems with two stars
+    "wide_binary": 0.928,       # binaries that are wide pairs
     "moons": 0.429,             # planets with at least one moon
     "max_planets": 0.037,       # stars that get the most orbits they can hold
 }
@@ -3364,10 +3432,35 @@ HYPERVELOCITY_STAR_SPEED_RANGE_KMS = (500.0, 1000.0)
 """tuple: A hypervelocity star's speed, km/s (Brown 2015)."""
 
 HYPERVELOCITY_STARS_PER_GALAXY = (1e3, 1e4)
-"""tuple: How many hypervelocity stars a galaxy's scatter places, drawn
-log-uniformly between the two ends (Boss 2026-10-08: "about 1e3 to 1e4
-galaxy-wide"; Brown 2015). Each starts at the central black hole and moves
-outward at `HYPERVELOCITY_STAR_SPEED_RANGE_KMS`."""
+"""tuple: How many hypervelocity stars a galaxy's scatter places out to `HYPERVELOCITY_COUNT_RADIUS_KPC`, drawn
+log-uniformly between the two ends (Boss 2026-10-08: "about 1e3 to 1e4 galaxy-wide"; Brown 2015). Each starts at the
+central black hole and moves outward at `HYPERVELOCITY_STAR_SPEED_RANGE_KMS`; their density falls as r^-2, so the
+count out to a reach is this number times the reach over that radius (GEN.238)."""
+
+NEUTRON_STAR_UNBOUND_FRACTION_RANGE = (0.2, 0.4)
+"""tuple: The share of a galaxy's neutron stars a birth kick sends out of it, drawn once per galaxy from its seed
+(GEN.238; 20% to 40% of the isolated ones: Hobbs et al. 2005's kick distribution against the escape speed)
+[S, recalled; to verify]."""
+
+BLACK_HOLE_UNBOUND_FRACTION = 0.02
+"""float: The share of a galaxy's black holes that are ejected (GEN.238; about 2%) [S, recalled; to verify]."""
+
+EJECTA_SPEED_RANGE_KMS = (300.0, 500.0)
+"""tuple: The speed a kicked neutron star or black hole has far out, above the galaxy's escape speed, km/s (GEN.238)
+[I]. The population's density takes the middle of it; each object draws its own, uniform."""
+
+EJECTA_AGE_GY = 10.0
+"""float: How long the ejecta of a galaxy have been leaving, Gyr: with `EJECTA_SPEED_RANGE_KMS` it sets where the
+population ends, at `v T` (3 to 5 Mpc, far beyond any grid's reach) (GEN.238) [I]."""
+
+EJECTA_MAX_PER_CELL = 50.0
+"""float: The most ejected objects of one kind a cell draws (GEN.238), a program limit: the draw is O(mean), and a galaxy
+shaped to hold astronomically many systems in a few cells would otherwise draw more than a cell has room for. The real
+galaxy's densest cells draw far fewer."""
+
+HYPERVELOCITY_COUNT_RADIUS_KPC = 100.0
+"""float: The radius the count `HYPERVELOCITY_STARS_PER_GALAXY` is read to: "galaxy-wide" is taken as out to 100 kpc,
+the halo's extent (docs/design/intergalactic-and-halo-contents.md 2.3) [I]."""
 
 
 PHENOMENON_MIN_MASS_PRESETS = (8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0)
@@ -3396,8 +3489,8 @@ or above it; a sector draws the rest when it is filled (GEN.168). An
 object's tidal sphere (1.44 pc per cube root of a solar mass) reaches one
 4 pc sector edge at about 21 solar masses, so below the cut an object's
 pull stays within its own and the neighbouring sectors. 20 first (only the
-intermediate-mass black holes scattered: about 2.7e5 rows instead of
-1.17e9); 8 on 2026-10-10 (Boss, the bottom preset)."""
+intermediate-mass black holes scattered: about 2.7e5 rows at a 0.1%
+share, about 800 at the 3e-6 of GEN.259, instead of 1.17e9); 8 on 2026-10-10 (Boss, the bottom preset)."""
 
 
 def phenomenon_rate_per_star(kind):

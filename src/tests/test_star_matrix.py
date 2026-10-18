@@ -24,7 +24,7 @@ import pytest
 from planetgen.galaxy import mass_chain
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star, _sample_evolved_star_mass_sol
-from planetgen.physics import constants as pc
+from planetgen.physics import constants as pc, ms_lifetime
 from planetgen import tuning as prog_c
 
 SPECTRAL_CLASSES = ["O", "B", "A", "F", "G", "K", "M"]
@@ -148,7 +148,7 @@ def test_evolved_stars_are_at_least_as_old_as_their_own_main_sequence_lifespan(y
     for spec in SPECTRAL_CLASSES:
         s = make_star(f"{spec}5{yerkes_class}")
         mass_sol = s.mass / pc.SOLAR_MASS_TO_KG
-        ms_lifespan = 10.0 * mass_sol ** -2.5
+        ms_lifespan = ms_lifetime.lifetime_gy(mass_sol)
         assert s.age >= ms_lifespan * 0.999, (
             f"{spec}5{yerkes_class}: age {s.age} Gy is younger than its own "
             f"implied main-sequence lifespan {ms_lifespan} Gy"
@@ -166,7 +166,7 @@ def test_evolved_star_mass_never_implies_a_pre_big_bang_star(yerkes_class):
     star with that mass could never actually be observed as an evolved
     class today. Class III (Giant)'s allowed mass range (0.8-8 Msun, see
     physical_constants.YERKES_MASS_CONSTRAINTS) is the one that actually
-    brushes the ~0.88 Msun cutoff, so more trials run there to exercise the
+    brushes the ~0.93 Msun cutoff, so more trials run there to exercise the
     reject-and-resample loop (Star._sample_evolved_star_mass_sol).
     """
     trials = 200 if yerkes_class == "III" else 20
@@ -174,7 +174,7 @@ def test_evolved_star_mass_never_implies_a_pre_big_bang_star(yerkes_class):
         for _ in range(trials):
             s = make_star(f"{spec}5{yerkes_class}")
             mass_sol = s.mass / pc.SOLAR_MASS_TO_KG
-            ms_lifespan = 10.0 * mass_sol ** -2.5
+            ms_lifespan = ms_lifetime.lifetime_gy(mass_sol)
             assert ms_lifespan <= prog_c.UNIVERSE_AGE_GY * 1.001, (
                 f"{spec}5{yerkes_class}: mass {mass_sol} Msun implies a "
                 f"main-sequence lifespan of {ms_lifespan} Gy, longer than the "
@@ -187,7 +187,7 @@ def test_sample_evolved_star_mass_sol_rejects_pre_big_bang_masses():
     """
     Unit-level regression test for Star._sample_evolved_star_mass_sol
     itself: every mass it returns for class III (Giant)'s allowed range
-    (0.8-8 Msun -- the one class where the ~0.88 Msun cutoff actually falls
+    (0.8-8 Msun -- the one class where the ~0.93 Msun cutoff actually falls
     inside the range) must have an implied main-sequence lifespan within
     the age of the universe, even though plain uniform sampling over that
     same range would sometimes land below the cutoff.
@@ -196,7 +196,7 @@ def test_sample_evolved_star_mass_sol_rejects_pre_big_bang_masses():
     for _ in range(500):
         mass_sol = _sample_evolved_star_mass_sol(min_mass_sol, max_mass_sol)
         assert min_mass_sol <= mass_sol <= max_mass_sol
-        ms_lifespan = prog_c.SOLAR_MS_LIFESPAN_GY * mass_sol ** prog_c.MS_LIFESPAN_MASS_EXPONENT
+        ms_lifespan = ms_lifetime.lifetime_gy(mass_sol)
         assert ms_lifespan <= prog_c.UNIVERSE_AGE_GY * 1.001, (
             f"sampled mass {mass_sol} Msun implies a main-sequence lifespan of "
             f"{ms_lifespan} Gy, longer than the age of the universe"

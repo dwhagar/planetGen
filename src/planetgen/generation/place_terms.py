@@ -10,11 +10,129 @@ profile's part to the system draw on `SystemConfig.PLACE_TERMS`; a system drawn 
 `SOLAR_NEIGHBOURHOOD`.
 """
 
+import functools
 import math
 from dataclasses import dataclass
 
+import numpy as np
+
 from planetgen import tuning
-from planetgen.physics import constants
+from planetgen.generation import multistar
+from planetgen.physics import constants, ms_lifetime
+
+
+RELATIVE_VELOCITY_FACTOR = math.sqrt(2.0)
+"""float: A pair's perturbers move past it with the *relative* velocity dispersion, root 2 times a population's own
+one-dimensional dispersion for two stars drawn from the same distribution (Jiang and Tremaine 2010, section 5: "the
+relative velocity dispersion to be 2^(1/2) times this", 29 km/s becoming 40 km/s). The population dispersions of
+`tuning.STELLAR_POPULATION_DISPERSION_KMS` are one-dimensional, so `encounter_limit_au` multiplies by this (GEN.447)."""
+
+_COHORT_AGES = 24
+"""int: Ages of the midpoint rule that averages a population's cohorts, which formed at a steady rate over its range."""
+
+_REMNANT_GRID_POINTS = 400
+"""int: Points of the log grid the white dwarf masses are integrated on (the initial-final relation is clipped)."""
+
+
+def _imf_segments():
+    """`((low, high, alpha, k), ...)`: the generator's initial mass function (`tuning.IMF_BREAKS_SOL`, `IMF_SLOPES`),
+    each segment `k M^-alpha`, joined continuously."""
+    breaks, slopes = tuning.IMF_BREAKS_SOL, tuning.IMF_SLOPES
+    norms = [1.0]
+    for i in range(1, len(slopes)):
+        norms.append(norms[-1] * breaks[i] ** (slopes[i] - slopes[i - 1]))
+    return tuple((breaks[i], breaks[i + 1], slopes[i], norms[i]) for i in range(len(slopes)))
+
+
+def _imf_integral(power, low, high):
+    """`integral of M^power xi(M) dM` from `low` to `high` (initial masses, solar masses; `xi` the IMF)."""
+    total = 0.0
+    for seg_low, seg_high, alpha, k in _imf_segments():
+        a, b = max(low, seg_low), min(high, seg_high)
+        if a >= b:
+            continue
+        exponent = power + 1.0 - alpha
+        total += k * (math.log(b / a) if exponent == 0.0 else (b ** exponent - a ** exponent) / exponent)
+    return total
+
+
+def _uniform_moments(mass_range):
+    """`(mean, mean of the square)` of a mass drawn uniformly over `mass_range`."""
+    low, high = mass_range
+    return 0.5 * (low + high), (low * low + low * high + high * high) / 3.0
+
+
+def _present_day_moments(age_gy, remnants=True):
+    """
+    `(sum of M, sum of M squared)` over everything a cohort of one age holds now, per unit of the IMF's number: the
+    stars still on the main sequence (initial mass up to the turn-off, where the main-sequence lifetime reaches the
+    age) and the remnants of the rest, by the progenitor ranges the generator draws remnants from
+    (`multistar.WHITE_DWARF_PROGENITOR_SOL` and the others) and their mass rules: white dwarfs by the initial-final
+    relation, neutron stars and black holes uniform over their mass ranges. Neutron stars take the progenitors from
+    the white dwarf range's top to the black hole range's start; a black hole the rest up to the IMF's top.
+    """
+    top = tuning.IMF_BREAKS_SOL[-1]
+    turn_off = min(top, ms_lifetime.mass_for_lifetime_gy(age_gy))
+    low_edge = tuning.IMF_BREAKS_SOL[0]
+    mass = _imf_integral(1.0, low_edge, turn_off)
+    square = _imf_integral(2.0, low_edge, turn_off)
+    if not remnants:
+        return mass, square
+
+    wd_low, wd_high = multistar.WHITE_DWARF_PROGENITOR_SOL
+    wd_low = max(wd_low, turn_off)
+    if wd_low < wd_high:
+        grid = np.geomspace(wd_low, wd_high, _REMNANT_GRID_POINTS)
+        middle = 0.5 * (grid[:-1] + grid[1:])
+        weight = np.array([_imf_integral(0.0, a, b) for a, b in zip(grid[:-1], grid[1:])])
+        remnant = np.clip(tuning.WD_IFMR_SLOPE * middle + tuning.WD_IFMR_INTERCEPT_SOL, *tuning.WD_MASS_RANGE_SOL)
+        mass += float(np.sum(weight * remnant))
+        square += float(np.sum(weight * remnant * remnant))
+
+    ns_low, bh_low = max(wd_high, turn_off), multistar.BLACK_HOLE_PROGENITOR_SOL[0]
+    if ns_low < bh_low:
+        number = _imf_integral(0.0, ns_low, bh_low)
+        first, second = _uniform_moments(tuning.NEUTRON_STAR_MASS_RANGE_SOLAR)
+        mass += number * first
+        square += number * second
+    number = _imf_integral(0.0, max(bh_low, turn_off), top)
+    first, second = _uniform_moments(tuning.BLACK_HOLE_MASS_RANGE_SOLAR)
+    mass += number * first
+    square += number * second
+    return mass, square
+
+
+@functools.lru_cache(maxsize=256)
+def _cohort_moments(age_low_gy, age_high_gy, remnants=True):
+    """`_present_day_moments` averaged over a population whose stars formed at a steady rate between two ages."""
+    low, high = sorted((max(age_low_gy, 1.0e-4), max(age_high_gy, 1.0e-4)))
+    ages = low + (high - low) * (np.arange(_COHORT_AGES) + 0.5) / _COHORT_AGES
+    moments = [_present_day_moments(float(age), remnants) for age in ages]
+    return (sum(m for m, _s in moments) / _COHORT_AGES, sum(s for _m, s in moments) / _COHORT_AGES)
+
+
+def mass_weighted_perturber_mass_solar(populations, remnants=True):
+    """
+    The perturber mass of Jiang and Tremaine 2010's `rho_2` (their eq. 47): the second moment of the mass function over
+    its first, `<M^2> / <M>`, so that `rho_2 = rho * <M^2> / <M>` for a mass density `rho` (GEN.447). The mass function is
+    the generator's own: its initial mass function, aged to each population's age range, with the remnants of what has
+    left the main sequence.
+
+    Args:
+        populations (iterable): `(weight, (youngest_age_gy, oldest_age_gy))` pairs, the weight each population's share
+            of the stars formed.
+        remnants (bool): Whether the white dwarfs, neutron stars and black holes count (they do; `False` is the stars
+            alone, the comparison with Jiang and Tremaine's observed mass function).
+
+    Returns:
+        float: Solar masses.
+    """
+    first = second = 0.0
+    for weight, (age_low, age_high) in populations:
+        mass, square = _cohort_moments(round(float(age_low), 6), round(float(age_high), 6), remnants)
+        first += weight * mass
+        second += weight * square
+    return second / first if first > 0.0 else tuning.MEAN_SYSTEM_MASS_SOLAR
 
 
 @dataclass(frozen=True)
@@ -25,11 +143,12 @@ class PlaceTerms:
     Attributes:
         mass_density_solar_pc3 (float): Stellar mass per cubic parsec at the place.
         dispersion_kms (float): The velocity dispersion of the field there, km/s.
-        perturber_mass_solar (float): The mean mass of the stars and remnants that pass a pair.
+        perturber_mass_solar (float): The mass-weighted mean mass, `<M^2> / <M>`, of the stars and remnants that pass a
+            pair (`mass_weighted_perturber_mass_solar`); the default is the whole disk's star formation history.
     """
     mass_density_solar_pc3: float
     dispersion_kms: float
-    perturber_mass_solar: float = tuning.MEAN_SYSTEM_MASS_SOLAR
+    perturber_mass_solar: float = mass_weighted_perturber_mass_solar([(1.0, tuning.STAR_FORMATION_AGE_RANGE_GY)])
 
 
 SOLAR_NEIGHBOURHOOD = PlaceTerms(
@@ -42,13 +161,16 @@ def from_profile(profile):
     """
     The terms of the place a `galaxy.profile.SectorProfile` describes: the mass density is the cell's expected
     systems over its volume times the mean system mass, the dispersion the root mean square of the populations'
-    dispersions weighted by their shares (the heavier the share, the more of the stars that move that way).
+    dispersions weighted by their shares (the heavier the share, the more of the stars that move that way), the
+    perturber mass the mass-weighted mean of the mass function of the populations the cell holds (GEN.447).
     """
     systems_per_pc3 = profile.expected_systems / profile.volume_pc3 if profile.volume_pc3 > 0.0 else 0.0
     weighted = sum(p.share * p.dispersion_kms ** 2 for p in profile.populations.values())
     dispersion = math.sqrt(weighted) if weighted > 0.0 else tuning.SOLAR_NEIGHBOURHOOD_DISPERSION_KMS
+    perturber = mass_weighted_perturber_mass_solar(
+        (p.share, p.age_gy) for p in profile.populations.values() if p.share > 0.0)
     return PlaceTerms(mass_density_solar_pc3=systems_per_pc3 * tuning.MEAN_SYSTEM_MASS_SOLAR,
-                      dispersion_kms=dispersion)
+                      dispersion_kms=dispersion, perturber_mass_solar=perturber)
 
 
 def close_companion_factor(fe_h):
@@ -89,7 +211,9 @@ def encounter_limit_au(terms, total_mass_solar, age_gy):
     """
     The semi-major axis at which half the pairs of this age survive passing stars (Bahcall, Hut and Tremaine
     1985, as Jiang and Tremaine 2010 restate it): `0.002 (M1 + M2) sigma / (G rho_2 t)`, with `rho_2` the mass
-    density times the mean perturber mass. Infinite where nothing passes (a zero density) or the pair has no age.
+    density times the mass-weighted perturber mass (`<M^2> / <M>`) and `sigma` the dispersion of the relative velocity,
+    `RELATIVE_VELOCITY_FACTOR` times the field's one-dimensional dispersion (their eq. 1 and section 5; GEN.447).
+    Infinite where nothing passes (a zero density) or the pair has no age.
     """
     rho2 = terms.mass_density_solar_pc3 * terms.perturber_mass_solar
     if rho2 <= 0.0 or age_gy <= 0.0:
@@ -97,7 +221,7 @@ def encounter_limit_au(terms, total_mass_solar, age_gy):
     rho2_si = rho2 * constants.SOLAR_MASS_TO_KG ** 2 / constants.PARSEC_M ** 3
     seconds = age_gy * 1.0e9 * constants.SECONDS_PER_YEAR
     metres = (tuning.ENCOUNTER_LIMIT_COEFFICIENT * total_mass_solar * constants.SOLAR_MASS_TO_KG
-              * terms.dispersion_kms * 1000.0) / (constants.G * rho2_si * seconds)
+              * RELATIVE_VELOCITY_FACTOR * terms.dispersion_kms * 1000.0) / (constants.G * rho2_si * seconds)
     return metres / constants.AU_M
 
 

@@ -51,6 +51,13 @@ class SystemConfig:
         profile's `type_ia_share`, GEN.319). None for the solar circle's, `tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE`.
         """
 
+        self.AMBIENT_DENSITY_CM3 = None
+        """
+        float or None: The density of the gas the sector's supernova remnants expand into where they sit in a
+        superbubble (the cavity's `ambient_density_cm3`, GEN.298): their size law reads it. None outside a bubble:
+        the remnant's own class density.
+        """
+
         self.HABITABLE_WORLD = None
         """
         bool or None: If True, the system generation will attempt to force the
@@ -159,8 +166,8 @@ class SystemConfig:
         binary behavior this generator had before this option existed,
         where the two stars are merged into one effective star
         (`binary.BinaryStarProxy`) for the purposes of planet
-        placement. If None, one of the two is chosen at random (see
-        `program_constants.WIDE_BINARY_DEFAULT_CHANCE`). Defaults to None.
+        placement. If None, one of the two is chosen at random by the primary's companions per
+        decade of period (`generation.companion_classes`). Defaults to None.
         """
 
         self.NUM_ORBITS = None

@@ -800,3 +800,18 @@ Baseline: PR #1817.
 | UX.3 | 8.1 | Generate page and directives |
 | DOC.24 | 8.1 | Docs |
 | UX.118 | 8.1 | Queue, caches and performance |
+| GEN.449 | 8.1 | Multi-star and compact systems |
+| GEN.448 | 8.1 | Multi-star and compact systems |
+| GEN.447 | 8.1 | Multi-star and compact systems |
+| MAP.245 | 8.1 | Fly-through map |
+| GEN.289 | 8.3 | Positions as one object |
+| GEN.463 | 8.1 | Bugs and flaky tests |
+| GEN.467 | 8.1 | Bugs and flaky tests |
+| GEN.502 | 8.1 | Bugs and flaky tests |
+| GEN.529 | 8.1 | Nebula and young stars |
+| GEN.259 | 8.1 | Galactic core and halo |
+| TEST.213 | 8.1 | Bugs and flaky tests |
+| GEN.314 | 8.1 | Multi-star and compact systems |
+| TEST.230 | 8.1 | Bugs and flaky tests |
+| GEN.238 | 8.1 | Components and wanderers |
+| GEN.298 | 8.1 | Components and wanderers |

@@ -13,7 +13,7 @@ from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants as pc
+from planetgen.physics import body_state, constants as pc
 from planetgen.physics import state_vectors as sv
 
 KM_S_PER_AU_YR = pc.AU_TO_KM / pc.SECONDS_PER_YEAR
@@ -170,9 +170,12 @@ def test_advancing_the_orbits_moves_the_velocity_with_the_position(mysql_config)
         store.advance_comet_orbits(conn, store.orbit_clock(conn, 0.37))
         for table in ("planets", "moons"):
             for row in conn.execute(f"SELECT * FROM {table} WHERE star_system_id = ?", (system_id,)).fetchall():
+                phase_deg = body_state.argument_of_latitude_deg(
+                    (row["position_x_km"], row["position_y_km"], row["position_z_km"]),
+                    row["orbital_inclination_deg"], row["orbital_ascending_node_deg"])
                 expected = circular_orbital_velocity_au_per_year(
                     row["distance_km"] / pc.AU_TO_KM, row["orbital_inclination_deg"], row["orbital_ascending_node_deg"],
-                    row["orbital_phase_deg"], row["period_years"])
+                    phase_deg, row["period_years"])
                 got = (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
                 assert got == pytest.approx(tuple(v * KM_S_PER_AU_YR for v in expected), rel=1e-9, abs=1e-9)
         for row in conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchall():
