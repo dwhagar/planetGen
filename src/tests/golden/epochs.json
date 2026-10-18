@@ -114,6 +114,12 @@
       "epoch": 23,
       "first_release": "8.0.1776",
       "reason": "The thick disk, bar and stellar halo are drawn from the galaxy seed (thick-disk mass, length and height from the circular speed, the bar's presence, axis ratios and angle, the halo's share of the stars), and the young, intermediate and old heights and every population's velocity dispersion come from one heating law with a molecular birth-gas stand-in, so a seed places different stars, motions and bar-gap star formation (GEN.532, GEN.533)."
+    },
+    {
+      "epoch": 24,
+      "first_release": null,
+      "pending": true,
+      "reason": "The three rounded unit factors become the exact ones: a light-year is 63241.0770843 AU (was 63241.077) and a parsec is 3.2615637772 light-years (was 3.26156), so an H II region's stored radius in light-years changes in its last digits and an asteroid field's size digit can change at its floor boundary (GEN.572)."
     }
   ]
 }
