@@ -4106,7 +4106,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
   lane queue); a line here that named Core 4 was the TODO thread's
   counting error, corrected 2026-10-16, 4:50 PM EDT.
-  Prerequisites: GEN.317, GEN.318.
+  Prerequisites: GEN.317, GEN.318, GEN.552.
 
 - [ ] **GEN.136 Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests**
   GEN.58 as built hashes floats exactly; the research recommends
@@ -4947,7 +4947,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.318 (Core 3)). Core 4 asks Core 3
   before touching stellar evolution constants in tuning.py. A line here
   that named Core 3 or Core 4 earlier is replaced by this one.
-  Prerequisites: GEN.318.
+  Prerequisites: GEN.318, GEN.562.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.255 Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes**
@@ -5812,8 +5812,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.243, GEN.244, GEN.282, GEN.284, TEST.159,
-  TEST.160, GEN.450, TEST.196, GEN.530.
+  Prerequisites: GEN.243, GEN.244, GEN.282, GEN.284, TEST.159, TEST.160,
+  GEN.450, TEST.196, GEN.530, GEN.563.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -6100,7 +6100,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: none. Related: GEN.130, GEN.436, GEN.444.
+  Prerequisites: GEN.552. Related: GEN.130, GEN.436, GEN.444.
 
 - [ ] **GEN.318 White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk**
   Split from GEN.130 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6181,7 +6181,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its values, and this item writes `dynamical` into it. Core 3 may carry
   the two in one PR; check that the column is in DB.53's remaining
   slices.
-  Prerequisites: GEN.329. Related: GEN.273.
+  Prerequisites: GEN.329, GEN.562. Related: GEN.273.
 
 - [ ] **GEN.328 Groups at fill in star-forming cores and OB regions**
   Split from GEN.273 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -7102,7 +7102,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Changed behaviour recorded with GEN.333: the brightest white dwarf is
   now 50 solar luminosities (it was 100), so the luminosity floors and
   caps may go as low as 50. Owner: Core 3.
-  Prerequisites: none. Related: GEN.333, GEN.283, UX.116, GEN.301.
+  Prerequisites: GEN.562. Related: GEN.333, GEN.283, UX.116, GEN.301.
 
 - [ ] **GEN.378 The galaxy type families: the checked design with its scaling relation table and the draw order**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
@@ -13890,6 +13890,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   behaviour change, at Boss's ask for foundations (11:33 PM EDT).
   Back-scatter of the 8.4 items against 8.1 is in progress at Boss's ask
   (11:33 PM EDT).
+  Back-scatter result (Boss's back-scatter cards, taps 11:38 to 11:40 PM
+  EDT, 2026-10-17, as the coordinator relayed): GEN.552 (host registry)
+  moves to 8.1 phase 3 ahead of GEN.317 and GEN.130; new 8.1 items
+  GEN.562 (one relation function, no behaviour change) and GEN.563
+  (black hole density only, needs GEN.560, a prerequisite of GEN.301);
+  one 8.4 revision carries DB.73 and DB.67 to DB.71 (order agreed by
+  Cores 1 and 4); nothing else of the chain moves. Core 1 is asked to
+  confirm that a refill, not a rescatter, is enough for every fill-level
+  8.4 item (answer pending).
 
 - [ ] **GEN.552 Host registry: the five fixed `system_model` values become pointers to one gated orbiter table per host class, with no change in behaviour**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -13908,7 +13917,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the tables, each row labelled with its source state; the stage C
   system pass reads them (its `SYSTEM_PASS_ODDS` becomes rows). Done: a
   fill with the tables gives byte-identical systems to one without.
-  Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built), 8.4 phase 1. Standing
+  Owner: Core 4 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed). Moved to 8.1 phase 3 (Boss's back-scatter cards, taps 11:38 to 11:40 PM EDT, 2026-10-17, as the coordinator relayed, card 'Add to 8.1': always in 8.1 before GEN.317 and GEN.130, even if it delays Core 4's other 8.1 work); it is a prerequisite of GEN.317 and GEN.130 so they are written once against the host tables, not twice against the five fixed values. No epoch. Standing
   rules for the whole chain: NO FIXED CONTENT (nothing copied from the
   Solar System or the Milky Way), the database schema is not a
   constraint, no backward-compatibility shims, every draw through the
@@ -13951,6 +13960,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   value bumps the generator epoch (OPS.56 rule).
   Prerequisites: GEN.439, GEN.440. Related: GEN.550, GEN.252,
   GEN.463, GEN.467, GEN.469.
+  Back-scatter answer (Boss's back-scatter cards, taps 11:38 to 11:40 PM
+  EDT, 2026-10-17, as the coordinator relayed): the relation function
+  for the white dwarf initial-final relation and the neutron star and
+  black hole mass draw moves to 8.1 as GEN.562 with no behaviour change;
+  the rest of this item (the five-step body draw, the free brown dwarf,
+  ages from the population) stays in 8.4.
 
 - [ ] **GEN.554 Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -13987,6 +14002,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   value bumps the generator epoch (OPS.56 rule).
   Prerequisites: GEN.553. Related: GEN.550, GEN.463, GEN.467, GEN.469,
   GEN.377.
+  Back-scatter answer (Boss's back-scatter cards, taps 11:38 to 11:40 PM
+  EDT, 2026-10-17, as the coordinator relayed): the black hole density
+  constant alone moves to 8.1 as GEN.563 (needs GEN.560); the derived
+  counts for every remnant, the kick step and the rest of this item stay
+  in 8.4; the neutron star count already matches and does not change.
 
 - [ ] **GEN.555 The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -14183,6 +14203,59 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   queue, after the description-layer bundle, UX.109, UX.107 and DOC.45; its branch note cites GEN.561). Filed by the TODO
   thread at Core 4's request (11:27 PM EDT as the lane reported).
   Prerequisites: GEN.218. Related: TEST.155, GEN.218, GEN.288.
+
+- [ ] **GEN.562 One function for the white-dwarf initial-final relation and for the neutron star and black hole mass draw, with no change in what any seed generates**
+  From Boss's back-scatter cards (Boss's back-scatter cards, taps 11:38
+  to 11:40 PM EDT, 2026-10-17, as the coordinator relayed) on the
+  unified orbited-body design (docs/design/unified-star-like-objects.md,
+  GEN.550). Boss's card: add to 8.1. Today the white dwarf initial-final
+  relation is applied in four files (`stellar_evolution`, `multistar`,
+  `scatter_companions`, `place_terms`) and the neutron star and black
+  hole mass draw in five (design thread's read of main at bc97f75), with
+  a separate Gaussian for a hot central star and a uniform draw for a
+  cool one. Do: one function (one module) each for the white dwarf final
+  mass from the progenitor and for the neutron star and black hole mass,
+  every caller uses it, the copies go with no shim; the output of every
+  seed stays the same, so no generator epoch bump and the golden files
+  do not change. Why in 8.1: GEN.327, GEN.253 and GEN.377 (and GEN.273
+  behind GEN.327) draw these values, so they call one function from the
+  start and a later change (the 8.4 body draw, GEN.553) is one edit.
+  Done: one definition of each rule, the callers use it, the golden
+  digest is unchanged. Owner: Core 4 (proposed: it owns the body draw by
+  Boss's card D7; the callers in `multistar` and `scatter_companions`
+  are Core 3's files, so the two lanes agree who edits them).
+  Prerequisites: none. Related: GEN.553, GEN.327, GEN.253, GEN.377,
+  GEN.273, GEN.550.
+
+- [ ] **GEN.563 The black hole density follows the mass function and the verified failed-supernova share: one constant changes, the neutron star density stays**
+  From Boss's back-scatter cards (Boss's back-scatter cards, taps 11:38
+  to 11:40 PM EDT, 2026-10-17, as the coordinator relayed) on the
+  unified orbited-body design (docs/design/unified-star-like-objects.md,
+  GEN.550). Boss's card 'BH density only': only the black hole density
+  constant joins 8.1, once GEN.560 verifies the failed-supernova (direct
+  collapse) share; the neutron star density already matches (design
+  thread's quick computation: 0.45% of stars born above 0.08 Msun have
+  progenitors in 8 to 20 Msun against the generator's 0.4%, its own
+  computation and not sourced), so it does not change. The black hole
+  share is about 0.17% from the mass function for progenitors of 20 to
+  100 Msun against the fixed 0.05% (density 7e-5 per pc^3); the figure
+  that replaces it comes from the verified share and the kick-escape
+  share, not from this note. The rest of GEN.553 and GEN.554 (the
+  derived counts for every remnant, the kick step, the body draw) stays
+  in 8.4. Do: replace the black hole density in the phenomenon scatter
+  rates with the verified value, label its source state, keep the
+  density as a test target against the derived share. It changes the
+  scatter's output, so it bumps the generator epoch and joins the one
+  full rescatter, which is why it must be built before GEN.301 closes.
+  Gated on GEN.560 (the research that verifies the explosion-map
+  sources: recalled and unverified are O'Connor and Ott 2011, Sukhbold
+  et al. 2016, Fryer et al. 2012). If the share cannot be verified, the
+  value stays and this item closes with that finding. Done: the black
+  hole density has a verified source or a labelled placeholder, the test
+  shows the gap to the derived share. Owner: Core 3 (proposed: it owns
+  the scatter rates and GEN.377); the verification is the research
+  lane's, GEN.560.
+  Prerequisites: GEN.560. Related: GEN.560, GEN.554, GEN.377, GEN.301.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -16085,6 +16158,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the one wrapper `util/draw.py` (GEN.56), every recalled source
   verified by a lane before use under the standing source rules, and any
   change to a drawn value bumps the generator epoch (OPS.56 rule).
+  Back-scatter answer (Boss's back-scatter cards, taps 11:38 to 11:40 PM
+  EDT, 2026-10-17, as the coordinator relayed): ONE 8.4 revision carries
+  this item and DB.67 to DB.71, in the order Cores 1 and 4 agree;
+  nothing of it moves to 8.1.
   Prerequisites: none. Related: GEN.550, DB.69, DB.70.
 
 ## API: The JSON API
