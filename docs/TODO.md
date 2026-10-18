@@ -18147,22 +18147,7 @@ clears each one.
   the pin Bug Hunt has in its #2124 branch should cover it; Bug Hunt is
   asked to check that the pinned seed gives a nonzero forced total (this
   assertion) as well as the scattered system count (line 299).
-  Sighting at line 299 again, reported as deterministic (Core 1, 11:20
-  PM EDT as the lane reported; its gate 5 and one run alone in a clean
-  worktree at 5c49fc42, release 8.0.1759): `assert some_scattered > 0`
-  (no bright star in shell 8 band 0 wedges 0..7 after the forced scatter
-  and the galaxy run); Core 1 said it passed at 7f17820b and suspected
-  GEN.321 or GEN.469. Checked by the TODO thread at 11:18 PM EDT (own
-  clock): the test passed alone 2 of 2 on current main bc97f757 (about
-  24 s) and 1 of 1 on 5c49fc42 (32 s), so it does not fail
-  deterministically on main; Core 1's runs differ from these in the
-  machine (a gate or other lane's load) or the test database state, not
-  in the commit. Frequency: 2 of 2 for Core 1, 0 of 3 for the TODO
-  thread. Fails on main: no (0 of 3 alone). Same unpinned galaxy seed as
-  the sightings above; Bug Hunt's #2124 pin should cover it, and Bug
-  Hunt is asked to run it 10 times under load after its re-gate. If Core
-  1 can still reproduce it in a clean tree, the next step is to print
-  the seed and the sector it drew.
+  Sighting withdrawn (Core 1, 11:40 PM EDT as the lane reported, correcting its 11:20 PM EDT report): the failure at line 299 was its own GEN.532/533 branch's, not main's: it failed 5 of 5 there and passed 3 of 3 on 5c49fc42 (the one earlier failure on that commit was in a worktree checked out from an older commit, probably stale bytecode); its test seed's drawn bar left shell 8 band 0 wedges 0 to 6 without bright stars and the PR fills band 1. The TODO thread's own runs agreed (0 of 3 failures on main). Not a sighting of this item.
   Prerequisites: none. Related: TEST.170, TEST.111.
 
 - [ ] **TEST.172 test_galaxy_map_forward_to_current_jumps_to_the_newest_view failed once: clicking a Galaxy Map block with 0 sectors charted did nothing, and it passes alone (bug)**
