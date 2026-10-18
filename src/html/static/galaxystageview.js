@@ -127,6 +127,7 @@ const STAR_ANCHOR_PX = 14;
 const COLUMN_SHARE = 0.5;
 const COLUMN_REACH = 2;
 const COLUMN_NEAREST = 0.25;
+const CROSS_PX = 12; // MAP.247: a pointer this near the middle of the map is on the cross
 
 // The zoom policies (mapcontrol.js): a short range around the fit, and
 // on the whole galaxy only closer than its fit.
@@ -2166,7 +2167,9 @@ export function createStageView(host) {
     }
     const forward = new THREE.Vector3(view.target[0], view.target[1], view.target[2]).sub(origin).normalize();
     const onPlane = MC.pointOnFocusPlane(origin.toArray(), direction.toArray(), view.target, forward.toArray());
-    return columnAnchor(origin, direction, forward, onPlane) || onPlane;
+    // A pointer on the cross zooms about the cross (MAP.199), whatever the column behind it holds.
+    const onCross = Math.hypot(clientX - (rect.left + rect.width / 2), clientY - (rect.top + rect.height / 2)) <= CROSS_PX;
+    return (!onCross && columnAnchor(origin, direction, forward, onPlane)) || onPlane;
   }
 
   // MAP.247: the first point of the cursor ray where the column of the galaxy's stars passes the threshold
