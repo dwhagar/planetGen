@@ -47,7 +47,15 @@ from the number of workers, so the same work is the same units at any worker cou
 sensible pool (the 2 million-object ceiling's 95% of 64 cores) busy to the end."""
 
 UNIT_TIMEOUT_SECONDS = 6 * 3600
-"""int: How long a unit may run before RQ ends it, so a hung one shows as failed."""
+"""int: The longest a unit may run before RQ ends it, so a hung one shows as failed; the limit of a stage with no
+recorded time."""
+
+TIMEOUT_MULTIPLE = 10
+"""int: How many times its stage's expected seconds a unit may run before RQ ends it (PERF.106): a stage is expected
+to take that long on all its workers, so a unit that takes ten times as long is hung or starved, not slow."""
+
+MIN_UNIT_TIMEOUT_SECONDS = 15 * 60
+"""int: The shortest limit a unit gets, so a stage that is usually quick is not ended by one slow start-up."""
 
 FAILED_KEEP_SECONDS = 86400
 """int: How long RQ keeps a failed unit's job."""
@@ -71,6 +79,17 @@ class RunStopped(RuntimeError):
 def job_id(run_id, stage, unit):
     """The RQ job id of a unit, so a unit can be found from the run (cancel, PERF.99)."""
     return f"{run_id}-s{stage}-u{unit}"
+
+
+def unit_timeout(expected_seconds=None):
+    """
+    How long a unit of a stage may run before RQ ends it (PERF.106): `TIMEOUT_MULTIPLE` times the stage's expected
+    seconds (`runrecord.Stage.expected_seconds`), but at least `MIN_UNIT_TIMEOUT_SECONDS` and at most
+    `UNIT_TIMEOUT_SECONDS`; the most when the stage has no recorded time. Never -1 (no limit).
+    """
+    if not expected_seconds or expected_seconds <= 0:
+        return UNIT_TIMEOUT_SECONDS
+    return int(min(max(TIMEOUT_MULTIPLE * expected_seconds, MIN_UNIT_TIMEOUT_SECONDS), UNIT_TIMEOUT_SECONDS))
 
 
 def static_chunks(rows, units=STATIC_UNITS, max_rows=None):
@@ -101,13 +120,15 @@ def static_chunks(rows, units=STATIC_UNITS, max_rows=None):
     return chunks
 
 
-def enqueue_units(conn, run_id, stage, kind, units, queue_name=None):
+def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_seconds=None):
     """
     Queues the units of stage `stage` of the run.
 
     Args:
         units (list[tuple]): `(args, cost)` per unit, in unit order (the index is the position): a JSON-able dict
             and the unit's predicted cost for the stage's bar and ETA.
+        expected_seconds (float, optional): How long the stage is expected to take, for each unit's time limit
+            (`unit_timeout`).
 
     Raises:
         ValueError: More than `MAX_UNITS` units, or a kind that is not a command with units.
@@ -117,11 +138,12 @@ def enqueue_units(conn, run_id, stage, kind, units, queue_name=None):
     if len(units) > MAX_UNITS:
         raise ValueError(f"a stage queues at most {MAX_UNITS} units, not {len(units)}")
     queue = redisqueue.queue(queue_name or redisqueue.BULK_QUEUE, conn)
+    timeout = unit_timeout(expected_seconds)
     for start in range(0, len(units), ENQUEUE_BATCH):
         queue.enqueue_many([
             queue.prepare_data(
                 UNIT_FUNCTION, args=(run_id, stage, index, kind, args, cost), job_id=job_id(run_id, stage, index),
-                timeout=UNIT_TIMEOUT_SECONDS, result_ttl=0, failure_ttl=FAILED_KEEP_SECONDS,
+                timeout=timeout, result_ttl=0, failure_ttl=FAILED_KEEP_SECONDS,
                 retry=rq.Retry(max=1), on_failure=Callback(FAILURE_FUNCTION), description=f"{kind} {index}")
             for index, (args, cost) in enumerate(units[start:start + ENQUEUE_BATCH], start)])
 
@@ -161,6 +183,7 @@ def run_unit(run_id, stage, unit, kind, args, cost=None):
     conn.hdel(runrecord.progress_key(run_id, stage), unit)
     if outcome.advance:
         from planetgen.queue import wrapper         # the wrapper queues units, so it imports this file
+        wrapper.finish_stage(conn, run_id, stage)
         wrapper.advance(conn, run_id, stage + 1)
     return {"seconds": seconds}
 
@@ -170,6 +193,20 @@ def unit_failed(job, connection, exc_type, exc_value, _traceback):
     run_id, stage, unit = job.args[:3]
     runrecord.finish_run(connection, run_id, "failed",
                          error=f"unit {unit} of stage {stage} failed: {exc_type.__name__}: {exc_value}")
+
+
+def horse_killed(job, retpid, ret_val, _rusage):
+    """
+    RQ's `work_horse_killed_handler` (PERF.106): the process that was running a unit was killed (out of memory, or
+    `kill -9`). The run fails now, with the unit named, instead of when the worker's heartbeat runs out; the retry RQ
+    makes finds the run no longer live and does nothing. A job that is not a unit of a run is left to RQ.
+    """
+    if job.func_name != UNIT_FUNCTION:
+        return
+    run_id, stage, unit = job.args[:3]
+    runrecord.finish_run(job.connection, run_id, "failed",
+                         error=f"unit {unit} of stage {stage} was killed: its worker process {retpid} ended with "
+                               f"status {ret_val} (the machine may be out of memory)")
 
 
 def _progress(conn, run_id, stage):

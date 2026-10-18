@@ -190,7 +190,7 @@ def test_a_family_command_runs_alone_and_warms_only_its_family(galaxy, monkeypat
     result = commands.run_alone("warm-search", {"database": galaxy.config.database, "cap": None})
     assert result["family"] == "search" and result["line"].startswith("search: 1 pages warmed")
     with pytest.raises(ValueError, match="cannot be cut"):
-        commands.expand_function("scatter-luminosity")
+        commands.expand_function("scatter-backfill")
 
 
 def test_every_cache_family_is_its_own_registered_command_with_one_unit():
