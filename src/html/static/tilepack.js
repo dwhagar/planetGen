@@ -107,7 +107,8 @@ function readStars(bytes, view, start) {
     const r = decodeLog(radius[i], RADIUS_LOG_RANGE, U8);
     if (r !== null) star.radius_sol = r;
     if (classes[i]) star.star_type = String.fromCharCode(classes[i]);
-    star.charted = charted[i] === 1;
+    star.charted = (charted[i] & 1) === 1;
+    if (charted[i] >> 1) star.tier = charted[i] >> 1;
     stars[i] = star;
   }
   return { stars, end: at };

@@ -191,6 +191,8 @@ def _halo_field():
             "z": HALO_CENTER_PC[2] + rng.uniform(-60.0, 60.0),
             "luminosity_sol": float("%.4g" % lum), "temperature_k": 4200 + 100 * i,
             "radius_sol": float("%.3g" % (lum ** 0.35)), "star_type": "G",
+            # Ten stars of a satellite galaxy (tier 2), ten of the halo (tier 1) and the rest of neither (MAP.252).
+            "tier": 2 if i < 10 else (1 if i < 20 else 0),
         })
     black_hole = _point("black_hole", 9.0, id=62, name="Fixture Outlier", descriptor="stellar",
                         x=HALO_CENTER_PC[0], y=HALO_CENTER_PC[1] + 25.0, z=HALO_CENTER_PC[2])

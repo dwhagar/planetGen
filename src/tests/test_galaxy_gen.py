@@ -1178,8 +1178,15 @@ def _sector_system_counts(mysql_config, sector_ids):
     return counts
 
 
-@pytest.mark.parametrize("start", [[], ["--min-start-density", "1000"]], ids=["random", "dense_core"])
-def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, monkeypatch, start):
+DENSE_CORE_SEED = "96901074FC015B42F2E80F1434609687"
+"""str: A galaxy seed whose toy galaxy holds cells at 1,000 times the local density within 55 shells. A galaxy drawn at
+random is too light for one in three draws (its densest cell stays under that), and the run then finds no start
+(TEST.225)."""
+
+
+@pytest.mark.parametrize("start, plan", [([], []), (["--min-start-density", "1000"], ["--seed", DENSE_CORE_SEED])],
+                         ids=["random", "dense_core"])
+def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, monkeypatch, start, plan):
     """
     The standard workflow this project's own docs describe -- 'plan' once,
     then 'galaxy' with no flags: pick a random location, generate every
@@ -1207,17 +1214,17 @@ def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, 
        position-independent count (`_default_generation_args`'s own
        num_systems=10 default, in particular, would badly fail this).
        A cell the plan predicts above the cell star ceiling is not filled
-       with every system (GEN.281): it resolves only the stars above its
-       luminosity cap and the scatter holds the rest, so such a cell counts
-       by what it resolves (`galaxy.resolution.cell_resolution`), as
-       the plan's own stored statistics do. A start in the dense core
-       (`--min-start-density`) lands in such cells (TEST.225).
+       with every system (GEN.281): it is taken down to its luminosity cap
+       and no further, and the scatter holds the rest, which this run does not
+       draw, so such a cell is left out of the sum and checked against the
+       ceiling instead. A start in the dense core (`--min-start-density`)
+       lands in such cells (TEST.225).
        Sparser sectors are left out of the sum: one with nothing drawn
        at all gets one fallback system, which would swamp their tiny
        predictions.
     """
     radius_pc = ly_to_pc(25.0)
-    summary = _build_real_skeleton(mysql_config)
+    summary = _build_real_skeleton(mysql_config, plan)
     assert summary["outer_shell_index"] > 0, "the toy shape's own skeleton should find real content"
 
     _run_cli([
@@ -1244,6 +1251,7 @@ def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, 
 
         expected_total = 0.0
         generated_sector_ids = []
+        capped_sector_ids = []
         for shell_index, band_index, wedge_index, x, y, z, _dist in candidates:
             address = (shell_index, band_index, wedge_index)
             saved = address in by_address
@@ -1257,14 +1265,20 @@ def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, 
                 (x, y, z), skeleton.shape, skeleton.expected_system_count_at_density_1,
             )
             if inside and predicted >= 1.0:
+                if galaxy_resolution.cell_resolution(
+                        galaxy_profile.sector_profile(address, skeleton), skeleton.cell_star_ceiling,
+                        skeleton.fill_luminosity_cap_sol).capped:
+                    capped_sector_ids.append(by_address[address]["id"])
+                    continue
                 generated_sector_ids.append(by_address[address]["id"])
-                resolution = galaxy_resolution.cell_resolution(
-                    galaxy_profile.sector_profile(address, skeleton), skeleton.cell_star_ceiling,
-                    skeleton.fill_luminosity_cap_sol)
-                expected_total += resolution.resolved_systems if resolution.capped else predicted
+                expected_total += predicted
+        ceiling = skeleton.cell_star_ceiling
     finally:
         conn.close()
 
+    # GEN.281: a cell over the ceiling is taken down to its cap and holds no more than the ceiling.
+    for sector_id, count in _sector_system_counts(mysql_config, capped_sector_ids).items():
+        assert count <= ceiling, f"sector {sector_id} holds {count} systems, over the cell star ceiling {ceiling}"
     counts = _sector_system_counts(mysql_config, generated_sector_ids)
     actual_total = sum(counts.values())
 
