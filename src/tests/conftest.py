@@ -477,6 +477,26 @@ def _api_jobs_queue_of_its_own(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _wanted_workers_of_its_own(monkeypatch):
+    """The admin's wanted worker count is one key on the Redis server, which every test process reads when it counts
+    the workers a queue should have; a test that sets it (the admin's page, `set_wanted`) beside one that counts them
+    changed the other's answer (TEST.255: 3 where the test had made it 2). Each test gets a key of its own, emptied
+    after."""
+    import uuid
+    from planetgen.queue import workers
+    key = f"{workers.WANTED_KEY}:test-{uuid.uuid4().hex[:12]}"
+    monkeypatch.setattr(workers, "WANTED_KEY", key)
+    yield
+    url = os.environ.get("PLANETGEN_REDIS_URL")
+    if url:
+        try:
+            import redis
+            redis.Redis.from_url(url).delete(key)
+        except Exception:  # noqa: BLE001 -- no server: nothing was set
+            pass
+
+
+@pytest.fixture(autouse=True)
 def _api_jobs_wait_patiently(monkeypatch):
     """A queued API edit (`run_queued`) starts a burst worker process and waits `SHORT_WAIT_SECONDS` for
     it; in a busy parallel run the worker can take longer than that to start, and the route answers
