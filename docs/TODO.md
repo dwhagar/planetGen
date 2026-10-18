@@ -2377,49 +2377,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: MAP.239, MAP.152, MAP.147, PERF.129,
   PERF.130, PERF.131, PERF.132, PERF.133.
 
-- [ ] **MAP.250 When a map chooses which stars to show, halo and satellite-galaxy stars are the lowest priority and are always cut first, before anything else**
-  Boss (2026-10-17, 6:48 PM EDT, typed in the project chat, relayed by
-  the coordinator at 6:49 PM EDT): "when choosing stars to show on any
-  map, halo and satellite galaxies are the lowest priority and should
-  always be cut first before anything else." Decided. It applies to
-  every map and every place that spends a star budget: the Galaxy Map
-  tile lists and their per-tile budgets, the nested lists of MAP.154 (a
-  parent list is a subset of each child's list, so the tier must be part
-  of the key every level uses), the on-screen limit and the 70,000-star
-  view cap, the stage views, the Sector Map and any other list that has
-  to drop stars to fit. Today the bright lists rank by luminosity times
-  the population weight (`BRIGHT_STAR_POPULATION_WEIGHT`,
-  docs/design/zoom-star-visibility.md stage 2); this adds a tier above
-  that key: a star of the halo or of a satellite galaxy ranks below
-  every other star whatever its luminosity, so a budget cut removes them
-  first and only then touches the disc and the bulge. Halo and satellite
-  galaxies are two classes (they are separate switches in 8.5, GEN.537
-  to GEN.540). Cut order among the two, Decided (Boss, 2026-10-17, 6:57
-  PM EDT, "That's confirmed", answering the coordinator's post that
-  Core 2 owns MAP.249 and MAP.250): satellite-galaxy stars are cut
-  before halo stars, so the tiers from the lowest priority up are
-  satellite galaxies, halo, then everything else. Done:
-  one ranking function holds the tier, every budget in the list above
-  reads it and none keeps its own order; a test fills a budget-limited
-  tile with halo, satellite and disc stars and checks no disc or bulge
-  star is dropped while any halo or satellite star of the same budget is
-  still shown, at several levels, and that the nested lists stay
-  subsets; the rule is written in docs/design/zoom-star-visibility.md.
-  The tile cache (PERF.129 to PERF.134) stores tiles built by this rule,
-  so the change bumps the tile cache stamp and the cached tiles are
-  rebuilt once. Owner: Core 2 (Boss via the coordinator, 6:49 PM EDT),
-  ahead of MAP.247 in its queue, after the lag bug above is profiled.
-  Prerequisites: none. Related: MAP.154, MAP.158, MAP.195, MAP.243,
-  MAP.248, GEN.537, PERF.129, PERF.130, PERF.131, PERF.132, PERF.133,
-  PERF.134.
-  Amendment (Boss, 2026-10-17, 7:45 PM and 7:46 PM EDT, relayed by the
-  coordinator): this item's tier order (satellite galaxies, then halo,
-  then the rest) is steps 1 and 2 of the full order; the rest of the
-  order (two ramps, small phenomena to large by mass and small dim stars
-  to large bright stars, with distance removing the farther ones sooner)
-  now comes from MAP.251, which builds on this item. See MAP.251.
-  Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
-
 - [ ] **MAP.251 When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug)**
   Boss (2026-10-17, 7:38 PM EDT, typed in the project chat, relayed by
   the coordinator): "BUG: The system needs to choose what stars or
@@ -2497,7 +2454,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   relayed by the coordinator): "I approve all your defaults". This
   approves the default on this item: nebulae are cut with the phenomena
   ramp by their visible size.
-  Prerequisites: MAP.250. Related: MAP.249, MAP.250.
+  MAP.250 merged as #2155 (Core 2, reported as 10:49 PM EDT on the
+  lane's clock; release 8.0.1767): bright-star lists rank by tier
+  (satellite galaxies cut first, then halo, then everything else) before
+  brightness. Bug Hunt was told (10:49 PM EDT as the coordinator
+  relayed) it can build this item and MAP.252's grading on top of it.
+  Prerequisites: none. Related: MAP.249, MAP.250.
 
 - [ ] **MAP.252 Viewing only the filled sectors does not dim the phenomena (bug)**
   Boss (2026-10-17, 7:38 PM EDT, typed in the project chat, relayed by
@@ -20272,27 +20234,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   DB.70.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
-
-- [ ] **DOC.68 Generate docs/plan/execution-plan.html from scripts/build_todo_docs.py like the other plan pages**
-  Asked by Core 5 through the coordinator (2026-10-17, 7:51 PM EDT),
-  filed by the TODO thread. The execution plan page is the only page in
-  docs/plan/ with no generator in the repo: the TODO thread rebuilt it
-  on 2026-10-17 with a script that lives outside the repo, from
-  docs/TODO.md and the lane report in /mnt/project-files, and
-  tests/test_docs_index.py (Core 5's DOC.67 branch) checks that the page
-  keeps its `<meta name="description">` and its "Docs index" link, which
-  a regeneration can drop. Do: move the generator into
-  scripts/todo_docs/ with a template, in the same pass as todo-tree.html
-  and version-plan.html (lanes board from a file in the repo, for
-  example docs/plan/lanes.md that the TODO lane keeps, headline panel,
-  open items by version and phase, goal issues table, conflicts and
-  needs-Boss lists), keep the meta description and the Docs index link
-  in the template, and add the page to the freshness test that covers
-  the other generated pages. Done: `python3 scripts/build_todo_docs.py`
-  writes the page, a test fails when the committed page differs from the
-  generated one, and tests/test_docs_index.py passes on it. Owner: Core
-  5 (proposed, it owns the docs index work, DOC.67).
-  Prerequisites: none. Related: DOC.67.
 
 ## VIEW: The view from a planet
 
