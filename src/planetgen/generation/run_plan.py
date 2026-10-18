@@ -239,7 +239,7 @@ def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, s
 SKELETON_OPTIONS = ("max_shell", "reach_shells", "cell_star_ceiling", "fill_luminosity_cap", "core_min_luminosity",
                     "core_mass_limit", "halo_min_luminosity", "arm_density", "interarm_density",
                     "disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc", "bulge_amplitude",
-                    "arm_count", "pitch_angle_deg", "nuclear_amplitude", "calibration_radius_pc")
+                    "arm_count", "pitch_angle_deg", "nuclear_amplitude")
 """tuple: The options of `planetgen plan` that shape the skeleton, the parameters of the `plan-skeleton` command."""
 
 

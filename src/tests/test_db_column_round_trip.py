@@ -71,6 +71,12 @@ NULL_IN_THIS_GALAXY = {
         "life_stage", "evolutionary_pace", "life_milestone_age_gyr", "life_system_age_gyr")},
     **{("moon_reflection_spectrum", column): CHANCE for column in
        ("id", "moon_id", "spectrum_type", "position", "value")},
+    # The same for a planet: whether any planet of this small galaxy bears life is chance.
+    **{("planets", column): CHANCE for column in
+       ("evolutionary_pace", "flavor_key", "life_chemical", "life_milestone_age_gyr", "life_stage",
+        "life_system_age_gyr")},
+    **{("planet_reflection_spectrum", column): CHANCE for column in
+       ("id", "planet_id", "spectrum_type", "position", "value")},
     # The CLI places an interstellar comet near the galaxy's sectors only sometimes.
     **{("interstellar_comets", column): CHANCE for column in SECTOR_PLACEMENT},
     # Only a lit class (C to G) has host stars (GEN.150), and the seeded galaxy's few nebulae may all be dark.
@@ -138,6 +144,7 @@ NEVER_READ = {
         ("star_systems", "binary_epoch_unix"), ("star_systems", "binary_next_update_due"),
         ("facilities", "epoch_unix"), ("facilities", "next_update_due"))},
     ("moon_reflection_spectrum", "spectrum_type"): CHANCE, ("moon_reflection_spectrum", "value"): CHANCE,
+    ("planet_reflection_spectrum", "spectrum_type"): CHANCE, ("planet_reflection_spectrum", "value"): CHANCE,
     **{(table, stamp): "row timestamps (the Galaxy Map's change feed reads modified_at in bulk)"
        for table in ("star_systems", "facilities") for stamp in ("created_at", "modified_at")},
     ("polities", "created_at"): "row timestamp", ("species", "created_at"): "row timestamp",
