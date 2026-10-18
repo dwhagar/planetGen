@@ -39,7 +39,7 @@ from planetgen import tuning
 from planetgen.db import store as _db
 from planetgen.db.store import MySQLConfig
 
-from tests import areas, browser_waits, dbpool, failure_capture, publicids
+from tests import areas, browser_waits, dbpool, failure_capture, inline_queue, publicids
 
 # Every program a test starts (the generate CLI, a worker, a stand-in script) imports `planetgen` from this
 # checkout, not from whichever checkout the editable install points at (TEST.143, TEST.145): from a git
@@ -527,7 +527,7 @@ def _reset_login_backoff():
 
 
 @pytest.fixture(autouse=True)
-def _run_queue_inline(monkeypatch, request):
+def _run_queue_inline(request):
     """
     A stage on the new work queue (PERF.97, `planetgen/queue/units.py`) queues its units on Redis and has workers
     run them. A test gets a queue and a key prefix of its own, so parallel tests (pytest-xdist) neither share the
@@ -537,42 +537,11 @@ def _run_queue_inline(monkeypatch, request):
     carries the test server's. Nothing is patched, and nothing is touched on Redis, without a Redis server.
     A test that starts real workers or reads the shared queues' names is marked `real_queue` and gets none of this.
     """
-    url = os.environ.get("PLANETGEN_REDIS_URL")
-    if not url or request.node.get_closest_marker("real_queue"):
+    if request.node.get_closest_marker("real_queue"):
         yield
         return
-    import uuid
-
-    import redis
-    import rq
-
-    from planetgen.queue import redisqueue, runrecord, workers
-
-    token = uuid.uuid4().hex[:12]
-    prefix = f"planetgen-test:{token}"
-    queue_name = f"planetgen-bulk-test-{token}"
-    used = []
-
-    def run_waiting_units(name, connection=None, url=None, mysql_host=None, count=None):
-        used.append(True)
-        connection = connection or redisqueue.connect(url)
-        rq.SimpleWorker([redisqueue.queue(name, connection)], connection=connection,
-                        serializer=redisqueue.JsonSerializer).work(burst=True, logging_level="WARNING")
-        return 0
-
-    monkeypatch.setattr(runrecord, "PREFIX", prefix)
-    monkeypatch.setattr(redisqueue, "BULK_QUEUE", queue_name)
-    monkeypatch.setattr(workers, "ensure_workers", run_waiting_units)
-    server = _test_server_kwargs()
-    for name, value in (("HOST", server["host"]), ("PORT", server["port"]), ("USER", server["user"]),
-                        ("PASSWORD", server["password"])):
-        monkeypatch.setenv(f"PLANETGEN_MYSQL_{name}", str(value))
-    yield
-    if used:
-        client = redis.Redis.from_url(url)
-        for key in list(client.scan_iter(match=f"{prefix}:*")) + list(client.scan_iter(match=f"rq:*{token}*")):
-            client.delete(key)
-        client.delete(f"rq:queue:{queue_name}")
+    with inline_queue.inline_queue():
+        yield
 
 
 @pytest.fixture

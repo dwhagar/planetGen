@@ -46,6 +46,7 @@ from typing import Callable, Sequence
 
 import pytest
 from planetgen.util import draw
+from tests import inline_queue
 
 # A fixed, reproducible seed list every fuzz test iterates over -- small
 # enough to stay fast (a few hundred iterations, matching the existing
@@ -131,7 +132,8 @@ def run_cli(subcommand: str, argv: Sequence[str]) -> None:
     old_argv = sys.argv
     try:
         sys.argv = ["planetgen", subcommand] + list(argv)
-        generate_cli.main()
+        with inline_queue.inline_queue():       # a module's galaxy is built before the test's own queue exists
+            generate_cli.main()
     finally:
         sys.argv = old_argv
         for name, value in saved.items():

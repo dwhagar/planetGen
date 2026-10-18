@@ -33,6 +33,7 @@ function job(fields) {
 async function start(win, attrs) {
   const el = panel(attrs);
   await importPage("slowload.js");
+  await settle(); // the polling starts once the formatters have loaded; the buttons answer before (TEST.248)
   return el;
 }
 

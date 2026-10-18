@@ -2,6 +2,77 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1826] - 2026-10-18
+
+**Headline:** The Stop waiting button on a page that is being built now works from the moment it appears.
+
+### Fixed
+- `static/slowload.js` awaited two dynamic imports (the number and duration formatters, loaded by the script's own version) at the top of the module, so its click handlers were attached only after both had arrived, while the page already showed the button. A click in that gap did nothing: the status line kept its estimate and the page went on polling. The buttons are now wired at once, the formatters load alongside, and the polling starts when they have arrived (Stop waiting, Check again and Try again act on the first click). Found as `test_stop_waiting_stops_the_polling_and_check_again_picks_it_up[dark-phone]` and `[light-phone]` failing under load while passing alone; the click event reached the button in every failing run (recorded), and the handler had not been attached. With the fix the test passed 80 runs in 80 under 12 busy loops (about one invocation in five failed before).
+
+TODO items resolved: TEST.248 / Added: none
+
+## [8.0.1825] - 2026-10-18
+
+**Headline:** A stage on the work queue now records its own time, a killed worker fails its run at once, and a hung unit ends on a time limit that fits its stage.
+
+### Changed
+- **The unit that completes a stage stores its timing (PERF.106).** The `generation_stage_runs` row of a stage that runs as units (the massive-star, luminosity and band scatters so far) is written by the unit that finishes it, with the seconds from the stage's start to its last unit's end, the shells it visited, the shells that drew stars and the stars written; the speeds of its units go into `generation_stats` the same way (a worker reads the stored speeds fresh each time, so it never writes older ones back). The process that started the run no longer writes that row but still adds the stage to the whole job's totals. A stage's seconds count from before it is cut into units, so reading the galaxy is part of them. The band stage's row is still stored by the process that started the run, because it tops up backfilled sectors after its units.
+- **A killed worker fails its run at once.** When the process running a unit is killed (the machine out of memory, or `kill -9`) the run fails immediately, naming the unit, and the machine is free again; before, it failed when the worker's heartbeat ran out. The retry RQ makes finds the run over and does nothing.
+- **A unit has a time limit that fits its stage.** It is ten times the stage's recorded time with its settings, at least 15 minutes and at most 6 hours (6 hours for a stage never recorded), so a hung unit ends and shows as failed. No unit has no limit. The same recorded time is now the stage's ETA before its first unit reports.
+- **`docs/design/redis-and-the-work-queue.md` describes it.**
+
+TODO items resolved: none (slice two of PERF.106). Added: none.
+
+## [8.0.1824] - 2026-10-18
+
+**Headline:** The galaxy skeleton is built by a command on the work queue, like the scatters.
+
+### Changed
+- **`plan-skeleton` is a command (PERF.106).** `planetgen plan` queues one unit that builds the skeleton (the shape, the clusters and satellites, the outline and the naming key) through the wrapper, as a run of its own, and logs the lines the unit returns; a unit runs alone from its JSON arguments (`planetgen command-run`). A reach or seed the build refuses still ends the plan with the same message and exit code 1. The stage's row in the stage history is stored by the unit that completes it.
+- **`run_plan.build_skeleton` is gone** with no replacement; the command takes the plan's shape options as plain parameters.
+- **`docs/design/redis-and-the-work-queue.md` describes it.**
+
+TODO items resolved: none (slice four of PERF.106). Added: none.
+
+## [8.0.1823] - 2026-10-18
+
+**Headline:** The luminosity pass and the dimmer band of bright stars run as commands on the work queue, like the massive-star pass.
+
+### Changed
+- **The bright-star luminosity pass and the band are commands (PERF.106).** `scatter-luminosity` and `scatter-band` each cut their pass into units of consecutive shells (`planetgen commands` lists them), queue them through the wrapper as a run of their own and follow the units with the same progress bar as before. A unit runs alone from its JSON arguments (`planetgen command-run`).
+- **The units are the same at any worker count, and the stars are the same as before.** The old per-pass task queue (`run_plan._scatter_shells`, its progress channel and drain thread) is gone with no replacement; the pass no longer cuts its work by `--workers`. On the test galaxy the stars stored after the scatter and after a band are identical to the ones the previous version drew, at one worker and at four.
+- **The luminosity pass reads the sectors the massive pass marked when its stage starts**, between the two passes, as it did when it was told them by the starter.
+- **`docs/design/redis-and-the-work-queue.md` describes it.**
+
+TODO items resolved: none (slice one of PERF.106). Added: none.
+
+## [8.0.1822] - 2026-10-18
+
+**Headline:** The phenomenon scatter's shells run as commands on the work queue, like the star scatters.
+
+### Changed
+- **`scatter-phenomena` is a command (PERF.106).** Its shells (neutron stars, black holes, planetary nebulae, supernova remnants, hypervelocity stars, and the clusters' and satellites' own) are cut into units of consecutive shells, queued through the wrapper as a run of their own and followed with the same bar and per-shell lines as before; a unit runs alone from its JSON arguments (`planetgen command-run`). The same rows are written at any worker count, and on the test galaxy they are the rows the previous version wrote.
+- **The units' speeds are recorded by the unit that completes the stage**, the drawing and the writing of the rows under their own kinds as before. The stage's row in the stage history is still stored by the process that started the run, because the stage also clears the earlier scatter, draws the special phenomena, builds the nebula field and the indexes around its units.
+- **The old per-run task queue of the phenomenon scatter is gone** with no replacement.
+- **`docs/design/redis-and-the-work-queue.md` describes it.**
+
+TODO items resolved: none (slice three of PERF.106). Added: none.
+
+## [8.0.1821] - 2026-10-18
+
+**Headline:** The number of black holes in a place now follows the metals of its stars, with a share that differs from one galaxy to the next.
+
+### Added
+- **Black holes from failed supernovae (GEN.563).** A black hole is what a massive star leaves when it fails to explode, and the share that fails is higher in metal-poor stars. Each galaxy draws the share at solar metallicity (0 to 45%) and at zero metallicity (15 to 32%) from its seed, cut so that its neutron stars and black holes together never exceed the massive stars born (12% to 25% at most), and the share falls linearly with the metals between the two. A place's black holes per star are the stars' populations, ages and [Fe/H] against that share: the halo and the old stars make more than the young disk and the bulge, and a galaxy holds 0.4 to 2.9 times the black holes the old fixed rate gave (1.5 times on average).
+- The sector page, the profile's black hole factor, the map's scatter, the stars beyond the outline, the clusters and satellites and the galaxy's ejected black holes all read the same factor, and the black holes formed split into those kept and those ejected without counting any twice.
+
+### Changed
+- The intermediate-mass black holes keep the rate they had, 1.5e-9 per star.
+- Every scattered class draws from a random stream of its own, so the counts of one never move the rows of another.
+- A sector rolled with no galaxy around it rolls black holes at the solar share of an average galaxy (5.8e-4 per star against 5.0e-4).
+
+generation-output: changed
+
 ## [8.0.1820] - 2026-10-18
 
 **Headline:** A barred galaxy now has a gas ring at its centre that forms young stars and clusters, derived from the gas its bar carries in.

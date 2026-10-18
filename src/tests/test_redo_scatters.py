@@ -132,7 +132,8 @@ def test_the_redo_option_refuses_the_other_plan_modes():
 
 
 def _recording_stats(monkeypatch):
-    """The generation stats of the run, kept in memory: `(kind, seconds)` of everything a run records."""
+    """The generation stats of the run, kept in memory: `(kind, seconds)` of everything a run records (the starter's
+    and the ones the unit that completes a stage records, PERF.106)."""
     from planetgen.generation import run_common
     from planetgen.generation.stats import GenerationStats
 
@@ -150,6 +151,7 @@ def _recording_stats(monkeypatch):
 
     recorder = Recorder()
     monkeypatch.setattr(run_common, "_generation_stats", lambda args: recorder)
+    monkeypatch.setattr(run_plan, "_speed_stats", lambda mysql_config: recorder)    # the unit that completes a stage
     return recorder
 
 

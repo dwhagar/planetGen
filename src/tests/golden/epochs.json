@@ -149,6 +149,11 @@
       "epoch": 30,
       "first_release": "8.0.1820",
       "reason": "A barred galaxy's centre has a gas ring fed by its bar that forms young stars and clusters (GEN.282)."
+    },
+    {
+      "epoch": 31,
+      "first_release": "8.0.1821",
+      "reason": "The black holes follow the stars' metals with a share of failed supernovae drawn from the seed, every scattered class on a stream of its own (GEN.563)."
     }
   ]
 }
