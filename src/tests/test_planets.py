@@ -16,6 +16,7 @@ import statistics
 
 import pytest
 
+from planetgen.describe import build
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
@@ -120,10 +121,9 @@ def test_decide_flavor_text_is_generation_time_only(host_star, monkeypatch):
     """
     Regression test for the Phase 0 bug (see TODO.md): flavor text used to be
     rolled -- and system_config.system_flavor_count/recent_flavor_texts
-    mutated -- inside to_paragraph_list() itself, i.e. at render time, so
-    calling to_paragraph_list() twice double-rolled and double-mutated
-    shared state. planetLife.decide_flavor_text now makes that decision
-    once, at generation time, and to_paragraph_list() is a pure read of the
+    mutated -- at render time, so describing a planet twice double-rolled and
+    double-mutated shared state. planetLife.decide_flavor_text now makes that decision
+    once, at generation time, and the Document is a pure read of the
     already-decided self.flavor_text.
     """
     planet = make_planet(host_star, "M", "e")
@@ -136,8 +136,8 @@ def test_decide_flavor_text_is_generation_time_only(host_star, monkeypatch):
     assert planet.flavor_text_count == 1
     assert planet.system_config.system_flavor_count == 1
 
-    first_render = planet.to_paragraph_list()
-    second_render = planet.to_paragraph_list()
+    first_render = build._planet_section(planet)
+    second_render = build._planet_section(planet)
 
     assert first_render == second_render
     assert planet.flavor_text_count == 1

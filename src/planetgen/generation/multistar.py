@@ -13,7 +13,7 @@ and 13) and docs/design/multistar-and-compact-systems.md (sections 3, 4, 5
 and 7); the stability criteria, the Kozai-Lidov screen and the Peters time are
 `planetgen.physics.stability`. In short:
 
-1. **How many stars.** `STAR_COUNT_PROBABILITIES` by the placed star's
+1. **How many stars.** The `star-count` table (`phenomena/hosts.py`, GEN.552) by the placed star's
    spectral class (O to M, from its initial mass), a tail for 8 to 12 stars
    that continues the table's last column, and the `prevalence` knob on the
    five-or-more columns. A forced `n_stars` or a lower `max_stars` wins.
@@ -50,24 +50,11 @@ from dataclasses import dataclass
 from statistics import NormalDist
 
 from planetgen import tuning
-from planetgen.physics import brown_dwarf, constants, ms_lifetime, neutron_star, pre_main_sequence, roche, stability
+from planetgen.generation.phenomena import hosts
+from planetgen.physics import (
+    brown_dwarf, constants, ms_lifetime, neutron_star, pre_main_sequence, remnant_mass, roche, stability)
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
-
-STAR_COUNT_PROBABILITIES = {
-    "M": (0.73000, 0.23500, 0.02800, 0.00560, 0.00123, 0.00015, 0.00001),
-    "K": (0.60000, 0.31000, 0.06500, 0.02002, 0.00440, 0.00053, 0.00005),
-    "G": (0.54500, 0.33500, 0.08000, 0.03202, 0.00705, 0.00085, 0.00008),
-    "F": (0.50000, 0.34000, 0.11000, 0.04003, 0.00881, 0.00106, 0.00011),
-    "A": (0.40000, 0.40000, 0.15000, 0.03741, 0.01048, 0.00189, 0.00023),
-    "B": (0.25000, 0.40000, 0.22000, 0.08962, 0.03137, 0.00784, 0.00118),
-    "B-mid": (0.24000, 0.36000, 0.25143, 0.10241, 0.03585, 0.00896, 0.00135),
-    "B-early": (0.16000, 0.32000, 0.32686, 0.13314, 0.04660, 0.01165, 0.00175),
-    "O": (0.10000, 0.25000, 0.30000, 0.21354, 0.09610, 0.03363, 0.00673),
-}
-"""dict: The chance of 1 to 7 stars to a system, by the placed star's spectral
-class (multistar-and-compact-systems.md 3.3). The B-mid and B-early rows (GEN.449) take the single and binary fractions
-of `tuning.MULTIPLICITY_BY_PRIMARY_MASS_BIN` and split the rest across 3 to 7 stars in the proportions of the B row."""
 
 SPECTRAL_CLASS_LOWER_MASS_SOL = (("O", 16.0), ("B", 2.1), ("A", 1.4), ("F", 1.04), ("G", 0.8), ("K", 0.45), ("M", 0.0))
 """tuple: The initial mass at which each spectral class begins, heaviest first."""
@@ -307,7 +294,7 @@ def spectral_class(initial_mass_sol):
 
 
 def companion_class(initial_mass_sol, letter=None):
-    """The key into `STAR_COUNT_PROBABILITIES` and `tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS` of a star: its
+    """The key into the `star-count` table (`hosts.STAR_COUNT_PROBABILITIES`) and `tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS` of a star: its
     spectral letter (from the mass when `letter` is None), with the B stars of 5 to 16 solar masses split into B-mid and
     B-early (Moe and Di Stefano's bins, GEN.449)."""
     letter = letter or spectral_class(initial_mass_sol)
@@ -374,14 +361,13 @@ def same_class_companions(kind, recycled_share=0.0):
 
 
 def star_count_weights(initial_mass_sol, prevalence=1.0):
-    """The weights of 1 to 7 stars for a star of this initial mass, the five-or-more columns scaled by
-    `prevalence`."""
-    row = STAR_COUNT_PROBABILITIES[companion_class(initial_mass_sol)]
-    return tuple(weight * (prevalence if count >= 5 else 1.0) for count, weight in enumerate(row, start=1))
+    """The weights of 1 to 7 stars for a star of this initial mass (the `star-count` table, `phenomena/hosts.py`), the
+    five-or-more columns scaled by `prevalence`."""
+    return hosts.star_count_weights(companion_class(initial_mass_sol), prevalence)
 
 
 def _draw_star_count(initial_mass_sol, max_stars, prevalence, rng):
-    count = rng.choices(range(1, 8), star_count_weights(initial_mass_sol, prevalence))[0]
+    count = hosts.draw_star_count(companion_class(initial_mass_sol), prevalence, rng)
     ratio = TAIL_RATIOS[0]
     while count >= 7 and count < max_stars and rng.random() < min(1.0, ratio * prevalence):
         count += 1
@@ -470,11 +456,8 @@ def _remnant(kind, age_yr, lowest, rng, limit_mass=None):
         return None
     progenitor = evolution.sample_imf_mass_sol(low, high, rng)
     if kind == "white-dwarf":
-        mass = min(max(tuning.WD_IFMR_SLOPE * progenitor + tuning.WD_IFMR_INTERCEPT_SOL, tuning.WD_MASS_RANGE_SOL[0]),
-                   tuning.WD_MASS_RANGE_SOL[1])
-        return _remnant_leaf(kind, progenitor, mass)
-    mass_range = tuning.NEUTRON_STAR_MASS_RANGE_SOLAR if kind == "neutron-star" else tuning.BLACK_HOLE_MASS_RANGE_SOLAR
-    mass = rng.uniform(*mass_range)
+        return _remnant_leaf(kind, progenitor, remnant_mass.white_dwarf_mass_sol(progenitor))
+    mass = remnant_mass.draw_mass_sol(kind, rng=rng)
     if limit_mass is not None:
         mass = min(mass, limit_mass)
     return _remnant_leaf(kind, progenitor, mass, direct=kind == "black-hole" and progenitor >= DIRECT_COLLAPSE_PROGENITOR_SOL)

@@ -489,7 +489,7 @@ MULTIPLICITY_BY_PRIMARY_MASS_BIN = {
 by primary mass bin (solar masses). `multiplicity`: companions per primary with q above 0.1; `close`: companions
 per primary inside log P (days) 3.7; `single`, `binary`, `multiple`: the fractions of primaries with no companion, one,
 and two or more (triples and quadruples). The chance of a companion is 1 - `single`. The rows of
-`generation.multistar.STAR_COUNT_PROBABILITIES` for mid and early B stars are rederived from these (GEN.449)."""
+`generation.phenomena.hosts.STAR_COUNT_PROBABILITIES` for mid and early B stars are rederived from these (GEN.449)."""
 
 B_SUBCLASS_LOWER_MASS_SOL = (("B-early", 9.0), ("B-mid", 5.0))
 """tuple: The birth mass at which the B-star sub-classes begin, heaviest first (Table 13's bins); a B star below the
@@ -1117,10 +1117,9 @@ GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH = 8200.0 / 2600.0
 # a toy galaxy gets a proportionate centre, and `GalaxyShape.nuclear_amplitude` (1 is the observed centre, 0 is
 # none) scales the pair together. Calibrated on the default Milky Way-scale model, whose bulge holds 3.9e10 solar
 # masses at 0.4 solar masses a system (the real bulge's 1.5e10 is in the model's units 2.6 times that, as every
-# component's is; the totals are tuned to star counts, not to mass): 2.5e7 for the cluster, 1.5e9 for the disc.
-NUCLEAR_CLUSTER_BULGE_RATIO = 6.4e-4
-"""float: The nuclear star cluster's mass over the bulge's, in the model's own units (2.5e7 solar masses against the
-default model's 3.9e10; Schodel et al. 2014 give 2.0 to 2.5e7, recalled, to verify)."""
+# component's is; the totals are tuned to star counts, not to mass). The cluster's mass is drawn from the galaxy's
+# stellar mass (`galaxy.structure_draw`, GEN.402: Neumayer 2020 and Georgiev 2016, or none); the disc is a multiple of it.
+# The size ratios below are STAND-INS (gap plan 6) from the Milky Way's measured centre, kept until a size law is read.
 NUCLEAR_CLUSTER_SCALE_RATIO = 2.07 / 1580.0
 """float: The cluster's Hernquist scale radius over the bulge scale radius (2.07 pc against 1,580 pc: a half-mass
 radius of 5 pc, a projected half-light radius of 3.8 to 4.2 pc, against the observed 4.2)."""
@@ -2395,13 +2394,10 @@ BLACK_HOLE_MASS_RANGE_SOLAR = (5.0, 20.0)
 BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR = (1e2, 1e5)
 BLACK_HOLE_INTERMEDIATE_MASS_CHANCE = 3.0e-6
 
-# A quiescent supermassive black hole sits at the center of every galaxy
-# whose nucleus isn't an active quasar (generate.add_galactic_nucleus).
-# Sagittarius A* is ~4.3e6 Msun (GRAVITY Collaboration 2019, A&A
-# 625:L10); quiescent nuclei in Milky-Way-like disks span roughly
-# 1e6-1e8 Msun, below the 1e8-1e10 of QUASAR_BLACK_HOLE_MASS_RANGE_SOLAR.
-# Drawn log-uniform.
-BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR = (1e6, 1e8)
+# A supermassive black hole sits at the center of every galaxy (generate.add_galactic_nucleus), quiescent or an
+# active quasar. Its mass follows the galaxy's bulge or stellar mass (`galaxy.structure.black_hole_mass_solar`,
+# GEN.402). The class edge is the usual definition, a million solar masses.
+BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR = 1e6
 
 # A quiescent nucleus accretes far below its Eddington limit: Sgr A*
 # shines at ~1e-9 of it (Genzel, Eisenhauer & Gillessen 2010, RvMP
@@ -2409,10 +2405,8 @@ BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR = (1e6, 1e8)
 # always keeps a (faint) accretion flow.
 BLACK_HOLE_SUPERMASSIVE_EDDINGTON_RATIO_RANGE = (1e-9, 1e-6)
 
-# Bulge velocity dispersion for a supermassive black hole's sphere of
-# influence, r = G*M / sigma^2 (~2 pc for Sgr A* at ~100 km/s), which
-# stands in for the Hill sphere a stellar-mass one uses.
-BLACK_HOLE_SUPERMASSIVE_VELOCITY_DISPERSION_KMS = 100.0
+# A supermassive black hole's sphere of influence, r = G*M / sigma^2, stands in for the Hill sphere a stellar-mass
+# one uses; sigma is the bulge dispersion of the M-sigma relation for its mass (`galaxy.structure`, GEN.402).
 
 BLACK_HOLE_MASS_CLASSES = ("stellar", "intermediate", "supermassive")
 """tuple: `black_holes.mass_class` values (schema v36)."""
@@ -3056,21 +3050,6 @@ ROGUE_ACTIVE_HEAT_FLUX_W_M2 = 0.04
 """float: A rocky rogue whose heat flow reaches this is still geologically
 active (`has_internal_heat`): Earth flows 0.087 W/m^2, Mars about 0.02
 (a default between them). A giant always is."""
-SYSTEM_PASS_ODDS = {
-    "neutron-star:millisecond": {"planets": 0.007},
-    "rogue-planet": {"moons": 0.2},
-}
-"""dict: The odds of what hangs on an object beyond its stars (GEN.251; docs/design/phenomena-catalogue-and-fill.md
-section 5), by object key: the kind, and for a neutron star `neutron-star:` and its pulsar type, for a black hole
-`black-hole:` and its mass class. Each value maps what the object may hold (`planets`, `moons`, `belts`, `disk`) to the
-chance it holds it. `generation.system_pass` rolls the entries of a scattered or below-cut remnant at fill, on its own
-seed; the rogue planet's moon is rolled when the planet is made. A key that is absent has nothing: white dwarfs and
-stars take their planets from the star model, magnetars, intermediate-mass and supermassive holes, brown dwarfs,
-comets and asteroid fields hold none. A millisecond pulsar's planets are the 0.7% of PSR B1257+12-like systems
-(Wolszczan & Frail 1992; Wolszczan 2012). The stellar companions of compact objects are not here: they are drawn at
-scatter time from `multistar.MEMBER_STATE_BY_PLACED` (white dwarf 30%, young neutron star 2%, millisecond pulsar 78%,
-stellar black hole 1.25%, planetary-nebula central star 20%). A rogue planet's moon is the chance a generated rogue
-planet kept a captured companion. (Whether it keeps internal heat is no longer a roll: `rogueSurface` computes it.)"""
 
 # Interstellar object hyperbolic excess speed range, in km/s -- both
 # confirmed interstellar visitors, 1I/'Oumuamua and 2I/Borisov, were
@@ -3377,14 +3356,6 @@ redshift ~2, some 10 billion years ago -- Richards et al. 2006, AJ
 131:2766 -- and the Milky Way's own Sagittarius A* is quiescent), so this
 is a deliberately generous "rare but possible" setting rather than a
 derived rate.
-"""
-
-QUASAR_BLACK_HOLE_MASS_RANGE_SOLAR = (1e8, 1e10)
-"""
-tuple: Central black hole mass range, in solar masses, sampled
-log-uniformly -- the span of virial mass estimates across the SDSS quasar
-catalog (Shen et al. 2011, ApJS 194:45). Below ~1e8 a black hole can't
-reach quasar luminosity even at its Eddington limit.
 """
 
 QUASAR_EDDINGTON_RATIO_RANGE = (0.1, 1.0)

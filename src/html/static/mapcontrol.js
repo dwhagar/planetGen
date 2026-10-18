@@ -122,6 +122,30 @@ export function pointOnFocusPlane(origin, direction, target, forward) {
   return [origin[0] + direction[0] * t, origin[1] + direction[1] * t, origin[2] + direction[2] * t];
 }
 
+// MAP.247: where a cursor ray first meets enough of the galaxy to count as a thing under the cursor. The ray
+// (`origin`, unit `direction`) is sampled `samples` times out to `reach`; `density(x, y, z)` is the stars' density
+// there (1 is the local average) and the column is what the samples add up to along the way (density times the
+// length of the step). The point is the first place the column passes `threshold`, found within the sample step,
+// or null when it never does (nothing dense enough on the ray, or no density to read).
+export function columnDensityPoint(origin, direction, density, threshold, reach, samples) {
+  if (!(threshold > 0) || !(reach > 0)) return null;
+  const count = samples > 0 ? samples : 192;
+  const step = reach / count;
+  let column = 0;
+  for (let i = 0; i < count; i++) {
+    const t = (i + 0.5) * step;
+    const rho = density(origin[0] + direction[0] * t, origin[1] + direction[1] * t, origin[2] + direction[2] * t);
+    if (!(rho > 0)) continue;
+    const next = column + rho * step;
+    if (next >= threshold) {
+      const at = i * step + step * (threshold - column) / (next - column);
+      return [origin[0] + direction[0] * at, origin[1] + direction[1] * at, origin[2] + direction[2] * at];
+    }
+    column = next;
+  }
+  return null;
+}
+
 // MAP.225: the zoom factor a wheel step may take toward a point `distance` away (the eye to the thing under the
 // cursor) without landing on it: a step in (under 1) moves the eye by no more than half of what lies between it
 // and `clearance` from the thing, so the approach is logarithmic and the camera never arrives by accident; a step

@@ -17,7 +17,9 @@ import pytest
 from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.generation.comet import Comet
+from planetgen.describe import build
 from planetgen.generation.config import SystemConfig
+from tests import render_support
 
 TRIALS = 20
 
@@ -100,44 +102,31 @@ def test_to_dict_from_dict_round_trips_render_identically(orbit_type):
     cfg = make_config()
     comet = Comet(cfg, primary_mass_solar=1.0, orbit_type=orbit_type)
     reloaded = Comet.from_dict(comet.to_dict(), cfg)
-    assert str(reloaded) == str(comet)
+    assert build._comet_section(reloaded) == build._comet_section(comet)
     assert reloaded.to_dict() == comet.to_dict()
 
 
 # ---------------------------------------------------------------------------
-# Paragraph rendering.
+# The Document section.
 # ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize("orbit_type", ["elliptical", "parabolic"])
-@pytest.mark.parametrize("markdown", [True, False])
-def test_paragraph_list_renders_section_header(orbit_type, markdown):
-    cfg = make_config(MARKDOWN=markdown)
-    comet = Comet(cfg, primary_mass_solar=1.0, orbit_type=orbit_type)
-    paragraphs = comet.to_paragraph_list()
-    assert paragraphs
-    assert all(isinstance(p, str) and p for p in paragraphs)
-    header = paragraphs[0]
-    if markdown:
-        assert header.startswith("##")
-        assert not header.endswith("==")
-    else:
-        assert header.startswith("==")
-        assert header.endswith("==")
-    assert comet.name in header
-    assert str(comet) == "\n\n".join(paragraphs)
+def test_the_section_is_titled_with_the_comets_name(orbit_type):
+    comet = Comet(make_config(), primary_mass_solar=1.0, orbit_type=orbit_type)
+    section = build._comet_section(comet)
+    assert section["title"] == comet.name and section["kind"] == "comet"
+    assert render_support.prose_text(section)
 
 
-def test_elliptical_paragraph_mentions_period_and_orbit_type():
+def test_elliptical_paragraph_mentions_the_orbit_type_and_the_return():
     comet = Comet(make_config(), primary_mass_solar=1.0, orbit_type="elliptical")
-    description = comet.to_paragraph_list()[1]
-    assert "elliptical" in description
-    assert "period" in description
+    description = render_support.prose_text(build._comet_section(comet))
+    assert "elliptical" in description and "returns to the inner system every orbit" in description
 
 
 def test_parabolic_paragraph_mentions_it_will_not_return():
     comet = Comet(make_config(), primary_mass_solar=1.0, orbit_type="parabolic")
-    description = comet.to_paragraph_list()[1]
-    assert "will not return" in description
+    assert "will not return" in render_support.prose_text(build._comet_section(comet))
 
 
 def test_every_elliptical_comet_is_bound_and_stays_inside_the_stars_hill_sphere():
@@ -160,4 +149,4 @@ def test_every_elliptical_comet_is_bound_and_stays_inside_the_stars_hill_sphere(
 def test_only_parabolic_comets_are_unbound_and_they_say_they_do_not_return():
     comet = Comet(make_config(), primary_mass_solar=1.0, orbit_type="parabolic")
     assert comet.orbital_period_years is None
-    assert "will not return" in " ".join(comet.to_paragraph_list())
+    assert "will not return" in render_support.prose_text(build._comet_section(comet))

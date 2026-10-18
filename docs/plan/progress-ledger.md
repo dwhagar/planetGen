@@ -869,3 +869,21 @@ Baseline: PR #1817.
 | TEST.155 | 8.1 | Description layer |
 | GEN.439 | 8.1 | Composition tables |
 | GEN.440 | 8.1 | Star composition |
+| PERF.126 | 8.1 | Queue, caches and performance |
+| GEN.552 | 8.1 | Multi-star and compact systems |
+| TEST.220 | 8.1 | Bugs and flaky tests |
+| TEST.235 | 8.1 | Bugs and flaky tests |
+| GEN.562 | 8.1 | Multi-star and compact systems |
+| GEN.402 | 8.1 | Galaxy laws build |
+| OPS.60 | 8.1 | Queue, caches and performance |
+| OPS.61 | 8.1 | Queue, caches and performance |
+| TEST.236 | 8.1 | Bugs and flaky tests |
+| TEST.225 | 8.1 | Bugs and flaky tests |
+| TEST.245 | 8.1 | Bugs and flaky tests |
+| MAP.247 | 8.1 | Fly-through map |
+| UX.109 | 8.1 | Description layer |
+| GEN.548 | 8.1 | Composition tables |
+| GEN.543 | 8.1 | Multi-star and compact systems |
+| GEN.561 | 8.1 | Description layer |
+| UX.107 | 8.1 | Description layer |
+| DOC.45 | 8.1 | Description layer |

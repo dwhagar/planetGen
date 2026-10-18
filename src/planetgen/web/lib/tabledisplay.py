@@ -12,10 +12,8 @@ scientific-notation/Sol-relative math; only the small per-quantity branching
 (which unit to show, at what threshold) is mirrored here, operating on plain
 numbers instead of a live `Star`/`Planet` object's attributes.
 
-`_HTML_CONFIG.MARKDOWN = True` makes those formatters emit the HTML
-"coeff &times; 10<sup>exp</sup>" form (the same form already used for
-rendered system Markdown, safely un-escaped by `mdrender.py`), not the wikitext
-"{{Exp|coeff|exp}}" template form -- the wrong one for embedding directly
+Those formatters emit the HTML "coeff &times; 10<sup>exp</sup>" form, not the
+wikitext "{{Exp|coeff|exp}}" template form -- the wrong one for embedding directly
 into an HTML page, which was the whole bug: the interactive HTML viewer used
 to read the wikitext form straight out of the database.
 
@@ -61,18 +59,16 @@ def to_plain_text(formatted):
 
 try:
     from planetgen.physics import constants
-    from planetgen.generation.config import SystemConfig
     from planetgen.util.format import (
         format_body_radius_km, format_distance_km, format_mass_kg, format_period_years, format_power_w, to_scientific_notation,
     )
 
-    _HTML_CONFIG = SystemConfig()
-    _HTML_CONFIG.MARKDOWN = True
+    _FORMATTERS = True
 except ImportError:
     # The planetGen package isn't on the import path in this deployment --
     # fall back to showing the raw number rather than failing outright (see
     # `html/sector.py`'s identical fallback for `milliparsecs_to_ly`).
-    _HTML_CONFIG = None
+    _FORMATTERS = False
     format_period_years = None
 
 
@@ -93,7 +89,7 @@ def format_mass(mass_kg):
     """A star's, compact remnant's, planet's or moon's mass on the mass
     ladder (UX.22): kg, lunar, Earth, Jupiter or solar masses, whichever is
     meaningful."""
-    if _HTML_CONFIG is None:
+    if not _FORMATTERS:
         return f"{mass_kg} kg"
     return format_mass_kg(mass_kg)
 
@@ -101,7 +97,7 @@ def format_mass(mass_kg):
 def format_luminosity(luminosity_w):
     """A star's or remnant's luminosity on the power ladder (UX.22): W to EW,
     then solar luminosities."""
-    if _HTML_CONFIG is None:
+    if not _FORMATTERS:
         return f"{luminosity_w} W"
     return format_power_w(luminosity_w)
 
@@ -109,9 +105,9 @@ def format_luminosity(luminosity_w):
 def format_star_radius(radius_km):
     """A planet, moon or star radius: always km in scientific notation
     (Boss, 2026-09-30), unlike every other distance on the site."""
-    if _HTML_CONFIG is None:
+    if not _FORMATTERS:
         return f"{radius_km} km"
-    return format_body_radius_km(_HTML_CONFIG, radius_km)
+    return format_body_radius_km(radius_km)
 
 
 def format_period(period_years):
@@ -136,7 +132,7 @@ def format_body_distance(distance_km, is_moon=False):
     Returns:
         str: The formatted distance.
     """
-    if _HTML_CONFIG is None:
+    if not _FORMATTERS:
         return f"{distance_km} km"
     return format_distance_km(distance_km)
 
@@ -145,23 +141,23 @@ def _times_reference(ratio):
     """A body's size or mass as a multiple of Earth's or Jupiter's: plain
     digits from 0.001 to a million, scientific notation outside that."""
     if ratio >= 1e6:
-        return to_scientific_notation(_HTML_CONFIG, ratio, 2)
+        return to_scientific_notation(ratio, 2)
     if ratio >= 100:
         return f"{ratio:,.0f}"
     if ratio >= 1:
         return f"{ratio:.2f}"
     if ratio >= 0.001:
         return f"{ratio:.3g}"
-    return to_scientific_notation(_HTML_CONFIG, ratio, 2)
+    return to_scientific_notation(ratio, 2)
 
 
 def format_body_radius(radius_km):
     """A planet's or moon's radius (MAP.92): km in scientific notation like
     every body radius, then in Earth radii."""
-    if _HTML_CONFIG is None:
+    if not _FORMATTERS:
         return f"{radius_km} km"
     ratio = radius_km / constants.EARTH_RADIUS_KM
-    return f"{format_body_radius_km(_HTML_CONFIG, radius_km)} ({_times_reference(ratio)} Earth radii)"
+    return f"{format_body_radius_km(radius_km)} ({_times_reference(ratio)} Earth radii)"
 
 
 # TEST.53: `None`, NaN, an infinity or a number past float range shows a

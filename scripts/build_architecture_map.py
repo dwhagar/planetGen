@@ -69,7 +69,7 @@ PACKAGE = "planetgen"
 PAGE = os.path.join(ROOT, "docs", "design", "architecture-map.html")
 
 AREA_ORDER = ("web", "api", "queue", "generation", "galaxy", "population", "physics", "describe", "db", "admin",
-              "backup", "wiki", "cli", "names", "util", "tuning", "package", "tests")
+              "backup", "wiki", "cli", "datasets", "names", "util", "tuning", "package", "tests")
 """tuple[str]: The areas, in the order the project map and the lists show them. An area is the first folder under
 `src/planetgen`; `tuning.py` is its own area and so are the package's two root files (`package`); `src/tests` is
 `tests`."""

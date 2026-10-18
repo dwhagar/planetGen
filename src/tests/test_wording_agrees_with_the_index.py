@@ -15,7 +15,6 @@ import dataclasses
 import re
 from pathlib import Path
 
-import pytest
 
 import planetgen
 from planetgen import describe
@@ -23,9 +22,7 @@ from planetgen.describe import model
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import habitability as hab
-from planetgen.physics import habitability_world as hw
 from planetgen.physics import protection
-from planetgen.physics.species_limits import limit
 from planetgen.util import draw
 
 from tests.test_habitability import EXAMPLES
@@ -66,32 +63,12 @@ def test_a_colour_a_score_and_the_band_a_sentence_names_agree():
                 assert named.group(1) == row["tier"], row
 
 
-def _hot_cold_or_oxygen_rich(world):
-    """The worlds where `protection` asks for a suit that the stored kit (`habitability.equipment`) does not: past the Green
-    heat edge or the eutectic cold edge, or oxygen above the chronic limit, none of them below a score of 0.4."""
-    return (not limit("cold_suit_c") <= world.temperature_c <= limit("heat_garment_c")
-            or hab.inspired_o2_kpa(world) > limit("inspired_o2_chronic_kpa"))
-
-
 def test_the_gear_and_the_equipment_label_are_the_same_kit():
-    checked = 0
+    """The stored kit follows the words (Boss, 10-18): an environment suit past the Green heat or cold edge or with too much
+    oxygen, as the description says."""
     for world in _all_worlds():
-        if _hot_cold_or_oxygen_rich(world) and hab.equipment(world) != "full life support with radiation hardening":
-            continue
-        checked += 1
         gear = _gear_class(world)
         assert gear in GEAR_OF_LABEL[hab.equipment(world)], (hab.equipment(world), gear, protection.kit_sentence(world), world)
-    assert checked > 100
-
-
-@pytest.mark.xfail(strict=True, reason="TEST.155: the words ask for an environment suit in a Yellow heat (45 to 122 C), a "
-                   "Yellow cold or a Yellow oxygen excess, where the stored kit (`habitability.equipment`, "
-                   "`equipment_tier`) is a mask or nothing; changing the kit moves stored values (generator epoch), so "
-                   "Boss decides which side moves")
-def test_the_gear_and_the_equipment_label_agree_in_a_yellow_heat_cold_or_oxygen_excess():
-    for world in _all_worlds():
-        if _hot_cold_or_oxygen_rich(world):
-            assert _gear_class(world) in GEAR_OF_LABEL[hab.equipment(world)], (hab.equipment(world), world)
 
 
 def test_an_airless_body_is_never_better_than_red_in_air():

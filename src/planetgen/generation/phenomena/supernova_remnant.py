@@ -25,9 +25,8 @@ from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
+from planetgen.galaxy.galactic_orbit import generate_galactic_orbit_fields
 from planetgen.names.wordsalad import LazySaladName
-from planetgen.util.format import format_distance_ly, format_number, format_number_density_cm3
 
 
 def sedov_taylor_radius_ly(age_years, density_cm3, energy_e51=None):
@@ -135,7 +134,7 @@ class SupernovaRemnant(LazySaladName):
 
         Args:
             system_config (SystemConfig): The shared SystemConfig object
-                (used for its `MARKDOWN` flag, and threaded into any
+                (threaded into any
                 embedded `compact_remnant`).
             name (str, optional): An explicit name. Random if omitted.
         """
@@ -276,56 +275,6 @@ class SupernovaRemnant(LazySaladName):
             remnant.compact_remnant = None
 
         return remnant
-
-    def to_paragraph_list(self):
-        """
-        Generates a list of descriptive paragraphs for the remnant: a
-        header naming it, a description of its morphology/age/size/
-        progenitor, and (if present) its embedded compact remnant's own
-        full paragraph list.
-
-        Returns:
-            list: A list of strings, where each string is a paragraph
-                  describing the supernova remnant.
-        """
-        header_level = '##' if self.system_config.MARKDOWN else '=='
-        header = f"{header_level} {self.name} (Class {self.remnant_class} Supernova Remnant) {header_level if not self.system_config.MARKDOWN else ''}".rstrip()
-
-        description = (
-            f"{self.name} is a {self.morphology} supernova remnant, the expanding wreckage of a "
-            f"{self.progenitor_type} supernova approximately {format_number(self.age_years, ',.0f')} years ago. It now reaches "
-            f"about {format_distance_ly(self.radius_ly)} from its center, and still orbits the galactic center at "
-            f"{format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)}."
-        )
-
-        class_name = tuning.NEBULA_CLASSES[self.remnant_class]["name"]
-        paragraphs = [header, description, (
-            f"It is a class {self.remnant_class} remnant ({class_name.lower()}): mostly "
-            f"{self.dominant_species}, at about {format_number_density_cm3(self.density_cm3)} "
-            f"and {format_number(self.temperature_k, ',.3g')} K."
-        )]
-
-        if self.compact_remnant is not None:
-            kind_label = "black hole" if isinstance(self.compact_remnant, BlackHole) else "neutron star"
-            paragraphs.append(
-                f"At its center lies the collapsed core of the progenitor star: a {kind_label}, "
-                f"{self.compact_remnant.name}."
-            )
-            paragraphs.extend(self.compact_remnant.to_paragraph_list())
-        elif self.progenitor_type == "core-collapse":
-            paragraphs.append(
-                "Whatever compact remnant the collapse left behind, if any, has not been located within the debris."
-            )
-
-        return paragraphs
-
-    def __str__(self):
-        """
-        Returns a string representation of the supernova remnant, with
-        paragraphs separated by double newlines.
-        """
-        return "\n\n".join(self.to_paragraph_list())
-
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 object_timing.track(SupernovaRemnant, "supernova-remnant")

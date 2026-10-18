@@ -6,8 +6,7 @@ TEST.60: the operator scripts' command lines, driven through their real
 uncaught exception -- the traceback an operator would see -- rather than
 being hidden behind a subprocess:
 
-- `main()` of `planetgen.cli.query`, `planetgen.cli.render_parity` and `planetgen.cli.dedupe`
-  against a small seeded database; `planetgen.db.stats` has no command line
+- `main()` of `planetgen.cli.query` against a small seeded database; `planetgen.db.stats` has no command line
   (the admin stats page imports it), so its functions are checked against
   the same database instead.
 - Every script taking the shared `--mysql-*` flags
@@ -20,15 +19,14 @@ being hidden behind a subprocess:
   nothing is asked.
 - `planetgen.cli.orbits` with the clock moved back (`last_updated_at` in the
   future): nothing moves backwards.
-- `planetgen.cli.lockouts --ip` with malformed IPv6 addresses: a clean usage
-  error.
+- `planetgen.cli.lift_lockout --ip` with malformed IPv6 addresses: a clean
+  usage error; `planetgen.cli.lockouts` only lists (OPS.60).
 
 Cases `tests/test_edge_admin_scripts.py` already covers (resetDb's
 confirmation, updateOrbits' first run, an unreachable server for
 migrateDb/updateOrbits) are not repeated here.
 """
 
-import os
 import sys
 import uuid
 
@@ -36,16 +34,15 @@ import pymysql
 import pytest
 
 from planetgen.db import stats as adminStats
-from planetgen.cli import render_parity
-from planetgen.cli import dedupe
-from planetgen.cli import lockouts as loginLockouts
+from planetgen.cli import forget_devices
+from planetgen.cli import lift_lockout
+from planetgen.cli import lockouts
+from planetgen.cli import reset_two_factor
 from planetgen.cli import query
 from tests.publicids import pid
 from planetgen.cli import reset
 from planetgen.cli import orbits
 from planetgen.db import store
-from planetgen.names.uniqueness import strip_decoration
-from planetgen.db.render import render_star_system
 from tests.bughunt_support import mysql_argv, run_cli
 from tests.conftest import _test_server_kwargs
 
@@ -76,7 +73,7 @@ def _with_schema(config):
 @pytest.fixture
 def control_schema(monkeypatch):
     """A throwaway control database of this test's own, with its schema
-    (loginLockouts works on it)."""
+    (forget_devices and reset_two_factor work on it)."""
     name = f"planetgen_test_ctl_{uuid.uuid4().hex[:12]}"
     monkeypatch.setenv(store.CONTROL_DB_ENV_VAR, name)
     conn = pymysql.connect(**_test_server_kwargs())
@@ -99,7 +96,7 @@ def control_schema(monkeypatch):
 @pytest.fixture
 def schema_db(mysql_config, control_schema):
     """An empty content database with the current schema, plus a control
-    database with its schema (for loginLockouts)."""
+    database with its schema (for forget_devices and reset_two_factor)."""
     control = store.control_mysql_config(mysql_config)
     store.get_control_connection(control, ensure_schema=True).close()
     store.close_pool(control)
@@ -147,11 +144,10 @@ def _replace(argv, flag, value):
 # harmless command line: (module, args before the --mysql-* flags, after).
 SCRIPTS = {
     "queryDb": (query, [], ["sectors"]),
-    "checkRenderParity": (render_parity, [], []),
-    "dedupeNames": (dedupe, [], []),
     "resetDb": (reset, ["--dry-run"], []),
     "updateOrbits": (orbits, [], []),
-    "loginLockouts": (loginLockouts, ["--forget-devices", "admin"], []),
+    "forgetDevices": (forget_devices, ["admin"], []),
+    "resetTwoFactor": (reset_two_factor, ["admin"], []),
 }
 
 
@@ -230,89 +226,6 @@ def test_admin_stats_on_a_database_without_a_schema(mysql_config):
         conn.close()
 
 
-# --- dedupeNames ---------------------------------------------------------------
-
-def test_dedupe_names_main_renames_a_duplicate_once(seeded, monkeypatch, capsys):
-    first, second = _query(seeded, "SELECT id, name FROM star_systems ORDER BY id")
-    _execute(seeded, "UPDATE star_systems SET name = ? WHERE id = ?", (first["name"], second["id"]))
-
-    assert _run_main(dedupe, mysql_argv(seeded), monkeypatch) == 0
-    assert capsys.readouterr().out.strip() == \
-        "Renamed 0 sector(s) and 1 system(s) to resolve name collisions."
-    names = [row["name"] for row in _query(seeded, "SELECT name FROM star_systems ORDER BY id")]
-    # Both now carry a decorated form of the shared name (the first
-    # one through the registry, e.g. "Alpha X" / "Beta X").
-    assert names[0] != names[1]
-    assert [strip_decoration(name) for name in names] == [first["name"]] * 2
-
-    assert _run_main(dedupe, mysql_argv(seeded), monkeypatch) == 0
-    assert capsys.readouterr().out.strip() == "No duplicate names found -- nothing to do."
-
-    # The admin stats page now lists the decorated name.
-    conn = store.get_connection(seeded, ensure_schema=False)
-    try:
-        page = adminStats.duplicate_names(conn)
-    finally:
-        conn.close()
-    assert page["total"] == 1
-    assert sorted(r["name"] for r in page["items"][0]["rows"]) == sorted(names)
-
-
-def test_dedupe_names_on_an_empty_database(schema_db, monkeypatch, capsys):
-    assert _run_main(dedupe, mysql_argv(schema_db), monkeypatch) == 0
-    assert "nothing to do" in capsys.readouterr().out
-
-
-# --- checkRenderParity ---------------------------------------------------------
-
-def test_check_render_parity_after_the_page_text_is_gone(seeded, monkeypatch, capsys):
-    assert _run_main(render_parity, mysql_argv(seeded), monkeypatch) == 0
-    assert "already gone" in capsys.readouterr().out
-
-
-@pytest.fixture
-def stored_text(seeded):
-    """`seeded`, with the pre-v29 stored page text put back: every system's
-    fresh render, so they start out identical."""
-    _execute(seeded, "ALTER TABLE star_systems ADD COLUMN wikitext_content MEDIUMTEXT NULL, "
-                     "ADD COLUMN markdown_content MEDIUMTEXT NULL")
-    conn = store.get_connection(seeded, ensure_schema=False)
-    try:
-        for row in conn.execute("SELECT id FROM star_systems").fetchall():
-            system = store.load_star_system(conn, row["id"])
-            conn.execute(
-                "UPDATE star_systems SET wikitext_content = ?, markdown_content = ? WHERE id = ?",
-                (render_star_system(system, "wikitext"), render_star_system(system, "markdown"), row["id"]),
-            )
-        conn.commit()
-    finally:
-        conn.close()
-    return seeded
-
-
-def test_check_render_parity_identical_text_passes_and_exports(stored_text, tmp_path, monkeypatch, capsys):
-    argv = mysql_argv(stored_text) + ["--export-dir", str(tmp_path)]
-    assert _run_main(render_parity, argv, monkeypatch) == 0
-    out = capsys.readouterr().out
-    assert f"{stored_text.database}: 2 systems checked" in out
-    assert "identical: 2" in out and "other: 0" in out
-    exported = sorted(os.listdir(tmp_path / stored_text.database))
-    assert len(exported) == 4 and {name.rsplit(".", 1)[1] for name in exported} == {"wiki", "md"}
-
-
-def test_check_render_parity_fails_on_a_real_difference(stored_text, monkeypatch, capsys):
-    system_id = _query(stored_text, "SELECT MIN(id) AS i FROM star_systems")[0]["i"]
-    _execute(stored_text, "UPDATE star_systems SET markdown_content = CONCAT(markdown_content, ?), "
-                          "wikitext_content = NULL WHERE id = ?", ("\nAn extra paragraph.", system_id))
-    _execute(stored_text, "UPDATE star_systems SET markdown_content = NULL, wikitext_content = NULL "
-                          "WHERE id <> ?", (system_id,))
-    assert _run_main(render_parity, mysql_argv(stored_text) + ["--show", "1"], monkeypatch) == 1
-    out = capsys.readouterr().out
-    assert f"--- system {system_id} (" in out and "+An extra paragraph." not in out
-    assert "-An extra paragraph." in out
-    assert "other: 1" in out and "no stored text: 1" in out
-
-
 # --- resetDb -------------------------------------------------------------------
 
 def test_reset_yes_with_dry_run_only_lists(seeded, monkeypatch, capsys):
@@ -351,24 +264,37 @@ def test_update_orbits_never_moves_backwards_when_the_clock_goes_back(seeded, mo
     assert 0 <= elapsed < 600
 
 
-# --- loginLockouts with bad IPv6 -----------------------------------------------
+# --- lockouts lists, lift_lockout lifts (OPS.60) --------------------------------
 
 @pytest.mark.parametrize("address", [
     "2001:db8::zz", "1:2:3:4:5:6:7:8:9", "2001:db8:::1", ":::", "[2001:db8::1]",
     "2001:db8::1/64", "2001:db8::%", "::ffff:300.1.1.1", "g::1", "", " ",
 ])
-def test_login_lockouts_rejects_a_malformed_ipv6_address(schema_db, address, monkeypatch, capsys):
-    assert _run_main(loginLockouts, mysql_argv(schema_db) + ["--ip", address], monkeypatch) == 2
+def test_lift_lockout_rejects_a_malformed_ipv6_address(address, monkeypatch, capsys):
+    assert _run_main(lift_lockout, ["--ip", address], monkeypatch) == 2
     err = capsys.readouterr().err
     assert "usage:" in err and "is not an address that can be locked" in err
 
 
-def test_login_lockouts_lifts_an_ipv6_address_by_its_64(schema_db, redis_server, monkeypatch, capsys):
+def test_lift_lockout_lifts_an_ipv6_address_by_its_64(redis_server, monkeypatch, capsys):
     monkeypatch.setenv("PLANETGEN_RATELIMIT_STORAGE_URI", redis_server)
-    monkeypatch.setattr(loginLockouts, "RATELIMIT_KEY_PREFIX", "planetgen-test:ipv6-lift")
-    argv = mysql_argv(schema_db) + ["--ip", "2001:DB8::1"]
-    assert _run_main(loginLockouts, argv, monkeypatch) == 0
+    monkeypatch.setattr(lockouts, "RATELIMIT_KEY_PREFIX", "planetgen-test:ipv6-lift")
+    assert _run_main(lift_lockout, ["--ip", "2001:DB8::1"], monkeypatch) == 0
     assert capsys.readouterr().out.strip() == "Lifted 0 lockouts (ip:2001:db8::/64)."
+
+
+def test_lift_lockout_needs_one_of_its_three_options(monkeypatch, capsys):
+    assert _run_main(lift_lockout, [], monkeypatch) == 2
+    assert "one of the arguments --ip --user --all is required" in capsys.readouterr().err
+    assert _run_main(lift_lockout, ["--ip", "203.0.113.5", "--all"], monkeypatch) == 2
+    assert "not allowed with argument" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("option", [["--ip", "203.0.113.5"], ["--user", "admin"], ["--all"],
+                                    ["--forget-devices", "admin"], ["--reset-two-factor", "admin"]])
+def test_lockouts_only_lists(option, monkeypatch, capsys):
+    assert _run_main(lockouts, option, monkeypatch) == 2
+    assert "unrecognized arguments" in capsys.readouterr().err
 
 
 # --- every script: bad port, unknown database, empty password ------------------
@@ -394,8 +320,8 @@ def test_an_out_of_range_port_is_a_usage_error(name, port, monkeypatch, capsys):
 
 @pytest.mark.parametrize("name", sorted(SCRIPTS))
 def test_an_unknown_database_is_reported_cleanly(name, schema_db, monkeypatch, capsys):
-    if name == "loginLockouts":
-        # loginLockouts works on the control database; --mysql-database
+    if name in ("forgetDevices", "resetTwoFactor"):
+        # the control database is what these work on; --mysql-database
         # does not pick it.
         monkeypatch.setenv(store.CONTROL_DB_ENV_VAR, "planetgen_test_no_such_control_db")
     argv = _script_argv(name, _replace(mysql_argv(schema_db), "--mysql-database", "planetgen_test_no_such_db"))
@@ -417,9 +343,8 @@ def test_an_empty_password_flag_wins_over_the_environment(name, schema_db, monke
 
 @pytest.mark.parametrize("name", sorted(SCRIPTS))
 def test_a_missing_password_flag_falls_back_to_the_environment(name, schema_db, monkeypatch, capsys):
-    if name == "loginLockouts":
-        pytest.skip("its lockouts are in Redis; only the device options open the control database "
-                    "(and this schema has no admin to name)")
+    if name in ("forgetDevices", "resetTwoFactor"):
+        pytest.skip("it works on the control database, and this schema has no admin to name")
     monkeypatch.setenv("PLANETGEN_MYSQL_PASSWORD", schema_db.password)
     argv = _script_argv(name, _argv_without(schema_db, "--mysql-password"))
     assert _run_main(SCRIPTS[name][0], argv, monkeypatch) == 0, capsys.readouterr().err

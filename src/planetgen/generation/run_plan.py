@@ -2088,7 +2088,7 @@ def scatter_phenomena(args):
                 with steps.Step("Drawing the special phenomena", "phenomena-special", max(len(extents), 1), args=args,
                                 progress=progress):
                     reach = getattr(skeleton, "reach_shell_index", None) if program_constants.SCATTER_COVERS_REACH else None
-                    special = list(phenomenon_scatter.special_rows(extents, skeleton.edge_pc, seed, filled, reach))
+                    special = list(phenomenon_scatter.special_rows(extents, skeleton.edge_pc, seed, skeleton.shape, filled, reach))
                 with steps.Step("Writing the special phenomena", "phenomena-insert", max(len(special), 1), args=args,
                                 progress=progress):
                     store.insert_phenomenon_scatter(conn, special)

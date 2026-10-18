@@ -524,7 +524,7 @@ sector — for nebula/asteroid-field/black-hole/neutron-star, it also
 computes a real galaxy-frame position near that sector, instead of
 leaving it unplaced; other types are linked only (no placement columns of
 their own) — see `database-schema.md`'s "v18"/"v21" notes.
-`--name <name>` forces the phenomenon's name. `--no-settle` (with `--sector-id`) skips saving the sector paths of that sector and the sectors around it, which a black hole or neutron star can bend (`planetgen orbits` saves them later). `--markdown` (this command still writes its text per the old flag; it moves to `--format` with UX.108), `--debug`/`--quiet`/`--silent`, and the
+`--name <name>` forces the phenomenon's name. `--no-settle` (with `--sector-id`) skips saving the sector paths of that sector and the sectors around it, which a black hole or neutron star can bend (`planetgen orbits` saves them later). `--debug`/`--quiet`/`--silent`, and the
 `--mysql-*` connection options all work the same way they do on
 `planetgen system`.
 
@@ -627,7 +627,7 @@ planetgen warm [FAMILY ...] [--cap N]
 
 ## Helper tools
 
-Besides `planetgen`, a few modules run on their own with `python3 -m`. Run them as the account that owns the install (the web server's user for `planetgen warm`, so Apache can read what it writes). `orbits`, `query`, `migrate`, `reset`, `dedupe` and `lockouts` (for its device and two-factor options) take the same five database options: `--mysql-host`, `--mysql-port`, `--mysql-user`, `--mysql-password` and `--mysql-database`, each defaulting to its `PLANETGEN_MYSQL_*` variable (see [config.md](config.md)). `worker` and `config` take no database options. `orbits` and `query` also take `--version`.
+Besides `planetgen`, a few modules run on their own with `python3 -m`. Run them as the account that owns the install (the web server's user for `planetgen warm`, so Apache can read what it writes). `orbits`, `query`, `migrate`, `reset`, `forget_devices` and `reset_two_factor` take the same five database options: `--mysql-host`, `--mysql-port`, `--mysql-user`, `--mysql-password` and `--mysql-database`, each defaulting to its `PLANETGEN_MYSQL_*` variable (see [config.md](config.md)). `worker`, `config`, `lockouts` and `lift_lockout` take no database options. `orbits` and `query` also take `--version`.
 
 | Command | What it is for |
 |---|---|
@@ -635,9 +635,12 @@ Besides `planetgen`, a few modules run on their own with `python3 -m`. Run them 
 | `python3 -m planetgen.cli.worker` | Runs one queue worker. |
 | `python3 -m planetgen.cli.query` | Lists what is stored. |
 | `python3 -m planetgen.cli.migrate` | Brings the database up to the current schema. |
+| `python3 -m planetgen.cli.datasets` | Downloads the static data the generator reads (isochrone grids and the like) or says where each set stands. |
 | `python3 -m planetgen.cli.reset` | Empties the galaxy. |
-| `python3 -m planetgen.cli.lockouts` | Lists and lifts login lockouts. |
-| `python3 -m planetgen.cli.dedupe` | Renames duplicate sector and system names. |
+| `python3 -m planetgen.cli.lockouts` | Lists the login lockouts. |
+| `python3 -m planetgen.cli.lift_lockout` | Lifts a login lockout. |
+| `python3 -m planetgen.cli.forget_devices` | Revokes an admin's trusted-device cookies. |
+| `python3 -m planetgen.cli.reset_two_factor` | Turns off an admin's two-factor sign-in. |
 | `python3 -m planetgen.cli.config` | Checks, documents and edits the settings. |
 | `python3 -m planetgen.cli.backup` | Takes, lists, verifies and restores backup archives. |
 
@@ -684,6 +687,15 @@ Applies any schema migration the database is missing and does nothing if it is c
 python3 -m planetgen.cli.migrate --status
 ```
 
+### datasets
+
+Downloads the static data files the generator reads (GEN.548) into a cache folder outside the checkout, `/var/cache/planetgen/datasets` (`PLANETGEN_DATA_DIR` moves it). `install.sh` and `update.sh` run `fetch` once at setup, as root, and make the folder readable for Apache's user; nothing downloads while the site or the generator runs. Each file is requested with the standard `User-Agent`, must have the size and sha256 the catalogue states, and is kept by an atomic rename, so an interrupted run leaves no half file. A dataset whose host does not answer, or whose file does not match, stays on a labelled stand-in; `fetch` then prints the reason and exits 1, which the scripts report as a warning and not as a failure. `status` fetches nothing and says which datasets are present.
+
+```bash
+python3 -m planetgen.cli.datasets fetch
+python3 -m planetgen.cli.datasets status
+```
+
 ### reset
 
 Empties every generated table of the galaxy (`TRUNCATE`, so the schema stays), keeping `schema_migrations` and the id counters (`id_blocks`), so the next galaxy's ids carry on past the old one's. It never touches the control database (admin accounts, sessions, API keys, audit log). **It cannot be undone.** By default it asks you to type the database's name back; `--yes` skips that for scripts. Look first with `--dry-run`, which lists each table and its row count and changes nothing.
@@ -694,28 +706,33 @@ python3 -m planetgen.cli.reset --dry-run
 
 ### lockouts
 
-For an admin locked out of the site. With no option it lists what is locked; the lockouts live in Redis, on the rate-limit storage (`ratelimit.storage_uri`, else `redis.url`). One of these lifts or resets:
+For an admin locked out of the site. It lists what is locked and does nothing else; the lockouts live in Redis, on the rate-limit storage (`ratelimit.storage_uri`, else `redis.url`).
+
+```bash
+python3 -m planetgen.cli.lockouts
+```
+
+### lift_lockout
+
+Lifts login lockouts, on the same storage. One of these is needed:
 
 *   `--ip ADDRESS`: lift one address (an IPv6 address by its /64).
 *   `--user NAME`: lift one username.
 *   `--all`: lift every lockout.
-*   `--forget-devices USER`: that admin's browsers lose their trusted-device cookies.
-*   `--reset-two-factor USER`: turn off that admin's two-factor sign-in (for a lost phone and lost recovery codes).
 
 Each lift is written to the activity log as `DB lockout.lift`.
 
 ```bash
-python3 -m planetgen.cli.lockouts
-python3 -m planetgen.cli.lockouts --ip 203.0.113.5
+python3 -m planetgen.cli.lift_lockout --ip 203.0.113.5
 ```
 
-### dedupe
+### forget_devices
 
-A one-off clean-up for a database made before names were kept unique: it finds sector and system names that duplicate each other, within or across the two levels, and renames them with the same Greek/Roman and diminutive decoration new rows get, sectors first. A planet's or moon's name follows its system. Running it again changes nothing once the names are clean. It needs only ordinary `SELECT`, `INSERT` and `UPDATE` grants.
+`forget_devices USER`: that admin's browsers lose their trusted-device cookies, so the next sign-in asks for the two-factor code again. Written to the activity log as `DB devices.revoke`.
 
-```bash
-python3 -m planetgen.cli.dedupe
-```
+### reset_two_factor
+
+`reset_two_factor USER`: turns off that admin's two-factor sign-in, for a lost phone and lost recovery codes. The admin signs in with the password and can set it up again. Written to the activity log as `DB totp.reset`.
 
 ### config
 

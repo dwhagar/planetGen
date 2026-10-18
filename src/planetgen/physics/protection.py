@@ -20,7 +20,7 @@ Everything here is a pure function of a `habitability.World`.
 
 from planetgen.physics import atmosphere, habitability
 from planetgen.physics.habitability import (
-    ARMSTRONG_KPA, GAS_LIMITS_KPA, MASK_MIN_KPA, TIERS, gas_inputs, inspired_o2_kpa, tier, water_inputs, wet_bulb_c)
+    ARMSTRONG_KPA, MASK_MIN_KPA, gas_inputs, inspired_o2_kpa, tier, water_inputs, wet_bulb_c)
 from planetgen.physics.protection_limits import limit
 from planetgen.util.format import three_figures_or_tiny
 
@@ -201,19 +201,6 @@ def rating(world, compact_host=None):
         sentence = _suitability_clause(world) if name == "Suitability" else _clause(name, world, needs[name], compact_host)
         rows.append({"domain": name, "tier": colour, "score": value, "text": sentence})
     return {"overall": scores["PHI-4"], "gear": kit_sentence(world, needs), "rows": rows}
-
-
-def paragraph(world, bold, compact_host=None):
-    """
-    The habitability description of a scored rocky body as one paragraph: the PHI-6 value and what a
-    visitor needs overall, then each of the six categories with its colour and value. `bold` wraps a
-    phrase in the page format's emphasis. Nothing is said beyond the categories and the gear.
-    """
-    result = rating(world, compact_host)
-    parts = [f"{bold('PHI-6 habitability')} is {result['overall']:.2f}, and a visitor needs {result['gear']}."]
-    for row in result["rows"]:
-        parts.append(f"{bold(row['domain'] + ': ' + row['tier'])} ({row['score']:.2f}). {row['text']}")
-    return " ".join(parts)
 
 
 def _clause(name, world, need, compact_host):

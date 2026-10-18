@@ -122,7 +122,7 @@ in the next paragraph, and display strings are now computed on demand
 from the raw columns (`planetgen/web/lib/tabledisplay.py`). The belt columns in
 the second paragraph remain.*
 
-Every `*Data`/`*_properties` dict that `to_paragraph_list()` builds in the
+Every `*Data`/`*_properties` dict that the generator's old text builder (`to_paragraph_list()`, gone with UX.109) built in the
 generator — the exact values that appear in each object's rendered wiki
 table — gets its own set of `table_*` columns (one column per dict key),
 rather than being reconstructed from the raw scalar columns at query time.
@@ -131,8 +131,7 @@ text one-to-one (units, rounding, phrasing can differ or change across
 versions); the `table_*` columns are the "as-published" snapshot, kept
 alongside the raw generative fields for full object-graph fidelity.
 
-Asteroid belts have no such dict (`AsteroidBelt.to_paragraph_list()` is
-prose only) — their searchable columns instead capture the same facts the
+Asteroid belts have no such dict (their text was prose only) — their searchable columns instead capture the same facts the
 prose always states: `density`, the distance range (`lower_limit_km`/
 `upper_limit_km`), and `composition_summary`.
 
@@ -808,7 +807,7 @@ tree and pause columns, v9 `galaxy_naming`, v10 `work_job_args`, v11
   value), `expires_at` (90 days after the login that made it),
   `last_used_at`. A login from a browser holding a valid one for that
   username skips the per-username lock. Deleted on a credentials change,
-  with `python3 -m planetgen.cli.lockouts --forget-devices <user>`, and (expired ones)
+  with `python3 -m planetgen.cli.forget_devices <user>`, and (expired ones)
   when the admin's next device is made.
 - **`admin_totp`** (v4, SEC.26) — one row per admin who has set up an
   authenticator app: `secret` (the base32 key itself, as sensitive as a
@@ -924,7 +923,7 @@ No rendered page text is stored (v29 dropped `star_systems.wikitext_content`/
 same `StarSystem.__str__` generation used to run once before saving, so
 the text is identical, except that it now follows later changes (renames,
 names made unique, orbit ticks' current wobble and comet positions).
-`planetgen.cli.render_parity` compares the two on a database still at v28.
+(`planetgen.cli.render_parity`, since removed, compared the two on a database still at v28.)
 `mediawiki_url`/`wikijs_url` (v23 — see `schema.sql`'s header comment)
 record where that page lives on each wiki, once `POST
 /api/systems/<id>/wiki` (`src/planetgen/wiki/`, `web/system_pages.py`'s "Upload to
@@ -1365,7 +1364,7 @@ Moon counterpart of `planet_reflection_spectrum` — identical shape,
 ### `asteroid_belts`
 
 One row per asteroid belt. Belts have no properties-dict data table
-(`AsteroidBelt.to_paragraph_list()` is prose only), so their searchable
+(their text was prose only), so their searchable
 columns capture the facts the prose always states instead.
 
 | Column | Type | Null | Notes |

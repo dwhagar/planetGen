@@ -26,6 +26,7 @@ its Eddington ratio:
 """
 
 
+from planetgen.galaxy import shape_draw as shapeDraw
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants as physical_constants
 from planetgen import tuning
@@ -33,7 +34,6 @@ from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.names.wordsalad import LazySaladName
-from planetgen.util.format import format_distance_km, format_distance_ly, format_mass_solar, format_number, format_power_w
 from planetgen.util.random import log_uniform
 
 
@@ -70,20 +70,22 @@ class Quasar(LazySaladName):
     """Every attribute set by `__init__`, excluding `system_config` (a
     shared back-reference)."""
 
-    def __init__(self, system_config: SystemConfig, name=None):
+    def __init__(self, system_config: SystemConfig, name=None, black_hole_mass_solar=None):
         """
         Initializes a Quasar object.
 
         Args:
             system_config (SystemConfig): The shared SystemConfig object
-                (used only for its `MARKDOWN` flag, via `to_paragraph_list`).
+                (its settings).
             name (str, optional): An explicit name. Random if omitted.
+            black_hole_mass_solar (float, optional): The galaxy's central black hole (`galaxy.structure`, GEN.402);
+                a quasar made on its own is the nucleus of a galaxy drawn for it (`shape_draw.random_nucleus_mass_solar`).
         """
         self.system_config = system_config
         self._init_salad_name(name)  # drawn on first read (PERF.43)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
-        self.black_hole_mass_solar = log_uniform(*tuning.QUASAR_BLACK_HOLE_MASS_RANGE_SOLAR)
+        self.black_hole_mass_solar = black_hole_mass_solar or shapeDraw.random_nucleus_mass_solar()
         mass_kg = self.black_hole_mass_solar * physical_constants.SOLAR_MASS_TO_KG
         self.event_horizon_radius_km = (
             2 * physical_constants.G * mass_kg / physical_constants.SPEED_OF_LIGHT_M_S ** 2 / 1000
@@ -153,52 +155,6 @@ class Quasar(LazySaladName):
         """float: How many times brighter than a Milky-Way-sized galaxy's
         combined starlight this quasar shines."""
         return self.luminosity_w / tuning.MILKY_WAY_STELLAR_LUMINOSITY_W
-
-    def to_paragraph_list(self):
-        """
-        Generates a list of descriptive paragraphs for the quasar: a
-        header naming it, its engine (black hole, accretion, output), and
-        its jets if it has any.
-
-        Returns:
-            list: A list of strings, where each string is a paragraph
-                  describing the quasar.
-        """
-        header_level = '##' if self.system_config.MARKDOWN else '=='
-        header = f"{header_level} {self.name} (Quasar) {header_level if not self.system_config.MARKDOWN else ''}".rstrip()
-
-        description = (
-            f"{self.name} is the galaxy's active nucleus: a supermassive black hole of "
-            f"{format_mass_solar(self.black_hole_mass_solar)}, its event horizon "
-            f"{format_distance_km(self.event_horizon_radius_km)} in radius, swallowing "
-            f"about {format_number(self.accretion_rate_solar_per_year, ',.1f')} solar masses of gas every year. Its accretion disk "
-            f"radiates {format_power_w(self.luminosity_w)} ({self.eddington_ratio:.0%} of its Eddington limit), "
-            f"roughly {format_number(self.galaxy_luminosity_multiple, ',.0f')} times the combined light of every star in a "
-            f"galaxy like the Milky Way. Gas in its broad-line region, about "
-            f"{format_number(self.broad_line_region_light_days, ',.0f')} light-days out, orbits fast enough to smear its "
-            f"emission lines thousands of kilometers per second wide. This phase of activity began roughly "
-            f"{format_number(self.active_age_years, ',.0f')} years ago."
-        )
-
-        paragraphs = [header, description]
-
-        if self.is_radio_loud:
-            paragraphs.append(
-                f"It is radio-loud: twin relativistic jets punch out of the galaxy entirely, feeding radio "
-                f"lobes some {format_distance_ly(self.jet_length_ly)} from end to end."
-            )
-        else:
-            paragraphs.append("It is radio-quiet, with no large-scale jets.")
-
-        return paragraphs
-
-    def __str__(self):
-        """
-        Returns a string representation of the quasar, with paragraphs
-        separated by double newlines.
-        """
-        return "\n\n".join(self.to_paragraph_list())
-
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 object_timing.track(Quasar, "quasar")

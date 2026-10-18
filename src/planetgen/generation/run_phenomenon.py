@@ -109,7 +109,6 @@ def run_phenomenon(args):
             conn.close()
 
     system_config = SystemConfig()
-    system_config.MARKDOWN = args.markdown
     if args.num_orbits is not None:
         system_config.NUM_ORBITS = args.num_orbits
 

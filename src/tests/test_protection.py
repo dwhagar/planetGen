@@ -10,6 +10,7 @@ import random
 
 import pytest
 
+from planetgen import describe
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import habitability as hab
@@ -24,6 +25,15 @@ from tests.test_habitability import EXAMPLES
 
 def _bold(text):
     return f"**{text}**"
+
+
+def _paragraph(world, compact_host=None):
+    """The rating written as one paragraph, as the pages' ratings table says it (the text the assertions below read)."""
+    result = protection.rating(world, compact_host)
+    parts = [f"{_bold('PHI-6 habitability')} is {result['overall']:.2f}, and a visitor needs {result['gear']}."]
+    for row in result["rows"]:
+        parts.append(f"{_bold(row['domain'] + ': ' + row['tier'])} ({row['score']:.2f}). {row['text']}")
+    return " ".join(parts)
 
 
 def _world(**changes):
@@ -112,7 +122,7 @@ def test_no_liquid_water_means_it_has_to_be_brought():
 def test_every_example_world_gets_one_paragraph_naming_each_category_its_colour_and_value(name):
     world = EXAMPLES[name][0]
     scores = hab.scores(world)
-    text = protection.paragraph(world, _bold)
+    text = _paragraph(world)
     assert "\n" not in text
     assert text.startswith(f"**PHI-6 habitability** is {scores['PHI-4']:.2f}, and a visitor needs ")
     assert "PHI-4" not in text
@@ -126,7 +136,7 @@ def test_the_lines_of_an_airless_frozen_world_read_like_the_examples_boss_gave()
     """GEN.216: Boss's own example lines (2026-10-15) are the wording."""
     world = _world(pressure_kpa=0.0, temperature_c=-227.0, gases={}, solvent=None, life_stage="none",
                    water_source=None, surface_dose_sv_yr=0.742)
-    text = protection.paragraph(world, _bold)
+    text = _paragraph(world)
     for line in (
             "**PHI-6 habitability** is 0.00, and a visitor needs an environment suit.",
             "**Pressure: Red** (0.00). The air pressure is 0 kPa, so a pressure suit is needed.",
@@ -141,28 +151,28 @@ def test_the_lines_of_an_airless_frozen_world_read_like_the_examples_boss_gave()
 
 
 def test_a_habitable_world_says_it_needs_no_equipment_in_the_first_line():
-    text = protection.paragraph(_world(), _bold)
+    text = _paragraph(_world())
     assert text.startswith("**PHI-6 habitability** is 1.00, and a visitor needs no equipment. **Pressure: Blue** (1.00).")
     assert "**Suitability: Blue** (1.00). Water, food and shelter are all readily available." in text
     assert "Also considered" not in text
 
 
 def test_the_suitability_line_names_what_is_and_is_not_readily_available():
-    text = protection.paragraph(_world(life_stage="none", water_source="liquid"), _bold)
+    text = _paragraph(_world(life_stage="none", water_source="liquid"))
     assert "There is no food readily available, but there is water and shelter available." in text
-    dry = protection.paragraph(_world(life_stage="none", solvent=None, water_source=None), _bold)
+    dry = _paragraph(_world(life_stage="none", solvent=None, water_source=None))
     assert "There is no food or water readily available" in dry
     assert "Suitability: Red**" in dry
 
 
 def test_the_gear_of_a_cold_world_is_named_in_short_words_and_the_first_line_says_a_sealed_suit():
-    text = protection.paragraph(_world(temperature_c=-80.0), _bold)
+    text = _paragraph(_world(temperature_c=-80.0))
     assert "The air temperature is -80 C, so an environment suit is needed." in text
     assert "and a visitor needs an environment suit." in text
 
 
 def test_the_gear_of_a_hot_high_pressure_world_names_each_suit():
-    text = protection.paragraph(_world(pressure_kpa=2_000.0, temperature_c=80.0), _bold)
+    text = _paragraph(_world(pressure_kpa=2_000.0, temperature_c=80.0))
     assert "The air pressure is 2,000 kPa, so a hyperbaric suit is needed." in text
     assert "The air temperature is 80 C, so an environment suit is needed." in text
     assert "and a visitor needs an environment suit." in text
@@ -170,31 +180,31 @@ def test_the_gear_of_a_hot_high_pressure_world_names_each_suit():
 
 def test_a_planet_of_a_compact_host_says_its_dose_is_rated_lethal():
     world = _world(surface_dose_sv_yr=1000.0)
-    text = protection.paragraph(world, _bold, compact_host="pulsar")
+    text = _paragraph(world, compact_host="pulsar")
     assert "A planet of a pulsar is rated as a lethal dose." in text and "so a hardened habitat is needed" in text
 
 
-def test_a_sample_of_generated_planets_and_moons_each_have_one_consistent_paragraph():
+def test_a_sample_of_generated_planets_and_moons_each_carry_the_ratings_block():
     seen = 0
     for seed in range(8):
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
-            config = SystemConfig()
-            config.MARKDOWN = True
-            system = StarSystem(config, galactic_center_dist_ly=26000.0)
+            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+        document = describe.describe(system)
+        by_name = {section["title"]: section for section in describe.model.sections(document)}
         planets = [planet for planet in system.planets if hasattr(planet, "moons")]
         bodies = planets + [moon for planet in planets for moon in planet.moons]
         for body in bodies:
+            blocks = [b for b in by_name[body.name]["blocks"] if b["type"] == "ratings"]
             if body.body_type == "g":
-                assert body._habitability_paragraphs() == []
+                assert blocks == []
                 continue
-            paragraphs = body._habitability_paragraphs()
-            assert len(paragraphs) == 1
             values = hw.values_from_body(body)
             world = hw.world_from(values, lethal_host=None)
             scores = hab.phi4(world)
-            for domain in hab.DOMAINS:
-                assert f"**{domain}: {scores[domain][1]}** (" in paragraphs[0]
+            assert len(blocks) == 1
+            for row in blocks[0]["rows"]:
+                assert row["tier"] == scores[row["domain"]][1]
             seen += 1
     assert seen > 10
 
@@ -204,13 +214,13 @@ def test_the_paragraph_lengths_stay_short_enough_to_read():
     for _ in range(200):
         world = _world(pressure_kpa=10 ** rng.uniform(-2, 5), temperature_c=rng.uniform(-200, 400),
                        surface_dose_sv_yr=10 ** rng.uniform(-3, 3), life_stage=rng.choice(hab.LIFE_STAGES))
-        assert len(protection.paragraph(world, _bold)) < 1100
+        assert len(_paragraph(world)) < 1100
 
 
 def test_the_air_line_of_a_world_with_no_atmosphere_says_so_and_is_red():
     """GEN.215: Air is Red and the text says there is no atmosphere, never that the gases are fine."""
     world = _world(pressure_kpa=0.0, gases={})
-    text = protection.paragraph(world, _bold)
+    text = _paragraph(world)
     assert "**Air: Red** (0.00). There is no atmosphere (0 kPa). **Water:" in text
     assert "within their long-term limits" not in text
 
@@ -223,7 +233,7 @@ def _earth():
 
 
 def test_an_earth_like_world_is_one_paragraph_of_six_blue_categories_with_their_values():
-    text = protection.paragraph(_earth(), _bold)
+    text = _paragraph(_earth())
     assert text.startswith("**PHI-6 habitability** is 1.00, and a visitor needs no equipment.")
     for domain in ("Pressure", "Temperature", "Air", "Water", "Radiation", "Suitability"):
         assert f"**{domain}: Blue** (1.00)." in text
@@ -233,7 +243,7 @@ def test_an_earth_like_world_is_one_paragraph_of_six_blue_categories_with_their_
 
 def test_a_gas_past_its_long_term_limit_asks_for_a_scrubber_and_is_named_once_in_the_one_gas_table():
     world = World(pressure_kpa=101.0, temperature_c=15.0, gases={"O2": 0.21, "CO2": 0.03}, gravity_ms2=9.8)
-    text = protection.paragraph(world, _bold)
+    text = _paragraph(world)
     assert "a mask with a scrubber" in text and "**Air: Yellow**" in text and "carbon dioxide" in text.lower()
     assert not hasattr(protection, "GAS_NAMES")
     assert protection._gas("H2S") == "hydrogen sulfide"
@@ -262,23 +272,23 @@ def test_the_rows_colours_and_scores_always_equal_the_stored_ones():
             assert (row["score"], row["tier"]) == stored[row["domain"]]
 
 
-def _system_text(markdown):
+def _system_document():
     for seed in range(1, 60):
         random.seed(seed)
-        config = SystemConfig()
-        config.MARKDOWN = markdown
-        text = str(StarSystem(config))
-        if "PHI-6 habitability** is" in text or "PHI-6 habitability''' is" in text:
-            return text
+        document = describe.describe(StarSystem(SystemConfig()))
+        if "PHI-6 habitability" in describe.render(document, "text"):
+            return document
     raise AssertionError("no rocky body in 60 systems")
 
 
-def test_a_generated_planet_or_moon_description_carries_the_paragraph_in_each_format():
-    markdown = _system_text(True)
-    for domain in ("Pressure", "Temperature", "Air", "Water", "Radiation", "Suitability"):
-        assert f"**{domain}: " in markdown
-    wikitext = _system_text(False)
-    assert "'''PHI-6 habitability''' is" in wikitext and "**PHI-6" not in wikitext
+def test_a_generated_planet_or_moon_description_carries_the_ratings_in_each_format():
+    document = _system_document()
+    for fmt, header in (("text", "Category     Rating"), ("markdown", "| Category | Rating | Score | Notes |"),
+                        ("wikitext", "! Category !! Rating !! Score !! Notes")):
+        rendered = describe.render(document, fmt)
+        assert "PHI-6 habitability is" in rendered and header in rendered
+        for domain in ("Pressure", "Temperature", "Air", "Water", "Radiation", "Suitability"):
+            assert domain in rendered
 
 
 def test_there_is_one_describer_of_the_six_categories():

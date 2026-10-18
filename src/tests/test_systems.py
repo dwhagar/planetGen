@@ -23,6 +23,7 @@ from planetgen.generation.system import StarSystem
 from planetgen.generation.binary import BinaryStarProxy
 from planetgen.physics import body_state, constants
 from planetgen import tuning as prog_c
+from tests import render_support
 from planetgen.physics.orbits import (
     circular_orbital_speed_kms, minimum_update_interval_years, mutual_hill_radius_au, mutual_hill_radius_m, orbital_position_au,
 )
@@ -347,7 +348,7 @@ def assert_counts_are_consistent(system):
 def test_baseline_random_system_generates_without_error(star_type):
     for _ in range(TRIALS):
         system = StarSystem(system_config=make_config(star_type))
-        assert str(system).strip()
+        assert render_support.text(system).strip()
         assert_ages_never_exceed_lifespan(system)
         assert_no_orbital_overlap(system)
         assert_no_belt_overlap_all_pairs(system)
@@ -362,7 +363,7 @@ def test_baseline_random_system_generates_without_error(star_type):
 def test_each_tristate_flag_forced(star_type, value, attr):
     for _ in range(TRIALS):
         system = StarSystem(system_config=make_config(star_type, **{attr: value}))
-        assert str(system).strip()
+        assert render_support.text(system).strip()
         assert_ages_never_exceed_lifespan(system)
         assert_no_orbital_overlap(system)
         assert_no_belt_overlap_all_pairs(system)
@@ -498,13 +499,12 @@ def test_render_is_idempotent_and_does_not_double_roll_flavor(monkeypatch):
     Regression test for the Phase 0 bug (see TODO.md): both
     Planet._generate_life_and_flavor_paragraphs and StarSystem.__str__ used
     to roll flavor text and mutate system_config.system_flavor_count/
-    recent_flavor_texts at render time (inside to_paragraph_list()/__str__())
+    recent_flavor_texts at render time (inside the text writers)
     rather than at generation time, so calling either twice on the same
     object double-rolled and double-mutated shared counters. Flavor text is
     now decided once during StarSystem.__init__ (system-level in
     self.system_flavor_text, planet/moon-level via
-    planetLife.decide_flavor_text), and __str__/to_paragraph_list() are pure
-    reads.
+    planetLife.decide_flavor_text), and the Document is a pure read.
     """
     monkeypatch.setattr(prog_c, "FLAVOR_CHANCE_SYSTEM", 1.0)
     monkeypatch.setattr(prog_c, "FLAVOR_CHANCE_PLANET", 1.0)
@@ -517,8 +517,8 @@ def test_render_is_idempotent_and_does_not_double_roll_flavor(monkeypatch):
     flavor_count_after_generation = system.system_config.system_flavor_count
     recent_flavor_after_generation = list(system.system_config.recent_flavor_texts)
 
-    first_render = str(system)
-    second_render = str(system)
+    first_render = render_support.text(system)
+    second_render = render_support.text(system)
 
     assert first_render == second_render
     assert system.system_config.system_flavor_count == flavor_count_after_generation
@@ -553,43 +553,25 @@ def test_binary_system_star_properties_are_sane():
             assert proxy.galactic_orbital_period_gy == pytest.approx(primary.galactic_orbital_period_gy)
 
 
-def test_binary_system_markdown_renders_each_stars_table():
+def test_binary_system_html_renders_each_stars_table():
     """
-    Regression guard for a fixed bug: each binary star's own `###` header
-    was joined to its property table by a single '\\n', not a blank line,
-    so planetgen/web/lib/mdrender.py's blank-line block splitter lumped the header
-    and table into one block -- which is neither a valid single-line
-    heading nor a valid table -- and rendered as one escaped, literal
-    paragraph of '#'/'|' text instead of a real <h3> + <table>. Checks both
-    binary configurations (close/P-type and wide/S-type), since the bug was
-    duplicated in both code paths (systemData.py's close- and wide-binary
-    branches each had their own copy of the same one-newline join).
+    Regression guard for a fixed bug: a binary star's header and table collapsed into one paragraph of
+    literal text. Checks both binary configurations (close/P-type and wide/S-type) in the Document's HTML:
+    every star has its own heading and its own table.
     """
     import html as html_module
 
-    from planetgen.web.lib.mdrender import markdown_to_html
+    from planetgen import describe
+    from planetgen.describe import html as describe_html
 
     for wide_binary in (False, True):
         system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=wide_binary))
-        # store.py's persist_star_system renders the web-facing copy with
-        # MARKDOWN=True (ATX headers) -- match that exactly, since MARKDOWN
-        # defaults to False (wikitext '===' headers) which mdrender.py
-        # doesn't parse as headings at all.
-        system.system_config.MARKDOWN = True
-        html = markdown_to_html(str(system))
+        html = describe_html.render(describe.describe(system))
 
         star_names = [s.name for s in system.stars]
         assert len(star_names) == 2
-        table_count = html.count("<table>")
-        assert table_count >= 2, (
-            f"expected at least one rendered <table> per star (got {table_count} "
-            f"for {star_names}); a binary star's header+table likely collapsed "
-            f"into one unrendered paragraph again"
-        )
+        table_count = html.count("<table")
+        assert table_count >= 2, (f"expected at least one rendered <table> per star (got {table_count} for {star_names})")
         for name in star_names:
-            # mdrender.py HTML-escapes every heading's text (see its module
-            # docstring) -- a name containing '/&/</> (e.g. from an
-            # apostrophe-bearing generated name) is expected to come out
-            # escaped, not literal.
             escaped_name = html_module.escape(name)
-            assert f">{escaped_name}<" in html, f"{name}'s header did not render as a heading"
+            assert f">{escaped_name}</h" in html, f"{name}'s header did not render as a heading"

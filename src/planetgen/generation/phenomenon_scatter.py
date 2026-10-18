@@ -48,6 +48,7 @@ from planetgen.galaxy.sector import _sample_poisson_count
 from planetgen.generation import bright_stars, multistar
 from planetgen.generation.bright_stars import MPC_PER_PC
 from planetgen.generation.phenomena import registry
+from planetgen.physics import remnant_mass
 from planetgen.physics import stellar_evolution as stellarEvolution
 from planetgen.util import draw
 from planetgen.util.poisson import poisson_count
@@ -147,11 +148,11 @@ def mass_law(kind, subtype):
     from and whether the draw is log-uniform; `None` for a kind not drawn
     by mass (planetary nebulae, supernova remnants)."""
     if kind == "neutron-star":
-        return tuning.NEUTRON_STAR_MASS_RANGE_SOLAR, False
+        return remnant_mass.mass_range_sol(kind), False
     if kind == "black-hole" and subtype == "intermediate":
         return tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR, True
     if kind == "black-hole" and subtype == "stellar":
-        return tuning.BLACK_HOLE_MASS_RANGE_SOLAR, False
+        return remnant_mass.mass_range_sol(kind), False
     return None
 
 
@@ -477,18 +478,19 @@ def _expectation_factor(shape, kind, subtype, plane, z):
     return factor
 
 
-def nucleus_row(seed):
+def nucleus_row(seed, shape):
     """
     The galaxy's nucleus: an active quasar with
     `tuning.QUASAR_ACTIVE_NUCLEUS_CHANCE`, else the quiescent supermassive
     black hole every galaxy has, at the galactic origin in `NUCLEUS_ADDRESS`'s
-    cell. Drawn once per scatter, from its own stream.
+    cell, either way the black hole the galaxy's bulge and stellar mass give
+    (`density.central_black_hole_mass_solar`, GEN.402). Drawn once per scatter, from its own stream.
     """
     rng = draw.Stream(f"{seed}:phenomena:{NUCLEUS_STREAM}")
+    mass_solar = density.central_black_hole_mass_solar(shape)
     if rng.random() < tuning.QUASAR_ACTIVE_NUCLEUS_CHANCE:
-        return _row(*NUCLEUS_ADDRESS, "quasar", (0, 0, 0), rng)
-    return _row(*NUCLEUS_ADDRESS, "black-hole", (0, 0, 0), rng, subtype=NUCLEUS_SUBTYPE,
-                mass_solar=log_uniform(*tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR, rng=rng))
+        return _row(*NUCLEUS_ADDRESS, "quasar", (0, 0, 0), rng, mass_solar=mass_solar)
+    return _row(*NUCLEUS_ADDRESS, "black-hole", (0, 0, 0), rng, subtype=NUCLEUS_SUBTYPE, mass_solar=mass_solar)
 
 
 def hypervelocity_rows(extents, edge_pc, seed, reach_shell=None):
@@ -529,9 +531,9 @@ def hypervelocity_rows(extents, edge_pc, seed, reach_shell=None):
                    velocity=tuple(speed * component for component in direction))
 
 
-def special_rows(extents, edge_pc, seed, filled=(), reach_shell=None):
+def special_rows(extents, edge_pc, seed, shape, filled=(), reach_shell=None):
     """The nucleus and the hypervelocity stars (to the grid's `reach_shell`), minus any in a cell
     already `filled`: the rows no shell draws."""
-    rows = [nucleus_row(seed)] + list(hypervelocity_rows(extents, edge_pc, seed, reach_shell))
+    rows = [nucleus_row(seed, shape)] + list(hypervelocity_rows(extents, edge_pc, seed, reach_shell))
     return [row for row in rows if tuple(row[:3]) not in filled]
 

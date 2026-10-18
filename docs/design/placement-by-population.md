@@ -155,7 +155,7 @@ for the next change, such as an alpha-abundance term or a different metallicity 
 
 Observed: high-mass stars are far more often in multiples than low-mass ones, and the most massive sit in clusters and
 associations. The mass dependence is already in `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS` and
-`STAR_COUNT_PROBABILITIES`; the place dependence is not. The `prevalence` argument of `draw_member_tree` already scales
+`hosts.STAR_COUNT_PROBABILITIES` (the `star-count` table); the place dependence is not. The `prevalence` argument of `draw_member_tree` already scales
 the chance of five or more stars, so the place only has to set it.
 
 Rule: `prevalence` is the young share against the solar circle's, clamped to 0 to some cap, where the young share is the profile's

@@ -65,11 +65,18 @@ _SUPERSCRIPT = str.maketrans("-0123456789", "⁻⁰¹²³⁴⁵⁶⁷⁸⁹")
 # Number formatting
 # ---------------------------------------------------------------------
 
-def number(value):
+def _is_scientific(value):
+    magnitude = abs(value)
+    return value != 0 and (magnitude >= 1e4 or magnitude < 1e-3)
+
+
+def number(value, scientific=None):
     """
     A number as readable plain text: thousands separators, at most three
     significant figures after the point, and "a × 10ⁿ" for anything at or
     above ten thousand (UX.20: 5+ whole digits) or below a thousandth.
+    `scientific` forces the style (`number_range` gives both ends of a range
+    the one style, so a range never reads "5,000 to 1 × 10⁴").
 
     >>> number(150), number(0.08), number(20_000), number(1e-5)
     ('150', '0.08', '2 × 10⁴', '1 × 10⁻⁵')
@@ -77,7 +84,7 @@ def number(value):
     if value == 0:
         return "0"
     magnitude = abs(value)
-    if magnitude >= 1e4 or magnitude < 1e-3:
+    if _is_scientific(value) if scientific is None else scientific:
         exponent = math.floor(math.log10(magnitude))
         mantissa = f"{value / 10 ** exponent:.2f}".rstrip("0").rstrip(".")
         if mantissa in ("10", "-10"):
@@ -90,8 +97,9 @@ def number(value):
 
 
 def number_range(low, high, unit=""):
-    """`"low to high unit"`, each end through `number`."""
-    text = f"{number(low)} to {number(high)}"
+    """`"low to high unit"`, each end through `number`, both in scientific notation when either end needs it and neither is below 1."""
+    scientific = (_is_scientific(low) or _is_scientific(high)) and abs(low) >= 1 and abs(high) >= 1
+    text = f"{number(low, scientific or None)} to {number(high, scientific or None)}"
     return f"{text} {unit}" if unit else text
 
 
@@ -313,7 +321,6 @@ def _black_hole():
     ranges = {
         "stellar": pc.BLACK_HOLE_MASS_RANGE_SOLAR,
         "intermediate": pc.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR,
-        "supermassive": pc.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR,
     }
     origins = {
         "stellar": f"The collapsed core of a massive star; {percent(1 - pc.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE)} "
@@ -326,12 +333,17 @@ def _black_hole():
         facts = []
         if code in ranges:
             facts.append(("Mass", number_range(*ranges[code], "solar masses")))
+        elif code == "supermassive":
+            facts.append(("Mass", f"{number(pc.BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR)} solar masses or more "
+                                  "(the galaxy's bulge or stellar mass sets it)"))
         if code in origins:
             facts.append(("Where found", origins[code]))
         facts.append(("Spin", number_range(*pc.BLACK_HOLE_SPIN_RANGE, "(dimensionless)")))
         summary = f"{_label(code)} black holes"
         if code in ranges:
             summary += f", {number_range(*ranges[code], 'solar masses')}"
+        elif code == "supermassive":
+            summary += f", {number(pc.BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR)} solar masses or more"
         classes[code] = _entry(code, f"{_label(code)} black hole", summary + ".", facts)
     return {
         "name": "Black Hole Classes",

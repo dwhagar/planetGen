@@ -316,8 +316,7 @@ has `ALL ... WITH GRANT OPTION` (one test creates a restricted user), Redis
 need it skip without that variable), and a Playwright whose Chromium matches the one on the machine: the image
 carries Chromium 1194, so use `pip install playwright==1.56.0` (a newer
 Playwright asks for a build the image does not have and every browser test
-skips). `markdown` must be 3.11 as in `requirements.lock`; 3.11.1 fails 74
-tests (see TEST.139 in the TODO).
+skips).
 
 To have all of that ready in every new session, paste
 [`examples/cloud-environment/setup-planetgen-env.sh`](../examples/cloud-environment/setup-planetgen-env.sh) into the
@@ -362,7 +361,7 @@ suite on Python 3.12 against MySQL 8.0, MySQL 8.4 and MariaDB 11.4, then the `ge
   - `test_fuzz_sector_placement.py`: sector filling, spacing, explicit
     positions and save/load round trips.
   - `test_fuzz_names.py`: name generation, validation and uniqueness.
-  - `test_fuzz_text_rendering.py`: wikitext and Markdown output.
+  - `test_fuzz_text_rendering.py`: the Document renderers (text, Markdown, wikitext, HTML).
   - `test_fuzz_utils_and_config.py`: physics helpers, formatting, config
     loading, logging and progress files.
   - `test_fuzz_cli.py`: every `planetgen` command and option.

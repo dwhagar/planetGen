@@ -48,7 +48,7 @@ from planetgen.db import query
 from planetgen.db import store as _db
 from planetgen.db import store
 from planetgen import tuning
-from planetgen.galaxy import profile as galaxy_profile, spherical, structure_draw
+from planetgen.galaxy import profile as galaxy_profile, resolution as galaxy_resolution, spherical, structure_draw
 from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count, relative_density
 from planetgen.galaxy.frame import galaxy_to_local_pc
 from planetgen.galaxy.spherical import (
@@ -1178,7 +1178,8 @@ def _sector_system_counts(mysql_config, sector_ids):
     return counts
 
 
-def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, monkeypatch):
+@pytest.mark.parametrize("start", [[], ["--min-start-density", "1000"]], ids=["random", "dense_core"])
+def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, monkeypatch, start):
     """
     The standard workflow this project's own docs describe -- 'plan' once,
     then 'galaxy' with no flags: pick a random location, generate every
@@ -1205,6 +1206,12 @@ def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, 
        predicted at those same positions -- not a flat,
        position-independent count (`_default_generation_args`'s own
        num_systems=10 default, in particular, would badly fail this).
+       A cell the plan predicts above the cell star ceiling is not filled
+       with every system (GEN.281): it resolves only the stars above its
+       luminosity cap and the scatter holds the rest, so such a cell counts
+       by what it resolves (`galaxy.resolution.cell_resolution`), as
+       the plan's own stored statistics do. A start in the dense core
+       (`--min-start-density`) lands in such cells (TEST.225).
        Sparser sectors are left out of the sum: one with nothing drawn
        at all gets one fallback system, which would swamp their tiny
        predictions.
@@ -1215,7 +1222,7 @@ def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, 
 
     _run_cli([
         "--max-shell", "55", "--radius-pc", str(radius_pc),
-    ] + _mysql_argv(mysql_config), planets=False)
+    ] + start + _mysql_argv(mysql_config), planets=False)
 
     sectors = _all_sectors(mysql_config)
     assert sectors, "random-start mode should have generated at least the seed sector"
@@ -1251,7 +1258,10 @@ def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, 
             )
             if inside and predicted >= 1.0:
                 generated_sector_ids.append(by_address[address]["id"])
-                expected_total += predicted
+                resolution = galaxy_resolution.cell_resolution(
+                    galaxy_profile.sector_profile(address, skeleton), skeleton.cell_star_ceiling,
+                    skeleton.fill_luminosity_cap_sol)
+                expected_total += resolution.resolved_systems if resolution.capped else predicted
     finally:
         conn.close()
 

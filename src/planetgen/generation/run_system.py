@@ -53,7 +53,7 @@ def load_system_file(path):
     docstrings for details): `star_type`, `name`, `age`, `num_orbits`,
     `slots`, `habitable_world`, `asteroid_belt`, `comets`, `large_star`, `moons`,
     `max_planets`, `intelligent_life`, `binary_system`, `wide_binary`,
-    `planets`, `markdown`, `flavor_chance_system`, `flavor_chance_planet`,
+    `planets`, `flavor_chance_system`, `flavor_chance_planet`,
     `max_planet_flavor`, `output`.
 
     `slots`, if present, is a list whose entries are either `null` or an
@@ -98,7 +98,7 @@ def apply_system_file(system_config, data):
         "star_type", "name", "age", "num_orbits", "slots",
         "habitable_world", "asteroid_belt", "comets", "large_star", "moons",
         "max_planets", "intelligent_life", "binary_system", "wide_binary",
-        "planets", "markdown",
+        "planets",
     ]
     key_to_attr = {key: key.upper() for key in simple_keys}
 
@@ -157,8 +157,6 @@ def build_system_config(args):
             setattr(system_config, attr, value)
 
     # Command-line value options override anything set by --system-file.
-    if getattr(args, 'markdown', False):  # sector and galaxy runs, until they move to --format (UX.108)
-        system_config.MARKDOWN = True
     if args.star_type is not None:
         system_config.STAR_TYPE = args.star_type
     if args.num_orbits is not None:

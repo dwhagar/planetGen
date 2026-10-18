@@ -352,10 +352,7 @@ def test_the_spoken_form_spells_the_unit_out():
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node isn't installed")
 def test_the_browser_body_radius_is_scientific_km_like_python():
-    from planetgen.generation.config import SystemConfig
     from planetgen.util.format import format_body_radius_km
-    config = SystemConfig()
-    config.MARKDOWN = True
     radii = [6371, 1737.4, 696_000, 0.5, 2.5e9]
     script = (
         "const m = await import(process.argv[1]);"
@@ -366,5 +363,5 @@ def test_the_browser_body_radius_is_scientific_km_like_python():
     out = subprocess.run(["node", "--input-type=module", "-e", script, module_url], input=json.dumps(radii),
                          check=True, capture_output=True, text=True).stdout
     python = [re.sub(r"<sup>(-?\d+)</sup>", lambda m: m.group(1).translate(str.maketrans("-0123456789", "⁻⁰¹²³⁴⁵⁶⁷⁸⁹")),
-                     format_body_radius_km(config, km)) for km in radii]
+                     format_body_radius_km(km)) for km in radii]
     assert json.loads(out) == python

@@ -78,6 +78,15 @@ export function phenomenonLuminositySol(luminositySol, brightestSol) {
   return brightestSol > 0 ? Math.min(own, brightestSol) : own;
 }
 
+// Whether "Charted only" (MAP.111) dims this tile entry: a star outside a charted
+// sector, or a scattered phenomenon whose sector is not built yet. A generated star
+// and a phenomenon of a built sector are in a filled sector. The server marks a
+// scattered point `charted` once its sector is built (`galaxy_scattered_points_in_box`).
+export function isUncharted(entry) {
+  if (entry.phenomenon) return Boolean(entry.scattered) && !entry.charted;
+  return !(entry.generated || entry.charted);
+}
+
 // The same `pointGrow` in GLSL: `float pointGrow(float distancePc)`.
 export const STAR_POINT_GLSL = [
   "float pointGrow(float distancePc) {",

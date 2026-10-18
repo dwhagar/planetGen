@@ -18,7 +18,7 @@ import numpy as np
 
 from planetgen import tuning
 from planetgen.generation import multistar
-from planetgen.physics import constants, ms_lifetime
+from planetgen.physics import constants, ms_lifetime, remnant_mass
 
 
 RELATIVE_VELOCITY_FACTOR = math.sqrt(2.0)
@@ -56,12 +56,6 @@ def _imf_integral(power, low, high):
     return total
 
 
-def _uniform_moments(mass_range):
-    """`(mean, mean of the square)` of a mass drawn uniformly over `mass_range`."""
-    low, high = mass_range
-    return 0.5 * (low + high), (low * low + low * high + high * high) / 3.0
-
-
 def _present_day_moments(age_gy, remnants=True):
     """
     `(sum of M, sum of M squared)` over everything a cohort of one age holds now, per unit of the IMF's number: the
@@ -85,18 +79,18 @@ def _present_day_moments(age_gy, remnants=True):
         grid = np.geomspace(wd_low, wd_high, _REMNANT_GRID_POINTS)
         middle = 0.5 * (grid[:-1] + grid[1:])
         weight = np.array([_imf_integral(0.0, a, b) for a, b in zip(grid[:-1], grid[1:])])
-        remnant = np.clip(tuning.WD_IFMR_SLOPE * middle + tuning.WD_IFMR_INTERCEPT_SOL, *tuning.WD_MASS_RANGE_SOL)
+        remnant = remnant_mass.white_dwarf_mass_sol(middle)
         mass += float(np.sum(weight * remnant))
         square += float(np.sum(weight * remnant * remnant))
 
     ns_low, bh_low = max(wd_high, turn_off), multistar.BLACK_HOLE_PROGENITOR_SOL[0]
     if ns_low < bh_low:
         number = _imf_integral(0.0, ns_low, bh_low)
-        first, second = _uniform_moments(tuning.NEUTRON_STAR_MASS_RANGE_SOLAR)
+        first, second = remnant_mass.uniform_moments("neutron-star")
         mass += number * first
         square += number * second
     number = _imf_integral(0.0, max(bh_low, turn_off), top)
-    first, second = _uniform_moments(tuning.BLACK_HOLE_MASS_RANGE_SOLAR)
+    first, second = remnant_mass.uniform_moments("black-hole")
     mass += number * first
     square += number * second
     return mass, square

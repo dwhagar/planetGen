@@ -62,6 +62,7 @@ from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
 
 from tests.fuzz_support import deterministic_entropy as _deterministic_entropy, hostile_text, scaled
+from tests import render_support
 
 # ---------------------------------------------------------------------------
 # Reproducibility
@@ -135,7 +136,6 @@ def system_configs(draw):
     cfg.STAR_TYPE = draw(st.one_of(st.none(), st.sampled_from(ALL_STAR_TYPES)))
     cfg.NUM_ORBITS = draw(NUM_ORBITS)
     cfg.AGE = draw(st.sampled_from([None, "young", "old"]))
-    cfg.MARKDOWN = draw(st.booleans())
     cfg.NAME = draw(st.one_of(st.none(), hostile_text.filter(lambda s: s.strip() != "")))
     if draw(st.integers(0, 4)) == 0:
         cfg.SLOTS = draw(st.lists(SLOT_SPEC, max_size=8))
@@ -361,7 +361,7 @@ def test_random_valid_configs_generate_sane_systems(seed, cfg):
     system = _generate(cfg, seed)
     check_system(system, cfg)
     # Rendering must not crash either, in the format the config asks for.
-    assert str(system)
+    assert render_support.text(system)
 
 
 @pytest.mark.parametrize("yerkes", YERKES)

@@ -403,7 +403,6 @@ def add_shared_generation_options(parser):
                              "reports which minimum it missed.")
     parser.add_argument('--directive-attempts', type=int, default=directives.DEFAULT_ATTEMPTS,
                         help="Draws to make at most per sector for --directive (default %(default)s).")
-    parser.add_argument('--markdown', '-m', action='store_true', help="Output in Markdown format.")
     parser.add_argument('--star-type', type=str,
                         help="Force every system's star to a specific type (e.g., G2V).")
     parser.add_argument('--age', type=str, choices=['young', 'old'],
@@ -1121,7 +1120,7 @@ def add_phenomenon_arguments(parser):
     """
     Adds every option the `phenomenon` subcommand accepts (besides
     `--version`) to `parser` -- `--type`, `--anchor-system`,
-    `--num-orbits`, `--sector-id`, the MySQL connection args, `--markdown`,
+    `--num-orbits`, `--sector-id`, the MySQL connection args,
     `--name`, and the logging options (see `add_logging_arguments`).
 
     Args:
@@ -1157,9 +1156,6 @@ def add_phenomenon_arguments(parser):
 
     # Database persistence
     store.add_mysql_connection_args(parser)
-
-    # Output in Markdown format
-    parser.add_argument('--markdown', '-m', action='store_true', help="Output in Markdown format.")
 
     # Name
     parser.add_argument('--name', type=str, help="Force the name of the generated phenomenon.")

@@ -102,8 +102,6 @@ STEP_KINDS = {
     "stages": "Stages",
     "containment": "Containment refresh",
     "nearest": "Nearest-systems refresh",
-    "dedupe-sectors": "Sector name pass",
-    "dedupe-systems": "System name pass",
     "db-check": "Database check: validating star systems",
 }
 """dict: Every kind of step the program times (UX.84): the `generation_stats`

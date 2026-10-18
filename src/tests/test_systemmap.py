@@ -622,12 +622,20 @@ def test_planet_attrs_formats_surface_temperature():
     assert sm._planet_attrs(_planet(2, 10, AU_KM, 0.0, surface_temperature_k=None))["surfacetemp"] is None
 
 
+def test_planet_attrs_gravity_and_star_temperature_go_through_the_ladders():
+    """UX.107: the side panel's gravity is the ladder's three figures ("0.378 g"), a star's temperature is its ladder text."""
+    assert sm._planet_attrs(_planet(1, 10, AU_KM, 0.0, gravity_g=0.37814))["gravity"] == "0.378 g"
+    assert sm._planet_attrs(_planet(2, 10, AU_KM, 0.0, gravity_g=None))["gravity"] == ""
+    assert sm._star_temp_text({"temperature_k": 5772.4}) == "5,772 K"
+    assert sm._star_temp_text({"temperature_k": None}) == "\u2013"
+
+
 def test_planet_attrs_formats_surface_pressure():
     # MAP.117: under the temperature in the side panel.
     attrs = sm._planet_attrs(_planet(1, 10, AU_KM, 0.0, atmosphere="Nitrogen-Oxygen",
                                      atmospheric_pressure_pa=101_325.0))
     assert attrs["surfacepressure"] == "101 kPa (1 atm, 14.7 psi)"
-    assert sm._planet_attrs(_planet(2, 10, AU_KM, 0.0, atmosphere="None"))["surfacepressure"] == "None"
+    assert sm._planet_attrs(_planet(2, 10, AU_KM, 0.0, atmosphere="None"))["surfacepressure"] == "0 kPa"
     no_value = sm._planet_attrs(_planet(3, 10, AU_KM, 0.0, atmosphere="Nitrogen", atmospheric_pressure_pa=None))
     assert no_value["surfacepressure"] is None
 

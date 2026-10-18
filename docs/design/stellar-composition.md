@@ -240,6 +240,18 @@ Rules (Boss, 12:39 PM EDT on 2026-10-17): verified wins; if two verified sources
 | Brewer scatter | Use Brewer 2016's wider sd (0.06 to 0.13) in place of part A's (0.04 to 0.07)? | No: keep part A, carry the 0.1 dex mean difference as uncertainty |
 | Research | Isochrone grids for L, T and lifetime against Z; white-dwarf layers; neutron-star EOS | Boss approved a build-time download as in D6 (GEN.548) |
 
+### 14.1 The three downloads (GEN.548, as built)
+
+Boss's rule (12:47 AM EDT, 2026-10-18): static files are downloaded at setup, never at run time. `update.sh` and `install.sh` run `python3 -m planetgen.cli.datasets fetch` (gap-filling-plan.md 6.5); the readers only look in the cache folder and say so when they are on the stand-in. Every citation below was opened on 2026-10-18 (Crossref, arXiv, Zenodo records); the files are not in the repository.
+
+| Fill | Data | Source (verified) | Setup download | Readers (`planetgen.datasets`) | Stand-in until the files are there |
+|---|---|---|---|---|---|
+| SC1 | Main-sequence luminosity, temperature and radius against mass, age and [Fe/H]; main-sequence lifetime | MIST v1.2 basic isochrones, v/vcrit 0.4, solar-scaled, 15 values of [Fe/H] from -4.00 to +0.50, 107 ages (Choi et al. 2016, ApJ 823, 102; Dotter 2016, ApJS 222, 8; mist.science) | one 221.5 MB archive, checked by sha256, reduced to the 5 MB `main_sequence.npz` of main-sequence rows, then deleted | `isochrones.main_sequence_point`, `main_sequence_lifetime_gy`, `abundances`, `metallicities` | the Baraffe et al. 2015 track at solar metallicity and the fitted relations of section 6 |
+| SC2 | White-dwarf radius against mass and temperature, and the hydrogen, helium, carbon and oxygen mass fractions | Bédard, Bergeron, Brassard and Fontaine 2020, ApJ 901, 93 (arXiv:2008.07469): 23 masses 0.20 to 1.30, thick and thin hydrogen layer, homogeneous equimassic C/O core; Warwick page of A. Bédard | `sequences.tar`, 2.5 MB | `white_dwarf_models.radius_solar`, `layer_mass_fractions`, `sequence`, `masses_sol` | the radius law of D13 and a fixed layer split |
+| SC3 | 21 unified neutron-star equations of state; the ground-state outer-crust nuclei for 20 nuclear mass models | Malik, Pais and Providência 2024, A&A 689, A242 (Zenodo 10.5281/zenodo.10950421); Servais and Chamel 2026, A&A 710, A322 (Zenodo 10.5281/zenodo.20085135); both CC BY 4.0 | 21 EOS tables (10 KB each) and `compositions.zip`, 1.8 MB | `neutron_star_matter.equations_of_state`, `crust_models`, `outer_crust`, `crust_nucleus` | the nickel-to-krypton crust table and the radius floor of D13 |
+
+What the data does not close: the white-dwarf sequences are carbon-oxygen models with a 1:1 core split by assumption (a helium-core or oxygen-neon white dwarf, and a measured C:O split, remain open); the isochrone grid is solar-scaled (no [alpha/Fe] enhancement, which the thick-disc branch of D9 needs) and its rotation is a model choice; the equations of state are model families, so the maximum mass and radius they give are spreads of models, not measurements. Wiring the readers into `stellar_abundances` and `stellar_composition` (replacing the stand-ins marked open in `RELATIONS`) is the follow-up in GEN.548's item.
+
 ## Appendix: the code behind the numbers
 
 ```python

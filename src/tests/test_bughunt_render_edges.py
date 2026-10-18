@@ -1,17 +1,17 @@
 # tests/test_bughunt_render_edges.py
 
 """
-Tier 1 bug-hunt coverage: `mdrender.py`/`systemmap.py` fed
+Tier 1 bug-hunt coverage: the Document HTML renderer and `systemmap.py` fed
 adversarial or degenerate data -- the two rendering layers most exposed to
-whatever the database actually holds (mdrender renders the stored
-wikitext/Markdown write-up; systemmap renders raw `planets`/`stars`/
-`asteroid_belts` rows).
+whatever the database actually holds (the renderer writes the stored names
+and flavour text; systemmap renders raw `planets`/`stars`/`asteroid_belts`
+rows).
 
-Tier 1: `markdown_to_html` never raises and always HTML-escapes dangerous
-input (confirmed: `<script>...` comes back as `&lt;script&gt;...`, never
-literal), across a battery of malformed/adversarial markdown/wikitext
-(broken tables, unterminated formatting, huge input, control characters,
-`None`).
+Tier 1: `describe.html.render` never raises and always HTML-escapes dangerous
+input (`<script>...` comes back as `&lt;script&gt;...`, never literal),
+across a battery of malformed or adversarial text in a title, a sentence and
+a fact value (broken tables, unterminated formatting, huge input, control
+characters).
 
 Fixed (MAP.57; was a strict xfail, TEST.4, and before that a Tier 2 report):
 `render_system_map_panel` given a `NaN`/`Inf` number (never
@@ -28,7 +28,7 @@ import re
 
 import pytest
 
-from planetgen.web.lib import mdrender  # noqa: E402
+from planetgen.describe import html as describe_html  # noqa: E402
 from planetgen.web.maps import systemmap as sm  # noqa: E402
 
 ADVERSARIAL_MARKDOWN = [
@@ -47,20 +47,25 @@ ADVERSARIAL_MARKDOWN = [
 ]
 
 
+def _document(text):
+    return {"title": text, "sections": [{"kind": "star", "title": text, "ref": None, "children": [], "blocks": [
+        {"type": "facts", "title": text, "rows": [{"key": "a", "label": text, "value": [text]}]},
+        {"type": "prose", "role": "summary", "text": [[text]]}]}]}
+
+
 @pytest.mark.parametrize("text", ADVERSARIAL_MARKDOWN)
-def test_markdown_to_html_never_crashes_on_adversarial_input(text):
-    html = mdrender.markdown_to_html(text)
-    assert isinstance(html, str)
+def test_the_document_html_never_crashes_on_adversarial_input(text):
+    assert isinstance(describe_html.render(_document(text)), str)
 
 
-def test_markdown_to_html_script_tag_is_escaped_not_executable():
-    html = mdrender.markdown_to_html("<script>alert(document.cookie)</script>")
+def test_the_document_html_script_tag_is_escaped_not_executable():
+    html = describe_html.render(_document("<script>alert(document.cookie)</script>"))
     assert "<script>" not in html
     assert "&lt;script&gt;" in html
 
 
-def test_markdown_to_html_event_handler_attribute_is_escaped():
-    html = mdrender.markdown_to_html('<img src=x onerror="alert(1)">')
+def test_the_document_html_event_handler_attribute_is_escaped():
+    html = describe_html.render(_document('<img src=x onerror="alert(1)">'))
     assert "<img" not in html
     assert "onerror=" not in html or "&quot;" in html
 

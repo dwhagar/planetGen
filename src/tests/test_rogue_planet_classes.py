@@ -19,6 +19,7 @@ from planetgen.generation.phenomena.rogue import (RoguePlanet, default_rogue_pla
 
 from planetgen.web.maps import starmap  # noqa: E402
 from planetgen.web import sector_page, system_pages  # noqa: E402
+from tests import render_support
 
 
 class _Config(Config):
@@ -42,7 +43,7 @@ def test_generated_rogues_get_a_fitting_rogue_class():
         assert planet.planet_class in rogue_planet_classes(planet.planet_type)
         assert planet.planet_class in rogue_planet_class_candidates(planet.planet_type, planet.radius_km,
                                                                     planet.mass_kg)
-        assert f"Class {planet.planet_class}" in planet.to_paragraph_list()[0]
+        assert f"class {planet.planet_class}" in render_support.facts_text(render_support.phenomenon_section(planet))
 
 
 def test_brown_dwarfs_have_no_planet_class():

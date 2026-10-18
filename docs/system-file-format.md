@@ -39,7 +39,6 @@ resembling our own solar system.
 | `binary_system` | `true`, `false`, or omitted | See [Tri-state options](#tri-state-options). |
 | `wide_binary` | `true`, `false`, or omitted | See [Tri-state options](#tri-state-options). Only meaningful together with `binary_system: true`. |
 | `planets` | `true`, `false`, or omitted | See [Tri-state options](#tri-state-options). |
-| `markdown` | `true`, `false`, or omitted | Output in Markdown instead of the default wikitext. |
 | `flavor_chance_system` | float `0.0`-`1.0` | Overrides the odds of a system-level "sensor readings" flavor line appearing. |
 | `flavor_chance_planet` | float `0.0`-`1.0` | Overrides the odds of a planet-level flavor line appearing. |
 | `max_planet_flavor` | `true` or omitted | Raises the total flavor-text budget for the run to 99 and sets `flavor_chance_planet` to 1. |

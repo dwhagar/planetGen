@@ -174,5 +174,5 @@ def test_an_o_or_early_b_star_hosts_a_nebula_at_its_rule_chance(monkeypatch, let
     monkeypatch.setattr(nebula_contents, "choose_weighted_class", lambda classes, label: classes[0])
     draw.set_run_seed(204)
     sector = Sector(4000)
-    run_sector.add_star_hosted_nebulae(sector, types.SimpleNamespace(markdown=False))
+    run_sector.add_star_hosted_nebulae(sector, types.SimpleNamespace())
     assert abs(sector.added / 4000 - expected) < 0.03, sector.added / 4000

@@ -15,7 +15,7 @@ import pytest
 from planetgen import tuning
 from planetgen.cli import generate as generate_cli
 from planetgen.db import store
-from planetgen.galaxy import remnant_distribution
+from planetgen.galaxy import density, remnant_distribution
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.spherical import sector_address_at, sector_position_pc, wedge_count
 from planetgen.generation import phenomenon_scatter as scatter
@@ -96,15 +96,17 @@ def test_each_kind_follows_its_rate_per_star():
 
 def test_the_nucleus_is_a_quasar_or_the_supermassive_black_hole_at_the_origin(monkeypatch):
     monkeypatch.setattr(tuning, "QUASAR_ACTIVE_NUCLEUS_CHANCE", 1.0)
-    quasar = _as_dict(scatter.nucleus_row(9))
+    quasar = _as_dict(scatter.nucleus_row(9, SHAPE))
     assert quasar["kind"] == "quasar" and quasar["subtype"] is None
     monkeypatch.setattr(tuning, "QUASAR_ACTIVE_NUCLEUS_CHANCE", 0.0)
-    hole = _as_dict(scatter.nucleus_row(9))
+    hole = _as_dict(scatter.nucleus_row(9, SHAPE))
     assert hole["kind"] == "black-hole" and hole["subtype"] == scatter.NUCLEUS_SUBTYPE
+    mass = density.central_black_hole_mass_solar(SHAPE)
     for row in (quasar, hole):
+        assert row["mass_solar"] == mass          # either way the galaxy's own central black hole (GEN.402)
         assert (row["shell_index"], row["band_index"], row["wedge_index"]) == scatter.NUCLEUS_ADDRESS
         assert (row["position_x_mpc"], row["position_y_mpc"], row["position_z_mpc"]) == (0, 0, 0)
-    assert scatter.nucleus_row(9) == scatter.nucleus_row(9)
+    assert scatter.nucleus_row(9, SHAPE) == scatter.nucleus_row(9, SHAPE)
 
 
 REACH_SHELL = 65_535
@@ -155,9 +157,9 @@ def test_hypervelocity_stars_are_placed_by_the_seed_alone_none_redrawn_for_the_o
 
 
 def test_the_special_rows_leave_out_filled_cells():
-    rows = scatter.special_rows(EXTENTS, EDGE_PC, 4)
+    rows = scatter.special_rows(EXTENTS, EDGE_PC, 4, SHAPE)
     assert tuple(rows[0][:3]) == scatter.NUCLEUS_ADDRESS
-    left = scatter.special_rows(EXTENTS, EDGE_PC, 4, filled={scatter.NUCLEUS_ADDRESS})
+    left = scatter.special_rows(EXTENTS, EDGE_PC, 4, SHAPE, filled={scatter.NUCLEUS_ADDRESS})
     assert tuple(left[0][:3]) != scatter.NUCLEUS_ADDRESS
     assert len(left) == len(rows) - 1 or len(left) < len(rows)
 
@@ -226,8 +228,9 @@ def test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter(m
     final = next(m for m in messages if m.startswith("Placed "))
     for label, count in summary["counts"].items():  # only what was created, like the star count
         assert f"{count:,} {label}" in final, label
-    for label in scatter.EXPECTED_LABELS:
-        assert (f" {label}" in final) == bool(summary["counts"].get(label)), label
+    listed = {item.split(" ", 1)[1] for item in final.split(": ", 1)[1].split(";")[0].split(", ")}
+    for label in scatter.EXPECTED_LABELS:  # whole labels: "magnetar neutron-star" is not a "neutron-star"
+        assert (label in listed) == bool(summary["counts"].get(label)), label
     assert " 0 " not in final
     placed = sum(int(m.split(": placed ")[1].split(":")[0].replace(",", "")) for m in shell_lines)
     assert placed <= summary["total"]
@@ -689,16 +692,16 @@ def test_the_central_black_hole_or_quasar_exists_whatever_the_limits(mysql_confi
 
 
 def test_the_nucleus_row_does_not_depend_on_any_limit():
-    assert scatter.special_rows(EXTENTS, EDGE_PC, 3)[0] == scatter.nucleus_row(3)
-    assert scatter.nucleus_row(3)[3] in scatter.NUCLEUS_KINDS
+    assert scatter.special_rows(EXTENTS, EDGE_PC, 3, SHAPE)[0] == scatter.nucleus_row(3, SHAPE)
+    assert scatter.nucleus_row(3, SHAPE)[3] in scatter.NUCLEUS_KINDS
 
 
 def test_every_scattered_black_hole_and_neutron_star_stores_a_mass_inside_its_class_range():
-    rows = [_as_dict(row) for row in _shell() + _shell(OTHER_SHELL)] + [_as_dict(scatter.nucleus_row(5))]
+    rows = [_as_dict(row) for row in _shell() + _shell(OTHER_SHELL)] + [_as_dict(scatter.nucleus_row(5, SHAPE))]
     ranges = {("neutron-star", None): tuning.NEUTRON_STAR_MASS_RANGE_SOLAR,
               ("black-hole", "stellar"): tuning.BLACK_HOLE_MASS_RANGE_SOLAR,
               ("black-hole", "intermediate"): tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR,
-              ("black-hole", "supermassive"): tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR}
+              ("black-hole", "supermassive"): (tuning.BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR, float("inf"))}
     seen = set()
     for row in rows:
         key = (row["kind"], row["subtype"])
@@ -739,7 +742,7 @@ def test_the_map_sizes_scattered_points_by_their_stored_mass(mysql_config):
     assert query.scattered_point_size(tuning.BLACK_HOLE_MASS_RANGE_SOLAR[1]) \
         < query.scattered_point_size(tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[0])
     assert query.scattered_point_size(tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[1]) \
-        < query.scattered_point_size(tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR[0])
+        < query.scattered_point_size(tuning.BLACK_HOLE_SUPERMASSIVE_MIN_MASS_SOLAR)
 
     conn = store.get_connection(mysql_config)
     try:
@@ -759,6 +762,8 @@ def test_the_map_sizes_scattered_points_by_their_stored_mass(mysql_config):
     assert by_mass[1.5] < by_mass[10.0] < by_mass[18.0] < by_mass[5000.0]
     unstored = [point for point in points if point["mass_solar"] is None]
     assert unstored and unstored[0]["size"] == 0.55
+    # MAP.111: an unbuilt scattered point is outside the filled sectors, so "Charted only" dims it.
+    assert [point["charted"] for point in points] == [False] * len(points)
     # MAP.208: drawn as bright as a star of its mass (a black hole a little dimmer), a massless one as a
     # one solar mass star.
     by_mass = {point["mass_solar"]: point for point in points}
@@ -767,6 +772,27 @@ def test_the_map_sizes_scattered_points_by_their_stored_mass(mysql_config):
     assert by_mass[1.5]["map_luminosity_sol"] == pytest.approx(stellar_evolution.map_luminosity_sol(1.5), rel=1e-3)
     assert by_mass[1.5]["map_luminosity_sol"] < by_mass[10.0]["map_luminosity_sol"] < by_mass[5000.0]["map_luminosity_sol"]
     assert unstored[0]["map_luminosity_sol"] == pytest.approx(tuning.BLACK_HOLE_MAP_BRIGHTNESS, rel=1e-3)
+
+
+def test_a_scattered_point_is_charted_once_its_sector_is_built(mysql_config):
+    """MAP.111: a coarse tile lists built scattered points too; only those are charted, so "Charted only" keeps
+    them lit and dims the unbuilt ones."""
+    from planetgen.db import query
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("DELETE FROM phenomenon_scatter")
+        for wedge, built in ((0, "NULL"), (1, "NOW()")):
+            conn.execute(
+                "INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, subtype, "
+                "position_x_mpc, position_y_mpc, position_z_mpc, seed, mass_solar, built_at) "
+                f"VALUES (0, 0, ?, 'black-hole', 'supermassive', ?, 0, 0, 1, 4.0e6, {built})",
+                (wedge, 1000 * wedge))
+        conn.commit()
+        points = query.galaxy_scattered_points_in_box(conn, (-10, -10, -10), (10, 10, 10), EDGE_PC, 50, True)
+    finally:
+        conn.close()
+    assert sorted(point["charted"] for point in points) == [False, True]
+    assert {point["name"] for point in points if point["charted"]} == {"Black hole"}
 
 
 def _index_names(conn):

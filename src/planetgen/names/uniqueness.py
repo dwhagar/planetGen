@@ -29,8 +29,8 @@ a search of their own.
   anything that would need a third word draws a fresh name instead.
   Sector names keep every tier.
 `strip_decoration` is the inverse of both -- recovering the
-underlying base name from an already-decorated one, e.g. for the
-one-off backfill script `planetgen.cli.dedupe`) to group existing rows.
+underlying base name from an already-decorated one, e.g. to group
+existing rows on the Stats page.
 
 None of this module talks to the database or knows about `sectors`/
 `star_systems` -- see `planetgen/db/store.py`'s `reserve_sector_name`/
@@ -211,8 +211,8 @@ def strip_decoration(name):
     """
     Recovers the underlying base name from one that may carry any
     combination of this module's own decorations -- the inverse of
-    `resolve_greek_roman_collision`/`resolve_diminutive`. Used by `planetgen.cli.dedupe` to group already-
-    stored names by what they'd collide on.
+    `resolve_greek_roman_collision`/`resolve_diminutive`. Used by the Stats page to group
+    already-stored names by what they'd collide on.
 
     Strips a trailing roman numeral and leading Greek-letter and
     diminutive prefixes, repeating until none is left, so a stacked name

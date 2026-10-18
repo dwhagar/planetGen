@@ -15,7 +15,6 @@ import math
 import re
 
 from planetgen import tuning
-from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants as physical_constants
 from planetgen.util import ladders
 
@@ -445,13 +444,12 @@ def format_magnetic_field_gauss(gauss):
     return format_quantity(ladders.MAGNETIC_FIELD, None if gauss is None else gauss * 1e-4)
 
 
-def format_body_radius_km(system_config: SystemConfig, radius_km, precision=None):
+def format_body_radius_km(radius_km, precision=None):
     """
     A planet, moon or star radius: always km in scientific notation (Boss,
     2026-09-30), the one exception to `format_distance_m`'s ladder.
 
     Args:
-        system_config (SystemConfig): Picks HTML or wikitext notation.
         radius_km (float): The radius, in kilometers.
         precision (int, optional): Decimal places of the mantissa; defaults
             to `tuning.SCIENTIFIC_NOTATION_DECIMAL_PLACES`.
@@ -463,49 +461,22 @@ def format_body_radius_km(system_config: SystemConfig, radius_km, precision=None
         return "\u2013"
     if precision is None:
         precision = tuning.SCIENTIFIC_NOTATION_DECIMAL_PLACES
-    return f"{to_scientific_notation(system_config, radius_km, precision)} km"
+    return f"{to_scientific_notation(radius_km, precision)} km"
 
 
-def format_length_km(system_config: SystemConfig, value_km, threshold, round_digits, scientific_precision=None):
-    """
-    Formats a length in kilometers, switching between a comma-grouped plain
-    number and scientific notation based on a threshold.
-
-    Args:
-        system_config (SystemConfig): The shared SystemConfig object.
-        value_km (float): The length to format, in kilometers.
-        threshold (float): The value above which scientific notation is used.
-        round_digits (int): Decimal places for the plain-number form (and the
-                            default precision for the scientific-notation form).
-        scientific_precision (int, optional): Decimal places for the
-                                              scientific-notation form, if
-                                              different from `round_digits`.
-
-    Returns:
-        str: The formatted length string, including the " km" unit.
-    """
-    if value_km <= threshold:
-        return f"{format_number(round(value_km, round_digits), ',')} km"
-    precision = scientific_precision if scientific_precision is not None else round_digits
-    return f"{to_scientific_notation(system_config, value_km, precision)} km"
-
-
-def to_scientific_notation(system_config: SystemConfig, number, precision=2):
+def to_scientific_notation(number, precision=2):
     """
     Converts a number to scientific notation with the specified precision.
 
     This function is used for formatting large numbers in a compact and
-    standardized way, suitable for data templates and displays. It checks the
-    global `config.MARKDOWN` flag to determine the output format.
+    standardized way, as HTML (`1.23 × 10<sup>4</sup>`), the form the pages embed.
 
     Args:
-        system_config (SystemConfig): The shared SystemConfig object.
         number (float): The number to convert.
         precision (int, optional): The number of decimal places to show. Defaults to 2.
 
     Returns:
-        str: The number in scientific notation, either as a wikitext template
-             or as HTML for markdown.
+        str: The number in scientific notation as HTML.
     """
     if number == 0:
         return "0"
@@ -518,11 +489,7 @@ def to_scientific_notation(system_config: SystemConfig, number, precision=2):
     # underflowed to a division by zero.
     mantissa, exponent_text = f"{number:.{precision}e}".split("e")
     exponent = int(exponent_text)
-    if system_config.MARKDOWN:
-        return f"{mantissa} × 10<sup>{exponent}</sup>"
-    else:
-        output = f"Exp|{mantissa}|{exponent:d}"
-        return "{{" + output + "}}"
+    return f"{mantissa} × 10<sup>{exponent}</sup>"
 
 def format_age_string(age_gy, precision=2):
     """
@@ -557,50 +524,3 @@ def to_paragraph(sentences):
         str: A single string representing the combined paragraph.
     """
     return " ".join(sentences)
-
-
-def properties_to_string(system_config: SystemConfig, properties, template_name, markdown_header=None, markdown_key_map=None):
-    """
-    Converts a dictionary of properties into either a Markdown table or a Wiki template block,
-    based on the `system_config.MARKDOWN` flag.
-
-    Args:
-        system_config (SystemConfig): The shared SystemConfig object.
-        properties (dict): A dictionary where keys are property names (str) in Wikitext format
-                           and values are their corresponding values (str or any type convertible to str).
-        template_name (str): The name of the template to use for Wiki format (e.g., "Planet Data").
-        markdown_header (str, optional): An optional header to prepend to the Markdown table.
-                                         Defaults to None.
-        markdown_key_map (dict, optional): A dictionary mapping Wikitext property keys to their
-                                            desired Markdown table header names. If a key is not
-                                            found in this map, it will be converted from
-                                            lower_snake_case to Title Case for Markdown.
-
-    Returns:
-        str: A string formatted as either a Markdown table or a Wiki template block.
-    """
-    output_lines = []
-
-    if system_config.MARKDOWN:
-        if markdown_header:
-            output_lines.append(markdown_header)
-        output_lines.extend([
-            "| Property | Value |",
-            "|---|---|"
-        ])
-        for prop_key, value in properties.items():
-            # Determine the Markdown header name
-            if markdown_key_map and prop_key in markdown_key_map:
-                markdown_prop_name = markdown_key_map[prop_key]
-            else:
-                # Default to converting lower_snake_case to Title Case
-                markdown_prop_name = prop_key.replace('_', ' ').title()
-            output_lines.append(f"| {markdown_prop_name} | {value} |")
-        return "\n".join(output_lines)
-    else:
-        output_lines.append(f"{{{{{template_name}")
-        for prop_key, value in properties.items():
-            # For Wikitext, the keys are already in the correct format
-            output_lines.append(f"|{prop_key}={value}")
-        output_lines.append("}}")
-        return "\n".join(output_lines)
