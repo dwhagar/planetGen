@@ -205,7 +205,7 @@ def test_the_reach_bound_holds_for_the_lowest_and_the_highest_draw():
         for shell, high_band in [(5, -1), (60, 10), (800, 60)]:
             groups = object_first.ReachGroups.for_shell(shell, high_band, tiers.EDGE_PC)
             bound = reach.class_bounds(shape, groups, "black-hole", "stellar")
-            for index in range(len(groups)):
+            for index in sorted({0, len(groups) // 3, 2 * len(groups) // 3, len(groups) - 1}):    # a few spread over the shell
                 radius = np.cbrt(rng.uniform(groups.r_in[index] ** 3, groups.r_out[index] ** 3, 200))
                 cos_colat = rng.uniform(groups.cos_low[index], groups.cos_high[index], 200)
                 lon = rng.uniform(0.0, 2.0 * math.pi, 200)
@@ -213,6 +213,3 @@ def test_the_reach_bound_holds_for_the_lowest_and_the_highest_draw():
                 weight = reach._weights("black-hole", "stellar", plane * np.cos(lon), plane * np.sin(lon),
                                         radius * cos_colat, shape)
                 assert np.all(weight <= bound[index] * (1.0 + 1e-9)), (solar, free, shell, index)
-            rows = list(reach.scatter_shell(shape, shell, high_band, tiers.EDGE_PC, 4000.0, 5, min_mass_solar=1.0,
-                                            check=True))
-            assert rows

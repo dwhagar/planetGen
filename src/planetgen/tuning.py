@@ -3731,6 +3731,8 @@ BLACK_HOLE_FORMED_AGE_STEPS = 64
 """int: Log-spaced progenitor masses and ages across a window the share of formed remnants is averaged over (numerical,
 `physics.black_hole_formation.remnant_formed_share`)."""
 
+BLACK_HOLE_FAILED_MEAN_TABLE_STEPS = 1025
+"""int: Points of the table the failed share's mean over a metallicity peak is read from (it is smooth in the peak's mean)."""
 BLACK_HOLE_GALAXY_MEAN_RADIAL_STEPS = 72
 BLACK_HOLE_GALAXY_MEAN_POLAR_STEPS = 24
 BLACK_HOLE_GALAXY_MEAN_AZIMUTH_STEPS = 6

@@ -67,11 +67,22 @@ def _formed(name):
     return black_hole_formation.remnant_formed_share(float(low), float(high)) * _per_generator_star()
 
 
+@functools.lru_cache(maxsize=256)
+def _failed_mean_table(solar, free, sigma):
+    """`(means, F)`: `F_p` on a grid of mean [Fe/H] from four scatters under the metallicity range to four over it. The
+    mean over a normal peak is a smooth function of its mean alone, so the scatter's many points read it from here."""
+    low, high = tuning.METALLICITY_RANGE_FE_H
+    means = np.linspace(low - 4.0 * sigma, high + 4.0 * sigma, tuning.BLACK_HOLE_FAILED_MEAN_TABLE_STEPS)
+    values = metallicity.expected_factor_array(lambda fe_h: black_hole_formation.failed_share(fe_h, solar, free), means,
+                                               sigma)
+    return means, values
+
+
 def _failed_mean(structure, means, sigma):
     """`F_p` for a normal [Fe/H] distribution of mean `means` (array) and scatter `sigma`."""
-    solar, free = structure.black_hole_solar_share, structure.black_hole_metal_free_share
-    return metallicity.expected_factor_array(lambda fe_h: black_hole_formation.failed_share(fe_h, solar, free), means,
-                                             sigma)
+    table_means, table = _failed_mean_table(float(structure.black_hole_solar_share),
+                                            float(structure.black_hole_metal_free_share), float(sigma))
+    return np.interp(means, table_means, table)
 
 
 def _failed_mean_of_peaks(structure, peaks):
