@@ -19879,57 +19879,6 @@ clears each one.
   busy.
   Prerequisites: none. Related: TEST.126, TEST.223.
 
-- [ ] **TEST.235 test_stop_waiting_stops_the_polling_and_check_again_picks_it_up[light] failed once in a loaded gate and passes alone (bug)**
-  Found by Core 2 (2026-10-17, 9:31 PM EDT as the lane reported,
-  MAP.239's gate 2 ended 9:28 PM EDT: `scripts/test.py changed`, 6,817
-  passed, 4 failed, load 11.7), filed by the TODO thread.
-  `src/tests/test_web_browser_slow_pages.py:218` asserted
-  `_status_line(page).startswith("Stopped waiting.")` and got 'About 30%
-  (an estimate: 300 of 1,000 rows), about 5 s left.': the page still
-  showed the progress line when the assert ran, so the stop had not
-  taken effect yet (inferred: a status line read before the page applied
-  the click, as with TEST.227 in the same file). Passes alone in 0.37 s.
-  Fails on main: not checked. Frequency: once in this gate. Reproducer:
-  run `scripts/test.py changed` with another lane's gate on the box; the
-  test alone does not fail. Do: wait for the status line to change with
-  a bounded wait instead of reading it once, in this test and the other
-  tests in the file that read `_status_line` right after a click
-  (TEST.227 is the same shape). Done: the cause is on this item and the
-  test passes 30 of 30 runs at load 12. Owner: Core 2 (owns UX.118 and
-  TEST.227; proposed).
-  MAP.239 merged as #2152 (Core 2, reported as 10:41 PM EDT on the
-  lane's clock). Its re-run after merging main (the four gate-2 failures
-  plus the sector-reach, slow-pages, tilecache and api files, 202 passed
-  in 9 min 51 s at load 1 to 3) passed this test, so Core 2 has not
-  touched it; it stays open.
-  Sighting (Core 5, 2026-10-17, relayed at 10:46 PM EDT on the lane's
-  clock, its gate 7): the `[light-phone]` variant failed once at load
-  about 9 with the status line 'About 30% (an estimate: 300 of 1,000
-  rows), about 5 s left.' and passed alone: the same shape as the
-  `[light]` failure above.
-  Sighting (Blocker 1, 2026-10-17, 10:52 PM EDT as the lane reported;
-  its first PERF.118 gate): the `[light-phone]` variant failed once
-  there too and passes alone. Now seen by Core 5, Bug Hunt (both
-  `[light]` cases) and Blocker 1.
-  Sighting (Core 2, MAP.243's full gate, #2199, merged 12:58 AM EDT
-  10-18 as the coordinator relayed; the lane clock read 12:59): the
-  whole suite gave 19,591 passed and this one failed in the loaded gate,
-  and it passes alone. Core 2 is fixing it in its own small PR; this
-  item retires with that PR.
-  Sighting 2 (Core 2, MAP.243's full gate, #2199, 12:58 AM EDT
-  2026-10-18 as the lane reported): the [dark] variant failed this time
-  (`assert _status_line(page).startswith("Stopped waiting.")`, the
-  status line was 'About 30% (an estimate: 300 of 1,000 rows), about 5 s
-  left.', page /phenomena, call 0.46 s on gw0, box load 10.0), where the
-  earlier sighting was [light]; Core 4's gate and Bug Hunt's re-gate
-  (12:20 AM EDT) also saw it, each passing alone. Cause as Core 2 reads
-  it: the test reads the status line once right after `.click()` before
-  the page applied the stop. Core 2 fixes it in its own small PR (wait
-  for the status text instead of reading it once); this item retires
-  with that PR. Frequency: 1 of 2 full gates for [light] and [dark]
-  together.
-  Prerequisites: none. Related: TEST.227, UX.118.
-
 - [ ] **TEST.236 test_galaxy_map_drill_down_by_clicks rejects a window address with a negative band, because its regex allows a minus sign only on the wedge (bug)**
   Found by Core 3 (2026-10-17, 10:09 PM EDT as the lane reported, its
   GEN.321 gate: the test failed alone), filed by the TODO thread.
