@@ -37,6 +37,7 @@ from urllib.parse import urlencode
 
 from markupsafe import Markup
 
+from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import utc_time_html
 from planetgen.web.lib.pagination import PAGE_SIZE, parse_page, render_pagination
 from planetgen.web.lib.tabledisplay import to_plain_text
@@ -53,11 +54,38 @@ Column = namedtuple("Column", "key label sortable", defaults=(True,))
 Facet = namedtuple("Facet", "param label")
 """A filter menu: the query parameter its checked values travel in, and its name."""
 
-Result = namedtuple("Result", "rows total facets capped next", defaults=(None, False, None))
+Result = namedtuple("Result", "rows total facets capped next note", defaults=(None, False, None, ""))
 """One loaded page: `rows` (lists of cells), the `total` rows that pass the
 filters and `facets` (`{param: [{"value", "label", "count"}]}`, or None when
 not asked for); `capped` says there are more rows than `total` (shown "300+"); `next` is the key a keyset
-table (PERF.75) gives the page after this one (`after=`), else None."""
+table (PERF.75) gives the page after this one (`after=`), else None; `note` is a line shown after the count ("" for
+none), such as a jump-by-value start that lay past the end (PERF.135)."""
+
+def read_from_start(fetch, start):
+    """
+    Read a page of a table with a jump-by-value box (PERF.135) and the line to show with it.
+
+    Args:
+        fetch (callable): `fetch(start)` -> the API's envelope for that start (`""` for none).
+        start (str): The box's text.
+
+    Returns:
+        tuple[dict, str]: The envelope and the note: "" when the start fit, else that the start lay past the last
+        row (the API answers the last page, `past_end`) or that it is not a value for the sort (a 400: the list is
+        read from the top).
+    """
+    if not start:
+        return fetch(""), ""
+    try:
+        envelope = fetch(start)
+    except apiclient.ApiError as exc:
+        if exc.status_code != 400:
+            raise
+        return fetch(""), f"\u201c{start}\u201d is not a value for this sort; showing the list from the top."
+    if envelope.get("past_end"):
+        return envelope, f"Nothing from \u201c{start}\u201d on; showing the last {len(envelope['items'])}."
+    return envelope, ""
+
 
 State = namedtuple("State", "sort descending filters page start", defaults=("",))
 """What a visitor chose: the sort key, its direction, `{param: [values]}`, the page and the jump-by-value `start` (the
@@ -209,6 +237,7 @@ def view(table, state, result, path, source, anchor=None, extra=()):
         "rows": result.rows,
         "total": result.total,
         "capped": result.capped,
+        "note": result.note,
         "noun_one": table.noun[0],
         "noun_many": table.noun[1],
         "facets": facets,

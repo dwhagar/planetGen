@@ -355,7 +355,7 @@ function enhance(root) {
     const filtered = Object.keys(state.filters).some((param) => state.filters[param].length > 0);
     const more = root.dataset.capped === "true" || store.capped ? "+" : "";
     countLine.textContent = `${formatNumber(store.total)}${more} ${noun(store.total + (more ? 1 : 0))}${filtered ? " match" : ""}` +
-      (state.start ? ` from \u201c${state.start}\u201d` : "");
+      (store.note ? `. ${store.note}` : state.start ? ` from \u201c${state.start}\u201d` : "");
     if (clearLink) {
       clearLink.hidden = !filtered;
     }

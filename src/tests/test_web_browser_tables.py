@@ -40,7 +40,7 @@ ROWS = [
 
 
 def _fake_phenomena(db, limit=None, offset=None, sort=None, descending=False, types=(), descriptors=(),
-                    placed=None, facets=False, after=None):
+                    placed=None, facets=False, after=None, start=None):
     """What `apiclient.get_phenomena` answers from `ROWS`."""
     rows = [row for row in ROWS if (not types or row["type"] in types)
             and (not descriptors or row["descriptor"] in descriptors)]
@@ -56,6 +56,28 @@ def _fake_phenomena(db, limit=None, offset=None, sort=None, descending=False, ty
             body["facets"][column] = [
                 {"value": value, "count": sum(1 for row in pool if row[column] == value)}
                 for value in sorted({row[column] for row in pool})]
+    return body
+
+
+UNCHARTED = [{"id": 5000 + i, "star_type": "G2V", "population": "old", "luminosity_sol": 1.0 + i, "temperature_k": 3000.0 + 10 * i,
+              "age_gy": 1.0, "designation": "7.2.3", "shell_index": 7, "band_index": 2, "wedge_index": 3, "x": 1.0,
+              "y": 2.0, "z": 3.0, "local_x": 0.1, "local_y": 0.2, "local_z": 0.3, "member_count": 0,
+              "system_mass_solar": None} for i in range(130)]
+
+
+def _fake_uncharted(db, limit=50, offset=0, sort=None, descending=False, after=None, start=None):
+    """What `apiclient.get_uncharted_systems` answers from `UNCHARTED`, for the temperature sort and its jump box
+    (PERF.135): a start past the last star answers the last page, as the API does."""
+    rows = sorted(UNCHARTED, key=lambda row: row["temperature_k"], reverse=bool(descending))
+    body = {"limit": limit, "offset": offset, "past_end": False}
+    if start:
+        kept = [row for row in rows if (row["temperature_k"] <= float(start) if descending
+                                        else row["temperature_k"] >= float(start))]
+        if kept:
+            rows = kept
+        else:
+            rows, offset, body["past_end"] = rows[-limit:], 0, True
+    body.update(items=rows[offset:offset + limit], total=len(rows))
     return body
 
 
@@ -168,8 +190,7 @@ def table_site():
         patch.setattr(apiclient, "get_phenomena", _fake_phenomena)
         patch.setattr(apiclient, "get_sectors", _fake_sectors)
         patch.setattr(apiclient, "get_systems", _fake_systems)
-        patch.setattr(apiclient, "get_uncharted_systems",
-                      lambda db, limit=50, offset=0, **kwargs: {"items": [], "total": 0, "limit": limit, "offset": offset})
+        patch.setattr(apiclient, "get_uncharted_systems", _fake_uncharted)
         patch.setattr(apiclient, "auth_me", lambda cookie_header: None)
         patch.setattr(apiclient, "get_population_status",
                       lambda db: {"generated": True, "species": True, "polities": True, "territories": False})
@@ -483,6 +504,32 @@ def test_the_systems_jump_box_begins_the_list_at_a_typed_name(page, table_site):
     page.locator("#systems-table .datatable-jump-clear").click()
     page.locator("#systems-table .datatable-count-line", has_text="130 systems").wait_for(state="attached")
     assert parse_qs(urlparse(page.url).query) == {}
+
+
+def test_the_uncharted_jump_box_begins_the_list_at_a_typed_value_and_says_when_it_lay_past_the_end(page, table_site):
+    """PERF.135: the Uncharted stars table's "Starting at" box takes a temperature under the temperature sort; a value
+    past the last star shows the last page and says so, and the line goes when the start is cleared."""
+    assert page.goto(f"{table_site}/systems?uncharted=1&uncharted_sort=temperature", wait_until="load").status == 200
+    page.locator("#uncharted_systems-table[data-enhanced='true']").wait_for(state="attached", timeout=15000)
+    box = page.locator("#uncharted_systems-table .datatable-jump input[type='text']")
+    assert box.is_visible() and "Kelvin" in box.get_attribute("placeholder")
+    box.fill("4000")
+    page.locator("#uncharted_systems-table .datatable-jump button").click()
+    page.locator("#uncharted_systems-table .datatable-count-line", has_text="30 uncharted stars from \u201c4000\u201d") \
+        .wait_for(state="attached")
+    page.locator("#uncharted_systems-table tbody tr[data-index='0']", has_text="star 5100").wait_for(state="attached")
+    assert parse_qs(urlparse(page.url).query)["uncharted_from"] == ["4000"]
+
+    box.fill("99999")
+    page.locator("#uncharted_systems-table .datatable-jump button").click()
+    line = page.locator("#uncharted_systems-table .datatable-count-line", has_text="Nothing from \u201c99999\u201d on")
+    line.wait_for(state="attached")
+    assert "showing the last 50" in line.inner_text() and "50 uncharted stars" in line.inner_text()
+    page.locator("#uncharted_systems-table tbody tr[data-index='0']", has_text="star 5080").wait_for(state="attached")
+
+    page.locator("#uncharted_systems-table .datatable-jump-clear").click()
+    page.locator("#uncharted_systems-table .datatable-count-line", has_text="130 uncharted stars").wait_for(state="attached")
+    assert "Nothing" not in page.locator("#uncharted_systems-table .datatable-count-line").inner_text()
 
 
 def test_without_scripts_the_jump_box_is_a_plain_form(browser, table_site):

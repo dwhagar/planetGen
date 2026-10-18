@@ -210,7 +210,7 @@ def test_the_uncharted_table_passes_the_key_on_and_gives_the_last_star_as_next(s
     client, patch, apiclient = site
     seen = {}
 
-    def fake(db, limit=None, offset=None, sort=None, descending=False, after=None):
+    def fake(db, limit=None, offset=None, sort=None, descending=False, after=None, start=None):
         seen.update(after=after, offset=offset)
         return {"items": [_star(41), _star(42)], "total": 99}
 
@@ -231,7 +231,7 @@ def test_the_phenomena_table_gives_a_next_key_only_when_a_page_ends_in_the_scatt
     seen = {}
 
     def fake(db, limit=None, offset=None, sort=None, descending=False, types=(), descriptors=(), placed=None,
-             facets=False, after=None, rows=None):
+             facets=False, after=None, start=None, rows=None):
         seen["after"] = after
         return {"items": fake.rows, "total": 99}
 

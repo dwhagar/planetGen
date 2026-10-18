@@ -157,3 +157,15 @@ test("the store knows an answer for an older generation is stale", () => {
   store.reset();
   assert.equal(store.stale(0), true);
 });
+
+test("the store keeps the note of the page it fetched and forgets it on reset (PERF.135)", async () => {
+  const store = createPageStore(2, () => Promise.resolve({ rows: [{ text: "x" }], total: 1, note: "Nothing from “9” on; showing the last 1." }));
+  assert.equal(store.note, "");
+  await store.ensure(0);
+  assert.equal(store.note, "Nothing from “9” on; showing the last 1.");
+  store.reset();
+  assert.equal(store.note, "");
+  const plain = createPageStore(2, () => Promise.resolve({ rows: [{ text: "x" }], total: 1 }));
+  await plain.ensure(0);
+  assert.equal(plain.note, "");
+});
