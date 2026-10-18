@@ -872,3 +872,4 @@ Baseline: PR #1817.
 | PERF.126 | 8.1 | Queue, caches and performance |
 | GEN.552 | 8.1 | Multi-star and compact systems |
 | TEST.220 | 8.1 | Bugs and flaky tests |
+| TEST.235 | 8.1 | Bugs and flaky tests |
