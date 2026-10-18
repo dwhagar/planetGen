@@ -5917,8 +5917,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.241, GEN.243, GEN.244, GEN.282, GEN.284,
-  GEN.298, TEST.159, TEST.160, GEN.450, TEST.196, GEN.469, GEN.530.
+  Prerequisites: GEN.241, GEN.243, GEN.244, GEN.282, GEN.284, GEN.298,
+  TEST.159, TEST.160, GEN.450, TEST.196, GEN.530.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -11065,42 +11065,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stands.
   Prerequisites: none. Related: GEN.426, GEN.428, GEN.458, GEN.465.
 
-- [ ] **GEN.469 The disk's star-formation history from the gas law: the local B-star share is 0.2 percent against the observed 0.04 percent**
-  Follow-up of GEN.134 (merged #1971, 1:19 AM EDT as Core 4 reported):
-  proposal 2 of the star-types note (local B stars at about 0.04
-  percent, Mamajek's figure, read) is not met; the derived radial factor
-  is 0.96 at the solar circle, so it cannot lower the local B share,
-  which is 0.2 percent between arms (0.17 before) and 0.5 percent in an
-  arm. B stars are the stars formed in the last few hundred Myr, so the
-  share follows the recent star-formation rate, an inflow rate that
-  nothing in the shape sets. Do: derive the disk's star-formation
-  history from the gas law (the Kennicutt-Schmidt gas supply and its
-  depletion over the disk's age, with the inflow named from the science
-  and checked against the sources first) so the share of recent stars
-  follows from the galaxy's own gas history and not a set share; the
-  observed 0.04 percent stays a test target and never an input (NO FIXED
-  CONTENT); the magnetar rate's young share reads the result. Changes
-  stored values, so it bumps the generator epoch with the rule of OPS.56
-  and joins the one full rescatter that follows the other scatter
-  changes (GEN.301 waits for it). Done: the sources for the gas history
-  are read and named, the local B share and the young shares at the
-  core, mid radius and rim come from the derivation and are compared
-  with the observed ones in the star-type share test, and if the sources
-  do not settle it Boss decides on a card. Owner: Core 4 (it built
-  GEN.134 and owns density.py and the profile code; ask Core 3 before
-  touching its sampler files). Note for the rescatter: the magnetar
-  rate's young share constant moved from 0.48 to 0.44 percent in GEN.134
-  (about 9 percent more magnetars per young star in a full scatter).
-  Prerequisites: none. Related: GEN.134, GEN.450, GEN.405, GEN.386,
-  GEN.301, TEST.186.
-  Open-gaps report (docs/design/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): Nearest law: Kennicutt-Schmidt with gas continuity (inflow
-  minus star formation), inflow from the halo accretion history or from
-  TNG; the B-star share is the stars younger than a few hundred Myr over
-  all stars times the IMF's B fraction. The inflow is the missing input.
-  Quality fair, rule V; the observed share stays a test.
-
 - [ ] **GEN.470 One saturation-pressure function p_sat(species, T) for the gases and ices: the Fray and Schmitt polynomials, water by Feistel and Wagner, and its tests**
   Part F of the Body composition research lane
   (docs/design/body-composition-parts/F-boss-note-check.md; 2026-10-17,
@@ -13820,6 +13784,51 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   undo most of the star count drop GEN.404 causes. Owner: Core 1 (they
   follow GEN.404).
   Prerequisites: GEN.404. Related: GEN.404, GEN.103, GEN.366.
+
+- [ ] **GEN.546 Draw a disk star's age from the star formation history inside its window, not uniformly**
+  Follow-up of GEN.469 (merged #2139, Core 4, 2026-10-17, 9:34 PM EDT as
+  the lane reported; design note
+  docs/design/disk-star-formation-history.md, "Ages stay uniform inside
+  a window"), filed by the TODO thread. GEN.469 sets the share of young
+  (under 0.1 Gy), intermediate (0.1 to 3 Gy) and old (3 to 10 Gy) disk
+  stars from the gas history, but a star's age inside its window is
+  still drawn uniformly, though the star formation rate varies across a
+  window (by a factor of 1.0, 2.5 and a smaller one across the three
+  windows, per the note). Do: draw the age inside the window from the
+  history's own rate (the inverse of its cumulative within the window),
+  in the sampler that draws ages; the sampler files belong to Core 3, so
+  ask Core 3 before touching them. This may lower the local B-star share
+  the GEN.469 test still expects to fail, so do it before the item on
+  that share. Changes stored values, so it bumps the generator epoch
+  (OPS.56 rule); default (stands unless Boss overrules): not a
+  prerequisite of GEN.301, and it rides the one full rescatter only if
+  it merges before it. Done: a test draws many stars of one window and
+  checks the age histogram follows the history's rate across it, the
+  design note says so, and the star-type share test is rerun. Owner:
+  Core 4 (proposed; it built GEN.469), with Core 3 asked first.
+  Prerequisites: none. Related: GEN.469, GEN.134, GEN.301.
+
+- [ ] **GEN.547 The local B-star share is 0.12 percent against 0.04 observed: find what keeps it three times too high (strict expected failure)**
+  Follow-up of GEN.469 (merged #2139, Core 4, 2026-10-17, 9:34 PM EDT as
+  the lane reported), filed by the TODO thread. GEN.469 lowered the
+  local B-star share between the arms from 0.19 percent to 0.12 percent,
+  against 0.04 percent observed (Mamajek); `tests/test_disk_history.py`
+  keeps the gap as a strict expected failure so it fails loudly when
+  closed. The observed share stays a test target and never an input (NO
+  FIXED CONTENT). What GEN.469 reports: the present star formation is
+  0.38 of the disk's ten-Gy mean (the Milky Way's is about 0.2), so the
+  history's recent rate is probably the part that is too high, and ages
+  are uniform inside the young window (the item above). Do: after that
+  item, find what else sets the recent rate (the inflow history from the
+  halo, the return fraction, the Kennicutt-Schmidt exponent or a star
+  formation threshold) from the sources and say which source moves it;
+  if the sources do not settle it Boss decides on a card. Changes stored
+  values (epoch rule, OPS.56); default (stands unless Boss overrules):
+  not a prerequisite of GEN.301. Done: the local B share is within the
+  observed one's uncertainty from the derivation, the strict expected
+  failure is removed, or the item says which input is unknown and Boss
+  has decided. Owner: Core 4 (proposed), after the age item.
+  Prerequisites: GEN.546. Related: GEN.469, GEN.134, GEN.546.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -17958,6 +17967,14 @@ clears each one.
   in the full gate and passed alone. Fails on main: not checked.
   Frequency: now 2 of 2 of Core 3's full gates (the GEN.319 gate was the
   first).
+  Sighting (Core 4, 2026-10-17, 9:34 PM EDT as the lane reported, found
+  inside its GEN.469 gate work):
+  `test_page_is_accessible_and_fits[web.sector-phone-dark]` failed once
+  in a loaded gate (load 6.4) with a `/galaxy/tiles` request
+  `net::ERR_ABORTED` and passes alone. Fails on main: not checked.
+  Frequency: one more sighting of the aborted-tile-fetch family in this
+  item (the `ERR_ABORTED` no-longer-counts fix is in Bug Hunt's #2124
+  branch).
   Prerequisites: none. Related: TEST.170, TEST.172.
 
 - [ ] **TEST.175 Edit everything end to end: the headline scenarios with approval and undo**
