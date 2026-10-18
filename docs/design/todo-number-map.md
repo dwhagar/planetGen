@@ -1226,7 +1226,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.559 | Unbound comets: a size law and a cut, composition from the comet table, derived activity and velocity | none | open |
 | GEN.560 | Research list for the chain: ejection survival of moons, circumplanetary disks of isolated planetary-mass objects, failed-supernova and direct-collapse shares, the size law of interstellar objects | none | open |
 | GEN.561 | The gear and equipment tier follows the words: the kit named on a body is derived from the habitability sentence, not drawn on its own | none | open |
-| GEN.562 | One function for the white-dwarf initial-final relation and for the neutron star and black hole mass draw, with no change in what any seed generates | none | open |
+| GEN.562 | One function for the white-dwarf initial-final relation and for the neutron star and black hole mass draw, with no change in what any seed generates | none | done, PR #2220 |
 | GEN.563 | The black hole density follows the mass function and the verified failed-supernova share: one constant changes, the neutron star density stays | none | open |
 | GEN.564 | A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter | none | open |
 | GEN.565 | The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes | none | open |

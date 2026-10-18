@@ -270,12 +270,11 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 | GEN.267 | A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 11. Core. |
 | GEN.269 | Interaction states in the star model: a Roche classifier, `interaction` on every pair, member state and flags, rejuvenated age and the new kinds |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 13. Core. |
 | GEN.270 | Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars | GEN.269 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 14. Core. |
-| GEN.253 | White-dwarf pollution flag and cool white dwarf presets | GEN.318, GEN.562 | Phenomena catalogue, Boss 2026-10-15. Step 6, later. Core. |
-| GEN.562 | One function for the white-dwarf initial-final relation and for the neutron star and black hole mass draw, with no change in what any seed generates |  |  |
+| GEN.253 | White-dwarf pollution flag and cool white dwarf presets | GEN.318 | Phenomena catalogue, Boss 2026-10-15. Step 6, later. Core. |
 | GEN.271 | White-dwarf binary types: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM CVn, symbiotic and barium stars | GEN.269 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 15. Core. |
 | GEN.272 | Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples | GEN.269 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 16. Core. |
 | GEN.329 | Runaway bookkeeping: runaway_origin and the compact companion left by a supernova |  | Split from GEN.274. |
-| GEN.327 | The group node and the remnant draw: offset and velocity columns, a decay age, and the lightest member ejected | GEN.329, GEN.562 | Split from GEN.273. |
+| GEN.327 | The group node and the remnant draw: offset and velocity columns, a decay age, and the lightest member ejected | GEN.329 | Split from GEN.273. |
 | GEN.331 | Substellar companions: brown-dwarf close (the desert) and wide companions, brown-dwarf pairs and planetary-mass companions |  | Split from GEN.275. |
 | GEN.332 | Circumbinary and S-type planets, circumbinary disks and rogue planet pairs at fill | GEN.315 | Split from GEN.275. |
 | GEN.275 | Substellar and circumbinary types: brown-dwarf and planetary-mass companions, circumbinary disks and planets | GEN.331, GEN.332 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 19. Core. |
@@ -359,7 +358,7 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 |---|---|---|---|
 | GEN.282 | Galactic core gas and young terms: the central molecular zone, the nebula rate and young clusters (Arches, Quintuplet, the central parsec) | GEN.244 | Core 3; step 3 of the galactic core note |
 | GEN.589 | Research: the central molecular zone's upper cluster mass and its cloud-shock disruption, so the young clusters of the core match the few that are observed | GEN.244 | Finding from Core 3; research. |
-| GEN.377 | Scatter limits by place for the neutron star and black hole scatter below the cut: the core and halo tiers apply to it, not one global mass cut | GEN.562 | Core 3 finding after GEN.333. |
+| GEN.377 | Scatter limits by place for the neutron star and black hole scatter below the cut: the core and halo tiers apply to it, not one global mass cut |  | Core 3 finding after GEN.333. |
 | GEN.563 | The black hole density depends on metallicity and is capped by the neutron star budget, and every scatter class gets its own random stream | GEN.560 |  |
 | GEN.303 | Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000 |  | Core 3 wires it; Boss 1:47 PM EDT. |
 | GEN.284 | Planet survival at the galactic core: a metallicity factor and a survival formula instead of the hard cut | GEN.325 | Core 3; step 4 of the galactic core note |

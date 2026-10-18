@@ -4785,7 +4785,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.318 (Core 3)). Core 4 asks Core 3
   before touching stellar evolution constants in tuning.py. A line here
   that named Core 3 or Core 4 earlier is replaced by this one.
-  Prerequisites: GEN.318, GEN.562.
+  Prerequisites: GEN.318.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.255 Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes**
@@ -6056,7 +6056,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its values, and this item writes `dynamical` into it. Core 3 may carry
   the two in one PR; check that the column is in DB.53's remaining
   slices.
-  Prerequisites: GEN.329, GEN.562. Related: GEN.273.
+  Prerequisites: GEN.329. Related: GEN.273.
 
 - [ ] **GEN.328 Groups at fill in star-forming cores and OB regions**
   Split from GEN.273 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6977,7 +6977,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Changed behaviour recorded with GEN.333: the brightest white dwarf is
   now 50 solar luminosities (it was 100), so the luminosity floors and
   caps may go as low as 50. Owner: Core 3.
-  Prerequisites: GEN.562. Related: GEN.333, GEN.283, UX.116, GEN.301.
+  Prerequisites: none. Related: GEN.333, GEN.283, UX.116, GEN.301.
 
 - [ ] **GEN.378 The galaxy type families: the checked design with its scaling relation table and the draw order**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
@@ -13882,40 +13882,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   queue, after the description-layer bundle, UX.109, UX.107 and DOC.45; its branch note cites GEN.561). Filed by the TODO
   thread at Core 4's request (11:27 PM EDT as the lane reported).
   Prerequisites: none. Related: TEST.155, GEN.218, GEN.288.
-
-- [ ] **GEN.562 One function for the white-dwarf initial-final relation and for the neutron star and black hole mass draw, with no change in what any seed generates**
-  From Boss's back-scatter cards (Boss's back-scatter cards, taps 11:38
-  to 11:40 PM EDT, 2026-10-17, as the coordinator relayed) on the
-  unified orbited-body design (docs/design/unified-star-like-objects.md,
-  GEN.550). Boss's card: add to 8.1. Today the white dwarf initial-final
-  relation is applied in four files (`stellar_evolution`, `multistar`,
-  `scatter_companions`, `place_terms`) and the neutron star and black
-  hole mass draw in five (design thread's read of main at bc97f75), with
-  a separate Gaussian for a hot central star and a uniform draw for a
-  cool one. Do: one function (one module) each for the white dwarf final
-  mass from the progenitor and for the neutron star and black hole mass,
-  every caller uses it, the copies go with no shim; the output of every
-  seed stays the same, so no generator epoch bump and the golden files
-  do not change. Why in 8.1: GEN.327, GEN.253 and GEN.377 (and GEN.273
-  behind GEN.327) draw these values, so they call one function from the
-  start and a later change (the 8.4 body draw, GEN.553) is one edit.
-  Done: one definition of each rule, the callers use it, the golden
-  digest is unchanged. Owner: Core 4 (proposed: it owns the body draw by
-  Boss's card D7; the callers in `multistar` and `scatter_companions`
-  are Core 3's files, so the two lanes agree who edits them).
-  Prerequisites: none. Related: GEN.553, GEN.327, GEN.253, GEN.377,
-  GEN.273, GEN.550.
-  Owner confirmed (coordinator, 11:44 PM EDT as relayed): Core 4.
-  Core 3 (12:18 AM EDT 2026-10-18 as the lane reported, answering the
-  question owed since GEN.243): GEN.243 did not touch the planetary
-  nebula central star. It is still drawn by
-  `scatter_companions._planetary_nebula_star` (a progenitor from
-  `WHITE_DWARF_PROGENITOR_SOL` through `sample_imf_mass_sol`, the linear
-  initial-final relation `WD_IFMR_SLOPE` and `WD_IFMR_INTERCEPT` clamped
-  to `WD_MASS_RANGE_SOL`, age = the progenitor's main-sequence life); it
-  does not call `evolve_star`, so the hot and cool Gaussian-uniform
-  draws are not in that path. This item replaces that relation line, so
-  the 8.4 unification of that star is a small edit here.
 
 - [ ] **GEN.563 The black hole density depends on metallicity and is capped by the neutron star budget: the failed-supernova share of the stars born replaces the one constant 7e-5 per pc^3, and every scatter class gets its own random stream**
   From Boss's back-scatter cards on the unified orbited-body design
