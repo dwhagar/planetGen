@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.141 |
 | MAP | MAP.254 |
 | NAV | NAV.63 |
-| GEN | GEN.594 |
+| GEN | GEN.595 |
 | PERF | PERF.139 |
 | DB | DB.79 |
 | API | API.32 |
 | ADM | ADM.97 |
 | SEC | SEC.33 |
-| TEST | TEST.255 |
+| TEST | TEST.256 |
 | USR | USR.31 |
 | OPS | OPS.62 |
 | DOC | DOC.72 |
@@ -1254,10 +1254,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.587 | Replace the hand-written relation sites with the relations module, by file group, bit-identical on the golden set | none | open |
 | GEN.588 | Optional: operator arithmetic on Quantity for the edges (mass divided by volume gives a density), unscheduled | none | open |
 | GEN.589 | Research: the central molecular zone's upper cluster mass and its cloud-shock disruption, so the young clusters of the core match the few that are observed | none | open |
-| GEN.590 | Wire the downloaded isochrones, white-dwarf sequences and neutron-star tables into star composition (after Boss answers the Require / Stand-in card) | none | open |
+| GEN.590 | Wire the downloaded isochrones, white-dwarf sequences and neutron-star tables into star composition (after Boss answers the Require / Stand-in card) | none | done, PR #2282 |
 | GEN.591 | An elliptical comet's aphelion can exceed its star's Hill sphere in about 10% of runs: the comet bound test fails on main (bug) | none | open |
 | GEN.592 | A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced) | none | open |
 | GEN.593 | Pulsar planets: the disc range stops short of PSR B1257+12's planets, and two of the three formation paths (a captured giant, an ablated companion) leave a pulsar with no planets | none | open |
+| GEN.594 | Each AD dataset (AD1 to AD8) needs a refuse-or-fall-back decision: a missing file stops the run or stands in as a labelled stand-in | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2317,10 +2318,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.221 | test_a_runaway_system_moves_beyond_the_rotation_curve_and_its_stars_and_bodies_share_it raises StopIteration when the first system's only planet entry is an asteroid belt (bug) | none | done, PR #2070 |
 | TEST.222 | Remove the NumPy 2.5 deprecation filter around the skimage marching-cubes call once scikit-image stops raising it | none | open |
 | TEST.223 | Two galaxy-map browser tests fail in a loaded full browser run and pass alone: the free camera from a window down, and forward to the current view (bug) | none | done, PR #2252 |
-| TEST.224 | `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed once in a full gate: the nested system's inside_nebula_id was None (bug) | none | open |
+| TEST.224 | `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed once in a full gate: the nested system's inside_nebula_id was None (bug) | none | done, PR #2124 |
 | TEST.225 | `test_random_start_neighborhood_matches_the_real_skeleton_plan` generated 18,210 systems against a predicted 83,346.6 in one gate run (bug) | none | done, PR #2227 |
 | TEST.226 | Tests for the plan configuration and its two switches: the interior is identical with each combination, off generates nothing beyond the boundaries, addresses outside them are refused, the 8.1 sphere is the all-on case | none | open |
-| TEST.227 | test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone] failed in a loaded browser run and passes alone (bug) | none | open |
+| TEST.227 | test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone] failed in a loaded browser run and passes alone (bug) | none | done, PR #2261 |
 | TEST.228 | test_stars_and_phenomena_fit_within_their_sectors_real_cells compares a dark cloud's centre with its sector's cell, but the cloud is filed by its centroid | none | open |
 | TEST.229 | The browser phase of a gate stalls for minutes at one test with a headless_shell gpu process near 200% CPU (bug) | none | open |
 | TEST.230 | test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing fails in about 10 of 12 runs since the stellar bundle merged (bug) | none | done, PR #2128 |
@@ -2336,18 +2337,19 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.240 | Round-trip and registry tests for the mass object core: every kind's stored row round-trips, and no kind table is named in a list the registry should own | none | open |
 | TEST.241 | Test: no absolute position is stored for anything inside a system, so every 8.1 item that stores a position stores it parent-relative | none | open |
 | TEST.242 | Tests: invariants for any system at any time: zero mass-weighted offset sum, add and remove returns exactly, a parent change keeps every absolute position, one member equals the binary formula bit for bit | none | open |
-| TEST.243 | Two test_web_browser_units tests errored in setup, one after 1041 s in pymysql (bug) | none | open |
+| TEST.243 | Two test_web_browser_units tests errored in setup, one after 1041 s in pymysql (bug) | none | closed, could not reproduce |
 | TEST.244 | Tests: re-primary and reparent invariants, frame round trips, momentum conservation, a moon's velocity as the sum of its hops, a locked body's rate follows a primary change | none | open |
 | TEST.245 | test_generate_sector_real_capacity_overflow_returns_a_partial_sector fails in about 1 run in 100 because it draws an unseeded sector, so the draw sometimes fits all 120 systems (bug) | none | done, PR #2227 |
-| TEST.246 | The web edit menu tests time out in setup in a loaded gate: the accessibility site database backfill took 1024 s while other tests ran, and the tests pass alone in 46 to 49 s (bug) | none | open |
+| TEST.246 | The web edit menu tests time out in setup in a loaded gate: the accessibility site database backfill took 1024 s while other tests ran, and the tests pass alone in 46 to 49 s (bug) | none | done, PR #2286 |
 | TEST.247 | The random-start neighbourhood test with --min-start-density 1000 (dense_core) takes 466 s alone and 554 s with its sibling, and times out at 900 s under gate load (bug) | none | done, PR #2272 |
 | TEST.248 | The slow-pages test 'stop waiting stops the polling and check again picks it up' fails in a loaded browser phase: the status line still reads 'About 30% ... about 5 s left.' where 'Stopped waiting.' is expected, and it passes alone in 0.3 s (bug) | none | done, PR #2261 |
 | TEST.249 | The sector and system page query-count test fails once in the non-browser phase: 12 statements for a lone system where 11 for one with planets, on unseeded systems (bug) | none | done, PR #2272 |
 | TEST.250 | test_workers.py: two tests fail once in a full run because ensure_workers is the inline test stand-in although the module is marked real_queue (something left the inline queue patch active in that xdist worker) (bug) | none | done, PR #2267 |
 | TEST.251 | test_orbital_facilities_advance_their_phase fails once in a gate: advance_facility_orbits returns 0 where 1 is expected for orbit_clock(period / 4) (bug) | none | done, PR #2272 |
-| TEST.252 | test_a_double_click_on_a_star_flies_the_camera_to_it fails once in a loaded gate and passes alone (bug) | none | open |
+| TEST.252 | test_a_double_click_on_a_star_flies_the_camera_to_it fails once in a loaded gate and passes alone (bug) | none | done, PR #2286 |
 | TEST.253 | test_nebula_shape_endpoint_serves_a_mesh fails once under load: the largest vertex radius is 1.0288 against a bound of 1.0, and it passes alone (bug) | none | open |
 | TEST.254 | test_core_ball_batch_fill_makes_planets builds 4 systems instead of 3 for some random galaxy seeds (bug) | none | open |
+| TEST.255 | test_workers: two real-Redis worker tests fail in loaded gates and pass alone, again after TEST.250's fix (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

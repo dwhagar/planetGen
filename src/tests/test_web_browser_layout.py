@@ -163,6 +163,15 @@ def _problems(page):
     return found
 
 
+def test_the_pages_built_from_the_site_app_are_never_the_slow_answer(site_app, page_targets):
+    """TEST.246: a module that builds its pages from the shared site app got a 202 for /search when a loaded
+    machine made its first build slow, and its fixture failed; the app pins the slow-page rule off for them all."""
+    from planetgen import tuning
+
+    assert tuning.SLOW_PAGE_SECONDS == float("inf")
+    assert page_targets["web.search"][0] is not None
+
+
 def test_the_check_finds_overlaps_and_controls_off_screen(browser):
     """The check itself, on a page made to fail it (and one that
     passes)."""

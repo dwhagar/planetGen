@@ -3456,6 +3456,71 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its last update (one day of real time is one day of orbit), and an
   option advances it by a stated extra span in one go. Done when its
   subitems are.
+  Boss statement (2026-10-18, 5:24 PM EDT): "And let's also double-check that the orbital motion updates:
+  1. Checks for whatever records require an update. 2. New records
+  without a next update field will always get an update, where the next
+  update field will be set. 3. Calculate any required position changes
+  first. 4. Change the motion vector of each object to account for
+  gravitational effects, given the point mass, calculated gradient of
+  the sector and area surrounding the sector, using the algorithm of:
+  the largest hill radius present in the galaxy becomes the search
+  radius for gravitational objects. So that we can calculate the vector
+  field and the gravitational gradient at the exact location of the
+  object to update its motion vector. Based on speed the system will
+  then set an entry in the database for that object for when it next
+  needs a position or motion update. According to the floor, it is
+  already approved". The
+  read-only check is [docs/design/orbital-update-check-2026-10-18.md](design/orbital-update-check-2026-10-18.md).
+  The four steps are the order of one run: find the due records (a
+  record with no next-update value is always due), advance each due
+  object's position, change its motion vector from the influence set
+  and the galactic gradient, then set its next-update value from its
+  speed.
+  Decided (Boss, card taps of 2026-10-18, 5:30 to 5:33 PM EDT, as the coordinator reported them (the cards are in the project chat; the tap results are not readable by this thread)). F1 search
+  radius: the largest Hill radius of any object in the galaxy, one
+  stored number, Sgr A* left out of that maximum (it is in the smooth
+  potential); the nearest 64 are summed exactly and the rest as one
+  point mass per sector; GEN.370 first so the radius uses the galaxy's
+  own enclosed mass. F2: step 4 runs for every object through the one
+  core function (amends card S13: a bound planet or moon works in its
+  host's frame with the host's pull taken out; the tide screens stay as
+  validity checks). F3 order: per object steps, each object moves and
+  then gets its vector in turn, not two phases; Boss's "position
+  changes first" is read as position before vector within each object,
+  so later objects see a mix of old and new positions of the others
+  (the result depends on the order rows are visited, so the order must
+  be fixed and tested). F4 next due: the speed from the new vector,
+  capped at the time for the influence set to change. F5 new records:
+  always visited, the position advances only from the record's own
+  epoch, then the next-update value is set. The last card, "Is the
+  orbital motion update (your four steps) approved to build as
+  written?", was answered "Approved as the cards say": the orbital
+  motion update with F1 to F5 is APPROVED to build. That answers
+  his unclear last sentence ("According to the floor, it is already
+  approved"), whose meaning stays unknown. Where this note and older
+  text on GEN.109, GEN.139, GEN.290, GEN.340, GEN.341, GEN.342 or
+  orbital-updates.md differ, this note wins; those items are reworded
+  as their lanes pick them up. Owner lane: Core 3, after its 8.1 queue,
+  in the order GEN.370, GEN.341, GEN.342.
+  Decided (Boss, 2026-10-18; his words 5:38 PM EDT, card tap "Tier first,
+  then mass" as the coordinator reported it, 5:41 PM EDT): the order of
+  the due objects is a stable sort on (tier, mass heaviest first, ties
+  by id). Boss: "Overall this should support our most massive to least
+  massive. Even within the galactic span high-mass objects are moved
+  before low-mass objects. Objects in the galactic frame of reference
+  ... such as a rogue planet, an interstellar comet, or a single primary
+  star, should all be moved before anything inside a system." Tier is
+  the number of hops from the galactic frame, derived from the parent
+  link and not stored; the names are labels only: tier 0 (his
+  "primary") is every top-level object (rogues, interstellar comets,
+  single stars, each system's primary), tier 1 ("secondary") is planets
+  and companion stars, tier 2 ("tertiary") is moons, tier 3 ("quinary")
+  is small moon satellites; a rogue planet's moon is tier 1. Rows run in
+  ordered chunks (tier, then mass band), each seeing the state at its
+  start. A planet heavier than a companion star stays in its tier and is
+  ordered by mass there (the "bizarre quirk" he accepts); a capture in
+  the middle of a run takes effect in the next run's order. Open
+  measurement: the sort cost on millions of due rows is not measured yet.
   Headline: 8.3 (the orbital update system).
   Prerequisites: GEN.290, GEN.291.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
@@ -4006,6 +4071,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   closed-form step on read, and the thresholds only schedule
   perturbation re-fits; GEN.289 replaces the phase columns that the
   earlier wording relied on.
+  Decided (Boss, 2026-10-18, F4 and F5, approved to build; card taps as
+  the coordinator reported them, 5:32 PM EDT): the next-update value
+  comes from the speed of the new vector after step 4, capped at the
+  time for the influence set to change; a new record with no
+  next-update value is always visited, its position advances only from
+  its own epoch (generation stamps the epoch), then the value is set.
+  Full wording on GEN.105.
   Prerequisites: none.
   Design: [docs/design/orbital-solvers-and-integrators.md](design/orbital-solvers-and-integrators.md)
 
@@ -6094,7 +6166,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   at the core, mid radius, the rim, the top and bottom layers and across
   the slot-0 seam, the exact pairwise Hill criterion, a negative control
   without the margin, the cap, and a seed-reproducibility test.
-  Prerequisites: none. Related: GEN.109.
+  Decided (Boss, 2026-10-18, F1, approved to build; card tap as the
+  coordinator reported it, 5:30 PM EDT): the search radius is the
+  largest Hill radius of any object in the galaxy (one stored number,
+  Sgr A* left out of the maximum), which replaces the largest-nearby-
+  object scan and its cover lists; the cap of 64 exact members with one
+  point mass per sector for the rest stays. GEN.370 comes first. Full
+  wording on GEN.105.
+  Prerequisites: GEN.370. Related: GEN.109.
 
 - [ ] **GEN.342 The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6113,6 +6192,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The force on a body comes from the shared field kernel (PERF.88); this
   item adds the influence-set term, the galactic gradient hook and the
   velocity update (2026-10-16 review).
+  Decided (Boss, 2026-10-18, F2 and F3, approved to build; card taps as
+  the coordinator reported them, 5:31 and 5:32 PM EDT): the kernel runs
+  for every object, evaluated at the object's own location right after
+  its position change, in per object order; later objects see a mix of
+  old and new positions. Full wording on GEN.105.
+  Decided (Boss, 2026-10-18, 5:38 PM EDT words, tap 5:41 PM EDT as the
+  coordinator reported it): due objects are visited in the order of
+  GEN.105's tier-then-mass sort (a stable sort on tier, heaviest first,
+  ties by id); tier names are labels only. Sort cost on millions of due
+  rows is an open measurement.
   Prerequisites: GEN.341, GEN.338, GEN.340. Related: GEN.109.
 
 - [ ] **GEN.343 The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter**
@@ -13564,6 +13653,47 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   table shape agreed first; (4) GEN.554 after GEN.553, with the
   explosion-map sources verified before use. Core 4 will not touch
   GEN.568 and GEN.569 (Core 5) or GEN.555 (Core 3).
+  Merged in part (Core 4, GEN.565a, #2274, release 8.0.1839, reported
+  4:33 PM EDT 2026-10-18 on the lane's clock; no epoch, no stored value,
+  field name or draw changes): `generation/mass_object.py`
+  (`MassObject`) holds the four galactic-motion fields and the draw that
+  sets them and one `to_dict`/`from_dict` pair driven by each family's
+  `SERIALIZABLE_FIELDS`, with `_encode` and `_decode` hooks; `Star`,
+  `Planet`, `Comet`, `RoguePlanet`, `InterstellarComet` and
+  `AsteroidField` use it, `BlackHole`, `NeutronStar` and
+  `BinaryStarProxy` inherit it through `Star`, and `CompactRemnant`'s
+  copy of `Star`'s save and load is gone. This item stays open for
+  GEN.565b (the planetary and small-body families on the same core) and
+  the removal of the nine classes. Finding fixed in the same PR: on main
+  `test_age_law.py::test_the_scatter_and_both_backfills_draw_with_the_galaxys_laws`
+  (GEN.546's test) had timed out at 900 s on every run since GEN.404
+  (#2270) made a toy galaxy hold the Milky Way's stellar mass in a 40 pc
+  disk and GEN.404's gate did not include that test; the test now reads
+  in relative units (30 s for the whole file). Owned by Core 4, so no
+  TEST item.
+  Standing design rule (Boss, 2026-10-18, 5:20 PM EDT, typed in the
+  project chat, relayed by the coordinator;
+  docs/design/mass-object-class.md): "For all objects are objects with
+  mass in the system. I want to make sure that galactic motion is not
+  the only thing that they handle because the trajectory of all motion,
+  including planetary and lunar, should both be built into the object
+  mass functions (since they're all the same rules)". The mass object
+  core carries the trajectory of every kind of motion with one set of
+  rules: galactic motion, a planet's and a moon's orbit about its
+  parent, a comet's Kepler state and a star's orbit about a barycentre.
+  GEN.565a (#2274) covers only the galactic-motion fields and the save
+  and load, so GEN.565b and the kinematic record of GEN.584 must bring
+  the planetary and lunar trajectory into the same core functions; Core
+  4 was told to check GEN.565b against this rule.
+  Re-scope (Core 4, reported 5:25 PM EDT 2026-10-18 on the lane's clock,
+  after Boss's standing rule above): GEN.565b changes from 'the
+  planetary and small-body families' to 'motion in the core'. One state
+  vector relative to the parent (position, velocity, epoch and parent
+  mass) and one `advance(seconds)` on `kepler.universal_step` for every
+  body, whatever its parent (a star, a planet or the galaxy);
+  `HoldsOrbitPosition` folds into `MassObject`. The family classes
+  follow after that slice. No output change in this slice. GEN.584,
+  DB.73 and DB.74 (Core 1) should store this same state vector.
 
 - [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
   Part of the unified orbited-body chain (GEN.550; design note
@@ -14305,6 +14435,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   relayed). The kernels are SI floats; GEN.586 is not a hard
   prerequisite, write the same formulas once if it is not yet merged and
   let GEN.587 move them.
+  Standing design rule (Boss, 5:20 PM EDT 2026-10-18; see GEN.565 and
+  docs/design/mass-object-class.md): the trajectory of all motion,
+  planetary and lunar as well as galactic, is built into the one set of
+  mass object functions, since they are all the same rules. The
+  kinematic record is the state those functions advance for every kind
+  of object.
+  Core 4's re-scope of GEN.565b (5:25 PM EDT 2026-10-18 on the lane's
+  clock): the core's one state vector relative to the parent is
+  position, velocity, epoch and parent mass, advanced by one
+  `advance(seconds)` on `kepler.universal_step` for every body (parent =
+  star, planet or the galaxy). This item, DB.73 and DB.74 store that
+  same state vector.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
 - [ ] **GEN.585 Dimensions and unit systems in the registry: every unit carries its exponent vector, the derived kinds are listed, and a constant's number in any coherent system follows from its dimension**
@@ -14473,57 +14615,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   prerequisite of GEN.301.
   Prerequisites: none. Related: GEN.244, GEN.282.
 
-- [ ] **GEN.590 Wire the downloaded isochrones, white-dwarf sequences and neutron-star tables into star composition (after Boss answers the Require / Stand-in card)**
-  GEN.548 merged (#2236, release 8.0.1807; reported by Blocker 1 at 6:05
-  AM EDT on the lane's clock): the shared setup-time download step
-  (`planetgen/datasets/`, `planetgen/cli/datasets`,
-  `planetgen/util/user_agent.py`) and its three readers for the MIST
-  isochrones (SC1), the Bedard white-dwarf sequences (SC2) and the
-  neutron-star equation of state and crust (SC3). Nothing reads them
-  yet: `stellar_abundances` and `stellar_composition` still use their
-  stand-ins. Do: wire the three readers into the stellar abundances and
-  star composition, once Boss answers the card Blocker 1 holds in its
-  own thread (options: Require the data, Stand-in fallback, Not yet;
-  Blocker 1 recommends Require the data). Done: star composition reads
-  the downloaded files by way of the three reader functions, the
-  behaviour when a file is missing is the one Boss chose and a test pins
-  it offline with the fixtures, and the stand-in registry (gap plan
-  section 6) lists what is still a stand-in. Filed by the TODO thread at
-  Blocker 1's request (6:05 AM EDT as the lane reported). Owner: Blocker
-  1 (proposed). Boss's answer is recorded below (Require the data).
-  Decided (Boss, 2026-10-18, 9:38 AM EDT, project chat): "I answered
-  download files requiring data", meaning his card answer "Require the
-  data": star composition requires the downloaded files (the isochrones,
-  the white-dwarf sequences and the neutron-star tables) and does not
-  fall back to a stand-in; it is not left for later. The TODO thread's
-  reading of 'require' (Blocker 1 confirms the wording): with a file
-  missing, star composition fails with a plain message that names the
-  dataset and says which setup command fetches it (no silent stand-in),
-  and the offline tests use the fixtures of GEN.548. Blocker 1 does the
-  wiring.
-  Blocker 1 confirmed the reading and built more (reported 9:46 AM EDT
-  2026-10-18, real clock; changed gate started 9:12 AM EDT, about 56% at
-  9:40 AM, PR follows when it passes): star composition raises a plain
-  error naming the dataset and why it is missing, with no stand-in
-  value; the offline tests use the GEN.548 fixtures; bulk generation
-  (galaxy, plan, population, `sector` with more than one sector, the
-  Sector page neighbourhood button) also refuses to start with the same
-  message; Generate page jobs get a second step 'Check the data' before
-  the reset. Still stand-ins because the data cannot replace them: the
-  brown-dwarf radius and hydrogen limit against metallicity (MIST starts
-  at 0.1 solar masses) and the neutron-star radius from an equation of
-  state (GEN.463). Boss's answer covers star composition only.
-  Correction from Blocker 1 (reported 10:12 AM EDT 2026-10-18, real
-  clock): the neutron-star radius is not left as a stand-in. GEN.463
-  already merged and gives it from the measured band
-  (`physics/neutron_star.py`); what stays unbuilt is only the
-  neutron-star inner crust and core, which would integrate the 21
-  equation-of-state tables on disk (nothing does yet). Its first gate
-  run failed on test-harness faults of its own (the test machine has no
-  downloaded data, so the test fixture has to hold for the whole
-  session); fixed, gate rerun started 10:09 AM EDT.
-  Prerequisites: none. Related: GEN.548, GEN.543, GEN.439, GEN.440.
-
 - [ ] **GEN.591 An elliptical comet's aphelion can exceed its star's Hill sphere in about 10% of runs: the comet bound test fails on main (bug)**
   Found by Bug Hunt (reported 7:20 AM EDT 2026-10-18 on the lane's
   clock), filed by the TODO thread.
@@ -14624,6 +14715,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a prerequisite of GEN.301; value-changing, so it takes the next free
   epoch at its merge.
   Prerequisites: none. Related: GEN.317, GEN.555, GEN.163.
+
+- [ ] **GEN.594 Each AD dataset (AD1 to AD8) needs a refuse-or-fall-back decision: a missing file stops the run or stands in as a labelled stand-in**
+  Filed at the coordinator's request after GEN.590 merged (#2282,
+  release 8.0.1838; Blocker 1 reported 3:34 PM EDT 2026-10-18 as the
+  lane reported). The shared download catalogue (GEN.548) now treats
+  every dataset as required, and bulk generation refuses to start while
+  any catalogue file is missing. Boss's 'Require the data' answer (9:38
+  AM EDT 2026-10-18) covers star composition only (GEN.590), so each
+  atmosphere dataset still needs its own answer: AD1 (giant visible
+  absorption, GEN.422), AD2 (dust and haze spectra, GEN.423), AD3
+  (infrared opacity, GEN.413, GEN.414), AD4 (Rayleigh, GEN.422), AD5
+  (particle spectra, GEN.436, GEN.444), AD6 (hot-giant line lists,
+  GEN.485, GEN.499), AD7 (acid vapour pressure, GEN.471, GEN.491) and
+  AD8 (photochemistry rates, GEN.496, GEN.501). Do: when the first AD
+  dataset is built, the coordinator brings Boss a card for it (options:
+  Require the data, which refuses the run with a plain message naming
+  the dataset and the setup command; Stand-in fallback, which uses the
+  labelled stand-in of the gap registry and says so; Not yet) and
+  records the answer here and on the item that builds it; later datasets
+  reuse the answer unless Boss differs. Done: every AD item says what a
+  missing file does, with Boss's answer and a test that pins it offline
+  with the GEN.548 fixtures, and the gap plan section 6 registry says
+  which values are still stand-ins. Owner: the TODO thread tracks the
+  answers; each AD item's builder asks through the coordinator
+  (proposed). Not a request for Boss's data: Boss has provided all the
+  AD1 data he can (3:07 PM EDT 2026-10-18).
+  Prerequisites: none. Related: GEN.548, GEN.590, GEN.422.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -15078,6 +15196,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wrapper, which alone handles the sequence.
   The command inventory (docs/design/command-inventory.md, PERF.120)
   lists every other command and entry point.
+  Decided (Boss, 2026-10-18, 5:14 to 5:15 PM EDT, cards F1 to F4, all as
+  Core 5 recommended, relayed by the coordinator): F1 'One wrapper run':
+  the Generate page builds the command list and one wrapper run follows
+  it, and `web/job_runner.py` only starts that run detached (it does not
+  build or order commands). F2: reset, check-math and the like are
+  one-unit registry commands. F3: each API job is a small run of its own.
+  F4: `planetgen sector` and `planetgen system` go through the wrapper
+  (each a one-command run).
   Prerequisites: PERF.98. Related: PERF.99, PERF.118.
 
 - [ ] **PERF.120 Every command does one thing: the umbrella for reshaping every command and entry point**
@@ -15129,6 +15255,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
+  Decided (Boss, 2026-10-18, 5:15 to 5:16 PM EDT, cards F5 and F7,
+  relayed by the coordinator): F5: one `planetgen scatter` root with
+  exactly one kind flag (`--mass`, `--luminosity`, `--phenomena`,
+  `--nebula-field`, `--band`). F7: redoing a scatter is a SEPARATE
+  `planetgen clear-scatter` command, not a `--redo` flag (this is against
+  Core 5's recommendation, and Boss's answer stands); `--redo-scatters`
+  is removed with no shim.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.122 The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags**
@@ -15148,6 +15281,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
   merged (#2159).
+  Decided (Boss, 2026-10-18, 5:15 to 5:16 PM EDT, card F6, relayed by
+  the coordinator): one root command each, named like the registered
+  commands: `planetgen fill-map-luminosity`, `planetgen
+  rescore-habitability` and `planetgen clean-nebula-field` (with
+  `--apply`). They replace the `plan --fill-map-luminosity`, `plan
+  --fill-habitability` and `plan --redo-nebula-field` modes.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.123 `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds**
@@ -16474,6 +16613,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Revision number (11:12 AM EDT 2026-10-18): GEN.244 took 0112 (#2253);
   the head is 0112 and this item's revision takes the next free number,
   0113 or later, at its own merge.
+  Core 4's re-scope of GEN.565b (5:25 PM EDT 2026-10-18 on the lane's
+  clock; Boss's standing rule of 5:20 PM EDT, see GEN.565): the core's
+  one state vector relative to the parent is position, velocity, epoch
+  and parent mass, advanced by one `advance(seconds)` for every body,
+  galactic, planetary and lunar. Storage here should hold that same
+  state vector (with GEN.584).
   Prerequisites: none. Related: GEN.550, DB.69, DB.70.
 
 - [ ] **DB.74 One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables**
@@ -16518,6 +16663,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   GEN.565 slice 1 and Core 1 fits DB.74 and DB.73 to them when they come
   up in its queue (after GEN.404, PERF.138, GEN.591, GEN.544, GEN.545
   and TEST.241).
+  Core 4's re-scope of GEN.565b (5:25 PM EDT 2026-10-18 on the lane's
+  clock; Boss's standing rule of 5:20 PM EDT, see GEN.565): the core's
+  one state vector relative to the parent is position, velocity, epoch
+  and parent mass, advanced by one `advance(seconds)` for every body,
+  galactic, planetary and lunar. Storage here should hold that same
+  state vector (with GEN.584).
   Prerequisites: DB.73, GEN.565. Related: GEN.550, DB.73, DB.67, DB.70.
 
 - [ ] **DB.75 Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID**
@@ -19153,30 +19304,6 @@ clears each one.
   the requirements are next locked.
   Prerequisites: none. Related: TEST.188.
 
-- [ ] **TEST.224 `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed once in a full gate: the nested system's inside_nebula_id was None (bug)**
-  Found by Core 5 (2026-10-17, about 2:20 PM EDT as the lane reported,
-  #2070 gate), relayed by the coordinator, filed by the TODO thread.
-  `src/tests/test_db_persistence.py::test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins`
-  failed once in the gate with `assert None == 1` at line 1259 (the
-  nested system's `inside_nebula_id` was None, expected 1); it passes
-  alone in 0.34 s. Fails on main: not seen. Frequency: 1 of 1 full
-  gates. Reproducer: the full gate under load; alone it passes. Do: find
-  whether the test depends on a draw or on test order (a shared nebula
-  id, an unseeded stream, a stale row), and make it deterministic with
-  no quarantine. Done: the cause is named, the test passes in the full
-  gate on 3 runs, and a test pins the condition it depended on. Owner:
-  Bug Hunt (proposed).
-  Sighting (Core 5, 2026-10-17, relayed by the coordinator at 10:46 PM
-  EDT on the lane's clock, its gate 7): `assert
-  nested["inside_nebula_id"] == big` gave None == 1 (line about 1262), 1
-  of 9 runs in the gate and 8 of 8 alone. Core 5's reading (inferred,
-  not checked): the small nebula's centre is random inside its own
-  shape, not necessarily inside the big one's, so the nested system can
-  land outside the big nebula. Fails on main: not checked. Reproducer
-  given: loop the test with `-n0`. The same test is TEST.216 (Bug Hunt's
-  #2124 branch).
-  Prerequisites: none. Related: TEST.208, TEST.213.
-
 - [ ] **TEST.226 Tests for the plan configuration and its two switches: the interior is identical with each combination, off generates nothing beyond the boundaries, addresses outside them are refused, the 8.1 sphere is the all-on case**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
   intergalactic generation to be a switch that defaults to off, put that
@@ -19207,35 +19334,6 @@ clears each one.
   and satellite galaxy switches to on if it holds that content (each
   switch on its own); only a galaxy created after 8.5 defaults both off.
   No change to 8.1.
-
-- [ ] **TEST.227 test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone] failed in a loaded browser run and passes alone (bug)**
-  Found by Core 3 (2026-10-17, 6:50 PM EDT as the lane reported,
-  GEN.321's second changed gate, ended 6:41 PM EDT, load 8 to 10; 19,437
-  passed, 4 failed), filed by the TODO thread.
-  `src/tests/test_web_browser_slow_pages.py::test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone]`
-  failed in the browser phase and passed when run alone. The failure
-  text was not relayed. Fails on main: not run on main. Frequency: 1 of
-  1 gates since this test was seen; unknown before. Reproducer: run
-  `scripts/test.py changed` with another lane's gate sharing the box, or
-  the test alone repeated under `stress` load. Do: take the failure text
-  from the gate log (Core 3's `.test-failures.jsonl`), find whether the
-  wait is too short under load or the page races the job, fix the cause
-  in the test or the page without lengthening a wait blindly and without
-  quarantining. Done: the cause is on this item and the test passes
-  under load in a gate. Owner: Bug Hunt (proposed).
-  Detail from Core 3 (2026-10-17, 7:09 PM EDT as the lane reported,
-  filed by the TODO thread): the failure was in the browser phase of
-  GEN.321's second gate (ended 6:41 PM EDT, load 8 to 10 from other
-  lanes' gates); on the rerun alone it passed in 9.4 s at load 8.2. It
-  passed in Core 3's earlier gate at 4:35 PM EDT. The failure text
-  itself is still not relayed (it is in Core 3's
-  `.test-failures.jsonl`). Fails on main: not run on main. No solo
-  reproducer.
-  Another sighting (Blocker 1, GEN.438 gate, 12:20 AM EDT 2026-10-18 as
-  the lane reported):
-  `test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone]`
-  failed under load and passed alone.
-  Prerequisites: none. Related: TEST.126, TEST.172, TEST.213.
 
 - [ ] **TEST.228 test_stars_and_phenomena_fit_within_their_sectors_real_cells compares a dark cloud's centre with its sector's cell, but the cloud is filed by its centroid**
   Observation by Core 1 (2026-10-17, 7:07 PM EDT as the lane reported),
@@ -19275,7 +19373,7 @@ clears each one.
   run that test in a way that does not take two cores. Done: the cause
   is on this item and the browser phase shows no multi-minute stall in a
   gate. Owner: Bug Hunt (proposed).
-  Prerequisites: none. Related: TEST.126, TEST.171, TEST.172, TEST.227.
+  Prerequisites: none. Related: TEST.126, TEST.171, TEST.172.
 
 - [ ] **TEST.233 test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug)**
   Found by Core 3 (2026-10-17, about 8:28 PM EDT as the lane reported;
@@ -19516,26 +19614,6 @@ clears each one.
   Prerequisites: GEN.576. Related: GEN.550, GEN.552, GEN.315, GEN.565.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
-- [ ] **TEST.243 Two test_web_browser_units tests errored in setup, one after 1041 s in pymysql (bug)**
-  Found by Core 1 (gate 5 of GEN.532/GEN.533, 12:22 AM EDT 2026-10-18 as
-  the lane reported; gate on its branch before the merge of #2186),
-  filed by the TODO thread. Test:
-  `src/tests/test_web_browser_units.py::test_the_server_text_is_the_automatic_text`
-  and `::test_a_saved_preference_is_applied_on_load`. Failure: both
-  errored in setup, not in the test body; the first after 1041 s with
-  `pymysql converters.py:60 Failed`, which is the per-test time limit
-  expiring while the setup waited on the database. Both pass alone.
-  Gate: the browser phase with 2 workers, box load 1.9. Fails on main:
-  not seen (not run on main separately). Frequency: once in 1 gate of
-  that lane; other loaded-browser failures (TEST.227, TEST.235) may be the same family (inferred, not checked). Reproducer: run
-  `pytest src/tests/test_web_browser_units.py` while a full gate runs,
-  and watch the setup time of the database fixture. Do: find what the
-  setup waited on (a lock or a slow fixture) and fix the cause. Done:
-  the cause is on this item and the two tests set up inside their limit
-  in 5 loaded runs. Owner: Bug Hunt (proposed; it owns the browser flake
-  family).
-  Prerequisites: none. Related: TEST.227, TEST.235, TEST.172.
-
 - [ ] **TEST.244 Tests: re-primary and reparent invariants, frame round trips, momentum conservation, a moon's velocity as the sum of its hops, a locked body's rate follows a primary change**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/unified-system-barycentre.md, decided: Boss's nine cards
@@ -19591,75 +19669,6 @@ clears each one.
   GEN.565, GEN.576, GEN.578.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
-- [ ] **TEST.246 The web edit menu tests time out in setup in a loaded gate: the accessibility site database backfill took 1024 s while other tests ran, and the tests pass alone in 46 to 49 s (bug)**
-  Found by Core 5 (reported 8:06 AM EDT 2026-10-18 on the lane's clock,
-  its GEN.572 gate of 71 minutes), filed by the TODO thread. Five
-  `test_web_edit_menu` tests failed with setup timeouts; the setup
-  builds the accessibility site database (the a11y site_db backfill),
-  which took 1024 s while concurrent tests ran, and each test passes
-  alone in 46 to 49 s. Core 5 also saw TEST.235's slow-pages [dark] case
-  fail once and pass alone. Fails on main: not checked (load only).
-  Frequency: 1 of 1 gates with other tests running beside it.
-  Reproducer: `scripts/test.py changed` while another gate runs, or the
-  web edit menu tests with the backfill under CPU load. Do: build the
-  site database once per run (a shared fixture) or give the setup a
-  deadline that scales with load, so no test waits on a 1000 s backfill;
-  no quarantine. Done: the five tests pass in a gate that runs beside
-  another gate, and the backfill time is printed in the run log. Owner:
-  Bug Hunt (proposed).
-  Sighting (Core 3, reported 11:07 AM EDT 2026-10-18, real clock; its
-  stacked GEN.244, GEN.282 and GEN.563 gate 2, 8:55 to 10:52 AM EDT,
-  load 5.3):
-  `test_web_browser_crumbs.py::test_a_pages_breadcrumb_is_one_line_at_any_width[1280]`
-  and `[320]` had two module-fixture setup errors at 953.7 s, past the
-  900 s limit, where the same module's database builds in 37 s alone;
-  all three failures of that gate passed alone. Frequency: 1 of 2 gates
-  of Core 3. Same family as the web edit menu setups above (a fixture
-  database build that stalls under load, possibly a mysqld stall); no
-  solo reproducer yet. It goes with Bug Hunt's setup fix.
-  Sighting (Core 3, reported 1:18 PM EDT 2026-10-18 on the lane's clock;
-  its GEN.317 gate, 11:17 AM to 1:14 PM EDT, load 8 to 9):
-  `test_web_browser_layout.py::test_controls_do_not_overlap[web.logout-390/600]`
-  failed in setup after 794.89 s; it passes alone. The same
-  fixture-setup stall as the crumbs and web edit menu cases above, so
-  the family now covers three modules. Frequency: 2 of 3 gates of Core
-  3.
-  Sighting (Core 2, reported about 3:25 PM EDT 2026-10-18 on the lane's
-  clock; its PERF.130 gate, 1:15 to 2:54 PM EDT, load 7.2):
-  `test_web_generate_alignment.py::test_text_boxes_line_up` had 12 setup
-  errors (web.generate and web.generate_system at 390, 820 and 1280,
-  light and dark) and every one passes alone. The same fixture-setup
-  stall under load as the web edit menu, crumbs and layout cases above,
-  so the family now covers four modules. Frequency: 1 of 1 gates of Core
-  2. It goes with Bug Hunt's setup fix. Core 2 also saw
-  `test_workers.py::test_a_batch_of_jobs_starts_no_more_workers_than_wanted_and_not_twice`
-  and
-  `::test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs`
-  fail in that gate (both pass alone): its gate started at 1:15 PM EDT,
-  before Core 5's fix #2267 (merged 1:27 PM EDT; TEST.250 retired), so
-  these two are most likely TEST.250's cause (the shared inline queue
-  context undoing its patches in the wrong order) and need no new item;
-  if either fails again on a tree that carries #2267, file it then.
-  Prerequisites: none. Related: TEST.227, TEST.235.
-
-- [ ] **TEST.252 test_a_double_click_on_a_star_flies_the_camera_to_it fails once in a loaded gate and passes alone (bug)**
-  Found by Core 3 (reported 1:18 PM EDT 2026-10-18 on the lane's clock;
-  its GEN.317 gate, 11:17 AM to 1:14 PM EDT, load 9.1), filed by the
-  TODO thread.
-  `src/tests/test_web_browser_sector_reach.py::test_a_double_click_on_a_star_flies_the_camera_to_it`
-  failed once after 3.8 s and passes alone. Failure text not relayed
-  (Core 3 has it in its `.test-failures.jsonl`). Fails on main: not run
-  on main. Frequency: 1 of 1 gate with the others of its kind red the
-  same way (a loaded browser phase). Reproducer: the test while another
-  gate runs; no solo reproducer. Do: get the failure text from Core 3,
-  then find whether the double click lands before the star list has
-  loaded or before the camera hook is ready (the same shape as TEST.223
-  and TEST.248), and wait for that state in the test or fix the page if
-  a click is lost; no quarantine. Done: the cause is on this item and
-  the test passes in a browser phase that runs beside another gate.
-  Owner: Bug Hunt (proposed).
-  Prerequisites: none. Related: TEST.223, TEST.248.
-
 - [ ] **TEST.253 test_nebula_shape_endpoint_serves_a_mesh fails once under load: the largest vertex radius is 1.0288 against a bound of 1.0, and it passes alone (bug)**
   Found by Core 4 (reported 1:29 PM EDT 2026-10-18 on the lane's clock;
   its GEN.546 gate 2, 11:38 AM to 1:23 PM EDT), filed by the TODO
@@ -19702,6 +19711,36 @@ clears each one.
   on this item and the test passes 30 of 30 fresh draws. Owner: Bug Hunt
   (proposed).
   Prerequisites: none. Related: TEST.253.
+
+- [ ] **TEST.255 test_workers: two real-Redis worker tests fail in loaded gates and pass alone, again after TEST.250's fix (bug)**
+  Found by Core 2 (reported about 3:25 PM EDT 2026-10-18 on the lane's
+  clock; its PERF.130 gate, 1:15 to 2:54 PM EDT, load 7.2) and Blocker 1
+  (reported about 3:34 PM EDT; its GEN.590 gate), filed by the TODO
+  thread.
+  `src/tests/test_workers.py::test_a_batch_of_jobs_starts_no_more_workers_than_wanted_and_not_twice`
+  and
+  `::test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs`
+  failed in both gates and pass alone (3 of 3 runs, about 18 s, on an
+  idle current main at 3:40 PM EDT). Failure text not relayed. TEST.250
+  (retired) had the same two tests failing from the shared inline queue
+  context; its fix #2267 merged 1:27 PM EDT, after Core 2's gate
+  started; whether Blocker 1's tree carried it is not known (its branch
+  merged main at 3:19 PM EDT). Likely cause (inferred, not checked): the
+  two tests use the one real Redis and fixed keys (`workers.WANTED_KEY`,
+  `api_jobs.QUEUE_NAME`) that every gate in the shared environment also
+  uses, so two gates running together delete each other's wanted-worker
+  key or run each other's jobs; the killed-worker case also waits only
+  10 s for a SIGKILLed process under load. Fails on main: not shown,
+  passes alone. Frequency: 2 of 2 gates that ran beside another gate.
+  Reproducer: run `scripts/test.py changed` while a second gate runs in
+  the same environment, or loop the two tests while a second pytest
+  process runs the same file. Do: get the failure text from Core 2's
+  `.test-failures.jsonl`, confirm whether the key collision is the
+  cause, and give each run its own queue name and wanted key (or a Redis
+  database per run); no quarantine. Done: the cause is on this item and
+  both tests pass 20 of 20 runs with a second run of the same file
+  beside them. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.250, TEST.254.
 
 ## USR: User accounts
 
