@@ -2575,6 +2575,30 @@ PULSAR_ACTIVE_LIFETIME_YR = 1.0e7
 PULSAR_RECYCLED_CHANCE = 1.0e-4
 PULSAR_RATE_SCALE = 1.0
 
+# Planets of a millisecond pulsar (GEN.317; docs/design/exotic-environments-planets-and-compact-binaries.md section
+# 2.1). Whether a pulsar holds any is the remnant satellite table's (0.7% of millisecond pulsars, a young pulsar none);
+# these are the origins of the ones that do, from the four known systems (low confidence): the fallback disc of a
+# disrupted white dwarf (PSR B1257+12), a captured circumbinary giant (PSR B1620-26 b, needs a globular cluster) and
+# an ablated companion (PSR J1719-1438 b, J2322-2650 b). Only the disc origin is built; the other two draw and give
+# the pulsar no planets until their kinds exist (the giant GEN.163, the sub-stellar companion with the pair builder).
+PULSAR_PLANET_ORIGIN_WEIGHTS = {"disc": 25.0, "captured-giant": 25.0, "ablated-companion": 50.0}
+PULSAR_PLANET_BUILT_ORIGINS = ("disc",)
+
+# The disc origin: 1 to 3 planets in 0.1 to 0.6 AU, masses log-uniform from 0.01 to 10 Earth masses (the least
+# massive known pulsar planet is 0.02, the most 4.3), each period near a low-order ratio to the one inside it (PSR
+# B1257+12's outer pair sits near 3:2). A planet's period is its ratio times the inner one's, scattered by a normal
+# deviation of this fraction; a mass over what the carbon-rich airless class holds is not drawn.
+PULSAR_DISC_PLANET_COUNT = (1, 3)
+PULSAR_DISC_DISTANCE_AU_RANGE = (0.1, 0.6)
+PULSAR_DISC_MASS_EARTH_RANGE = (0.01, 10.0)
+PULSAR_DISC_PERIOD_RATIOS = (4.0 / 3.0, 3.0 / 2.0, 5.0 / 3.0, 2.0)
+PULSAR_DISC_PERIOD_RATIO_SCATTER = 0.01
+PULSAR_DISC_CLASS = "C"
+
+# The pulsar wind's momentum flux on a body is XI * Edot / (4 pi r^2 c) for a spin-down power Edot and a distance r
+# (the same order of unity the design note takes).
+PULSAR_WIND_XI = 1.0
+
 # Magnetars (GEN.153), a subtype of neutron star: B of 1e14 to 1e15 G and a
 # spin of 2 to 12 s, active only about 1e4 years (an older one has decayed
 # to an ordinary high-field star), born in 1 to 10% of core collapses,
