@@ -2,6 +2,37 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1757] - 2026-10-18
+
+**Headline:** Hypervelocity stars, kicked neutron stars and ejected black holes now stream through the whole galaxy and out to the grid's reach, on straight lines, instead of stopping at the disk's outline.
+
+### Changed
+- **Hypervelocity stars are placed out to the grid's reach (GEN.238).** They were drawn inside the galaxy's outline and redrawn if they fell outside. They now follow the count the galaxy ejects (`HYPERVELOCITY_STARS_PER_GALAXY`, 1,000 to 10,000 out to 100 kpc) times the plan's reach over that radius, with the distance falling as `r^-2` to the reach (262 kpc by default), a direction uniform on the sphere and 500 to 1,000 km/s outward. With the default reach more than 99% of them lie beyond the disk's outline, in the halo and the space around it.
+- **Neutron stars and black holes the galaxy ejected stream through every sector (GEN.238).** Each kind's unbound share of the galaxy (a fifth to two fifths of neutron stars, 2% of black holes) spreads over a sphere of the distance a 400 km/s remnant covers in 10 Gy, as `N / (4 pi r^2 v T)`. The sector profile carries each kind's mean for its cell, the fill draws a count from it in a stage of its own (`ejecta`), places each remnant clear of the other Hill spheres and gives it a velocity of 300 to 500 km/s along a random direction instead of a galactic orbit. The nightly update moves such a remnant on a straight line from its epoch and keeps its velocity. They carry no planets, and a black hole drawn here is stellar-mass. A cell draws at most 50 of a kind (`EJECTA_MAX_PER_CELL`, a program limit that only a galaxy shaped to hold astronomically many systems in a few cells reaches).
+- **A remnant in a superbubble is sized by the cavity's thin gas (GEN.298).** A remnant's radius (the Sedov-Taylor blast wave, held at the snowplow onset, GEN.151) took its own class's density however thin the gas around it was, so a remnant inside a cavity was sized as if in the disk. Where the sector's profile places it in a superbubble, the remnant, rolled by the fill or built from the scatter, takes the cavity's interior density, 0.001 to 0.01 cm^-3 (`SystemConfig.AMBIENT_DENSITY_CM3`), so it grows to a few hundred light-years where the disk's would have stopped at tens. The class contents and every draw are unchanged, and outside a bubble nothing changes. The remnant rate keeps its factor: the cavity is where the explosions went off.
+
+generation-output: changed
+
+TODO items resolved: GEN.238, GEN.298. Added: none.
+
+## [8.0.1756] - 2026-10-17
+
+**Headline:** The O-star nebula test no longer fails on the hotter cluster stars that now live as long as real ones do.
+
+### Changed
+- **`test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing` (TEST.230).** It assumed the stars of a class D or E region begin with the nebula's own O5V. Since the stellar bundle (#2112, GEN.467) a star's life follows the sourced stellar tables, so at 4 million years the cluster behind the host still holds O3V and O5V stars (an O3V or O5V lives about 4 million years; the old law gave them under 1) and the host list may begin with a hotter type or count several O5V. The test now asks that the host is among the stars, and that a class C nebula (the host alone) lists exactly `O5V x1`. The generator is unchanged.
+
+TODO items resolved: TEST.230. Added: none.
+
+## [8.0.1755] - 2026-10-17
+
+**Headline:** One function now works out where a planet can stay in a hierarchy of stars and how much light it gets there.
+
+### Added
+- **Planet zones in a hierarchy, and the flux a planet receives from every member (GEN.314).** `physics/planet_zones.py` gives an S-type window round every member (the Holman and Wiegert limit or the Hill radius against the sibling subtree as a point mass, whichever is tighter, from the member's engulfment floor) and a P-type window round every pair node (the circumbinary fit or the highest floor of a member below it, up to the pair's own S-type limit against its sibling), all capped at 100 AU (`PLANET_ZONE_DISK_CAP_AU`). For two stars the windows are the ones `Star.a_crit_au` and `StarSystem._orbit_floor_au` hold. `flux_at` sums the host's own light and every other member's at the time-averaged inverse square of the node they meet at. On a seeded draw of the generator's trees the share of stars with an S-type window above 0.3 AU falls from 73% at two stars to 15% at seven, the design table's row within 7 points. GEN.264 stage C, GEN.130 and GEN.275 call it and work out no zones of their own.
+
+TODO items resolved: GEN.314. Added: none.
+
 ## [8.0.1754] - 2026-10-17
 
 **Headline:** The track of a young star now takes its numbers from published tables, and red dwarfs stay young stars for as long as the tables say.
