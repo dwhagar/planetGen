@@ -900,3 +900,9 @@ Baseline: PR #1817.
 | GEN.547 | 8.1 | Galaxy laws build |
 | GEN.546 | 8.1 | Galaxy laws build |
 | TEST.250 | 8.1 | Bugs and flaky tests |
+| GEN.404 | 8.1 | Galaxy laws build |
+| TEST.247 | 8.1 | Bugs and flaky tests |
+| TEST.249 | 8.1 | Bugs and flaky tests |
+| TEST.251 | 8.1 | Bugs and flaky tests |
+| PERF.130 | 8.2 | Robust tile caching |
+| PERF.106 | 8.1 | Queue, caches and performance |

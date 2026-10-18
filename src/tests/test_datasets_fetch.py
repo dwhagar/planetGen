@@ -1,6 +1,6 @@
 # tests/test_datasets_fetch.py
 
-"""The shared setup-time download step (GEN.548): sha256 check, atomic keep, stand-in, User-Agent, never at run time."""
+"""The shared setup-time download step (GEN.548): sha256 check, atomic keep, missing, User-Agent, never at run time."""
 
 import hashlib
 import io
@@ -98,7 +98,7 @@ def test_the_user_agent_is_product_tokens_with_the_release_url_and_api_version()
 def test_a_wrong_hash_is_not_kept_and_names_both_hashes(cache):
     dataset = _dataset(b"good bytes")
     result = fetch.fetch(dataset, opener=_serve(dataset, b"evil bytes"))
-    assert result.status == "stand-in"
+    assert result.status == "missing"
     assert "sha256" in result.reasons[0] and dataset.pieces[0].sha256 in result.reasons[0]
     assert not (cache / "fixture" / "part0.dat").exists()
 
@@ -107,7 +107,7 @@ def test_a_file_longer_or_shorter_than_the_catalogue_says_is_not_kept(cache):
     dataset = _dataset(b"12345678")
     for wrong in (b"1234", b"12345678" + b"9" * 100000):
         result = fetch.fetch(dataset, opener=_serve(dataset, wrong))
-        assert result.status == "stand-in" and "bytes" in result.reasons[0]
+        assert result.status == "missing" and "bytes" in result.reasons[0]
     assert not (cache / "fixture" / "part0.dat").exists()
 
 
@@ -117,10 +117,10 @@ def test_a_file_longer_or_shorter_than_the_catalogue_says_is_not_kept(cache):
     TimeoutError("timed out"),
     ConnectionResetError("reset"),
 ])
-def test_a_host_that_is_down_gives_a_stand_in_and_a_reason_never_an_exception(cache, error):
+def test_a_host_that_is_down_gives_missing_and_a_reason_never_an_exception(cache, error):
     dataset = _dataset(b"abc")
     result = fetch.fetch(dataset, opener=_Host({}, error))
-    assert result.status == "stand-in" and "example.org/fixture/part0.dat" in result.reasons[0]
+    assert result.status == "missing" and "example.org/fixture/part0.dat" in result.reasons[0]
 
 
 def test_a_failure_keeps_the_good_files_already_there(cache):
@@ -129,7 +129,7 @@ def test_a_failure_keeps_the_good_files_already_there(cache):
     (cache / "fixture" / "part1.dat").write_bytes(b"damaged")
     host = _Host({dataset.pieces[0].url: b"first"}, urllib.error.URLError("down"))
     result = fetch.fetch(dataset, opener=host)
-    assert result.status == "stand-in" and len(host.requests) == fetch.ATTEMPTS
+    assert result.status == "missing" and len(host.requests) == fetch.ATTEMPTS
     assert (cache / "fixture" / "part0.dat").read_bytes() == b"first"
 
 
@@ -156,7 +156,7 @@ def test_a_host_that_answers_on_a_second_attempt_is_fine(cache):
 def test_a_wrong_answer_is_not_retried(cache):
     dataset = _dataset(b"abcdef")
     host = _serve(dataset, b"zzzzzz")
-    assert fetch.fetch(dataset, opener=host).status == "stand-in" and len(host.requests) == 1
+    assert fetch.fetch(dataset, opener=host).status == "missing" and len(host.requests) == 1
 
 
 def test_a_changed_source_replaces_the_old_file(cache):
@@ -171,17 +171,17 @@ def test_locate_gives_the_folder_when_every_file_is_there(cache):
     dataset = _dataset(b"abc", b"defg")
     fetch.fetch(dataset, opener=_serve(dataset, b"abc", b"defg"))
     located = fetch.locate(dataset)
-    assert not located.standin and located.label.startswith("downloaded: ")
+    assert not located.missing and located.label.startswith("downloaded: ")
     assert pathlib.Path(located.path("part1.dat")).read_bytes() == b"defg"
     with pytest.raises(KeyError):
         located.path("other.dat")
 
 
-def test_locate_on_an_empty_cache_is_the_labelled_stand_in(cache):
+def test_locate_on_an_empty_cache_is_missing_with_its_label(cache):
     dataset = _dataset(b"abc")
     located = fetch.locate(dataset)
-    assert located.standin and "has not been downloaded" in located.reason
-    assert located.label == "stand-in (XX1): a flat table"
+    assert located.missing and "has not been downloaded" in located.reason
+    assert located.label == "missing (XX1, replaces a flat table)"
     with pytest.raises(FileNotFoundError):
         located.path("part0.dat")
 
@@ -190,7 +190,7 @@ def test_locate_refuses_a_file_that_was_altered_after_it_was_kept(cache):
     dataset = _dataset(b"abcd")
     fetch.fetch(dataset, opener=_serve(dataset, b"abcd"))
     (cache / "fixture" / "part0.dat").write_bytes(b"abce")
-    assert fetch.locate(dataset).standin
+    assert fetch.locate(dataset).missing
     (cache / "fixture" / "part0.dat").write_bytes(b"ab")
     assert "size or sha256" in fetch.locate(dataset).reason
 
@@ -200,7 +200,7 @@ def test_locate_never_opens_a_connection(cache, monkeypatch):
         raise AssertionError("a run-time read opened a connection")
     monkeypatch.setattr("urllib.request.urlopen", forbidden)
     monkeypatch.setattr("socket.socket.connect", forbidden)
-    assert fetch.locate(_dataset(b"abc")).standin
+    assert fetch.locate(_dataset(b"abc")).missing
 
 
 def test_locate_hashes_a_file_once_per_process(cache, monkeypatch):
@@ -233,7 +233,7 @@ def test_every_catalogue_entry_is_well_formed_and_keys_are_unique():
     keys = [dataset.key for dataset in catalogue.ALL]
     assert len(keys) == len(set(keys))
     for dataset in catalogue.ALL:
-        assert dataset.source and dataset.licence and dataset.standin and dataset.fill
+        assert dataset.source and dataset.licence and dataset.replaces and dataset.fill
 
 
 def test_the_cache_folder_defaults_outside_the_checkout_and_can_move(monkeypatch):
@@ -243,14 +243,14 @@ def test_the_cache_folder_defaults_outside_the_checkout_and_can_move(monkeypatch
     assert fetch.cache_dir() == "/elsewhere"
 
 
-def test_the_command_fetches_reports_and_exits_1_on_a_stand_in(cache, monkeypatch, capsys):
+def test_the_command_fetches_reports_and_exits_1_on_a_missing_dataset(cache, monkeypatch, capsys):
     good, bad = _dataset(b"abc", key="good"), _dataset(b"xyz", key="bad")
     monkeypatch.setattr(catalogue, "ALL", (good, bad))
     monkeypatch.setattr(fetch.urllib.request, "urlopen", _Host(
         {good.pieces[0].url: b"abc", bad.pieces[0].url: b"wrong"}))
     assert datasets_cli.main(["fetch"]) == 1
     out = capsys.readouterr().out
-    assert "good: fetched" in out and "bad: stand-in (XX1)" in out and "uses: a flat table" in out
+    assert "good: fetched" in out and "bad: missing (XX1)" in out and "generation will not start" in out and "replaces: a flat table" in out
     assert datasets_cli.main(["status", "good"]) == 0
     assert datasets_cli.main(["status", "bad"]) == 1
 
@@ -305,7 +305,7 @@ def test_an_archive_is_derived_once_and_then_removed(cache):
     assert (cache / "archive" / "sum.txt").read_text() == "10"
     assert not (cache / "archive" / "big.csv").exists()
     located = fetch.locate(dataset)
-    assert not located.standin and pathlib.Path(located.path("sum.txt")).read_text() == "10"
+    assert not located.missing and pathlib.Path(located.path("sum.txt")).read_text() == "10"
     again = _Host({dataset.pieces[0].url: payload})
     assert fetch.fetch(dataset, opener=again).status == "present" and again.requests == []
 
@@ -314,32 +314,32 @@ def test_a_new_derive_version_or_catalogue_hash_derives_again(cache):
     dataset, payload = _archive_dataset()
     fetch.fetch(dataset, opener=_Host({dataset.pieces[0].url: payload}))
     newer, _ = _archive_dataset(version=2)
-    assert fetch.locate(newer).standin
+    assert fetch.locate(newer).missing
     assert fetch.fetch(newer, opener=_Host({newer.pieces[0].url: payload})).status == "fetched"
-    assert not fetch.locate(newer).standin
+    assert not fetch.locate(newer).missing
     other, other_payload = _archive_dataset(payload=b"5,6\n")
-    assert fetch.locate(other).standin
+    assert fetch.locate(other).missing
 
 
-def test_a_derived_file_altered_afterwards_is_a_stand_in(cache):
+def test_a_derived_file_altered_afterwards_is_missing(cache):
     dataset, payload = _archive_dataset()
     fetch.fetch(dataset, opener=_Host({dataset.pieces[0].url: payload}))
     (cache / "archive" / "sum.txt").write_text("11")
-    assert fetch.locate(dataset).standin
+    assert fetch.locate(dataset).missing
 
 
-def test_a_derive_function_that_fails_is_a_stand_in_not_an_exception(cache):
+def test_a_derive_function_that_fails_is_missing_not_an_exception(cache):
     def broken(folder):
         raise ValueError("a column moved")
     dataset, payload = _archive_dataset(derive=broken)
     result = fetch.fetch(dataset, opener=_Host({dataset.pieces[0].url: payload}))
-    assert result.status == "stand-in" and "a column moved" in result.reasons[0]
-    assert fetch.locate(dataset).standin and not (cache / "archive" / ".derived.json").exists()
+    assert result.status == "missing" and "a column moved" in result.reasons[0]
+    assert fetch.locate(dataset).missing and not (cache / "archive" / ".derived.json").exists()
 
 
 def test_derive_must_make_exactly_the_files_the_catalogue_names(cache):
     dataset, payload = _archive_dataset(derive=lambda folder: {"other.txt": b"x"})
-    assert fetch.fetch(dataset, opener=_Host({dataset.pieces[0].url: payload})).status == "stand-in"
+    assert fetch.fetch(dataset, opener=_Host({dataset.pieces[0].url: payload})).status == "missing"
 
 
 def test_a_transient_file_needs_a_derive_function():

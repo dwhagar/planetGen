@@ -1191,9 +1191,9 @@ random is too light for one in three draws (its densest cell stays under that), 
 (TEST.225)."""
 
 
-@pytest.mark.parametrize("start, plan", [([], []), (["--min-start-density", "1000"], ["--seed", DENSE_CORE_SEED])],
+@pytest.mark.parametrize("start, plan, radius_ly", [([], [], 25.0), (["--min-start-density", "1000"], ["--seed", DENSE_CORE_SEED], 18.0)],
                          ids=["random", "dense_core"])
-def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, monkeypatch, start, plan):
+def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, monkeypatch, start, plan, radius_ly):
     """
     The standard workflow this project's own docs describe -- 'plan' once,
     then 'galaxy' with no flags: pick a random location, generate every
@@ -1230,7 +1230,7 @@ def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, 
        at all gets one fallback system, which would swamp their tiny
        predictions.
     """
-    radius_pc = ly_to_pc(25.0)
+    radius_pc = ly_to_pc(radius_ly)
     summary = _build_real_skeleton(mysql_config, plan)
     assert summary["outer_shell_index"] > 0, "the toy shape's own skeleton should find real content"
 

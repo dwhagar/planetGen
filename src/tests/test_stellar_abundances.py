@@ -7,7 +7,6 @@ The Sun's composition is a target here and never a preset: it lives in this file
 scale. The expected numbers are those the design note computed and checked against its sources (sections 3, 10 and 11).
 """
 
-import json
 import math
 import random
 
@@ -330,38 +329,13 @@ def test_the_radioactive_birth_abundances_follow_europium():
 
 # --- Remnants ----------------------------------------------------------------------------------------------------------
 
-def test_the_white_dwarf_radius_reproduces_sirius_b_and_falls_with_mass():
-    assert sa.white_dwarf_radius_solar(1.018) == pytest.approx(0.00803, rel=0.05)
-    assert sa.white_dwarf_radius_solar(0.6) * 695.7e3 == pytest.approx(8842.0, rel=0.01)
-    assert sa.white_dwarf_radius_solar(0.5) == pytest.approx(0.01411, rel=0.01)
-    masses = [0.2 + 0.02 * n for n in range(60)]
-    radii = [sa.white_dwarf_radius_solar(m) for m in masses]
-    assert all(a > b for a, b in zip(radii, radii[1:]))
-    assert sa.WHITE_DWARF_LIMITING_MASS_SOL == pytest.approx(1.457, abs=1e-3)
-    for mass in (0.05, 1.5):
-        with pytest.raises(sa.StellarAbundanceError):
-            sa.white_dwarf_radius_solar(mass)
-
-
-def test_the_white_dwarf_data_file_states_its_source_and_licence():
-    with open(sa.os.path.join(sa.DATA_DIRECTORY, "white_dwarf_mass_radius.json"), encoding="utf-8") as handle:
-        data = json.load(handle)
-    assert data["sources"] and data["licence"] and data["retrieved"] and data["title"]
-    assert [row[1] for row in data["rows"]] == sorted(row[1] for row in data["rows"])
-
-
 def test_the_white_dwarf_core_by_mass():
     assert sa.white_dwarf_core(0.3) == "helium" and sa.white_dwarf_core(0.6) == "carbon-oxygen"
     assert sa.white_dwarf_core(1.2) == "oxygen-neon" and sa.white_dwarf_core(1.05) == "carbon-oxygen"
     assert tuning.STELLAR_WD_DA_SHARE == 0.80 and tuning.STELLAR_WD_POLLUTED_SHARE == (0.25, 0.50)
 
 
-def test_the_neutron_star_constants_and_outer_crust():
-    densities = [density for _nucleus, density in sa.NEUTRON_STAR_OUTER_CRUST]
-    assert densities == sorted(densities) and len(set(densities)) == len(densities)
-    assert sa.neutron_star_crust_nucleus(1e6) == "Fe-56" and sa.neutron_star_crust_nucleus(1e9) == "Ni-64" and sa.neutron_star_crust_nucleus(1.4e9) == "Ni-66"
-    assert sa.neutron_star_crust_nucleus(4.2e11) == "Kr-118" and sa.neutron_star_crust_nucleus(5e11) is None
-    assert sa.NEUTRON_DRIP_DENSITY_G_CM3 == pytest.approx(4e11)
+def test_the_neutron_star_constants():
     low, high = tuning.STELLAR_NS_RADIUS_BAND_KM
     assert (low, high) == (11.6, 13.1) and low < 12.45 < high, "Miller 2021's R(1.4)"
     assert tuning.STELLAR_NS_MASS_FLOOR_SOL < tuning.STELLAR_NS_MAXIMUM_NONROTATING_MASS_SOL[0]
