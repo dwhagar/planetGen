@@ -51,6 +51,10 @@ test("a star keeps its place in the list and an id past 32 bits stays exact", ()
   assert.equal(tiles["3/1/2/3"].stars[1].star_type, "M");
   assert.equal(tiles["3/1/2/3"].stars[1].charted, false);
   assert.equal(tiles["3/1/2/3"].stars[0].charted, true);
+  // MAP.252: a satellite galaxy's star carries its tier, the others none.
+  assert.equal(tiles["3/1/2/3"].stars[2].tier, 2);
+  assert.equal(tiles["3/1/2/3"].stars[2].charted, false);
+  assert.equal("tier" in tiles["3/1/2/3"].stars[0], false);
 });
 
 test("printed object IDs and mixed ids come back as they went in", () => {

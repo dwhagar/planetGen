@@ -1717,6 +1717,15 @@ def _weighted_top(stars, limit):
     return [s["id"] for s in sorted(stars, key=lambda s: (-s["luminosity_sol"] * weight[s["population"]], -s["id"]))][:limit]
 
 
+def _assert_whole_bands_above_the_cut(queryDb, listed, everything, limit):
+    """MAP.251: a full list holds every star of the (key) bands above the lowest band it reaches into."""
+    assert len(listed) == min(limit, len(everything)) and {s["id"] for s in listed} <= {s["id"] for s in everything}
+    if len(everything) > limit:
+        cut = min(queryDb._decade_band(queryDb._map_key(s)) for s in listed)
+        above = {s["id"] for s in everything if queryDb._decade_band(queryDb._map_key(s)) > cut}
+        assert above <= {s["id"] for s in listed}
+
+
 def test_bright_stars_are_listed_by_luminosity_times_population_weight(mysql_config):
     """MAP.154: one key for every box -- an old giant that is 400 times fainter than a young star
     ranks beside it -- in a tile that reads its own addresses, one that walks the luminosity index
@@ -1730,7 +1739,8 @@ def test_bright_stars_are_listed_by_luminosity_times_population_weight(mysql_con
                        ((0.0, 0.0, 300.0), (100.0, 100.0, 1000.0))]:
             everything = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, 4.0, limit=1000)
             picked = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, 4.0, limit=12)
-            assert [s["id"] for s in picked] == _weighted_top(everything, 12), (lo, hi)
+            # MAP.251: every star of the bands above the one the cut falls in is listed, the cut band thins.
+            _assert_whole_bands_above_the_cut(queryDb, picked, everything, 12)
         wide = queryDb.galaxy_bright_stars_in_box(conn, (-5000.0, -5000.0, -1000.0), (5000.0, 5000.0, 1000.0), 4.0, limit=30)
         assert {"young", "bulge", "old"} <= {s["population"] for s in wide}, "the old giants are listed beside the young stars"
         sample = queryDb.galaxy_brightest_stars(conn, 12)
@@ -1742,7 +1752,7 @@ def test_bright_stars_are_listed_by_luminosity_times_population_weight(mysql_con
             sampled = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, 4.0, limit=12,
                                                          brightest=lambda: queryDb.galaxy_brightest_stars(conn, 60))
             everything = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, 4.0, limit=1000)
-            assert [s["id"] for s in sampled] == _weighted_top(everything, 12)
+            _assert_whole_bands_above_the_cut(queryDb, sampled, everything, 12)
         finally:
             queryDb.GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET = old_budget
     finally:
