@@ -901,3 +901,6 @@ Baseline: PR #1817.
 | GEN.546 | 8.1 | Galaxy laws build |
 | TEST.250 | 8.1 | Bugs and flaky tests |
 | GEN.404 | 8.1 | Galaxy laws build |
+| TEST.247 | 8.1 | Bugs and flaky tests |
+| TEST.249 | 8.1 | Bugs and flaky tests |
+| TEST.251 | 8.1 | Bugs and flaky tests |

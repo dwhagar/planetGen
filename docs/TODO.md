@@ -19715,87 +19715,6 @@ clears each one.
   3.
   Prerequisites: none. Related: TEST.227, TEST.235.
 
-- [ ] **TEST.247 The random-start neighbourhood test with --min-start-density 1000 (dense_core) takes 466 s alone and 554 s with its sibling, and times out at 900 s under gate load (bug)**
-  Found by Core 1 (reported 10:37 AM EDT 2026-10-18, real clock, its
-  GEN.404 gate), filed by the TODO thread.
-  `src/tests/test_galaxy_gen.py::test_random_start_neighborhood_matches_the_real_skeleton_plan[dense_core]`
-  (the `--min-start-density 1000` variant added with TEST.225): alone on
-  an idle origin/main both variants take 554 s (dense_core about 466 s,
-  random about 88 s); under the four-core gate load dense_core passed
-  the 900 s per-test limit and failed with a timeout. Fails on main:
-  only under gate load. Frequency: 1 of 1 gate runs of Core 1 so far.
-  Reproducer: `pytest
-  src/tests/test_galaxy_gen.py::test_random_start_neighborhood_matches_the_real_skeleton_plan`
-  on idle main (554 s), then the same with another gate running. Do:
-  find what the dense-core start spends its 466 s on (a capped
-  dense-core cell that resolves its brightest stars, GEN.281) and shrink
-  the work the test needs (a smaller radius or a pinned address in a
-  dense core) without loosening what it proves, or give the case a time
-  limit that scales with load; no quarantine. Done: the dense_core case
-  passes in a gate that runs beside another gate, and its alone time is
-  under 300 s or the item says why not. Owner: Bug Hunt (proposed).
-  Sighting (Core 4, reported 11:39 AM EDT 2026-10-18, real clock; its
-  GEN.546 gate 1 on a base from before #2252): the `[dense_core]` case
-  failed once with 'generated 0 systems ... predicted 483.3' and passes
-  alone in 4 min 45 s; Core 4 suspects GEN.592's capped dense-core cell.
-  The failure text is the one the fixed galaxy seed of #2252 (release
-  8.0.1817) addresses, so it may not recur on a tree with that release;
-  the run time (4 min 45 s alone) is this item's own subject.
-  Prerequisites: none. Related: TEST.225, TEST.246.
-
-- [ ] **TEST.249 The sector and system page query-count test fails once in the non-browser phase: 12 statements for a lone system where 11 for one with planets, on unseeded systems (bug)**
-  Found by Bug Hunt (reported 10:59 AM EDT 2026-10-18 as the lane
-  reported; the non-browser phase of one of two gates), filed by the
-  TODO thread.
-  `src/tests/test_db_web_reads.py::test_sector_and_system_pages_use_a_fixed_number_of_queries`
-  failed once: 12 statements for the lone system where the system with
-  planets took 11 (the assertion `counter.count == with_planets` in the
-  last block, which compares the page of the first system of the big
-  sector with the page of the lone system); the systems are unseeded, so
-  what each system holds, and so the statements each page runs, depends
-  on the draw. Passed on the resumed run. Fails on main: unknown.
-  Frequency: 1 of 2 gates. Reproducer: loop the test alone on idle main
-  with fresh draws and print the counts and the two systems' contents.
-  Do: find which part of the draw adds the extra statement (a planet, a
-  moon or a belt) and make the page query a fixed number whatever it
-  holds, or pin the systems in the test; if the page really runs one
-  more statement for some systems, that breaks the test's own claim and
-  the page is the bug. Done: the cause is on this item and the test
-  passes 30 of 30 fresh draws. Owner: Bug Hunt (proposed; it will loop
-  it idle after the slow-pages item).
-  Frequency from Core 4 (reported 11:39 AM EDT 2026-10-18, real clock;
-  its GEN.546 gate 1, 9:46 to 11:31 AM EDT): 1 failure in 6 runs alone
-  on origin/main and on Core 4's branch; the query count flips between
-  11 and 12 with random system content. So it fails on main, about 1 run
-  in 6; Bug Hunt does not need to wait for it to appear in a gate.
-  Sighting (Core 5, reported 1:27 PM EDT 2026-10-18 on the lane's clock;
-  its PERF.106 slice 5 gate): failed once with 12 vs 11 queries and
-  passed alone; one more run of the same flake (with Core 4's 1 in 6
-  alone on main).
-  Prerequisites: none. Related: TEST.238.
-
-- [ ] **TEST.251 test_orbital_facilities_advance_their_phase fails once in a gate: advance_facility_orbits returns 0 where 1 is expected for orbit_clock(period / 4) (bug)**
-  Found by Core 2 (reported about 12:55 PM EDT 2026-10-18 on the lane's
-  clock; its MAP.249 gate, 104 minutes, load 8.4), filed by the TODO
-  thread.
-  `src/tests/test_galactic_motion.py::test_orbital_facilities_advance_their_phase`
-  failed with `assert 0 == 1` at line 173:
-  `store.advance_facility_orbits(conn, store.orbit_clock(conn, period /
-  4))` moved no facility. Passes alone 3 of 3. Fails on main: unknown.
-  Frequency: 1 of 2 gate runs on Core 2's tree. Reproducer: run the test
-  alone in a loop on idle main with the system drawn each time
-  (`_system_with_worlds` is unseeded, so the period of the giant the
-  facility orbits is random), then under load. Suspect (inferred, not
-  checked): the update only moves rows with `next_update_due <=
-  clock.end_unix`, and `_schedule_updates` sets that date from
-  `_FACILITY_INTERVAL_SQL`, so a facility whose period is long against
-  the quarter-period clock the test uses may not be due. Do: print the
-  period, `next_update_due` and `clock.end_unix` on a failure; then pin
-  the system or choose a clock past the due date, or fix the schedule if
-  a facility can be skipped for good. Done: the cause is on this item
-  and the test passes 30 of 30 fresh draws. Owner: Bug Hunt (proposed).
-  Prerequisites: none. Related: TEST.238, TEST.249.
-
 - [ ] **TEST.252 test_a_double_click_on_a_star_flies_the_camera_to_it fails once in a loaded gate and passes alone (bug)**
   Found by Core 3 (reported 1:18 PM EDT 2026-10-18 on the lane's clock;
   its GEN.317 gate, 11:17 AM to 1:14 PM EDT, load 9.1), filed by the
@@ -19831,7 +19750,7 @@ clears each one.
   whether the test's bound is too tight; fix without loosening what the
   test proves; no quarantine. Done: the cause is on this item and the
   test passes 30 of 30 fresh draws. Owner: Bug Hunt (proposed).
-  Prerequisites: none. Related: TEST.249, TEST.251.
+  Prerequisites: none.
 
 ## USR: User accounts
 
