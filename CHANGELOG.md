@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1822] - 2026-10-18
+
+**Headline:** The phenomenon scatter's shells run as commands on the work queue, like the star scatters.
+
+### Changed
+- **`scatter-phenomena` is a command (PERF.106).** Its shells (neutron stars, black holes, planetary nebulae, supernova remnants, hypervelocity stars, and the clusters' and satellites' own) are cut into units of consecutive shells, queued through the wrapper as a run of their own and followed with the same bar and per-shell lines as before; a unit runs alone from its JSON arguments (`planetgen command-run`). The same rows are written at any worker count, and on the test galaxy they are the rows the previous version wrote.
+- **The units' speeds are recorded by the unit that completes the stage**, the drawing and the writing of the rows under their own kinds as before. The stage's row in the stage history is still stored by the process that started the run, because the stage also clears the earlier scatter, draws the special phenomena, builds the nebula field and the indexes around its units.
+- **The old per-run task queue of the phenomenon scatter is gone** with no replacement.
+- **`docs/design/redis-and-the-work-queue.md` describes it.**
+
+TODO items resolved: none (slice three of PERF.106). Added: none.
+
 ## [8.0.1821] - 2026-10-18
 
 **Headline:** The number of black holes in a place now follows the metals of its stars, with a share that differs from one galaxy to the next.
