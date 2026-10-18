@@ -153,6 +153,13 @@ connectivity to that specific schema rather than the default one.
   (the exact figure follows once the background count finishes). `after=<system
   ID>` starts the page after that system in the name sort and ignores
   `offset`, so page 40,000 costs what page 1 does (an unknown ID is a 400);
+  `from=<text>` (PERF.75, the Systems table's jump-by-value box) begins the
+  list at the first name from that text on under the name sort (`M` starts
+  at the first name from M; under `order=desc` the names that begin with M
+  come first and the list runs down from them) or at the first sector from
+  it on under the sector sort (systems with no sector still come last),
+  `total` counts the systems from there, and `offset` and `after` count from
+  there; the other sorts ignore it;
   a bad `sort`, `order`, `binary` or `placement` is a 400.
 - `GET /api/uncharted-systems?sort=<luminosity|temperature|type|sector|age>&order=asc|desc&limit=<n>&offset=<n>&after=<star id>` —
   (`after` starts the page after that star in the sort and ignores `offset`, PERF.75; equal sort values are ordered by id in the

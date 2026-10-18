@@ -93,7 +93,7 @@ def _all_systems_load(state, limit, offset, want_facets, after=None):
         db_name(), limit=limit, offset=offset, after=after, sort=state.sort, descending=state.descending,
         binary=_binary_filter(state.filters["binary"]),
         placement=placement[0] if len(placement) == 1 and placement[0] in _PLACEMENT_LABELS else None,
-        octants=state.filters["octant"], facets=want_facets)
+        octants=state.filters["octant"], facets=want_facets, start=state.start)
     facets = None
     if want_facets:
         facets = {
@@ -112,7 +112,7 @@ ALL_SYSTEMS_TABLE = tables.register(Table(
      Column("star_type", "Star type", sortable=False)],
     _all_systems_load,
     facets=[Facet("placement", "Where"), Facet("binary", "Stars"), Facet("octant", "Octant")],
-    prefix="systems_", noun=("system", "systems"), keyset=True,
+    prefix="systems_", noun=("system", "systems"), keyset=True, jump={"name": "A letter or the start of a name", "sector": "A sector name or its first letters"},
 ))
 
 
@@ -157,7 +157,7 @@ def _uncharted_load(state, limit, offset, want_facets, after=None):
     can_generate = current_admin() is not None
     items = envelope["items"]
     return Result([_uncharted_row(star, can_generate) for star in items], envelope["total"], None,
-                  next=items[-1]["id"] if items else None)
+                  envelope.get("total_capped", False), items[-1]["id"] if items else None)
 
 
 UNCHARTED_SYSTEMS_TABLE = tables.register(Table(

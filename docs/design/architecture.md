@@ -103,6 +103,7 @@ flowchart LR
 | [`scripts/test.py`](../../scripts/test.py) | Picks and runs a slice of the test suite (`changed`, `quick`, `full --check`, `budget`, ...; TEST.139). See [testing.md](../testing.md). |
 | `scripts/generate_db_models.py` | Writes `planetgen/db/models.py` (SQLAlchemy `Table` declarations) from `schema.sql` (DB.11). |
 | `scripts/check_redis_settings.py` | Warns about Redis server settings that do not suit planetGen (OPS.48); run by `install.sh` and `update.sh`. |
+| [`scripts/build_architecture_map.py`](../../scripts/build_architecture_map.py) | Writes `docs/design/architecture-map.html`, the code map that drills down from the project's areas to a function's source with the calls between them (DOC.67); `--check` fails when a module of the package is missing from the page. Its page shell is `scripts/architecture_map/template.html`. |
 | `scripts/build_unit_ladders.py` | Writes the browser's copy of the unit ladders (`static/unitladders.js`) from `planetgen/util/ladders.py` (UX.23). |
 | `scripts/vendor_shoelace.py` | Copies the parts of Shoelace the site uses into `static/vendor/shoelace/`. |
 | `scripts/build_todo_docs.py`, `scripts/todo_docs/` | Builds the three browsable TODO pages from the TODO sources. |

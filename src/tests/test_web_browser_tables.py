@@ -21,6 +21,7 @@ sync_api = pytest.importorskip("playwright.sync_api")
 
 from planetgen.api.config import Config  # noqa: E402
 from planetgen.api.limiter import PAGE_LIMITS_OFF  # noqa: E402
+from planetgen.db import query as queryDb  # noqa: E402
 from planetgen.web import sector_page  # noqa: E402
 from planetgen.web.app import create_app  # noqa: E402
 from planetgen.web.lib import apiclient  # noqa: E402
@@ -79,10 +80,13 @@ def _fake_sectors(db, limit=None, offset=None, sort=None, descending=False, quad
 
 
 def _fake_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sort=None, descending=False,
-                  binary=None, placement=None, octants=(), facets=False, after=None):
+                  binary=None, placement=None, octants=(), facets=False, after=None, start=None):
     rows = [row for row in STANDALONE if binary is None or bool(row["is_binary"]) == binary]
     key = {"binary": "is_binary"}.get(sort or "name", "name")
     rows = sorted(rows, key=lambda row: (row[key], row["name"]), reverse=bool(descending))
+    if start and (sort or "name") == "name":  # PERF.75: the jump-by-value box, as the real reader applies it
+        rows = [row for row in rows if (row["name"].casefold() < queryDb._after_prefix(start.casefold())
+                                        if descending else row["name"].casefold() >= start.casefold())]
     if after is not None:  # PERF.75: the page that starts after the row with this id (the real reader keys on the sort)
         ids = [row["id"] for row in rows]
         offset = ids.index(int(after)) + 1 if int(after) in ids else offset
@@ -448,6 +452,53 @@ def test_a_table_keeps_its_sort_and_filter_across_a_reload(page, table_site):
     page.locator("#systems-table[data-enhanced='true']").wait_for(state="attached", timeout=15000)
     assert page.locator("#systems-table th[data-col='binary']").get_attribute("aria-sort") == "ascending"
     assert page.locator("#systems-table .datatable-count-line").inner_text() == "65 systems match"
+
+
+def test_the_systems_jump_box_begins_the_list_at_a_typed_name(page, table_site):
+    """PERF.75: "Starting at" begins the Systems list at the first name from the text on, with the count of what is
+    left, in the address, and it goes away under a sort that has no box and comes back empty."""
+    assert page.goto(f"{table_site}/systems", wait_until="load").status == 200
+    page.locator("#systems-table[data-enhanced='true']").wait_for(state="attached", timeout=15000)
+    box = page.locator("#systems-table .datatable-jump input[type='text']")
+    assert box.is_visible()
+    box.fill("Drifting 100")
+    page.locator("#systems-table .datatable-jump button").click()
+    page.locator("#systems-table .datatable-count-line", has_text="30 systems from \u201cDrifting 100\u201d") \
+        .wait_for(state="attached")
+    page.locator("#systems-table tbody tr[data-index='0']", has_text="Drifting 100").wait_for(state="attached")
+    assert parse_qs(urlparse(page.url).query) == {"systems_from": ["Drifting 100"]}
+
+    # A sort with no box drops the start and hides the box; the name sort again begins at the top.
+    page.locator("#systems-table th[data-col='binary'] .datatable-sort").click()
+    page.locator("#systems-table th[data-col='binary'][aria-sort='ascending']").wait_for(state="attached")
+    page.locator("#systems-table .datatable-count-line", has_text="130 systems").wait_for(state="attached")
+    assert not page.locator("#systems-table .datatable-jump").is_visible()
+    assert parse_qs(urlparse(page.url).query) == {"systems_sort": ["binary"]}
+
+    # The address gives the same list on a reload, and the link beside the box goes back to the top.
+    page.goto(f"{table_site}/systems?systems_from=Drifting+100", wait_until="load")
+    page.locator("#systems-table[data-enhanced='true']").wait_for(state="attached", timeout=15000)
+    assert page.locator("#systems-table .datatable-jump input[type='text']").input_value() == "Drifting 100"
+    page.locator("#systems-table tbody tr[data-index='0']", has_text="Drifting 100").wait_for(state="attached")
+    page.locator("#systems-table .datatable-jump-clear").click()
+    page.locator("#systems-table .datatable-count-line", has_text="130 systems").wait_for(state="attached")
+    assert parse_qs(urlparse(page.url).query) == {}
+
+
+def test_without_scripts_the_jump_box_is_a_plain_form(browser, table_site):
+    context = browser.new_context(java_script_enabled=False, viewport=VIEWPORT)
+    try:
+        page = context.new_page()
+        assert page.goto(f"{table_site}/systems?systems_sort=name&systems_order=desc", wait_until="load").status == 200
+        page.locator("#systems-table .datatable-jump input[type='text']").fill("Drifting 05")
+        page.locator("#systems-table .datatable-jump button").click()
+        page.wait_for_load_state("load")
+        query = parse_qs(urlparse(page.url).query)
+        assert query["systems_from"] == ["Drifting 05"] and query["systems_order"] == ["desc"]
+        assert "from \u201cDrifting 05\u201d" in page.locator("#systems-table .datatable-count-line").inner_text()
+        assert page.locator("#systems-table tbody tr td a").first.inner_text() == "Drifting 059"
+    finally:
+        context.close()
 
 
 def test_a_politys_systems_scroll_and_sort_through_the_tables_own_route(page, table_site):

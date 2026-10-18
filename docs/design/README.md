@@ -16,6 +16,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | Note | What it covers | Status |
 |---|---|---|
 | [architecture.md](architecture.md) | Every file and the main flows | reference (the code map is being rewritten, DOC.28) |
+| [architecture-map.html](architecture-map.html) | The generated code map: areas, modules, functions and calls, with the main flows traced from the code (DOC.67) | generated page (open it in a browser; `scripts/build_architecture_map.py`) |
 | [design-decisions.md](design-decisions.md) | The choices that shape the project, each with its status | reference |
 | [later-phenomena-scatter-rules.md](later-phenomena-scatter-rules.md) | Which later phenomena are scattered, backfilled or fill-only (goal issue #1677): what each item stores, the magnetar scatter class, what the rule set and the profile gain, the columns for Core 1, and the changes to the TODO items | recommendation (Core 3, 2026-10-16; defaults stand, nothing built yet) |
 | [todo-number-map.md](todo-number-map.md) | Old TODO numbers to category IDs, and the next free ID of each category | reference |

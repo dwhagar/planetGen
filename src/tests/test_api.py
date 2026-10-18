@@ -2711,7 +2711,7 @@ def test_uncharted_systems_list_the_scattered_stars_brightest_first(client, mysq
     address and position in the sector; a star with a system leaves the list."""
     ids = _scatter_stars(mysql_config)
     body = client.get("/api/uncharted-systems").get_json()
-    assert body["total"] == 3
+    assert body["total"] == 3 and body["total_capped"] is False
     assert [item["luminosity_sol"] for item in body["items"]] == pytest.approx([900, 800, 600], rel=1e-2)
     star = body["items"][0]
     assert star["id"] == ids[2] and star["star_type"] == "B2V" and star["population"] == "young"
