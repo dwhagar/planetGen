@@ -835,3 +835,6 @@ Baseline: PR #1817.
 | PERF.127 | 8.1 | Queue, caches and performance |
 | GEN.551 | 8.4 | Bulk composition |
 | GEN.243 | 8.1 | Nebula and young stars |
+| GEN.438 | 8.1 | Composition tables |
+| GEN.532 | 8.1 | Galaxy laws build |
+| GEN.533 | 8.1 | Galaxy laws build |

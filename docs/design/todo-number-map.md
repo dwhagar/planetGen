@@ -1102,7 +1102,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.435 | The stellar composition design: the abundance relations, what is stored and what is derived, and the remnants | none | done, PR #2063 |
 | GEN.436 | The radiation design: atmospheric transmission and greenhouse by band, shielding by column, and the ground's own dose | none | done, PR #2063 |
 | GEN.437 | The composition model: how the element, compound, material and body tables link, and what is stored against derived | none | done, PR #2063 |
-| GEN.438 | One table of the elements and their isotopes: atomic data and the radioactive isotopes' half-lives and decay energies | none | open |
+| GEN.438 | One table of the elements and their isotopes: atomic data and the radioactive isotopes' half-lives and decay energies | none | done, PR #2184 |
 | GEN.439 | The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers | none | open |
 | GEN.440 | Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf | none | open |
 | GEN.441 | Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air | none | open |
@@ -1196,8 +1196,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.529 | The pre-main-sequence track takes its Hayashi temperature, birthline radius and energy factor from a sourced table, and the state reaches stars still contracting after 10 Myr | none | done, PR #2112 |
 | GEN.530 | A pre-placed star's hosted nebula shows from its scatter row on the maps and pages | none | open |
 | GEN.531 | Boss's research requests from the galaxy laws research (R1 to R15): the observed stellar halo, the dwarf range, the thick disk fits and the cluster system | none | open |
-| GEN.532 | The galaxy shape's thick disk, scale heights and stellar halo come from the research laws instead of the tuning.py numbers (the GEN.401 follow-up) | none | open |
-| GEN.533 | The galaxy shape draws bar presence, axis ratios and angle from the seed, rebuilt each time and not stored in a column | none | open |
+| GEN.532 | The galaxy shape's thick disk, scale heights and stellar halo come from the research laws instead of the tuning.py numbers (the GEN.401 follow-up) | none | done, PR #2186 |
+| GEN.533 | The galaxy shape draws bar presence, axis ratios and angle from the seed, rebuilt each time and not stored in a column | none | done, PR #2186 |
 | GEN.534 | A satellite's young stars reach the system-type tables: the young-star system types name `satellite_young` | none | open |
 | GEN.535 | Check the Magellanic gas fraction and supernova-remnant count against the observed Clouds, and the dwarfs that still come out with gas (Leo I) | none | open |
 | GEN.536 | Research the velocity dispersion of molecular gas (CO) in nearby spirals to set the young stars' scale height | none | open |

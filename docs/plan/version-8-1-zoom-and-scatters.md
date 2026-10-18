@@ -264,14 +264,13 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.438 | One table of the elements and their isotopes: atomic data and the radioactive isotopes' half-lives and decay energies |  | Boss 11:58 PM EDT; atomic data and the radioactive isotopes; no abundance pattern. |
-| GEN.410 | One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention | GEN.438 | Boss 11:24 PM EDT; the one table the rest reads. Core 4 proposed (Boss, 11:41 PM EDT). |
+| GEN.410 | One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention |  | Boss 11:24 PM EDT; the one table the rest reads. Core 4 proposed (Boss, 11:41 PM EDT). |
 | GEN.496 | The photolysis lifetime table: species lifetimes at 1 AU for the quiet Sun, the active-Sun factors and the species-specific stellar-spectrum ratios | GEN.410 | Body lane G-2: photolysis lifetimes as constants of the species table. Core 4 proposed. |
-| GEN.427 | One table of the bulk materials with their equation-of-state constants and the source of each | GEN.438 | Boss 11:49 PM EDT; the one materials table. Core 4 proposed. |
+| GEN.427 | One table of the bulk materials with their equation-of-state constants and the source of each |  | Boss 11:49 PM EDT; the one materials table. Core 4 proposed. |
 | GEN.470 | One saturation-pressure function p_sat(species, T) for the gases and ices: the Fray and Schmitt polynomials, water by Feistel and Wagner, and its tests | GEN.410, GEN.427 | Body composition research lane part F items F1 and F1t; no behaviour change until GEN.452 reads it. Core 4 proposed. |
 | GEN.498 | One oxygen-fugacity scale for the generator: the reference fixed, delta-IW stored on it, and the buffers converted |  | Body lane G-4 (part G3): one IW reference scale (Hirschmann 2021), delta-IW stored on it. Core 4 proposed. |
 | GEN.497 | The cold-end vapour pressures: the laboratory-corrected N2, CO, CH4, O2 and NH3 below 50 K and the Span and Wagner carbon dioxide sublimation curve | GEN.470 | Body lane G-3 (part G4): the corrected cold-end tables and Span and Wagner CO2 extend GEN.470. Core 4 proposed. |
-| GEN.439 | The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers | GEN.438 | Boss 11:58 PM EDT; a constants-and-functions module, no database access. |
+| GEN.439 | The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers |  | Boss 11:58 PM EDT; a constants-and-functions module, no database access. |
 | GEN.548 | Build-time downloads for the isochrone grids, the white-dwarf layers and the neutron-star equation of state, each with a checksum and a labelled stand-in until it lands |  |  |
 
 
@@ -450,10 +449,8 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.402 | The central black hole mass and the nuclear cluster follow the bulge: the M-bulge and M-sigma relations replace the fixed ranges |  | GEN.368 build, Boss approved the table 10:11 PM EDT; Core 1 proposed for GEN.400 to GEN.403, Core 3 or Core 4 for GEN.404 and GEN.405 (profile.py, activity.py), any lane for GEN.406. |
-| GEN.532 | The galaxy shape's thick disk, scale heights and stellar halo come from the research laws instead of the tuning.py numbers (the GEN.401 follow-up) |  | GEN.401 follow-up. Core 1 (proposed). |
-| TEST.228 | test_stars_and_phenomena_fit_within_their_sectors_real_cells compares a dark cloud's centre with its sector's cell, but the cloud is filed by its centroid | GEN.532 |  |
+| TEST.228 | test_stars_and_phenomena_fit_within_their_sectors_real_cells compares a dark cloud's centre with its sector's cell, but the cloud is filed by its centroid |  |  |
 | GEN.536 | Research the velocity dispersion of molecular gas (CO) in nearby spirals to set the young stars' scale height |  | Core 1: the young scale height is 116 pc against about 50 observed, because the gas dispersion is the HI value. Research. |
-| GEN.533 | The galaxy shape draws bar presence, axis ratios and angle from the seed, rebuilt each time and not stored in a column |  | GEN.401 follow-up. Core 1 (Boss's card, 12:56 PM EDT). |
 | GEN.403 | The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157 |  | GEN.368 build, Boss approved the table 10:11 PM EDT; Core 1 proposed for GEN.400 to GEN.403, Core 3 or Core 4 for GEN.404 and GEN.405 (profile.py, activity.py), any lane for GEN.406. |
 | GEN.404 | The Sun radii are removed: every use of a home or Sun radius becomes a calculation at the object's own position |  | GEN.368 build, Boss approved the table 10:11 PM EDT; Core 1 proposed for GEN.400 to GEN.403, Core 3 or Core 4 for GEN.404 and GEN.405 (profile.py, activity.py), any lane for GEN.406. Core 4 proposed (coordinator 10:16 PM EDT). |
 | GEN.405 | Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values | GEN.404 | GEN.368 build, Boss approved the table 10:11 PM EDT; Core 1 proposed for GEN.400 to GEN.403, Core 3 or Core 4 for GEN.404 and GEN.405 (profile.py, activity.py), any lane for GEN.406. Core 4 proposed (coordinator 10:16 PM EDT). |
