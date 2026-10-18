@@ -19764,6 +19764,30 @@ clears each one.
   test passes 30 of 30 fresh draws. Owner: Bug Hunt (proposed).
   Prerequisites: none.
 
+- [ ] **TEST.254 test_core_ball_batch_fill_makes_planets builds 4 systems instead of 3 for some random galaxy seeds (bug)**
+  Found by Core 5 (reported 3:14 PM EDT 2026-10-18 on the lane's clock;
+  its PERF.106 slice 5 gate ended about 2:55 PM EDT), filed by the TODO
+  thread.
+  `src/tests/test_galaxy_core_ball.py::test_core_ball_batch_fill_makes_planets`
+  failed with `assert 4 == 3` at the systems count (line 40). The test
+  runs `plan` with no `--seed`, so every test database draws a random
+  galaxy seed; for some seeds the backfill after `galaxy --shell 0
+  --band 0 --num-systems 3` builds a fourth system next to the three
+  asked for (inferred, not traced). Fails on main: yes, main 89c5115
+  with none of Core 5's changes in the tree. Frequency: 1 of 14 looped
+  runs on an idle machine, and once in the gate. Reproducer: with the
+  services up, `cd src && for i in $(seq 30); do python -m pytest
+  tests/test_galaxy_core_ball.py -q -k batch_fill_makes_planets; done`,
+  printing the galaxy seed on a failure. Do: find which seeds give the
+  fourth system and whether the extra system is the generator's own
+  backfill (then the count the command promises is wrong and that is the
+  bug) or a stray bright star or nuclear system the test should not
+  count; fix the cause, or pin `--seed` in the plan call if the extra
+  system is correct for those seeds; no quarantine. Done: the cause is
+  on this item and the test passes 30 of 30 fresh draws. Owner: Bug Hunt
+  (proposed).
+  Prerequisites: none. Related: TEST.253.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
