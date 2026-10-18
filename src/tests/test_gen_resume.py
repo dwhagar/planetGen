@@ -211,7 +211,10 @@ def test_resuming_with_limit_steps_fills_each_sector_once(mysql_config, second_m
 # --- TEST.26 -----------------------------------------------------------------
 
 FORCE_SHELL = 8
-PRE_FILLED = [(FORCE_SHELL, 0, 1), (FORCE_SHELL, 0, 3)]
+FORCE_BAND = 1
+"""int: The band the test fills: the toy galaxy's drawn bar and arms leave the first wedges of band 0 empty of bright stars,
+and this band holds them in every wedge."""
+PRE_FILLED = [(FORCE_SHELL, FORCE_BAND, 1), (FORCE_SHELL, FORCE_BAND, 3)]
 LIMIT = 5
 
 
@@ -260,13 +263,13 @@ def test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards(mysql_config
     assert _cell_counts(mysql_config, PRE_FILLED) == {address: (0, 0) for address in PRE_FILLED}
 
     # The band's first wedges, around and between the skipped sectors.
-    run_cli("galaxy", ["--shell", str(FORCE_SHELL), "--band", "0", "--limit", str(LIMIT), "--num-systems", "1",
+    run_cli("galaxy", ["--shell", str(FORCE_SHELL), "--band", str(FORCE_BAND), "--limit", str(LIMIT), "--num-systems", "1",
                        *mysql_argv(mysql_config)])
 
     after = _sector_rows(mysql_config)
     new = sorted(set(after) - set(before))
-    assert new == [(FORCE_SHELL, 0, slot) for slot in range(LIMIT + len(PRE_FILLED)) if
-                   (FORCE_SHELL, 0, slot) not in PRE_FILLED]
+    assert new == [(FORCE_SHELL, FORCE_BAND, slot) for slot in range(LIMIT + len(PRE_FILLED)) if
+                   (FORCE_SHELL, FORCE_BAND, slot) not in PRE_FILLED]
     # The skipped sectors were neither refilled nor touched, and the new
     # fills' backfill put nothing in their cells.
     assert {address: after[address] for address in PRE_FILLED} == {address: before[address]
@@ -292,8 +295,8 @@ def test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards(mysql_config
                 " GROUP BY star_system_id HAVING n > 1").fetchall()
             assert systems_per_star == []
         some_scattered = conn.execute(
-            "SELECT COUNT(*) AS n FROM bright_stars WHERE shell_index = ? AND band_index = 0 AND wedge_index < ?",
-            (FORCE_SHELL, LIMIT + len(PRE_FILLED))).fetchone()["n"]
+            "SELECT COUNT(*) AS n FROM bright_stars WHERE shell_index = ? AND band_index = ? AND wedge_index < ?",
+            (FORCE_SHELL, FORCE_BAND, LIMIT + len(PRE_FILLED))).fetchone()["n"]
     finally:
         conn.close()
     assert some_scattered > 0

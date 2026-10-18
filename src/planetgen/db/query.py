@@ -2225,10 +2225,32 @@ def _scattered_classes(conn, types=(), descriptors=(), placed=None, ignore=()):
     return classes
 
 
-def _scattered_page(conn, classes, limit, offset, after=None):
+def parse_scatter_start(text):
+    """The jump-by-value start of the Phenomena table (PERF.135) as a scatter id: a whole number of at least 1.
+
+    Returns:
+        int or None: The id, or `None` for an empty text.
+
+    Raises:
+        ValueError: If the text is not a whole number from 1 up.
+    """
+    text = (text or "").strip()
+    if not text:
+        return None
+    try:
+        number = int(text)
+    except ValueError:
+        raise ValueError(f"{text!r} is not a scatter id")
+    if number < 1:
+        raise ValueError(f"{text!r} is not a scatter id")
+    return number
+
+
+def _scattered_page(conn, classes, limit, offset, after=None, first=None, last=False):
     """`limit` unbuilt scatter rows from `offset` among the `classes`, in id order, shaped like the Phenomena rows
     (`scattered` True, named "Uncharted <kind> <shell>.<band>.<wedge>"). With `after` (a scatter row id) the page
-    starts after that row and `offset` is not used (PERF.75)."""
+    starts after that row and `offset` is not used (PERF.75). `first` (the jump-by-value box, PERF.135) keeps only the
+    rows from that id on, `offset` counting from there; `last` takes the last `limit` rows instead."""
     if not classes:
         return []
     by_class = {(entry["kind"], entry["subtype"]): entry for entry in classes}
@@ -2237,20 +2259,24 @@ def _scattered_page(conn, classes, limit, offset, after=None):
         clauses.append("(kind = ? AND COALESCE(subtype, '') = ?)")
         params.extend([entry["kind"], entry["subtype"]])
     later = ""
+    if first is not None:
+        later, params = "id >= ? AND ", [first] + params
     if after is not None:
-        later, params, offset = "id > ? AND ", [after] + params, 0
+        later, params, offset = "id > ? AND " + later, [after] + params, 0
     query = ("SELECT id, kind, COALESCE(subtype, '') AS subtype, shell_index, band_index, wedge_index,"
-             f" member_count, system_mass_solar FROM phenomenon_scatter WHERE built_at IS NULL AND {later}({' OR '.join(clauses)}) ORDER BY id")
+             f" member_count, system_mass_solar FROM phenomenon_scatter WHERE built_at IS NULL AND {later}({' OR '.join(clauses)}) "
+             f"ORDER BY id{' DESC' if last else ''}")
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
-        params.extend([limit, offset or 0])
+        params.extend([limit, 0 if last else offset or 0])
+    rows = conn.execute(query, params).fetchall()
     return [
         {"id": row["id"], "scatter_id": row["id"], "type": by_class[(row["kind"], row["subtype"])]["type"],
          "name": f"Uncharted {row['kind'].replace('-', ' ')} {row['shell_index']}.{row['band_index']}."
                  f"{row['wedge_index']}",
          "descriptor": by_class[(row["kind"], row["subtype"])]["descriptor"], "radius_ly": 0.0,
          "sector_id": None, "sector_name": None, "placed": True, "scattered": True, **_member_fields(row)}
-        for row in conn.execute(query, params).fetchall()
+        for row in (reversed(rows) if last else rows)
     ]
 
 
@@ -2270,7 +2296,7 @@ def _phenomena_where(types=(), descriptors=(), placed=None):
 
 
 def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False, types=(), descriptors=(),
-                   placed=None, after=None):
+                   placed=None, after=None, start=None, last=False):
     """
     Returns every exotic phenomenon (nebula/asteroid field/black hole/
     neutron star/supernova remnant/rogue planet/interstellar comet/quasar --
@@ -2294,6 +2320,10 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
         after (int, optional): A scattered row's `scatter_id`: the page starts after it in the tail of unbuilt
             scattered phenomena (they follow every built one, in id order), and the built ones and `offset` are
             not read (a keyset page, PERF.75). Without `limit` it is not used.
+        start (str, optional): The jump-by-value box (PERF.135), a scatter id: the list is the tail of unbuilt
+            scattered phenomena from that id on (the built ones are not listed), `offset` counting from there.
+            Needs `limit`; text that is not an id raises `ValueError`.
+        last (bool): With `start`, the last `limit` scattered rows instead (where the id lies past the end).
 
     Excludes a `black_holes`/`neutron_stars` row with `star_id` set -- that
     shape is a normal star system's own compact-remnant star (already
@@ -2317,6 +2347,10 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
     """
     if sort not in PHENOMENON_SORTS:
         raise ValueError(f"unknown phenomenon sort {sort!r}")
+    first = parse_scatter_start(start)
+    if first is not None and limit is not None:
+        return _scattered_page(conn, _scattered_classes(conn, types, descriptors, placed), limit, offset or 0,
+                               after=after, first=None if last else first, last=last)
     if after is not None and limit is not None:
         return _scattered_page(conn, _scattered_classes(conn, types, descriptors, placed), limit, 0, after=after)
     where, params = _phenomena_where(types, descriptors, placed)
@@ -2364,7 +2398,7 @@ def _phenomena_stamp(conn):
     return galaxy_content_stamp(conn) + hashlib.sha256(token.encode("utf-8")).hexdigest()[:16]
 
 
-def count_phenomena(conn, types=(), descriptors=(), placed=None):
+def count_phenomena(conn, types=(), descriptors=(), placed=None, start=None):
     """
     Returns the number of exotic phenomena across every type in
     `_PHENOMENON_TABLES` that pass the same filters as `list_phenomena`,
@@ -2374,11 +2408,26 @@ def count_phenomena(conn, types=(), descriptors=(), placed=None):
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
+        start (str, optional): The jump-by-value box's scatter id (PERF.135): only the unbuilt scattered phenomena
+            from that id on are counted, as `list_phenomena` lists them.
 
     Returns:
         int: Phenomenon count. Kept by `countcache` (PERF.69): the last count made when the galaxy has changed
             since, a capped count (`CappedCount`) before the first.
     """
+    first = parse_scatter_start(start)
+    if first is not None:
+        def exact_tail(c):
+            classes = _scattered_classes(c, types, descriptors, placed)
+            if not classes:
+                return 0
+            clauses = " OR ".join("(kind = ? AND COALESCE(subtype, '') = ?)" for _ in classes)
+            marks = [value for entry in classes for value in (entry["kind"], entry["subtype"])]
+            return c.execute(f"SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE built_at IS NULL AND id >= ? AND ({clauses})",
+                             [first] + marks).fetchone()["n"]
+
+        return _counted(conn, ["count_phenomena", list(types), list(descriptors), placed, first], exact_tail,
+                        lambda c: _capped(min(exact_tail(c), COUNT_FALLBACK_CAP)), _phenomena_stamp)
     where, params = _phenomena_where(types, descriptors, placed)
 
     def exact(c):
@@ -4062,10 +4111,61 @@ UNCHARTED_SYSTEM_SORTS = {
 """dict: The sort keys `list_uncharted_systems` accepts -> the `bright_stars` column they order by."""
 
 
-def count_uncharted_systems(conn):
+_UNCHARTED_START_COLUMNS = {"luminosity": "luminosity_w", "temperature": "temperature_k", "age": "age_gy",
+                            "type": "star_type", "sector": "shell_index"}
+"""dict: The Uncharted stars sorts that have a jump-by-value start (PERF.135) -> the column it compares: the first
+column the sort orders by."""
+
+
+def parse_uncharted_start(sort, text):
+    """
+    The jump-by-value start of the Uncharted stars table as the value `bright_stars` compares (PERF.135): a luminosity
+    in solar luminosities (as the column shows it, converted to watts), a temperature in kelvin, an age in Gyr, a
+    shell index (a whole number) or the start of a star type.
+
+    Returns:
+        float, int, str or None: The value, or `None` for an empty text or a sort with no start.
+
+    Raises:
+        ValueError: If the text is not a finite number of at least zero (a whole one for the sector sort).
+    """
+    text = (text or "").strip()
+    if not text or sort not in _UNCHARTED_START_COLUMNS:
+        return None
+    if sort == "type":
+        return text
+    try:
+        number = float(text)
+    except ValueError:
+        raise ValueError(f"{text!r} is not a number")
+    if sort == "luminosity":
+        number *= constants.SOLAR_LUMINOSITY
+    if not math.isfinite(number) or number < 0:
+        raise ValueError(f"{text!r} is not a number from 0 up")
+    if sort == "sector":
+        if number != int(number):
+            raise ValueError(f"{text!r} is not a whole shell number")
+        return int(number)
+    return number
+
+
+def _uncharted_start_condition(sort, descending, start):
+    """`(condition_sql, params)` keeping the Uncharted stars from `start` on in `sort` and direction (the first row at or
+    after the value; a type start keeps the types that begin with it first), or `None` for no start."""
+    value = parse_uncharted_start(sort, start)
+    if value is None:
+        return None
+    column = _UNCHARTED_START_COLUMNS[sort]
+    if sort == "type" and descending:
+        bound = _after_prefix(value)
+        return None if bound is None else (f"{column} < ?", [bound])
+    return f"{column} {'<=' if descending else '>='} ?", [value]
+
+
+def count_uncharted_systems(conn, start=None, sort="luminosity", descending=True):
     """
     How many scattered stars are not yet built into a system (UX.87): the `bright_stars` rows with no
-    `star_system_id`.
+    `star_system_id`; with `start` (the jump-by-value box, PERF.135) only those from that value on in `sort`.
 
     Returns:
         int: The count. Kept by `countcache` (PERF.112): the scan of the whole scatter table is made once under a
@@ -4073,17 +4173,23 @@ def count_uncharted_systems(conn):
             rescatter and a reset each move the stamp, so the next read makes a new one in the background); a
             capped count (`CappedCount`) before the first.
     """
+    begun = _uncharted_start_condition(sort, descending, start)
+    where = "star_system_id IS NULL" + (f" AND {begun[0]}" if begun else "")
+    params = begun[1] if begun else []
+
     def exact(c):
-        return c.execute("SELECT COUNT(*) AS n FROM bright_stars WHERE star_system_id IS NULL").fetchone()["n"]
+        return c.execute(f"SELECT COUNT(*) AS n FROM bright_stars WHERE {where}", params).fetchone()["n"]
 
     def estimate(c):
-        return _capped(c.execute("SELECT COUNT(*) AS n FROM (SELECT 1 FROM bright_stars WHERE star_system_id IS NULL "
-                                 "LIMIT ?) c", (COUNT_FALLBACK_CAP,)).fetchone()["n"])
+        return _capped(c.execute(f"SELECT COUNT(*) AS n FROM (SELECT 1 FROM bright_stars WHERE {where} LIMIT ?) c",
+                                 list(params) + [COUNT_FALLBACK_CAP]).fetchone()["n"])
 
-    return _counted(conn, ["count_uncharted_systems"], exact, estimate)
+    return _counted(conn, ["count_uncharted_systems"] + ([sort, descending, start.strip()] if begun else []),
+                    exact, estimate)
 
 
-def list_uncharted_systems(conn, limit=None, offset=None, sort="luminosity", descending=True, after=None):
+def list_uncharted_systems(conn, limit=None, offset=None, sort="luminosity", descending=True, after=None, start=None,
+                           last=False):
     """
     The scattered stars no system was built around yet (UX.87), a page of
     them: each is an "uncharted" system that can be generated by itself.
@@ -4097,6 +4203,10 @@ def list_uncharted_systems(conn, limit=None, offset=None, sort="luminosity", des
         descending (bool): Reverse the sort (brightest first by default).
         after (int, optional): A star's id: the page starts after that star in this sort (a keyset page, PERF.75:
             the rows before it are not read and `offset` is ignored). A star that is gone uses `offset`.
+        start (str, optional): The jump-by-value box (PERF.135): the list begins at the first star at or after this
+            value in the sort and its direction (`parse_uncharted_start` says what the value is); `offset` and
+            `after` count from there. A text that is not a value raises `ValueError`.
+        last (bool): The last `limit` stars of the sort instead of the first (where a start lies past the end).
 
     Returns:
         list[dict]: One row per star: `id` (the `bright_stars` id), the
@@ -4111,16 +4221,23 @@ def list_uncharted_systems(conn, limit=None, offset=None, sort="luminosity", des
     """
     if sort not in UNCHARTED_SYSTEM_SORTS:
         raise ValueError(f"unknown uncharted system sort {sort!r}")
+    if last and limit is not None:
+        return list(reversed(list_uncharted_systems(conn, limit=limit, sort=sort, descending=not descending)))
     direction = "DESC" if descending else "ASC"
     columns = UNCHARTED_SYSTEM_SORTS[sort].split(",")
     order = ", ".join(f"{column} {direction}" for column in columns)
     where, params = "star_system_id IS NULL", []
+    begun = _uncharted_start_condition(sort, descending, start)
+    if begun:
+        where += f" AND {begun[0]}"
+        params = list(begun[1])
     if after is not None and limit is not None:
         previous = conn.execute(f"SELECT {', '.join(columns)} FROM bright_stars WHERE id = ?", (after,)).fetchone()
         if previous is not None:
-            condition, params = _keyset_condition(columns, [previous[column] for column in columns], descending,
-                                                  "id", after)
+            condition, keyset_params = _keyset_condition(columns, [previous[column] for column in columns],
+                                                         descending, "id", after)
             where += f" AND {condition}"
+            params = params + keyset_params
             offset = 0
     query = (f"SELECT id, shell_index, band_index, wedge_index, position_x_mpc, position_y_mpc, position_z_mpc,"
              f" population, star_type, yerkes_class, mass_kg, radius_km, temperature_k, luminosity_w, age_gy,"

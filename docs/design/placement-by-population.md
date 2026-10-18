@@ -181,7 +181,7 @@ constant 0.002 is Bahcall, Hut and Tremaine's, reproduced through equation (1).
 The same source gives its worked value: 3.1 x 10^4 AU for M_1 + M_2 = 2, sigma = 50 km/s, rho_2 = 0.03 and t = 10 Gyr, which I
 reproduced to 31,300 AU [C]. It is linear in 1/rho_2 and 1/t, which is what the code needs: a_1/2 follows the cell's density
 and the star's age with nothing stored by place. In the solar neighbourhood (a one-dimensional sigma of 30 km/s, rho 0.08 solar masses per pc^3, the default
-mass-weighted perturber mass of 1.46 solar masses below) it gives 1.1 x 10^4 AU for two solar masses at 10 Gyr, under Boss's
+mass-weighted perturber mass of 1.44 solar masses below) it gives 1.1 x 10^4 AU for two solar masses at 10 Gyr, under Boss's
 2 to 5 x 10^4 AU and Jiang and Tremaine's 50% survival near 30,000 AU, because the generator counts the remnants they leave out (see GEN.447 below).
 
 **GEN.447 (built, 2026-10-17).** Two corrections to the first version of this limit, which read sigma as the population's own
@@ -193,15 +193,44 @@ sequence: stars up to the turn-off where the main-sequence lifetime of Hurley, P
 `WHITE_DWARF_PROGENITOR_SOL` range by the initial-final relation (`WD_IFMR_*`), neutron stars from there to the black hole range's
 start (`BLACK_HOLE_PROGENITOR_SOL[0]`, 20 solar masses) and black holes above it, the last two uniform over their mass ranges as
 the generator draws them. A cell takes the share-weighted mix of the populations it holds (`from_profile`). The two corrections go
-opposite ways: root 2 makes the limit 1.41 times longer, and the perturber mass, 1.46 solar masses for the whole disk against
+opposite ways: root 2 makes the limit 1.41 times longer, and the perturber mass, 1.44 solar masses for the whole disk against
 the 0.4 used before, makes it about 3.6 times shorter, so the limit is about 2.5 times shorter than the first version's. For the stars alone,
-aged over the disk's 10 Gyr of star formation, the mass-weighted mean is 0.594, 8% under Jiang and Tremaine's 0.644 (the check in
-`tests/test_place_terms.py`); the rest of the 1.46 is remnants.
+aged over the disk's 10 Gyr of star formation, the mass-weighted mean is 0.553, 14% under Jiang and Tremaine's 0.644 (the check in
+`tests/test_place_terms.py`); the rest of the 1.44 is remnants.
 **The black holes do most of it:** 0.18% of the stars formed (those above 20 solar masses) leave a 12.5 solar mass hole, which holds
 about 2.2 times the second moment of all the stars. That is the initial mass function's arithmetic (it gives about 1e8 holes for
 1e11 stars, the order of the Galaxy's estimated number), but it rests on every such hole staying in the disk; kicks that eject
 holes would lower it, and Jiang and Tremaine count observed stars only. The follow-up question for Boss and TEST.196 is whether the
 perturbers should include the dark remnants; the stars-only value is `remnants=False`.
+
+**GEN.541 (checked 2026-10-18): the black hole inputs hold, so the remnants stay in.** Four sources, read in full where quoted:
+
+| Input | The generator | Source |
+|---|---|---|
+| Black holes among core-collapse stars | 0.29 of the stars from 8 to 150 solar masses (those from 20 up) | Sukhbold et al. 2016 (ApJ 821, 38; arXiv 1510.04643) Table 4, read: the share of stars from 9 to 120 solar masses that explode is 55 to 74% for the four calibrated engines, so 26 to 45% leave a hole |
+| Mean hole mass | 12.5 solar masses (uniform from 5 to 20) | the same paper, section 5.2: 9 solar masses if only the helium core collapses, 14 if the whole star does; Olejak et al. 2020 (A&A 638, A94; arXiv 1908.08775) Table 10, single holes in the disk 14.2 and the bulge 11.7; Ozel et al. 2010 (ApJ 725, 1918; arXiv 1006.2834) 7.8 +- 1.2 for the 16 holes of transient X-ray binaries, a sample chosen by flux |
+| Number in the Galaxy | 1.6e8 holes for 5e10 solar masses of stars (2.5e8 for 5e10 of stars after the return fraction 0.37) | Olejak et al. 2020: 1.2e8 single holes and 9.3e6 in binaries; the older estimates they list run from 1e8 to 1e9 (Shapiro and Teukolsky 1983 to Timmes et al. 1996) |
+| The shape of the mass function | uniform from 5 to 20 | Olejak: a peak at 10 to 15 solar masses falling to a tail (to 113 for one merger product); Farr et al. 2011 (ApJ 741, 103; arXiv 1011.1459): 15 of 20 holes in a low peak, the rest in a high peak (13.5 to 28) |
+
+Every one of the generator's inputs lies inside the published range, so by the source rule (the widest range stands
+when sources disagree) the draw stays as it is. Its effect on the perturber mass, the disk's 10 Gy of star formation, with the
+other inputs as above (`place_terms`, <M^2> / <M> in solar masses):
+
+| Black holes | Mean mass | <M^2> | Perturber mass | Share of the second moment |
+|---|---|---|---|---|
+| none (stars, white dwarfs and neutron stars) | | | 0.60 | 0 |
+| the generator: uniform 5 to 20 | 12.5 | 175 | 1.44 | 0.61 |
+| Farr et al.'s two peaks, 0.75 at 7.8 and 0.25 at 20 | 10.8 | 153 | 1.34 | 0.58 |
+| Ozel et al.'s narrow peak, 7.8 +- 1.2 | 7.8 | 62 | 0.89 | 0.36 |
+| the generator's shape, Olejak et al.'s number (half) | 12.5 | 175 | 1.03 | 0.44 |
+| Ozel et al.'s peak and Olejak et al.'s number | 7.8 | 62 | 0.75 | 0.22 |
+
+The stars alone give 0.55 (Jiang and Tremaine's observed 0.64). So the black holes carry 0.2 to 0.6 of the
+second moment depending on which published mass function and count is taken, and the generator's default sits at the top
+of that range because its count is about twice Olejak et al.'s and its mean mass is above the X-ray binaries'. A galaxy of
+that many holes does hide them in `rho_2`; the observed stars-only figure does not, which is why `remnants=False` stays
+for the comparison. `tests/test_place_terms.py::test_the_black_hole_inputs_lie_inside_the_published_ranges` records the
+three ranges that hold.
 
 **The tidal limit.** A pair of total mass M has a Jacobi radius of (G M / (4 Omega^2 - kappa^2))^(1/3), and
 4 Omega^2 - kappa^2 = 4 A (A - B) from Oort's constants. Boss's text wrote the last form with 2 A (A - B), which does not match
@@ -214,7 +243,7 @@ mass density (1.9 pc for 0.1 solar masses per pc^3 [C]) and serves as the check.
 The widest axis a wide pair may keep is the smaller of the two (answer 4: a **sharp cut** at a_1/2, a pair wider than that does not exist). It takes the
 place of the fixed 10,000 AU cap (`WIDE_BINARY_SEPARATION_MAX_AU`, answer 5), as section 6.6 now says: the axis is drawn from the companion lines of Moe and Di Stefano (GEN.448, 3.1) from the 0.25 AU lower edge, up to the limit instead of 10,000 AU. A cell whose limit is under 0.25 AU keeps no wide pair: the wide roll then gives the primary alone
 (the pair dissolved), which is the whole effect at the very centre. Before GEN.448 the lower edge was 50 AU and the wide roll was a coin flip of 0.5; now the chances of the ranges the place keeps are the part of the birth distribution (to 20,000 AU) under its limit, so a tight place loses chances in proportion (`companion_classes.odds`). Today's shape, a 2 solar mass pair of age 10 Gyr, the density of the
-model's `relative_density` times `E / edge^3` times `tuning.MEAN_SYSTEM_MASS_SOLAR` (0.4), the default perturber mass of 1.46 and the one-dimensional sigma [C]:
+model's `relative_density` times `E / edge^3` times `tuning.MEAN_SYSTEM_MASS_SOLAR` (0.4), the default perturber mass of 1.44 and the one-dimensional sigma [C]:
 
 | Place | rho (solar masses per pc^3) | sigma (km/s) | Encounter limit a_1/2 | Tidal limit | Widest axis kept |
 |---|---|---|---|---|---|
@@ -228,7 +257,7 @@ So the encounter limit, not the tide, decides everywhere, and the old fixed cap 
 (11,400 AU) and far too wide in the bulge. That is the intended consequence of 6.6, and it is a visible one: a
 bulge sector holds only tight pairs. The reference density `rho_2` and sigma come from the profile (`gas.mass_solar`
 and `dark_matter` are left out of rho, which would shorten the limit a little). The sigma used is the share-weighted rms of the
-cell's populations (`tuning.STELLAR_POPULATION_DISPERSION_KMS`). The age is the star's own, so a young pair keeps a wider axis than an old one.
+cell's populations (`profile._dispersion_kms`: the disc's, bulge's and halo's from the galaxy's own structure, GEN.532; the rest `tuning.STELLAR_POPULATION_DISPERSION_KMS`). The age is the star's own, so a young pair keeps a wider axis than an old one.
 
 ## 4. How the rules reach the draw
 

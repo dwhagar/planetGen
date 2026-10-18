@@ -1210,8 +1210,12 @@ def uncharted_systems():
     default -- `temperature`, `type`, `sector` or `age`) with `order`
     (`asc` or `desc`; `desc` for luminosity when omitted, else `asc`), `limit`
     and `offset`. `after=<star id>` starts the page after that star in the sort instead of skipping `offset`
-    rows (PERF.75). `total` counts every star waiting (`total_capped`: it stopped at 10,000 before the first stored
-    count was made, PERF.112).
+    rows (PERF.75). `from=<value>` (PERF.135, the jump-by-value box) starts the list at the first star at or after
+    that value in the sort and its direction: a luminosity in solar luminosities, a temperature in kelvin, an age in
+    Gyr, a shell number, or the start of a star type; a value that is not one is a 400. `total` counts every star
+    waiting (`total_capped`: it stopped at 10,000 before the first stored count was made, PERF.112), or from the
+    start when `from` is given. A value past the last star answers the last page, `total` its length and `past_end`
+    true.
     """
     limit, offset = _paginate(request.args)
     sort, descending = _parse_sort(request.args, UNCHARTED_SYSTEM_SORTS)
@@ -1223,12 +1227,22 @@ def uncharted_systems():
             after = int(request.args["after"])
         except ValueError:
             raise ApiError(f"after must be a star id, got {request.args['after']!r}")
+    start = (request.args.get("from") or "").strip()[:MAX_START_LENGTH] or None
     db = get_db()
-    total = count_uncharted_systems(db)
+    try:
+        total = count_uncharted_systems(db, start=start, sort=sort, descending=descending)
+        items = list_uncharted_systems(db, limit=limit, offset=offset, sort=sort, descending=descending, after=after,
+                                       start=start)
+        past_end = False
+        if start and not items and not offset and after is None and limit is not None:
+            past_end = True
+            items = list_uncharted_systems(db, limit=limit, sort=sort, descending=descending, start=start, last=True)
+            total = len(items)
+    except ValueError as exc:
+        raise ApiError(str(exc))
     return jsonify({
-        "items": list_uncharted_systems(db, limit=limit, offset=offset, sort=sort, descending=descending,
-                                        after=after),
-        "total": total, "total_capped": is_capped(total), "limit": limit, "offset": offset,
+        "items": items, "total": total, "total_capped": is_capped(total), "limit": limit, "offset": offset,
+        "past_end": past_end,
     })
 
 
@@ -1310,7 +1324,10 @@ def phenomena():
     for the type and descriptor filter menus (`db.query.phenomena_facets`).
     `total` counts the rows that pass the filters (`total_capped`: it stopped at 10,000, PERF.69).
     `after=<scatter id>` (the `scatter_id` of a scattered row) starts the page after that row in the tail of
-    unbuilt scattered phenomena instead of skipping `offset` rows (PERF.75).
+    unbuilt scattered phenomena instead of skipping `offset` rows (PERF.75). `from=<scatter id>` (PERF.135, the
+    jump-by-value box) lists that tail from the row with that id on (the built phenomena come before it and are not
+    listed); a value that is not a whole number from 1 up is a 400, and one past the last scattered row answers the last
+    page of the tail, `total` its length and `past_end` true.
     """
     limit, offset = _paginate(request.args)
     sort, descending = _parse_sort(request.args, PHENOMENON_SORTS)
@@ -1325,15 +1342,27 @@ def phenomena():
             after = int(request.args["after"])
         except ValueError:
             raise ApiError(f"after must be a scatter id, got {request.args['after']!r}")
+    start = (request.args.get("from") or "").strip()[:MAX_START_LENGTH] or None
     db = get_db()
-    total = count_phenomena(db, **filters)
+    try:
+        total = count_phenomena(db, start=start, **filters)
+        items = list_phenomena(db, limit=limit, offset=offset, sort=sort, descending=descending, after=after,
+                               start=start, **filters)
+        past_end = False
+        if start and not items and not offset and after is None and limit is not None:
+            past_end = True
+            items = list_phenomena(db, limit=limit, sort=sort, descending=descending, start=start, last=True,
+                                   **filters)
+            total = len(items)
+    except ValueError as exc:
+        raise ApiError(str(exc))
     body = {
-        "items": list_phenomena(db, limit=limit, offset=offset, sort=sort, descending=descending, after=after,
-                                **filters),
+        "items": items,
         "total": total,
         "total_capped": is_capped(total),
         "limit": limit,
         "offset": offset,
+        "past_end": past_end,
     }
     if request.args.get("facets") == "1":
         body["facets"] = phenomena_facets(db, **filters)

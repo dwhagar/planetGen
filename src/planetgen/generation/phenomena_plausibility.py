@@ -79,10 +79,13 @@ shared list, since these seven types share almost no metric names."""
 _AU_PER_LY = 63241.077
 """float: Astronomical units per light-year (for asteroid field size digits)."""
 
+def _freely_drawn(data):
+    return data["family"] != "supernova-remnant" and not data.get("host_only")
+
+
 _NEBULA_CLASS_SHARES = {
-    letter: data["frequency"] / sum(
-        d["frequency"] for d in prog_c.NEBULA_CLASSES.values() if d["family"] != "supernova-remnant")
-    for letter, data in prog_c.NEBULA_CLASSES.items() if data["family"] != "supernova-remnant"
+    letter: data["frequency"] / sum(d["frequency"] for d in prog_c.NEBULA_CLASSES.values() if _freely_drawn(d))
+    for letter, data in prog_c.NEBULA_CLASSES.items() if _freely_drawn(data)
 }
 """dict: Each nebula class's expected share of randomly generated nebulae."""
 

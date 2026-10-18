@@ -34,8 +34,9 @@ import time
 
 import pymysql
 from planetgen.cli import benchmark
+from planetgen.cli import warm as warm_cli
 
-from planetgen.queue import work as workQueue
+from planetgen.queue import commands as queueCommands, work as workQueue
 from planetgen.db import check as db_check, fingerprint, store
 from planetgen.admin import activity_log
 from planetgen.galaxy.span import Span, SpanError, parse_range
@@ -1362,7 +1363,38 @@ def build_parser():
     benchmark.add_benchmark_arguments(benchmark_parser)
     add_logging_arguments(benchmark_parser)
 
+    warm_parser = subparsers.add_parser(
+        'warm',
+        description="Builds the site's caches ahead of the first visitor: the Galaxy Map's opening view, the lists, "
+                    "the sector, system and phenomenon pages and the search. Each cache family is its own command "
+                    "(see 'planetgen commands'); this builds the list of them and the wrapper runs them in order "
+                    "on the Redis queue. Run it as the web server's user.",
+        help="Build the site's caches.")
+    warm_cli.add_warm_arguments(warm_parser)
+    add_logging_arguments(warm_parser)
+
+    commands_parser = subparsers.add_parser(
+        'commands',
+        description="Lists every command the work queue can run: its name, whether it runs as units on the "
+                    "queue or inline in the process that started the run, and what it does. Writes nothing.",
+        help="List the work queue's commands.")
+    add_logging_arguments(commands_parser)
+
+    command_run_parser = subparsers.add_parser(
+        'command-run',
+        description="Runs one unit of a queue command alone, from its JSON arguments, and prints its JSON result: "
+                    "the same function a worker runs, with nothing else around it. The unit's arguments name its "
+                    "database and carry no password; the settings supply it.",
+        help="Run one unit of a queue command from its JSON arguments.")
+    command_run_parser.add_argument('kind', help="The command (see 'planetgen commands').")
+    command_run_parser.add_argument('unit_args', metavar='ARGS',
+                                    help="The unit's arguments as JSON, or @FILE to read them from a file.")
+    add_logging_arguments(command_run_parser)
+
     return parser, {
+        'commands': commands_parser,
+        'command-run': command_run_parser,
+        'warm': warm_parser,
         'benchmark': benchmark_parser,
         'system': system_parser,
         'sector': sector_parser,
@@ -1483,8 +1515,33 @@ def run_versions(args):
     log.normal(version_history.format_history(store.mysql_config_from_args(args)))
 
 
-READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions", "benchmark")
-"""tuple: Subcommands that write nothing, so they aren't logged as runs
+def run_commands(args):
+    """`planetgen commands`: lists the work queue's commands (PERF.118)."""
+    for kind, command in sorted(queueCommands.REGISTRY.items()):
+        log.normal(f"{kind:24} {'inline' if command.inline else 'units':7} {command.summary}")
+
+
+def run_command_unit(args):
+    """`planetgen command-run KIND ARGS`: runs one unit of a queue command alone and prints its JSON result."""
+    text = args.unit_args
+    if text.startswith("@"):
+        with open(text[1:], encoding="utf-8") as handle:
+            text = handle.read()
+    try:
+        unit_args = json.loads(text)
+    except ValueError as exc:
+        _fatal(f"the unit's arguments are not JSON: {exc}")
+    try:
+        result = queueCommands.run_alone(args.kind, unit_args)
+    except KeyError:
+        _fatal(f"no command {args.kind!r}; 'planetgen commands' lists them")
+    except ValueError as exc:
+        _fatal(str(exc))
+    log.normal(json.dumps(result, sort_keys=True))
+
+
+READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions", "benchmark", "commands", "command-run", "warm")
+"""tuple: Subcommands that write nothing generated (`warm` only builds caches), so they aren't logged as runs
 (no activity log lines, job tree node or run history)."""
 
 
@@ -1503,6 +1560,9 @@ def is_bulk_run(args):
 
 _COMMAND_HANDLERS = {
     'benchmark': benchmark.run_benchmark,
+    'commands': run_commands,
+    'command-run': run_command_unit,
+    'warm': warm_cli.run_warm,
     'check-math': run_check_math,
     'versions': run_versions,
     'check-db': run_check_db,

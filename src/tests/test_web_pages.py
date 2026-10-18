@@ -80,7 +80,7 @@ class FakeData:
                               "octant": [{"value": "I", "count": 2}]}
         return body
 
-    def get_uncharted_systems(self, db, limit=None, offset=None, sort=None, descending=False, after=None):
+    def get_uncharted_systems(self, db, limit=None, offset=None, sort=None, descending=False, after=None, start=None):
         self.calls.append(("get_uncharted_systems", db, limit, offset))
         self.asked.append(("uncharted", sort, descending))
         return {"items": self.uncharted[offset or 0:(offset or 0) + (limit or 50)], "total": len(self.uncharted),
