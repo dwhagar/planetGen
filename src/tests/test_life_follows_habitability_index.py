@@ -10,7 +10,6 @@ import pytest
 from planetgen import tuning
 from planetgen.generation import life as planetLife
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.evolution import life_stage_from_paragraphs
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
@@ -66,31 +65,27 @@ def test_a_world_the_index_allows_only_microbial_life_stops_its_timeline_before_
         planet = _planet(host_star, cls)
         planet.phi_bio, planet.phi_cpx = 0.6, 0.0
         planetLife.apply_life_data(planet)
-        assert life_stage_from_paragraphs(planet.evolutionary_data) in (None, "abiogenesis", "photosynthesis")
+        assert planet.life_stage in (None, "abiogenesis", "photosynthesis")
         assert not COMPLEX_WORDS.search(planet.description), planet.description
         assert not COMPLEX_WORDS.search(" ".join(planet.evolutionary_data)), planet.evolutionary_data
 
 
-def test_a_class_description_that_claims_life_is_restored_when_the_index_allows_it(host_star):
-    planet = _planet(host_star, "L")
-    planet.phi_bio, planet.phi_cpx = 0.0, 0.0
-    planetLife.apply_life_data(planet)
-    assert planet.description == tuning.NO_LIFE_CLASS_DESCRIPTIONS["L"]
-    planet.phi_bio, planet.phi_cpx = 0.5, 0.0
-    planetLife.apply_life_data(planet)
-    assert planet.description == tuning.MICROBIAL_ONLY_CLASS_DESCRIPTIONS["L"]
-    planet.phi_bio, planet.phi_cpx = 0.5, 0.5
-    planetLife.apply_life_data(planet)
-    assert planet.description == tuning.PLANET_CLASSES["L"]["description"]
+def test_no_class_description_claims_life_or_names_a_planet():
+    """GEN.221: the class text is the same whatever the index allows, so it claims no life, no flora, no percentage and
+    no "planet" (a moon reads it as it stands); the life sentences say what the index allows."""
+    claims = re.compile(r"life|bacteri|vegetation|flora|Earth-like|planet|%")
+    for cls, found in tuning.PLANET_CLASSES.items():
+        assert not claims.search(found["description"]), (cls, found["description"])
 
 
-def test_a_moon_keeps_its_own_wording_when_the_index_gives_no_life(host_star):
-    planet = _planet(host_star, "G")
-    planet.is_moon = True
-    planet.phi_bio, planet.phi_cpx = 0.0, 0.0
-    planetLife.apply_life_data(planet)
-    assert planet.description == tuning.NO_LIFE_CLASS_DESCRIPTIONS["G"]  # no "planet" in it to reword
-    assert planet.life_chemical is None
+def test_a_class_description_stands_whatever_the_index_allows(host_star):
+    for scores in ((0.0, 0.0), (0.5, 0.0), (0.5, 0.5)):
+        for is_moon in (False, True):
+            planet = _planet(host_star, "L")
+            planet.is_moon = is_moon
+            planet.phi_bio, planet.phi_cpx = scores
+            planetLife.apply_life_data(planet)
+            assert planet.description == tuning.PLANET_CLASSES["L"]["description"]
 
 
 def test_a_body_with_no_scores_is_left_to_its_class(host_star):
@@ -118,6 +113,6 @@ def test_no_generated_description_contradicts_its_own_habitability_index():
                     assert not LIFE_WORDS.search(body.description), (body.name, body.description)
                 elif ceiling == "microbial":
                     microbial_only += 1
-                    assert life_stage_from_paragraphs(body.evolutionary_data) in (None, "abiogenesis", "photosynthesis")
+                    assert body.life_stage in (None, "abiogenesis", "photosynthesis")
                     assert not COMPLEX_WORDS.search(body.description), (body.name, body.description)
     assert lifeless > 0 and microbial_only >= 0

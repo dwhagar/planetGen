@@ -1,5 +1,5 @@
 {
- "api_version": 4,
+ "api_version": 5,
  "routes": [
   "/api/admin/backups GET",
   "/api/admin/backups POST",
@@ -134,7 +134,6 @@
   "/api/systems/<uid:system_id>/habitable-species GET",
   "/api/systems/<uid:system_id>/owner GET",
   "/api/systems/<uid:system_id>/scene GET",
-  "/api/systems/<uid:system_id>/sections GET",
   "/api/systems/<uid:system_id>/star POST",
   "/api/systems/<uid:system_id>/text GET",
   "/api/systems/<uid:system_id>/wiki POST",

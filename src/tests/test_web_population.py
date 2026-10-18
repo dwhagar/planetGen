@@ -139,9 +139,22 @@ def test_without_population_nothing_shows(monkeypatch, client, fake):
     assert "Species" not in _nav(page)
     assert "Dominant species" not in page and "Territory of" not in page
     assert not [call for call in data.calls if call != "status"]  # no per-planet or owner lookups
-    for url in ("/species", "/species/3", "/polities", "/polities/2"):
+    for url in ("/species/3", "/polities/2"):
         assert client.get(url).status_code == 404
     assert "peoples" not in client.get("/classes").get_data(as_text=True)
+
+
+@pytest.mark.parametrize("url, kind", [("/species", "species"), ("/polities", "polities")])
+def test_the_lists_before_the_population_pass_are_empty_pages_not_404s(monkeypatch, client, fake, url, kind):
+    """UX.133: the lists answer 200 with a line that says the pass has not run; no row is looked up."""
+    data = _install(monkeypatch, NONE)
+    response = client.get(url)
+    assert response.status_code == 200
+    page = response.get_data(as_text=True)
+    assert f"The population pass has not run on this galaxy yet, so it has no {kind}." in page
+    assert "datatable" not in page.split("<main", 1)[-1]
+    assert not [call for call in data.calls if call != "status"]
+    assert "Species" not in _nav(page)
 
 
 def test_status_failure_hides_the_pages(monkeypatch, client, fake):
@@ -156,7 +169,8 @@ def test_species_without_polities(monkeypatch, client, fake):
     _install(monkeypatch, {"generated": True, "species": True, "polities": False, "territories": False})
     page = client.get("/species").get_data(as_text=True)
     assert "Species" in _nav(page) and "Polities</a>" not in page
-    assert client.get("/polities").status_code == 404
+    polities = client.get("/polities")
+    assert polities.status_code == 200 and "No species in this galaxy has founded a polity." in polities.get_data(as_text=True)
     assert "Territory of" not in client.get("/system/5").get_data(as_text=True)
 
 
@@ -271,7 +285,10 @@ def real_client(mysql_config):
 def test_real_population(mysql_config, galaxy, real_client):  # noqa: F811
     before = real_client.get("/classes").get_data(as_text=True)
     assert 'href="/species"' not in _nav(before)
-    assert real_client.get("/species").status_code == 404
+    for url in ("/species", "/polities"):   # UX.133: an empty page that says so, not a 404
+        empty = real_client.get(url)
+        assert empty.status_code == 200 and "The population pass has not run" in empty.get_data(as_text=True)
+    assert real_client.get("/species/1").status_code == 404
 
     conn = store.get_connection(mysql_config)
     try:

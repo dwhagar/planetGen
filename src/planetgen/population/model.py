@@ -15,7 +15,7 @@ systems' positions -- so it runs as its own pass (`planetgen
 population`, and after every `galaxy`/`sector` run) on a galaxy that was
 generated before it existed. Nothing in system generation changes.
 
-The pure functions (`parse_timeline`, `species_traits`,
+The pure functions (`timeline_of`, `species_traits`,
 `civilization_age`, `era_for_age`, `reach_ly`, `resolve_claims`, ...)
 take no database; `run_pass` and the functions after it do.
 """
@@ -24,7 +24,6 @@ import colorsys
 import contextlib
 import hashlib
 import math
-import re
 from dataclasses import dataclass
 
 import pymysql
@@ -33,16 +32,10 @@ from planetgen import tuning
 from planetgen.population import tech
 from planetgen.util import draw
 from planetgen.util import log
-from planetgen.generation.evolution import life_stage_from_paragraphs
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.names.wordsalad import generate_phoneme_salad_name
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.util import detmath
-
-_YEARS_PER_UNIT = {"Billion": 1e9, "Million": 1e6}
-
-_SYSTEM_AGE_RE = re.compile(r"current estimated age of the system is ([0-9.]+) (Billion|Million) Years")
-_MILESTONE_AGE_RE = re.compile(r"would have been [A-Za-z ]+ at ([0-9.]+) (Billion|Million) Years")
 
 SCAN_BATCH = 5000
 """int: Planet ids per scan query."""
@@ -62,7 +55,7 @@ before `run_pass` says it is waiting (and waits again)."""
 
 @dataclass(frozen=True)
 class Timeline:
-    """What a planet's evolutionary paragraphs say: the milestone it
+    """What a planet's stored timeline says: the milestone it
     reached and the system age and milestone age, in years."""
     life_stage: str
     system_age_years: float
@@ -74,32 +67,17 @@ class Timeline:
         return max(0.0, self.system_age_years - self.milestone_age_years)
 
 
-def _years(match):
-    return float(match.group(1)) * _YEARS_PER_UNIT[match.group(2)]
-
-
-def parse_timeline(paragraphs):
+def timeline_of(life_stage, system_age_gyr, milestone_age_gyr):
     """
-    Reads a planet's stored evolutionary paragraphs.
-
-    Args:
-        paragraphs (list[str]): `planet_evolutionary_paragraphs` rows, in
-            order.
+    A planet's stored timeline (`planets.life_stage`, `life_system_age_gyr`, `life_milestone_age_gyr`).
 
     Returns:
-        Timeline or None: `None` unless the milestone is one of
-            `tuning.LIFE_WORLD_STAGES` and both ages can be
-            read back.
+        Timeline or None: `None` unless the milestone is one of `tuning.LIFE_WORLD_STAGES` and both ages are
+            stored.
     """
-    stage = life_stage_from_paragraphs(paragraphs)
-    if stage not in tuning.LIFE_WORLD_STAGES:
+    if life_stage not in tuning.LIFE_WORLD_STAGES or system_age_gyr is None or milestone_age_gyr is None:
         return None
-    text = " ".join(paragraphs)
-    system_age = _SYSTEM_AGE_RE.search(text)
-    milestone_age = _MILESTONE_AGE_RE.search(text)
-    if system_age is None or milestone_age is None:
-        return None
-    return Timeline(stage, _years(system_age), _years(milestone_age))
+    return Timeline(life_stage, system_age_gyr * 1e9, milestone_age_gyr * 1e9)
 
 
 def species_traits(gravity_g, surface_temperature_k, rng):
@@ -407,22 +385,20 @@ def scan_life_worlds(conn):
         high = min(top, low + SCAN_BATCH)
         rows = conn.execute(
             "SELECT p.id, p.uid, p.star_system_id, p.life_chemical, p.gravity_g, p.surface_temperature_k, "
-            "cfg.intelligent_life, cfg.prevalence_intelligent_life, e.paragraph FROM planets p "
-            "JOIN planet_evolutionary_paragraphs e ON e.planet_id = p.id "
+            "p.life_stage, p.life_system_age_gyr, p.life_milestone_age_gyr, "
+            "cfg.intelligent_life, cfg.prevalence_intelligent_life FROM planets p "
             "JOIN star_systems ss ON ss.id = p.star_system_id "
             "JOIN system_configs cfg ON cfg.id = ss.system_config_id "
             "LEFT JOIN species s ON s.homeworld_planet_id = p.id "
             "WHERE p.id > ? AND p.id <= ? AND s.id IS NULL "
-            "AND e.paragraph LIKE ? ORDER BY p.uid, e.position",
-            (low, high, "%would have been Technological Civilization at%"),
+            "AND p.life_stage = 'technological_civilization' ORDER BY p.uid",
+            (low, high),
         ).fetchall()
-        planets = {}
-        for row in rows:
-            planets.setdefault(row["id"], (row, []))[1].append(row["paragraph"])
         taken = set()
         inserts = []
-        for planet_id, (row, paragraphs) in planets.items():
-            timeline = parse_timeline(paragraphs)
+        for row in rows:
+            planet_id = row["id"]
+            timeline = timeline_of(row["life_stage"], row["life_system_age_gyr"], row["life_milestone_age_gyr"])
             if timeline is None:
                 continue
             key = object_key(row["uid"])

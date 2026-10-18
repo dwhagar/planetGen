@@ -13,16 +13,19 @@ map: versions with phases, a blocker never in a later phase.
 import importlib.util
 import os
 
+import pytest
+
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 _spec = importlib.util.spec_from_file_location("build_todo_docs", os.path.join(ROOT, "scripts", "build_todo_docs.py"))
 build_todo_docs = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(build_todo_docs)
 
 
+@pytest.mark.globaldocs
 def test_pages_are_up_to_date():
     stale = [str(p.relative_to(build_todo_docs.ROOT)) for p, html in build_todo_docs.build().items()
              if not p.exists() or p.read_text(encoding="utf-8") != html]
-    assert not stale, f"{stale} out of date: run python scripts/build_todo_docs.py"
+    assert not stale, f"{stale} out of date: the TODO thread runs python scripts/build_global_docs.py"
 
 
 def test_every_open_item_is_in_the_reference_with_its_text():

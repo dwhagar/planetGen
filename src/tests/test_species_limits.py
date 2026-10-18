@@ -166,13 +166,11 @@ def _earthlike(conn, planet_id, **changes):
         "hydrosphere": "surface ocean", "ocean_ph": 8.0, "water_activity": 1.0, "phosphorus": "limited",
         "water_mass_fraction": 0.0002, "surface_dose_msv_yr": 2.0, "dose_ground_msv_yr": 2.0, "mass_kg": 5.97e24,
         "radius_km": 6371.0, "energy_flux_w_m2": 80.0, "flux_variation": 0.0, "life_chemical": "chlorophyll",
-        "p_o2_kpa": 21.2, "p_n2_kpa": 79.0, "p_co2_kpa": 0.04, "p_h2o_kpa": 1.0, "hab_note": None, **changes,
+        "p_o2_kpa": 21.2, "p_n2_kpa": 79.0, "p_co2_kpa": 0.04, "p_h2o_kpa": 1.0, "life_stage": "technological_civilization",
+        "evolutionary_pace": "normal", "life_system_age_gyr": 4.6, "life_milestone_age_gyr": 4.5, **changes,
     }
     conn.execute(f"UPDATE planets SET {', '.join(f'{name} = ?' for name in values)} WHERE id = ?",
                  (*values.values(), planet_id))
-    conn.execute("DELETE FROM planet_evolutionary_paragraphs WHERE planet_id = ?", (planet_id,))
-    conn.execute("INSERT INTO planet_evolutionary_paragraphs (planet_id, position, paragraph) VALUES (?, 0, ?)",
-                 (planet_id, tuning.EVOLUTIONARY_TEXT["technological_civilization"]))
 
 
 def _species(conn, planet_id, system_id, name, tech):

@@ -270,7 +270,7 @@ def test_a_resume_keeps_the_log_lists_what_passed_and_adds_a_resume_line(tmp_pat
     header, tests = progress_log.read(again.path)
     assert header["build"] == first.identifier and set(tests) == {"a", "b", "c", "d"}  # kept, not emptied
     lines = [json.loads(text) for text in open(again.path)]
-    assert lines[-1] == {"kind": "resume", "at": "2026-10-15T12:05:00Z", "skipped": 2}
+    assert lines[-1] == {"kind": "resume", "at": "2026-10-15T12:05:00Z", "skipped": 2, "reused": 0}
     # a new run of the same build without --resume starts the log again
     fresh = runner.start_progress_log("quick", [], "", directory=directory, now=NOW)
     assert progress_log.read(fresh.path)[1] == {}
@@ -284,8 +284,9 @@ def test_a_resume_with_nothing_to_resume_says_why(tmp_path, monkeypatch):
     assert "no earlier run of `quick`" in nothing.problem
     first = runner.start_progress_log("quick", [], "", directory=directory, now=NOW)
     _finished(first.path, "a", "passed")
+    # Another day is another environment (TEST.208): nothing is reused and every test runs, with the reason.
     tomorrow = runner.start_progress_log("quick", [], "", directory=directory, now=NOW + datetime.timedelta(days=1), resume=True)
-    assert tomorrow.problem and "another build" in tomorrow.problem and "date" in tomorrow.problem
+    assert tomorrow.problem is None and tomorrow.skip_file is None and "date" in tomorrow.note
     other = runner.start_progress_log("full", [], "", directory=directory, now=NOW, resume=True)
     assert "no earlier run of `full`" in other.problem
     empty = runner.start_progress_log("quick", [], "", directory=directory, now=NOW)
@@ -308,7 +309,7 @@ def test_main_resumes_with_a_skip_list_and_says_so_on_its_last_line(tmp_path, mo
     assert runner.main(["quick", "--resume"]) == 0
     assert commands[0][-2] == "--skip-passed" and commands[0][-1].endswith(".skip")
     out = capsys.readouterr().out.splitlines()
-    assert any("RESUMING build" in line and "1 tests that passed there are skipped" in line for line in out)
+    assert any("RESUMING build" in line and "the 1 tests that passed earlier are skipped" in line for line in out)
     assert "quick: PASS in" in out[-1] and "(RESUMED build" in out[-1] and "1 more passed" in out[-1]
 
 

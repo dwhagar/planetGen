@@ -1799,13 +1799,16 @@ def scatter_phenomena(args):
             estimates = phenomenon_reach.reach_estimates(
                 skeleton.shape, list(extents) + beyond_shells, skeleton.edge_pc, e_value, min_mass_solar)
         rows = []
+        expected_rows = 0.0     # the rows expected, not the bar's weight (that adds a cost per band, GEN.397)
         for shell, high in list(extents) + beyond_shells:
             weight = 0.0
             if high >= 0:
-                weight = (phenomenon_scatter.shell_expected(skeleton.shape, shell, high, skeleton.edge_pc, e_value,
-                                                           min_mass_solar)
-                          + brightStars.BAND_WEIGHT_STARS * (2 * high + 1))
+                shell_rows = phenomenon_scatter.shell_expected(skeleton.shape, shell, high, skeleton.edge_pc, e_value,
+                                                               min_mass_solar)
+                expected_rows += shell_rows
+                weight = shell_rows + brightStars.BAND_WEIGHT_STARS * (2 * high + 1)
             if reach_on:
+                expected_rows += estimates[shell][0]
                 weight += estimates[shell][0] + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS * estimates[shell][1]
             rows.append((shell, high, weight))
         tasks = dict(enumerate(shell_chunks(rows, run_common._worker_count(args))))
@@ -1815,6 +1818,7 @@ def scatter_phenomena(args):
             far = (len(tasks), first_far, reach_shell)
             far_weight = phenomenon_reach.far_expected(
                 skeleton.shape, first_far, reach_shell, skeleton.edge_pc, e_value, min_mass_solar)
+            expected_rows += far_weight
             tasks[far[0]] = [(first_far, reach_shell, far_weight)]
             weights[far[0]] = far_weight + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS
         # GEN.324: the clusters' and satellites' phenomena, one more task.
@@ -1824,10 +1828,11 @@ def scatter_phenomena(args):
             component_task = (len(tasks), galaxy_components)
             component_weight = sum(componentPass.expected_phenomena(component, min_mass_solar)
                                    for component in galaxy_components)
+            expected_rows += component_weight
             tasks[component_task[0]] = [(COMPONENT_TASK_SHELL, COMPONENT_TASK_SHELL, component_weight)]
             weights[component_task[0]] = component_weight + brightStars.OBJECT_FIRST_BAND_WEIGHT_STARS
         shell_total = len(extents) + len(beyond_shells) + (0 if far is None else reach_shell - first_far + 1)
-        log.normal(f"Phenomena: about {round(sum(weights.values())):,} to place in {shell_total:,} shells "
+        log.normal(f"Phenomena: about {round(expected_rows):,} to place in {shell_total:,} shells "
                    f"(neutron stars and black holes from {min_mass_solar:g} solar masses).")
         if filled:
             log.normal(f"Leaving out the {len(filled):,} sectors already filled.")

@@ -127,7 +127,7 @@ def test_decide_flavor_text_is_generation_time_only(host_star, monkeypatch):
     already-decided self.flavor_text.
     """
     planet = make_planet(host_star, "M", "e")
-    planet.evolutionary_data = []  # No multicellular life keyword to match.
+    planet.life_stage = None  # No multicellular life.
     monkeypatch.setattr(prog_c, "FLAVOR_CHANCE_PLANET", 1.0)
 
     planetLife.decide_flavor_text(planet)
@@ -142,6 +142,19 @@ def test_decide_flavor_text_is_generation_time_only(host_star, monkeypatch):
     assert first_render == second_render
     assert planet.flavor_text_count == 1
     assert planet.system_config.system_flavor_count == 1
+
+
+def test_the_flavour_line_is_stored_as_a_key_and_read_back_from_it(host_star, monkeypatch):
+    """DB.51: the line is kept as `category:index` into the `tuning` list it was drawn from."""
+    monkeypatch.setattr(prog_c, "FLAVOR_CHANCE_PLANET", 1.0)
+    planet = make_planet(host_star, "M", "e")
+    planet.life_stage = "multicellularity"
+    planetLife.decide_flavor_text(planet)
+    category, index = planet.flavor_key.split(":")
+    assert category == "habitable"
+    assert planet.flavor_text == prog_c.HABITABLE_FLAVOR[int(index)]
+    assert planetLife.flavor_key("planet", prog_c.PLANET_FLAVOR[3]) == "planet:3"
+    assert planetLife.flavor_line(None) is None
 
 
 def test_habitable_world_false_forbids_habitable_classes_in_ecosphere(host_star):

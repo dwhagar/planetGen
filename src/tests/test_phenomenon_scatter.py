@@ -226,11 +226,31 @@ def test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter(m
     final = next(m for m in messages if m.startswith("Placed "))
     for label, count in summary["counts"].items():  # only what was created, like the star count
         assert f"{count:,} {label}" in final, label
-    for label in scatter.EXPECTED_LABELS:
-        assert (f" {label}" in final) == bool(summary["counts"].get(label)), label
+    listed = {item.split(" ", 1)[1] for item in final.split(": ", 1)[1].split(";")[0].split(", ")}
+    for label in scatter.EXPECTED_LABELS:  # whole labels: "magnetar neutron-star" is not a "neutron-star"
+        assert (label in listed) == bool(summary["counts"].get(label)), label
     assert " 0 " not in final
     placed = sum(int(m.split(": placed ")[1].split(":")[0].replace(",", "")) for m in shell_lines)
     assert placed <= summary["total"]
+
+
+def test_the_phenomena_line_counts_the_rows_to_place_not_the_progress_weight(mysql_config, monkeypatch):
+    """GEN.397: the line said "about N to place" with the bar's weight (the expected rows plus a cost per band)."""
+    from planetgen.util import log
+    _seed_galaxy(mysql_config)
+    messages = []
+    monkeypatch.setattr(log, "normal", lambda message, *args, **kwargs: messages.append(message))
+    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    conn = store.get_connection(mysql_config)
+    try:
+        stored = store.get_galaxy_shape(conn).shape  # the run draws the structure from the stored galaxy seed
+    finally:
+        conn.close()
+    expected = sum(scatter.shell_expected(stored, shell, high, EDGE_PC, E_VALUE, 1.0) for shell, high in EXTENTS)
+    line = next(m for m in messages if m.startswith("Phenomena: about "))
+    assert line.startswith(f"Phenomena: about {round(expected):,} to place in {len(EXTENTS):,} shells")
+    weight = expected + run_plan.brightStars.BAND_WEIGHT_STARS * sum(2 * high + 1 for _shell, high in EXTENTS)
+    assert round(weight) != round(expected)
 
 
 def test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it(mysql_config):
