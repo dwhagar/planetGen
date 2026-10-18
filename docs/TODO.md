@@ -1198,7 +1198,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.151's tile keys; MAP.154, the nested lists, merged in #1303), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148
   and MAP.150, done in #1382); this umbrella closes last.
   Headline: 8.1 (infinite zoom: the fly-through Galaxy Map).
-  Prerequisites: MAP.247.
+  Prerequisites: none.
   Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
@@ -2198,21 +2198,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the planet page, in both themes, and the old three-colour gesture
   is gone (no shim).
   Prerequisites: GEN.420. Related: GEN.420.
-
-- [ ] **MAP.247 The wheel zoom's column-density ray fallback: where the cursor ray hits nothing pickable, the point is the first sample where the integrated column density passes a threshold**
-  Split from MAP.245 (Core 2, 2026-10-17, 4:24 PM EDT as the lane
-  reported: the cell scene has no density field where the cursor ray
-  hits nothing, so the fallback was not built; relayed by the
-  coordinator). The wheel's point under the cursor is, in order, the
-  picked star, remnant or cell, else the first sample along the cursor
-  ray where the integrated column density passes a threshold (this
-  item), else the point at the current focus depth (built). Done: the
-  cell scene carries the density the ray integrates (or reads it from
-  the stage's density tiles), the threshold is a named constant with its
-  reason, and a browser test zooms with the cursor over empty space
-  between the stars of a dense region and ends where the column passes
-  the threshold, not at the focus depth. Owner: Core 2 (proposed).
-  Prerequisites: none. Related: MAP.225, MAP.245.
 
 - [ ] **MAP.248 The maps and pages follow the plan configuration: with the halo or the satellite galaxies off, nothing is drawn, picked or offered beyond the configured boundaries**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
@@ -19583,6 +19568,11 @@ clears each one.
   a `canvas.galaxyFlying` hook plus `_wait_settled` waiting for it, in
   Bug Hunt's next PR with MAP.251 and MAP.252; this item retires with
   that PR.
+  Sighting (Core 2, MAP.247's second gate, reported 4:58 AM EDT
+  2026-10-18 as the lane reported; 62 minutes, 800 passed, 1 failed): a
+  galaxy-map drill-down test failed again in the changed gate and passes
+  alone. Consistent with the crumb-read-mid-flight cause above; it goes
+  with Bug Hunt's fix.
   Prerequisites: none. Related: TEST.213, TEST.194.
 
 - [ ] **TEST.224 `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed once in a full gate: the nested system's inside_nebula_id was None (bug)**
