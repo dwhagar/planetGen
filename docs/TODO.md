@@ -19849,6 +19849,18 @@ clears each one.
   a different block address). Bug Hunt should read the failing assertion
   before the TEST.225 PR retires this item; if the crumb mismatch
   persists after the `-?` fix it needs its own item.
+  Third data point (Core 1, GEN.402's gate, reported 4:36 AM EDT
+  2026-10-18 as the lane reported):
+  `test_galaxy_map_drill_down_by_clicks` failed in the gate with `assert
+  'win=3.550.13.1088' != previous` (message 'the URL names the new
+  stage'), failed alone 2 of 2 on Core 1's branch, and on plain main 1
+  of 2 runs failed (a 4 minute and a 2 minute run). Together with Core
+  2's crumb mismatch this makes the drill-down test fail on main without
+  load; a click that did not move the view to a new stage fits the same
+  family as the one-step-off crumbs, so the cause is likely in the
+  test's wait for the camera, not the regex above. Bug Hunt reproduces
+  both tests alone after its gate (about 4:25 AM EDT as the lane
+  reported).
   Prerequisites: none. Related: TEST.172, TEST.202.
 
 - [ ] **TEST.237 The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug)**
@@ -20184,6 +20196,11 @@ clears each one.
   yet a PR, it rides the combined PR with TEST.225 and TEST.236): the
   test galaxy mass is 1.15e11 so the overflow is certain, measured 200
   of 200 draws overflow where 4 of 390 fitted before.
+  Another sighting (Core 1, GEN.402's gate, 4:36 AM EDT 2026-10-18 as
+  the lane reported): the test failed once in the gate with 120 of 120
+  systems fitting (`assert 120 < 120`) and passed 6 of 6 alone on main
+  and on Core 1's branch; the test's own comment already says a lucky
+  draw can fit, which matches the unseeded-draw cause measured above.
   Prerequisites: none. Related: TEST.243, TEST.235.
 
 
