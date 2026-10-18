@@ -1232,14 +1232,20 @@ class FillContext:
                                                   age_laws)
                    for population, density in self.densities.items()) / total
 
-    def apply(self, system_config, rng=draw):
-        """Gives one of the sector's own (dim) systems its population and,
-        after a scatter, the luminosity cap."""
+    def apply_population(self, system_config, rng=draw):
+        """Gives a body made in this sector its population (drawn from the sector's mix), the age law and [Fe/H] peaks
+        of that population, and the place's terms."""
         system_config.POPULATION = pick_population(self.densities, rng)
         system_config.AGE_LAW = age_laws_of(self.shape).get(system_config.POPULATION)
         system_config.PLACE_TERMS = self.place_terms
         if system_config.POPULATION in POPULATIONS_IN_THE_GATE:
             system_config.FE_H_PEAKS = self.profile.populations[system_config.POPULATION].fe_h
+        return system_config
+
+    def apply(self, system_config, rng=draw):
+        """Gives one of the sector's own (dim) systems its population and,
+        after a scatter, the luminosity cap."""
+        self.apply_population(system_config, rng)
         if self.min_luminosity_sol is not None:
             system_config.MAX_STAR_LUMINOSITY_SOL = self.min_luminosity_sol
         if self.star_mass_limit_sol is not None:

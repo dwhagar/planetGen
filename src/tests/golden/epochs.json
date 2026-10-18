@@ -169,6 +169,12 @@
       "epoch": 34,
       "first_release": "8.0.1831",
       "reason": "The galaxy's star count and density follow from its stellar mass (the model is normalised to hold the mass, with no density pinned at a Sun-radius point), and the places the generator took from the Milky Way (the Sun's radius, the default galactocentric distance, the hypervelocity reference radius) come from the galaxy's own disk scale length, so a seed holds a different number of stars and places them differently (GEN.404)."
+    },
+    {
+      "epoch": 35,
+      "first_release": null,
+      "pending": true,
+      "reason": "A free-floating brown dwarf's age is a star's: the age window of the population its place gives it, spread by that population's star formation rate, instead of an even draw over 0.1 to 10 Gy, so a seed gives its brown dwarfs different ages, radii and temperatures (GEN.553)."
     }
   ]
 }

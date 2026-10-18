@@ -24,6 +24,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena import hosts
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, SURFACE_REGIME_LABELS, rogue_surface_conditions
 from planetgen.physics import brown_dwarf as brownDwarf, constants, planets as planetPhysics, spin
+from planetgen.physics.stellar_evolution import sample_star_age_gy
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -226,8 +227,11 @@ class RoguePlanet(LazySaladName, MassObject):
             log.choice("Rogue planet type", "brown dwarf", "mass_bin 'brown-dwarf'")
             self.planet_type = 'g'
             # The radius of the cooling track at its age (GEN.549): larger when young, nearly Jupiter's when old. The age
-            # is drawn here, before the surface conditions, which are given it.
-            brown_dwarf_age_gy = draw.uniform(*tuning.ROGUE_PLANET_AGE_RANGE_GY)
+            # is drawn here, before the surface conditions, which are given it. It is a star's age (GEN.553): the
+            # window of the population it belongs to, spread by that population's star formation rate; a brown dwarf
+            # made without a place has the whole disk's window.
+            brown_dwarf_age_gy = sample_star_age_gy(
+                system_config.AGE, draw, getattr(system_config, "POPULATION", None), getattr(system_config, "AGE_LAW", None))
             self.radius_km = brownDwarf.radius_sol(self.mass_kg / constants.SOLAR_MASS_TO_KG, brown_dwarf_age_gy) \
                 * constants.SOLAR_RADIUS_M / constants.KM_TO_M_FACTOR
             self.composition = (
