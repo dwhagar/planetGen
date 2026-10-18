@@ -19847,26 +19847,14 @@ clears each one.
   limit that scales with load; no quarantine. Done: the dense_core case
   passes in a gate that runs beside another gate, and its alone time is
   under 300 s or the item says why not. Owner: Bug Hunt (proposed).
+  Sighting (Core 4, reported 11:39 AM EDT 2026-10-18, real clock; its
+  GEN.546 gate 1 on a base from before #2252): the `[dense_core]` case
+  failed once with 'generated 0 systems ... predicted 483.3' and passes
+  alone in 4 min 45 s; Core 4 suspects GEN.592's capped dense-core cell.
+  The failure text is the one the fixed galaxy seed of #2252 (release
+  8.0.1817) addresses, so it may not recur on a tree with that release;
+  the run time (4 min 45 s alone) is this item's own subject.
   Prerequisites: none. Related: TEST.225, TEST.246.
-
-- [ ] **TEST.248 The slow-pages test 'stop waiting stops the polling and check again picks it up' fails in a loaded browser phase: the status line still reads 'About 30% ... about 5 s left.' where 'Stopped waiting.' is expected, and it passes alone in 0.3 s (bug)**
-  Found by Bug Hunt (reported 10:59 AM EDT 2026-10-18 as the lane
-  reported; its second and third gates), filed by the TODO thread.
-  `src/tests/test_web_browser_slow_pages.py::test_stop_waiting_stops_the_polling_and_check_again_picks_it_up[dark-phone]`
-  failed in the third gate (release 8.0.1804 or later) and the
-  [light-phone] case in the second: 3 of 3 loaded browser phases.
-  Failure text: the status line is 'About 30% (an estimate: 300 of 1,000
-  rows), about 5 s left.' where 'Stopped waiting.' is expected. Passes
-  alone in 0.3 s. Fails on main: not run on main alone (passes alone).
-  Frequency: 3 of 3 loaded browser phases of Bug Hunt. Reproducer: the
-  test while another gate runs, or with the browser under CPU load. Do:
-  find whether the click on 'stop waiting' lands before the page has
-  installed its handler or whether a poll in flight rewrites the line
-  after the stop, and wait for the right state in the test without
-  loosening what it proves; no quarantine. Done: the test passes in a
-  browser phase that runs beside another gate. Owner: Bug Hunt
-  (proposed; it asked for this item and will take it next).
-  Prerequisites: none. Related: TEST.235, TEST.246.
 
 - [ ] **TEST.249 The sector and system page query-count test fails once in the non-browser phase: 12 statements for a lone system where 11 for one with planets, on unseeded systems (bug)**
   Found by Bug Hunt (reported 10:59 AM EDT 2026-10-18 as the lane
@@ -19888,6 +19876,11 @@ clears each one.
   the page is the bug. Done: the cause is on this item and the test
   passes 30 of 30 fresh draws. Owner: Bug Hunt (proposed; it will loop
   it idle after the slow-pages item).
+  Frequency from Core 4 (reported 11:39 AM EDT 2026-10-18, real clock;
+  its GEN.546 gate 1, 9:46 to 11:31 AM EDT): 1 failure in 6 runs alone
+  on origin/main and on Core 4's branch; the query count flips between
+  11 and 12 with random system content. So it fails on main, about 1 run
+  in 6; Bug Hunt does not need to wait for it to appear in a gate.
   Prerequisites: none. Related: TEST.238.
 
 - [ ] **TEST.250 test_workers.py: two tests fail once in a full run because ensure_workers is the inline test stand-in although the module is marked real_queue (something left the inline queue patch active in that xdist worker) (bug)**
