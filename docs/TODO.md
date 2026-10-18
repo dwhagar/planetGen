@@ -20235,27 +20235,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
 
-- [ ] **DOC.68 Generate docs/plan/execution-plan.html from scripts/build_todo_docs.py like the other plan pages**
-  Asked by Core 5 through the coordinator (2026-10-17, 7:51 PM EDT),
-  filed by the TODO thread. The execution plan page is the only page in
-  docs/plan/ with no generator in the repo: the TODO thread rebuilt it
-  on 2026-10-17 with a script that lives outside the repo, from
-  docs/TODO.md and the lane report in /mnt/project-files, and
-  tests/test_docs_index.py (Core 5's DOC.67 branch) checks that the page
-  keeps its `<meta name="description">` and its "Docs index" link, which
-  a regeneration can drop. Do: move the generator into
-  scripts/todo_docs/ with a template, in the same pass as todo-tree.html
-  and version-plan.html (lanes board from a file in the repo, for
-  example docs/plan/lanes.md that the TODO lane keeps, headline panel,
-  open items by version and phase, goal issues table, conflicts and
-  needs-Boss lists), keep the meta description and the Docs index link
-  in the template, and add the page to the freshness test that covers
-  the other generated pages. Done: `python3 scripts/build_todo_docs.py`
-  writes the page, a test fails when the committed page differs from the
-  generated one, and tests/test_docs_index.py passes on it. Owner: Core
-  5 (proposed, it owns the docs index work, DOC.67).
-  Prerequisites: none. Related: DOC.67.
-
 ## VIEW: The view from a planet
 
 - [ ] **VIEW.1 View from a planet**
