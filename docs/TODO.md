@@ -4744,88 +4744,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.202, GEN.241.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
-- [ ] **GEN.241 Every nebula gets the stars it needs as real systems made with the nebula, inside its bounds**
-  Step 12 of the whole-sphere train (design note section 5.10); replaces
-  the text-only hosts and the "do not build" default of MAP.182, which
-  is folded in here (hosted nebulae for stars pre-placed by the bright
-  and mass passes: the hosted roll is decided from the star's own seed,
-  so it is the same whether the star was pre-placed or made during a
-  fill, and the page and the map show the nebula from the scatter row).
-  The rule: a nebula's required stars are real star systems made in the
-  same step as the nebula and placed inside its bounds, and which kinds
-  it needs depends on its class, not on where it is. A nebula that
-  cannot get its stars (the sector is full) is not made. Per class:
-  emission C the one O or early-B star at the centre; D and E the seed
-  star plus the cluster's ionizing members (stars of 5.5 solar masses
-  and up that are still alive: 42 on average for D, 549 for E) in a
-  Plummer sphere of half-mass radius 1 pc (D) and 2 pc (E) clipped to
-  the nebula radius; emission-reflection G the early-B star; reflection
-  F the B3 to A9 star; planetary nebulae keep their white dwarf and gain
-  the close companion the class table says is "often" there (20%);
-  supernova remnants keep their neutron star or black hole at 60% of
-  core-collapse remnants; Bok globule P one protostar in 30% of
-  globules; star-forming core Q 1 to 4 protostars (Poisson mean 2, at
-  least 1) clumped near the centre; giant molecular cloud M and dark
-  cloud N none. Protostars need the pre-main-sequence state (GEN.242).
-  Cluster members and protostars are derived from the nebula's own seed
-  and placed by position, and each sector generates only the members
-  whose positions fall in its cube, the way `nebula_field` hands each
-  sector its clouds, so a nebula across sectors needs no coordination.
-  Any code path that creates a nebula of a hosted class without a host
-  calls one function, `build_nebula_with_contents`. The Type Ia remnant
-  share becomes a profile field (1 where there is no young population);
-  emission, reflection, Wolf-Rayet and core-collapse remnants scale with
-  the young share of the profile's mix, planetary nebulae and Type Ia
-  remnants with the old share, molecular clouds and protostars with
-  `gas`; `nebula_field` must read the cell's `gas`, not the disk
-  position alone. Open question for Boss (default: only the ionizing
-  members are real, the rest of the cluster stays the sector's ordinary
-  background density): filling the whole cluster is the dearer
-  alternative, about 8 minutes of generation per giant complex, behind a
-  setting. Cost at the default, if every sector were filled: about 7e6
-  systems; an asked sector holding a massive complex gets about 270
-  extra systems and 7 seconds. Done: an asked halo cell never shows an H
-  II region or a pulsar-bearing remnant, a planetary nebula always has
-  its white dwarf, every hosted nebula holds its stars inside its
-  radius, a Magellanic cell can show all of them, and a pre-placed
-  star's nebula shows from its scatter row. Owner: Core (2026-10-15);
-  the map shows the nebulae through the existing nebula items (MAP.172
-  to MAP.181). Decided (Boss, 2026-10-15): the research note's
-  recommendation stands: reach 262 kpc (65,535 shells), 96-bit object
-  IDs, one rule set everywhere with per-sector parameters, nothing
-  generated unless asked, and an asked sector always generated and
-  saved.
-  Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and backscatters get
-  no systems, planets or moons, so bright stars, massive stars, neutron
-  stars, black holes and the other scattered objects are bare rows;
-  planets and moons are made only when a sector is being filled with
-  everything; a sector fill must represent every kind of object, and
-  when a fill meets a phenomenon that can have a system (or makes one
-  that can) it generates that system if the real-world probabilities
-  give it one; nebulae need stars and phenomena, not planets. For this
-  item: the stars and phenomena a nebula needs are real objects made
-  with it; they get planets and moons only when the nebula's sector is
-  being filled, never in a scatter.
-  Catalogue (Boss 2026-10-15 6:08 PM EDT;
-  docs/design/multi-star-systems.md sections 13 to 16): the young
-  non-hierarchical groups and trapezia of section 13.1 are built by
-  GEN.273 on this item's cores.
-  Prerequisites: none. Related: MAP.172, GEN.150,
-  GEN.202, GEN.99. Built-on note (Core 1, 2026-10-16, 8:41 AM EDT,
-  GEN.251 merged as #1815): the stage F required stars (the stars a
-  nebula needs as real systems) are not built by GEN.251; fill stages
-  have their own random streams (generation/fill_stages.py), so this
-  item adds its stage there.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: GEN.319, GEN.320, GEN.321. Step 12 mixes three
-  deliverables of different size.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
-
 - [ ] **GEN.243 Wolf-Rayet stars and ring nebulae: a W state for the last 0.3 Myr of very massive stars, and nebula class X**
   Step 13 of the whole-sphere train (design note section 5.11; GEN.113's
   Tier 2 item 3, never built because the star model has no W state). The
@@ -4923,7 +4841,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   association is this item's component; the bubble field (GEN.391)
   carries only the shell enhancement and the interior suppression, so
   the association is not counted twice. GEN.391 states the split.
-  Prerequisites: GEN.241. Related: GEN.158.
+  Prerequisites: none. Related: GEN.158.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.245 Debris disks around A and F stars (later)**
@@ -5925,7 +5843,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TEST.159, TEST.160).
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
-  Prerequisites: GEN.241, GEN.243, GEN.244, GEN.282, GEN.284, TEST.159,
+  Prerequisites: GEN.243, GEN.244, GEN.282, GEN.284, TEST.159,
   TEST.160, GEN.450, TEST.196, GEN.530.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -18840,6 +18758,14 @@ clears each one.
   not run. Frequency: one more draw-dependent sighting, which fits the
   substring cause above (a run that places a magnetar and no plain
   neutron star).
+  Sighting with a different assertion text (Bug Hunt, 2026-10-17, 10:15
+  PM EDT as the lane reported; gate d784f21a for #2124, non-browser
+  phase ended 10:10 PM EDT): the same test failed with `no
+  hypervelocity-star`, to be checked alone. That label is not a
+  substring of another label, so the substring cause above does not
+  explain it by itself; it may be a second cause in the same line (the
+  label list against the counts). Fails on main: not checked. Frequency:
+  1 in 1 gate on that branch, 3 sightings now across lanes.
   Prerequisites: none. Related: TEST.213.
 
 - [ ] **TEST.222 Remove the NumPy 2.5 deprecation filter around the skimage marching-cubes call once scikit-image stops raising it**
@@ -18940,6 +18866,12 @@ clears each one.
   cap question above (the cell or sector star ceiling against an
   uncapped estimate) is the first thing to check, with the density-1000
   start as the pinned case.
+  Possibly related sighting (Bug Hunt, 2026-10-17, 10:15 PM EDT as the
+  lane reported; gate d784f21a for #2124): a cell-resolution cap test
+  (`test_gen_cell_resolution`) failed with 0 stars stored, to be checked
+  alone. Same family as the cap suspected above (a capped cell stores
+  fewer stars than the test predicts); not confirmed as the same cause
+  (inferred from the failure text only). Fails on main: not checked.
   Prerequisites: none. Related: TEST.213, GEN.76.
 
 - [ ] **TEST.226 Tests for the plan configuration and its two switches: the interior is identical with each combination, off generates nothing beyond the boundaries, addresses outside them are refused, the 8.1 sphere is the all-on case**
@@ -19230,6 +19162,9 @@ clears each one.
   alone with the draw forced to a negative band. Owner: Bug Hunt
   (proposed; it owns TEST.172 and the drill-down test, and a one-line
   fix can ride its #2124 branch or the next small PR).
+  Fix coded (Bug Hunt, 2026-10-17, 10:15 PM EDT as the lane reported):
+  the `-?` moved to the band on branch bughunt-test225; it rides the
+  TEST.225 PR, which retires this item when it merges.
   Prerequisites: none. Related: TEST.172, TEST.202.
 
 
@@ -20275,7 +20210,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 47 of 48). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.241, GEN.243.
+  Prerequisites: GEN.243.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **DOC.50 Docs: the schema, the multi-star note and the catalogue say where the members live**
