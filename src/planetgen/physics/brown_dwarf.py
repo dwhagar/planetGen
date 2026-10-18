@@ -98,10 +98,10 @@ def spectral_number(temperature_k):
     for low, high, coefficients, _rms in fits:
         if temperature_k >= _fit_temperature_k(coefficients, high) or high == fits[-1][1]:
             break
-    if len(coefficients) == 2:
-        number = (coefficients[0] - temperature_k) / -coefficients[1]
+    c0, c1, c2 = coefficients
+    if c2 == 0.0:
+        number = (temperature_k - c0) / c1
     else:
-        c0, c1, c2 = coefficients
         # The smaller root is the one inside the fit's range (the parabola turns over beyond it).
         number = (-c1 - math.sqrt(c1 * c1 - 4.0 * c2 * (c0 - temperature_k))) / (2.0 * c2)
     return min(max(number, low), high)
