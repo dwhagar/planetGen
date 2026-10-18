@@ -270,10 +270,11 @@ def _star_row_html(star, sections, children_html="", class_url=None, by_host=Non
 
 
 def _type_chip(body):
-    """One chip for what kind of world this is: "Habitable" (always
-    terrestrial), else "Terrestrial" or "Gas Giant", never two of them."""
+    """One chip for what kind of world this is: "Habitable class" (always
+    terrestrial: the class can carry life, which says nothing of its PHI-6 rating), else "Terrestrial" or "Gas Giant",
+    never two of them."""
     if body["habitable"]:
-        return '<span class="flag flag-yes">Habitable</span>'
+        return '<span class="flag flag-yes">Habitable class</span>'
     return f'<span class="stat">{_BODY_TYPE_LABELS.get(body["body_type"], "")}</span>'
 
 
@@ -321,7 +322,7 @@ def _gravity_text(gravity_g):
 
 def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None, species=None, admin_rows=None):
     """
-    A planet's (or moon's) row: its class, one type chip, a "Habitable
+    A planet's (or moon's) row: its class, one type chip, a "Habitable-class
     moon" chip when one of its moons is habitable, "Inhabited" when it is,
     and its distance, period and gravity. The zone is left to the body's
     own page. A planet's moons follow in their own "N moons" group
@@ -333,7 +334,7 @@ def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None
         _type_chip(body),
     ]
     if any(moon["habitable"] for moon in moons):
-        stats.append('<span class="flag flag-yes">Habitable moon</span>')
+        stats.append('<span class="flag flag-yes">Habitable-class moon</span>')
     if body["inhabited"]:
         stats.append('<span class="flag flag-yes">Inhabited</span>')
     stats += [

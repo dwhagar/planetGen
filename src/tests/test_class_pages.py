@@ -133,7 +133,7 @@ def test_class_pages_show_the_constants(client):
     html = _html(client, "/classes/planet/M")
     low, high = planet["radius_range"]
     assert f"{classref.number(low)} to {classref.number(high)} km" in html  # UX.20: 1 × 10⁴ km
-    assert "<th scope=\"row\">Habitable</th><td>Yes</td>" in html
+    assert "<th scope=\"row\">Habitable class</th><td>Yes</td>" in html
     assert planet["composition"][1:] in html
 
     low_k, high_k = constants.TEMP_RANGES["G"]
@@ -354,7 +354,7 @@ def test_habitability_levels_page_explains_the_five_levels_and_the_six_domains(c
         assert f"<h3>{domain}</h3>" in html
     for colour in ("Blue", "Green", "Yellow", "Red"):
         assert f"<dt>{colour}</dt>" in html
-    for chip in ("Habitable", "Habitable moon", "Inhabited"):
+    for chip in ("Habitable class", "Habitable-class moon", "Inhabited"):
         assert f"<dt>{chip}</dt>" in html
     assert "pulsar" in html and "1,000 Sv a year" in html
 

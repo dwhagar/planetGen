@@ -140,9 +140,9 @@ COMPACT_HOST_RULE = (
 )
 
 CHIPS = (
-    ("Habitable", "The planet's class can carry life (an Earth-like or similar world). It is not a promise "
-                  "that anything lives there."),
-    ("Habitable moon", "A moon of this planet is habitable in that sense."),
+    ("Habitable class", "The planet's class can carry life (an Earth-like or similar world). It is not a rating "
+                        "and not a promise that anything lives there: the equipment level beside it is the rating."),
+    ("Habitable-class moon", "A moon of this planet is of a habitable class in that sense."),
     ("Inhabited", "A species lives here."),
 )
 """tuple: The chips a planet or moon row can show beside its equipment level."""

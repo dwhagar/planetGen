@@ -61,6 +61,10 @@ WET_BULB_CRIT_C = limit("wet_bulb_c")
 
 TIERS = ("Blue", "Green", "Yellow", "Red")
 
+POTENTIALLY_HABITABLE_TIERS = ("Blue", "Green")
+"""tuple: The overall PHI-6 colours a world can have and still count as "potentially habitable" in a system's overview
+(GEN.220; Decided default, Boss can move the line)."""
+
 PRESSURE_BAND = (limit("pressure_low_outer_kpa"), ARMSTRONG_KPA, limit("mask_min_kpa"), limit("pressure_no_gear_kpa"),
                  limit("pressure_blue_max_kpa"), limit("pressure_narcosis_kpa"), limit("pressure_hyperbaric_max_kpa"),
                  limit("pressure_outer_kpa"))

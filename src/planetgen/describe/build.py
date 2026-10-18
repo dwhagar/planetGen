@@ -350,10 +350,24 @@ def _body_section(body):
 
 # --- the system ------------------------------------------------------------------------------------------
 
+def _potentially_habitable_count(system):
+    """How many rocky planets and moons have an overall PHI-6 rating in `habitability.POTENTIALLY_HABITABLE_TIERS`."""
+    count = 0
+    for planet in system.planets + system.secondary_planets:
+        if planet.body_type == "a":
+            continue
+        for body in (planet, *planet.moons):
+            scored = body.habitability_world()
+            if scored is not None and habitability.tier(protection.rating(*scored)["overall"]) \
+                    in habitability.POTENTIALLY_HABITABLE_TIERS:
+                count += 1
+    return count
+
+
 def _overview_sentences(system):
     sentences = []
     segments = []
-    if 0 < system.planet_count != system.m_count and system.hab_count != system.planet_count:
+    if system.planet_count > 0:
         segments.append(f"{system.planet_count} planet{'s' if system.planet_count > 1 else ''}")
     if system.belt_count > 0:
         segments.append(f"{system.belt_count} asteroid belt{'s' if system.belt_count > 1 else ''}")
@@ -372,21 +386,11 @@ def _overview_sentences(system):
     elif system.planet_count == 0 and system.belt_count == 0 and system.comet_count == 0 and system.moon_count == 0:
         sentences.append("There are no stellar objects in this system.")
 
-    if system.m_count == 1:
-        m_string = "1 of which is class M"
-    elif system.m_count > 1:
-        m_string = f"{system.m_count} of which are class M"
-    else:
-        m_string = "none of which are class M"
-    hab, m = system.hab_count, system.m_count
-    if hab == 1 and m < 1:
+    habitable = _potentially_habitable_count(system)
+    if habitable == 1:
         sentences.append("There is 1 potentially habitable world in the system.")
-    elif hab == 1 and m == 1:
-        sentences.append("There is 1 class M world in the system.")
-    elif hab > 1 and hab == m:
-        sentences.append(f"There are {hab} class M worlds in the system.")
-    elif hab > 1:
-        sentences.append(f"There are {hab} potentially habitable worlds ({m_string}).")
+    elif habitable > 1:
+        sentences.append(f"There are {habitable} potentially habitable worlds in the system.")
     else:
         sentences.append("There are no potentially habitable worlds in this system.")
 

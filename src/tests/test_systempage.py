@@ -46,9 +46,9 @@ def test_one_type_chip_per_planet():
         _body(3, "Giant", 5.2, body_type="g", planet_class="J", index=2),
     ]), _SECTIONS)
     rocky = html[html.index("Rocky"):html.index("Dry")]
-    assert "Habitable" in rocky and "Terrestrial" not in rocky
+    assert "Habitable class" in rocky and "Terrestrial" not in rocky
     dry = html[html.index("Dry"):html.index("Giant")]
-    assert "Terrestrial" in dry and "Habitable" not in dry
+    assert "Terrestrial" in dry and "Habitable class" not in dry
     assert "Gas Giant" in html[html.index("Giant"):]
     assert "Habitable: " not in html
 
@@ -56,12 +56,12 @@ def test_one_type_chip_per_planet():
 def test_habitable_moon_chip_and_moon_group():
     moon = _body(9, "Pandora", 0.002, habitable=True)
     html = system_list_html(_system([_body(1, "Polyphemus", 5.0, body_type="g", moons=[moon])]), _SECTIONS)
-    assert "Habitable moon" in html
+    assert "Habitable-class moon" in html
     assert '<details class="moon-group"><summary>1 moon of Polyphemus</summary>' in html
     # The group follows the planet's own row rather than sitting inside it.
     assert html.index("</details>") < html.index('class="moon-group"')
     no_moon = system_list_html(_system([_body(1, "Plain", 1.0, moons=[_body(9, "Rock", 0.002)])]), _SECTIONS)
-    assert "Habitable moon" not in no_moon
+    assert "Habitable-class moon" not in no_moon
 
 
 def test_belt_row_shows_density_range_and_top_minerals():

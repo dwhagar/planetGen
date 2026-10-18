@@ -139,11 +139,31 @@ def test_every_body_has_a_section_in_page_order():
         assert sum(kind == "comet" for kind, _ in titles) == len(system.comets) + len(system.secondary_comets)
 
 
-def test_the_overview_says_what_the_old_summary_said():
+def test_the_overview_keeps_the_old_summary_but_counts_worlds_by_their_rating():
+    """GEN.220: the heliosphere and edge sentences are the old ones; the habitable line counts overall Green or Blue."""
     for _overrides, system in _systems():
         overview = describe(system)["sections"][0]["blocks"][0]
         assert overview["role"] == "overview"
-        assert " ".join(_plain(sentence) for sentence in overview["text"]) == system.summary_paragraph()
+        text = [_plain(sentence) for sentence in overview["text"]]
+        old = system.summary_paragraph()
+        assert " ".join(text[-2:]) == old[old.index("The star's stellar wind"):]
+        count = build._potentially_habitable_count(system)
+        line = {0: "There are no potentially habitable worlds in this system.",
+                1: "There is 1 potentially habitable world in the system."}.get(
+            count, f"There are {count} potentially habitable worlds in the system.")
+        assert text.count(line) == 1 and not any("class M" in sentence for sentence in text)
+
+
+def test_a_world_counts_as_potentially_habitable_by_its_overall_tier(monkeypatch):
+    for _overrides, system in _systems():
+        bodies = [body for planet in system.planets + system.secondary_planets if planet.body_type != "a"
+                  for body in (planet, *planet.moons)]
+        expected = sum(1 for body in bodies if body.habitability_world() is not None
+                       and habitability.tier(protection.rating(*body.habitability_world())["overall"])
+                       in ("Blue", "Green"))
+        assert build._potentially_habitable_count(system) == expected
+    monkeypatch.setattr(habitability, "POTENTIALLY_HABITABLE_TIERS", ())
+    assert all(build._potentially_habitable_count(system) == 0 for _overrides, system in _systems())
 
 
 def test_the_life_and_flavour_sentences_are_the_old_ones():
