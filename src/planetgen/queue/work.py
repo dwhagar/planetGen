@@ -1708,7 +1708,11 @@ class WorkQueue:
             raise
         finally:
             if self._executor is not None:
-                self._executor.shutdown([task.future for task in self._running])
+                # A stop (SIGTERM, Ctrl+C, an exit) takes the workers down with the run; a failed task lets the
+                # ones running finish first.
+                stopped = self._signalled is not None or (
+                    exc_type is not None and issubclass(exc_type, (KeyboardInterrupt, SystemExit)))
+                self._executor.shutdown([task.future for task in self._running], stop=stopped)
             self._stop.set()
             self._restore_sigterm()
             self._close(state)

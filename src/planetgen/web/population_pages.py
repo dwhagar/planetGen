@@ -12,9 +12,10 @@ The population pages (POP.1 to POP.4), read from the population API
 - `/polities/<id>`: one polity and the systems it owns (a data table,
   nearest its capital first).
 
-None of them exists until a population pass has made species (or, for
-the polity pages, polities): before that each is a 404 and the header
-has no Species section (`helpers.population_status`).
+The lists answer before a population pass has made species (or, for
+the polity list, polities) with an empty page that says so (UX.133); the
+one-species and one-polity pages are a 404 until then, and the header has
+no Species section (`helpers.population_status`).
 """
 
 from flask import abort, request
@@ -54,6 +55,22 @@ def _require(kind):
     exists."""
     if not population_status().get(kind):
         abort(404)
+
+
+NOT_RUN_NOTES = {
+    "species": "The population pass has not run on this galaxy yet, so it has no species.",
+    "polities": "The population pass has not run on this galaxy yet, so it has no polities.",
+}
+"""dict: The line an empty list page shows, by kind (UX.133)."""
+
+NO_POLITIES_NOTE = "No species in this galaxy has founded a polity."
+
+
+def _empty_note(kind, status):
+    """What an empty `kind` list page says: the population pass has not run, or it made none of this kind."""
+    if kind == "polities" and status.get("species"):
+        return NO_POLITIES_NOTE
+    return NOT_RUN_NOTES[kind]
 
 
 def _system_url(system_id):
@@ -142,10 +159,10 @@ SPECIES_TABLE = tables.register(Table(
 
 @bp.route("/species")
 def species():
-    """Every species, as a data table."""
-    _require("species")
+    """Every species, as a data table (an empty page with a note before the population pass)."""
     status = population_status()
-    view = tables.render(SPECIES_TABLE, request.path, anchor="species")
+    empty = not status.get("species")
+    view = None if empty else tables.render(SPECIES_TABLE, request.path, anchor="species")
     return render_page(
         "species_list.html",
         title="Species",
@@ -153,7 +170,8 @@ def species():
         breadcrumbs=[crumb("Species")],
         description="Every species this generated galaxy has, from life worlds to spacefaring civilizations.",
         table=view,
-        total=view["total"],
+        total=0 if empty else view["total"],
+        empty_note=_empty_note("species", status) if empty else None,
         polities_url=page_url("polities") if status.get("polities") else None,
     )
 
@@ -272,9 +290,10 @@ POLITIES_TABLE = tables.register(Table(
 
 @bp.route("/polities")
 def polities():
-    """Every polity, as a data table."""
-    _require("polities")
-    view = tables.render(POLITIES_TABLE, request.path, anchor="polities")
+    """Every polity, as a data table (an empty page with a note before the population pass)."""
+    status = population_status()
+    empty = not status.get("polities")
+    view = None if empty else tables.render(POLITIES_TABLE, request.path, anchor="polities")
     return render_page(
         "polities.html",
         title="Polities",
@@ -282,8 +301,9 @@ def polities():
         breadcrumbs=[crumb("Species", "species"), crumb("Polities")],
         description="Every interstellar polity in this generated galaxy.",
         table=view,
-        total=view["total"],
-        territories=population_status().get("territories"),
+        total=0 if empty else view["total"],
+        empty_note=_empty_note("polities", status) if empty else None,
+        territories=status.get("territories"),
     )
 
 

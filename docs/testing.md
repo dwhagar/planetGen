@@ -210,9 +210,10 @@ in a test that waits for something must still do what lets the test go on if the
 ### The progress log and the build id
 
 Every `scripts/test.py` run works out the id of its build (printed on the first line: `build 1a2b3c4d5e6f7a8b`) and
-keeps `.test-progress/<id>.jsonl`: a header with the parts the id is made of, then one line for every test that
-finished (node id, outcome, seconds, worker), written as the test finishes, so a killed run loses only the tests that
-were running. `--resume` reads it (below). The id changes when the
+keeps `.test-progress/<id>.jsonl`: a header with the parts the id is made of and a manifest of the files (path and
+hash, for comparing two runs' trees), then one line for every test that finished (node id, outcome, seconds, worker)
+and, for a passed test that recorded its dependencies, a `deps` line with the files it used, written as the test
+finishes, so a killed run loses only the tests that were running. `--resume` reads it (below). The id changes when the
 git tree, an uncommitted or untracked file (git-ignored files do not count), an installed package, the Python,
 MySQL or Redis version, the command and its pytest arguments, the commit `changed` compares with, a `PLANETGEN_*`
 or `PYTEST_*` variable or the UTC date changes, and not otherwise. A new run of the same build starts its log
@@ -225,16 +226,30 @@ command again with `--resume`:
 
     scripts/test.py full --resume
 
-If nothing that makes up the build id has changed (same commit and files, packages, Python, MySQL and Redis versions,
-command, arguments and day), the tests that passed in the earlier run are skipped (`--skip-passed`, a list of node
-ids) and the rest run. It prints `RESUMING build <id> from the run started <time>: the N tests that passed there are
-skipped` first, and its last line ends `(RESUMED build <id>: N more passed in the run started <time>)`, so the
-verdict can be read as: the tests run now passed, and N more passed before. A resumed run's duration is not
-stored as the command's usual time. With any other build it runs nothing, exits with 2 and names the parts that
-changed since the last run of that command. Resuming is never automatic, and a PR that was merged on a resumed
-run says which build and run it continued. Tests that failed, errored, were running when the run stopped or never
-started run again; a test that passed earlier is not run again, so a test that only passes after another test
-ran before it is not checked again either.
+The tests that passed in the earlier run are skipped (`--skip-passed`, a list of node ids) and the rest run. A test
+is skipped when it passed in a run of the same build, or (TEST.208) in an earlier run, of any command, that kept the
+same environment (installed packages, Python, MySQL and Redis versions, `PLANETGEN_*` and `PYTEST_*` variables, UTC
+day) and none of the files that differ between that run's tree and this one is a file the test used. Which files a
+test used is what the dependency map records for `changed` (its own test file, every Python file it ran, every file it
+opened, and for a test that starts a subprocess all of `src/planetgen/`, `src/html/` and `scripts/`); it is written to
+the progress log as a `deps` line when the test passes, so a cancelled run keeps it. The rules of `changed` decide:
+a changed test file, a changed file the test used or that imports one it used, or a change to the test setup
+(`conftest.py`, the `*_support.py` modules, fixtures, `pytest.ini`, the lock files) reruns it, the last one all of
+them. So after a gate was cancelled and main was merged in, only the tests the merge touched run again. A pass that
+has no `deps` line (the run was killed between the two lines, or `quick`, `area` or `browser` ran it, which record
+no dependencies) is reused only by a resume of the same build.
+
+It prints `RESUMING build <id>: the N tests that passed earlier are skipped (K in the run started <time>[ of build
+<id>]; ...), the rest run now` first, and its last line ends `(RESUMED build <id>: N more passed earlier, K in the run
+started <time> ...)`, so the verdict can be read as: the tests run now passed, and N more passed before, in those
+runs. The reused passes are copied into the new build's log, so a second resume counts them too. A resumed run's
+duration is not stored as the command's usual time. A different environment (a package, Python, a server, a
+`PLANETGEN_*` variable or the day) reuses nothing: the run says `RESUMING build <id>: nothing from the earlier runs
+can be reused (<why>); every test runs` and runs every test. When no earlier run of the command left a log it runs
+nothing, exits with 2 and says so. Resuming is never automatic and not part of the merge gate, and a PR that was
+merged on a resumed run says which build and runs it continued. Tests that failed, errored, were running when the run
+stopped or never started run again; a test that passed earlier is not run again, so a test that only passes after
+another test ran before it is not checked again either.
 
 #### What a run clears first, and what a resumed run records
 
@@ -245,7 +260,9 @@ only `PLANETGEN_TEST_REDIS_URL` (never `PLANETGEN_REDIS_URL`) and removes only k
 the API test queues `planetgen-api-test-*`, the run queues `planetgen-run-*` and queues `test-*`, with the job
 records those queues list. It does not flush the database and leaves the rate-limit keys (`LIMITS:*`, which expire on
 their own and are shared by every running test). A run queue of the application is named like a test's, so if any
-worker has sent a heartbeat in the last 90 seconds the clean-up does nothing and says so. It prints
+worker has sent a heartbeat in the last 90 seconds the clean-up does nothing and says so, and a queue that lists a
+job made in the last 15 minutes is left whole (another run may be queueing for workers that have not yet started: its
+test would end with `WorkerDied: the task's job ended canceled`, TEST.203). It prints
 `removed N keys earlier test runs left on the test Redis` when it cleared something.
 
 A resumed run with `--record-deps` or `--check` keeps the dependency-map entries of the tests it skipped and

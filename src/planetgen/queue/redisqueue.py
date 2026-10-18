@@ -150,6 +150,14 @@ TASK_RETRIES = 1
 POLL_SECONDS = 0.05
 """float: How often `RQExecutor.wait` reads the tasks' states."""
 
+STOP_GRACE_SECONDS = 1.5
+"""float: How long a stopped worker gets between the two stop signals. RQ's first SIGTERM is a warm shutdown (the
+work horse finishes its task), the second a cold one (the horse is killed); RQ ignores a second signal that comes
+within a second of the first."""
+
+STOP_WAIT_SECONDS = 30
+"""float: How long `RQExecutor.stop` waits for the workers to exit after the second signal before it kills them."""
+
 _DONE_STATES = ("finished", "failed", "stopped", "canceled")
 
 
@@ -339,9 +347,38 @@ class RQExecutor:
         report through."""
         return Channel(self.url, f"{self.queue.name}:{name}")
 
-    def shutdown(self, futures=()):
+    def stop(self):
+        """
+        Stops the run's workers and the tasks they are running (OPS.59): SIGTERM to each worker, then, after the
+        grace RQ needs to tell a second signal from a repeat, SIGTERM again, which makes RQ take its work horse
+        down with it; a worker still alive after `STOP_WAIT_SECONDS` is killed. Every process is reaped. A task
+        that was running ends with its database transaction rolled back, as when a worker dies.
+        """
+        live = [proc for proc in self._procs.values() if proc.poll() is None]
+        try:
+            for proc in live:
+                proc.terminate()
+            grace = time.monotonic() + STOP_GRACE_SECONDS
+            while time.monotonic() < grace and any(proc.poll() is None for proc in live):
+                time.sleep(POLL_SECONDS)
+            for proc in live:
+                if proc.poll() is None:
+                    proc.terminate()
+            for proc in live:
+                try:
+                    proc.wait(timeout=STOP_WAIT_SECONDS)
+                except subprocess.TimeoutExpired:
+                    pass
+        finally:
+            for proc in live:
+                if proc.poll() is None:
+                    proc.kill()
+                    proc.wait()
+
+    def shutdown(self, futures=(), stop=False):
         """Cancels the tasks no worker has started, waits for the ones
-        running, then for the workers to exit and drops the queue."""
+        running (or, with `stop`, stops the workers and the tasks with
+        them), then for the workers to exit and drops the queue."""
         futures = list(futures)
         for future in futures:
             if future.job is not None and not future.done():
@@ -350,7 +387,9 @@ class RQExecutor:
                         future.job.cancel()
                 except Exception:  # noqa: BLE001 -- best effort; the queue is dropped below
                     pass
-        while True:
+        if stop:
+            self.stop()
+        while not stop:
             self._refresh(futures)
             if all(future.done() for future in futures):
                 break
