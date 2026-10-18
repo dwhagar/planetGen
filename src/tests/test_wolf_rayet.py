@@ -243,3 +243,13 @@ def test_a_wolf_rayet_star_older_than_the_limit_lights_nothing_and_neither_does_
     assert nebula_contents.hosted_nebula_of(old) is None
     ordinary = types.SimpleNamespace(type="G2V Yellow Main Sequence Star", age=0.004, mass=1.0e30, temperature=5800.0)
     assert nebula_contents.hosted_nebula_of(ordinary) is None
+
+
+def test_the_class_tables_hold_the_wolf_rayet_class():
+    from planetgen.generation import star_labels
+    from planetgen.physics import constants
+    assert constants.YERKES_LUMINOSITY_RANGES["W"] == tuple(int(v) for v in tuning.WR_LUMINOSITY_RANGE_SOL)
+    low, high = constants.YERKES_MASS_CONSTRAINTS["W"]
+    assert low <= tuning.WR_MIN_INITIAL_MASS_SOL * tuning.WR_PRESENT_MASS_FRACTION_RANGE[0]
+    assert high >= tuning.IMF_BREAKS_SOL[-1] * tuning.WR_PRESENT_MASS_FRACTION_RANGE[1]
+    assert star_labels.star_label("WN6", "W") == ("Wolf-Rayet star", "Wolf-Rayet stars")
