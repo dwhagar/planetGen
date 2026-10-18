@@ -43,6 +43,7 @@ import math
 from collections import namedtuple
 
 from planetgen import tuning
+from planetgen.physics import black_hole_formation
 
 Structure = namedtuple(
     "Structure",
@@ -54,6 +55,7 @@ Structure = namedtuple(
         "disc_gas_dispersion_kms", "disc_central_dispersion_kms", "disc_age_exponent",
         "bulge_dispersion_scatter_dex",
         "stellar_mass_solar", "classical_bulge", "black_hole_deviation", "nuclear_cluster_mass_solar",
+        "black_hole_solar_share", "black_hole_metal_free_share",
     ],
 )
 """A galaxy's thick disk, bar, stellar halo and population motions (not stored; see the module docstring).
@@ -68,7 +70,8 @@ exponent of its heating; `bulge_dispersion_scatter_dex` is the bulge's dispersio
 `stellar_mass_solar` is the galaxy's stellar mass; `classical_bulge` says whether its bulge is a classical one (the
 black hole follows the bulge's mass) or not (it follows the stellar mass); `black_hole_deviation` is the central black
 hole's draw about its law in standard deviations; `nuclear_cluster_mass_solar` is the nuclear star cluster's mass,
-zero for a galaxy that has none (GEN.402)."""
+zero for a galaxy that has none (GEN.402); the two `black_hole_*_share` are the shares of the massive stars that fail to explode,
+at solar and at zero metallicity (GEN.563, `physics.black_hole_formation`)."""
 
 SOLAR_RADIUS_OVER_TWO_LENGTHS = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH / 2.0
 """float: `R / 2 h_R` at the solar-like radius, the exponent of the fall of the dispersion."""
@@ -104,6 +107,8 @@ def _milky_way_thick_mass_ratio():
     return amplitude * ratio ** 2 * _MILKY_WAY_THICK_HEIGHT_RATIO
 
 
+_MIDDLE_BLACK_HOLE_SHARES = black_hole_formation.middle_failed_shares()
+
 REFERENCE_STRUCTURE = Structure(
     vc_kms=220.0,
     thick_mass_ratio=_milky_way_thick_mass_ratio(),
@@ -114,12 +119,14 @@ REFERENCE_STRUCTURE = Structure(
     disc_gas_dispersion_kms=6.5, disc_central_dispersion_kms=0.248 * 220.0, disc_age_exponent=0.441,
     bulge_dispersion_scatter_dex=0.0,
     stellar_mass_solar=5.0e10, classical_bulge=False, black_hole_deviation=0.0, nuclear_cluster_mass_solar=2.5e7,
+    black_hole_solar_share=_MIDDLE_BLACK_HOLE_SHARES[0], black_hole_metal_free_share=_MIDDLE_BLACK_HOLE_SHARES[1],
 )
 """Structure: The Milky Way's published structure, the check target of the math check and the structure of a shape
 built with no seed. The thick disk and the bar are the Bland-Hawthorn and Gerhard 2016 (ARA&A 54:529) and Dwek et al.
 1995 (ApJ 445:716, fit G2) numbers, the bar's angle Wegg and Gerhard 2013 (MNRAS 435:1874) 27 degrees from the
 Sun-centre line (BHG16: 28 to 33), the halo 1.4e9 solar masses of the 5e10 of stars (Deason et al. 2019,
-arXiv:1908.02763) and the disc's motions the laws above at `Vc` = 220 km/s."""
+arXiv:1908.02763), the disc's motions the laws above at `Vc` = 220 km/s and the black hole shares the middle of the
+draws (a stand-in: no measurement gives a galaxy's)."""
 
 
 def stellar_halo_system_fraction(structure):

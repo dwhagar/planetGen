@@ -42,6 +42,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from planetgen import tuning
+from planetgen.galaxy import black_hole_density as blackHoleDensity
 from planetgen.galaxy import component_field as componentField
 from planetgen.galaxy import density as galaxyDensity
 from planetgen.galaxy import ejecta_field, nebula_field, spherical, superbubble_field
@@ -287,9 +288,12 @@ def kind_factors_at(populations, gas_fraction, cold_fraction, shape):
     docs/design/intergalactic-and-halo-contents.md section 5). The rates themselves stay per star
     (`tuning.phenomenon_rate_per_star`); a kind absent here is not scaled.
 
-    * **1 everywhere**: `neutron-star` and `black-hole` (bound remnants are born where massive stars were and kicked
-      into the disk's thickness, so they follow the stars; the kick's thickening belongs to the disk populations'
-      motion, not to the rate) and `brown-dwarf` (every population makes it). The 9,000 L_sun
+    * **1 everywhere**: `neutron-star` (a bound remnant is born where massive stars were and kicked into the disk's
+      thickness, so it follows the stars; the kick's thickening belongs to the disk populations' motion, not to the
+      rate) and `brown-dwarf` (every population makes it).
+    * **`black-hole`** (GEN.563): the share of the place's massive stars that failed to explode and have made their
+      remnant (`black_hole_density.place_factor_from_peaks`): the populations' shares, ages and [Fe/H] peaks, so a
+      metal-poor place makes more. Its rate per star is `black_hole_density.base_rate_per_star()`. The 9,000 L_sun
       floor under the bright stars is not a rate and stays. A runaway flag is a speed against the neighbours, so it
       needs no factor either.
     * **`supernova-remnant`**: the gas fraction (the remnant of a core collapse shines only where the shell meets gas),
@@ -321,7 +325,8 @@ def kind_factors_at(populations, gas_fraction, cold_fraction, shape):
     young, old = _young_and_old_against_the_solar_circle(populations, shape)
     young = min(1.0, young)
     return {
-        "neutron-star": 1.0, "black-hole": 1.0, "planetary-nebula": min(1.0, old), "brown-dwarf": 1.0,
+        "neutron-star": 1.0, "black-hole": blackHoleDensity.place_factor_from_peaks(populations, shape.structure),
+        "planetary-nebula": min(1.0, old), "brown-dwarf": 1.0,
         "supernova-remnant": gas_fraction * (1.0 - populations["cluster"].share),
         "molecular-cloud": cold_fraction * young,
         "nebula": cold_fraction,

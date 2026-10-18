@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 
 from planetgen import tuning
-from planetgen.galaxy import density, remnant_distribution
+from planetgen.galaxy import black_hole_density, density, remnant_distribution
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy import spherical
 from planetgen.galaxy.spherical import sector_address_at, wedge_count
@@ -95,7 +95,7 @@ def test_a_shell_with_no_bands_to_draw_has_no_rows():
     assert _shell(high_band=-1) == []
 
 
-def _expected_in_shell(kind, rate, shell, high_band):
+def _expected_in_shell(kind, rate, shell, high_band, subtype=None):
     """What the band-by-band means add up to for one kind in one shell (the mean the arrays draw its Poisson
     counts from, worked out here with the scalar density and factors)."""
     bins = bright_stars.ANGLE_BINS
@@ -105,7 +105,10 @@ def _expected_in_shell(kind, rate, shell, high_band):
         weight = 0.0
         for k in range(bins):
             angle = (k + 0.5) * 2.0 * math.pi / bins
-            weight += sum(bright_stars._densities((plane * math.cos(angle), plane * math.sin(angle), z), SHAPE).values())
+            point = (plane * math.cos(angle), plane * math.sin(angle), z)
+            stars = sum(bright_stars._densities(point, SHAPE).values())
+            # A stellar-mass black hole weighs the stars by the failed share of their metals (GEN.563).
+            weight += stars * black_hole_density.place_factor(point, SHAPE) if (kind, subtype) == ("black-hole", "stellar") else stars
         if kind in tuning.REMNANT_SCALE_HEIGHT_RATIO:
             weight *= (remnant_distribution.vertical_factor(kind, z, SHAPE.disk_scale_height_pc)
                        * remnant_distribution.radial_factor(kind, plane))
@@ -121,6 +124,6 @@ def test_the_counts_match_the_band_by_band_means():
     for shell in (4, 8):
         rows = [row for seed in range(seeds) for row in _shell(shell, seed=seed)]
         for kind, subtype, rate in rates:
-            expected = _expected_in_shell(kind, rate, shell, HIGH_BAND) * seeds
+            expected = _expected_in_shell(kind, rate, shell, HIGH_BAND, subtype) * seeds
             got = sum(1 for row in rows if row[3] == kind and row[4] == subtype)
             assert abs(got - expected) <= 5 * math.sqrt(max(expected, 1.0)) + 2, (kind, subtype, shell, got, expected)
