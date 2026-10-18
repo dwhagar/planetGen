@@ -916,7 +916,8 @@ def _bright_row(position_pc, luminosity_sol, edge_pc):
 def test_galaxy_bright_stars_in_box_matches_a_brute_force_search(mysql_config, monkeypatch, outline, ranges_per_ring):
     """Every box -- small (exact address ranges, or one range per shell),
     wrapped past +X, around the axis, or most of the galaxy (the
-    luminosity index) -- lists exactly the most luminous stars inside it."""
+    luminosity index) -- lists exactly the most luminous stars inside it
+    (a full list, only the best half of it: the rest is spread, MAP.251)."""
     import random
 
     if ranges_per_ring:
@@ -951,7 +952,17 @@ def test_galaxy_bright_stars_in_box_matches_a_brute_force_search(mysql_config, m
                     (-lum, star_id) for star_id, (p, lum) in zip(ids, stars)
                     if all(lo[a] <= round(p[a] * 1000) / 1000 < hi[a] for a in range(3))
                 ]
-                assert [s["id"] for s in got] == [star_id for _l, star_id in sorted(inside)[:limit]], (lo, hi, limit)
+                best = [star_id for _l, star_id in sorted(inside)]
+                # MAP.251: a full list keeps every star of the bands above the one the cut falls in, and the cut band
+                # thins; a list that fits is whole.
+                assert len(got) == min(limit, len(best)), (lo, hi, limit)
+                if len(best) <= limit:
+                    assert [s["id"] for s in got] == best, (lo, hi, limit)
+                else:
+                    bands = {star_id: query._decade_band(lum) for star_id, (_p, lum) in zip(ids, stars)}
+                    cut = min(bands[s["id"]] for s in got)
+                    assert {star_id for star_id in best if bands[star_id] > cut} <= {s["id"] for s in got}, (lo, hi, limit)
+                    assert {s["id"] for s in got} <= set(best[:limit * query.EVEN_DROP_POOL]), (lo, hi, limit)
         top = query.galaxy_bright_stars_in_box(conn, (-300, -300, -300), (300, 300, 300), edge, limit=1)[0]
     finally:
         conn.close()
@@ -964,7 +975,7 @@ def test_galaxy_bright_stars_in_box_matches_a_brute_force_search(mysql_config, m
 
 def test_galaxy_bright_stars_in_box_takes_big_boxes_from_the_galaxy_wide_sample(mysql_config, monkeypatch):
     """A box over the row budget (MAP.47) is answered from the galaxy-wide
-    sample: exactly the box's brightest when the sample holds `limit` of
+    sample: the box's brightest, cut as a full list is (MAP.251), when the sample holds `limit` of
     them there, else the sample's stars inside it, still brightest first."""
     import random
 
@@ -993,7 +1004,12 @@ def test_galaxy_bright_stars_in_box_takes_big_boxes_from_the_galaxy_wide_sample(
         for lo, hi in [((-200, -200, -50), (200, 200, 50)), ((0, 0, -50), (200, 200, 50)), ((20, -60, -5), (90, 10, 5))]:
             inside = [i for i, (p, _lum) in ranked if all(lo[a] <= round(p[a] * 1000) / 1000 < hi[a] for a in range(3))]
             whole = query.galaxy_bright_stars_in_box(conn, lo, hi, edge, limit=20, brightest=sample_of(len(stars)))
-            assert [s["id"] for s in whole] == inside[:20]
+            # MAP.251: a full list holds the best tenth exactly, every star of the bands above the cut, and a thinned cut band.
+            assert len(whole) == min(20, len(inside)) and {s["id"] for s in whole} <= set(inside)
+            assert [s["id"] for s in whole][:2] == inside[:2]
+            band = {i: query._decade_band(lum) for i, (_p, lum) in ranked}
+            cut = min(band[s["id"]] for s in whole)
+            assert {i for i in inside if band[i] > cut} <= {s["id"] for s in whole}
             top = {i for i, _s in ranked[:100]}
             thinned = query.galaxy_bright_stars_in_box(conn, lo, hi, edge, limit=400, brightest=sample_of(100))
             assert [s["id"] for s in thinned] == [i for i in inside if i in top]
