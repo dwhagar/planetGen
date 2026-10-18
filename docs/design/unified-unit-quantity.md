@@ -1,6 +1,6 @@
 # One unit and quantity class for everything the project measures
 
-**Status:** plan (decided). Written after 11:51 PM EDT on 2026-10-17 from `main` at bc97f75; approved by Boss on the six cards Q1 to Q6 of section 9, taps 11:56 to 11:57 PM EDT on 2026-10-17 (as the coordinator relayed), each the recommended option. Nothing is built. It adds a section to the unified mass-object plan ([unified-star-like-objects.md](unified-star-like-objects.md), [mass-object-class.md](mass-object-class.md)). The provisional labels UN1 to UN12 of section 8 are filed as: UN1 = GEN.568, UN2 = GEN.569, UN3 = GEN.570, UN4 = DB.76, UN5 = GEN.571, UN6 = UX.139, UN7 = UX.140, UN8 = GEN.573, UN9 = GEN.574, UN10 = DB.77, UN11 = DOC.70, UN12 = GEN.575; the exact-factor step of UN5 (Q6) is its own item, GEN.572. Two changes from section 8's text: the removal of the duplicate constant names is the last step of GEN.571 (after its sweeps merge), not of GEN.568, so UN1 has no wait on UN5; and Q6 is its own item because the exact factors change a scatter output (see GEN.572). Boss tapped 'Pull into 8.1' on the card for GEN.572 at 12:04 AM EDT on 2026-10-18 (as the coordinator relayed): it is built in 8.1, before the one wiped rescatter, and is a prerequisite of GEN.301.
+**Status:** plan (decided). Written after 11:51 PM EDT on 2026-10-17 from `main` at bc97f75; approved by Boss on the six cards Q1 to Q6 of section 9, taps 11:56 to 11:57 PM EDT on 2026-10-17 (as the coordinator relayed), each the recommended option. Nothing is built. It adds a section to the unified mass-object plan ([unified-star-like-objects.md](unified-star-like-objects.md), [mass-object-class.md](mass-object-class.md)). The provisional labels UN1 to UN12 of section 8 are filed as: UN1 = GEN.568, UN2 = GEN.569, UN3 = GEN.570, UN4 = DB.76, UN5 = GEN.571, UN6 = UX.139, UN7 = UX.140, UN8 = GEN.573, UN9 = GEN.574, UN10 = DB.77, UN11 = DOC.70, UN12 = GEN.575; the exact-factor step of UN5 (Q6) is its own item, GEN.572; the relation items of section 11 are filed as UN13 = GEN.585, UN14 = GEN.586, UN15 = GEN.587, UN16 = GEN.588 (cards R1 to R4, 12:41 to 12:43 AM EDT on 2026-10-18). Two changes from section 8's text: the removal of the duplicate constant names is the last step of GEN.571 (after its sweeps merge), not of GEN.568, so UN1 has no wait on UN5; and Q6 is its own item because the exact factors change a scatter output (see GEN.572). Boss tapped 'Pull into 8.1' on the card for GEN.572 at 12:04 AM EDT on 2026-10-18 (as the coordinator relayed): it is built in 8.1, before the one wiped rescatter, and is a prerequisite of GEN.301.
 
 **Boss, 11:51 PM EDT:** "I want part of this plan to be the creation of the unified 'unit' code, it will store any kind of unit we use, it stores and updates itself if you have a Watt unit then when you put in Watt it convers it to every other format we use immediately so that when the time comes it can just be referenced. This is what we did with point in space, which every mass object must have a point in space."
 
@@ -14,6 +14,13 @@ Evidence tags: **[M]** measured in the repository (count, grep, AST walk), **[E]
 - **Q4** The unit suffix in names stays, and a test checks it equals the declared unit.
 - **Q5** Rolled out inside the host chain items, file group by file group, each sweep bit-identical on the golden set; the registry and the class first.
 - **Q6** The two rounded factors (63241.077 AU per ly, 3.26156 ly per pc) become the exact ones in the first sweep, as one epoch-changing change that rides the pending epoch.
+
+## Decided (Boss, 12:41 to 12:43 AM EDT on 2026-10-18, card taps R1 to R4, all on the recommended option)
+
+- **R1** Dimensions in the registry plus named relations with a dimension test; plain floats in the kernels; no operator arithmetic on `Quantity` in the kernels (UN16, optional, stays unscheduled).
+- **R2** Relations declared as data (name, input kinds, output kind, formula), with the float kernel and the `Quantity` wrapper generated from the one declaration.
+- **R3** SI inside the kernels, other unit systems (AU, year, solar mass) generated from the registry where a kernel wants them, so 4 pi squared comes from G's dimension.
+- **R4** The relations replace the hand-written laws with the UN5 sweep, file group by file group, only where the golden set is unchanged.
 
 Order and lane check (written 11:58 PM EDT): see "Lane check" at the end of section 8. The cards in section 9 below are kept as asked.
 
@@ -214,3 +221,77 @@ Estimated size **[E]**: UN1 to UN2 about 400 to 600 new lines with tests; UN5 an
 ## 10. What this does not do
 
 It does not change what the site shows (ladder thresholds, asides and preference systems stay), does not add a dependency, does not convert generation maths to wrapped objects, and does not choose which physical constants are used (that stays `constants.py`).
+
+## 11. Converting between kinds: derived units and named relations (added 12:15 AM EDT on 2026-10-18; decided 12:43 AM EDT)
+
+**Boss, 12:09 AM EDT:** "Do we need any unit converters? Not between the same type of unit (length to length) but say from one type of unit to another by putting 2 or more other units together in the right order."
+
+### 11.1 Short answer
+
+Yes, but it is not one more converter. It is two small things the registry of section 4.2 needs: **a dimension on every unit** (so the registry knows that a watt is mass x length squared per time cubed, and that surface gravity is length per time squared), and **a short list of named relations** that put quantities together in the right order (mass and radius give surface gravity, luminosity and distance give flux). The code does this by hand about 50 times, in three different unit systems, and each hand version carries its own unit juggling. Full operator arithmetic on `Quantity` (multiply two quantities and get a third) is optional and I would keep it out of the generation kernels.
+
+### 11.2 What the code writes by hand **[M]**
+
+The same law appears in several files, each with its own unit handling:
+
+| Relation (kinds involved) | Sites in `src/planetgen` | Where |
+|---|---|---|
+| Schwarzschild radius, 2GM/c^2 (mass -> length) | 7 lines in 6 files | `compact_remnant.py:324`, `quasar.py:89`, `multistar.py:425`, `phenomena_plausibility.py:393,519`, `stability.py:34`, `mathcheck.py:288` |
+| Surface gravity, GM/r^2, then divided by Earth's (mass, length -> acceleration) | 5 lines in 4 files | `planets.py:591`, `plausibility.py:156,203`, `rogue_surface.py:135`, `db/query.py:2047` |
+| Density and sphere volume (mass, length <-> density) | 11 lines in 6 files | `admin/edits.py:350-351`, `rogue.py:254`, `bulk_mass.py:20,26`, `planets.py:177,178,556,1136,1260`, `plausibility.py:156` |
+| Luminosity, radius, temperature, 4 pi R^2 sigma T^4 (length, temperature <-> power) | 9 lines in 8 files | `compact_remnant.py:574`, `star.py:1407`, `phenomena_plausibility.py:419`, `stellar_evolution.py:593`, `brown_dwarf.py:74`, `pre_main_sequence.py:69`, `radiation.py:202`, `planets.py:664,714` (equilibrium temperature) |
+| Kepler's third law and mean motion (length, mass -> time) | 13 lines in 8 files, in **three unit systems** | AU, years and solar masses (`kepler.py:101`, `planets.py:340`, `stability.py:49`, `companion_classes.py:55`, `multistar.py:589-594`); SI (`hydrosphere.py:215`, `formation.py:124`, `position.py:150`); AU^3/yr^2 and km/s (`state_vectors.py:180`, `system_tree.py:33`, `body_positions.py`) |
+| Escape and break-up speed, vis-viva (mass, length -> speed) | 3 lines in 3 files | `star.py:765`, `spin.py:195`, `kepler.py:343` |
+| Anything using G | 45 lines in 26 files | |
+| 4 pi, or a unit juggle `radius_km * 1000.0` beside a radius | 38 lines in 25 files; 24 lines of the juggle | |
+| Earth's gravity as a divisor | 15 lines outside `constants.py` | |
+
+So about 50 sites write one of six laws, and the units are handled by hand at each (a `/ 1000.0` here, `constants.KM_TO_M_FACTOR` there, a division by `EARTH_GRAVITY` in a third place). Two things in the code already point the way:
+
+- **Natural-unit shortcuts.** Orbital code works in AU, years and solar masses so that G becomes 4 pi^2 (`kepler.AU3_PER_YR2_PER_SOLAR_MASS`, `T = sqrt(a^3/M)`). That is a derived-unit conversion done by hand once, in the head of the author, and then repeated as a bare constant. A dimension-aware registry computes it: G has dimension length^3 mass^-1 time^-2, so its number in any chosen base units (SI, or AU-year-solar-mass) follows without anyone remembering 4 pi^2.
+- **`physics/mathcheck.py`** (1,012 lines, 58 checks) already runs before everything else and has an "invariant" group that checks "unit conversions round-trip, the constants agree with each other" (TEST.65). A dimension check of every relation belongs in that gate.
+
+### 11.3 What I propose
+
+1. **Dimensions are required, not optional, in the registry (UN1).** Each unit has an exponent vector over mass, length, time, temperature (angle and counts stay dimensionless kinds). A watt is `[M1 L2 T-3]`; a compound unit's factor is checked against its parts (km/s = km / s), and the derived kinds the code uses (density, acceleration, energy, force, mass flow, flux, number density, angular momentum) are listed with their dimensions and display units. Cost: about 100 lines and a table, no runtime cost.
+2. **Unit systems.** The registry can state a coherent system by naming its base units (SI; AU, year, solar mass). The numeric value of any constant (G, c, sigma) in a system is computed from its dimension and the base units, so the 4 pi^2 constant and similar shortcuts are generated and tested, not typed.
+3. **Named relations in one module (`physics/relations.py`).** Each relation is declared once as data: its name, its input kinds, its output kind, and a formula. Two entry points come from the declaration: a **float kernel** in SI (fast, for generation: `surface_gravity(mass_kg, radius_m)`) and a **Quantity wrapper** for the edges (`surface_gravity(Quantity mass, Quantity radius)` returns a Quantity of kind acceleration, every unit and the Earth multiple answered). About 15 relations cover the table above plus Hill radius, Roche limit, equilibrium temperature, inverse-square flux and mass flow.
+4. **A dimension test for every relation.** The test runs the formula once on probe objects that carry a dimension and checks the result has the declared output dimension; a formula written with the ordinary operators passes through unchanged, and a mistake (km where m was meant, a missing square) fails. This is the "a mismatch is refused" part of Boss's question, done in the test gate and not at run time. It needs the formulas to use `+ - * / **` (a `sqrt` goes through a `relations.sqrt` that accepts probes).
+5. **Optional: operator arithmetic on `Quantity`** (`mass / volume` gives a Quantity whose kind is found by dimension, density if it matches a listed kind, else an anonymous derived unit; adding mismatched dimensions raises). Worth it at the edges (describe, API, one-off values, tests); not in the kernels, because the unit research measured a Quantity round trip at 22 to 37 microseconds against 0.17 to 0.5 for a float operation **[C]** (section 4.4).
+
+### 11.4 Cost and saving **[E]**
+
+- New: dimensions and systems about 100 to 150 lines; the relations module and its tests about 250 to 350 lines; operator arithmetic, if chosen, about 150 lines.
+- Removed: the roughly 50 hand-written sites collapse to about 15 relation functions and calls; 60 to 120 lines and the unit juggle at each site; the three Kepler unit systems become one law with three views; the Schwarzschild, gravity, density and luminosity forms stop disagreeing (they are written once).
+- Net lines: about zero to plus 150. **The saving is not lines.** It is that a law has one definition, a unit slip is found by a test, and Boss's own example (put in a watt, get every power format) extends to put in a mass and a radius and get every density and gravity format.
+- Risk: moving a formula can change its last digits (an operation order changes), so every relation is introduced with the same bit-identical rule as the unit sweep (card Q5): a relation replaces a site only where the golden set is unchanged, and a site that differs in the last digit goes with an epoch-changing change.
+
+### 11.5 Items to add to section 8 (decided: R1 to R4 tapped on the recommended options, 12:41 to 12:43 AM EDT on 2026-10-18; TODO files UN13 to UN16)
+
+- **UN13 Dimensions and unit systems in the registry.** Extends UN1 (dimension required; the derived kinds and display units; unit systems and constant values computed from dimension). Core 5 or Core 4.
+- **UN14 `physics/relations.py`.** The declared relations and the two entry points, with the dimension test in the `mathcheck` gate. Depends on UN13, UN2. Core 4.
+- **UN15 Replace the hand-written relation sites** in file groups (the table of 11.2), bit-identical on the golden set. Part of the UN5 sweep, Core 5, in files not open in another lane.
+- **UN16 (optional) operator arithmetic on `Quantity`** for the edges. Depends on UN14. Core 5.
+
+### 11.6 Cards (all four tapped on the recommended option, 12:41 to 12:43 AM EDT on 2026-10-18, as the coordinator relayed) (answered, recommended option on all four; see the Decided block at the top)
+
+**R1. How far does dimension awareness go?**
+1. Dimensions in the registry and named relations with a dimension test; plain floats in the kernels; no operator arithmetic. **Recommended.** Catches the slips where they are written, costs nothing at run time.
+2. Also operator arithmetic on `Quantity` at the edges (describe, API, one-off values). Adds UN16 for a nicer edge code; two ways to build a derived value.
+3. Full dimension-aware arithmetic in all code, kernels included. Safest against slips; 20 to 100 times slower in the kernels **[C]** (section 4.4), so it forces a rewrite of the generation maths.
+4. No dimensions: only same-kind conversion as in section 4. Smallest change; the 50 hand-written sites and the three Kepler unit systems stay.
+
+**R2. How are relations declared?**
+1. As data (name, input kinds, output kind, formula), with the float kernel and the Quantity wrapper generated from it. **Recommended.** One definition per law.
+2. As hand-written SI kernels in one module, with the dimension test beside them and no wrapper. Simplest; edges convert by hand.
+3. As Quantity-only functions. Clean to read; every call pays the Quantity cost.
+
+**R3. Which unit system do the kernels use?**
+1. SI everywhere inside a kernel, converted at the edges, with the AU-year-solar-mass shortcut generated from the registry where a kernel runs in it for speed or readability. **Recommended.**
+2. Keep AU-year-solar-mass for orbital code and SI for the rest, as in the code, and only register both. No rewrite; the three Kepler views remain by hand.
+3. One system for everything (AU-year-solar-mass). Constants are neat; km-scale and kg-scale code gets awkward numbers.
+
+**R4. When?**
+1. With the UN5 sweep and Q5's rule: a relation replaces a site only where the golden set is unchanged; the registry and the relations module first. **Recommended.**
+2. A dedicated relations sweep first. Cleaner start; touches 26 files at once and meets every lane's open branches.
+3. Only for new code. Least risk; the duplicates stay.
