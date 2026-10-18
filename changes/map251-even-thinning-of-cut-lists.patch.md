@@ -5,4 +5,4 @@
 - Docs: `docs/design/zoom-star-visibility.md` section 11 writes the rule.
 - Tests: `test_even_drop.py` (the cut band thins by the same share in a crowded and a sparse region, no brighter band is dropped while a dimmer one is listed, longer lists keep a shorter one's objects, the tier order, order independence) and the brute-force bright-star box test and the MAP.154 weight test now expect whole bands above the cut.
 
-TODO items resolved: MAP.251 / Added: none
+TODO items resolved: none (MAP.251 is done for the tile lists; the stage views, the Sector Map and the client limits remain) / Added: none
