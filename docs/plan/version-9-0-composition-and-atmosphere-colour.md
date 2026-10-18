@@ -46,7 +46,7 @@ The colour shown in the descriptions, on the maps in place of the planet colour,
 |---|---|---|---|
 | GEN.420 | The descriptions show the atmosphere colour: a swatch and a word in the planet and moon facts, in every output | GEN.418, GEN.419 | Boss 11:24 PM EDT; one place serves every output. |
 | MAP.244 | The maps and pages use the atmosphere colour where they showed the planet colour | GEN.420 | Boss 11:24 PM EDT; replaces the temperature gesture. |
-| GEN.446 | The descriptions state the composition of stars, surfaces and small bodies, and the radiation at the surface | GEN.440, GEN.441, GEN.442, GEN.444, GEN.445 | Boss 11:58 PM EDT; stars, surfaces, small bodies and radiation in the text. |
+| GEN.446 | The descriptions state the composition of stars, surfaces and small bodies, and the radiation at the surface | GEN.441, GEN.442, GEN.444, GEN.445 | Boss 11:58 PM EDT; stars, surfaces, small bodies and radiation in the text. |
 | DOC.64 | Docs: the atmosphere colour, its method and its sources | GEN.420, MAP.244 | Boss 11:24 PM EDT; docs only. |
 
 ### Stand-in replacements
@@ -56,7 +56,7 @@ The colour shown in the descriptions, on the maps in place of the planet colour,
 | GEN.473 | Replace the asteroid taxon shares and the zone kernel, measured in the Solar System belt, by a derived or general distribution | GEN.442 | Boss 1:44 AM EDT, Stand-in only: replace the measured Solar System taxon shares by a derived or general distribution. |
 | GEN.474 | Replace the Earth rock-type library, measured on Earth, by ground types derived from the bulk composition and the melting of the mantle | GEN.441 | Boss 1:44 AM EDT, Stand-in only: replace the Earth rock-type library by derived ground types. |
 | GEN.475 | Meteorite groups become outputs and not inputs: regions of composition space reachable from the drawn bulk, with the measured groups kept as calibration | GEN.473, GEN.474, GEN.451 | Boss 1:44 AM EDT, Stand-in only: R3, meteorite groups as outputs of the drawn chemistry. |
-| GEN.476 | Aluminium-26 and iron-60 follow from the star's formation environment, not from the Solar System's own value and range | GEN.459, GEN.440 | Boss 1:44 AM EDT, Stand-in only: R4, Al-26 and Fe-60 from the formation environment. |
+| GEN.476 | Aluminium-26 and iron-60 follow from the star's formation environment, not from the Solar System's own value and range | GEN.459 | Boss 1:44 AM EDT, Stand-in only: R4, Al-26 and Fe-60 from the formation environment. |
 
 ### Weight research (atmosphere)
 

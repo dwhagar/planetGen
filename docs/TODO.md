@@ -8998,7 +8998,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test target here and in TEST.210), not 3.9 to 5.4. Core mass fraction
   from the star is 0.2 to 0.47 with the Thiabaud box used only as a
   plausibility box.
-  Prerequisites: GEN.427, GEN.440, GEN.458, GEN.557. Related: GEN.429,
+  Prerequisites: GEN.427, GEN.458, GEN.557. Related: GEN.429,
   DB.69,
   GEN.430.
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
@@ -9185,230 +9185,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   code; the planet classes' fixed composition strings are replaced by
   the drawn mixture and the class label becomes a summary derived from
   it.
-
-- [ ] **GEN.439 The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers**
-  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
-  "atmosphere composition and planet/moon/star/everything composition is
-  going to be the joint headline of v9.0 ... we need to know the
-  compounds, minerals, and such make up both atmospheres and stellar
-  bodies of all sorts, what is there and all the stats needed to include
-  it in our calculations. The idea is that every body will have figures
-  on its composition based on actual science and not made up where we
-  can avoid it. I'm perfectly ok with drawing the density and other
-  figures we draw now and then filling in compositions that fit that
-  designation. That is perfectly fine, or we can pick the most basics
-  and build either way works." Plan note:
-  docs/design/composition-model.md. A constants-and-functions module
-  with the relations the design (GEN.435) chose: the mass fractions X, Y
-  and Z and the main element abundances as functions of [Fe/H],
-  [alpha/Fe] and age, the evolutionary changes at the surface, and the
-  layer structure of white dwarfs, neutron stars and brown dwarfs, each
-  with its source. No database access; nothing copied from one star.
-  Done: a test checks that the fractions sum to one, that they follow
-  [Fe/H] monotonically where the sources say so, and that the Sun's
-  measured composition is reproduced at its [Fe/H] and age inside a
-  stated tolerance (a target, not a preset).
-  Owner: Blocker 1 (it is the middle of the chain Boss gave Blocker 1,
-  GEN.438, GEN.439, GEN.440, 2026-10-17, 6:01 PM EDT, typed in the
-  project chat: "Unless it's already started elsewhere blocker can grab
-  whatever items it needs to complete those 3 once the current
-  finishes"; Core 4 confirmed at about 6:10 PM EDT, as the lane
-  reported, that it has not started it; it was Boss's card tap for Core
-  4 of 12:13 AM EDT), after GEN.314 and after GEN.438.
-  Merged research (2026-10-17, TODO thread, from the Body composition
-  research lane: docs/design/body-composition-research.md and its five
-  parts in docs/design/body-composition-parts/). Part A holds the [X/Fe]
-  model (hinge parameters, standard deviations and the Cholesky matrix
-  of its section 2.7), the remnant tables (white-dwarf initial-final
-  mass relation, Chandrasekhar integration reproducing Sirius B to 0.1
-  percent, the neutron-star crust sequence and mass mixture, brown-dwarf
-  burning limits and the BHAC15 radius grid) and the birth Eu, Th, U and
-  K abundances (A-D5, read by GEN.459). The neutron-star radius is
-  GEN.463's, not this table's, until Boss's decided replacement lands.
-  Abundance scale: Asplund 2021 (Decided, 1:24 AM EDT).
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): the abundance relations become gated rows: each row is
-  a population (thin disk, thick disk, halo, bulge, young cluster) and a
-  remnant or star kind, with the supported classes as the gate and a
-  weight or weight function (of [Fe/H], age and galactocentric position)
-  that comes from its relation's source with the scatter stated; the
-  weights of the rows that pass add up to 100 percent and a row without
-  a source is `open`.
-  Prerequisites: none. Related: GEN.440,
-  GEN.428.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/gap-filling-plan.md section 8): BC2 star abundances
-  (Brewer 2016, Hypatia). Data from HITRAN, ExoMol, Brewer 2016 or
-  Hypatia is downloaded at build time and no derived table is stored in
-  the repository, so builds need the network; the design states how
-  tests run offline (fixtures built by the test or a cache of earlier
-  downloads kept outside the repository, plan 6.5), and the data work of
-  group X9 waits on that design, not on the licence read.
-  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
-  downloads this item makes at build time send the standard User-Agent
-  of API.31 (one function builds it).
-  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/stellar-composition.md.
-  Decided (Boss, 2026-10-17, 9:40 to 9:45 PM EDT, cards answered in the
-  project chat, relayed by the coordinator at 9:46 PM EDT): section 14
-  of docs/design/stellar-composition.md is approved as recommended: D9
-  (the branch and four offsets derive from a seeded key, nothing
-  stored), D10 (age gate at 8.0 Gy, range 6.5 to 9.5, the logistic
-  unscaled), D11 (oxygen from the NLTE fit, neon follows oxygen,
-  magnesium a switch), D12 ([Fe/H] independent of age), D13 (the
-  white-dwarf radius law is replaced, the observed neutron-star mass
-  mixture, no black-hole composition; the white-dwarf change is a
-  generator epoch change joined to the one rescatter), D14 (birth
-  composition, no photospheric correction), D15 (no GEN.407 table
-  changes, the tip follows Z through GEN.502), D16 (shared [Fe/H],
-  branch and offsets in groups and clusters, flagged default). Brewer
-  scatter: no, keep part A and carry the 0.1 dex mean difference as
-  uncertainty. Research gap: a build-time download is approved for the
-  isochrone grids, the white-dwarf layers and the neutron-star equation
-  of state (GEN.548). The item builds exactly this; it starts after
-  GEN.438 merges, and the isochrone, white-dwarf and neutron-star data
-  it needs come from GEN.548's build-time downloads (with the stand-in
-  fallback until they land).
-  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
-  coordinator relayed): a download this item makes is a static file
-  fetched at setup by the shared step that GEN.548 builds first
-  (User-Agent, sha256, cache outside the repository, labelled stand-in,
-  offline fixtures), never at run time; a run-time fetch would have to
-  say why the data needs constant updates.
-  Progress (Blocker 1, 12:47 AM EDT 2026-10-18 as the lane reported):
-  GEN.439 and GEN.440 are one branch (claude/gen439-stellar-relations,
-  rebased on main at 12:19 AM EDT after #2184) and one PR; changed gate
-  started 12:20 AM EDT (pid 7278), 61% at 12:47 and 74% at 12:50 AM EDT.
-  Built: `physics/stellar_abundances.py` (Asplund 2021 scale, the age
-  gate 8.0 Gy and the Bensby logistic as the gated row table
-  'stellar-abundance-branch', hinge [X/Fe] fits with Cholesky residuals,
-  CEMP, X, Y and Z and element fractions, the Fe/Si, Mg/Si and C/O
-  ratios, first dredge-up, birth Eu, Th and U, the white-dwarf
-  mass-radius table in `physics/data/white_dwarf_mass_radius.json` built
-  by `scripts/build_white_dwarf_table.py`, the neutron-star outer crust,
-  black-hole formulas, brown-dwarf limits and radius, and a RELATIONS
-  list with source and state per relation; fit constants in tuning.py).
-  New modules for the architecture page:
-  `planetgen.physics.stellar_abundances`,
-  `planetgen.physics.stellar_composition` (and
-  `planetgen.physics.elements`, `planetgen.queue.commands`,
-  `planetgen.queue.wrapper`, already merged). Open states left in
-  RELATIONS (neon follows O or Mg, white-dwarf layers, neutron-star
-  inner crust and core, the brown-dwarf radius and hydrogen limit
-  against Z) wait on GEN.548.
-  Update (Blocker 1, 1:13 AM EDT 2026-10-18 as the lane reported): the
-  first gate had one real failure (the tuning pair test:
-  `STELLAR_NS_MASS_HEAVIEST_SOL` was a (mean, sigma) tuple and is now
-  two constants) plus the three architecture-page tests, which are
-  opt-in since DOC.69; rebased on main 6ed27d7, second changed gate
-  started 1:12 AM EDT. A fourth new module for the architecture page:
-  `planetgen.physics.wolf_rayet`.
-
-- [ ] **GEN.440 Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf**
-  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
-  "atmosphere composition and planet/moon/star/everything composition is
-  going to be the joint headline of v9.0 ... we need to know the
-  compounds, minerals, and such make up both atmospheres and stellar
-  bodies of all sorts, what is there and all the stats needed to include
-  it in our calculations. The idea is that every body will have figures
-  on its composition based on actual science and not made up where we
-  can avoid it. I'm perfectly ok with drawing the density and other
-  figures we draw now and then filling in compositions that fit that
-  designation. That is perfectly fine, or we can pick the most basics
-  and build either way works." Plan note:
-  docs/design/composition-model.md. A function in the physics layer
-  (`physics/stellar_composition.py`) that returns the composition of any
-  star from the values already stored (GEN.158's [Fe/H], the age, the
-  population and the kind), with no new column and no change to stored
-  values, and that the planet draws (GEN.428, the host's iron, magnesium
-  and silicon), the description layer and the radiation model read.
-  Done: the same star gives the same composition at any worker count; a
-  test sweeps every kind of star in a generated galaxy and finds
-  fractions that sum to one and match GEN.439's relations.
-  Owner: Blocker 1 (Boss, 2026-10-17, 6:01 PM EDT, typed in the project
-  chat: "I want Blocker 1 to set itself up with PERF.118, GEN.438, and
-  GEN.440", after GEN.314 merges, with leave to take what it needs to
-  finish them unless already started elsewhere, 6:01 PM EDT: "Unless
-  it's already started elsewhere blocker can grab whatever items it
-  needs to complete those 3 once the current finishes"; it replaces
-  Boss's card tap for Core 4 of 12:13 AM EDT). The chain is GEN.438, then
-  GEN.439, then this item; GEN.439 moves to Blocker 1 too unless Core 4
-  has started it. Core 4 confirmed at about 6:10 PM EDT, as the lane reported, that it has not started GEN.438, GEN.439 or GEN.440.
-  Sources check (GEN.425): it returns the abundances the planet draws
-  need, not only X, Y and Z: the iron, magnesium, silicon, oxygen and
-  carbon ratios (Fe/Si, Mg/Si, C/O) with the scatter of the relations
-  against [Fe/H], from a cited solar abundance set (the check typed
-  Asplund-style values from memory; Lodders 2003 and Asplund 2009 were
-  not read).
-  Prerequisites: GEN.439. Related: GEN.428, GEN.446, GEN.158,
-  GEN.242,
-  GEN.243, GEN.252, GEN.269, GEN.253, GEN.249.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): it reads each star kind and flag the other items add
-  (pre-main-sequence GEN.242, Wolf-Rayet GEN.243, brown dwarfs GEN.252,
-  the stripped-helium and other kinds of GEN.269, the white-dwarf
-  pollution and carbon-star flags of GEN.253 and GEN.249) instead of
-  contradicting them: a polluted white dwarf reports its debris metals,
-  a carbon star C/O above 1 from its flag. Core 3 owns `evolve_star`
-  edits; ask it first.
-  Merged research (2026-10-17, TODO thread, from the Body composition
-  research lane: docs/design/body-composition-research.md and its five
-  parts in docs/design/body-composition-parts/). The star-side draws are
-  A-D1 (the branch and ratio draw seeded through `draw.py`, correlated
-  residuals, the CEMP branch), A-D2 (X, Y, Z in closed form from [Fe/H]
-  and the ratios, Y = Y_P + 1.68 Z with Y_P = 0.2467), A-D4 (the
-  evolved-star surface shifts after first dredge-up, carbon stars,
-  Wolf-Rayet types, Pop III) and A-D5 (birth radioisotopes); whether any
-  of it is stored is the open point of GEN.435. The disk solids law
-  reads Z / Z0 (GEN.464).
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): the derived star composition draws its row
-  (population, kind) through the loader from the stored [Fe/H], age and
-  population, so the gate is the star's kind and the weight function is
-  the star's own stored values; no new column, and the derived fractions
-  are normalised after the draw.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/gap-filling-plan.md section 8): BC2 star abundances
-  (Brewer 2016, Hypatia). Data from HITRAN, ExoMol, Brewer 2016 or
-  Hypatia is downloaded at build time and no derived table is stored in
-  the repository, so builds need the network; the design states how
-  tests run offline (fixtures built by the test or a cache of earlier
-  downloads kept outside the repository, plan 6.5), and the data work of
-  group X9 waits on that design, not on the licence read.
-  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
-  downloads this item makes at build time send the standard User-Agent
-  of API.31 (one function builds it).
-  Decided (Boss, 2026-10-17, 9:40 to 9:45 PM EDT, cards answered in the
-  project chat, relayed by the coordinator at 9:46 PM EDT): section 14
-  of docs/design/stellar-composition.md is approved as recommended: D9
-  (the branch and four offsets derive from a seeded key, nothing
-  stored), D10 (age gate at 8.0 Gy, range 6.5 to 9.5, the logistic
-  unscaled), D11 (oxygen from the NLTE fit, neon follows oxygen,
-  magnesium a switch), D12 ([Fe/H] independent of age), D13 (the
-  white-dwarf radius law is replaced, the observed neutron-star mass
-  mixture, no black-hole composition; the white-dwarf change is a
-  generator epoch change joined to the one rescatter), D14 (birth
-  composition, no photospheric correction), D15 (no GEN.407 table
-  changes, the tip follows Z through GEN.502), D16 (shared [Fe/H],
-  branch and offsets in groups and clusters, flagged default). Brewer
-  scatter: no, keep part A and carry the 0.1 dex mean difference as
-  uncertainty. Research gap: a build-time download is approved for the
-  isochrone grids, the white-dwarf layers and the neutron-star equation
-  of state (GEN.548). GEN.440 follows GEN.439; the age gate of D10 is
-  8.0 Gy.
-  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
-  coordinator relayed): a download this item makes is a static file
-  fetched at setup by the shared step that GEN.548 builds first
-  (User-Agent, sha256, cache outside the repository, labelled stand-in,
-  offline fixtures), never at run time; a run-time fetch would have to
-  say why the data needs constant updates.
-  Progress: built with GEN.439 as one PR
-  (`physics/stellar_composition.py`: `star_makeup` from kind, [Fe/H],
-  age, mass and a key, drawing from the stream abundance:{key}); in the
-  gate with it. See GEN.439.
 
 - [ ] **GEN.441 Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -9790,7 +9566,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bodies of every kind and checks that every material named is in the
   stored or derived composition above a stated share and that the quoted
   figures equal them.
-  Prerequisites: GEN.440, GEN.441, GEN.442, GEN.444, GEN.445.
+  Prerequisites: GEN.441, GEN.442, GEN.444, GEN.445.
   Related:
   GEN.430, GEN.415, GEN.420, GEN.208.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
@@ -10745,7 +10521,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Th/Fe rises as [Fe/H] falls only inside +/- 0.1 dex of solar (slope
   -0.338 +/- 0.049) and U is not measured in disc stars (part G2), so
   the solids law does not take a Th or U trend from the note.
-  Prerequisites: GEN.440. Related: GEN.405, GEN.435, GEN.439, GEN.440.
+  Prerequisites: none. Related: GEN.405, GEN.435, GEN.439, GEN.440.
 
 - [ ] **GEN.465 A second extraction pass over the sources the body and atmosphere research could not reach and that are reachable now**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -11206,7 +10982,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   environment. Size: medium. Done: a note with the derivation and its
   sources, GEN.459 reading it, and TEST.214 listing no Al-26 stand-in.
   Owner: unowned (research; Boss or a read-only research lane).
-  Prerequisites: GEN.459, GEN.440. Related: GEN.459, GEN.440, GEN.472,
+  Prerequisites: GEN.459. Related: GEN.459, GEN.440, GEN.472,
   TEST.214.
 
 - [ ] **GEN.477 The asteroid belt and field composition is drawn from the star, the distance and the belt's mass, not four names drawn uniformly from a list of 84 (bug)**
@@ -13553,6 +13329,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   datasets here are static (grids and tables that change with a paper,
   not with the clock), so they are fetched at setup and never at run
   time.
+  Progress (Blocker 1, reported about 2:46 AM EDT 2026-10-18 as the lane
+  clock read, through the coordinator): coded; its changed gate started
+  about 2:46 AM EDT. It is the shared setup-time download step:
+  update.sh and install.sh run it, the cache is
+  /var/cache/planetgen/datasets, every file is checked against a sha256,
+  a stand-in is used when a host is down, and it fetches the MIST
+  isochrones, the Bedard white-dwarf sequences and the neutron-star
+  equation of state and crust tables. GEN.439 and GEN.440 merged as
+  #2208 (the open states in their RELATIONS list wait on this step).
   Prerequisites: none. Related: GEN.439, GEN.440, GEN.502, API.31.
 
 - [ ] **GEN.549 L dwarfs hotter than 1,500 K are 2 to 4 times too rare against the 20 pc census: use a cooling track that reaches them (strict expected failure)**
@@ -13836,7 +13621,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `util/draw.py` (GEN.56), every recalled source verified by a lane
   before use under the standing source rules, and any change to a drawn
   value bumps the generator epoch (OPS.56 rule).
-  Prerequisites: GEN.439, GEN.440. Related: GEN.550, GEN.252,
+  Prerequisites: none. Related: GEN.550, GEN.252,
   GEN.463, GEN.467, GEN.469.
   Back-scatter answer (Boss's back-scatter cards, taps 11:38 to 11:40 PM
   EDT, 2026-10-17, as the coordinator relayed): the relation function
@@ -19704,7 +19489,7 @@ clears each one.
   star-composition rows that pass a star's gate add up to 100 percent;
   the check is TEST.214's registry walk and this sweep adds the
   star-specific cases.
-  Prerequisites: GEN.440. Related: TEST.210, GEN.439.
+  Prerequisites: none. Related: TEST.210, GEN.439.
 
 - [ ] **TEST.212 A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -19762,7 +19547,7 @@ clears each one.
   table the build has and fails when a weight, a gate or a source is
   broken on purpose in a copy of a table. Owner: Core 4 (proposed, with
   the composition chain).
-  Prerequisites: GEN.410, GEN.427, GEN.439. Related: TEST.211,
+  Prerequisites: GEN.410, GEN.427. Related: TEST.211,
   TEST.210, TEST.209, GEN.428, GEN.411.
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
   (1) 1:43 AM EDT, "Weights, Dirichlet where unsure": the mixture

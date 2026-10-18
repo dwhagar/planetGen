@@ -1103,8 +1103,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.436 | The radiation design: atmospheric transmission and greenhouse by band, shielding by column, and the ground's own dose | none | done, PR #2063 |
 | GEN.437 | The composition model: how the element, compound, material and body tables link, and what is stored against derived | none | done, PR #2063 |
 | GEN.438 | One table of the elements and their isotopes: atomic data and the radioactive isotopes' half-lives and decay energies | none | done, PR #2184 |
-| GEN.439 | The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers | none | open |
-| GEN.440 | Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf | none | open |
+| GEN.439 | The stellar composition relations: abundances by population, age and [Fe/H], and the remnants' layers | none | done, PR #2208 |
+| GEN.440 | Star composition is derived from the stored [Fe/H], age and population, for every star, remnant and brown dwarf | none | done, PR #2208 |
 | GEN.441 | Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air | none | open |
 | GEN.442 | Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line | none | open |
 | GEN.443 | Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud | none | open |
