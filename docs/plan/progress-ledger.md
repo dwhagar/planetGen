@@ -912,3 +912,4 @@ Baseline: PR #1817.
 | TEST.224 | 8.1 | Bugs and flaky tests |
 | TEST.227 | 8.1 | Bugs and flaky tests |
 | TEST.243 | 8.1 | Bugs and flaky tests |
+| PERF.138 | 8.1 | Multi-star and compact systems |
