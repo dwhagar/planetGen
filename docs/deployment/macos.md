@@ -2,7 +2,7 @@
 
 Apple discontinued macOS Server in 2022, and nothing Apple ships replaces
 it for hosting a Python web app. A Mac hosts planetGen the way a Linux
-server does, with Homebrew supplying MariaDB or MySQL, nginx and Python.
+server does, with Homebrew supplying MySQL, nginx and Python.
 gunicorn runs the app under launchd, the macOS service manager. The job
 runner behind the admin Generate page is POSIX code and works on macOS.
 
@@ -56,15 +56,15 @@ installs the monthly orbit update (and update.sh, unless
 
 1. **Homebrew packages:**
 
-       brew install python@3.12 nginx mariadb redis   # or mysql@8.4 instead of mariadb
-       brew services start mariadb
+       brew install python@3.12 nginx mysql@8.4 redis
+       brew services start mysql@8.4
        brew services start redis
 
    Redis runs the Generate page's jobs, the work queue and the rate limits;
    without it no Generate job starts. `redis-cli ping` answers `PONG` when it runs.
 
-   Homebrew's MariaDB lets your macOS user in as a database admin
-   (`sudo mariadb` or `mariadb -u $(whoami)`). Create the database and
+   Homebrew's MySQL lets your macOS user in as a database admin
+   (`mysql -u root`). Create the database and
    account as in [`README.md`](README.md#mysql-accounts).
 
 2. **Checkout and Python:**

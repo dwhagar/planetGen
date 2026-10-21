@@ -20,6 +20,8 @@ Keys (`PREFIX` is `planetgen`; the tests give it a prefix of their own):
                                   results. Written before the stage's units are queued.
 * `<PREFIX>:run:<id>:banner`     string: the whole hours the site banner shows for the run (UX.3), so every visitor
                                   sees one figure; expires a day after it is written.
+* `<PREFIX>:run:<id>:alive`      string: set with a time to live of `ALIVE_SECONDS` by the process that follows the run
+                                  (`touch`, at every poll), so a run whose process was killed can be told from a live one.
 * `<PREFIX>:run:<id>:events`     stream: the log and timeline, `XADD` with `MAXLEN ~ EVENTS_MAXLEN`.
 * `<PREFIX>:run:active`          string: the run that owns the machine, `SET NX`, so a second run gets "busy".
 * `<PREFIX>:run:active:<kind>`   string: the same for a run of `MAINTENANCE` kind (the cache warm-up, PERF.127) or
@@ -38,7 +40,9 @@ function of what `read_run` returns: `planetgen.queue.runeta`.
 """
 
 import json
+import os
 import secrets
+import socket
 import time
 from dataclasses import asdict, dataclass
 
@@ -62,6 +66,10 @@ generation run."""
 
 LIVE_STATES = ("running", "cancelling")
 FINAL_STATES = ("done", "failed", "cancelled")
+
+ALIVE_SECONDS = 120
+"""int: How long a run's `alive` key lives after the last `touch`: the run's process is taken as gone when it has
+run out (or, on the same host, when its process id is no longer running)."""
 
 STALE_FLOOR_SECONDS = 120.0
 """float: A live run with no unit finished and no event for this long (and 3 times its longest unit) is stale."""
@@ -138,6 +146,10 @@ def plan_key(run_id, index):
 
 def banner_key(run_id):
     return _k("run", run_id, "banner")
+
+
+def alive_key(run_id):
+    return _k("run", run_id, "alive")
 
 
 def active_key(kind=GENERATION):
@@ -246,8 +258,11 @@ def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=No
         raise ValueError(f"a run is one of {KINDS}")
     now = _now(now)
     run_id = run_id or new_run_id(now)
+    touch(conn, run_id)         # before the machine is taken: a run that holds it always has a sign of life
     if not conn.set(active_key(kind), run_id, nx=True):
-        raise Busy(f"run {active_run(conn, kind)} is running")
+        if not (_free_dead_holder(conn, kind) and conn.set(active_key(kind), run_id, nx=True)):
+            conn.delete(alive_key(run_id))
+            raise Busy(f"run {active_run(conn, kind)} is running")
     declared = [asdict(stage) for stage in stages]
     for stage in declared:
         stage["cost"] = float(stage["units"] if stage["cost"] is None else stage["cost"])
@@ -256,13 +271,66 @@ def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=No
         "title": title, "kind": kind, "who": who or "", "database": database or "", "argv": json.dumps(argv or []),
         "seed": "" if seed is None else str(seed), "state": "running", "stages": json.dumps(declared),
         "steps": json.dumps(steps or []), "current": 0, "created": now, "started": now, "updated": now,
-        "finished": "", "error": ""})
+        "finished": "", "error": "", "owner": _owner()})
     for index, stage in enumerate(declared):
         pipe.hset(stage_key(run_id, index), mapping={"units": stage["units"], "cost_total": stage["cost"], "done": 0,
                                                      "cost_done": 0, "seconds": 0})
     pipe.execute()
     log(conn, run_id, f"run started: {title}", kind="run.start", now=now)
     return run_id
+
+
+def _owner():
+    """Who follows a run started here: `host:process id`."""
+    return f"{socket.gethostname()}:{os.getpid()}"
+
+
+def touch(conn, run_id):
+    """The process that follows the run says it is alive (`ALIVE_SECONDS`); called at every poll."""
+    conn.set(alive_key(run_id), "1", ex=ALIVE_SECONDS)
+
+
+def _pid_alive(pid):
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except OSError:
+        return True         # of another user: running
+    return True
+
+
+def holder_is_dead(conn, run_id):
+    """
+    Whether the process that follows the run `run_id` is gone, so the run can never end by itself: it started on
+    this host and its process id is not running, or (another host, or a run recorded before runs said who follows
+    them) its `alive` key has run out. A run whose record is gone or already over is dead too: nothing follows it.
+    """
+    owner = _s(conn.hget(run_key(run_id), "owner")) or ""
+    state = _s(conn.hget(run_key(run_id), "state")) or ""
+    if state and state not in LIVE_STATES:
+        return True
+    host, _, pid = owner.rpartition(":")
+    if state and host == socket.gethostname() and pid.isdigit():
+        return not _pid_alive(int(pid))
+    return not conn.exists(alive_key(run_id))
+
+
+def _free_dead_holder(conn, kind):
+    """
+    If the run that holds the machine for `kind` is dead (`holder_is_dead`), ends it as failed (its waiting units
+    then do nothing) and frees the machine. A run killed with `kill -9`, by the out-of-memory killer or by a restart
+    never ended itself, and every new run was refused as busy for ever.
+
+    Returns:
+        bool: Whether the machine was held by a dead run and is free now.
+    """
+    holder = active_run(conn, kind)
+    if holder is None or not holder_is_dead(conn, holder):
+        return False
+    finish_run(conn, holder, "failed", error="its process was gone (killed or restarted) before the run ended")
+    conn.register_script(_RELEASE)(keys=[active_key(kind)], args=[holder])
+    return True
 
 
 def read_steps(conn, run_id):

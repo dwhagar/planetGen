@@ -276,7 +276,8 @@ with `clamp()`.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: UX.124, UX.125, UX.126.
+  UX.125 and UX.126 moved out of this item (Boss, 2026-10-21, 6:01 PM EDT: the admin pages and the Generate suite are redesigned in their own thread; the Generate page conversion rides ADM.99 and the admin pages ADM.56 and ADM.93), so this item converts the public pages and closes with UX.124.
+  Prerequisites: UX.124.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
 - [ ] **UX.43 A visual design built like a pilot's starmap and navigation console**
@@ -604,6 +605,18 @@ with `clamp()`.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
+  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
+  owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
+  PM EDT as the lane reported; the Generate page conversion now rides
+  ADM.99).
+  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
+  the admin redesign thread reported; report
+  docs/design/admin-control-suite.md): the whole suite is built in 8.1
+  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
+  the shell, job strip and palette, then Generate; every admin page goes
+  onto the one shell once. The Generate page conversion becomes part of
+  ADM.108 (G2).
   Prerequisites: UX.124. Related: UX.49.
 
 - [ ] **UX.126 The admin pages and the edit dialogs on the field macro**
@@ -617,6 +630,18 @@ with `clamp()`.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
+  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
+  owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
+  PM EDT as the lane reported; the admin page conversion now rides
+  ADM.56 and ADM.93).
+  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
+  the admin redesign thread reported; report
+  docs/design/admin-control-suite.md): the whole suite is built in 8.1
+  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
+  the shell, job strip and palette, then Generate; every admin page goes
+  onto the one shell once. The settings page is covered by ADM.103 (S3);
+  the other admin pages move with ADM.93.
   Prerequisites: UX.124. Related: UX.49.
 
 - [ ] **UX.127 The Galaxy Map block menu offers Generate again**
@@ -710,7 +735,9 @@ with `clamp()`.
   drawn-family read-out show each family's outline from UX.135 beside
   its name, so the user sees roughly what the model looks like before
   creating the galaxy.
-  Prerequisites: GEN.389, UX.135. Related: UX.116, UX.125, DOC.13.
+  Lands in the Start a new galaxy task of the admin control suite: needs
+  ADM.110.
+  Prerequisites: GEN.389, UX.135. Related: UX.116, UX.125, DOC.13, ADM.110.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **UX.135 One simple vector outline per galaxy family in the icon library: spiral, barred spiral, lenticular, elliptical, irregular and dwarf spheroid**
@@ -767,7 +794,13 @@ with `clamp()`.
   list, with its estimate); turning one off says that nothing is
   deleted; the command line and the API set them through the same
   commands. Owner: Core 2 (proposed).
-  Prerequisites: GEN.539, GEN.540. Related: GEN.539, GEN.540, UX.116.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
+  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
+  owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
+  PM EDT as the lane reported; the row stays in 8.5).
+  Needs the Generate tasks it lands in: ADM.110 (Start a new galaxy) and
+  ADM.111 (Scatter), per the admin control suite report.
+  Prerequisites: GEN.539, GEN.540. Related: GEN.539, GEN.540, UX.116, ADM.110, ADM.111.
 
 - [ ] **UX.138 Pages, symbols and descriptions for the new rows: moons of wanderers, free brown dwarfs as stars, unbound comets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -870,6 +903,75 @@ with `clamp()`.
   coordinator reported them): the list pages are filed in 8.2 with the
   tile cache; their index is kept first when the shared budget is short.
   Prerequisites: PERF.140. Related: PERF.137.
+
+- [ ] **UX.142 The viewing windows scale to the browser window so the controls are always in view without scrolling the page**
+  Boss, 2026-10-21, 6:10 PM EDT, as the coordinator relayed (design note
+  for 8.2): "we need to scale and size the viewing windows for the
+  browser window size, so that the user doesn't have to scroll to see
+  the controls". Do: size the Galaxy Map, the Sector Map and scene, the
+  System Map and scene and the navigation chart to the space the window
+  leaves after the header and the controls (dynamic viewport height,
+  flex or grid rows, resize and orientation changes handled), put the
+  controls in the same view (a side panel on wide windows, a bottom
+  sheet or toolbar on narrow ones) and let a long panel scroll inside
+  itself, never the whole page. The admin pages follow the same rule:
+  the admin shell (ADM.92) keeps its content region inside the window
+  and long tables scroll in their own region. Done: a browser test at
+  1280x720, 1366x768, 1440x900, 1920x1080, a 768x1024 tablet and a
+  390x844 phone (both orientations) shows, on each viewer page, that the
+  viewer and all its controls are visible with no vertical page scroll
+  (document height equals the window height) and none of the controls is
+  clipped; resizing the window re-fits without a reload; works in both
+  themes. Phase: 8.2 phase 2. Owner: none yet (filed from Boss's 8.2
+  design notes, 6:10 and 6:12 PM EDT 2026-10-21; the map lane owns the
+  viewers, so Core 2 is the natural pick once its queue allows, the
+  coordinator decides).
+  Prerequisites: none. Related: MAP.139, UX.115, ADM.92, MAP.65.
+
+- [ ] **UX.143 A dedicated page for every kind of item: star, planet, moon, belt, comet, each phenomenon, nebula, cluster, system, sector and region, reached from its Object ID**
+  Boss, 2026-10-21, 6:12 PM EDT, as the coordinator relayed (8.2):
+  "there should be a 'view' button to view a dedicated page for every
+  possible item with detailed information on that specific item". Today
+  there are pages for a sector (`/sector/<id>`), a system
+  (`/system/<id>`), a phenomenon, an uncharted star and phenomenon, a
+  class, a polity and a species, and `/object/<ref>`
+  (src/planetgen/web/system_pages.py) resolves some object references.
+  Do: one registry of every object kind the site draws or lists (the
+  kinds of the object index, DB.79: star, planet, moon, belt, comet,
+  asteroid field, each phenomenon type, nebula, cluster, system, sector,
+  region), one route that takes the 96-bit Object ID and renders that
+  kind's page, and one detail template per kind with the detailed
+  information of that item (all stored and derived facts in plain words
+  with units from the unit registry, no fixed content, the description
+  text), so nothing the maps can select is without a page. Done: a test
+  fails for any kind in the registry without a page; every kind's page
+  renders for a generated example and for an unknown ID (a clear
+  not-found page); the page shows the item's name, kind, ID and facts;
+  the docs list the routes. Phase: 8.2 phase 2. Owner: none yet (filed
+  from Boss's 8.2 design notes, 6:10 and 6:12 PM EDT 2026-10-21; the map
+  lane owns the viewers, so Core 2 is the natural pick once its queue
+  allows, the coordinator decides).
+  Prerequisites: none. Related: DB.79, UX.141, MAP.139, UX.144, MAP.254.
+
+- [ ] **UX.144 Every item page says where the item is: links up the chain (galaxy, sector, system, parent star or planet) and the nebula or other region that contains it**
+  Boss, 2026-10-21, 6:12 PM EDT, as the coordinator relayed (8.2): the
+  dedicated page has "links to where it is (i.e. sector, system, but
+  also if it's in a nebula)". Do: a Location block on every item page
+  (UX.143): the breadcrumb chain from the galaxy down through the sector
+  and system to the item's parent, each a link to that page, and a line
+  'Inside: <nebula, cluster or region name>' linking to the containing
+  nebula, globular cluster, superbubble or other region, from the region
+  query (the region pyramid and cell aggregates), and for a nebula or
+  region page the list of what it contains with links. Done: for a star
+  inside a nebula, a planet of a star in a cluster, a moon, a belt and a
+  free-floating object, the Location block shows the right chain and the
+  containing region (a test per case on a generated galaxy); a link on
+  each name opens that page; an item outside every region says so.
+  Phase: 8.2 phase 2. Owner: none yet (filed from Boss's 8.2 design
+  notes, 6:10 and 6:12 PM EDT 2026-10-21; the map lane owns the viewers,
+  so Core 2 is the natural pick once its queue allows, the coordinator
+  decides).
+  Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143.
 
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -1048,6 +1150,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Overlap (6:40 PM EDT 2026-10-21): this item's Galaxy View info box
+  with a Details link is extended to every view and every kind by
+  MAP.254 (one shared info box with a View button to the item page
+  UX.143); build MAP.139 on the shared component so MAP.254 does not
+  redo it.
 
 - [ ] **MAP.140 Double-click on a selected object goes there and opens its information**
   Boss (GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714), 2026-10-09 00:26Z): "Double clicking on a
@@ -1380,6 +1487,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
+  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
+  GEN.378"). This replaces any earlier owner line on this item (it was
+  Core 2's).
   Prerequisite: none. Related: MAP.151 (done, PR #1539), MAP.159.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -2459,6 +2570,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.576, DB.78, GEN.577. Related: GEN.550, GEN.552,
   GEN.315, GEN.565.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **MAP.254 One shared info box: selecting anything on any view opens the same box, with a View button that opens the item's own page**
+  Boss, 2026-10-21, 6:12 PM EDT, as the coordinator relayed (8.2):
+  "selecting something anywhere in the current view pulls up the same
+  infobox on it everywhere, there should be a 'view' button to view a
+  dedicated page for every possible item". MAP.65 (done, PR #521) gave
+  one picking, hover and info-panel layer and MAP.139 (8.1, Core 2) adds
+  the info box with a Details link on the Galaxy View only. Do: extend
+  that one component to every view (Galaxy Map, Sector Map and scene,
+  System Map and scene, the navigation chart, the list and search
+  results) and every selectable kind, with one content model per kind
+  (name, kind, Object ID, parent, the few key facts) and the same
+  actions everywhere: View (to the page of UX.143), Go to, Bookmark,
+  Copy ID; no view keeps its own copy of the box. Done: for each kind on
+  each view that can show it, selecting the thing shows the same
+  component with the same fields and a View button that opens the right
+  page (a browser test table of kinds by views); a test fails if a view
+  renders its own info box; works on touch (tap) and with the keyboard;
+  fits the window without page scroll (UX.142). Phase: 8.2 phase 2.
+  Owner: none yet (filed from Boss's 8.2 design notes, 6:10 and 6:12 PM
+  EDT 2026-10-21; the map lane owns the viewers, so Core 2 is the
+  natural pick once its queue allows, the coordinator decides).
+  Prerequisites: UX.143. Related: MAP.65, MAP.139, MAP.140, UX.142,
+  UX.143, UX.144.
 
 
 ## NAV: Navigation and courses
@@ -4001,147 +4136,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   line on this item.
   Prerequisites: GEN.311, GEN.312, MAP.213, GEN.313.
 
-- [ ] **GEN.130 Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes**
-  Boss (GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778)): "We need to add exotic star systems that
-  have black holes, neutron stars, or similar as the central star for
-  systems, binary systems." Done as GEN.128's design says: generation
-  can make a system or binary whose primary is a black hole, neutron
-  star or similar compact object, with the planets, belts and radiation
-  environment that follow; GEN.100's galaxy-wide scatter supplies the
-  compact objects.
-  Research (2026-10-09, multistar-and-compact-systems.md): split into
-  (a) collapsed leaves in the tree with the survival check, (b) NS/BH/WD
-  presets, (c) radiation fields; planets around young pulsars and black
-  hole debris disks are out of scope. Compact-object habitability: the
-  lowest tier for every pulsar, black hole and X-ray-binary planet, a
-  normal score for cool white dwarf planets in the narrow zone (open
-  question for Boss, default as stated). Decided (Boss, 2026-10-10
-  18:44Z, defaults approved; default: only through GEN.100's scatter,
-  which promotes a scattered
-  remnant to a system when it draws a bound companion or planets, at the
-  design 7.3 fractions): do neutron star and black hole systems appear
-  in normal fills at their real rate?
-  Research (2026-10-09,
-  exotic-environments-planets-and-compact-binaries.md): Millisecond
-  pulsars get planets with probability 0.7% (upper bound 1%), in three
-  types: disc 25%, captured circumbinary giant 25% (only in globular
-  clusters), ablated companion 50%; young pulsars get none; pulsar
-  planets are carbon rich with no atmosphere and radiation tier 3.
-  Checks to add: reject a compact-compact binary whose
-  gravitational-wave inspiral time (Peters) at its drawn separation and
-  eccentricity is shorter than the system's age; allow a bound companion
-  beyond about 1,000 AU around a black hole or neutron star only for
-  direct-collapse black holes. Slices (a) to (c) as in
-  multistar-and-compact-systems.md section 8. Decided (Boss, 2026-10-10
-  18:44Z, defaults approved; defaults taken): a globular-cluster model
-  does not exist, so the
-  captured-giant type is left out until clusters are modelled; the 0.7%
-  rate for millisecond pulsars is accepted.
-  Decided (2026-10-09): Boss (2026-10-09 18:37Z): the defaults are
-  accepted (millisecond-pulsar rate 0.7%, no globular-cluster model so
-  the captured-giant type stays out). Where a formula is needed, use
-  the verified published forms: Peters for the gravitational-wave
-  inspiral time, and the Mardling-Aarseth and Eggleton-Kiseleva
-  criteria for triple stability (see GEN.129).
-  Research (2026-10-09, globular-clusters.md): the captured-giant type
-  (type B) is enabled once clusters exist, as GEN.163; Boss's 18:37Z
-  decision (left out until clusters are modelled) holds today.
-  Boss asked (2026-10-15) whether a black hole or neutron star can have
-  a star system. Today a scattered or rolled one is a standalone row
-  with no system (`run_sector.py:449`); a system is built around one
-  only on request with `phenomenon --anchor-system`, and a remnant
-  passed to `StarSystem` skips binary generation (`system.py:255`). The
-  design note (section 5.12) points at this item for the rules: this
-  item decides the company a black hole or neutron star keeps (white
-  dwarf, young neutron star none, millisecond pulsar 1% with planets,
-  dormant black hole with a Gaia-type companion), so a scattered remnant
-  can be promoted to a system. Nothing in the whole-sphere train waits
-  on it.
-  Decided (Boss, 2026-10-15 5:39 PM EDT): scatters and backscatters get
-  no systems, planets or moons, so bright stars, massive stars, neutron
-  stars, black holes and the other scattered objects are bare rows;
-  planets and moons are made only when a sector is being filled with
-  everything; a sector fill must represent every kind of object, and
-  when a fill meets a phenomenon that can have a system (or makes one
-  that can) it generates that system if the real-world probabilities
-  give it one; nebulae need stars and phenomena, not planets. For this
-  item: the company a black hole or neutron star keeps (companions,
-  disk, planets) is decided when its sector fills, at the real-world
-  fractions, and a fill that already holds such a phenomenon builds its
-  system if it draws one; a scattered row never carries one, so
-  promoting a remnant at scatter time (the earlier default) no longer
-  applies. Boss has ordered the phenomena catalogue and fill rules
-  (docs/design/phenomena-catalogue-and-fill.md, in research); items
-  follow from it.
-  Rescoped (catalogue section 8 item 3, Boss's rules of 2026-10-15):
-  this is now the compact-remnant content of the system pass of the
-  fill-stages item, not a scatter-time promotion. Slices (a) to (c)
-  above become what the pass builds for neutron stars, millisecond
-  pulsars and stellar black holes at the probabilities of catalogue
-  section 5: the companion, the kick-and-survival check, the
-  Holman-Wiegert zones, pulsar planets at 0.7%. Done: a filled sector
-  holding a black hole or neutron star gives it a system at those odds,
-  and a scattered one never has one before the fill. The white-dwarf and
-  planetary-nebula-star rows belong to the fill-stages item. Owner: Core
-  (2026-10-15).
-  Decided (Boss, 2026-10-15 5:51 PM EDT), refining the 5:39 PM rule:
-  scatters still carry no planets or moons, but the stellar companions
-  of stars and star-like objects (stars, former stars, protostars,
-  neutron stars, black holes), including neutron star pairs, black hole
-  and neutron star pairs, black hole pairs and stars with neutron star
-  or black hole companions, are generated at scatter time, because such
-  systems matter for gravity; planets and moons still come only at
-  sector fill. Multi-star research is under way (docs to follow; the
-  coordinator relays its items). For this item: the companions of
-  neutron stars and black holes (white dwarf, main-sequence or giant
-  companions, neutron star and black hole partners) are decided when the
-  object is scattered, at the observed fractions; pulsar planets stay at
-  sector fill.
-  Reworded (Boss, 2026-10-15 5:51 PM EDT;
-  docs/design/multi-star-systems.md): companions of stars and star-like
-  objects are generated at scatter time, planets, moons and belts at
-  sector fill; a scatter row is a system with a barycentre, a total mass
-  and stored members. The companion orbit laws of neutron stars and
-  black holes (including their pairs) move into GEN.266 and the
-  member-tree generator GEN.261; neutron star and black hole companions
-  are drawn at scatter time (GEN.262, GEN.263), and the black hole
-  companion fraction is 1.25%, not 10% to 30%. What stays here: the
-  white dwarf and planetary-nebula-star rows of the system pass, pulsar
-  planets at fill (0.7% for millisecond pulsars) and the radiation
-  environment.
-  Catalogue (Boss 2026-10-15 6:08 PM EDT;
-  docs/design/multi-star-systems.md sections 13 to 16): slice (c), the
-  accretion luminosity and the accreting compact pair, is built by
-  GEN.272 (X-ray binaries, microquasars, spider pulsars), which reads
-  GEN.269's interaction states.
-  Built-on note (Core 1, 2026-10-16, 8:41 AM EDT, GEN.251 merged as
-  #1815): the planet model gives a recycled pulsar up to about 10
-  planets, and a planetary nebula's circumbinary disk is not modelled;
-  both belong to this item. The system pass (generation/system_pass.py,
-  tuning.SYSTEM_PASS_ODDS) already rolls a millisecond pulsar's planets
-  at 0.7% on its own seed.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: GEN.317, GEN.318. After the rescopes, GEN.130
-  holds two unrelated rows of the system pass: the neutron-star side
-  (pulsar planets and the radiation environment) and the white-dwarf and
-  planetary-nebula-star side.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Owner: Core 3, in its multi-star and cluster line (the 3:15 PM EDT
-  lane queue); a line here that named Core 4 was the TODO thread's
-  counting error, corrected 2026-10-16, 4:50 PM EDT.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): where the
-  Rescoped Done line says a scattered neutron star or black hole never
-  has a system before the fill, Boss's 2026-10-15, 5:51 PM EDT
-  refinement wins: stellar companions of neutron stars and black holes
-  are decided when the object is scattered, at the observed fractions;
-  only pulsar planets and the system pass are decided at fill.
-  Prerequisites: GEN.318.
-
 - [ ] **GEN.136 Fingerprint tree: a stored leaf digest per sector and a shell-band tree of digests**
   GEN.58 as built hashes floats exactly; the research recommends
   rounding to 9 significant digits (generation-determinism.md section
@@ -4769,7 +4763,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites become the cataclysmic and symbiotic rows (GEN.271,
   GEN.272): the Type Ia progenitor share is read from them, and if it
   can be read without a new field this item closes (2026-10-16 review).
-  Prerequisites: GEN.271, GEN.272, GEN.318. Related: GEN.241.
+  Prerequisites: GEN.271, GEN.272. Related: GEN.241.
   Design: [docs/design/intergalactic-and-halo-contents.md](design/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.248 Tidal streams as placed components of the halo (later)**
@@ -4820,10 +4814,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
   Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
-  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; waits on GEN.318 (Core 3)). Core 4 asks Core 3
+  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; GEN.318 merged, #2307). Core 4 asks Core 3
   before touching stellar evolution constants in tuning.py. A line here
   that named Core 3 or Core 4 earlier is replaced by this one.
-  Prerequisites: GEN.318.
+  Prerequisites: none.
   Design: [docs/design/phenomena-catalogue-and-fill.md](design/phenomena-catalogue-and-fill.md)
 
 - [ ] **GEN.255 Drawn jets: Herbig-Haro flows, microquasar jets and pulsar jets along their spin axes**
@@ -5057,6 +5051,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   storage names DB.53, the first child of GEN.129 and its provider of
   the interaction and flag columns; the older "waits on GEN.260
   (migration 0093)" line is replaced (GEN.260 is done).
+  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
+  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
+  GEN.378"). This replaces any earlier owner line on this item (it was
+  Core 3's; the epoch rule in execution-notes still applies).
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.270 Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars**
@@ -5691,7 +5689,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Headline: 8.1 (the new generate scatters: accurate galactic generation
   and scattering, including the halo).
   Prerequisites: GEN.284, TEST.159, TEST.160, GEN.450, TEST.196,
-  GEN.530.
+  GEN.530, SEC.33, TEST.261.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
   coordinator): a new generation lane takes Core 3's stellar tables and
@@ -5854,7 +5852,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: PERF.108. Related: GEN.42.
+  Prerequisites: none. Related: GEN.42.
 
 - [ ] **GEN.310 Fill a whole block of the shell ladder: planetgen generate --block and the queue job**
   Split from GEN.231 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -5890,6 +5888,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
+  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
+  GEN.378"). This replaces any earlier owner line on this item (it was
+  Core 3's).
   Prerequisites: none. Related: GEN.129.
 
 - [ ] **GEN.312 Naming for trees: path codes (Aa, Ab, Ba) with branch words at wide splits, and planet stems such as Pikkita Ba I**
@@ -5991,39 +5993,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only the tree's copy in `multistar._Builder.place`, which becomes a
   caller of `primary_first` (GEN.581) later. No new copy is added.
   Prerequisites: GEN.315. Related: GEN.264.
-
-- [ ] **GEN.318 White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk**
-  Split from GEN.130 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). The white dwarf and the planetary
-  nebula's central star take their planets from the star model today and
-  have no row in tuning.SYSTEM_PASS_ODDS, and a planetary nebula's
-  circumbinary disk is not modelled (Core 1's note on GEN.251). Add the
-  rows: planets around a white dwarf with engulfment removing the inner
-  ones, the central star's close companion as already drawn at scatter
-  (20%), and the circumbinary disk as the disk descriptor of GEN.129:a
-  with no bodies. Done: a planetary nebula's white dwarf has its row, an
-  engulfed planet is absent, a circumbinary disk is stored and shown,
-  and the white-dwarf fractions of the catalogue hold within Poisson
-  bounds.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Build state (Core 3, reported 1:18 PM EDT 2026-10-18 on the lane's
-  clock): coded and rebased on release 8.0.1828, epoch 33 pending,
-  changed gate started 1:16 PM EDT. The white dwarf engulfment radius
-  follows the progenitor mass (1.5 + 0.8 (M - 1) AU, replacing
-  `WD_PROGENITOR_ENGULFMENT_AU`), the survivors' orbits widen by
-  M_formation / M_now, and a planetary nebula's close pair gets a
-  post-AGB circumbinary disk descriptor and no planets. Stand-ins left
-  out: eccentricity excitation, the swallowed-giant flag, the rare close
-  giant.
-  Epoch note (1:50 PM EDT 2026-10-18, real clock): epoch 36 is stamped by GEN.553's first slice (release 8.0.1843, #2284; 35 by PERF.138, 8.0.1842), so a change here takes the next free epoch at its merge, 37 unless another lane merges first (Core 3's GEN.318 renumbers to 37); Alembic head is 0112, next free 0113.
-  Lane report (Core 3, 7:34 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): coded and rebased on main with the epoch
-  renumbered to 37; changed gate started 7:05 AM EDT, expected end about
-  8:50 AM EDT, merge right after if green.
-  Prerequisites: none. Related: GEN.130.
 
 - [ ] **GEN.325 Planet cull in dense components by the survival formula and the metallicity factor**
   Split from GEN.162 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6191,6 +6160,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   outcome rules and applying them, GEN.290 to choosing per system when
   to switch to the perturbed pass, the cost estimate and the seeded
   black-hole test (2026-10-16 review).
+  Status from Core 3 (4:40 PM EDT 2026-10-21 as the lane reported):
+  built on side branch gen334-closest-approach off main
+  (`physics/closest_approach.py`, 17 tests green, no gate yet).
   Prerequisites: none. Related: GEN.110, GEN.290.
 
 - [ ] **GEN.338 The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests**
@@ -6334,6 +6306,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   exact then one point mass per sector) is built here after GEN.370, and
   the order of work is GEN.370, GEN.341, GEN.342 on Core 3 after its 8.1
   queue.
+  Status from Core 3 (4:40 PM EDT 2026-10-21 as the lane reported):
+  built on side branch gen341-influence-set, stacked on GEN.370
+  (`galaxy/influence.py`, 10 tests green, no gate yet). It uses the
+  global radius, so the cover lists named in this title are not built.
+  The wording above that the per-sector `max_mass_kg` and `max_mass_id`
+  columns come from GEN.294:m is stale: they already exist (DB.55).
   Prerequisites: GEN.370. Related: GEN.109.
 
 - [ ] **GEN.342 The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it**
@@ -6973,6 +6951,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   superseded; the placement keep-apart fill (6 percent at the old radius
   against up to 108 percent at 1.4 pc) is rechecked in this item's gate
   and the result is stated in its PR.
+  Status from Core 3 (4:40 PM EDT 2026-10-21 as the lane reported):
+  built on branch claude/project-thread-l8ulna (commit d5f78e8),
+  generator epoch 42 pending (renumbers if GEN.545 merges first); design
+  docs and a note are included, and its `changed` gate's second run
+  started 4:24 PM EDT (40 percent at 4:40 PM EDT; the first run was lost
+  to the stale run key, TEST.260). It removes
+  `mass_chain.central_mass_kg`, `current_central_mass_kg` and
+  `MassChain.halo_mass_kg`, and records a placement-fill recheck in
+  docs/design/course-avoidance.md: in a dense galaxy the placer now fits
+  60 to 70 percent of the requested systems at 1 kpc and 35 to 45
+  percent at 3 kpc (Hill spheres fill 0.3 to 0.9 of the volume); sparse
+  galaxies are unchanged; the old fill never passed 0.03. The text above
+  that the default distance is already gone (GEN.404) is true.
   Prerequisites: none. Related: GEN.368, GEN.285, GEN.223.
 
 - [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
@@ -7121,6 +7112,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (/mnt/project-files/reports/gen368-laws-table-2026-10-17.md, 5.13.1
   chain, rows 1 to 10) is the spiral family's start, and the family
   table here extends it.
+  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
+  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
+  GEN.378"). This replaces any earlier owner line on this item (it was
+  Core 1's, proposed).
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.379 The density model as a list of components, each with an amplitude that may be 0, and a mass for each component**
@@ -7992,6 +7987,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   errors name different quantities and both stay: the 15 percent is the
   CH4 value in the Sneep and Ubachs formalism; the 30 percent is the
   older coded refractivity form against the measured value.
+  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
+  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
+  GEN.378"). This replaces any earlier owner line on this item (it was
+  Core 4's, proposed).
   Related: DB.71.
 
 - [ ] **GEN.411 The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree**
@@ -8218,6 +8217,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   grids are fetched at setup (update.sh) and nothing from them is stored
   in the repository; Boss's 2:35 PM EDT 2026-10-17 "fine to publish" is
   about licence only, not about committing the grids.
+  Decided (Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed;
+  this replaces the download policy note above): a missing file refuses
+  the run by default, naming the file, its URL and the setup command;
+  with the explicit disregard option (GEN.599) the run uses this
+  dataset's best possible fallback and prints it in the run header;
+  never a silent fallback. See GEN.594.
   Related: GEN.87, GEN.189, DB.68.
 
 - [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
@@ -8344,6 +8349,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only, GEN.590): the shared download catalogue now treats every dataset
   as required, so this item's design should say whether a missing file
   refuses to start or falls back to a labelled stand-in, and why.
+  Decided (Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed;
+  this replaces the download policy note above): a missing file refuses
+  the run by default, naming the file, its URL and the setup command;
+  with the explicit disregard option (GEN.599) the run uses this
+  dataset's best possible fallback and prints it in the run header;
+  never a silent fallback. See GEN.594.
 
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8699,6 +8710,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
+  Decided (Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed;
+  this replaces the download policy note above): a missing file refuses
+  the run by default, naming the file, its URL and the setup command;
+  with the explicit disregard option (GEN.599) the run uses this
+  dataset's best possible fallback and prints it in the run header;
+  never a silent fallback. See GEN.594.
 
 - [ ] **GEN.423 Atmosphere density, scale height and the greenhouse multiplier follow from the mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -8792,6 +8809,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only, GEN.590): the shared download catalogue now treats every dataset
   as required, so this item's design should say whether a missing file
   refuses to start or falls back to a labelled stand-in, and why.
+  Decided (Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed;
+  this replaces the download policy note above): a missing file refuses
+  the run by default, naming the file, its URL and the setup command;
+  with the explicit disregard option (GEN.599) the run uses this
+  dataset's best possible fallback and prints it in the run header;
+  never a silent fallback. See GEN.594.
 
 - [ ] **GEN.424 The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -10367,6 +10390,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Cilibrasi centre": the moon ice fraction (BC6) draws over the widest
   bracket 0.5 to 0.85 with Cilibrasi 2018 as the centre and test target,
   a labelled stand-in replaced when a measurement exists.
+  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
+  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
+  GEN.378"). This replaces any earlier owner line on this item (it was
+  Core 4's).
   Prerequisites: none. Related: GEN.426, GEN.442, GEN.466, GEN.437.
 
 - [ ] **GEN.458 Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes**
@@ -11757,6 +11784,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only, GEN.590): the shared download catalogue now treats every dataset
   as required, so this item's design should say whether a missing file
   refuses to start or falls back to a labelled stand-in, and why.
+  Decided (Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed;
+  this replaces the download policy note above): a missing file refuses
+  the run by default, naming the file, its URL and the setup command;
+  with the explicit disregard option (GEN.599) the run uses this
+  dataset's best possible fallback and prints it in the run header;
+  never a silent fallback. See GEN.594.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.486 Source the lava-world vapour regimes and the fraction of lava worlds that keep volatiles (AR7)**
@@ -12322,6 +12355,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only, GEN.590): the shared download catalogue now treats every dataset
   as required, so this item's design should say whether a missing file
   refuses to start or falls back to a labelled stand-in, and why.
+  Decided (Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed;
+  this replaces the download policy note above): a missing file refuses
+  the run by default, naming the file, its URL and the setup command;
+  with the explicit disregard option (GEN.599) the run uses this
+  dataset's best possible fallback and prints it in the run header;
+  never a silent fallback. See GEN.594.
 
 - [ ] **GEN.501 Source the activity factor of the NH3 photolysis rate from the Huebner and Mukherjee rate tables**
   Body composition research lane reconciliation of the NH3 photolysis
@@ -13560,52 +13599,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed).
   Prerequisites: none. Related: GEN.133, GEN.134.
 
-- [ ] **GEN.544 Revisit the disc's vertical profile: the sech-squared core has half the midplane density of the exponential fits its scale heights come from**
-  Found by Core 1 while building GEN.404 (2026-10-17, 8:33 PM EDT as the
-  lane reported), filed by the TODO thread. Design gap, a consequence of
-  GEN.404's "Mass sets count" decision (Boss, card in Core 1's thread):
-  `galaxy/density.py` `_vertical` uses sech^2(z / 2h), and with the
-  density normalised to the galaxy's mass the reference structure (5e10
-  solar masses) has 0.037 systems per pc^3 at the reference radius, 0.38
-  of the old pinned local density (0.0985). The thin disc holds the
-  right column there (about 30 solar masses per pc^2 against 35
-  observed), but a sech^2 core has half the midplane density of the
-  exponential fits the scale heights were measured against, so the
-  midplane is too sparse and the 2.6 times sparser result of GEN.404 is
-  partly this profile and not only the mass law. Fails on main: no (it
-  appears with GEN.404's normalisation). Frequency: every galaxy.
-  Reproducer: `build_galaxy_shape` with the BHG16 shape,
-  `relative_density` at 3.15 scale lengths. Do: decide the profile with
-  the sources the scale heights come from (an exponential or a sum of
-  thin populations by age, GEN.134's young share and the thick disc
-  ratios decide the sum), keep the column density, change the midplane,
-  and say in the design note what the old and new local density are.
-  Default (stands unless Boss overrules): keep the column (about 30
-  against 35 observed) and match the midplane of the exponential fits,
-  with the thin populations summed if one profile cannot do both. Done:
-  the midplane density at the reference radius matches the fits within
-  the derived scatter, the column density does not move, and a test pins
-  both. A change that alters the generator output follows the epoch
-  rule. Owner: Core 1 proposed (it owns the code GEN.404 changes), after
-  GEN.404 merges.
-  Decided (Boss, 2026-10-17, 9:00 PM EDT, typed in the project chat,
-  relayed by the coordinator): "No that is approved, sounds like the two
-  new items will fix the star count drop". The default on this item
-  stands as the decision; Boss expects GEN.544 and GEN.545 together to
-  undo most of the star count drop GEN.404 causes. Owner: Core 1 (they
-  follow GEN.404).
-  Lane report (Core 1, 7:35 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): edits drafted, not tested: the thin and
-  thick disc vertical profile changes from sech^2 to exp(-|z|/h) (the
-  form the survey scale heights are fitted with) with the column (mass)
-  kept, so the midplane density doubles and column integrals become 2h
-  instead of 4h; open-cluster heights and the remnant height factor
-  follow the stars' profile; the nuclear disc keeps its isothermal
-  sheet. It needs a generator epoch (the next free one after GEN.591's),
-  and docs/design/galaxy-disk-density.md gets the old and new local
-  density.
-  Prerequisites: none. Related: GEN.404, GEN.134, GEN.401.
-
 - [ ] **GEN.545 The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution**
   Found by Core 1 while building GEN.404 (2026-10-17, 8:33 PM EDT as the
   lane reported), filed by the TODO thread.
@@ -13636,6 +13629,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stands as the decision; Boss expects GEN.544 and GEN.545 together to
   undo most of the star count drop GEN.404 causes. Owner: Core 1 (they
   follow GEN.404).
+  Core 1 after GEN.544 merged (#2323, 1:43 PM EDT 2026-10-21 as the lane
+  reported, epoch 41): the density at the reference radius is now 0.75
+  of the old pinned value (0.376 of it under GEN.404, which is twice the
+  GEN.404 value), the column through that point is unchanged at 524.26
+  pc of relative density, and the reference galaxy outline reaches shell
+  3,596 (was 3,147). The remaining gap is the mean system mass
+  (`tuning.MEAN_SYSTEM_MASS_SOLAR` 0.4), which this item derives.
+  Core 1 (2:02 PM EDT 2026-10-21 as the lane reported): the derived mean
+  system mass is 0.51 solar masses, not the recalled 0.4, so the
+  reference galaxy's system count goes down about 21%; Core 1 proceeds
+  with the approved default (derive it; generator epoch 42).
+  Status from the new Core 1 lane (4:40 PM EDT 2026-10-21 as the lane
+  reported): built on branch claude/project-thread-6lw1fr (commit
+  bc7f1e8 on main 8.0.1861) and in its `changed` gate (97 percent at
+  4:39 PM EDT). It derives the mean system mass from the IMF, the
+  star-count table, the companion draw and the remnants (new
+  `generation/system_mass.py` and `galaxy/system_mass.py`), removes
+  `tuning.MEAN_SYSTEM_MASS_SOLAR`, and takes generator epoch 42.
+  Reference galaxy: 0.504 solar masses a system (not 0.4), 9.9e10
+  systems (was 1.25e11), density at the reference radius 0.595 of the
+  pinned value (was 0.750). Superseded: the sentence above that Boss
+  expects GEN.544 and GEN.545 to undo most of the star count drop no
+  longer holds, because the derived mean lowers the count about 21
+  percent (the coordinator told Boss at 2:03 PM EDT); the approved
+  default (derive it) stands. The old Core 1 draft branch
+  claude/project-thread-ksf58w (commit 162a5ffa) and handoff patch
+  gen545-core1-draft.patch are superseded.
   Prerequisites: none. Related: GEN.404, GEN.103, GEN.366.
 
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
@@ -13910,6 +13930,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   remnant row as star state, [Fe/H], the composition hook (GEN.439,
   GEN.440), the free brown dwarf leaving `rogue_planets` (needs Core 1's
   DB.73 and DB.74 shape), motion and kick.
+  Merged in part: the second slice (Core 4, #2303, about 9:11 AM EDT
+  2026-10-21 as the lane reported, generator epoch 39, stamped by release 8.0.1850): a neutron star's or stellar black hole's age
+  follows its population (progenitor from the IMF over its range, birth
+  age from the population's window and age law, less the time to
+  collapse); intermediate and supermassive black holes and given ages
+  keep theirs; new note docs/design/remnant-age.md. Epochs through 39
+  are taken (37 GEN.591, 8.0.1848; 38 GEN.318, 8.0.1849), so the next
+  free epoch is 40.
 
 - [ ] **GEN.554 Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -13964,6 +13992,40 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
   lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
   (reported 4:33 PM EDT 2026-10-18).
+  Slice 1 merged as #2314 (Core 4, 1:15 PM EDT 2026-10-21 as the lane
+  reported): the neutron star count is the massive stars minus the black
+  holes, `remnant_density.py` replaces `black_hole_density.py`, the
+  unbound share of neutron stars is a structure field, and the generator
+  epoch 40 is pending (it takes its stamp at the next release). Boss
+  chose 'Keep the cap' on the black hole cap card (12:39 PM EDT
+  2026-10-21, as Core 4 reported). The item stays open for the mass
+  islands and the kick step. Boss's 1:17 PM EDT 2026-10-21 note (as the
+  coordinator relayed): Network access to arxiv.org, doi.org and
+  crossref stays closed until he opens it, and information already
+  included in the repository or in files he provided is valid; so the
+  kick-escape share and any other source this step cannot read stay
+  labelled recalled or placeholder in the gap registry and do not block
+  the step.
+  Slices 2 and 3 in flight (Core 4, 4:40 PM EDT 2026-10-21 as the lane
+  reported): explosion islands, the natal kick and the black hole cap at
+  the reference unbound share; docs explosion-islands.md and
+  natal-kick.md are new and four design notes are edited; its `changed`
+  gate on MySQL 8 started 3:54 PM EDT (51 percent at 4:39 PM EDT).
+  Epoch: the branch stamps 41, but 41 is taken on main by GEN.544
+  (8.0.1855), so it renumbers at merge to the next free one. Stand-ins
+  for the gap registry that this slice adds: nesting of failure windows
+  above the verified islands (stand-in); kick sigma 265 km/s (recalled,
+  Hobbs 2005, unverified); black hole unbound share 2 percent
+  (placeholder); a single Maxwellian instead of two components; birth
+  only in the thin disc; ejecta speed not yet the kick tail above
+  escape; `remnant_distribution` placement still empirical; the neutron
+  star and black hole mass function unchanged (a later slice); magnetars
+  still use the tuning rate as their stand-in. Reference neutron star
+  unbound share is 16 percent (the old 20 to 40 percent is a test target
+  only; the published Milky Way halo gives 27 percent). Perturber mass
+  changes from 1.44 to 0.88 and the encounter limit from 1.1e4 to 1.9e4
+  AU because of the new rates. Network access is closed (Boss, 1:17 PM
+  EDT), so the unverified sources stay labelled recalled.
 
 - [ ] **GEN.555 The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -14455,6 +14517,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in rad/s and next-due) waits on Core 1's storage shape (DB.74);
   position, velocity, mass, mu and epoch already sit on
   `SpatialPosition3D`.
+  Merged in part: GEN.565c (Core 4, #2308, about 10:42 AM EDT 2026-10-21
+  as the lane reported; no epoch, no stored change; gate 12,938 passed
+  in 87 minutes): `KinematicRecord` (position_au, velocity_kms,
+  spin_axis, spin_rate_rad_s, mass_kg, mu_m3_s2, epoch_unix,
+  next_due_unix) and `MassObject.kinematic_record()`; `speed_kms()`,
+  `axial_tilt_from_state()` and `spin_rate_rad_s` equal today's stored
+  speed, axial tilt and rotation period (tested);
+  `spin.orbit_normal_from_state`; docs/design/mass-object-class.md
+  section 12. Still open: the family classes, which wait on Core 1's
+  DB.74 shape.
 
 - [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
   Part of the unified orbited-body chain (GEN.550; design note
@@ -15226,6 +15298,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   table. Derived, and their columns dropped in the DB.73 revision:
   speed, axial tilt, rotation period, a*, ms period, galactic orbital
   speed, period and phase, and min_update_interval_years.
+  Core 4 (10:42 AM EDT 2026-10-21 as the lane reported): the S16 record
+  is declared (GEN.565c, #2308), but spin still lives on the body;
+  moving it onto the point is this item, after GEN.578.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
 - [ ] **GEN.585 Dimensions and unit systems in the registry: every unit carries its exponent vector, the derived kinds are listed, and a constant's number in any coherent system follows from its dimension**
@@ -15394,87 +15469,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   prerequisite of GEN.301.
   Prerequisites: none. Related: GEN.244, GEN.282.
 
-- [ ] **GEN.591 An elliptical comet's aphelion can exceed its star's Hill sphere in about 10% of runs: the comet bound test fails on main (bug)**
-  Found by Bug Hunt (reported 7:20 AM EDT 2026-10-18 on the lane's
-  clock), filed by the TODO thread.
-  `src/tests/test_comet_data.py::test_every_elliptical_comet_is_bound_and_stays_inside_the_stars_hill_sphere`
-  fails with `AssertionError: (0.08, 0.998818116460001,
-  6159.290676884793, 5814.6170006007005)`: an elliptical comet's
-  aphelion is 6159 AU, above the 5815 AU Hill sphere of a 0.08
-  solar-mass star at 2000 pc. Fails on main: yes. Bug Hunt's tree failed
-  17 of 120 fresh runs alone at idle (14%); the TODO thread's re-run on
-  main d6367912 at 7:41 to 7:43 AM EDT failed 3 of 30 (10%). So it is
-  unseeded draws, not load. Reading of the code (TODO thread, not yet
-  traced to a commit): `generation/comet.py` draws the eccentricity from
-  the period class's range and sets no cap from the star's Hill sphere,
-  while the test takes the Hill radius from
-  `mass_chain.current_central_mass_kg()` (the galaxy's virial mass,
-  GEN.400); a lighter galaxy gives a smaller Hill sphere, so the
-  tightest star (0.08 solar masses at the inner edge) can have a
-  long-period comet that leaves it. Either the generator must cap a
-  closed orbit's aphelion at the Hill sphere of its star (GEN.182 says a
-  closed orbit never leaves its star), or the test's bound must be the
-  one the generator uses; Bug Hunt suggests it started after GEN.402
-  (#2224). Frequency: 10 to 14% of runs alone. Reproducer: `for i in
-  $(seq 1 120); do python3 -m pytest src/tests/test_comet_data.py -k
-  bound_and_stays_inside -q; done`. Done: an elliptical comet's aphelion
-  is below its star's Hill sphere for every draw, by a cap in the
-  generator (an epoch if values change) or by a corrected bound, and the
-  test passes 300 of 300 fresh runs with no quarantine. Owner: Core 1
-  (proposed by Bug Hunt; GEN.400 and GEN.402 are its mass chain).
-  Epoch note (8:08 AM EDT 2026-10-18): if a generator cap changes values
-  this item takes the epoch after GEN.404's and GEN.549's (29 or later;
-  27 is stamped).
-  Epoch note (9:25 AM EDT 2026-10-18): 28 is stamped by GEN.549, so a
-  generator cap that changes values takes the epoch after GEN.404's and
-  GEN.244's (30 or later).
-  Epoch note (11:12 AM EDT 2026-10-18): epochs 29, 30 and 31 are stamped
-  by GEN.244 (release 8.0.1819), GEN.282 (8.0.1820) and GEN.563
-  (8.0.1821), so a change here takes the next free epoch at its merge,
-  32 unless another lane merges first; Alembic head is 0112 and the next
-  free id is 0113.
-  Epoch note (1:20 PM EDT 2026-10-18, real clock): epoch 32 is stamped
-  by GEN.317 (release 8.0.1828), so a change here takes the next free
-  epoch at its merge, 33 unless another lane merges first (Core 3's
-  GEN.318 carries 33 pending); Alembic head is 0112, next free 0113.
-  Epoch note (1:50 PM EDT 2026-10-18, real clock): epoch 36 is stamped by GEN.553's first slice (release 8.0.1843, #2284; 35 by PERF.138, 8.0.1842), so a change here takes the next free epoch at its merge, 37 unless another lane merges first (Core 3's GEN.318 renumbers to 37); Alembic head is 0112, next free 0113.
-  Lane report (Core 1, 7:35 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): fix done and tested: `Comet` takes
-  `ceiling_au` and cuts the eccentricity range at the aphelion limit; a
-  single star or close pair gets its Hill sphere from
-  `validation.orbit_ceiling_au`, a wide pair keeps its tighter stable
-  limit, parabolic comets read none; the bound test passes 100 of 100
-  loop runs and a system-level test is added. It claims epoch 37
-  (GEN.318 and GEN.553's second slice claim 37 too: the first to merge
-  takes it, the others renumber at merge); gate running since 7:06 AM
-  EDT, expected end about 9:10 AM EDT.
-  Prerequisites: none. Related: GEN.182, GEN.400, GEN.402.
-
-- [ ] **GEN.592 A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced)**
-  Observation by Bug Hunt (reported 8:51 AM EDT 2026-10-18 on the lane's
-  clock; not yet traced), filed by the TODO thread. In a galaxy run that
-  does not draw the star scatter, a capped cell (expected systems over
-  the 5,000 ceiling, in the dense core) generates 0 systems, while
-  `galaxy.resolution.cell_resolution` says it resolves 4 to 30 (no mass
-  limit passed) or 81 over a 24-cell neighbourhood (with the scatter's
-  mass limit passed, as `run_galaxy._fill_context` does). Probed with
-  the fixed seed 96901074FC015B42F2E80F1434609687: cells (4,-1,23),
-  (3,0,16), (4,0,23) and (5,0,29) resolved 10.4, 4.1, 25.8 and 29.5
-  systems and generated 0 each by `galaxy --shell --band --wedge`. Fails
-  on main: not checked by the TODO thread. Question for the GEN.281
-  owner: if the fill is meant to turn the bands drawn at the cap into
-  systems even without the scatter, it under-generates; if the scatter
-  must have run first, the plan statistics overstate what a sector run
-  produces, and the plan should say so. Do: trace why the capped cell
-  generates nothing, then either fix the fill or write down that the
-  scatter must run first and make the statistics honest. Done: a capped
-  cell generates the number `cell_resolution` gives, or the plan states
-  the precondition and the statistics follow it, with a test of the
-  chosen behaviour. Bug Hunt's own TEST.225 test no longer depends on
-  this (its next PR leaves capped cells out of the sum). Owner: Core 3
-  (proposed, GEN.281's lane).
-  Prerequisites: none. Related: GEN.281, GEN.283.
-
 - [ ] **GEN.593 Pulsar planets: the disc range stops short of PSR B1257+12's planets, and two of the three formation paths (a captured giant, an ablated companion) leave a pulsar with no planets**
   Design gaps in GEN.317 found by Core 3 while building it (reported
   11:18 AM EDT 2026-10-18, real clock; its GEN.317 gate started 11:17 AM
@@ -15502,32 +15496,37 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch at its merge.
   Prerequisites: none. Related: GEN.317, GEN.555, GEN.163.
 
-- [ ] **GEN.594 Each AD dataset (AD1 to AD8) needs a refuse-or-fall-back decision: a missing file stops the run or stands in as a labelled stand-in**
+- [ ] **GEN.594 Each AD dataset (AD1 to AD8) ships its best possible fallback, used only when a run is told explicitly to disregard missing files**
   Filed at the coordinator's request after GEN.590 merged (#2282,
   release 8.0.1838; Blocker 1 reported 3:34 PM EDT 2026-10-18 as the
-  lane reported). The shared download catalogue (GEN.548) now treats
-  every dataset as required, and bulk generation refuses to start while
-  any catalogue file is missing. Boss's 'Require the data' answer (9:38
-  AM EDT 2026-10-18) covers star composition only (GEN.590), so each
-  atmosphere dataset still needs its own answer: AD1 (giant visible
-  absorption, GEN.422), AD2 (dust and haze spectra, GEN.423), AD3
-  (infrared opacity, GEN.413, GEN.414), AD4 (Rayleigh, GEN.422), AD5
-  (particle spectra, GEN.436, GEN.444), AD6 (hot-giant line lists,
-  GEN.485, GEN.499), AD7 (acid vapour pressure, GEN.471, GEN.491) and
-  AD8 (photochemistry rates, GEN.496, GEN.501). Do: when the first AD
-  dataset is built, the coordinator brings Boss a card for it (options:
-  Require the data, which refuses the run with a plain message naming
-  the dataset and the setup command; Stand-in fallback, which uses the
-  labelled stand-in of the gap registry and says so; Not yet) and
-  records the answer here and on the item that builds it; later datasets
-  reuse the answer unless Boss differs. Done: every AD item says what a
-  missing file does, with Boss's answer and a test that pins it offline
-  with the GEN.548 fixtures, and the gap plan section 6 registry says
-  which values are still stand-ins. Owner: the TODO thread tracks the
-  answers; each AD item's builder asks through the coordinator
-  (proposed). Not a request for Boss's data: Boss has provided all the
-  AD1 data he can (3:07 PM EDT 2026-10-18).
-  Prerequisites: none. Related: GEN.548, GEN.590, GEN.422.
+  lane reported). The shared download catalogue (GEN.548) treats every
+  dataset as required, and bulk generation refuses to start while any
+  catalogue file is missing. DECIDED (Boss, 2026-10-21, 5:54 PM EDT, as
+  the coordinator relayed, revising his 'Require the data' answer of
+  9:38 AM EDT 2026-10-18): "have the best possible fallback if the files
+  are not there, but the generate process must be explicitly said to
+  disregard missing files". So no card is needed for any AD dataset: a
+  run with a missing file refuses by default and names the file, its URL
+  and the setup command; a run told explicitly to disregard missing
+  files (the option of GEN.599) uses the dataset's best possible
+  fallback and prints it in the run header; there is never a silent
+  fallback. The datasets: AD1 (giant visible absorption, GEN.422), AD2
+  (dust and haze spectra, GEN.423), AD3 (infrared opacity, GEN.413,
+  GEN.414), AD4 (Rayleigh, GEN.422), AD5 (particle spectra, GEN.436,
+  GEN.444), AD6 (hot-giant line lists, GEN.485, GEN.499), AD7 (acid
+  vapour pressure, GEN.471, GEN.491) and AD8 (photochemistry rates,
+  GEN.496, GEN.501). Do: each AD item names the best possible fallback
+  of its dataset (the labelled stand-in of the gap registry, section
+  6.6, chosen as the closest honest value and labelled recalled,
+  derived, bracket, theory or placeholder) and registers it with the
+  catalogue entry so GEN.599's header can print it. Done: every AD item
+  says what its fallback is, with a test that pins the refusal and the
+  explicit-option path offline with the GEN.548 fixtures, and the gap
+  plan section 6 registry says which values are still stand-ins. Owner:
+  each AD item's builder; GEN.599 builds the option. Not a request for
+  Boss's data: Boss has provided all the AD1 data he can (3:07 PM EDT
+  2026-10-18).
+  Prerequisites: GEN.599. Related: GEN.548, GEN.590, GEN.422, GEN.600, DOC.72.
 
 - [ ] **GEN.595 Replace the Solar System comet population shape (GEN.520 D6) with a derived distribution**
   Filed from Boss's sweep answer on fork 8 (6:08 to 6:10 PM EDT
@@ -15542,6 +15541,122 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with its test (TEST.215) still passing. Suggested owner: a research
   thread, then Core 4 (the comet sampler lane); version 8.4.
   Prerequisites: none.
+
+- [ ] **GEN.596 A companion below 0.01 solar masses makes multistar.draw_member_tree raise 'no cooling track' (bug)**
+  Found by Core 1 (2:02 PM EDT 2026-10-21 as the lane reported; relayed
+  by the coordinator at 2:02 PM EDT), filed by the TODO thread.
+  `multistar.draw_member_tree` (src/planetgen/generation/multistar.py)
+  raises `ValueError: no cooling track for ... solar masses`
+  (src/planetgen/physics/brown_dwarf.py, the models run from their
+  lowest tabulated mass) when a companion is drawn below 0.01 solar
+  masses. Frequency: 21 of 3,000 trees (0.7%) for a 0.085 solar mass
+  primary. Fails on main: yes, Core 1 reproduced it on current main.
+  Reproducer: `Placed("star", 0.085)`, age 5e9 years, streams b"f0" to
+  b"f2999"; 21 of 3,000 fail. Do: find where the companion mass is drawn
+  below the cooling table's lowest mass and either clamp the draw to the
+  table's range (the draw's own lower limit) or take the planetary-mass
+  branch, whichever the mass function's design says; no try/except that
+  hides it. Done: the reproducer gives 0 failures in 3,000 and a test
+  covers a primary near the hydrogen-burning limit. Owner: Core 4 (routed by the coordinator, 2:09 PM EDT 2026-10-21; it takes the item after its current slice).
+  Prerequisites: none. Related: GEN.545, GEN.262.
+
+- [ ] **GEN.597 A rocky planet of a wide binary gets flux_variation above 1 (the insolation test passes only on seeds 0 to 59) (bug)**
+  Found by Core 4 (3:41 PM EDT 2026-10-21 as the coordinator relayed
+  Core 4's note), filed by the TODO thread.
+  `src/tests/test_insolation.py::test_a_lone_star_has_no_variation_and_a_generated_system_sets_it_on_every_body`
+  asserts 0.0 <= flux_variation <= 1.0 on every body; a rocky planet
+  (body_type "t") of a wide binary (binary_type "wide") can get a value
+  above 1. Fails on main: yes, at seeds outside the test's own
+  range(60): seed 106 gives 1.72, seed 225 gives 1.10, seed 245 gives
+  2.32 (the test's seeds 0 to 59 pass on main only by the luck of the
+  draws; seed 36 gives 1.63 on Core 4's branch). Frequency: about 3 of
+  240 systems. Reproducer, from src/: `from tests.fuzz_support import
+  deterministic_entropy`; `with deterministic_entropy(seed):
+  draw.set_run_seed(seed); s = StarSystem(SystemConfig(),
+  galactic_center_dist_ly=26000.0)`, then any planet in `s.planets +
+  s.secondary_planets` with body_type != "g" and flux_variation > 1. Do:
+  find why the wide-binary secondary's contribution pushes the ratio of
+  minimum to maximum flux (or the variation fraction) past 1 for a
+  planet in the pair's own orbit around the primary, fix the formula or
+  the clamp's cause, and widen the test's seeds to 240. Done: the
+  reproducer gives no value above 1 in 240 systems. Owner: Bug Hunt (routed by the coordinator, 3:46 PM EDT 2026-10-21).
+  Prerequisites: none. Related: GEN.545.
+
+- [ ] **GEN.598 CLUSTER_MEAN_SYSTEM_MASS_SOL (0.4, recalled) sets the system count of globular clusters and satellites: derive it as GEN.545 derives the galaxy's**
+  Found by the new Core 1 lane (4:40 PM EDT 2026-10-21 as the lane
+  reported), filed by the TODO thread. `CLUSTER_MEAN_SYSTEM_MASS_SOL =
+  0.4` is the same recalled constant as the galaxy's
+  `MEAN_SYSTEM_MASS_SOLAR` and is read in `king.py`, `components.py`,
+  `component_field.py`, `component_pass.py` and `open_clusters.py`; it
+  divides a cluster's or satellite's stellar mass into a system count.
+  Boss's rule is no fixed content. Fails on main: no (a stand-in,
+  labelled recalled within a factor of 1.5, not yet measured). Do:
+  derive it from the cluster's own mass function and multiplicity the
+  way GEN.545 does for the galaxy (reuse `generation/system_mass.py`),
+  so the constant goes; where a cluster has a different mass function (a
+  bottom-heavy or top-heavy IMF), the derivation takes it from the
+  component. Done: no code reads `CLUSTER_MEAN_SYSTEM_MASS_SOL`, and a
+  test checks the derived mean against a seeded draw. Owner: Core 1
+  (proposed, after GEN.545 merges); a generator change, so it takes the
+  next free epoch.
+  Prerequisites: GEN.545. Related: GEN.545, GEN.404.
+
+- [ ] **GEN.599 A run with missing downloaded data files refuses unless it is told explicitly to disregard them, and then uses the best possible fallback and says so in its header**
+  Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed: "Also
+  revision of my previous choice, have the best possible fallback if the
+  files are not there, but the generate process must be explicitly said
+  to disregard missing files. Also-also, the updater / downloader should
+  list the file URL it's loading as well." This replaces the 'Require
+  the data' rule (Boss, 9:38 AM EDT 2026-10-18, GEN.590) and the
+  refuse-or-fall-back cards of GEN.594. Today
+  `run_galaxy.require_datasets` refuses a bulk run while any catalogue
+  file is missing, and `fetch.DataMissing` is raised by readers, so no
+  value ever comes from a fallback (src/planetgen/datasets/fetch.py,
+  stellar_abundances.py). Do: keep the refusal as the default, with a
+  plain message naming each missing file, its URL and the setup command
+  (`python3 -m planetgen.cli.datasets fetch KEY`); add one explicit
+  option that tells the run to disregard missing files (proposed:
+  `--disregard-missing-data` on the CLI commands and `update.sh` runs,
+  and a labelled checkbox on the Generate page and a field on the API
+  job, off by default; the owner may pick the exact words); with it set,
+  every reader of a missing dataset takes its best possible fallback
+  (the labelled stand-in of the gap registry, section 6.6, or for star
+  composition the best available relation), never silently: the run
+  header (CLI banner, job log and the Generate page's job text) prints
+  that the option is on, each missing dataset and the fallback in its
+  place, and the run record stores the list so a later page can show
+  that the galaxy used stand-ins. No silent fallback anywhere: a reader
+  that finds a missing file with the option off raises `DataMissing` as
+  now. Done: tests with the GEN.548 fixtures show that a run with a
+  missing file and no option refuses with the file names and URLs; with
+  the option it runs, prints each fallback in the header and stores the
+  list; an option typed on a command that reads no data does nothing
+  harmful; the star composition (GEN.590) path is covered the same way;
+  the README row (DOC.72) and docs/cli.md say how to use it. Owner:
+  Blocker 2 proposed (it picks the work up after or between its seven
+  items, the coordinator may move it).
+  Prerequisites: none. Related: GEN.594, GEN.548, GEN.600, DOC.72.
+
+- [ ] **GEN.600 The updater and the downloader print the URL of every file they load**
+  Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed: "Also
+  revision of my previous choice, have the best possible fallback if the
+  files are not there, but the generate process must be explicitly said
+  to disregard missing files. Also-also, the updater / downloader should
+  list the file URL it's loading as well." Today `python3 -m
+  planetgen.cli.datasets fetch` prints one line per dataset (`KEY:
+  fetched (N files, folder)`) and, on a failure, the reason per file,
+  but not the file URLs; `update.sh` and `install.sh` run it as step 3
+  and show only that. Do: `fetch` prints, for every piece it handles,
+  its https URL beside the result (requested, already there with the
+  right hash and not requested again, or failed with the reason),
+  `status` prints the URL of every missing file, and `update.sh` and
+  `install.sh` show those lines in their output; the same URLs appear in
+  the refusal message of a run with missing data (GEN.599). Done: a test
+  with the GEN.548 fixtures checks that each piece's URL is in the
+  `fetch` and `status` output for fetched, kept and failed pieces;
+  `update.sh --help` and the README row (DOC.72) mention it. Owner:
+  Blocker 2 proposed (small; it can go first).
+  Prerequisites: none. Related: GEN.548, GEN.599, DOC.72.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -15687,7 +15802,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   command list, each command is one queue item; the stages are not wired
   in any other way. PERF.118 (the wrapper) comes first and PERF.119
   (every start path uses it) comes after this umbrella.
-  Prerequisites: PERF.107, PERF.108. Related: PERF.86.
+  Subitems merged (Core 5, 9:08 AM EDT 2026-10-21 as the lane reported):
+  PERF.107 (#2305, release 8.0.1846) and PERF.108 (#2305, release
+  8.0.1847) join PERF.106 (slices 1 to 5, #2259 to #2278), so every
+  subitem named above is done. This umbrella stays open until Core 5
+  confirms that the old executor is unused (its "done when" line); the
+  TODO thread asked at 9:15 AM EDT.
+  Core 5's answer (9:23 AM EDT 2026-10-21 as the lane reported): PERF.98
+  is NOT done although every subitem is merged. The stages are commands,
+  but the old executor is still used on main: `planetgen sector` still
+  builds a WorkQueue (generation/run_sector.py:993 via
+  run_common._work_queue), about 12 `workQueue.job_node(...)` wrappers
+  still write the MySQL job tree (plan, scatter, population, fills), and
+  the Queue page and API still read that tree. Those end with PERF.119
+  (sector and system through the wrapper), PERF.121 and PERF.122 (the
+  job_node wrappers go away or move to the run record), PERF.99 (pages
+  read Redis) and PERF.100 (delete queue/work.py and the work_* tables).
+  PERF.98 stays open until PERF.100 lands.
+  Prerequisites: none. Related: PERF.86.
 
 - [ ] **PERF.99 Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
@@ -15762,78 +15894,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   delete list and the "no old code" Done line carry that exception.
   Prerequisites: DB.29. Related: PERF.86, PERF.29, PERF.30, DOC.20.
 
-- [ ] **PERF.107 The sector units and the stages around them: start, neighborhood, sectors, link, population and settle**
-  Split from PERF.98 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Move the `galaxy` command's
-  sector stages (`start`, `neighborhood`, `sectors`) to units that are
-  static chunks of sectors (about 4,000 units per stage at most, JSON
-  arguments, the run's seed independent of worker count), and `link`,
-  `population` and `settle` as one-shot units, all on the run record
-  with the done-set barrier. Done: `planetgen galaxy` without the
-  backfill runs on the new queue and gives the same sectors for the same
-  seed at 1 and 4 workers; `--workers 1` uses the same path; test for
-  each stage.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Boss, 2026-10-17, 4:12 PM EDT: every stage in this item is a command
-  registered with the wrapper of PERF.118, and the wrapper builds the
-  command list, each command is one queue item; the stages are not wired
-  in any other way.
-  Decided (Boss, 2026-10-17, 4:15 PM EDT): each scatter kind (mass,
-  luminosity, phenomena, nebula field, backfill and the rest) is its own
-  command with its own parameters, never one command that groups
-  scatters; see PERF.118.
-  Decided (Boss, 2026-10-17, 4:18 PM EDT): each command here does one
-  and only one thing and knows nothing of the other stages or the order;
-  the order lives only in the wrapper's step list (PERF.118).
-  Lane report (Core 5, 7:34 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): coded and committed together with PERF.108
-  on one branch (main 8.0.1843 merged in); gate started 7:09 AM EDT, 73%
-  at 7:34 AM EDT, expected end about 8:45 AM EDT; a SIGTERM now ends a
-  run as cancelled (`wrapper.run`) and the galaxy tests no longer read
-  the old lease and queue node.
-  Prerequisites: none. Related: PERF.98.
-
-- [ ] **PERF.108 The backfill as queue units: chunks of at least 10,000 cells, one enumeration (folds in PERF.18)**
-  Split from PERF.98 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Move the `backfill` stage and its
-  units onto the new queue: the unit is a chunk of the backfill's target
-  sectors of at least about 10^4 cells (the per-cell draw is about 0.06
-  ms, so smaller units are all overhead); the target set is enumerated
-  once around the run's boundary and filtered by tier radius, not once
-  per block (the 60-fold redundant list); the band and mass tables stay
-  pre-warmed in the worker (`cli/worker.py`, PERF.42). This is PERF.18's
-  remaining work, the old queue pointers of which
-  (`stellarObjects/workQueue.py`, in-request backfills that no longer
-  exist in `web/` or `api/`) are gone. Done: `planetgen galaxy` with the
-  backfill runs wholly on the new queue and gives the same stars for the
-  same seed at any worker count; the old executor is unused by any
-  generation command; a test with a backfill of at least two chunks.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): PERF.18 folded in. Boss's order of 2026-10-01 stays: the
-  backfill runs as tasks on the work queue with the run's worker count
-  and gives the same stars as the one-process backfill for the same
-  seed; the research on the per-job band-table rebuild and the 60-fold
-  redundant enumeration is in
-  docs/design/sampling-backfill-and-resume.md and
-  generation-performance-study.md.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Boss, 2026-10-17, 4:12 PM EDT: every stage in this item is a command
-  registered with the wrapper of PERF.118, and the wrapper builds the
-  command list, each command is one queue item; the stages are not wired
-  in any other way.
-  Decided (Boss, 2026-10-17, 4:15 PM EDT): each scatter kind (mass,
-  luminosity, phenomena, nebula field, backfill and the rest) is its own
-  command with its own parameters, never one command that groups
-  scatters; see PERF.118.
-  Decided (Boss, 2026-10-17, 4:18 PM EDT): each command here does one
-  and only one thing and knows nothing of the other stages or the order;
-  the order lives only in the wrapper's step list (PERF.118).
-  Prerequisites: PERF.107. Related: PERF.98.
-
 - [ ] **PERF.111 `ResponseCache.put` without a database never trims the page cache: the cache grows past `max_entries`, and the thread test fails when its last put is one of those (bug)**
   Found by Core 2 (2026-10-17, 6:31 AM EDT as the lane reported, MAP.217
   gate unit phase), filed by the TODO thread, who read the code.
@@ -15883,7 +15943,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   seed at 1 and at 4 workers (a test that compares the stored rows), and
   the units are static chunks, not a work-stealing split, so a rerun
   gives the same chunks.
-  Prerequisites: PERF.107. Related: PERF.98, PERF.107.
+  Prerequisites: none. Related: PERF.98, PERF.107.
 
 - [ ] **PERF.114 The population pass of a galaxy run: measure it, and split it into chunks of sectors if the time warrants**
   Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
@@ -15902,7 +15962,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   result must be identical for the same seed at 1 and at 4 workers (a
   test that compares the stored rows), and the units are static chunks,
   not a work-stealing split, so a rerun gives the same chunks.
-  Prerequisites: PERF.107. Related: PERF.98, PERF.107.
+  Prerequisites: none. Related: PERF.98, PERF.107.
 
 - [ ] **PERF.115 The settle stage of a galaxy run: measure it, and split it into chunks of sectors if the time warrants**
   Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
@@ -15924,7 +15984,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   seed at 1 and at 4 workers (a test that compares the stored rows), and
   the units are static chunks, not a work-stealing split, so a rerun
   gives the same chunks.
-  Prerequisites: PERF.107. Related: PERF.98, PERF.107, PERF.80.
+  Prerequisites: none. Related: PERF.98, PERF.107, PERF.80.
 
 - [ ] **PERF.116 The habitability re-score (`plan --habitability`): measure it, and split it into chunks of systems if the time warrants**
   Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
@@ -16091,6 +16151,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `--redo-scatters` removed and no shim. Pure-Python tests pass (398);
   the DB tests, the same-galaxy equivalence check and the gate come
   after the PERF.107 and PERF.108 merge.
+  Status from Core 5 (4:41 PM EDT 2026-10-21 as the lane reported):
+  built together with PERF.122 on branch claude/core5-perf121 (main
+  merged in, f74b4f7). Wording above that is stale: `plan` now places no
+  stars (it is the skeleton only) and the five commands exist (scatter,
+  clear-scatter, fill-map-luminosity, rescore-habitability,
+  clean-nebula-field). The old-against-new equivalence check (galaxy
+  fingerprint on a 200-shell grid, old plan on main against plan plus
+  scatter --mass, --luminosity and --phenomena on the branch) has the
+  old side done (51 minutes) and the new side running since 4:35 PM EDT
+  (expected end about 5:30 PM EDT); the `changed` gate starts after the
+  fingerprints match. Finding from the same lane: `plan --max-shell`
+  does not shrink the scatter (the grid is 65,536 shells;
+  `--reach-shells` does), so a default-size plan run takes hours; this
+  item's rework should make the shell limit apply or remove the option,
+  no shim.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.122 The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags**
@@ -16116,6 +16191,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rescore-habitability` and `planetgen clean-nebula-field` (with
   `--apply`). They replace the `plan --fill-map-luminosity`, `plan
   --fill-habitability` and `plan --redo-nebula-field` modes.
+  Status from Core 5 (4:41 PM EDT 2026-10-21 as the lane reported):
+  built with PERF.121 on branch claude/core5-perf121; see the note
+  there. The `changed` gate has not started.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.123 `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds**
@@ -16137,7 +16215,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   backfill, population, settle) and prints it with `--estimate-only`;
   the same seed gives the same galaxy as today at 1 and 4 workers.
   Owner: Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.107, PERF.108, PERF.121. Related: PERF.107,
+  Prerequisites: PERF.121. Related: PERF.107,
   PERF.108, PERF.118, PERF.120.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
@@ -16180,7 +16258,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the wrapper and runnable alone, with `--territories-only` removed
   and no shim; the same stored rows as today for the same seed. Owner:
   Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.107, PERF.120. Related: PERF.107, PERF.114,
+  Prerequisites: PERF.120. Related: PERF.107, PERF.114,
   PERF.120.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
@@ -16245,7 +16323,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changes tile content, so the build is a step the wrapper lists after
   the generation commands, never a part of one). Owner: Core 2
   (proposed; the map and cache lane).
-  Prerequisites: PERF.131, PERF.133, PERF.134.
+  Prerequisites: PERF.134.
   Related: PERF.41, PERF.104, PERF.120, PERF.127, MAP.158, MAP.159,
   MAP.195, MAP.239.
   Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
@@ -16269,145 +16347,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   forward if its cause is the missing cache" is superseded by Boss's
   card on MAP.249 (2026-10-18, about 8:54 AM EDT, "Both, cut payload
   first"): the tile cache work follows MAP.249's payload cut.
-
-- [ ] **PERF.131 Store the tiles compressed and serve the stored bytes with their encoding, so a request does no compression**
-  Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
-  caching, so that we build out not only the initial galactic view but
-  all the normal zoom levels for that view that we can compress and
-  serve up to the client immediately on request. Basically I want to
-  build out tiles for the first several zoom levels and then I want to
-  build it so that system is proactive and when the user visits and zoom
-  level it builds and caches all the surrounding tiles and the next zoom
-  levels. Then it keeps them until the data changes." What exists (read
-  from main, 2026-10-17): `web/lib/tilecache.py` keeps packed tiles on
-  disk (`<cache dir>/<db>/<generation>/<tile>.bin`, the PGT1 format of
-  `tilepack.py`), answers `/galaxy/tiles` by joining stored bytes, and
-  keeps stage and window payloads the same way; freshness is the content
-  stamp plus `GET /api/galaxy/changes` (the `modified_at` columns, so
-  only the changed tiles are deleted, and a change that cannot be pinned
-  to tiles starts a new generation); `prune` deletes the least recently
-  written files above `tile_cache.max_mb`; the browser keeps its own
-  copy in IndexedDB (MAP.158); `web/warmup.py` warms only the opening
-  view's tiles and the galaxy stage; Apache compresses each response at
-  send time; the admin health block shows where the cache lives and its
-  size. Today the stored packed tile is joined per request and Apache
-  compresses the response (`mod_brotli`, else `mod_deflate`), and
-  joining several gzip members in one body was tried and dropped because
-  Chromium decodes only the first member (the docstring of
-  tilecache.py). Done: each tile is stored once packed and once
-  compressed (brotli, with gzip for a client that does not accept it,
-  chosen by measuring the size and the decode cost on a real galaxy and
-  written in the PR), a request for one or more tiles is answered from
-  the stored compressed bytes with `Content-Encoding` and no
-  recompression (tiles that cannot be concatenated stay separate
-  responses or a length-prefixed body of compressed members that the
-  browser unpacks, whichever the measurement favours), the disk size of
-  the cache is reported for both forms, and the response is the same
-  data as today for the same tiles (a test). Owner: Core 2 (proposed).
-  Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
-  stored here are built with halo and satellite-galaxy stars ranked
-  below every other star, so a budget cut removes them first; landing
-  that rule bumps the tile cache stamp and the cached tiles are rebuilt
-  once. The galaxy map lag Boss reported at the same time is MAP.249; if
-  its cause is the missing cache, this item is brought forward.
-  Decided (Boss, 2026-10-18, tapped 'Both, cut payload first' on the
-  MAP.249 card at about 8:54 AM EDT, as the coordinator relayed): the
-  tile cache work follows MAP.249's payload cut, so it starts after Core
-  2's payload PR (about 2 MB a view) and is sized for the reduced tiles.
-  Boss (2026-10-18, 5:43 PM EDT): about 10 times the first tile cache's
-  40 MB is acceptable, up to 1 GB by the `cache.max_mb` setting
-  (PERF.139); stored data that can be precomputed and shipped ready
-  should be.
-  Boss, 2026-10-18, 6:05 PM EDT: "make sure we don't re-compile a tile
-  if nothing has changed". Storing compressed tiles must not rebuild a
-  tile that is already stored and unchanged; it only re-encodes once,
-  when the format changes.
-  Prerequisites: none. Related: PERF.129, MAP.159, MAP.158.
-
-- [ ] **PERF.133 Keep every tile until the data changes: invalidate by what changed, rebuild what a change touched, and never evict a valid tile for size**
-  Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
-  caching, so that we build out not only the initial galactic view but
-  all the normal zoom levels for that view that we can compress and
-  serve up to the client immediately on request. Basically I want to
-  build out tiles for the first several zoom levels and then I want to
-  build it so that system is proactive and when the user visits and zoom
-  level it builds and caches all the surrounding tiles and the next zoom
-  levels. Then it keeps them until the data changes." What exists (read
-  from main, 2026-10-17): `web/lib/tilecache.py` keeps packed tiles on
-  disk (`<cache dir>/<db>/<generation>/<tile>.bin`, the PGT1 format of
-  `tilepack.py`), answers `/galaxy/tiles` by joining stored bytes, and
-  keeps stage and window payloads the same way; freshness is the content
-  stamp plus `GET /api/galaxy/changes` (the `modified_at` columns, so
-  only the changed tiles are deleted, and a change that cannot be pinned
-  to tiles starts a new generation); `prune` deletes the least recently
-  written files above `tile_cache.max_mb`; the browser keeps its own
-  copy in IndexedDB (MAP.158); `web/warmup.py` warms only the opening
-  view's tiles and the galaxy stage; Apache compresses each response at
-  send time; the admin health block shows where the cache lives and its
-  size. Done: a stored tile is kept until the data under it changes, as
-  the content stamp and the `modified_at` check already decide; a change
-  rebuilds the tiles it touched (the changed tiles and their coarser
-  parents, in the background at once rather than on the next visit);
-  `prune` no longer deletes a valid tile because of age, so
-  `cache.max_mb` is sized from the measured size of the built levels
-  plus the visited ones, the admin page says when the cache is at the
-  budget, and only the least recently visited on-demand tiles are
-  dropped to make room (see the Decided note below); a new tile format or a new generator
-  epoch (PERF.41) drops the stored tiles once and starts a new
-  generation; the generation and stamp logic keeps working for stage and
-  window payloads; tests for a change inside one sector (only its tiles
-  and parents rebuilt), a re-planned galaxy (a new generation) and a
-  full cache (warming stops, built-ahead tiles stay, the oldest visited tile goes). Owner: Core 2 (proposed).
-  Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
-  stored here are built with halo and satellite-galaxy stars ranked
-  below every other star, so a budget cut removes them first; landing
-  that rule bumps the tile cache stamp and the cached tiles are rebuilt
-  once. The galaxy map lag Boss reported at the same time is MAP.249; if
-  its cause is the missing cache, this item is brought forward.
-  Decided (Boss, 2026-10-18, card tap 5:56 to 5:57 PM EDT "Stop warming,
-  drop oldest visits", as the coordinator reported it; REPLACES this
-  item's earlier "never evict for size, warn only" wording): when the
-  `cache.max_mb` budget (PERF.139, default 1 GB) is full, the warm-up
-  stops, the built-ahead tiles are kept, and only the least recently
-  visited on-demand tiles are dropped to make room. A tile is still never
-  dropped because of age, and a change to the data still rebuilds what it
-  touched. Where the Done text below says "instead of evicting" or
-  "nothing valid deleted", this decision wins.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): "brought
-  forward" is superseded by Boss's card on MAP.249 (2026-10-18, about
-  8:54 AM EDT): the tile cache work follows MAP.249's payload cut (about
-  2 MB a view).
-  Boss, 2026-10-18, 6:05 PM EDT: "make sure we don't re-compile a tile
-  if nothing has changed". Already required by this item (a stored tile
-  is kept until the data under it changes, by the content stamp and the
-  `modified_at` check); the explicit test is on PERF.141: a second
-  warm-up with no change builds nothing. A tile is also not rebuilt when
-  only a release stamp changes and the tile format and generator epoch
-  do not (PERF.41).
-  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
-  2026-10-18, as the coordinator reported them): fork 11, "Required
-  prerequisite": PERF.41 (the TILE_FORMAT stamp) is a prerequisite of
-  this item.
-  Lane report (Core 2, 7:35 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): part 1 is committed (branch perf133, gate
-  started 7:23 AM EDT): stored tiles are keyed by a new `tile_stamp`
-  (shape, bright seed, naming key, `query.TILE_FORMAT` = 1, generator
-  epoch, change counters) with the release number out of it, so a
-  release alone keeps every stored tile (the page cache and counts still
-  follow `stamp`); `/api/galaxy/changes` gains `tile_stamp` and
-  `tile_full`; a change deletes only the tiles holding the sector and
-  queues the stored ones for rebuild at once (`tilecache.take_rebuilds`,
-  `tileprefetch.rebuild`, coarsest first, at most 2,048, off with
-  `prefetch_per_minute` 0, during an update or with the cache full); the
-  tests (no change builds zero tiles, a one-sector change rebuilds only
-  its tiles, a release alone rebuilds nothing, a TILE_FORMAT bump
-  rebuilds all) are in test_cache_warmup.py and test_tile_format.py pins
-  one tile's bytes. Not in part 1: the zero-list and index rebuild half
-  (waits for PERF.140 and PERF.141) and eviction by least recently
-  visited at the budget, which Core 2 builds with PERF.139 as its next
-  PR.
-  Prerequisites: PERF.41. Related: PERF.129, PERF.104.
+  Decided (Boss, tapped "Skip it" on the card "Store Galaxy Map tiles
+  compressed (PERF.131), or skip it?" at 11:27 AM EDT 2026-10-21, tap
+  verified on the platform): PERF.131 is skipped and retired. Apache
+  keeps compressing at send time (Core 2 measured under 0.1 s a big
+  view: a 200-tile view is 3.8 MB packed and 0.8 MB gzipped, gzip 0.03
+  to 0.10 s, against 3 to 54 s to build a cold view) and PERF.132
+  (#2298) removed the real waits; no new wire format.
 
 - [ ] **PERF.134 The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -16437,7 +16383,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of the first levels now, each through the command of PERF.130 and with
   the confirmation the other admin actions use; the actions are in the
   admin log; a test per action. Owner: Core 2 (proposed).
-  Prerequisites: PERF.133. Related: PERF.129, PERF.130,
+  Prerequisites: none. Related: PERF.129, PERF.130,
   PERF.133.
   Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
   stored here are built with halo and satellite-galaxy stars ranked
@@ -16450,6 +16396,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   forward" is superseded by Boss's card on MAP.249 (2026-10-18, about
   8:54 AM EDT): the tile cache work follows MAP.249's payload cut (about
   2 MB a view).
+  Merged with PERF.139 and PERF.133 (Core 2, #2316, release 8.0.1853,
+  reported 12:10 PM EDT 2026-10-21 as the lane reported; no epoch): the
+  admin cache view shows used and budget per kind against
+  `cache.max_mb`; PERF.139's own "admin page shows the budget" line
+  moves here (Core 2 did the key and the pruning, not the admin view).
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
+  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
+  owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
+  PM EDT as the lane reported).
 
 - [ ] **PERF.136 Measure the fill with wanderers and their moons, and decide whether the rogue cost is on by default**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -16495,51 +16450,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.126 and PERF.127 commands); low priority, no version blocker.
   Prerequisites: none. Related: PERF.75, PERF.135.
 
-- [ ] **PERF.139 One cache size setting, `cache.max_mb`, default 1024: tiles, stored lists and indexes share one disk budget**
-  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
-  warm-up that occurs after an update, generation, or change. That is
-  where we rebuild our tile cache, and I want us to go as deep as we
-  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
-  times that amount of stored data. If we can precalculate it, prepare
-  it, and get it ready to ship, let's do it. Same thing for caches of
-  all the lists. I had a serious problem with trying to find objects. I
-  need an index. I need a list of systems. I need a list of basically
-  every list the site wants, from phenomena in each type to planets to
-  moons to stars to whatever. We should build a cached index. Once
-  generation or updates are done, anytime anything changes, the cache it
-  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
-  say I'm perfectly happy with the cache up to 1 GB. There should be a
-  setting for that: how big the cache should be, on a slider on the
-  settings page and also, of course, in the config JSON file." Today
-  `tile_cache.max_mb` (default 200, a separate text box on the settings
-  page) bounds only the tile cache, and nothing bounds the stored lists.
-  Do: one key `cache.max_mb` in `config.json` (default 1024, 0 turns the
-  stored caches off) replaces `tile_cache.max_mb`, with no shim; the
-  tile cache, the stored lists and the object index share it; the admin
-  cache view (PERF.134) shows used and budget per kind. What happens when the budget is full is
-  decided (Boss, card taps 2026-10-18, 5:56 to 5:57 PM EDT, as the coordinator reported them): warming stops at the budget, built-ahead tiles are kept
-  and only the least recently visited on-demand tiles are dropped (see PERF.133);
-  when the budget is short, the object index and stored lists are kept first and
-  the tiles take the remaining space. `page_cache.max_mb` is memory per process,
-  a different thing, and stays. Done: the key exists in the settings model,
-  `config.schema.json`, `config.json.example` and docs/config.md, the
-  tile cache reads it, a test fills a small budget and checks the stated
-  behaviour, and the admin page shows the budget. Suggested owner: Core
-  2 (the tile cache lane); filed in 8.2.
-  Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
-  coordinator reported them): the cache budget is full: warming stops,
-  built-ahead tiles stay, only the least recently visited on-demand
-  tiles are dropped (PERF.133 amended); the budget is short: indexes and
-  stored lists first, tiles take the rest.
-  Lane report (Core 2, 7:35 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): next PR after PERF.133 part 1:
-  `cache.max_mb` default 1024 replaces `tile_cache.max_mb` with no shim
-  (environment variable PLANETGEN_CACHE_MAX_MB; settings.py, config
-  docs, schema and example, deploy-paths.py, create-cache-dir.sh and
-  about 10 tests), with eviction of the least recently visited tiles
-  when the budget is full.
-  Prerequisites: none.
-
 - [ ] **PERF.140 The index builder and its automatic refresh: each kind is rebuilt from what changed whenever generation, an orbital update or an edit changes it**
   Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
   warm-up that occurs after an update, generation, or change. That is
@@ -16571,7 +16481,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator reported them): the index and lists are filed in 8.2 with
   the tile cache, after PERF.131 to 133; their space is taken first when
   the shared budget is short, tiles take the rest.
-  Prerequisites: DB.79, PERF.139.
+  Merged with PERF.139 and PERF.133 (Core 2, #2316, release 8.0.1853,
+  reported 12:10 PM EDT 2026-10-21 as the lane reported; no epoch):
+  `cache.max_mb` (default 1024, 0 turns the disk caches off, environment
+  variable PLANETGEN_CACHE_MAX_MB) is the one budget; the stored lists
+  and the index built here must share it and still need the "kept first"
+  rule (when the budget is short the index and lists are kept and the
+  tiles take the rest), which Core 2 states cannot be built until the
+  lists and index exist.
+  Owner (coordinator decision, 12:07 PM EDT 2026-10-21 as the
+  coordinator relayed it): Core 2 owns DB.79 first and then this item.
+  Core 2's PERF.141 parts that do not need the index go first.
+  Prerequisites: DB.79.
 
 - [ ] **PERF.141 The warm-up runs in phases after every generation, update or change, as deep as the budget allows**
   Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
@@ -16615,7 +16536,104 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy that has not changed builds zero tiles (and zero list or index
   rebuilds), every phase reports "unchanged", and a change in one sector
   rebuilds only its tiles and their coarser parents.
-  Prerequisites: PERF.139, PERF.140, PERF.131, PERF.133.
+  Core 2 (9:35 AM EDT 2026-10-21 as the lane reported): the zero-list
+  and index rebuild half of Boss's no-recompile test (a no-change warm
+  rebuilds no stored list or index) waits for PERF.140 and lands with
+  this item; the tile half is in PERF.133's part 1 (#2311).
+  Merged with PERF.139 and PERF.133 (Core 2, #2316, release 8.0.1853,
+  reported 12:10 PM EDT 2026-10-21 as the lane reported; no epoch):
+  tiles built ahead (warm, background build, rebuild after a change) are
+  marked (`tilecache.AHEAD_MODE`, the group-read bit) and never pruned,
+  and each galaxy-tiles warm unit checks `tilecache.cache_is_full()` and
+  reports "N tiles left out, the tile cache is full"; the phases and
+  their skipped and rebuilt totals are this item (Core 2's next).
+  Slice 1 merged as #2325 (Core 2, 1:50 PM EDT 2026-10-21 as the lane
+  reported; release 8.0.1856): the warm-up runs in five named phases
+  with a report line per phase (built, unchanged, left out), `planetgen
+  warm` accepts phase names, a `warm-galaxy-deep-tiles` command exists,
+  and the tile phases stop at `cache.max_mb`. Gate: 3,831 passed, 157
+  skipped in 88 minutes. Still open: slice 2 (the automatic start after
+  generation, `planetgen orbits` and data-version changes) and slice 3
+  (the admin page shows each phase); the list and index half of Boss's
+  no-recompile test waits on DB.79 and PERF.140.
+  Slice 2 merged as #2337 (Core 2, 4:45 PM EDT 2026-10-21 as the lane
+  reported): the warm-up starts by itself after a generation run, the
+  orbital update, an edit or any change; new settings
+  `cache.warm_on_change` and `cache.warm_settle_seconds`; gate 19,668
+  passed, 3 environment or flake failures that pass alone. Slice 3 (the
+  admin queue page's 'Cache warm-up' panel with each phase's state, `GET
+  /api/admin/work/warm`) is written and tested and its gate starts next.
+  Slices 1 to 3 do not need PERF.140, so after slice 3 this item stays
+  open only for the deeper list pages and the index in phase 1, which
+  wait on PERF.140 (the 'Suggested owner' and prerequisite wording above
+  predates the split). The old Core 2's branch claude/perf141-slice2-wip
+  is superseded by #2337.
+  Slice 3 merged as #2346 (Core 2, about 5:35 PM EDT 2026-10-21 as the
+  lane reported): /admin/queue has a 'Cache warm-up' panel with the last
+  run and each of the five phases' state and result line. Slices 1 to 3
+  are done; this item stays open only for the deeper list pages and the
+  index in phase 1, which wait on DB.79 (migration 0113, in its gate
+  since 5:36 PM EDT as the lane reported) and PERF.140.
+  Prerequisites: PERF.140.
+
+- [ ] **PERF.144 Every job queued to RQ gets a time limit from the best available estimate of how long it takes, never no limit, so a killed worker's entry expires**
+  Boss (2026-10-21, 12:44 PM EDT, in the Bug Hunt thread, as Bug Hunt
+  reported it): "Can we build a time limit to assign to RQ based on
+  stats?". Today the Generate page's job (`web/jobs.py:696`), the API's
+  jobs (`queue/api_jobs.py:150`) and the queue executor
+  (`queue/redisqueue.py:305`) are queued with `job_timeout=-1`, so RQ
+  never expires their entries when a worker dies (PERF.142). Units
+  already get a limit (`units.unit_timeout`: a multiple of the stage's
+  expected seconds, with a floor and a ceiling, never -1).
+  Do: audit every site that enqueues to RQ (the Generate page's job in
+  `web/jobs.py`, the API's jobs in `queue/api_jobs.py`, the queue
+  executor in `queue/redisqueue.py`, the units, and any other `enqueue`
+  call, found by grep and listed on this item) and give each a finite
+  `job_timeout` taken from the best estimate available, in this order:
+  the recorded timings of that kind (`generation_stats`), the stage ETAs
+  the run plan already computes, then the size of the work (sectors,
+  systems, cells, span); the limit is a multiple of the estimate with a
+  floor and a ceiling (as `units.unit_timeout` does), a fixed ceiling
+  only for a route with no estimate at all, and never -1 or None. Boss,
+  2026-10-21, 5:32 PM EDT (as the coordinator relayed): "I also want to
+  make sure we've ensured that all jobs that go to RQ get a time limit
+  based on how much time the system thinks it will take based on the
+  best estimates avilable, so that RQ can help make sure we don't have
+  dead jobs." Done: the audit list of enqueue sites is on this item;
+  each site passes a finite limit; a test fails if any job is enqueued
+  without a timeout (a guard on the one enqueue wrapper, or a grep-style
+  test that fails on a bare `enqueue` call); a kind with recorded
+  timings gets the multiple, one with only a size estimate gets the
+  size-based limit, and one with neither gets the ceiling; and a job
+  over its limit is ended and reported failed. Owner: Bug Hunt, first in
+  its queue (priority raised by Boss, 5:32 PM EDT 2026-10-21; PERF.142
+  and PERF.143 merged as #2345). Related: PERF.142, PERF.106 (the unit
+  limits).
+  Prerequisites: none. Related: PERF.142, PERF.143, PERF.106.
+
+- [ ] **PERF.145 The run output repeats the stage: drop the stage-list line and the 'Stage 4 of 13: ...' line the engine logs under the wrapper's '=== Stage 4 of 13: ... ===' banner**
+  Boss, 2026-10-21, 5:22 PM EDT: a run prints '1 stage (stages 4 to 4 of
+  13): 4. Plan the galaxy.' and 'Stage 4 of 13: Plan the galaxy.' right
+  after the banner '=== Stage 4 of 13: Plan the galaxy ===', which
+  already says it; the extra mentions of the stage are redundant and
+  should be removed. The two lines come from `begin` and `_announce` in
+  src/planetgen/generation/stages.py (the stage-list line, with its
+  '(stages 4 to 4 of 13)' wording, and the per-stage announcement built
+  with `stagemark.marker`). Keep one marker per stage (the banner), keep
+  the skipped-stage line with its reason, and keep what the Generate
+  page and the progress file read (`progress_file.set_stage`,
+  `stage_text`); change the tests that assert the old lines
+  (src/tests/test_stages.py asserts the stage-list wording). A command
+  cleanup, not a bug. Done: a run logs each stage once, in the banner,
+  with no 'N stage(s) (stages a to b of c)' line and no repeated 'Stage
+  n of N: label.' line; a skipped stage still says why; the Generate
+  page's stage text and the progress file are unchanged; the tests pass.
+  Bug Hunt's reading (5:24 PM EDT as the lane reported): it applies to
+  every stage of every command, a line that carries information the
+  banner does not stays, and a test covers it.
+  Owner: Bug Hunt, after PERF.142 and PERF.143 (Boss's item relayed by
+  the coordinator, 5:23 PM EDT).
+  Prerequisites: none. Related: PERF.120.
 
 ## DB: Database and schema
 
@@ -16878,6 +16896,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   on 2026-10-16 that it is its to fix stays on record, so the two lines
   are not reconciled further here (the recommendation was to ask Boss,
   with Core 1 as the fallback).
+  Decided (Boss, tapped "Core 1" on the DB.33 owner card at 11:29 AM EDT
+  2026-10-21, as the coordinator reported it): Core 1 owns DB.33, after
+  its current queue.
   Prerequisites: none.
 
 - [ ] **DB.36 Tables for change plans, their operations and the edit journal (migration only)**
@@ -17041,6 +17062,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
+  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
+  GEN.378"). This replaces any earlier owner line on this item (it was
+  Core 1's; the migration still takes the next free revision at merge,
+  0113 belongs to DB.79).
   Prerequisites: none. Related: DB.9.
 
 - [ ] **DB.45 Storage checksum and the dirty flag: the export, the checksum and every writer**
@@ -17835,12 +17861,56 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   columns the list pages sort and filter on; a unique key on kind and
   ID, keyset keys per kind and sort, and a FULLTEXT index on the name.
   Done: the migration, the model and schema.sql agree, and the index is
-  empty until PERF.141 fills it. Suggested owner: Core 1; filed in 8.2 with the tile cache
+  empty until PERF.140 fills it. Suggested owner: Core 1; filed in 8.2 with the tile cache
   (Boss, card tap 5:56 to 5:57 PM EDT).
   Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
   coordinator reported them): the index table is filed in 8.2 with the
   tile cache; the index is kept first when the shared budget is short.
+  Owner (coordinator decision, 12:07 PM EDT 2026-10-21 as the
+  coordinator relayed it): Core 2 owns this item and does it first, then
+  PERF.140, because Core 1 has GEN.544, GEN.545 and DB.33 queued. Core 2
+  numbers the migration (next free 0113). This replaces the suggested
+  owner Core 1 above. Not started.
   Prerequisites: none.
+
+- [ ] **DB.80 `VALUES ROW(...)` key-run lists are rejected by MariaDB 10.11 although INSTALL.md supports MariaDB 10.4+ and MySQL 8.0.16+ (bug)**
+  Found by Core 4 (3:41 PM EDT 2026-10-21 as the coordinator relayed
+  Core 4's note: its fresh machine ran MariaDB 10.11.14 and 259 tests
+  failed identically on origin/main), filed by the TODO thread.
+  `src/planetgen/db/region.py` (the key-run list, GEN.276) and
+  `src/planetgen/db/store.py` (the scatter value list, line 9322) build
+  `VALUES ROW(a, b), ROW(c, d)`; that table value constructor is MySQL
+  8.0.19+ syntax and MariaDB does not accept it, while INSTALL.md lists
+  MySQL 8.0.16+ or MariaDB 10.4+. Tests that fail there include
+  test_db_old_schemas, test_galaxy_gen, test_gen_resume and
+  test_parallel_generation. Fails on main: yes on that server; the other
+  lanes' servers are not known to the TODO thread to be a different
+  version, so which server the tests are normally run on is open. Do:
+  pick one with Boss (question put to the coordinator): the default is
+  to rewrite both lists as a portable `SELECT ... UNION ALL SELECT ...`
+  derived table (no backward-compatibility shim), which keeps INSTALL.md
+  true; the other choice is to raise the documented minimum to MySQL
+  8.0.19 and drop MariaDB from INSTALL.md. Done: the affected tests pass
+  on MariaDB 10.4 and MySQL 8.0.19, and INSTALL.md matches. Owner: not
+  assigned (DB queue).
+  Decided (Boss, card tapped 4:37 PM EDT 2026-10-21, 'Raise minimum to
+  MySQL 8.0.19', card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi3vCP2EtkXETBwr8rfqmGon): the documented
+  minimum rises to MySQL 8.0.19 and MariaDB is not supported; the
+  `VALUES ROW(...)` code stays as it is, no rewrite and no shim. This
+  replaces the default above (the UNION ALL rewrite). Done by the TODO
+  thread in a docs PR (4:40 PM EDT): INSTALL.md, README.md,
+  docs/WINDOWS.md, docs/deployment/{README,nginx,paas,macos}.md and
+  docs/testing.md (the first lines) now say MySQL 8.0.19+ with MariaDB
+  not supported. Still to do, for a lane: the `mysql.host` help text in
+  `src/planetgen/util/settings.py` and its row in docs/config.md ('The
+  MySQL or MariaDB server's host name or address'), docs/testing.md
+  lines on local MariaDB runs and the MariaDB 11.4 leg,
+  docs/ci-runners.md, and the tests' MariaDB branches (reserved-word
+  set, check constraints, disks, `dbpool.py`); a test run on MariaDB now
+  fails by design, so a lane's machine must run MySQL 8 (the recipe is
+  in project memory). Owner: not assigned.
+  Prerequisites: none. Related: GEN.276.
 
 ## API: The JSON API
 
@@ -18443,7 +18513,18 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   admin layout: one shell with one navigation, the same table, form,
   confirmation and job-log pattern everywhere. Queued after UX.115; the
   audit starts the ADM chain.
-  Prerequisite: UX.115. Related: ADM.56, ADM.43, ADM.35, UX.102.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
+  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
+  owner line on this item (it had none).
+  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
+  the admin redesign thread reported; report
+  docs/design/admin-control-suite.md): the whole suite is built in 8.1
+  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
+  the shell, job strip and palette, then Generate; every admin page goes
+  onto the one shell once. This audit narrows to the pages other than
+  Generate and Settings (key K8); the Generate and Settings audit is the
+  report.
+  Prerequisites: none (UX.115 dropped, Boss 6:01 PM EDT 2026-10-21: the redesign starts now). Related: ADM.98, ADM.56, ADM.43, ADM.35, UX.102, UX.115.
 
 - [ ] **ADM.56 Streamline and fix the admin pages from the audit: one admin shell, one navigation and one pattern for tables, forms, confirmations and job logs**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
@@ -18472,6 +18553,15 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   existing admin page onto it with the fixes the audit ranks above its
   line (child b). The new admin items ADM.32, ADM.36, ADM.52 and POP.13
   build on the shell.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
+  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
+  owner line on this item (it had none).
+  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
+  the admin redesign thread reported; report
+  docs/design/admin-control-suite.md): the whole suite is built in 8.1
+  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
+  the shell, job strip and palette, then Generate; every admin page goes
+  onto the one shell once.
 
 - [ ] **ADM.57 Headline of 8.6: edit everything, the admin can change anything and the world adjusts after the admin approves a generation plan**
   Boss (2026-10-16, 1:07 PM EDT): "I want the 'edit everything' to be a
@@ -18995,7 +19085,22 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   are documented, the admin start page uses them, every item of the ADM
   chain can be built on them, and a browser test opens the converted
   page in both themes with no console error.
-  Prerequisites: ADM.55. Related: ADM.56.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
+  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
+  owner line on this item (it had none).
+  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
+  the admin redesign thread reported; report
+  docs/design/admin-control-suite.md): the whole suite is built in 8.1
+  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
+  the shell, job strip and palette, then Generate; every admin page goes
+  onto the one shell once. Key K2 of the report; its prerequisites are
+  the admin registry (ADM.118) and the research (ADM.98).
+  Fit-the-window rule (Boss, 2026-10-21, 6:10 PM EDT, as the coordinator
+  relayed): the shell's content region stays inside the browser window
+  and a long table or panel scrolls in its own region, the same rule as
+  the viewers (UX.142); the shell's browser test runs at those window
+  sizes.
+  Prerequisites: ADM.118, ADM.98. Related: ADM.56.
 
 - [ ] **ADM.93 Move every existing admin page onto the shell and fix the defects the audit ranks above its line**
   Split from ADM.56 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -19010,7 +19115,17 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   it stays one item. Done: every admin page uses the shell and the
   shared parts, no defect above the audit's line is left open, and
   nothing is doubled or dead.
-  Prerequisites: ADM.92. Related: ADM.56.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
+  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
+  owner line on this item (it had none).
+  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
+  the admin redesign thread reported; report
+  docs/design/admin-control-suite.md): the whole suite is built in 8.1
+  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
+  the shell, job strip and palette, then Generate; every admin page goes
+  onto the one shell once. Key K7 of the report; one change per
+  destination: Overview, Jobs, Data, Account.
+  Prerequisites: ADM.92, ADM.55. Related: ADM.56.
 
 - [ ] **ADM.94 Density override store and the fill read: set, undo and combine overrides for any region, and have later fills use them**
   Split from MAP.119 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -19070,7 +19185,423 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   moving it writes the key, editing `config.json` moves the slider, and
   a test covers the round trip. Suggested owner: Core 2 with the
   settings page code; filed in 8.2.
-  Prerequisites: PERF.139.
+  Merged with PERF.139 and PERF.133 (Core 2, #2316, release 8.0.1853,
+  reported 12:10 PM EDT 2026-10-21 as the lane reported; no epoch): the
+  key `cache.max_mb` now exists in the settings model,
+  `config.schema.json` and docs/config.md and the old
+  `tile_cache.max_mb` is gone with no shim; the settings-page slider is
+  still this item.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
+  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
+  owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
+  PM EDT as the lane reported).
+  Folded into ADM.104 (S4, the settings controls): the slider is built
+  there; this item closes with it (admin redesign thread, 6:12 PM EDT as
+  the thread reported).
+  Prerequisites: ADM.104.
+
+- [ ] **ADM.98 Admin control suite research: how to pack many options into one quiet interface (admin pages, the Generate suite and the settings), a report and decision cards before anything is built**
+  Boss, 2026-10-21, 5:57 PM EDT: "Do we have a redo of the admin pages
+  somewhere? generate is horribly to use, it needs a full redesign as
+  it's grown too complicated for it's simplistic format, the settings
+  page is incomprehensible and we need nice, clean, settings that don't
+  look like I'm writing a linux config file, also a lot of stuff in
+  there can't be changed, so how about just not list the things that
+  cannot be changed or have an option to hide them that is defaulted to
+  on." And 6:01 PM EDT: "move admin redesign to happen right now in it's
+  own dedicated thread, add an issue for it to group all the todo items
+  together in if one doesn't exist. Start researching ways to pack a lot
+  of options into an admin control suite that will include the generate
+  control suite. The interface needs to get out of the way. All items
+  related to this not already in progress move immediately to the new
+  thread -- however, before it's begins building, it's going to
+  research, generate a report, and give me decision / choice cards." Do:
+  research ways to pack a lot of options into one admin control suite
+  that includes the Generate suite and the settings, with the interface
+  getting out of the way (progressive disclosure, command palette and
+  search, saved presets and recent runs, sensible defaults, inline help,
+  keyboard use, dense but calm layouts, what comparable admin and
+  job-control tools do, and what works on a phone); read the current
+  admin pages, the Generate page and the settings page as they are
+  today; write the report (docs/design/admin-control-suite.md with its
+  README row, a draft first in
+  /mnt/project-files/design-drafts/admin-pages-redesign-2026-10-21.md);
+  and bring Boss decision cards (one per choice, recommended option
+  first). Nothing is built before Boss has answered the cards. Done: the
+  report is merged, Boss has answered every card, and the answers are
+  recorded on ADM.55, ADM.56, ADM.92, ADM.93, ADM.99 and ADM.100, which
+  then become buildable. Owner: the admin redesign thread (Boss,
+  2026-10-21, 6:01 PM EDT).
+  Prerequisites: none. Related: ADM.55, ADM.99, ADM.100.
+
+- [ ] **ADM.99 Generate suite redesign: the Generate page rebuilt inside the admin control suite so a long list of options is easy to use**
+  Boss, 2026-10-21, 5:57 PM EDT: "Do we have a redo of the admin pages
+  somewhere? generate is horribly to use, it needs a full redesign as
+  it's grown too complicated for it's simplistic format, the settings
+  page is incomprehensible and we need nice, clean, settings that don't
+  look like I'm writing a linux config file, also a lot of stuff in
+  there can't be changed, so how about just not list the things that
+  cannot be changed or have an option to hide them that is defaulted to
+  on." And 6:01 PM EDT: "move admin redesign to happen right now in it's
+  own dedicated thread, add an issue for it to group all the todo items
+  together in if one doesn't exist. Start researching ways to pack a lot
+  of options into an admin control suite that will include the generate
+  control suite. The interface needs to get out of the way. All items
+  related to this not already in progress move immediately to the new
+  thread -- however, before it's begins building, it's going to
+  research, generate a report, and give me decision / choice cards." The
+  page has grown past its simple format (layer specs, spans, radial
+  fills, directives, one-off systems, jobs, and soon the switches of
+  UX.134 and UX.137 and the missing-data option of GEN.599). Do:
+  redesign the Generate control suite from the report and the answered
+  cards of ADM.98: the common task first and every other option
+  reachable without clutter, presets and the last runs, the plan shown
+  before a run, the job text and log on the shared job-log part (ADM.92,
+  UX.123), every control on the field macro (this replaces UX.125).
+  Done: the Generate suite is built on the admin shell, every control of
+  today's page is reachable, a browser test runs one common job and one
+  advanced job in both themes and at phone width, and the page help
+  (DOC.13) matches. Owner: the admin redesign thread, after Boss answers
+  the cards of ADM.98.
+  Prerequisites: ADM.107, ADM.108, ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114, ADM.115, ADM.116, ADM.117. Related: UX.125, UX.134, UX.137,
+  DOC.13, GEN.599.
+  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
+  the admin redesign thread reported; report
+  docs/design/admin-control-suite.md): the whole suite is built in 8.1
+  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
+  the shell, job strip and palette, then Generate; every admin page goes
+  onto the one shell once. Closes with its children ADM.107 to ADM.117
+  (G1 to G11) and the shared suite items ADM.118 to ADM.123.
+
+- [ ] **ADM.100 Settings page redesign: plain-language groups and descriptions, and settings that cannot be changed hidden by a toggle that is on by default**
+  Boss, 2026-10-21, 5:57 PM EDT: "Do we have a redo of the admin pages
+  somewhere? generate is horribly to use, it needs a full redesign as
+  it's grown too complicated for it's simplistic format, the settings
+  page is incomprehensible and we need nice, clean, settings that don't
+  look like I'm writing a linux config file, also a lot of stuff in
+  there can't be changed, so how about just not list the things that
+  cannot be changed or have an option to hide them that is defaulted to
+  on." And 6:01 PM EDT: "move admin redesign to happen right now in it's
+  own dedicated thread, add an issue for it to group all the todo items
+  together in if one doesn't exist. Start researching ways to pack a lot
+  of options into an admin control suite that will include the generate
+  control suite. The interface needs to get out of the way. All items
+  related to this not already in progress move immediately to the new
+  thread -- however, before it's begins building, it's going to
+  research, generate a report, and give me decision / choice cards."
+  Today the settings page reads like a Linux config file (ADM.43, ADM.44
+  built it, PR #1921), and many entries cannot be changed from the page.
+  Do: redesign the page from the report and the answered cards of
+  ADM.98: clear groups in plain words, a one-line description and the
+  unit for each setting, sensible controls (switch, slider as in ADM.97,
+  choice list) instead of raw values, a search box, a
+  changed-from-default mark, the Owner-tier settings of ADM.86 kept
+  behind their prompt, and a 'hide settings that cannot be changed'
+  toggle, on by default, remembered per admin, so read-only entries (set
+  in config.json or the environment, or fixed) are listed only when it
+  is turned off. Done: the page is rebuilt on the admin shell, every
+  changeable setting is reachable and described, nothing that cannot be
+  changed shows while the toggle is on, a browser test covers the toggle
+  both ways and a change that saves, and docs/config.md matches. Owner:
+  the admin redesign thread, after Boss answers the cards of ADM.98.
+  Prerequisites: ADM.101, ADM.102, ADM.103, ADM.104, ADM.105, ADM.106. Related: ADM.43, ADM.44, ADM.86,
+  ADM.97, UX.137.
+  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
+  the admin redesign thread reported; report
+  docs/design/admin-control-suite.md): the whole suite is built in 8.1
+  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
+  the shell, job strip and palette, then Generate; every admin page goes
+  onto the one shell once. Closes with its children ADM.101 to ADM.106
+  (S1 to S6).
+
+- [ ] **ADM.101 Settings: words for every option: label, one-line summary, group, control and advanced flag in the settings model**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key S1).
+  Add `x-label`, `x-group`, `x-control` and `x-advanced` to every option
+  in `settings.opt`; the long help becomes a Details text; the path-made
+  titles go; the `x-category` list is replaced by groups. Done: a test
+  fails for any option without a label, group and summary; no label
+  equals its path text; docs/config.md, config.json.example and
+  config.schema.json regenerate; the wording is reviewed in a short list
+  Boss can read. Owner: the admin redesign thread (Boss, 2026-10-21,
+  6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first,
+  then the shell and palette, then Generate).
+  Prerequisites: none. Related: ADM.100, ADM.43.
+
+- [ ] **ADM.102 Settings: view classes: editable, owner, server and overridden, with the reason an option is fixed**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key S2).
+  `settings_view.describe` returns `class` (editable, owner, server,
+  overridden) and `fixed_reason`, plus counts; the page, the API and the
+  command line share it. Done: unit tests for each class on a fixture
+  model; the API returns them; the count of fixed options matches
+  `iter_fields`. Owner: the admin redesign thread (Boss, 2026-10-21,
+  6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first,
+  then the shell and palette, then Generate).
+  Prerequisites: ADM.101. Related: ADM.100.
+
+- [ ] **ADM.103 Settings: the new page: grouped rows, a left rail, search, a switch that shows settings that cannot be changed (off by default), a sticky save bar, per-row reset and Details**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key S3).
+  Boss's answers 7, 8 and 9: grouped rows with the two-step review kept,
+  settings the web cannot change hidden by default and remembered in
+  this browser and the URL, environment-overridden settings shown with a
+  warning badge. Owner-only options stay hidden with the fixed ones
+  until the Owner account exists (ADM.86, USR.31). Done: a browser test:
+  the page loads with the fixed options hidden, the switch shows them
+  with their reasons, search filters rows and groups, a change enables
+  the save bar; works with script off, in both themes, keyboard only.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT).
+  Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the shell
+  and palette, then Generate).
+  Prerequisites: ADM.101, ADM.102, UX.124. Related: ADM.100, ADM.86,
+  UX.126.
+
+- [ ] **ADM.104 Settings: controls: switch, slider with a number box, duration, rate limit, chips and colour picker**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key S4).
+  Absorbs ADM.97 (the cache size is the first slider); reuses the UX.116
+  limit sliders (`limit_slider`). Done: each control round-trips its
+  value through `collect` and the writer; a rate string stays valid for
+  the limiter; invalid input shows its error at the row. Owner: the
+  admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1
+  phase 1 (Boss's answer 1: Settings first, then the shell and palette,
+  then Generate).
+  Prerequisites: ADM.103. Related: ADM.100, ADM.97, UX.116.
+
+- [ ] **ADM.105 Settings: the review page in plain language: 'Cache size: 1,024 MB to 2,048 MB', the restart list and the overridden list**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key S5).
+  Keeps the two-step review (answer 7). Done: review tests are updated;
+  the audit rows and the backup are byte-identical to today's. Owner:
+  the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1
+  phase 1 (Boss's answer 1: Settings first, then the shell and palette,
+  then Generate).
+  Prerequisites: ADM.103. Related: ADM.100.
+
+- [ ] **ADM.106 Settings: the server-files disclosure and the overridden-option badge**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key S6).
+  Says in words which options live only in server files and names the
+  exact command; secrets show only set or empty. Done: the text names
+  the exact command; secrets show only 'set' or 'empty'. Owner: the
+  admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1
+  phase 1 (Boss's answer 1: Settings first, then the shell and palette,
+  then Generate).
+  Prerequisites: ADM.102. Related: ADM.100.
+
+- [ ] **ADM.107 Generate: the frame: status strip, pinned current-job panel (idle shows the last result), History tab and the Work Queue link**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G1).
+  The shared frame of every Generate screen; its job panel becomes the
+  shared job strip (the strip item of the suite). Done: a browser test
+  opens a running job from every Generate screen; Cancel works; the idle
+  panel shows Run again. Owner: the admin redesign thread (Boss,
+  2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
+  Settings first, then the shell and palette, then Generate).
+  Prerequisites: none. Related: ADM.99.
+
+- [ ] **ADM.108 Generate: the task flow engine: a Start screen with six cards, a step rail, the draft carried in the URL, a Review step with the estimate, summary and command line, and Run**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G2).
+  Every task is the same five steps. The Run step shows the data check
+  and keeps the rule that a run refuses on missing downloaded files
+  unless told to disregard them (GEN.599, Boss 5:53 PM EDT). Replaces
+  UX.125 for the Generate page. Uses the queue-one-next-job slot (Boss's
+  answer 10). Done: any task reaches Review and Back keeps every value;
+  works without script; the estimate refusal and 'Generate anyway' still
+  work (ADM.33). Owner: the admin redesign thread (Boss, 2026-10-21,
+  6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first,
+  then the shell and palette, then Generate).
+  Prerequisites: ADM.107, UX.125, ADM.123. Related: ADM.99, UX.125,
+  GEN.599.
+
+- [ ] **ADM.109 Generate: the Add sectors task: two choices, the four-tab place picker and how-big with a live count**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G3).
+  Boss's answer 12. Done: the argv for every old mode and centre choice
+  is reproduced byte for byte by a test table; the finder still lists
+  filled sectors. Owner: the admin redesign thread (Boss, 2026-10-21,
+  6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first,
+  then the shell and palette, then Generate).
+  Prerequisites: ADM.108. Related: ADM.99.
+
+- [ ] **ADM.110 Generate: the Start a new galaxy task: seed-decides shape fields, the first neighbourhood and a typed confirmation**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G4).
+  UX.134 and UX.137 add their controls here. Done: pinned and unpinned
+  fields produce the same argv as today's blank and filled boxes; the
+  confirmation refuses a wrong name. Owner: the admin redesign thread
+  (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
+  Settings first, then the shell and palette, then Generate).
+  Prerequisites: ADM.108. Related: ADM.99, UX.134, UX.137.
+
+- [ ] **ADM.111 Generate: the Scatter task: rebuild, redo some, add a dimmer step, with one Advanced block of scatter limits**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G5).
+  One reset and the stored values shown; the controls GEN.301 adds are
+  placed in this block by their own items. Done: one definition of each
+  limit renders once; Reset all restores the defaults; the three old
+  actions build the same jobs as before. Owner: the admin redesign
+  thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's
+  answer 1: Settings first, then the shell and palette, then Generate).
+  Prerequisites: ADM.108. Related: ADM.99, UX.116, UX.137, GEN.301.
+
+- [ ] **ADM.112 Generate: prevalence, star mix and overrides as one shared Advanced block, rendered once**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G6).
+  One definition used by Add sectors and Start a new galaxy. Done: the
+  100 percent total checker works; the 'usual' values are shown; Add
+  sectors and Start a new galaxy use the one block. Owner: the admin
+  redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1
+  (Boss's answer 1: Settings first, then the shell and palette, then
+  Generate).
+  Prerequisites: ADM.108. Related: ADM.99, ADM.16, ADM.45.
+
+- [ ] **ADM.113 Generate: the one-off system on the frame, with tri-state rows as segmented controls**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G7).
+  Done: `test_web_generate`'s tri-state field test still matches the CLI
+  list. Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM
+  EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the
+  shell and palette, then Generate).
+  Prerequisites: ADM.107, UX.125. Related: ADM.99, UX.125.
+
+- [ ] **ADM.114 Generate: the Check and Wipe tasks and the History tab**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G8).
+  Wipe is last, red and needs the typed database name (Reset and New
+  galaxy always do). Done: Wipe needs the typed name; History lists the
+  same rows as Recent jobs. Owner: the admin redesign thread (Boss,
+  2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
+  Settings first, then the shell and palette, then Generate).
+  Prerequisites: ADM.107. Related: ADM.99.
+
+- [ ] **ADM.115 Generate: Run again from History, and named recipes saved per admin in the control database**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G9).
+  Boss's answer 11. The job record must hold the form. Done: Run again
+  re-runs a finished job with its stored settings; a failed job's Run
+  again goes back to its Review step; a recipe saves, lists, runs and
+  deletes per admin in the control database. Owner: the admin redesign
+  thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's
+  answer 1: Settings first, then the shell and palette, then Generate).
+  Prerequisites: ADM.108, ADM.114. Related: ADM.99.
+
+- [ ] **ADM.116 Generate: remove the old Generate page pieces and update docs/html-interface.md and the architecture table**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G10).
+  Done: the removed files are gone; no unused CSS; the docs match.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT).
+  Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the shell
+  and palette, then Generate).
+  Prerequisites: ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114.
+  Related: ADM.99.
+
+- [ ] **ADM.117 Generate: browser tests for every task end to end, in both themes, without script and at phone width**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key G11).
+  Joins TEST.168 and TEST.169 as the Generate share. Done: a failing
+  step fails the test with a screenshot. Owner: the admin redesign
+  thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's
+  answer 1: Settings first, then the shell and palette, then Generate).
+  Prerequisites: ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114.
+  Related: ADM.99, TEST.168, TEST.169.
+
+- [ ] **ADM.118 Admin registry: pages, tasks and settings declare label, summary, keywords, role, danger level and URL, and the rail, hub and search read it**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key K1).
+  Done: a test fails for any admin route missing from the registry; the
+  settings entries come from the settings model with no second list.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT).
+  Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the shell
+  and palette, then Generate).
+  Prerequisites: ADM.101. Related: ADM.92.
+
+- [ ] **ADM.119 Job strip on every admin page: a thin strip that shows a running job, Cancel and the log**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key K3).
+  Boss's answer 5. Replaces G1's current-job panel as the shared part.
+  Done: the strip shows a running job from every page, Cancel works, the
+  log opens from it, there is one SSE stream per page and none when
+  idle. Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM
+  EDT). Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the
+  shell and palette, then Generate).
+  Prerequisites: ADM.92. Related: ADM.92, ADM.107.
+
+- [ ] **ADM.120 Command palette and /admin/search: server search over the registry, Ctrl+K and /, results for pages, tasks, settings, jobs and sectors**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key K4).
+  Boss's answer 3: the palette plus the visible rail, with the plain
+  search page for no-script use. Done: a screen-reader pattern test;
+  works with script off through the search page; a restart-only or
+  overridden setting says so in its result. Owner: the admin redesign
+  thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's
+  answer 1: Settings first, then the shell and palette, then Generate).
+  Prerequisites: ADM.118, ADM.92. Related: ADM.92.
+
+- [ ] **ADM.121 Typed commands that open a task's Review step pre-filled and never run by themselves**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key K5).
+  Boss's answer 4. Done: a table of command strings to argv, byte for
+  byte against the old forms; ambiguous input is refused with a message.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT).
+  Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the shell
+  and palette, then Generate).
+  Prerequisites: ADM.120, ADM.108. Related: ADM.92.
+
+- [ ] **ADM.122 Admin keyboard set and a help overlay**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key K6).
+  Boss's answer 6: the small set. Done: shortcuts are off inside fields;
+  the overlay lists every shortcut; a test for each. Owner: the admin
+  redesign thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1
+  (Boss's answer 1: Settings first, then the shell and palette, then
+  Generate).
+  Prerequisites: ADM.92. Related: ADM.92.
+
+- [ ] **ADM.123 Queue one next job: a single next slot that starts when the running job ends, with Cancel, shown in the job strip and History**
+  Child of the admin control suite (Boss's 13 decision cards, tapped
+  6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
+  design note docs/design/admin-control-suite.md, section 5, key K9).
+  Boss's answer 10 (his pick over the recommended lock-forms option):
+  forms stay usable while a job runs and Run queues one job behind it.
+  Today the runner allows exactly one active job (`web/jobs.py`, the
+  `active` lock file); this adds one 'next' slot beside the lock,
+  started by the runner when the active job ends, refused when full; one
+  job still runs at a time. Settle in the build: the queued job re-runs
+  its estimate check at start and refuses if the disk no longer fits; a
+  queued Wipe or New galaxy is allowed only with its typed confirmation
+  already given; a failed job cancels the queued one with a visible
+  reason unless the admin chose otherwise. Done: a second submit while a
+  job runs queues and a third is refused; finishing starts it; a failure
+  or Cancel clears it with a visible reason; a destructive job queued
+  without its confirmation is refused. Owner: the admin redesign thread
+  (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
+  Settings first, then the shell and palette, then Generate).
+  Prerequisites: ADM.119. Related: ADM.99, PERF.99.
 
 ## SEC: Security
 
@@ -19096,6 +19627,38 @@ Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-p
   NIST's password-only guidance is wanted.
   Prerequisites: none.
   Design: [docs/design/settings-seo-and-accounts.md](design/settings-seo-and-accounts.md)
+
+- [ ] **SEC.33 Release gate: a full security code audit of the whole code base, done before every point release (8.1 first)**
+  Boss, 2026-10-21, 5:10 PM EDT: before 8.1 is stamped finished there
+  must be a full security code audit, and it MUST be done before every
+  single point release (8.1, 8.2 and on to 10.0; the 8.0.NNNN builds are
+  not point releases). One standing item: it stays open and is re-run
+  for each point release, never retired. Scope: every route, API
+  endpoint and form; sign-in, sessions, cookies, CSRF, rate limits and
+  lockouts; authorization and every admin page; all SQL and any string
+  built into a query; file, path and upload handling and the tile cache
+  and jobs directory; the stored-XSS and output-escaping paths in
+  templates and JavaScript; the Content-Security-Policy and headers;
+  secrets, config and settings handling; the dependency list and its
+  known vulnerabilities (pip and npm lockfiles); the install, update and
+  deployment scripts and the systemd and Apache or nginx examples; the
+  Redis and job-queue inputs; and anything new since the last pass (use
+  git log since the last audited release). Run the repository's own
+  static checks and add a scanner pass where one can run without the
+  network. Done: for the release, a dated report
+  (/mnt/project-files/reports/release-audit-security-<version>.md,
+  linked from the goal issue and logged on this item as 'Release log:
+  <version>, <EDT date and time>, <commit>') that names the commit
+  audited, lists what was covered and what was not, and files every
+  finding as its own item (a high or critical finding blocks the release
+  until fixed and merged; the rest are filed with an owner). The release
+  is not stamped while the report for its version is missing, or while a
+  finding it marks blocking is open. Proposed owner: its own thread,
+  started when the version nears close (8.1: after the whole-sphere
+  audits TEST.185, TEST.184, TEST.159 and TEST.160 merge, so the audit
+  sees the final code); it must not be the lane that wrote the code
+  under audit.
+  Prerequisites: TEST.159, TEST.160. Related: TEST.261.
 
 ## TEST: The test suite
 
@@ -20824,30 +21387,6 @@ clears each one.
   GEN.565, GEN.576, GEN.578.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
-- [ ] **TEST.253 test_nebula_shape_endpoint_serves_a_mesh fails once under load: the largest vertex radius is 1.0288 against a bound of 1.0, and it passes alone (bug)**
-  Found by Core 4 (reported 1:29 PM EDT 2026-10-18 on the lane's clock;
-  its GEN.546 gate 2, 11:38 AM to 1:23 PM EDT), filed by the TODO
-  thread.
-  `src/tests/test_api.py::test_nebula_shape_endpoint_serves_a_mesh`
-  failed once with a maximum vertex radius of 1.0288 where the test
-  bounds it by 1.0; it passes alone. A load dependence is unlikely for a
-  mesh radius, so the likelier cause is an unseeded nebula shape whose
-  noise can push a vertex past the unit sphere (inferred, not checked).
-  Fails on main: unknown. Frequency: 1 of 2 gates of Core 4. Reproducer:
-  loop the test alone on idle main with fresh draws and print the shape
-  seed and the largest radius. Do: find whether the shape generator can
-  place a vertex beyond 1.0 for some seeds (then the endpoint promises a
-  bound it does not keep, and the generator or the doc is the bug) or
-  whether the test's bound is too tight; fix without loosening what the
-  test proves; no quarantine. Done: the cause is on this item and the
-  test passes 30 of 30 fresh draws. Owner: Bug Hunt (proposed).
-  Lane report (Bug Hunt, 7:34 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): fix finished and committed, not merged: the
-  cause is that the shape scale is fitted on a 24-cell grid while the
-  mesh is cut on 28, so thin spikes poke out 1.006 to 1.029 radii; the
-  mesh is pulled back to its bounding sphere.
-  Prerequisites: none.
-
 - [ ] **TEST.254 test_core_ball_batch_fill_makes_planets builds 4 systems instead of 3 for some random galaxy seeds (bug)**
   Found by Core 5 (reported 3:14 PM EDT 2026-10-18 on the lane's clock;
   its PERF.106 slice 5 gate ended about 2:55 PM EDT), filed by the TODO
@@ -20875,67 +21414,129 @@ clears each one.
   main, including the 40-process reproducer; the assertion now prints
   the extra system rows and the seed. Kept open as not reproduced (dated
   comment and the "could not reproduce" label on #1694).
+  Second sighting (Core 5, 9:08 AM EDT 2026-10-21 as the lane reported):
+  `assert planets >= systems` failed "2 >= 3" once in its gate 3 (galaxy
+  shell 0, 3 systems, PLANETS forced); looped 30 times on main 8ad9099
+  and 30 on its branch on an idle machine, 60 of 60 passed, plus 6 of 6
+  earlier. With Bug Hunt's 109 of 109 that is 175 of 175 not reproduced;
+  the likely cause stays an unseeded draw of a system with no planets,
+  and the assertion should compare against a seeded draw.
+  Bug Hunt's #2332 (2:51 PM EDT 2026-10-21 as the lane reported,
+  releases 8.0.1858 to 8.0.1861) adds a diagnostic only: the test now
+  names the extra system when it fails. Not reproduced in 109 draws, so
+  the item stays open.
   Prerequisites: none. Related: TEST.253.
 
-- [ ] **TEST.255 test_workers: two real-Redis worker tests fail in loaded gates and pass alone, again after TEST.250's fix (bug)**
-  Found by Core 2 (reported about 3:25 PM EDT 2026-10-18 on the lane's
-  clock; its PERF.130 gate, 1:15 to 2:54 PM EDT, load 7.2) and Blocker 1
-  (reported about 3:34 PM EDT; its GEN.590 gate), filed by the TODO
-  thread.
-  `src/tests/test_workers.py::test_a_batch_of_jobs_starts_no_more_workers_than_wanted_and_not_twice`
-  and
-  `::test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs`
-  failed in both gates and pass alone (3 of 3 runs, about 18 s, on an
-  idle current main at 3:40 PM EDT). Failure text not relayed. TEST.250
-  (retired) had the same two tests failing from the shared inline queue
-  context; its fix #2267 merged 1:27 PM EDT, after Core 2's gate
-  started; whether Blocker 1's tree carried it is not known (its branch
-  merged main at 3:19 PM EDT). Likely cause (inferred, not checked): the
-  two tests use the one real Redis and fixed keys (`workers.WANTED_KEY`,
-  `api_jobs.QUEUE_NAME`) that every gate in the shared environment also
-  uses, so two gates running together delete each other's wanted-worker
-  key or run each other's jobs; the killed-worker case also waits only
-  10 s for a SIGKILLed process under load. Fails on main: not shown,
-  passes alone. Frequency: 2 of 2 gates that ran beside another gate.
-  Reproducer: run `scripts/test.py changed` while a second gate runs in
-  the same environment, or loop the two tests while a second pytest
-  process runs the same file. Do: get the failure text from Core 2's
-  `.test-failures.jsonl`, confirm whether the key collision is the
-  cause, and give each run its own queue name and wanted key (or a Redis
-  database per run); no quarantine. Done: the cause is on this item and
-  both tests pass 20 of 20 runs with a second run of the same file
-  beside them. Owner: Bug Hunt (proposed).
-  Lane report (Bug Hunt, 7:34 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): cause found, fix committed and not merged:
-  the admin's wanted-workers Redis key is shared by every test process;
-  each test now has its own key, `test_wanted_workers_key.py` pins it,
-  and `conftest.py` changed (so the next gate selects all 20,433 tests).
-  This replaces the inferred cause above.
-  Prerequisites: none. Related: TEST.250, TEST.254.
+- [ ] **TEST.257 test_sector_page_and_tiles_show_a_phenomenon_the_cli_added asserts an empty cloud list on an unseeded galaxy and sometimes gets a nebula (bug)**
+  Found by Core 1 (its GEN.591 gate, reported about 9:09 AM EDT
+  2026-10-21 on the lane's clock: 20,307 passed, 1 failed), filed by the
+  TODO thread.
+  `src/tests/test_web_fresh_after_cli.py::test_sector_page_and_tiles_show_a_phenomenon_the_cli_added`
+  failed with `assert warm["tiles"][WHOLE_GALAXY_TILE]["clouds"] == []`:
+  it got one dark nebula (class N, id 00008FFFE80007-8000000-000) after
+  `galaxy --shell 0 --limit 1 --num-systems 1` on a planned galaxy.
+  Kind: unseeded-data flake. Fails on main: not checked (the path does
+  not touch GEN.591's change). Frequency: 1 of 1 gate run; passes alone
+  (4 passed in 45 s). Reproducer: loop the test; the plan and galaxy
+  draws are unseeded, so a nebula lands in the whole-galaxy tile in some
+  draws. Do: seed the galaxy or make the assertion about the phenomenon
+  the test adds (its cloud) rather than an empty cloud list; no
+  quarantine. Done: the test passes 30 of 30 loop runs on an idle
+  machine and the cause is on this item. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.254, TEST.256.
 
-- [ ] **TEST.256 test_black_hole_density: the black-hole stream test fails in loaded and full gates and passes alone (bug)**
-  Found by Core 2 (its PERF.132 gate, 4:02 to 5:40 PM EDT 2026-10-18,
-  one failure inside the loaded gate), Core 3 (its gate: timed out at
-  900 s) and Bug Hunt (its full gate of 2026-10-18: 20,277 passed, 1
-  failed), reported 7:34 to 7:35 AM EDT 2026-10-21 on the lanes' clocks,
-  filed by the TODO thread.
-  `src/tests/test_black_hole_density.py::test_each_class_draws_from_a_stream_of_its_own_so_the_black_holes_move_no_other_row`
-  (GEN.563's test, Core 3's area) fails in loaded or full gates and
-  passes alone (16 of 16 for Bug Hunt). Failure text: not relayed (Core
-  3's gate recorded a 900 s timeout; the other two a plain failure).
-  Fails on main: not shown, passes alone. Frequency: 3 of 3 gates that
-  ran it loaded or in the full run. Reproducer (Bug Hunt is trying it):
-  run the scatter test modules in one process before this test, or run
-  `scripts/test.py full` and read its `.test-failures.jsonl`. Likely
-  cause (inferred, not checked): an order dependence between scatter
-  modules in one process (shared random-stream or cache state) or a slow
-  scatter under load. Do: get the failure text, find the order
-  dependence or the slow step, fix the test or the code; no quarantine.
-  Done: the cause is on this item and the test passes in a full run and
-  in a gate beside another gate. Owner: Bug Hunt (proposed; it reports
-  it is reproducing the order dependence and will say if the cause is
-  Core 3's).
-  Prerequisites: none. Related: TEST.255, TEST.250, GEN.563.
+- [ ] **TEST.258 Other tests that scatter a low shell of the toy shape may hold gigabytes after GEN.404: sweep them for resident memory**
+  Suggested by Core 3 (2:02 PM EDT 2026-10-21 as the lane reported,
+  after fixing TEST.256 in #2327), filed by the TODO thread. GEN.404
+  made the toy galaxy hold a real galaxy's stellar mass, so a test that
+  scatters a low shell index of the toy shape (shell 4 held ten million
+  rows and 11 GB resident in the black-hole stream test) can get a gate
+  worker OOM-killed or time out. Do: list every test that calls
+  `scatter.scatter_shell` or a sibling with a shell index below about 8
+  on the toy shape, measure each one's peak resident memory (`ru_maxrss`
+  run alone, `-n0`), and move any above about 1 GB to a higher shell
+  index or a smaller rate, as #2327 did for shell 10; no quarantine.
+  Done: no test in a gate holds more than about 1 GB alone, and the list
+  with the figures is on this item. Owner: Bug Hunt (proposed; the
+  symptom is a loaded-gate failure).
+  Prerequisites: none. Related: TEST.256, TEST.255, GEN.404.
+
+- [ ] **TEST.260 test_galaxy_absurd_radius_is_clean[200.0] hangs past its 10 s limit on main and leaves the run lock set, so every later test that starts a run fails (bug)**
+  Found by Core 3 (4:23 PM EDT 2026-10-21 as the coordinator relayed
+  Core 3's note, in its `scripts/test.py changed` gate), filed by the
+  TODO thread. Kind: test infrastructure, the PERF.142 family.
+  `src/tests/test_fuzz_cli.py::test_galaxy_absurd_radius_is_clean[200.0-the
+  largest allowed radius, wider than the test galaxy]` fails with `hang:
+  planetgen galaxy --quiet --center-sector 1 --radius-pc 200.0 ... did
+  not finish within 10s` (`_Timeout` at units.py `follow_stage`). Fails
+  on main: yes, alone, a 25 s run on a worktree of main d839e5d (4
+  cores, no load). Frequency: 2 of 2. Effect: the timed-out run leaves
+  `planetgen:run:active` set in the test Redis, so every later test that
+  starts a run fails with `Busy: run ... is running`; in one gate 170
+  tests (test_galaxy_gen, test_phenomenon_scatter, test_work_units and
+  every browser fixture) failed or errored and the gate's rerun phase
+  kept failing them for two hours. Reproducer: run the test, then
+  `redis-cli get planetgen:run:active` shows a live run id. Do: make the
+  radius-200 case finish inside the limit (or give it the limit its work
+  needs, from the recorded stats, PERF.144), and make the test release
+  the lock when its run times out; PERF.142 covers the lock having no
+  expiry. Done: the test passes alone and leaves no run key behind.
+  Owner: Bug Hunt (proposed).
+  Bug Hunt (4:42 PM EDT 2026-10-21 as the lane reported): the hung run
+  leaving `planetgen:run:active` set is the same path as PERF.142, and
+  its takeover should clear it after the owner dies; the lane checks the
+  test once that PR is in, and the 10 s hang itself stays this item's.
+  Prerequisites: none. Related: PERF.142, PERF.143, PERF.144.
+
+- [ ] **TEST.261 Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every point release (8.1 first)**
+  Boss, 2026-10-21, 5:10 PM EDT: before 8.1 is stamped finished there
+  must be a full bug hunt audit, and it MUST be done before every single
+  point release (8.1, 8.2 and on to 10.0; the 8.0.NNNN builds are not
+  point releases). One standing item: it stays open and is re-run for
+  each point release, never retired. Scope: the whole product as a user
+  and an admin meets it, not only the diff. Every page and API route is
+  driven on a freshly built galaxy and on a migrated database; every
+  command and CLI path is run end to end (generate, plan, scatter, warm,
+  migrate, update.sh, the maintenance timers); the map at every zoom
+  level and the System, Sector and Galaxy views are opened at the edges
+  of the data (empty sectors, the widest shell, the seam and the black
+  hole); the job and queue paths are killed and resumed (stale locks,
+  dead tasks, planetgen:run:active); the whole test suite runs with
+  `scripts/test.py full --check`, and the flaky and skipped tests are
+  listed and explained; the open bugs in docs/TODO.md and the 'could not
+  reproduce' list are re-tried on the release candidate; the logs of the
+  run are read for warnings and swallowed errors; and a fuzz and
+  property pass covers the inputs the tests do not. Done: for the
+  release, a dated report
+  (/mnt/project-files/reports/release-audit-bug-hunt-<version>.md,
+  linked from the goal issue and logged on this item as 'Release log:
+  <version>, <EDT date and time>, <commit>') that names the commit
+  audited, what was run and what was not, the full-suite result, and
+  every bug found filed as its own item with kind, test, failure text,
+  whether it fails on main, frequency and reproducer; a bug that breaks
+  a headline feature, loses or corrupts data or stops a run blocks the
+  release until fixed and merged, the rest are filed with an owner. The
+  release is not stamped while the report for its version is missing, or
+  while a bug it marks blocking is open. Proposed owner: Bug Hunt (it
+  runs the audit; the fixes go to the owning lanes); the 8.1 pass starts
+  when the whole-sphere audits merge and the security audit has begun.
+  Prerequisites: TEST.159, TEST.160. Related: SEC.33.
+
+- [ ] **TEST.262 test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug)**
+  Found by Bug Hunt (5:34 PM EDT as the lane reported), filed by the
+  TODO thread. Kind: flaky browser test
+  (test_web_browser_sector_reach.py, the TEST.252 test). It failed once
+  in gate 23, in the browser phase at machine load 9.7, on the branch
+  build of PERF.142 and PERF.143: the camera target stayed at (3.56,
+  -1.36, -0.29) where the test expects (0, 0, 0). It passes alone. Fails
+  on main: unknown, not reproduced yet. Frequency: 1 in about 4 browser
+  gates. Reproducer: none yet; it needs another lane's gate running
+  beside it. Do: root-cause it (a real slow-first-click race in the map
+  code, or a test that does not wait for the fly to finish) and fix the
+  cause, not the load. Done: the cause is on this item and the test
+  passes in 20 runs under load. Owner: Bug Hunt (it is the lane's own
+  TEST.252 test).
+  Prerequisites: none. Related: TEST.252.
 
 ## USR: User accounts
 
@@ -21728,6 +22329,22 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   slip.
   Prerequisites: OPS.57. Related: OPS.28.
 
+- [ ] **OPS.62 The cloud environment setup script fails at its verify step because it imports `markdown`, which nothing uses (bug)**
+  Found by Core 3 (4:23 PM EDT 2026-10-21 as the coordinator relayed
+  Core 3's note), filed by the TODO thread.
+  `examples/cloud-environment/setup-planetgen-env.sh` (line 260) prints
+  a verify line that imports `flask, pymysql, redis, rq, numba, scipy,
+  skimage, markdown, pytest, xdist, hypothesis, playwright, nltk` and
+  prints the `markdown` version; no requirements file and no code uses
+  `markdown`, so a fresh machine exits 1 at the verify step (the failure
+  that stopped a new thread starting at 1:00 PM EDT). Workaround: `pip
+  install markdown`. Do: drop `markdown` from the verify imports and the
+  version line (or add it to the requirements if something needs it); no
+  shim. Done: the script exits 0 on a fresh machine. Owner: not assigned
+  (OPS queue; the environment settings copy of the script is Boss's, so
+  the lane edits the example and tells the coordinator).
+  Prerequisites: none. Related: TEST.254.
+
 ## DOC: Documentation
 
 - [ ] **DOC.6 A static help section in the web interface: page template, index, per-page help links and a coverage test**
@@ -21853,6 +22470,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   built into the Help section, linked from each page it describes, and
   updated by any later change to those features (a feature item is not
   done until its help text is).
+  Note (2026-10-21, 5:34 PM EDT as the lane reported): PERF.142 and
+  PERF.143 merged (#2345); the queue help page names the reset command
+  `python3 -m planetgen.cli.reset_jobs` (with `--dry-run`) and `sudo
+  ./update.sh --reset-jobs`, and says a killed run no longer blocks new
+  runs. PERF.143's console help list entry waits for the console items
+  (8.7), because no console help list exists in the code yet.
   Prerequisites: DOC.57. Related: DOC.6.
 
 - [ ] **DOC.15 A glossary and units help page: coordinates, scales, sector paths, object IDs, time and the in-universe wording**
@@ -21977,7 +22600,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `phenomena-catalogue-and-fill.md` section 4 to the catalogue sections
   13 to 16, and the cap of twelve. Runs after the catalogue code and
   audit.
-  Prerequisites: GEN.264, TEST.164, GEN.130.
+  Prerequisites: GEN.264, TEST.164.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): DOC.49 folded in. This item also points the rate,
   anomaly, multi-star and nebula notes (`interstellar-object-rates.md`,
@@ -22247,6 +22870,41 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: GEN.576, DB.78, GEN.578. Related: GEN.550, GEN.552,
   GEN.315, GEN.565.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **DOC.72 The README lists every external file the program needs, with its URL and how to install it, and a check keeps the list complete**
+  Boss, 2026-10-21, 5:44 PM EDT: "Add DOCS item that the README will say
+  what URL's and how to install the external files that are needed to
+  run." Today the downloaded datasets, line lists and data files that
+  the setup step fetches (the shared download step GEN.548, `python3 -m
+  planetgen.cli.datasets fetch`, run by `install.sh` and `update.sh`) or
+  that must be provided by hand (files Boss supplies, papers or datasets
+  that cannot be fetched) are known only from the catalogue in
+  src/planetgen/datasets/catalogue.py. Do: add a README section
+  'External files' that lists every one, with its source URL, the
+  licence note, the cache folder it goes to (`PLANETGEN_DATA_DIR`, else
+  `/var/cache/planetgen/datasets`), the command that fetches it, how to
+  install it by hand when the host is down or the machine has no network
+  (download the URL, check the sha256, put it in the folder), and what
+  stops working while it is missing (the 'replaces' text the catalogue
+  already carries); say which files are fetched at setup and which must
+  be provided by hand; add the same table to docs/deployment/README.md
+  or link to it. Done: the README lists every dataset in the catalogue
+  with its URL and install step, and a test compares the README list
+  with the catalogue (every key and URL appears, nothing extra) so a new
+  dataset cannot skip it; a dataset added by an AD item (AD1 to AD8,
+  GEN.594) fails that test until its README row exists; the install
+  steps are followed once on a clean cache and work. Owner: TODO thread
+  proposes a docs lane or Core 5 after the 8.1 closing audits (not
+  urgent).
+  Update (Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed):
+  the README section also says what happens when a file is missing: the
+  run refuses and names the file, its URL and the setup command, unless
+  it is told explicitly to disregard missing files (GEN.599), when it
+  uses the best possible fallback and prints it in the run header; and
+  it says the updater and downloader print the URL of every file they
+  load (GEN.600). The README check compares both statements with the
+  options in the code.
+  Prerequisites: none. Related: GEN.548, GEN.590, GEN.594.
 
 ## VIEW: The view from a planet
 

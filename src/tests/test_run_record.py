@@ -1,6 +1,9 @@
 """PERF.96: a run's record in Redis (`queue/runrecord.py`) and the time left in it (`queue/runeta.py`)."""
 
 import json
+import socket
+import subprocess
+import sys
 import threading
 
 import pytest
@@ -211,3 +214,60 @@ def test_the_public_view_has_what_a_banner_needs_and_nothing_private():
     assert "boss" not in json.dumps(view) and "g1" not in json.dumps(view)
     assert runeta.public_view(_run(stage, state="done"), now=1.0) == {"active": False}
     assert runeta.public_view(None, now=1.0) == {"active": False}
+
+
+# --- a run whose process is gone does not keep the machine -----------------------------------------------------
+
+def _dead_pid():
+    child = subprocess.Popen([sys.executable, "-c", "pass"])
+    child.wait()
+    return child.pid
+
+
+def test_a_run_whose_process_was_killed_no_longer_makes_the_next_run_busy(conn):
+    first = runrecord.start_run(conn, "Fill", _stages(), now=100)
+    conn.hset(runrecord.run_key(first), "owner", f"{socket.gethostname()}:{_dead_pid()}")     # kill -9, a restart
+    second = runrecord.start_run(conn, "Another", _stages(), now=200)
+    assert runrecord.active_run(conn) == second
+    old = runrecord.read_run(conn, first)
+    assert old["state"] == "failed" and "was gone" in old["error"]
+    assert runrecord.is_cancelling(conn, first) is False and runrecord.finish_run(conn, first, "done") is False
+
+
+def test_a_run_whose_process_lives_keeps_the_machine_even_when_its_sign_of_life_lapsed(conn):
+    first = runrecord.start_run(conn, "Fill", _stages(), now=100)
+    conn.delete(runrecord.alive_key(first))
+    with pytest.raises(runrecord.Busy):
+        runrecord.start_run(conn, "Another", _stages())
+    assert runrecord.read_run(conn, first)["state"] == "running"
+
+
+def test_a_run_of_another_host_is_dead_when_its_sign_of_life_has_run_out(conn):
+    first = runrecord.start_run(conn, "Fill", _stages(), now=100)
+    conn.hset(runrecord.run_key(first), "owner", "some-other-host:4242")
+    with pytest.raises(runrecord.Busy):
+        runrecord.start_run(conn, "Another", _stages())
+    conn.delete(runrecord.alive_key(first))
+    assert runrecord.start_run(conn, "Another", _stages())
+    assert runrecord.read_run(conn, first)["state"] == "failed"
+
+
+def test_a_run_recorded_before_runs_said_who_follows_them_is_dead_without_a_sign_of_life(conn):
+    first = runrecord.start_run(conn, "Fill", _stages(), now=100)
+    conn.hdel(runrecord.run_key(first), "owner")
+    conn.delete(runrecord.alive_key(first))
+    assert runrecord.start_run(conn, "Another", _stages())
+
+
+def test_an_active_key_with_no_run_behind_it_is_freed(conn):
+    conn.set(runrecord.active_key(), "20260101-000000-deadbeef")
+    second = runrecord.start_run(conn, "Another", _stages())
+    assert runrecord.active_run(conn) == second
+
+
+def test_a_refused_run_leaves_no_sign_of_life_and_a_live_run_keeps_its_own(conn):
+    first = runrecord.start_run(conn, "Fill", _stages())
+    with pytest.raises(runrecord.Busy):
+        runrecord.start_run(conn, "Another", _stages(), run_id="20260101-000000-feedface")
+    assert not conn.exists(runrecord.alive_key("20260101-000000-feedface"))
+    assert 0 < conn.ttl(runrecord.alive_key(first)) <= runrecord.ALIVE_SECONDS

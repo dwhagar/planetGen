@@ -23,7 +23,7 @@ import functools
 import math
 
 from planetgen import tuning
-from planetgen.galaxy import black_hole_density
+from planetgen.galaxy import remnant_density
 from planetgen.galaxy import density as galaxyDensity
 from planetgen.galaxy import seed as galaxySeed
 from planetgen.physics import constants as physical_constants
@@ -57,13 +57,13 @@ def unbound_fraction(kind, galaxy_seed=None):
         return draw.uniform(low, high)
 
 
-def unbound_count(kind, shape, expected_at_density_1, edge_pc, galaxy_seed=None):
-    """The ejected `kind` the galaxy holds: the unbound share of what it formed. A neutron star's rate per system is
-    the count formed; the black holes' is what the galaxy's metallicity makes (`black_hole_density.formed_per_star`, the
-    bound ones and the ejected together), so bound plus ejected is the whole (GEN.563)."""
-    formed = (black_hole_density.formed_per_star(shape) if kind == "black-hole"
-              else tuning.phenomenon_rate_per_star(kind))
-    return formed * galaxy_systems(shape, expected_at_density_1, edge_pc) * unbound_fraction(kind, galaxy_seed)
+def unbound_count(kind, shape, expected_at_density_1, edge_pc):
+    """The ejected `kind` the galaxy holds: the unbound share of what it formed. What the galaxy's metallicity makes of
+    each kind (`remnant_density.formed_per_star`, the bound ones and the ejected together), so bound plus ejected is the
+    whole (GEN.563 and GEN.554)."""
+    formed = remnant_density.formed_per_star(shape, kind)
+    unbound = shape.structure.neutron_star_unbound_share if kind == "neutron-star" else unbound_fraction(kind)
+    return formed * galaxy_systems(shape, expected_at_density_1, edge_pc) * unbound
 
 
 def mean_speed_kms():
@@ -76,20 +76,20 @@ def outer_radius_pc():
     return mean_speed_kms() * tuning.EJECTA_AGE_GY * 1.0e9 * physical_constants.SECONDS_PER_YEAR / _KM_PER_PC
 
 
-def density_pc3(kind, radius_pc, shape, expected_at_density_1, edge_pc, galaxy_seed=None):
+def density_pc3(kind, radius_pc, shape, expected_at_density_1, edge_pc):
     """The ejecta of `kind` per cubic parsec `radius_pc` from the galactic centre."""
     outer = outer_radius_pc()
     if radius_pc >= outer or radius_pc <= 0.0:
         return 0.0
-    return unbound_count(kind, shape, expected_at_density_1, edge_pc, galaxy_seed) / (
+    return unbound_count(kind, shape, expected_at_density_1, edge_pc) / (
         4.0 * math.pi * radius_pc ** 2 * outer)
 
 
-def expected_in_cell(position_pc, volume_pc3, shape, expected_at_density_1, edge_pc, galaxy_seed=None):
+def expected_in_cell(position_pc, volume_pc3, shape, expected_at_density_1, edge_pc):
     """`{kind: mean}`: how many ejecta of each kind a cell of `volume_pc3` centred on `position_pc` holds on average,
     the mean of its Poisson draw, at most `tuning.EJECTA_MAX_PER_CELL` a kind."""
     radius = math.sqrt(sum(c * c for c in position_pc))
-    return {kind: min(density_pc3(kind, radius, shape, expected_at_density_1, edge_pc, galaxy_seed) * volume_pc3,
+    return {kind: min(density_pc3(kind, radius, shape, expected_at_density_1, edge_pc) * volume_pc3,
                       tuning.EJECTA_MAX_PER_CELL)
             for kind in KINDS}
 

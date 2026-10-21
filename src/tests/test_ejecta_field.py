@@ -30,8 +30,8 @@ E_VALUE = expected_system_count_at_density_1(tuning.DEFAULT_SECTOR_EDGE_LY)
 CELL_PC3 = EDGE_PC ** 3
 
 
-def _density(kind, radius_pc, seed=None):
-    return ejecta_field.density_pc3(kind, radius_pc, SHAPE, E_VALUE, EDGE_PC, seed)
+def _density(kind, radius_pc):
+    return ejecta_field.density_pc3(kind, radius_pc, SHAPE, E_VALUE, EDGE_PC)
 
 
 def test_the_galaxys_systems_are_its_stellar_mass_over_the_mean_system_mass():
@@ -88,8 +88,9 @@ def test_a_profile_carries_the_ejecta_of_its_cell():
     assert set(far.ejecta) == set(ejecta_field.KINDS)
     assert far.ejecta["neutron-star"] == pytest.approx(_density("neutron-star", 8.0e4) * far.volume_pc3)
     assert near.ejecta["neutron-star"] == pytest.approx(4.0 * far.ejecta["neutron-star"])
-    seeded = profile_at((8.0e4, 0.0, 0.0), SHAPE, EDGE_PC, E_VALUE, galaxy_seed=b"ejecta-seed-16by!"[:16])
-    assert seeded.ejecta["neutron-star"] > 0.0 and seeded.ejecta["neutron-star"] != far.ejecta["neutron-star"]
+    ejecting = SHAPE._replace(structure=SHAPE.structure._replace(neutron_star_unbound_share=0.4))
+    more = profile_at((8.0e4, 0.0, 0.0), ejecting, EDGE_PC, E_VALUE)    # the galaxy's own unbound share (GEN.554)
+    assert more.ejecta["neutron-star"] > far.ejecta["neutron-star"] > 0.0
 
 
 def test_an_ejected_objects_velocity_has_a_speed_in_the_range_and_any_direction():
@@ -113,8 +114,14 @@ def _args():
     return args
 
 
+def _old_population(config, rng=draw):
+    config.POPULATION = "old"      # what `FillContext.apply_population` gives a body: its population (GEN.553)
+    return config
+
+
 def _fill(neutron_stars, black_holes=0.0):
-    return SimpleNamespace(profile=SimpleNamespace(ejecta={"neutron-star": neutron_stars, "black-hole": black_holes}))
+    return SimpleNamespace(profile=SimpleNamespace(ejecta={"neutron-star": neutron_stars, "black-hole": black_holes}),
+                           apply_population=_old_population)
 
 
 def _ejected(seed, fill):

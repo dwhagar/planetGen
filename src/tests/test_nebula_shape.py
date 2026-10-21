@@ -88,6 +88,15 @@ def test_the_mesh_lies_on_the_boundary_of_what_contains_says(seed):
     assert 0 < len(low_faces) < len(faces)
 
 
+def test_a_thin_spike_of_the_surface_is_kept_inside_the_bounding_sphere():
+    """TEST.253: the draw with seed 14 has a spike the fit grid steps over, so its marching-cubes surface reached 1.006
+    radii out; `radius_ly` bounds the nebula, so no mesh vertex lies past it (the API test saw 1.029 on another draw)."""
+    shape = ns.draw_shape(draw.Stream(14))
+    for lod in ("low", "full"):
+        verts, _faces = shape.mesh(lod)
+        assert len(verts) and np.linalg.norm(verts, axis=1).max() <= 1.0, lod
+
+
 def test_building_a_mesh_raises_no_numpy_deprecation_warning():
     """TEST.188: scikit-image's own array reshaping is not allowed to reach the test log."""
     shape = _shape(1)

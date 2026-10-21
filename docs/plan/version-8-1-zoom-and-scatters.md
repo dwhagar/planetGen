@@ -20,26 +20,28 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 |---|---|---|---|
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) |  | Research follow-up to PERF.25 (built). |
 | PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply |  |  |
-| PERF.107 | The sector units and the stages around them: start, neighborhood, sectors, link, population and settle |  | Split from PERF.98. |
-| PERF.108 | The backfill as queue units: chunks of at least 10,000 cells, one enumeration (folds in PERF.18) | PERF.107 | Split from PERF.98. |
-| PERF.113 | The neighbour link of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | PERF.107 | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
-| PERF.114 | The population pass of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | PERF.107 | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
-| PERF.115 | The settle stage of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | PERF.107 | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
+| PERF.113 | The neighbour link of a galaxy run: measure it, and split it into chunks of sectors if the time warrants |  | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
+| PERF.114 | The population pass of a galaxy run: measure it, and split it into chunks of sectors if the time warrants |  | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
+| PERF.115 | The settle stage of a galaxy run: measure it, and split it into chunks of sectors if the time warrants |  | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
 | PERF.116 | The habitability re-score (`plan --habitability`): measure it, and split it into chunks of systems if the time warrants |  | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
 | PERF.117 | The map-luminosity fill (`plan --map-luminosity`): measure it, and split it into id-range chunks if the time warrants |  | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
-| PERF.98 | Work queue step 4: the remaining stages and the sector and backfill units on the new queue | PERF.107, PERF.108 | PERF.86 step 4 |
+| PERF.98 | Work queue step 4: the remaining stages and the sector and backfill units on the new queue |  | PERF.86 step 4 |
 | PERF.119 | The Generate page, the API and the one-off sector and system commands start their runs through the wrapper | PERF.98 | Boss, 2026-10-17, 4:12 PM EDT: every start path uses the wrapper. |
 | PERF.120 | Every command does one thing: the umbrella for reshaping every command and entry point |  | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | PERF.121 | `plan` does only the skeleton, and the scatters become one `scatter` command with exactly one kind per run (mass, luminosity, phenomena, nebula field, band) | PERF.120 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | PERF.122 | The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags | PERF.120 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
-| PERF.123 | `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds | PERF.107, PERF.108, PERF.121 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
+| PERF.123 | `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds | PERF.121 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | PERF.124 | `sector` and `phenomenon` only generate: the population pass leaves `sector` and the settle leaves `phenomenon` | PERF.123 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
-| PERF.125 | The population pass and the territories pass are separate commands | PERF.107, PERF.120 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
+| PERF.125 | The population pass and the territories pass are separate commands | PERF.120 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | PERF.128 | `benchmark` is a step list handed to the wrapper, not a sequence of its own | PERF.123 | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
-| GEN.309 | The backfill picks the draw path per block and gives the same stars wherever it lands | PERF.108 | Split from GEN.42. |
+| GEN.309 | The backfill picks the draw path per block and gives the same stars wherever it lands |  | Split from GEN.42. |
 | GEN.40 | Weed out sectors by star density before the bright-star backfill | GEN.309 | Parent; closes with its subitems. |
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands | GEN.309 | Research: ledger size at full galaxy. |
 | PERF.99 | Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command | PERF.98, PERF.119 | PERF.86 step 5 |
+| PERF.144 | Every job queued to RQ gets a time limit from the best available estimate of how long it takes, never no limit, so a killed worker's entry expires |  |  |
+| PERF.145 | The run output repeats the stage: drop the stage-list line and the 'Stage 4 of 13: ...' line the engine logs under the wrapper's '=== Stage 4 of 13: ... ===' banner |  |  |
+| GEN.600 | The updater and the downloader print the URL of every file they load |  |  |
+| GEN.599 | A run with missing downloaded data files refuses unless it is told explicitly to disregard them, and then uses the best possible fallback and says so in its header |  |  |
 | GEN.310 | Fill a whole block of the shell ladder: planetgen generate --block and the queue job | PERF.99 | Split from GEN.231. |
 | UX.127 | The Galaxy Map block menu offers Generate again | GEN.310 | Split from GEN.231. |
 | GEN.231 | Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back | GEN.310, UX.127 | Maps hand-off 2026-10-15. Core, then Interface for the buttons. |
@@ -100,11 +102,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | USR.31 | The Owner account stub: one Owner row and a role check, enough for the Owner-tier settings of ADM.86 in 8.1 |  | Boss, 2026-10-18 (fork 9, stay in 8.1). |
 | ADM.86 | Owner-tier settings: Owner-only options behind a recent-password prompt | USR.31 | Boss 1:43 PM EDT 2026-10-16: the settings page is 8.1; stays in 8.1 with the Owner stub (Boss, fork 9, 2026-10-18). |
 | OPS.35 | A vendored-version lock file for the static libraries |  | Research: supply-chain record. |
-| UX.124 | One form-field look and error slot, piloted on the search, nearby and list-filter fields |  | Split from UX.49. |
 | UX.136 | The data tables' own row fetches (scroll and sort) wait on a page job when the answer is slow, like the pages do |  |  |
-| UX.125 | The Generate page and the one-off system page on the field macro | UX.124 | Split from UX.49. |
-| UX.126 | The admin pages and the edit dialogs on the field macro | UX.124 | Split from UX.49. |
-| UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | UX.124, UX.125, UX.126 | Follows UX.40 (done): the fields themselves become Shoelace components. |
 | UX.121 | The logging layer and the written standard |  | Split from UX.102. |
 | UX.122 | The command line, the job log files and the downloadable log use the layer | UX.121 | Split from UX.102. |
 | UX.123 | The Generate page log, the admin log pages and update.sh output use the layer | UX.121 | Split from UX.102. |
@@ -124,6 +122,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | DB.33 | MySQL 8.0.46 reflects the foreign keys fk_facilities_type and fk_facility_field_values_field as RESTRICT, so check-db calls a healthy database damaged (bug) |  | Quality run 2026-10-15, MySQL 8.0.46. Core. |
+| DB.80 | `VALUES ROW(...)` key-run lists are rejected by MariaDB 10.11 although INSTALL.md supports MariaDB 10.4+ and MySQL 8.0.16+ (bug) |  |  |
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) |  | Test flake reported 2026-10-09; Bugfixes lane 1. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) |  | Bugfixes lane 1 report 03:57Z. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.126 | The heavy WebGL browser-map tests time out when four workers run them together (bug) |  | Lane 2 report 2026-10-10 20:50Z; Bugfixes lane 2 after its current items. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
@@ -136,10 +135,12 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.190 | A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug) |  | Test-infrastructure finding. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.194 | `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug) |  | Flaky test finding from the Settings lane, 5:47 PM EDT. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.237 | The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug) |  |  |
-| TEST.253 | test_nebula_shape_endpoint_serves_a_mesh fails once under load: the largest vertex radius is 1.0288 against a bound of 1.0, and it passes alone (bug) |  |  |
 | TEST.254 | test_core_ball_batch_fill_makes_planets builds 4 systems instead of 3 for some random galaxy seeds (bug) |  |  |
-| TEST.255 | test_workers: two real-Redis worker tests fail in loaded gates and pass alone, again after TEST.250's fix (bug) |  |  |
-| TEST.256 | test_black_hole_density: the black-hole stream test fails in loaded and full gates and passes alone (bug) |  |  |
+| OPS.62 | The cloud environment setup script fails at its verify step because it imports `markdown`, which nothing uses (bug) |  |  |
+| TEST.260 | test_galaxy_absurd_radius_is_clean[200.0] hangs past its 10 s limit on main and leaves the run lock set, so every later test that starts a run fails (bug) |  |  |
+| TEST.262 | test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug) |  |  |
+| TEST.258 | Other tests that scatter a low shell of the toy shape may hold gigabytes after GEN.404: sweep them for resident memory |  |  |
+| TEST.257 | test_sector_page_and_tiles_show_a_phenomenon_the_cli_added asserts an empty cloud list on an unseeded galaxy and sometimes gets a nebula (bug) |  |  |
 | TEST.234 | test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug) |  |  |
 | TEST.233 | test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug) |  |  |
 | TEST.229 | The browser phase of a gate stalls for minutes at one test with a headless_shell gpu process near 200% CPU (bug) |  |  |
@@ -168,6 +169,46 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | GEN.457 | The small bodies and moons composition design: the taxon and comet draws, compaction, the moon origin types and the ice fraction |  | Body composition research lane part D; design note, no code. Core 4 proposed. |
 | GEN.560 | Research list for the chain: ejection survival of moons, circumplanetary disks of isolated planetary-mass objects, failed-supernova and direct-collapse shares, the size law of interstellar objects |  |  |
 
+### Admin control suite
+
+Boss (6:01 PM EDT, 2026-10-21): the admin pages, the Generate suite and the settings are one control suite, built in this order: Settings first, then the shell, job strip and palette, then Generate. Boss answered all 13 decision cards between 6:05 and 6:09 PM EDT (design note docs/design/admin-control-suite.md, section 7); his answer 1 puts all of it in 8.1 phase 1. Owner of every item: the admin redesign thread.
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| UX.124 | One form-field look and error slot, piloted on the search, nearby and list-filter fields |  | Split from UX.49. |
+| ADM.98 | Admin control suite research: how to pack many options into one quiet interface (admin pages, the Generate suite and the settings), a report and decision cards before anything is built |  | Admin control suite, Boss 6:01 PM EDT 2026-10-21: the admin redesign thread; research and cards first. |
+| ADM.55 | Admin usability audit: walk every admin page and task, rank what is hard to use, and propose one layout |  | Audit narrowed to the pages other than Generate and Settings (key K8); UX.115 dropped. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.101 | Settings: words for every option: label, one-line summary, group, control and advanced flag in the settings model |  | Admin control suite key S1. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.102 | Settings: view classes: editable, owner, server and overridden, with the reason an option is fixed | ADM.101 | Admin control suite key S2. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| UX.125 | The Generate page and the one-off system page on the field macro | UX.124 | The Generate page conversion rides ADM.99. Admin control suite, Boss 6:01 PM EDT 2026-10-21: the admin redesign thread; research and cards first. |
+| ADM.103 | Settings: the new page: grouped rows, a left rail, search, a switch that shows settings that cannot be changed (off by default), a sticky save bar, per-row reset and Details | ADM.101, ADM.102, UX.124 | Admin control suite key S3. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.104 | Settings: controls: switch, slider with a number box, duration, rate limit, chips and colour picker | ADM.103 | Admin control suite key S4. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.105 | Settings: the review page in plain language: 'Cache size: 1,024 MB to 2,048 MB', the restart list and the overridden list | ADM.103 | Admin control suite key S5. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.106 | Settings: the server-files disclosure and the overridden-option badge | ADM.102 | Admin control suite key S6. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.118 | Admin registry: pages, tasks and settings declare label, summary, keywords, role, danger level and URL, and the rail, hub and search read it | ADM.101 | Admin control suite key K1. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.92 | Admin shell: one layout, one navigation and the shared table, form, confirmation and job-log components | ADM.118, ADM.98 | Split from ADM.56. Key K2. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.119 | Job strip on every admin page: a thin strip that shows a running job, Cancel and the log | ADM.92 | Admin control suite key K3. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.120 | Command palette and /admin/search: server search over the registry, Ctrl+K and /, results for pages, tasks, settings, jobs and sectors | ADM.118, ADM.92 | Admin control suite key K4. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.122 | Admin keyboard set and a help overlay | ADM.92 | Admin control suite key K6. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.123 | Queue one next job: a single next slot that starts when the running job ends, with Cancel, shown in the job strip and History | ADM.119 | Admin control suite key K9. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.107 | Generate: the frame: status strip, pinned current-job panel (idle shows the last result), History tab and the Work Queue link |  | Admin control suite key G1. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.108 | Generate: the task flow engine: a Start screen with six cards, a step rail, the draft carried in the URL, a Review step with the estimate, summary and command line, and Run | ADM.107, UX.125, ADM.123 | Admin control suite key G2. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.109 | Generate: the Add sectors task: two choices, the four-tab place picker and how-big with a live count | ADM.108 | Admin control suite key G3. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.110 | Generate: the Start a new galaxy task: seed-decides shape fields, the first neighbourhood and a typed confirmation | ADM.108 | Admin control suite key G4. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.111 | Generate: the Scatter task: rebuild, redo some, add a dimmer step, with one Advanced block of scatter limits | ADM.108 | Admin control suite key G5. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.112 | Generate: prevalence, star mix and overrides as one shared Advanced block, rendered once | ADM.108 | Admin control suite key G6. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.113 | Generate: the one-off system on the frame, with tri-state rows as segmented controls | ADM.107, UX.125 | Admin control suite key G7. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.114 | Generate: the Check and Wipe tasks and the History tab | ADM.107 | Admin control suite key G8. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.115 | Generate: Run again from History, and named recipes saved per admin in the control database | ADM.108, ADM.114 | Admin control suite key G9. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.116 | Generate: remove the old Generate page pieces and update docs/html-interface.md and the architecture table | ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114 | Admin control suite key G10. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.117 | Generate: browser tests for every task end to end, in both themes, without script and at phone width | ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114 | Admin control suite key G11. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.121 | Typed commands that open a task's Review step pre-filled and never run by themselves | ADM.120, ADM.108 | Admin control suite key K5. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.93 | Move every existing admin page onto the shell and fix the defects the audit ranks above its line | ADM.92, ADM.55 | Split from ADM.56. Key K7. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| UX.126 | The admin pages and the edit dialogs on the field macro | UX.124 | The admin page conversion rides ADM.56 and ADM.93. Admin control suite, Boss 6:01 PM EDT 2026-10-21: the admin redesign thread; research and cards first. |
+| UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | UX.124 | Follows UX.40 (done): the fields themselves become Shoelace components. |
+| ADM.56 | Streamline and fix the admin pages from the audit: one admin shell, one navigation and one pattern for tables, forms, confirmations and job logs | ADM.92, ADM.93 | Admin control suite, Boss 6:01 PM EDT 2026-10-21: the admin redesign thread; research and cards first. |
+| ADM.99 | Generate suite redesign: the Generate page rebuilt inside the admin control suite so a long list of options is easy to use | ADM.107, ADM.108, ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114, ADM.115, ADM.116, ADM.117 | Parent: closes with its children G1 to G11. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
+| ADM.100 | Settings page redesign: plain-language groups and descriptions, and settings that cannot be changed hidden by a toggle that is on by default | ADM.101, ADM.102, ADM.103, ADM.104, ADM.105, ADM.106 | Parent: closes with its children S1 to S6. Admin control suite, Boss 6:01 PM EDT 2026-10-21; his 13 cards were answered 6:05 to 6:09 PM EDT. |
 
 ## Phase 2: Infinite zoom
 
@@ -246,10 +287,6 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 | GEN.129 | Multi-star systems of up to twelve stars | GEN.311, GEN.312, MAP.213, GEN.313 | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
 | TEST.241 | Test: no absolute position is stored for anything inside a system, so every 8.1 item that stores a position stores it parent-relative |  |  |
 | GEN.593 | Pulsar planets: the disc range stops short of PSR B1257+12's planets, and two of the three formation paths (a captured giant, an ablated companion) leave a pulsar with no planets |  |  |
-| GEN.318 | White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk |  | Split from GEN.130. |
-| GEN.592 | A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced) |  |  |
-| GEN.591 | An elliptical comet's aphelion can exceed its star's Hill sphere in about 10% of runs: the comet bound test fails on main (bug) |  |  |
-| GEN.130 | Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes | GEN.318 | Phenomena catalogue, Boss 2026-10-15. Step 3, rescoped. Core. |
 | GEN.263 | Promote every bound compact pair to the scatter, whatever its mass |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 4. Core. |
 | GEN.315 | A fill builds a system from its stored members and nodes; the system pass keeps only planets, moons, belts and disks | GEN.311 | Split from GEN.264. |
 | GEN.316 | Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired | GEN.315 | Split from GEN.264. |
@@ -257,7 +294,7 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 | GEN.267 | A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 11. Core. |
 | GEN.269 | Interaction states in the star model: a Roche classifier, `interaction` on every pair, member state and flags, rejuvenated age and the new kinds |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 13. Core. |
 | GEN.270 | Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars | GEN.269 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 14. Core. |
-| GEN.253 | White-dwarf pollution flag and cool white dwarf presets | GEN.318 | Phenomena catalogue, Boss 2026-10-15. Step 6, later. Core. |
+| GEN.253 | White-dwarf pollution flag and cool white dwarf presets |  | Phenomena catalogue, Boss 2026-10-15. Step 6, later. Core. |
 | GEN.271 | White-dwarf binary types: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM CVn, symbiotic and barium stars | GEN.269 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 15. Core. |
 | GEN.272 | Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples | GEN.269 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 16. Core. |
 | GEN.329 | Runaway bookkeeping: runaway_origin and the compact companion left by a supernova |  | Split from GEN.274. |
@@ -359,9 +396,10 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | UX.102 |  |
+| DOC.72 | The README lists every external file the program needs, with its URL and how to install it, and a check keeps the list complete |  |  |
 | DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | PERF.86 |  |
 | DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes |  | Whole-sphere build train, Boss 2026-10-15. Step 14. Quality. |
-| DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | GEN.264, TEST.164, GEN.130 | Multi-star systems at scatter time, Boss 2026-10-15. Step 10. Quality. |
+| DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | GEN.264, TEST.164 | Multi-star systems at scatter time, Boss 2026-10-15. Step 10. Quality. |
 | DOC.51 | Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder |  | Spherical region query, stage C. Step 8. Quality. |
 | DOC.18 | Last pass: re-run the documentation sweep when the other DOC items are done and Phase 1 is complete | DOC.19, DOC.20, DOC.48, DOC.50, DOC.51 |  |
 
@@ -404,12 +442,16 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 | GEN.403 | The globular cluster count follows the halo mass: the system mass from the halo mass replaces the fixed count of 157 |  | GEN.368 build, Boss approved the table 10:11 PM EDT; Core 1 proposed for GEN.400 to GEN.403, Core 3 or Core 4 for GEN.404 and GEN.405 (profile.py, activity.py), any lane for GEN.406. |
 | GEN.405 | Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values |  | GEN.368 build, Boss approved the table 10:11 PM EDT; Core 1 proposed for GEN.400 to GEN.403, Core 3 or Core 4 for GEN.404 and GEN.405 (profile.py, activity.py), any lane for GEN.406. Core 4 proposed (coordinator 10:16 PM EDT). |
 | GEN.545 | The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution |  |  |
-| GEN.544 | Revisit the disc's vertical profile: the sech-squared core has half the midplane density of the exponential fits its scale heights come from |  |  |
+| GEN.598 | CLUSTER_MEAN_SYSTEM_MASS_SOL (0.4, recalled) sets the system count of globular clusters and satellites: derive it as GEN.545 derives the galaxy's | GEN.545 |  |
+| GEN.597 | A rocky planet of a wide binary gets flux_variation above 1 (the insolation test passes only on seeds 0 to 59) (bug) |  |  |
+| GEN.596 | A companion below 0.01 solar masses makes multistar.draw_member_tree raise 'no cooling track' (bug) |  |  |
 | GEN.531 | Boss's research requests from the galaxy laws research (R1 to R15): the observed stellar halo, the dwarf range, the thick disk fits and the cluster system |  | Research requests R1 to R15 of the GEN.406 note; does not gate GEN.301. |
 
 ## Phase 6: The headline closes
 
 The last audits and the headline: they test the component pass, the core and the halo, so they come after phases 4 and 5.
+
+Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every point release.
 
 ### The headline closes
 
@@ -419,4 +461,6 @@ The last audits and the headline: they test the component pass, the core and the
 | TEST.159 | Whole-sphere tests: required stars per nebula kind, Wolf-Rayet counts, tiling at the reach, profile and empty-sector determinism, and the pre-placed share per population | TEST.184, TEST.185 | Whole-sphere build train, Boss 2026-10-15. Step 15. Quality. |
 | TEST.160 | Representation audit: seeded sectors in each region class show every kind at its expected frequency, with systems and required contents checked |  | Phenomena catalogue, Boss 2026-10-15. Step 4. Quality. |
 | TEST.196 | Close-binary check: generated close-binary fractions by primary mass and [Fe/H] bin against the published ranges, with out-of-range bins flagged |  | Core 4; Boss 6:15 PM EDT: expected-numbers check for GEN.103. |
-| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.284, TEST.159, TEST.160, TEST.196, GEN.450, GEN.530 |  |
+| TEST.261 | Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every point release (8.1 first) | TEST.159, TEST.160 | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later point release. |
+| SEC.33 | Release gate: a full security code audit of the whole code base, done before every point release (8.1 first) | TEST.159, TEST.160 | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later point release. |
+| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | GEN.284, TEST.159, TEST.160, TEST.196, GEN.450, GEN.530, SEC.33, TEST.261 |  |

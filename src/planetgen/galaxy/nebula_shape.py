@@ -43,6 +43,10 @@ SHAPE_VERSION = 1
 MESH_LODS = {"low": 10, "full": 28}
 """dict: Marching-cubes grid cells per axis for each mesh level of detail."""
 
+_MESH_REACH = 1.0 - 1e-9
+"""float: The farthest a mesh vertex lies from the centre, nebula radii (a hair under 1, so that rounding keeps a
+vertex that was pulled back to the sphere inside it)."""
+
 _GRID_HALF_WIDTH = 1.8
 """float: The sampling grid reaches this far (natural units) either way
 from the centre -- far enough for the largest drawn shape and its warp."""
@@ -241,6 +245,12 @@ class NebulaShape:
                                     category=DeprecationWarning)
             verts, faces, _normals, _values = marching_cubes(values, level=self.iso, spacing=(step, step, step))
         verts = (verts - _GRID_HALF_WIDTH) / self.scale
+        # TEST.253: the scale is fitted on a coarser grid than the mesh's, so a thin spike of the surface can reach a
+        # little past the bounding sphere (3% in the worst draw seen). `contains` already ends the nebula there, and
+        # `radius_ly` is promised to bound it, so the few vertices out there are pulled back onto the sphere.
+        norms = np.linalg.norm(verts, axis=1)
+        out = norms > _MESH_REACH
+        verts[out] *= (_MESH_REACH / norms[out])[:, None]
         return verts, faces
 
     # --- storage -------------------------------------------------------------

@@ -2,7 +2,7 @@
 
 planetGen's web interface is one Flask app: every page and the JSON API
 (`/api`). It runs from a git checkout, reads `config.json` at the repo
-root, and talks to one MySQL or MariaDB server and one Redis server
+root, and talks to one MySQL server and one Redis server
 (`redis.url` in [`config.json`](../config.md); the Generate page's jobs,
 the work queue, the rate limits and the login lockouts run on it). This page compares the
 supported ways to host it and covers what they share. Each guide has the
@@ -146,7 +146,7 @@ address, not `127.0.0.1`.
 
 ## MySQL accounts
 
-planetGen needs MySQL 8.0.16 or later, or MariaDB 10.4 or later. One
+planetGen needs MySQL 8.0.19 or later (MariaDB is not supported). One
 account is used everywhere: the generation CLIs, `planetgen.cli.migrate` (run by
 `install.sh` and `update.sh`), and the web app's reads and writes. There
 is no separate read-only or write account to configure:
@@ -204,6 +204,13 @@ before it changes anything, so the only thing that runs is the update:
    spherical sector grid keeps the site closed until the new Galaxy Map is built). **A failed update leaves the
    site closed**, says which step failed and how to open it, because the database may be half migrated:
    `python3 -m planetgen.cli.maintenance off`. The lock is released, so `./update.sh` can be run again.
+
+A job whose worker was killed (the out-of-memory killer, a restart) used to stay "running" in Redis for ever and hold
+the update; the guard and every worker now clear such a job when they start. When a job is stuck some other way,
+`sudo ./update.sh --reset-jobs` (or `python3 -m planetgen.cli.reset_jobs` on its own, `--dry-run` to only look) stops
+what the guard lists, kills the queue workers on the machine, and empties the jobs table and the work lease of the
+control database and the queues in Redis (the RQ keys only: the admin's worker count and the caches stay). It cancels
+without asking, so use it when nothing needs to finish.
 
 `python3 -m planetgen.cli.migrate` run by hand does the same when it has something to migrate (`--cancel-running`
 works there too). `update.sh` never edits your Redis configuration or your Apache site.

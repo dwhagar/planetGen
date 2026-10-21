@@ -22,13 +22,14 @@ here draws a random number except `set_galactic_motion`, which draws what
 the older copies drew, in the same place in each constructor.
 """
 
+import dataclasses
 import math
 
 from planetgen.galaxy.galactic_orbit import generate_galactic_orbit_fields
 from planetgen.physics import constants as physical_constants
-from planetgen.physics import state_vectors
+from planetgen.physics import spin, state_vectors
 from planetgen.physics.kepler import universal_step
-from planetgen.physics.position import SpatialPosition3D
+from planetgen.physics.position import SpatialPosition3D, update_interval_s
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 
 GALACTIC_MOTION_FIELDS = [
@@ -37,6 +38,30 @@ GALACTIC_MOTION_FIELDS = [
 ]
 """The four fields `set_galactic_motion` sets: the circular speed and period about the galactic centre, the phase
 along that orbit, and the shortest interval between orbital updates."""
+
+
+@dataclasses.dataclass(frozen=True)
+class KinematicRecord:
+    """The kinematic record of a mass object (GEN.565, card S16 of docs/design/unified-system-barycentre.md): what the
+    stored point of every body holds, all relative to its parent in the shared non-rotating (galactic) axes. A field is
+    `None` where the body has not got it yet (no position, an object saved before the spin was drawn)."""
+
+    position_au: tuple = None
+    """tuple or None: Where the body is, AU from its primary."""
+    velocity_kms: tuple = None
+    """tuple or None: Its velocity relative to its primary, km/s."""
+    spin_axis: tuple = None
+    """tuple or None: The unit vector of its angular velocity."""
+    spin_rate_rad_s: float = None
+    """float or None: Its rotation rate, rad/s; zero when it is not rotating."""
+    mass_kg: float = None
+    """float or None: Its mass, kg."""
+    mu_m3_s2: float = None
+    """float or None: G times its mass, m^3/s^2."""
+    epoch_unix: float = None
+    """float or None: When the position and velocity hold, Unix seconds."""
+    next_due_unix: float = None
+    """float or None: When the orbit update next has to move it, Unix seconds."""
 
 
 class MassObject:
@@ -150,6 +175,59 @@ class MassObject:
             self.galactic_orbital_phase_deg = (self.galactic_orbital_phase_deg + 360.0 * turn) % 360.0
             return
         raise ValueError("the body has no state vector and no galactic orbit to move along")
+
+    @property
+    def spin_axis(self):
+        """`(x, y, z)` unit vector of the body's angular velocity, or `None` for a body with no spin drawn."""
+        axis = spin.spin_values(self)[:3]
+        return None if any(value is None for value in axis) else axis
+
+    @property
+    def spin_rate_rad_s(self):
+        """The body's rotation rate, rad/s (`2 pi` over its rotation period), or `None` for a body with no period."""
+        period_hours = getattr(self, "rotation_period_hours", None)
+        if not period_hours:
+            return None
+        return 2.0 * math.pi / (period_hours * 3600.0)
+
+    def speed_kms(self):
+        """The body's speed, km/s: the length of its velocity relative to its primary, or, for a body that goes round the
+        galaxy with no such vector, its circular galactic speed; `None` with neither."""
+        if self.spatial is not None and self.spatial.get_velocity_vector("system") is not None:
+            return self.spatial.get_speed("system") / 1000.0
+        return getattr(self, "galactic_orbital_speed_kms", None)
+
+    def axial_tilt_from_state(self):
+        """
+        The angle, degrees, between the spin axis and the normal of the orbit about the primary (`r x v`), or, for a
+        body with no state vector, the galaxy's pole (`physics.spin`): what `axial_tilt_deg` stores, worked out from the
+        axis and the motion. `None` for a body with no spin axis.
+        """
+        axis = self.spin_axis
+        if axis is None:
+            return None
+        normal = spin.GALACTIC_POLE
+        if self.spatial is not None and self.spatial.get_velocity_vector("system") is not None:
+            normal = spin.orbit_normal_from_state(self.spatial.get_coordinates("system", "cartesian"),
+                                                  self.spatial.get_velocity_vector("system"))
+        return spin.obliquity_between(axis, normal)
+
+    def kinematic_record(self, scale="system"):
+        """
+        The body's `KinematicRecord`, read from its point and its spin. `scale` ("galactic", "system" or "planetary",
+        `position.THRESHOLDS_M`) picks the distance the next-due time is the time to move.
+        """
+        position = velocity = mass = mu = epoch = next_due = None
+        point = self.spatial
+        if point is not None:
+            position = point.get_coordinates("system", "cartesian")
+            if point.get_velocity_vector("system") is not None:
+                velocity = tuple(v / 1000.0 for v in point.get_velocity_vector("system"))
+            mass, mu, epoch = point.mass_kg, point.mu, point.epoch_unix
+        speed = self.speed_kms()
+        if epoch is not None and speed is not None:
+            next_due = epoch + update_interval_s(speed * 1000.0, scale)
+        return KinematicRecord(position, velocity, self.spin_axis, self.spin_rate_rad_s, mass, mu, epoch, next_due)
 
     def set_galactic_motion(self, galactic_center_dist_ly=None, galactic_orbital_phase_deg=None):
         """Sets the four `GALACTIC_MOTION_FIELDS` from the body's distance from the galactic centre (none: the

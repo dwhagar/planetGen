@@ -2,6 +2,198 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1864] - 2026-10-21
+
+**Headline:** The admin queue page shows the cache warm-up phase by phase: which are waiting, running, built, unchanged or stopped, with each one's result.
+
+### Changed
+- **A "Cache warm-up" panel on `/admin/queue` (PERF.141).** It shows the last warm-up run (its state, when it started and ended, what asked for it), whether a start after a change is waiting or running and for which changes, and one row for each of the five phases with its state and the line the run printed (what it built, what was already stored, what the budget left out). A run that died reads as interrupted, and a failed run marks the phase that failed. The same state is at `GET /api/admin/work/warm?database=NAME` for admins.
+
+TODO items resolved / Added: PERF.141 (slice 3: the admin page shows each phase) / Added: none
+
+## [8.0.1863] - 2026-10-21
+
+**Headline:** A run or job whose process was killed no longer blocks every new run or holds up an update, and `update.sh --reset-jobs` resets every job and the queue when something else is stuck.
+
+### Fixed
+- A run that owns the machine is the Redis key `planetgen:run:active`, which had no expiry and was freed only by the run's own process. A run killed with `kill -9`, by the out-of-memory killer or by a restart left it set, and every new run was refused as busy for ever. A run now records which process follows it and that process says it is alive at every poll (`runrecord.touch`); when a new run finds the machine held, it ends a run whose process is gone (same host: the process id is not running; another host, or a run recorded before this: no sign of life for two minutes) as failed, frees the machine and starts. The waiting units of the dead run do nothing.
+- A queued job (a Generate page job, an API job) is queued with no time limit, so RQ never gave up the entry of one whose worker was killed: it stayed "running" in Redis, `update.sh` listed it, could not stop it, waited ten minutes and refused to update. The update guard and every worker now clear such jobs when they look (`workers.reap_dead_jobs`): a job whose worker is gone fails with a message saying so (or is queued again when it has a retry left), and a registry entry whose job has expired is dropped.
+
+### Added
+- `python3 -m planetgen.cli.reset_jobs` (`--yes`, `--dry-run`) resets every job and the queue: it stops what the update guard lists, kills the queue workers on the machine, removes the RQ keys and the run records in Redis (the admin's worker count and the caches stay) and the rows of the jobs table, frees and un-pauses the work lease, and prints what it found and removed.
+- `sudo ./update.sh --reset-jobs` runs it first, without asking, before the guard is taken.
+
+TODO items resolved: PERF.142, PERF.143 / Added: none
+
+## [8.0.1862] - 2026-10-21
+
+**Headline:** The site's caches are rebuilt by themselves after a generation run, an orbital update or an edit, without waiting for the next update.
+
+### Changed
+- **The warm-up starts after every change (PERF.141).** Anything that moves a data version tag (a generation run, `planetgen orbits`, an edit through the API, a change found in the galaxy) now asks for `planetgen warm`, which starts in the background as the web server's user, waits `cache.warm_settle_seconds` (default 60) so a burst of edits is one warm-up, and rebuilds only what the changes touched. A change that arrives during a run gets another round; nothing starts during an update (it warms at its end) or with `cache.warm_on_change` off (`PLANETGEN_WARM_ON_CHANGE=0`). Two new settings, `cache.warm_on_change` and `cache.warm_settle_seconds`.
+
+TODO items resolved / Added: PERF.141 (slice 2: the automatic start; the admin page follows) / Added: none
+
+## [8.0.1861] - 2026-10-21
+
+**Headline:** The tests of the worker count no longer disturb each other through the one Redis key that holds the admin's wanted number of workers.
+
+### Fixed
+- Tests: `planetgen:workers:wanted` is one key on the Redis server, read by every `ensure_workers` and set by the admin's page and `set_wanted`. Tests that set it (`test_workers.py`, `test_work_queue_admin.py`) ran in other test processes beside tests that count the workers a queue should have, so a count of 2 came out as 3 (or the key was deleted mid-test) and `test_a_batch_of_jobs_starts_no_more_workers_than_wanted_and_not_twice` and `test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs` failed in loaded gates (TEST.255). Each test now has a key of its own (`conftest.py`), emptied after; `test_wanted_workers_key.py` pins it (it fails with the shared key).
+
+TODO items resolved: TEST.255 / Added: none
+
+## [8.0.1860] - 2026-10-21
+
+**Headline:** If the core-ball batch-fill test ever counts a fourth system again, its failure now names the systems and the galaxy seed.
+
+### Changed
+- Tests: `test_core_ball_batch_fill_makes_planets` failed once with 4 systems where `--num-systems 3` asked for 3 (Core 5, on an older main). It does not come back on current main: 69 random-seed galaxies in one process and 40 separate test processes (the reproducer on the item) all gave 3. Nothing in the generator is changed on a guess; the assertion now prints the systems' ids, sectors and names and the galaxy's seed, so the next sighting carries the cause. TEST.254 stays open as "not reproduced".
+
+TODO items resolved: none / Added: none
+
+## [8.0.1859] - 2026-10-21
+
+**Headline:** A nebula's shape mesh never reaches past the nebula's radius, as the shape's documentation promises.
+
+### Fixed
+- Galaxy Map: the scale that makes a nebula's farthest surface point 1.0 is fitted on a 24-cell grid, and the mesh is cut on a finer one (28 cells in full detail), so a thin spike of the surface that the fit grid steps over reached past the bounding sphere (1.006 radii in the draw with seed 14, 1.029 in the one `test_nebula_shape_endpoint_serves_a_mesh` met once in Core 4's gate). `contains` already ends the nebula at the sphere and `radius_ly` is promised to bound it, so the few vertices out there are pulled back onto the sphere. Shapes and scales are unchanged; only a mesh vertex past the sphere moves. A new test pins the seed-14 spike and the API test allows for the five decimals the route rounds to.
+
+TODO items resolved: TEST.253 / Added: none
+
+## [8.0.1858] - 2026-10-21
+
+**Headline:** The check that an open map menu overlaps nothing now measures once the panel has stopped moving, and audits each menu of a page instead of the first one marked.
+
+### Fixed
+- Tests: `test_open_map_menus_hold_no_overlap[web.sector-390]` failed once in a full gate (load 9.6, `Menu /  59x16`: a control with no text lay exactly over the 59x16 "Menu" button) and passes alone and 5 of 5 under CPU load. It measured 150 ms after the click, so a loaded machine could still have the panel's first control where the panel starts, over the button. It now waits for three animation frames with the same boxes. It also left `data-audit` on each menu it audited, so the second menu of a page was measured as the first one (closed), not itself; the mark is removed after each audit.
+
+TODO items resolved: none / Added: none (the sighting is filed by the TODO thread)
+
+## [8.0.1857] - 2026-10-21
+
+**Headline:** A test now holds that a dense-core cell filled without the star scatter makes the systems its resolution gives.
+
+### Changed
+- A cell over the cell star ceiling that is filled with no star scatter drawn makes the number of systems `cell_resolution` gives (GEN.592). The reported case, a capped cell making none, does not reproduce on the current generator: the probe seed's first dense-core cell resolves 3,973 systems and makes 3,989. The test keeps it so.
+
+### Fixed
+- The black-hole stream test (GEN.563) scattered a shell of ten million rows twice and held 11 GB, so it was killed in a full run; it now uses a shell of a few hundred thousand rows and takes seconds.
+
+## [8.0.1856] - 2026-10-21
+
+**Headline:** The cache warm-up now runs in five named phases and says after each one what it built, what was already stored and what the cache budget left out.
+
+### Changed
+- **`planetgen warm` runs in phases (PERF.141).** In order: `opening` (the Galaxy Map's opening views and the first page of each list), `built-levels` (the tile octree's first levels), `deep-tiles` (the zoom run in to the centre), `objects` (the sector, system and phenomenon pages) and `search`. `warm-galaxy-tiles` is split in two for it, and the new `warm-galaxy-deep-tiles` command builds the zoom run. After each phase the run prints one line: `Phase 2 of 5, built-levels: 3 built, 125 already stored, 0 left out in 2.0 s.`, or `unchanged, nothing built` when the data under it has not changed since the last run, and `stopped at the cache budget` when `cache.max_mb` cut the tile phases short. A phase name can be given instead of families (`planetgen warm deep-tiles`).
+
+TODO items resolved / Added: PERF.141 (slice 1: the phases and their reports; the automatic start and the admin page follow) / Added: none
+
+## [8.0.1855] - 2026-10-21
+
+**Headline:** The galaxy's disks are exponential in height, the form their scale heights are measured with, so a galaxy's midplane stars are twice as dense for the same mass.
+
+### Changed
+- **The thin and thick disks' vertical profile is `exp(-|z| / h)`, not the isothermal sheet `sech^2(z / 2h)`** (`galaxy/density.py` `_vertical`, `generation/object_first.py`, `galaxy/skeleton.py`, `html/static/galaxyprisms.js`). The scale heights the model uses (BHG16's 300 pc and 900 pc) are exponential fits to star counts; a `sech^2` sheet with the same tail has a column of `4 h` times its midplane density where the fit's is `2 h`, so for one stellar mass the midplane was half the fits' (GEN.404 made the density follow the mass and exposed it). The mass of each disk is unchanged (its column is `2 h` times the midplane now, `2 pi L^2 x 2 h` in `density._disk_mass`, `shape_draw.disk_masses` and `density.bulge_to_total`), so at the reference radius between two arms the density is 0.750 of the density the earlier calibration pinned there (it was 0.376 under GEN.404) and the column through that point is 524.26 pc of relative density before and after. The nuclear stellar disc keeps its `sech^2` height (`density._sech_vertical`).
+  - The open clusters' heights (`generation/open_clusters.py`) and the neutron-star and black-hole height factor (`galaxy/remnant_distribution.py`) follow the stars' profile.
+  - The reference galaxy's bulge amplitude is 3.11 / 2 (`mathcheck.REFERENCE_BULGE_AMPLITUDE`): BHG16's 3.11 was measured against the `sech^2` disk, and the bulge keeps its 31% of the mass.
+  - `MAGNETAR_YOUNG_STAR_SHARE` is 0.0016 (it was 0.0019), the young population's share of the stars over the new profile.
+  - The reference galaxy's outline reaches shell 3,596 (it was 3,147 under GEN.404, 3,762 before it); the rest of the gap to the pinned density is the mean system mass (GEN.545).
+- The generator epoch is 41.
+generation-output: changed
+
+### Added
+- `tests/test_galaxy_milky_way.py`: the thin disk's column is `2 h` times its midplane, the density at the reference radius is 0.75, and its column is 524.26 as before.
+
+TODO items resolved: GEN.544. Added: none.
+
+## [8.0.1854] - 2026-10-21
+
+**Headline:** A galaxy's neutron stars are now what its massive stars leave when they do not become black holes, instead of a fixed number per star.
+
+### Changed
+- The neutron star density at a place is the black hole sum with the survivors of the failed-supernova share (`1 - F`) and the galaxy's bound share, so a galaxy whose massive stars fail more makes more black holes and fewer neutron stars, and a metal-rich place makes more neutron stars than a metal-poor one. At the middle draw a standalone sector rolls 4.08e-3 per star (Boss's research density is 4.0e-3, now a test target); bound plus ejected neutron stars equal what the galaxy formed.
+- The neutron star unbound share (0.2 to 0.4) is drawn once with the galaxy's structure and read by both the bound count and the ejected field. `galaxy/black_hole_density.py` is now `galaxy/remnant_density.py`, taking the remnant kind.
+- Black hole counts are unchanged. `docs/design/neutron-star-density.md` records the model.
+
+generation-output: changed
+
+TODO items resolved: GEN.554 slice 1 (neutron star counts follow the mass function; GEN.554 stays open for the mass islands and the kick step) / Added: none
+
+## [8.0.1853] - 2026-10-21
+
+**Headline:** One setting, `cache.max_mb` (1 GB by default), sizes the stored caches, and when it is full the warm-up stops and only tiles nobody asked for lately are dropped.
+
+### Changed
+- **One cache size key, `cache.max_mb` (PERF.139).** It replaces `tile_cache.max_mb` and `PLANETGEN_TILE_CACHE_MAX_MB` with no compatibility shim (an old `tile_cache.max_mb` in `config.json` is ignored), defaults to 1024 MB instead of 200, and `0` turns the disk caches off. The Galaxy Map's tile cache is the first thing under it; the object index and the stored lists will share it. `update.sh`'s cache directory step and `docs/config.md` follow the new key.
+- **What happens at the budget (PERF.133).** The tiles `planetgen warm`, the background build and the rebuild after a change build ahead are marked, and a visit sets the modification time of the file it reads. When the cache is over the budget `prune` deletes only the files a visit asked for, least recently visited first, down to 80%; a tile built ahead is never deleted for size. `planetgen warm` then stops building tiles and says how many it left out (`N tiles left out, the tile cache is full`).
+
+TODO items resolved / Added: PERF.139 (key and budget behaviour; the slider is ADM.97), PERF.133 (second part) / Added: none
+
+## [8.0.1852] - 2026-10-21
+
+**Headline:** Every body with a mass can now report its whole kinematic record: where it is, how it moves, how it spins, its mass and when it is next due.
+
+### Changed
+- `MassObject.kinematic_record()` returns a `KinematicRecord` (position and velocity relative to the primary, spin axis and rate in rad/s, mass and mu, epoch and next-due), the record Boss's S16 card gives every mass object. `speed_kms()`, `axial_tilt_from_state()` and `spin_rate_rad_s` read what is stored today as speed, axial tilt and rotation period from the state and the spin, and equal the stored values; a non-rotating black hole's rate is zero.
+- `spin.orbit_normal_from_state` gives the orbit normal `r x v`.
+- No stored value or field changes; the per-class columns that become derived are dropped in the DB.73 revision (Core 1). `docs/design/mass-object-class.md` section 12 records the fields.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.565 stays open for the family classes) / Added: none
+
+## [8.0.1851] - 2026-10-21
+
+**Headline:** A tile of the Galaxy Map is built again only when something it holds has changed, and a release alone no longer throws the stored tiles away.
+
+### Changed
+- **The stored tiles no longer follow the release number (PERF.133).** They are keyed by a new tile stamp (`db.query.galaxy_tile_stamp`, in `GET /api/galaxy/changes` as `tile_stamp` and `tile_full`) made of the galaxy shape, the bright-star seed, the naming key, a tile-format number (`db.query.TILE_FORMAT`) and the generator epoch, with the sector change counters. A release that changes neither the tile format nor the epoch keeps every stored tile, so the `planetgen warm` that `update.sh` starts after it finds them stored and builds none; the pages and counts cached by the old stamp are still dropped by a release. A change to what a tile holds or how it is packed raises `TILE_FORMAT`, and `tests/test_tile_format.py` fails until it does.
+- **A change rebuilds what it touched at once.** When a sector is edited, added or given a system, only the tiles holding it (one per level) are deleted, and those that were stored are queued on the bulk queue for a rebuild straight away, coarsest first (at most 2,048 a change), so the next visit finds them built. It is off when `tile_cache.prefetch_per_minute` is 0, during an update and while the cache is full.
+
+TODO items resolved / Added: PERF.133 / Added: none
+
+## [8.0.1850] - 2026-10-21
+
+**Headline:** A neutron star's or stellar black hole's age now follows its population: the time since the star that made it collapsed.
+
+### Changed
+- `stellar_evolution.collapse_age_gy` draws a progenitor from the IMF over the kind's progenitor range, a birth age from the population's window and age law (as any star's), and returns the birth age less the time the progenitor took to collapse. Neutron stars and stellar black holes use it in place of an age uniform over 10 Gy; a young population's remnants are under 0.1 Gy old, a bulge's or halo's 8 to 13 Gy. The sector fill gives scattered rows, below-cut remnants, ejected remnants and rolled remnants their population as it gives a brown dwarf.
+- `youngest_progenitor_sol` moved from `multistar` into `stellar_evolution` beside it, and the three progenitor ranges moved into `tuning`; no stored field changes.
+- Intermediate-mass and supermassive black holes, and a remnant given an age (a supernova remnant's core, a magnetar row), keep their ages.
+- `docs/design/remnant-age.md` records the rule.
+
+generation-output: changed
+
+TODO items resolved: none (GEN.553 stays open for the remnant row, [Fe/H], the composition hook and the free brown dwarf's table) / Added: none
+
+## [8.0.1849] - 2026-10-21
+
+**Headline:** A white dwarf's planets are the ones that outlived its giant phase, moved outward by the mass the star lost.
+
+### Added
+- **White dwarf planets (GEN.318).** A white dwarf's planets are drawn as the ones that formed around its progenitor, then the giant phase removes everything inside the progenitor's engulfment radius, 1.5 AU for a solar-mass star and 0.8 AU more per solar mass above one, and the survivors' orbits widen by the star's mass before over its mass after (`a (M_star + M_planet)` is constant: 1.85 for a star of one solar mass that leaves 0.54). A white dwarf without a model progenitor (a forced type, a planetary nebula's central star) takes the mass that leaves it by the remnant relation, kept between 1 and 8 solar masses.
+- **A planetary nebula's close pair holds a disk and no planets.** A close pair with a white dwarf as hot as a planetary nebula's central star (30,000 K or more) gets a circumbinary post-AGB disk on its primary (a mass between 0.01 and 0.1 solar masses, its inner edge the pair's stability limit, its outer edge 10 to 300 AU, with no bodies in it) and no planets. The star page names it.
+
+### Changed
+- The engulfment radius of a white dwarf was a fixed 1.5 AU for a population-model white dwarf and nothing for a forced type or a planetary nebula's central star; it now follows the progenitor's mass for every white dwarf, and a pair's post-common-envelope test reads it too.
+
+generation-output: changed
+
+## [8.0.1848] - 2026-10-21
+
+**Headline:** A comet on a closed orbit never leaves its star: its eccentricity is cut so the aphelion stays inside the star's Hill sphere.
+
+### Changed
+- **An elliptical comet's eccentricity is drawn from its period class's range cut at the value that puts the aphelion at its star's limit** (`generation/comet.py`, `generation/system.py`). The long-period class reaches e = 0.999 and, for a light star in the inner galaxy, an aphelion past the Hill sphere (a 0.08 solar mass star: 6159 AU against 5815 AU); GEN.182 says a closed orbit never leaves its star. `Comet` takes a `ceiling_au`: the star's Hill sphere against the galaxy for a single star or a close pair (`validation.orbit_ceiling_au`), the tighter stable limit for a star of a wide pair, which the system's re-roll already enforced. A range that lies wholly above the cut gives the cut itself. A parabolic comet is unbound on purpose and reads no ceiling. Draws that the cut does not reach are unchanged.
+- The generator epoch is 37.
+generation-output: changed
+
+### Added
+- `tests/test_comet_data.py`: the bound test hands the comet its Hill sphere (300 draws for each of three masses), a ceiling cuts the range and leaves a wide one alone, a parabolic comet reads none. `tests/test_systems.py`: every closed comet orbit of a generated system is inside its star's orbit ceiling.
+
+TODO items resolved: GEN.591. Added: none.
+
 ## [8.0.1847] - 2026-10-21
 
 **Headline:** The bright-star backfill of `planetgen galaxy` runs on the work queue as a command.

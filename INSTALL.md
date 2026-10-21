@@ -24,7 +24,7 @@ install. For what planetGen is and how to use it, see the
 | What | Version | Notes |
 |---|---|---|
 | Python | 3.12+ (Homebrew's on macOS) | Linux uses the system Python. numba is installed with the other Python libraries and is required. |
-| MySQL or MariaDB | MySQL 8.0.16+ or MariaDB 10.4+ | Local or on another machine. |
+| MySQL | MySQL 8.0.19+ (MariaDB is not supported) | Local or on another machine. |
 | A web server | Apache2 + mod_wsgi (reference), nginx, Caddy | Only for the website. The command line needs none. |
 | git | any | The checkout must be a git clone so the update scripts can pull. |
 | Disk | about 10 GB once the galaxy is planned, more as sectors fill | The plan stores about 60 million bright stars. Most people then fill neighborhoods as they need them rather than the whole galaxy. |
@@ -62,8 +62,7 @@ Keep it a git checkout: the update scripts update it by fetching and
 resetting to the tracked branch.
 
 On macOS, install the Homebrew packages first:
-`brew install python@3.12 nginx mariadb redis` (then `brew services start redis`; or `mysql@8.4` instead of
-`mariadb`).
+`brew install python@3.12 nginx mysql@8.4 redis` (then `brew services start redis`).
 
 ## 2. Create the database and account
 
@@ -325,5 +324,5 @@ python3 src/html/wsgi.py      # the site at http://127.0.0.1:5000/
 ```
 
 Set `admin_cookie_insecure` in `config.json` to log in over plain HTTP
-locally. Database tests need a MySQL or MariaDB server, and the work-queue tests need Redis
+locally. Database tests need a MySQL server, and the work-queue tests need Redis
 (`PLANETGEN_TEST_REDIS_URL`); both skip without one. See [`docs/testing.md`](docs/testing.md).

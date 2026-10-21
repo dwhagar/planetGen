@@ -179,6 +179,31 @@
       "epoch": 36,
       "first_release": "8.0.1843",
       "reason": "A free-floating brown dwarf's age is a star's: the age window of the population its place gives it, spread by that population's star formation rate, instead of an even draw over 0.1 to 10 Gy, so a seed gives its brown dwarfs different ages, radii and temperatures (GEN.553)."
+    },
+    {
+      "epoch": 37,
+      "first_release": "8.0.1848",
+      "reason": "An elliptical comet's eccentricity is cut so its aphelion stays inside its star's Hill sphere (GEN.182), so a long-period comet of a light star in a tight galactic place gets a different eccentricity, period and orbit (GEN.591)."
+    },
+    {
+      "epoch": 38,
+      "first_release": "8.0.1849",
+      "reason": "A white dwarf's planets are the survivors of its progenitor's engulfment radius, which grows with the progenitor's mass, and their orbits widen by the mass the star lost; a planetary nebula's close pair holds a circumbinary disk and no planets (GEN.318)."
+    },
+    {
+      "epoch": 39,
+      "first_release": "8.0.1850",
+      "reason": "A neutron star's or stellar black hole's age follows its population: the star's birth age from the population's window and age law, less the progenitor's time to collapse (GEN.553)"
+    },
+    {
+      "epoch": 40,
+      "reason": "A galaxy's neutron star count is what its massive stars leave when they do not become black holes: the black hole sum with the survivors of the failed share and the bound share, replacing the fixed rate per star (GEN.554)",
+      "first_release": "8.0.1854"
+    },
+    {
+      "epoch": 41,
+      "first_release": "8.0.1855",
+      "reason": "The thin and thick disks' vertical profile is the exponential the scale heights are fitted with, not the isothermal sheet: for one mass the midplane is twice as dense, so a seed places its stars, their populations, open clusters and remnants at different densities and heights (GEN.544)."
     }
   ]
 }

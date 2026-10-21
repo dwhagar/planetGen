@@ -309,7 +309,8 @@ class WorkRunSource:
 class QueuedJobSource:
     """The jobs waiting or running on the shared queues (`queue/redisqueue.py`: bulk, interactive and
     generation). A run's own queue belongs to the run and is cancelled with it. Cancelled with
-    `workers.cancel_now`."""
+    `workers.cancel_now`. A job whose worker is gone is cleared before the listing (`workers.reap_dead_jobs`), so
+    it does not hold the update for ever."""
 
     name = "queue-job"
 
@@ -328,6 +329,8 @@ class QueuedJobSource:
             connection = self._connection()
         except Exception:  # noqa: BLE001 -- no Redis server: nothing is queued
             return []
+        from planetgen.queue import workers
+        workers.reap_dead_jobs(connection)      # a job whose worker was killed is not running
         found = []
         for name in redisqueue.QUEUES:
             queue = redisqueue.queue(name, connection)

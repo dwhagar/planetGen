@@ -155,11 +155,25 @@ class ProxyFix(_Section):
                       env="PLANETGEN_PROXY_FIX_X_HOST", restart=True, editable=False, category="proxy", ge=0)
 
 
+class Cache(_Section):
+    max_mb: float = opt(1024, "How much disk the site's stored caches (today the Galaxy Map's tiles) may use, in all. "
+                        "When it is full the warm-up stops, the tiles it built ahead stay, and the tiles a visit "
+                        "asked for are dropped, the least recently visited first (0 turns the disk caches off).",
+                        env="PLANETGEN_CACHE_MAX_MB", unit="MB", category="cache", ge=0)
+    warm_on_change: bool = opt(True, "Start the warm-up by itself after anything that changes what the site shows (a "
+                               "generation run, the orbital update, an edit), so the caches are rebuilt without "
+                               "waiting for the next update. It rebuilds only what the change touched.",
+                               env="PLANETGEN_WARM_ON_CHANGE", category="cache")
+    warm_settle_seconds: float = opt(60, "How long the automatic warm-up waits after the first change before it "
+                                     "starts, so a burst of edits is one warm-up and not one for each.",
+                                     unit="seconds", category="cache", ge=0)
+
+    _loose = field_validator("warm_on_change", mode="before")(_loose_bool)
+
+
 class TileCache(_Section):
     dir: str = opt("", "Where the Galaxy Map's tiles are cached on disk; empty means /var/cache/planetgen/tiles.",
                    env="PLANETGEN_TILE_CACHE_DIR", editable=False, category="cache")
-    max_mb: float = opt(200, "Roughly how big the tile cache may grow before its oldest files are pruned (0 turns "
-                        "the disk cache off).", env="PLANETGEN_TILE_CACHE_MAX_MB", unit="MB", category="cache", ge=0)
     warm_levels: int = opt(8, "How many levels of the Galaxy Map's tile octree `planetgen warm` builds in full, "
                            "coarsest first (level 8 is tiles 2,048 pc across; every level is eight times the tiles "
                            "of the one above; 0 builds none).", unit="levels", category="cache", ge=0, le=15)
@@ -475,6 +489,7 @@ class Settings(_Section):
                           "form open across a restart then fails once).", env="PLANETGEN_SECRET_KEY", restart=True,
                           secret=True, editable=False, category="security")
     proxy_fix: ProxyFix = ProxyFix()
+    cache: Cache = Cache()
     tile_cache: TileCache = TileCache()
     page_cache: PageCache = PageCache()
     jobs: Jobs = Jobs()

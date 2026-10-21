@@ -31,15 +31,9 @@ from planetgen.galaxy import core_gas as coreGas, density, spherical
 from planetgen.galaxy import star_formation as starFormation
 
 
-def _sech_squared(x):
-    """`density._sech_squared` on an array (`1 / cosh(x) ** 2`, never overflowing)."""
-    e = np.exp(-2.0 * np.minimum(np.abs(x), 350.0))
-    return np.minimum(1.0, 4.0 * e / (1.0 + e) ** 2)
-
-
 def _vertical(z, scale_height_pc):
     """`density._vertical` on an array."""
-    return _sech_squared(z / (2.0 * scale_height_pc))
+    return np.exp(-np.minimum(np.abs(z) / scale_height_pc, 700.0))
 
 
 def _disk_share_bound(shape, z_near, z_far, fractions, rho_near, rho_far):

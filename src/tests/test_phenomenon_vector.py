@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 
 from planetgen import tuning
-from planetgen.galaxy import black_hole_density, density, remnant_distribution
+from planetgen.galaxy import remnant_density, density, remnant_distribution
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy import spherical
 from planetgen.galaxy.spherical import sector_address_at, wedge_count
@@ -108,8 +108,10 @@ def _expected_in_shell(kind, rate, shell, high_band, subtype=None):
             angle = (k + 0.5) * 2.0 * math.pi / bins
             point = (plane * math.cos(angle), plane * math.sin(angle), z)
             stars = sum(bright_stars._densities(point, SHAPE).values())
-            # A stellar-mass black hole weighs the stars by the failed share of their metals (GEN.563).
-            weight += stars * black_hole_density.place_factor(point, SHAPE) if (kind, subtype) == ("black-hole", "stellar") else stars
+            # A stellar-mass black hole weighs the stars by the failed share of their metals (GEN.563), a neutron star by
+            # what is left, bound (GEN.554).
+            weight += (stars * remnant_density.place_factor(point, SHAPE, kind)
+                       if remnant_density.follows_metals(kind, subtype) else stars)
         if kind in tuning.REMNANT_SCALE_HEIGHT_RATIO:
             weight *= (remnant_distribution.vertical_factor(kind, z, SHAPE.disk_scale_height_pc)
                        * remnant_distribution.radial_factor(kind, plane))

@@ -106,7 +106,7 @@ def _planetary_nebula_star(rng):
     """`(Placed, age_yr)` of a planetary nebula's central white dwarf: a progenitor from the white-dwarf range, the
     initial-to-final mass relation, and an age of the progenitor's main-sequence life (the nebula is the end of its
     giant phase)."""
-    low, high = multistar.WHITE_DWARF_PROGENITOR_SOL
+    low, high = tuning.WHITE_DWARF_PROGENITOR_SOL
     initial = evolution.sample_imf_mass_sol(low, high, rng)
     mass = remnant_mass.white_dwarf_mass_sol(initial)
     age_yr = evolution.main_sequence_lifetime_gy(initial) * 1.0e9

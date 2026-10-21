@@ -71,8 +71,9 @@ def test_the_cut_does_not_touch_the_magnetars():
 
 
 def test_the_rate_is_a_ten_millionth_of_the_neutron_stars_per_young_star():
+    """Of the research neutron star rate (a stand-in: the magnetars follow the young stars, not the metals, GEN.554)."""
     assert scatter.class_rate_per_star(*MAGNETAR) == pytest.approx(
-        scatter.class_rate_per_star("neutron-star", None) * 1.0e-7 / tuning.MAGNETAR_YOUNG_STAR_SHARE)
+        tuning.phenomenon_rate_per_star("neutron-star") * 1.0e-7 / tuning.MAGNETAR_YOUNG_STAR_SHARE)
 
 
 def test_the_young_share_is_the_young_populations_share_of_the_stars():

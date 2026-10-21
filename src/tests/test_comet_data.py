@@ -18,6 +18,7 @@ from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.generation.comet import Comet
 from planetgen.describe import build
+from planetgen.util import draw
 from planetgen.generation.config import SystemConfig
 from tests import render_support
 
@@ -130,20 +131,52 @@ def test_parabolic_paragraph_mentions_it_will_not_return():
 
 
 def test_every_elliptical_comet_is_bound_and_stays_inside_the_stars_hill_sphere():
-    """GEN.182: a comet on a closed orbit never leaves its star. Ejection happens only for the
-    deliberate parabolic ones, and their paragraph says so."""
+    """GEN.182, GEN.591: a comet on a closed orbit never leaves its star. Ejection happens only for the
+    deliberate parabolic ones, and their paragraph says so. The system hands each comet its star's Hill sphere
+    (`validation.orbit_ceiling_au`); the tightest one the generator uses is a 0.08 solar mass star at the galaxy's
+    inner edge, and the long-period class (e up to 0.999) reaches past it unless it is cut."""
     from planetgen.galaxy.keepout import galactic_hill_radius_km
     from planetgen.galaxy import mass_chain
     au_km = constants.AU_TO_KM
     for mass in (0.08, 1.0, 20.0):
-        # The Hill sphere at the galaxy's inner edge is the tightest one the generator uses.
         hill_au = galactic_hill_radius_km(
             mass * constants.SOLAR_MASS_TO_KG, 2000.0, mass_chain.current_central_mass_kg()) / au_km
         for _ in range(300):
-            comet = Comet(make_config(), primary_mass_solar=mass, orbit_type="elliptical")
+            comet = Comet(make_config(), primary_mass_solar=mass, orbit_type="elliptical", ceiling_au=hill_au)
             assert comet.eccentricity < 1
             aphelion = comet.perihelion_distance_au * (1 + comet.eccentricity) / (1 - comet.eccentricity)
-            assert aphelion < hill_au, (mass, comet.eccentricity, aphelion, hill_au)
+            assert aphelion <= hill_au * (1 + 1e-9), (mass, comet.eccentricity, aphelion, hill_au)
+
+
+def test_a_ceiling_cuts_the_eccentricity_range_and_leaves_a_wide_one_alone():
+    """GEN.591: the cut is where the aphelion meets the ceiling; a ceiling past the class's own reach changes nothing
+    (the same draws as with no ceiling), and one below the class's whole range gives the cut itself."""
+    long_period = tuning.COMET_PERIOD_CLASSES["long_period"]["eccentricity_range"]
+    state = draw.getstate()
+    try:
+        for seed in range(40):
+            draw.set_run_seed(seed)
+            free = Comet(make_config(), primary_mass_solar=1.0, orbit_type="elliptical")
+            draw.set_run_seed(seed)
+            roomy = Comet(make_config(), primary_mass_solar=1.0, orbit_type="elliptical", ceiling_au=1e12)
+            assert roomy.eccentricity == free.eccentricity
+            assert roomy.perihelion_distance_au == free.perihelion_distance_au
+    finally:
+        draw.setstate(state)
+    for _ in range(100):
+        tight = Comet(make_config(), primary_mass_solar=1.0, orbit_type="elliptical", ceiling_au=50.0)
+        q = tight.perihelion_distance_au
+        cut = max((50.0 - q) / (50.0 + q), 0.0)
+        assert tight.eccentricity <= cut + 1e-12
+        if tight.period_class == "long_period" and cut < long_period[0]:
+            assert tight.eccentricity == pytest.approx(cut)
+
+
+def test_a_parabolic_comet_reads_no_ceiling():
+    """GEN.591: it is unbound on purpose; the ceiling is for closed orbits."""
+    for _ in range(50):
+        comet = Comet(make_config(), primary_mass_solar=1.0, orbit_type="parabolic", ceiling_au=10.0)
+        assert comet.eccentricity >= tuning.PARABOLIC_COMET_ECCENTRICITY_RANGE[0]
 
 
 def test_only_parabolic_comets_are_unbound_and_they_say_they_do_not_return():

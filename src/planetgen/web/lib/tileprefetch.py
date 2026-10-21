@@ -224,6 +224,52 @@ def schedule(db, keys, at=None):
         return 0
 
 
+REBUILD_MAX = 2048
+"""int: Most tiles one change queues for a rebuild (coarsest first); the rest are built by the next visit that wants them."""
+
+
+def rebuild(db, generation, keys):
+    """
+    Queues the building of tiles a change deleted from the stored generation (`tilecache.current_stamp`): the changed
+    tiles that were stored and their coarser parents, coarsest first, so the next visit finds them built again
+    (PERF.133). The rules are the prefetch's except the per-visit and per-minute counts and the queue depth (a change
+    touches a few hundred tiles at most, and it is the data the visitors are looking at): nothing while the
+    prefetch is off (`prefetch_per_minute` 0), during an update, or while the cache is full; a tile already claimed
+    is not queued twice.
+
+    Args:
+        db (str): The database the site shows.
+        generation (str): The generation the tiles belong to.
+        keys (list[str]): The tile keys that were stored and were deleted.
+
+    Returns:
+        int: How many tiles were queued.
+    """
+    settings = get_settings().tile_cache
+    if settings.prefetch_per_minute <= 0 or not keys or updateguard.is_updating():
+        return 0
+    root = tilecache.cache_dir()
+    if root is None or is_full(root):
+        return 0
+    ordered = sorted(keys, key=lambda key: (parse_tile_key(key)[0], key))[:REBUILD_MAX]
+    try:
+        connection = _redis()
+        queue = redisqueue.queue(redisqueue.BULK_QUEUE, connection)
+        pipe = connection.pipeline()
+        for key in ordered:
+            pipe.set(_claim_name(db, generation, key), "1", nx=True, ex=CLAIM_SECONDS)
+        claimed = [key for key, won in zip(ordered, pipe.execute()) if won]
+        for start in range(0, len(claimed), CHUNK):
+            queue.enqueue(JOB, args=(db, claimed[start:start + CHUNK]), job_timeout=600, result_ttl=0,
+                          failure_ttl=600, description=f"rebuild {len(claimed[start:start + CHUNK])} tiles")
+        if claimed:
+            workers.ensure_workers(redisqueue.BULK_QUEUE, connection, redisqueue.redis_url(), count=1)
+        return len(claimed)
+    except (redis.RedisError, OSError, redisqueue.Unavailable) as exc:
+        log.debug(f"Tile rebuild: not queued ({exc}).")
+        return 0
+
+
 def build_tiles(db, keys):
     """
     The queued job: builds the tiles `keys` into the disk cache the way a visitor's request does
@@ -236,5 +282,5 @@ def build_tiles(db, keys):
     from planetgen.web import warmup
     app = warmup.build_app()
     with app.test_request_context("/"):
-        result = tilecache.fetch_tiles(db, list(keys))
+        result = tilecache.fetch_tiles(db, list(keys), ahead=True)
     return {"tiles": len(keys), "built": len(keys) - result["cached"]}

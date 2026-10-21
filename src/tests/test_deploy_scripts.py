@@ -89,9 +89,9 @@ def test_deploy_paths_reads_config_json(tmp_path):
 
 
 def test_deploy_paths_env_wins_and_max_mb_0_turns_the_cache_off(tmp_path):
-    (tmp_path / "config.json").write_text(json.dumps({"tile_cache": {"dir": "/srv/tiles", "max_mb": 0}}))
+    (tmp_path / "config.json").write_text(json.dumps({"tile_cache": {"dir": "/srv/tiles"}, "cache": {"max_mb": 0}}))
     assert _deploy_paths(tmp_path, {"PLANETGEN_JOBS_DIR": "/env/jobs"}) == ["", "/env/jobs", "/var/lib/planetGen/state"]
-    assert _deploy_paths(tmp_path, {"PLANETGEN_TILE_CACHE_MAX_MB": "5", "PLANETGEN_TILE_CACHE_DIR": "/env/t",
+    assert _deploy_paths(tmp_path, {"PLANETGEN_CACHE_MAX_MB": "5", "PLANETGEN_TILE_CACHE_DIR": "/env/t",
                                     "PLANETGEN_STATE_DIR": "/env/state"}) == [
         "/env/t", "/var/lib/planetGen/jobs", "/env/state"]
 
@@ -102,10 +102,10 @@ def test_deploy_paths_matches_the_web_apps_own_answer(tmp_path, monkeypatch):
     from planetgen.web import jobs
 
     from planetgen.util import logpaths
-    config = {"tile_cache": {"dir": "/srv/tiles", "max_mb": 50}, "jobs": {"dir": "/srv/jobs"}}
+    config = {"tile_cache": {"dir": "/srv/tiles"}, "cache": {"max_mb": 50}, "jobs": {"dir": "/srv/jobs"}}
     (tmp_path / "config.json").write_text(json.dumps(config))
     monkeypatch.setattr(logpaths, "CONFIG_PATH", str(tmp_path / "config.json"))
-    for var in ("PLANETGEN_TILE_CACHE_DIR", "PLANETGEN_TILE_CACHE_MAX_MB", "PLANETGEN_JOBS_DIR"):
+    for var in ("PLANETGEN_TILE_CACHE_DIR", "PLANETGEN_CACHE_MAX_MB", "PLANETGEN_JOBS_DIR"):
         monkeypatch.delenv(var, raising=False)
     from planetgen.admin import maintenance
     monkeypatch.delenv("PLANETGEN_STATE_DIR", raising=False)

@@ -13,19 +13,19 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.142 |
-| MAP | MAP.254 |
+| UX | UX.145 |
+| MAP | MAP.255 |
 | NAV | NAV.63 |
-| GEN | GEN.596 |
-| PERF | PERF.142 |
-| DB | DB.80 |
+| GEN | GEN.601 |
+| PERF | PERF.146 |
+| DB | DB.81 |
 | API | API.32 |
-| ADM | ADM.98 |
-| SEC | SEC.33 |
-| TEST | TEST.257 |
+| ADM | ADM.124 |
+| SEC | SEC.34 |
+| TEST | TEST.263 |
 | USR | USR.32 |
-| OPS | OPS.62 |
-| DOC | DOC.72 |
+| OPS | OPS.63 |
+| DOC | DOC.73 |
 | VIEW | VIEW.19 |
 | POP | POP.15 |
 
@@ -486,6 +486,32 @@ Parents marked "new parent" had no old number of their own.
 | ADM.95 | A remote run is a job: it shows in the job tree and the job page with its progress and report | none | open |
 | ADM.96 | One configuration file: the user's own config.json holds every setting, and the settings.json overlay goes | none | done, PR #1857 |
 | ADM.97 | The settings page can show a number as a slider: the cache size is the first one | none | open |
+| ADM.98 | Admin control suite research: how to pack many options into one quiet interface (admin pages, the Generate suite and the settings), a report and decision cards before anything is built | none | open |
+| ADM.99 | Generate suite redesign: the Generate page rebuilt inside the admin control suite so a long list of options is easy to use | none | open |
+| ADM.100 | Settings page redesign: plain-language groups and descriptions, and settings that cannot be changed hidden by a toggle that is on by default | none | open |
+| ADM.101 | Settings: words for every option: label, one-line summary, group, control and advanced flag in the settings model | none | open |
+| ADM.102 | Settings: view classes: editable, owner, server and overridden, with the reason an option is fixed | none | open |
+| ADM.103 | Settings: the new page: grouped rows, a left rail, search, a switch that shows settings that cannot be changed (off by default), a sticky save bar, per-row reset and Details | none | open |
+| ADM.104 | Settings: controls: switch, slider with a number box, duration, rate limit, chips and colour picker | none | open |
+| ADM.105 | Settings: the review page in plain language: 'Cache size: 1,024 MB to 2,048 MB', the restart list and the overridden list | none | open |
+| ADM.106 | Settings: the server-files disclosure and the overridden-option badge | none | open |
+| ADM.107 | Generate: the frame: status strip, pinned current-job panel (idle shows the last result), History tab and the Work Queue link | none | open |
+| ADM.108 | Generate: the task flow engine: a Start screen with six cards, a step rail, the draft carried in the URL, a Review step with the estimate, summary and command line, and Run | none | open |
+| ADM.109 | Generate: the Add sectors task: two choices, the four-tab place picker and how-big with a live count | none | open |
+| ADM.110 | Generate: the Start a new galaxy task: seed-decides shape fields, the first neighbourhood and a typed confirmation | none | open |
+| ADM.111 | Generate: the Scatter task: rebuild, redo some, add a dimmer step, with one Advanced block of scatter limits | none | open |
+| ADM.112 | Generate: prevalence, star mix and overrides as one shared Advanced block, rendered once | none | open |
+| ADM.113 | Generate: the one-off system on the frame, with tri-state rows as segmented controls | none | open |
+| ADM.114 | Generate: the Check and Wipe tasks and the History tab | none | open |
+| ADM.115 | Generate: Run again from History, and named recipes saved per admin in the control database | none | open |
+| ADM.116 | Generate: remove the old Generate page pieces and update docs/html-interface.md and the architecture table | none | open |
+| ADM.117 | Generate: browser tests for every task end to end, in both themes, without script and at phone width | none | open |
+| ADM.118 | Admin registry: pages, tasks and settings declare label, summary, keywords, role, danger level and URL, and the rail, hub and search read it | none | open |
+| ADM.119 | Job strip on every admin page: a thin strip that shows a running job, Cancel and the log | none | open |
+| ADM.120 | Command palette and /admin/search: server search over the registry, Ctrl+K and /, results for pages, tasks, settings, jobs and sectors | none | open |
+| ADM.121 | Typed commands that open a task's Review step pre-filled and never run by themselves | none | open |
+| ADM.122 | Admin keyboard set and a help overlay | none | open |
+| ADM.123 | Queue one next job: a single next slot that starts when the running job ends, with Cancel, shown in the job strip and History | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -596,6 +622,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.77 | Precision table: each length column declares its reference frame and the largest distance at which a 10 m body keeps a metre | none | open |
 | DB.78 | Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go | none | open |
 | DB.79 | The object index table (migration only): one row per object of every kind the site lists, with keyset order keys and a name index | none | open |
+| DB.80 | `VALUES ROW(...)` key-run lists are rejected by MariaDB 10.11 although INSTALL.md supports MariaDB 10.4+ and MySQL 8.0.16+ (bug) | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -667,6 +694,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.69 | Global documents are regenerated only by the TODO thread: a stale generated page never fails a lane's gate and a lane's PR never touches one | none | done, PR #2172 |
 | DOC.70 | Docs for the unit registry: units-and-number-formatting.md and database-schema.md updated, the unit rules in the registry's file header | none | open |
 | DOC.71 | Docs for the System rule: database-schema.md, the system view in docs/design and the header of system_tree.py | none | open |
+| DOC.72 | The README lists every external file the program needs, with its URL and how to install it, and a check keeps the list complete | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -796,7 +824,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.127 | A sector generated around a backfilled bright star gives that star a planetary system (bug) | none | done, PR #805 |
 | GEN.128 | Design: multi-star hierarchies and compact-object primaries | none | done, PR #1186 |
 | GEN.129 | Multi-star systems of up to twelve stars | none | open |
-| GEN.130 | Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes | none | open |
+| GEN.130 | Compact-remnant systems at sector fill: companions and pulsar planets for neutron stars and black holes | none | done, PR #2307 |
 | GEN.131 | Bright-star scatter logs how many stars it added to each layer, by type | none | done, PR #805 |
 | GEN.132 | Per-sector regional rates for neutron stars and black holes, extended system-wide where the research supports it | none | done, PR #807 |
 | GEN.133 | Analysis of every star type's rate against its distance from the galactic core | none | done, PR #807 |
@@ -984,7 +1012,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.315 | A fill builds a system from its stored members and nodes; the system pass keeps only planets, moons, belts and disks | none | open |
 | GEN.316 | Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired | none | open |
 | GEN.317 | Pulsar planets and the radiation environment of neutron stars | none | done, PR #2265 |
-| GEN.318 | White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk | none | open |
+| GEN.318 | White-dwarf and planetary-nebula-star rows of the system pass: engulfment of inner planets and the planetary nebula's circumbinary disk | none | done, PR #2307 |
 | GEN.319 | Nebula rates read the profile: young and old shares, the cell's gas and the Type Ia share as profile fields | none | done, PR #2003 |
 | GEN.320 | build_nebula_with_contents: every hosted nebula gets its stars as real systems inside its bounds (classes C, G, F, planetary, remnants, P and Q) | none | done, PR #2014 |
 | GEN.321 | Emission regions D and E: the ionizing members of a young cluster in a Plummer sphere, cut by sector cube | none | done, PR #2144 |
@@ -1210,7 +1238,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.541 | The wide-pair perturber mass: black holes carry about twice the second moment of all stars; decide whether remnants stay in it, with the black-hole mass function checked | none | done, PR #2164 |
 | GEN.542 | scripts/star_type_by_radius.py fails with a TypeError because the plan arguments now default the disk and arm options to None (bug) | none | open |
 | GEN.543 | Define "usable" for a P-type window so the design table's pair-node row (34% falling to 18%) can be reproduced | none | done, PR #2238 |
-| GEN.544 | Revisit the disc's vertical profile: the sech-squared core has half the midplane density of the exponential fits its scale heights come from | none | open |
+| GEN.544 | Revisit the disc's vertical profile: the sech-squared core has half the midplane density of the exponential fits its scale heights come from | none | done, PR #2323 |
 | GEN.545 | The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution | none | open |
 | GEN.546 | Draw a disk star's age from the star formation history inside its window, not uniformly | none | done, PR #2268 |
 | GEN.547 | The local B-star share is 0.12 percent against 0.04 observed: find what keeps it three times too high (strict expected failure) | none | done, PR #2268 |
@@ -1257,11 +1285,16 @@ Parents marked "new parent" had no old number of their own.
 | GEN.588 | Optional: operator arithmetic on Quantity for the edges (mass divided by volume gives a density), unscheduled | none | open |
 | GEN.589 | Research: the central molecular zone's upper cluster mass and its cloud-shock disruption, so the young clusters of the core match the few that are observed | none | open |
 | GEN.590 | Wire the downloaded isochrones, white-dwarf sequences and neutron-star tables into star composition (after Boss answers the Require / Stand-in card) | none | done, PR #2282 |
-| GEN.591 | An elliptical comet's aphelion can exceed its star's Hill sphere in about 10% of runs: the comet bound test fails on main (bug) | none | open |
-| GEN.592 | A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced) | none | open |
+| GEN.591 | An elliptical comet's aphelion can exceed its star's Hill sphere in about 10% of runs: the comet bound test fails on main (bug) | none | done, PR #2306 |
+| GEN.592 | A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced) | none | done, PR #2327 |
 | GEN.593 | Pulsar planets: the disc range stops short of PSR B1257+12's planets, and two of the three formation paths (a captured giant, an ablated companion) leave a pulsar with no planets | none | open |
-| GEN.594 | Each AD dataset (AD1 to AD8) needs a refuse-or-fall-back decision: a missing file stops the run or stands in as a labelled stand-in | none | open |
+| GEN.594 | Each AD dataset (AD1 to AD8) ships its best possible fallback, used only when a run is told explicitly to disregard missing files | none | open |
 | GEN.595 | Replace the Solar System comet population shape (GEN.520 D6) with a derived distribution | none | open |
+| GEN.596 | A companion below 0.01 solar masses makes multistar.draw_member_tree raise 'no cooling track' (bug) | none | open |
+| GEN.597 | A rocky planet of a wide binary gets flux_variation above 1 (the insolation test passes only on seeds 0 to 59) (bug) | none | open |
+| GEN.598 | CLUSTER_MEAN_SYSTEM_MASS_SOL (0.4, recalled) sets the system count of globular clusters and satellites: derive it as GEN.545 derives the galaxy's | none | open |
+| GEN.599 | A run with missing downloaded data files refuses unless it is told explicitly to disregard them, and then uses the best possible fallback and says so in its header | none | open |
+| GEN.600 | The updater and the downloader print the URL of every file they load | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1515,6 +1548,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.251 | When a map has to drop stars or objects, drop them evenly across the viewing space and keep the most massive and brightest of the galaxy last (bug) | none | open |
 | MAP.252 | Viewing only the filled sectors does not dim the phenomena (bug) | none | done, PR #2252 |
 | MAP.253 | Map and scene read the parent chain: systemscene, body_positions, the browser twin orbitpositions.js and the systemmap branches drop the three origin conventions | none | open |
+| MAP.254 | One shared info box: selecting anything on any view opens the same box, with a View button that opens the item's own page | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -1638,6 +1672,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.59 | `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug) | none | done, PR #2124 |
 | OPS.60 | The admin commands that did two things by flag: `lockouts` lists or lifts, `version_history --list` repeats `planetgen versions` | none | done, PR #2227 |
 | OPS.61 | Remove the one-off tools `cli.render_parity` and `cli.dedupe`: they check and fix a schema and a naming rule that migrated long ago | none | done, PR #2227 |
+| OPS.62 | The cloud environment setup script fails at its verify step because it imports `markdown`, which nothing uses (bug) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -1744,8 +1779,8 @@ Parents marked "new parent" had no old number of their own.
 | PERF.104 | Cache warm-up for the whole site: build every list, map, sector, system and search index cache after an update, then rebuild only what a change invalidates | none | done, PR #1826 |
 | PERF.105 | Slow page requests queue a job that builds the answer into Redis, with a status route (the mechanism) | none | done, PR #2066 |
 | PERF.106 | The plan command on the run record, with stage timing, the killed-worker handler and job timeouts | none | done, PR #2278 |
-| PERF.107 | The sector units and the stages around them: start, neighborhood, sectors, link, population and settle | none | open |
-| PERF.108 | The backfill as queue units: chunks of at least 10,000 cells, one enumeration (folds in PERF.18) | none | open |
+| PERF.107 | The sector units and the stages around them: start, neighborhood, sectors, link, population and settle | none | done, PR #2305 |
+| PERF.108 | The backfill as queue units: chunks of at least 10,000 cells, one enumeration (folds in PERF.18) | none | done, PR #2305 |
 | PERF.109 | Cache the Generate page estimate | none | done, PR #2050 |
 | PERF.110 | XFetch refresh for costly entries that expire by age | none | done, PR #2050 |
 | PERF.111 | `ResponseCache.put` without a database never trims the page cache: the cache grows past `max_entries`, and the thread test fails when its last put is one of those (bug) | none | open |
@@ -1768,17 +1803,21 @@ Parents marked "new parent" had no old number of their own.
 | PERF.128 | `benchmark` is a step list handed to the wrapper, not a sequence of its own | none | open |
 | PERF.129 | Robust tile caching: the first zoom levels built ahead, tiles stored compressed, built proactively around every visit, kept until the data changes | none | open |
 | PERF.130 | Build the first several zoom levels of the Galaxy Map ahead of the first visitor: the opening view and every level down to a chosen depth | none | done, PR #2276 |
-| PERF.131 | Store the tiles compressed and serve the stored bytes with their encoding, so a request does no compression | none | open |
+| PERF.131 | Store the tiles compressed and serve the stored bytes with their encoding, so a request does no compression | none | skipped (Boss, "Skip it", 11:27 AM EDT 2026-10-21) |
 | PERF.132 | Build proactively on a visit: the surrounding tiles and the next zoom levels are built and cached in the background | none | done, PR #2298 |
-| PERF.133 | Keep every tile until the data changes: invalidate by what changed, rebuild what a change touched, and never evict a valid tile for size | none | open |
+| PERF.133 | Keep every tile until the data changes: invalidate by what changed, rebuild what a change touched, and never evict a valid tile for size | none | done, PR #2316 |
 | PERF.134 | The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions | none | open |
 | PERF.135 | The Uncharted stars and Phenomena tables get a jump-by-value box for their numeric and scatter-id sorts | none | done, PR #2163 |
 | PERF.136 | Measure the fill with wanderers and their moons, and decide whether the rogue cost is on by default | none | open |
 | PERF.137 | Audit the remaining `LIMIT ? OFFSET ?` queries: say which serve a big table and move those to keyset paging | none | open |
 | PERF.138 | The nuclear cluster term made the extent majorant about 1000 times looser: the shell scatter takes over 250 s, not 5.6 s (bug) | none | done, PR #2297 |
-| PERF.139 | One cache size setting, `cache.max_mb`, default 1024: tiles, stored lists and indexes share one disk budget | none | open |
+| PERF.139 | One cache size setting, `cache.max_mb`, default 1024: tiles, stored lists and indexes share one disk budget | none | done, PR #2316 |
 | PERF.140 | The index builder and its automatic refresh: each kind is rebuilt from what changed whenever generation, an orbital update or an edit changes it | none | open |
 | PERF.141 | The warm-up runs in phases after every generation, update or change, as deep as the budget allows | none | open |
+| PERF.142 | A stale job left in the database or the queue blocks every new run and Boss cannot proceed (bug) | none | done, PR #2345 |
+| PERF.143 | A command resets all jobs and the queue: clears every run record, the active-run key, the waiting and started units and the old job tree | none | done, PR #2345 |
+| PERF.144 | Every job queued to RQ gets a time limit from the best available estimate of how long it takes, never no limit, so a killed worker's entry expires | none | open |
+| PERF.145 | The run output repeats the stage: drop the stage-list line and the 'Stage 4 of 13: ...' line the engine logs under the wrapper's '=== Stage 4 of 13: ... ===' banner | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -1825,6 +1864,7 @@ Parents marked "new parent" had no old number of their own.
 | SEC.30 | Login and request rate limits on Flask-Limiter with Redis storage | none | done, PR #643 |
 | SEC.31 | Signing in as admin works but shows a "form expired" error (bug) | none | done, PR #457 |
 | SEC.32 | Argon2id password hashing, a 1,024-character password limit and the `__Host-` cookie prefix | none | open |
+| SEC.33 | Release gate: a full security code audit of the whole code base, done before every point release (8.1 first) | none | open |
 | USR.1 | User accounts | none | open |
 | USR.2 | Accounts with roles: user, moderator, admin and Owner | 64 (2026-10-01 02:13Z to 05:29Z) | open |
 | USR.3 | SMTP settings in the admin config | 65 (2026-10-01 02:13Z to 05:29Z) | open |
@@ -1998,6 +2038,9 @@ Parents marked "new parent" had no old number of their own.
 | UX.139 | Display reads the registry: ladder rungs take their symbol and factor from it, and the 21 format wrappers become one format_quantity entry | none | open |
 | UX.140 | Browser table: the registry generated to JS beside unitladders.js, and the repeated browser constants removed | none | open |
 | UX.141 | List pages for every kind: systems, stars, planets, moons, belts, comets and each phenomenon type, and the name search, read the object index with keyset paging | none | open |
+| UX.142 | The viewing windows scale to the browser window so the controls are always in view without scrolling the page | none | open |
+| UX.143 | A dedicated page for every kind of item: star, planet, moon, belt, comet, each phenomenon, nebula, cluster, system, sector and region, reached from its Object ID | none | open |
+| UX.144 | Every item page says where the item is: links up the chain (galaxy, sector, system, parent star or planet) and the nebula or other region that contains it | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -2355,10 +2398,16 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.250 | test_workers.py: two tests fail once in a full run because ensure_workers is the inline test stand-in although the module is marked real_queue (something left the inline queue patch active in that xdist worker) (bug) | none | done, PR #2267 |
 | TEST.251 | test_orbital_facilities_advance_their_phase fails once in a gate: advance_facility_orbits returns 0 where 1 is expected for orbit_clock(period / 4) (bug) | none | done, PR #2272 |
 | TEST.252 | test_a_double_click_on_a_star_flies_the_camera_to_it fails once in a loaded gate and passes alone (bug) | none | done, PR #2286 |
-| TEST.253 | test_nebula_shape_endpoint_serves_a_mesh fails once under load: the largest vertex radius is 1.0288 against a bound of 1.0, and it passes alone (bug) | none | open |
+| TEST.253 | test_nebula_shape_endpoint_serves_a_mesh fails once under load: the largest vertex radius is 1.0288 against a bound of 1.0, and it passes alone (bug) | none | done, PR #2332 |
 | TEST.254 | test_core_ball_batch_fill_makes_planets builds 4 systems instead of 3 for some random galaxy seeds (bug) | none | open |
-| TEST.255 | test_workers: two real-Redis worker tests fail in loaded gates and pass alone, again after TEST.250's fix (bug) | none | open |
-| TEST.256 | test_black_hole_density: the black-hole stream test fails in loaded and full gates and passes alone (bug) | none | open |
+| TEST.255 | test_workers: two real-Redis worker tests fail in loaded gates and pass alone, again after TEST.250's fix (bug) | none | done, PR #2332 |
+| TEST.256 | test_black_hole_density: the black-hole stream test fails in loaded and full gates and passes alone (bug) | none | done, PR #2327 |
+| TEST.257 | test_sector_page_and_tiles_show_a_phenomenon_the_cli_added asserts an empty cloud list on an unseeded galaxy and sometimes gets a nebula (bug) | none | open |
+| TEST.258 | Other tests that scatter a low shell of the toy shape may hold gigabytes after GEN.404: sweep them for resident memory | none | open |
+| TEST.259 | test_open_map_menus_hold_no_overlap audits the menu boxes while the open animation is still moving and reports an overlap that is gone a frame later (bug) | none | done, PR #2332 |
+| TEST.260 | test_galaxy_absurd_radius_is_clean[200.0] hangs past its 10 s limit on main and leaves the run lock set, so every later test that starts a run fails (bug) | none | open |
+| TEST.261 | Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every point release (8.1 first) | none | open |
+| TEST.262 | test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

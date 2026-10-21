@@ -345,6 +345,23 @@ def assert_counts_are_consistent(system):
 
 
 @pytest.mark.parametrize("star_type", STAR_TYPES)
+def test_every_closed_comet_orbit_stays_inside_its_stars_orbit_ceiling(star_type):
+    """GEN.591: an elliptical comet's aphelion is under its star's Hill sphere (a wide pair's tighter stable limit);
+    only a parabolic comet is unbound."""
+    from planetgen.generation import validation
+    for _ in range(TRIALS):
+        system = StarSystem(system_config=make_config(star_type, COMETS=True))
+        lists = [(system.primary_star if system.binary_type == "wide" else system.star, system.comets)]
+        if system.binary_type == "wide":
+            lists.append((system.secondary_star, system.secondary_comets))
+        for star, comets in lists:
+            ceiling = validation.orbit_ceiling_au(star)
+            for comet in comets:
+                if comet.orbit_type == "elliptical":
+                    assert validation.comet_apoapsis_au(comet) <= ceiling * (1 + 1e-6), (comet.eccentricity, ceiling)
+
+
+@pytest.mark.parametrize("star_type", STAR_TYPES)
 def test_baseline_random_system_generates_without_error(star_type):
     for _ in range(TRIALS):
         system = StarSystem(system_config=make_config(star_type))

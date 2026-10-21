@@ -93,7 +93,7 @@ The seed draws the family and the galaxy stores it.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.134 | Generate page: the galaxy type shows what the seed drew and can be pinned | GEN.389, UX.135 | Step 8 of the galaxy types chain. |
+| UX.134 | Generate page: the galaxy type shows what the seed drew and can be pinned | GEN.389, UX.135, ADM.110 | Step 8 of the galaxy types chain. |
 
 ### Galaxy Map
 
@@ -114,6 +114,8 @@ The seed draws the family and the galaxy stores it.
 | DOC.59 | Docs: the galaxy types note moves to built and the density, potential, schema, API and Generate page notes say the shape holds a family and components | GEN.389 | Step 8 of the galaxy types chain. |
 
 ## Phase 6: The headline closes
+
+Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every point release.
 
 ### The headline closes
 

@@ -156,7 +156,7 @@ commands it lists. And these, specific to the proxy:
   `www-data`. `install.sh` and `update.sh` use apt for the
   system packages (not for the Python libraries, which go into their own
   virtual environment, so that part works there too), so install those
-  yourself (nginx, MariaDB or MySQL, Redis), create a
+  yourself (nginx, MySQL, Redis), create a
   dedicated account or change `User=`, `Group=` and the ownership steps,
   and add the `nginx` user to that group so it can read `static/` and
   the socket. SELinux also needs the socket labelled for nginx

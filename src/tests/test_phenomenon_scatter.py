@@ -15,7 +15,7 @@ import pytest
 from planetgen import tuning
 from planetgen.cli import generate as generate_cli
 from planetgen.db import store
-from planetgen.galaxy import black_hole_density, density, remnant_distribution
+from planetgen.galaxy import remnant_density, density, remnant_distribution
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.spherical import sector_address_at, sector_position_pc, wedge_count
 from planetgen.generation import phenomenon_scatter as scatter
@@ -443,7 +443,7 @@ def test_the_share_above_the_cut_follows_each_mass_law():
     assert scatter.mass_range("supernova-remnant", None, 20.0, True) is None
     # The stellar-mass black holes follow the metallicity (GEN.563); the intermediate-mass ones keep the rate they had,
     # 3e-6 of 7e-5 per pc^3 at the reference density.
-    assert scatter.class_rate_per_star("black-hole", "stellar") == pytest.approx(black_hole_density.base_rate_per_star())
+    assert scatter.class_rate_per_star("black-hole", "stellar") == pytest.approx(remnant_density.base_rate_per_star())
     assert scatter.class_rate_per_star("black-hole", "intermediate") == pytest.approx(3.0e-6 * 7.0e-5 / 0.14)
 
 
@@ -514,10 +514,8 @@ def test_a_plan_records_its_cut_and_a_fill_draws_below_it(mysql_config, monkeypa
     assert ("neutron-star", None) not in kinds and ("black-hole", "stellar") not in kinds
 
     # Rates high enough that the sector surely draws some of each below the cut.
-    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "neutron-star", 20.0)
-    base = black_hole_density.base_rate_per_star()
-    monkeypatch.setattr(black_hole_density, "base_rate_per_star", lambda: 100.0 * base)
-    # The neutron stars' rate sets the share of massive stars left to black holes (GEN.563): at 20 times it leaves none.
+    bases = {kind: remnant_density.base_rate_per_star(kind) for kind in remnant_density.KINDS}
+    monkeypatch.setattr(remnant_density, "base_rate_per_star", lambda kind="black-hole": 100.0 * bases[kind])
     monkeypatch.setattr(black_hole_formation, "share_cap", lambda unbound: 0.2)
     args = run_galaxy._default_generation_args(config=mysql_config)
     args.num_systems = 0

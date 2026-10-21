@@ -138,7 +138,7 @@ def test_a_cloud_reaching_several_sectors_is_stored_once(mysql_config, monkeypat
     inside it says so."""
     addresses = _three_in_a_row()
     _seed_outline(mysql_config, addresses)
-    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "molecular-cloud", 20.0)
+    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "molecular-cloud", 40.0)
     for address in addresses:
         _generate_at(mysql_config, address)
 
@@ -239,7 +239,7 @@ def test_a_stored_cloud_has_the_same_id_whichever_sector_is_saved_first(mysql_co
     from planetgen.galaxy import object_uid
     from tests.db_schema_support import scratch_database
 
-    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "molecular-cloud", 20.0)
+    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "molecular-cloud", 40.0)
     addresses = _three_in_a_row()
 
     def ids_after(config, order):

@@ -66,13 +66,13 @@ def _section(config, name):
 
 def tile_cache_dir(config):
     tile_cache = _section(config, "tile_cache")
-    raw = os.environ.get("PLANETGEN_TILE_CACHE_MAX_MB")
+    raw = os.environ.get("PLANETGEN_CACHE_MAX_MB")
     if raw is None:
-        raw = tile_cache.get("max_mb", 200)
+        raw = _section(config, "cache").get("max_mb", 1024)
     try:
         max_bytes = max(0, int(float(raw) * 1024 * 1024))
     except (TypeError, ValueError):
-        max_bytes = 200 * 1024 * 1024
+        max_bytes = 1024 * 1024 * 1024
     if max_bytes == 0:
         return ""
     return os.environ.get("PLANETGEN_TILE_CACHE_DIR") or tile_cache.get("dir") or DEFAULT_CACHE_DIR

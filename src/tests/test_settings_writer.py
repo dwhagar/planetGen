@@ -59,14 +59,14 @@ def _doc(path):
 # --- A save ---------------------------------------------------------------
 
 def test_a_save_writes_the_parsed_value_and_keeps_everything_else(config):
-    result = _save({"tile_cache.max_mb": "300", "jobs.keep": 7, "site_name": "Home"})
+    result = _save({"cache.max_mb": "300", "jobs.keep": 7, "site_name": "Home"})
     assert result.saved and result.ok
     saved = _doc(config)
-    assert saved["tile_cache"] == {"max_mb": 300.0} and saved["jobs"] == {"keep": 7} and saved["site_name"] == "Home"
+    assert saved["cache"] == {"max_mb": 300.0} and saved["jobs"] == {"keep": 7} and saved["site_name"] == "Home"
     assert saved["mysql"] == START["mysql"] and saved["secret_key"] == "csrf-secret"
     assert saved["a_future_option"] == {"keep": "me"}  # a key the model doesn't know survives
     assert list(saved)[:5] == ["config_version", "mysql", "secret_key", "site_name", "a_future_option"]
-    assert settings.get_settings().tile_cache.max_mb == 300 and settings.get_settings().site_name == "Home"
+    assert settings.get_settings().cache.max_mb == 300 and settings.get_settings().site_name == "Home"
     assert config.read_text().endswith("}\n") and '\n  "site_name"' in config.read_text()
 
 
@@ -127,7 +127,7 @@ def test_reset_removes_the_key_and_the_empty_section(config):
     ({"jobs.keep": 0}, "jobs.keep", "greater than or equal"),
     ({"settings.backups_kept": 201}, "settings.backups_kept", "less than or equal"),
     ({"site_name": ""}, "site_name", "at least 1"),
-    ({"tile_cache.max_mb": -1}, "tile_cache.max_mb", "greater than or equal"),
+    ({"cache.max_mb": -1}, "cache.max_mb", "greater than or equal"),
     ({"page_cache.max_mb": 0}, "page_cache.max_mb", "greater than"),
 ])
 def test_each_kind_of_refusal_names_its_option(config, changes, option, text):
@@ -171,8 +171,8 @@ def test_the_result_lists_which_changes_need_a_restart(config):
 
 
 def test_an_option_set_by_an_environment_variable_is_noted(config):
-    result = _save({"tile_cache.max_mb": 5}, environ={"PLANETGEN_TILE_CACHE_MAX_MB": "9"})
-    assert result.saved and result.shadowed == {"tile_cache.max_mb": "PLANETGEN_TILE_CACHE_MAX_MB"}
+    result = _save({"cache.max_mb": 5}, environ={"PLANETGEN_CACHE_MAX_MB": "9"})
+    assert result.saved and result.shadowed == {"cache.max_mb": "PLANETGEN_CACHE_MAX_MB"}
 
 
 def test_plan_writes_nothing(config):
@@ -420,12 +420,12 @@ def cli(config, monkeypatch):
 
 
 def test_cli_set_get_unset_and_restore(config, cli, capsys):
-    assert config_cli.main(["set", "tile_cache.max_mb=300", "site_name=My galaxy", "debug2=1"]) == 1
-    assert "debug2: is not a setting" in capsys.readouterr().err and "tile_cache" not in _doc(config)
-    assert config_cli.main(["set", "tile_cache.max_mb=300", "site_name=My galaxy", "jobs.keep=7"]) == 0
+    assert config_cli.main(["set", "cache.max_mb=300", "site_name=My galaxy", "debug2=1"]) == 1
+    assert "debug2: is not a setting" in capsys.readouterr().err and "cache" not in _doc(config)
+    assert config_cli.main(["set", "cache.max_mb=300", "site_name=My galaxy", "jobs.keep=7"]) == 0
     assert "Saved" in capsys.readouterr().out and settings.get_settings().jobs.keep == 7
-    assert sorted(row[1] for row in cli.rows) == ["config:jobs.keep", "config:site_name", "config:tile_cache.max_mb"]
-    assert config_cli.main(["get", "tile_cache.max_mb"]) == 0
+    assert sorted(row[1] for row in cli.rows) == ["config:cache.max_mb", "config:jobs.keep", "config:site_name"]
+    assert config_cli.main(["get", "cache.max_mb"]) == 0
     shown = capsys.readouterr().out
     assert "300" in shown and "[config.json]" in shown
     assert config_cli.main(["set", "jobs.keep=8"]) == 0

@@ -7,8 +7,9 @@ camera moves.
 
 A tile's contents (see `planetgen.galaxy.viewport`'s "Cube tiles"
 section and `planetgen.db.query.galaxy_tiles`) depend only on its key and on the
-database's contents, which `planetgen.db.query.galaxy_content_stamp` summarizes as a
-short "stamp". Tiles are cached as `<cache dir>/<db>/<generation>/
+database's contents, which `planetgen.db.query.galaxy_tile_stamp` summarizes as a
+short "stamp" (it leaves the release number out: a release that changes neither `query.TILE_FORMAT` nor the generator
+epoch keeps every stored tile, PERF.133). Tiles are cached as `<cache dir>/<db>/<generation>/
 <tile>.bin` (the finished, trimmed and packed bytes, see `trim_tile` and `tilepack`), where the generation is the stamp at the last time every
 tile went stale. `fetch_tiles` asks the API only for the tiles it doesn't
 already have, and when every tile is cached it doesn't call the API for
@@ -20,7 +21,7 @@ with one cheap API call (`GET /api/galaxy/changes`, see
 columns and answers which tiles changed since the last check. Only those
 tile files are deleted, so renaming a sector refetches the dozen tiles
 holding it rather than the whole map. A change that can't be pinned to
-tiles (a deleted sector, a re-planned galaxy, a new planetGen release)
+tiles (a deleted sector, a re-planned galaxy, a new tile format or generator epoch)
 answers `full`, and a new generation starts with nothing cached.
 
 A request is answered by joining those stored bytes, never by unpacking and
@@ -46,6 +47,7 @@ import os
 import random
 import re
 import tempfile
+import threading
 import time
 
 from planetgen.web.lib import apiclient, singleflight, tilepack
@@ -122,7 +124,7 @@ def _config():
 
 def max_cache_bytes():
     """The cache's size budget, bytes. `0` disables the disk cache."""
-    return max(0, int(_config().max_mb * 1024 * 1024))
+    return max(0, int(get_settings().cache.max_mb * 1024 * 1024))
 
 
 def configured_cache_dir():
@@ -232,6 +234,8 @@ def _read_remembered(db_dir):
 
 
 def _delete_tiles(generation_dir, tile_keys):
+    """Deletes the stored files of `tile_keys`; returns the keys that were stored (and are gone now)."""
+    removed = []
     for key in tile_keys:
         try:
             path = os.path.join(generation_dir, _tile_filename("t", key))
@@ -239,8 +243,34 @@ def _delete_tiles(generation_dir, tile_keys):
             continue
         try:
             os.unlink(path)
+            removed.append(key)
         except OSError:
             pass
+    return removed
+
+
+_owed = {}
+_owed_lock = threading.Lock()
+
+
+def _owe_rebuild(db, generation, keys):
+    """Remembers the stored tiles a change deleted, for `take_rebuilds` (PERF.133)."""
+    with _owed_lock:
+        had_generation, had = _owed.get(db, (generation, []))
+        _owed[db] = (generation, (had if had_generation == generation else []) + list(keys))
+
+
+def take_rebuilds(db):
+    """
+    The stored tiles of `db` that changes deleted since the last call, so they can be built again at once, in the
+    background (PERF.133, `tileprefetch.rebuild`), not on the next visit that wants them.
+
+    Returns:
+        tuple: `(generation, keys)`, or `(None, [])` when no stored tile was deleted.
+    """
+    with _owed_lock:
+        generation, keys = _owed.pop(db, (None, []))
+    return generation, list(dict.fromkeys(keys))
 
 
 def _stage_filename(key):
@@ -287,7 +317,8 @@ def current_stamp(db, root=None):
             found).
     """
     if root is None:
-        return {"stamp": get_galaxy_changes(db)["stamp"], "generation": None, "history": []}
+        changes = get_galaxy_changes(db)
+        return {"stamp": changes.get("tile_stamp") or changes["stamp"], "generation": None, "history": []}
 
     db_dir = _db_dir(root, db)
     stamp_path = os.path.join(db_dir, "stamp.json")
@@ -311,7 +342,8 @@ def current_stamp(db, root=None):
         _failed_checks[db] = time.monotonic()
         return remembered
     _failed_checks.pop(db, None)
-    stamp = changes.get("stamp")
+    stamp = changes.get("tile_stamp") or changes.get("stamp")
+    full = changes.get("tile_full", changes.get("full"))
     if changes.get("busy") and remembered is not None:
         generation_age = time.time() - float(remembered.get("started") or 0)
         if 0 <= generation_age < BUSY_KEEP_SECONDS:
@@ -325,7 +357,7 @@ def current_stamp(db, root=None):
     stale = []
     stale_stages = []
     started = time.time()
-    if remembered is not None and not changes.get("full"):
+    if remembered is not None and not full:
         generation = remembered["generation"]
         started = remembered.get("started") or started
         history = remembered["history"]
@@ -344,11 +376,13 @@ def current_stamp(db, root=None):
     # still working under the old stamp checks it before writing a tile
     # (see `fetch_tiles`), so whichever side of the write it lands on, a
     # tile fetched before the change doesn't survive it.
-    _delete_tiles(generation_dir, stale)
+    removed = _delete_tiles(generation_dir, stale)
     _delete_stages(generation_dir, stale_stages)
     _write_json(stamp_path, info)
-    _delete_tiles(generation_dir, stale)
+    removed = list(dict.fromkeys(removed + _delete_tiles(generation_dir, stale)))
     _delete_stages(generation_dir, stale_stages)
+    if removed:
+        _owe_rebuild(db, generation, removed)
     try:
         for entry in os.scandir(db_dir):
             if entry.is_dir() and entry.name != generation:
@@ -479,9 +513,15 @@ def _read_bytes(path):
         return None
 
 
-def _write_bytes(path, data):
-    """Atomic write of raw bytes, like `_write_json`. Returns whether it
-    worked."""
+AHEAD_MODE = 0o640
+"""int: The mode of a tile built ahead of any visit (the warm-up, the background build). The group-read bit is what
+marks it: `prune` never deletes such a tile, only the files a visit asked for (mode 0o600), least recently visited
+first (PERF.133)."""
+
+
+def _write_bytes(path, data, ahead=False):
+    """Atomic write of raw bytes, like `_write_json`; `ahead` marks the file as built ahead (`AHEAD_MODE`).
+    Returns whether it worked."""
     directory = os.path.dirname(path)
     tmp_path = None
     try:
@@ -489,6 +529,8 @@ def _write_bytes(path, data):
         fd, tmp_path = tempfile.mkstemp(dir=directory, prefix=".tmp-", suffix=".part")
         with os.fdopen(fd, "wb") as f:
             f.write(data)
+        if ahead:
+            os.chmod(tmp_path, AHEAD_MODE)
         os.replace(tmp_path, path)
         return True
     except OSError:
@@ -498,6 +540,15 @@ def _write_bytes(path, data):
             except OSError:
                 pass
         return False
+
+
+def _visited(path):
+    """Records a visit to a stored file: its modification time is when it was last asked for, which is how `prune`
+    orders what to drop."""
+    try:
+        os.utime(path)
+    except OSError:
+        pass
 
 
 def validate_request(tile_keys):
@@ -520,7 +571,7 @@ def validate_request(tile_keys):
     return keys
 
 
-def _collect_tiles(db, tile_keys, known_stamp):
+def _collect_tiles(db, tile_keys, known_stamp, ahead=False):
     """
     What `fetch_tiles` and `fetch_tiles_wire` share: the requested tiles'
     stored bytes, from the disk cache where possible and from
@@ -531,6 +582,9 @@ def _collect_tiles(db, tile_keys, known_stamp):
             tiles (`stamp`, `generation`, `edge_pc`, `has_shape`, `cached`
             and, only when `known_stamp` isn't current, `history`);
             `parts` is `[(key, packed bytes), ...]` in request order.
+
+    `ahead` says the tiles are built for no visitor yet (the warm-up, the background build): what is built is marked
+    to stay when the cache is full (`AHEAD_MODE`) and a tile found stored is not counted as visited.
     """
     tile_keys = validate_request(tile_keys)
     root = cache_dir()
@@ -549,6 +603,8 @@ def _collect_tiles(db, tile_keys, known_stamp):
             # A torn or foreign file is refetched, never sent.
             if _whole_tile(raw):
                 stored[key] = raw
+                if not ahead:
+                    _visited(path)
 
     cached_count = len(stored)
     missing = [key for key in tile_keys if key not in stored]
@@ -573,7 +629,7 @@ def _collect_tiles(db, tile_keys, known_stamp):
                     _write_json(os.path.join(generation_dir, "meta.json"), meta)
                     for key, raw in made.items():
                         if key in missing and not _incomplete(raw):
-                            _write_bytes(os.path.join(generation_dir, _tile_filename("t", key)), raw)
+                            _write_bytes(os.path.join(generation_dir, _tile_filename("t", key)), raw, ahead=ahead)
                     if random.random() < PRUNE_PROBABILITY:
                         prune(root)
         finally:
@@ -617,7 +673,7 @@ def _collect_tiles(db, tile_keys, known_stamp):
     return header, [(key, stored[key]) for key in tile_keys if key in stored]
 
 
-def fetch_tiles(db, tile_keys, known_stamp=None):
+def fetch_tiles(db, tile_keys, known_stamp=None, ahead=False):
     """
     The requested tiles, from the disk cache
     where possible and from `GET /api/galaxy/tiles` for the rest, caching
@@ -628,6 +684,7 @@ def fetch_tiles(db, tile_keys, known_stamp=None):
         tile_keys (list[str]): `level/ix/iy/iz` keys.
         known_stamp (str or None): The stamp the browser's own cache is
             at, when it has one.
+        ahead (bool): The tiles are built for no visitor yet (see `_collect_tiles`).
 
     Returns:
         dict: `stamp` and `generation` (see `current_stamp` -- the browser
@@ -641,7 +698,7 @@ def fetch_tiles(db, tile_keys, known_stamp=None):
         TileRequestError: On a malformed request.
         apiclient.ApiError / NotFoundError: If the API is needed and fails.
     """
-    header, parts = _collect_tiles(db, tile_keys, known_stamp)
+    header, parts = _collect_tiles(db, tile_keys, known_stamp, ahead)
     return {**header, "tiles": {key: tilepack.unpack_tile(raw) for key, raw in parts}}
 
 
@@ -686,7 +743,9 @@ def fetch_stage(db, at=None):
     path = os.path.join(generation_dir, _stage_filename(key)) if generation_dir else None
 
     stage = _read_json(path) if path else None
-    if not isinstance(stage, dict):
+    if isinstance(stage, dict):
+        _visited(path)
+    else:
         name = _flight_name(root, db, generation, "s", key)
         owned, _held = singleflight.claim([name]) if path else ([name], [])
         try:
@@ -745,33 +804,58 @@ def fetch_window(db, at, g=DEFAULT_WINDOW):
     return {**crop_stages(centre, width, stages, edge_pc), "stamp": stamp}
 
 
-def prune(root, max_bytes=None):
+KEPT_FILES = ("stamp.json", "meta.json", ".full")
+"""tuple: Files in the cache that `prune` never counts or deletes."""
+
+
+def cache_files(root):
     """
-    Deletes the least recently written cache files until the cache is
-    under 80% of `max_bytes` (default `max_cache_bytes()`), then removes
-    any directories that left empty. Stamp files are skipped.
+    Every cache file under `root` that counts against the budget, as `(path, size, mtime, ahead)`: the stamp files
+    and the full flag are left out, and `ahead` is whether `AHEAD_MODE`'s bit marks the file as built ahead.
     """
-    if max_bytes is None:
-        max_bytes = max_cache_bytes()
-    files = []
-    total = 0
+    found = []
     for dirpath, _dirnames, filenames in os.walk(root):
         for name in filenames:
-            if name == "stamp.json":
+            if name in KEPT_FILES:
                 continue
             path = os.path.join(dirpath, name)
             try:
                 info = os.stat(path)
             except OSError:
                 continue
-            files.append((info.st_mtime, info.st_size, path))
-            total += info.st_size
+            found.append((path, info.st_size, info.st_mtime, bool(info.st_mode & 0o040)))
+    return found
+
+
+def cache_is_full(root=None, max_bytes=None):
+    """Whether the files under `root` (default `cache_dir()`) already fill the budget (default `max_cache_bytes()`):
+    the warm-up builds nothing more then (PERF.133). A cache that is off is full."""
+    root = root or cache_dir()
+    if max_bytes is None:
+        max_bytes = max_cache_bytes()
+    if root is None or max_bytes <= 0:
+        return True
+    return sum(size for _path, size, _mtime, _ahead in cache_files(root)) >= max_bytes
+
+
+def prune(root, max_bytes=None):
+    """
+    Brings the cache under 80% of `max_bytes` (default `max_cache_bytes()`) when it is over `max_bytes`, and then
+    removes any directories that left empty (PERF.133): only the files a visit asked for are deleted, the
+    least recently visited first (a visit sets a file's modification time); the tiles built ahead
+    (`AHEAD_MODE`) stay, so a cache that holds nothing but those stays over the budget and the warm-up stops
+    (`cache_is_full`). The stamp files are skipped.
+    """
+    if max_bytes is None:
+        max_bytes = max_cache_bytes()
+    files = cache_files(root)
+    total = sum(size for _path, size, _mtime, _ahead in files)
     if total <= max_bytes:
         return
     from planetgen.web.lib import tileprefetch
     tileprefetch.mark_full(root)     # the background build waits while the cache is this full (PERF.132)
     target = max_bytes * 0.8
-    for _mtime, size, path in sorted(files):
+    for path, size, _mtime, _ahead in sorted((entry for entry in files if not entry[3]), key=lambda entry: entry[2]):
         if total <= target:
             break
         try:

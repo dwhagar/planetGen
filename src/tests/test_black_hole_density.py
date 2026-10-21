@@ -13,7 +13,7 @@ import numpy as np
 import pytest
 
 from planetgen import tuning
-from planetgen.galaxy import black_hole_density, density, ejecta_field, profile, structure_draw
+from planetgen.galaxy import remnant_density, density, ejecta_field, profile, structure_draw
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1
 from planetgen.generation import object_first, phenomenon_reach as reach, phenomenon_scatter as scatter
@@ -100,38 +100,38 @@ def test_the_failed_share_is_monotone_in_the_metals_and_the_halo_makes_at_least_
     """T3: for any draw, a metal-poor place makes at least as many as a metal-rich one."""
     for solar, free in ((0.0, 0.15), (0.2, 0.2), (0.05, 0.3), (0.12, 0.12)):
         shape = _shape(solar, free)
-        halo = black_hole_density.place_factor((15000.0, 0.0, 15000.0), shape)
-        disk = black_hole_density.place_factor(SUN, shape)
+        halo = remnant_density.place_factor((15000.0, 0.0, 15000.0), shape)
+        disk = remnant_density.place_factor(SUN, shape)
         assert halo >= disk
         low = formation.failed_share(-3.5, solar, free)
         assert low >= formation.failed_share(0.0, solar, free)
-    assert black_hole_density.place_factor(SUN, _shape(0.0, 0.0)) == 0.0
+    assert remnant_density.place_factor(SUN, _shape(0.0, 0.0)) == 0.0
 
 
 def test_the_arrays_and_the_one_point_form_agree_and_the_profile_reads_the_same_factor():
     points = [SUN, (3000.0, 0.0, 0.0), (15000.0, 0.0, 15000.0), (0.0, 0.0, 500.0), (400.0, 100.0, 20.0)]
     x, y, z = (np.array([p[axis] for p in points]) for axis in range(3))
-    weights = black_hole_density.weights_array(x, y, z, SHAPE)
+    weights = remnant_density.weights_array(x, y, z, SHAPE)
     total = density.total_density_array(x, y, z, SHAPE)
     for index, point in enumerate(points):
-        assert weights[index] / total[index] == pytest.approx(black_hole_density.place_factor(point, SHAPE), rel=1e-6)
+        assert weights[index] / total[index] == pytest.approx(remnant_density.place_factor(point, SHAPE), rel=1e-6)
         found = profile.profile_at(point, SHAPE, EDGE_PC, E_VALUE)
-        assert found.kind_factors["black-hole"] == pytest.approx(black_hole_density.place_factor(point, SHAPE), rel=0.02)
+        assert found.kind_factors["black-hole"] == pytest.approx(remnant_density.place_factor(point, SHAPE), rel=0.02)
 
 
 def test_the_old_constant_is_inside_the_new_range_and_the_new_rates_are_reported(capsys):
     """T4: 7e-5 per pc3 over the reference density is a per-star 5.0e-4; the new solar-circle rate is a multiple."""
     old = OLD_DENSITY_PC3 / tuning.REFERENCE_STELLAR_DENSITY_PC3
-    lowest = black_hole_density.base_rate_per_star() * black_hole_density.place_factor(SUN, _shape(0.0, 0.15))
-    highest = black_hole_density.base_rate_per_star() * black_hole_density.place_factor(SUN, _shape(0.247, 0.247))
+    lowest = remnant_density.base_rate_per_star() * remnant_density.place_factor(SUN, _shape(0.0, 0.15))
+    highest = remnant_density.base_rate_per_star() * remnant_density.place_factor(SUN, _shape(0.247, 0.247))
     assert lowest < old < highest
-    middle = black_hole_density.base_rate_per_star() * black_hole_density.place_factor(SUN, SHAPE)
+    middle = remnant_density.base_rate_per_star() * remnant_density.place_factor(SUN, SHAPE)
     print(f"black holes per star at the solar circle: {middle:.2e} ({middle / old:.2f} times the old {old:.1e})")
 
 
 def test_the_intermediate_mass_holes_keep_their_rate_whatever_the_metals():
     assert scatter.class_rate_per_star("black-hole", "intermediate") == pytest.approx(1.5e-9)
-    assert scatter.class_rate_per_star("black-hole", "stellar") == pytest.approx(black_hole_density.base_rate_per_star())
+    assert scatter.class_rate_per_star("black-hole", "stellar") == pytest.approx(remnant_density.base_rate_per_star())
 
 
 def test_the_below_cut_draw_scales_with_the_place_factor():
@@ -152,8 +152,8 @@ def test_the_below_cut_draw_scales_with_the_place_factor():
 def test_bound_plus_ejected_black_holes_are_what_the_galaxy_formed():
     """T5."""
     systems = ejecta_field.galaxy_systems(SHAPE, E_VALUE, EDGE_PC)
-    formed = black_hole_density.formed_per_star(SHAPE) * systems
-    bound = black_hole_density.base_rate_per_star() * black_hole_density.mean_factor(SHAPE) * systems
+    formed = remnant_density.formed_per_star(SHAPE) * systems
+    bound = remnant_density.base_rate_per_star() * remnant_density.mean_factor(SHAPE) * systems
     ejected = ejecta_field.unbound_count("black-hole", SHAPE, E_VALUE, EDGE_PC)
     assert ejected == pytest.approx(tuning.BLACK_HOLE_UNBOUND_FRACTION * formed)
     assert bound + ejected == pytest.approx(formed)
@@ -170,9 +170,9 @@ def test_neutron_stars_and_black_holes_formed_fit_among_the_massive_stars_in_eve
         shape = SHAPE._replace(structure=structure)
         unbound = ejecta_field.unbound_fraction("neutron-star", seed)
         neutron = tuning.phenomenon_rate_per_star("neutron-star") * (1.0 + unbound)
-        holes = black_hole_density.formed_per_star(shape) * (1.0 - budget)       # per star born
+        holes = remnant_density.formed_per_star(shape) * (1.0 - budget)       # per star born
         assert neutron + holes <= budget * (1.0 + 1e-9), (i, neutron, holes, budget)
-        ratios.append(black_hole_density.base_rate_per_star() * black_hole_density.mean_factor(shape) / old)
+        ratios.append(remnant_density.base_rate_per_star() * remnant_density.mean_factor(shape) / old)
     assert min(ratios) > 0.3 and max(ratios) < 3.4
 
 
@@ -181,11 +181,12 @@ def test_neutron_stars_and_black_holes_formed_fit_among_the_massive_stars_in_eve
 
 def test_each_class_draws_from_a_stream_of_its_own_so_the_black_holes_move_no_other_row(monkeypatch):
     """T2: more black holes change none of the neutron stars', planetary nebulae's or remnants' rows."""
-    def rows(shell=4):
+    def rows(shell=10):   # a shell of a few hundred thousand rows: shell 4 holds ten million and 11 GB
         return list(scatter.scatter_shell(tiers.SHAPE, shell, 3, tiers.EDGE_PC, 4000.0, 11, min_mass_solar=1.0))
     before = rows()
-    base = black_hole_density.base_rate_per_star()
-    monkeypatch.setattr(black_hole_density, "base_rate_per_star", lambda: 3.0 * base)
+    bases = {kind: remnant_density.base_rate_per_star(kind) for kind in remnant_density.KINDS}
+    monkeypatch.setattr(remnant_density, "base_rate_per_star",
+                        lambda kind="black-hole": bases[kind] * (3.0 if kind == "black-hole" else 1.0))
     after = rows()
 
     def others(found):

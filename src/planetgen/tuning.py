@@ -731,13 +731,31 @@ STAR_MODEL_MAX_REDRAWS = 1000
 # drawn around a star younger than LIFE_MIN_STAR_AGE_GY (a crust and
 # oceans take ~0.1 Gy). A giant engulfs planets inside
 # GIANT_ENGULFMENT_RADIUS_FACTOR times its present radius (tidal capture
-# reaches a few stellar radii), and a population-model white dwarf's
-# progenitor, on its asymptotic giant branch, engulfed or drove off
-# everything inside WD_PROGENITOR_ENGULFMENT_AU.
+# reaches a few stellar radii), and a white dwarf's progenitor, on its
+# asymptotic giant branch, engulfed or drove off everything inside
+# WD_ENGULFMENT_BASE_AU + WD_ENGULFMENT_AU_PER_PROGENITOR_MSUN * (M - 1) AU
+# for a progenitor of M solar masses (GEN.318, docs/design/
+# exotic-environments-planets-and-compact-binaries.md 1.2: 1.5 AU for a
+# solar-mass star, as the generator had it, growing with the progenitor's
+# size). A white dwarf without a model progenitor mass (a forced type, a
+# planetary nebula's central star) takes the mass that leaves it
+# (WHITE_DWARF_REMNANT_MASS_SOL inverted), kept inside
+# WD_PROGENITOR_MASS_RANGE_SOL: nothing under a solar mass has had time to
+# become one, and above 8 the relation hands over to neutron stars.
 PLANET_MIN_STAR_AGE_GY = 0.01
 LIFE_MIN_STAR_AGE_GY = 0.1
 GIANT_ENGULFMENT_RADIUS_FACTOR = 2.0
-WD_PROGENITOR_ENGULFMENT_AU = 1.5
+WD_ENGULFMENT_BASE_AU = 1.5
+WD_ENGULFMENT_AU_PER_PROGENITOR_MSUN = 0.8
+WD_PROGENITOR_MASS_RANGE_SOL = (1.0, 8.0)
+
+# A planetary nebula's central star is a close pair in PLANETARY_NEBULA_COMPANION_CHANCE of nebulae (a post-common-envelope
+# pair); such a pair still inside its ejecta holds a circumbinary disk and no planets (GEN.318, design note 1.3). A white
+# dwarf at least this hot (the coolest central star type, B0VII) belongs to such a pair; the disk's mass is a stand-in
+# bracket, the two figures the note gives (a disk approaching 0.1 solar masses can trigger the streaming instability, one of 0.01
+# cannot), and its outer edge the young stars' range, since these disks look like young protoplanetary ones.
+PLANETARY_NEBULA_CENTRAL_MIN_TEMPERATURE_K = 30000.0
+POST_AGB_DISK_MASS_RANGE_SOLAR = (0.01, 0.1)
 
 # The pre-main-sequence state (GEN.242, GEN.529, physics/pre_main_sequence.py).
 # A star below PRE_MAIN_SEQUENCE_MAX_MASS_SOL younger than its contraction time
@@ -2545,6 +2563,13 @@ PULSAR_RADIAL_B = 5.0
 # Freire 2016, ARA&A 54:401, compiling radio pulsar timing masses).
 NEUTRON_STAR_MASS_RANGE_SOLAR = (1.1, 2.2)
 
+# The initial mass of the stars that collapse to each remnant (a design default, GEN.553; the explosion maps of
+# O'Connor and Ott 2011, Sukhbold et al. 2016 and Fryer et al. 2012 are verified, and GEN.554 derives the ranges from
+# them). The ranges overlap: a star of 20 to 30 solar masses ends as either.
+NEUTRON_STAR_PROGENITOR_SOL = (8.0, 30.0)
+BLACK_HOLE_PROGENITOR_SOL = (20.0, 100.0)
+WHITE_DWARF_PROGENITOR_SOL = (0.8, 8.0)
+
 # Neutron star radius (GEN.463, physics/neutron_star.py): the centre and the
 # spread, km, at two masses, from Miller et al. 2021 (ApJL 918:L28,
 # arXiv:2105.06979): R(1.4 Msun) = 12.45 +- 0.65 and R(2.08 Msun) = 12.35 +-
@@ -2623,11 +2648,12 @@ MAGNETAR_SPIN_PERIOD_MS_RANGE = (2000.0, 12000.0)
 # so 1e-7 of them. They follow the young population, not the stars, so the
 # rate per star is divided by the young population's share of all stars in
 # a Milky Way-like galaxy (the integral of the young density over that of
-# every component, 0.19% since GEN.469 gave the disk's populations their
-# shares from its gas history (a galaxy of 5e10 solar masses; a lighter one forms its stars later and holds more young ones): test_gen_magnetar_scatter checks it); a galaxy
+# every component, 0.16%: since GEN.469 the disk's populations have their shares from its gas history (a galaxy of
+# 5e10 solar masses; a lighter one forms its stars later and holds more young ones) and since GEN.544 the exponential
+# height (it was 0.19% over the isothermal one); test_gen_magnetar_scatter checks it); a galaxy
 # with a different young share holds proportionally more or fewer.
 MAGNETAR_PER_NEUTRON_STAR = 1.0e-7
-MAGNETAR_YOUNG_STAR_SHARE = 0.0019
+MAGNETAR_YOUNG_STAR_SHARE = 0.0016
 # A scattered magnetar's age: from the first century to the end of its active life.
 MAGNETAR_AGE_RANGE_GY = (1.0e-7, MAGNETAR_ACTIVE_LIFETIME_YR / 1e9)
 
@@ -3618,7 +3644,7 @@ PHENOMENON_DENSITY_PC3 = {
     # neutron stars (0.4% of ~2.5e11 stars) and 1e8 black holes (0.05%).
     "neutron-star": 5.6e-4,
     # The stellar-mass black holes are not a rate of their own: they follow from the stars' metallicity
-    # (`galaxy.black_hole_density`, GEN.563). The old 7e-5 (1e8 in the Galaxy, 0.05% of ~2.5e11 stars) is a test target.
+    # (`galaxy.remnant_density`, GEN.563). The old 7e-5 (1e8 in the Galaxy, 0.05% of ~2.5e11 stars) is a test target.
     # Giant molecular clouds: 1e-6 to 1e-5 (Kennicutt & Evans 2012, ARA&A
     # 50:531): cloud centers, generated as dark-family nebulae (classes
     # M-Q). GMC_ARM_FILLING_FACTOR is the matching fraction of arm volume
@@ -3773,7 +3799,7 @@ BLACK_HOLE_GALAXY_MEAN_RADIAL_STEPS = 72
 BLACK_HOLE_GALAXY_MEAN_POLAR_STEPS = 24
 BLACK_HOLE_GALAXY_MEAN_AZIMUTH_STEPS = 6
 """int: The log-spaced radii, equal-area polar angles and azimuths of the grid a galaxy's mean black hole rate per star
-is averaged over (`galaxy.black_hole_density.mean_rate_per_star`, GEN.563)."""
+is averaged over (`galaxy.remnant_density.mean_rate_per_star`, GEN.563)."""
 
 EJECTA_SPEED_RANGE_KMS = (300.0, 500.0)
 """tuple: The speed a kicked neutron star or black hole has far out, above the galaxy's escape speed, km/s (GEN.238)

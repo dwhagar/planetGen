@@ -166,6 +166,7 @@ def _await_plan(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sl
     """Stage `index`'s plan once its stage has been expanded (by the unit that completed the stage before it)."""
     last_ensure = float("-inf")
     while True:
+        runrecord.touch(conn, run_id)
         plan = runrecord.read_plan(conn, run_id, index)
         if plan is not None:
             return plan

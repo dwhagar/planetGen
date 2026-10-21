@@ -1,5 +1,53 @@
 {
   "$defs": {
+    "Cache": {
+      "properties": {
+        "max_mb": {
+          "default": 1024,
+          "description": "How much disk the site's stored caches (today the Galaxy Map's tiles) may use, in all. When it is full the warm-up stops, the tiles it built ahead stay, and the tiles a visit asked for are dropped, the least recently visited first (0 turns the disk caches off).",
+          "minimum": 0,
+          "title": "Max Mb",
+          "type": "number",
+          "x-category": "cache",
+          "x-editable": true,
+          "x-env": "PLANETGEN_CACHE_MAX_MB",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-unit": "MB"
+        },
+        "warm_on_change": {
+          "default": true,
+          "description": "Start the warm-up by itself after anything that changes what the site shows (a generation run, the orbital update, an edit), so the caches are rebuilt without waiting for the next update. It rebuilds only what the change touched.",
+          "title": "Warm On Change",
+          "type": "boolean",
+          "x-category": "cache",
+          "x-editable": true,
+          "x-env": "PLANETGEN_WARM_ON_CHANGE",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false
+        },
+        "warm_settle_seconds": {
+          "default": 60,
+          "description": "How long the automatic warm-up waits after the first change before it starts, so a burst of edits is one warm-up and not one for each.",
+          "minimum": 0,
+          "title": "Warm Settle Seconds",
+          "type": "number",
+          "x-category": "cache",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-unit": "seconds"
+        }
+      },
+      "title": "Cache",
+      "type": "object"
+    },
     "Icons": {
       "properties": {
         "apple_touch_icon": {
@@ -926,21 +974,6 @@
           "x-restart": false,
           "x-secret": false
         },
-        "max_mb": {
-          "default": 200,
-          "description": "Roughly how big the tile cache may grow before its oldest files are pruned (0 turns the disk cache off).",
-          "minimum": 0,
-          "title": "Max Mb",
-          "type": "number",
-          "x-category": "cache",
-          "x-editable": true,
-          "x-env": "PLANETGEN_TILE_CACHE_MAX_MB",
-          "x-min_role": "admin",
-          "x-multiline": false,
-          "x-restart": false,
-          "x-secret": false,
-          "x-unit": "MB"
-        },
         "prefetch_max_queued": {
           "default": 8,
           "description": "The background build queues nothing while this many of its jobs (16 tiles each) or other bulk work already wait.",
@@ -1166,6 +1199,14 @@
       "x-multiline": false,
       "x-restart": false,
       "x-secret": false
+    },
+    "cache": {
+      "$ref": "#/$defs/Cache",
+      "default": {
+        "max_mb": 1024.0,
+        "warm_on_change": true,
+        "warm_settle_seconds": 60.0
+      }
     },
     "config_version": {
       "default": 1,
@@ -1411,7 +1452,6 @@
       "$ref": "#/$defs/TileCache",
       "default": {
         "dir": "",
-        "max_mb": 200.0,
         "prefetch_max_queued": 8,
         "prefetch_per_minute": 600,
         "prefetch_per_visit": 128,

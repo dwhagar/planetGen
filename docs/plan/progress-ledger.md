@@ -915,3 +915,18 @@ Baseline: PR #1817.
 | PERF.138 | 8.1 | Multi-star and compact systems |
 | PERF.132 | 8.2 | Robust tile caching |
 | TEST.129 | 8.1 | Bugs and flaky tests |
+| PERF.107 | 8.1 | Queue, caches and performance |
+| PERF.108 | 8.1 | Queue, caches and performance |
+| GEN.591 | 8.1 | Multi-star and compact systems |
+| GEN.318 | 8.1 | Multi-star and compact systems |
+| GEN.130 | 8.1 | Multi-star and compact systems |
+| PERF.133 | 8.2 | Robust tile caching |
+| PERF.139 | 8.2 | Robust tile caching |
+| GEN.544 | 8.1 | Galaxy laws build |
+| TEST.256 | 8.1 | Bugs and flaky tests |
+| GEN.592 | 8.1 | Multi-star and compact systems |
+| TEST.253 | 8.1 | Bugs and flaky tests |
+| TEST.255 | 8.1 | Bugs and flaky tests |
+| TEST.259 | 8.1 | Bugs and flaky tests |
+| PERF.143 | 8.1 | Queue, caches and performance |
+| PERF.142 | 8.1 | Queue, caches and performance |

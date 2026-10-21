@@ -671,10 +671,10 @@ def build_execution_plan(root: Path, data: dict) -> str:
     notes = render_notes((root / "docs" / "plan" / "execution-notes.md").read_text(encoding="utf-8"))
     history = (TEMPLATES / "execution-history.snippet.html").read_text(encoding="utf-8").rstrip()
     body = f'''<header>
-  <div class="eyebrow">planetGen · version map 8.1 to 10.0, Core lanes 1 to 5, Blocker 1 and Bug Hunt · updated {esc(lanes["updated"])}</div>
+  <div class="eyebrow">planetGen · version map 8.1 to 10.0, Core lanes 1 to 5 and Bug Hunt · updated {esc(lanes["updated"])}</div>
   <div class="meta"><a href="../index.html">Docs index</a> · <a href="version-plan.html">Version plan</a></div>
   <h1>Execution Plan</h1>
-  <p class="lede">{len(opened)} open items, {bug_count} of them bugs. Version 8.1 (the infinite zoom map and the new generate scatters, halo and satellite galaxies included) is the headline in progress; its stamp comes when every item of its six phases is done. Five Core lanes, a blocker lane and a bug lane build it in parallel, each through its own gate; the TODO lane keeps this page, the plan documents, the number map and the GitHub issues true, and every item ID below links to the issue that groups it with the other items of its goal.</p>
+  <p class="lede">{len(opened)} open items, {bug_count} of them bugs. Version 8.1 (the infinite zoom map and the new generate scatters, halo and satellite galaxies included) is the headline in progress; its stamp comes when every item of its six phases is done. Five Core lanes and a bug lane build it in parallel, each through its own gate; the TODO lane keeps this page, the plan documents, the number map and the GitHub issues true, and every item ID below links to the issue that groups it with the other items of its goal.</p>
 </header>
 
 <h2>Where each lane is</h2>

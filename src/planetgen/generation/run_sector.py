@@ -25,7 +25,7 @@ from planetgen.generation import fill_stages
 from planetgen.generation import nebula_contents
 from planetgen.generation import system_pass
 from planetgen.generation import bright_stars as brightStars
-from planetgen.galaxy import black_hole_density, ejecta_field, nebula_field
+from planetgen.galaxy import remnant_density, ejecta_field, nebula_field
 from planetgen.galaxy.frame import galaxy_to_local_pc, local_to_galaxy_pc
 from planetgen.galaxy.system_position import random_unit_vector
 from planetgen.physics import constants, stellar_evolution
@@ -66,6 +66,10 @@ grow around a sector's own hot stars (`add_star_hosted_nebulae`). In a
 galaxy-placed sector the "molecular-cloud" roll gives way to the galaxy's
 cloud field (`nebulaField`, GEN.47). Diffuse gas (classes A-B) fills about
 half the disk, so it is the background, not generated."""
+
+POPULATION_AGED_KINDS = ("brown-dwarf", "neutron-star", "black-hole")
+"""tuple: The kinds whose age follows the population the sector's fill gives them (GEN.553): they are made with
+`FillContext.apply_population` and take their age from that population's window and age law."""
 
 
 def build_sector_configs(args):
@@ -221,14 +225,14 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
         # Each kind draws from a stream of its own (stage E), so adding a kind moves no other kind's draws.
         stage = fill_stages.NEBULAE if kind == "molecular-cloud" else fill_stages.PER_STAR_KINDS
         with fill_stages.stage(sector, stage, kind):
-            rate = (black_hole_density.rate_per_star(kind_factors) if kind == "black-hole"
+            rate = (remnant_density.rate_per_star(kind_factors, kind) if kind in remnant_density.KINDS
                     else program_constants.phenomenon_rate_per_star(kind) * kind_factors.get(kind, 1.0))
             count = _sample_poisson_count(rate * star_count)
             for _ in range(count):
                 phenomenon_config = SystemConfig()
                 phenomenon_config.TYPE_IA_SHARE = type_ia_share
                 phenomenon_config.AMBIENT_DENSITY_CM3 = ambient_density_cm3
-                if kind == "brown-dwarf" and fill is not None:
+                if kind in POPULATION_AGED_KINDS and fill is not None:
                     fill.apply_population(phenomenon_config)   # GEN.553: its age follows its population
                 phenomenon = factory(phenomenon_config, galactic_center_dist_ly)
                 if kind == "planetary-nebula":
@@ -541,7 +545,7 @@ def add_scattered_phenomena(sector, args, fill):
         cut = fill.below_cut.min_mass_solar if fill.below_cut is not None else None
         type_ia_share = getattr(getattr(fill, "profile", None), "type_ia_share", None)
         entry = _seeded_build(row["seed"], lambda: _build_scattered(sector, args, row, position, dist_ly, cut,
-                                                                    type_ia_share, _bubble_density(fill)))
+                                                                    type_ia_share, _bubble_density(fill), fill))
         if entry is None:
             continue
         entry.scatter_id = row["id"]
@@ -560,18 +564,21 @@ def _bubble_density(fill):
 
 
 def _build_scattered(sector, args, row, position, dist_ly, min_mass_solar=None, type_ia_share=None,
-                     ambient_density_cm3=None):
+                     ambient_density_cm3=None, fill=None):
     """One scatter row built into `sector` at `position` (sector-local
     light-years): its entry, or `None` when a planetary nebula's central
     system found no room. A neutron star's or black hole's mass is drawn
     at or above the scatter's cut `min_mass_solar` (GEN.166; `None`: the
     whole range). A supernova remnant is Type Ia with the share `type_ia_share` (GEN.319; `None`: the solar
     circle's). A supernova remnant is sized by `ambient_density_cm3` where the sector lies in a superbubble (GEN.298;
-    `None`: its own class density)."""
+    `None`: its own class density). A neutron star or black hole takes its age from the population the sector's
+    `fill` gives it (GEN.553)."""
     kind = row["kind"]
     config = SystemConfig()
     config.TYPE_IA_SHARE = type_ia_share
     config.AMBIENT_DENSITY_CM3 = ambient_density_cm3
+    if kind in POPULATION_AGED_KINDS and fill is not None:
+        fill.apply_population(config)
     if kind == "hypervelocity-star":
         return _add_hypervelocity_star(sector, args, row, position, dist_ly)
     if kind == "planetary-nebula":
@@ -616,7 +623,7 @@ def add_below_cut_remnants(sector, args, fill, galactic_center_dist_ly=None):
     with draw.bound(rng):
         for kind, subtype, mass_range, count in draws:
             for _ in range(count):
-                config = SystemConfig()
+                config = fill.apply_population(SystemConfig())
                 if kind == "black-hole":
                     remnant = BlackHole(config, galactic_center_dist_ly=galactic_center_dist_ly,
                                         mass_class=subtype, mass_range=mass_range)
@@ -655,7 +662,7 @@ def add_ejecta(sector, args, fill, galactic_center_dist_ly=None):
             continue
         with fill_stages.stage(sector, fill_stages.EJECTA, kind):
             for _ in range(_sample_poisson_count(mean)):
-                config = SystemConfig()
+                config = fill.apply_population(SystemConfig())
                 if kind == "black-hole":
                     remnant = BlackHole(config, galactic_center_dist_ly=galactic_center_dist_ly, mass_class="stellar")
                 else:
