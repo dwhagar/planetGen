@@ -1380,6 +1380,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
+  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
+  GEN.378"). This replaces any earlier owner line on this item (it was
+  Core 2's).
   Prerequisite: none. Related: MAP.151 (done, PR #1539), MAP.159.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -4916,6 +4920,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   storage names DB.53, the first child of GEN.129 and its provider of
   the interaction and flag columns; the older "waits on GEN.260
   (migration 0093)" line is replaced (GEN.260 is done).
+  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
+  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
+  GEN.378"). This replaces any earlier owner line on this item (it was
+  Core 3's; the epoch rule in execution-notes still applies).
   Design: [docs/design/multi-star-systems.md](design/multi-star-systems.md)
 
 - [ ] **GEN.270 Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars**
@@ -5749,6 +5757,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
+  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
+  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
+  GEN.378"). This replaces any earlier owner line on this item (it was
+  Core 3's).
   Prerequisites: none. Related: GEN.129.
 
 - [ ] **GEN.312 Naming for trees: path codes (Aa, Ab, Ba) with branch words at wide splits, and planet stems such as Pikkita Ba I**
@@ -6969,6 +6981,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (/mnt/project-files/reports/gen368-laws-table-2026-10-17.md, 5.13.1
   chain, rows 1 to 10) is the spiral family's start, and the family
   table here extends it.
+  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
+  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
+  GEN.378"). This replaces any earlier owner line on this item (it was
+  Core 1's, proposed).
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.379 The density model as a list of components, each with an amplitude that may be 0, and a mass for each component**
@@ -7840,6 +7856,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   errors name different quantities and both stay: the 15 percent is the
   CH4 value in the Sneep and Ubachs formalism; the 30 percent is the
   older coded refractivity form against the measured value.
+  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
+  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
+  GEN.378"). This replaces any earlier owner line on this item (it was
+  Core 4's, proposed).
   Related: DB.71.
 
 - [ ] **GEN.411 The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree**
@@ -10215,6 +10235,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Cilibrasi centre": the moon ice fraction (BC6) draws over the widest
   bracket 0.5 to 0.85 with Cilibrasi 2018 as the centre and test target,
   a labelled stand-in replaced when a measurement exists.
+  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
+  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
+  GEN.378"). This replaces any earlier owner line on this item (it was
+  Core 4's).
   Prerequisites: none. Related: GEN.426, GEN.442, GEN.466, GEN.437.
 
 - [ ] **GEN.458 Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes**
@@ -16805,6 +16829,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
+  thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
+  GEN.378"). This replaces any earlier owner line on this item (it was
+  Core 1's; the migration still takes the next free revision at merge,
+  0113 belongs to DB.79).
   Prerequisites: none. Related: DB.9.
 
 - [ ] **DB.45 Storage checksum and the dirty flag: the export, the checksum and every writer**
@@ -22153,6 +22182,33 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: GEN.576, DB.78, GEN.578. Related: GEN.550, GEN.552,
   GEN.315, GEN.565.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
+
+- [ ] **DOC.72 The README lists every external file the program needs, with its URL and how to install it, and a check keeps the list complete**
+  Boss, 2026-10-21, 5:44 PM EDT: "Add DOCS item that the README will say
+  what URL's and how to install the external files that are needed to
+  run." Today the downloaded datasets, line lists and data files that
+  the setup step fetches (the shared download step GEN.548, `python3 -m
+  planetgen.cli.datasets fetch`, run by `install.sh` and `update.sh`) or
+  that must be provided by hand (files Boss supplies, papers or datasets
+  that cannot be fetched) are known only from the catalogue in
+  src/planetgen/datasets/catalogue.py. Do: add a README section
+  'External files' that lists every one, with its source URL, the
+  licence note, the cache folder it goes to (`PLANETGEN_DATA_DIR`, else
+  `/var/cache/planetgen/datasets`), the command that fetches it, how to
+  install it by hand when the host is down or the machine has no network
+  (download the URL, check the sha256, put it in the folder), and what
+  stops working while it is missing (the 'replaces' text the catalogue
+  already carries); say which files are fetched at setup and which must
+  be provided by hand; add the same table to docs/deployment/README.md
+  or link to it. Done: the README lists every dataset in the catalogue
+  with its URL and install step, and a test compares the README list
+  with the catalogue (every key and URL appears, nothing extra) so a new
+  dataset cannot skip it; a dataset added by an AD item (AD1 to AD8,
+  GEN.594) fails that test until its README row exists; the install
+  steps are followed once on a clean cache and work. Owner: TODO thread
+  proposes a docs lane or Core 5 after the 8.1 closing audits (not
+  urgent).
+  Prerequisites: none. Related: GEN.548, GEN.590, GEN.594.
 
 ## VIEW: The view from a planet
 
