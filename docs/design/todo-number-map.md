@@ -22,9 +22,9 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.98 |
 | SEC | SEC.33 |
-| TEST | TEST.260 |
+| TEST | TEST.261 |
 | USR | USR.32 |
-| OPS | OPS.62 |
+| OPS | OPS.63 |
 | DOC | DOC.72 |
 | VIEW | VIEW.19 |
 | POP | POP.15 |
@@ -1641,6 +1641,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.59 | `generate galaxy --shell 0` does not stop on SIGTERM: the busy `worker --burst` child keeps running and the parent is left a zombie (bug) | none | done, PR #2124 |
 | OPS.60 | The admin commands that did two things by flag: `lockouts` lists or lifts, `version_history --list` repeats `planetgen versions` | none | done, PR #2227 |
 | OPS.61 | Remove the one-off tools `cli.render_parity` and `cli.dedupe`: they check and fix a schema and a naming rule that migrated long ago | none | done, PR #2227 |
+| OPS.62 | The cloud environment setup script fails at its verify step because it imports `markdown`, which nothing uses (bug) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -2368,6 +2369,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.257 | test_sector_page_and_tiles_show_a_phenomenon_the_cli_added asserts an empty cloud list on an unseeded galaxy and sometimes gets a nebula (bug) | none | open |
 | TEST.258 | Other tests that scatter a low shell of the toy shape may hold gigabytes after GEN.404: sweep them for resident memory | none | open |
 | TEST.259 | test_open_map_menus_hold_no_overlap audits the menu boxes while the open animation is still moving and reports an overlap that is gone a frame later (bug) | none | done, PR #2332 |
+| TEST.260 | test_galaxy_absurd_radius_is_clean[200.0] hangs past its 10 s limit on main and leaves the run lock set, so every later test that starts a run fails (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
