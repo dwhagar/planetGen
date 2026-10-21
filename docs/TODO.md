@@ -16130,6 +16130,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (waits for PERF.140 and PERF.141) and eviction by least recently
   visited at the budget, which Core 2 builds with PERF.139 as its next
   PR.
+  Merged in part: part 1 (Core 2, #2311, reported 9:35 AM EDT 2026-10-21
+  as the lane reported; changed gate 7:23 to 9:22 AM EDT, 6,886 passed,
+  157 skipped; no generator epoch): stored tiles are keyed by a tile
+  stamp without the release number (`query.TILE_FORMAT` = 1, the
+  generator epoch and the change counters), so a release alone keeps
+  every stored tile; `/api/galaxy/changes` gains `tile_stamp` and
+  `tile_full`; a change deletes only the tiles holding the sector and
+  queues the stored ones for rebuild at once (coarsest first, at most
+  2,048; off with `prefetch_per_minute` 0, during an update or with the
+  cache full); `tests/test_tile_format.py` pins one tile's bytes (raise
+  TILE_FORMAT and the digest when tiles change); Boss's no-recompile
+  tests are in test_cache_warmup.py (a no-change warm builds zero tiles,
+  a one-sector change rebuilds only its tiles, a release alone rebuilds
+  nothing, a TILE_FORMAT bump rebuilds all);
+  docs/design/cache-warm-up.md and docs/api.md updated. Still open here:
+  eviction of the least recently visited on-demand tiles when
+  `cache.max_mb` is full, which Core 2 carries with PERF.139 next.
   Prerequisites: PERF.41. Related: PERF.129, PERF.104.
 
 - [ ] **PERF.134 The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions**
@@ -16338,6 +16355,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy that has not changed builds zero tiles (and zero list or index
   rebuilds), every phase reports "unchanged", and a change in one sector
   rebuilds only its tiles and their coarser parents.
+  Core 2 (9:35 AM EDT 2026-10-21 as the lane reported): the zero-list
+  and index rebuild half of Boss's no-recompile test (a no-change warm
+  rebuilds no stored list or index) waits for PERF.140 and lands with
+  this item; the tile half is in PERF.133's part 1 (#2311).
   Prerequisites: PERF.139, PERF.140, PERF.131, PERF.133.
 
 ## DB: Database and schema
