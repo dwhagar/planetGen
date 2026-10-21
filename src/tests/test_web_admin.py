@@ -687,7 +687,7 @@ def test_admin_hub_lists_the_admin_pages_without_a_signed_in_card(client, fake):
     for path in ("/admin/generate", "/admin/queue", "/admin/stats", "/account"):
         assert f'href="{path}"' in hub
     rail = re.search(r'<nav class="admin-rail".*?</nav>', html, re.S).group(0)
-    assert '<a href="/admin" aria-current="page">Overview</a>' in rail
+    assert '<a href="/admin" data-destination="overview" aria-current="page">Overview</a>' in rail
     assert all(f">{name}</a>" in rail for name in ("Generate", "Settings", "Jobs", "Data", "Account"))
 
 
@@ -722,7 +722,7 @@ def test_admin_stats_renders(client, fake):
     assert "Vega &lt;b&gt;Beta&lt;/b&gt;" in html
     assert 'href="/sector.py?db=' in html or 'href="/sector/5"' in html
     assert "Planet/moon collisions" not in html
-    assert '<a href="/admin/stats" aria-current="page">Data</a>' in html
+    assert '<a href="/admin/stats" data-destination="data" aria-current="page">Data</a>' in html
     assert "/admin/stats/lockouts" not in re.search(r'<main.*</main>', html, re.S).group(0)
 
 
