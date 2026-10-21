@@ -14289,6 +14289,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in rad/s and next-due) waits on Core 1's storage shape (DB.74);
   position, velocity, mass, mu and epoch already sit on
   `SpatialPosition3D`.
+  Merged in part: GEN.565c (Core 4, #2308, about 10:42 AM EDT 2026-10-21
+  as the lane reported; no epoch, no stored change; gate 12,938 passed
+  in 87 minutes): `KinematicRecord` (position_au, velocity_kms,
+  spin_axis, spin_rate_rad_s, mass_kg, mu_m3_s2, epoch_unix,
+  next_due_unix) and `MassObject.kinematic_record()`; `speed_kms()`,
+  `axial_tilt_from_state()` and `spin_rate_rad_s` equal today's stored
+  speed, axial tilt and rotation period (tested);
+  `spin.orbit_normal_from_state`; docs/design/mass-object-class.md
+  section 12. Still open: the family classes, which wait on Core 1's
+  DB.74 shape.
 
 - [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
   Part of the unified orbited-body chain (GEN.550; design note
@@ -15060,6 +15070,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   table. Derived, and their columns dropped in the DB.73 revision:
   speed, axial tilt, rotation period, a*, ms period, galactic orbital
   speed, period and phase, and min_update_interval_years.
+  Core 4 (10:42 AM EDT 2026-10-21 as the lane reported): the S16 record
+  is declared (GEN.565c, #2308), but spin still lives on the body;
+  moving it onto the point is this item, after GEN.578.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
 
 - [ ] **GEN.585 Dimensions and unit systems in the registry: every unit carries its exponent vector, the derived kinds are listed, and a constant's number in any coherent system follows from its dimension**
