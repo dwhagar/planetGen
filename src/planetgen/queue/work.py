@@ -71,6 +71,7 @@ import time
 import traceback
 
 from planetgen.admin import updateguard
+from planetgen.generation import stats as generationStats
 from planetgen.queue import progress_rate, redisqueue
 from planetgen.util import log
 from planetgen.util import draw
@@ -276,12 +277,17 @@ def _rq_task(fn, payload, seed, log_level, debug_file):
     return ("ok", result, seconds)
 
 
-class _Task:
-    __slots__ = ("kind", "key", "fn", "payload", "weight", "on_done", "row_id", "future", "seed")
+STATS_KIND = {"sector": "sector", "mass-stars": "scatter-mass", "bright-stars": "scatter-bright",
+              "phenomena": "phenomena"}
+"""dict: Work queue task kind -> the generation stats kind its speeds are recorded under."""
 
-    def __init__(self, kind, key, fn, payload, weight, on_done):
+
+class _Task:
+    __slots__ = ("kind", "key", "fn", "payload", "weight", "on_done", "row_id", "future", "seed", "expected")
+
+    def __init__(self, kind, key, fn, payload, weight, on_done, expected=None):
         self.kind, self.key, self.fn, self.payload = kind, key, fn, payload
-        self.weight, self.on_done = weight, on_done
+        self.weight, self.on_done, self.expected = weight, on_done, expected
         self.row_id = self.future = self.seed = None
 
 
@@ -1302,6 +1308,7 @@ class WorkQueue:
         self._cancelled = False
         self._beat = None
         self._failure = None
+        self._stats = None
         self._old_handlers = {}
         self._signalled = None
         self.submitted = 0
@@ -1516,13 +1523,15 @@ class WorkQueue:
             except Exception as exc:  # noqa: BLE001 -- retried next beat
                 log.debug(f"Work queue heartbeat failed: {exc}")
 
-    def submit(self, kind, key, fn, payload, weight=1.0, on_done=None):
+    def submit(self, kind, key, fn, payload, weight=1.0, on_done=None, expected_seconds=None):
         """
         Queues one task. `fn(payload)` runs in a worker (`fn` must be a
         module-level function, and `payload` picklable); `on_done(result,
         seconds, weight)` then runs in this process, from `submit` or
         `drain`, never at the same time as another `on_done`. With one
-        worker, both run right here before `submit` returns.
+        worker, both run right here before `submit` returns. With a pool RQ
+        ends the task after a multiple of `expected_seconds` (default: the
+        seconds a task of `kind` took in earlier runs; `redisqueue.job_timeout`).
 
         Raises:
             Exception: The first task's own exception, once every task
@@ -1530,7 +1539,7 @@ class WorkQueue:
         """
         if self._cancelled:
             return
-        task = _Task(kind, key, fn, payload, weight, on_done)
+        task = _Task(kind, key, fn, payload, weight, on_done, expected_seconds)
         self.submitted += 1
         if not self.parallel:
             self._obey()
@@ -1597,7 +1606,8 @@ class WorkQueue:
             self.expect(1)
             self.submit(kind, f"{kind} chunk {position}", run_chunk,
                         {"fn": fn, "payloads": [payload for _key, payload, _weight, _done in chunk]},
-                        weight=sum(weight for _key, _payload, weight, _done in chunk), on_done=finished)
+                        weight=sum(weight for _key, _payload, weight, _done in chunk), on_done=finished,
+                        expected_seconds=len(chunk) * seen["seconds"] / seen["items"] if seen["items"] else None)
 
     def _run_here(self, task):
         """One worker: runs `task` in this process, recording its row
@@ -1626,6 +1636,18 @@ class WorkQueue:
         if task.on_done:
             task.on_done(result, seconds, task.weight)
 
+    def _expected_seconds(self, task):
+        """How long `task` is expected to take a worker (PERF.144): what its submitter said, else the mean of the
+        tasks of its kind in earlier runs (`generation.stats`, read once), else `None`."""
+        if task.expected:
+            return task.expected
+        if task.kind not in STATS_KIND:
+            return None
+        if self._stats is None:
+            disabled = os.environ.get(generationStats.STATS_ENV_VAR, "1").strip().lower() in ("0", "off", "no", "false")
+            self._stats = generationStats.GenerationStats(None if disabled else self.control_config)
+        return self._stats.seconds_per_task(STATS_KIND[task.kind], self.workers)
+
     def _dispatch(self):
         room = 2 * self.workers - len(self._running)
         batch, self._waiting = self._waiting[:max(room, 0)], self._waiting[max(room, 0):]
@@ -1634,7 +1656,8 @@ class WorkQueue:
         self._book("add_tasks", self.job_id, batch)
         self._book("start_tasks", batch)
         for task in batch:
-            task.future = self._executor.submit(task.fn, task.payload, task.seed, self.log_level, self.debug_file)
+            task.future = self._executor.submit(task.fn, task.payload, task.seed, self.log_level, self.debug_file,
+                                                expected_seconds=self._expected_seconds(task))
             self._running.add(task)
 
     def _collect(self, block):

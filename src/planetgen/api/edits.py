@@ -453,7 +453,8 @@ def regenerate_sector(sector_id):
     finally:
         conn.close()
     try:
-        job_id = api_jobs.submit(api_jobs.regenerate_sector, sector_id, config)
+        job_id = api_jobs.submit(api_jobs.regenerate_sector, sector_id, config,
+                                 expected_seconds=api_jobs.recorded_task_seconds("sector", config))
     except api_jobs.NoQueue as exc:
         raise ApiError(str(exc), status_code=503)
     audit("sector.regenerate", target=f"sector:{sector_id}", detail=f"job={job_id}")

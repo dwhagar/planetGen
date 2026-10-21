@@ -312,7 +312,7 @@ def test_only_an_admin_cancels_the_job_every_waiting_visitor_shares(slow):
 # --- No queue ------------------------------------------------------------------------------------------
 
 def test_without_a_queue_the_answer_is_built_in_the_request_and_the_page_is_told(slow, monkeypatch):
-    def refuse(function, *args):
+    def refuse(function, *args, **options):
         raise api_jobs.NoQueue("no Redis server answers")
 
     monkeypatch.setattr(api_jobs, "submit", refuse)

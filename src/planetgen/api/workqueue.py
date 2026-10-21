@@ -80,11 +80,6 @@ def work():
                     "limit": limit, "offset": offset})
 
 
-STATS_KIND = {"sector": "sector", "mass-stars": "scatter-mass", "bright-stars": "scatter-bright",
-              "phenomena": "phenomena"}
-"""dict: Work queue task kind -> the generation stats kind its speeds are recorded under."""
-
-
 def _recorded_task_seconds(conn):
     """`(task kind, workers) -> seconds one task took a worker in earlier runs` (PERF.33), or `None` when
     nothing was recorded or the stats can't be read."""
@@ -92,7 +87,8 @@ def _recorded_task_seconds(conn):
         stats = generationStats.GenerationStats().read(conn)
     except Exception:  # noqa: BLE001 -- an older control schema: the run's own pace alone
         return None
-    return lambda kind, workers: stats.seconds_per_task(STATS_KIND[kind], workers) if kind in STATS_KIND else None
+    kinds = workQueue.STATS_KIND
+    return lambda kind, workers: stats.seconds_per_task(kinds[kind], workers) if kind in kinds else None
 
 
 def _unstarted_steps(conn):

@@ -61,7 +61,7 @@ def register_worker(queue, connection, name, pid):
 
 def running_job(queue, connection, owner, retries=None):
     """A job the worker `owner` started and never ended, in the started registry with no expiry."""
-    job = queue.enqueue(math.pow, 2, 2, job_timeout=-1, retry=retries)
+    job = queue.enqueue(math.pow, 2, 2, job_timeout=600, retry=retries)
     queue.remove(job)
     job.set_status(rq.job.JobStatus.STARTED)
     job.worker_name = owner
@@ -153,7 +153,7 @@ def test_reset_jobs_clears_the_queue_the_jobs_and_the_lease_and_keeps_the_rest(r
     connection = redisqueue.connect(url)
     connection.flushdb()
     queue = redisqueue.queue(redisqueue.INTERACTIVE_QUEUE, connection)
-    waiting = queue.enqueue(math.pow, 2, 2)
+    waiting = queue.enqueue(math.pow, 2, 2, job_timeout=600)
     running_job(queue, connection, "never-registered")
     connection.set(workers.WANTED_KEY, 3)
     connection.set("planetgen:page:kept", "1")
