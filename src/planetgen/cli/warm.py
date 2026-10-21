@@ -29,11 +29,20 @@ import sys
 import time
 
 from planetgen.admin import updateguard
+from planetgen.db import dataversion
 from planetgen.queue import redisqueue, runrecord, units, wrapper
 from planetgen.util import log
+from planetgen.util.settings import get_settings
 
 UPDATE_WAIT_SECONDS = 1200
 """int: How long it waits for a running update to finish before it starts the run."""
+
+
+MAX_PASSES = 3
+"""int: Most times one run builds everything: once, and again while the data changed under it (PERF.141)."""
+
+KIND = "warm-map"
+"""str: What the warm-up registers as for the update guard (`updateguard.running`)."""
 
 
 class Failed(Exception):
@@ -89,7 +98,7 @@ def run_warm(args):
         raise SystemExit(f"warm: {exc}")
     _stop_on_sigterm()
     # Registered for the update guard (OPS.53), which lists it and stops it, the caches being safe to build again.
-    with updateguard.running("warm-map", "Site cache warm-up"):
+    with updateguard.running(KIND, "Site cache warm-up"):
         try:
             _wait_for_update()
             results = {}
@@ -98,10 +107,56 @@ def run_warm(args):
                 results[steps[index].key] = result
                 log.normal(result["line"])
 
-            wrapper.run("Cache warm-up", steps, lambda index, plan: None, on_result, database=args.database,
-                        argv=sys.argv[1:], kind=runrecord.MAINTENANCE, workers_count=1)
+            for number in range(1, MAX_PASSES + 1):
+                changes = _change_count(args.database)
+                wrapper.run("Cache warm-up", steps, lambda index, plan: None, on_result, database=args.database,
+                            argv=sys.argv[1:], kind=runrecord.MAINTENANCE, workers_count=1)
+                if number == MAX_PASSES or _change_count(args.database) == changes:
+                    break
+                log.normal("The data changed while the warm-up ran: building once more.")
         except (Failed, redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
             log.error(f"error: the cache warm-up stopped: {exc}")
             raise SystemExit(1)
     warmed = [step.key for step in steps if step.key in warmup.FAMILIES]
     log.normal(f"Cache warm-up done: {len(warmed)} families.")
+
+
+def _change_count(database):
+    """How many data changes are recorded for `database`, or `None` when Redis does not say."""
+    try:
+        return dataversion.change_count(database)
+    except dataversion.Unavailable:
+        return None
+
+
+def start_after_change(reason):
+    """
+    Starts `planetgen warm` in the background once a run has changed the galaxy (PERF.141): the end of a generation
+    run and of the orbital update, so the caches are built again without anyone running a command. Does nothing when
+    `cache.warm_after_change` is off, an update is running (it starts its own warm-up at its end), or no Redis
+    server answers (the queue the warm-up runs on); a warm-up already running is left alone, it builds once more
+    when it finds the data changed under it (`run_warm`).
+
+    Args:
+        reason (str): What changed, for the log line (`"generation"`, `"orbital update"`).
+
+    Returns:
+        bool: Whether a warm-up was started.
+    """
+    if not get_settings().cache.warm_after_change or updateguard.is_updating():
+        return False
+    if any(item["kind"] == KIND for item in updateguard.MarkerSource().items()):
+        log.normal(f"A cache warm-up is already running: it builds once more for the {reason}.")
+        return False
+    try:
+        redisqueue.connect().ping()
+    except Exception as exc:    # no Redis, or one that refuses: the first visit builds what the warm-up would have
+        log.normal(f"The cache warm-up did not start after the {reason}: {exc}")
+        return False
+    try:
+        redisqueue.start_detached([sys.executable, "-m", "planetgen.cli.generate", "warm"], "/")
+    except OSError as exc:
+        log.normal(f"The cache warm-up did not start after the {reason}: {exc}")
+        return False
+    log.normal(f"The cache warm-up started in the background after the {reason}.")
+    return True

@@ -160,6 +160,10 @@ class Cache(_Section):
                         "When it is full the warm-up stops, the tiles it built ahead stay, and the tiles a visit "
                         "asked for are dropped, the least recently visited first (0 turns the disk caches off).",
                         env="PLANETGEN_CACHE_MAX_MB", unit="MB", category="cache", ge=0)
+    warm_after_change: bool = opt(True, "Start the cache warm-up in the background when a generation run or the orbital "
+                                  "update has finished, so the caches are built again for what changed. A warm-up "
+                                  "that is already running builds once more instead of a second one starting.",
+                                  env="PLANETGEN_CACHE_WARM_AFTER_CHANGE", category="cache")
 
 
 class TileCache(_Section):

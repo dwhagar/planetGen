@@ -137,6 +137,7 @@ import sys
 from planetgen import tuning
 from planetgen.admin import updateguard
 from planetgen.db import dataversion
+from planetgen.cli import warm as warm_cli
 from planetgen.cli.stage_progress import StageProgress
 from planetgen.util import log, stagemark
 from planetgen.db.sector_paths import compute_sector_paths
@@ -279,6 +280,7 @@ def main():
         conn.close()
         # The positions (and which sector holds what) changed: the pages read them afresh (PERF.104).
         dataversion.record(config.database, "orbits")
+        warm_cli.start_after_change("orbital update")
 
 
 def _run(conn, cancel, row_ceiling):

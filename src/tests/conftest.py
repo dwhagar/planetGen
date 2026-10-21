@@ -87,6 +87,9 @@ os.environ.setdefault("PLANETGEN_RATELIMIT_STORAGE_URI", "memory://")
 os.environ.setdefault("PLANETGEN_GENERATION_STATS", "0")
 # Table pages count exactly in the tests; tests/test_count_cache.py turns the stored counts (PERF.64) on.
 os.environ.setdefault("PLANETGEN_COUNT_CACHE", "off")
+# A finished generation run or orbital update does not start a cache warm-up in the background (PERF.141); the
+# tests that check that start one with a fake process (tests/test_warm_after_change.py).
+os.environ.setdefault("PLANETGEN_CACHE_WARM_AFTER_CHANGE", "0")
 
 # Every pooled connection runs at MySQL 8's default sql_mode (TEST.7) --
 # ONLY_FULL_GROUP_BY and STRICT_TRANS_TABLES included -- on MariaDB too,

@@ -109,6 +109,14 @@ def incarnation(database):
         raise Unavailable(str(exc)) from exc
 
 
+def change_count(database):
+    """How many changes `bump` has recorded for `database` (0 when none, or after the hash was dropped). Raises `Unavailable`."""
+    try:
+        return int(_client().hget(key(database), COUNT_FIELD) or 0)
+    except (redis.RedisError, OSError) as exc:
+        raise Unavailable(str(exc)) from exc
+
+
 def versions(database, tags):
     """
     The counters of `tags` and the incarnation, in one round trip.

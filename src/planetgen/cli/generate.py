@@ -1607,6 +1607,7 @@ def main():
             _finish_history(args, history, status)
         if logged:
             _note_data_changed(args, database)
+            warm_cli.start_after_change("generation")
             activity_log.event("GEN", "generate.finish", user=_run_user(), command=args.command, db=database,
                               status=status, seconds=round(time.monotonic() - started, 1),
                               **{key: run_common.RUN_COUNTS[key] for key in ("sectors", "systems", "phenomena")})
