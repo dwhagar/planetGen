@@ -11,6 +11,7 @@ tests' workers run the units here), with the families themselves faked where onl
 """
 
 import contextlib
+import time
 import types
 import uuid
 
@@ -28,7 +29,7 @@ from planetgen.web import warmup
 from planetgen.web.app import create_app
 from planetgen.web.lib import apiclient, tilecache
 from tests.publicids import pid
-from tests.test_api import seeded_sector  # noqa: F401 -- the fixture
+from tests.test_api import _place_sector, seeded_sector  # noqa: F401 -- the fixture
 
 
 @pytest.fixture
@@ -245,6 +246,57 @@ def test_levels_that_would_build_too_many_tiles_are_refused_with_the_count():
         warmup.tiles_to_warm(None, viewport.TILE_MAX_LEVEL, 0)
 
 
+def _rename_sector(galaxy, sector_id):
+    conn = store.get_connection(galaxy.config)
+    try:
+        conn.execute("UPDATE sectors SET name = ? WHERE id = ?", ("Renamed By A Test", sector_id))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def test_a_second_warm_up_with_nothing_changed_builds_no_tile(galaxy, tile_levels, monkeypatch):
+    """PERF.133 / Boss 2026-10-18 6:05 PM EDT: a tile is not compiled again when nothing it holds has changed."""
+    monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)   # every call asks the API what changed
+    _expansion, first = _run_tile_units(galaxy)
+    assert sum(result["built"] for result in first) > 0
+    _expansion, again = _run_tile_units(galaxy)
+    assert sum(result["built"] for result in again) == 0
+    assert sum(result["cached"] for result in again) == sum(result["warmed"] for result in again) > 0
+    assert "0 built" in again[0]["line"] and "already stored" in again[0]["line"]
+
+
+def test_a_change_inside_one_sector_rebuilds_only_the_tiles_holding_it(galaxy, tile_levels, monkeypatch):
+    centre = (5.0, 1.0, 2.0)
+    placed = _place_sector(galaxy.config, "Placed", centre)
+    monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
+    expansion, first = _run_tile_units(galaxy)
+    warmed = {key for args, _cost in expansion.units for key in args["keys"]}
+    holding = set(viewport.tile_keys_containing(centre)) & warmed
+    assert holding and len(holding) < len(warmed), "the sector sits in some of the stored tiles, not all"
+    time.sleep(0.01)
+    _rename_sector(galaxy, placed)
+    _expansion, again = _run_tile_units(galaxy)
+    assert sum(result["built"] for result in again) == len(holding), "its tile at each level, nothing else"
+    _expansion, settled = _run_tile_units(galaxy)
+    assert sum(result["built"] for result in settled) == 0
+
+
+def test_a_release_alone_does_not_rebuild_a_tile(galaxy, tile_levels, monkeypatch):
+    """PERF.133 / PERF.41: the stored tiles survive a release that changes neither the tile format nor the epoch."""
+    from planetgen.db import query
+    monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
+    _expansion, first = _run_tile_units(galaxy)
+    assert sum(result["built"] for result in first) > 0
+    monkeypatch.setattr(query, "__version__", "99.0.0")
+    _expansion, after_release = _run_tile_units(galaxy)
+    assert sum(result["built"] for result in after_release) == 0
+    # A new tile format, though, drops them all once.
+    monkeypatch.setattr(query, "TILE_FORMAT", query.TILE_FORMAT + 1)
+    _expansion, after_format = _run_tile_units(galaxy)
+    assert sum(result["built"] for result in after_format) == sum(result["warmed"] for result in first)
+
+
 def test_the_tile_command_is_cut_into_chunks_and_the_map_then_finds_every_tile_stored(galaxy, tile_levels,
                                                                                    monkeypatch):
     expansion, results = _run_tile_units(galaxy)
@@ -417,6 +469,52 @@ def test_an_answered_request_for_tiles_queues_the_tiles_around_it(galaxy, prefet
     assert response.status_code == 200
     response.close()
     assert asked == [(galaxy.config.database, ["5/16/16/16", "5/17/16/16"], (10.0, 20.0, 30.0, 1.0, 2.0, 3.0))]
+
+
+def test_a_change_builds_the_stored_tiles_it_touched_again_at_once(galaxy, prefetch, monkeypatch):
+    """PERF.133: the tiles a change deleted are queued for a rebuild, so the next visit finds them built."""
+    centre = (5.0, 1.0, 2.0)
+    placed = _place_sector(galaxy.config, "Placed", centre)
+    holding = sorted(viewport.tile_keys_containing(centre), key=lambda key: viewport.parse_tile_key(key)[0])
+    monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
+    app = warmup.build_app()
+    with app.test_request_context("/"):
+        tilecache.fetch_tiles(prefetch.db, holding)
+    assert tilecache.take_rebuilds(prefetch.db) == (None, []), "nothing changed, nothing is owed"
+    time.sleep(0.01)
+    _rename_sector(galaxy, placed)
+    with app.test_request_context("/"):
+        tilecache.fetch_tiles(prefetch.db, holding[:1])             # the request that notices the change
+    generation, owed = tilecache.take_rebuilds(prefetch.db)
+    assert generation and sorted(owed) == sorted(holding), "every stored tile that held the sector"
+    assert tilecache.take_rebuilds(prefetch.db) == (None, []), "owed once"
+    with app.test_request_context("/"):
+        assert prefetch.module.rebuild(prefetch.db, generation, owed) == len(holding)
+        assert prefetch.module.rebuild(prefetch.db, generation, owed) == 0, "a tile already queued is not queued twice"
+    _run_queued(prefetch)
+    with app.test_request_context("/"):
+        assert tilecache.fetch_tiles(prefetch.db, holding)["cached"] == len(holding)
+
+
+def test_the_rebuild_of_a_change_is_off_with_the_prefetch_and_during_an_update(galaxy, prefetch, monkeypatch):
+    keys = ["5/16/16/16", "4/8/8/8"]
+    with warmup.build_app().test_request_context("/"):
+        generation = tilecache.current_stamp(prefetch.db, tilecache.cache_dir())["generation"]
+        monkeypatch.setattr(prefetch, "prefetch_per_minute", 0)
+        assert prefetch.module.rebuild(prefetch.db, generation, keys) == 0
+        monkeypatch.setattr(prefetch, "prefetch_per_minute", 100)
+        monkeypatch.setattr(prefetch.module.updateguard, "is_updating", lambda: True)
+        assert prefetch.module.rebuild(prefetch.db, generation, keys) == 0
+
+
+def test_an_answered_request_builds_what_a_change_touched_again(galaxy, prefetch, monkeypatch):
+    rebuilt = []
+    monkeypatch.setattr(prefetch.module, "schedule", lambda db, keys, at=None: 0)
+    monkeypatch.setattr(prefetch.module, "rebuild", lambda db, generation, keys: rebuilt.append((db, generation, keys)))
+    tilecache._owe_rebuild(galaxy.config.database, "00000000000000aa", ["4/8/8/8", "5/16/16/16"])
+    response = _web_worker(galaxy.config).get("/galaxy/tiles?tiles=5/16/16/16")
+    response.close()
+    assert rebuilt == [(galaxy.config.database, "00000000000000aa", ["4/8/8/8", "5/16/16/16"])]
 
 
 def test_prune_marks_the_cache_full_for_the_background_build(tmp_path, monkeypatch):
