@@ -22,6 +22,10 @@ The Alembic head on main is 0113 (DB.79, #2361); the next free revision is 0114,
 - **Global documents (Boss, 11:25 PM EDT):** only the TODO thread regenerates the generated pages that span the project (the architecture map, `docs/index.html`, `docs/plan/*.html`); a lane's PR never touches or regenerates one, and a stale page must never fail a lane's gate. DOC.69 built the mechanism (Core 5, #2172, merged 12:58 AM EDT as the lane clock read): the freshness tests are marked `globaldocs` and skipped unless `PLANETGEN_GLOBAL_DOCS=1` (`scripts/test.py <command> --global-docs`), and the TODO thread runs `python scripts/build_global_docs.py` (or `--check`) after lane merges.
 - **The test container state:** a test that runs `migrate` can leave `state/maintenance.json` set (TEST.189); a lane that finds it works round it with `PLANETGEN_STATE_DIR`.
 
+## Working while a gate runs
+
+Boss, 7:41 PM EDT 2026-10-21: every lane builds the next steps of its build path in a separate worktree while its gate runs, and rebases that worktree as needed to stay current with main. Never edit the checkout a gate is running against (the gate must test the code it started on); a container restart still kills a gate, so a lane keeps its turn active and checks the process and log every 10 minutes.
+
 ## Needs Boss
 
 *The defaults in docs/TODO.md stand as decided until Boss says otherwise; each of these needs one answer or one input.*
