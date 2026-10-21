@@ -34,8 +34,11 @@ def test_core_ball_batch_fill_makes_planets(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
         systems = conn.execute("SELECT COUNT(*) AS n FROM star_systems").fetchone()["n"]
+        # TEST.254: a fourth system was seen once and not again in 109 draws; if it comes back, the rows say which.
+        rows = conn.execute("SELECT id, sector_id, name FROM star_systems ORDER BY id").fetchall() if systems != 3 else []
+        seeds = conn.execute("SELECT * FROM galaxy_shape").fetchone() if systems != 3 else None
         planets = conn.execute("SELECT COUNT(*) AS n FROM planets").fetchone()["n"]
     finally:
         conn.close()
-    assert systems == 3
+    assert systems == 3, (rows, {k: seeds[k] for k in seeds.keys() if 'seed' in k} if seeds else None)
     assert planets >= systems
