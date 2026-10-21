@@ -16635,6 +16635,52 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the coordinator, 5:23 PM EDT).
   Prerequisites: none. Related: PERF.120.
 
+- [ ] **PERF.146 A performance profile of every generation option and scatter, with a repeatable benchmark command, a report and a ranked optimization list: one of the last three 8.1 stages**
+  Boss, 2026-10-21, 6:34 PM EDT, as the coordinator relayed: "have we
+  done a performance test on the bright star scatter? Or any of the
+  generation options so we can try to optimize? That should be a TODO
+  item before we stamp 8.1 as one of the final 3 stages." What exists:
+  `planetgen benchmark` (PERF.31, done) times a small galaxy from the
+  plan to the fill (2 sectors in one shell) and prints each stage's time
+  and database work, with an optional profile of the fill; every run
+  records its stage timings in `generation_stage_runs` and
+  `generation_stats` (PERF.56); PERF.113 to PERF.117 measure single
+  stages (neighbour link, population pass, settle, habitability
+  re-score, map-luminosity fill) and are open; PERF.128 makes the
+  benchmark a wrapper step list. Not covered: the scatters of GEN.301
+  (mass, luminosity, phenomena, nebula field, band, the bright stars and
+  the halo), their cost by size, and a ranked list of what to optimize.
+  Do: extend the benchmark (or add `planetgen benchmark --suite`, the
+  owner picks the name) so one repeatable command, with a fixed seed and
+  the sizes small, medium and large, times every generation option and
+  every scatter kind separately, per stage (bright-star scatter,
+  massive-star pass, halo, satellites, nebula field, band, cluster pass,
+  system fill, population, settle, the neighbour link, the habitability
+  re-score, the map-luminosity fill and the warm-up), reporting wall
+  time, CPU time, database queries and rows, peak memory and the time
+  per star or per cell, with the run-to-run spread; write the JSON and a
+  short report (docs/design/generation-performance.md with its README
+  row, or /mnt/project-files/reports/); rank the costs, estimate the
+  share of a full galaxy run each takes, and list the optimizations in
+  order of saving over effort. Optimizations that change no generated
+  value are built here when small; any that changes a drawn value needs
+  its own item with a generator epoch and Boss's word, and goes to a
+  later version unless he says otherwise. Done: the command exists and
+  is documented in docs/cli.md, a test runs it on a tiny size and checks
+  the JSON shape, the report is merged with the ranked list, items are
+  filed for the top optimizations, and the closing audits are re-run if
+  an optimization touched generation code. Order of the last three 8.1
+  stages (TODO thread, 6:40 PM EDT): (1) the whole-sphere audits
+  TEST.185, TEST.184, TEST.159 and TEST.160 on the final generator; (2)
+  this profile and its cheap optimizations; (3) the security audit
+  SEC.33 and the bug hunt audit TEST.261 on the final code, then the
+  headline GEN.301. Owner proposed: Core 1 after GEN.545 merges, or a
+  fresh performance thread started when TEST.159 and TEST.160 near the
+  end; not Core 5 (it carries the closing audits).
+  Prerequisites: TEST.159, TEST.160. Related: PERF.31, PERF.56,
+  PERF.113, PERF.114, PERF.115, PERF.116, PERF.117, PERF.128, PERF.121,
+  SEC.33, TEST.261.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -19658,7 +19704,9 @@ Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-p
   audits TEST.185, TEST.184, TEST.159 and TEST.160 merge, so the audit
   sees the final code); it must not be the lane that wrote the code
   under audit.
-  Prerequisites: TEST.159, TEST.160. Related: TEST.261.
+  Ordering (TODO thread, 6:40 PM EDT 2026-10-21): this audit runs after
+  the performance profile PERF.146 so it sees the final code.
+  Prerequisites: TEST.159, TEST.160, PERF.146. Related: TEST.261.
 
 ## TEST: The test suite
 
@@ -21520,7 +21568,9 @@ clears each one.
   while a bug it marks blocking is open. Proposed owner: Bug Hunt (it
   runs the audit; the fixes go to the owning lanes); the 8.1 pass starts
   when the whole-sphere audits merge and the security audit has begun.
-  Prerequisites: TEST.159, TEST.160. Related: SEC.33.
+  Ordering (TODO thread, 6:40 PM EDT 2026-10-21): this audit runs after
+  the performance profile PERF.146 so it sees the final code.
+  Prerequisites: TEST.159, TEST.160, PERF.146. Related: SEC.33.
 
 - [ ] **TEST.262 test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug)**
   Found by Bug Hunt (5:34 PM EDT as the lane reported), filed by the
