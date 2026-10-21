@@ -1,0 +1,4 @@
+2026-10-21T18:44:34.180878Z 0 [ERROR] [MY-010095] [Server] Failed to access directory for --secure-file-priv. Please make sure that directory exists and is accessible by MySQL Server. Supplied value : /var/lib/mysql-files
+2026-10-21T18:44:34.180994Z 0 [ERROR] [MY-010119] [Server] Aborting
+2026-10-21T18:45:06.772144Z 0 [ERROR] [MY-010095] [Server] Failed to access directory for --secure-file-priv. Please make sure that directory exists and is accessible by MySQL Server. Supplied value : /var/lib/mysql-files
+2026-10-21T18:45:06.772225Z 0 [ERROR] [MY-010119] [Server] Aborting

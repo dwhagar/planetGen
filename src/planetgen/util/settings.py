@@ -160,6 +160,15 @@ class Cache(_Section):
                         "When it is full the warm-up stops, the tiles it built ahead stay, and the tiles a visit "
                         "asked for are dropped, the least recently visited first (0 turns the disk caches off).",
                         env="PLANETGEN_CACHE_MAX_MB", unit="MB", category="cache", ge=0)
+    warm_on_change: bool = opt(True, "Start the warm-up by itself after anything that changes what the site shows (a "
+                               "generation run, the orbital update, an edit), so the caches are rebuilt without "
+                               "waiting for the next update. It rebuilds only what the change touched.",
+                               env="PLANETGEN_WARM_ON_CHANGE", category="cache")
+    warm_settle_seconds: float = opt(60, "How long the automatic warm-up waits after the first change before it "
+                                     "starts, so a burst of edits is one warm-up and not one for each.",
+                                     unit="seconds", category="cache", ge=0)
+
+    _loose = field_validator("warm_on_change", mode="before")(_loose_bool)
 
 
 class TileCache(_Section):

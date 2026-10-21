@@ -86,7 +86,9 @@
     "x_host": 0
   },
   "cache": {
-    "max_mb": 1024.0
+    "max_mb": 1024.0,
+    "warm_on_change": true,
+    "warm_settle_seconds": 60.0
   },
   "tile_cache": {
     "dir": "",

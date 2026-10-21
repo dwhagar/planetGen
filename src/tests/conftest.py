@@ -85,6 +85,8 @@ os.environ.setdefault("PLANETGEN_RATELIMIT_STORAGE_URI", "memory://")
 # and size stats (PERF.3, PERF.10); tests/test_generation_stats.py turns
 # them on where it checks them.
 os.environ.setdefault("PLANETGEN_GENERATION_STATS", "0")
+# A data change never starts the warm-up by itself in a test (PERF.141); tests/test_warm_start.py turns it on.
+os.environ.setdefault("PLANETGEN_WARM_ON_CHANGE", "0")
 # Table pages count exactly in the tests; tests/test_count_cache.py turns the stored counts (PERF.64) on.
 os.environ.setdefault("PLANETGEN_COUNT_CACHE", "off")
 
