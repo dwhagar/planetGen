@@ -182,8 +182,7 @@
     },
     {
       "epoch": 37,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1848",
       "reason": "An elliptical comet's eccentricity is cut so its aphelion stays inside its star's Hill sphere (GEN.182), so a long-period comet of a light star in a tight galactic place gets a different eccentricity, period and orbit (GEN.591)."
     }
   ]
