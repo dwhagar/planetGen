@@ -64,3 +64,4 @@ Commit each file came from:
 - v109: 6d0c7d3 (GEN.289 planet state vectors, before DB.50 life structure columns)
 - v110: a8946a3 (DB.50 life structure columns, before DB.52 drops the prose; taken from the branch, as no commit of main carries it alone)
 - v111: 2f34d931 (DB.52 drops the prose, before GEN.244 open cluster populations)
+- v112: 422c052 (GEN.244 open cluster populations, before DB.79 object index)

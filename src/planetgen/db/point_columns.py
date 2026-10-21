@@ -157,6 +157,7 @@ from the object's star (a scatter member's offset, from its scatter point)."""
 NOT_BODIES = {
     "sectors": "a cell of the grid, not an object in it",
     "galaxy_components": "a density component of the galaxy (a profile about a centre), drawn from when a sector is made",
+    "object_index": "the list index (DB.79, PERF.140): a row copied from each object's own table, never a source of one",
     "nebula_field": "the index of cloud sites the nebula draws from: a centre and a radius, not an object",
 }
 """dict: Table -> why it carries a point (or a uid) and holds no object."""
