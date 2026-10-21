@@ -27,7 +27,7 @@ The Alembic head on main is 0113 (DB.79, #2361); the next free revision is 0114,
 *The defaults in docs/TODO.md stand as decided until Boss says otherwise; each of these needs one answer or one input.*
 
 - **GEN.537:** the plan configuration design cards (8.5).
-- **Network access:** open arxiv.org, doi.org and crossref for the environment when he can (Boss, 1:17 PM EDT 2026-10-21). Until then lanes treat sources already in the repository or in files he provided as valid, and a value without such a source stays a placeholder in the gap registry; no lane waits on network verification.
+- **Network access:** tested open after 7:20 PM EDT 2026-10-21 (galaxy size research thread): arxiv.org, doi.org (when the publisher is open), api.crossref.org, the Local Volume Database and other hosts; still blocked: ADS, OUP, A&A, ScienceDirect, Science, Annual Reviews, Europe PMC. Boss asked on 1:17 PM EDT 2026-10-21 for arxiv, doi and crossref; nothing is owed on arXiv, doi or Crossref now. Until then lanes treat sources already in the repository or in files he provided as valid, and a value without such a source stays a placeholder in the gap registry; no lane waits on network verification.
 - **The 9.0 major version:** the `.major.md` note and the hand version bump need Boss's word.
-- **GEN.612:** sources (or a labelled placeholder bracket) for the halo, stellar-to-halo and size laws below 1e8 solar masses, so the shape dials' minimum mass (half of Ursa Major III) is reachable; the same gaps as GR11 and GR13.
+- **GEN.612** (the galaxy size floor is answered: Segue 1, Boss 7:31 PM EDT): only the gaps below log M* 5.5 (size law), below 5e5 solar masses (stellar-to-halo formula) and dwarf scale heights still need sources or a labelled placeholder bracket; the rest is sourced (report /mnt/project-files/reports/galaxy-size-sources-2026-10-21.md).
 - **PERF.41:** the cold-rebuild time of `planetgen warm` (was `warm_map`).
