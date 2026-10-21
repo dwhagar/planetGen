@@ -19,7 +19,7 @@ import time
 import types
 
 from planetgen.queue import commands, progress_rate, units, work as workQueue, wrapper
-from planetgen.db import store
+from planetgen.db import nebula_blocks, query, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
 from planetgen.generation import clusters, satellites
@@ -1917,6 +1917,10 @@ def build_nebula_field(args, conn, skeleton, extents, progress):
     linked = store.link_nebula_field_stored(conn)
     log.normal(f"Nebula field: {written[0]:,} clouds of classes M and N"
                + (f", {linked:,} already stored." if linked else "."))
+    log.normal("Making the nebula block totals...")
+    blocks = nebula_blocks.rebuild(conn, skeleton.edge_pc)    # MAP.172: the cover of every block, from the new field
+    conn.commit()
+    log.normal(f"Made {blocks:,} nebula block totals.")
     return written[0]
 
 
@@ -2096,6 +2100,25 @@ def fill_habitability(args):
         lambda detail: f"Habitability: {detail['total']:,} systems to re-score.", "updated")
     log.normal(f"Re-scored the habitability of {updated:,} bodies.")
     return updated
+
+
+def fill_nebula_blocks(args):
+    """
+    Makes the nebula totals of the Galaxy Map's blocks again (MAP.172, `db.nebula_blocks.rebuild`) from
+    `nebula_field` and the stored nebulae, in one transaction.
+
+    Returns:
+        int: The block rows written.
+    """
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        log.normal("Making the nebula block totals...")
+        written = nebula_blocks.rebuild(conn, query.galaxy_edge_pc(conn))
+        conn.commit()
+    finally:
+        conn.close()
+    log.normal(f"Made {written:,} nebula block totals.")
+    return written
 
 
 def expand_clean_nebula_field(params):
@@ -2451,6 +2474,12 @@ def run_plan(args):
         stages.enter("habitability")
         with workQueue.job_node("habitability", "Habitability"):
             fill_habitability(args)
+        stages.finish()
+        return
+    if getattr(args, "fill_nebula_blocks", False):
+        stages.enter("nebula-blocks")
+        with workQueue.job_node("nebula-blocks", "Nebula block totals"):
+            fill_nebula_blocks(args)
         stages.finish()
         return
     if getattr(args, "redo_nebula_field", None):

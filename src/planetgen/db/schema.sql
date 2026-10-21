@@ -1356,6 +1356,10 @@
 -- v115 (DB.44): `sectors.storage_checksum` (BINARY(32), NULL) and `sectors.parity_dirty` (TINYINT NOT NULL DEFAULT 1, so a sector that
 --   existed before counts as not yet protected), the two columns DB.9's storage protection reads. Nothing reads them yet.
 --
+-- v116 (MAP.172): `nebula_block_stats`, `nebula_block_classes` and `nebula_block_state`, what the nebulae add up to in each block of the Galaxy Map's block
+--   ladder (`galaxy/drill.py`, levels 243 to 3): count, volume, centroid, bounding radius, the volume of each family, the dominant
+--   class and the cover, kept by `db/nebula_blocks.py`. Made from `nebula_field` and the stored nebulae; no sector is needed.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -3692,6 +3696,61 @@ CREATE TABLE IF NOT EXISTS nebula_field (
     is_stored     TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (cell_i, cell_j, cell_k, n),
     KEY idx_nebula_field_uid (uid)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- nebula_block_stats (v116, MAP.172): what the nebulae add up to in one block of the Galaxy Map's block
+-- ladder, `(m, shell_index, band_index, wedge_index)` as `galaxy_block_stats` names a block, for the five
+-- levels above a sector. A nebula counts in the block that holds its centre (`nebula_count`, `volume_pc3`,
+-- the volume-weighted `centroid_*_pc`, `bound_radius_pc` around it, and the volume of each family in
+-- `volume_<family>_pc3`; the class with the most volume is `dominant_class`); the part of its sphere that
+-- lies in a block is what `cover_volume_pc3` adds up, so a block a cloud only reaches has a row with a count
+-- of 0, and `cover` = 1 - exp(-cover_volume_pc3 / the block's volume), the share of the block inside a
+-- nebula. The nebulae are the rows of `nebula_field` and the stored `nebulae` that are not field clouds
+-- (matched by `uid`). No foreign keys: a block is not a row of its own.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS nebula_block_stats (
+    m                         SMALLINT UNSIGNED NOT NULL,
+    shell_index               INT NOT NULL,
+    band_index                INT NOT NULL,
+    wedge_index               INT NOT NULL,
+    nebula_count              INT UNSIGNED NOT NULL,
+    volume_pc3                DOUBLE NOT NULL,
+    centroid_x_pc             DOUBLE NULL,
+    centroid_y_pc             DOUBLE NULL,
+    centroid_z_pc             DOUBLE NULL,
+    bound_radius_pc           DOUBLE NULL,
+    volume_diffuse_pc3        DOUBLE NOT NULL,
+    volume_emission_pc3       DOUBLE NOT NULL,
+    volume_reflection_pc3     DOUBLE NOT NULL,
+    volume_planetary_pc3      DOUBLE NOT NULL,
+    volume_dark_pc3           DOUBLE NOT NULL,
+    volume_remnant_pc3        DOUBLE NOT NULL,
+    dominant_class            CHAR(1) NULL,
+    cover_volume_pc3          DOUBLE NOT NULL,
+    cover                     DOUBLE NOT NULL,
+    PRIMARY KEY (m, shell_index, band_index, wedge_index)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- nebula_block_classes (v116, MAP.172): the volume of each nebula class in a block of `nebula_block_stats`
+-- (nebulae by the block of their centre), so a stored nebula can be added to a block and the dominant class
+-- found again without reading the nebulae.
+CREATE TABLE IF NOT EXISTS nebula_block_classes (
+    m                         SMALLINT UNSIGNED NOT NULL,
+    shell_index               INT NOT NULL,
+    band_index                INT NOT NULL,
+    wedge_index               INT NOT NULL,
+    nebula_class              CHAR(1) NOT NULL,
+    volume_pc3                DOUBLE NOT NULL,
+    PRIMARY KEY (m, shell_index, band_index, wedge_index, nebula_class)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- nebula_block_state (v116, MAP.172): one row, `nebulae_through_id`, the highest `nebulae.id` the two tables above have
+-- folded in (`db/nebula_blocks.catch_up` adds the nebulae stored after it). Absent until the tables are first built.
+CREATE TABLE IF NOT EXISTS nebula_block_state (
+    id                        TINYINT UNSIGNED NOT NULL,
+    nebulae_through_id        BIGINT UNSIGNED NOT NULL,
+    PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

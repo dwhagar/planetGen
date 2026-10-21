@@ -98,6 +98,8 @@ def plan_stages(args):
         return [Stage("map-luminosity", "Fill the map luminosity")]
     if getattr(args, "fill_habitability", False):
         return [Stage("habitability", "Re-score the habitability")]
+    if getattr(args, "fill_nebula_blocks", False):
+        return [Stage("nebula-blocks", "Make the nebula block totals")]
     if getattr(args, "redo_nebula_field", None):
         return [Stage("nebula-field", "Clean up the nebula field")]
     redo = getattr(args, "redo_scatters", None)
