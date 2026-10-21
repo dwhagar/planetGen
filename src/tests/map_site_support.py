@@ -471,7 +471,7 @@ def _serve(api, tmp_path_factory):
             patch.setattr(tilecache, name, getattr(api, name))
         patch.setattr(tilecache, "PRUNE_PROBABILITY", 0.0)
         patch.setenv("PLANETGEN_TILE_CACHE_DIR", str(tmp_path_factory.mktemp("tiles")))
-        patch.delenv("PLANETGEN_TILE_CACHE_MAX_MB", raising=False)
+        patch.delenv("PLANETGEN_CACHE_MAX_MB", raising=False)
         app = create_app(_SiteConfig)
         app.testing = True
         server = make_quiet_server("127.0.0.1", 0, app, threaded=True)

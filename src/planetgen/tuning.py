@@ -2648,11 +2648,12 @@ MAGNETAR_SPIN_PERIOD_MS_RANGE = (2000.0, 12000.0)
 # so 1e-7 of them. They follow the young population, not the stars, so the
 # rate per star is divided by the young population's share of all stars in
 # a Milky Way-like galaxy (the integral of the young density over that of
-# every component, 0.19% since GEN.469 gave the disk's populations their
-# shares from its gas history (a galaxy of 5e10 solar masses; a lighter one forms its stars later and holds more young ones): test_gen_magnetar_scatter checks it); a galaxy
+# every component, 0.16%: since GEN.469 the disk's populations have their shares from its gas history (a galaxy of
+# 5e10 solar masses; a lighter one forms its stars later and holds more young ones) and since GEN.544 the exponential
+# height (it was 0.19% over the isothermal one); test_gen_magnetar_scatter checks it); a galaxy
 # with a different young share holds proportionally more or fewer.
 MAGNETAR_PER_NEUTRON_STAR = 1.0e-7
-MAGNETAR_YOUNG_STAR_SHARE = 0.0019
+MAGNETAR_YOUNG_STAR_SHARE = 0.0016
 # A scattered magnetar's age: from the first century to the end of its active life.
 MAGNETAR_AGE_RANGE_GY = (1.0e-7, MAGNETAR_ACTIVE_LIFETIME_YR / 1e9)
 
@@ -3643,7 +3644,7 @@ PHENOMENON_DENSITY_PC3 = {
     # neutron stars (0.4% of ~2.5e11 stars) and 1e8 black holes (0.05%).
     "neutron-star": 5.6e-4,
     # The stellar-mass black holes are not a rate of their own: they follow from the stars' metallicity
-    # (`galaxy.black_hole_density`, GEN.563). The old 7e-5 (1e8 in the Galaxy, 0.05% of ~2.5e11 stars) is a test target.
+    # (`galaxy.remnant_density`, GEN.563). The old 7e-5 (1e8 in the Galaxy, 0.05% of ~2.5e11 stars) is a test target.
     # Giant molecular clouds: 1e-6 to 1e-5 (Kennicutt & Evans 2012, ARA&A
     # 50:531): cloud centers, generated as dark-family nebulae (classes
     # M-Q). GMC_ARM_FILLING_FACTOR is the matching fraction of arm volume
@@ -3798,7 +3799,7 @@ BLACK_HOLE_GALAXY_MEAN_RADIAL_STEPS = 72
 BLACK_HOLE_GALAXY_MEAN_POLAR_STEPS = 24
 BLACK_HOLE_GALAXY_MEAN_AZIMUTH_STEPS = 6
 """int: The log-spaced radii, equal-area polar angles and azimuths of the grid a galaxy's mean black hole rate per star
-is averaged over (`galaxy.black_hole_density.mean_rate_per_star`, GEN.563)."""
+is averaged over (`galaxy.remnant_density.mean_rate_per_star`, GEN.563)."""
 
 EJECTA_SPEED_RANGE_KMS = (300.0, 500.0)
 """tuple: The speed a kicked neutron star or black hole has far out, above the galaxy's escape speed, km/s (GEN.238)

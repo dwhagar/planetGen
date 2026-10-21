@@ -57,9 +57,14 @@ export function relativeDensity(x, y, z, shape) {
   return densityParts(x, y, z, shape)[0];
 }
 
-// A disk's vertical profile: sech^2(z / 2h), exponential scale height h
-// (galaxyDensity._vertical).
+// A disk's vertical profile: exp(-|z| / h), the exponential scale height h
+// the surveys quote (galaxyDensity._vertical).
 function vertical(z, h) {
+  return Math.exp(-Math.min(Math.abs(z) / h, 700));
+}
+
+// The nuclear stellar disc's vertical profile: sech^2(z / 2h) (galaxyDensity._sech_vertical).
+function sechVertical(z, h) {
   return sechSquared(z / (2 * h));
 }
 
@@ -79,7 +84,7 @@ function nuclearDisc(rCyl, z, shape) {
     return 0;
   }
   return shape.nuclear_disc_density * Math.exp(-rCyl / shape.nuclear_disc_length_pc)
-    * vertical(z, shape.nuclear_disc_height_pc);
+    * sechVertical(z, shape.nuclear_disc_height_pc);
 }
 
 // Both nuclear terms at a cylindrical radius and height (galaxyDensity.nuclear_bound).

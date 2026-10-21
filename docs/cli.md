@@ -20,7 +20,7 @@ planetgen fingerprint [options] # a digest of the generated content, to compare 
 planetgen check-db [options]    # look for damage in the database (writes nothing)
 planetgen versions              # the version keys the updates recorded
 planetgen benchmark [options]   # time where generation spends its time, in scratch databases
-planetgen warm [FAMILY ...]     # build the site's caches ahead of the first visit
+planetgen warm [FAMILY|PHASE ...]     # build the site's caches ahead of the first visit
 planetgen commands              # every command the work queue can run
 planetgen command-run KIND ARGS # one unit of one of them, alone
 ```
@@ -616,13 +616,13 @@ planetgen benchmark --sectors 20 --workers 1,2,4 --profile --output bench.json
 
 ## Warm the caches
 
-`planetgen warm` builds the site's caches so the first visitor after a release does not wait for them (MAP.134, PERF.104, PERF.127; design in [cache-warm-up.md](design/cache-warm-up.md)). `update.sh` runs it in the background after every update; run it by hand after clearing a cache, as the web server's user so Apache can read what it writes. Each cache family is a command of its own, listed by `planetgen commands` and runnable alone with `planetgen command-run KIND ARGS`: `warm-galaxy-map` (the opening tiles and stage, the shape, the sector and phenomena lists), `warm-galaxy-tiles` (the Galaxy Map's tiles: the first `tile_cache.warm_levels` levels of the tile octree in full, then the zoom run in to the galaxy's centre down to level `tile_cache.warm_zoom_levels`, cut into chunks of 128 tiles that the workers build; PERF.130), `warm-lists` (the first page of every list and its counts), `warm-sectors`, `warm-systems` and `warm-phenomena` (every page of that kind, nearest the galaxy centre first, up to `page_cache.warm_max_objects` of each) and `warm-search`. `planetgen warm` only builds the list of them (every family in that order, or the families named) and hands it to the wrapper, which queues them one after the other on the Redis queue as a maintenance run: it does not wait for a generation run, holds none up and shows no banner to visitors. A list of every family ends with `end-map-rebuild-maintenance`, which opens the site if the sector-grid switch closed it (UX.112). It waits for a running update to finish, prints one line per family (how many pages it warmed, how many answers it built, how many were already cached and how many the cap left out), and exits 1 naming the command that failed, or when Redis does not answer or another warm-up is running; there is no silent skip.
+`planetgen warm` builds the site's caches so the first visitor after a release does not wait for them (MAP.134, PERF.104, PERF.127; design in [cache-warm-up.md](design/cache-warm-up.md)). `update.sh` runs it in the background after every update; run it by hand after clearing a cache, as the web server's user so Apache can read what it writes. Each cache family is a command of its own, listed by `planetgen commands` and runnable alone with `planetgen command-run KIND ARGS`: `warm-galaxy-map` (the opening tiles and stage, the shape, the sector and phenomena lists), `warm-galaxy-tiles` (the Galaxy Map's tiles: the first `tile_cache.warm_levels` levels of the tile octree in full, cut into chunks of 128 tiles that the workers build; PERF.130), `warm-galaxy-deep-tiles` (the zoom run in to the galaxy's centre, down to level `tile_cache.warm_zoom_levels`; PERF.141), `warm-lists` (the first page of every list and its counts), `warm-sectors`, `warm-systems` and `warm-phenomena` (every page of that kind, nearest the galaxy centre first, up to `page_cache.warm_max_objects` of each) and `warm-search`. `planetgen warm` only builds the list of them (every family in that order, or the families named) and hands it to the wrapper, which queues them one after the other on the Redis queue as a maintenance run: it does not wait for a generation run, holds none up and shows no banner to visitors. A list of every family ends with `end-map-rebuild-maintenance`, which opens the site if the sector-grid switch closed it (UX.112). It waits for a running update to finish, prints one line per family (how many pages it warmed, how many answers it built, how many were already cached and how many the cap left out), and exits 1 naming the command that failed, or when Redis does not answer or another warm-up is running; there is no silent skip.
 
 ```bash
-planetgen warm [FAMILY ...] [--cap N]
+planetgen warm [FAMILY|PHASE ...] [--cap N]
 ```
 
-`FAMILY` is any of `galaxy-map`, `galaxy-tiles`, `lists`, `sectors`, `systems`, `phenomena` and `search` (the list is those, in order, whatever order they are named in); `--cap` overrides `page_cache.warm_max_objects`.
+The warm-up runs in five phases (PERF.141): `opening` (`galaxy-map`, `lists`: the opening views and the first page of each list), `built-levels` (`galaxy-tiles`), `deep-tiles` (`galaxy-deep-tiles`), `objects` (`sectors`, `systems`, `phenomena`) and `search`. After each phase it prints one line: what it built, what was already stored, what the cache budget (`cache.max_mb`) or the cap left out, or `unchanged, nothing built` when the data under it has not changed since the last run. `FAMILY` is any of the families above and `PHASE` any of the phase names, a phase standing for all its families (the list is those, in order, whatever order they are named in); `--cap` overrides `page_cache.warm_max_objects`.
 
 ## Helper tools
 
@@ -737,14 +737,14 @@ python3 -m planetgen.cli.lift_lockout --ip 203.0.113.5
 
 `config.json` is the one file that holds all program configuration, your own copy of `config.json.example`. `check` validates it the way the app reads it (an unknown key is an error) and exits 1 naming every field that does not fit. `docs` rewrites the generated parts, the option table in [config.md](config.md), `config.json.example` and `config.schema.json`, from the settings model; a test fails when they differ from what it would write, so run it after changing an option.
 
-`get [OPTION]` prints the value that applies and where it comes from (default, `config.json` or an environment variable; a secret shows only `(set)` or `(empty)`). `set OPTION=VALUE ...` and `unset OPTION ...` change `config.json` through the same writer as the Admin settings page ([config.md](config.md#saving-settings)): every value is checked first and one bad value saves nothing, the old file is backed up, and each change gets an audit row (when the control database is reachable) and an activity-log line. The command prints what needs a restart. A value is read as JSON for a number, `true` or a list and as text otherwise (`set site_name="My galaxy" tile_cache.max_mb=300`); `OPTION=-` reads it from standard input, which keeps a secret out of the shell history. `restore ARCHIVE` puts the settings of a backup archive back (`planetgen.cli.backup list` shows the archives), backing up the current file first. Every option may be set here, the database, the secrets and the Owner-only ones included, because whoever can run the command owns the server; the Admin page cannot change those. If `config.json` does not exist the command says so and creates nothing.
+`get [OPTION]` prints the value that applies and where it comes from (default, `config.json` or an environment variable; a secret shows only `(set)` or `(empty)`). `set OPTION=VALUE ...` and `unset OPTION ...` change `config.json` through the same writer as the Admin settings page ([config.md](config.md#saving-settings)): every value is checked first and one bad value saves nothing, the old file is backed up, and each change gets an audit row (when the control database is reachable) and an activity-log line. The command prints what needs a restart. A value is read as JSON for a number, `true` or a list and as text otherwise (`set site_name="My galaxy" cache.max_mb=300`); `OPTION=-` reads it from standard input, which keeps a secret out of the shell history. `restore ARCHIVE` puts the settings of a backup archive back (`planetgen.cli.backup list` shows the archives), backing up the current file first. Every option may be set here, the database, the secrets and the Owner-only ones included, because whoever can run the command owns the server; the Admin page cannot change those. If `config.json` does not exist the command says so and creates nothing.
 
 ```bash
 python3 -m planetgen.cli.config check
 python3 -m planetgen.cli.config docs
-python3 -m planetgen.cli.config get tile_cache.max_mb
-python3 -m planetgen.cli.config set tile_cache.max_mb=300 site_name="My galaxy"
-python3 -m planetgen.cli.config unset tile_cache.max_mb
+python3 -m planetgen.cli.config get cache.max_mb
+python3 -m planetgen.cli.config set cache.max_mb=300 site_name="My galaxy"
+python3 -m planetgen.cli.config unset cache.max_mb
 python3 -m planetgen.cli.config restore 20261016T193012Z.tar.bz2
 ```
 

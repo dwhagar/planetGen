@@ -2,6 +2,66 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1857] - 2026-10-21
+
+**Headline:** A test now holds that a dense-core cell filled without the star scatter makes the systems its resolution gives.
+
+### Changed
+- A cell over the cell star ceiling that is filled with no star scatter drawn makes the number of systems `cell_resolution` gives (GEN.592). The reported case, a capped cell making none, does not reproduce on the current generator: the probe seed's first dense-core cell resolves 3,973 systems and makes 3,989. The test keeps it so.
+
+### Fixed
+- The black-hole stream test (GEN.563) scattered a shell of ten million rows twice and held 11 GB, so it was killed in a full run; it now uses a shell of a few hundred thousand rows and takes seconds.
+
+## [8.0.1856] - 2026-10-21
+
+**Headline:** The cache warm-up now runs in five named phases and says after each one what it built, what was already stored and what the cache budget left out.
+
+### Changed
+- **`planetgen warm` runs in phases (PERF.141).** In order: `opening` (the Galaxy Map's opening views and the first page of each list), `built-levels` (the tile octree's first levels), `deep-tiles` (the zoom run in to the centre), `objects` (the sector, system and phenomenon pages) and `search`. `warm-galaxy-tiles` is split in two for it, and the new `warm-galaxy-deep-tiles` command builds the zoom run. After each phase the run prints one line: `Phase 2 of 5, built-levels: 3 built, 125 already stored, 0 left out in 2.0 s.`, or `unchanged, nothing built` when the data under it has not changed since the last run, and `stopped at the cache budget` when `cache.max_mb` cut the tile phases short. A phase name can be given instead of families (`planetgen warm deep-tiles`).
+
+TODO items resolved / Added: PERF.141 (slice 1: the phases and their reports; the automatic start and the admin page follow) / Added: none
+
+## [8.0.1855] - 2026-10-21
+
+**Headline:** The galaxy's disks are exponential in height, the form their scale heights are measured with, so a galaxy's midplane stars are twice as dense for the same mass.
+
+### Changed
+- **The thin and thick disks' vertical profile is `exp(-|z| / h)`, not the isothermal sheet `sech^2(z / 2h)`** (`galaxy/density.py` `_vertical`, `generation/object_first.py`, `galaxy/skeleton.py`, `html/static/galaxyprisms.js`). The scale heights the model uses (BHG16's 300 pc and 900 pc) are exponential fits to star counts; a `sech^2` sheet with the same tail has a column of `4 h` times its midplane density where the fit's is `2 h`, so for one stellar mass the midplane was half the fits' (GEN.404 made the density follow the mass and exposed it). The mass of each disk is unchanged (its column is `2 h` times the midplane now, `2 pi L^2 x 2 h` in `density._disk_mass`, `shape_draw.disk_masses` and `density.bulge_to_total`), so at the reference radius between two arms the density is 0.750 of the density the earlier calibration pinned there (it was 0.376 under GEN.404) and the column through that point is 524.26 pc of relative density before and after. The nuclear stellar disc keeps its `sech^2` height (`density._sech_vertical`).
+  - The open clusters' heights (`generation/open_clusters.py`) and the neutron-star and black-hole height factor (`galaxy/remnant_distribution.py`) follow the stars' profile.
+  - The reference galaxy's bulge amplitude is 3.11 / 2 (`mathcheck.REFERENCE_BULGE_AMPLITUDE`): BHG16's 3.11 was measured against the `sech^2` disk, and the bulge keeps its 31% of the mass.
+  - `MAGNETAR_YOUNG_STAR_SHARE` is 0.0016 (it was 0.0019), the young population's share of the stars over the new profile.
+  - The reference galaxy's outline reaches shell 3,596 (it was 3,147 under GEN.404, 3,762 before it); the rest of the gap to the pinned density is the mean system mass (GEN.545).
+- The generator epoch is 41.
+generation-output: changed
+
+### Added
+- `tests/test_galaxy_milky_way.py`: the thin disk's column is `2 h` times its midplane, the density at the reference radius is 0.75, and its column is 524.26 as before.
+
+TODO items resolved: GEN.544. Added: none.
+
+## [8.0.1854] - 2026-10-21
+
+**Headline:** A galaxy's neutron stars are now what its massive stars leave when they do not become black holes, instead of a fixed number per star.
+
+### Changed
+- The neutron star density at a place is the black hole sum with the survivors of the failed-supernova share (`1 - F`) and the galaxy's bound share, so a galaxy whose massive stars fail more makes more black holes and fewer neutron stars, and a metal-rich place makes more neutron stars than a metal-poor one. At the middle draw a standalone sector rolls 4.08e-3 per star (Boss's research density is 4.0e-3, now a test target); bound plus ejected neutron stars equal what the galaxy formed.
+- The neutron star unbound share (0.2 to 0.4) is drawn once with the galaxy's structure and read by both the bound count and the ejected field. `galaxy/black_hole_density.py` is now `galaxy/remnant_density.py`, taking the remnant kind.
+- Black hole counts are unchanged. `docs/design/neutron-star-density.md` records the model.
+
+generation-output: changed
+
+TODO items resolved: GEN.554 slice 1 (neutron star counts follow the mass function; GEN.554 stays open for the mass islands and the kick step) / Added: none
+
+## [8.0.1853] - 2026-10-21
+
+**Headline:** One setting, `cache.max_mb` (1 GB by default), sizes the stored caches, and when it is full the warm-up stops and only tiles nobody asked for lately are dropped.
+
+### Changed
+- **One cache size key, `cache.max_mb` (PERF.139).** It replaces `tile_cache.max_mb` and `PLANETGEN_TILE_CACHE_MAX_MB` with no compatibility shim (an old `tile_cache.max_mb` in `config.json` is ignored), defaults to 1024 MB instead of 200, and `0` turns the disk caches off. The Galaxy Map's tile cache is the first thing under it; the object index and the stored lists will share it. `update.sh`'s cache directory step and `docs/config.md` follow the new key.
+- **What happens at the budget (PERF.133).** The tiles `planetgen warm`, the background build and the rebuild after a change build ahead are marked, and a visit sets the modification time of the file it reads. When the cache is over the budget `prune` deletes only the files a visit asked for, least recently visited first, down to 80%; a tile built ahead is never deleted for size. `planetgen warm` then stops building tiles and says how many it left out (`N tiles left out, the tile cache is full`).
+
+TODO items resolved / Added: PERF.139 (key and budget behaviour; the slider is ADM.97), PERF.133 (second part) / Added: none
+
 ## [8.0.1852] - 2026-10-21
 
 **Headline:** Every body with a mass can now report its whole kinematic record: where it is, how it moves, how it spins, its mass and when it is next due.

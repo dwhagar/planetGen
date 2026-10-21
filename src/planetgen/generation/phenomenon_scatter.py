@@ -26,7 +26,7 @@ with its mass drawn above the cut. A sector draws the share below it when
 it is filled (`below_cut_draws`, GEN.168), from its own stream, so the two
 add up to the whole population. Stellar-mass and intermediate-mass black
 holes are separate classes (GEN.166). The stellar-mass black holes follow the stars' metallicity
-(`galaxy.black_hole_density`, GEN.563) and the intermediate-mass ones have a rate of their own. Every class draws from
+(`galaxy.remnant_density`, GEN.563) and the intermediate-mass ones have a rate of their own. Every class draws from
 a random stream of its own, so a change to one class's counts moves no other class's rows.
 
 Not scattered: rogue planets, interstellar comets, asteroid fields and
@@ -42,7 +42,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.galaxy import black_hole_density, density, nebula_field, profile, remnant_distribution
+from planetgen.galaxy import remnant_density, density, nebula_field, profile, remnant_distribution
 from planetgen.galaxy import spherical
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.galaxy.sector import _sample_poisson_count
@@ -164,14 +164,16 @@ def mass_law(kind, subtype):
 
 
 def class_rate_per_star(kind, subtype):
-    """A class's expected count per star. The stellar-mass black holes' is `black_hole_density.base_rate_per_star` (the
-    place's metallicity then scales it, GEN.563), the intermediate-mass black holes' a rate of their own
+    """A class's expected count per star. The stellar-mass black holes' and the neutron stars' is
+    `remnant_density.base_rate_per_star` (the place's metallicity then scales it, GEN.563 and GEN.554), the intermediate-mass black holes' a rate of their own
     (`tuning.BLACK_HOLE_INTERMEDIATE_RATE_PER_STAR`: they are not remnants of failed supernovae). The magnetars' (GEN.278)
     is `MAGNETAR_PER_NEUTRON_STAR` of the neutron stars', per star of the young population they follow
     (`MAGNETAR_YOUNG_STAR_SHARE`)."""
     if kind == "black-hole":
         return (tuning.BLACK_HOLE_INTERMEDIATE_RATE_PER_STAR if subtype == "intermediate"
-                else black_hole_density.base_rate_per_star())
+                else remnant_density.base_rate_per_star())
+    if remnant_density.follows_metals(kind, subtype):
+        return remnant_density.base_rate_per_star(kind)
     rate = tuning.phenomenon_rate_per_star(kind)
     if subtype == MAGNETAR_SUBTYPE:
         return rate * tuning.MAGNETAR_PER_NEUTRON_STAR / tuning.MAGNETAR_YOUNG_STAR_SHARE
@@ -325,8 +327,8 @@ def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, st
     for kind, subtype, rate in rates:
         rng = streams(kind, subtype)
         young = registry.scatter_class_gate(kind, subtype) == "young stars"
-        stellar_hole = kind == "black-hole" and subtype == "stellar"
-        table = (kind, subtype) if young or stellar_hole else kind
+        metals = remnant_density.follows_metals(kind, subtype)
+        table = (kind, subtype) if young or metals else kind
         if table not in tables:
             if young:
                 # The young population and its arm contrast, none in the halo or a cluster (GEN.278); a magnetar is
@@ -337,7 +339,7 @@ def _band_rows(shape, shell_index, high_band, edge_pc, expected_at_density_1, st
                 if kind in tuning.REMNANT_SCALE_HEIGHT_RATIO:
                     factor = (remnant_distribution.vertical_factor_array(kind, z_mid, shape.disk_scale_height_pc)
                               * remnant_distribution.radial_factor_array(kind, plane))
-                weights = (black_hole_density.weights_array(x_bins, y_bins, z_mid[:, None], shape) if stellar_hole
+                weights = (remnant_density.weights_array(x_bins, y_bins, z_mid[:, None], shape, kind) if metals
                            else base) * factor[:, None]
                 if kind in GAS_WEIGHTED_KINDS:
                     weights = weights * _gas_weight(x_bins, y_bins, z_mid[:, None], shape)
@@ -431,7 +433,7 @@ def below_cut_draws(address, center_pc, shape, expected_stars, min_mass_solar, s
     class, a Poisson count with mean the class's rate times the sector's
     expected stars (`expected_stars`, the density the scatter used, not
     the sector's rolled star count) times its regional factor at the
-    sector's center (the stellar-mass black holes' times the metallicity factor of the place), times the share below the cut. Drawn from the
+    sector's center (the stellar-mass black holes' and neutron stars' times the metallicity factor of the place), times the share below the cut. Drawn from the
     sector's own stream (`FILL_STREAM`), so a sector's objects do not
     depend on which other sectors are filled, or in what order.
 
@@ -447,8 +449,8 @@ def below_cut_draws(address, center_pc, shape, expected_stars, min_mass_solar, s
         if below <= 0.0:
             continue
         mean = class_rate_per_star(kind, subtype) * expected_stars * below
-        if kind == "black-hole" and subtype == "stellar":
-            mean *= black_hole_density.place_factor(center_pc, shape)      # the place's metallicity (GEN.563)
+        if remnant_density.follows_metals(kind, subtype):
+            mean *= remnant_density.place_factor(center_pc, shape, kind)      # the place's metallicity (GEN.563, GEN.554)
         if kind in tuning.REMNANT_SCALE_HEIGHT_RATIO:
             mean *= remnant_distribution.placement_factor(kind, center_pc, shape.disk_scale_height_pc)
         count = _sample_poisson_count(mean, rng=rng)
@@ -484,8 +486,8 @@ def _expectation_factor(shape, kind, subtype, plane, z):
         return shares["young"] / total if total > 0.0 else 0.0
     factor = (remnant_distribution.vertical_factor(kind, z, shape.disk_scale_height_pc)
               * remnant_distribution.radial_factor(kind, plane))
-    if kind == "black-hole" and subtype == "stellar":
-        factor *= black_hole_density.place_factor((plane, 0.0, z), shape)
+    if remnant_density.follows_metals(kind, subtype):
+        factor *= remnant_density.place_factor((plane, 0.0, z), shape, kind)
     if kind in GAS_WEIGHTED_KINDS:
         factor *= min(1.0, max(nebula_field.gas_factor((plane, 0.0, z), shape), 0.0))
     if kind == OLD_STAR_KIND:

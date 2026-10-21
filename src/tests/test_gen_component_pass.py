@@ -15,7 +15,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.db import store
-from planetgen.galaxy import black_hole_density, component_field, components, scatter_limits, spherical
+from planetgen.galaxy import remnant_density, component_field, components, scatter_limits, spherical
 from planetgen.galaxy.scatter_limits import ScatterLimits
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass, phenomenon_scatter, run_plan
@@ -165,7 +165,7 @@ def test_the_phenomena_of_a_component_are_its_systems_times_each_classs_rate():
     for (kind, subtype), rate in rates.items():
         wanted = component_pass.systems_of(cluster) * rate * 6
         if (kind, subtype) == ("black-hole", "stellar"):      # the failed share of a globular cluster's old, metal-poor stars
-            wanted *= black_hole_density.component_factor({"cluster": 1.0})
+            wanted *= remnant_density.component_factor({"cluster": 1.0})
         if wanted > 30:
             assert counts[phenomenon_scatter.class_label(kind, subtype)] == pytest.approx(wanted, abs=5.0 * math.sqrt(wanted))
     for row in rows[0]:

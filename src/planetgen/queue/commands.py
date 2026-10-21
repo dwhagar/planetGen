@@ -136,10 +136,14 @@ REGISTRY = _commands(
     CommandSpec("warm-galaxy-map", "Warm the Galaxy Map's opening view, its shape, sectors and phenomena",
                 unit=("planetgen.web.warmup", "warm_galaxy_map_unit"),
                 expand=("planetgen.web.warmup", "expand_warm_galaxy_map")),
-    CommandSpec("warm-galaxy-tiles", "Warm the Galaxy Map's tiles: the first levels in full, and the zoom run in to the centre",
+    CommandSpec("warm-galaxy-tiles", "Warm the Galaxy Map's tiles: the first levels in full",
                 unit=("planetgen.web.warmup", "warm_galaxy_tiles_unit"),
                 expand=("planetgen.web.warmup", "expand_warm_galaxy_tiles"),
                 finish=("planetgen.web.warmup", "finish_warm_galaxy_tiles")),
+    CommandSpec("warm-galaxy-deep-tiles", "Warm the Galaxy Map's deep tiles: the zoom run in to the centre",
+                unit=("planetgen.web.warmup", "warm_galaxy_deep_tiles_unit"),
+                expand=("planetgen.web.warmup", "expand_warm_galaxy_deep_tiles"),
+                finish=("planetgen.web.warmup", "finish_warm_galaxy_deep_tiles")),
     CommandSpec("warm-lists", "Warm the first page of every list, and its counts",
                 unit=("planetgen.web.warmup", "warm_lists_unit"), expand=("planetgen.web.warmup", "expand_warm_lists")),
     CommandSpec("warm-sectors", "Warm every sector page",
@@ -193,7 +197,8 @@ KIND_OF_STAGE = {
 
 
 KIND_OF_WARM_FAMILY = {family: f"warm-{family}" for family in
-                       ("galaxy-map", "galaxy-tiles", "lists", "sectors", "systems", "phenomena", "search")}
+                       ("galaxy-map", "lists", "galaxy-tiles", "galaxy-deep-tiles", "sectors", "systems", "phenomena",
+                        "search")}
 """dict: The command that warms each cache family (`web/warmup.FAMILIES`), the steps of `planetgen warm`."""
 
 KIND_OF_CHECK = {name: f"check-{name}" for name in (
@@ -322,10 +327,7 @@ def _warm_steps(args):
     """
     from planetgen.web import warmup
     asked = list(getattr(args, "families", None) or ())
-    unknown = [family for family in asked if family not in warmup.FAMILIES]
-    if unknown:
-        raise ValueError(f"no such cache family {unknown[0]!r}; one of {', '.join(warmup.FAMILIES)}")
-    families = [family for family in warmup.FAMILIES if not asked or family in asked]
+    families = warmup.expand_phases(asked) if asked else list(warmup.FAMILIES)
     settings = {"database": args.database, "cap": getattr(args, "cap", None)}
     steps = [Step(family, KIND_OF_WARM_FAMILY[family], f"Warm {family}: {warmup.FAMILIES[family]}", dict(settings))
              for family in families]

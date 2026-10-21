@@ -13386,52 +13386,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed).
   Prerequisites: none. Related: GEN.133, GEN.134.
 
-- [ ] **GEN.544 Revisit the disc's vertical profile: the sech-squared core has half the midplane density of the exponential fits its scale heights come from**
-  Found by Core 1 while building GEN.404 (2026-10-17, 8:33 PM EDT as the
-  lane reported), filed by the TODO thread. Design gap, a consequence of
-  GEN.404's "Mass sets count" decision (Boss, card in Core 1's thread):
-  `galaxy/density.py` `_vertical` uses sech^2(z / 2h), and with the
-  density normalised to the galaxy's mass the reference structure (5e10
-  solar masses) has 0.037 systems per pc^3 at the reference radius, 0.38
-  of the old pinned local density (0.0985). The thin disc holds the
-  right column there (about 30 solar masses per pc^2 against 35
-  observed), but a sech^2 core has half the midplane density of the
-  exponential fits the scale heights were measured against, so the
-  midplane is too sparse and the 2.6 times sparser result of GEN.404 is
-  partly this profile and not only the mass law. Fails on main: no (it
-  appears with GEN.404's normalisation). Frequency: every galaxy.
-  Reproducer: `build_galaxy_shape` with the BHG16 shape,
-  `relative_density` at 3.15 scale lengths. Do: decide the profile with
-  the sources the scale heights come from (an exponential or a sum of
-  thin populations by age, GEN.134's young share and the thick disc
-  ratios decide the sum), keep the column density, change the midplane,
-  and say in the design note what the old and new local density are.
-  Default (stands unless Boss overrules): keep the column (about 30
-  against 35 observed) and match the midplane of the exponential fits,
-  with the thin populations summed if one profile cannot do both. Done:
-  the midplane density at the reference radius matches the fits within
-  the derived scatter, the column density does not move, and a test pins
-  both. A change that alters the generator output follows the epoch
-  rule. Owner: Core 1 proposed (it owns the code GEN.404 changes), after
-  GEN.404 merges.
-  Decided (Boss, 2026-10-17, 9:00 PM EDT, typed in the project chat,
-  relayed by the coordinator): "No that is approved, sounds like the two
-  new items will fix the star count drop". The default on this item
-  stands as the decision; Boss expects GEN.544 and GEN.545 together to
-  undo most of the star count drop GEN.404 causes. Owner: Core 1 (they
-  follow GEN.404).
-  Lane report (Core 1, 7:35 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): edits drafted, not tested: the thin and
-  thick disc vertical profile changes from sech^2 to exp(-|z|/h) (the
-  form the survey scale heights are fitted with) with the column (mass)
-  kept, so the midplane density doubles and column integrals become 2h
-  instead of 4h; open-cluster heights and the remnant height factor
-  follow the stars' profile; the nuclear disc keeps its isothermal
-  sheet. It needs a generator epoch (the next free one, 40, after GEN.553's second slice),
-  and docs/design/galaxy-disk-density.md gets the old and new local
-  density.
-  Prerequisites: none. Related: GEN.404, GEN.134, GEN.401.
-
 - [ ] **GEN.545 The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution**
   Found by Core 1 while building GEN.404 (2026-10-17, 8:33 PM EDT as the
   lane reported), filed by the TODO thread.
@@ -13462,6 +13416,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stands as the decision; Boss expects GEN.544 and GEN.545 together to
   undo most of the star count drop GEN.404 causes. Owner: Core 1 (they
   follow GEN.404).
+  Core 1 after GEN.544 merged (#2323, 1:43 PM EDT 2026-10-21 as the lane
+  reported, epoch 41): the density at the reference radius is now 0.75
+  of the old pinned value (0.376 of it under GEN.404, which is twice the
+  GEN.404 value), the column through that point is unchanged at 524.26
+  pc of relative density, and the reference galaxy outline reaches shell
+  3,596 (was 3,147). The remaining gap is the mean system mass
+  (`tuning.MEAN_SYSTEM_MASS_SOLAR` 0.4), which this item derives.
+  Core 1 (2:02 PM EDT 2026-10-21 as the lane reported): the derived mean
+  system mass is 0.51 solar masses, not the recalled 0.4, so the
+  reference galaxy's system count goes down about 21%; Core 1 proceeds
+  with the approved default (derive it; generator epoch 42).
   Prerequisites: none. Related: GEN.404, GEN.103, GEN.366.
 
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
@@ -13798,6 +13763,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
   lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
   (reported 4:33 PM EDT 2026-10-18).
+  Slice 1 merged as #2314 (Core 4, 1:15 PM EDT 2026-10-21 as the lane
+  reported): the neutron star count is the massive stars minus the black
+  holes, `remnant_density.py` replaces `black_hole_density.py`, the
+  unbound share of neutron stars is a structure field, and the generator
+  epoch 40 is pending (it takes its stamp at the next release). Boss
+  chose 'Keep the cap' on the black hole cap card (12:39 PM EDT
+  2026-10-21, as Core 4 reported). The item stays open for the mass
+  islands and the kick step. Boss's 1:17 PM EDT 2026-10-21 note (as the
+  coordinator relayed): Network access to arxiv.org, doi.org and
+  crossref stays closed until he opens it, and information already
+  included in the repository or in files he provided is valid; so the
+  kick-escape share and any other source this step cannot read stay
+  labelled recalled or placeholder in the gap registry and do not block
+  the step.
 
 - [ ] **GEN.555 The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -15241,31 +15220,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   prerequisite of GEN.301.
   Prerequisites: none. Related: GEN.244, GEN.282.
 
-- [ ] **GEN.592 A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced)**
-  Observation by Bug Hunt (reported 8:51 AM EDT 2026-10-18 on the lane's
-  clock; not yet traced), filed by the TODO thread. In a galaxy run that
-  does not draw the star scatter, a capped cell (expected systems over
-  the 5,000 ceiling, in the dense core) generates 0 systems, while
-  `galaxy.resolution.cell_resolution` says it resolves 4 to 30 (no mass
-  limit passed) or 81 over a 24-cell neighbourhood (with the scatter's
-  mass limit passed, as `run_galaxy._fill_context` does). Probed with
-  the fixed seed 96901074FC015B42F2E80F1434609687: cells (4,-1,23),
-  (3,0,16), (4,0,23) and (5,0,29) resolved 10.4, 4.1, 25.8 and 29.5
-  systems and generated 0 each by `galaxy --shell --band --wedge`. Fails
-  on main: not checked by the TODO thread. Question for the GEN.281
-  owner: if the fill is meant to turn the bands drawn at the cap into
-  systems even without the scatter, it under-generates; if the scatter
-  must have run first, the plan statistics overstate what a sector run
-  produces, and the plan should say so. Do: trace why the capped cell
-  generates nothing, then either fix the fill or write down that the
-  scatter must run first and make the statistics honest. Done: a capped
-  cell generates the number `cell_resolution` gives, or the plan states
-  the precondition and the statistics follow it, with a test of the
-  chosen behaviour. Bug Hunt's own TEST.225 test no longer depends on
-  this (its next PR leaves capped cells out of the sum). Owner: Core 3
-  (proposed, GEN.281's lane).
-  Prerequisites: none. Related: GEN.281, GEN.283.
-
 - [ ] **GEN.593 Pulsar planets: the disc range stops short of PSR B1257+12's planets, and two of the three formation paths (a captured giant, an ablated companion) leave a pulsar with no planets**
   Design gaps in GEN.317 found by Core 3 while building it (reported
   11:18 AM EDT 2026-10-18, real clock; its GEN.317 gate started 11:17 AM
@@ -15333,6 +15287,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with its test (TEST.215) still passing. Suggested owner: a research
   thread, then Core 4 (the comet sampler lane); version 8.4.
   Prerequisites: none.
+
+- [ ] **GEN.596 A companion below 0.01 solar masses makes multistar.draw_member_tree raise 'no cooling track' (bug)**
+  Found by Core 1 (2:02 PM EDT 2026-10-21 as the lane reported; relayed
+  by the coordinator at 2:02 PM EDT), filed by the TODO thread.
+  `multistar.draw_member_tree` (src/planetgen/generation/multistar.py)
+  raises `ValueError: no cooling track for ... solar masses`
+  (src/planetgen/physics/brown_dwarf.py, the models run from their
+  lowest tabulated mass) when a companion is drawn below 0.01 solar
+  masses. Frequency: 21 of 3,000 trees (0.7%) for a 0.085 solar mass
+  primary. Fails on main: yes, Core 1 reproduced it on current main.
+  Reproducer: `Placed("star", 0.085)`, age 5e9 years, streams b"f0" to
+  b"f2999"; 21 of 3,000 fail. Do: find where the companion mass is drawn
+  below the cooling table's lowest mass and either clamp the draw to the
+  table's range (the draw's own lower limit) or take the planetary-mass
+  branch, whichever the mass function's design says; no try/except that
+  hides it. Done: the reproducer gives 0 failures in 3,000 and a test
+  covers a primary near the hydrogen-burning limit. Owner: Core 4 (routed by the coordinator, 2:09 PM EDT 2026-10-21; it takes the item after its current slice).
+  Prerequisites: none. Related: GEN.545, GEN.262.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -15981,7 +15953,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changes tile content, so the build is a step the wrapper lists after
   the generation commands, never a part of one). Owner: Core 2
   (proposed; the map and cache lane).
-  Prerequisites: PERF.131, PERF.133, PERF.134.
+  Prerequisites: PERF.134.
   Related: PERF.41, PERF.104, PERF.120, PERF.127, MAP.158, MAP.159,
   MAP.195, MAP.239.
   Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
@@ -16005,162 +15977,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   forward if its cause is the missing cache" is superseded by Boss's
   card on MAP.249 (2026-10-18, about 8:54 AM EDT, "Both, cut payload
   first"): the tile cache work follows MAP.249's payload cut.
-
-- [ ] **PERF.131 Store the tiles compressed and serve the stored bytes with their encoding, so a request does no compression**
-  Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
-  caching, so that we build out not only the initial galactic view but
-  all the normal zoom levels for that view that we can compress and
-  serve up to the client immediately on request. Basically I want to
-  build out tiles for the first several zoom levels and then I want to
-  build it so that system is proactive and when the user visits and zoom
-  level it builds and caches all the surrounding tiles and the next zoom
-  levels. Then it keeps them until the data changes." What exists (read
-  from main, 2026-10-17): `web/lib/tilecache.py` keeps packed tiles on
-  disk (`<cache dir>/<db>/<generation>/<tile>.bin`, the PGT1 format of
-  `tilepack.py`), answers `/galaxy/tiles` by joining stored bytes, and
-  keeps stage and window payloads the same way; freshness is the content
-  stamp plus `GET /api/galaxy/changes` (the `modified_at` columns, so
-  only the changed tiles are deleted, and a change that cannot be pinned
-  to tiles starts a new generation); `prune` deletes the least recently
-  written files above `tile_cache.max_mb`; the browser keeps its own
-  copy in IndexedDB (MAP.158); `web/warmup.py` warms only the opening
-  view's tiles and the galaxy stage; Apache compresses each response at
-  send time; the admin health block shows where the cache lives and its
-  size. Today the stored packed tile is joined per request and Apache
-  compresses the response (`mod_brotli`, else `mod_deflate`), and
-  joining several gzip members in one body was tried and dropped because
-  Chromium decodes only the first member (the docstring of
-  tilecache.py). Done: each tile is stored once packed and once
-  compressed (brotli, with gzip for a client that does not accept it,
-  chosen by measuring the size and the decode cost on a real galaxy and
-  written in the PR), a request for one or more tiles is answered from
-  the stored compressed bytes with `Content-Encoding` and no
-  recompression (tiles that cannot be concatenated stay separate
-  responses or a length-prefixed body of compressed members that the
-  browser unpacks, whichever the measurement favours), the disk size of
-  the cache is reported for both forms, and the response is the same
-  data as today for the same tiles (a test). Owner: Core 2 (proposed).
-  Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
-  stored here are built with halo and satellite-galaxy stars ranked
-  below every other star, so a budget cut removes them first; landing
-  that rule bumps the tile cache stamp and the cached tiles are rebuilt
-  once. The galaxy map lag Boss reported at the same time is MAP.249; if
-  its cause is the missing cache, this item is brought forward.
-  Decided (Boss, 2026-10-18, tapped 'Both, cut payload first' on the
-  MAP.249 card at about 8:54 AM EDT, as the coordinator relayed): the
-  tile cache work follows MAP.249's payload cut, so it starts after Core
-  2's payload PR (about 2 MB a view) and is sized for the reduced tiles.
-  Boss (2026-10-18, 5:43 PM EDT): about 10 times the first tile cache's
-  40 MB is acceptable, up to 1 GB by the `cache.max_mb` setting
-  (PERF.139); stored data that can be precomputed and shipped ready
-  should be.
-  Boss, 2026-10-18, 6:05 PM EDT: "make sure we don't re-compile a tile
-  if nothing has changed". Storing compressed tiles must not rebuild a
-  tile that is already stored and unchanged; it only re-encodes once,
-  when the format changes.
-  Prerequisites: none. Related: PERF.129, MAP.159, MAP.158.
-
-- [ ] **PERF.133 Keep every tile until the data changes: invalidate by what changed, rebuild what a change touched, and never evict a valid tile for size**
-  Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
-  caching, so that we build out not only the initial galactic view but
-  all the normal zoom levels for that view that we can compress and
-  serve up to the client immediately on request. Basically I want to
-  build out tiles for the first several zoom levels and then I want to
-  build it so that system is proactive and when the user visits and zoom
-  level it builds and caches all the surrounding tiles and the next zoom
-  levels. Then it keeps them until the data changes." What exists (read
-  from main, 2026-10-17): `web/lib/tilecache.py` keeps packed tiles on
-  disk (`<cache dir>/<db>/<generation>/<tile>.bin`, the PGT1 format of
-  `tilepack.py`), answers `/galaxy/tiles` by joining stored bytes, and
-  keeps stage and window payloads the same way; freshness is the content
-  stamp plus `GET /api/galaxy/changes` (the `modified_at` columns, so
-  only the changed tiles are deleted, and a change that cannot be pinned
-  to tiles starts a new generation); `prune` deletes the least recently
-  written files above `tile_cache.max_mb`; the browser keeps its own
-  copy in IndexedDB (MAP.158); `web/warmup.py` warms only the opening
-  view's tiles and the galaxy stage; Apache compresses each response at
-  send time; the admin health block shows where the cache lives and its
-  size. Done: a stored tile is kept until the data under it changes, as
-  the content stamp and the `modified_at` check already decide; a change
-  rebuilds the tiles it touched (the changed tiles and their coarser
-  parents, in the background at once rather than on the next visit);
-  `prune` no longer deletes a valid tile because of age, so
-  `cache.max_mb` is sized from the measured size of the built levels
-  plus the visited ones, the admin page says when the cache is at the
-  budget, and only the least recently visited on-demand tiles are
-  dropped to make room (see the Decided note below); a new tile format or a new generator
-  epoch (PERF.41) drops the stored tiles once and starts a new
-  generation; the generation and stamp logic keeps working for stage and
-  window payloads; tests for a change inside one sector (only its tiles
-  and parents rebuilt), a re-planned galaxy (a new generation) and a
-  full cache (warming stops, built-ahead tiles stay, the oldest visited tile goes). Owner: Core 2 (proposed).
-  Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
-  stored here are built with halo and satellite-galaxy stars ranked
-  below every other star, so a budget cut removes them first; landing
-  that rule bumps the tile cache stamp and the cached tiles are rebuilt
-  once. The galaxy map lag Boss reported at the same time is MAP.249; if
-  its cause is the missing cache, this item is brought forward.
-  Decided (Boss, 2026-10-18, card tap 5:56 to 5:57 PM EDT "Stop warming,
-  drop oldest visits", as the coordinator reported it; REPLACES this
-  item's earlier "never evict for size, warn only" wording): when the
-  `cache.max_mb` budget (PERF.139, default 1 GB) is full, the warm-up
-  stops, the built-ahead tiles are kept, and only the least recently
-  visited on-demand tiles are dropped to make room. A tile is still never
-  dropped because of age, and a change to the data still rebuilds what it
-  touched. Where the Done text below says "instead of evicting" or
-  "nothing valid deleted", this decision wins.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): "brought
-  forward" is superseded by Boss's card on MAP.249 (2026-10-18, about
-  8:54 AM EDT): the tile cache work follows MAP.249's payload cut (about
-  2 MB a view).
-  Boss, 2026-10-18, 6:05 PM EDT: "make sure we don't re-compile a tile
-  if nothing has changed". Already required by this item (a stored tile
-  is kept until the data under it changes, by the content stamp and the
-  `modified_at` check); the explicit test is on PERF.141: a second
-  warm-up with no change builds nothing. A tile is also not rebuilt when
-  only a release stamp changes and the tile format and generator epoch
-  do not (PERF.41).
-  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
-  2026-10-18, as the coordinator reported them): fork 11, "Required
-  prerequisite": PERF.41 (the TILE_FORMAT stamp) is a prerequisite of
-  this item.
-  Lane report (Core 2, 7:35 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): part 1 is committed (branch perf133, gate
-  started 7:23 AM EDT): stored tiles are keyed by a new `tile_stamp`
-  (shape, bright seed, naming key, `query.TILE_FORMAT` = 1, generator
-  epoch, change counters) with the release number out of it, so a
-  release alone keeps every stored tile (the page cache and counts still
-  follow `stamp`); `/api/galaxy/changes` gains `tile_stamp` and
-  `tile_full`; a change deletes only the tiles holding the sector and
-  queues the stored ones for rebuild at once (`tilecache.take_rebuilds`,
-  `tileprefetch.rebuild`, coarsest first, at most 2,048, off with
-  `prefetch_per_minute` 0, during an update or with the cache full); the
-  tests (no change builds zero tiles, a one-sector change rebuilds only
-  its tiles, a release alone rebuilds nothing, a TILE_FORMAT bump
-  rebuilds all) are in test_cache_warmup.py and test_tile_format.py pins
-  one tile's bytes. Not in part 1: the zero-list and index rebuild half
-  (waits for PERF.140 and PERF.141) and eviction by least recently
-  visited at the budget, which Core 2 builds with PERF.139 as its next
-  PR.
-  Merged in part: part 1 (Core 2, #2311, reported 9:35 AM EDT 2026-10-21
-  as the lane reported; changed gate 7:23 to 9:22 AM EDT, 6,886 passed,
-  157 skipped; no generator epoch): stored tiles are keyed by a tile
-  stamp without the release number (`query.TILE_FORMAT` = 1, the
-  generator epoch and the change counters), so a release alone keeps
-  every stored tile; `/api/galaxy/changes` gains `tile_stamp` and
-  `tile_full`; a change deletes only the tiles holding the sector and
-  queues the stored ones for rebuild at once (coarsest first, at most
-  2,048; off with `prefetch_per_minute` 0, during an update or with the
-  cache full); `tests/test_tile_format.py` pins one tile's bytes (raise
-  TILE_FORMAT and the digest when tiles change); Boss's no-recompile
-  tests are in test_cache_warmup.py (a no-change warm builds zero tiles,
-  a one-sector change rebuilds only its tiles, a release alone rebuilds
-  nothing, a TILE_FORMAT bump rebuilds all);
-  docs/design/cache-warm-up.md and docs/api.md updated. Still open here:
-  eviction of the least recently visited on-demand tiles when
-  `cache.max_mb` is full, which Core 2 carries with PERF.139 next.
-  Prerequisites: PERF.41. Related: PERF.129, PERF.104.
+  Decided (Boss, tapped "Skip it" on the card "Store Galaxy Map tiles
+  compressed (PERF.131), or skip it?" at 11:27 AM EDT 2026-10-21, tap
+  verified on the platform): PERF.131 is skipped and retired. Apache
+  keeps compressing at send time (Core 2 measured under 0.1 s a big
+  view: a 200-tile view is 3.8 MB packed and 0.8 MB gzipped, gzip 0.03
+  to 0.10 s, against 3 to 54 s to build a cold view) and PERF.132
+  (#2298) removed the real waits; no new wire format.
 
 - [ ] **PERF.134 The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -16190,7 +16013,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of the first levels now, each through the command of PERF.130 and with
   the confirmation the other admin actions use; the actions are in the
   admin log; a test per action. Owner: Core 2 (proposed).
-  Prerequisites: PERF.133. Related: PERF.129, PERF.130,
+  Prerequisites: none. Related: PERF.129, PERF.130,
   PERF.133.
   Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
   stored here are built with halo and satellite-galaxy stars ranked
@@ -16203,6 +16026,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   forward" is superseded by Boss's card on MAP.249 (2026-10-18, about
   8:54 AM EDT): the tile cache work follows MAP.249's payload cut (about
   2 MB a view).
+  Merged with PERF.139 and PERF.133 (Core 2, #2316, release 8.0.1853,
+  reported 12:10 PM EDT 2026-10-21 as the lane reported; no epoch): the
+  admin cache view shows used and budget per kind against
+  `cache.max_mb`; PERF.139's own "admin page shows the budget" line
+  moves here (Core 2 did the key and the pruning, not the admin view).
 
 - [ ] **PERF.136 Measure the fill with wanderers and their moons, and decide whether the rogue cost is on by default**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -16248,51 +16076,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.126 and PERF.127 commands); low priority, no version blocker.
   Prerequisites: none. Related: PERF.75, PERF.135.
 
-- [ ] **PERF.139 One cache size setting, `cache.max_mb`, default 1024: tiles, stored lists and indexes share one disk budget**
-  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
-  warm-up that occurs after an update, generation, or change. That is
-  where we rebuild our tile cache, and I want us to go as deep as we
-  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
-  times that amount of stored data. If we can precalculate it, prepare
-  it, and get it ready to ship, let's do it. Same thing for caches of
-  all the lists. I had a serious problem with trying to find objects. I
-  need an index. I need a list of systems. I need a list of basically
-  every list the site wants, from phenomena in each type to planets to
-  moons to stars to whatever. We should build a cached index. Once
-  generation or updates are done, anytime anything changes, the cache it
-  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
-  say I'm perfectly happy with the cache up to 1 GB. There should be a
-  setting for that: how big the cache should be, on a slider on the
-  settings page and also, of course, in the config JSON file." Today
-  `tile_cache.max_mb` (default 200, a separate text box on the settings
-  page) bounds only the tile cache, and nothing bounds the stored lists.
-  Do: one key `cache.max_mb` in `config.json` (default 1024, 0 turns the
-  stored caches off) replaces `tile_cache.max_mb`, with no shim; the
-  tile cache, the stored lists and the object index share it; the admin
-  cache view (PERF.134) shows used and budget per kind. What happens when the budget is full is
-  decided (Boss, card taps 2026-10-18, 5:56 to 5:57 PM EDT, as the coordinator reported them): warming stops at the budget, built-ahead tiles are kept
-  and only the least recently visited on-demand tiles are dropped (see PERF.133);
-  when the budget is short, the object index and stored lists are kept first and
-  the tiles take the remaining space. `page_cache.max_mb` is memory per process,
-  a different thing, and stays. Done: the key exists in the settings model,
-  `config.schema.json`, `config.json.example` and docs/config.md, the
-  tile cache reads it, a test fills a small budget and checks the stated
-  behaviour, and the admin page shows the budget. Suggested owner: Core
-  2 (the tile cache lane); filed in 8.2.
-  Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
-  coordinator reported them): the cache budget is full: warming stops,
-  built-ahead tiles stay, only the least recently visited on-demand
-  tiles are dropped (PERF.133 amended); the budget is short: indexes and
-  stored lists first, tiles take the rest.
-  Lane report (Core 2, 7:35 AM EDT 2026-10-21 as the lane reported,
-  filed by the TODO thread): next PR after PERF.133 part 1:
-  `cache.max_mb` default 1024 replaces `tile_cache.max_mb` with no shim
-  (environment variable PLANETGEN_CACHE_MAX_MB; settings.py, config
-  docs, schema and example, deploy-paths.py, create-cache-dir.sh and
-  about 10 tests), with eviction of the least recently visited tiles
-  when the budget is full.
-  Prerequisites: none.
-
 - [ ] **PERF.140 The index builder and its automatic refresh: each kind is rebuilt from what changed whenever generation, an orbital update or an edit changes it**
   Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
   warm-up that occurs after an update, generation, or change. That is
@@ -16324,7 +16107,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator reported them): the index and lists are filed in 8.2 with
   the tile cache, after PERF.131 to 133; their space is taken first when
   the shared budget is short, tiles take the rest.
-  Prerequisites: DB.79, PERF.139.
+  Merged with PERF.139 and PERF.133 (Core 2, #2316, release 8.0.1853,
+  reported 12:10 PM EDT 2026-10-21 as the lane reported; no epoch):
+  `cache.max_mb` (default 1024, 0 turns the disk caches off, environment
+  variable PLANETGEN_CACHE_MAX_MB) is the one budget; the stored lists
+  and the index built here must share it and still need the "kept first"
+  rule (when the budget is short the index and lists are kept and the
+  tiles take the rest), which Core 2 states cannot be built until the
+  lists and index exist.
+  Owner (coordinator decision, 12:07 PM EDT 2026-10-21 as the
+  coordinator relayed it): Core 2 owns DB.79 first and then this item.
+  Core 2's PERF.141 parts that do not need the index go first.
+  Prerequisites: DB.79.
 
 - [ ] **PERF.141 The warm-up runs in phases after every generation, update or change, as deep as the budget allows**
   Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
@@ -16372,7 +16166,150 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and index rebuild half of Boss's no-recompile test (a no-change warm
   rebuilds no stored list or index) waits for PERF.140 and lands with
   this item; the tile half is in PERF.133's part 1 (#2311).
-  Prerequisites: PERF.139, PERF.140, PERF.131, PERF.133.
+  Merged with PERF.139 and PERF.133 (Core 2, #2316, release 8.0.1853,
+  reported 12:10 PM EDT 2026-10-21 as the lane reported; no epoch):
+  tiles built ahead (warm, background build, rebuild after a change) are
+  marked (`tilecache.AHEAD_MODE`, the group-read bit) and never pruned,
+  and each galaxy-tiles warm unit checks `tilecache.cache_is_full()` and
+  reports "N tiles left out, the tile cache is full"; the phases and
+  their skipped and rebuilt totals are this item (Core 2's next).
+  Slice 1 merged as #2325 (Core 2, 1:50 PM EDT 2026-10-21 as the lane
+  reported; release 8.0.1856): the warm-up runs in five named phases
+  with a report line per phase (built, unchanged, left out), `planetgen
+  warm` accepts phase names, a `warm-galaxy-deep-tiles` command exists,
+  and the tile phases stop at `cache.max_mb`. Gate: 3,831 passed, 157
+  skipped in 88 minutes. Still open: slice 2 (the automatic start after
+  generation, `planetgen orbits` and data-version changes) and slice 3
+  (the admin page shows each phase); the list and index half of Boss's
+  no-recompile test waits on DB.79 and PERF.140.
+  Prerequisites: PERF.140.
+
+- [ ] **PERF.142 A stale job left in the database or the queue blocks every new run and Boss cannot proceed (bug)**
+  Boss (2026-10-21, 12:32 PM EDT, typed in the project chat): "On I need
+  to fix a bug, we need a command to reset all jobs and the queue I
+  somehow have a job in the db somewhere that won't let me proceed".
+  Reported through the coordinator; nothing is known yet about which
+  record it is or how it got left behind. Facts from the code (read, not
+  run): a new run of a kind is refused with `Busy` while
+  `runrecord.active_run` names another run of that kind
+  (`queue/runrecord.py`), PERF.99 names the Redis key
+  `planetgen:run:active` and a stale-run Clear action that does not
+  exist yet, and the old MySQL job tree (`work_*` tables,
+  `queue/work.py`) is still written until PERF.100, so a stuck row can
+  sit in Redis, in an RQ queue or in MySQL. Do: ask Boss for the text of
+  the refusal or the page that blocks (or read it from his server's
+  log), find which record blocks and why it was never cleared (a killed
+  worker, a restarted container or a run that died between stages are
+  the likely paths, inferred, not checked), fix the path that leaves it
+  behind so a dead run is detected as stale and stops blocking, and name
+  the cause on this item. Done: the cause is on this item, a test kills
+  a run mid-stage and the next run starts without a manual step, and the
+  reset command (the item filed with this one) is not needed to recover
+  from a crash. Owner: Bug Hunt (the coordinator gave it the report at
+  12:32 PM EDT). Related: PERF.99 (the stale-run Clear action),
+  PERF.100.
+  Cause found (Bug Hunt, reported 12:45 PM EDT 2026-10-21 as the lane
+  reported; kind bug, test none yet, fails on main: yes, frequency:
+  every time a worker dies mid-job): a queued job whose worker was
+  killed stays "running" in Redis forever. Reproduced by script: enqueue
+  on `planetgen-interactive` with `job_timeout=-1` as
+  `queue/redisqueue.py` does, start `planetgen.cli.worker`, `kill -9`
+  the worker; the job stays in the started registry, RQ's own cleanup
+  leaves it (score +inf). Effect: `admin/updateguard.py`
+  `QueuedJobSource` lists it as running, `workers.cancel_now` cannot
+  stop it, `wait_until_idle` waits 600 s and `update.sh` refuses to go
+  on. Bug Hunt's fix: reap jobs of dead workers in the guard and at
+  worker start, with a test. This is the cause of this item, not a
+  separate item; Done stays as written.
+  Boss, 2026-10-21, 12:42 PM EDT: "Let's make sure we build a way to
+  process and manage tasks that are dead?  Will redis do this?" Answer
+  (Bug Hunt, as the coordinator relayed it): Redis and RQ recover a
+  started job only when it has a time limit, and ours have none
+  (`job_timeout=-1`); the `planetgen:run:active` key has no expiry; so a
+  killed run blocks every new run. Scope, three parts: (1) a job whose
+  worker is gone is failed or requeued (the reap in the guard and at
+  worker start), (2) a dead owning run is detected, so the next run
+  proceeds without a manual step and the run record is closed as failed,
+  (3) the reset command, which is PERF.143. Parts 1 and 2 are this item;
+  the liveness check of `planetgen:run:active` belongs with them, and the RQ job time limits are PERF.144 (Boss, 12:44 PM EDT). Done also needs: a test kills
+  a worker mid-job and the job is failed or requeued, and a test kills
+  the run's owner and the next run starts.
+  Causes found by code and by reproduction (Bug Hunt, reported 12:46 PM
+  EDT 2026-10-21 as the lane reported; the earlier note above gives the
+  second one): (1) the most likely blocker for Boss:
+  `planetgen:run:active` (`queue/runrecord.py` `start_run`, SET NX, no
+  expiry) is freed only by the run's own process in `finish_run`, so a
+  run whose follower process is killed with kill -9, by the OOM killer
+  or by a container restart leaves it set and every new run gets Busy
+  for ever. Fix: runs record their owner process and a heartbeat key,
+  and `start_run` takes over from a dead holder (same host: the pid is
+  gone; otherwise no heartbeat for 120 s; old runs with no owner count
+  as dead). (2) A web or API job queued with `job_timeout=-1` whose
+  worker is killed stays in the RQ started registry for ever; fix:
+  `workers.reap_dead_jobs`, called by the guard and at worker start. The
+  RQ time limit for those jobs is PERF.144, not this item.
+  Prerequisites: none. Related: PERF.99, PERF.100, PERF.86.
+
+- [ ] **PERF.143 A command resets all jobs and the queue: clears every run record, the active-run key, the waiting and started units and the old job tree**
+  Boss (2026-10-21, 12:32 PM EDT, typed in the project chat): "On I need
+  to fix a bug, we need a command to reset all jobs and the queue I
+  somehow have a job in the db somewhere that won't let me proceed". Do:
+  one command (the name is the owner's call; it must not be confused
+  with `planetgen reset`, which wipes the galaxy) that stops any live
+  worker with the stop command, then clears every run record and the
+  `planetgen:run:active` key, empties the RQ queues and the event
+  streams, and deletes the rows of the old MySQL job tree, so a new run
+  starts at once; it prints what it removed (counts per kind), asks for
+  confirmation unless given `--yes`, and never touches galaxy data, the
+  tile or page caches, or the settings. Done: a test plants a stale run
+  in each place (Redis run record, active key, a waiting and a started
+  unit, MySQL job rows), the command clears all of it, the galaxy rows
+  are unchanged, and a run then starts without `Busy`; the command is in
+  the console help list (UX/console items) and docs. When PERF.100
+  removes the MySQL job tree the command drops that step with no shim.
+  Owner: Bug Hunt (the coordinator gave it the report at 12:32 PM EDT).
+  Related: the stale-job bug filed with this item, PERF.99 (the Clear
+  action on the Generate page covers the same ground in the page),
+  PERF.100.
+  Bug Hunt (reported 12:45 PM EDT 2026-10-21 as the lane reported) is
+  building it as `planetgen.cli.reset_jobs` and `update.sh
+  --reset-jobs`, clearing work_jobs and work_lease, the Redis `rq:*`
+  keys and stray workers, with a test.
+  Boss, 2026-10-21, 12:42 PM EDT: "Let's make sure we build a way to
+  process and manage tasks that are dead?  Will redis do this?" Answer
+  (Bug Hunt, as the coordinator relayed it): Redis and RQ recover a
+  started job only when it has a time limit, and ours have none
+  (`job_timeout=-1`); the `planetgen:run:active` key has no expiry; so a
+  killed run blocks every new run. This item is part 3 of the three-part
+  scope on PERF.142 (dead-task management); parts 1 and 2 are on that
+  item.
+  Build detail (Bug Hunt, reported 12:46 PM EDT 2026-10-21 as the lane
+  reported): `python3 -m planetgen.cli.reset_jobs` (and `update.sh
+  --reset-jobs`) removes the `rq:*` and `planetgen:run:*` keys, kills
+  local workers, deletes the `work_jobs` rows and frees the work lease;
+  it never touches galaxy data, caches or settings. The name is
+  `reset_jobs`, not `planetgen reset`. Bug Hunt adds the console help
+  list entry if that list is built, and will say if it is not.
+  Prerequisites: none. Related: PERF.99, PERF.100, PERF.86.
+
+- [ ] **PERF.144 Web and API jobs get an RQ time limit from recorded stats instead of no limit, so a killed worker's entry expires**
+  Boss (2026-10-21, 12:44 PM EDT, in the Bug Hunt thread, as Bug Hunt
+  reported it): "Can we build a time limit to assign to RQ based on
+  stats?". Today the Generate page's job (`web/jobs.py:696`), the API's
+  jobs (`queue/api_jobs.py:150`) and the queue executor
+  (`queue/redisqueue.py:305`) are queued with `job_timeout=-1`, so RQ
+  never expires their entries when a worker dies (PERF.142). Units
+  already get a limit (`units.unit_timeout`: a multiple of the stage's
+  expected seconds, with a floor and a ceiling, never -1). Do: give
+  these jobs a limit the same way, from the recorded timings per kind
+  (`generation_stats`, a multiple with a floor and a ceiling), and a
+  fixed ceiling for API routes that have no timings; no job is queued
+  with -1. Done: a test shows each queue path passes a finite limit, a
+  kind with recorded timings gets the multiple and one without gets the
+  ceiling, and a job over its limit is ended and reported failed. Owner:
+  Bug Hunt, after the PERF.142 and PERF.143 PR. Related: PERF.142,
+  PERF.106 (the unit limits).
+  Prerequisites: none. Related: PERF.142, PERF.143, PERF.106.
 
 ## DB: Database and schema
 
@@ -16635,6 +16572,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   on 2026-10-16 that it is its to fix stays on record, so the two lines
   are not reconciled further here (the recommendation was to ask Boss,
   with Core 1 as the fallback).
+  Decided (Boss, tapped "Core 1" on the DB.33 owner card at 11:29 AM EDT
+  2026-10-21, as the coordinator reported it): Core 1 owns DB.33, after
+  its current queue.
   Prerequisites: none.
 
 - [ ] **DB.36 Tables for change plans, their operations and the edit journal (migration only)**
@@ -17592,11 +17532,16 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   columns the list pages sort and filter on; a unique key on kind and
   ID, keyset keys per kind and sort, and a FULLTEXT index on the name.
   Done: the migration, the model and schema.sql agree, and the index is
-  empty until PERF.141 fills it. Suggested owner: Core 1; filed in 8.2 with the tile cache
+  empty until PERF.140 fills it. Suggested owner: Core 1; filed in 8.2 with the tile cache
   (Boss, card tap 5:56 to 5:57 PM EDT).
   Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
   coordinator reported them): the index table is filed in 8.2 with the
   tile cache; the index is kept first when the shared budget is short.
+  Owner (coordinator decision, 12:07 PM EDT 2026-10-21 as the
+  coordinator relayed it): Core 2 owns this item and does it first, then
+  PERF.140, because Core 1 has GEN.544, GEN.545 and DB.33 queued. Core 2
+  numbers the migration (next free 0113). This replaces the suggested
+  owner Core 1 above. Not started.
   Prerequisites: none.
 
 ## API: The JSON API
@@ -18827,7 +18772,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   moving it writes the key, editing `config.json` moves the slider, and
   a test covers the round trip. Suggested owner: Core 2 with the
   settings page code; filed in 8.2.
-  Prerequisites: PERF.139.
+  Merged with PERF.139 and PERF.133 (Core 2, #2316, release 8.0.1853,
+  reported 12:10 PM EDT 2026-10-21 as the lane reported; no epoch): the
+  key `cache.max_mb` now exists in the settings model,
+  `config.schema.json` and docs/config.md and the old
+  `tile_cache.max_mb` is gone with no shim; the settings-page slider is
+  still this item.
+  Prerequisites: none.
 
 ## SEC: Security
 
@@ -20675,52 +20626,15 @@ clears each one.
   each test now has its own key, `test_wanted_workers_key.py` pins it,
   and `conftest.py` changed (so the next gate selects all 20,433 tests).
   This replaces the inferred cause above.
+  Two more sightings (Core 1, 11:28 AM EDT 2026-10-21 as the lane
+  reported; passed alone on rerun, no traceback kept, 1 in 1 full run
+  under 4 workers):
+  `tests/test_work_units.py::test_the_skeleton_is_one_unit_whose_lines_the_starter_logs_and_whose_run_is_recorded`
+  and
+  `tests/test_workers.py::test_lowering_the_count_tells_the_extra_bulk_workers_to_finish_and_exit`.
+  Bug Hunt's per-test wanted-workers key (committed, not merged) may
+  cover them; a traceback is needed if they recur.
   Prerequisites: none. Related: TEST.250, TEST.254.
-
-- [ ] **TEST.256 test_black_hole_density: the black-hole stream test fails in loaded and full gates and passes alone (bug)**
-  Found by Core 2 (its PERF.132 gate, 4:02 to 5:40 PM EDT 2026-10-18,
-  one failure inside the loaded gate), Core 3 (its gate: timed out at
-  900 s) and Bug Hunt (its full gate of 2026-10-18: 20,277 passed, 1
-  failed), reported 7:34 to 7:35 AM EDT 2026-10-21 on the lanes' clocks,
-  filed by the TODO thread.
-  `src/tests/test_black_hole_density.py::test_each_class_draws_from_a_stream_of_its_own_so_the_black_holes_move_no_other_row`
-  (GEN.563's test, Core 3's area) fails in loaded or full gates and
-  passes alone (16 of 16 for Bug Hunt). Failure text: not relayed (Core
-  3's gate recorded a 900 s timeout; the other two a plain failure).
-  Fails on main: not shown, passes alone. Frequency: 3 of 3 gates that
-  ran it loaded or in the full run. Reproducer (Bug Hunt is trying it):
-  run the scatter test modules in one process before this test, or run
-  `scripts/test.py full` and read its `.test-failures.jsonl`. Likely
-  cause (inferred, not checked): an order dependence between scatter
-  modules in one process (shared random-stream or cache state) or a slow
-  scatter under load. Do: get the failure text, find the order
-  dependence or the slow step, fix the test or the code; no quarantine.
-  Done: the cause is on this item and the test passes in a full run and
-  in a gate beside another gate. Owner: Bug Hunt (proposed; it reports
-  it is reproducing the order dependence and will say if the cause is
-  Core 3's).
-  Cause found by Core 5 (9:08 AM EDT 2026-10-21 as the lane reported;
-  its gate 3 `changed` on PERF.107 and PERF.108: 6,740 passed, 2 failed,
-  neither from its branch): memory, not an order dependence. The test
-  alone peaks at 10.9 GB resident on main 8ad9099 and on Core 5's branch
-  (91 s and 93 s), so a gate with 4 workers on the 16 GB machine has the
-  kernel OOM-kill a worker ("worker 'gwN' crashed"; dmesg shows the
-  kill; gate 2 on 2026-10-18 and gate 3 both crashed on it). Reproducer:
-  `python3 -m pytest -n0
-  src/tests/test_black_hole_density.py::test_each_class_draws_from_a_stream_of_its_own_so_the_black_holes_move_no_other_row`
-  and read ru_maxrss. Do (changed): shrink the test's scatter (shell 4,
-  rate for 3 solar masses, minimum mass 1.0, as Core 5 suggested) or use
-  a lower-memory path, so it peaks well under 2 GB, keeping what it
-  proves (each class draws from its own stream). This replaces the
-  inferred order-dependence cause above; owner stays Bug Hunt, with Core
-  3 consulted because it is GEN.563's test.
-  More sightings (reported 9:08 to 9:20 AM EDT 2026-10-21 as the lanes
-  reported): Core 3's gate hit the 900 s timeout on it again (9:06 AM
-  EDT, passes alone in 111 s on the branch) and Core 4's gate lost a
-  worker to it (the known worker-crash), so it has failed in 6 of 6
-  loaded gates since 2026-10-18; the memory cause above covers both the
-  timeout and the crash.
-  Prerequisites: none. Related: TEST.255, TEST.250, GEN.563.
 
 - [ ] **TEST.257 test_sector_page_and_tiles_show_a_phenomenon_the_cli_added asserts an empty cloud list on an unseeded galaxy and sometimes gets a nebula (bug)**
   Found by Core 1 (its GEN.591 gate, reported about 9:09 AM EDT
@@ -20739,6 +20653,22 @@ clears each one.
   quarantine. Done: the test passes 30 of 30 loop runs on an idle
   machine and the cause is on this item. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.254, TEST.256.
+
+- [ ] **TEST.258 Other tests that scatter a low shell of the toy shape may hold gigabytes after GEN.404: sweep them for resident memory**
+  Suggested by Core 3 (2:02 PM EDT 2026-10-21 as the lane reported,
+  after fixing TEST.256 in #2327), filed by the TODO thread. GEN.404
+  made the toy galaxy hold a real galaxy's stellar mass, so a test that
+  scatters a low shell index of the toy shape (shell 4 held ten million
+  rows and 11 GB resident in the black-hole stream test) can get a gate
+  worker OOM-killed or time out. Do: list every test that calls
+  `scatter.scatter_shell` or a sibling with a shell index below about 8
+  on the toy shape, measure each one's peak resident memory (`ru_maxrss`
+  run alone, `-n0`), and move any above about 1 GB to a higher shell
+  index or a smaller rate, as #2327 did for shell 10; no quarantine.
+  Done: no test in a gate holds more than about 1 GB alone, and the list
+  with the figures is on this item. Owner: Bug Hunt (proposed; the
+  symptom is a loaded-gate failure).
+  Prerequisites: none. Related: TEST.256, TEST.255, GEN.404.
 
 ## USR: User accounts
 

@@ -29,12 +29,13 @@ from planetgen.galaxy import scales
 from planetgen.util import detmath
 
 
-def _sech2_profile(z_pc, scale_pc):
-    """A sech^2 layer's density at height `z_pc`, normalized to a unit column."""
-    x = abs(z_pc) / (2.0 * scale_pc)
-    if x > 300.0:
+def _exponential_profile(z_pc, scale_pc):
+    """An exponential layer's density at height `z_pc`, normalized to a unit column (the stars' own vertical
+    profile, `galaxy.density._vertical`, GEN.544)."""
+    x = abs(z_pc) / scale_pc
+    if x > 700.0:
         return 0.0
-    return 1.0 / math.cosh(x) ** 2 / (4.0 * scale_pc)
+    return math.exp(-x) / (2.0 * scale_pc)
 
 
 def vertical_factor(kind, z_pc, thin_height_pc):
@@ -48,10 +49,10 @@ def vertical_factor(kind, z_pc, thin_height_pc):
     ratio = tuning.REMNANT_SCALE_HEIGHT_RATIO.get(kind)
     if ratio is None or thin_height_pc <= 0.0:
         return 1.0
-    stars = _sech2_profile(z_pc, thin_height_pc)
+    stars = _exponential_profile(z_pc, thin_height_pc)
     if stars <= 0.0:
         return tuning.REMNANT_VERTICAL_FACTOR_MAX
-    return min(_sech2_profile(z_pc, thin_height_pc * ratio) / stars, tuning.REMNANT_VERTICAL_FACTOR_MAX)
+    return min(_exponential_profile(z_pc, thin_height_pc * ratio) / stars, tuning.REMNANT_VERTICAL_FACTOR_MAX)
 
 
 def vertical_factor_array(kind, z_pc, thin_height_pc):
@@ -62,8 +63,8 @@ def vertical_factor_array(kind, z_pc, thin_height_pc):
         return np.ones_like(z_pc)
 
     def profile(scale_pc):
-        x = np.minimum(np.abs(z_pc) / (2.0 * scale_pc), 300.0)
-        return np.where(np.abs(z_pc) / (2.0 * scale_pc) > 300.0, 0.0, 1.0 / np.cosh(x) ** 2 / (4.0 * scale_pc))
+        x = np.abs(z_pc) / scale_pc
+        return np.where(x > 700.0, 0.0, np.exp(-np.minimum(x, 700.0)) / (2.0 * scale_pc))
 
     stars = profile(thin_height_pc)
     thick = profile(thin_height_pc * ratio)

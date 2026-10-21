@@ -29,7 +29,7 @@ from planetgen.physics.units import ly_to_pc
 from planetgen.queue import commands
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.util.settings import get_settings
-from planetgen.web.lib import apiclient
+from planetgen.web.lib import apiclient, tilecache
 from planetgen.web.lib.tilecache import fetch_stage, fetch_tiles
 from planetgen.web.maps.galaxymap3d import (
     CAMERA_START_PHI_DEG, CAMERA_START_THETA_DEG, camera_position_pc, initial_tile_request, tile_bounds_pc,
@@ -38,16 +38,117 @@ from planetgen.web.maps.galaxymap3d import (
 PAGE_SIZE = 100
 """int: Rows asked for at a time when the warm-up lists the objects to visit."""
 
-FAMILIES = {
+PHASES = (
+    ("opening", "the opening views and the first page of each list", ("galaxy-map", "lists")),
+    ("built-levels", "the Galaxy Map's tiles to the built levels", ("galaxy-tiles",)),
+    ("deep-tiles", "the deep tiles along the zoom run in to the centre", ("galaxy-deep-tiles",)),
+    ("objects", "the sector, system and phenomenon pages", ("sectors", "systems", "phenomena")),
+    ("search", "the search page and its answers", ("search",)),
+)
+"""tuple: The warm-up's phases in the order they run (PERF.141): `(name, what it warms, the families in it)`. A phase
+is the unit the run reports and the admin page shows; each family is a command of its own."""
+
+_FAMILY_TEXT = {
     "galaxy-map": "the Galaxy Map's opening view, its shape, sectors and phenomena",
-    "galaxy-tiles": "the Galaxy Map's tiles: the first levels in full, and the zoom run in to the centre",
     "lists": "the first page of every list, and its counts",
+    "galaxy-tiles": "the Galaxy Map's tiles: the first `tile_cache.warm_levels` levels in full",
+    "galaxy-deep-tiles": "the Galaxy Map's deep tiles: the zoom run in to the centre, down to `warm_zoom_levels`",
     "sectors": "every sector page",
     "systems": "every system page",
     "phenomena": "every phenomenon page",
     "search": "the search page",
 }
-"""dict: Every family, in the order they run, and what it warms."""
+FAMILIES = {family: _FAMILY_TEXT[family] for _name, _text, families in PHASES for family in families}
+"""dict: Every family, in the order they run (the phases', see `PHASES`), and what it warms."""
+
+
+class PhaseTally:
+    """
+    Adds up the results of the families of a warm-up run and says, as each phase ends, what it did (PERF.141): how
+    much it built, how much was already stored or cached, how much the budget or a cap left out, and, when it built
+    nothing at all, that it was `unchanged`.
+
+    Args:
+        families (list[str]): The families of the run, in the order they run.
+    """
+
+    def __init__(self, families):
+        self.families = [family for family in FAMILIES if family in families]
+        self.totals = {family: {"built": 0, "cached": 0, "warmed": 0, "left_out": 0, "seconds": 0.0}
+                       for family in self.families}
+        self._done = set()
+        self._reported = set()
+
+    def add(self, family, result):
+        """Adds one unit's result (the dict a family's unit returns) to `family`'s totals."""
+        total = self.totals[family]
+        for key in ("built", "cached", "warmed", "left_out"):
+            total[key] += int(result.get(key) or 0)
+        total["seconds"] += float(result.get("seconds") or 0.0)
+
+    def line(self, name):
+        """The one line for phase `name`: `Phase 2 of 5, built-levels: ...` (`None` when none of its families ran)."""
+        number = next(index for index, (phase, _text, _families) in enumerate(PHASES, 1) if phase == name)
+        families = [family for family in self.totals if phase_of(family) == name]
+        if not families:
+            return None
+        built, cached, warmed, left_out, seconds = (
+            sum(self.totals[family][key] for family in families) for key in ("built", "cached", "warmed", "left_out", "seconds"))
+        head = f"Phase {number} of {len(PHASES)}, {name}"
+        if not warmed and not left_out:
+            return f"{head}: nothing to warm."
+        if not built and not left_out:
+            return f"{head}: unchanged, nothing built ({cached:,} already stored) in {seconds:.1f} s."
+        return (f"{head}: {built:,} built, {cached:,} already stored, {left_out:,} left out in {seconds:.1f} s"
+                f"{'; stopped at the cache budget' if left_out and name in ('built-levels', 'deep-tiles') else ''}.")
+
+    def _ready(self):
+        lines = []
+        for name, _text, _families in PHASES:
+            ours = [family for family in self.totals if phase_of(family) == name]
+            if ours and name not in self._reported and all(family in self._done for family in ours):
+                self._reported.add(name)
+                lines.append(self.line(name))
+        return lines
+
+    def start(self, step_key):
+        """A step is starting: every family before it is done. Returns the lines of the phases that ended."""
+        if step_key in self.totals:
+            self._done.update(self.families[:self.families.index(step_key)])
+        else:
+            self._done.update(self.families)
+        return self._ready()
+
+    def finish(self):
+        """The run ended: returns the lines of the phases not reported yet."""
+        self._done.update(self.families)
+        return self._ready()
+
+
+def phase_of(family):
+    """The name of the phase `family` belongs to."""
+    return next(name for name, _text, families in PHASES if family in families)
+
+
+def expand_phases(names):
+    """
+    `names`, family names and phase names mixed, as the families they stand for (a phase is all of its families),
+    each once, in the order of `FAMILIES`.
+
+    Raises:
+        ValueError: A name that is neither a family nor a phase.
+    """
+    wanted = set()
+    for name in names:
+        phase = next((families for phase_name, _text, families in PHASES if phase_name == name), None)
+        if phase is not None:
+            wanted.update(phase)
+        elif name in FAMILIES:
+            wanted.add(name)
+        else:
+            raise ValueError(f"no such cache family or phase {name!r}; families: {', '.join(FAMILIES)}; "
+                             f"phases: {', '.join(name for name, _text, _families in PHASES)}")
+    return [family for family in FAMILIES if family in wanted]
 
 TILE_CHUNK = 128
 """int: Tiles one unit of `warm-galaxy-tiles` builds (the most a tile request holds, `tilecache.MAX_TILES_PER_REQUEST`)."""
@@ -171,22 +272,28 @@ def zoom_run_tiles(bounds_pc, start_radius_pc, finest_level):
     return sorted(seen, key=lambda key: (viewport.parse_tile_key(key)[0], viewport._box_distance_sq(key, target), key))
 
 
-def tiles_to_warm(galaxy_shape, levels, zoom_levels):
+def tiles_to_warm(galaxy_shape, levels, zoom_levels, deep=None):
     """
-    The tiles `warm-galaxy-tiles` builds (PERF.130): `octree_tiles` of the first `levels` levels, then the zoom run's
-    tiles finer than that, down to level `zoom_levels` (nothing when it is not finer than `levels`).
+    The tiles the tile phases build (PERF.130, PERF.141): `octree_tiles` of the first `levels` levels (the
+    `built-levels` phase, `warm-galaxy-tiles`), then the zoom run's tiles finer than that, down to level
+    `zoom_levels` (the `deep-tiles` phase, `warm-galaxy-deep-tiles`; nothing when it is not finer than `levels`).
 
     Args:
         galaxy_shape (dict or None): `apiclient.get_galaxy_shape`.
         levels (int): `tile_cache.warm_levels`.
         zoom_levels (int): `tile_cache.warm_zoom_levels`.
+        deep (bool, optional): `False` for the built levels only, `True` for the deep tiles only, `None` for both.
 
     Returns:
         list[str]: Tile keys, each once, in the order they are built.
+
+    Raises:
+        WarmupFailed: The levels would build more than `MAX_WARM_TILES` tiles.
     """
     edge_pc = galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
     bounds = tile_bounds_pc(edge_pc, galaxy_shape)
     keys = octree_tiles(bounds, levels)
+    run = []
     if zoom_levels > levels:
         _min_radius, start_radius = view_radius_bounds(edge_pc, galaxy_shape)
         taken = set(keys)
@@ -194,8 +301,9 @@ def tiles_to_warm(galaxy_shape, levels, zoom_levels):
         if len(keys) + len(run) > MAX_WARM_TILES:
             raise WarmupFailed(f"the zoom run to level {zoom_levels} would build {len(keys) + len(run)} tiles in all, "
                                f"more than the {MAX_WARM_TILES} one run builds; lower tile_cache.warm_zoom_levels")
-        keys += run
-    return keys
+    if deep is None:
+        return keys + run
+    return run if deep else keys
 
 
 def build_app(config=None):
@@ -272,10 +380,11 @@ def _warm_galaxy_map(visitor, cap):
     return {"warmed": opening["tiles"], "noun": "tiles", "already": opening["cached"], "left_out": 0}
 
 
-def _warm_galaxy_tiles(visitor, cap):
-    """Warms every tile `warm-galaxy-tiles` builds, in this process (`warm_family`, the command's inline twin)."""
+def _warm_galaxy_tiles(visitor, cap, deep=False):
+    """Warms every tile `warm-galaxy-tiles` (or, `deep`, `warm-galaxy-deep-tiles`) builds, in this process
+    (`warm_family`, the command's inline twin)."""
     settings = get_settings().tile_cache
-    keys = tiles_to_warm(apiclient.get_galaxy_shape(visitor.db), settings.warm_levels, settings.warm_zoom_levels)
+    keys = tiles_to_warm(apiclient.get_galaxy_shape(visitor.db), settings.warm_levels, settings.warm_zoom_levels, deep)
     warmed = already = 0
     for start in range(0, len(keys), TILE_CHUNK):
         result = fetch_tiles(visitor.db, keys[start:start + TILE_CHUNK])
@@ -325,7 +434,12 @@ def _warm_search(visitor, cap):
     return {"warmed": visitor.pages, "noun": "pages", "left_out": 0}
 
 
-_WARMERS = {"galaxy-map": _warm_galaxy_map, "galaxy-tiles": _warm_galaxy_tiles, "lists": _warm_lists, "sectors": _warm_sectors,
+def _warm_galaxy_deep_tiles(visitor, cap):
+    return _warm_galaxy_tiles(visitor, cap, deep=True)
+
+
+_WARMERS = {"galaxy-map": _warm_galaxy_map, "galaxy-tiles": _warm_galaxy_tiles,
+            "galaxy-deep-tiles": _warm_galaxy_deep_tiles, "lists": _warm_lists, "sectors": _warm_sectors,
             "systems": _warm_systems, "phenomena": _warm_phenomena, "search": _warm_search}
 
 
@@ -416,39 +530,58 @@ expand_warm_systems = expand_warm_phenomena = expand_warm_search = _expand_famil
 
 
 def warm_galaxy_tiles_unit(args, report):
+    """The unit of the `warm-galaxy-tiles` command (PERF.130): one chunk of the built levels' tiles."""
+    return _warm_tile_chunk(args, report, "galaxy-tiles")
+
+
+def _warm_tile_chunk(args, report, family):
     """
-    The unit of the `warm-galaxy-tiles` command (PERF.130): builds one chunk of the tiles into the disk cache, the
-    same call the map's own request makes (`tilecache.fetch_tiles`), so what it stores is what a visitor is served.
-    A tile that is already stored and current is not built again.
+    The unit of the `warm-galaxy-tiles` and `warm-galaxy-deep-tiles` commands (PERF.130, PERF.141): builds one chunk
+    of the tiles into the disk cache, the same call the map's own request makes (`tilecache.fetch_tiles`), so what it
+    stores is what a visitor is served. A tile that is already stored and current is not built again.
 
     Args:
         args (dict): `database` (the site's) and `keys` (the chunk, at most `TILE_CHUNK` tile keys).
         report (callable): Called with `(done, estimate)` when the chunk is built.
+        family (str): The family the chunk belongs to, for its line.
     """
     started = time.monotonic()
+    count = len(args["keys"])
+    if tilecache.cache_is_full():
+        # The cache is at its budget (`cache.max_mb`): nothing more is built, the tiles built ahead stay (PERF.133).
+        report(count, count)
+        return {"family": family, "warmed": 0, "noun": "tiles", "cached": 0, "built": 0, "left_out": count,
+                "seconds": 0.0,
+                "line": f"{family}: {count} tiles left out, " + (
+                    "the disk cache is off (cache.max_mb is 0)" if tilecache.max_cache_bytes() <= 0 else
+                    f"the tile cache is full ({tilecache.max_cache_bytes() / 1048576:.0f} MB, cache.max_mb)")}
     app = build_app()
     with app.test_request_context("/"):
-        result = fetch_tiles(args["database"], args["keys"])
-    count = len(args["keys"])
+        result = fetch_tiles(args["database"], args["keys"], ahead=True)
     report(count, count)
     seconds = time.monotonic() - started
     built = count - result["cached"]
-    return {"family": "galaxy-tiles", "warmed": count, "noun": "tiles", "cached": result["cached"], "built": built,
+    return {"family": family, "warmed": count, "noun": "tiles", "cached": result["cached"], "built": built,
             "left_out": 0, "seconds": seconds,
-            "line": f"galaxy-tiles: {count} tiles warmed ({built} built, {result['cached']} already stored) in "
+            "line": f"{family}: {count} tiles warmed ({built} built, {result['cached']} already stored) in "
                     f"{seconds:.1f} s"}
 
 
-def expand_warm_galaxy_tiles(params):
-    """The units of the `warm-galaxy-tiles` stage: `tiles_to_warm` for the galaxy's shape and the named settings
-    (`tile_cache.warm_levels`, `warm_zoom_levels`), in chunks of `TILE_CHUNK`, each weighted by about how long its
-    tiles take to build."""
+def warm_galaxy_deep_tiles_unit(args, report):
+    """The unit of the `warm-galaxy-deep-tiles` command (PERF.141): one chunk of the zoom run's deep tiles."""
+    return _warm_tile_chunk(args, report, "galaxy-deep-tiles")
+
+
+def _expand_tiles(params, deep):
+    """The units of a tile stage (`deep`: of `warm-galaxy-deep-tiles`): `tiles_to_warm` for the galaxy's shape and the
+    named settings (`tile_cache.warm_levels`, `warm_zoom_levels`), in chunks of `TILE_CHUNK`, each weighted by about
+    how long its tiles take to build."""
     database = params["database"]
     settings = get_settings().tile_cache
     app = build_app()
     with app.test_request_context("/"):
         shape = apiclient.get_galaxy_shape(database)
-    keys = tiles_to_warm(shape, settings.warm_levels, settings.warm_zoom_levels)
+    keys = tiles_to_warm(shape, settings.warm_levels, settings.warm_zoom_levels, deep)
     chunks = [keys[start:start + TILE_CHUNK] for start in range(0, len(keys), TILE_CHUNK)]
     units = [({"database": database, "keys": chunk},
               sum(tile_seconds(viewport.parse_tile_key(key)[0]) for key in chunk)) for chunk in chunks]
@@ -456,13 +589,33 @@ def expand_warm_galaxy_tiles(params):
                                       "zoom_levels": settings.warm_zoom_levels})
 
 
+def expand_warm_galaxy_tiles(params):
+    """The units of the `warm-galaxy-tiles` stage: the octree's first `tile_cache.warm_levels` levels."""
+    return _expand_tiles(params, deep=False)
+
+
+def expand_warm_galaxy_deep_tiles(params):
+    """The units of the `warm-galaxy-deep-tiles` stage (PERF.141): the zoom run's tiles finer than the built levels."""
+    return _expand_tiles(params, deep=True)
+
+
+def _finish_tiles(params, results, seconds, family):
+    activity_log.event("GEN", "warm.family", db=params["database"], family=family,
+                       warmed=sum(result["warmed"] for result in results),
+                       built=sum(result.get("built", 0) for result in results),
+                       left_out=sum(result.get("left_out", 0) for result in results), seconds=round(seconds, 1))
+    return {}
+
+
 def finish_warm_galaxy_tiles(params, plan, results, seconds):
     """Leaves one line in the activity log for the whole `warm-galaxy-tiles` stage: tiles, how many were built and
     how many were already stored."""
-    activity_log.event("GEN", "warm.family", db=params["database"], family="galaxy-tiles",
-                       warmed=sum(result["warmed"] for result in results),
-                       built=sum(result.get("built", 0) for result in results), left_out=0, seconds=round(seconds, 1))
-    return {}
+    return _finish_tiles(params, results, seconds, "galaxy-tiles")
+
+
+def finish_warm_galaxy_deep_tiles(params, plan, results, seconds):
+    """The same for the `warm-galaxy-deep-tiles` stage."""
+    return _finish_tiles(params, results, seconds, "galaxy-deep-tiles")
 
 
 def end_map_rebuild_unit(args, report):
