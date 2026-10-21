@@ -182,7 +182,8 @@ def test_neutron_stars_and_black_holes_formed_fit_among_the_massive_stars_in_eve
 def test_each_class_draws_from_a_stream_of_its_own_so_the_black_holes_move_no_other_row(monkeypatch):
     """T2: more black holes change none of the neutron stars', planetary nebulae's or remnants' rows."""
     def rows(shell=4):
-        return list(scatter.scatter_shell(tiers.SHAPE, shell, 3, tiers.EDGE_PC, 4000.0, 11, min_mass_solar=1.0))
+        # 40 expected per cell is plenty to tell the streams apart (TEST.256: 4000 held ten million rows, 10 GB)
+        return list(scatter.scatter_shell(tiers.SHAPE, shell, 3, tiers.EDGE_PC, 40.0, 11, min_mass_solar=1.0))
     before = rows()
     base = black_hole_density.base_rate_per_star()
     monkeypatch.setattr(black_hole_density, "base_rate_per_star", lambda: 3.0 * base)
