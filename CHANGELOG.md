@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1864] - 2026-10-21
+
+**Headline:** The admin queue page shows the cache warm-up phase by phase: which are waiting, running, built, unchanged or stopped, with each one's result.
+
+### Changed
+- **A "Cache warm-up" panel on `/admin/queue` (PERF.141).** It shows the last warm-up run (its state, when it started and ended, what asked for it), whether a start after a change is waiting or running and for which changes, and one row for each of the five phases with its state and the line the run printed (what it built, what was already stored, what the budget left out). A run that died reads as interrupted, and a failed run marks the phase that failed. The same state is at `GET /api/admin/work/warm?database=NAME` for admins.
+
+TODO items resolved / Added: PERF.141 (slice 3: the admin page shows each phase) / Added: none
+
 ## [8.0.1863] - 2026-10-21
 
 **Headline:** A run or job whose process was killed no longer blocks every new run or holds up an update, and `update.sh --reset-jobs` resets every job and the queue when something else is stuck.
