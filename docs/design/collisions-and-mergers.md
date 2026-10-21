@@ -555,6 +555,8 @@ comparison in section 2.1.
   doubles; rogues would need the same) or from exact integers on a milliparsec
   grid (1 mpc = 206 AU).
 
+**Built (GEN.334).** `physics/closest_approach.py` is this section as one library: `sweep(dp, dv, R, dt)` (the routine above, with `ValueError` for non-finite input, a negative `R` or a negative `dt`), `Segment` and `linear_state_at` (a body's stored path with its sector's `origin_m` differenced first, so two bodies in one sector never subtract two large numbers), `pair_window` (`[max(e_X_prev, e_Y), e_X_now]`, `None` when Y's segment starts after the update's end), `window_cap` (the tide's 0.03 Omega^2 v_rel t^3 held under 1 percent of `R`, or one sector's crossing time, whichever is shorter), `chunks` (a long step cut at the cap and at 0.1 Myr) and `first_hit` (the chunks walked in order, each asking `state_at(t)` for the relative state, so a caller that re-propagates a curved path gives its own). `tests/test_closest_approach.py` holds the hand cases above, 300 far starts against exact arithmetic (the section 2.1 failure) and 20,000 random cases against 4,000-sample time sampling with no mismatch beyond a graze finer than one sample step.
+
 ### 5.4 Broad phase
 
 Reach in a window is |dv_max| dt + R_sum: about 2.6e6 km (8.4e-8 pc) for one
