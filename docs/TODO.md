@@ -15471,6 +15471,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   subitem named above is done. This umbrella stays open until Core 5
   confirms that the old executor is unused (its "done when" line); the
   TODO thread asked at 9:15 AM EDT.
+  Core 5's answer (9:23 AM EDT 2026-10-21 as the lane reported): PERF.98
+  is NOT done although every subitem is merged. The stages are commands,
+  but the old executor is still used on main: `planetgen sector` still
+  builds a WorkQueue (generation/run_sector.py:993 via
+  run_common._work_queue), about 12 `workQueue.job_node(...)` wrappers
+  still write the MySQL job tree (plan, scatter, population, fills), and
+  the Queue page and API still read that tree. Those end with PERF.119
+  (sector and system through the wrapper), PERF.121 and PERF.122 (the
+  job_node wrappers go away or move to the run record), PERF.99 (pages
+  read Redis) and PERF.100 (delete queue/work.py and the work_* tables).
+  PERF.98 stays open until PERF.100 lands.
   Prerequisites: none. Related: PERF.86.
 
 - [ ] **PERF.99 Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command**
@@ -20669,7 +20680,31 @@ clears each one.
   proves (each class draws from its own stream). This replaces the
   inferred order-dependence cause above; owner stays Bug Hunt, with Core
   3 consulted because it is GEN.563's test.
+  More sightings (reported 9:08 to 9:20 AM EDT 2026-10-21 as the lanes
+  reported): Core 3's gate hit the 900 s timeout on it again (9:06 AM
+  EDT, passes alone in 111 s on the branch) and Core 4's gate lost a
+  worker to it (the known worker-crash), so it has failed in 6 of 6
+  loaded gates since 2026-10-18; the memory cause above covers both the
+  timeout and the crash.
   Prerequisites: none. Related: TEST.255, TEST.250, GEN.563.
+
+- [ ] **TEST.257 test_sector_page_and_tiles_show_a_phenomenon_the_cli_added asserts an empty cloud list on an unseeded galaxy and sometimes gets a nebula (bug)**
+  Found by Core 1 (its GEN.591 gate, reported about 9:09 AM EDT
+  2026-10-21 on the lane's clock: 20,307 passed, 1 failed), filed by the
+  TODO thread.
+  `src/tests/test_web_fresh_after_cli.py::test_sector_page_and_tiles_show_a_phenomenon_the_cli_added`
+  failed with `assert warm["tiles"][WHOLE_GALAXY_TILE]["clouds"] == []`:
+  it got one dark nebula (class N, id 00008FFFE80007-8000000-000) after
+  `galaxy --shell 0 --limit 1 --num-systems 1` on a planned galaxy.
+  Kind: unseeded-data flake. Fails on main: not checked (the path does
+  not touch GEN.591's change). Frequency: 1 of 1 gate run; passes alone
+  (4 passed in 45 s). Reproducer: loop the test; the plan and galaxy
+  draws are unseeded, so a nebula lands in the whole-galaxy tile in some
+  draws. Do: seed the galaxy or make the assertion about the phenomenon
+  the test adds (its cloud) rather than an empty cloud list; no
+  quarantine. Done: the test passes 30 of 30 loop runs on an idle
+  machine and the cause is on this item. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.254, TEST.256.
 
 ## USR: User accounts
 

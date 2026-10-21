@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.98 |
 | SEC | SEC.33 |
-| TEST | TEST.257 |
+| TEST | TEST.258 |
 | USR | USR.32 |
 | OPS | OPS.62 |
 | DOC | DOC.72 |
@@ -2359,6 +2359,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.254 | test_core_ball_batch_fill_makes_planets builds 4 systems instead of 3 for some random galaxy seeds (bug) | none | open |
 | TEST.255 | test_workers: two real-Redis worker tests fail in loaded gates and pass alone, again after TEST.250's fix (bug) | none | open |
 | TEST.256 | test_black_hole_density: the black-hole stream test fails in loaded and full gates and passes alone (bug) | none | open |
+| TEST.257 | test_sector_page_and_tiles_show_a_phenomenon_the_cli_added asserts an empty cloud list on an unseeded galaxy and sometimes gets a nebula (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
