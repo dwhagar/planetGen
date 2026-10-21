@@ -40,6 +40,8 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | PERF.99 | Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command | PERF.98, PERF.119 | PERF.86 step 5 |
 | PERF.144 | Every job queued to RQ gets a time limit from the best available estimate of how long it takes, never no limit, so a killed worker's entry expires |  |  |
 | PERF.145 | The run output repeats the stage: drop the stage-list line and the 'Stage 4 of 13: ...' line the engine logs under the wrapper's '=== Stage 4 of 13: ... ===' banner |  |  |
+| GEN.600 | The updater and the downloader print the URL of every file they load |  |  |
+| GEN.599 | A run with missing downloaded data files refuses unless it is told explicitly to disregard them, and then uses the best possible fallback and says so in its header |  |  |
 | GEN.310 | Fill a whole block of the shell ladder: planetgen generate --block and the queue job | PERF.99 | Split from GEN.231. |
 | UX.127 | The Galaxy Map block menu offers Generate again | GEN.310 | Split from GEN.231. |
 | GEN.231 | Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back | GEN.310, UX.127 | Maps hand-off 2026-10-15. Core, then Interface for the buttons. |

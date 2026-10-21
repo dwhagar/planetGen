@@ -8086,6 +8086,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   grids are fetched at setup (update.sh) and nothing from them is stored
   in the repository; Boss's 2:35 PM EDT 2026-10-17 "fine to publish" is
   about licence only, not about committing the grids.
+  Decided (Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed;
+  this replaces the download policy note above): a missing file refuses
+  the run by default, naming the file, its URL and the setup command;
+  with the explicit disregard option (GEN.599) the run uses this
+  dataset's best possible fallback and prints it in the run header;
+  never a silent fallback. See GEN.594.
   Related: GEN.87, GEN.189, DB.68.
 
 - [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
@@ -8212,6 +8218,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only, GEN.590): the shared download catalogue now treats every dataset
   as required, so this item's design should say whether a missing file
   refuses to start or falls back to a labelled stand-in, and why.
+  Decided (Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed;
+  this replaces the download policy note above): a missing file refuses
+  the run by default, naming the file, its URL and the setup command;
+  with the explicit disregard option (GEN.599) the run uses this
+  dataset's best possible fallback and prints it in the run header;
+  never a silent fallback. See GEN.594.
 
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
@@ -8567,6 +8579,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
+  Decided (Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed;
+  this replaces the download policy note above): a missing file refuses
+  the run by default, naming the file, its URL and the setup command;
+  with the explicit disregard option (GEN.599) the run uses this
+  dataset's best possible fallback and prints it in the run header;
+  never a silent fallback. See GEN.594.
 
 - [ ] **GEN.423 Atmosphere density, scale height and the greenhouse multiplier follow from the mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -8660,6 +8678,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only, GEN.590): the shared download catalogue now treats every dataset
   as required, so this item's design should say whether a missing file
   refuses to start or falls back to a labelled stand-in, and why.
+  Decided (Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed;
+  this replaces the download policy note above): a missing file refuses
+  the run by default, naming the file, its URL and the setup command;
+  with the explicit disregard option (GEN.599) the run uses this
+  dataset's best possible fallback and prints it in the run header;
+  never a silent fallback. See GEN.594.
 
 - [ ] **GEN.424 The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture**
   Read-only thread "Composition vs density link" (Boss asked 2026-10-16,
@@ -11629,6 +11653,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only, GEN.590): the shared download catalogue now treats every dataset
   as required, so this item's design should say whether a missing file
   refuses to start or falls back to a labelled stand-in, and why.
+  Decided (Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed;
+  this replaces the download policy note above): a missing file refuses
+  the run by default, naming the file, its URL and the setup command;
+  with the explicit disregard option (GEN.599) the run uses this
+  dataset's best possible fallback and prints it in the run header;
+  never a silent fallback. See GEN.594.
   Prerequisites: GEN.478. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.486 Source the lava-world vapour regimes and the fraction of lava worlds that keep volatiles (AR7)**
@@ -12194,6 +12224,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only, GEN.590): the shared download catalogue now treats every dataset
   as required, so this item's design should say whether a missing file
   refuses to start or falls back to a labelled stand-in, and why.
+  Decided (Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed;
+  this replaces the download policy note above): a missing file refuses
+  the run by default, naming the file, its URL and the setup command;
+  with the explicit disregard option (GEN.599) the run uses this
+  dataset's best possible fallback and prints it in the run header;
+  never a silent fallback. See GEN.594.
 
 - [ ] **GEN.501 Source the activity factor of the NH3 photolysis rate from the Huebner and Mukherjee rate tables**
   Body composition research lane reconciliation of the NH3 photolysis
@@ -15329,32 +15365,37 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch at its merge.
   Prerequisites: none. Related: GEN.317, GEN.555, GEN.163.
 
-- [ ] **GEN.594 Each AD dataset (AD1 to AD8) needs a refuse-or-fall-back decision: a missing file stops the run or stands in as a labelled stand-in**
+- [ ] **GEN.594 Each AD dataset (AD1 to AD8) ships its best possible fallback, used only when a run is told explicitly to disregard missing files**
   Filed at the coordinator's request after GEN.590 merged (#2282,
   release 8.0.1838; Blocker 1 reported 3:34 PM EDT 2026-10-18 as the
-  lane reported). The shared download catalogue (GEN.548) now treats
-  every dataset as required, and bulk generation refuses to start while
-  any catalogue file is missing. Boss's 'Require the data' answer (9:38
-  AM EDT 2026-10-18) covers star composition only (GEN.590), so each
-  atmosphere dataset still needs its own answer: AD1 (giant visible
-  absorption, GEN.422), AD2 (dust and haze spectra, GEN.423), AD3
-  (infrared opacity, GEN.413, GEN.414), AD4 (Rayleigh, GEN.422), AD5
-  (particle spectra, GEN.436, GEN.444), AD6 (hot-giant line lists,
-  GEN.485, GEN.499), AD7 (acid vapour pressure, GEN.471, GEN.491) and
-  AD8 (photochemistry rates, GEN.496, GEN.501). Do: when the first AD
-  dataset is built, the coordinator brings Boss a card for it (options:
-  Require the data, which refuses the run with a plain message naming
-  the dataset and the setup command; Stand-in fallback, which uses the
-  labelled stand-in of the gap registry and says so; Not yet) and
-  records the answer here and on the item that builds it; later datasets
-  reuse the answer unless Boss differs. Done: every AD item says what a
-  missing file does, with Boss's answer and a test that pins it offline
-  with the GEN.548 fixtures, and the gap plan section 6 registry says
-  which values are still stand-ins. Owner: the TODO thread tracks the
-  answers; each AD item's builder asks through the coordinator
-  (proposed). Not a request for Boss's data: Boss has provided all the
-  AD1 data he can (3:07 PM EDT 2026-10-18).
-  Prerequisites: none. Related: GEN.548, GEN.590, GEN.422.
+  lane reported). The shared download catalogue (GEN.548) treats every
+  dataset as required, and bulk generation refuses to start while any
+  catalogue file is missing. DECIDED (Boss, 2026-10-21, 5:54 PM EDT, as
+  the coordinator relayed, revising his 'Require the data' answer of
+  9:38 AM EDT 2026-10-18): "have the best possible fallback if the files
+  are not there, but the generate process must be explicitly said to
+  disregard missing files". So no card is needed for any AD dataset: a
+  run with a missing file refuses by default and names the file, its URL
+  and the setup command; a run told explicitly to disregard missing
+  files (the option of GEN.599) uses the dataset's best possible
+  fallback and prints it in the run header; there is never a silent
+  fallback. The datasets: AD1 (giant visible absorption, GEN.422), AD2
+  (dust and haze spectra, GEN.423), AD3 (infrared opacity, GEN.413,
+  GEN.414), AD4 (Rayleigh, GEN.422), AD5 (particle spectra, GEN.436,
+  GEN.444), AD6 (hot-giant line lists, GEN.485, GEN.499), AD7 (acid
+  vapour pressure, GEN.471, GEN.491) and AD8 (photochemistry rates,
+  GEN.496, GEN.501). Do: each AD item names the best possible fallback
+  of its dataset (the labelled stand-in of the gap registry, section
+  6.6, chosen as the closest honest value and labelled recalled,
+  derived, bracket, theory or placeholder) and registers it with the
+  catalogue entry so GEN.599's header can print it. Done: every AD item
+  says what its fallback is, with a test that pins the refusal and the
+  explicit-option path offline with the GEN.548 fixtures, and the gap
+  plan section 6 registry says which values are still stand-ins. Owner:
+  each AD item's builder; GEN.599 builds the option. Not a request for
+  Boss's data: Boss has provided all the AD1 data he can (3:07 PM EDT
+  2026-10-18).
+  Prerequisites: GEN.599. Related: GEN.548, GEN.590, GEN.422, GEN.600, DOC.72.
 
 - [ ] **GEN.595 Replace the Solar System comet population shape (GEN.520 D6) with a derived distribution**
   Filed from Boss's sweep answer on fork 8 (6:08 to 6:10 PM EDT
@@ -15428,6 +15469,63 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed, after GEN.545 merges); a generator change, so it takes the
   next free epoch.
   Prerequisites: GEN.545. Related: GEN.545, GEN.404.
+
+- [ ] **GEN.599 A run with missing downloaded data files refuses unless it is told explicitly to disregard them, and then uses the best possible fallback and says so in its header**
+  Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed: "Also
+  revision of my previous choice, have the best possible fallback if the
+  files are not there, but the generate process must be explicitly said
+  to disregard missing files. Also-also, the updater / downloader should
+  list the file URL it's loading as well." This replaces the 'Require
+  the data' rule (Boss, 9:38 AM EDT 2026-10-18, GEN.590) and the
+  refuse-or-fall-back cards of GEN.594. Today
+  `run_galaxy.require_datasets` refuses a bulk run while any catalogue
+  file is missing, and `fetch.DataMissing` is raised by readers, so no
+  value ever comes from a fallback (src/planetgen/datasets/fetch.py,
+  stellar_abundances.py). Do: keep the refusal as the default, with a
+  plain message naming each missing file, its URL and the setup command
+  (`python3 -m planetgen.cli.datasets fetch KEY`); add one explicit
+  option that tells the run to disregard missing files (proposed:
+  `--disregard-missing-data` on the CLI commands and `update.sh` runs,
+  and a labelled checkbox on the Generate page and a field on the API
+  job, off by default; the owner may pick the exact words); with it set,
+  every reader of a missing dataset takes its best possible fallback
+  (the labelled stand-in of the gap registry, section 6.6, or for star
+  composition the best available relation), never silently: the run
+  header (CLI banner, job log and the Generate page's job text) prints
+  that the option is on, each missing dataset and the fallback in its
+  place, and the run record stores the list so a later page can show
+  that the galaxy used stand-ins. No silent fallback anywhere: a reader
+  that finds a missing file with the option off raises `DataMissing` as
+  now. Done: tests with the GEN.548 fixtures show that a run with a
+  missing file and no option refuses with the file names and URLs; with
+  the option it runs, prints each fallback in the header and stores the
+  list; an option typed on a command that reads no data does nothing
+  harmful; the star composition (GEN.590) path is covered the same way;
+  the README row (DOC.72) and docs/cli.md say how to use it. Owner:
+  Blocker 2 proposed (it picks the work up after or between its seven
+  items, the coordinator may move it).
+  Prerequisites: none. Related: GEN.594, GEN.548, GEN.600, DOC.72.
+
+- [ ] **GEN.600 The updater and the downloader print the URL of every file they load**
+  Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed: "Also
+  revision of my previous choice, have the best possible fallback if the
+  files are not there, but the generate process must be explicitly said
+  to disregard missing files. Also-also, the updater / downloader should
+  list the file URL it's loading as well." Today `python3 -m
+  planetgen.cli.datasets fetch` prints one line per dataset (`KEY:
+  fetched (N files, folder)`) and, on a failure, the reason per file,
+  but not the file URLs; `update.sh` and `install.sh` run it as step 3
+  and show only that. Do: `fetch` prints, for every piece it handles,
+  its https URL beside the result (requested, already there with the
+  right hash and not requested again, or failed with the reason),
+  `status` prints the URL of every missing file, and `update.sh` and
+  `install.sh` show those lines in their output; the same URLs appear in
+  the refusal message of a run with missing data (GEN.599). Done: a test
+  with the GEN.548 fixtures checks that each piece's URL is in the
+  `fetch` and `status` output for fetched, kept and failed pieces;
+  `update.sh --help` and the README row (DOC.72) mention it. Owner:
+  Blocker 2 proposed (small; it can go first).
+  Prerequisites: none. Related: GEN.548, GEN.599, DOC.72.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -22208,6 +22306,14 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   steps are followed once on a clean cache and work. Owner: TODO thread
   proposes a docs lane or Core 5 after the 8.1 closing audits (not
   urgent).
+  Update (Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed):
+  the README section also says what happens when a file is missing: the
+  run refuses and names the file, its URL and the setup command, unless
+  it is told explicitly to disregard missing files (GEN.599), when it
+  uses the best possible fallback and prints it in the run header; and
+  it says the updater and downloader print the URL of every file they
+  load (GEN.600). The README check compares both statements with the
+  options in the code.
   Prerequisites: none. Related: GEN.548, GEN.590, GEN.594.
 
 ## VIEW: The view from a planet
