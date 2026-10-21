@@ -153,7 +153,7 @@ def test_edit_save_and_put_back_each_kind_of_option(browser, server, role, confi
         page.goto(base_url + "/admin/settings", wait_until="load")
         page.fill("#opt-site_name", "Home")                       # text
         page.fill("#opt-jobs-keep", "7")                          # whole number
-        page.fill("#opt-tile_cache-max_mb", "300")                # number
+        page.fill("#opt-cache-max_mb", "300")                # number
         page.uncheck("#opt-page_cache-stored_counts")             # on/off
         rows = 4
         if role == "host":
@@ -165,7 +165,7 @@ def test_edit_save_and_put_back_each_kind_of_option(browser, server, role, confi
 
         saved = _document(config)
         assert saved["site_name"] == "Home" and saved["jobs"] == {"keep": 7}
-        assert saved["tile_cache"] == {"max_mb": 300.0} and saved["page_cache"] == {"stored_counts": False}
+        assert saved["cache"] == {"max_mb": 300.0} and saved["page_cache"] == {"stored_counts": False}
         if role == "host":
             assert saved["login_allowlist"] == ["10.0.0.0/8", "192.168.1.5"] and saved["log_rotation"] == "app"
             assert saved["wiki"]["wikijs"]["api_token"] == "wiki-token-123"
@@ -175,7 +175,7 @@ def test_edit_save_and_put_back_each_kind_of_option(browser, server, role, confi
         assert "wiki-token-123" not in page.content()
 
         # Put every one of them back to its default (the keys leave the file).
-        page.check("input[name='reset.tile_cache.max_mb']")
+        page.check("input[name='reset.cache.max_mb']")
         page.check("input[name='reset.page_cache.stored_counts']")
         page.check("input[name='reset.jobs.keep']")
         page.check("input[name='reset.site_name']")

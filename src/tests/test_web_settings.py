@@ -63,7 +63,7 @@ def test_the_kinds_limits_and_choices_come_from_the_model(config):
     options = _options("host")
     assert options["page_cache.enabled"]["kind"] == "bool"
     assert options["jobs.keep"]["kind"] == "int" and options["jobs.keep"]["limits"] == {"ge": 1}
-    assert options["tile_cache.max_mb"]["kind"] == "float" and options["tile_cache.max_mb"]["unit"] == "MB"
+    assert options["cache.max_mb"]["kind"] == "float" and options["cache.max_mb"]["unit"] == "MB"
     assert options["login_allowlist"]["kind"] == "list"
     assert options["log_rotation"]["kind"] == "choice" and options["log_rotation"]["choices"] == [
         "auto", "system", "app"]
@@ -74,12 +74,12 @@ def test_the_kinds_limits_and_choices_come_from_the_model(config):
 def test_the_value_is_the_files_and_the_source_says_where_it_comes_from(config, monkeypatch):
     options = _options()
     assert options["site_name"]["value"] == "Mine" and options["site_name"]["source"] == "config.json"
-    assert options["tile_cache.max_mb"]["value"] == 200 and options["tile_cache.max_mb"]["source"] == "default"
-    monkeypatch.setenv("PLANETGEN_TILE_CACHE_MAX_MB", "50")
+    assert options["cache.max_mb"]["value"] == 1024 and options["cache.max_mb"]["source"] == "default"
+    monkeypatch.setenv("PLANETGEN_CACHE_MAX_MB", "50")
     options = _options()
-    assert options["tile_cache.max_mb"]["source"] == "environment"
-    assert options["tile_cache.max_mb"]["env"] == "PLANETGEN_TILE_CACHE_MAX_MB"
-    assert options["tile_cache.max_mb"]["effective"] == 50 and options["tile_cache.max_mb"]["value"] == 200
+    assert options["cache.max_mb"]["source"] == "environment"
+    assert options["cache.max_mb"]["env"] == "PLANETGEN_CACHE_MAX_MB"
+    assert options["cache.max_mb"]["effective"] == 50 and options["cache.max_mb"]["value"] == 1024
 
 
 def test_who_may_change_what(config):
@@ -175,10 +175,10 @@ def test_an_unchanged_form_asks_for_nothing(config):
 
 def test_only_the_options_that_differ_are_sent(config):
     options = _options()
-    form = _form(options, **{"opt__site_name": "Home", "opt__tile_cache__max_mb": "300",
+    form = _form(options, **{"opt__site_name": "Home", "opt__cache__max_mb": "300",
                              "opt__page_cache__enabled": ["0", "1"][:1], "opt__jobs__keep": "12"})
     changes, submitted = settings_page.collect(list(options.values()), form)
-    assert changes == {"site_name": "Home", "tile_cache.max_mb": 300.0, "page_cache.enabled": False}
+    assert changes == {"site_name": "Home", "cache.max_mb": 300.0, "page_cache.enabled": False}
     assert submitted["jobs.keep"] == "12" and submitted["site_name"] == "Home"
 
 
@@ -191,7 +191,7 @@ def test_text_that_is_not_a_number_goes_to_the_model_to_be_worded(config):
 
 def test_use_the_default_removes_a_key_only_when_the_file_has_it(config):
     options = _options()
-    form = _form(options, **{"reset__site_name": "1", "reset__tile_cache__max_mb": "1"})
+    form = _form(options, **{"reset__site_name": "1", "reset__cache__max_mb": "1"})
     changes, submitted = settings_page.collect(list(options.values()), form)
     assert changes == {"site_name": {"reset": True}}     # max_mb was already the default
     assert submitted["site_name"] == "planetGen"
@@ -283,9 +283,9 @@ def test_the_api_lists_plans_and_saves(site, config):
 
 
 def test_the_api_reports_each_bad_value_at_its_option(site):
-    body = site.post("/api/admin/settings", json={"changes": {"jobs.keep": 0, "tile_cache.max_mb": "lots"}}).get_json()
+    body = site.post("/api/admin/settings", json={"changes": {"jobs.keep": 0, "cache.max_mb": "lots"}}).get_json()
     assert not body["ok"] and not body["saved"]
-    assert set(body["errors"]) == {"jobs.keep", "tile_cache.max_mb"}
+    assert set(body["errors"]) == {"jobs.keep", "cache.max_mb"}
 
 
 def test_the_api_refuses_what_an_admin_may_not_change(site, config):

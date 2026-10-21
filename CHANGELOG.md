@@ -2,6 +2,29 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1854] - 2026-10-21
+
+**Headline:** A galaxy's neutron stars are now what its massive stars leave when they do not become black holes, instead of a fixed number per star.
+
+### Changed
+- The neutron star density at a place is the black hole sum with the survivors of the failed-supernova share (`1 - F`) and the galaxy's bound share, so a galaxy whose massive stars fail more makes more black holes and fewer neutron stars, and a metal-rich place makes more neutron stars than a metal-poor one. At the middle draw a standalone sector rolls 4.08e-3 per star (Boss's research density is 4.0e-3, now a test target); bound plus ejected neutron stars equal what the galaxy formed.
+- The neutron star unbound share (0.2 to 0.4) is drawn once with the galaxy's structure and read by both the bound count and the ejected field. `galaxy/black_hole_density.py` is now `galaxy/remnant_density.py`, taking the remnant kind.
+- Black hole counts are unchanged. `docs/design/neutron-star-density.md` records the model.
+
+generation-output: changed
+
+TODO items resolved: GEN.554 slice 1 (neutron star counts follow the mass function; GEN.554 stays open for the mass islands and the kick step) / Added: none
+
+## [8.0.1853] - 2026-10-21
+
+**Headline:** One setting, `cache.max_mb` (1 GB by default), sizes the stored caches, and when it is full the warm-up stops and only tiles nobody asked for lately are dropped.
+
+### Changed
+- **One cache size key, `cache.max_mb` (PERF.139).** It replaces `tile_cache.max_mb` and `PLANETGEN_TILE_CACHE_MAX_MB` with no compatibility shim (an old `tile_cache.max_mb` in `config.json` is ignored), defaults to 1024 MB instead of 200, and `0` turns the disk caches off. The Galaxy Map's tile cache is the first thing under it; the object index and the stored lists will share it. `update.sh`'s cache directory step and `docs/config.md` follow the new key.
+- **What happens at the budget (PERF.133).** The tiles `planetgen warm`, the background build and the rebuild after a change build ahead are marked, and a visit sets the modification time of the file it reads. When the cache is over the budget `prune` deletes only the files a visit asked for, least recently visited first, down to 80%; a tile built ahead is never deleted for size. `planetgen warm` then stops building tiles and says how many it left out (`N tiles left out, the tile cache is full`).
+
+TODO items resolved / Added: PERF.139 (key and budget behaviour; the slider is ADM.97), PERF.133 (second part) / Added: none
+
 ## [8.0.1852] - 2026-10-21
 
 **Headline:** Every body with a mass can now report its whole kinematic record: where it is, how it moves, how it spins, its mass and when it is next due.

@@ -1,5 +1,26 @@
 {
   "$defs": {
+    "Cache": {
+      "properties": {
+        "max_mb": {
+          "default": 1024,
+          "description": "How much disk the site's stored caches (today the Galaxy Map's tiles) may use, in all. When it is full the warm-up stops, the tiles it built ahead stay, and the tiles a visit asked for are dropped, the least recently visited first (0 turns the disk caches off).",
+          "minimum": 0,
+          "title": "Max Mb",
+          "type": "number",
+          "x-category": "cache",
+          "x-editable": true,
+          "x-env": "PLANETGEN_CACHE_MAX_MB",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-unit": "MB"
+        }
+      },
+      "title": "Cache",
+      "type": "object"
+    },
     "Icons": {
       "properties": {
         "apple_touch_icon": {
@@ -926,21 +947,6 @@
           "x-restart": false,
           "x-secret": false
         },
-        "max_mb": {
-          "default": 200,
-          "description": "Roughly how big the tile cache may grow before its oldest files are pruned (0 turns the disk cache off).",
-          "minimum": 0,
-          "title": "Max Mb",
-          "type": "number",
-          "x-category": "cache",
-          "x-editable": true,
-          "x-env": "PLANETGEN_TILE_CACHE_MAX_MB",
-          "x-min_role": "admin",
-          "x-multiline": false,
-          "x-restart": false,
-          "x-secret": false,
-          "x-unit": "MB"
-        },
         "prefetch_max_queued": {
           "default": 8,
           "description": "The background build queues nothing while this many of its jobs (16 tiles each) or other bulk work already wait.",
@@ -1166,6 +1172,12 @@
       "x-multiline": false,
       "x-restart": false,
       "x-secret": false
+    },
+    "cache": {
+      "$ref": "#/$defs/Cache",
+      "default": {
+        "max_mb": 1024.0
+      }
     },
     "config_version": {
       "default": 1,
@@ -1411,7 +1423,6 @@
       "$ref": "#/$defs/TileCache",
       "default": {
         "dir": "",
-        "max_mb": 200.0,
         "prefetch_max_queued": 8,
         "prefetch_per_minute": 600,
         "prefetch_per_visit": 128,

@@ -35,7 +35,7 @@ from planetgen.cli import generate as generate_cli
 from planetgen.generation import run_sector
 from planetgen import tuning
 from planetgen.generation.phenomena.compact_remnant import BlackHole
-from planetgen.galaxy import black_hole_density, mass_chain
+from planetgen.galaxy import remnant_density, mass_chain
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
 from planetgen.physics.units import pc_to_ly
@@ -65,8 +65,8 @@ def _seeded_sector(system_count, edge_ly=100.0):
 
 
 def _rate(kind):
-    if kind == "black-hole":      # a standalone sector's: the metallicity's share at solar (GEN.563)
-        return black_hole_density.rate_per_star()
+    if kind in remnant_density.KINDS:      # a standalone sector's: the metallicity's share at solar (GEN.563, GEN.554)
+        return remnant_density.rate_per_star(kind=kind)
     return tuning.phenomenon_rate_per_star(kind)
 
 
@@ -95,7 +95,8 @@ def test_research_rates_per_star():
     """Boss's research densities at 0.14 stars per pc^3."""
     assert _rate("rogue-planet") == pytest.approx(5.8)
     assert _rate("brown-dwarf") == pytest.approx(0.03 / 0.14)
-    assert _rate("neutron-star") == pytest.approx(0.004)
+    # Derived from the massive stars the black holes leave (GEN.554); Boss's 4.0e-3 is the target, 2% off at the middle draw.
+    assert _rate("neutron-star") == pytest.approx(0.004, rel=0.05)
     assert 0.0002 < _rate("black-hole") < 0.0012          # the old 5e-4 sits inside the new range
     assert _rate("comet") == pytest.approx(0.05)
     assert _rate("asteroid-field") == 0.0

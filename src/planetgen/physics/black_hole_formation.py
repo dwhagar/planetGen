@@ -2,7 +2,7 @@
 
 """
 How many stellar-mass black holes a stellar population makes (GEN.563; docs/design/black-hole-density.md,
-docs/design/black-hole-formation-sources.md). Pure functions; `galaxy.black_hole_density` puts them in a place.
+docs/design/black-hole-formation-sources.md). Pure functions; `galaxy.remnant_density` puts them in a place.
 
 A black hole is the remnant of a massive star that fails to explode. Of the stars born with 8 to 150 solar masses
 (`imf_massive_share`) a share `f` fail, and `f` falls as the star's metallicity rises: the failed-supernova share of a

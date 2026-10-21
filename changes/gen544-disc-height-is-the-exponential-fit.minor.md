@@ -6,7 +6,7 @@
   - The reference galaxy's bulge amplitude is 3.11 / 2 (`mathcheck.REFERENCE_BULGE_AMPLITUDE`): BHG16's 3.11 was measured against the `sech^2` disk, and the bulge keeps its 31% of the mass.
   - `MAGNETAR_YOUNG_STAR_SHARE` is 0.0016 (it was 0.0019), the young population's share of the stars over the new profile.
   - The reference galaxy's outline reaches shell 3,596 (it was 3,147 under GEN.404, 3,762 before it); the rest of the gap to the pinned density is the mean system mass (GEN.545).
-- The generator epoch is 40.
+- The generator epoch is 41.
 generation-output: changed
 
 ### Added

@@ -73,7 +73,7 @@ def api(monkeypatch, tmp_path):
     monkeypatch.setattr(tilecache, "get_galaxy_stage", fake.get_galaxy_stage)
     monkeypatch.setattr(tilecache, "PRUNE_PROBABILITY", 0.0)
     monkeypatch.setenv("PLANETGEN_TILE_CACHE_DIR", str(tmp_path / "tiles"))
-    monkeypatch.delenv("PLANETGEN_TILE_CACHE_MAX_MB", raising=False)
+    monkeypatch.delenv("PLANETGEN_CACHE_MAX_MB", raising=False)
     return fake
 
 
@@ -198,7 +198,7 @@ def test_bad_requests_are_rejected_before_any_api_call(api, keys):
 
 
 def test_disabled_cache_still_works(api, monkeypatch):
-    monkeypatch.setenv("PLANETGEN_TILE_CACHE_MAX_MB", "0")
+    monkeypatch.setenv("PLANETGEN_CACHE_MAX_MB", "0")
     assert tilecache.cache_dir() is None
     tilecache.fetch_tiles("mydb", ["12/1/2/3"])
     second = tilecache.fetch_tiles("mydb", ["12/1/2/3"])
@@ -226,19 +226,81 @@ def test_corrupt_cache_file_is_refetched(api):
         assert tilepack.unpack_tile(f.read())["stars"]
 
 
-def test_prune_deletes_oldest_files_down_to_budget(tmp_path):
+def _stored_tiles(tmp_path, count=10, ahead=()):
+    """A cache of `count` 1,000-byte tile files, the i-th last visited at time 1000 + i; those in `ahead` are marked
+    as built ahead."""
     root = tmp_path / "cache"
     stamp_dir = root / "db" / "00000000000000aa"
     stamp_dir.mkdir(parents=True)
     (root / "db" / "stamp.json").write_text('{"stamp": "00000000000000aa"}')
-    for i in range(10):
+    for i in range(count):
         path = stamp_dir / f"t12_{i}_0_0.bin"
         path.write_text("x" * 1000)
+        path.chmod(tilecache.AHEAD_MODE if i in ahead else 0o600)
         os.utime(path, (1000 + i, 1000 + i))
+    return root, stamp_dir
+
+
+def test_prune_deletes_the_least_recently_visited_files_down_to_budget(tmp_path):
+    root, stamp_dir = _stored_tiles(tmp_path)
     tilecache.prune(str(root), max_bytes=5000)
     remaining = sorted(p.name for p in stamp_dir.iterdir())
     assert remaining == [f"t12_{i}_0_0.bin" for i in range(6, 10)]
     assert (root / "db" / "stamp.json").exists()
+
+
+def test_prune_never_deletes_a_tile_built_ahead(tmp_path):
+    """PERF.133: the oldest tiles here were built ahead; only the ones a visit asked for go, and when only
+    built-ahead tiles are left over the budget nothing more goes."""
+    root, stamp_dir = _stored_tiles(tmp_path, ahead={0, 1, 2})
+    tilecache.prune(str(root), max_bytes=5000)
+    remaining = sorted(p.name for p in stamp_dir.iterdir())
+    assert remaining == [f"t12_{i}_0_0.bin" for i in (0, 1, 2, 9)]
+    tilecache.prune(str(root), max_bytes=1000)
+    assert sorted(p.name for p in stamp_dir.iterdir()) == [f"t12_{i}_0_0.bin" for i in (0, 1, 2)]
+    assert tilecache.cache_is_full(str(root), max_bytes=1000), "over the budget with only built-ahead tiles left"
+    assert not tilecache.cache_is_full(str(root), max_bytes=10_000)
+
+
+def test_a_visit_refreshes_a_tile_and_a_warm_up_does_not(api, monkeypatch):
+    first = tilecache.fetch_tiles("mydb", ["12/1/2/3", "12/1/2/4"])
+    directory = os.path.join(tilecache._db_dir(tilecache.cache_dir(), "mydb"), first["generation"])
+    visited, ahead = (os.path.join(directory, name) for name in ("t12_1_2_3.bin", "t12_1_2_4.bin"))
+    for path in (visited, ahead):
+        os.utime(path, (1000, 1000))
+    tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    tilecache.fetch_tiles("mydb", ["12/1/2/4"], ahead=True)
+    assert os.stat(visited).st_mtime > 1000, "a visit counts as the last visit"
+    assert os.stat(ahead).st_mtime == 1000, "building ahead does not"
+
+
+def test_what_is_built_ahead_is_marked_and_what_a_visit_asked_for_is_not(api):
+    ahead = tilecache.fetch_tiles("mydb", ["12/1/2/3"], ahead=True)
+    asked = tilecache.fetch_tiles("mydb", ["12/1/2/4"])
+    directory = os.path.join(tilecache._db_dir(tilecache.cache_dir(), "mydb"), ahead["generation"])
+    assert os.stat(os.path.join(directory, "t12_1_2_3.bin")).st_mode & 0o777 == tilecache.AHEAD_MODE
+    assert os.stat(os.path.join(directory, "t12_1_2_4.bin")).st_mode & 0o777 == 0o600
+    assert asked["generation"] == ahead["generation"]
+
+
+def test_a_full_cache_drops_visited_tiles_and_keeps_those_built_ahead(api, monkeypatch):
+    """The decided behaviour at the budget (Boss, 2026-10-18, 5:56 PM EDT): the warm-up stops, the tiles built ahead
+    stay, the least recently visited tile a visit asked for goes."""
+    keys = [f"12/{i}/0/0" for i in range(8)]
+    tilecache.fetch_tiles("mydb", keys[:3], ahead=True)
+    for key in keys[3:]:
+        tilecache.fetch_tiles("mydb", [key])
+    root = tilecache.cache_dir()
+    sizes = {path: size for path, size, _mtime, _ahead in tilecache.cache_files(root)}
+    one = max(sizes.values())
+    generation = tilecache.current_stamp("mydb", root)["generation"]
+    directory = os.path.join(tilecache._db_dir(root, "mydb"), generation)
+    for i in range(3, 8):
+        os.utime(os.path.join(directory, f"t12_{i}_0_0.bin"), (1000 + i, 1000 + i))
+    tilecache.prune(root, max_bytes=int(one * 6.5))                # room for six whole tiles at most
+    left = sorted(name for name in os.listdir(directory) if name.startswith("t12_"))
+    assert left[:3] == ["t12_0_0_0.bin", "t12_1_0_0.bin", "t12_2_0_0.bin"], "built ahead, kept"
+    assert "t12_3_0_0.bin" not in left and "t12_7_0_0.bin" in left, "the least recently visited went, the latest stayed"
 
 
 def test_configured_cache_dir_reports_where_the_cache_belongs(monkeypatch, tmp_path):
@@ -246,7 +308,7 @@ def test_configured_cache_dir_reports_where_the_cache_belongs(monkeypatch, tmp_p
     # checked by the helper itself.
     target = tmp_path / "not-yet" / "tiles"
     monkeypatch.setenv("PLANETGEN_TILE_CACHE_DIR", str(target))
-    monkeypatch.delenv("PLANETGEN_TILE_CACHE_MAX_MB", raising=False)
+    monkeypatch.delenv("PLANETGEN_CACHE_MAX_MB", raising=False)
     assert tilecache.configured_cache_dir() == str(target)
     assert not target.exists()
 
@@ -254,7 +316,7 @@ def test_configured_cache_dir_reports_where_the_cache_belongs(monkeypatch, tmp_p
     monkeypatch.setattr(tilecache, "_config", lambda: settings_model.TileCache())
     assert tilecache.configured_cache_dir() == tilecache.DEFAULT_CACHE_DIR
 
-    monkeypatch.setattr(tilecache, "_config", lambda: settings_model.TileCache(max_mb=0))
+    monkeypatch.setenv("PLANETGEN_CACHE_MAX_MB", "0")
     assert tilecache.configured_cache_dir() is None
 
 

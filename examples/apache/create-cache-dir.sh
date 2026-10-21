@@ -16,7 +16,7 @@
 # Without an argument the directory is the one the web interface will use:
 # `PLANETGEN_TILE_CACHE_DIR` if this shell has it, else config.json's
 # `tile_cache.dir`, else /var/cache/planetgen/tiles. Nothing is created
-# when `tile_cache.max_mb` is 0 (the disk cache is off). A directory set
+# when `cache.max_mb` is 0 (the disk cache is off). A directory set
 # only through a `SetEnv PLANETGEN_TILE_CACHE_DIR` in the Apache vhost
 # isn't visible here, so pass it as the argument.
 
@@ -68,7 +68,7 @@ fi
 # Parents (e.g. /var/cache/planetgen) stay root-owned and world-traversable;
 # only the cache directory itself belongs to Apache.
 if [[ -z "$CACHE_DIR" ]]; then
-    echo "Tile cache is off (tile_cache.max_mb is 0) -- nothing to create."
+    echo "Tile cache is off (cache.max_mb is 0) -- nothing to create."
 else
     mkdir -p "$CACHE_DIR"
     chown -R "$APACHE_USER:$APACHE_GROUP" "$CACHE_DIR"

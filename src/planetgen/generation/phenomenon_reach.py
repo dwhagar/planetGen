@@ -20,7 +20,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.galaxy import black_hole_density, density, profile, remnant_distribution
+from planetgen.galaxy import remnant_density, density, profile, remnant_distribution
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.generation import bright_stars, object_first, phenomenon_scatter
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS
@@ -44,16 +44,16 @@ def _remnant_kind(kind, subtype):
     return not _follows_young_stars(kind, subtype) and kind in tuning.REMNANT_SCALE_HEIGHT_RATIO
 
 
-def _stellar_hole(kind, subtype):
-    return kind == "black-hole" and subtype == "stellar"
+def _follows_metals(kind, subtype):
+    return remnant_density.follows_metals(kind, subtype)
 
 
 def class_fractions(kind, subtype, structure):
     """
     The fractions of each population (`bright_stars.POPULATIONS`) that bound a class's weight over the whole galaxy
     per unit of density: the young stars alone for a class that follows them; the largest the remnant factors reach
-    for a neutron star or a black hole, and for a stellar-mass black hole also the most its metallicity factor reaches
-    (`black_hole_density.bound_factor` of the galaxy's `structure`); 1 for the rest.
+    for a neutron star or a black hole, and for a stellar-mass black hole or a neutron star also the most its metallicity
+    factor reaches (`remnant_density.bound_factor` of the galaxy's `structure`); 1 for the rest.
     """
     if _follows_young_stars(kind, subtype):
         return {population: 1.0 if population == "young" else 0.0 for population in POPULATIONS}
@@ -62,8 +62,8 @@ def class_fractions(kind, subtype, structure):
         factor = tuning.REMNANT_VERTICAL_FACTOR_MAX
         if kind == "black-hole":
             factor *= 1.0 + tuning.BLACK_HOLE_CORE_EXCESS
-    if _stellar_hole(kind, subtype):
-        factor *= black_hole_density.bound_factor(structure)
+    if _follows_metals(kind, subtype):
+        factor *= remnant_density.bound_factor(structure, kind)
     return {population: factor for population in POPULATIONS}
 
 
@@ -90,7 +90,7 @@ def class_bounds(shape, groups, kind, subtype):
         fractions = class_fractions(kind, subtype, shape.structure)
         return object_first.extent_majorants(shape, groups.inner, groups.z_near, groups.z_far, fractions, groups.r_out,
                                              r_near=groups.r_in)
-    metals = black_hole_density.bound_factor(shape.structure) if _stellar_hole(kind, subtype) else 1.0
+    metals = remnant_density.bound_factor(shape.structure, kind) if _follows_metals(kind, subtype) else 1.0
     ones = {population: metals for population in POPULATIONS}
     bound = object_first.extent_majorants(shape, groups.inner, groups.z_near, groups.z_far, ones, groups.r_out,
                                           r_near=groups.r_in)
@@ -105,7 +105,7 @@ def _weights(kind, subtype, x, y, z, shape):
     `phenomenon_scatter._band_rows` weighs a longitude bin by, at the points themselves."""
     if _follows_young_stars(kind, subtype):
         return np.maximum(density.population_densities_array(x, y, z, shape)["young"], 0.0)
-    weight = (black_hole_density.weights_array(x, y, z, shape) if _stellar_hole(kind, subtype)
+    weight = (remnant_density.weights_array(x, y, z, shape, kind) if _follows_metals(kind, subtype)
               else density.total_density_array(x, y, z, shape))
     if _remnant_kind(kind, subtype):
         weight = (weight * remnant_distribution.vertical_factor_array(kind, z, shape.disk_scale_height_pc)

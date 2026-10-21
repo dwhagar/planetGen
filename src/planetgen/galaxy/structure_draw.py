@@ -33,7 +33,7 @@ each other nor on the order they run in.
    dispersion `0.248 V` with 15 percent (Martinsson 2013), the age exponent 0.441 +/- 0.03 (Sharma and Hayden 2020),
    and the bulge's scatter 0.097 dex about `Vc / sigma_0 = 2 (1 - B/T)` (Courteau 2007).
 5. **Black holes** (GEN.563; `draw_black_hole_shares`): the shares of the massive stars that fail to explode at solar and at
-   zero metallicity, which `galaxy.black_hole_density` turns into a rate per star at a place.
+   zero metallicity, which `galaxy.remnant_density` turns into a rate per star at a place.
 6. **Bar** (GEN.533; sources and conflicts in `docs/design/gen533-bar-sources.md`): whether the galaxy has a bar, the
    bar's (or an unbarred bulge's) axis ratios and the bar's angle; see `draw_bar`.
 
@@ -201,6 +201,7 @@ def draw_structure(galaxy_seed):
     else:
         cluster = 0.0
     black_holes = draw_black_hole_shares(galaxy_seed)
+    unbound = draw_neutron_star_unbound_share(galaxy_seed)
     return Structure(
         vc_kms=vc, thick_mass_ratio=mass_ratio, thick_length_ratio=length_ratio, thick_height_ratio=height_ratio,
         bar_present=bar[0], bar_axis_ratio_y=bar[1], bar_axis_ratio_z=bar[2], bar_angle_deg=bar[3],
@@ -209,7 +210,15 @@ def draw_structure(galaxy_seed):
         bulge_dispersion_scatter_dex=bulge_scatter,
         stellar_mass_solar=mass, classical_bulge=classical, black_hole_deviation=black_hole,
         nuclear_cluster_mass_solar=cluster,
-        black_hole_solar_share=black_holes[0], black_hole_metal_free_share=black_holes[1])
+        black_hole_solar_share=black_holes[0], black_hole_metal_free_share=black_holes[1],
+        neutron_star_unbound_share=unbound)
+
+
+def draw_neutron_star_unbound_share(galaxy_seed):
+    """The share of the neutron stars the galaxy forms that it ejects (GEN.554): drawn once from the galaxy's seed over
+    `tuning.NEUTRON_STAR_UNBOUND_FRACTION_RANGE` (`galaxy.ejecta_field.unbound_fraction`)."""
+    from planetgen.galaxy import ejecta_field
+    return ejecta_field.unbound_fraction("neutron-star", galaxy_seed or mass_chain.FALLBACK_SEED)
 
 
 def draw_black_hole_shares(galaxy_seed):
@@ -219,8 +228,7 @@ def draw_black_hole_shares(galaxy_seed):
     its widest verified range and cut at the neutron star budget, which reads the neutron stars' unbound share of the
     same seed (`galaxy.ejecta_field.unbound_fraction`), so that draw comes first.
     """
-    from planetgen.galaxy import ejecta_field
-    cap = black_hole_formation.share_cap(ejecta_field.unbound_fraction("neutron-star", galaxy_seed or mass_chain.FALLBACK_SEED))
+    cap = black_hole_formation.share_cap(draw_neutron_star_unbound_share(galaxy_seed))
     return black_hole_formation.draw_failed_shares(
         _stream(galaxy_seed, "black-hole-solar").random(), _stream(galaxy_seed, "black-hole-metal-free").random(), cap)
 
