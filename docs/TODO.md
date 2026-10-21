@@ -17267,41 +17267,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as #2361, about 7:25 PM EDT as the lane reported).
   Prerequisites: PERF.140.
 
-- [ ] **PERF.144 Every job queued to RQ gets a time limit from the best available estimate of how long it takes, never no limit, so a killed worker's entry expires**
-  Boss (2026-10-21, 12:44 PM EDT, in the Bug Hunt thread, as Bug Hunt
-  reported it): "Can we build a time limit to assign to RQ based on
-  stats?". Today the Generate page's job (`web/jobs.py:696`), the API's
-  jobs (`queue/api_jobs.py:150`) and the queue executor
-  (`queue/redisqueue.py:305`) are queued with `job_timeout=-1`, so RQ
-  never expires their entries when a worker dies (PERF.142). Units
-  already get a limit (`units.unit_timeout`: a multiple of the stage's
-  expected seconds, with a floor and a ceiling, never -1).
-  Do: audit every site that enqueues to RQ (the Generate page's job in
-  `web/jobs.py`, the API's jobs in `queue/api_jobs.py`, the queue
-  executor in `queue/redisqueue.py`, the units, and any other `enqueue`
-  call, found by grep and listed on this item) and give each a finite
-  `job_timeout` taken from the best estimate available, in this order:
-  the recorded timings of that kind (`generation_stats`), the stage ETAs
-  the run plan already computes, then the size of the work (sectors,
-  systems, cells, span); the limit is a multiple of the estimate with a
-  floor and a ceiling (as `units.unit_timeout` does), a fixed ceiling
-  only for a route with no estimate at all, and never -1 or None. Boss,
-  2026-10-21, 5:32 PM EDT (as the coordinator relayed): "I also want to
-  make sure we've ensured that all jobs that go to RQ get a time limit
-  based on how much time the system thinks it will take based on the
-  best estimates avilable, so that RQ can help make sure we don't have
-  dead jobs." Done: the audit list of enqueue sites is on this item;
-  each site passes a finite limit; a test fails if any job is enqueued
-  without a timeout (a guard on the one enqueue wrapper, or a grep-style
-  test that fails on a bare `enqueue` call); a kind with recorded
-  timings gets the multiple, one with only a size estimate gets the
-  size-based limit, and one with neither gets the ceiling; and a job
-  over its limit is ended and reported failed. Owner: Bug Hunt, first in
-  its queue (priority raised by Boss, 5:32 PM EDT 2026-10-21; PERF.142
-  and PERF.143 merged as #2345). Related: PERF.142, PERF.106 (the unit
-  limits).
-  Prerequisites: none. Related: PERF.142, PERF.143, PERF.106.
-
 - [ ] **PERF.145 The run output repeats the stage: drop the stage-list line and the 'Stage 4 of 13: ...' line the engine logs under the wrapper's '=== Stage 4 of 13: ... ===' banner**
   Boss, 2026-10-21, 5:22 PM EDT: a run prints '1 stage (stages 4 to 4 of
   13): 4. Plan the galaxy.' and 'Stage 4 of 13: Plan the galaxy.' right
@@ -17324,6 +17289,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   banner does not stays, and a test covers it.
   Owner: Bug Hunt, after PERF.142 and PERF.143 (Boss's item relayed by
   the coordinator, 5:23 PM EDT).
+  Progress (Bug Hunt, 7:57 PM EDT 2026-10-21 as the lane reported): done
+  in a side worktree; its gate runs after Boss's stalled-job
+  investigation.
   Prerequisites: none. Related: PERF.120.
 
 - [ ] **PERF.146 A performance profile of every generation option and scatter, with a repeatable benchmark command, a report and a ranked optimization list: one of the last three 8.1 stages**
@@ -22221,6 +22189,8 @@ clears each one.
   the test adds (its cloud) rather than an empty cloud list; no
   quarantine. Done: the test passes 30 of 30 loop runs on an idle
   machine and the cause is on this item. Owner: Bug Hunt (proposed).
+  Progress (Bug Hunt, 7:57 PM EDT 2026-10-21 as the lane reported):
+  fixed in a side worktree, not yet gated or merged.
   Prerequisites: none. Related: TEST.254, TEST.256.
 
 - [ ] **TEST.258 Other tests that scatter a low shell of the toy shape may hold gigabytes after GEN.404: sweep them for resident memory**
@@ -22342,6 +22312,8 @@ clears each one.
   the reason. Done: the test passes alone and in the full gate. Owner:
   Bug Hunt, in its queue after PERF.144 and PERF.145 (the coordinator,
   7:25 PM EDT 2026-10-21).
+  Progress (Bug Hunt, 7:57 PM EDT 2026-10-21 as the lane reported):
+  fixed in a side worktree, not yet gated or merged.
   Prerequisites: none.
 
 ## USR: User accounts

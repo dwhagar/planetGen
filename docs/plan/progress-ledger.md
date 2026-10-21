@@ -931,3 +931,4 @@ Baseline: PR #1817.
 | PERF.143 | 8.1 | Queue, caches and performance |
 | PERF.142 | 8.1 | Queue, caches and performance |
 | DB.79 | 8.2 | Robust tile caching |
+| PERF.144 | 8.1 | Queue, caches and performance |
