@@ -138,7 +138,7 @@ def _on_change_args(changed, site):
 def test_the_warm_up_after_a_change_runs_the_whole_warm_up_for_the_site_database(database, monkeypatch):
     warmed = []
     monkeypatch.setattr(warm_cli, "_site_database", lambda: database.name)
-    monkeypatch.setattr(warm_cli, "_warm_once", lambda args: warmed.append(args.database))
+    monkeypatch.setattr(warm_cli, "_warm_once", lambda args, reason=None: warmed.append(args.database))
     monkeypatch.setattr(warmstart, "settle_seconds", lambda: 0.0)
     warmstart.request(database.name, "orbits")
     warm_cli.run_warm(_on_change_args(database.name, database.name))
@@ -148,7 +148,7 @@ def test_the_warm_up_after_a_change_runs_the_whole_warm_up_for_the_site_database
 
 def test_a_change_on_another_database_warms_nothing(database, monkeypatch):
     monkeypatch.setattr(warm_cli, "_site_database", lambda: "the_site")
-    monkeypatch.setattr(warm_cli, "_warm_once", lambda args: pytest.fail("nothing to warm"))
+    monkeypatch.setattr(warm_cli, "_warm_once", lambda args, reason=None: pytest.fail("nothing to warm"))
     warmstart.request(database.name, "orbits")
     warm_cli.run_warm(_on_change_args(database.name, "the_site"))
     assert database.client.get(warmstart.lock_key(database.name)) is None
@@ -158,7 +158,7 @@ def test_a_failed_warm_up_after_a_change_exits_non_zero(database, monkeypatch, c
     monkeypatch.setattr(warm_cli, "_site_database", lambda: database.name)
     monkeypatch.setattr(warmstart, "settle_seconds", lambda: 0.0)
 
-    def fail(_args):
+    def fail(_args, reason=None):
         raise warm_cli.Failed("systems did not answer")
 
     monkeypatch.setattr(warm_cli, "_warm_once", fail)

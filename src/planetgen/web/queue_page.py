@@ -20,7 +20,7 @@ from flask import abort, current_app, request, url_for
 
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.datatable import Column, Result, Table, time_text
-from planetgen.queue import progress_rate, work as workQueue
+from planetgen.queue import progress_rate, warmphases, work as workQueue
 from planetgen.admin import activity_log
 from planetgen.util import log
 
@@ -316,6 +316,32 @@ JOBS_TABLE = tables.register(Table(
 ))
 
 
+def _warm_view(warm):
+    """The cache warm-up panel (PERF.141): its phases, the run they belong to and what the automatic start waits for, or `None`."""
+    if warm is None or not warm["available"]:
+        return None
+    run = warm["run"] or {}
+    auto = warm["auto"]
+    return {
+        "run_state": run.get("state"),
+        "run_text": warmphases.STATE_TEXT.get(run.get("state"), "No run recorded"),
+        "run_started": time_text(_iso(run.get("started_at"))) or "",
+        "run_finished": time_text(_iso(run.get("finished_at"))) or "",
+        "run_reason": run.get("reason") or "",
+        "run_error": run.get("error") or "",
+        "phases": [{**phase, "started": time_text(_iso(phase["started_at"])), "finished": time_text(_iso(phase["finished_at"])),
+                    "number": number} for number, phase in enumerate(warm["phases"], 1)],
+        "auto_enabled": auto["enabled"], "auto_wanted": auto["wanted"], "auto_running": auto["holder"] is not None,
+    }
+
+
+def _iso(seconds):
+    """A time given in seconds since the epoch as the ISO text `time_text` reads, or `None`."""
+    if not seconds:
+        return None
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(float(seconds)))
+
+
 @bp.route("/admin/queue")
 def admin_queue():
     """The queue's state and the job trees, newest first (a data table)."""
@@ -325,12 +351,16 @@ def admin_queue():
     cookie_header = _cookie_header()
     error = None
     jobs_table = None
-    workers = None
+    workers = warm = None
     try:
         try:
             workers = apiclient.admin_work_workers(cookie_header)
         except apiclient.ApiError:
             workers = None                      # Redis down: the page says so elsewhere; the rest still loads
+        try:
+            warm = apiclient.admin_work_warm(cookie_header, db_name())
+        except apiclient.ApiError:
+            warm = None
         body = apiclient.admin_work(cookie_header, limit=1, offset=0)
         if body["available"]:
             jobs_table = tables.render(JOBS_TABLE, request.path, anchor="jobs")
@@ -342,6 +372,7 @@ def admin_queue():
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue")],
         description="The generation jobs on this server, and the controls to pause, resume, cancel or retry them.",
         admin=admin, available=body["available"], queue=_status_view(body["status"]), jobs_table=jobs_table, workers=workers,
+        warm=_warm_view(warm),
         error=error or flashed.get("error"), message=flashed.get("message"),
     )
 

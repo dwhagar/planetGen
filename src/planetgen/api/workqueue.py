@@ -12,10 +12,12 @@ Rerunning a job (Retry) starts a Generate page job, so it lives with the
 page (`web/queue_page.py`), not here.
 """
 
+import re
+
 from flask import Blueprint, g, jsonify, request
 
 from planetgen.generation import stats as generationStats
-from planetgen.queue import load as systemLoad, redisqueue, work as workQueue, workers as queueWorkers
+from planetgen.queue import load as systemLoad, redisqueue, warmphases, work as workQueue, workers as queueWorkers
 
 from .authz import audit, require_admin
 from .common import ApiError, get_control_db, require_json_body
@@ -106,6 +108,26 @@ def _unstarted_steps(conn):
         started = sum(1 for child in root["children"] if child["kind"] == "step")
         return [recorded.get(label) for label in job["steps"][started:]]
     return unstarted
+
+
+DATABASE_RE = re.compile(r"^[A-Za-z0-9_$]{1,64}$")
+"""re.Pattern: A database name as `GET /api/admin/work/warm` takes it."""
+
+
+@bp.route("/warm")
+@require_admin()
+def warm():
+    """
+    `GET /api/admin/work/warm?database=NAME` -- what the cache warm-up has done on that database, phase by phase
+    (`warmphases.read`, PERF.141): `{"available", "run", "phases": [{"name", "text", "families", "state",
+    "state_text", "line", "built", "cached", "left_out", "seconds", "started_at", "finished_at"}], "auto":
+    {"enabled", "wanted", "holder"}}`.
+    """
+    database = request.args.get("database") or ""
+    if not DATABASE_RE.match(database):
+        raise ApiError("`database` must name a database.", 400)
+    from planetgen.web import warmup    # the phases are the web layer's (`planetgen warm` builds them)
+    return jsonify(warmphases.read(database, warmup.PHASES))
 
 
 @bp.route("/<node_id>")

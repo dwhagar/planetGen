@@ -41,7 +41,7 @@ import sys
 import time
 
 from planetgen.admin import updateguard
-from planetgen.queue import redisqueue, runrecord, units, warmstart, wrapper
+from planetgen.queue import redisqueue, runrecord, units, warmphases, warmstart, wrapper
 from planetgen.util import log
 
 UPDATE_WAIT_SECONDS = 1200
@@ -92,7 +92,7 @@ def _stop_on_sigterm():
     signal.signal(signal.SIGTERM, on_term)
 
 
-def _warm_once(args):
+def _warm_once(args, reason=None):
     """
     Builds the list of cache-warming commands the arguments ask for and runs it through the wrapper, printing each
     command's line.
@@ -111,10 +111,19 @@ def _warm_once(args):
         try:
             _wait_for_update()
             tally = warmup.PhaseTally([step.key for step in steps])
+            phases = [name for name, _text, families in warmup.PHASES if any(step.key in families for step in steps)]
+            warmphases.begin(args.database, phases, reason)
+
+            def report_ended():
+                for name in tally.ended:
+                    warmphases.finish_phase(args.database, name, tally.result(name))
 
             def on_plan(index, _plan):
                 for line in tally.start(steps[index].key):
                     log.normal(line)
+                report_ended()
+                if steps[index].key in warmup.FAMILIES:
+                    warmphases.start_phase(args.database, warmup.phase_of(steps[index].key))
 
             def on_result(index, _unit, result):
                 if steps[index].key in tally.totals:
@@ -125,8 +134,14 @@ def _warm_once(args):
                         argv=sys.argv[1:], kind=runrecord.MAINTENANCE, workers_count=1)
             for line in tally.finish():
                 log.normal(line)
+            report_ended()
+            warmphases.end(args.database)
         except (redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
+            warmphases.end(args.database, error=str(exc))
             raise Failed(str(exc)) from exc
+        except BaseException as exc:
+            warmphases.end(args.database, error=f"{type(exc).__name__}: {exc}" if str(exc) else type(exc).__name__)
+            raise
     warmed = [step.key for step in steps if step.key in warmup.FAMILIES]
     log.normal(f"Cache warm-up done: {len(warmed)} families.")
 
@@ -144,7 +159,7 @@ def _warm_on_change(args):
 
     def run(kinds):
         log.normal(f"Warming after a change ({', '.join(kinds)}).")
-        _warm_once(args)
+        _warm_once(args, reason=', '.join(kinds))
 
     try:
         rounds = warmstart.drain(args.on_change, run)
