@@ -421,10 +421,10 @@ def cli(config, monkeypatch):
 
 def test_cli_set_get_unset_and_restore(config, cli, capsys):
     assert config_cli.main(["set", "cache.max_mb=300", "site_name=My galaxy", "debug2=1"]) == 1
-    assert "debug2: is not a setting" in capsys.readouterr().err and "tile_cache" not in _doc(config)
+    assert "debug2: is not a setting" in capsys.readouterr().err and "cache" not in _doc(config)
     assert config_cli.main(["set", "cache.max_mb=300", "site_name=My galaxy", "jobs.keep=7"]) == 0
     assert "Saved" in capsys.readouterr().out and settings.get_settings().jobs.keep == 7
-    assert sorted(row[1] for row in cli.rows) == ["config:jobs.keep", "config:site_name", "config:cache.max_mb"]
+    assert sorted(row[1] for row in cli.rows) == ["config:cache.max_mb", "config:jobs.keep", "config:site_name"]
     assert config_cli.main(["get", "cache.max_mb"]) == 0
     shown = capsys.readouterr().out
     assert "300" in shown and "[config.json]" in shown
