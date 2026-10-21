@@ -81,7 +81,7 @@ The 2 pc ball holds 6.0e6 solar masses, 1.5e7 systems. The sizes scale with the 
 
 ### 3.2 The nuclear stellar disc
 
-An exponential disc with a sech^2 vertical profile, the form of the thin disc: `rho(R, z) = rho0 exp(-R / R_d) sech^2(z / 2 h)`, `R_d` = 90 pc, `h` = 35 pc, `rho0` = 215 solar masses per pc^3, which puts 1e9 inside 200 pc (65% of the total) [C]. It gives 215 at the centre, 71 at 100 pc and 23 at 200 pc, inside the 50 to 150 mean the research notes quote [R]. Scaling: `R_d` and `h` in proportion to the bulge scale radius, mass as the nuclear-cluster mass times 40 (1e9 / 2.5e7 [R]).
+An exponential disc with a sech^2 vertical profile, the isothermal sheet the thin disc had before GEN.544 (it kept this form; the thin disc is now exponential in height): `rho(R, z) = rho0 exp(-R / R_d) sech^2(z / 2 h)`, `R_d` = 90 pc, `h` = 35 pc, `rho0` = 215 solar masses per pc^3, which puts 1e9 inside 200 pc (65% of the total) [C]. It gives 215 at the centre, 71 at 100 pc and 23 at 200 pc, inside the 50 to 150 mean the research notes quote [R]. Scaling: `R_d` and `h` in proportion to the bulge scale radius, mass as the nuclear-cluster mass times 40 (1e9 / 2.5e7 [R]).
 
 ### 3.3 What replaces what
 

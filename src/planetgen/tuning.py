@@ -2648,11 +2648,12 @@ MAGNETAR_SPIN_PERIOD_MS_RANGE = (2000.0, 12000.0)
 # so 1e-7 of them. They follow the young population, not the stars, so the
 # rate per star is divided by the young population's share of all stars in
 # a Milky Way-like galaxy (the integral of the young density over that of
-# every component, 0.19% since GEN.469 gave the disk's populations their
-# shares from its gas history (a galaxy of 5e10 solar masses; a lighter one forms its stars later and holds more young ones): test_gen_magnetar_scatter checks it); a galaxy
+# every component, 0.16%: since GEN.469 the disk's populations have their shares from its gas history (a galaxy of
+# 5e10 solar masses; a lighter one forms its stars later and holds more young ones) and since GEN.544 the exponential
+# height (it was 0.19% over the isothermal one); test_gen_magnetar_scatter checks it); a galaxy
 # with a different young share holds proportionally more or fewer.
 MAGNETAR_PER_NEUTRON_STAR = 1.0e-7
-MAGNETAR_YOUNG_STAR_SHARE = 0.0019
+MAGNETAR_YOUNG_STAR_SHARE = 0.0016
 # A scattered magnetar's age: from the first century to the end of its active life.
 MAGNETAR_AGE_RANGE_GY = (1.0e-7, MAGNETAR_ACTIVE_LIFETIME_YR / 1e9)
 

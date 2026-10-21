@@ -655,13 +655,20 @@ def _point_in_cell_failures():
     return failures
 
 
+REFERENCE_BULGE_AMPLITUDE = 3.11 / 2.0
+"""float: The Milky Way's bulge central density over the thin disk's, for the exponential disk (GEN.544): BHG16's 3.11
+was measured against a `sech^2` disk whose column is twice its midplane density's `2 h`, so the same bulge mass (31% of
+the bulge and disks') is half that over an exponential disk's midplane."""
+
+
 def _reference_galaxy_shape():
     """The Milky Way's measured shape (BHG16, Dwek et al. 1995), the reference the checks measure the model's machinery
     against (the nuclear structures, the component masses, the calibration). No generation reads it: `planetgen plan`
     draws its own shape from the galaxy seed (GEN.401)."""
     return galaxyDensity.build_galaxy_shape(
         disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0,
-        bulge_amplitude=3.11, arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4, nuclear_amplitude=1.0)
+        bulge_amplitude=REFERENCE_BULGE_AMPLITUDE, arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4,
+        nuclear_amplitude=1.0)
 
 
 def _nuclear_structure():

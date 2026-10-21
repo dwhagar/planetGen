@@ -103,14 +103,15 @@ def _disk_density(x, y, z, young, shape):
 def _place(stream, radius_pc, age_gy, shape):
     """
     `(x, y, z)` arrays: each cluster at its ring's radius, at the height of stars of its age (the population's
-    `sech^2` profile) and at an azimuth drawn by rejection against the density of stars of that age, which carries the
+    `exp(-|z| / h)` profile) and at an azimuth drawn by rejection against the density of stars of that age, which carries the
     arms (the youngest the most).
     """
     count = len(radius_pc)
     young = age_gy < tuning.OPEN_CLUSTER_DISK_POPULATION_EDGE_GY
     ratio = galaxy_density.population_height_ratios(shape)
     height = shape.disk_scale_height_pc * np.where(young, ratio["young"], ratio["intermediate"])
-    z = 2.0 * height * np.arctanh(np.clip(2.0 * stream.random_array(count) - 1.0, -1.0 + 1.0e-12, 1.0 - 1.0e-12))
+    u = np.clip(2.0 * stream.random_array(count) - 1.0, -1.0 + 1.0e-12, 1.0 - 1.0e-12)
+    z = -np.sign(u) * height * np.log1p(-np.abs(u))      # the inverse of the profile's two-sided distribution
     phase = _arm_phase(radius_pc, shape)
     arms = max(int(shape.arm_count), 1)
     phi = stream.random_array(count) * 2.0 * math.pi

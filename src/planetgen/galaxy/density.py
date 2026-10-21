@@ -102,17 +102,30 @@ def _sech_squared(x):
 
 
 def _vertical(z, scale_height_pc):
-    """A disk's vertical profile: `sech^2(z / (2 * h))`, the isothermal
-    sheet, whose tail away from the plane is `exp(-|z| / h)` -- so `h` is
-    the exponential scale height surveys quote (BHG16's 300 pc thin disk,
-    900 pc thick disk)."""
-    return _sech_squared(z / (2.0 * scale_height_pc))
+    """A disk's vertical profile: `exp(-|z| / h)` (GEN.544), the form surveys fit to star counts, so `h` is the
+    exponential scale height they quote (BHG16's 300 pc thin disk, 900 pc thick disk) and the midplane density is the
+    one the fits give for the same column (`2 h` times it). It has a cusp in the plane; the stars drawn from it do not
+    see one."""
+    return math.exp(-min(abs(z) / scale_height_pc, 700.0))
 
 
 def _vertical_any(z, scale_height_pc):
     """`_vertical` for a scalar or an array of heights (an array broadcasts, one height per band of a shell)."""
     if np.ndim(z) == 0:
         return _vertical(float(z), scale_height_pc)
+    return np.exp(-np.minimum(np.abs(np.asarray(z, dtype=float)) / scale_height_pc, 700.0))
+
+
+def _sech_vertical(z, scale_height_pc):
+    """The nuclear stellar disc's vertical profile: `sech^2(z / (2 * h))`, the isothermal sheet, whose tail away from
+    the plane is `exp(-|z| / h)` and whose column is `4 h` times its midplane density."""
+    return _sech_squared(z / (2.0 * scale_height_pc))
+
+
+def _sech_vertical_any(z, scale_height_pc):
+    """`_sech_vertical` for a scalar or an array of heights."""
+    if np.ndim(z) == 0:
+        return _sech_vertical(float(z), scale_height_pc)
     e = np.exp(-2.0 * np.minimum(np.abs(np.asarray(z, dtype=float)) / (2.0 * scale_height_pc), 350.0))
     return np.minimum(1.0, 4.0 * e / (1.0 + e) ** 2)
 
@@ -145,16 +158,16 @@ def central_black_hole_mass_solar(shape):
 
 def _disk_mass(amplitude, scale_length_pc, scale_height_pc):
     """The mass, in the model's units, of an exponential disk of central density `amplitude`."""
-    return amplitude * 2.0 * math.pi * scale_length_pc ** 2 * 4.0 * scale_height_pc
+    return amplitude * 2.0 * math.pi * scale_length_pc ** 2 * 2.0 * scale_height_pc
 
 
 def bulge_to_total(shape):
     """The bulge's mass over the bulge's and the thin and thick disks', in the model's units (the share
     `shape_draw.bulge_amplitude_for` solves the bulge's amplitude from)."""
     terms = model_terms(shape)
-    thin = shape.arm_level * 2.0 * math.pi * shape.disk_scale_length_pc ** 2 * 4.0 * shape.disk_scale_height_pc
+    thin = shape.arm_level * 2.0 * math.pi * shape.disk_scale_length_pc ** 2 * 2.0 * shape.disk_scale_height_pc
     thick = (terms["thick_disk_amplitude"] * 2.0 * math.pi * terms["thick_disk_scale_length_pc"] ** 2
-             * 4.0 * terms["thick_disk_scale_height_pc"])
+             * 2.0 * terms["thick_disk_scale_height_pc"])
     return terms["bulge_mass"] / (terms["bulge_mass"] + thin + thick)
 
 
@@ -363,7 +376,7 @@ def _nuclear_disc(r_cyl, z, terms):
     if not terms["nuclear_disc_mass"]:
         return 0.0
     return (terms["nuclear_disc_density"] * math.exp(-r_cyl / terms["nuclear_disc_length_pc"])
-            * _vertical(z, terms["nuclear_disc_height_pc"]))
+            * _sech_vertical(z, terms["nuclear_disc_height_pc"]))
 
 
 def _nuclear_disc_array(r_cyl, z, terms):
@@ -371,7 +384,7 @@ def _nuclear_disc_array(r_cyl, z, terms):
     if not terms["nuclear_disc_mass"]:
         return np.zeros_like(np.asarray(r_cyl, dtype=float) + np.asarray(z, dtype=float))
     return (terms["nuclear_disc_density"] * np.exp(-np.asarray(r_cyl, dtype=float) / terms["nuclear_disc_length_pc"])
-            * _vertical_any(z, terms["nuclear_disc_height_pc"]))
+            * _sech_vertical_any(z, terms["nuclear_disc_height_pc"]))
 
 
 def nuclear_bound(r_cyl, z, shape):
@@ -471,7 +484,7 @@ def population_densities(position_pc, shape):
     (`shape.components`, GEN.160 and GEN.237; 0 for a galaxy without). The thin disk is shared among the three
     disk populations in proportion to how many stars each would put here:
     its share of disk star formation (the part of the disk's gas history in its age range, `galaxy.disk_history`), times
-    its own vertical profile (`sech^2(z/2h)/h`, a thinner disk for younger
+    its own vertical profile (`exp(-|z|/h)/h`, a thinner disk for younger
     stars) and its own arm contrast (`1 + A cos(arm phase)`, strongest for
     young stars). So young stars crowd the arms near the plane, and far
     off the plane or in the bulge nearly every star is old. The young and intermediate weights also carry the
@@ -612,11 +625,10 @@ def component_masses(shape, steps=40):
     bulge *= 8.0 * shape.bulge_amplitude * (4.0 / steps) ** 3 * axes[0] * axes[1] * axes[2]
 
     def disk(amplitude, length, height):
-        r_max, z_max = 12.0 * length, 12.0 * height
-        dr, dz = r_max / (4 * steps), z_max / (4 * steps)
+        r_max = 12.0 * length
+        dr = r_max / (4 * steps)
         radial = sum(2.0 * math.pi * r * math.exp(-r / length) for r in ((i + 0.5) * dr for i in range(4 * steps)))
-        vertical = sum(_vertical(z, height) for z in ((i + 0.5) * dz for i in range(4 * steps)))
-        return amplitude * radial * dr * 2.0 * vertical * dz
+        return amplitude * radial * dr * 2.0 * height   # the column of `exp(-|z| / h)` is `2 h`
 
     return {
         "bulge": bulge,
