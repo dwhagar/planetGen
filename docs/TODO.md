@@ -15704,14 +15704,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   share `--bulge-share`, bulge size `--bulge-size`), Edge (`--edge`),
   Halo (dark halo `--halo-mass`, stellar halo share `--stellar-halo`),
   Census (richness `--richness`, advanced, hidden by default) and the
-  Shape selector (GEN.608). Every slider has an Auto state (the seed's
-  draw), which is the default. Do: the registry module; a row type that
-  also carries an enum kind (for Shape) and a pinned-or-Auto state; the
-  parity test, modelled on `PLAN_FIELDS`. Done: a test fails when a
-  flag, a form field, a help line or a docs row is missing for any
-  registry row, or exists without one; an out-of-range value on the
-  command line is refused with the allowed range and its source; no row
-  has a default other than Auto.
+  Shape selector (GEN.608). A unit column (value type, allowed units,
+  conversion to a base unit) lets the parser and the form share unit
+  handling: Edge takes L, pc, kpc or Mpc (GEN.605; the unit travels with
+  the command-line value, a bare number is refused, a web selector sits
+  beside the slider), and the advanced absolute scale length takes pc or
+  kpc (GEN.603), with L not applicable (Boss, 7:01 PM EDT 2026-10-21).
+  The first release has four dials, Scale, Structure, Edge and Halo; the
+  Census row is added by GEN.607 after GEN.545 (Boss, 7:01 PM EDT).
+  Every slider has an Auto state (the seed's draw), which is the
+  default. Do: the registry module; a row type that also carries an enum
+  kind (for Shape) and a pinned-or-Auto state; the parity test, modelled
+  on `PLAN_FIELDS`. Done: a test fails when a flag, a form field, a help
+  line or a docs row is missing for any registry row, or exists without
+  one; an out-of-range value on the command line is refused with the
+  allowed range and its source; no row has a default other than Auto.
   Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
   2026-10-21).
   Decided (Boss, 2026-10-21, 6:57 PM EDT, via the coordinator): "we will
@@ -15804,6 +15811,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the golden files are regenerated; system counts and the cost of a full
   generation drop (check against GEN.545's mean system mass and measure
   with PERF.146).
+  Unit selector (Boss, 7:01 PM EDT 2026-10-21, on the Edge card): the
+  advanced absolute scale length is a length with units, pc or kpc,
+  through the lever table's unit column (GEN.601); on the command line
+  the unit is part of the value, as for Edge.
   Prerequisites: GEN.601. Related: GEN.382, GEN.404, GEN.545, GEN.609.
 
 - [ ] **GEN.604 Shape dials: the Structure dial: flatness (scale length over scale height), bulge share and bulge size (scale radius over L)**
@@ -15847,20 +15858,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sections 2, 7 and 8; research:
   /mnt/project-files/reports/galaxy-size-2026-10-21.md. Replaces
   `--max-shell`; `--reach-shells` stays an addressing detail (object IDs
-  name shells up to 262 kpc). The user-facing form is OPEN: scale
-  lengths (3 to 20 L) or the expected-systems-per-sector threshold (0.01
-  to 100; the recommended form, since it is what the generator uses),
-  still to be put to Boss as a card (the galaxy size research thread
-  brings it). Systems scale with mass and sectors with volume, so a
-  large thin low-density galaxy has many sectors with few stars; the
-  plan already computes both counts and this dial shows them before
-  anything runs, and warns when the job is impossible. Done: the chosen
-  form's tests; the radius and the counts are shown; Auto gives today's
-  one-system-per-sector threshold; `--max-shell` is gone. Blocked until
-  Boss answers the edge-form card.
-  Owner: none yet; it waits on Boss's edge-form card (the coordinator,
-  6:55 PM EDT 2026-10-21). The Galaxy dials lane takes it after the
-  card.
+  name shells up to 262 kpc). Decided (Boss, 2026-10-21, 7:01 PM EDT, on
+  the Edge card): "B and C give the option for both so the user will
+  have a selector of some kind so that the interface knows, the options
+  in the command line are determined by the units used (xxx L for
+  lengths and pc, kpc, Mpc for radius)". Edge takes both forms with a
+  unit selector. Web: a selector with L, pc, kpc and Mpc beside the
+  slider; the range and step follow the unit. Command line: the unit is
+  part of the value (`--edge 12L`, `--edge 30kpc`, `--edge 18000pc`,
+  `--edge 0.03Mpc`); a bare number is refused with the list of units.
+  Auto (the default) keeps today's one-system-per-sector outline and
+  shows the resulting radius in the chosen unit; the star-count
+  threshold is not a user unit. Range 3 to 20 L, and as a radius up to
+  the grid's reach (262 kpc, GEN.538), so Mpc above 0.262 is refused
+  with the reach quoted. A radius in L resolves against the planned
+  galaxy's thin disc scale length, so the same 12L is a different radius
+  in pc for a different L (documented). Detail:
+  design-drafts/galaxy-size-levers-2026-10-21.md, section 9.1. Systems
+  scale with mass and sectors with volume, so a large thin low-density
+  galaxy has many sectors with few stars; the plan already computes both
+  counts and this dial shows them before anything runs, and warns when
+  the job is impossible. Done: each unit parses, converts and
+  range-gates from the lever table's unit column (GEN.601); a bare
+  number and Mpc above the reach are refused with the allowed units and
+  the reach; the web selector changes the slider's range and step;  the
+  radius and the counts are shown; Auto gives today's
+  one-system-per-sector threshold; `--max-shell` is gone.
+  Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
+  2026-10-21); the edge form is decided, so it is no longer blocked.
   Prerequisites: GEN.601. Related: GEN.603, ADM.109, GEN.538, PERF.121.
 
 - [ ] **GEN.606 Shape dials: the Halo dial: dark halo mass over stellar mass and the stellar halo share, with r200 shown and a size-halo warning**
@@ -15907,13 +15932,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   systems the mass holds, so the density in systems and the cost of a
   full generation. Default the value GEN.545 derives (about 0.51 solar
   mass per system, 2.0 per solar mass); the range is a narrow band about
-  the IMF-derived value. OPEN with Boss: whether richness ships in the
-  first release of the dials or stays hidden until GEN.545's value has
-  settled. Done: the slider is tested alone; Auto gives GEN.545's
-  derived value; the system count scales as stated; hidden unless
-  Advanced is shown.
-  Owner: none yet; it waits on GEN.545 and Boss's richness card (the
-  coordinator, 6:55 PM EDT 2026-10-21).
+  the IMF-derived value. Decided (Boss, 2026-10-21, 7:01 PM EDT, tapped
+  "No, wait for GEN.545", card
+  cmsg_01RuNTFUNB92A8cm5CbojQAiEVg9cpevtSbXZPtt2uETHf): the Census dial
+  is added after GEN.545 settles the mean system mass; the first release
+  of the dials has four: Scale, Structure, Edge and Halo. Done: the
+  slider is tested alone; Auto gives GEN.545's derived value; the system
+  count scales as stated; hidden unless Advanced is shown.
+  Owner: the Galaxy dials lane, after GEN.545 merges (the coordinator,
+  6:55 PM EDT 2026-10-21; the richness choice is decided).
   Prerequisites: GEN.601, GEN.545. Related: GEN.603.
 
 - [ ] **GEN.608 Shape dials: the Shape selector, added to the table and the Generate form unfilled: key `spiral`, flag `--shape`, one option for now**
@@ -20068,6 +20095,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   in the Review step; the form never offers a value the command line
   refuses; works in both themes, without script and at phone width.
   Owner: the admin redesign thread (the Generate suite); the lever table items belong to the Galaxy dials lane.
+  Unit selectors (Boss, 7:01 PM EDT 2026-10-21): Edge has a unit
+  selector (L, pc, kpc, Mpc) whose slider range and step follow the
+  unit; the absolute scale length has pc and kpc; both read the lever
+  table's unit column (GEN.601). The first release shows four dials,
+  Scale, Structure, Edge and Halo; Census follows GEN.607 after GEN.545.
   Prerequisites: GEN.601, GEN.602, GEN.603, GEN.604, GEN.608, ADM.108.
   Related: ADM.99, ADM.112, DB.81.
 
