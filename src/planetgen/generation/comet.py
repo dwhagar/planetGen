@@ -200,7 +200,7 @@ class Comet(LazySaladName, MassObject, HoldsOrbitPosition):
     """float: This comet's offset from its star, AU: the "system" frame of
     `spatial`, its `SpatialPosition3D` (GEN.74), which `set_position_au` moves."""
 
-    def __init__(self, system_config: SystemConfig, primary_mass_solar, name=None, orbit_type=None):
+    def __init__(self, system_config: SystemConfig, primary_mass_solar, name=None, orbit_type=None, ceiling_au=None):
         """
         Initializes a Comet object.
 
@@ -213,6 +213,12 @@ class Comet(LazySaladName, MassObject, HoldsOrbitPosition):
             orbit_type (str, optional): Force `"elliptical"` or
                 `"parabolic"` rather than rolling
                 `tuning.COMET_PARABOLIC_CHANCE`.
+            ceiling_au (float, optional): How far from its star an elliptical comet's orbit may reach (GEN.182,
+                GEN.591): the star's Hill sphere against the galaxy, or a wide pair's tighter stable limit
+                (`validation.orbit_ceiling_au`). The eccentricity is drawn from its period class's range cut at
+                the value that puts the aphelion at `ceiling_au`, so a closed orbit never leaves its star
+                (a range that lies wholly above the cut gives the cut itself). A parabolic comet is unbound
+                on purpose and reads no ceiling.
         """
         self.system_config = system_config
         # A placeholder: `store.insert_star_system` replaces it with the
@@ -247,7 +253,13 @@ class Comet(LazySaladName, MassObject, HoldsOrbitPosition):
                        f"weighted draw among {class_names} (weights {weights})")
             class_data = tuning.COMET_PERIOD_CLASSES[self.period_class]
 
-            self.eccentricity = draw.uniform(*class_data["eccentricity_range"])
+            low, high = class_data["eccentricity_range"]
+            if ceiling_au is not None:
+                # aphelion q (1 + e) / (1 - e) <= ceiling  <=>  e <= (ceiling - q) / (ceiling + q)
+                perihelion_au = self.perihelion_distance_au
+                high = max(min(high, (ceiling_au - perihelion_au) / (ceiling_au + perihelion_au)), 0.0)
+                low = min(low, high)
+            self.eccentricity = draw.uniform(low, high)
             self.inclination_deg = draw.uniform(0, class_data["inclination_max_deg"])
 
             semi_major_axis_au = self.perihelion_distance_au / (1 - self.eccentricity)
