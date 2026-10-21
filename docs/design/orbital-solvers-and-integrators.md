@@ -482,6 +482,8 @@ and 50 to 140 ms for brute force; the tree is for tests only. In production the
 table reads come from the database per sector, so cost is cell count times the
 read.
 
+**Built (GEN.341).** `galaxy/influence.py` holds the search: `largest_hill_radius_pc` (the one radius, from each sector's heaviest mass and the galaxy's enclosed mass at its radius, the central black hole skipped), `influence_set` (the sectors from `spherical.cells_touching_sphere`'s reach margin of 1.3 edges, the members within the radius, the `max_exact_members` nearest exact and one `Monopole` per sector for the rest, a stable order so the result does not depend on how the sectors were stored) and `galactic_hill_radius_pc`. The cover lists of 6.3 are not built: a global radius that is the largest Hill radius needs none. `tests/test_influence.py` runs the plan below on a seeded catalogue (core, ring face, mid radius, rim, either side of the slot-0 seam, top and bottom layers; radii 2, 6, 20 and 60 pc) against brute force and `cKDTree` with no mismatch, the negative control without the margin, the exact pairwise criterion with injected heavy objects, the cap and the shuffled order.
+
 **Test plan for the TODO's "same nearest bodies as brute force" test.**
 
 1. Seeded synthetic catalogue at the sites above (plus a ring-0 pie wedge and
