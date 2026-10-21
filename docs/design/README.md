@@ -76,6 +76,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [multi-star-systems.md](multi-star-systems.md) | Multi-star and star-like systems at scatter time: the census, limits and probabilities, the stored member tree, motion, and the catalogue of about sixty observed and theoretical system types | design (plan of 2026-10-15; nothing built yet) |
 | [disk-star-formation-history.md](disk-star-formation-history.md) | The thin disk's young, middle-aged and old star shares from its own gas history | built |
 | [brown-dwarf-state.md](brown-dwarf-state.md) | A brown dwarf as a star: its L, T or Y type, temperature and radius from the cooling laws and the 20 pc census | built |
+| [remnant-age.md](remnant-age.md) | A neutron star's or stellar black hole's age: the population's birth age less the progenitor's time to collapse | built |
 | [black-hole-formation-sources.md](black-hole-formation-sources.md) | The verified failed-supernova and direct-collapse shares and black hole remnant masses behind the black hole density (GEN.560, GEN.563) | research |
 | [black-hole-density.md](black-hole-density.md) | The metallicity-dependent black hole density: the failed-supernova share f(Z) as two drawn anchors, the place factor, the rate sites, the tests and the seven open cards | built (GEN.563) |
 | [unified-star-like-objects.md](unified-star-like-objects.md) | One recursive chain for anything that can be orbited: stars and star-like objects, planets, moons, rogue planets, free brown dwarfs and unbound comets, built through sector fill | plan |

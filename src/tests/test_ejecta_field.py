@@ -113,8 +113,14 @@ def _args():
     return args
 
 
+def _old_population(config, rng=draw):
+    config.POPULATION = "old"      # what `FillContext.apply_population` gives a body: its population (GEN.553)
+    return config
+
+
 def _fill(neutron_stars, black_holes=0.0):
-    return SimpleNamespace(profile=SimpleNamespace(ejecta={"neutron-star": neutron_stars, "black-hole": black_holes}))
+    return SimpleNamespace(profile=SimpleNamespace(ejecta={"neutron-star": neutron_stars, "black-hole": black_holes}),
+                           apply_population=_old_population)
 
 
 def _ejected(seed, fill):
