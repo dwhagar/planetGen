@@ -3643,7 +3643,7 @@ PHENOMENON_DENSITY_PC3 = {
     # neutron stars (0.4% of ~2.5e11 stars) and 1e8 black holes (0.05%).
     "neutron-star": 5.6e-4,
     # The stellar-mass black holes are not a rate of their own: they follow from the stars' metallicity
-    # (`galaxy.black_hole_density`, GEN.563). The old 7e-5 (1e8 in the Galaxy, 0.05% of ~2.5e11 stars) is a test target.
+    # (`galaxy.remnant_density`, GEN.563). The old 7e-5 (1e8 in the Galaxy, 0.05% of ~2.5e11 stars) is a test target.
     # Giant molecular clouds: 1e-6 to 1e-5 (Kennicutt & Evans 2012, ARA&A
     # 50:531): cloud centers, generated as dark-family nebulae (classes
     # M-Q). GMC_ARM_FILLING_FACTOR is the matching fraction of arm volume
@@ -3798,7 +3798,7 @@ BLACK_HOLE_GALAXY_MEAN_RADIAL_STEPS = 72
 BLACK_HOLE_GALAXY_MEAN_POLAR_STEPS = 24
 BLACK_HOLE_GALAXY_MEAN_AZIMUTH_STEPS = 6
 """int: The log-spaced radii, equal-area polar angles and azimuths of the grid a galaxy's mean black hole rate per star
-is averaged over (`galaxy.black_hole_density.mean_rate_per_star`, GEN.563)."""
+is averaged over (`galaxy.remnant_density.mean_rate_per_star`, GEN.563)."""
 
 EJECTA_SPEED_RANGE_KMS = (300.0, 500.0)
 """tuple: The speed a kicked neutron star or black hole has far out, above the galaxy's escape speed, km/s (GEN.238)

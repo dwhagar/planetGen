@@ -110,7 +110,7 @@ KINDS = (
          "The bright and massive stars placed by the bright-star scatter (bright_stars.py)."),
     Kind("black-hole", "compact-remnant", "built", None, "stellar density", "scatter", "band-density",
          True, _P + "build_black_hole", "remnant", (), 2, "black-hole", None, "black-hole",
-         "About 1e8 in the Galaxy; the metallicity-dependent share of the massive stars (galaxy.black_hole_density)."),
+         "About 1e8 in the Galaxy; the metallicity-dependent share of the massive stars (galaxy.remnant_density)."),
     Kind("neutron-star", "compact-remnant", "built", "neutron-star", "stellar density", "scatter", "band-density",
          True, _P + "build_neutron_star", "remnant", (), 3, None, None, "neutron-star",
          "About 1e9 in the Galaxy; tuning.PHENOMENON_DENSITY_PC3."),

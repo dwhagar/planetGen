@@ -35,7 +35,7 @@ from planetgen.cli import generate as generate_cli
 from planetgen.generation import run_sector
 from planetgen import tuning
 from planetgen.generation.phenomena.compact_remnant import BlackHole
-from planetgen.galaxy import black_hole_density, mass_chain
+from planetgen.galaxy import remnant_density, mass_chain
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
 from planetgen.physics.units import pc_to_ly
@@ -65,8 +65,8 @@ def _seeded_sector(system_count, edge_ly=100.0):
 
 
 def _rate(kind):
-    if kind == "black-hole":      # a standalone sector's: the metallicity's share at solar (GEN.563)
-        return black_hole_density.rate_per_star()
+    if kind in remnant_density.KINDS:      # a standalone sector's: the metallicity's share at solar (GEN.563, GEN.554)
+        return remnant_density.rate_per_star(kind=kind)
     return tuning.phenomenon_rate_per_star(kind)
 
 
