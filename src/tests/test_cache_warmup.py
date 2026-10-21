@@ -12,6 +12,7 @@ tests' workers run the units here), with the families themselves faked where onl
 
 import contextlib
 import types
+import uuid
 
 import pytest
 
@@ -273,6 +274,159 @@ def test_the_views_the_map_asks_for_on_the_way_in_are_stored(galaxy, tile_levels
     opening = [key for key in warmup.opening_request(shape)
                if viewport.parse_tile_key(key)[0] <= tile_levels.warm_zoom_levels]
     assert opening and set(opening) <= stored
+
+
+# --- Building around a visit (PERF.132) ------------------------------------------------------------
+
+def test_the_tiles_after_a_visit_are_its_neighbours_and_the_next_level_inside_it():
+    from planetgen.web.lib import tileprefetch
+    asked = ["5/16/16/16", "5/17/16/16"]
+    found = list(tileprefetch.candidates(asked))
+    assert len(found) == len(set(found)) and not set(found) & set(asked)
+    assert found[:8] == [f"6/{32 + dx}/{32 + dy}/{32 + dz}" for dx in (0, 1) for dy in (0, 1) for dz in (0, 1)], \
+        "the children of the first (nearest) tile come first"
+    assert {"5/15/15/15", "5/17/17/17", "5/18/16/16"} <= set(found)
+    corner = list(tileprefetch.candidates(["1/0/0/0"]))
+    assert len([key for key in corner if key.startswith("1/")]) == 7, "the neighbours stop at the root cube"
+    assert list(tileprefetch.candidates([f"{viewport.TILE_MAX_LEVEL}/0/0/0"])) == [
+        f"{viewport.TILE_MAX_LEVEL}/{dx}/{dy}/{dz}" for dx in (0, 1) for dy in (0, 1) for dz in (0, 1)][1:], \
+        "the finest tiles have no children"
+
+
+def test_the_next_zoom_steps_are_the_cuts_for_the_camera_closer_along_its_line():
+    from planetgen.web.lib import tileprefetch
+    bounds = ((-20000.0, -20000.0, -20000.0), (20000.0, 20000.0, 20000.0))
+    camera, look = (3000.0, 1000.0, 500.0), (200.0, 100.0, 0.0)
+    found = list(tileprefetch.zoom_candidates(camera, look, bounds, steps=2))
+    scale = viewport.DISTANCE_CUT_FADE_BAND ** -1
+    first = viewport.fetch_cut_tiles(tuple(t + (c - t) * scale for c, t in zip(camera, look)), look, bounds)
+    assert found[:len(first)] == first, "the nearest step comes first"
+    assert len(found) == len(set(found)) > len(first)
+    asked = ["5/16/16/16"]
+    order = list(tileprefetch.wanted(asked, camera + look, bounds))
+    assert order[:len(first)] == first and not set(order) & set(asked)
+    assert list(tileprefetch.wanted(asked, None, None)) == list(tileprefetch.candidates(asked)), "no camera: the neighbours"
+
+
+@pytest.mark.parametrize("text,expected", [
+    ("1,2,3,4,5,6", (1.0, 2.0, 3.0, 4.0, 5.0, 6.0)), ("-1.5,0,3e3,4,5,6", (-1.5, 0.0, 3000.0, 4.0, 5.0, 6.0)),
+    (None, None), ("", None), ("1,2,3", None), ("1,2,3,4,5,x", None), ("1,2,3,4,5,nan", None),
+    ("1,2,3,4,5,inf", None), ("1,2,3,4,5,1e9", None)])
+def test_the_cameras_of_a_request_are_six_plain_numbers_or_nothing(text, expected):
+    from planetgen.web.galaxy_views import _camera_asked
+    assert _camera_asked(text) == expected
+
+
+@pytest.fixture
+def prefetch(galaxy, monkeypatch):
+    """The background build on the seeded galaxy, with the tiles it queues built in this process on a queue of its
+    own, and the limits as told."""
+    from planetgen.web.lib import tileprefetch
+    real = warmup.build_app
+    monkeypatch.setattr(warmup, "build_app", lambda config=None: real(galaxy.config))
+    real(galaxy.config)                 # a web process: the app installs the in-process transport the tile cache reads by
+
+    class Rules:
+        prefetch_per_visit, prefetch_per_minute, prefetch_max_queued = 20, 100, 8
+    monkeypatch.setattr(tileprefetch, "get_settings", lambda: types.SimpleNamespace(tile_cache=Rules))
+    ran = []
+    monkeypatch.setattr(tileprefetch.workers, "ensure_workers", lambda *args, **kwargs: ran.append(kwargs) or 0)
+    token = uuid.uuid4().hex[:12]           # this test's own claims and minute counters on the shared Redis
+    monkeypatch.setattr(tileprefetch, "CLAIM_KEY", f"planetgen-test:{token}:claim:")
+    monkeypatch.setattr(tileprefetch, "MINUTE_KEY", f"planetgen-test:{token}:minute:")
+    Rules.module, Rules.ran, Rules.db = tileprefetch, ran, galaxy.config.database
+
+    def schedule(keys):
+        with real(galaxy.config).test_request_context("/"):
+            return tileprefetch.schedule(galaxy.config.database, keys)
+    Rules.schedule = staticmethod(schedule)
+    yield Rules
+    client = redisclient.client(decode_responses=True)
+    for key in client.scan_iter(f"planetgen-test:{token}:*"):
+        client.delete(key)
+
+
+def _run_queued(prefetch):
+    import rq
+    connection = redisqueue.connect()
+    done = rq.SimpleWorker([redisqueue.queue(redisqueue.BULK_QUEUE, connection)], connection=connection,
+                           serializer=redisqueue.JsonSerializer)
+    done.work(burst=True, logging_level="WARNING")
+
+
+def test_a_visit_queues_the_tiles_around_it_and_they_are_then_stored(galaxy, prefetch):
+    with warmup.build_app().test_request_context("/"):
+        tilecache.fetch_tiles(prefetch.db, ["5/16/16/16"])          # the visit: the map asked for this tile
+    queued = prefetch.schedule(["5/16/16/16"])
+    assert queued == 20 and prefetch.ran and prefetch.ran[0].get("count") == 1, "one worker, never the admin's count"
+    _run_queued(prefetch)
+    around = list(prefetch.module.candidates(["5/16/16/16"]))[:20]
+    with warmup.build_app().test_request_context("/"):
+        stored = tilecache.fetch_tiles(prefetch.db, around)
+    assert stored["cached"] == 20, "a visitor asking for them next is served from the disk"
+
+
+def test_a_visit_with_a_camera_queues_the_next_zoom_steps_first(galaxy, prefetch):
+    camera, look = (9000.0, 3000.0, 800.0), (0.0, 0.0, 0.0)
+    with warmup.build_app().test_request_context("/"):
+        asked = viewport.fetch_cut_tiles(camera, look, ((-15000.0,) * 3, (15000.0,) * 3))
+        queued = prefetch.module.schedule(prefetch.db, asked, camera + look)
+        bounds = prefetch.module._bounds(prefetch.db)
+    assert queued == 20
+    ahead = [key for key in prefetch.module.wanted(asked, camera + look, bounds)][:20]
+    _run_queued(prefetch)
+    with warmup.build_app().test_request_context("/"):
+        assert tilecache.fetch_tiles(prefetch.db, ahead)["cached"] == 20
+
+
+def test_a_visit_to_a_built_area_queues_nothing_and_a_second_visitor_causes_no_build(galaxy, prefetch):
+    assert prefetch.schedule(["5/16/16/16"]) == 20
+    assert prefetch.schedule(["5/16/16/16"]) == 0, "the same area is claimed already"
+    _run_queued(prefetch)
+    assert prefetch.schedule(["5/16/16/16"]) == 14, "the rest of the area's 34 tiles, not the 20 built"
+    _run_queued(prefetch)
+    every = list(prefetch.module.candidates(["5/16/16/16"]))
+    with warmup.build_app().test_request_context("/"):
+        assert tilecache.fetch_tiles(prefetch.db, every)["cached"] == len(every) == 34
+    assert prefetch.schedule(["5/16/16/16"]) == 0, "built: nothing left to queue"
+
+
+def test_the_background_build_keeps_to_its_limits(galaxy, prefetch):
+    prefetch.prefetch_per_visit, prefetch.prefetch_per_minute = 50, 30
+    assert prefetch.schedule(["6/32/32/32"]) == 30, "the minute's cap trims the visit"
+    assert prefetch.schedule(["6/10/10/10"]) == 0, "and the minute is spent"
+    prefetch.prefetch_per_visit = 0
+    assert prefetch.schedule(["6/50/50/50"]) == 0, "off"
+
+
+def test_the_background_build_waits_while_the_cache_is_full_or_the_queue_busy(galaxy, prefetch):
+    root = tilecache.cache_dir()
+    prefetch.module.mark_full(root)
+    assert prefetch.module.is_full(root) and prefetch.schedule(["7/64/64/64"]) == 0
+    import os
+    os.unlink(os.path.join(root, prefetch.module.FULL_FILE))
+    prefetch.prefetch_max_queued = 1
+    assert prefetch.schedule(["7/64/64/64"]) == 20      # one job per 16 tiles: two wait now
+    assert prefetch.schedule(["7/90/90/90"]) == 0, "bulk work is waiting"
+
+
+def test_an_answered_request_for_tiles_queues_the_tiles_around_it(galaxy, prefetch, monkeypatch):
+    asked = []
+    monkeypatch.setattr(prefetch.module, "schedule", lambda db, keys, at=None: asked.append((db, list(keys), at)) or 0)
+    response = _web_worker(galaxy.config).get("/galaxy/tiles?tiles=5/16/16/16,5/17/16/16&at=10,20,30,1,2,3")
+    assert response.status_code == 200
+    response.close()
+    assert asked == [(galaxy.config.database, ["5/16/16/16", "5/17/16/16"], (10.0, 20.0, 30.0, 1.0, 2.0, 3.0))]
+
+
+def test_prune_marks_the_cache_full_for_the_background_build(tmp_path, monkeypatch):
+    from planetgen.web.lib import tileprefetch
+    (tmp_path / "t1.bin").write_bytes(b"x" * 100)
+    (tmp_path / "t2.bin").write_bytes(b"x" * 100)
+    tilecache.prune(str(tmp_path), max_bytes=500)
+    assert not tileprefetch.is_full(str(tmp_path))
+    tilecache.prune(str(tmp_path), max_bytes=100)
+    assert tileprefetch.is_full(str(tmp_path))
 
 
 def _args(*argv):

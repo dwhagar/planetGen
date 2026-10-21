@@ -89,7 +89,10 @@
     "dir": "",
     "max_mb": 200.0,
     "warm_levels": 8,
-    "warm_zoom_levels": 14
+    "warm_zoom_levels": 14,
+    "prefetch_per_visit": 128,
+    "prefetch_per_minute": 600,
+    "prefetch_max_queued": 8
   },
   "page_cache": {
     "enabled": true,
