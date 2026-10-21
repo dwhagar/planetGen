@@ -9,12 +9,13 @@ paragraphs; a paragraph wholly in `*...*` is shown muted; `**bold**` and `` `cod
 
 ### Alembic revisions and epochs
 
-The head on main is 0109 (0107 GEN.526, 0108 DB.72, 0109 GEN.289); the next free revision is 0110, and the planned numbers on DB.67 to DB.70 are order only. Generator epochs 14 to 21 are stamped on main (epoch 21 is GEN.252, release 8.0.1771); every generator change in flight takes epoch 22 or later, and a rebase takes main's entries and renumbers. A lane runs `bump_version.py --check-pr origin/main` before it merges.
+The Alembic head on main is 0112; the next free revision is 0113 and DB.79 (Core 2) takes it, so a lane that needs one numbers it at merge. Generator epochs 14 to 41 are stamped on main (epoch 41 is GEN.544, release 8.0.1855); every generator change in flight takes epoch 42 or later, GEN.545 claims 42 first, and a rebase takes main's entries and renumbers. A lane runs `bump_version.py --check-pr origin/main` before it merges.
 
 ### Files two lanes both touch
 
-- **Galaxy Map files and the star-budget ranking:** Core 2 owns MAP.243, MAP.247 and MAP.249 (galaxy map lag); MAP.239 and MAP.250 (satellite-galaxy stars are cut first, then halo stars, then everything else) are merged, and Bug Hunt builds MAP.251 and MAP.252 on top of MAP.250 in `_top_by_key` in `db/query.py`; no other lane edits the star-budget code.
-- **The gates share four cores:** a gate that sees load can fail slow browser tests (TEST.126, TEST.171, TEST.172, TEST.227); those are filed on goal #1694 and owned by Bug Hunt.
+- **Galaxy Map files and the star-budget ranking:** Core 2 owns MAP.249 (browser frame time) and the MAP.251 remainder; MAP.239, MAP.243, MAP.247, MAP.250 and MAP.252 are merged. The star-budget code is `_top_by_key` in `db/query.py`; no other lane edits it.
+- **The gates share four cores:** a gate that sees load can fail slow browser tests (TEST.126, TEST.171, TEST.172, TEST.227); those are filed on goal #1694 and owned by Bug Hunt. A timed-out fuzz test can leave `planetgen:run:active` set and fail every later run-starting test (TEST.260, PERF.142, PERF.143).
+- **The database server:** MySQL 8.0.19 or later only; MariaDB is not supported (Boss, 4:37 PM EDT 2026-10-21, DB.80). A lane machine that installed MariaDB fails the `VALUES ROW` tests and must run MySQL 8 instead.
 - **Global documents (Boss, 11:25 PM EDT):** only the TODO thread regenerates the generated pages that span the project (the architecture map, `docs/index.html`, `docs/plan/*.html`); a lane's PR never touches or regenerates one, and a stale page must never fail a lane's gate. DOC.69 built the mechanism (Core 5, #2172, merged 12:58 AM EDT as the lane clock read): the freshness tests are marked `globaldocs` and skipped unless `PLANETGEN_GLOBAL_DOCS=1` (`scripts/test.py <command> --global-docs`), and the TODO thread runs `python scripts/build_global_docs.py` (or `--check`) after lane merges.
 - **The test container state:** a test that runs `migrate` can leave `state/maintenance.json` set (TEST.189); a lane that finds it works round it with `PLANETGEN_STATE_DIR`.
 
