@@ -16311,139 +16311,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wait on PERF.140 (the 'Suggested owner' and prerequisite wording above
   predates the split). The old Core 2's branch claude/perf141-slice2-wip
   is superseded by #2337.
+  Slice 3 merged as #2346 (Core 2, about 5:35 PM EDT 2026-10-21 as the
+  lane reported): /admin/queue has a 'Cache warm-up' panel with the last
+  run and each of the five phases' state and result line. Slices 1 to 3
+  are done; this item stays open only for the deeper list pages and the
+  index in phase 1, which wait on DB.79 (migration 0113, in its gate
+  since 5:36 PM EDT as the lane reported) and PERF.140.
   Prerequisites: PERF.140.
 
-- [ ] **PERF.142 A stale job left in the database or the queue blocks every new run and Boss cannot proceed (bug)**
-  Boss (2026-10-21, 12:32 PM EDT, typed in the project chat): "On I need
-  to fix a bug, we need a command to reset all jobs and the queue I
-  somehow have a job in the db somewhere that won't let me proceed".
-  Reported through the coordinator; nothing is known yet about which
-  record it is or how it got left behind. Facts from the code (read, not
-  run): a new run of a kind is refused with `Busy` while
-  `runrecord.active_run` names another run of that kind
-  (`queue/runrecord.py`), PERF.99 names the Redis key
-  `planetgen:run:active` and a stale-run Clear action that does not
-  exist yet, and the old MySQL job tree (`work_*` tables,
-  `queue/work.py`) is still written until PERF.100, so a stuck row can
-  sit in Redis, in an RQ queue or in MySQL. Do: ask Boss for the text of
-  the refusal or the page that blocks (or read it from his server's
-  log), find which record blocks and why it was never cleared (a killed
-  worker, a restarted container or a run that died between stages are
-  the likely paths, inferred, not checked), fix the path that leaves it
-  behind so a dead run is detected as stale and stops blocking, and name
-  the cause on this item. Done: the cause is on this item, a test kills
-  a run mid-stage and the next run starts without a manual step, and the
-  reset command (the item filed with this one) is not needed to recover
-  from a crash. Owner: Bug Hunt (the coordinator gave it the report at
-  12:32 PM EDT). Related: PERF.99 (the stale-run Clear action),
-  PERF.100.
-  Cause found (Bug Hunt, reported 12:45 PM EDT 2026-10-21 as the lane
-  reported; kind bug, test none yet, fails on main: yes, frequency:
-  every time a worker dies mid-job): a queued job whose worker was
-  killed stays "running" in Redis forever. Reproduced by script: enqueue
-  on `planetgen-interactive` with `job_timeout=-1` as
-  `queue/redisqueue.py` does, start `planetgen.cli.worker`, `kill -9`
-  the worker; the job stays in the started registry, RQ's own cleanup
-  leaves it (score +inf). Effect: `admin/updateguard.py`
-  `QueuedJobSource` lists it as running, `workers.cancel_now` cannot
-  stop it, `wait_until_idle` waits 600 s and `update.sh` refuses to go
-  on. Bug Hunt's fix: reap jobs of dead workers in the guard and at
-  worker start, with a test. This is the cause of this item, not a
-  separate item; Done stays as written.
-  Boss, 2026-10-21, 12:42 PM EDT: "Let's make sure we build a way to
-  process and manage tasks that are dead?  Will redis do this?" Answer
-  (Bug Hunt, as the coordinator relayed it): Redis and RQ recover a
-  started job only when it has a time limit, and ours have none
-  (`job_timeout=-1`); the `planetgen:run:active` key has no expiry; so a
-  killed run blocks every new run. Scope, three parts: (1) a job whose
-  worker is gone is failed or requeued (the reap in the guard and at
-  worker start), (2) a dead owning run is detected, so the next run
-  proceeds without a manual step and the run record is closed as failed,
-  (3) the reset command, which is PERF.143. Parts 1 and 2 are this item;
-  the liveness check of `planetgen:run:active` belongs with them, and the RQ job time limits are PERF.144 (Boss, 12:44 PM EDT). Done also needs: a test kills
-  a worker mid-job and the job is failed or requeued, and a test kills
-  the run's owner and the next run starts.
-  Causes found by code and by reproduction (Bug Hunt, reported 12:46 PM
-  EDT 2026-10-21 as the lane reported; the earlier note above gives the
-  second one): (1) the most likely blocker for Boss:
-  `planetgen:run:active` (`queue/runrecord.py` `start_run`, SET NX, no
-  expiry) is freed only by the run's own process in `finish_run`, so a
-  run whose follower process is killed with kill -9, by the OOM killer
-  or by a container restart leaves it set and every new run gets Busy
-  for ever. Fix: runs record their owner process and a heartbeat key,
-  and `start_run` takes over from a dead holder (same host: the pid is
-  gone; otherwise no heartbeat for 120 s; old runs with no owner count
-  as dead). (2) A web or API job queued with `job_timeout=-1` whose
-  worker is killed stays in the RQ started registry for ever; fix:
-  `workers.reap_dead_jobs`, called by the guard and at worker start. The
-  RQ time limit for those jobs is PERF.144, not this item.
-  Test-side reproducer from Core 3 (4:23 PM EDT 2026-10-21 as the
-  coordinator relayed): a timed-out
-  `test_fuzz_cli.py::test_galaxy_absurd_radius_is_clean[200.0]`
-  (TEST.260) leaves `planetgen:run:active` set in the test Redis, and
-  170 later tests fail with `Busy: run ... is running`.
-  Bug Hunt (4:42 PM EDT 2026-10-21 as the lane reported): written with
-  PERF.143 on branch claude/project-thread-i3vcln:
-  `planetgen:run:active` is taken over from a dead owner using a
-  heartbeat key. The PR follows the gate; the lane will send the number.
-  Prerequisites: none. Related: PERF.99, PERF.100, PERF.86.
-
-- [ ] **PERF.143 A command resets all jobs and the queue: clears every run record, the active-run key, the waiting and started units and the old job tree**
-  Boss (2026-10-21, 12:32 PM EDT, typed in the project chat): "On I need
-  to fix a bug, we need a command to reset all jobs and the queue I
-  somehow have a job in the db somewhere that won't let me proceed". Do:
-  one command (the name is the owner's call; it must not be confused
-  with `planetgen reset`, which wipes the galaxy) that stops any live
-  worker with the stop command, then clears every run record and the
-  `planetgen:run:active` key, empties the RQ queues and the event
-  streams, and deletes the rows of the old MySQL job tree, so a new run
-  starts at once; it prints what it removed (counts per kind), asks for
-  confirmation unless given `--yes`, and never touches galaxy data, the
-  tile or page caches, or the settings. Done: a test plants a stale run
-  in each place (Redis run record, active key, a waiting and a started
-  unit, MySQL job rows), the command clears all of it, the galaxy rows
-  are unchanged, and a run then starts without `Busy`; the command is in
-  the console help list (UX/console items) and docs. When PERF.100
-  removes the MySQL job tree the command drops that step with no shim.
-  Owner: Bug Hunt (the coordinator gave it the report at 12:32 PM EDT).
-  Related: the stale-job bug filed with this item, PERF.99 (the Clear
-  action on the Generate page covers the same ground in the page),
-  PERF.100.
-  Bug Hunt (reported 12:45 PM EDT 2026-10-21 as the lane reported) is
-  building it as `planetgen.cli.reset_jobs` and `update.sh
-  --reset-jobs`, clearing work_jobs and work_lease, the Redis `rq:*`
-  keys and stray workers, with a test.
-  Boss, 2026-10-21, 12:42 PM EDT: "Let's make sure we build a way to
-  process and manage tasks that are dead?  Will redis do this?" Answer
-  (Bug Hunt, as the coordinator relayed it): Redis and RQ recover a
-  started job only when it has a time limit, and ours have none
-  (`job_timeout=-1`); the `planetgen:run:active` key has no expiry; so a
-  killed run blocks every new run. This item is part 3 of the three-part
-  scope on PERF.142 (dead-task management); parts 1 and 2 are on that
-  item.
-  Build detail (Bug Hunt, reported 12:46 PM EDT 2026-10-21 as the lane
-  reported): `python3 -m planetgen.cli.reset_jobs` (and `update.sh
-  --reset-jobs`) removes the `rq:*` and `planetgen:run:*` keys, kills
-  local workers, deletes the `work_jobs` rows and frees the work lease;
-  it never touches galaxy data, caches or settings. The name is
-  `reset_jobs`, not `planetgen reset`. Bug Hunt adds the console help
-  list entry if that list is built, and will say if it is not.
-  Core 3 (4:23 PM EDT 2026-10-21 as the coordinator relayed): rerunning
-  a gate meant deleting the `planetgen:run:*` keys by hand (a shell
-  xargs delete was refused by the permission classifier, a
-  scan-and-delete in Python worked), so `reset_jobs` should clear the
-  run keys too, and the test fixtures should be able to call it.
-  Bug Hunt (4:42 PM EDT 2026-10-21 as the lane reported): written and in
-  gate 23 (started 2:46 PM EDT, browser phase at 46 percent at 4:40 PM
-  EDT, expected end about 5:20 PM EDT), branch
-  claude/project-thread-i3vcln: `planetgen.cli.reset_jobs`, `update.sh
-  --reset-jobs`, a dead-job reap in the update guard and at worker
-  start, and a note in docs/deployment/README.md. The Done clause about
-  the console help list can only be met when the console items (8.7) are
-  built, because no console help list exists in the code yet.
-  Prerequisites: none. Related: PERF.99, PERF.100, PERF.86.
-
-- [ ] **PERF.144 Web and API jobs get an RQ time limit from recorded stats instead of no limit, so a killed worker's entry expires**
+- [ ] **PERF.144 Every job queued to RQ gets a time limit from the best available estimate of how long it takes, never no limit, so a killed worker's entry expires**
   Boss (2026-10-21, 12:44 PM EDT, in the Bug Hunt thread, as Bug Hunt
   reported it): "Can we build a time limit to assign to RQ based on
   stats?". Today the Generate page's job (`web/jobs.py:696`), the API's
@@ -16451,15 +16327,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (`queue/redisqueue.py:305`) are queued with `job_timeout=-1`, so RQ
   never expires their entries when a worker dies (PERF.142). Units
   already get a limit (`units.unit_timeout`: a multiple of the stage's
-  expected seconds, with a floor and a ceiling, never -1). Do: give
-  these jobs a limit the same way, from the recorded timings per kind
-  (`generation_stats`, a multiple with a floor and a ceiling), and a
-  fixed ceiling for API routes that have no timings; no job is queued
-  with -1. Done: a test shows each queue path passes a finite limit, a
-  kind with recorded timings gets the multiple and one without gets the
-  ceiling, and a job over its limit is ended and reported failed. Owner:
-  Bug Hunt, after the PERF.142 and PERF.143 PR. Related: PERF.142,
-  PERF.106 (the unit limits).
+  expected seconds, with a floor and a ceiling, never -1).
+  Do: audit every site that enqueues to RQ (the Generate page's job in
+  `web/jobs.py`, the API's jobs in `queue/api_jobs.py`, the queue
+  executor in `queue/redisqueue.py`, the units, and any other `enqueue`
+  call, found by grep and listed on this item) and give each a finite
+  `job_timeout` taken from the best estimate available, in this order:
+  the recorded timings of that kind (`generation_stats`), the stage ETAs
+  the run plan already computes, then the size of the work (sectors,
+  systems, cells, span); the limit is a multiple of the estimate with a
+  floor and a ceiling (as `units.unit_timeout` does), a fixed ceiling
+  only for a route with no estimate at all, and never -1 or None. Boss,
+  2026-10-21, 5:32 PM EDT (as the coordinator relayed): "I also want to
+  make sure we've ensured that all jobs that go to RQ get a time limit
+  based on how much time the system thinks it will take based on the
+  best estimates avilable, so that RQ can help make sure we don't have
+  dead jobs." Done: the audit list of enqueue sites is on this item;
+  each site passes a finite limit; a test fails if any job is enqueued
+  without a timeout (a guard on the one enqueue wrapper, or a grep-style
+  test that fails on a bare `enqueue` call); a kind with recorded
+  timings gets the multiple, one with only a size estimate gets the
+  size-based limit, and one with neither gets the ceiling; and a job
+  over its limit is ended and reported failed. Owner: Bug Hunt, first in
+  its queue (priority raised by Boss, 5:32 PM EDT 2026-10-21; PERF.142
+  and PERF.143 merged as #2345). Related: PERF.142, PERF.106 (the unit
+  limits).
   Prerequisites: none. Related: PERF.142, PERF.143, PERF.106.
 
 - [ ] **PERF.145 The run output repeats the stage: drop the stage-list line and the 'Stage 4 of 13: ...' line the engine logs under the wrapper's '=== Stage 4 of 13: ... ===' banner**
@@ -20913,6 +20805,22 @@ clears each one.
   when the whole-sphere audits merge and the security audit has begun.
   Prerequisites: TEST.159, TEST.160. Related: SEC.33.
 
+- [ ] **TEST.262 test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug)**
+  Found by Bug Hunt (5:34 PM EDT as the lane reported), filed by the
+  TODO thread. Kind: flaky browser test
+  (test_web_browser_sector_reach.py, the TEST.252 test). It failed once
+  in gate 23, in the browser phase at machine load 9.7, on the branch
+  build of PERF.142 and PERF.143: the camera target stayed at (3.56,
+  -1.36, -0.29) where the test expects (0, 0, 0). It passes alone. Fails
+  on main: unknown, not reproduced yet. Frequency: 1 in about 4 browser
+  gates. Reproducer: none yet; it needs another lane's gate running
+  beside it. Do: root-cause it (a real slow-first-click race in the map
+  code, or a test that does not wait for the fly to finish) and fix the
+  cause, not the load. Done: the cause is on this item and the test
+  passes in 20 runs under load. Owner: Bug Hunt (it is the lane's own
+  TEST.252 test).
+  Prerequisites: none. Related: TEST.252.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -21845,6 +21753,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   built into the Help section, linked from each page it describes, and
   updated by any later change to those features (a feature item is not
   done until its help text is).
+  Note (2026-10-21, 5:34 PM EDT as the lane reported): PERF.142 and
+  PERF.143 merged (#2345); the queue help page names the reset command
+  `python3 -m planetgen.cli.reset_jobs` (with `--dry-run`) and `sudo
+  ./update.sh --reset-jobs`, and says a killed run no longer blocks new
+  runs. PERF.143's console help list entry waits for the console items
+  (8.7), because no console help list exists in the code yet.
   Prerequisites: DOC.57. Related: DOC.6.
 
 - [ ] **DOC.15 A glossary and units help page: coordinates, scales, sector paths, object IDs, time and the in-universe wording**
