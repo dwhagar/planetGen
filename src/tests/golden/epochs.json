@@ -202,8 +202,7 @@
     },
     {
       "epoch": 41,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1855",
       "reason": "The thin and thick disks' vertical profile is the exponential the scale heights are fitted with, not the isothermal sheet: for one mass the midplane is twice as dense, so a seed places its stars, their populations, open clusters and remnants at different densities and heights (GEN.544)."
     }
   ]
