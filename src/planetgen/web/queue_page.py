@@ -25,7 +25,7 @@ from planetgen.admin import activity_log
 from planetgen.util import log
 
 from . import bp, jobs, tables
-from .admin_pages import _api_message, _cookie_header, _flash, _render, _require_admin, _see_other, _take_flash
+from .admin_pages import format_bytes, _api_message, _cookie_header, _flash, _render, _require_admin, _see_other, _take_flash
 from .helpers import crumb, db_name
 
 KIND_LABELS = {
@@ -332,6 +332,10 @@ def _warm_view(warm):
         "phases": [{**phase, "started": time_text(_iso(phase["started_at"])), "finished": time_text(_iso(phase["finished_at"])),
                     "number": number} for number, phase in enumerate(warm["phases"], 1)],
         "auto_enabled": auto["enabled"], "auto_wanted": auto["wanted"], "auto_running": auto["holder"] is not None,
+        "index_size": format_bytes(warm["index"]["size_bytes"]) if warm["index"]["size_bytes"] else "",
+        "index_kinds": [{**row, "built": time_text(_iso(row["built_at"])),
+                         "rows_text": f"{row['rows']:,}" if row["rows"] is not None else ""}
+                        for row in warm["index"]["kinds"]],
     }
 
 

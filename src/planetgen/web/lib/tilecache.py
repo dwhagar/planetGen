@@ -122,9 +122,20 @@ def _config():
     return get_settings().tile_cache
 
 
-def max_cache_bytes():
-    """The cache's size budget, bytes. `0` disables the disk cache."""
+def budget_bytes():
+    """The disk caches' budget in all, bytes (`cache.max_mb`). `0` disables the disk cache."""
     return max(0, int(get_settings().cache.max_mb * 1024 * 1024))
+
+
+def max_cache_bytes():
+    """The tile cache's size budget, bytes: the budget less what the object index takes, which is kept first
+    (PERF.140; at least one byte, so a budget the index fills leaves the tile cache full, not off). `0` disables the
+    disk cache."""
+    budget = budget_bytes()
+    if budget == 0:
+        return 0
+    from planetgen.db import objectindex
+    return max(1, budget - objectindex.reserved_bytes())
 
 
 def configured_cache_dir():
@@ -134,7 +145,7 @@ def configured_cache_dir():
     disk cache is off. Doesn't create or check anything --
     `examples/apache/create-cache-dir.sh` asks this where to create it.
     """
-    if max_cache_bytes() == 0:
+    if budget_bytes() == 0:
         return None
     return _config().dir or DEFAULT_CACHE_DIR
 

@@ -370,6 +370,7 @@ The content database: writing, reading, migrating and checking it. `schema.sql` 
 | [`login.py`](../../src/planetgen/db/login.py) | `connect(...)` is `pymysql.connect(...)` that explains a failed login: the account's password is wrong, or its authentication plugin can't finish with this pymysql. |
 | [`models.py`](../../src/planetgen/db/models.py) | The content database's tables as SQLAlchemy `Table` objects on `metadata` (DB.11). |
 | [`near.py`](../../src/planetgen/db/near.py) | `objects_within`: what is within N parsecs of a place, for every kind of object (systems with their bodies, facilities and the standalone phenomena). |
+| [`objectindex.py`](../../src/planetgen/db/objectindex.py) | Builds and refreshes `object_index` from the live tables, counts it against the cache budget and checks it against them (PERF.140). |
 | [`query.py`](../../src/planetgen/db/query.py) | The read layer and a list/query CLI: listings, `sector_detail`/`system_detail`, `search`, `nav_between` and every Galaxy Map query. |
 | [`render.py`](../../src/planetgen/db/render.py) | On-demand rendering of a stored star system's text. |
 | [`sector_paths.py`](../../src/planetgen/db/sector_paths.py) | `compute_sector_paths` and `settle_sectors`: the path every system, rogue planet and interstellar comet takes from where it is now to where it leaves its sector, saved when a run settles. |
