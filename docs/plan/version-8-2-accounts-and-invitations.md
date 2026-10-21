@@ -74,3 +74,14 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.399 | Research the halo mass function and compare it with the halo mass approximation GEN.368 uses |  | Boss 10:11 PM EDT; research and comparison; Core 1 proposed (it writes GEN.368). |
+
+### Viewers and object pages
+
+Boss (6:10 and 6:12 PM EDT, 2026-10-21): the viewing windows fit the browser window, and selecting anything opens the same info box with a View button to a dedicated page for every kind of item, with links to where it is.
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| UX.142 | The viewing windows scale to the browser window so the controls are always in view without scrolling the page |  | Boss's 8.2 design notes, 6:10 and 6:12 PM EDT 2026-10-21. |
+| UX.143 | A dedicated page for every kind of item: star, planet, moon, belt, comet, each phenomenon, nebula, cluster, system, sector and region, reached from its Object ID |  | Boss's 8.2 design notes, 6:10 and 6:12 PM EDT 2026-10-21. |
+| UX.144 | Every item page says where the item is: links up the chain (galaxy, sector, system, parent star or planet) and the nebula or other region that contains it | UX.143 | Boss's 8.2 design notes, 6:10 and 6:12 PM EDT 2026-10-21. |
+| MAP.254 | One shared info box: selecting anything on any view opens the same box, with a View button that opens the item's own page | UX.143 | Boss's 8.2 design notes, 6:10 and 6:12 PM EDT 2026-10-21. |
