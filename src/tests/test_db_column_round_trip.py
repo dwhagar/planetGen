@@ -23,7 +23,7 @@ BOOKKEEPING_TABLES = {
     "schema_migrations", "alembic_version", "generation_run_arguments", "phenomenon_scatter", "phenomenon_scatter_classes", "sector_system_counts", "nebula_field", "galaxy_components", "facility_types", "facility_type_fields", "facility_field_values", "galaxy_block_stats", "object_timing_stats", "object_timing_samples", "id_blocks", "id_counters", "system_name_registry", "sector_name_registry", "population_state",
     "orbit_simulation_state", "galaxy_column", "galaxy_layer", "sector_stats", "bright_stars",
     "nearest_systems", "sector_paths", "sector_path_knots", "scatter_members", "scatter_nodes",
-    "orbit_nodes",
+    "orbit_nodes", "object_index",
 }
 """Tables no object loader reads row by row: migration and id bookkeeping,
 the name registries, generation progress, and the galaxy skeleton and
