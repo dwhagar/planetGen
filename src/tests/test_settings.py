@@ -162,6 +162,33 @@ def test_every_option_is_documented_and_has_complete_metadata():
     assert all(meta["x-restart"] or True for _p, _i, meta in settings.iter_fields())
 
 
+def test_every_option_has_plain_words_a_group_and_a_control():
+    from planetgen.util import settings_view, settings_writer
+    labels = {}
+    admin_groups = list(settings_view.GROUPS)[:7]
+    for path, _info, meta in settings.iter_fields():
+        label, summary = meta["x-label"], meta["x-summary"]
+        assert label and summary, path
+        assert len(label) <= 40 and not re.search(r"[_>]", label), (path, label)
+        assert label != path.replace("_", " ").replace(".", " > "), path
+        assert label not in labels, (path, labels.get(label))
+        labels[label] = path
+        assert summary.endswith(".") and len(summary) <= 120 and "\u2014" not in summary, (path, summary)
+        assert len(summary) < len(meta["description"]) + 40, path
+        assert meta["x-group"] in settings_view.GROUPS, path
+        if settings_writer.allowed(meta, "admin")[0]:
+            assert meta["x-group"] in admin_groups, path
+        control = meta["x-control"]
+        assert control is None or control in settings_view.CONTROL_NAMES, path
+        kind = settings_view.kind_of(meta["annotation"])
+        if control in ("slider", "duration"):
+            assert kind in ("int", "float"), path
+        if control in ("rate", "color", "asset", "language"):
+            assert kind == "text", path
+        if meta["x-advanced"]:
+            assert meta["x-editable"], path
+
+
 def test_secrets_are_never_web_editable_by_admins_and_database_options_never_editable():
     for path, _info, meta in settings.iter_fields():
         if path.startswith("mysql.") and path != "mysql.statement_timeout_seconds":
