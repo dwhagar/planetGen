@@ -15990,7 +15990,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changes tile content, so the build is a step the wrapper lists after
   the generation commands, never a part of one). Owner: Core 2
   (proposed; the map and cache lane).
-  Prerequisites: PERF.131, PERF.132, PERF.133, PERF.134.
+  Prerequisites: PERF.131, PERF.133, PERF.134.
   Related: PERF.41, PERF.104, PERF.120, PERF.127, MAP.158, MAP.159,
   MAP.195, MAP.239.
   Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
@@ -16068,57 +16068,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tile that is already stored and unchanged; it only re-encodes once,
   when the format changes.
   Prerequisites: none. Related: PERF.129, MAP.159, MAP.158.
-
-- [ ] **PERF.132 Build proactively on a visit: the surrounding tiles and the next zoom levels are built and cached in the background**
-  Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
-  caching, so that we build out not only the initial galactic view but
-  all the normal zoom levels for that view that we can compress and
-  serve up to the client immediately on request. Basically I want to
-  build out tiles for the first several zoom levels and then I want to
-  build it so that system is proactive and when the user visits and zoom
-  level it builds and caches all the surrounding tiles and the next zoom
-  levels. Then it keeps them until the data changes." What exists (read
-  from main, 2026-10-17): `web/lib/tilecache.py` keeps packed tiles on
-  disk (`<cache dir>/<db>/<generation>/<tile>.bin`, the PGT1 format of
-  `tilepack.py`), answers `/galaxy/tiles` by joining stored bytes, and
-  keeps stage and window payloads the same way; freshness is the content
-  stamp plus `GET /api/galaxy/changes` (the `modified_at` columns, so
-  only the changed tiles are deleted, and a change that cannot be pinned
-  to tiles starts a new generation); `prune` deletes the least recently
-  written files above `tile_cache.max_mb`; the browser keeps its own
-  copy in IndexedDB (MAP.158); `web/warmup.py` warms only the opening
-  view's tiles and the galaxy stage; Apache compresses each response at
-  send time; the admin health block shows where the cache lives and its
-  size. Done: when a visitor asks for a tile, the stages and windows
-  around that view, the neighbouring tiles at the same level and the
-  tiles of the next level inside it are queued as low-priority
-  background units (the bulk queue, never ahead of an interactive job,
-  PERF.118), de-duplicated against the cache and against units already
-  queued, capped per visit and per minute by named settings, and dropped
-  when the cache is full or the queue is busy; a visit to an already
-  built area queues nothing; a test visits a level and finds the
-  neighbours and the next level in the cache afterwards, and a second
-  visitor to the same area causes no new build. Owner: Core 2
-  (proposed).
-  Prerequisites: PERF.131. Related: PERF.129,
-  PERF.130, PERF.131.
-  Cut order (Boss, 2026-10-17, 6:48 PM EDT, MAP.250, Decided): the tiles
-  stored here are built with halo and satellite-galaxy stars ranked
-  below every other star, so a budget cut removes them first; landing
-  that rule bumps the tile cache stamp and the cached tiles are rebuilt
-  once. The galaxy map lag Boss reported at the same time is MAP.249; if
-  its cause is the missing cache, this item is brought forward.
-  Decided (Boss, 2026-10-18, tapped 'Both, cut payload first' on the
-  MAP.249 card at about 8:54 AM EDT, as the coordinator relayed): the
-  tile cache work follows MAP.249's payload cut, so it starts after Core
-  2's payload PR (about 2 MB a view) and is sized for the reduced tiles.
-  Boss (2026-10-18, 5:43 PM EDT): the warm-up goes "as deep as we can"
-  in phases after every update, generation or change; see PERF.141 for
-  the phases and PERF.139 for the budget.
-  Boss, 2026-10-18, 6:05 PM EDT: "make sure we don't re-compile a tile
-  if nothing has changed". A visit builds only the tiles that are
-  missing or whose data changed; a stored unchanged tile is served as it
-  is.
 
 - [ ] **PERF.133 Keep every tile until the data changes: invalidate by what changed, rebuild what a change touched, and never evict a valid tile for size**
   Boss, 2026-10-17, 4:31 PM EDT: "for 8.2 I want to add robust tile
@@ -16386,7 +16335,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy that has not changed builds zero tiles (and zero list or index
   rebuilds), every phase reports "unchanged", and a change in one sector
   rebuilds only its tiles and their coarser parents.
-  Prerequisites: PERF.139, PERF.140, PERF.131, PERF.132, PERF.133.
+  Prerequisites: PERF.139, PERF.140, PERF.131, PERF.133.
 
 ## DB: Database and schema
 
