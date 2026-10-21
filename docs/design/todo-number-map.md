@@ -1770,13 +1770,13 @@ Parents marked "new parent" had no old number of their own.
 | PERF.130 | Build the first several zoom levels of the Galaxy Map ahead of the first visitor: the opening view and every level down to a chosen depth | none | done, PR #2276 |
 | PERF.131 | Store the tiles compressed and serve the stored bytes with their encoding, so a request does no compression | none | skipped (Boss, "Skip it", 11:27 AM EDT 2026-10-21) |
 | PERF.132 | Build proactively on a visit: the surrounding tiles and the next zoom levels are built and cached in the background | none | done, PR #2298 |
-| PERF.133 | Keep every tile until the data changes: invalidate by what changed, rebuild what a change touched, and never evict a valid tile for size | none | open |
+| PERF.133 | Keep every tile until the data changes: invalidate by what changed, rebuild what a change touched, and never evict a valid tile for size | none | done, PR #2316 |
 | PERF.134 | The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions | none | open |
 | PERF.135 | The Uncharted stars and Phenomena tables get a jump-by-value box for their numeric and scatter-id sorts | none | done, PR #2163 |
 | PERF.136 | Measure the fill with wanderers and their moons, and decide whether the rogue cost is on by default | none | open |
 | PERF.137 | Audit the remaining `LIMIT ? OFFSET ?` queries: say which serve a big table and move those to keyset paging | none | open |
 | PERF.138 | The nuclear cluster term made the extent majorant about 1000 times looser: the shell scatter takes over 250 s, not 5.6 s (bug) | none | done, PR #2297 |
-| PERF.139 | One cache size setting, `cache.max_mb`, default 1024: tiles, stored lists and indexes share one disk budget | none | open |
+| PERF.139 | One cache size setting, `cache.max_mb`, default 1024: tiles, stored lists and indexes share one disk budget | none | done, PR #2316 |
 | PERF.140 | The index builder and its automatic refresh: each kind is rebuilt from what changed whenever generation, an orbital update or an edit changes it | none | open |
 | PERF.141 | The warm-up runs in phases after every generation, update or change, as deep as the budget allows | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
