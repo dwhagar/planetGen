@@ -111,6 +111,8 @@ Scripts, data and logs behind every number marked COMPUTED or DATA: `/mnt/projec
 | AD7 | H2SO4-H2O and brine vapour pressure | Tabazadeh, Zeleznik | publishers refused | GEN.471, 491 | 9.0 |
 | AD8 | Photochemistry rates (JPL 19-5) | falloff parameters | JPL pages refused | GEN.496, 501 | 9.0 |
 
+**Shape dial limits (Decided, Boss, 2026-10-21, 7:05 to 7:13 PM EDT; placeholders until a source is given).** The sliders' limits for scale length, scale height and mass: minimum half of Ursa Major III / UNIONS 1 (the smallest known galaxy), maximum about 1.5 times Andromeda, defaults roughly half the Milky Way. Values reported by the Galaxy dials lane (7:16 PM EDT as the lane reported): scale length 0.9 to 8000 pc, scale height 0.3 to 750 pc, mass 8 to 2e11 solar masses, Auto default about 1.3 kpc and 3e9 to 4e9 solar masses. All are kind P (placeholder) with those brackets; the reference galaxies are the origin of the limits and never presets. Below 1e8 solar masses the halo and size laws have no source (GR11 and GR13 above): GEN.612 extends them and needs Boss's sources. Items: GEN.601, GEN.603, GEN.609.
+
 Counts: 22 galaxy rows, 19 body rows, 16 atmosphere rows (AT.F stands for 16 thin rows, so it is one line here and 16 in the registry), 57 lines.
 
 ## 3. Which of Boss's 15 requests need Boss, and which are reading jobs for us (17 lines because R9 splits in three)

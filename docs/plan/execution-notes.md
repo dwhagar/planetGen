@@ -29,4 +29,5 @@ The Alembic head on main is 0112; the next free revision is 0113 and DB.79 (Core
 - **GEN.537:** the plan configuration design cards (8.5).
 - **Network access:** open arxiv.org, doi.org and crossref for the environment when he can (Boss, 1:17 PM EDT 2026-10-21). Until then lanes treat sources already in the repository or in files he provided as valid, and a value without such a source stays a placeholder in the gap registry; no lane waits on network verification.
 - **The 9.0 major version:** the `.major.md` note and the hand version bump need Boss's word.
+- **GEN.612:** sources (or a labelled placeholder bracket) for the halo, stellar-to-halo and size laws below 1e8 solar masses, so the shape dials' minimum mass (half of Ursa Major III) is reachable; the same gaps as GR11 and GR13.
 - **PERF.41:** the cold-rebuild time of `planetgen warm` (was `warm_map`).

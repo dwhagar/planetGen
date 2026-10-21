@@ -15604,7 +15604,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   minimum to maximum flux (or the variation fraction) past 1 for a
   planet in the pair's own orbit around the primary, fix the formula or
   the clamp's cause, and widen the test's seeds to 240. Done: the
-  reproducer gives no value above 1 in 240 systems. Owner: Bug Hunt (routed by the coordinator, 3:46 PM EDT 2026-10-21).
+  reproducer gives no value above 1 in 240 systems. Owner: Core 4 (the coordinator, 7:15 PM EDT 2026-10-21: Bug Hunt had not started it and Core 4's gate is blocked by it; before that Bug Hunt, routed 3:46 PM EDT).
   Prerequisites: none. Related: GEN.545.
 
 - [ ] **GEN.598 CLUSTER_MEAN_SYSTEM_MASS_SOL (0.4, recalled) sets the system count of globular clusters and satellites: derive it as GEN.545 derives the galaxy's**
@@ -15743,6 +15743,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rows for scale length, scale height and mass carry the minimum,
   default window and maximum from this rule; the parity test checks that
   no slider range falls outside them.
+  Placeholder limits reported by the Galaxy dials lane (7:16 PM EDT
+  2026-10-21 as the lane reported, all placeholders until Boss gives
+  sources): scale length 0.9 to 8000 pc, scale height 0.3 to 750 pc,
+  mass 8 to 2e11 solar masses (floor half of Ursa Major III / UNIONS 1,
+  ceiling 1.5 times Andromeda); Auto default about 1.3 kpc and 3e9 to
+  4e9 solar masses. The registry rows carry these as the minimum,
+  default window and maximum, each labelled placeholder.
   Prerequisites: none. Related: GEN.609, ADM.99, ADM.110.
 
 - [ ] **GEN.602 Shape dials: the command-line flags built from the lever table, and the old absolute shape options retired**
@@ -15846,6 +15853,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with its source, no preset), and this item is then updated with them;
   until then 1,300 pc below is superseded for the cap and stays only as
   the old provisional default window.
+  Placeholder limits reported by the Galaxy dials lane (7:16 PM EDT
+  2026-10-21 as the lane reported, all placeholders until Boss gives
+  sources): scale length 0.9 to 8000 pc, scale height 0.3 to 750 pc,
+  mass 8 to 2e11 solar masses (floor half of Ursa Major III / UNIONS 1,
+  ceiling 1.5 times Andromeda); Auto default about 1.3 kpc and 3e9 to
+  4e9 solar masses. Done (replaces the earlier default-and-cap tests):
+  the lever table's scale length, scale height and mass rows carry
+  exactly these limits as named constants labelled placeholder; the Auto
+  draw stays inside the default window (about 1.3 kpc scale length, 3e9
+  to 4e9 solar masses) over many seeds; a pin reaches the minimum and
+  the maximum and a value outside either is refused with the limit and
+  its label; masses below what the laws cover (GEN.612) are refused with
+  that reason until GEN.612 lands.
   Prerequisites: GEN.601. Related: GEN.382, GEN.404, GEN.545, GEN.609.
 
 - [ ] **GEN.604 Shape dials: the Structure dial: flatness (scale length over scale height), bulge share and bulge size (scale radius over L)**
@@ -16044,6 +16064,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   derived, bracket or placeholder); the galaxies themselves are never
   presets in the generator, only the source of the stated limits (Boss's
   no-fixed-content rule, 4:11 PM EDT 2026-10-16).
+  Placeholder limits reported by the Galaxy dials lane (7:16 PM EDT
+  2026-10-21 as the lane reported, all placeholders until Boss gives
+  sources): scale length 0.9 to 8000 pc, scale height 0.3 to 750 pc,
+  mass 8 to 2e11 solar masses (floor half of Ursa Major III / UNIONS 1,
+  ceiling 1.5 times Andromeda); Auto default about 1.3 kpc and 3e9 to
+  4e9 solar masses. Done (added): each of these limits is recorded in
+  the gap-plan registry's note on the shape dial limits
+  (docs/design/gap-filling-plan.md, section 2.1) and replaced when Boss
+  gives a source; the reference galaxies are never presets, only the
+  stated origin of the limits.
   Prerequisites: none.
 
 - [ ] **GEN.610 The `--nuclear-amplitude` help text defines 1 as 'the observed' nuclear cluster and disc (2.5e7 and 1.5e9 solar masses), which are Milky Way values: replace them with a draw from the galaxy's own laws**
@@ -16086,6 +16116,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
   2026-10-21).
   Prerequisites: GEN.601. Related: GEN.602, GEN.382.
+
+- [ ] **GEN.612 Extend the halo, stellar-to-halo and size laws down to dwarf and ultra-faint masses (below 1e8 solar masses), so the shape dials' minimum mass is reachable**
+  Found by the Galaxy dials lane (7:16 PM EDT 2026-10-21 as the lane
+  reported), filed by the TODO thread. Boss's size limits (7:05 to 7:13
+  PM EDT: the minimum is half of Ursa Major III / UNIONS 1, the maximum
+  about 1.5 times Andromeda, for scale length, scale height and mass)
+  put the Scale dial's mass floor at 8 solar masses, but the mass
+  chain's halo law and the size-mass law are valid only from 1e8 solar
+  masses, so the dial refuses masses below what the laws cover.
+  Placeholder limits reported by the Galaxy dials lane (7:16 PM EDT
+  2026-10-21 as the lane reported, all placeholders until Boss gives
+  sources): scale length 0.9 to 8000 pc, scale height 0.3 to 750 pc,
+  mass 8 to 2e11 solar masses (floor half of Ursa Major III / UNIONS 1,
+  ceiling 1.5 times Andromeda); Auto default about 1.3 kpc and 3e9 to
+  4e9 solar masses. Do: extend the stellar-to-halo relation, the halo
+  law and the size-mass law to dwarf and ultra-faint masses, or state
+  which relation holds there; the gaps GR11 (dwarf stellar-to-halo
+  relation and scatter, 1e8.5 to 1e10.5) and GR13 (ultra-faint size
+  relation, below log M* 5.5) in docs/design/gap-filling-plan.md are the
+  same missing laws. Needs Boss: sources for those laws (or his word
+  that a labelled placeholder bracket stands). Until it lands, the
+  lowest mass the Scale dial accepts is the lowest the laws cover and
+  the lower limit of Boss's rule is recorded in the lever table but
+  refused with the reason (to be confirmed by the Galaxy dials lane).
+  Done: the laws are defined down to the lever table's minimum with a
+  source or a placeholder label for each range; a test sweeps mass from
+  the minimum to the maximum and every law returns a finite, ordered
+  value; the dial accepts the whole range.
+  Prerequisites: GEN.601. Related: GEN.603, GEN.609, GEN.369, GEN.380.
 
 
 ## PERF: Speed, caching, bulk generation and parallel work
