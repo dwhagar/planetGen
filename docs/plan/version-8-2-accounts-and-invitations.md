@@ -43,7 +43,6 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | PERF.131 | Store the tiles compressed and serve the stored bytes with their encoding, so a request does no compression |  | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
-| PERF.132 | Build proactively on a visit: the surrounding tiles and the next zoom levels are built and cached in the background | PERF.131 | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
 | PERF.133 | Keep every tile until the data changes: invalidate by what changed, rebuild what a change touched, and never evict a valid tile for size | PERF.41 | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
 | PERF.134 | The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions | PERF.133 | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
 | PERF.139 | One cache size setting, `cache.max_mb`, default 1024: tiles, stored lists and indexes share one disk budget |  | Boss, 2026-10-18, 5:43 PM EDT (cache up to 1 GB, a setting). |
@@ -51,8 +50,8 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | DB.79 | The object index table (migration only): one row per object of every kind the site lists, with keyset order keys and a name index |  | Boss, 2026-10-18, 5:43 PM EDT (an index and a list of every list). |
 | PERF.140 | The index builder and its automatic refresh: each kind is rebuilt from what changed whenever generation, an orbital update or an edit changes it | DB.79, PERF.139 | Boss, 2026-10-18, 5:43 PM EDT (regenerated automatically on change). |
 | UX.141 | List pages for every kind: systems, stars, planets, moons, belts, comets and each phenomenon type, and the name search, read the object index with keyset paging | PERF.140 | Boss, 2026-10-18, 5:43 PM EDT (a list of every list). |
-| PERF.141 | The warm-up runs in phases after every generation, update or change, as deep as the budget allows | PERF.139, PERF.140, PERF.131, PERF.132, PERF.133 | Boss, 2026-10-18, 5:43 PM EDT (multiple warm-up phases). |
-| PERF.129 | Robust tile caching: the first zoom levels built ahead, tiles stored compressed, built proactively around every visit, kept until the data changes | PERF.131, PERF.132, PERF.133, PERF.134 | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
+| PERF.141 | The warm-up runs in phases after every generation, update or change, as deep as the budget allows | PERF.139, PERF.140, PERF.131, PERF.133 | Boss, 2026-10-18, 5:43 PM EDT (multiple warm-up phases). |
+| PERF.129 | Robust tile caching: the first zoom levels built ahead, tiles stored compressed, built proactively around every visit, kept until the data changes | PERF.131, PERF.133, PERF.134 | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
 
 ## Phase 2: What a signed-in user gets
 
