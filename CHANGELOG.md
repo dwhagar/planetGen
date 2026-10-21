@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1845] - 2026-10-21
+
+**Headline:** The Galaxy Map's server now builds the tiles of the next few zoom steps, and the ones around a view, in the background while a visitor looks.
+
+### Added
+- **The tiles around a visit are built ahead of the visitor's next move (PERF.132).** When the map asks for tiles it now also sends where its camera and target are (`at`), and once the answer has gone the server queues, as low-priority jobs on the bulk queue, the tiles of the cut for the camera one to four fade bands closer along its line (the next zoom steps), then the neighbours of the requested tiles and the next level inside them (for a visitor who pans). A worker builds them into the same disk cache a request fills. It keeps to named limits, new settings of `tile_cache`: `prefetch_per_visit` (128 tiles a request), `prefetch_per_minute` (600) and `prefetch_max_queued` (8 jobs, 16 tiles each); it queues nothing for a tile already stored or already queued, nothing for ten minutes after the cache pruned itself, nothing during an update, and a malformed or missing `at` is ignored, so a visit to a built area queues nothing and a second visitor to the same area causes no build.
+
+TODO items resolved: PERF.132 / Added: none
+
 ## [8.0.1844] - 2026-10-21
 
 **Headline:** One function now moves every body with a mass, whether it is a planet, a moon, a comet, a star or a wanderer.

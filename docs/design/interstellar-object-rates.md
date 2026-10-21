@@ -125,6 +125,8 @@ research writes it `dN/dM ∝ M^-0.65`; read per unit mass, that would make
 about 87% of rogues gas giants, against its own aim of keeping them rare,
 so it is read per logarithm of mass.
 
+(Pre-retune figures; the GEN.100 retune of 2026-10-09 sets terrestrial rogue planets to 5.8 per star.)
+
 | Bin | Mass | Per star | Check against |
 |---|---|---|---|
 | Terrestrial | 0.1-2 M⊕ | 5.6 | 2-10: Johnson et al. 2020; Mróz et al. 2020 (OGLE-2016-BLG-1928, 0.3-2 M⊕) |
@@ -166,18 +168,18 @@ above 0.1 M⊕, a hundred times the terrestrial estimate.
   Boss chose the 5e-6 research value, so this is a recommendation only
   (derivation in `nebula-and-asteroid-field-classes.md`, "The molecular
   cloud field").
-- **Neutron star pulsar fraction (recommendation, 2026-10-09).** The
+- **Neutron star pulsar fraction (recommendation, 2026-10-09; pre-retune: the GEN.100 retune of 2026-10-09 sets 2% of neutron stars pulsing, and `NEUTRON_STAR_PULSAR_CHANCE` no longer exists in `src/`).** The
   catalogue above gives about 5e8 isolated neutron stars.
   `NEUTRON_STAR_PULSAR_CHANCE = 0.7` makes 3.5e8 of them pulsars, against roughly 1e5
   beamed radio pulsars (an active fraction of about 1e-4 to 1e-3), because
   radio emission ends after about 1e7 years and an isolated star has no
   companion to recycle it. The constant is a gameplay choice in the code
   today; the physical value and an age rule are in `anomalies.md`.
-- Terrestrial (0.78 pc⁻³ = 5.6 per star), Jupiter-mass (0.004 = 0.028
+- (Pre-retune values; the GEN.100 retune of 2026-10-09 sets terrestrial rogue planets to 5.8 per star, neutron stars to 0.4% and black holes to 0.05%, see "Retune of 2026-10-09" below.) Terrestrial (0.78 pc⁻³ = 5.6 per star), Jupiter-mass (0.004 = 0.028
   per star, under the 0.035 limit), brown dwarfs (0.03 = 1 per 4.7 stars), runaways (1.5%), neutron
   stars and black holes (0.5-0.7% and 0.05-0.07% of stars, matching the
-  galaxy totals) are self-consistent. The generator uses 0.5% and 0.1%
-  instead, the shares the mass-and-age star model leaves behind (star-fix
+  galaxy totals) are self-consistent. The generator used 0.5% and 0.1%
+  before the retune of 2026-10-09 instead, the shares the mass-and-age star model leaves behind (star-fix
   study, 2026-09-30), so isolated remnants and the star census agree.
 
 ## Generation cost
@@ -233,7 +235,7 @@ Balogh 2010, intracluster supernovae.
   ("Rogue planet mass bins").
 - **Hypervelocity 1e-10.** The table's 5e-9 implies 30 to 40 times more
   hypervelocity stars than its own galaxy total ("Checks").
-- **Neutron stars 0.5% and black holes 0.1% of stars.** These are the shares
+- **Neutron stars 0.5% and black holes 0.1% of stars (pre-retune; 0.4% and 0.05% after the GEN.100 retune of 2026-10-09, and the black hole density has been metallicity-dependent since GEN.563, black-hole-density.md).** These were the shares
   the mass-and-age star model (7.23.0) leaves behind, so isolated remnants
   and the star census agree.
 - **No free asteroid fields.** They disperse in 1e6 to 1e7 years.

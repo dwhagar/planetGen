@@ -270,8 +270,8 @@ the site and database usable (PERF.34, ADM.15).
 | Cache | Where | Invalidation | Notes |
 |---|---|---|---|
 | Page cache (PERF.2, PERF.25) | `web/lib/pagecache.py`, in memory per web process, `cachetools.TTLCache` | any API write in this process; the content stamp every 15 s (a new stamp drops that database's entries); age limit 300 s | not shared between processes |
-| Tile and stage cache | `web/lib/tilecache.py`, disk `<dir>/<db>/<generation>/` | the stamp from `GET /api/galaxy/changes` every 60 s; only changed tiles deleted; `full` starts a new generation; a busy fill keeps the old generation up to 600 s; 200 MB budget | the browser keeps its own copy by generation |
-| Opening-view warm-up | `web/warmup.py`, `cli/warm.py` | run by `update.sh` | only the opening tiles and stage |
+| Tile and stage cache | `web/lib/tilecache.py`, disk `<dir>/<db>/<generation>/` | the stamp from `GET /api/galaxy/changes` every 60 s; only changed tiles deleted; `full` starts a new generation; a busy fill keeps the old generation up to 600 s; 200 MB budget (replaced by `cache.max_mb`, default 1024, tiles, stored lists and indexes sharing one disk budget: Boss, 2026-10-18, 5:43 PM EDT, PERF.139) | the browser keeps its own copy by generation |
+| Opening-view warm-up | `web/warmup.py`, `cli/warm.py` | run by `update.sh` | only the opening tiles and stage (replaced by multiple warm-up phases, Boss, 2026-10-18, 5:43 PM EDT, PERF.141) |
 
 ### 4.2 The stamp
 

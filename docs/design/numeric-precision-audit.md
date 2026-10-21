@@ -91,7 +91,7 @@ Verdict key: **OK** float64 is enough as the code stands. **WATCH** enough, but 
 | Quantity | Type | Verdict | Note |
 |---|---|---|---|
 | `phenomenon_scatter.map_luminosity_sol` | FLOAT (7 digits), the only FLOAT column | WATCH | a display luminosity; never used as an input |
-| `polities.tech_level` | DECIMAL(3,2) | OK | exact by design |
+| `species.tech_level` | DECIMAL(3,2) | OK | exact by design; the column is on `species`, not `polities` (Decided, Boss, contradiction sweep card, 7:30 AM EDT 2026-10-21: no schema change) |
 | Everything else numeric | DOUBLE or integer | OK | |
 
 ### 3.4 Sums and the field kernel

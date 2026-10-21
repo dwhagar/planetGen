@@ -191,6 +191,8 @@ Reading the table:
 
 ## 2. The real grid: ring, layer, slot
 
+(This section studies the cylindrical grid, which was the grid until 2026-10-15; the grid is shell, band and wedge since then, see `galaxy-coordinate-system.md`.)
+
 Code read: `src/planetgen/galaxy/geometry.py` (the TODO items call it
 `galaxyGeometry.py`), `src/planetgen/generation/run_galaxy.py`
 (`_neighborhood_candidates`, `_neighborhood_batch`, `_generate_addresses`,
@@ -466,13 +468,13 @@ Sort before applying any limit.
   text (and in `orbital-updates.md` section 11, "bulge scale radius 200 pc")
   therefore describes a model that no longer exists. No other 200 pc constant
   remains in the density module; the nuclear stellar disc "inside 200 pc" is
-  explicitly listed there as not modelled.
+  explicitly listed there as not modelled (before GEN.280, 2026-10-16, which models it).
 - Density is nearly flat through the core: relative density 154 at the
   centre, 140 to 169 by azimuth within 25 pc, 163 at 200 pc along the bar and
   132 across it. With `expected_system_count_at_density_1` = 6.31 systems per
   4 pc sector, a core sector holds about **880 to 1,060 systems** (14 to 17
   systems per cubic parsec, against 0.1 in the solar neighbourhood [R]). The
-  model has no central cusp, no nuclear cluster and no nuclear disc.
+  model, as read here, had no central cusp, no nuclear cluster and no nuclear disc; the nuclear star cluster and nuclear stellar disc entered with GEN.280 (2026-10-16), so the flat core and the 880 to 1,060 figure are the values before GEN.280.
 - There is no per-sector star cap: `MAX_SYSTEMS_PER_SECTOR = 1e9` in
   `generation/stats.py` only limits the estimate text. Generation draws a
   Poisson count around the expected value (`SpaceSector.grow_from_seed`) and
@@ -487,6 +489,8 @@ Sort before applying any limit.
   blocker; worth a comment in GEN.24 or the physics review.
 
 ### 4.2 Real numbers, all [R] and to be verified
+
+Superseded by GEN.280 (Boss's item GEN.285, 2026-10-16, 12:43 AM EDT): the nuclear star cluster and the nuclear stellar disc are in the density model (`galaxy-disk-density.md`, ADM.49), so the "no nuclear-cluster object" decision below was overtaken by the new item it invited, and the 880 to 1,060 systems per core sector are the figure before GEN.280.
 
 | Structure | Size | Mass | Notes |
 |---|---|---|---|
@@ -582,8 +586,8 @@ covers most of a small galaxy's bulge.
 - **`Computational Astrodynamics.md`, "Synthesis and Structural
   Recommendations" (spatial partitioning paragraph and its table row):** 4 pc
   uniform cubic cells indexed by a 64-bit Morton code with a 27-cell stencil,
-  "replacing cylindrical geometries". Not what is built: the shipped grid is
-  the cylindrical ring, layer, slot grid, `galaxy-drilldown-navigation.md`
+  "replacing cylindrical geometries". Not what was built: the shipped grid was
+  the cylindrical ring, layer, slot grid until 2026-10-15 (shell, band and wedge since), `galaxy-drilldown-navigation.md`
   turned Morton keys down, and `orbital-updates.md` section 11 keeps the
   current sectors ("this sector and every sector touching it"). The 4 pc edge
   matches. Section 2 shows why a cubic index cannot address these cells.

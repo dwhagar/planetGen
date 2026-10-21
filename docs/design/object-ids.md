@@ -1,6 +1,6 @@
 # Interstellar object IDs (GEN.64)
 
-**Built (Boss, 2026-10-09 22:39Z):** the `uid` column is an 80-bit birth-location ID (GEN.170 layout, DB.20 schema v78 with the sector fill giving the IDs; GEN.172, GEN.176 and API.23 are built too; design in [object-id-options.md](object-id-options.md)). GEN.69's hash scheme is gone; GEN.64's position IDs are only the names of interstellar objects, and a bright-sweep system no longer keeps its position ID as its `uid`.
+**Built (Boss, 2026-10-09 22:39Z):** the `uid` column is an 80-bit birth-location ID (the first layout; the default is 96 bits, `BINARY(12)`, Boss, 2026-10-15, see intergalactic-and-halo-contents.md and numeric-precision-audit.md) (GEN.170 layout, DB.20 schema v78 with the sector fill giving the IDs; GEN.172, GEN.176 and API.23 are built too; design in [object-id-options.md](object-id-options.md)). GEN.69's hash scheme is gone; GEN.64's position IDs are only the names of interstellar objects, and a bright-sweep system no longer keeps its position ID as its `uid`.
 
 Boss, 2026-10-02: every object in sector space that isn't a generated
 star system gets a unique ID built from where it sits, and that ID, in
@@ -135,7 +135,7 @@ back into its ID for a search that wants it. The wide-pair rule (never
 Every object has a `uid` column. A sector's is its designation as an
 integer (`BIGINT UNSIGNED`, unique; it needs no row: `uid.sector_uid(shell,
 band, wedge)` is the ID of a sector nobody has generated). Every other
-object's is the 80-bit `BINARY(10)` of `planetgen/galaxy/object_uid.py`,
+object's is the 80-bit `BINARY(10)` (the first layout; 96 bits, `BINARY(12)`, is the default, Boss, 2026-10-15) of `planetgen/galaxy/object_uid.py`,
 unique on its own: birth sector 40 bits, serial 28 bits, body number 12
 bits (layout and rules in [object-id-options.md](object-id-options.md)
 section 0).
