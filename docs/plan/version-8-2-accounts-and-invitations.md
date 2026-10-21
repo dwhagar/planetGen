@@ -43,9 +43,7 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | PERF.134 | The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions |  | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
-| ADM.97 | The settings page can show a number as a slider: the cache size is the first one |  | Boss, 2026-10-18, 5:43 PM EDT (slider on the settings page). |
-| DB.79 | The object index table (migration only): one row per object of every kind the site lists, with keyset order keys and a name index |  | Boss, 2026-10-18, 5:43 PM EDT (an index and a list of every list). |
-| PERF.140 | The index builder and its automatic refresh: each kind is rebuilt from what changed whenever generation, an orbital update or an edit changes it | DB.79 | Boss, 2026-10-18, 5:43 PM EDT (regenerated automatically on change). |
+| PERF.140 | The index builder and its automatic refresh: each kind is rebuilt from what changed whenever generation, an orbital update or an edit changes it |  | Boss, 2026-10-18, 5:43 PM EDT (regenerated automatically on change). |
 | UX.141 | List pages for every kind: systems, stars, planets, moons, belts, comets and each phenomenon type, and the name search, read the object index with keyset paging | PERF.140 | Boss, 2026-10-18, 5:43 PM EDT (a list of every list). |
 | PERF.141 | The warm-up runs in phases after every generation, update or change, as deep as the budget allows | PERF.140 | Boss, 2026-10-18, 5:43 PM EDT (multiple warm-up phases). |
 | PERF.129 | Robust tile caching: the first zoom levels built ahead, tiles stored compressed, built proactively around every visit, kept until the data changes | PERF.134 | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
@@ -74,3 +72,14 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.399 | Research the halo mass function and compare it with the halo mass approximation GEN.368 uses |  | Boss 10:11 PM EDT; research and comparison; Core 1 proposed (it writes GEN.368). |
+
+### Viewers and object pages
+
+Boss (6:10 and 6:12 PM EDT, 2026-10-21): the viewing windows fit the browser window, and selecting anything opens the same info box with a View button to a dedicated page for every kind of item, with links to where it is.
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| UX.142 | The viewing windows scale to the browser window so the controls are always in view without scrolling the page |  | Boss's 8.2 design notes, 6:10 and 6:12 PM EDT 2026-10-21. |
+| UX.143 | A dedicated page for every kind of item: star, planet, moon, belt, comet, each phenomenon, nebula, cluster, system, sector and region, reached from its Object ID |  | Boss's 8.2 design notes, 6:10 and 6:12 PM EDT 2026-10-21. |
+| UX.144 | Every item page says where the item is: links up the chain (galaxy, sector, system, parent star or planet) and the nebula or other region that contains it | UX.143 | Boss's 8.2 design notes, 6:10 and 6:12 PM EDT 2026-10-21. |
+| MAP.254 | One shared info box: selecting anything on any view opens the same box, with a View button that opens the item's own page | UX.143 | Boss's 8.2 design notes, 6:10 and 6:12 PM EDT 2026-10-21. |

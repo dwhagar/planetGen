@@ -1019,6 +1019,34 @@ neutron_stars = sa.Table(
 )
 
 
+object_index = sa.Table(
+    'object_index',
+    metadata,
+    sa.Column('kind', sa.String(24), primary_key=True, nullable=False),
+    sa.Column('uid', mysql.BINARY(12), primary_key=True, nullable=False),
+    sa.Column('source_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('name', sa.String(255), nullable=False),
+    sa.Column('sector_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('system_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('parent_uid', mysql.BINARY(12), nullable=True),
+    sa.Column('object_class', sa.String(64), nullable=True),
+    sa.Column('mass_kg', mysql.DOUBLE(), nullable=True),
+    sa.Column('radius_km', mysql.DOUBLE(), nullable=True),
+    sa.Column('placed', mysql.TINYINT(), server_default=sa.text("'1'"), nullable=False),
+    sa.Column('indexed_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
+    sa.Index('ft_object_index_name', 'name', mysql_prefix='FULLTEXT'),
+    sa.Index('idx_object_index_class', 'kind', 'object_class', 'name', 'uid'),
+    sa.Index('idx_object_index_mass', 'kind', 'mass_kg', 'uid'),
+    sa.Index('idx_object_index_name', 'kind', 'name', 'uid'),
+    sa.Index('idx_object_index_radius', 'kind', 'radius_km', 'uid'),
+    sa.Index('idx_object_index_sector', 'sector_id', 'kind', 'name', 'uid'),
+    sa.Index('idx_object_index_source', 'kind', 'source_id'),
+    sa.Index('idx_object_index_system', 'system_id', 'kind', 'uid'),
+    sa.CheckConstraint('(`placed` in (0,1))', name='chk_object_index_placed'),
+    mysql_engine="InnoDB",
+)
+
+
 object_timing_samples = sa.Table(
     'object_timing_samples',
     metadata,
