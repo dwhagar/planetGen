@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1865] - 2026-10-21
+
+**Headline:** The database gets the object index table, where every list and the name search will read from.
+
+### Changed
+- **`object_index` (DB.79, schema v113).** One row per object of every kind the site lists (systems, stars, planets, moons, belts, comets, facilities and each phenomenon kind): kind and 96-bit object ID, name, sector, system, parent, class, mass and radius, with a keyset key per sort and a FULLTEXT index on the name. The migration only makes the table; it is empty until the index builder (PERF.140) fills it, and no other table is touched.
+
+TODO items resolved / Added: DB.79 / Added: none
+
 ## [8.0.1864] - 2026-10-21
 
 **Headline:** The admin queue page shows the cache warm-up phase by phase: which are waiting, running, built, unchanged or stopped, with each one's result.
