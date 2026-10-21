@@ -13798,6 +13798,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
   lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
   (reported 4:33 PM EDT 2026-10-18).
+  Slice 1 merged as #2314 (Core 4, 1:15 PM EDT 2026-10-21 as the lane
+  reported): the neutron star count is the massive stars minus the black
+  holes, `remnant_density.py` replaces `black_hole_density.py`, the
+  unbound share of neutron stars is a structure field, and the generator
+  epoch 40 is pending (it takes its stamp at the next release). Boss
+  chose 'Keep the cap' on the black hole cap card (12:39 PM EDT
+  2026-10-21, as Core 4 reported). The item stays open for the mass
+  islands and the kick step. Boss's 1:17 PM EDT 2026-10-21 note (as the
+  coordinator relayed): Network access to arxiv.org, doi.org and
+  crossref stays closed until he opens it, and information already
+  included in the repository or in files he provided is valid; so the
+  kick-escape share and any other source this step cannot read stay
+  labelled recalled or placeholder in the gap registry and do not block
+  the step.
 
 - [ ] **GEN.555 The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
