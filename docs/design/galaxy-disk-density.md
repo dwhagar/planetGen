@@ -15,7 +15,7 @@ each fitted to the Milky Way's published structure (GEN.118, GEN.119):
 ```
 R     = sqrt(x^2 + y^2)
 theta = atan2(y, x)
-v(z, h) = sech^2(z / 2h)            # isothermal sheet; tail exp(-|z|/h)
+v(z, h) = exp(-|z| / h)              # the form surveys fit (GEN.544); column 2 h
 
 thin(R, z)  = exp(-R / L) * v(z, h)                       # L, h: the shape's
                                                           # disk scale length/height
@@ -34,8 +34,10 @@ relative_density = k_norm * (bulge + thin * arm_factor + thick)
 ```
 
 - **Thin disk.** `disk_scale_height_pc` is the exponential scale height
-  surveys quote: `sech^2(z/2h)` falls off as `exp(-|z|/h)` away from the
-  plane. Only the thin disk carries the arms.
+  surveys quote, and the profile is that exponential, `exp(-|z|/h)` (GEN.544): its midplane density is the one the
+  fits give, and its column is `2 h` times it. It replaced the isothermal sheet `sech^2(z/2h)`, whose tail is the same
+  but whose column is `4 h` times its midplane, so for one mass its midplane was half the fits'. Only the thin disk
+  carries the arms. The nuclear stellar disc keeps the isothermal sheet (`_sech_vertical`).
 - **Thick disk** (`shape.structure`, `galaxy/structure_draw.py`, GEN.532). Its mass, scale length and scale height are
   ratios to the thin disk's drawn from the galaxy seed: the mass (0.14 to 0.99 at the circular speeds of 3e9 to 2e11
   solar masses of stars) between the fits of Yoachim and Dalcanton 2006 and Comeron et al. 2018, the length by Comeron
@@ -54,19 +56,23 @@ relative_density = k_norm * (bulge + thin * arm_factor + thick)
   is a test reference only. `model_terms(shape)` returns the derived values; the
   Galaxy Map's prisms read them with the shape.
 
-`sech^2` is computed as `4e / (1 + e)^2` with `e = exp(-2|x|)`
+The nuclear disc's `sech^2` is computed as `4e / (1 + e)^2` with `e = exp(-2|x|)`
 (`_sech_squared`), because `1 / cosh(x)^2` overflows once `|x|` passes about
-710.
+710. The disks' `exp(-|z|/h)` is clamped at 700 scale heights.
 
 **Normalization (GEN.404).** `build_galaxy_shape` computes `k_norm` so the density, in units of the real local
 stellar density (`LOCAL_STELLAR_DENSITY_LY3`), integrates to the systems the galaxy's stellar mass makes
 (`structure.stellar_mass_solar` over `tuning.MEAN_SYSTEM_MASS_SOLAR`, 0.4): `density.total_mass` is the integral of the
 unnormalized model (the thin and thick disks, the bulge, the nuclear cluster and disc and the stellar halo, each in
 closed form). No point of the galaxy is the calibration point and no Sun position is read. A galaxy of the reference
-structure (5e10 solar masses) holds 1.25e11 systems, and the density at the reference radius is 0.38 of the local
-density the earlier calibration pinned there (2.6 times sparser): the model's disc is a `sech^2` sheet whose midplane
-density is lower than the exponential fits quote for the same column, a gap a revision of the vertical profile
-closes, not this constant. The model's fixed parts are ratios to the shape's own lengths,
+structure (5e10 solar masses) holds 1.25e11 systems, and the density at the reference radius was 0.38 of the local
+density the earlier calibration pinned there (2.6 times sparser): the model's disc was a `sech^2` sheet whose midplane
+density is half the exponential fits quote for the same column. **GEN.544** made the vertical profile the exponential
+the scale heights are fitted with, with the column (the mass) unchanged: the density at the reference radius is now 0.75
+of the old pinned value (twice the GEN.404 value, 0.376 to 0.750), the thin disc's column is the same, and the
+reference galaxy's bulge amplitude is 3.11/2 because BHG16's 3.11 was measured against the `sech^2` disc and the bulge
+keeps its 31% of the mass (`mathcheck.REFERENCE_BULGE_AMPLITUDE`). The remaining gap to the pinned density is the mean
+system mass (GEN.545), not the profile. The model's fixed parts are ratios to the shape's own lengths,
 so the same formulas work for a galaxy of any size.
 
 **Stellar halo** (GEN.234). A spheroid with a broken power law, `A * (max(m, core) / break) ** -n`, where

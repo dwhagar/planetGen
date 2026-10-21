@@ -18,7 +18,7 @@ Rules:
 | [#2195](https://github.com/dwhagar/planetGen/issues/2195) | open | One unit registry, one Quantity class and one set of declared relations (8.4, exact factors in 8.1) | DB.76, DB.77, DOC.70, GEN.568, GEN.569, GEN.570, GEN.571, GEN.573, GEN.574, GEN.575, GEN.585, GEN.586, GEN.587, GEN.588, UX.139, UX.140 |
 | [#2194](https://github.com/dwhagar/planetGen/issues/2194) | open | One recursive generation process for anything that can have something orbiting it: groups, stars, planets and moons (8.1 back-scatter, 8.4) | DB.73, DB.74, DB.75, GEN.550, GEN.553, GEN.554, GEN.555, GEN.556, GEN.557, GEN.558, GEN.559, GEN.560, GEN.564, GEN.565, GEN.566, GEN.580, PERF.136, TEST.239, TEST.240, UX.138 |
 | [#2095](https://github.com/dwhagar/planetGen/issues/2095) | open | The plan configuration and two switches, halo and satellite galaxies, both default off (8.5) | GEN.537, GEN.538, GEN.539, GEN.540, MAP.248, UX.137, TEST.226 |
-| [#2096](https://github.com/dwhagar/planetGen/issues/2096) | open | Robust tile caching: build ahead, store compressed, build proactively, keep until the data changes (8.2) | PERF.129, PERF.133, PERF.134, PERF.139, ADM.97, PERF.141 |
+| [#2096](https://github.com/dwhagar/planetGen/issues/2096) | open | Robust tile caching: build ahead, store compressed, build proactively, keep until the data changes (8.2) | PERF.129, PERF.134, ADM.97, PERF.141 |
 | [#2293](https://github.com/dwhagar/planetGen/issues/2293) | open | Cached index and lists of every object, rebuilt automatically when data changes (8.2) | DB.79, PERF.140, UX.141 |
 | [#1914](https://github.com/dwhagar/planetGen/issues/1914) | open | Galaxy types: one family per known galaxy type, drawn from the seed (9.4) | DB.66, DOC.59, GEN.378, GEN.379, GEN.380, GEN.381, GEN.382, GEN.383, GEN.384, GEN.385, GEN.386, GEN.387, GEN.389, GEN.390, MAP.242, TEST.204, UX.134, UX.135 |
 | [#1924](https://github.com/dwhagar/planetGen/issues/1924) | open | Superbubbles shape the stars: the bubble field as a density modulation (8.1) | DOC.61, GEN.391, GEN.392, GEN.393, GEN.394, GEN.395, TEST.206 |
@@ -105,7 +105,7 @@ Rules:
 | [#1232](https://github.com/dwhagar/planetGen/issues/1232) | closed | Restrict the Field | MAP.189, MAP.190, USR.11 |
 | [#1231](https://github.com/dwhagar/planetGen/issues/1231) | closed | See most recently changed positions | MAP.192, DB.57, MAP.216 |
 | [#1230](https://github.com/dwhagar/planetGen/issues/1230) | closed | Complete review and rebuild of testing system | TEST.139 |
-| [#1229](https://github.com/dwhagar/planetGen/issues/1229) | open | Work queue on Redis: remaining steps and follow-ons | PERF.86, PERF.98, PERF.99, PERF.100, PERF.29, PERF.30, DOC.20, PERF.119, PERF.120, PERF.121, PERF.122, PERF.123, PERF.124, PERF.125, PERF.128, PERF.113, PERF.114, PERF.115, PERF.116, PERF.117 |
+| [#1229](https://github.com/dwhagar/planetGen/issues/1229) | open | Work queue on Redis: remaining steps and follow-ons | PERF.86, PERF.98, PERF.99, PERF.100, PERF.29, PERF.30, DOC.20, PERF.119, PERF.120, PERF.121, PERF.122, PERF.123, PERF.124, PERF.125, PERF.128, PERF.113, PERF.114, PERF.115, PERF.116, PERF.117, PERF.142, PERF.143, PERF.144 |
 | [#1228](https://github.com/dwhagar/planetGen/issues/1228) | closed | Star system editor | ADM.51, ADM.52 |
 | [#1227](https://github.com/dwhagar/planetGen/issues/1227) | closed | Show axis, tilt, and rotations | MAP.193 |
 | [#1226](https://github.com/dwhagar/planetGen/issues/1226) | open | New feature:  User objects | USR.10, POP.11, DB.63, USR.29, USR.30 |

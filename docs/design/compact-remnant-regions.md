@@ -46,8 +46,8 @@ each bin's density by a factor for the kind, at the bin's centerline point:
 
 - **Height.** Neutron stars are spread over 3x the thin disk's scale height
   and black holes over 2.5x (`tuning.REMNANT_SCALE_HEIGHT_RATIO`), as a ratio
-  of sech^2 profiles, capped at 4x. In the plane that is about 0.35x the
-  star-proportional rate; a few scale heights up it is 3x or more.
+  of the stars' exponential profiles (GEN.544), capped at 4x. In the plane that is the inverse of the ratio, 0.33x
+  to 0.4x the star-proportional rate; a few scale heights up it is 3x or more.
 - **Radius.** Black holes get `1 + 1.0 * exp(-R / 2 kpc)` times the stars'
   density: twice the rate at the core, 1.02x at the Sun.
 - **Pulsars.** The share of neutron stars that are active pulsars is scaled

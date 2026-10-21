@@ -920,3 +920,5 @@ Baseline: PR #1817.
 | GEN.591 | 8.1 | Multi-star and compact systems |
 | GEN.318 | 8.1 | Multi-star and compact systems |
 | GEN.130 | 8.1 | Multi-star and compact systems |
+| PERF.133 | 8.2 | Robust tile caching |
+| PERF.139 | 8.2 | Robust tile caching |

@@ -194,6 +194,16 @@
       "epoch": 39,
       "first_release": "8.0.1850",
       "reason": "A neutron star's or stellar black hole's age follows its population: the star's birth age from the population's window and age law, less the progenitor's time to collapse (GEN.553)"
+    },
+    {
+      "epoch": 40,
+      "reason": "A galaxy's neutron star count is what its massive stars leave when they do not become black holes: the black hole sum with the survivors of the failed share and the bound share, replacing the fixed rate per star (GEN.554)",
+      "first_release": "8.0.1854"
+    },
+    {
+      "epoch": 41,
+      "first_release": "8.0.1855",
+      "reason": "The thin and thick disks' vertical profile is the exponential the scale heights are fitted with, not the isothermal sheet: for one mass the midplane is twice as dense, so a seed places its stars, their populations, open clusters and remnants at different densities and heights (GEN.544)."
     }
   ]
 }
