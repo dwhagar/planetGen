@@ -8,7 +8,7 @@ Status: mostly built (2026-10-15). Done: the research (PERF.71, #1175), the Gala
 
 ## Summary
 
-- **Do not make "queue it and keep the request open" the general answer.** It does not make the query faster (it runs the same SQL on the same busy database), it holds one of the API daemon's 5 threads for the whole wait, a queued job needs 2.4 s just to start a worker, and the polling route is admin-only [S, C: sections 2 and 3]. Keep it for the few operations that are meant to run long and are started by an admin (estimates, the deep database check, exports).
+- **Do not make "queue it and keep the request open" the general answer.** It does not make the query faster (it runs the same SQL on the same busy database), it holds one of the API daemon's 5 threads for the whole wait, a queued job needs 2.4 s just to start a worker, and the polling route was admin-only [S, C: sections 2 and 3] (for pages that do not opt in; visitor pages that opt in poll `GET /api/page-jobs/<id>` since 2026-10-17, slow-page-answers.md, PERF.105 and UX.118, and only cancel is admin only). Keep it for the few operations that are meant to run long and are started by an admin (estimates, the deep database check, exports).
 - **Every page that timed out in these measurements is slow because it reads far more rows than it shows, not because the work is irreducibly big.** Each one has a cheap form: a keyset page instead of `OFFSET` (8.5 s to 2 ms), a stored per-sector count (18.6 s to 1 ms), an index for the map's scattered points (31.7 s to 0.28 s), a capped count (6.0 s to 30 ms) [C].
 - **So the order of preference is: read fewer rows, then answer in pieces, then show what is ready, and only last queue.** That fits what the code already does (stored counts, single-flight tiles, the busy page) and extends it.
 - **A fill makes every read 1.2 to 2 times slower** on the test box (a page at 0.13 s took 1.08 s; a sector list at 17 s took 29 s) [C]. A query that needs 6 s idle is a timeout during a fill. The target for any page query is therefore about 1 s idle, which every proposed form meets.
@@ -89,7 +89,7 @@ Against, from the numbers above:
 - A result goes through Redis (small pages are fine; a tile is a megabyte and costs 3.3 ms to read back, 4.3.3 of the earlier note).
 - It hides a query that should not be this slow. The three worst cases above fall to a few milliseconds with an index or a stored count.
 
-Verdict: **not for page reads.** Use it for operations an admin starts and expects to take long (Generate estimates, the deep database check DB.21, exports): they already show a progress or "working" state and already live behind admin routes.
+Verdict: **not for page reads** (for pages that do not opt in; see slow-page-answers.md, built 2026-10-17, where a slow page miss becomes a job and the visitor's page polls it). Use it for operations an admin starts and expects to take long (Generate estimates, the deep database check DB.21, exports): they already show a progress or "working" state and already live behind admin routes.
 
 ### 3.2 Split one query into pages or key ranges
 
@@ -164,7 +164,7 @@ Numbers are placeholders; the TODO thread assigns IDs.
 7. **Rows first, menus second.** `datatable.js` fetches the first rows without `facets=1`, then the menus in a second request.
 8. **Table JSON busy answer and retry.** `/table/<name>` returns 504 with `Retry-After` for a statement timeout; `datatable.js` retries with the map's backoff and says the database is busy.
 9. **Search panels on their own limits.** Each result panel fetched separately under its own statement limit; short-word searches use a prefix match (2-letter search was 8.4 s).
-10. **Reserved warm worker for long admin operations**, and the poll pattern for them (Generate estimates, DB.21, exports). This is the `planetgen-interactive` queue from the earlier design (3.4), built only for work that is meant to take long. No public polling route.
+10. **Reserved warm worker for long admin operations**, and the poll pattern for them (Generate estimates, DB.21, exports). This is the `planetgen-interactive` queue from the earlier design (3.4), built only for work that is meant to take long. No public polling route (for pages that do not opt in; see slow-page-answers.md).
 11. **A reusable big-galaxy query budget test.** Move `make_synthetic.py` into the test tools (2,000,000 systems in about 2 minutes), run `EXPLAIN` on every page and API list query, and fail when a query examines more rows than its page needs; this is the test PERF.68 and PERF.70 each ask for, built once.
 
 ## 8. Questions for Boss

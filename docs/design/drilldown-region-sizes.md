@@ -1,6 +1,6 @@
 # Click-centred drill-down: step sizes and region shapes (MAP.146 study)
 
-**Status (2026-10-15):** decided and built as MAP.151, the region data layer (#1539: `galaxy/region.py`, `galaxy/window.py`, `/galaxy/window`, `tilecache.fetch_window`), with the free camera MAP.150 (#1382). The cells, frame and block sizes below are those of the cylinder grid; the spherical sector switch (Boss, 2026-10-15) redoes the block ladder (MAP.205, MAP.206).
+**Status (2026-10-15):** decided and built as MAP.151, the region data layer (#1539: `galaxy/region.py`, `galaxy/window.py`, `/galaxy/window`, `tilecache.fetch_window`), with the free camera MAP.150 (#1382). The cells, frame and block sizes below are those of the cylinder grid; the spherical sector switch (Boss, 2026-10-15) redid the block ladder, built as MAP.205 and MAP.206 on 2026-10-15 (see spherical-block-ladder.md).
 
 Research only, 2026-10-09. No code, TODO.md or PR changes. Boss decides.
 
@@ -125,7 +125,7 @@ Slot ranges must be able to wrap: any region within about W/2 of the axis crosse
 | data fetched per click | 729 | 729 | (g+1)^3 = 1,000 cells for g = 9 (x1.37), because a frame not on the lattice touches 10 cells per axis; x1.73 for g = 5, x2.37 for g = 3 |
 | centring | to the block | exact sector | frame exact; data cells whole |
 
-On the disk cache: the default cap is 200 MB (`tile_cache.max_mb`). Unique keys would turn it into a stream of cold queries and write-then-prune churn.
+On the disk cache: the default cap is 200 MB (`tile_cache.max_mb`; to be replaced by `cache.max_mb`, default 1024, a settings-page slider and a config key, Boss, 2026-10-18, 5:43 PM EDT, PERF.139). Unique keys would turn it into a stream of cold queries and write-then-prune churn.
 
 Other ways to get aligned data, none better: a 3-D summed-volume table in ring/slot space (the slot dimension is not rectangular, and inserts shift every later sum), or caching bricks at the old ladder's cell sizes (that is the recommendation, with no new cache).
 

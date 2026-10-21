@@ -237,7 +237,9 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                     ensure)
         runrecord.finish_run(conn, run_id, "done")      # a stage of no units has no last unit to do it
     except BaseException as exc:
-        runrecord.finish_run(conn, run_id, "cancelled" if isinstance(exc, KeyboardInterrupt) else "failed",
+        stopped = isinstance(exc, KeyboardInterrupt) or (       # Ctrl+C, or a SIGTERM (`cli.generate._exit_on_sigterm`)
+            isinstance(exc, SystemExit) and isinstance(exc.code, int) and exc.code >= 128)
+        runrecord.finish_run(conn, run_id, "cancelled" if stopped else "failed",
                              error=str(exc) or type(exc).__name__)
         raise
     return run_id

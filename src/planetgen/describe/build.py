@@ -116,8 +116,12 @@ def _star_facts(star):
     return facts("Star", rows)
 
 
+_DISK_LABELS = {"post-agb": "Circumbinary post-AGB"}
+"""dict: The words for a `disk_kind` whose name does not read as a sentence."""
+
+
 def _star_disk_text(star):
-    return inline(star.disk_kind.replace("-", " ").capitalize(), " disk of ",
+    return inline(_DISK_LABELS.get(star.disk_kind) or star.disk_kind.replace("-", " ").capitalize(), " disk of ",
                   _mass(star.disk_mass_solar * constants.SOLAR_MASS_TO_KG, solar=True), ", from ",
                   _au(star.disk_inner_au), " to ", _au(star.disk_outer_au), ", with no bodies in it")
 
