@@ -105,7 +105,7 @@ Rules:
 | [#1232](https://github.com/dwhagar/planetGen/issues/1232) | closed | Restrict the Field | MAP.189, MAP.190, USR.11 |
 | [#1231](https://github.com/dwhagar/planetGen/issues/1231) | closed | See most recently changed positions | MAP.192, DB.57, MAP.216 |
 | [#1230](https://github.com/dwhagar/planetGen/issues/1230) | closed | Complete review and rebuild of testing system | TEST.139 |
-| [#1229](https://github.com/dwhagar/planetGen/issues/1229) | open | Work queue on Redis: remaining steps and follow-ons | PERF.86, PERF.98, PERF.99, PERF.100, PERF.29, PERF.30, DOC.20, PERF.119, PERF.120, PERF.121, PERF.122, PERF.123, PERF.124, PERF.125, PERF.128, PERF.113, PERF.114, PERF.115, PERF.116, PERF.117, PERF.142, PERF.143, PERF.144 |
+| [#1229](https://github.com/dwhagar/planetGen/issues/1229) | open | Work queue on Redis: remaining steps and follow-ons | PERF.86, PERF.98, PERF.99, PERF.100, PERF.29, PERF.30, DOC.20, PERF.119, PERF.120, PERF.121, PERF.122, PERF.123, PERF.124, PERF.125, PERF.128, PERF.113, PERF.114, PERF.115, PERF.116, PERF.117, PERF.142, PERF.143, PERF.144, PERF.145 |
 | [#1228](https://github.com/dwhagar/planetGen/issues/1228) | closed | Star system editor | ADM.51, ADM.52 |
 | [#1227](https://github.com/dwhagar/planetGen/issues/1227) | closed | Show axis, tilt, and rotations | MAP.193 |
 | [#1226](https://github.com/dwhagar/planetGen/issues/1226) | open | New feature:  User objects | USR.10, POP.11, DB.63, USR.29, USR.30 |
