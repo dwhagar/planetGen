@@ -51,7 +51,7 @@ Mean surface brightness is `V + 2.5 log10(area in arcsec^2)` over the quoted ell
 
 ### 2.2 Placing real neighbours in the generated frame
 
-The generated galaxy is a Milky Way analogue with a fixed Sun: R0 = 8.2 kpc at the inter-arm azimuth `model_terms(shape)['reference_angle_rad']` (5.8575 rad for the default shape [C]). Define `ex` as the unit vector from that Sun to the core and `ez = +Z`. A neighbour at galactic longitude `l`, latitude `b` and distance `d` sits at `sun + d (cos b cos l ex + cos b sin l ey + sin b ez)`, with `ey` and the sign of `b` set as follows.
+Superseded in part (Boss, 2026-10-16, 9:43 PM EDT, GEN.144): the galaxy stores no home or Sun position, so there is no derived home position either; the "Sun" below is only the example's observer position, and R0 = 8.2 kpc at the inter-arm azimuth `model_terms(shape)['reference_angle_rad']` (5.8575 rad for the default shape [C]) was the first run's example. Define `ex` as the unit vector from that observer to the core and `ez = +Z`. A neighbour at galactic longitude `l`, latitude `b` and distance `d` sits at `sun + d (cos b cos l ex + cos b sin l ey + sin b ez)`, with `ey` and the sign of `b` set as follows.
 
 - In the real galaxy longitude 90 points along the Sun's motion, which is the direction of rotation. In the generated frame the rotation at the Sun is `ez x sun_hat`, which equals `-(ez x ex)`. The first research run used `ey = ez x ex` and kept `b`; that has longitude 90 pointing against the rotation (dot product -1 [C]), a mirror image of the real sky.
 - The proper embedding is a 180-degree rotation about the Sun-core axis: `ey = ex x ez` (dot product +1 with the rotation [C]) and `b -> -b`, so the project's +Z plays the real galaxy's south. M31 (l = 121, b = -21.6) then lies north of the generated plane. Distances from observers on the Sun-core line are unchanged by the choice; distances from an observer off that line (above the plane, for instance) change with it.
@@ -158,7 +158,7 @@ Keep each galaxy's own frame (origin at its core, +Z its north, +X its zero meri
 
 ## 8. GEN.9's three questions
 
-1. **Real or generated neighbours?** The real Local Group (about 25 rows): Boss asked for "Andromeda from Earth", the generated galaxy is a Milky Way analogue with a fixed Sun position, and the real positions are free. Offer generated neighbours as a per-plan option; a second generated galaxy is one neighbour promoted to `linked`.
+1. **Real or generated neighbours?** The real Local Group (about 25 rows): Boss asked for "Andromeda from Earth", the first run assumed a Milky Way analogue with a fixed Sun position (the galaxy stores no Sun position since Boss, 2026-10-16, 9:43 PM EDT), and the real positions are free. Offer generated neighbours as a per-plan option; a second generated galaxy is one neighbour promoted to `linked`.
 2. **A galaxy id on every row, or top-level only?** Neither: with a database per galaxy there is no `galaxy_id`. If one database is insisted on, top-level only (the list in 5.1), with galaxy bits added to the sector uid.
 3. **Same database, or a second one chosen at login?** A second database, chosen by `?db=` (the existing mechanism), not at login: admin sessions are deployment-wide and the pages already carry the schema in the URL. A per-session default galaxy can be a control-database setting later.
 

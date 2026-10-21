@@ -38,7 +38,7 @@ Measured on the default galaxy, shells 4 and out, outline built with the skeleto
 
 Other rules tried: any wedge count per band (volume 0.94 to 1.09, but boundaries shift between bands so blocks cannot cut on shared meridians) and doubling 6, 12, 24 (only 23% of cells within 10% of a cube). Cap size by rim wedges: 5 gives radius 3.18 pc (2.0 cubes), 6 gives 3.82 (2.9), 7 gives 4.46 (3.9).
 
-Known costs, from the study: face neighbours go from 6 to 7 up to roughly 10 to 15; flat height slabs and the aligned vertical columns are gone, so a region is an arc per (shell, band), not per ring (27 times the range clauses for a 27-wide block); a cap near the dense core holds about 2,800 systems against 1,114 for today's densest cell; the 80-bit object ID's 40-bit birth-sector field still fits (shell below 4,096, band offset up to 1,456 below 2,048, wedge up to about 23,650 below 65,536).
+Known costs, from the study: face neighbours go from 6 to 7 up to roughly 10 to 15; flat height slabs and the aligned vertical columns are gone, so a region is an arc per (shell, band), not per ring (27 times the range clauses for a 27-wide block); a cap near the dense core holds about 2,800 systems against 1,114 for today's densest cell; the 40-bit birth-sector field of the 80-bit object ID (the first layout; 96 bits is the default since Boss, 2026-10-15, see object-id-options.md) still fits (shell below 4,096, band offset up to 1,456 below 2,048, wedge up to about 23,650 below 65,536).
 
 ## 3. Decisions still open
 

@@ -47,7 +47,7 @@ What is missing against the rules of section 1:
 - **Step 2 gives no system to a black hole or neutron star.** The rules for their company are written (`multistar-and-compact-systems.md` 7.3 and 7.6, refined in `exotic-environments-planets-and-compact-binaries.md` 2.1) but GEN.129 and GEN.130 are open, and `StarSystem.__init__` skips binary generation whenever it is handed a remnant (`system.py:255`).
 - **Steps 4 to 8 draw on the sector's one stream in a fixed order**, so adding a kind (say Wolf-Rayet nebulae) in the middle shifts every draw after it. The scattered objects avoid this by being built from their own seeds (`_seeded_build`, `run_sector.py:394`).
 - **No step checks representation**: nothing says a kind with a rate and a builder actually appears at its rate.
-- **The star census has no way to hold** a Wolf-Rayet star, a protostar, a brown dwarf companion, a pulsar-bearing binary or a symbiotic star. The model's living-star shares are 94.2% main sequence, 5.2% white dwarf, 0.31% subgiant, 0.27% giant, about 0 supergiant [C, 60,000 draws of `sample_living_star`], and 0.63% of all stars born have collapsed to a neutron star or black hole [C], which matches the 0.5% and 0.1% in `PHENOMENON_DENSITY_PC3`.
+- **The star census has no way to hold** a Wolf-Rayet star, a protostar, a brown dwarf companion, a pulsar-bearing binary or a symbiotic star. The model's living-star shares are 94.2% main sequence, 5.2% white dwarf, 0.31% subgiant, 0.27% giant, about 0 supergiant [C, 60,000 draws of `sample_living_star`], and 0.63% of all stars born have collapsed to a neutron star or black hole [C], which matched the 0.5% and 0.1% that `PHENOMENON_DENSITY_PC3` held before the GEN.100 retune (the retuned shares are 0.4% and 0.05%, section 5).
 
 ## 3. The fill, as it should run
 
@@ -114,7 +114,7 @@ Counts per local sector use a 64 pc^3 cell with 8 stars [S: `interstellar-object
 | Neutron star, isolated, young pulsar | built | about 1e9 neutron stars [S]; 1e5 beamed pulsars [R] | 5.6e-4 pc^-3; pulsar chance 0.02 (`NEUTRON_STAR_PULSAR_CHANCE`) | companion 1 to 3%; planets none (needs a disrupted white dwarf) [S: multi-star 7.3, exotic 2.1] | none | `mix`; the thicker layer of `compact-remnant-regions.md` is a proposal, not built | S |
 | Neutron star, millisecond pulsar | built | about 600 known; field MSPs mostly with a white dwarf companion [R] | 10% of pulsars (`PULSAR_MILLISECOND_CHANCE`) | companion 75 to 80%; planets 0.7% (upper bound 1%): disk planets 25%, captured giant 25% in clusters only, ablated companion 50% [S: exotic 2.1] | the companion | old and bulge, clusters | S |
 | Magnetar | filed GEN.153 | 17 expected, about 30 known [S, R] | not built | none | a young remnant under 3e4 yr | young share, thin layer | S |
-| Stellar black hole | built | about 1e8 [S] | 7e-5 pc^-3; the stellar class is 5e-4 per star, 40% of it above 14 solar masses | companion 10 to 30% (Gaia BH1, BH2, BH3) [S, low confidence]; planets of the companion only inside the Holman-Wiegert limit; none in the hole's own disk; 0.1% have an accretion disk (`BLACK_HOLE_ACCRETION_DISK_CHANCE`) | none | thick layer, rising toward the core | S |
+| Stellar black hole | built | about 1e8 [S] | 7e-5 pc^-3 (superseded by the metallicity-dependent density of GEN.563, black-hole-density.md); the stellar class is 5e-4 per star, 40% of it above 14 solar masses | companion 1.25%, not 10 to 30% (Boss, 2026-10-15, 6:08 PM EDT, multi-star-systems.md; Gaia BH1, BH2, BH3 [S, low confidence]); planets of the companion only inside the Holman-Wiegert limit; none in the hole's own disk; 0.1% have an accretion disk (`BLACK_HOLE_ACCRETION_DISK_CHANCE`) | none | thick layer, rising toward the core | S |
 | Intermediate-mass black hole | built | a handful of candidates, none confirmed in the field [R] | 3e-6 of black holes (`BLACK_HOLE_INTERMEDIATE_MASS_CHANCE`, GEN.259: Boss, decision card, 2026-10-16, "hundreds, as the observations suggest"), about 300 in the Galaxy of 1e8 black holes; it was 0.1%, about 1e5, four orders above the candidates | none | none | `cluster`, halo | S |
 | Supermassive black hole, quasar | built | one per galaxy | one in the core cell, quasar with chance 0.1 | none: no stellar system, no blanets [S: exotic 2.4] | the S-star cluster as text (GEN.155) | the nucleus | F, one sector |
 | Active X-ray binary, microquasar | filed with GEN.130 and GEN.247 | several dozen to 1,000 microquasars [R] | none | by definition a binary: a donor at hours to a day | an accretion disk, jets | young for high-mass, old for low-mass | F |
@@ -216,16 +216,16 @@ A kind may have a system if its row in sections 4.1 to 4.4 gives a probability. 
 | Planetary-nebula central star | 0.20 | close companion; circumbinary disk, no planets | exotic 1.3; [R] |
 | Young neutron star | 0.02 | Be or main-sequence companion | multi-star 7.3 |
 | Millisecond pulsar | 0.78 | white dwarf or ablated companion; planets 0.007 | multi-star 7.3; exotic 2.1 |
-| Stellar black hole | 0.20 | Sun-like or giant companion at 1 to 20 AU; wide tertiary only for direct-collapse holes | multi-star 7.3; exotic 2.3 |
+| Stellar black hole | 0.0125 | Sun-like or giant companion at 1 to 20 AU; wide tertiary only for direct-collapse holes | multi-star 7.3; exotic 2.3 |
 | Magnetar, intermediate-mass hole, supermassive hole, quasar | 0 | none | |
 | Rogue planet | moon 0.2 | one captured moon | `hosts.PLANET_SATELLITES` |
 | Rogue brown dwarf | 0 | none | |
 | Comet, asteroid field | 0 | none | |
 | Nebula | 0 for planets | its required stars (section 4.4) | rule 2 |
 
-The expected cost of the new system pass for a local sector (64 pc^3) is: neutron stars 0.036 x 0.0215 plus black holes 0.0045 x 0.2 plus a planetary-nebula term below 1e-6: about 0.0017 extra systems against 6.3 [C]. White dwarfs are ordinary stars of stage D and add nothing. In the halo and clusters the same fractions apply to a far smaller count.
+The expected cost of the new system pass for a local sector (64 pc^3) is: neutron stars 0.036 x 0.0215 plus black holes 0.0045 x 0.0125 plus a planetary-nebula term below 1e-6: about 0.0008 extra systems against 6.3 [C]. White dwarfs are ordinary stars of stage D and add nothing. In the halo and clusters the same fractions apply to a far smaller count.
 
-Where the observed probability is poorly known (the black-hole companion fraction rests on three Gaia systems), the table gives the number the earlier note chose and the build keeps it in one tuning dict so it can be changed without code.
+Where the observed probability is poorly known (the black-hole companion fraction rests on three Gaia systems), the table gives 1.25% for the black-hole companion fraction (Boss, 2026-10-15, 6:08 PM EDT, multi-star-systems.md, in place of the earlier note's 10 to 30%) and the build keeps it in one tuning dict so it can be changed without code.
 
 ## 6. One registry
 
@@ -269,7 +269,7 @@ Existing items stay as filed (GEN.153 to GEN.164, GEN.209, GEN.233 to GEN.249, G
 Defaults the build proceeds on, each reversible:
 
 1. **Representation means audited frequency**, not a guaranteed instance in every sector (section 7).
-2. **System probabilities** are the earlier notes' numbers (section 5); the black-hole companion fraction of 0.20 is the weakest.
+2. **System probabilities** are the earlier notes' numbers (section 5); the black-hole companion fraction, 1.25% (Boss, 2026-10-15, 6:08 PM EDT; the earlier 0.20 is replaced), is the weakest.
 3. **Planetary-nebula central star companion 0.20** [R], unsourced beyond recall.
 4. **Protostar shortfall accepted** for the first release (item 8).
 5. **Skips** of section 4.7 stand; the subspace anomalies stay a lore decision, default off.

@@ -110,7 +110,7 @@ remnant's morphology. The old `NEBULA_TYPES` constant is gone.
 | U | Composite remnant | shell plus pulsar wind nebula | 0.1-10 | pulsar |
 | V | Old radiative remnant | cooling shell merging with the ISM | 1-10^2 | neutron star, far off-center, or none |
 | W | Thermonuclear remnant | Fe-rich, no hydrogen | 0.1-10 | none |
-| X, Y, Z | Reserved | (hypernova remnant, tidal-disruption debris, fiction) | | |
+| Y, Z | Reserved | (hypernova remnant, tidal-disruption debris, fiction; class X is taken by the Wolf-Rayet ring nebula, GEN.243, intergalactic-and-halo-contents.md) | | |
 
 Each class carries, like a planet class: description, composition,
 radius range, density range, temperature range, extinction, central
@@ -622,7 +622,7 @@ MAP.142 hint: alpha from the field value, `alpha = smoothstep(iso, iso + w, f)` 
 
 ## Merger of two gas giants (GEN.110)
 
-Boss's wording makes the merged star "a planetary nebula". Physically a planetary nebula is the ejected envelope of a dying 0.8 to 8 Msun star around a hot core, so a merger product is not one: it is an M dwarf or brown dwarf at birth, with at most a short-lived debris shell like a luminous red nova [R]. The project's gas giants reach 13 Jupiter masses, so two make at most 26, a brown dwarf; hydrogen fusion needs about 0.075 Msun (78.6 Jupiter masses) [R], so only two rogue brown dwarfs (13 to 80 Jupiter masses) can reach it. Such collisions essentially never happen: a physical-radius cross-section (2 R_J) at the project's 0.9 rogue planets per pc^3 gives about 2e-21 per object per year, 2e-11 per object in 10 Gyr, and about 1e-13 for giants [C]. The handler is for extremely rare events (dense nebulae or hand-made scenarios). Recommended: do not call the result a planetary nebula (the class rule needs a white dwarf and a bright hot core); use the reserved class X as "Merger remnant nebula" (faint shell, 0.01 to 0.3 ly, 1e3 to 1e5 yr) or a "merger glow" text on the star page; state the fusion test as a 0.075 Msun threshold, brown dwarf below, new M-dwarf star at or above.
+Boss's wording makes the merged star "a planetary nebula". Physically a planetary nebula is the ejected envelope of a dying 0.8 to 8 Msun star around a hot core, so a merger product is not one: it is an M dwarf or brown dwarf at birth, with at most a short-lived debris shell like a luminous red nova [R]. The project's gas giants reach 13 Jupiter masses, so two make at most 26, a brown dwarf; hydrogen fusion needs about 0.075 Msun (78.6 Jupiter masses) [R], so only two rogue brown dwarfs (13 to 80 Jupiter masses) can reach it. Such collisions essentially never happen: a physical-radius cross-section (2 R_J) at the project's 0.9 rogue planets per pc^3 gives about 2e-21 per object per year, 2e-11 per object in 10 Gyr, and about 1e-13 for giants [C]. The handler is for extremely rare events (dense nebulae or hand-made scenarios). Recommended: do not call the result a planetary nebula (the class rule needs a white dwarf and a bright hot core); use a reserved class other than X (X is taken by the Wolf-Rayet ring nebula, GEN.243; Y or Z remain) as "Merger remnant nebula" (faint shell, 0.01 to 0.3 ly, 1e3 to 1e5 yr) or a "merger glow" text on the star page; state the fusion test as a 0.075 Msun threshold, brown dwarf below, new M-dwarf star at or above.
 
 ## Asteroid fields and belts as rendered object systems (GEN.112)
 

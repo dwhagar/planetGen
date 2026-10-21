@@ -359,6 +359,11 @@ with `clamp()`.
     charted space and wants colour and opacity highlighting instead, so
     the region highlight here is a fill (the same as MAP.238), not an
     outline.
+  Decided (Boss, contradiction sweep card, tapped 7:26 AM EDT 2026-10-21
+  and "Drop it", as the coordinator reported it): MAP.190 no longer
+  returns an outline edge set, so the highlight here is only the fill
+  (as MAP.238) from the region's sectors and bounding box; the
+  "coplanar-merged edge set" outline text above no longer applies.
     Prerequisites: UX.47, MAP.190. Related: MAP.237.
 
 - [ ] **UX.82 Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle**
@@ -1595,6 +1600,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md,
   position 40 of 53). This replaces any earlier owner line on this item.
+  Decided (Boss, contradiction sweep card, tapped 7:26 AM EDT 2026-10-21
+  and "Drop it", as the coordinator reported it): the region outline
+  edge set is dropped from `GET /api/galaxy/regions` (no named use
+  remains: MAP.237 draws no outline); the endpoint returns each region's
+  sectors and bounding box, with the one face-adjacency contiguity rule.
   Prerequisites: none. Related: MAP.189, MAP.151 (done, PR #1539).
 
 - [ ] **MAP.191 Galaxy Map default view: no density shading, only nebulae shade the stars behind them**
@@ -3659,6 +3669,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   9:43 PM EDT): the galaxy stores no home or Sun position and no value
   places the Sun in the density model; 8.128 kpc stays only as the Milky
   Way test reference.
+  Decided (Boss, contradiction sweep card, tapped 7:22 AM EDT 2026-10-21
+  and "Derive from the galaxy", as the coordinator reported it): the
+  potential's masses and scale lengths are derived from the generated
+  galaxy; 2,600 pc and 1,580 pc (and 229.3 km/s) stay test references
+  only, never defaults (GEN.338 carries the rewrite).
     Prerequisites: GEN.338, GEN.339, GEN.340.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
@@ -8142,6 +8157,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and dataset he acquired is usable and no licence audit gates the
   table; the fitted table may stand only for another stated reason
   (size, fit quality).
+  Decided (Boss, contradiction sweep card, tapped 7:22 AM EDT 2026-10-21
+  and "Fetch at setup only", as the coordinator reported it): line-list
+  grids are fetched at setup (update.sh) and nothing from them is stored
+  in the repository; Boss's 2:35 PM EDT 2026-10-17 "fine to publish" is
+  about licence only, not about committing the grids.
   Related: GEN.87, GEN.189, DB.68.
 
 - [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
@@ -8369,6 +8389,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Standard, read from Boss's papers, GEN.422, 2026-10-17, 12:10 to 12:13
   PM EDT), replacing the computed 0.0969, at the same 2 percent
   tolerance.
+  Decided (Boss, contradiction sweep card, tapped 7:23 AM EDT 2026-10-21
+  and "Store both, use spread", as the coordinator reported it): the CO2
+  Rayleigh cross section at 532 nm stores both values (He 2021,
+  13.3e-27; Sneep and Ubachs, 12.4e-27) and the draw uses the spread
+  between them.
   Prerequisites: GEN.410, GEN.411. Related: GEN.418, VIEW.14.
 
 - [ ] **GEN.418 Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce**
@@ -9064,6 +9089,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wins": for editions of one work the newest verified edition wins (BC4:
   the 2014 edition over 2003); Boss's widest-range rule applies between
   independent sources, not between editions of the same work.
+  Decided (Boss, contradiction sweep card, tapped 7:22 AM EDT 2026-10-21
+  and "Default 0.14 to 0.39", as the coordinator reported it): the water
+  share beyond the snow line defaults to 0.14 to 0.39 (with the keep
+  switch of GEN.468); ice-to-rock 1 +/- 0.5 becomes a convention
+  setting, not the default.
 
 - [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -9974,6 +10004,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
+  Decided (Boss, contradiction sweep card, tapped 7:26 AM EDT 2026-10-21
+  and "Teq threshold, Kzz nuisance", as the coordinator reported it):
+  the quench level comes from an equilibrium-temperature threshold and
+  Kzz is a nuisance parameter under the Brande prior, not a seeded
+  quench range (GEN.519's D5 row follows).
 
 - [ ] **GEN.455 Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
@@ -12663,6 +12698,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   answers relayed in words by the coordinator;
   docs/design/gap-filling-plan.md section 8): AT.n7 haze yield: ships as
   a labelled placeholder, log-uniform.
+  Decided (Boss, contradiction sweep card, tapped 7:26 AM EDT 2026-10-21
+  and "Teq threshold, Kzz nuisance", as the coordinator reported it):
+  quench and Kzz follow GEN.454: quench level from a Teq threshold, Kzz
+  a nuisance parameter under the Brande prior; the D5 row draws no
+  seeded quench range.
   Prerequisites: GEN.503, GEN.506. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/tunable-gaps.md](design/tunable-gaps.md)
 
@@ -19814,6 +19854,10 @@ clears each one.
   relayed by the coordinator): "I approve all your defaults". This
   approves the default on this item: the flatness edge is widened to the
   range the sources give.
+  Decided (Boss, contradiction sweep card, tapped 7:26 AM EDT 2026-10-21
+  and "Ratios, report levels", as the coordinator reported it): the star
+  metallicity check compares ratios and reports the absolute levels
+  without failing on them; only the ratio comparison can fail.
 
 - [ ] **TEST.198 `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug)**
   Found by Core 3 (2026-10-16, 6:22 PM EDT), filed by the TODO thread.
@@ -20088,6 +20132,11 @@ clears each one.
   sourced row. GEN.520 D6 (the Solar System population as the
   within-system comet shape) is kept as a flagged stand-in with the
   replacement item GEN.595.
+  Decided (Boss, contradiction sweep card, tapped 7:26 AM EDT 2026-10-21
+  and "Weights pick the row", as the coordinator reported it): the
+  weights pick the row; the proportions inside a drawn row come from the
+  row's own sourced kernel, or a Dirichlet draw where only a range
+  exists, so the 1:40 AM and 1:51 AM EDT 2026-10-17 texts agree.
 
 - [ ] **TEST.215 The Solar System calibration rows live in test files only: a flag fences them and a test fails when a generator table reads one**
   Body composition research lane, section 14.4 of

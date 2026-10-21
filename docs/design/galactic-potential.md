@@ -315,6 +315,8 @@ rescaled to 4s to 20s kpc, spans 0.93 to 1.01 times the value at the Sun).
 
 ### Recommended rule
 
+Superseded in part (NO FIXED CONTENT, Boss, 2026-10-16, 8:43 PM EDT, rulings of 4:11 PM and 4:14 PM EDT; GEN.115, GEN.338 carries the rewrite): the circular speed follows from the masses derived from the generated galaxy, so the "rotation speed at the Sun's position (default 229.3)" setting and the 229.3 km/s at 3.15 L below are the Milky Way reference, a plausibility test only. The galaxy stores no Sun position (Boss, 2026-10-16, 9:43 PM EDT), so "3.15 L" in the table above and in this rule is a test radius only.
+
 1. **Lengths.** a_d = 3.5 kpc x s_d and r_h = 16 kpc x s_d, with
    s_d = disk_scale_length / 2,600 pc. b_d comes from the shape's
    `disk_scale_height_pc` (default 300 pc = 0.3 kpc exactly) and

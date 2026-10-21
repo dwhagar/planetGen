@@ -4,8 +4,8 @@
 from the "revision 2" design pass of 2026-09 (Track C). That revision's main
 proposal, a stored plan of every qualifying sector, was never built; it is
 kept in `archive/galaxy-disk-density-rev2.md`. This file describes the model
-as the code uses it now, on the cylindrical grid
-(`galaxy-coordinate-system.md`).
+as the code uses it, on the cylindrical grid until 2026-10-15 (the grid is shell, band and wedge since then,
+`galaxy-coordinate-system.md`).
 
 ## 1. The model
 
@@ -19,10 +19,14 @@ v(z, h) = sech^2(z / 2h)            # isothermal sheet; tail exp(-|z|/h)
 
 thin(R, z)  = exp(-R / L) * v(z, h)                       # L, h: the shape's
                                                           # disk scale length/height
-thick(R, z) = a_T * exp(-R / L_T) * v(z, h_T)             # L_T = 0.77 L, h_T = 3 h
+thick(R, z) = a_T * exp(-R / L_T) * v(z, h_T)             # L_T, h_T: the drawn length and height
+                                                          # ratios times L and h (GEN.532; height
+                                                          # ratio 2.5 to 4.2); 0.77 and 3 are the
+                                                          # Milky Way reference check
 bulge(x, y, z) = bulge_amplitude * exp(-r_s^2 / 2)        # in the bar's frame:
 r_s^4 = ((x'/x0)^2 + (y'/y0)^2)^2 + (z/z0)^4              # x0 = bulge_scale_radius_pc,
-                                                          # y0 = 0.39 x0, z0 = 0.27 x0
+                                                          # y0/x0, z0/x0 drawn per galaxy (GEN.533);
+                                                          # 0.39 and 0.27 are the Dwek reference
 theta_arm(R)      = spiral_reference_angle_rad + ln(R / spiral_reference_radius_pc) / tan(pitch_angle_rad)
 arm_factor(R, th) = 1 + arm_amplitude * cos(arm_count * (th - theta_arm))
 
@@ -40,12 +44,14 @@ relative_density = k_norm * (bulge + thin * arm_factor + thick)
   the thin disk's density at the Sun, 18% of its mass; BHG16) are `structure.REFERENCE_STRUCTURE`, a check target.
 - **Bulge** (`tuning.BULGE_*`). The bar's boxy/peanut core as COBE/DIRBE
   sees it edge on: Dwek et al. 1995's G2 model. `bulge_amplitude` is its
-  central density over the thin disk's. Its long axis leads the Sun by 27
-  degrees in the direction of rotation (counterclockwise from galactic
-  north), so its near end is at positive galactic longitude.
-- **The Sun** sits at `R0 = 3.15 L` (8.2 / 2.6 kpc), on the inter-arm
-  minimum. The bar's angle and the thick disk's amplitude are measured
-  from there. `model_terms(shape)` returns these derived values; the
+  central density over the thin disk's. Its long axis angle is drawn per
+  galaxy, uniform on [0, 180) degrees, with the axis ratios (GEN.533,
+  `galaxy/structure_draw.py` `draw_bar`); the Milky Way's 27 degrees leading
+  the Sun, and its 0.39 and 0.27, are the Dwek reference, a check only.
+- **The Sun** is not placed: no Sun position is read and no point of the
+  galaxy is the calibration point (GEN.404; Boss, 2026-10-16, 9:43 PM EDT:
+  the galaxy stores no home or Sun position). `R0 = 3.15 L` (8.2 / 2.6 kpc)
+  is a test reference only. `model_terms(shape)` returns the derived values; the
   Galaxy Map's prisms read them with the shape.
 
 `sech^2` is computed as `4e / (1 + e)^2` with `e = exp(-2|x|)`
@@ -191,10 +197,9 @@ rejected, and what the backfill and a fill of the sparse outer rim cost, are in
 - A spherical or oblate bulge (McMillan 2017's axisymmetric model was
   the other candidate for GEN.118): the observed bulge is a bar, boxy
   edge on, so the COBE fit was used. Not modelled: the long thin bar
-  beyond the bulge, the nuclear stellar disk inside 200 pc and the
-  stellar halo's inner structure. With no central cusp the density is
-  nearly flat through the core (a core sector holds about 880 to 1,060
-  systems, far fewer than the real nuclear disk); see
+  beyond the bulge and the stellar halo's inner structure. The nuclear star
+  cluster and nuclear stellar disc are modelled (GEN.280, schema v99,
+  [realistic-galactic-core.md](realistic-galactic-core.md) section 3); see
   [fill-order-curves-and-core.md](fill-order-curves-and-core.md), section 4.
 
 ## Corrections made to the previous version
@@ -209,4 +214,4 @@ rejected, and what the backfill and a fill of the sparse outer rim cost, are in
 
 ## ADM.49: user-set arm, inter-arm, core and bulge densities
 
-The thin disk's arm factor is `arm_level * (1 + arm_amplitude * cos(m (theta - theta_arm)))`. The user sets the density on an arm crest `a` and between arms `i` (the disk's own units, usual 1.4 and 0.6), and `density.arm_terms(a, i)` gives `arm_amplitude = (a - i) / (a + i)` and `arm_level = (a + i) / 2`. The Gaussian core this item added was replaced by the nuclear star cluster and nuclear stellar disc (GEN.280, schema v99, [realistic-galactic-core.md](realistic-galactic-core.md) section 3); `core_amplitude` became `nuclear_amplitude`. The bulge density is `bulge_amplitude`. Everything stays relative to the calibration point (1.0 between arms at the Sun's radius), so a denser arm or core raises those places against that fixed reference. The skeleton and object-first bounds, the stellar populations, the component masses and the Galaxy Map's prisms all read the same terms.
+The thin disk's arm factor is `arm_level * (1 + arm_amplitude * cos(m (theta - theta_arm)))`. The user sets the density on an arm crest `a` and between arms `i` (the disk's own units, usual 1.4 and 0.6), and `density.arm_terms(a, i)` gives `arm_amplitude = (a - i) / (a + i)` and `arm_level = (a + i) / 2`. The Gaussian core this item added was replaced by the nuclear star cluster and nuclear stellar disc (GEN.280, schema v99, [realistic-galactic-core.md](realistic-galactic-core.md) section 3); `core_amplitude` became `nuclear_amplitude`. The bulge density is `bulge_amplitude`. Superseded (GEN.404; Boss, 2026-10-16, 9:43 PM EDT): no point is the calibration point and no Sun position is read; the total is set by the galaxy's stellar mass, so a denser arm or core raises those places against the rest of the galaxy (8.2 kpc is a test reference only). The skeleton and object-first bounds, the stellar populations, the component masses and the Galaxy Map's prisms all read the same terms.

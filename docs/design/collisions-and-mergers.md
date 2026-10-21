@@ -36,7 +36,7 @@ and the section 2.1 failures were rerun while writing this document.
 - Influence rule (Boss, 2026-10-09): the "nearest 10 influencers of equal or
   greater mass" scheme is replaced. An object's influence radius is the Hill
   sphere of the largest nearby object; every point mass inside it, plus the
-  galactic gradient, perturbs the object at an update. Section 3 applies it.
+  galactic gradient, perturbs the object at an update. Section 3 applies it. Superseded for the search radius (Boss, 2026-10-18, 5:30 to 5:33 PM EDT, orbital-update-check-2026-10-18.md, Decided 1): the radius is the largest Hill radius of any object in the galaxy (central black hole left out of the maximum; 64 exact, then one point mass per sector; GEN.370 first).
 - Time step (Boss, 2026-10-07 17:11Z): each run advances by the real time
   since the last one, default 1 day = 1 day, with an option for a stated extra
   span in one go.
