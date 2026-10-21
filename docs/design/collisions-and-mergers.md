@@ -445,6 +445,25 @@ R2), and x = Q_R / Q*_RD (section 4.1, interacting mass for grazing hits).
 If Boss prefers the literal rule, replace the T + T rows with "any contact: both
 destroyed, one field of M_tot" (setting `ALWAYS_DESTROY_TERRESTRIAL`).
 
+**Built (GEN.345): `physics/collision_outcome.py`.** `resolve(a, b, impact_parameter_m, window_start_unix)` is the table as a
+pure function (no database, no draw) and `tests/test_collision_outcome.py` holds a case for every row, mass and momentum
+conserved to 1e-12 over a sweep of 90 speeds, angles and mass ratios, the same outcome in either order of the pair, and
+the numbers of section 4.1 (Q*_RD 6.4e7 J/kg for two Earths, 22.6 km/s head on, 3.0e9 for two Jupiters). Choices the table did not
+make, all design values (stand-ins) to be reviewed with the first admin report:
+
+- The interacting mass of a grazing pass is the projectile's lens fraction of its mass; `Q_R` and `Q*_RD` are worked out
+  for that mass against the whole target.
+- A hit-and-run strips `(x/2)` of an interacting mass of twice the projectile's lens, half from each body; it is a field
+  when that is at least 1 percent of the pair (`COLLISION_FIELD_MIN_SHARE`), else only `lost_mass_kg`.
+- The largest remnant of a disruption is `M_tot (1 - x/2)` below `x = 1`, runs straight to `0.1 M_tot` at `x = 1.8` and
+  follows `0.1 (x / 1.8)^-1.5` beyond (the source has no value between 1 and 1.8).
+- A giant or brown dwarf with a star or compact remnant is absorbed like a rocky body (the table is silent); a rock or
+  giant inside the Roche limit of a compact remnant (1.26 rigid, 2.44 fluid) is a `tidal_disruption`.
+- The fusion lines are `deuterium_burning_limit_mj(z)` and `hydrogen_burning_limit_sol(z)` at the pair's mass-weighted
+  metallicity; a result within 3 percent of the hydrogen limit is `borderline`, and one between it and 0.08 Msun carries
+  "below the generator's floor" (the clamp-or-lower-the-floor choice of section 4.3 stays open: GEN.110 decides).
+- Stars and compact remnants come back with `radius_m = None`: the generator that builds the product sets it.
+
 Options for the nebula clause:
 
 | Option | What | Consequence |
