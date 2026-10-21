@@ -10,7 +10,7 @@ can use the provider's managed MySQL (MySQL 8.0.16+ or MariaDB 10.4+).
 
 The app runs as one process with five threads. Generating sectors from
 the admin Generate page is the heaviest work it does; the Galaxy Map's
-tile cache on disk is capped by `tile_cache.max_mb` (default 200 MB).
+tile cache on disk is capped by `cache.max_mb` (default 1024 MB).
 
 Open ports 80 and 443 (and SSH) only. MySQL should listen on localhost, or on a
 private network if it runs elsewhere.

@@ -50,10 +50,18 @@ def test_a_partial_section_keeps_the_rest_of_its_defaults():
 
 
 def test_the_layers_stack_in_order_defaults_config_environment():
-    config = {"site_name": "From config", "tile_cache": {"max_mb": 10}, "jobs": {"keep": 5}}
-    result = _load(config, {"PLANETGEN_TILE_CACHE_MAX_MB": "30"})
+    config = {"site_name": "From config", "cache": {"max_mb": 10}, "jobs": {"keep": 5}}
+    result = _load(config, {"PLANETGEN_CACHE_MAX_MB": "30"})
     assert result.site_name == "From config"
-    assert result.tile_cache.max_mb == 30 and result.jobs.keep == 5
+    assert result.cache.max_mb == 30 and result.jobs.keep == 5
+
+
+def test_one_cache_size_key_defaults_to_a_gigabyte_and_the_old_tile_cache_key_is_not_read():
+    """PERF.139: `cache.max_mb` (1024) replaces `tile_cache.max_mb`, with no shim."""
+    assert _load({}).cache.max_mb == 1024 and not hasattr(_load({}).tile_cache, "max_mb")
+    result = _load({"tile_cache": {"max_mb": 5}})
+    assert result.cache.max_mb == 1024, "the old key does nothing"
+    assert _load({"cache": {"max_mb": 0}}).cache.max_mb == 0
 
 
 def test_an_empty_variable_counts_as_unset_except_where_the_model_says_otherwise():
@@ -82,9 +90,9 @@ def test_a_proxy_count_must_be_a_whole_number_0_or_above(bad):
 
 def test_errors_name_every_field():
     with pytest.raises(settings.SettingsError) as raised:
-        _load({"mysql": {"port": 99999}, "log_rotation": "sometimes", "tile_cache": {"max_mb": "lots"}})
+        _load({"mysql": {"port": 99999}, "log_rotation": "sometimes", "cache": {"max_mb": "lots"}})
     text = str(raised.value)
-    assert "mysql.port" in text and "log_rotation" in text and "tile_cache.max_mb" in text
+    assert "mysql.port" in text and "log_rotation" in text and "cache.max_mb" in text
 
 
 # --- The files ------------------------------------------------------------

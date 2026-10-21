@@ -120,7 +120,7 @@ def fake(monkeypatch, tmp_path):
     monkeypatch.setattr(tilecache, "get_galaxy_window", data.get_galaxy_window)
     monkeypatch.setattr(tilecache, "PRUNE_PROBABILITY", 0.0)
     monkeypatch.setenv("PLANETGEN_TILE_CACHE_DIR", str(tmp_path / "tiles"))
-    monkeypatch.delenv("PLANETGEN_TILE_CACHE_MAX_MB", raising=False)
+    monkeypatch.delenv("PLANETGEN_CACHE_MAX_MB", raising=False)
     data.cache_root = tmp_path / "tiles"
     return data
 
