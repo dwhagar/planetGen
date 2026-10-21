@@ -806,6 +806,12 @@ forced credential change. They back the admin stats page
   "offset"}`. `load.kind` is `load` (the 1, 5 and 15 minute load
   average); `load.values` is null where the system has no load average.
   `available` is false until `update.sh` has added control schema v7.
+- `GET /api/admin/work/warm?database=NAME` — what the cache warm-up has done on that database, phase by phase (PERF.141):
+  `{"available", "run": {"state", "started_at", "finished_at", "reason", "error"} or null, "phases": [{"name", "text",
+  "families", "state", "state_text", "line", "built", "cached", "left_out", "seconds", "started_at", "finished_at"}],
+  "auto": {"enabled", "wanted", "holder"}}`. A phase's `state` is `waiting`, `running`, `built`, `unchanged`, `stopped`,
+  `nothing`, `failed` or `interrupted` (null before any run); `auto` says whether a change starts the warm-up by itself,
+  which changes it waits to warm for, and the process that holds it.
 - `GET /api/admin/work/workers` and `POST /api/admin/work/workers`
   `{"count": n}` or `{"ludicrous": true}` — the bulk queue's worker count
   (ADM.15, PERF.95). `{"wanted", "live", "ludicrous", "cpus"}`: the count

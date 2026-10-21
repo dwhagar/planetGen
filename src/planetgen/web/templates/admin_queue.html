@@ -40,6 +40,38 @@
   {%- endif %}
   {%- endif %}
 </section>
+{%- if warm %}
+<section class="panel" id="warm" aria-labelledby="warm-heading">
+  <h2 id="warm-heading">Cache warm-up</h2>
+  <p>
+    {%- if warm.run_state %}The last warm-up: <strong>{{ warm.run_text }}</strong>{% if warm.run_started %}, started {{ warm.run_started }}{% endif %}{% if warm.run_finished %}, ended {{ warm.run_finished }}{% endif %}{% if warm.run_reason %} (after: {{ warm.run_reason }}){% endif %}.
+    {%- else %}No warm-up has been recorded yet.{% endif %}
+    {%- if warm.run_error %} <span class="error">{{ warm.run_error }}</span>{% endif %}
+  </p>
+  <p class="hint">
+    {%- if not warm.auto_enabled %}The warm-up does not start by itself after a change (<code>cache.warm_on_change</code> is off).
+    {%- elif warm.auto_running %}A warm-up after a change waits or runs{% if warm.auto_wanted %}; it will warm for: {{ warm.auto_wanted | join(', ') }}{% endif %}.
+    {%- else %}A change starts the warm-up by itself; nothing is waiting.{% endif %}
+  </p>
+  <div class="table-scroll" tabindex="0">
+  <table>
+    <caption class="sr-only">The warm-up's phases, in the order they run</caption>
+    <thead><tr><th scope="col">Phase</th><th scope="col">What it warms</th><th scope="col">State</th><th scope="col">Result</th><th scope="col">Ended</th></tr></thead>
+    <tbody>
+    {%- for phase in warm.phases %}
+      <tr id="warm-phase-{{ phase.name }}">
+        <th scope="row">{{ phase.number }}. <code>{{ phase.name }}</code></th>
+        <td>{{ phase.text }}</td>
+        <td>{{ phase.state_text }}</td>
+        <td>{{ phase.line }}</td>
+        <td>{{ phase.finished }}</td>
+      </tr>
+    {%- endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{%- endif %}
 {%- if available %}
 <section class="panel" id="jobs" aria-labelledby="jobs-heading">
   <h2 id="jobs-heading">Jobs</h2>

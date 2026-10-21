@@ -1169,6 +1169,13 @@ def admin_work(cookie_header, limit=None, offset=None):
     return body
 
 
+def admin_work_warm(cookie_header, database):
+    """`GET /api/admin/work/warm?database=` -- what the cache warm-up has done on `database`, phase by phase (PERF.141)."""
+    body, _set_cookie_headers = _auth_request("GET", f"/admin/work/warm?{_build_query({'database': database})}",
+                                              cookie_header=cookie_header)
+    return body
+
+
 def admin_work_tree(cookie_header, node_id):
     """`GET /api/admin/work/<id>` -- the whole job tree holding a node."""
     body, _set_cookie_headers = _auth_request("GET", f"/admin/work/{urllib.parse.quote(str(node_id), safe='')}",

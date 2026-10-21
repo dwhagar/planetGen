@@ -78,6 +78,8 @@ class PhaseTally:
                        for family in self.families}
         self._done = set()
         self._reported = set()
+        self.ended = []
+        """list[str]: The phases `start` or `finish` reported last, in order."""
 
     def add(self, family, result):
         """Adds one unit's result (the dict a family's unit returns) to `family`'s totals."""
@@ -85,6 +87,23 @@ class PhaseTally:
         for key in ("built", "cached", "warmed", "left_out"):
             total[key] += int(result.get(key) or 0)
         total["seconds"] += float(result.get("seconds") or 0.0)
+
+    def result(self, name):
+        """What phase `name` did, as the admin page keeps it: `{"state", "built", "cached", "left_out", "seconds",
+        "line"}` with `state` one of `built`, `unchanged`, `stopped` and `nothing` (`None` when none of its families ran)."""
+        families = [family for family in self.totals if phase_of(family) == name]
+        if not families:
+            return None
+        built, cached, warmed, left_out, seconds = (
+            sum(self.totals[family][key] for family in families) for key in ("built", "cached", "warmed", "left_out", "seconds"))
+        if not warmed and not left_out:
+            state = "nothing"
+        elif not built and not left_out:
+            state = "unchanged"
+        else:
+            state = "stopped" if left_out else "built"
+        return {"state": state, "built": built, "cached": cached, "left_out": left_out, "seconds": round(seconds, 1),
+                "line": self.line(name)}
 
     def line(self, name):
         """The one line for phase `name`: `Phase 2 of 5, built-levels: ...` (`None` when none of its families ran)."""
@@ -103,12 +122,14 @@ class PhaseTally:
                 f"{'; stopped at the cache budget' if left_out and name in ('built-levels', 'deep-tiles') else ''}.")
 
     def _ready(self):
-        lines = []
+        lines, ended = [], []
         for name, _text, _families in PHASES:
             ours = [family for family in self.totals if phase_of(family) == name]
             if ours and name not in self._reported and all(family in self._done for family in ours):
                 self._reported.add(name)
                 lines.append(self.line(name))
+                ended.append(name)
+        self.ended = ended
         return lines
 
     def start(self, step_key):
