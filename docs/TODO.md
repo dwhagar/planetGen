@@ -15729,6 +15729,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests); the registry records the Auto cap beside the range, so the
   Generate form can show 'Auto: up to X' and the pinned range
   separately.
+  Decided (Boss, 2026-10-21, via the coordinator): 6:57 PM EDT the
+  default galaxy is a smaller spiral, no more than half the size of the
+  Milky Way, 'still more than enough space for a role play'; 7:05 PM EDT
+  (Galaxy dials thread) refined: the slider DEFAULTS give a galaxy
+  roughly half the Milky Way's size, the user can push up, and the CAP
+  (slider maximum) is about 50 percent bigger than Andromeda; 7:09 PM
+  EDT: the slider MINIMUMS are half the size of Ursa Major III / UNIONS
+  1 (the smallest known galaxy); 7:13 PM EDT ('yes, scale height and
+  mass, same for andromeda upper limit, scale height and mass'): the
+  lower limit (half of that dwarf) and the upper limit (about 1.5 times
+  Andromeda) apply to scale length, scale height and mass. The registry
+  rows for scale length, scale height and mass carry the minimum,
+  default window and maximum from this rule; the parity test checks that
+  no slider range falls outside them.
   Prerequisites: none. Related: GEN.609, ADM.99, ADM.110.
 
 - [ ] **GEN.602 Shape dials: the command-line flags built from the lever table, and the old absolute shape options retired**
@@ -15790,7 +15804,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   exactly.
   Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
   2026-10-21).
-  Decided (Boss, 2026-10-21, 6:57 PM EDT, via the coordinator): "we will
+  Earlier wording (Boss, 6:57 PM EDT, via the coordinator): "we will
   make the default size level to be on the smaller size, still a spiral,
   just a smaller one no more than half the size of the milky way. That
   is still more than enough space for a role play." Stated as a plain
@@ -15802,19 +15816,36 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   another reading is meant. The cap applies to the Auto draw only: the
   lane designs how (a lower default mass range, a truncated size draw,
   or both; the first family's mass range 3e9 to 2e11 of GEN.378 stays
-  the range a pin can reach). Done (added): over many seeds the Auto
-  draw never exceeds the cap and its median is below it; pinning mass,
-  compactness or the absolute scale length reaches the dial's full
-  range, including galaxies larger than the cap; the cap lives in one
-  named constant with this note as its source. Effect: every default
-  galaxy changes, so the change takes the next free generator epoch and
-  the golden files are regenerated; system counts and the cost of a full
-  generation drop (check against GEN.545's mean system mass and measure
-  with PERF.146).
+  the range a pin can reach). Done (added, revised for the 7:13 PM EDT
+  rule): the Auto defaults give a galaxy roughly half the Milky Way's
+  size; over many seeds the Auto draw stays inside the default window; a
+  pin reaches the slider maximum (about 1.5 times Andromeda's scale
+  length, scale height and mass) and the slider minimum (half of Ursa
+  Major III / UNIONS 1's), and values beyond either end are refused with
+  the limit and its source; the cap lives in one named constant with
+  this note as its source. Effect: every default galaxy changes, so the
+  change takes the next free generator epoch and the golden files are
+  regenerated; system counts and the cost of a full generation drop
+  (check against GEN.545's mean system mass and measure with PERF.146).
   Unit selector (Boss, 7:01 PM EDT 2026-10-21, on the Edge card): the
   advanced absolute scale length is a length with units, pc or kpc,
   through the lever table's unit column (GEN.601); on the command line
   the unit is part of the value, as for Edge.
+  Decided (Boss, 2026-10-21, via the coordinator): 6:57 PM EDT the
+  default galaxy is a smaller spiral, no more than half the size of the
+  Milky Way, 'still more than enough space for a role play'; 7:05 PM EDT
+  (Galaxy dials thread) refined: the slider DEFAULTS give a galaxy
+  roughly half the Milky Way's size, the user can push up, and the CAP
+  (slider maximum) is about 50 percent bigger than Andromeda; 7:09 PM
+  EDT: the slider MINIMUMS are half the size of Ursa Major III / UNIONS
+  1 (the smallest known galaxy); 7:13 PM EDT ('yes, scale height and
+  mass, same for andromeda upper limit, scale height and mass'): the
+  lower limit (half of that dwarf) and the upper limit (about 1.5 times
+  Andromeda) apply to scale length, scale height and mass. The Galaxy
+  dials lane reports the concrete numbers (each stated as a plain number
+  with its source, no preset), and this item is then updated with them;
+  until then 1,300 pc below is superseded for the cap and stays only as
+  the old provisional default window.
   Prerequisites: GEN.601. Related: GEN.382, GEN.404, GEN.545, GEN.609.
 
 - [ ] **GEN.604 Shape dials: the Structure dial: flatness (scale length over scale height), bulge share and bulge size (scale radius over L)**
@@ -15995,6 +16026,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with neither.
   Owner: the Galaxy dials lane (the coordinator, 6:55 PM EDT
   2026-10-21).
+  Decided (Boss, 2026-10-21, via the coordinator): 6:57 PM EDT the
+  default galaxy is a smaller spiral, no more than half the size of the
+  Milky Way, 'still more than enough space for a role play'; 7:05 PM EDT
+  (Galaxy dials thread) refined: the slider DEFAULTS give a galaxy
+  roughly half the Milky Way's size, the user can push up, and the CAP
+  (slider maximum) is about 50 percent bigger than Andromeda; 7:09 PM
+  EDT: the slider MINIMUMS are half the size of Ursa Major III / UNIONS
+  1 (the smallest known galaxy); 7:13 PM EDT ('yes, scale height and
+  mass, same for andromeda upper limit, scale height and mass'): the
+  lower limit (half of that dwarf) and the upper limit (about 1.5 times
+  Andromeda) apply to scale length, scale height and mass. Sources for
+  the two reference galaxies' scale length, scale height and mass (Ursa
+  Major III / UNIONS 1 for the minimum, Andromeda for the maximum, the
+  Milky Way for the default window) are looked up or taken from files in
+  the repo and recorded as plain numbers with their labels (verified,
+  derived, bracket or placeholder); the galaxies themselves are never
+  presets in the generator, only the source of the stated limits (Boss's
+  no-fixed-content rule, 4:11 PM EDT 2026-10-16).
   Prerequisites: none.
 
 - [ ] **GEN.610 The `--nuclear-amplitude` help text defines 1 as 'the observed' nuclear cluster and disc (2.5e7 and 1.5e9 solar masses), which are Milky Way values: replace them with a draw from the galaxy's own laws**
