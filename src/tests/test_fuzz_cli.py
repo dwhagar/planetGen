@@ -42,6 +42,7 @@ from hypothesis import HealthCheck, assume, example, given, note, settings
 from hypothesis import strategies as st
 
 from planetgen.cli import generate as generate_cli
+from planetgen.galaxy import dials
 from planetgen.galaxy.spherical import cells_in_band_range
 from planetgen.generation import run_galaxy
 from planetgen.generation import run_system
@@ -173,6 +174,8 @@ def _options(command):
             kind = "int"
         elif action.type in (float, generate_cli.finite_float):
             kind = "float"
+        elif isinstance(getattr(action.type, "__self__", None), dials.Lever):
+            kind = {"int": "int", "float": "float"}.get(action.type.__self__.kind, "str")
         else:
             kind = "str"
         for option in action.option_strings:
@@ -277,7 +280,10 @@ def test_accepted_values_satisfy_every_documented_bound(data, command):
         assert get("radius_pc") is None or 0 < get("radius_pc") <= limits.MAX_GENERATE_RADIUS_PC
         assert get("min_start_density") is None or get("min_start_density") > 0
     if command == "plan":
-        assert args.arm_density >= args.interarm_density >= 0 and args.max_shell >= 1
+        assert dials.resolved(args, "arm_density") >= dials.resolved(args, "interarm_density") >= 0
+        assert args.max_shell >= 1
+        for row in dials.LEVERS:
+            assert getattr(args, row.dest) is None or row.problem(getattr(args, row.dest)) is None
 
 
 # Float options whose validators use `x <= 0` / `x < 0 or x >= 1` style
@@ -291,7 +297,7 @@ _BASE_ARGV = {"galaxy": ["--shell", "0"]}
     ["galaxy", "--workers=--"],
     ["galaxy", "--flavor-chance-planet=--"],
     ["system", "--flavor-chance-system=--"],
-    ["plan", "--disk-scale-length-pc=--"],
+    ["plan", "--disk-scale-length=--"],
 ])
 def test_a_lone_double_dash_value_is_a_usage_error(argv):
     # PERF.27: Python 3.9's argparse stored [] for these instead of an
@@ -307,7 +313,7 @@ def test_a_lone_double_dash_value_is_a_usage_error(argv):
 @example(target=("galaxy", "--radius-pc"), token="inf")                 # math.ceil(-inf) OverflowError
 @example(target=("galaxy", "--min-start-density"), token="nan")         # filter silently off
 @example(target=("plan", "--arm-density"), token="nan")                 # NaN reached MySQL
-@example(target=("plan", "--disk-scale-length-pc"), token="nan")        # NaN reached MySQL
+@example(target=("plan", "--pitch-angle-deg"), token="nan")             # NaN reached MySQL
 def test_non_finite_numbers_are_rejected_by_validation(target, token):
     command, option = target
     assert _parse([command] + _BASE_ARGV.get(command, []) + [option, token]) == 2
@@ -528,7 +534,7 @@ def plan_argv(draw):
         # The bright-star scatter walks every cell of the outline; its own
         # tests (test_bright_star_scatter.py) cover it on a small galaxy.
         "plan", "--quiet", "--no-bright-stars",
-        "--disk-scale-length-pc", repr(length),
+        "--disk-scale-length", f"{length!r}pc",
         "--disk-scale-height-pc", repr(draw(st.sampled_from([1e-3, 1.0, 350.0, 1e5]))),
         "--bulge-scale-radius-pc", repr(draw(st.sampled_from([1e-3, 10.0, 200.0, 1e5]))),
         "--bulge-amplitude", repr(draw(st.sampled_from([0.0, 1.0, 1e3, -0.5]))),
@@ -560,8 +566,8 @@ def test_plan_runs_clean_across_galaxy_shapes(mysql_config, argv):
 _PLAN_TRACEBACKS = [
     (["--arm-count", "0"], "ZeroDivisionError (math.pi / arm_count)"),
     (["--pitch-angle-deg", "0"], "ZeroDivisionError (log(...) / tan(0))"),
-    (["--disk-scale-length-pc", "0"], "ZeroDivisionError"),
-    (["--disk-scale-length-pc", "-1"], "ValueError: math domain error"),
+    (["--disk-scale-length", "0pc"], "ZeroDivisionError"),
+    (["--disk-scale-length", "-1pc"], "ValueError: math domain error"),
     (["--disk-scale-height-pc", "0"], "ZeroDivisionError (z / height)"),
     (["--bulge-scale-radius-pc", "0"], "ZeroDivisionError"),
     (["--bulge-scale-radius-pc", "-1"], "OverflowError: math range error"),

@@ -30,6 +30,7 @@ from planetgen.generation import star_population as starPopulation
 from planetgen.generation import stats as generationStats
 from planetgen.generation.star_labels import describe_types, star_label
 from planetgen.galaxy import component_field as componentField, nebula_field as nebulaField, seed as galaxySeed
+from planetgen.galaxy import dials
 from planetgen.galaxy import shape_draw as shapeDraw
 from planetgen.names import naming_key
 from planetgen.physics import constants
@@ -237,10 +238,9 @@ def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, s
 
 
 SKELETON_OPTIONS = ("max_shell", "reach_shells", "cell_star_ceiling", "fill_luminosity_cap", "core_min_luminosity",
-                    "core_mass_limit", "halo_min_luminosity", "arm_density", "interarm_density",
-                    "disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc", "bulge_amplitude",
-                    "arm_count", "pitch_angle_deg", "nuclear_amplitude")
-"""tuple: The options of `planetgen plan` that shape the skeleton, the parameters of the `plan-skeleton` command."""
+                    "core_mass_limit", "halo_min_luminosity", *(row.dest for row in dials.LEVERS))
+"""tuple: The options of `planetgen plan` that shape the skeleton, the parameters of the `plan-skeleton` command: the
+scan's own and every row of the lever table (`galaxy.dials`)."""
 
 
 def skeleton_params(args, mysql_config):

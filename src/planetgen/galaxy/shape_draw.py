@@ -44,7 +44,7 @@ import dataclasses
 import math
 
 from planetgen import tuning
-from planetgen.galaxy import density, mass_chain, seed as galaxySeed
+from planetgen.galaxy import dials, density, mass_chain, seed as galaxySeed
 from planetgen.galaxy import structure as galaxyStructure
 from planetgen.galaxy import structure_draw
 from planetgen.util import draw
@@ -277,11 +277,15 @@ def plan_shape(args, galaxy_seed):
     Returns:
         tuple: `(shape, drawn)`: the `GalaxyShape` with `k_norm` set, and the `GalaxyDraw` it was built from.
     """
-    arm_amplitude, arm_level = density.arm_terms(args.arm_density, args.interarm_density)
+    arm_amplitude, arm_level = density.arm_terms(dials.resolved(args, "arm_density"),
+                                                 dials.resolved(args, "interarm_density"))
     drawn = draw_galaxy(
-        galaxy_seed, arm_level=arm_level, disk_scale_length_pc=args.disk_scale_length_pc,
-        disk_scale_height_pc=args.disk_scale_height_pc, bulge_scale_radius_pc=args.bulge_scale_radius_pc,
-        bulge_amplitude=args.bulge_amplitude, arm_count=args.arm_count, pitch_angle_deg=args.pitch_angle_deg)
+        galaxy_seed, family=dials.resolved(args, "shape") or SPIRAL, arm_level=arm_level,
+        disk_scale_length_pc=dials.resolved(args, "disk_scale_length"),
+        disk_scale_height_pc=dials.resolved(args, "disk_scale_height_pc"),
+        bulge_scale_radius_pc=dials.resolved(args, "bulge_scale_radius_pc"),
+        bulge_amplitude=dials.resolved(args, "bulge_amplitude"),
+        arm_count=dials.resolved(args, "arm_count"), pitch_angle_deg=dials.resolved(args, "pitch_angle_deg"))
     shape = density.build_galaxy_shape(
         disk_scale_length_pc=drawn.disk_scale_length_pc,
         disk_scale_height_pc=drawn.disk_scale_height_pc,
@@ -291,7 +295,7 @@ def plan_shape(args, galaxy_seed):
         pitch_angle_rad=math.radians(drawn.pitch_angle_deg),
         arm_amplitude=arm_amplitude,
         arm_level=arm_level,
-        nuclear_amplitude=args.nuclear_amplitude,
+        nuclear_amplitude=dials.resolved(args, "nuclear_amplitude"),
         masses=(drawn.chain.stellar_mass_solar, drawn.chain.halo_mass_solar),
         structure=drawn.structure,
     )
