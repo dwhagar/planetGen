@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.98 |
 | SEC | SEC.33 |
-| TEST | TEST.258 |
+| TEST | TEST.259 |
 | USR | USR.32 |
 | OPS | OPS.62 |
 | DOC | DOC.72 |
@@ -2364,6 +2364,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.255 | test_workers: two real-Redis worker tests fail in loaded gates and pass alone, again after TEST.250's fix (bug) | none | open |
 | TEST.256 | test_black_hole_density: the black-hole stream test fails in loaded and full gates and passes alone (bug) | none | done, PR #2327 |
 | TEST.257 | test_sector_page_and_tiles_show_a_phenomenon_the_cli_added asserts an empty cloud list on an unseeded galaxy and sometimes gets a nebula (bug) | none | open |
+| TEST.258 | Other tests that scatter a low shell of the toy shape may hold gigabytes after GEN.404: sweep them for resident memory | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
