@@ -1670,8 +1670,8 @@ def test_galaxy_changes_lists_only_the_edited_sectors_tiles(client, mysql_config
     before = client.get("/api/galaxy/stamp").get_json()
 
     unchanged = _galaxy_changes(client, before["state"])
-    assert unchanged == {"stamp": before["stamp"], "state": before["state"], "full": False, "tiles": [],
-                         "stages": []}
+    assert unchanged == {"stamp": before["stamp"], "tile_stamp": unchanged["tile_stamp"], "state": before["state"],
+                         "full": False, "tile_full": False, "tiles": [], "stages": []}
 
     time.sleep(0.01)
     conn = _db.get_connection(mysql_config)
@@ -1686,6 +1686,50 @@ def test_galaxy_changes_lists_only_the_edited_sectors_tiles(client, mysql_config
     assert changes["stamp"] != before["stamp"]
     assert changes["tiles"] == sorted(tile_keys_containing((5.0, 5.0, 5.0)))
     assert _galaxy_changes(client, changes["state"])["tiles"] == []
+
+
+def test_a_release_alone_keeps_the_stored_tiles_valid(client, mysql_config, monkeypatch):
+    # PERF.133: the tile stamp leaves the release number out, so a release that changes neither the tile format nor
+    # the generator epoch keeps every stored tile, while what is cached by the plain stamp (pages, counts) goes.
+    _place_sector(mysql_config, "Steady", (5.0, 5.0, 5.0))
+    before = _galaxy_changes(client, "")
+    monkeypatch.setattr(query, "__version__", "99.0.0")
+    after = _galaxy_changes(client, before["state"])
+    assert after["stamp"] != before["stamp"]
+    assert after["tile_stamp"] == before["tile_stamp"]
+    assert after["full"] is True and after["tile_full"] is False
+    assert after["tiles"] == [] and "busy" not in after
+
+
+def test_a_release_alone_still_lists_the_tiles_an_edit_touched(client, mysql_config, monkeypatch):
+    renamed_id = _place_sector(mysql_config, "Renamed", (5.0, 5.0, 5.0))
+    _place_sector(mysql_config, "Untouched", (9000.0, -3000.0, 20.0))
+    before = _galaxy_changes(client, "")
+    monkeypatch.setattr(query, "__version__", "99.0.0")
+    time.sleep(0.01)
+    conn = _db.get_connection(mysql_config)
+    try:
+        conn.execute("UPDATE sectors SET name = ? WHERE id = ?", ("Renamed Again", renamed_id))
+        conn.commit()
+    finally:
+        conn.close()
+    after = _galaxy_changes(client, before["state"])
+    assert after["tile_full"] is False
+    assert after["tile_stamp"] != before["tile_stamp"]
+    assert after["tiles"] == sorted(tile_keys_containing((5.0, 5.0, 5.0)))
+
+
+@pytest.mark.parametrize("what", ["tile_format", "epoch"])
+def test_a_new_tile_format_or_generator_epoch_makes_every_tile_stale(client, mysql_config, monkeypatch, what):
+    _place_sector(mysql_config, "Steady", (5.0, 5.0, 5.0))
+    before = _galaxy_changes(client, "")
+    if what == "tile_format":
+        monkeypatch.setattr(query, "TILE_FORMAT", query.TILE_FORMAT + 1)
+    else:
+        monkeypatch.setattr(query.generator_epoch, "generator_epoch", lambda: 10 ** 6)
+    after = _galaxy_changes(client, before["state"])
+    assert after["tile_stamp"] != before["tile_stamp"]
+    assert after["full"] is True and after["tile_full"] is True and after["tiles"] == []
 
 
 def test_galaxy_changes_lists_a_new_sectors_tiles(client, mysql_config):
@@ -1748,7 +1792,7 @@ def test_galaxy_changes_is_full_after_a_deletion_or_a_bad_since(admin_client, my
     changes = _galaxy_changes(admin_client, before["state"])
     assert changes["full"] is True and changes["tiles"] == []
 
-    for since in ("", "nonsense", "0123456789abcdef.1.2.3.4"):
+    for since in ("", "nonsense", "0123456789abcdef.1.2.3.4", "0123456789abcdef.0123456789abcdef.1.2.3.4"):
         assert _galaxy_changes(admin_client, since)["full"] is True
 
 
