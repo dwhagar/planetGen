@@ -140,7 +140,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.253 | test_nebula_shape_endpoint_serves_a_mesh fails once under load: the largest vertex radius is 1.0288 against a bound of 1.0, and it passes alone (bug) |  |  |
 | TEST.254 | test_core_ball_batch_fill_makes_planets builds 4 systems instead of 3 for some random galaxy seeds (bug) |  |  |
 | TEST.255 | test_workers: two real-Redis worker tests fail in loaded gates and pass alone, again after TEST.250's fix (bug) |  |  |
-| TEST.256 | test_black_hole_density: the black-hole stream test fails in loaded and full gates and passes alone (bug) |  |  |
 | TEST.257 | test_sector_page_and_tiles_show_a_phenomenon_the_cli_added asserts an empty cloud list on an unseeded galaxy and sometimes gets a nebula (bug) |  |  |
 | TEST.234 | test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug) |  |  |
 | TEST.233 | test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug) |  |  |
@@ -248,7 +247,6 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 | GEN.129 | Multi-star systems of up to twelve stars | GEN.311, GEN.312, MAP.213, GEN.313 | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
 | TEST.241 | Test: no absolute position is stored for anything inside a system, so every 8.1 item that stores a position stores it parent-relative |  |  |
 | GEN.593 | Pulsar planets: the disc range stops short of PSR B1257+12's planets, and two of the three formation paths (a captured giant, an ablated companion) leave a pulsar with no planets |  |  |
-| GEN.592 | A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced) |  |  |
 | GEN.263 | Promote every bound compact pair to the scatter, whatever its mass |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 4. Core. |
 | GEN.315 | A fill builds a system from its stored members and nodes; the system pass keeps only planets, moons, belts and disks | GEN.311 | Split from GEN.264. |
 | GEN.316 | Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired | GEN.315 | Split from GEN.264. |

@@ -15220,31 +15220,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   prerequisite of GEN.301.
   Prerequisites: none. Related: GEN.244, GEN.282.
 
-- [ ] **GEN.592 A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced)**
-  Observation by Bug Hunt (reported 8:51 AM EDT 2026-10-18 on the lane's
-  clock; not yet traced), filed by the TODO thread. In a galaxy run that
-  does not draw the star scatter, a capped cell (expected systems over
-  the 5,000 ceiling, in the dense core) generates 0 systems, while
-  `galaxy.resolution.cell_resolution` says it resolves 4 to 30 (no mass
-  limit passed) or 81 over a 24-cell neighbourhood (with the scatter's
-  mass limit passed, as `run_galaxy._fill_context` does). Probed with
-  the fixed seed 96901074FC015B42F2E80F1434609687: cells (4,-1,23),
-  (3,0,16), (4,0,23) and (5,0,29) resolved 10.4, 4.1, 25.8 and 29.5
-  systems and generated 0 each by `galaxy --shell --band --wedge`. Fails
-  on main: not checked by the TODO thread. Question for the GEN.281
-  owner: if the fill is meant to turn the bands drawn at the cap into
-  systems even without the scatter, it under-generates; if the scatter
-  must have run first, the plan statistics overstate what a sector run
-  produces, and the plan should say so. Do: trace why the capped cell
-  generates nothing, then either fix the fill or write down that the
-  scatter must run first and make the statistics honest. Done: a capped
-  cell generates the number `cell_resolution` gives, or the plan states
-  the precondition and the statistics follow it, with a test of the
-  chosen behaviour. Bug Hunt's own TEST.225 test no longer depends on
-  this (its next PR leaves capped cells out of the sum). Owner: Core 3
-  (proposed, GEN.281's lane).
-  Prerequisites: none. Related: GEN.281, GEN.283.
-
 - [ ] **GEN.593 Pulsar planets: the disc range stops short of PSR B1257+12's planets, and two of the three formation paths (a captured giant, an ablated companion) leave a pulsar with no planets**
   Design gaps in GEN.317 found by Core 3 while building it (reported
   11:18 AM EDT 2026-10-18, real clock; its GEN.317 gate started 11:17 AM
@@ -20662,59 +20637,6 @@ clears each one.
   Bug Hunt's per-test wanted-workers key (committed, not merged) may
   cover them; a traceback is needed if they recur.
   Prerequisites: none. Related: TEST.250, TEST.254.
-
-- [ ] **TEST.256 test_black_hole_density: the black-hole stream test fails in loaded and full gates and passes alone (bug)**
-  Found by Core 2 (its PERF.132 gate, 4:02 to 5:40 PM EDT 2026-10-18,
-  one failure inside the loaded gate), Core 3 (its gate: timed out at
-  900 s) and Bug Hunt (its full gate of 2026-10-18: 20,277 passed, 1
-  failed), reported 7:34 to 7:35 AM EDT 2026-10-21 on the lanes' clocks,
-  filed by the TODO thread.
-  `src/tests/test_black_hole_density.py::test_each_class_draws_from_a_stream_of_its_own_so_the_black_holes_move_no_other_row`
-  (GEN.563's test, Core 3's area) fails in loaded or full gates and
-  passes alone (16 of 16 for Bug Hunt). Failure text: not relayed (Core
-  3's gate recorded a 900 s timeout; the other two a plain failure).
-  Fails on main: not shown, passes alone. Frequency: 3 of 3 gates that
-  ran it loaded or in the full run. Reproducer (Bug Hunt is trying it):
-  run the scatter test modules in one process before this test, or run
-  `scripts/test.py full` and read its `.test-failures.jsonl`. Likely
-  cause (inferred, not checked): an order dependence between scatter
-  modules in one process (shared random-stream or cache state) or a slow
-  scatter under load. Do: get the failure text, find the order
-  dependence or the slow step, fix the test or the code; no quarantine.
-  Done: the cause is on this item and the test passes in a full run and
-  in a gate beside another gate. Owner: Bug Hunt (proposed; it reports
-  it is reproducing the order dependence and will say if the cause is
-  Core 3's).
-  Cause found by Core 5 (9:08 AM EDT 2026-10-21 as the lane reported;
-  its gate 3 `changed` on PERF.107 and PERF.108: 6,740 passed, 2 failed,
-  neither from its branch): memory, not an order dependence. The test
-  alone peaks at 10.9 GB resident on main 8ad9099 and on Core 5's branch
-  (91 s and 93 s), so a gate with 4 workers on the 16 GB machine has the
-  kernel OOM-kill a worker ("worker 'gwN' crashed"; dmesg shows the
-  kill; gate 2 on 2026-10-18 and gate 3 both crashed on it). Reproducer:
-  `python3 -m pytest -n0
-  src/tests/test_black_hole_density.py::test_each_class_draws_from_a_stream_of_its_own_so_the_black_holes_move_no_other_row`
-  and read ru_maxrss. Do (changed): shrink the test's scatter (shell 4,
-  rate for 3 solar masses, minimum mass 1.0, as Core 5 suggested) or use
-  a lower-memory path, so it peaks well under 2 GB, keeping what it
-  proves (each class draws from its own stream). This replaces the
-  inferred order-dependence cause above; owner stays Bug Hunt, with Core
-  3 consulted because it is GEN.563's test.
-  More sightings (reported 9:08 to 9:20 AM EDT 2026-10-21 as the lanes
-  reported): Core 3's gate hit the 900 s timeout on it again (9:06 AM
-  EDT, passes alone in 111 s on the branch) and Core 4's gate lost a
-  worker to it (the known worker-crash), so it has failed in 6 of 6
-  loaded gates since 2026-10-18; the memory cause above covers both the
-  timeout and the crash.
-  Sighting 7 (Core 2, reported 12:10 PM EDT 2026-10-21 as the lane
-  reported): a worker of its PERF.139 gate crashed on it (passes alone),
-  so it has failed in 7 of 7 loaded gates since 2026-10-18; the memory
-  cause above covers it. The same gate's test_system_type_rates failure
-  was the catalogue row label my sweep changed, already fixed in #2315.
-  Further sighting from Core 2 (1:50 PM EDT 2026-10-21 as the lane
-  reported, PERF.141's gate): a worker crash in a loaded run; the test
-  passed alone (16 passed). Same cause as above (memory); nothing new.
-  Prerequisites: none. Related: TEST.255, TEST.250, GEN.563.
 
 - [ ] **TEST.257 test_sector_page_and_tiles_show_a_phenomenon_the_cli_added asserts an empty cloud list on an unseeded galaxy and sometimes gets a nebula (bug)**
   Found by Core 1 (its GEN.591 gate, reported about 9:09 AM EDT
