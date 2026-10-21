@@ -15,6 +15,8 @@ many there are, and how a running job is stopped. Section 5.4 of docs/design/red
 * `set_wanted` (ADM.15) changes the count; lowering it tells the extra bulk workers to finish their unit and
   exit. "Ludicrous Speed" is a number (`ludicrous_count`), not a mode.
 * `cancel_now` stops a job at once: a waiting one is cancelled, a running one gets RQ's stop command.
+* `reap_dead_jobs` clears the jobs a killed worker left "running" in Redis: the web queues' jobs have no time
+  limit, so RQ never gives them up.
 """
 
 import os
@@ -82,8 +84,7 @@ def live_workers(queue):
     keeps a worker only if its process still exists on this host (a worker on another host is taken as alive: its
     key's time-to-live is all there is to go by), and removes the others from both registries, with their key.
 
-    A job a killed worker was running is not touched here: RQ notices it when the worker's heartbeat runs out,
-    about 90 s later, and runs it again (`Retry(max=1)`).
+    A job a killed worker was running is not touched here (`reap_dead_jobs` clears it).
     """
     worker_registration.clean_worker_registry(queue)
     here = socket.gethostname()
@@ -170,3 +171,61 @@ def cancel_now(job_id, connection=None, serializer=None):
         command.send_stop_job_command(connection, job.id)
         return "stopped"
     return None
+
+
+def _worker_gone(connection, name, here):
+    """Whether the RQ worker `name` is dead: its key has expired, or it ran on this host and its process is gone
+    (a worker on another host is taken as alive while its key lives)."""
+    worker = rq.Worker.find_by_key(rq.Worker.redis_worker_namespace_prefix + name, connection=connection)
+    if worker is None:
+        return True
+    pid = getattr(worker, "pid", None)
+    return bool(worker.hostname == here and isinstance(pid, int) and not process_exists(pid))
+
+
+def reap_dead_jobs(connection=None):
+    """
+    Clears the jobs that a worker that is gone left "running" in Redis. A web job (the Generate page's, the
+    API's) is queued with no time limit, so RQ gives its entry in the started registry no expiry, and a worker
+    killed with `kill -9`, by the out-of-memory killer or by a restart never gives it up: the job stayed "running"
+    for ever, the update guard listed it, could not stop it and refused to go on. A job whose record has expired is
+    dropped from the registry. A job whose worker is gone (`_worker_gone`) is retried when it has a retry left (the
+    generation queue's units) and otherwise fails with a message saying why.
+
+    Args:
+        connection: The Redis client (default the configured server).
+
+    Returns:
+        list: `(queue name, job id)` of each job cleared.
+    """
+    connection = connection or redisqueue.connect()
+    here = socket.gethostname()
+    cleared = []
+    for name in sorted(queue.name for queue in rq.Queue.all(connection=connection)):
+        queue = redisqueue.queue(name, connection)
+        registry = queue.started_job_registry
+        entries = {}
+        for raw in connection.zrange(registry.key, 0, -1):
+            entry = raw.decode() if isinstance(raw, bytes) else raw
+            entries.setdefault(registry.parse_job_id(entry), []).append(entry)
+        for job_id, keys in entries.items():
+            job = redisqueue.fetch_job(job_id, connection, redisqueue.serializer_for(name))
+            if job is None:
+                connection.zrem(registry.key, *keys)
+                cleared.append((name, job_id))
+                continue
+            owner = job.worker_name
+            if job.get_status(refresh=True) != rq.job.JobStatus.STARTED or not owner \
+                    or not _worker_gone(connection, owner, here):
+                continue
+            with connection.pipeline() as pipeline:
+                pipeline.zrem(registry.key, *keys)
+                if job.retries_left and job.retries_left > 0:
+                    job.retry(queue, pipeline)
+                else:
+                    job.set_status(rq.job.JobStatus.FAILED, pipeline=pipeline)
+                    job._handle_failure(f"Its worker {owner} was gone (killed or restarted) before the job ended.",
+                                        pipeline, worker_name=owner)
+                pipeline.execute()
+            cleared.append((name, job_id))
+    return cleared

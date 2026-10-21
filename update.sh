@@ -83,8 +83,15 @@
 # which step failed and how to open it (`python3 -m planetgen.cli.maintenance
 # off`), because the database may be half migrated.
 #
+# A job that is stuck and will not stop (the guard waits for it and refuses)
+# is cleared with --reset-jobs: before the guard it stops everything it lists,
+# kills the queue workers and empties the jobs table, the work lease and the
+# Redis queues (`planetgen.cli.reset_jobs`, which can also be run alone). It
+# asks nothing and cancels what is running, so it is the word to use when you
+# know nothing needs to finish.
+#
 # Usage:
-#   sudo ./update.sh [--cancel-running]
+#   sudo ./update.sh [--cancel-running] [--reset-jobs]
 #   sudo PYTHON=/usr/bin/python3.12 ./update.sh   (make the venv from another Python)
 #
 # Forces the checkout to match origin's branch tip even if there are
@@ -102,10 +109,12 @@
 set -euo pipefail
 
 CANCEL_RUNNING=()
+RESET_JOBS=0
 for arg in "$@"; do
     case "$arg" in
         --cancel-running) CANCEL_RUNNING=(--cancel-running) ;;
-        *) echo "error: unknown argument '$arg' (the only option is --cancel-running)." >&2; exit 2 ;;
+        --reset-jobs) RESET_JOBS=1 ;;
+        *) echo "error: unknown argument '$arg' (the options are --cancel-running and --reset-jobs)." >&2; exit 2 ;;
     esac
 done
 

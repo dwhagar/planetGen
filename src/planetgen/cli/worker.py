@@ -122,6 +122,7 @@ def main(argv=None):
                      "not both.")
     connection = redisqueue.connect(args.url, blocking=True)   # RQ blocks on the server; keepalive finds it gone
     queues = [redisqueue.queue(name, connection) for name in args.queues]
+    workers.reap_dead_jobs(connection)      # the jobs a killed worker left "running"
     worker = worker_class()(queues, connection=connection, name=args.name, serializer=serializers.pop(),
                             work_horse_killed_handler=units.horse_killed)     # PERF.106: a killed unit fails its run now
     worker.work(burst=args.burst, with_scheduler=False,

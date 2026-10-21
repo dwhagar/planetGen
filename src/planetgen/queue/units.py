@@ -243,6 +243,7 @@ def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure
             seen.update(ordered)
 
     while True:
+        runrecord.touch(conn, run_id)
         drain()
         if len(seen) >= units:
             return
