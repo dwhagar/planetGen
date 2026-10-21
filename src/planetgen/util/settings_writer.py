@@ -16,7 +16,7 @@ One save is:
 
 1. **Check each change** against the settings model: the option exists, the caller's role may change it
    (`x-editable`, `x-min_role`), and the value fits (type, range, enum). Every problem is reported at its
-   option's dotted path (`tile_cache.max_mb`), not as one block of text, and one problem refuses the whole save.
+   option's dotted path (`cache.max_mb`), not as one block of text, and one problem refuses the whole save.
    The value written is the one the model parsed (`"30"` becomes `30`), never the raw input. Roles, lowest to
    highest: `"admin"` (the web), `"owner"` (the Owner of USR.2, from 8.2) and `"host"` (the command line:
    whoever can run it owns the server, so it may change the database, the secrets and the file-only options).
