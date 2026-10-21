@@ -490,4 +490,4 @@ def test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector(contro
     assert jobs and all(job["state"] == "cancelled" for job in jobs), jobs
     assert _rows(control_config, "SELECT COUNT(*) AS n FROM work_tasks WHERE state IN ('queued', 'running')"
                  )[0]["n"] == 0
-    assert _rows(control_config, "SELECT holder FROM work_lease")[0]["holder"] is None
+    assert all(row["holder"] is None for row in _rows(control_config, "SELECT holder FROM work_lease"))

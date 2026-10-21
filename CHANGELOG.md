@@ -2,6 +2,49 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1847] - 2026-10-21
+
+**Headline:** The bright-star backfill of `planetgen galaxy` runs on the work queue as a command.
+
+### Changed
+- **`scatter-backfill` is a command (PERF.108).** The backfill after a `galaxy` run finds the sectors to draw once, cuts them into chunks of at least 10,000 sectors (at most 2,000 chunks) and queues them through the wrapper, so the chunks can run on several workers; every sector is drawn from its own seed, so the stars are the same at one and at four workers and whichever way the sectors are cut. The bar counts the sectors visited, the per-shell lines read as before, and the stage's row in the stage history is stored by the unit that completes it. `docs/design/redis-and-the-work-queue.md` describes it.
+
+TODO items resolved: none (the backfill of PERF.108). Added: none.
+
+## [8.0.1846] - 2026-10-21
+
+**Headline:** The sector stages of `planetgen galaxy` run on the work queue as commands.
+
+### Changed
+- **`generate-start-sector`, `generate-neighborhood` and `generate-sectors` are commands (PERF.107).** The starting sector, the neighborhood and every other sector `galaxy` generates (random start, shell, band, wedge, span, course) are cut into static chunks of consecutive sectors, about 4,000 at most, queued through the wrapper and run by the workers; the console still reports each sector as it is saved, and the galaxy holds the same stars, planets and moons at any worker count, as it did before. A failing sector now stops the run with the unit's error, and the sectors already saved stay saved, so a rerun resumes.
+- **`link-neighbours` and `settle-sector-paths` are commands (PERF.107).** The neighbour link and the sector paths run as one unit each on the sectors the run created, found from the database's clock at the start of the run.
+- **The galaxy job tree no longer lists a queue of sector tasks.** The sectors are units of the run record on Redis. `docs/design/redis-and-the-work-queue.md` describes them.
+
+TODO items resolved: none (the sector and link and settle stages of PERF.107; the backfill is PERF.108). Added: none.
+
+## [8.0.1845] - 2026-10-21
+
+**Headline:** The Galaxy Map's server now builds the tiles of the next few zoom steps, and the ones around a view, in the background while a visitor looks.
+
+### Added
+- **The tiles around a visit are built ahead of the visitor's next move (PERF.132).** When the map asks for tiles it now also sends where its camera and target are (`at`), and once the answer has gone the server queues, as low-priority jobs on the bulk queue, the tiles of the cut for the camera one to four fade bands closer along its line (the next zoom steps), then the neighbours of the requested tiles and the next level inside them (for a visitor who pans). A worker builds them into the same disk cache a request fills. It keeps to named limits, new settings of `tile_cache`: `prefetch_per_visit` (128 tiles a request), `prefetch_per_minute` (600) and `prefetch_max_queued` (8 jobs, 16 tiles each); it queues nothing for a tile already stored or already queued, nothing for ten minutes after the cache pruned itself, nothing during an update, and a malformed or missing `at` is ignored, so a visit to a built area queues nothing and a second visitor to the same area causes no build.
+
+TODO items resolved: PERF.132 / Added: none
+
+## [8.0.1844] - 2026-10-21
+
+**Headline:** One function now moves every body with a mass, whether it is a planet, a moon, a comet, a star or a wanderer.
+
+### Changed
+- `MassObject` (`generation/mass_object.py`) holds the state a body has relative to its parent (position and velocity, the pull of what it orbits) and `advance(seconds)`: a planet, moon or comet is stepped on its state vector with the Kepler step, and a star, remnant or wanderer on a circular galactic orbit has its phase advanced by its period. Boss's rule of 5:20 PM EDT: all motion is built into the one set of mass object functions.
+- The `HoldsOrbitPosition` mixin in `physics/position.py` is gone; `Planet` and `Comet` take its methods (`set_position_au`, `set_velocity_kms`, `orbit_from_vector`, `projected_orbit_au`) from the core.
+- No stored value or field changes. The per-class fields that become derived once the stored record is the core's (speed, axial tilt, rotation period, galactic period and phase) are removed in the DB.73 revision (Core 1), not here.
+- `docs/design/mass-object-class.md` section 11 records it.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.565 stays open) / Added: none
+
 ## [8.0.1843] - 2026-10-18
 
 **Headline:** A free-floating brown dwarf is as old as the stars of the place it is in, not any age from 0.1 to 10 billion years.

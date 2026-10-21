@@ -566,7 +566,7 @@ Energy 6 [C]. Leave it out.
 
 ## Facility types and ratings (POP.10)
 
-Not built. The research design for "facility types that are programmable
+Built as POP.10 (PR #1524; see "As built (POP.10, part 1: types and fields)" below); the text that follows is the research design for "facility types that are programmable
 and can be selected from a dropdown", with affiliation and
 Green/Yellow/Red ratings for crime, housing, resources, maintenance and
 health (Boss, 2026-10-03).
@@ -835,7 +835,7 @@ to its ownership rows. Since GEN.80 `life_stage` is always
   endpoint `/galaxy/territories`, which merges `/api/territories` with
   `/api/polities`). It draws the same at every zoom. The button and
   legend appear only when `/api/polities` counts at least one polity.
-- **Web pages (not built yet):** a Species list (paged, spacefaring
+- **Web pages (built as POP.5, PR #184; this list is the research design):** a Species list (paged, spacefaring
   filter), a species page, a polity page listing its systems, "Dominant
   species" on a life world's planet card and "Territory of ..." on an
   owned system's page. With POP.9 the species page shows the six indices,

@@ -29,7 +29,9 @@ import getpass
 import json
 import math
 import secrets
+import signal
 import sys
+import threading
 import time
 
 import pymysql
@@ -1571,6 +1573,7 @@ def main():
         activity_log.event("GEN", "generate.start", user=_run_user(), command=args.command, db=database)
     status = "failed"
     root = _open_run_node(args, database) if logged else None
+    previous_term = _exit_on_sigterm() if logged else None
     history = _start_history(args, seed) if logged and not getattr(args, "estimate_only", False) else None
     args.generation_run_id = history   # the run the per-object timings (PERF.92) are saved under
     try:
@@ -1596,6 +1599,8 @@ def main():
         _wait_for_enter()
         raise
     finally:
+        if previous_term is not None:
+            signal.signal(signal.SIGTERM, previous_term)
         if root is not None:
             workQueue.close_node(root, {"ok": "done", "interrupted": "cancelled"}.get(status, "failed"))
         if history is not None:
@@ -1605,6 +1610,23 @@ def main():
             activity_log.event("GEN", "generate.finish", user=_run_user(), command=args.command, db=database,
                               status=status, seconds=round(time.monotonic() - started, 1),
                               **{key: run_common.RUN_COUNTS[key] for key in ("sectors", "systems", "phenomena")})
+
+
+def _exit_on_sigterm():
+    """
+    Makes a SIGTERM (Cancel on the Generate page, `kill`) end the run as `SystemExit(128 + 15)`, so the run's own
+    cleanup runs (its job node and its run record end as cancelled at once, not after the stale time) as Ctrl+C does.
+
+    Returns:
+        The handler it replaced, to put back when the run ends, or `None` when it is not the main thread.
+    """
+    if threading.current_thread() is not threading.main_thread():
+        return None
+
+    def on_term(signum, _frame):
+        raise SystemExit(128 + signum)
+
+    return signal.signal(signal.SIGTERM, on_term)
 
 
 RUN_ARGV_WITHHELD = ("--mysql-host", "--mysql-port", "--mysql-user", "--mysql-password", "--mysql-database",
