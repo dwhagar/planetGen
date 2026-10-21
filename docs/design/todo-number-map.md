@@ -22,7 +22,7 @@ release is stamped.
 | API | API.32 |
 | ADM | ADM.125 |
 | SEC | SEC.34 |
-| TEST | TEST.263 |
+| TEST | TEST.264 |
 | USR | USR.32 |
 | OPS | OPS.63 |
 | DOC | DOC.73 |
@@ -622,7 +622,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.76 | Column registry: every numeric column declares its table, kind and stored unit, loaded and stored through one list | none | open |
 | DB.77 | Precision table: each length column declares its reference frame and the largest distance at which a 10 m body keeps a metre | none | open |
 | DB.78 | Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go | none | open |
-| DB.79 | The object index table (migration only): one row per object of every kind the site lists, with keyset order keys and a name index | none | open |
+| DB.79 | The object index table (migration only): one row per object of every kind the site lists, with keyset order keys and a name index | none | done, PR #2361 |
 | DB.80 | `VALUES ROW(...)` key-run lists are rejected by MariaDB 10.11 although INSTALL.md supports MariaDB 10.4+ and MySQL 8.0.16+ (bug) | none | open |
 | DB.81 | Shape dials: the plan stores which sliders were pinned and at what value, so the galaxy page can say 'mass pinned at X, the rest drawn' | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
@@ -2423,6 +2423,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.260 | test_galaxy_absurd_radius_is_clean[200.0] hangs past its 10 s limit on main and leaves the run lock set, so every later test that starts a run fails (bug) | none | open |
 | TEST.261 | Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every point release (8.1 first) | none | open |
 | TEST.262 | test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug) | none | open |
+| TEST.263 | test_every_check_rejects_a_bad_row fails on main: the seeded rich galaxy has no planet_reflection_spectrum row to break planet_reflection_spectrum_chk_1 on (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

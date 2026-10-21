@@ -16982,11 +16982,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the index built here must share it and still need the "kept first"
   rule (when the budget is short the index and lists are kept and the
   tiles take the rest), which Core 2 states cannot be built until the
-  lists and index exist.
-  Owner (coordinator decision, 12:07 PM EDT 2026-10-21 as the
-  coordinator relayed it): Core 2 owns DB.79 first and then this item.
-  Core 2's PERF.141 parts that do not need the index go first.
-  Prerequisites: DB.79.
+  lists and index exist. Owner (coordinator decision, 12:07 PM EDT
+  2026-10-21 as the coordinator relayed it): Core 2 owns DB.79 first and
+  then this item. Core 2's PERF.141 parts that do not need the index go
+  first.
+  Prerequisites: none (DB.79 merged as #2361).
 
 - [ ] **PERF.141 The warm-up runs in phases after every generation, update or change, as deep as the budget allows**
   Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
@@ -17024,24 +17024,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
   coordinator reported them): the warm-up stops at the budget and keeps
   built-ahead tiles; indexes and lists are warmed and kept first, tiles
-  take the remaining space; the phases are filed in 8.2.
-  Boss, 2026-10-18, 6:05 PM EDT: "make sure we don't re-compile a tile
-  if nothing has changed". Done also needs a test: a warm-up run over a
+  take the remaining space; the phases are filed in 8.2. Boss,
+  2026-10-18, 6:05 PM EDT: "make sure we don't re-compile a tile if
+  nothing has changed". Done also needs a test: a warm-up run over a
   galaxy that has not changed builds zero tiles (and zero list or index
   rebuilds), every phase reports "unchanged", and a change in one sector
-  rebuilds only its tiles and their coarser parents.
-  Core 2 (9:35 AM EDT 2026-10-21 as the lane reported): the zero-list
-  and index rebuild half of Boss's no-recompile test (a no-change warm
-  rebuilds no stored list or index) waits for PERF.140 and lands with
-  this item; the tile half is in PERF.133's part 1 (#2311).
+  rebuilds only its tiles and their coarser parents. Core 2 (9:35 AM EDT
+  2026-10-21 as the lane reported): the zero-list and index rebuild half
+  of Boss's no-recompile test (a no-change warm rebuilds no stored list
+  or index) waits for PERF.140 and lands with this item; the tile half
+  is in PERF.133's part 1 (#2311).
   Merged with PERF.139 and PERF.133 (Core 2, #2316, release 8.0.1853,
   reported 12:10 PM EDT 2026-10-21 as the lane reported; no epoch):
   tiles built ahead (warm, background build, rebuild after a change) are
   marked (`tilecache.AHEAD_MODE`, the group-read bit) and never pruned,
   and each galaxy-tiles warm unit checks `tilecache.cache_is_full()` and
   reports "N tiles left out, the tile cache is full"; the phases and
-  their skipped and rebuilt totals are this item (Core 2's next).
-  Slice 1 merged as #2325 (Core 2, 1:50 PM EDT 2026-10-21 as the lane
+  their skipped and rebuilt totals are this item (Core 2's next). Slice
+  1 merged as #2325 (Core 2, 1:50 PM EDT 2026-10-21 as the lane
   reported; release 8.0.1856): the warm-up runs in five named phases
   with a report line per phase (built, unchanged, left out), `planetgen
   warm` accepts phase names, a `warm-galaxy-deep-tiles` command exists,
@@ -17049,25 +17049,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   skipped in 88 minutes. Still open: slice 2 (the automatic start after
   generation, `planetgen orbits` and data-version changes) and slice 3
   (the admin page shows each phase); the list and index half of Boss's
-  no-recompile test waits on DB.79 and PERF.140.
-  Slice 2 merged as #2337 (Core 2, 4:45 PM EDT 2026-10-21 as the lane
-  reported): the warm-up starts by itself after a generation run, the
-  orbital update, an edit or any change; new settings
-  `cache.warm_on_change` and `cache.warm_settle_seconds`; gate 19,668
-  passed, 3 environment or flake failures that pass alone. Slice 3 (the
-  admin queue page's 'Cache warm-up' panel with each phase's state, `GET
-  /api/admin/work/warm`) is written and tested and its gate starts next.
-  Slices 1 to 3 do not need PERF.140, so after slice 3 this item stays
-  open only for the deeper list pages and the index in phase 1, which
-  wait on PERF.140 (the 'Suggested owner' and prerequisite wording above
-  predates the split). The old Core 2's branch claude/perf141-slice2-wip
-  is superseded by #2337.
-  Slice 3 merged as #2346 (Core 2, about 5:35 PM EDT 2026-10-21 as the
-  lane reported): /admin/queue has a 'Cache warm-up' panel with the last
-  run and each of the five phases' state and result line. Slices 1 to 3
-  are done; this item stays open only for the deeper list pages and the
-  index in phase 1, which wait on DB.79 (migration 0113, in its gate
-  since 5:36 PM EDT as the lane reported) and PERF.140.
+  no-recompile test waits on DB.79 and PERF.140. Slice 2 merged as #2337
+  (Core 2, 4:45 PM EDT 2026-10-21 as the lane reported): the warm-up
+  starts by itself after a generation run, the orbital update, an edit
+  or any change; new settings `cache.warm_on_change` and
+  `cache.warm_settle_seconds`; gate 19,668 passed, 3 environment or
+  flake failures that pass alone. Slice 3 (the admin queue page's 'Cache
+  warm-up' panel with each phase's state, `GET /api/admin/work/warm`) is
+  written and tested and its gate starts next. Slices 1 to 3 do not need
+  PERF.140, so after slice 3 this item stays open only for the deeper
+  list pages and the index in phase 1, which wait on PERF.140 (the
+  'Suggested owner' and prerequisite wording above predates the split).
+  The old Core 2's branch claude/perf141-slice2-wip is superseded by
+  #2337. Slice 3 merged as #2346 (Core 2, about 5:35 PM EDT 2026-10-21
+  as the lane reported): /admin/queue has a 'Cache warm-up' panel with
+  the last run and each of the five phases' state and result line.
+  Slices 1 to 3 are done; this item stays open only for the deeper list
+  pages and the index in phase 1, which wait on PERF.140 (DB.79 merged
+  as #2361, about 7:25 PM EDT as the lane reported).
   Prerequisites: PERF.140.
 
 - [ ] **PERF.144 Every job queued to RQ gets a time limit from the best available estimate of how long it takes, never no limit, so a killed worker's entry expires**
@@ -17605,12 +17604,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   code reads the columns yet.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This
+  replaces any earlier owner line on this item.
   Owner: Blocker 2 (Boss, 2026-10-21, 5:41 PM EDT: "Fire up a Blocker
   thread to work on GEN.410, GEN.457, DB.44, MAP.172, GEN.311, GEN.269,
   GEN.378"). This replaces any earlier owner line on this item (it was
   Core 1's; the migration still takes the next free revision at merge,
-  0113 belongs to DB.79).
+  0113 is taken by DB.79, #2361, so the next free is 0114).
   Prerequisites: none. Related: DB.9.
 
 - [ ] **DB.45 Storage checksum and the dirty flag: the export, the checksum and every writer**
@@ -18378,44 +18378,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: GEN.576, DB.73. Related: GEN.550, GEN.552, GEN.315,
   GEN.565.
   Design: [docs/design/unified-system-barycentre.md](design/unified-system-barycentre.md)
-
-- [ ] **DB.79 The object index table (migration only): one row per object of every kind the site lists, with keyset order keys and a name index**
-  Boss, 2026-10-18, 5:43 PM EDT: "I want multiple phases to our site
-  warm-up that occurs after an update, generation, or change. That is
-  where we rebuild our tile cache, and I want us to go as deep as we
-  can. Last time the tile cache only cost like 40 MB. I'm okay with 10
-  times that amount of stored data. If we can precalculate it, prepare
-  it, and get it ready to ship, let's do it. Same thing for caches of
-  all the lists. I had a serious problem with trying to find objects. I
-  need an index. I need a list of systems. I need a list of basically
-  every list the site wants, from phenomena in each type to planets to
-  moons to stars to whatever. We should build a cached index. Once
-  generation or updates are done, anytime anything changes, the cache it
-  belongs to gets automatically regenerated." And at 5:43 PM EDT: "Let's
-  say I'm perfectly happy with the cache up to 1 GB. There should be a
-  setting for that: how big the cache should be, on a slider on the
-  settings page and also, of course, in the config JSON file." Today the
-  lists are queries over the live tables: the phenomena list is a `UNION
-  ALL` over about eight tables with a `COUNT(*)` and `ORDER BY` over the
-  union, stars, planets and moons have no list page at all, and no
-  phenomenon table has a FULLTEXT name index. Do (schema and migration
-  only, Core 1 numbers it): `object_index`, one row per object: kind
-  (system, star, planet, moon, belt, comet, and each phenomenon type),
-  object ID (96 bit), name, sector, parent, class or type, mass, and the
-  columns the list pages sort and filter on; a unique key on kind and
-  ID, keyset keys per kind and sort, and a FULLTEXT index on the name.
-  Done: the migration, the model and schema.sql agree, and the index is
-  empty until PERF.140 fills it. Suggested owner: Core 1; filed in 8.2 with the tile cache
-  (Boss, card tap 5:56 to 5:57 PM EDT).
-  Decided (Boss, 2026-10-18, card taps 5:56 to 5:57 PM EDT, as the
-  coordinator reported them): the index table is filed in 8.2 with the
-  tile cache; the index is kept first when the shared budget is short.
-  Owner (coordinator decision, 12:07 PM EDT 2026-10-21 as the
-  coordinator relayed it): Core 2 owns this item and does it first, then
-  PERF.140, because Core 1 has GEN.544, GEN.545 and DB.33 queued. Core 2
-  numbers the migration (next free 0113). This replaces the suggested
-  owner Core 1 above. Not started.
-  Prerequisites: none.
 
 - [ ] **DB.80 `VALUES ROW(...)` key-run lists are rejected by MariaDB 10.11 although INSTALL.md supports MariaDB 10.4+ and MySQL 8.0.16+ (bug)**
   Found by Core 4 (3:41 PM EDT 2026-10-21 as the coordinator relayed
@@ -22153,7 +22115,33 @@ clears each one.
   cause, not the load. Done: the cause is on this item and the test
   passes in 20 runs under load. Owner: Bug Hunt (it is the lane's own
   TEST.252 test).
+  Related sighting (Core 2, about 7:25 PM EDT 2026-10-21 as the lane
+  reported, filed by the TODO thread): once under load, the facilities
+  route in test_fuzz_web_routes failed with "Lost connection to MySQL
+  server"; it passes alone. Same class (load flake), no solo reproducer;
+  Bug Hunt looks at it with this item.
   Prerequisites: none. Related: TEST.252.
+
+- [ ] **TEST.263 test_every_check_rejects_a_bad_row fails on main: the seeded rich galaxy has no planet_reflection_spectrum row to break planet_reflection_spectrum_chk_1 on (bug)**
+  Found by Core 2 (about 7:25 PM EDT 2026-10-21 as the lane reported,
+  while gating DB.79), filed by the TODO thread. Kind: test. Test:
+  src/tests/test_db_check_constraints.py::test_every_check_rejects_a_bad_row.
+  Failure text: "AssertionError: the seeded galaxy has no
+  planet_reflection_spectrum row to break
+  planet_reflection_spectrum_chk_1 on". Fails on main: yes (reproduced
+  on a clean worktree at 649aa51 on Core 2's machine, datasets fetched).
+  Frequency: 4 of 4 runs there. Reproducer: run that one test. Cause
+  (Core 2's reading): the rich galaxy (tests/rich_galaxy_support.py,
+  seed 20261001) builds 129 planets and 208 moons but 0
+  planet_reflection_spectrum and 0 moon_reflection_spectrum rows, so the
+  test probably needs an _EMPTY_TABLE_ROWS entry for those two tables or
+  a forced habitable planet in the rich galaxy. Do: find why the rows
+  are not written (a change to the generator or to the rich galaxy) and
+  fix the cause, or add the table to the test's empty-table list with
+  the reason. Done: the test passes alone and in the full gate. Owner:
+  Bug Hunt queue (the TODO thread's suggestion; the coordinator
+  assigns).
+  Prerequisites: none.
 
 ## USR: User accounts
 
