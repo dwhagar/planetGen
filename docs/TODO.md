@@ -737,7 +737,14 @@ with `clamp()`.
   creating the galaxy.
   Lands in the Start a new galaxy task of the admin control suite: needs
   ADM.110.
-  Prerequisites: GEN.389, UX.135. Related: UX.116, UX.125, DOC.13, ADM.110.
+  Update (TODO thread, 2026-10-21): Boss (6:46 PM EDT) asked for a Shape
+  selector now, unfilled: GEN.608 adds the lever-table row (key `shape`,
+  flag `--shape`) and the dropdown with one entry, Spiral, in 8.1. This
+  item then fills that same dropdown with the families and their
+  outlines; it does not build a second control, and the pin flag is
+  `--shape`.
+  Prerequisites: GEN.389, UX.135, GEN.608. Related: UX.116, UX.125,
+  DOC.13, ADM.110.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **UX.135 One simple vector outline per galaxy family in the icon library: spiral, barred spiral, lenticular, elliptical, irregular and dwarf spheroid**
@@ -761,7 +768,8 @@ with `clamp()`.
   (MAP.242) use them. Boss sees the drawings in the PR. The art can be
   drawn any time after GEN.378 fixes the family list; the outlines are
   not a copy of any named galaxy.
-  Prerequisites: GEN.378. Related: UX.134, MAP.242, UX.101, GEN.378.
+  Prerequisites: GEN.378. Related: UX.134, MAP.242, UX.101, GEN.378,
+  GEN.608.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **UX.136 The data tables' own row fetches (scroll and sort) wait on a page job when the answer is slow, like the pages do**
@@ -7100,7 +7108,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reference galaxies only check the result. Owner: Core 1 proposed (it
   writes GEN.368's table), after GEN.368.
   Prerequisites: none. Related: GEN.369, GEN.297, GEN.234, GEN.134,
-  GEN.338, GEN.390.
+  GEN.338, GEN.390, GEN.608.
   Decided (Boss, 2026-10-16, 9:43 PM EDT, in the Core 1 thread:
   "Confirmed drop 'home', we will choose viewing based on where sectors
   are generated."): the family design stores no home or Sun position;
@@ -7169,8 +7177,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Mass limits: the first family's range is 3e9 to 2e11 solar stellar
   mass (Boss, 2026-10-16, 9:40 PM EDT, reported by Core 1); GEN.378
   states the other families' ranges.
-  Prerequisites: GEN.378, GEN.379. Related: GEN.368,
-  GEN.369, GEN.381.
+  Prerequisites: GEN.378, GEN.379. Related: GEN.368, GEN.369, GEN.381,
+  GEN.608, GEN.606.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.381 A Sérsic spheroid as a density component: index, effective radius, axis ratios and orientation, with a mass**
@@ -7216,7 +7224,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   can produce, never as defaults. No fixed content (Boss, 4:11 and 4:14
   PM EDT): no named galaxy, preset or hand-set value; reference galaxies
   only check the result.
-  Prerequisites: GEN.379, GEN.380. Related: GEN.134, GEN.369.
+  Prerequisites: GEN.379, GEN.380. Related: GEN.134, GEN.369, GEN.603,
+  GEN.604, GEN.611.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.383 The elliptical family: Sérsic index and size from mass, intrinsic axis ratios, no disk, arms or bar, an old population**
@@ -7388,7 +7397,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.380) from the galaxy seed and then the family's draw (GEN.382 to
   GEN.384), write the family key and the component values into the shape
   row (DB.66), and log the draw (stellar mass, halo mass, family and the
-  main shape numbers). A pinned family (`--family` and UX.134) fixes
+  main shape numbers). A pinned family (`--shape`, GEN.608, and UX.134) fixes
   only the family; every size and count is still drawn. The galaxy
   version check and the fingerprint include the family; `GET
   /api/galaxy/shape` carries `family` and the component list; the
@@ -7400,8 +7409,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   later note. No fixed content (Boss, 4:11 and 4:14 PM EDT): no named
   galaxy, preset or hand-set value; reference galaxies only check the
   result.
-  Prerequisites: GEN.384, GEN.386, GEN.387, GEN.385, GEN.382,
-  GEN.383, DB.66. Related: API.28, GEN.369, GEN.297, GEN.301.
+  Prerequisites: GEN.384, GEN.386, GEN.387, GEN.385, GEN.382, GEN.383,
+  GEN.608, DB.66. Related: API.28, GEN.369, GEN.297, GEN.301.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
 - [ ] **GEN.390 Headline of 9.4: generate a galaxy of any known type, with spiral, lenticular, elliptical, irregular and dwarf families from one set of rules**
@@ -13527,6 +13536,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and satellite galaxy switches to on if it holds that content (each
   switch on its own); only a galaxy created after 8.5 defaults both off.
   No change to 8.1.
+  Overlap (TODO thread, 2026-10-21): the Edge dial GEN.605 sets where
+  the galaxy ends in the user's terms (scale lengths or an
+  expected-systems threshold) and the reach this item stores; it reads
+  this configuration and never duplicates it. `plan --max-shell` is
+  retired by GEN.602; `--reach-shells` stays the addressing detail here.
+  The Halo dial GEN.606 sets how big the halo is; GEN.539's switch
+  decides whether it is generated at all.
 
 - [ ] **GEN.539 The halo command: its own command that switches the halo on or off in the plan configuration (default off) and sets how far the halo reaches**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
@@ -13553,6 +13569,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.120.
   Boss, 2026-10-17, 4:49 PM EDT: the halo scatter kinds read this switch
   from the stored galaxy setting, and no other scatter kind does.
+  Distinct from the Halo dial GEN.606 (Boss, 6:45 PM EDT 2026-10-21):
+  this is the on/off switch of the halo scatter; the dial sets the dark
+  halo mass and the stellar halo share.
 
 - [ ] **GEN.540 The satellite galaxies command: its own command that switches the satellite galaxies on or off in the plan configuration (default off), separate from the halo**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
@@ -13656,7 +13675,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   default (derive it) stands. The old Core 1 draft branch
   claude/project-thread-ksf58w (commit 162a5ffa) and handoff patch
   gen545-core1-draft.patch are superseded.
-  Prerequisites: none. Related: GEN.404, GEN.103, GEN.366.
+  Prerequisites: none. Related: GEN.404, GEN.103, GEN.366, GEN.607.
 
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
   Boss's request (2026-10-17, 11:19 PM EDT, project chat, and an
@@ -15658,6 +15677,282 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Blocker 2 proposed (small; it can go first).
   Prerequisites: none. Related: GEN.548, GEN.599, DOC.72.
 
+- [ ] **GEN.601 Shape dials: the lever table, one registry row per slider (name, flag, label, unit, minimum, maximum, step, Auto default, the law it moves, range source) and the parity test**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. This is the only
+  definition of the generator's shape inputs. The command-line parser,
+  the Generate form's fields (slider minimum, maximum, step), the
+  out-of-range message, the help text and the docs table are all
+  generated from it. Rows: Scale (mass `--mass`, compactness
+  `--compactness`, density `--density`, advanced absolute scale length
+  `--disk-scale-length-pc`), Structure (flatness `--flatness`, bulge
+  share `--bulge-share`, bulge size `--bulge-size`), Edge (`--edge`),
+  Halo (dark halo `--halo-mass`, stellar halo share `--stellar-halo`),
+  Census (richness `--richness`, advanced, hidden by default) and the
+  Shape selector (GEN.608). Every slider has an Auto state (the seed's
+  draw), which is the default. Do: the registry module; a row type that
+  also carries an enum kind (for Shape) and a pinned-or-Auto state; the
+  parity test, modelled on `PLAN_FIELDS`. Done: a test fails when a
+  flag, a form field, a help line or a docs row is missing for any
+  registry row, or exists without one; an out-of-range value on the
+  command line is refused with the allowed range and its source; no row
+  has a default other than Auto.
+  Prerequisites: none. Related: GEN.609, ADM.99, ADM.110.
+
+- [ ] **GEN.602 Shape dials: the command-line flags built from the lever table, and the old absolute shape options retired**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Do: generate the
+  `plan` and `generate` flags from the table (GEN.601); retire
+  `--disk-scale-height-pc`, `--bulge-scale-radius-pc`,
+  `--bulge-amplitude`, `--arm-density`, `--interarm-density` and
+  `--max-shell` with no shim (the absolute scale length stays only as
+  the advanced pin of the Size lever); `--reach-shells` and
+  `--nuclear-amplitude` become internal or advanced; update
+  `docs/command-inventory.md`, the help text and every script and test
+  that passed a retired flag. The arm pair retires with this change; its
+  one real number, arm contrast, is GEN.611. Done: the retired flags are
+  refused as unknown; with no dial touched the plan's stored shape is
+  identical to today's for the same seed (a golden test; if any default
+  draw changes, the change takes the next free generator epoch and says
+  so); each new flag has a test that pins it alone.
+  Prerequisites: GEN.601. Related: GEN.611, ADM.110.
+
+- [ ] **GEN.603 Shape dials: the Scale dial: mass override, compactness in sigma, density, and the any-two-of-three pin logic with the third shown**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Resolution
+  order: the seed draws mass and the compactness z; a pinned lever
+  replaces its draw; then mass, then size (from compactness, an absolute
+  scale length or a pinned density, L = sqrt(M_disc / (2 pi Sigma0))),
+  then every ratio of L (thick disc, stellar halo break, bulge, bar,
+  reference radii), then the density normalisation. Mass stays the
+  master: the galaxy still holds mass over the mean system mass in
+  systems. Pinning all three of mass, size and density is refused: the
+  third is shown with the value the other two imply and the message
+  names which was dropped. A dial replaces only its draw's median; the
+  draw's random number is untouched, so the same seed at a new mass
+  gives the same residuals in sigma (turning the dial moves the galaxy
+  smoothly). Mass range widens to the size law's source span (GEN.609).
+  Done: tests for each pair of pins reproducing the third within
+  tolerance; the refusal and its message; same seed, mass doubled, gives
+  the same size sigma and thick disc sigma; no pin gives today's galaxy
+  exactly.
+  Prerequisites: GEN.601. Related: GEN.382, GEN.404, GEN.545, GEN.609.
+
+- [ ] **GEN.604 Shape dials: the Structure dial: flatness (scale length over scale height), bulge share and bulge size (scale radius over L)**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Flatness
+  replaces the absolute `--disk-scale-height-pc` (default the 7.3 median
+  with the 0.13 dex draw, range 3 to 20); bulge share is the
+  bulge-to-total mass fraction (default drawn by stage; range 0 to 0.9)
+  and replaces `--bulge-amplitude`, which the code already solves from
+  the share; bulge size is a ratio of L (default one third of a bar of
+  0.2 to 3 L, range 0.02 to 1 L) and replaces `--bulge-scale-radius-pc`.
+  Ratios keep their meaning when the Scale dial moves L. Do: wire the
+  three through `draw_galaxy` replacing only their own draws; recompute
+  everything downstream. Done: each dial alone is tested; with all three
+  on Auto the shape is unchanged; raising mass with a pinned flatness
+  keeps the ratio; a bulge share of 0 gives a disc with no bulge
+  density.
+  Prerequisites: GEN.601. Related: GEN.382, GEN.603, GEN.610.
+
+- [ ] **GEN.605 Shape dials: the Edge dial: where the galaxy ends, with the resulting radius and the expected sector and system counts shown before a plan**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Replaces
+  `--max-shell`; `--reach-shells` stays an addressing detail (object IDs
+  name shells up to 262 kpc). The user-facing form is OPEN: scale
+  lengths (3 to 20 L) or the expected-systems-per-sector threshold (0.01
+  to 100; the recommended form, since it is what the generator uses),
+  still to be put to Boss as a card (the galaxy size research thread
+  brings it). Systems scale with mass and sectors with volume, so a
+  large thin low-density galaxy has many sectors with few stars; the
+  plan already computes both counts and this dial shows them before
+  anything runs, and warns when the job is impossible. Done: the chosen
+  form's tests; the radius and the counts are shown; Auto gives today's
+  one-system-per-sector threshold; `--max-shell` is gone. Blocked until
+  Boss answers the edge-form card.
+  Prerequisites: GEN.601. Related: GEN.603, ADM.109, GEN.538, PERF.121.
+
+- [ ] **GEN.606 Shape dials: the Halo dial: dark halo mass over stellar mass and the stellar halo share, with r200 shown and a size-halo warning**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Dark halo mass
+  (halo over stellar 10 to 300) sets the total mass and r200, which the
+  code computes and nothing reads today; stellar halo share (0.1 to 30
+  percent) sets the faint outer light. Both Auto by default, drawn from
+  the stellar-halo law and the stellar-to-halo relation. With the dial
+  live, the stellar half-light radius should sit near 1.5 to 1.8 percent
+  of R200c with 0.2 dex scatter (Kravtsov 2013 and Somerville 2018,
+  secondhand in the report, so a labelled bracket until GEN.609 checks
+  them): offer it as a warning, never a clamp. It is the only dial that
+  changes total mass. Done: tests that the dark halo changes r200 and
+  the total mass and nothing in the disc; the stellar halo share changes
+  only the halo's light; the warning fires on a deliberately odd galaxy
+  and does not block it.
+  Prerequisites: GEN.601. Related: GEN.297, GEN.380, GEN.603, GEN.539.
+
+- [ ] **GEN.607 Shape dials: the Census dial: star richness (systems per solar mass, equivalently the mean system mass), advanced and hidden by default**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Replaces the
+  constant `tuning.MEAN_SYSTEM_MASS_SOLAR` as a user lever: how many
+  systems the mass holds, so the density in systems and the cost of a
+  full generation. Default the value GEN.545 derives (about 0.51 solar
+  mass per system, 2.0 per solar mass); the range is a narrow band about
+  the IMF-derived value. OPEN with Boss: whether richness ships in the
+  first release of the dials or stays hidden until GEN.545's value has
+  settled. Done: the slider is tested alone; Auto gives GEN.545's
+  derived value; the system count scales as stated; hidden unless
+  Advanced is shown.
+  Prerequisites: GEN.601, GEN.545. Related: GEN.603.
+
+- [ ] **GEN.608 Shape dials: the Shape selector, added to the table and the Generate form unfilled: key `spiral`, flag `--shape`, one option for now**
+  Boss (galaxy size research thread, 6:46 PM EDT 2026-10-21): 'Add a
+  'shape' option but don't fill it, just add it to the UI it will be a
+  dropdown when it's filled. Right now it's only option is Spiral. Find
+  the other TODO item and link it.' The other item is UX.134 (the galaxy
+  type pinned or drawn on the Generate page, 9.4), with GEN.389 (the
+  family drawn from the seed and stored), GEN.380 (the type draw),
+  GEN.382 to GEN.385 (the families), GEN.378 (the design) and UX.135
+  (the outlines). Do: a registry row (GEN.601) of kind enum with the
+  single value `spiral`, key `shape`, flag `--shape`, shown as a
+  dropdown with Spiral as the only entry; `--shape spiral` is accepted,
+  any other value is refused and the message lists the allowed values;
+  the plan runs exactly as today (no stored column until DB.66 in 9.4).
+  The 9.4 items later fill the list from the same row without a new
+  control; GEN.389's `--family` and UX.134's pin list are this flag and
+  this dropdown, so they are not built a second time. Done: the Generate
+  form shows the dropdown with Spiral; the parity test covers it;
+  nothing about the generated galaxy changes.
+  Prerequisites: GEN.601. Related: UX.134, GEN.389, GEN.380, GEN.382,
+  GEN.378, UX.135.
+
+- [ ] **GEN.609 Shape dials: check the range source of every slider (size-law mass span, flatness, bulge share, bulge size, edge, halo ratios) and record each as verified, derived, bracket or placeholder**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Every slider
+  needs a range with a source (proposal section 8.5), and several are
+  only recalled in the note: the Shen 2003 size-mass law's valid mass
+  span (about 1e8 to 1e12, unchecked because arXiv was blocked), the
+  flatness span 3 to 20, the bulge-share span 0 to 0.9, the bulge size
+  0.02 to 1 L, the edge span, the halo-to-stellar ratio 10 to 300 and
+  the stellar halo share 0.1 to 30 percent. Do: for each, read the
+  source already in the repo or the files Boss provided, apply the
+  source rules (verified wins; two verified in doubt, newest wins; two
+  in question, widest range), and write the range, its source and its
+  label (verified, derived, bracket, theory or placeholder) into
+  docs/design/gap-filling-plan.md's registry and the lever table
+  (GEN.601). Network access is closed, so a value with no included
+  source stays a labelled placeholder and the slider still ships. Done:
+  every registry row has a source and a label; a test fails on a row
+  with neither.
+  Prerequisites: none.
+
+- [ ] **GEN.610 The `--nuclear-amplitude` help text defines 1 as 'the observed' nuclear cluster and disc (2.5e7 and 1.5e9 solar masses), which are Milky Way values: replace them with a draw from the galaxy's own laws**
+  Found by the galaxy size research thread (2026-10-21, from reading
+  `cli/generate.py` at main commit 3bc3ecc), filed by the TODO thread.
+  The option's unit is a fixed copy of the Milky Way's nuclear cluster
+  and disc, which conflicts with Boss's no-fixed-content rule (4:11 PM
+  EDT 2026-10-16). Fails on main: yes, the help text and the unit. Do:
+  make the nuclear amplitude a ratio of the galaxy's own mass or bulge,
+  drawn from a law with a source, advanced and hidden by default in the
+  table; update the help text. Done: no nuclear value in the code or the
+  help is a Milky Way number; a test scans for the two constants.
+  Prerequisites: GEN.601. Related: GEN.602, GEN.604.
+
+- [ ] **GEN.611 Shape dials: the pattern dial: arm contrast (crest minus trough over crest plus trough, default 0.4), with arm count and pitch angle, replacing the two arm densities**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. The proposal
+  (section 2) folds `--arm-density` and `--interarm-density` into one
+  number, arm contrast; their mean is absorbed by the mass normalisation
+  once bulge share is a share. Arm count and pitch angle are already
+  drawn (GEN.382's laws) and stay drawn, with an optional pin through
+  the table. All lengths are ratios of L, so the pattern follows the
+  galaxy's size. Filed by the TODO thread as the replacement the
+  retiring arm flags need; the proposal calls it the later pattern set,
+  so whether it ships with the other dials or stays as the old arm flags
+  until then is for the coordinator to confirm. Done: the contrast
+  slider alone is tested; Auto gives today's arm look; the retired pair
+  is refused.
+  Prerequisites: GEN.601. Related: GEN.602, GEN.382.
+
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -16166,6 +16461,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `--reach-shells` does), so a default-size plan run takes hours; this
   item's rework should make the shell limit apply or remove the option,
   no shim.
+  Overlap (TODO thread, 2026-10-21, Boss 6:49 PM EDT: fold the existing
+  items into the shape-dials chain): `plan --max-shell` is retired by
+  GEN.602 and replaced by the Edge dial GEN.605, which reads the plan
+  configuration (GEN.538), so this rework must not spend effort fixing
+  `--max-shell`: make the scatter honour the plan's reach and leave the
+  flag to GEN.602.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.122 The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags**
@@ -17958,6 +18259,27 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   in project memory). Owner: not assigned.
   Prerequisites: none. Related: GEN.276.
 
+- [ ] **DB.81 Shape dials: the plan stores which sliders were pinned and at what value, so the galaxy page can say 'mass pinned at X, the rest drawn'**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. The plan stores
+  the resolved shape; it should also store which dials were pinned and
+  their values (proposal section 8.5). Needs a stored column or a
+  settings record. Done: a pinned mass, compactness and flatness
+  round-trip through the plan and the API; an unpinned slider reads as
+  Auto; the galaxy page shows the pinned and drawn split; the migration
+  takes the next free Alembic revision at merge. The Shape selector is
+  stored with the family column in DB.66, not here.
+  Prerequisites: GEN.601. Related: GEN.603, DB.66.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -19309,8 +19631,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   advanced job in both themes and at phone width, and the page help
   (DOC.13) matches. Owner: the admin redesign thread, after Boss answers
   the cards of ADM.98.
-  Prerequisites: ADM.107, ADM.108, ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114, ADM.115, ADM.116, ADM.117. Related: UX.125, UX.134, UX.137,
-  DOC.13, GEN.599.
+  Prerequisites: ADM.107, ADM.108, ADM.109, ADM.110, ADM.111, ADM.112,
+  ADM.113, ADM.114, ADM.115, ADM.116, ADM.117, ADM.124. Related: UX.125,
+  UX.134, UX.137, DOC.13, GEN.599.
   Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
   the admin redesign thread reported; report
   docs/design/admin-control-suite.md): the whole suite is built in 8.1
@@ -19485,12 +19808,18 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Child of the admin control suite (Boss's 13 decision cards, tapped
   6:05 to 6:09 PM EDT 2026-10-21, as the admin redesign thread reported;
   design note docs/design/admin-control-suite.md, section 5, key G4).
-  UX.134 and UX.137 add their controls here. Done: pinned and unpinned
-  fields produce the same argv as today's blank and filled boxes; the
-  confirmation refuses a wrong name. Owner: the admin redesign thread
-  (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
+  UX.134 and UX.137 add their controls here. Done: the shape fields are
+  the dials panel ADM.124 (built from the lever table GEN.601; the old
+  absolute boxes are gone); pinned and unpinned dials produce the
+  table's flags (GEN.602) and an Auto dial adds none; the confirmation
+  refuses a wrong name. Owner: the admin redesign thread (Boss,
+  2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
   Settings first, then the shell and palette, then Generate).
-  Prerequisites: ADM.108. Related: ADM.99, UX.134, UX.137.
+  Rewritten onto the lever table (Boss, 6:45 PM EDT 2026-10-21, 'Redesign
+  around the five dials'; Boss 6:49 PM EDT: fold the existing items into
+  the new chain).
+  Prerequisites: ADM.108, GEN.601, GEN.602. Related: ADM.99, UX.134,
+  UX.137.
 
 - [ ] **ADM.111 Generate: the Scatter task: rebuild, redo some, add a dimmer step, with one Advanced block of scatter limits**
   Child of the admin control suite (Boss's 13 decision cards, tapped
@@ -19557,7 +19886,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT).
   Phase: 8.1 phase 1 (Boss's answer 1: Settings first, then the shell
   and palette, then Generate).
-  Prerequisites: ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114.
+  Also removes the old absolute shape boxes and their handlers (retired
+  by GEN.602); ADM.124 replaces them.
+  Prerequisites: ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114, ADM.124.
   Related: ADM.99.
 
 - [ ] **ADM.117 Generate: browser tests for every task end to end, in both themes, without script and at phone width**
@@ -19568,7 +19899,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   step fails the test with a screenshot. Owner: the admin redesign
   thread (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's
   answer 1: Settings first, then the shell and palette, then Generate).
-  Prerequisites: ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114.
+  Prerequisites: ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114, ADM.124.
   Related: ADM.99, TEST.168, TEST.169.
 
 - [ ] **ADM.118 Admin registry: pages, tasks and settings declare label, summary, keywords, role, danger level and URL, and the rail, hub and search read it**
@@ -19648,6 +19979,34 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (Boss, 2026-10-21, 6:01 PM EDT). Phase: 8.1 phase 1 (Boss's answer 1:
   Settings first, then the shell and palette, then Generate).
   Prerequisites: ADM.119. Related: ADM.99, PERF.99.
+
+- [ ] **ADM.124 Generate: the shape dials panel, built from the lever table: five dials of sliders with Auto, the pinned-versus-drawn read-out, any-two-of-three for mass, size and density, and the Shape dropdown**
+  Boss (galaxy size research thread, 2026-10-21): 6:41 PM EDT chose
+  mass, size and density as one 'any two of three' group with the third
+  shown; 6:45 PM EDT chose 'Redesign around the five dials' (card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9tvesPdxaXNjrhHPrFWuRH): Scale,
+  Structure, Edge, Halo and Census, one lever table builds the
+  command-line flags and the Generate form, range gated, Auto = the
+  seed's draw, the old absolute shape options retired with no shim.
+  Proposal:
+  /mnt/project-files/design-drafts/galaxy-size-levers-2026-10-21.md,
+  sections 2, 7 and 8; research:
+  /mnt/project-files/reports/galaxy-size-2026-10-21.md. Child of the
+  admin control suite and of ADM.110's Start a new galaxy task (pinned
+  and unpinned fields produce the same argv as the table's flags). The
+  panel is generated from the registry (GEN.601): slider minimum,
+  maximum and step, the Auto state, the range source in the Details,
+  Census under Advanced. The Scale group shows the third of mass, size
+  and density as a read-out, and a refusal message when all three are
+  pinned. The Shape dropdown has one entry, Spiral, and fills with
+  GEN.389/UX.134 later. The edge form follows Boss's card. Done: a
+  browser test moves each slider, pins and unpins it, and sees the argv
+  in the Review step; the form never offers a value the command line
+  refuses; works in both themes, without script and at phone width.
+  Owner: the admin redesign thread (the Generate suite); the lever table
+  items have no owner yet.
+  Prerequisites: GEN.601, GEN.602, GEN.603, GEN.604, GEN.608, ADM.108.
+  Related: ADM.99, ADM.112, DB.81.
 
 ## SEC: Security
 
@@ -20753,6 +21112,11 @@ clears each one.
   stellar-to-halo, M-bulge); the real galaxies' numbers are reference
   points the draw must be able to produce, never presets; a failure
   lists the parameter and the mass bin, like TEST.196.
+  Addition (TODO thread, 2026-10-21): the lever ranges of the shape
+  dials (GEN.601, ranges sourced by GEN.609) are plausibility bounds
+  too: a test sweeps every slider across its range at several seeds and
+  asserts the family stays inside the published bands, and that the
+  warning of GEN.606 fires only outside them.
   Prerequisites: GEN.389. Related: TEST.196, GEN.378, GEN.366.
   Design: [docs/design/galaxy-types.md](design/galaxy-types.md)
 
