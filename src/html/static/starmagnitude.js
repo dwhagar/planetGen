@@ -27,6 +27,17 @@
 // (MAP.208: the server sends that luminosity; static/starpoint.js).
 
 export const SUN_ABSOLUTE_MAGNITUDE = 4.83;
+// MAP.251: the cut order of docs/design/zoom-star-visibility.md section 10 on the screen. A star of a satellite
+// galaxy (`tier` 2) or of the halo (`tier` 1) is judged as if it were this many magnitudes dimmer (a factor of 250
+// and 16 in light), so when more stars are on screen than the target the limit takes them first, then the rest in
+// the order of their apparent magnitude: the nearest and brightest go last, the farther sooner.
+export const TIER_MAGNITUDE_PENALTY = [0, 3, 6];
+
+// The magnitudes a star of `tier` is judged dimmer by (0 for an unknown tier).
+export function tierMagnitudePenalty(tier) {
+  return TIER_MAGNITUDE_PENALTY[tier] || 0;
+}
+
 // The width of the opacity ramp (1.5 magnitudes: the factor 4 the tile floors step by).
 export const RAMP = 1.5;
 export const TARGET_STARS = 20000;
