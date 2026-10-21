@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.142 |
 | MAP | MAP.254 |
 | NAV | NAV.63 |
-| GEN | GEN.598 |
+| GEN | GEN.599 |
 | PERF | PERF.145 |
 | DB | DB.81 |
 | API | API.32 |
@@ -1265,6 +1265,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.595 | Replace the Solar System comet population shape (GEN.520 D6) with a derived distribution | none | open |
 | GEN.596 | A companion below 0.01 solar masses makes multistar.draw_member_tree raise 'no cooling track' (bug) | none | open |
 | GEN.597 | A rocky planet of a wide binary gets flux_variation above 1 (the insolation test passes only on seeds 0 to 59) (bug) | none | open |
+| GEN.598 | CLUSTER_MEAN_SYSTEM_MASS_SOL (0.4, recalled) sets the system count of globular clusters and satellites: derive it as GEN.545 derives the galaxy's | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |

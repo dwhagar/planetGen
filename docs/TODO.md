@@ -6017,6 +6017,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   outcome rules and applying them, GEN.290 to choosing per system when
   to switch to the perturbed pass, the cost estimate and the seeded
   black-hole test (2026-10-16 review).
+  Status from Core 3 (4:40 PM EDT 2026-10-21 as the lane reported):
+  built on side branch gen334-closest-approach off main
+  (`physics/closest_approach.py`, 17 tests green, no gate yet).
   Prerequisites: none. Related: GEN.110, GEN.290.
 
 - [ ] **GEN.338 The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests**
@@ -6160,6 +6163,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   exact then one point mass per sector) is built here after GEN.370, and
   the order of work is GEN.370, GEN.341, GEN.342 on Core 3 after its 8.1
   queue.
+  Status from Core 3 (4:40 PM EDT 2026-10-21 as the lane reported):
+  built on side branch gen341-influence-set, stacked on GEN.370
+  (`galaxy/influence.py`, 10 tests green, no gate yet). It uses the
+  global radius, so the cover lists named in this title are not built.
+  The wording above that the per-sector `max_mass_kg` and `max_mass_id`
+  columns come from GEN.294:m is stale: they already exist (DB.55).
   Prerequisites: GEN.370. Related: GEN.109.
 
 - [ ] **GEN.342 The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it**
@@ -6799,6 +6808,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   superseded; the placement keep-apart fill (6 percent at the old radius
   against up to 108 percent at 1.4 pc) is rechecked in this item's gate
   and the result is stated in its PR.
+  Status from Core 3 (4:40 PM EDT 2026-10-21 as the lane reported):
+  built on branch claude/project-thread-l8ulna (commit d5f78e8),
+  generator epoch 42 pending (renumbers if GEN.545 merges first); design
+  docs and a note are included, and its `changed` gate's second run
+  started 4:24 PM EDT (40 percent at 4:40 PM EDT; the first run was lost
+  to the stale run key, TEST.260). It removes
+  `mass_chain.central_mass_kg`, `current_central_mass_kg` and
+  `MassChain.halo_mass_kg`, and records a placement-fill recheck in
+  docs/design/course-avoidance.md: in a dense galaxy the placer now fits
+  60 to 70 percent of the requested systems at 1 kpc and 35 to 45
+  percent at 3 kpc (Hill spheres fill 0.3 to 0.9 of the volume); sparse
+  galaxies are unchanged; the old fill never passed 0.03. The text above
+  that the default distance is already gone (GEN.404) is true.
   Prerequisites: none. Related: GEN.368, GEN.285, GEN.223.
 
 - [ ] **GEN.371 Feasibility study: generate the satellite galaxies through the scatter, making only the region each one occupies**
@@ -13427,6 +13449,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   system mass is 0.51 solar masses, not the recalled 0.4, so the
   reference galaxy's system count goes down about 21%; Core 1 proceeds
   with the approved default (derive it; generator epoch 42).
+  Status from the new Core 1 lane (4:40 PM EDT 2026-10-21 as the lane
+  reported): built on branch claude/project-thread-6lw1fr (commit
+  bc7f1e8 on main 8.0.1861) and in its `changed` gate (97 percent at
+  4:39 PM EDT). It derives the mean system mass from the IMF, the
+  star-count table, the companion draw and the remnants (new
+  `generation/system_mass.py` and `galaxy/system_mass.py`), removes
+  `tuning.MEAN_SYSTEM_MASS_SOLAR`, and takes generator epoch 42.
+  Reference galaxy: 0.504 solar masses a system (not 0.4), 9.9e10
+  systems (was 1.25e11), density at the reference radius 0.595 of the
+  pinned value (was 0.750). Superseded: the sentence above that Boss
+  expects GEN.544 and GEN.545 to undo most of the star count drop no
+  longer holds, because the derived mean lowers the count about 21
+  percent (the coordinator told Boss at 2:03 PM EDT); the approved
+  default (derive it) stands. The old Core 1 draft branch
+  claude/project-thread-ksf58w (commit 162a5ffa) and handoff patch
+  gen545-core1-draft.patch are superseded.
   Prerequisites: none. Related: GEN.404, GEN.103, GEN.366.
 
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
@@ -13777,6 +13815,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   kick-escape share and any other source this step cannot read stay
   labelled recalled or placeholder in the gap registry and do not block
   the step.
+  Slices 2 and 3 in flight (Core 4, 4:40 PM EDT 2026-10-21 as the lane
+  reported): explosion islands, the natal kick and the black hole cap at
+  the reference unbound share; docs explosion-islands.md and
+  natal-kick.md are new and four design notes are edited; its `changed`
+  gate on MySQL 8 started 3:54 PM EDT (51 percent at 4:39 PM EDT).
+  Epoch: the branch stamps 41, but 41 is taken on main by GEN.544
+  (8.0.1855), so it renumbers at merge to the next free one. Stand-ins
+  for the gap registry that this slice adds: nesting of failure windows
+  above the verified islands (stand-in); kick sigma 265 km/s (recalled,
+  Hobbs 2005, unverified); black hole unbound share 2 percent
+  (placeholder); a single Maxwellian instead of two components; birth
+  only in the thin disc; ejecta speed not yet the kick tail above
+  escape; `remnant_distribution` placement still empirical; the neutron
+  star and black hole mass function unchanged (a later slice); magnetars
+  still use the tuning rate as their stand-in. Reference neutron star
+  unbound share is 16 percent (the old 20 to 40 percent is a test target
+  only; the published Milky Way halo gives 27 percent). Perturber mass
+  changes from 1.44 to 0.88 and the encounter limit from 1.1e4 to 1.9e4
+  AU because of the new rates. Network access is closed (Boss, 1:17 PM
+  EDT), so the unverified sources stay labelled recalled.
 
 - [ ] **GEN.555 The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -15328,6 +15386,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reproducer gives no value above 1 in 240 systems. Owner: Bug Hunt (routed by the coordinator, 3:46 PM EDT 2026-10-21).
   Prerequisites: none. Related: GEN.545.
 
+- [ ] **GEN.598 CLUSTER_MEAN_SYSTEM_MASS_SOL (0.4, recalled) sets the system count of globular clusters and satellites: derive it as GEN.545 derives the galaxy's**
+  Found by the new Core 1 lane (4:40 PM EDT 2026-10-21 as the lane
+  reported), filed by the TODO thread. `CLUSTER_MEAN_SYSTEM_MASS_SOL =
+  0.4` is the same recalled constant as the galaxy's
+  `MEAN_SYSTEM_MASS_SOLAR` and is read in `king.py`, `components.py`,
+  `component_field.py`, `component_pass.py` and `open_clusters.py`; it
+  divides a cluster's or satellite's stellar mass into a system count.
+  Boss's rule is no fixed content. Fails on main: no (a stand-in,
+  labelled recalled within a factor of 1.5, not yet measured). Do:
+  derive it from the cluster's own mass function and multiplicity the
+  way GEN.545 does for the galaxy (reuse `generation/system_mass.py`),
+  so the constant goes; where a cluster has a different mass function (a
+  bottom-heavy or top-heavy IMF), the derivation takes it from the
+  component. Done: no code reads `CLUSTER_MEAN_SYSTEM_MASS_SOL`, and a
+  test checks the derived mean against a seeded draw. Owner: Core 1
+  (proposed, after GEN.545 merges); a generator change, so it takes the
+  next free epoch.
+  Prerequisites: GEN.545. Related: GEN.545, GEN.404.
+
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -16204,6 +16281,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generation, `planetgen orbits` and data-version changes) and slice 3
   (the admin page shows each phase); the list and index half of Boss's
   no-recompile test waits on DB.79 and PERF.140.
+  Slice 2 merged as #2337 (Core 2, 4:45 PM EDT 2026-10-21 as the lane
+  reported): the warm-up starts by itself after a generation run, the
+  orbital update, an edit or any change; new settings
+  `cache.warm_on_change` and `cache.warm_settle_seconds`; gate 19,668
+  passed, 3 environment or flake failures that pass alone. Slice 3 (the
+  admin queue page's 'Cache warm-up' panel with each phase's state, `GET
+  /api/admin/work/warm`) is written and tested and its gate starts next.
+  Slices 1 to 3 do not need PERF.140, so after slice 3 this item stays
+  open only for the deeper list pages and the index in phase 1, which
+  wait on PERF.140 (the 'Suggested owner' and prerequisite wording above
+  predates the split). The old Core 2's branch claude/perf141-slice2-wip
+  is superseded by #2337.
   Prerequisites: PERF.140.
 
 - [ ] **PERF.142 A stale job left in the database or the queue blocks every new run and Boss cannot proceed (bug)**
