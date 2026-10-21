@@ -250,7 +250,7 @@ def test_page_renders_summary_and_forms(site, client):
     assert 'id="current-job"' not in html and "Nothing is running." not in html
     assert re.search(r'<script type="module" src="/static/generatejobs.js\?v=[^"]+"></script>', html)
     # The header links here for a logged-in admin, marked current.
-    assert '<a href="/admin/generate" aria-current="page">Generate</a>' in html
+    assert '<a href="/admin/generate" data-destination="generate" aria-current="page">Generate</a>' in html
 
 
 def test_the_richness_field_is_folded_away_under_advanced(site, client):
@@ -806,10 +806,16 @@ def test_scatter_threshold_must_be_a_preset_range(site, client, no_spawn, value)
 
 def test_one_job_at_a_time(site, client, no_spawn, jobs_root):
     assert _post(client, action="plan").status_code == 303
-    # The first job is "starting" (spawned moments ago), so it holds the lock.
+    # The first job is "starting" (spawned moments ago), so it holds the lock. The next one waits behind it
+    # (ADM.123) and a third has no room.
+    resp = _post(client, action="reset", confirm=DB)
+    assert resp.status_code == 303 and jobs.active_job()["title"] == "Plan the galaxy"
+    assert jobs.queued_job()["kind"] == "reset"
     resp = _post(client, action="reset", confirm=DB)
     assert resp.status_code == 409
-    assert "Plan the galaxy is still running" in resp.get_data(as_text=True)
+    assert "Plan the galaxy is still running and another job is already waiting" in resp.get_data(as_text=True)
+    resp = _post(client, headers={"Accept": "application/json"}, action="reset", confirm=DB)
+    assert resp.status_code == 409 and "still running" in resp.get_json()["error"]
     html = client.get("/admin/generate").get_data(as_text=True)
     assert "The forms below unlock when the current job finishes." in html
     assert "Cancel job" in html

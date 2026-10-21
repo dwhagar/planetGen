@@ -51,6 +51,7 @@ import json
 import os
 import time
 from typing import Annotated
+from urllib.parse import urlsplit
 
 from flask import (Response, abort, current_app, jsonify, make_response, redirect, request, send_file,
                    stream_with_context, url_for)
@@ -1098,28 +1099,46 @@ def _job_view(job):
     return view
 
 
+def _back_to_page():
+    """The admin page the strip's button was pressed on (the referrer, when it is this site), else Generate."""
+    parts = urlsplit(request.referrer or "")
+    if parts.netloc == request.host and parts.path.startswith("/admin") and not parts.path.startswith("//"):
+        return parts.path + (f"?{parts.query}" if parts.query else "")
+    return url_for("web.generate")
+
+
 def strip_view():
     """
-    The running job as the admin shell's job strip shows it (ADM.119), or `None` when nothing runs:
-    `id`, `title`, `status`, `url`, `text` (the stage, else the progress), `elapsed_text` and `value` (0 to 1, or
-    `None` when the job does not know how far it is). `static/adminjobstrip.js` keeps it current from
-    `/admin/generate/status`.
+    What the admin shell's job strip shows (ADM.119, ADM.123), or `None` when nothing runs or waits:
+    `{"job", "queued"}`. `job` is the running job's `id`, `title`, `status`, `url`, `text` (the stage, else the
+    progress), `elapsed_text` and `value` (0 to 1, or `None` when it does not know how far it is); `queued` is the
+    one job waiting behind it (`title`, `admin`, `held`: why it is waiting for an admin, or `None`).
+    `static/adminjobstrip.js` keeps it current from `/admin/generate/status`.
+
+    A waiting job whose predecessor has ended is started here, so it never waits for the runner's last act.
     """
-    job = jobs.active_job()
-    if job is None:
+    try:
+        root = jobs.jobs_dir()
+        jobs.promote_queued(root)
+        job = jobs.active_job(root)
+        queued = jobs.queued_job(root)
+    except OSError:
         return None
-    return strip_fields(_job_view(job))
-
-
-def strip_fields(view):
-    """The strip's fields for a `_job_view` dict (the page's and the status JSON's share this)."""
-    value = view.get("overall_value") if view.get("overall_shown") else None
-    if value is None and view.get("progress_total"):
-        value = min(1.0, (view.get("progress_completed") or 0) / view["progress_total"])
+    if job is None and queued is None:
+        return None
+    view = _job_view(job) if job else None
+    value = None
+    if view:
+        value = view.get("overall_value") if view.get("overall_shown") else None
+        if value is None and view.get("progress_total"):
+            value = min(1.0, (view.get("progress_completed") or 0) / view["progress_total"])
     return {
-        "id": view["id"], "title": view.get("title") or "Job", "status": view.get("status") or "",
-        "url": view["url"], "text": view.get("stage_text") or view.get("progress_text") or "",
-        "elapsed_text": view.get("elapsed_text") or "", "value": value,
+        "job": {
+            "id": view["id"], "title": view.get("title") or "Job", "status": view.get("status") or "",
+            "url": view["url"], "text": view.get("stage_text") or view.get("progress_text") or "",
+            "elapsed_text": view.get("elapsed_text") or "", "value": value,
+        } if view else None,
+        "queued": {"title": queued["title"], "admin": queued["admin"], "held": queued["held"]} if queued else None,
     }
 
 
@@ -1333,6 +1352,16 @@ def generate():
             log.error(f"Could not cancel job {job_id}: {exc}")
         return _no_store(redirect(url_for("web.generate", _anchor="current-job"), code=303))
 
+    if action in ("discard_queued", "start_queued"):
+        if action == "discard_queued":
+            if jobs.discard_queued():
+                activity_log.event("GEN", "job.unqueue", user=admin.get("username"))
+        else:
+            started = jobs.promote_queued(force=True)
+            if started:
+                activity_log.event("GEN", "job.start", user=admin.get("username"), job=started, queued=True)
+        return _no_store(redirect(_back_to_page(), code=303))
+
     database = db_name()
     wants_json = _wants_json()
     try:
@@ -1372,6 +1401,18 @@ def generate():
                                title=title)
     except jobs.JobBusy as exc:
         running = exc.job["title"] if exc.job else "Another job"
+        if not wants_json:
+            try:
+                jobs.queue_next(kind, title, steps, env=env, admin=admin.get("username"), database=database)
+                jobs.promote_queued()       # the running job may have ended since the lock was refused
+                activity_log.event("GEN", "job.queue", user=admin.get("username"), kind=kind, db=database, title=title)
+                return _no_store(redirect(url_for("web.generate"), code=303))
+            except jobs.QueueFull:
+                message = (f"{running} is still running and another job is already waiting behind it. "
+                           "Discard the waiting job, or wait for the running one to finish.")
+                return _page(admin, error=message, status=409, form=request.form)
+            except OSError as queue_exc:
+                log.error(f"Could not queue a {kind} job: {queue_exc}")
         message = f"{running} is still running. Wait for it to finish, or cancel it first."
         if wants_json:
             return _no_store(make_response(jsonify({"error": message}), 409))
@@ -1428,8 +1469,7 @@ def generate_status():
     root = jobs.jobs_dir()
     job_id = request.args.get("job")
     job = jobs.get_job(job_id, root) if job_id else jobs.active_job(root)
-    view = _job_view(job)
-    body = {"job": view, "strip": strip_fields(view) if view else None, "log": jobs.log_tail(job["id"], max_bytes=8 * 1024, root=root) if job else None}
+    body = {"job": _job_view(job), "strip": strip_view(), "log": jobs.log_tail(job["id"], max_bytes=8 * 1024, root=root) if job else None}
     return _no_store(jsonify(body))
 
 
