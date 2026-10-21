@@ -582,7 +582,11 @@ class StarSystem:
                  is an elliptical one whose whole orbit stays inside it
                  (GEN.228), re-rolled up to
                  `tuning.COMET_CEILING_ATTEMPTS` times and dropped when
-                 none fits, so no comet's path crosses the companion.
+                 none fits, so no comet's path crosses the companion. Without
+                 it (a single star or a close pair) an elliptical comet's
+                 orbit stays inside the star's own Hill sphere
+                 (`validation.orbit_ceiling_au`, GEN.591) and a parabolic
+                 comet leaves it by design.
 
         Returns:
             list: Newly generated `Comet` objects, zero or more.
@@ -598,11 +602,13 @@ class StarSystem:
         count = draw.randint(*tuning.SYSTEM_COMET_COUNT_RANGE)
         primary_mass_solar = star.mass / constants.SOLAR_MASS_TO_KG
         if ceiling_au is None:
-            return [Comet(self.system_config, primary_mass_solar) for _ in range(count)]
+            # A closed orbit stays inside the star's own Hill sphere (GEN.591); a parabolic comet leaves it by design.
+            hill_au = validation.orbit_ceiling_au(star)
+            return [Comet(self.system_config, primary_mass_solar, ceiling_au=hill_au) for _ in range(count)]
         comets = []
         for _ in range(count):
             for _attempt in range(tuning.COMET_CEILING_ATTEMPTS):
-                comet = Comet(self.system_config, primary_mass_solar, orbit_type="elliptical")
+                comet = Comet(self.system_config, primary_mass_solar, orbit_type="elliptical", ceiling_au=ceiling_au)
                 if validation.comet_fits_ceiling(comet, ceiling_au):
                     comets.append(comet)
                     break
