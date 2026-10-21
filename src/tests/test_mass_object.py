@@ -2,11 +2,13 @@
 
 """GEN.565: the shared core of every body with a mass (`mass_object.MassObject`)."""
 
+import math
+
 import pytest
 
 from planetgen.galaxy.galactic_orbit import generate_galactic_orbit_fields
 from planetgen.generation.comet import Comet
-from planetgen.generation.mass_object import GALACTIC_MOTION_FIELDS, MassObject
+from planetgen.generation.mass_object import GALACTIC_MOTION_FIELDS, KinematicRecord, MassObject
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
@@ -131,3 +133,65 @@ def test_a_body_that_goes_round_the_galaxy_advances_its_phase_by_the_orbits_peri
 def test_a_body_with_no_trajectory_cannot_advance():
     with pytest.raises(ValueError):
         MassObject().advance(1.0)
+
+
+# --- GEN.565: the kinematic record (card S16) ----------------------------------------------------------------------
+
+
+def _planets_with_state(seed=1):
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.planet import Planet
+    from planetgen.generation.system import StarSystem
+    from planetgen.util import draw
+    draw.set_run_seed(seed)
+    system = StarSystem(system_config=SystemConfig())
+    return [p for p in system.planets if isinstance(p, Planet) and p.spatial is not None
+            and p.spatial.get_velocity_vector("system") is not None]
+
+
+def test_the_record_is_the_point_and_the_spin():
+    planets = _planets_with_state()
+    assert planets
+    for planet in planets:
+        record = planet.kinematic_record()
+        assert record.position_au == pytest.approx(planet.spatial.get_coordinates("system", "cartesian"))
+        assert record.velocity_kms == pytest.approx(tuple(v / 1000.0 for v in planet.spatial.get_velocity_vector("system")))
+        assert record.spin_axis == (planet.spin_axis_x, planet.spin_axis_y, planet.spin_axis_z)
+        assert record.mass_kg == planet.spatial.mass_kg and record.mu_m3_s2 == planet.spatial.mu
+
+
+def test_what_is_stored_beside_the_record_follows_from_it():
+    """Card S18: speed, axial tilt and rotation period are derived; each equals the value now stored."""
+    for planet in _planets_with_state():
+        assert planet.speed_kms() == pytest.approx(planet.orbital_speed_kms, rel=1e-6)
+        assert planet.axial_tilt_from_state() == pytest.approx(planet.axial_tilt_deg, abs=1e-6)
+        assert 2.0 * math.pi / planet.spin_rate_rad_s / 3600.0 == pytest.approx(planet.rotation_period_hours)
+
+
+def test_the_next_due_time_is_the_epoch_plus_the_time_to_move_the_threshold():
+    planet = _planets_with_state()[0]
+    planet.spatial.set_epoch_unix(1.0e9)
+    record = planet.kinematic_record("system")
+    assert record.epoch_unix == 1.0e9
+    assert record.next_due_unix == pytest.approx(1.0e9 + planet.spatial.get_time_to_observable_movement("system"))
+
+
+def test_a_body_with_nothing_yet_has_an_empty_record():
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.planet import Planet
+    planet = object.__new__(Planet)
+    record = planet.kinematic_record()
+    assert record == KinematicRecord()
+
+
+def test_a_non_rotating_black_hole_has_a_zero_rate_and_a_neutron_stars_follows_its_period():
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+    from planetgen.util import draw
+    draw.set_run_seed(3)
+    config = SystemConfig()
+    hole = BlackHole(config, mass_class="stellar")
+    hole.spin, hole.rotation_period_hours = 0.0, None
+    assert hole.spin_rate_rad_s == 0.0
+    neutron = NeutronStar(config)
+    assert neutron.spin_rate_rad_s == pytest.approx(2.0 * math.pi / (neutron.spin_period_ms / 1000.0), rel=1e-9)
