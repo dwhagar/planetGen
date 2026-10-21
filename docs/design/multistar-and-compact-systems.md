@@ -1,6 +1,6 @@
 # Multi-star systems and compact-object primaries
 
-How a system of up to seven stars is drawn, stored, named, shown on the maps and
+How a system of up to twelve stars (the group cap `MAX_STARS`, GEN.267; Boss's 2026-10-09, 2:43 AM EDT cap of seven was superseded by the cap of 12, Boss, 2026-10-15, 6:08 PM EDT) is drawn, stored, named, shown on the maps and
 updated, how often each size of system occurs, which hierarchies are dynamically
 stable, and what a white dwarf, neutron star or black hole primary changes for
 the bodies around it. It is the design note GEN.128 asks for and the input to
@@ -239,6 +239,8 @@ were [C]:
 | 50 to 10,000 AU | 43.6% | `wide_binary.py` |
 | above 10,000 AU | 6.5% | nothing (unbound by passing stars) |
 
+The 50 and 10,000 AU edges in this table are the old fixed ones: wide pairs start at 0.25 AU and the fixed 10,000 AU cap is replaced by the derived limit (GEN.448, Boss, 2026-10-16, 6:12 to 6:15 PM EDT).
+
 The 0.26 to 50 AU range is where Holman and Wiegert planet zones of 0.1 to 15 AU
 and the habitable zones interact most.
 
@@ -343,7 +345,7 @@ restarts), under 1 ms for N <= 4 [C].
    (40%); N >= 5 splits off k stars with k=2 weighted 1.5 against 1.0 for the
    others (a design choice; the only published shape frequency is Tokovinin's 4%
    for 2+2 [S]). Shuffle the leaves over the shape.
-4. Root pair: separation from the truncated log-normal (section 4) up to 20,000 AU.
+4. Root pair: separation from the truncated log-normal (section 4) up to the derived limit (the birth distribution runs to 20,000 AU).
 5. Each child pair, top-down: draw an isotropic orientation and the mutual
    inclination with the parent; set `a_hi = a_parent (1 - e_parent) / (safety *
    MA01_ratio)`; draw `a` from the log-normal truncated to `[2.5 * sum of the
@@ -557,8 +559,8 @@ largest 0.23, a close companion) and of a circumbinary planet 0.05 (the largest 
 Multiplicity depends on the stellar population: the close-binary fraction rises
 sharply as metallicity falls ([R], so more close pairs in the halo and thick disk),
 massive multiples sit in young regions (arms, OB associations, clusters), and wide
-pairs survive less in dense regions (bulge, clusters, halo), so the 10,000 AU cap
-should shrink there. This is rate shaping on the population mix of
+pairs survive less in dense regions (bulge, clusters, halo), so the wide-pair limit (the derived limit that replaced the fixed 10,000 AU cap, GEN.448)
+shrinks there. This is rate shaping on the population mix of
 [galaxy-disk-density.md](galaxy-disk-density.md) (its section 4) and does not touch
 GEN.100's densities.
 

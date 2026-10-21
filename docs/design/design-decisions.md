@@ -15,7 +15,7 @@ choices are known only from `CHANGELOG.md` and old copies of `docs/TODO.md`.
 
 ## 1. The cylindrical sector grid (rings, layers, slots; 4 pc sectors)
 
-**Status: being replaced.** Boss (2026-10-15) replaced the ring, layer and slot grid with spherical sectors: shells of 4 pc depth, latitude bands and wedges from pole to pole. The switch is built on `claude/spherical-switch` and not yet on main; [spherical-sector-coordinates.md](spherical-sector-coordinates.md) is the plan, and this section and `galaxy-coordinate-system.md` describe the grid main still runs until it merges.
+**Status: built (schema v91, 2026-10-15).** Boss (2026-10-15) replaced the ring, layer and slot grid with spherical sectors: shells of 4 pc depth, latitude bands and wedges from pole to pole. The switch landed with migration 0091 (2026-10-15); [spherical-sector-coordinates.md](spherical-sector-coordinates.md) is the plan, and `galaxy-coordinate-system.md` describes the built grid. The text below describes the cylindrical grid it replaced.
 
 **Chosen:** every galaxy-placed sector is one cell of a cylindrical grid
 around the galactic axis: ring `i` (radius), layer `j` (height, layer 0 on
@@ -157,7 +157,7 @@ Flask (it existed by 5.3.2).
 
 ## 5. MySQL as the store
 
-**Status: in force, with the pool changed.** The connection pool is SQLAlchemy's `QueuePool` (`db/store.py`), not `DBUtils.PooledDB`, and schema migrations are Alembic revisions (DB.11); the schema is past v43, at v90 on main (`db/migrations/versions/`).
+**Status: in force, with the pool changed.** The connection pool is SQLAlchemy's `QueuePool` (`db/store.py`), not `DBUtils.PooledDB`, and schema migrations are Alembic revisions (DB.11); the schema was past v43, at v90 on main when this status was written (2026-10-15); migrations on main run past 0111 (`db/migrations/versions/`).
 
 **Chosen:** MySQL 8.0.16+ or a compatible MariaDB, InnoDB tables, through
 `pymysql` with a `DBUtils.PooledDB` connection pool. Schema changes are
@@ -312,7 +312,7 @@ population data (`GET /api/population`, a polity count). Details:
 
 ## 9. An in-memory cache for the pages' API answers
 
-**Status: in force.**
+**Status: in force; the invalidation (clear on write, content stamp) is replaced by tag counters in Redis (PERF.104, built 2026-10-16, see cache-warm-up.md); the in-process copy remains.**
 
 **Chosen:** each web process keeps the API's public GET answers in memory
 (`planetgen/web/lib/pagecache.py`, asked by `apiclient._request` before each call).

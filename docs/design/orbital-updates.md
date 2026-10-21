@@ -77,7 +77,7 @@ GEN.115, under the umbrella GEN.105).
   object visited, the influence radius is the Hill sphere of the largest
   nearby object; the point masses of all objects inside that radius plus
   the galactic gravitational gradient (section 10.1, GEN.115) give the new
-  vector. Recommendation, not part of his decision: the Hill-radius warning
+  vector. Superseded for the search radius (Boss, 2026-10-18, 5:30 to 5:33 PM EDT, orbital-update-check-2026-10-18.md, Decided 1): the radius is the largest Hill radius of any object in the galaxy (central black hole left out of the maximum; 64 exact, then one point mass per sector; GEN.370 first). Recommendation, not part of his decision: the Hill-radius warning
   of the 2026-10-03 bullet uses a gravitational criterion (a bound or capture
   candidate, a deflection of about 1 degree or more, or the same system) and
   logs bare Hill-sphere entries at debug level, because "inside a Hill radius"
@@ -200,7 +200,7 @@ largest nearby object, and with it the influence radius, is found without readin
 every row. The run loads tables for the sectors it needs and builds a temporary
 in-memory tree; vector fields are never stored. Objects whose Hill sphere is wider
 than the first scan (about 6 pc) are also listed in a per-sector cover list, so a
-body inside a heavy object's sphere does not miss it (solvers document section 6.3).
+body inside a heavy object's sphere does not miss it (solvers document section 6.3). Superseded for the search radius (Boss, 2026-10-18, 5:30 to 5:33 PM EDT, orbital-update-check-2026-10-18.md, Decided 1): the radius is the largest Hill radius of any object in the galaxy (central black hole left out of the maximum; 64 exact, then one point mass per sector; GEN.370 first).
 
 **Sector geometry**: the documents assume 10 ly cubes (Update Algorithms),
 11.5 ly cylindrical cells (Full Algorithm) or 4 pc cubes with Morton keys
