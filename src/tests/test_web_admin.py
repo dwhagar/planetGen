@@ -686,9 +686,9 @@ def test_admin_hub_lists_the_admin_pages_without_a_signed_in_card(client, fake):
     hub = re.search(r'<ul class="admin-hub">.*?</ul>', html, re.S).group(0)
     for path in ("/admin/generate", "/admin/queue", "/admin/stats", "/account"):
         assert f'href="{path}"' in hub
-    tabs = re.search(r'<nav class="admin-tabs".*?</nav>', html, re.S).group(0)
-    assert '<a href="/admin" aria-current="page">Overview</a>' in tabs
-    assert all(f">{name}</a>" in tabs for name in ("Generate", "Queue", "Stats"))
+    rail = re.search(r'<nav class="admin-rail".*?</nav>', html, re.S).group(0)
+    assert '<a href="/admin" aria-current="page">Overview</a>' in rail
+    assert all(f">{name}</a>" in rail for name in ("Generate", "Settings", "Jobs", "Data", "Account"))
 
 
 def test_gear_menu_has_only_account_admin_and_logout(client, fake):
@@ -722,7 +722,7 @@ def test_admin_stats_renders(client, fake):
     assert "Vega &lt;b&gt;Beta&lt;/b&gt;" in html
     assert 'href="/sector.py?db=' in html or 'href="/sector/5"' in html
     assert "Planet/moon collisions" not in html
-    assert '<a href="/admin/stats" aria-current="page">Stats</a>' in html
+    assert '<a href="/admin/stats" aria-current="page">Data</a>' in html
     assert "/admin/stats/lockouts" not in re.search(r'<main.*</main>', html, re.S).group(0)
 
 
@@ -1004,3 +1004,45 @@ def test_lift_lockout_needs_an_admin(client, fake, token):
     resp = client.post("/admin/stats/lockouts", data={csrf.FIELD_NAME: token, "all": "1"})
     assert resp.status_code == 302 and "/login" in resp.headers["Location"]
     assert not fake.called("admin_lift_lockout")
+
+
+def test_every_admin_page_wears_the_shell_with_search(client, fake):
+    """ADM.92: the rail, the search box and the density switch above the page."""
+    _logged_in(client, fake)
+    for path in ("/admin", "/admin/stats", "/admin/queue"):
+        html = client.get(path).get_data(as_text=True)
+        assert 'data-admin-shell' in html and 'action="/admin/search"' in html and "data-admin-density" in html
+
+
+def test_the_search_page_finds_pages_and_needs_a_login(client, fake):
+    """ADM.120: `/admin/search` works without script, and not for a visitor."""
+    assert client.get("/admin/search?q=stats").status_code == 302
+    _logged_in(client, fake)
+    html = client.get("/admin/search?q=lockouts").get_data(as_text=True)
+    assert 'href="/admin/stats"' in html and "Stats" in html
+    assert "Nothing matches" in client.get("/admin/search?q=qqqq+zzzz").get_data(as_text=True)
+
+
+def test_the_palette_list_is_json_for_an_admin_only(client, fake):
+    assert client.get("/admin/palette.json").status_code == 403
+    _logged_in(client, fake)
+    body = client.get("/admin/palette.json").get_json()
+    assert {"page", "setting"} <= {item["kind"] for item in body["items"]}
+    assert all(item["url"].startswith("/") for item in body["items"])
+
+
+def test_the_job_strip_shows_the_running_job_on_every_admin_page(client, fake, monkeypatch):
+    """ADM.119: a running job, its link and Cancel (posting to the Generate form) above any admin page."""
+    from planetgen.web import generate_page
+
+    job = {"id": "j1", "title": "Add sectors", "status": "running", "kind": "scatter", "finished": False,
+           "created_at": 1.0, "elapsed_s": 65, "steps": ["a", "b"], "progress": {"completed": 1, "total": 4}}
+    _logged_in(client, fake)
+    html = client.get("/admin/stats").get_data(as_text=True)
+    assert "data-job-strip" in html and re.search(r'data-job-strip[^>]* hidden', html)
+    monkeypatch.setattr(generate_page.jobs, "active_job", lambda root=None: job)
+    html = client.get("/admin/stats").get_data(as_text=True)
+    assert not re.search(r'data-job-strip[^>]* hidden', html)
+    assert "Add sectors" in html and 'href="/admin/generate/jobs/j1"' in html
+    assert 'name="action" value="cancel"' in html and 'name="job" value="j1"' in html
+    assert 'value="0.25"' in html

@@ -1,0 +1,17 @@
+{#- planetgen/web/templates/partials/admin_jobstrip.html -- the thin strip on every admin page (ADM.119): the running
+    job, how far it is, a link to it and Cancel. static/adminjobstrip.js keeps it current; without script it shows the
+    job as of the page load. Hidden when nothing runs. -#}
+{%- macro admin_jobstrip(job, status_url, cancel_url) -%}
+<div class="admin-jobstrip" role="status" data-job-strip data-status-url="{{ status_url }}"{% if not job %} hidden{% endif %}>
+  <a class="admin-jobstrip-title" data-strip-title href="{{ job.url if job else '' }}">{{ job.title if job else '' }}</a>
+  <span class="admin-jobstrip-text" data-strip-text>{{ job.text if job else '' }}</span>
+  <progress data-strip-bar max="1"{% if job and job.value is not none %} value="{{ job.value }}"{% endif %}></progress>
+  <span class="admin-jobstrip-time" data-strip-elapsed>{{ job.elapsed_text if job else '' }}</span>
+  <form method="post" action="{{ cancel_url }}" class="admin-jobstrip-cancel" data-strip-cancel>
+    {{ csrf_field() }}
+    <input type="hidden" name="action" value="cancel">
+    <input type="hidden" name="job" value="{{ job.id if job else '' }}" data-strip-job>
+    <button type="submit">Cancel</button>
+  </form>
+</div>
+{%- endmacro -%}

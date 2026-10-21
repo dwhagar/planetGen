@@ -325,3 +325,12 @@ Consequences of answer 10 (new work): the job runner today allows exactly one ac
 * `settings_view.describe` is shared by the page, the API and the command line, so the new fields must come from the model, not the template.
 * The two pages share one rule: a control that cannot do anything for this admin is not drawn.
 * No fixed content: shape defaults stay "drawn from the seed" and nothing is prefilled from the Milky Way or the Solar System. Every time shown to the admin is the server's clock formatted as such; this draft's times are EDT.
+
+## 9. What is built
+
+- **Settings words and groups (ADM.101)** are in `util/settings.py` (`opt()` takes `label`, `summary`, `group`, and optionally `control`, `advanced`, `choice_labels` and `slider`); `util/settings_view.py` turns them into the groups and controls the page draws.
+- **Settings page (ADM.102 to ADM.106)**: `web/settings_page.py`, `templates/admin_settings.html`, `static/settingspage.js`.
+- **Registry (ADM.118)**: `web/adminregistry.py`. Pages and exempt routes are declared there (a test fails for an `/admin` page route in neither); settings entries are built from the settings model; tasks are added when the Generate cards exist.
+- **Shell (ADM.92)**: `templates/base.html` draws the rail, the search box and the Compact switch above every page whose `section` is in `adminregistry.SECTION_DESTINATION`. The rail is a bar across the top of the page (it wraps on a phone), not a side column. Account and the other pages join it with ADM.93.
+- **Job strip (ADM.119)**: `templates/partials/admin_jobstrip.html`, `static/adminjobstrip.js`, fed by the `strip` field of `/admin/generate/status`.
+- **Search and palette (ADM.120), keys (ADM.122)**: `web/admin_search_page.py` (`/admin/search`, `/admin/palette.json`) and `static/adminpalette.js`.

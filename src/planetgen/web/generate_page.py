@@ -1098,6 +1098,31 @@ def _job_view(job):
     return view
 
 
+def strip_view():
+    """
+    The running job as the admin shell's job strip shows it (ADM.119), or `None` when nothing runs:
+    `id`, `title`, `status`, `url`, `text` (the stage, else the progress), `elapsed_text` and `value` (0 to 1, or
+    `None` when the job does not know how far it is). `static/adminjobstrip.js` keeps it current from
+    `/admin/generate/status`.
+    """
+    job = jobs.active_job()
+    if job is None:
+        return None
+    return strip_fields(_job_view(job))
+
+
+def strip_fields(view):
+    """The strip's fields for a `_job_view` dict (the page's and the status JSON's share this)."""
+    value = view.get("overall_value") if view.get("overall_shown") else None
+    if value is None and view.get("progress_total"):
+        value = min(1.0, (view.get("progress_completed") or 0) / view["progress_total"])
+    return {
+        "id": view["id"], "title": view.get("title") or "Job", "status": view.get("status") or "",
+        "url": view["url"], "text": view.get("stage_text") or view.get("progress_text") or "",
+        "elapsed_text": view.get("elapsed_text") or "", "value": value,
+    }
+
+
 def overall_view(job, step_remaining, now=None):
     """
     The one bar across all of a job's stages (PERF.55), for a job with more
@@ -1403,7 +1428,8 @@ def generate_status():
     root = jobs.jobs_dir()
     job_id = request.args.get("job")
     job = jobs.get_job(job_id, root) if job_id else jobs.active_job(root)
-    body = {"job": _job_view(job), "log": jobs.log_tail(job["id"], max_bytes=8 * 1024, root=root) if job else None}
+    view = _job_view(job)
+    body = {"job": view, "strip": strip_fields(view) if view else None, "log": jobs.log_tail(job["id"], max_bytes=8 * 1024, root=root) if job else None}
     return _no_store(jsonify(body))
 
 

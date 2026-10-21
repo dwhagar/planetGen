@@ -1,0 +1,26 @@
+{%- extends "base.html" %}
+{% block content %}
+<section class="panel admin-search-page" aria-labelledby="search-heading">
+  <h2 id="search-heading">Find an admin page, task or setting</h2>
+  <form method="get" action="{{ url_for('web.admin_search') }}" role="search" class="admin-search-form">
+    <label for="admin-search-q">What do you want to do?</label>
+    <input id="admin-search-q" type="search" name="q" value="{{ query }}" autocomplete="off" autofocus placeholder="for example: cache size, cancel, sectors">
+    <button type="submit">Search</button>
+  </form>
+  {%- if query and not results %}
+  <p class="hint" role="status">Nothing matches "{{ query }}". Try fewer or simpler words.</p>
+  {%- else %}
+  <ul class="admin-results">
+    {%- for result in results %}
+    {%- set entry = result.entry %}
+    <li>
+      <a href="{{ result.url }}"><strong>{{ entry.label }}</strong></a>
+      <span class="badge">{{ {'page': 'Page', 'task': 'Task', 'setting': 'Setting'}[entry.kind] }}</span>
+      {%- if entry.danger != 'safe' %}<span class="badge">{{ 'Changes data' if entry.danger == 'rewrites' else 'Removes data' }}</span>{% endif %}
+      <span class="hint">{{ entry.summary }}</span>
+    </li>
+    {%- endfor %}
+  </ul>
+  {%- endif %}
+</section>
+{% endblock %}

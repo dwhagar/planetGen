@@ -3065,18 +3065,33 @@ body.app {
   box-shadow: inset 0 -2px 0 var(--accent);
 }
 
-/* UX.72: the tab row on every admin page (Overview, Generate, Queue,
-   Stats), and the hub's list. */
-.app .admin-tabs ul {
-  list-style: none;
+/* ADM.92: the admin shell -- the rail of destinations, the search box and the density switch above every admin
+   page. The rail wraps on a phone; compact density (the default; `data-density="roomy"` on the body turns it off)
+   tightens the panels and forms under it. */
+.app .admin-shell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
   margin: 0 0 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.app .admin-rail {
+  flex: 1 1 auto;
+}
+
+.app .admin-rail ul {
+  list-style: none;
+  margin: 0;
   padding: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.15rem;
 }
 
-.app .admin-tabs a {
+.app .admin-rail a {
   display: block;
   padding: 0.35rem 0.7rem;
   border-radius: 8px;
@@ -3085,16 +3100,63 @@ body.app {
   color: var(--text-muted);
 }
 
-.app .admin-tabs a:hover {
+.app .admin-rail a:hover {
   background: var(--bg-subtle);
   color: var(--link);
   text-decoration: none;
 }
 
-.app .admin-tabs a[aria-current="page"] {
+.app .admin-rail a[aria-current="page"] {
   color: var(--link);
   background: var(--bg-subtle);
   box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.app .admin-find {
+  display: flex;
+  gap: 0.35rem;
+  flex: 0 1 18rem;
+}
+
+.app .admin-find input[type="search"] {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.app .admin-density {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.app .admin-results {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+}
+
+.app .admin-results li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.app .admin-results .hint {
+  display: block;
+}
+
+.app:not([data-density="roomy"]) main:has(.admin-shell) .panel {
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.app:not([data-density="roomy"]) main:has(.admin-shell) h2 {
+  margin: 0 0 0.5rem;
+}
+
+.app:not([data-density="roomy"]) main:has(.admin-shell) td,
+.app:not([data-density="roomy"]) main:has(.admin-shell) th {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
 }
 
 .app .admin-hub {
@@ -4850,4 +4912,95 @@ p.hint a {
   background: var(--bg-subtle);
   font-size: 0.85rem;
   pointer-events: none;
+}
+
+/* ADM.120/122: the admin palette (Ctrl+K) and the keyboard list. */
+.app dialog.admin-palette {
+  width: min(40rem, calc(100vw - 2rem));
+  margin-top: 8vh;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  color: var(--text);
+}
+
+.app dialog.admin-palette::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
+
+.app .admin-palette input[type="search"] {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.app .admin-palette ul {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+.app .admin-palette li a {
+  display: block;
+  padding: 0.4rem 0.6rem;
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.app .admin-palette li[aria-selected="true"] a,
+.app .admin-palette li a:hover {
+  background: var(--bg-subtle);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.app .admin-palette .hint {
+  display: block;
+}
+
+.app .admin-keys dt {
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.app .admin-keys dd {
+  margin: 0 0 0.5rem;
+}
+
+/* ADM.119: the thin job strip under the rail on every admin page. */
+.app .admin-jobstrip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.75rem;
+  margin: 0 0 1rem;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-subtle);
+  font-size: 0.88rem;
+}
+
+.app .admin-jobstrip[hidden] {
+  display: none;
+}
+
+.app .admin-jobstrip-title {
+  font-weight: 600;
+}
+
+.app .admin-jobstrip-text {
+  flex: 1 1 8rem;
+  color: var(--text-muted);
+  min-width: 0;
+}
+
+.app .admin-jobstrip progress {
+  width: 8rem;
+}
+
+.app .admin-jobstrip-cancel {
+  margin: 0;
 }
