@@ -407,6 +407,26 @@ update_guard() {
         "$VENV/bin/python" -m planetgen.cli.update_guard "$@")
 }
 
+# `update.sh --reset-jobs`: stops everything the update guard lists, kills the
+# queue workers and empties the jobs table, the work lease and the Redis queues
+# (`planetgen.cli.reset_jobs`), once, before the guard is taken. Like the guard
+# it waits for a checkout and a virtual environment that have it.
+reset_jobs_once() {
+    if (( ! ${RESET_JOBS:-0} || ${RESET_JOBS_DONE:-0} )); then
+        return 0
+    fi
+    if [[ ! -f "$SCRIPT_DIR/src/planetgen/cli/reset_jobs.py" || ! -x "$VENV/bin/python" ]]; then
+        return 0
+    fi
+    if (cd / && PYTHONPATH="$SCRIPT_DIR/src${PYTHONPATH:+:$PYTHONPATH}" \
+            "$VENV/bin/python" -m planetgen.cli.reset_jobs --yes); then
+        RESET_JOBS_DONE=1
+    else
+        echo "error: the jobs and the queue could not be reset; nothing else was changed." >&2
+        exit 1
+    fi
+}
+
 # Takes the guard if it is not held yet. Before the pull the checkout may not
 # have the guard (the first update that brings it) and a new machine may have
 # no virtual environment: then this does nothing, and is called again after
@@ -424,6 +444,7 @@ ensure_update_guard() {
         fi
         return 0
     fi
+    reset_jobs_once
     if update_guard begin --pid "$$" ${CANCEL_RUNNING[@]+"${CANCEL_RUNNING[@]}"}; then
         UPDATE_GUARD_HELD=1
     else

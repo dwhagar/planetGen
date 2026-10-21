@@ -205,6 +205,13 @@ before it changes anything, so the only thing that runs is the update:
    site closed**, says which step failed and how to open it, because the database may be half migrated:
    `python3 -m planetgen.cli.maintenance off`. The lock is released, so `./update.sh` can be run again.
 
+A job whose worker was killed (the out-of-memory killer, a restart) used to stay "running" in Redis for ever and hold
+the update; the guard and every worker now clear such a job when they start. When a job is stuck some other way,
+`sudo ./update.sh --reset-jobs` (or `python3 -m planetgen.cli.reset_jobs` on its own, `--dry-run` to only look) stops
+what the guard lists, kills the queue workers on the machine, and empties the jobs table and the work lease of the
+control database and the queues in Redis (the RQ keys only: the admin's worker count and the caches stay). It cancels
+without asking, so use it when nothing needs to finish.
+
 `python3 -m planetgen.cli.migrate` run by hand does the same when it has something to migrate (`--cancel-running`
 works there too). `update.sh` never edits your Redis configuration or your Apache site.
 
