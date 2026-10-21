@@ -15898,6 +15898,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `--redo-scatters` removed and no shim. Pure-Python tests pass (398);
   the DB tests, the same-galaxy equivalence check and the gate come
   after the PERF.107 and PERF.108 merge.
+  Status from Core 5 (4:41 PM EDT 2026-10-21 as the lane reported):
+  built together with PERF.122 on branch claude/core5-perf121 (main
+  merged in, f74b4f7). Wording above that is stale: `plan` now places no
+  stars (it is the skeleton only) and the five commands exist (scatter,
+  clear-scatter, fill-map-luminosity, rescore-habitability,
+  clean-nebula-field). The old-against-new equivalence check (galaxy
+  fingerprint on a 200-shell grid, old plan on main against plan plus
+  scatter --mass, --luminosity and --phenomena on the branch) has the
+  old side done (51 minutes) and the new side running since 4:35 PM EDT
+  (expected end about 5:30 PM EDT); the `changed` gate starts after the
+  fingerprints match. Finding from the same lane: `plan --max-shell`
+  does not shrink the scatter (the grid is 65,536 shells;
+  `--reach-shells` does), so a default-size plan run takes hours; this
+  item's rework should make the shell limit apply or remove the option,
+  no shim.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.122 The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags**
@@ -15923,6 +15938,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rescore-habitability` and `planetgen clean-nebula-field` (with
   `--apply`). They replace the `plan --fill-map-luminosity`, `plan
   --fill-habitability` and `plan --redo-nebula-field` modes.
+  Status from Core 5 (4:41 PM EDT 2026-10-21 as the lane reported):
+  built with PERF.121 on branch claude/core5-perf121; see the note
+  there. The `changed` gate has not started.
   Design: [docs/design/command-inventory.md](design/command-inventory.md)
 
 - [ ] **PERF.123 `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds**
@@ -16364,6 +16382,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `test_fuzz_cli.py::test_galaxy_absurd_radius_is_clean[200.0]`
   (TEST.260) leaves `planetgen:run:active` set in the test Redis, and
   170 later tests fail with `Busy: run ... is running`.
+  Bug Hunt (4:42 PM EDT 2026-10-21 as the lane reported): written with
+  PERF.143 on branch claude/project-thread-i3vcln:
+  `planetgen:run:active` is taken over from a dead owner using a
+  heartbeat key. The PR follows the gate; the lane will send the number.
   Prerequisites: none. Related: PERF.99, PERF.100, PERF.86.
 
 - [ ] **PERF.143 A command resets all jobs and the queue: clears every run record, the active-run key, the waiting and started units and the old job tree**
@@ -16411,6 +16433,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   xargs delete was refused by the permission classifier, a
   scan-and-delete in Python worked), so `reset_jobs` should clear the
   run keys too, and the test fixtures should be able to call it.
+  Bug Hunt (4:42 PM EDT 2026-10-21 as the lane reported): written and in
+  gate 23 (started 2:46 PM EDT, browser phase at 46 percent at 4:40 PM
+  EDT, expected end about 5:20 PM EDT), branch
+  claude/project-thread-i3vcln: `planetgen.cli.reset_jobs`, `update.sh
+  --reset-jobs`, a dead-job reap in the update guard and at worker
+  start, and a note in docs/deployment/README.md. The Done clause about
+  the console help list can only be met when the console items (8.7) are
+  built, because no console help list exists in the code yet.
   Prerequisites: none. Related: PERF.99, PERF.100, PERF.86.
 
 - [ ] **PERF.144 Web and API jobs get an RQ time limit from recorded stats instead of no limit, so a killed worker's entry expires**
@@ -20787,6 +20817,10 @@ clears each one.
   the lock when its run times out; PERF.142 covers the lock having no
   expiry. Done: the test passes alone and leaves no run key behind.
   Owner: Bug Hunt (proposed).
+  Bug Hunt (4:42 PM EDT 2026-10-21 as the lane reported): the hung run
+  leaving `planetgen:run:active` set is the same path as PERF.142, and
+  its takeover should clear it after the owner dies; the lane checks the
+  test once that PR is in, and the 10 s hang itself stays this item's.
   Prerequisites: none. Related: PERF.142, PERF.143, PERF.144.
 
 ## USR: User accounts
