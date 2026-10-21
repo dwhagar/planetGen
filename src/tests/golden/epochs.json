@@ -172,9 +172,13 @@
     },
     {
       "epoch": 35,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1842",
       "reason": "A reach group beyond the outline bounds the nuclear cluster and disc where the group really is (its inner spherical radius, not the pole's central density), so the candidate stream of the shells beyond the outline is drawn differently and the rows a seed places in them change (PERF.138)."
+    },
+    {
+      "epoch": 36,
+      "first_release": "8.0.1843",
+      "reason": "A free-floating brown dwarf's age is a star's: the age window of the population its place gives it, spread by that population's star formation rate, instead of an even draw over 0.1 to 10 Gy, so a seed gives its brown dwarfs different ages, radii and temperatures (GEN.553)."
     }
   ]
 }

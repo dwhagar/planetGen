@@ -139,7 +139,8 @@ def sector_star_count(sector):
 
 
 def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_field=None, scattered=False,
-                              kind_factors=None, type_ia_share=None, ambient_density_cm3=None, neighbour_hosts=()):
+                              kind_factors=None, type_ia_share=None, ambient_density_cm3=None, neighbour_hosts=(),
+                              fill=None):
     """
     Populates an already-built `sector` with its exotic phenomena, each
     kind in `SECTOR_PHENOMENON_KINDS` sampled independently by a Poisson
@@ -193,6 +194,8 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
         neighbour_hosts (iterable): The emission regions (D and E) lit by pre-placed hot stars in the neighbouring sectors,
             `(nebula, host_name, host_position_pc)` each (`FillContext.emission_hosts`, GEN.321): this sector builds the
             ionizing members of each whose points fall inside it.
+        fill (brightStars.FillContext, optional): For a galaxy-placed sector, its fill: a brown dwarf takes a
+            population from it, and so its age follows that population's star formation (GEN.553).
 
     Returns:
         list: The newly created `SectorPhenomenonEntry` instances. May hold
@@ -225,6 +228,8 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
                 phenomenon_config = SystemConfig()
                 phenomenon_config.TYPE_IA_SHARE = type_ia_share
                 phenomenon_config.AMBIENT_DENSITY_CM3 = ambient_density_cm3
+                if kind == "brown-dwarf" and fill is not None:
+                    fill.apply_population(phenomenon_config)   # GEN.553: its age follows its population
                 phenomenon = factory(phenomenon_config, galactic_center_dist_ly)
                 if kind == "planetary-nebula":
                     entry = _add_planetary_nebula(sector, args, phenomenon, galactic_center_dist_ly)
@@ -831,7 +836,7 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
                                   kind_factors=getattr(getattr(fill, "profile", None), "kind_factors", None),
                                   type_ia_share=getattr(getattr(fill, "profile", None), "type_ia_share", None),
                                   ambient_density_cm3=_bubble_density(fill),
-                                  neighbour_hosts=getattr(fill, "emission_hosts", ()))
+                                  neighbour_hosts=getattr(fill, "emission_hosts", ()), fill=fill)
         if scattered and fill.below_cut is not None:
             with fill_stages.stage(sector, fill_stages.BELOW_CUT):
                 below_cut_entries = add_below_cut_remnants(sector, args, fill, galactic_center_dist_ly)

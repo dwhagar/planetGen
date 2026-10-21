@@ -2,6 +2,48 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1844] - 2026-10-21
+
+**Headline:** One function now moves every body with a mass, whether it is a planet, a moon, a comet, a star or a wanderer.
+
+### Changed
+- `MassObject` (`generation/mass_object.py`) holds the state a body has relative to its parent (position and velocity, the pull of what it orbits) and `advance(seconds)`: a planet, moon or comet is stepped on its state vector with the Kepler step, and a star, remnant or wanderer on a circular galactic orbit has its phase advanced by its period. Boss's rule of 5:20 PM EDT: all motion is built into the one set of mass object functions.
+- The `HoldsOrbitPosition` mixin in `physics/position.py` is gone; `Planet` and `Comet` take its methods (`set_position_au`, `set_velocity_kms`, `orbit_from_vector`, `projected_orbit_au`) from the core.
+- No stored value or field changes. The per-class fields that become derived once the stored record is the core's (speed, axial tilt, rotation period, galactic period and phase) are removed in the DB.73 revision (Core 1), not here.
+- `docs/design/mass-object-class.md` section 11 records it.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.565 stays open) / Added: none
+
+## [8.0.1843] - 2026-10-18
+
+**Headline:** A free-floating brown dwarf is as old as the stars of the place it is in, not any age from 0.1 to 10 billion years.
+
+### Changed
+- A brown dwarf made by a galaxy sector's fill takes a population from the sector's mix, like a star, and its age comes from that population's age window spread by its star formation rate (GEN.546's `age_law`). A brown dwarf in the thin disk's young population is under 100 million years old; one in the halo is 10 to 13 billion. Its radius, temperature and spectral type follow from the age as before.
+- A brown dwarf made without a place (the single-object generator) draws its age over the whole disk's window, 0 to 10 billion years, in place of 0.1 to 10.
+- `FillContext.apply_population` is the part of `FillContext.apply` that gives a body its population, age law, [Fe/H] peaks and place terms. First step of GEN.553; the rest of the body draw follows.
+- `docs/design/brown-dwarf-state.md` describes the rule.
+
+generation-output: changed
+
+TODO items resolved: none (GEN.553 stays open) / Added: none
+
+## [8.0.1842] - 2026-10-18
+
+**Headline:** The shells beyond the galaxy's outline generate in seconds instead of hours, because the polar reach groups no longer take the dense core's nuclear density as their ceiling.
+
+### Changed
+- **A reach group's nuclear bound is read where the group really is** (`generation/object_first.py`, `bright_stars.py`, `phenomenon_reach.py`). A group beyond the outline reaches all the way to the pole, so its smallest cylindrical radius is near zero and the nuclear cluster and nuclear disc were bounded by their central density, thousands of times the density anywhere in the group. The scatter then drew millions of candidates to keep a few. The bound now uses the group's inner spherical radius as well as its cylindrical one, and cuts the height range of the nuclear disc into 12 steps, so the polar groups' bounds sit within 3 times the largest density a group holds. A shell-5 call that took over an hour (still unfinished after 60 minutes) on main now takes 43.5 s for 2,382,680 rows.
+- A looser or tighter bound changes how many candidates are drawn, so the rows a seed places in these shells change; the generator epoch is 35.
+generation-output: changed
+
+### Added
+- `tests/test_gen_reach_groups.py`: a polar group's bound stays within 3 times its largest true value.
+
+TODO items resolved: PERF.138. Added: none.
+
 ## [8.0.1841] - 2026-10-18
 
 **Headline:** A double click on the map is told by the time of its two clicks, so a first click the page is slow to answer no longer makes the second one a click again.

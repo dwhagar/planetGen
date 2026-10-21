@@ -190,3 +190,12 @@ The saving is the same as in the savings note, about 800 to 1,800 net lines, bec
 1. Pure inheritance: a subclass per kind. Closest to the code, but a change of kind is a change of class.
 2. Pure core plus profiles: one object class, no subclasses. Simplest storage, behaviour spread over profiles.
 3. Hybrid: three family classes, state and parent as data. **Recommended.**
+
+
+## 11. Motion lives in the core (GEN.565b)
+
+Boss, 5:20 PM EDT on 2026-10-18: every object with mass follows the same rules, so the trajectory of all motion, planetary and lunar as well as galactic, is built into the one set of mass object functions. `MassObject` (`generation/mass_object.py`) now holds it:
+
+- **State relative to the parent.** `spatial` (a `SpatialPosition3D`, "system" frame = the offset from the primary), `set_position_au`, `set_velocity_kms`, `orbit_mu_au3_per_year2` (each family says what it orbits), `orbit_from_vector` and `projected_orbit_au`. These were the `HoldsOrbitPosition` mixin in `physics/position.py`, which is gone.
+- **One mover.** `advance(seconds)` steps a body that has a state vector with `kepler.universal_step` and the pull of its primary (a planet about its star, a moon about its planet, a comet about its host), and advances the phase of a body on a circular galactic orbit (a star, a remnant, a wanderer) by its period. The batch updates in `store.py` do the same arithmetic over rows; `tests/test_state_kernel.py` holds the batch step to the object's.
+- **Boss's 6:09 PM EDT card (the full S16 record for every mass object)** is the stored form of the same thing: mass with mu, position and velocity relative to the parent, spin axis and rate, epoch and next-due. Its columns replace the per-class ones in the DB.73 revision (Core 1); the per-class fields that become derived (speed, axial tilt, rotation period, galactic period and phase) are dropped there. Until then they remain the stored fields; nothing here aliases them.
