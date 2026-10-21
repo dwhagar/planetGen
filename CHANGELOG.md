@@ -2,6 +2,33 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1849] - 2026-10-21
+
+**Headline:** A white dwarf's planets are the ones that outlived its giant phase, moved outward by the mass the star lost.
+
+### Added
+- **White dwarf planets (GEN.318).** A white dwarf's planets are drawn as the ones that formed around its progenitor, then the giant phase removes everything inside the progenitor's engulfment radius, 1.5 AU for a solar-mass star and 0.8 AU more per solar mass above one, and the survivors' orbits widen by the star's mass before over its mass after (`a (M_star + M_planet)` is constant: 1.85 for a star of one solar mass that leaves 0.54). A white dwarf without a model progenitor (a forced type, a planetary nebula's central star) takes the mass that leaves it by the remnant relation, kept between 1 and 8 solar masses.
+- **A planetary nebula's close pair holds a disk and no planets.** A close pair with a white dwarf as hot as a planetary nebula's central star (30,000 K or more) gets a circumbinary post-AGB disk on its primary (a mass between 0.01 and 0.1 solar masses, its inner edge the pair's stability limit, its outer edge 10 to 300 AU, with no bodies in it) and no planets. The star page names it.
+
+### Changed
+- The engulfment radius of a white dwarf was a fixed 1.5 AU for a population-model white dwarf and nothing for a forced type or a planetary nebula's central star; it now follows the progenitor's mass for every white dwarf, and a pair's post-common-envelope test reads it too.
+
+generation-output: changed
+
+## [8.0.1848] - 2026-10-21
+
+**Headline:** A comet on a closed orbit never leaves its star: its eccentricity is cut so the aphelion stays inside the star's Hill sphere.
+
+### Changed
+- **An elliptical comet's eccentricity is drawn from its period class's range cut at the value that puts the aphelion at its star's limit** (`generation/comet.py`, `generation/system.py`). The long-period class reaches e = 0.999 and, for a light star in the inner galaxy, an aphelion past the Hill sphere (a 0.08 solar mass star: 6159 AU against 5815 AU); GEN.182 says a closed orbit never leaves its star. `Comet` takes a `ceiling_au`: the star's Hill sphere against the galaxy for a single star or a close pair (`validation.orbit_ceiling_au`), the tighter stable limit for a star of a wide pair, which the system's re-roll already enforced. A range that lies wholly above the cut gives the cut itself. A parabolic comet is unbound on purpose and reads no ceiling. Draws that the cut does not reach are unchanged.
+- The generator epoch is 37.
+generation-output: changed
+
+### Added
+- `tests/test_comet_data.py`: the bound test hands the comet its Hill sphere (300 draws for each of three masses), a ceiling cuts the range and leaves a wide one alone, a parabolic comet reads none. `tests/test_systems.py`: every closed comet orbit of a generated system is inside its star's orbit ceiling.
+
+TODO items resolved: GEN.591. Added: none.
+
 ## [8.0.1847] - 2026-10-21
 
 **Headline:** The bright-star backfill of `planetgen galaxy` runs on the work queue as a command.
