@@ -2,6 +2,42 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1861] - 2026-10-21
+
+**Headline:** The tests of the worker count no longer disturb each other through the one Redis key that holds the admin's wanted number of workers.
+
+### Fixed
+- Tests: `planetgen:workers:wanted` is one key on the Redis server, read by every `ensure_workers` and set by the admin's page and `set_wanted`. Tests that set it (`test_workers.py`, `test_work_queue_admin.py`) ran in other test processes beside tests that count the workers a queue should have, so a count of 2 came out as 3 (or the key was deleted mid-test) and `test_a_batch_of_jobs_starts_no_more_workers_than_wanted_and_not_twice` and `test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs` failed in loaded gates (TEST.255). Each test now has a key of its own (`conftest.py`), emptied after; `test_wanted_workers_key.py` pins it (it fails with the shared key).
+
+TODO items resolved: TEST.255 / Added: none
+
+## [8.0.1860] - 2026-10-21
+
+**Headline:** If the core-ball batch-fill test ever counts a fourth system again, its failure now names the systems and the galaxy seed.
+
+### Changed
+- Tests: `test_core_ball_batch_fill_makes_planets` failed once with 4 systems where `--num-systems 3` asked for 3 (Core 5, on an older main). It does not come back on current main: 69 random-seed galaxies in one process and 40 separate test processes (the reproducer on the item) all gave 3. Nothing in the generator is changed on a guess; the assertion now prints the systems' ids, sectors and names and the galaxy's seed, so the next sighting carries the cause. TEST.254 stays open as "not reproduced".
+
+TODO items resolved: none / Added: none
+
+## [8.0.1859] - 2026-10-21
+
+**Headline:** A nebula's shape mesh never reaches past the nebula's radius, as the shape's documentation promises.
+
+### Fixed
+- Galaxy Map: the scale that makes a nebula's farthest surface point 1.0 is fitted on a 24-cell grid, and the mesh is cut on a finer one (28 cells in full detail), so a thin spike of the surface that the fit grid steps over reached past the bounding sphere (1.006 radii in the draw with seed 14, 1.029 in the one `test_nebula_shape_endpoint_serves_a_mesh` met once in Core 4's gate). `contains` already ends the nebula at the sphere and `radius_ly` is promised to bound it, so the few vertices out there are pulled back onto the sphere. Shapes and scales are unchanged; only a mesh vertex past the sphere moves. A new test pins the seed-14 spike and the API test allows for the five decimals the route rounds to.
+
+TODO items resolved: TEST.253 / Added: none
+
+## [8.0.1858] - 2026-10-21
+
+**Headline:** The check that an open map menu overlaps nothing now measures once the panel has stopped moving, and audits each menu of a page instead of the first one marked.
+
+### Fixed
+- Tests: `test_open_map_menus_hold_no_overlap[web.sector-390]` failed once in a full gate (load 9.6, `Menu /  59x16`: a control with no text lay exactly over the 59x16 "Menu" button) and passes alone and 5 of 5 under CPU load. It measured 150 ms after the click, so a loaded machine could still have the panel's first control where the panel starts, over the button. It now waits for three animation frames with the same boxes. It also left `data-audit` on each menu it audited, so the second menu of a page was measured as the first one (closed), not itself; the mark is removed after each audit.
+
+TODO items resolved: none / Added: none (the sighting is filed by the TODO thread)
+
 ## [8.0.1857] - 2026-10-21
 
 **Headline:** A test now holds that a dense-core cell filled without the star scatter makes the systems its resolution gives.
