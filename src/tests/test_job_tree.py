@@ -298,7 +298,7 @@ def _run(argv):
         sys.argv = old_argv
 
 
-def test_a_galaxy_run_is_a_tree_down_to_its_sectors(control_config):
+def test_a_galaxy_run_is_a_job_that_ends_done(control_config):
     _plan_wide_galaxy(control_config)
     _run(["galaxy", "--shell", "1", "--num-systems", "2"] + _mysql_argv(control_config))
     root_id = _rows(control_config, "SELECT id FROM work_jobs WHERE parent_id IS NULL")[0]["id"]
@@ -307,10 +307,9 @@ def test_a_galaxy_run_is_a_tree_down_to_its_sectors(control_config):
     assert tree["argv"] == ["galaxy", "--shell", "1", "--num-systems", "2"]
     assert "secret" not in tree["title"] and control_config.database not in tree["title"]
     assert tree["database_name"] == control_config.database
-    queue = tree["children"][0]
-    expected = cell_count(1)
-    assert queue["kind"] == "queue" and queue["tasks_total"] == expected
-    assert tree["totals"]["done"] == expected and {task["kind"] for task in queue["tasks"]} == {"sector"}
+    # The sectors are units of the run on Redis (PERF.107), no longer tasks of a queue node in this tree.
+    assert [child["kind"] for child in tree["children"]] == []
+    assert len(_rows(control_config, "SELECT id FROM sectors")) == cell_count(1)
 
 
 def test_a_web_job_is_the_root_of_its_steps_runs(control_config, tmp_path, monkeypatch):

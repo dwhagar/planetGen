@@ -223,7 +223,7 @@ def test_only_the_table_names_what_a_unit_runs():
     for kind in ("scatter-luminosity", "scatter-band", "scatter-phenomena", "plan-skeleton"):
         assert callable(commands.unit_function(kind)) and callable(commands.expand_function(kind))
     with pytest.raises(ValueError, match="inline"):
-        commands.unit_function("scatter-backfill")
+        commands.unit_function("run-population")
 
 
 # --- The massive-star scatter on the new queue (the stage PERF.97 moves, the wrapper queues, PERF.118) ----------
@@ -631,3 +631,141 @@ def test_a_tiered_pass_travels_as_json_and_comes_back_equal():
         import json
         sent = json.loads(json.dumps(scatter_limits.tiered_to_json(tiered)))
         assert scatter_limits.tiered_from_json(sent, skeleton) == tiered
+
+
+def test_the_sectors_are_cut_into_the_same_units_whatever_the_worker_count(monkeypatch):
+    import json
+
+    from planetgen.generation import run_galaxy
+    items = [value for sector in range(25) for value in (3, sector % 4 - 1, sector)]
+    params = {"database": {"host": "h", "port": 1, "user": "u", "database": "d"}, "args": {"num_systems": 2},
+              "edge_pc": 10.0, "items": items, "workers": 1}
+    for workers in (1, 8):
+        assert run_galaxy.expand_generate_sectors({**params, "workers": workers}).units \
+            == run_galaxy.expand_generate_sectors(json.loads(json.dumps(params))).units
+    monkeypatch.setattr(run_galaxy, "SECTOR_UNITS_MAX", 4)
+    expansion = run_galaxy.expand_generate_sectors(params)
+    assert len(expansion.units) == 4 and expansion.plan == {"sectors": 25}
+    assert [value for unit_args, _cost in expansion.units for value in unit_args["items"]] == items, "in order, whole"
+    assert sum(cost for _args, cost in expansion.units) == 25
+
+
+def test_the_arguments_of_a_sector_unit_carry_no_credentials_and_round_trip():
+    import argparse
+    import json
+
+    from planetgen.generation import run_galaxy
+    args = argparse.Namespace(num_systems=2, density=None, who="x", mysql_password="secret", mysql_host="h",
+                              mysql_port=3306, mysql_user="u", mysql_database="d", _drawn=object(), tags=["a", 1],
+                              stamp=(1, 2))
+    plain = run_galaxy._sector_args_json(args)
+    assert plain == {"num_systems": 2, "density": None, "who": "x", "tags": ["a", 1], "stamp": [1, 2]}
+    unit_args = json.loads(json.dumps({"args": plain, "database": {"host": "h", "port": 3306, "user": "u",
+                                                                  "database": "d"}}))
+    rebuilt = run_galaxy._sector_args_of(unit_args)
+    assert rebuilt.num_systems == 2 and rebuilt.mysql_password is None and rebuilt.mysql_database == "d"
+    assert "secret" not in json.dumps(unit_args)
+
+
+@pytest.mark.fresh_database
+def test_a_galaxy_run_stores_each_of_its_stages_once_and_follows_its_sector_units(mysql_config, monkeypatch, capsys):
+    from planetgen.db import store
+    from tests.bughunt_support import mysql_argv, run_cli
+    from tests.test_galaxy_gen import _seed_skeleton
+    _seed_skeleton(mysql_config, shells=[(0, 0), (1, 1), (2, 1)])
+    runs = []
+    real = wrapper.run
+    monkeypatch.setattr(wrapper, "run", lambda *args, **kwargs: runs.append(real(*args, **kwargs)) or runs[-1])
+    run_cli("galaxy", ["--shell", "2", "--num-systems", "2", *mysql_argv(mysql_config)])
+    out = capsys.readouterr().out
+    conn = redisqueue.connect()
+    records = [runrecord.read_run(conn, run_id) for run_id in runs]
+    keys = [stage["key"] for record in records for stage in record["stages"]]
+    assert keys.count("sectors") == 1 and "link" in keys and "settle" in keys
+    assert all(record["state"] == "done" for record in records)
+    sectors = next(stage for record in records for stage in record["stages"] if stage["key"] == "sectors")
+    assert sectors["units"] >= 1
+    db = store.get_connection(mysql_config)
+    try:
+        saved = db.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"]
+        paths = db.execute("SELECT COUNT(*) AS n FROM sector_paths").fetchone()["n"]
+    finally:
+        db.close()
+    assert saved > 0 and out.count("Saved sector '") == saved, "each sector logged once, as it was saved"
+    assert paths > 0 and "Linked " in out
+
+
+def _backfilled_rows(config, monkeypatch, unit_cells):
+    """The bright stars a one-sector `galaxy` run's backfill places, cut into units of `unit_cells` sectors, and the
+    units it was cut into."""
+    from planetgen.db import store
+    from planetgen.generation import run_galaxy
+    from planetgen.galaxy.spherical import sector_position_pc
+    from tests.test_bright_star_scatter import EDGE_PC, EXTENTS, SEED, SHAPE, _database_now
+    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=8,      # a sparse toy galaxy: a quick draw
+                            expected_system_count_at_density_1=100.0, config=config, cell_star_ceiling=1e12,
+                            galaxy_seed=SEED)
+    store.replace_galaxy_shells(EXTENTS, config=config)
+    monkeypatch.setattr(run_galaxy, "BACKFILL_UNIT_CELLS", unit_cells)
+    args = run_galaxy._default_generation_args(config=config)
+    args.num_systems = 0
+    address = (3, 0, 4)
+    started = _database_now(config)
+    run_galaxy.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
+    args.shell, args.band, args.wedge = address
+    cut = run_galaxy.expand_backfill_bright_stars({"database": wrapper.database_args(config),
+                                                   "since": started.isoformat(sep=" ")})
+    summary = run_galaxy.backfill_after_run(args, EDGE_PC, started)
+    conn = store.get_connection(config)
+    try:
+        rows = [tuple(row.values()) for row in conn.execute(
+            "SELECT shell_index, band_index, wedge_index, initial_mass_sol, luminosity_w, star_type, position_x_mpc,"
+            " position_y_mpc, position_z_mpc, seed"
+            " FROM bright_stars ORDER BY shell_index, band_index, wedge_index, initial_mass_sol, seed"
+        ).fetchall()]
+    finally:
+        conn.close()
+    return rows, cut, summary
+
+
+@pytest.mark.fresh_database
+def test_the_backfill_gives_the_same_stars_in_one_unit_or_many(mysql_config, monkeypatch):
+    from tests.test_gen_resume import second_mysql_config  # noqa: F401  (the fixture, to be called below)
+    from planetgen.db import store
+    import tests.conftest as conftest
+    import pymysql
+    import uuid
+    kwargs = conftest._test_server_kwargs()
+    name = f"planetgen_test_{uuid.uuid4().hex[:16]}"
+    server = pymysql.connect(**kwargs)
+    try:
+        with server.cursor() as cur:
+            cur.execute(f"CREATE DATABASE `{name}`")
+        server.commit()
+        other = store.MySQLConfig(database=name, **kwargs)
+        whole, whole_cut, whole_summary = _backfilled_rows(mysql_config, monkeypatch, 10_000)
+        size = max(1, whole_cut.plan["sectors"] // 4)
+        many, many_cut, many_summary = _backfilled_rows(other, monkeypatch, size)
+        store.close_pool(other)
+    finally:
+        with server.cursor() as cur:
+            cur.execute(f"DROP DATABASE IF EXISTS `{name}`")
+        server.commit()
+        server.close()
+    assert len(whole_cut.units) == 1 and whole_cut.plan["sectors"] >= 4 and whole_cut.plan == many_cut.plan
+    assert 2 <= len(many_cut.units) <= 5 and max(len(unit[0]["items"]) for unit in many_cut.units) == size
+    assert whole and whole == many and whole_summary == many_summary and whole_summary["stars"] == len(whole)
+    flat = [item for unit, _cost in many_cut.units for item in unit["items"]]
+    assert flat == [item for unit, _cost in whole_cut.units for item in unit["items"]], "the same sectors, in order"
+
+
+@pytest.mark.fresh_database
+def test_a_backfill_with_nothing_to_draw_is_one_empty_unit_and_stores_its_stage(mysql_config):
+    from planetgen.generation import run_galaxy
+    from tests.test_bright_star_scatter import _database_now, _seed_galaxy
+    _seed_galaxy(mysql_config)
+    cut = run_galaxy.expand_backfill_bright_stars({"database": wrapper.database_args(mysql_config),
+                                                   "since": _database_now(mysql_config).isoformat(sep=" ")})
+    assert [unit[0]["items"] for unit in cut.units] == [[]] and cut.plan == {"sectors": 0}
+    result = commands.run_alone("scatter-backfill", cut.units[0][0])
+    assert result == {"sectors": 0, "stars": 0, "visited": 0, "shells": {}}
