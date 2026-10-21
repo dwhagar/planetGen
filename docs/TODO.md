@@ -22139,8 +22139,8 @@ clears each one.
   are not written (a change to the generator or to the rich galaxy) and
   fix the cause, or add the table to the test's empty-table list with
   the reason. Done: the test passes alone and in the full gate. Owner:
-  Bug Hunt queue (the TODO thread's suggestion; the coordinator
-  assigns).
+  Bug Hunt, in its queue after PERF.144 and PERF.145 (the coordinator,
+  7:25 PM EDT 2026-10-21).
   Prerequisites: none.
 
 ## USR: User accounts
