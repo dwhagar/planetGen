@@ -23,5 +23,6 @@ The head on main is 0109 (0107 GEN.526, 0108 DB.72, 0109 GEN.289); the next free
 *The defaults in docs/TODO.md stand as decided until Boss says otherwise; each of these needs one answer or one input.*
 
 - **GEN.537:** the plan configuration design cards (8.5).
+- **Network access:** open arxiv.org, doi.org and crossref for the environment when he can (Boss, 1:17 PM EDT 2026-10-21). Until then lanes treat sources already in the repository or in files he provided as valid, and a value without such a source stays a placeholder in the gap registry; no lane waits on network verification.
 - **The 9.0 major version:** the `.major.md` note and the hand version bump need Boss's word.
 - **PERF.41:** the cold-rebuild time of `planetgen warm` (was `warm_map`).
