@@ -167,7 +167,7 @@ def _template_globals():
         "icon": icon,
         "page_url": page_url,
         "current_admin": current_admin,
-        "admin_shell": lambda section: adminregistry.shell(section, page_url),
+        "admin_shell": lambda section: adminregistry.shell(section, page_url, current_admin()),
         "admin_job": lambda: generate_page.strip_view(),
         "maintenance_state": maintenance.read,
         "galaxy_status": galaxy_status_now,

@@ -100,7 +100,11 @@ def test_search_ranks_label_starts_first_and_needs_every_word(config):
 
 
 def test_shell_lights_the_destination_of_the_page_and_is_none_elsewhere():
-    shell = adminregistry.shell("admin_facility_types", lambda endpoint: f"/{endpoint}")
+    admin = {"username": "boss", "must_change_credentials": False}
+    shell = adminregistry.shell("admin_facility_types", lambda endpoint: f"/{endpoint}", admin)
     assert [d["key"] for d in shell["destinations"] if d["current"]] == ["data"]
     assert len(shell["destinations"]) == 6
-    assert adminregistry.shell("galaxy", lambda endpoint: "/") is None
+    assert [d["key"] for d in adminregistry.shell("account", str, admin)["destinations"] if d["current"]] == ["account"]
+    assert adminregistry.shell("galaxy", lambda endpoint: "/", admin) is None
+    assert adminregistry.shell("admin", str, None) is None
+    assert adminregistry.shell("account", str, {**admin, "must_change_credentials": True}) is None

@@ -1046,3 +1046,12 @@ def test_the_job_strip_shows_the_running_job_on_every_admin_page(client, fake, m
     assert "Add sectors" in html and 'href="/admin/generate/jobs/j1"' in html
     assert 'name="action" value="cancel"' in html and 'name="job" value="j1"' in html
     assert 'value="0.25"' in html
+
+
+def test_the_account_page_wears_the_shell_except_while_credentials_must_change(client, fake):
+    """ADM.93: Account is the rail's sixth destination; the forced first change has no rail to bounce off."""
+    _logged_in(client, fake)
+    html = client.get("/account").get_data(as_text=True)
+    assert re.search(r'data-destination="account" aria-current="page"', html)
+    _logged_in(client, fake, must_change=True)
+    assert "data-admin-shell" not in client.get("/account").get_data(as_text=True)

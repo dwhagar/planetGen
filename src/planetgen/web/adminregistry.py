@@ -35,6 +35,7 @@ SECTION_DESTINATION = {
     "admin_queue": "jobs",
     "admin_stats": "data",
     "admin_facility_types": "data",
+    "account": "account",
 }
 """dict: A page's `render_page(section=...)` -> the rail destination it lights. Only these sections wear the shell."""
 
@@ -181,15 +182,21 @@ def search(query, found, limit=12):
     return [item[3] for item in scored[:limit]]
 
 
-def shell(section, page_url):
+def shell(section, page_url, admin=None):
     """
-    What the shell draws around an admin page, or `None` for a page that is not under it.
+    What the shell draws around an admin page, or `None` for a page that is not under it or an admin who must first
+    change the seeded credentials (the rail's links would only bounce them back).
+
+    Args:
+        section (str): The page's `render_page(section=...)`.
+        page_url (callable): `helpers.page_url`.
+        admin (dict, optional): The signed-in admin; without one there is no shell.
 
     Returns:
         dict: `destinations` (`[{"key", "label", "url", "current"}]`, the rail), `search_url` and `palette_url`.
     """
     current = SECTION_DESTINATION.get(section)
-    if current is None:
+    if current is None or not admin or admin.get("must_change_credentials"):
         return None
     return {
         "destinations": [
