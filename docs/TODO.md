@@ -16203,6 +16203,55 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   their skipped and rebuilt totals are this item (Core 2's next).
   Prerequisites: PERF.140.
 
+- [ ] **PERF.142 A stale job left in the database or the queue blocks every new run and Boss cannot proceed (bug)**
+  Boss (2026-10-21, 12:32 PM EDT, typed in the project chat): "On I need
+  to fix a bug, we need a command to reset all jobs and the queue I
+  somehow have a job in the db somewhere that won't let me proceed".
+  Reported through the coordinator; nothing is known yet about which
+  record it is or how it got left behind. Facts from the code (read, not
+  run): a new run of a kind is refused with `Busy` while
+  `runrecord.active_run` names another run of that kind
+  (`queue/runrecord.py`), PERF.99 names the Redis key
+  `planetgen:run:active` and a stale-run Clear action that does not
+  exist yet, and the old MySQL job tree (`work_*` tables,
+  `queue/work.py`) is still written until PERF.100, so a stuck row can
+  sit in Redis, in an RQ queue or in MySQL. Do: ask Boss for the text of
+  the refusal or the page that blocks (or read it from his server's
+  log), find which record blocks and why it was never cleared (a killed
+  worker, a restarted container or a run that died between stages are
+  the likely paths, inferred, not checked), fix the path that leaves it
+  behind so a dead run is detected as stale and stops blocking, and name
+  the cause on this item. Done: the cause is on this item, a test kills
+  a run mid-stage and the next run starts without a manual step, and the
+  reset command (the item filed with this one) is not needed to recover
+  from a crash. Owner: Bug Hunt (the coordinator gave it the report at
+  12:32 PM EDT). Related: PERF.99 (the stale-run Clear action),
+  PERF.100.
+  Prerequisites: none. Related: PERF.99, PERF.100, PERF.86.
+
+- [ ] **PERF.143 A command resets all jobs and the queue: clears every run record, the active-run key, the waiting and started units and the old job tree**
+  Boss (2026-10-21, 12:32 PM EDT, typed in the project chat): "On I need
+  to fix a bug, we need a command to reset all jobs and the queue I
+  somehow have a job in the db somewhere that won't let me proceed". Do:
+  one command (the name is the owner's call; it must not be confused
+  with `planetgen reset`, which wipes the galaxy) that stops any live
+  worker with the stop command, then clears every run record and the
+  `planetgen:run:active` key, empties the RQ queues and the event
+  streams, and deletes the rows of the old MySQL job tree, so a new run
+  starts at once; it prints what it removed (counts per kind), asks for
+  confirmation unless given `--yes`, and never touches galaxy data, the
+  tile or page caches, or the settings. Done: a test plants a stale run
+  in each place (Redis run record, active key, a waiting and a started
+  unit, MySQL job rows), the command clears all of it, the galaxy rows
+  are unchanged, and a run then starts without `Busy`; the command is in
+  the console help list (UX/console items) and docs. When PERF.100
+  removes the MySQL job tree the command drops that step with no shim.
+  Owner: Bug Hunt (the coordinator gave it the report at 12:32 PM EDT).
+  Related: the stale-job bug filed with this item, PERF.99 (the Clear
+  action on the Generate page covers the same ground in the page),
+  PERF.100.
+  Prerequisites: none. Related: PERF.99, PERF.100, PERF.86.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
