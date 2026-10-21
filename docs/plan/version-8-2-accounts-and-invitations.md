@@ -43,29 +43,12 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | PERF.134 | The admin page shows the tile cache and can clear it: tiles per level, bytes, built and visited counts, the build queue, and clear and build-now actions |  | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
-| ADM.97 | The settings page can show a number as a slider: the cache size is the first one |  | Boss, 2026-10-18, 5:43 PM EDT (slider on the settings page). |
+| ADM.97 | The settings page can show a number as a slider: the cache size is the first one | ADM.104 | Boss, 2026-10-18, 5:43 PM EDT (slider on the settings page). |
 | DB.79 | The object index table (migration only): one row per object of every kind the site lists, with keyset order keys and a name index |  | Boss, 2026-10-18, 5:43 PM EDT (an index and a list of every list). |
 | PERF.140 | The index builder and its automatic refresh: each kind is rebuilt from what changed whenever generation, an orbital update or an edit changes it | DB.79 | Boss, 2026-10-18, 5:43 PM EDT (regenerated automatically on change). |
 | UX.141 | List pages for every kind: systems, stars, planets, moons, belts, comets and each phenomenon type, and the name search, read the object index with keyset paging | PERF.140 | Boss, 2026-10-18, 5:43 PM EDT (a list of every list). |
 | PERF.141 | The warm-up runs in phases after every generation, update or change, as deep as the budget allows | PERF.140 | Boss, 2026-10-18, 5:43 PM EDT (multiple warm-up phases). |
 | PERF.129 | Robust tile caching: the first zoom levels built ahead, tiles stored compressed, built proactively around every visit, kept until the data changes | PERF.134 | Boss, 2026-10-17, 4:31 PM EDT (tile caching, 8.2). |
-
-### Admin control suite
-
-Boss (6:01 PM EDT, 2026-10-21): the admin pages, the Generate suite and the settings are redesigned in their own thread, right now, as one quiet control suite. It researches first, writes a report and brings decision cards; nothing is built before Boss answers them.
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| ADM.98 | Admin control suite research: how to pack many options into one quiet interface (admin pages, the Generate suite and the settings), a report and decision cards before anything is built |  | Admin control suite, Boss 6:01 PM EDT 2026-10-21: the admin redesign thread; research and cards first. |
-| ADM.55 | Admin usability audit: walk every admin page and task, rank what is hard to use, and propose one layout |  | Audit; UX.115 dropped so it starts now. Admin control suite, Boss 6:01 PM EDT 2026-10-21: the admin redesign thread; research and cards first. |
-| ADM.92 | Admin shell: one layout, one navigation and the shared table, form, confirmation and job-log components | ADM.55, ADM.98 | Split from ADM.56. Admin control suite, Boss 6:01 PM EDT 2026-10-21: the admin redesign thread; research and cards first. |
-| ADM.93 | Move every existing admin page onto the shell and fix the defects the audit ranks above its line | ADM.92 | Split from ADM.56. Admin control suite, Boss 6:01 PM EDT 2026-10-21: the admin redesign thread; research and cards first. |
-| ADM.56 | Streamline and fix the admin pages from the audit: one admin shell, one navigation and one pattern for tables, forms, confirmations and job logs | ADM.92, ADM.93 | Admin control suite, Boss 6:01 PM EDT 2026-10-21: the admin redesign thread; research and cards first. |
-| UX.125 | The Generate page and the one-off system page on the field macro | UX.124 | The Generate page conversion rides ADM.99. Admin control suite, Boss 6:01 PM EDT 2026-10-21: the admin redesign thread; research and cards first. |
-| UX.126 | The admin pages and the edit dialogs on the field macro | UX.124 | The admin page conversion rides ADM.56 and ADM.93. Admin control suite, Boss 6:01 PM EDT 2026-10-21: the admin redesign thread; research and cards first. |
-| ADM.99 | Generate suite redesign: the Generate page rebuilt inside the admin control suite so a long list of options is easy to use | ADM.98, ADM.92 | Admin control suite, Boss 6:01 PM EDT 2026-10-21: the admin redesign thread; research and cards first. |
-| ADM.100 | Settings page redesign: plain-language groups and descriptions, and settings that cannot be changed hidden by a toggle that is on by default | ADM.98, ADM.92 | Admin control suite, Boss 6:01 PM EDT 2026-10-21: the admin redesign thread; research and cards first. |
-
 
 ## Phase 2: What a signed-in user gets
 
