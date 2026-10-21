@@ -192,8 +192,7 @@
     },
     {
       "epoch": 39,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.1850",
       "reason": "A neutron star's or stellar black hole's age follows its population: the star's birth age from the population's window and age law, less the progenitor's time to collapse (GEN.553)"
     }
   ]
