@@ -45,11 +45,12 @@ SCATTER_KEYS = ("mass", "luminosity", "phenomena", "backfill")
 backfill, each also stored on its own."""
 
 _state = {"stages": [], "next": 0, "args": None, "command": None, "open": None,
-          "job_shells": 0, "job_seconds": 0.0, "overall": None, "ran": 0, "scatters": []}
+          "job_shells": 0, "job_seconds": 0.0, "overall": None, "ran": 0, "scatters": [], "bannered": False}
 """The run's stage list, the next one to enter, its arguments (for the settings each stage is recorded
 with), its command, the stage open now (`_open`), the shells and seconds of the stages finished so far (the
 whole-job stat), the command-line overall bar's clock and estimate (`overall`) and how many stages have
-finished running (`ran`, skipped ones not counted)."""
+finished running (`ran`, skipped ones not counted) and whether the Generate page's banner already names the
+run's only stage (`bannered`: then the log does not say it again)."""
 
 
 class Stage:
@@ -408,12 +409,24 @@ def _numbering():
     return (offset, total) if offset >= 0 and total >= offset + len(_state["stages"]) else (0, len(_state["stages"]))
 
 
+def _under_banner():
+    """Whether a web job's runner started this process (it sets the numbering) and so printed the stage's banner
+    (`=== Stage 4 of 13: Plan the galaxy ===`, `stagemark.section`) above this run's output."""
+    try:
+        return int(os.environ.get(STAGE_OFFSET_ENV, "")) >= 0 and int(os.environ.get(STAGE_TOTAL_ENV, "")) > 0
+    except ValueError:
+        return False
+
+
 def begin(stages, args=None, command=None):
     """Starts a run's stage list and logs it (skipped ones with their reasons). With `args`, each stage's time
-    is stored with the settings it ran with (PERF.56)."""
+    is stored with the settings it ran with (PERF.56). A web job's step of one stage that is not skipped has its
+    banner above the output, which says the stage, its number and the job's stage count, so the log does not
+    repeat it (PERF.145)."""
     _state.update(stages=list(stages), next=0, args=args, command=command, open=None, job_shells=0,
-                  job_seconds=0.0, overall=_start_overall(stages, args, command), ran=0, scatters=[])
-    if not stages:
+                  job_seconds=0.0, overall=_start_overall(stages, args, command), ran=0, scatters=[],
+                  bannered=len(stages) == 1 and not stages[0].skip and _under_banner())
+    if not stages or _state["bannered"]:
         return
     offset, total = _numbering()
     parts = [f"{n}. {s.label}" + (f" (skipped: {s.skip})" if s.skip else "")
@@ -437,7 +450,7 @@ def _announce(index, skipped=None):
     offset, job_total = _numbering()
     if skipped:
         log.normal(f"{stagemark.marker(offset + index + 1, job_total)}: {stage.label} -- skipped: {skipped}.")
-    else:
+    elif not _state["bannered"]:
         log.normal(f"{stagemark.marker(offset + index + 1, job_total)}: {stage.label}.")
     progress_file.set_stage(index + 1, total, stage.label, skipped)
 

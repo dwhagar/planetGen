@@ -406,6 +406,31 @@ def test_a_web_jobs_stages_are_numbered_across_the_whole_job(monkeypatch):
     assert "Stage 12 of 12: Save the sector paths." in text
 
 
+def test_a_web_jobs_step_of_one_stage_does_not_repeat_what_its_banner_says(monkeypatch, tmp_path):
+    """PERF.145: under "=== Stage 4 of 13: Plan the galaxy ===" the log had "1 stage (stages 4 to 4 of 13): 4. Plan
+    the galaxy." and "Stage 4 of 13: Plan the galaxy." again."""
+    lines = []
+    monkeypatch.setattr(log, "normal", lambda message, *a, **k: lines.append(message))
+    monkeypatch.setenv(progress_file.ENV_VAR, str(tmp_path / "progress.json"))
+    monkeypatch.setenv(stages.STAGE_OFFSET_ENV, "3")
+    monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "13")
+    stages.begin(stages.plan_stages(_plan("--phenomena-only")))
+    stages.enter("phenomena")
+    stages.finish()
+    assert not [line for line in lines if "tage" in line and "of 13" in line]
+    assert json.loads((tmp_path / "progress.json").read_text())["stage"]["index"] == 1      # the page's own text stays
+
+
+def test_a_skipped_stage_of_a_web_jobs_step_still_says_why(monkeypatch):
+    lines = []
+    monkeypatch.setattr(log, "normal", lambda message, *a, **k: lines.append(message))
+    monkeypatch.setenv(stages.STAGE_OFFSET_ENV, "3")
+    monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "13")
+    stages.begin(stages.plan_stages(_plan("--phenomena-only")))
+    stages.skip("phenomena", "nothing to scatter")
+    assert any("skipped: nothing to scatter" in line for line in lines)
+
+
 def test_a_run_on_its_own_counts_its_own_stages(monkeypatch):
     lines = []
     monkeypatch.setattr(log, "normal", lambda message, *a, **k: lines.append(message))
