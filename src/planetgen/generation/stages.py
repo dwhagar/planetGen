@@ -225,6 +225,12 @@ def _with_rate(record):
     return shells
 
 
+def open_key():
+    """The key of the stage open now, or `None` when no stage is open (an estimate, or a caller outside a run)."""
+    record = _state["open"]
+    return None if record is None else record["key"]
+
+
 def hand_over_open_stage():
     """
     Hands the stage open now to the queue (PERF.106): its units run elsewhere, so the unit that completes the stage

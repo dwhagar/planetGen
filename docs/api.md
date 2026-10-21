@@ -456,15 +456,16 @@ connectivity to that specific schema rather than the default one.
   tile contents could: sectors placed, edited or removed (their
   `modified_at`, schema v27), new star systems, a re-planned galaxy shape,
   or a new planetGen release. `state` is what `/api/galaxy/changes` takes.
-- `GET /api/galaxy/changes?since=<state>` — `{"stamp", "state", "full",
-  "tiles", "stages"}` (`queryDb.galaxy_changes`): the keys of the tiles
+  `tile_stamp` (in `/api/galaxy/changes`) is the same without the release, for the stored tiles (PERF.133).
+- `GET /api/galaxy/changes?since=<state>` — `{"stamp", "tile_stamp", "state", "full",
+  "tile_full", "tiles", "stages"}` (`queryDb.galaxy_changes`): the keys of the tiles
   that changed since that `state`, found from `sectors.modified_at`, new
   sector ids and new star-system ids, and the drill-down stages holding
   those sectors (`stages`, the keys `queryDb.galaxy_stage_keys` gives for each changed
-  sector: `galaxy` and every block above the sector). `full` is `true` (and both lists empty) when that can't
-  be pinned to tiles: a deleted sector, a new shape or release, more than
+  sector: `galaxy` and every block above the sector). `tile_full` is `true` (and both lists empty) when that can't
+  be pinned to tiles: a deleted sector, a new shape, tile format or generator epoch, more than
   1,000 changed sectors, new bright stars (a backfill), or a missing or
-  unreadable `since`. When `full` is only because so much changed at once
+  unreadable `since`; `full` is `true` for all of those and also for a new release alone, which stales the pages and counts cached by `stamp` but no stored tile (PERF.133). When `tile_full` is only because so much changed at once
   (more than 1,000 sectors, or new bright stars), the answer also has
   `"busy": true`, and the web layer keeps its cached tiles for up to ten
   minutes instead of refetching them all under that load (PERF.34).

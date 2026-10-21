@@ -1,6 +1,6 @@
 # The composition model: what every body, star and atmosphere is made of
 
-**Status (2026-10-17):** checked design for Boss's approval (GEN.437, with the notes GEN.409, GEN.426, GEN.435 and GEN.436). The loader of section 4b is built (GEN.472, #2061); the tables, the draws and the derived values are not. This is the master note of Boss's directive (2026-10-16, 11:58 PM EDT). It joins [atmosphere-colour.md](atmosphere-colour.md) (the atmosphere and the colour), [bulk-composition.md](bulk-composition.md) (the bulk of every body), [stellar-composition.md](stellar-composition.md) (the stars and remnants) and [radiation-model.md](radiation-model.md) (the radiation); section 7 joins the four. Every section the research lanes write goes into the design documents named here.
+**Status (2026-10-17):** checked design for Boss's approval (GEN.437, with the notes GEN.409, GEN.426, GEN.435 and GEN.436). The loader of section 4b (GEN.472, #2061), the element table (GEN.438), the stellar relations (GEN.439) and the star composition (GEN.440) are built (see "As built" in sections 4b and 7); the body and atmosphere tables and their draws are not. This is the master note of Boss's directive (2026-10-16, 11:58 PM EDT). It joins [atmosphere-colour.md](atmosphere-colour.md) (the atmosphere and the colour), [bulk-composition.md](bulk-composition.md) (the bulk of every body), [stellar-composition.md](stellar-composition.md) (the stars and remnants) and [radiation-model.md](radiation-model.md) (the radiation); section 7 joins the four. Every section the research lanes write goes into the design documents named here.
 
 ## 1. What Boss decided
 
@@ -226,7 +226,7 @@ Boss (typed in the project chat): for each composition there is a list of possib
 - **The gate evaluator.** A row passes when the subject's class is in its `classes` (or the row says `ANY_CLASS`) and every `Condition` holds. A condition reads one stored quantity of the subject (`minimum`, `maximum` or `equals`, a bound inclusive) and a quantity the subject lacks is an error, never a pass. The condition predicates of section 14.6 (the condensation temperature at the formation distance, the oxidation state, the water and carbon inventory, the star's abundances) are conditions on those stored or derived quantities, so no table needs class letters.
 - **Open weights.** The sourced weights of the rows that pass are probabilities and the open rows of that gate share what is left over equally; with only open rows they share all of it. If the sourced weights already use up the whole, an open row gets nothing and stays in the report; if they add up to more than 1 while an open row passes, the draw is refused.
 - **Fractions.** A row with `fractions` and no `concentration` gives them directly (scaled to 1); with a `concentration` they are a Dirichlet draw around them (`concentration_from_spread(mean, sd)` gives the concentration for a known spread). Component names are rows of the one shared table (`SHARED_COMPONENTS`, "materials", GEN.427): a table with fractions must name it, and `Registry.validate` refuses a component that table does not hold, so no kind has a list of its own.
-- **Versions.** `Table.digest` hashes the version, every row's name, gate, weight (a function by its qualified name), state and fractions; `Registry.versions` lists `(version, digest)` per table. The first real tables (GEN.410, GEN.427, GEN.439) pin them with their epoch bump; the loader itself changes no stored value and has no epoch.
+- **Versions.** `Table.digest` hashes the version, every row's name, gate, weight (a function by its qualified name), state and fractions; `Registry.versions` lists `(version, digest)` per table. The first real tables (GEN.410, GEN.427, GEN.439) pin their table version; the 8.1 tables bump no epoch (Boss, 2026-10-17, 2:10 PM EDT, section 7.5), and the loader itself changes no stored value and has no epoch.
 - **Not in the loader.** The sum test over every class and table (TEST.214), the target-table check of the tunable rows (GEN.503) and the tables themselves.
 
 ## 5. What Boss may research for the bodies
@@ -237,7 +237,7 @@ The research list of the Tunable gaps investigation ([tunable-gaps.md](tunable-g
 
 ## 6. Open points for the designs
 
-- Which kinds of body draw the density first and fill in the composition, and which derive the density from the composition (GEN.426).
+- Decided (Boss, 2026-10-17, 1:21 AM EDT, "Composition first"; section 7.3): new bodies get their composition drawn first and the bulk figures derived (route 2), so this point is closed (GEN.426).
 - Whether a star's composition changes the luminosity, lifetime and colour tables of GEN.407 (GEN.435).
 - The order of the steps when the ground's colour is part of the albedo and the albedo sets the temperature (GEN.441, GEN.412, GEN.422).
 - How a small body's mass follows from its composition and size (belts have a stated mass of zero today, NAV.62).

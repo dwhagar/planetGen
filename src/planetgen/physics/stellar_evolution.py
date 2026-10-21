@@ -352,6 +352,63 @@ def remnant_age_fraction(mass_sol):
     return pc.GIANT_PHASE_END_MS_FRACTION
 
 
+def remnant_formation_time_gy(mass_sol):
+    """The age at which a star of initial mass `mass_sol` has become its remnant, Gy: the end of its last giant phase."""
+    return main_sequence_lifetime_gy(mass_sol) * remnant_age_fraction(mass_sol)
+
+
+def youngest_progenitor_sol(age_yr):
+    """The lightest star whose giant phases have ended by this age (a star lighter than
+    `HELIUM_FLASH_MASS_SOL` also burns helium on the horizontal branch and climbs the asymptotic giant branch, and its
+    giant branch has the length of `giant_branch`, GEN.502)."""
+    age_gy = age_yr / 1.0e9
+    flash = tuning.HELIUM_FLASH_MASS_SOL
+
+    if remnant_formation_time_gy(flash * (1.0 - 1.0e-9)) <= age_gy:
+        low, high = ms_lifetime.MIN_MASS_SOL, flash
+        if remnant_formation_time_gy(low) <= age_gy:
+            return low
+        for _ in range(50):
+            middle = math.sqrt(low * high)
+            if remnant_formation_time_gy(middle) > age_gy:
+                low = middle
+            else:
+                high = middle
+        return high
+    return max(ms_lifetime.mass_for_lifetime_gy(age_gy / tuning.GIANT_PHASE_END_MS_FRACTION), flash)
+
+
+def collapse_age_gy(kind, age_bias=None, rng=draw, population=None, age_law=None):
+    """
+    The age, Gy, of a neutron star or stellar black hole in a population (GEN.553): the time since the star that made it
+    collapsed. The progenitor is drawn from the IMF over the kind's progenitor range
+    (`tuning.NEUTRON_STAR_PROGENITOR_SOL`, `BLACK_HOLE_PROGENITOR_SOL`), no lighter than the lightest star that can
+    have collapsed inside the population's window; the star's birth age is drawn as any star's is
+    (`sample_star_age_gy`: the population's window and age law) but no younger than the progenitor took to collapse,
+    and the remnant's age is the birth age less that time. A window where no progenitor can have collapsed gives the
+    youngest age a remnant has (`tuning.COMPACT_REMNANT_AGE_RANGE_GY`).
+
+    Args:
+        kind (str): "neutron-star" or "black-hole" (`remnant_mass.KINDS`).
+        age_bias (str, optional): "young", "old" or None, as `sample_star_age_gy`.
+        rng: The random source.
+        population (str, optional): The stellar population (`population_age_range_gy`); None: the whole disk's history.
+        age_law (AgeLaw, optional): The density of birth ages inside the window (GEN.546); None: uniform.
+    """
+    low, high = {"neutron-star": tuning.NEUTRON_STAR_PROGENITOR_SOL,
+                 "black-hole": tuning.BLACK_HOLE_PROGENITOR_SOL}[kind]
+    window_low, window_high = age_window_gy(*population_age_range_gy(population), age_bias)
+    floor = tuning.COMPACT_REMNANT_AGE_RANGE_GY[0]
+    low = max(low, youngest_progenitor_sol(window_high * 1.0e9))
+    if low >= high:
+        return floor
+    progenitor = sample_imf_mass_sol(low, high, rng)
+    formed_gy = remnant_formation_time_gy(progenitor)
+    window_low = max(window_low, formed_gy)
+    born_gy = rng.uniform(window_low, window_high) if age_law is None else age_law.sample(window_low, window_high, rng)
+    return max(born_gy - formed_gy, floor)
+
+
 def horizontal_branch_shares(fe_h, age_gy):
     """
     The shares `(blue, rr_lyrae, red, extreme)` of the horizontal branch at

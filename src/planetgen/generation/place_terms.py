@@ -17,7 +17,6 @@ from dataclasses import dataclass
 import numpy as np
 
 from planetgen import tuning
-from planetgen.generation import multistar
 from planetgen.physics import constants, ms_lifetime, remnant_mass
 
 
@@ -61,7 +60,7 @@ def _present_day_moments(age_gy, remnants=True):
     `(sum of M, sum of M squared)` over everything a cohort of one age holds now, per unit of the IMF's number: the
     stars still on the main sequence (initial mass up to the turn-off, where the main-sequence lifetime reaches the
     age) and the remnants of the rest, by the progenitor ranges the generator draws remnants from
-    (`multistar.WHITE_DWARF_PROGENITOR_SOL` and the others) and their mass rules: white dwarfs by the initial-final
+    (`tuning.WHITE_DWARF_PROGENITOR_SOL` and the others) and their mass rules: white dwarfs by the initial-final
     relation, neutron stars and black holes uniform over their mass ranges. Neutron stars take the progenitors from
     the white dwarf range's top to the black hole range's start; a black hole the rest up to the IMF's top.
     """
@@ -73,7 +72,7 @@ def _present_day_moments(age_gy, remnants=True):
     if not remnants:
         return mass, square
 
-    wd_low, wd_high = multistar.WHITE_DWARF_PROGENITOR_SOL
+    wd_low, wd_high = tuning.WHITE_DWARF_PROGENITOR_SOL
     wd_low = max(wd_low, turn_off)
     if wd_low < wd_high:
         grid = np.geomspace(wd_low, wd_high, _REMNANT_GRID_POINTS)
@@ -83,7 +82,7 @@ def _present_day_moments(age_gy, remnants=True):
         mass += float(np.sum(weight * remnant))
         square += float(np.sum(weight * remnant * remnant))
 
-    ns_low, bh_low = max(wd_high, turn_off), multistar.BLACK_HOLE_PROGENITOR_SOL[0]
+    ns_low, bh_low = max(wd_high, turn_off), tuning.BLACK_HOLE_PROGENITOR_SOL[0]
     if ns_low < bh_low:
         number = _imf_integral(0.0, ns_low, bh_low)
         first, second = remnant_mass.uniform_moments("neutron-star")

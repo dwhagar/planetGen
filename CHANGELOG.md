@@ -2,6 +2,99 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1852] - 2026-10-21
+
+**Headline:** Every body with a mass can now report its whole kinematic record: where it is, how it moves, how it spins, its mass and when it is next due.
+
+### Changed
+- `MassObject.kinematic_record()` returns a `KinematicRecord` (position and velocity relative to the primary, spin axis and rate in rad/s, mass and mu, epoch and next-due), the record Boss's S16 card gives every mass object. `speed_kms()`, `axial_tilt_from_state()` and `spin_rate_rad_s` read what is stored today as speed, axial tilt and rotation period from the state and the spin, and equal the stored values; a non-rotating black hole's rate is zero.
+- `spin.orbit_normal_from_state` gives the orbit normal `r x v`.
+- No stored value or field changes; the per-class columns that become derived are dropped in the DB.73 revision (Core 1). `docs/design/mass-object-class.md` section 12 records the fields.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.565 stays open for the family classes) / Added: none
+
+## [8.0.1851] - 2026-10-21
+
+**Headline:** A tile of the Galaxy Map is built again only when something it holds has changed, and a release alone no longer throws the stored tiles away.
+
+### Changed
+- **The stored tiles no longer follow the release number (PERF.133).** They are keyed by a new tile stamp (`db.query.galaxy_tile_stamp`, in `GET /api/galaxy/changes` as `tile_stamp` and `tile_full`) made of the galaxy shape, the bright-star seed, the naming key, a tile-format number (`db.query.TILE_FORMAT`) and the generator epoch, with the sector change counters. A release that changes neither the tile format nor the epoch keeps every stored tile, so the `planetgen warm` that `update.sh` starts after it finds them stored and builds none; the pages and counts cached by the old stamp are still dropped by a release. A change to what a tile holds or how it is packed raises `TILE_FORMAT`, and `tests/test_tile_format.py` fails until it does.
+- **A change rebuilds what it touched at once.** When a sector is edited, added or given a system, only the tiles holding it (one per level) are deleted, and those that were stored are queued on the bulk queue for a rebuild straight away, coarsest first (at most 2,048 a change), so the next visit finds them built. It is off when `tile_cache.prefetch_per_minute` is 0, during an update and while the cache is full.
+
+TODO items resolved / Added: PERF.133 / Added: none
+
+## [8.0.1850] - 2026-10-21
+
+**Headline:** A neutron star's or stellar black hole's age now follows its population: the time since the star that made it collapsed.
+
+### Changed
+- `stellar_evolution.collapse_age_gy` draws a progenitor from the IMF over the kind's progenitor range, a birth age from the population's window and age law (as any star's), and returns the birth age less the time the progenitor took to collapse. Neutron stars and stellar black holes use it in place of an age uniform over 10 Gy; a young population's remnants are under 0.1 Gy old, a bulge's or halo's 8 to 13 Gy. The sector fill gives scattered rows, below-cut remnants, ejected remnants and rolled remnants their population as it gives a brown dwarf.
+- `youngest_progenitor_sol` moved from `multistar` into `stellar_evolution` beside it, and the three progenitor ranges moved into `tuning`; no stored field changes.
+- Intermediate-mass and supermassive black holes, and a remnant given an age (a supernova remnant's core, a magnetar row), keep their ages.
+- `docs/design/remnant-age.md` records the rule.
+
+generation-output: changed
+
+TODO items resolved: none (GEN.553 stays open for the remnant row, [Fe/H], the composition hook and the free brown dwarf's table) / Added: none
+
+## [8.0.1849] - 2026-10-21
+
+**Headline:** A white dwarf's planets are the ones that outlived its giant phase, moved outward by the mass the star lost.
+
+### Added
+- **White dwarf planets (GEN.318).** A white dwarf's planets are drawn as the ones that formed around its progenitor, then the giant phase removes everything inside the progenitor's engulfment radius, 1.5 AU for a solar-mass star and 0.8 AU more per solar mass above one, and the survivors' orbits widen by the star's mass before over its mass after (`a (M_star + M_planet)` is constant: 1.85 for a star of one solar mass that leaves 0.54). A white dwarf without a model progenitor (a forced type, a planetary nebula's central star) takes the mass that leaves it by the remnant relation, kept between 1 and 8 solar masses.
+- **A planetary nebula's close pair holds a disk and no planets.** A close pair with a white dwarf as hot as a planetary nebula's central star (30,000 K or more) gets a circumbinary post-AGB disk on its primary (a mass between 0.01 and 0.1 solar masses, its inner edge the pair's stability limit, its outer edge 10 to 300 AU, with no bodies in it) and no planets. The star page names it.
+
+### Changed
+- The engulfment radius of a white dwarf was a fixed 1.5 AU for a population-model white dwarf and nothing for a forced type or a planetary nebula's central star; it now follows the progenitor's mass for every white dwarf, and a pair's post-common-envelope test reads it too.
+
+generation-output: changed
+
+## [8.0.1848] - 2026-10-21
+
+**Headline:** A comet on a closed orbit never leaves its star: its eccentricity is cut so the aphelion stays inside the star's Hill sphere.
+
+### Changed
+- **An elliptical comet's eccentricity is drawn from its period class's range cut at the value that puts the aphelion at its star's limit** (`generation/comet.py`, `generation/system.py`). The long-period class reaches e = 0.999 and, for a light star in the inner galaxy, an aphelion past the Hill sphere (a 0.08 solar mass star: 6159 AU against 5815 AU); GEN.182 says a closed orbit never leaves its star. `Comet` takes a `ceiling_au`: the star's Hill sphere against the galaxy for a single star or a close pair (`validation.orbit_ceiling_au`), the tighter stable limit for a star of a wide pair, which the system's re-roll already enforced. A range that lies wholly above the cut gives the cut itself. A parabolic comet is unbound on purpose and reads no ceiling. Draws that the cut does not reach are unchanged.
+- The generator epoch is 37.
+generation-output: changed
+
+### Added
+- `tests/test_comet_data.py`: the bound test hands the comet its Hill sphere (300 draws for each of three masses), a ceiling cuts the range and leaves a wide one alone, a parabolic comet reads none. `tests/test_systems.py`: every closed comet orbit of a generated system is inside its star's orbit ceiling.
+
+TODO items resolved: GEN.591. Added: none.
+
+## [8.0.1847] - 2026-10-21
+
+**Headline:** The bright-star backfill of `planetgen galaxy` runs on the work queue as a command.
+
+### Changed
+- **`scatter-backfill` is a command (PERF.108).** The backfill after a `galaxy` run finds the sectors to draw once, cuts them into chunks of at least 10,000 sectors (at most 2,000 chunks) and queues them through the wrapper, so the chunks can run on several workers; every sector is drawn from its own seed, so the stars are the same at one and at four workers and whichever way the sectors are cut. The bar counts the sectors visited, the per-shell lines read as before, and the stage's row in the stage history is stored by the unit that completes it. `docs/design/redis-and-the-work-queue.md` describes it.
+
+TODO items resolved: none (the backfill of PERF.108). Added: none.
+
+## [8.0.1846] - 2026-10-21
+
+**Headline:** The sector stages of `planetgen galaxy` run on the work queue as commands.
+
+### Changed
+- **`generate-start-sector`, `generate-neighborhood` and `generate-sectors` are commands (PERF.107).** The starting sector, the neighborhood and every other sector `galaxy` generates (random start, shell, band, wedge, span, course) are cut into static chunks of consecutive sectors, about 4,000 at most, queued through the wrapper and run by the workers; the console still reports each sector as it is saved, and the galaxy holds the same stars, planets and moons at any worker count, as it did before. A failing sector now stops the run with the unit's error, and the sectors already saved stay saved, so a rerun resumes.
+- **`link-neighbours` and `settle-sector-paths` are commands (PERF.107).** The neighbour link and the sector paths run as one unit each on the sectors the run created, found from the database's clock at the start of the run.
+- **The galaxy job tree no longer lists a queue of sector tasks.** The sectors are units of the run record on Redis. `docs/design/redis-and-the-work-queue.md` describes them.
+
+TODO items resolved: none (the sector and link and settle stages of PERF.107; the backfill is PERF.108). Added: none.
+
+## [8.0.1845] - 2026-10-21
+
+**Headline:** The Galaxy Map's server now builds the tiles of the next few zoom steps, and the ones around a view, in the background while a visitor looks.
+
+### Added
+- **The tiles around a visit are built ahead of the visitor's next move (PERF.132).** When the map asks for tiles it now also sends where its camera and target are (`at`), and once the answer has gone the server queues, as low-priority jobs on the bulk queue, the tiles of the cut for the camera one to four fade bands closer along its line (the next zoom steps), then the neighbours of the requested tiles and the next level inside them (for a visitor who pans). A worker builds them into the same disk cache a request fills. It keeps to named limits, new settings of `tile_cache`: `prefetch_per_visit` (128 tiles a request), `prefetch_per_minute` (600) and `prefetch_max_queued` (8 jobs, 16 tiles each); it queues nothing for a tile already stored or already queued, nothing for ten minutes after the cache pruned itself, nothing during an update, and a malformed or missing `at` is ignored, so a visit to a built area queues nothing and a second visitor to the same area causes no build.
+
+TODO items resolved: PERF.132 / Added: none
+
 ## [8.0.1844] - 2026-10-21
 
 **Headline:** One function now moves every body with a mass, whether it is a planet, a moon, a comet, a star or a wanderer.

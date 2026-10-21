@@ -475,7 +475,7 @@ pins rq 2.12.0 for Python 3.10 and later, 2.8.0 for 3.9; only 2.12.0 was read.
    (bright level, population watermark) derive it rather than store a copy; use
    the mask for steps with none (paths, the pending backfill request with its
    tier parameters). GEN.44's level rule stays the summary.
-2. **PERF.30: re-run the unfinished command.** A run is unfinished when its
+2. **PERF.30: re-run the unfinished command.** Dropped (Boss, 2026-10-14, 9:24 AM EDT, PERF.86: there is no automatic resume after an interruption; PERF.29 and PERF.30 are dropped, see redis-and-the-work-queue.md); the recommendation below is kept as the research. A run is unfinished when its
    `generation_runs` row has `finished_at IS NULL` or `outcome` is `failed` or
    `interrupted`; `--resume` re-runs its stored arguments and run seed (no new
    outcome value is needed). The fill skips existing sectors, then drains

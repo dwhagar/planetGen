@@ -19,7 +19,7 @@ survive the move.
 """
 
 
-from flask import Response, jsonify, redirect, request, url_for
+from flask import Response, current_app, jsonify, redirect, request, url_for
 
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_distance_ly
@@ -33,6 +33,8 @@ from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.web.lib import tilepack
 from planetgen.galaxy.window import DEFAULT_WINDOW
+from planetgen.web.lib import tileprefetch
+from planetgen.web.lib import tilecache
 from planetgen.web.lib.tilecache import TileRequestError, fetch_stage, fetch_tiles, fetch_tiles_wire, fetch_window
 
 from planetgen.api.limiter import page_limit
@@ -308,8 +310,9 @@ def galaxy_tiles():
     """
     tile_keys = [key for key in (request.args.get("tiles") or "").split(",") if key]
     known_stamp = request.args.get("stamp") or None
+    db_name_asked = db_name()
     try:
-        body = fetch_tiles_wire(db_name(), tile_keys, known_stamp)
+        body = fetch_tiles_wire(db_name_asked, tile_keys, known_stamp)
     except TileRequestError as exc:
         return _json_error(str(exc), 400)
     except apiclient.NotFoundError as exc:
@@ -321,7 +324,37 @@ def galaxy_tiles():
     # Freshness is the tile cache's job (stamps); never let a shared
     # cache hand one visitor's stale answer to another.
     response.headers["Cache-Control"] = "no-store"
+    # Once the visitor has their answer, the tiles around it are built in the background (PERF.132).
+    app = current_app._get_current_object()
+    at = _camera_asked(request.args.get("at"))
+    response.call_on_close(lambda: _prefetch_around(app, db_name_asked, tile_keys, at))
     return response
+
+
+def _camera_asked(text):
+    """The `?at=cx,cy,cz,tx,ty,tz` the page sends (its camera and target, parsecs) as six floats, or `None` when
+    it is missing or not that."""
+    try:
+        numbers = tuple(float(part) for part in (text or "").split(","))
+    except ValueError:
+        return None
+    if len(numbers) != 6 or not all(abs(number) <= 1e7 for number in numbers):     # also refuses nan and inf
+        return None
+    return numbers
+
+
+def _prefetch_around(app, db, tile_keys, at=None):
+    """Queues the tiles around a request that has been answered (the response has gone, so the request's context
+    with it: the tile cache reads its stamp through the API in process, which needs one); never an error for the
+    visitor."""
+    try:
+        with app.test_request_context("/"):
+            generation, changed = tilecache.take_rebuilds(db)
+            if changed:
+                tileprefetch.rebuild(db, generation, changed)      # what a change touched, built again at once
+            tileprefetch.schedule(db, tile_keys, at)
+    except Exception as exc:  # noqa: BLE001 -- a background nicety, never a failure of the request
+        log.debug(f"Tile prefetch: not scheduled ({exc}).")
 
 
 galaxy_tiles.json_only = True  # not a page: tests/test_web_a11y.py skips it

@@ -314,11 +314,6 @@ cell holding their position; `sector_stats` is counted again; and
 
 ## Open questions still standing
 
-- **The Galaxy Map's block ladder on shells.** The old ladder (243, 81, 27,
-  9, 3 and 1 sectors a side) cut blocks on shared master lines in longitude;
-  shells need a latitude rule on top, and a first try with odd powers of 3 as
-  band masters gave band arcs of 0.89 to 1.11 of 4 pc. This is MAP.205 and
-  MAP.206, designed with Maps.
 - **One galaxy per database.** There is no `galaxy_id`. Several galaxies in
   one database would need one on every galaxy table. The plan for other
   galaxies (GEN.9) recommends keeping it that way: a second galaxy is a
