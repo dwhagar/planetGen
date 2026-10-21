@@ -17596,6 +17596,23 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   8.0.19 and drop MariaDB from INSTALL.md. Done: the affected tests pass
   on MariaDB 10.4 and MySQL 8.0.19, and INSTALL.md matches. Owner: not
   assigned (DB queue).
+  Decided (Boss, card tapped 4:37 PM EDT 2026-10-21, 'Raise minimum to
+  MySQL 8.0.19', card
+  cmsg_01RuNTFUNB92A8cm5CbojQAi3vCP2EtkXETBwr8rfqmGon): the documented
+  minimum rises to MySQL 8.0.19 and MariaDB is not supported; the
+  `VALUES ROW(...)` code stays as it is, no rewrite and no shim. This
+  replaces the default above (the UNION ALL rewrite). Done by the TODO
+  thread in a docs PR (4:40 PM EDT): INSTALL.md, README.md,
+  docs/WINDOWS.md, docs/deployment/{README,nginx,paas,macos}.md and
+  docs/testing.md (the first lines) now say MySQL 8.0.19+ with MariaDB
+  not supported. Still to do, for a lane: the `mysql.host` help text in
+  `src/planetgen/util/settings.py` and its row in docs/config.md ('The
+  MySQL or MariaDB server's host name or address'), docs/testing.md
+  lines on local MariaDB runs and the MariaDB 11.4 leg,
+  docs/ci-runners.md, and the tests' MariaDB branches (reserved-word
+  set, check constraints, disks, `dbpool.py`); a test run on MariaDB now
+  fails by design, so a lane's machine must run MySQL 8 (the recipe is
+  in project memory). Owner: not assigned.
   Prerequisites: none. Related: GEN.276.
 
 ## API: The JSON API

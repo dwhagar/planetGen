@@ -12,7 +12,7 @@ Ubuntu distribution, then work entirely inside it as you would on a Linux
 machine:
 
 1. Open the Ubuntu shell and follow [INSTALL.md](../INSTALL.md) from the
-   top: Python 3.12 or later, MySQL 8.0.16+ or MariaDB 10.4+, Redis, and a
+   top: Python 3.12 or later, MySQL 8.0.19+, Redis, and a
    git checkout of the repository.
 2. For the website, set up Apache with mod_wsgi as in
    [deployment/apache.md](deployment/apache.md), or another Linux option
@@ -20,7 +20,7 @@ machine:
 3. Keep the checkout on the Linux filesystem (somewhere under your Ubuntu
    home folder or `/var/lib/planetGen`), not under `/mnt/c`, which is slower.
 
-WSL2 may stop an idle distribution, and with it MySQL/MariaDB and Redis.
+WSL2 may stop an idle distribution, and with it MySQL and Redis.
 The command line and the website need both running whenever you use them.
 
 ## Running from the checkout
@@ -39,13 +39,13 @@ python src/html/wsgi.py
 ```
 
 Before that, `config.json` (copied from `config.json.example`) must point
-at a running MySQL or MariaDB and a running Redis; see
+at a running MySQL and a running Redis; see
 [config.md](config.md). The development server is for trying things out,
 not for serving a site.
 
 ## Native Windows
 
 There is no native Windows install. Anyone who wants one has to do the
-work themselves: obtaining Python, MySQL or MariaDB and Redis for Windows,
+work themselves: obtaining Python, MySQL and Redis for Windows,
 running a WSGI server, and arranging services and scheduled maintenance.
 No installer, service files or scheduled-task scripts are provided.
