@@ -244,7 +244,10 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/systems/<id>/scene` — the 3D system view's data (MAP.69):
   `system`, `epoch`/`epoch_unix` (when the stored phases were last
   advanced, `null` if never), `stars`, `planets` (each with `moons`),
-  `belts` and `comets`. Every object has a `ref` (`star:3`, `planet:12`,
+  `tree` (the tree of orbits the stars hang in, GEN.311: `nodes`, one per
+  `orbit_nodes` row with its own epoch, `members`, one per star with its
+  `parent_node_no`, `slot` and `mass_solar`, and `origin`, the star at the
+  origin of a wide pair or `null`), `belts` and `comets`. Every object has a `ref` (`star:3`, `planet:12`,
   `moon:40`, `belt:5`, `comet:8`), `radius_km`, `color`, `position_km`
   relative to what it orbits, and an `orbit` (`around`, `distance_km`,
   `period_years`, `inclination_deg`, `ascending_node_deg`, `phase_deg`; a
