@@ -23,14 +23,17 @@ The options themselves, their help and their limits come from the settings model
 """
 
 import json
+import re
 
 from flask import request, url_for
 
+from planetgen.util import settings_view
 from planetgen.web.lib import apiclient
 
 from . import bp
 from .admin_pages import _api_message, _cookie_header, _flash, _render, _require_admin, _see_other, _take_flash
 from .helpers import crumb
+from .limit_sliders import LimitSlider, ladder
 
 FIELD = "opt."
 """str: Prefix of each option's form field; the rest is the dotted option path."""
@@ -40,6 +43,15 @@ RESET_FIELD = "reset."
 
 CLEAR_FIELD = "clear."
 """str: Prefix of a secret's "clear it" check box."""
+
+RATE_FIELD = "rate."
+"""str: Prefix of a rate control's fields: `rate.<option>.count`, `.per` and `.off` (a limit of "N per period")."""
+
+RATE_PERIODS = ("second", "minute", "hour", "day")
+
+_RATE = re.compile(r"^\s*(\d+)\s*(?:per|/)\s*(second|minute|hour|day)s?\s*$", re.IGNORECASE)
+
+DURATION_UNITS = {"seconds": 1, "hours": 3600}
 
 
 def _text(value):
@@ -70,6 +82,36 @@ def _number(text, kind):
         return None
 
 
+def parse_rate(text):
+    """`{"limit", "period"}` of one limit written "30 per minute", `{"limit": "", "period": "minute"}` for no limit,
+    or `None` for anything else (several limits, a period the control does not offer), which the page edits as
+    text."""
+    if not text.strip():
+        return {"limit": "", "period": "minute"}
+    found = _RATE.match(text)
+    return {"limit": found.group(1), "period": found.group(2).lower()} if found else None
+
+
+def duration_text(value, unit):
+    """A duration in words ("6 hours", "15 seconds", "1 day 2 hours"); empty when `value` is not a number."""
+    try:
+        seconds = float(value) * DURATION_UNITS.get(unit, 1)
+    except (TypeError, ValueError):
+        return ""
+    if seconds < 0:
+        return ""
+    if seconds == 0:
+        return "off"
+    parts = []
+    for name, size in (("day", 86400), ("hour", 3600), ("minute", 60), ("second", 1)):
+        count, seconds = divmod(seconds, size)
+        if count >= 1:
+            parts.append(f"{int(count)} {name}{'' if int(count) == 1 else 's'}")
+        if len(parts) == 2:
+            break
+    return " ".join(parts) if parts else f"{seconds:g} seconds"
+
+
 def _lines(text):
     return [line.strip() for line in text.replace("\r", "").split("\n") if line.strip()]
 
@@ -91,8 +133,9 @@ def collect(options, form):
     for option in options:
         path = option["path"]
         name = FIELD + path
+        rate_count = f"{RATE_FIELD}{path}.count"
         if not option["allowed"] or (name not in form and RESET_FIELD + path not in form
-                                     and CLEAR_FIELD + path not in form):
+                                     and CLEAR_FIELD + path not in form and rate_count not in form):
             continue
         kind = option["kind"]
         in_file = option["source"] == "config.json"
@@ -103,6 +146,14 @@ def collect(options, form):
                     changes[path] = {"reset": True}
             elif form.get(name):
                 changes[path] = form.get(name)
+            continue
+        if rate_count in form and not form.get(RESET_FIELD + path):
+            count = form.get(rate_count, "").strip()
+            period = form.get(f"{RATE_FIELD}{path}.per", "minute")
+            raw = "" if form.get(f"{RATE_FIELD}{path}.off") or not count else f"{count} per {period}"
+            submitted[path] = raw
+            if raw != _text(option["value"]):
+                changes[path] = raw
             continue
         if form.get(RESET_FIELD + path):
             submitted[path] = _text(option["default"]) if kind != "list" else "\n".join(option["default"] or [])
@@ -155,9 +206,26 @@ def _titles(view):
     return {option["path"]: option["title"] for option in view["options"]}
 
 
+def _search_text(option):
+    """The lowercase text the search matches: the label, summary, long help, key and group of the option."""
+    group = settings_view.GROUPS.get(option["group"], "")
+    return " ".join((option["title"], option["summary"], option["description"], option["path"], group)).lower()
+
+
+def _slider(option):
+    """The `LimitSlider` of a `slider` option: logarithmic stops over its `x-slider` range, and 0 when it allows it."""
+    low, high = option["slider"]
+    stops = ladder(low, high)
+    if option["limits"].get("ge") == 0:
+        stops = (0.0,) + stops
+    return LimitSlider(FIELD + option["path"], option["title"], "log", stops, float(option["default"]))
+
+
 def _form_page(view, submitted=None, errors=None, message=None, error=None, status=200):
     submitted = submitted or {}
     errors = errors or {}
+    show_fixed = request.args.get("show") == "fixed"
+    query = request.args.get("q", "").strip().lower()
     for option in (option for group in view["groups"] for option in group["options"]):
         option["shown"] = _shown(option, submitted)
         option["error"] = errors.get(option["path"], "")
@@ -167,6 +235,18 @@ def _form_page(view, submitted=None, errors=None, message=None, error=None, stat
                                     else _text(option["effective"])) if not option["secret"] else ""
         option["value_text"] = ("\n".join(option["value"] or []) if option["kind"] == "list"
                                 else _text(option["value"])) if not option["secret"] else ""
+        option["search_text"] = _search_text(option)
+        if option["control"] == "slider" and option["slider"]:
+            option["slider_spec"] = _slider(option)
+            option["shown"] = _text(option["shown"])
+        option["rate"] = parse_rate(str(option["shown"])) if option["control"] == "rate" else None
+    shown_count = len(view["options"])
+    if query:
+        terms = query.split()
+        for group in view["groups"]:
+            group["options"] = [o for o in group["options"] if all(term in o["search_text"] for term in terms)]
+        view = dict(view, groups=[group for group in view["groups"] if group["options"]])
+        shown_count = sum(len(group["options"]) for group in view["groups"])
     titles = _titles(view)
     whole_file = errors.get("")
     response = _render(
@@ -176,6 +256,8 @@ def _form_page(view, submitted=None, errors=None, message=None, error=None, stat
         view=view, errors=[(path, titles.get(path, path), text) for path, text in errors.items() if path],
         whole_file_error=whole_file, message=message, error=error, can_save=not view["problem"],
         file_error=view["file_error"] if view["file_error"] != view["problem"] else "",
+        show_fixed=show_fixed, q=request.args.get("q", "").strip(), shown_count=shown_count,
+        duration_text=duration_text,
     )
     response.status_code = status
     return response
@@ -185,8 +267,14 @@ def _review_page(view, plan, hidden, confirm_url=None, heading="These changes wi
                  button="Save these changes", back_url=None):
     """The diff before a save. `hidden` is the `(name, value)` fields the confirming form posts to `confirm_url`."""
     titles = _titles(view)
-    rows = [dict(change, title=titles.get(change["path"], change["path"]), old_text=_show(change["old"]),
-                 new_text=_show(change["new"])) for change in plan["changes"]]
+    units = {option["path"]: option["unit"] for option in view["options"] if option["unit"]}
+
+    def shown(path, value):
+        text = _show(value)
+        return f"{text} {units[path]}" if path in units and text != "" and not isinstance(value, bool) else text
+
+    rows = [dict(change, title=titles.get(change["path"], change["path"]), old_text=shown(change["path"], change["old"]),
+                 new_text=shown(change["path"], change["new"])) for change in plan["changes"]]
     return _render(
         "admin_settings_review.html", title="Review the changes", section="admin_settings",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Settings", "admin_settings"), crumb("Review")],
@@ -228,6 +316,7 @@ def admin_settings():
         return _render("admin_settings.html", title="Settings", section="admin_settings",
                        breadcrumbs=[crumb("Admin", "admin"), crumb("Settings")], view=None, errors=[],
                        whole_file_error="", message=None, error=_api_message(exc), can_save=False, file_error="",
+                       show_fixed=False, q="", shown_count=0, duration_text=duration_text,
                        description="Every option of config.json, with its help, default and current value.")
     if request.method == "GET":
         flashed = _take_flash()

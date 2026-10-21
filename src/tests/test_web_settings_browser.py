@@ -158,7 +158,7 @@ def test_edit_save_and_put_back_each_kind_of_option(browser, server, role, confi
         rows = 4
         if role == "host":
             page.fill("#opt-login_allowlist", "10.0.0.0/8\n192.168.1.5")        # list
-            page.select_option("#opt-log_rotation", "app")                      # choice
+            page.check("input[name='opt.log_rotation'][value='app']")      # choice
             page.fill("#opt-wiki-wikijs-api_token", "wiki-token-123")           # secret
             rows += 3
         _save(page, base_url, rows)
@@ -194,6 +194,27 @@ def test_edit_save_and_put_back_each_kind_of_option(browser, server, role, confi
     finally:
         context.close()
     assert not problems, "\n".join(problems)
+
+
+def test_the_unchangeable_switch_search_and_change_count(browser, server, config):
+    context, page, problems, base_url = _page(browser, server)
+    try:
+        page.goto(base_url + "/admin/settings", wait_until="load")
+        assert page.is_visible("#setting-site_name") and not page.is_visible("#setting-mysql-host")
+        page.check("[data-show-fixed-toggle]")                       # no reload: the switch shows them at once
+        assert page.is_visible("#setting-mysql-host") and "show=fixed" in page.url
+        page.reload(wait_until="load")
+        assert page.is_visible("#setting-mysql-host")                # remembered in the address
+        page.uncheck("[data-show-fixed-toggle]")
+        page.fill("#settings-q", "sitemap")
+        assert page.is_visible("#setting-seo-sitemap_enabled") and not page.is_visible("#setting-site_name")
+        page.fill("#settings-q", "")
+        assert page.is_disabled("[data-settings-save]")
+        page.fill("#opt-site_name", "Home")
+        assert "1 change" in page.inner_text("[data-settings-changes]") and not page.is_disabled("[data-settings-save]")
+    finally:
+        context.close()
+    assert not problems, problems
 
 
 def test_a_bad_value_in_the_browser_is_marked_and_saves_nothing(browser, server, config):

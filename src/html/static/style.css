@@ -4467,30 +4467,94 @@ p.hint a {
   font-weight: 600;
 }
 
-/* ADM.84: the Admin settings page (/admin/settings). One block per option: its
-   box, its help, then a line of facts (path, default, limits, source). */
+/* ADM.84, ADM.103: the Admin settings page (/admin/settings). A row per setting: its name and one sentence on the
+   left, its control on the right, the long help under Details. A setting the web cannot change carries
+   .setting-fixed and is hidden until the page's data-show-fixed is "true". */
+.settings[data-show-fixed="false"] .setting-fixed {
+  display: none;
+}
+
+
+.settings-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  align-items: center;
+}
+
+.settings-filter input[type="search"] {
+  flex: 1 1 14rem;
+  max-width: 28rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.45rem 0.65rem;
+}
+
+.setting-fixed-switch {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
 .settings-jump {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem 1.25rem;
   list-style: none;
-  margin: 0;
+  margin: 0.5rem 0 0;
   padding: 0;
+}
+
+.settings-group h2 {
+  margin-top: 0;
 }
 
 .setting {
   display: grid;
-  gap: 0.3rem;
-  padding: 0.9rem 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.3rem 1.5rem;
+  padding: 0.75rem 0;
   border-top: 1px solid var(--border);
 }
 
-.setting:first-of-type {
+.setting:first-of-type,
+.settings-group > h2 + .setting {
   border-top: 0;
+}
+
+@media (min-width: 48rem) {
+  .setting {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 22rem);
+    align-items: start;
+  }
+
+  .setting-details,
+  .setting-error {
+    grid-column: 1 / -1;
+  }
+}
+
+.setting[hidden],
+.settings-group[hidden] {
+  display: none;
 }
 
 .setting-name {
   font-weight: 600;
+}
+
+.setting-summary {
+  margin: 0.1rem 0 0.25rem;
+  color: var(--text-muted, inherit);
+}
+
+.setting-main,
+.setting-control {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .setting input[type="text"],
@@ -4502,24 +4566,143 @@ p.hint a {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 0.45rem 0.65rem;
+  padding: 0.4rem 0.6rem;
   box-sizing: border-box;
-  width: min(28rem, 100%);
+  max-width: 100%;
 }
 
-.setting > * {
-  min-width: 0;
-  overflow-wrap: anywhere;
+.setting input[type="text"]:not([size]),
+.setting input[type="password"],
+.setting textarea {
+  width: 100%;
 }
 
 .setting textarea {
-  font-family: var(--mono, monospace);
+  font-family: var(--font-mono);
 }
 
 .setting input[aria-invalid="true"],
 .setting select[aria-invalid="true"],
-.setting textarea[aria-invalid="true"] {
+.setting textarea[aria-invalid="true"],
+.setting fieldset[aria-invalid="true"] {
   border-color: var(--error);
+}
+
+.setting-number,
+.setting-rate,
+.setting-slider .limit-slider-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  align-items: center;
+}
+
+.setting-unit {
+  color: var(--text-muted, inherit);
+}
+
+.setting-segments {
+  display: inline-flex;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.setting-segments label {
+  position: relative;
+  margin: 0;
+}
+
+.setting-segments input {
+  position: absolute;
+  opacity: 0;
+}
+
+.setting-segments span {
+  display: block;
+  padding: 0.4rem 0.8rem;
+  border-left: 1px solid var(--border);
+}
+
+.setting-segments label:first-of-type span {
+  border-left: 0;
+}
+
+.setting-segments input:checked + span {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.setting-segments input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.setting-switch {
+  position: relative;
+  display: inline-block;
+  width: 2.6rem;
+  height: 1.5rem;
+}
+
+.setting-switch input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.setting-switch-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--border);
+  transition: background 0.15s;
+  pointer-events: none;
+}
+
+.setting-switch-track::after {
+  content: "";
+  position: absolute;
+  top: 0.2rem;
+  left: 0.2rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: var(--bg-elevated);
+  transition: transform 0.15s;
+}
+
+.setting-switch input:checked + .setting-switch-track {
+  background: var(--accent);
+}
+
+.setting-switch input:checked + .setting-switch-track::after {
+  transform: translateX(1.1rem);
+}
+
+.setting-switch input:focus-visible + .setting-switch-track {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.setting-details {
+  margin-top: 0.1rem;
+}
+
+.setting-details summary,
+.settings-advanced summary {
+  cursor: pointer;
+  color: var(--text-muted, inherit);
+}
+
+.settings-advanced {
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.5rem;
 }
 
 .setting-help,
@@ -4528,6 +4711,12 @@ p.hint a {
 .setting-reset,
 .setting .error {
   margin: 0;
+}
+
+.setting-reset {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.85rem;
 }
 
 .setting-meta {
@@ -4539,10 +4728,25 @@ p.hint a {
 }
 
 .setting-tag {
+  display: inline-block;
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 0 0.55rem;
   font-size: 0.8rem;
+}
+
+.setting-warn {
+  border-color: var(--error);
+}
+
+.settings-savebar {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin: 0 0 1.5rem;
+  padding: 0.6rem 0;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
 }
 
 .settings-errors a {

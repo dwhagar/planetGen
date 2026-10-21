@@ -9,6 +9,7 @@
           "title": "Max Mb",
           "type": "number",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": "slider",
           "x-editable": true,
           "x-env": "PLANETGEN_CACHE_MAX_MB",
@@ -18,6 +19,10 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": [
+            16,
+            1048576
+          ],
           "x-summary": "How much disk the site's stored caches may use in all; 0 turns them off.",
           "x-unit": "MB"
         },
@@ -27,6 +32,7 @@
           "title": "Warm On Change",
           "type": "boolean",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-env": "PLANETGEN_WARM_ON_CHANGE",
@@ -36,6 +42,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Start the cache warm-up by itself after anything that changes what the site shows."
         },
         "warm_settle_seconds": {
@@ -45,6 +52,7 @@
           "title": "Warm Settle Seconds",
           "type": "number",
           "x-advanced": true,
+          "x-choice-labels": null,
           "x-control": "duration",
           "x-editable": true,
           "x-group": "speed",
@@ -53,6 +61,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "How long the warm-up waits after a change, so a burst of edits is one rebuild.",
           "x-unit": "seconds"
         }
@@ -68,6 +77,7 @@
           "title": "Apple Touch Icon",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": "asset",
           "x-editable": true,
           "x-group": "look",
@@ -76,6 +86,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The icon iPhones and iPads use when the site is added to the home screen."
         },
         "favicon_png": {
@@ -84,6 +95,7 @@
           "title": "Favicon Png",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": "asset",
           "x-editable": true,
           "x-group": "look",
@@ -92,6 +104,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "A fallback icon for browsers that do not read SVG; upload it on the Images page."
         },
         "favicon_svg": {
@@ -100,6 +113,7 @@
           "title": "Favicon Svg",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": "asset",
           "x-editable": true,
           "x-group": "look",
@@ -108,6 +122,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The icon browsers show in tabs; upload it on the Images page."
         },
         "manifest_enabled": {
@@ -116,6 +131,7 @@
           "title": "Manifest Enabled",
           "type": "boolean",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "look",
@@ -124,6 +140,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Let browsers offer to install the site as an app."
         }
       },
@@ -138,6 +155,7 @@
           "title": "Dir",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": false,
           "x-env": "PLANETGEN_JOBS_DIR",
@@ -147,6 +165,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Where each background job's command lines, status and output are kept."
         },
         "keep": {
@@ -156,6 +175,7 @@
           "title": "Keep",
           "type": "integer",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "housekeeping",
@@ -164,6 +184,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "How many finished jobs stay in the job list."
         },
         "python": {
@@ -172,6 +193,7 @@
           "title": "Python",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": false,
           "x-env": "PLANETGEN_PYTHON",
@@ -181,6 +203,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The interpreter that runs the generation jobs; empty uses the web app's own."
         }
       },
@@ -195,6 +218,7 @@
           "title": "Base Url",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-env": "PLANETGEN_MEDIAWIKI_BASE_URL",
@@ -204,6 +228,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The MediaWiki API folder, up to but not including api.php; empty means it is not offered."
         },
         "password": {
@@ -212,6 +237,7 @@
           "title": "Password",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-env": "PLANETGEN_MEDIAWIKI_PASSWORD",
@@ -221,6 +247,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": true,
+          "x-slider": null,
           "x-summary": "That bot password; it is never shown."
         },
         "username": {
@@ -229,6 +256,7 @@
           "title": "Username",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-env": "PLANETGEN_MEDIAWIKI_USERNAME",
@@ -238,6 +266,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "A bot password user name, in User@BotName form."
         }
       },
@@ -252,6 +281,7 @@
           "title": "Database",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": false,
           "x-env": "PLANETGEN_MYSQL_DATABASE",
@@ -262,6 +292,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The database the pages show and the generators fill."
         },
         "database_prefix": {
@@ -270,6 +301,7 @@
           "title": "Database Prefix",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": false,
           "x-env": "PLANETGEN_MYSQL_DATABASE_PREFIX",
@@ -279,6 +311,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The name prefix the database picker lists, for several galaxies on one server."
         },
         "host": {
@@ -287,6 +320,7 @@
           "title": "Host",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": false,
           "x-env": "PLANETGEN_MYSQL_HOST",
@@ -297,6 +331,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The address of the database server."
         },
         "password": {
@@ -305,6 +340,7 @@
           "title": "Password",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": false,
           "x-env": "PLANETGEN_MYSQL_PASSWORD",
@@ -315,6 +351,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": true,
+          "x-slider": null,
           "x-summary": "That account's password; it is never shown."
         },
         "port": {
@@ -325,6 +362,7 @@
           "title": "Port",
           "type": "integer",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": false,
           "x-env": "PLANETGEN_MYSQL_PORT",
@@ -335,6 +373,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The port the database server listens on."
         },
         "statement_timeout_seconds": {
@@ -344,6 +383,7 @@
           "title": "Statement Timeout Seconds",
           "type": "number",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": "duration",
           "x-editable": true,
           "x-group": "housekeeping",
@@ -352,6 +392,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "How long a page or API query may run before it is stopped; 0 means no limit.",
           "x-unit": "seconds"
         },
@@ -361,6 +402,7 @@
           "title": "User",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": false,
           "x-env": "PLANETGEN_MYSQL_USER",
@@ -371,6 +413,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The account every part of planetGen connects with."
         }
       },
@@ -385,6 +428,7 @@
           "title": "Card Cache Dir",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": false,
           "x-group": "paths",
@@ -393,6 +437,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Where drawn preview pictures are kept."
         },
         "card_cache_mb": {
@@ -402,6 +447,7 @@
           "title": "Card Cache Mb",
           "type": "number",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": "slider",
           "x-editable": true,
           "x-group": "previews",
@@ -410,6 +456,10 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": [
+            10,
+            10240
+          ],
           "x-summary": "How much disk the drawn preview pictures may use.",
           "x-unit": "MB"
         },
@@ -419,6 +469,7 @@
           "title": "Default Image",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": "asset",
           "x-editable": true,
           "x-group": "previews",
@@ -427,6 +478,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The picture link previews show; upload it on the Images page."
         },
         "enabled": {
@@ -435,6 +487,7 @@
           "title": "Enabled",
           "type": "boolean",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "previews",
@@ -443,6 +496,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Show a title, description and picture when a link to the site is shared."
         },
         "generated_cards": {
@@ -451,6 +505,7 @@
           "title": "Generated Cards",
           "type": "boolean",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "previews",
@@ -459,6 +514,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Draw a preview picture for each system and sector; off until a card drawer is installed."
         },
         "image_alt": {
@@ -468,6 +524,7 @@
           "title": "Image Alt",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "previews",
@@ -476,6 +533,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Describes the preview picture for people who cannot see it."
         },
         "site_name": {
@@ -485,6 +543,7 @@
           "title": "Site Name",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "previews",
@@ -493,6 +552,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The site name shown in link previews; empty uses the site name."
         },
         "twitter_card": {
@@ -505,6 +565,10 @@
           "title": "Twitter Card",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": {
+            "summary": "Small picture",
+            "summary_large_image": "Large picture"
+          },
           "x-control": null,
           "x-editable": true,
           "x-group": "previews",
@@ -513,6 +577,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Whether X draws a large or a small preview picture."
         },
         "twitter_site": {
@@ -521,6 +586,7 @@
           "title": "Twitter Site",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "previews",
@@ -529,6 +595,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The site's X account as @name; empty names none."
         }
       },
@@ -543,6 +610,7 @@
           "title": "Enabled",
           "type": "boolean",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-env": "PLANETGEN_PAGE_CACHE",
@@ -552,6 +620,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Keep the API's public answers in memory so repeat requests are fast."
         },
         "max_age_seconds": {
@@ -561,6 +630,7 @@
           "title": "Max Age Seconds",
           "type": "number",
           "x-advanced": true,
+          "x-choice-labels": null,
           "x-control": "duration",
           "x-editable": true,
           "x-group": "speed",
@@ -569,6 +639,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "No answer is kept in memory longer than this.",
           "x-unit": "seconds"
         },
@@ -579,6 +650,7 @@
           "title": "Max Entries",
           "type": "integer",
           "x-advanced": true,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "speed",
@@ -587,6 +659,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The most answers kept in memory."
         },
         "max_mb": {
@@ -596,6 +669,7 @@
           "title": "Max Mb",
           "type": "number",
           "x-advanced": true,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "speed",
@@ -604,6 +678,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The most memory the cached answers may use.",
           "x-unit": "MB"
         },
@@ -614,6 +689,7 @@
           "title": "Shared Seconds",
           "type": "number",
           "x-advanced": true,
+          "x-choice-labels": null,
           "x-control": "duration",
           "x-editable": true,
           "x-group": "speed",
@@ -622,6 +698,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "How long a shared answer is kept in Redis; it only bounds the memory.",
           "x-unit": "seconds"
         },
@@ -632,6 +709,7 @@
           "title": "Stamp Seconds",
           "type": "number",
           "x-advanced": true,
+          "x-choice-labels": null,
           "x-control": "duration",
           "x-editable": true,
           "x-group": "speed",
@@ -640,6 +718,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "How often the galaxy's content stamp is checked.",
           "x-unit": "seconds"
         },
@@ -649,6 +728,7 @@
           "title": "Stored Counts",
           "type": "boolean",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-env": "PLANETGEN_COUNT_CACHE",
@@ -658,6 +738,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Table pages show stored totals, refreshed in the background, instead of counting on each request."
         },
         "warm_max_objects": {
@@ -667,6 +748,7 @@
           "title": "Warm Max Objects",
           "type": "integer",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "speed",
@@ -675,6 +757,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Most sector, system and phenomenon pages the warm-up builds; the rest build on first visit.",
           "x-unit": "objects"
         }
@@ -691,6 +774,7 @@
           "title": "X For",
           "type": "integer",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": false,
           "x-env": "PLANETGEN_PROXY_FIX_X_FOR",
@@ -700,6 +784,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "How many reverse proxies to trust for the visitor's address (0 means none)."
         },
         "x_host": {
@@ -709,6 +794,7 @@
           "title": "X Host",
           "type": "integer",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": false,
           "x-env": "PLANETGEN_PROXY_FIX_X_HOST",
@@ -718,6 +804,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "How many reverse proxies to trust for the host name (0 means none)."
         },
         "x_proto": {
@@ -727,6 +814,7 @@
           "title": "X Proto",
           "type": "integer",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": false,
           "x-env": "PLANETGEN_PROXY_FIX_X_PROTO",
@@ -736,6 +824,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "How many reverse proxies to trust for http or https (0 means none)."
         }
       },
@@ -750,6 +839,7 @@
           "title": "Default",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": "rate",
           "x-editable": true,
           "x-env": "PLANETGEN_RATELIMIT_DEFAULT",
@@ -759,6 +849,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "How many API requests each client may make; empty turns the limit off."
         },
         "pages": {
@@ -777,6 +868,7 @@
           "title": "Storage Uri",
           "type": "string",
           "x-advanced": true,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-env": "PLANETGEN_RATELIMIT_STORAGE_URI",
@@ -786,6 +878,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Empty counts in Redis; memory:// counts per process."
         }
       },
@@ -800,6 +893,7 @@
           "title": "Galaxy",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": "rate",
           "x-editable": true,
           "x-group": "protection",
@@ -808,6 +902,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "How often one visitor may open the Galaxy Map page; empty turns the limit off."
         },
         "galaxy_tiles": {
@@ -816,6 +911,7 @@
           "title": "Galaxy Tiles",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": "rate",
           "x-editable": true,
           "x-group": "protection",
@@ -824,6 +920,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "How fast one visitor may load map tiles while moving the map; empty turns the limit off."
         },
         "health": {
@@ -832,6 +929,7 @@
           "title": "Health",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": "rate",
           "x-editable": true,
           "x-group": "protection",
@@ -840,6 +938,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "How often one client may call the health check; empty turns the limit off."
         },
         "other": {
@@ -848,6 +947,7 @@
           "title": "Other",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": "rate",
           "x-editable": true,
           "x-group": "protection",
@@ -856,6 +956,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "How often one visitor may load any other page, counted together; empty turns the limit off."
         },
         "search": {
@@ -864,6 +965,7 @@
           "title": "Search",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": "rate",
           "x-editable": true,
           "x-group": "protection",
@@ -872,6 +974,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "How often one visitor may search; empty turns the limit off."
         }
       },
@@ -886,6 +989,7 @@
           "title": "Url",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": false,
           "x-env": "PLANETGEN_REDIS_URL",
@@ -895,6 +999,7 @@
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The Redis server used by the work queue, the rate limits and the login lockouts."
         }
       },
@@ -909,6 +1014,7 @@
           "title": "Block Ai Crawlers",
           "type": "boolean",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "search",
@@ -917,6 +1023,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Ask the crawlers that collect text to train AI models to stay away."
         },
         "description": {
@@ -926,6 +1033,7 @@
           "title": "Description",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "search",
@@ -934,6 +1042,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The snippet search engines show for pages without their own; empty uses the tagline."
         },
         "detail_pages": {
@@ -946,6 +1055,10 @@
           "title": "Detail Pages",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": {
+            "index": "Allow in search",
+            "noindex": "Keep out of search"
+          },
           "x-control": null,
           "x-editable": true,
           "x-group": "search",
@@ -954,6 +1067,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Whether the generated system, sector and phenomenon pages may be indexed."
         },
         "humans_txt": {
@@ -963,6 +1077,7 @@
           "title": "Humans Txt",
           "type": "string",
           "x-advanced": true,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "search",
@@ -971,6 +1086,7 @@
           "x-multiline": true,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The text served at /humans.txt; empty serves none."
         },
         "indexing": {
@@ -984,6 +1100,11 @@
           "title": "Indexing",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": {
+            "all": "All pages",
+            "off": "Off",
+            "top_pages": "Main pages only"
+          },
           "x-control": null,
           "x-editable": true,
           "x-group": "search",
@@ -992,6 +1113,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Which pages search engines may list: none, the main pages, or all of them."
         },
         "json_ld": {
@@ -1000,6 +1122,7 @@
           "title": "Json Ld",
           "type": "boolean",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "search",
@@ -1008,6 +1131,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Add a website block to the home page so search engines understand the site."
         },
         "keywords": {
@@ -1019,6 +1143,7 @@
           "title": "Keywords",
           "type": "array",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "search",
@@ -1027,6 +1152,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Words for the keywords tag; most search engines ignore them."
         },
         "privacy_note": {
@@ -1036,6 +1162,7 @@
           "title": "Privacy Note",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "search",
@@ -1044,6 +1171,7 @@
           "x-multiline": true,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "A short note on the account page about what the site keeps."
         },
         "robots_extra": {
@@ -1053,6 +1181,7 @@
           "title": "Robots Extra",
           "type": "string",
           "x-advanced": true,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "search",
@@ -1061,6 +1190,7 @@
           "x-multiline": true,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Lines added to the end of the generated robots.txt."
         },
         "robots_override": {
@@ -1070,6 +1200,7 @@
           "title": "Robots Override",
           "type": "string",
           "x-advanced": true,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "search",
@@ -1078,6 +1209,7 @@
           "x-multiline": true,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Replaces the whole generated robots.txt; a mistake can hide the site from search engines."
         },
         "security_txt": {
@@ -1087,6 +1219,7 @@
           "title": "Security Txt",
           "type": "string",
           "x-advanced": true,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "search",
@@ -1095,6 +1228,7 @@
           "x-multiline": true,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The text served at /.well-known/security.txt; empty serves none."
         },
         "sitemap_cache_hours": {
@@ -1105,6 +1239,7 @@
           "title": "Sitemap Cache Hours",
           "type": "integer",
           "x-advanced": true,
+          "x-choice-labels": null,
           "x-control": "duration",
           "x-editable": true,
           "x-group": "search",
@@ -1113,6 +1248,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "How long a built sitemap is reused before it is built again.",
           "x-unit": "hours"
         },
@@ -1122,6 +1258,7 @@
           "title": "Sitemap Enabled",
           "type": "boolean",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "search",
@@ -1130,6 +1267,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Publish /sitemap.xml and list it in robots.txt."
         },
         "sitemap_max_urls": {
@@ -1140,6 +1278,7 @@
           "title": "Sitemap Max Urls",
           "type": "integer",
           "x-advanced": true,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "search",
@@ -1148,6 +1287,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The most addresses in one sitemap file (up to 50,000).",
           "x-unit": "addresses"
         }
@@ -1165,6 +1305,7 @@
           "title": "Backups Kept",
           "type": "integer",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "housekeeping",
@@ -1173,6 +1314,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "How many settings backup archives to keep; the oldest is deleted first.",
           "x-unit": "backups"
         }
@@ -1188,6 +1330,7 @@
           "title": "Language",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": "language",
           "x-editable": true,
           "x-group": "site",
@@ -1196,6 +1339,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The language code of the pages, such as en or en-GB."
         },
         "tagline": {
@@ -1205,6 +1349,7 @@
           "title": "Tagline",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "site",
@@ -1213,6 +1358,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "A short line under the home page heading, and the description of pages that have none."
         }
       },
@@ -1227,6 +1373,7 @@
           "title": "Dir",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": false,
           "x-env": "PLANETGEN_TILE_CACHE_DIR",
@@ -1236,6 +1383,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Where the Galaxy Map's tiles are cached; empty uses /var/cache/planetgen/tiles."
         },
         "prefetch_max_queued": {
@@ -1245,6 +1393,7 @@
           "title": "Prefetch Max Queued",
           "type": "integer",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "speed",
@@ -1253,6 +1402,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The background build waits while this many of its jobs are already queued.",
           "x-unit": "jobs"
         },
@@ -1263,6 +1413,7 @@
           "title": "Prefetch Per Minute",
           "type": "integer",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "speed",
@@ -1271,6 +1422,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Most tiles the background build queues in a minute, all visitors together.",
           "x-unit": "tiles"
         },
@@ -1281,6 +1433,7 @@
           "title": "Prefetch Per Visit",
           "type": "integer",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "speed",
@@ -1289,6 +1442,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Most tiles one visit queues to be built ahead in the background (0 turns it off).",
           "x-unit": "tiles"
         },
@@ -1300,6 +1454,7 @@
           "title": "Warm Levels",
           "type": "integer",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "speed",
@@ -1308,6 +1463,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "How many of the map's coarsest tile levels are built ahead (0 builds none).",
           "x-unit": "levels"
         },
@@ -1319,6 +1475,7 @@
           "title": "Warm Zoom Levels",
           "type": "integer",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "speed",
@@ -1327,6 +1484,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "How far in the map is prepared; level 14 is tiles 32 pc wide, 0 skips it.",
           "x-unit": "levels"
         }
@@ -1342,6 +1500,7 @@
           "title": "Assets Dir",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": false,
           "x-env": "PLANETGEN_ASSETS_DIR",
@@ -1351,6 +1510,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "Where uploaded icons and pictures are stored."
         },
         "theme_color_dark": {
@@ -1359,6 +1519,7 @@
           "title": "Theme Color Dark",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": "color",
           "x-editable": true,
           "x-group": "look",
@@ -1367,6 +1528,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The toolbar colour phones show with the dark theme."
         },
         "theme_color_light": {
@@ -1375,6 +1537,7 @@
           "title": "Theme Color Light",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": "color",
           "x-editable": true,
           "x-group": "look",
@@ -1383,6 +1546,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The toolbar colour phones show with the light theme."
         },
         "title_template": {
@@ -1392,6 +1556,7 @@
           "title": "Title Template",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "site",
@@ -1400,6 +1565,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "How a page's title is written in the browser tab, using {title} and {site_name}."
         }
       },
@@ -1435,6 +1601,7 @@
           "title": "Api Token",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-env": "PLANETGEN_WIKIJS_API_TOKEN",
@@ -1444,6 +1611,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": true,
+          "x-slider": null,
           "x-summary": "A Wiki.js personal API token; it is never shown."
         },
         "base_url": {
@@ -1452,6 +1620,7 @@
           "title": "Base Url",
           "type": "string",
           "x-advanced": false,
+          "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-env": "PLANETGEN_WIKIJS_BASE_URL",
@@ -1461,6 +1630,7 @@
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
+          "x-slider": null,
           "x-summary": "The Wiki.js site's root address; empty means it is not offered as an upload target."
         }
       },
@@ -1476,6 +1646,7 @@
       "title": "Admin Cookie Insecure",
       "type": "boolean",
       "x-advanced": false,
+      "x-choice-labels": null,
       "x-control": null,
       "x-editable": false,
       "x-env": "PLANETGEN_ADMIN_COOKIE_INSECURE",
@@ -1485,6 +1656,7 @@
       "x-multiline": false,
       "x-restart": true,
       "x-secret": false,
+      "x-slider": null,
       "x-summary": "Only for local development without TLS; never turn it on in production."
     },
     "api_base_url": {
@@ -1493,6 +1665,7 @@
       "title": "Api Base Url",
       "type": "string",
       "x-advanced": false,
+      "x-choice-labels": null,
       "x-control": null,
       "x-editable": false,
       "x-env": "PLANETGEN_API_BASE_URL",
@@ -1502,6 +1675,7 @@
       "x-multiline": false,
       "x-restart": true,
       "x-secret": false,
+      "x-slider": null,
       "x-summary": "Where the API lives, for scripts that call it from outside the web app."
     },
     "base_url": {
@@ -1510,6 +1684,7 @@
       "title": "Base Url",
       "type": "string",
       "x-advanced": false,
+      "x-choice-labels": null,
       "x-control": null,
       "x-editable": true,
       "x-group": "site",
@@ -1518,6 +1693,7 @@
       "x-multiline": false,
       "x-restart": false,
       "x-secret": false,
+      "x-slider": null,
       "x-summary": "The public address of the site, used for canonical links, previews and the sitemap."
     },
     "cache": {
@@ -1535,6 +1711,7 @@
       "title": "Config Version",
       "type": "integer",
       "x-advanced": false,
+      "x-choice-labels": null,
       "x-control": null,
       "x-editable": false,
       "x-group": "file",
@@ -1543,6 +1720,7 @@
       "x-multiline": false,
       "x-restart": false,
       "x-secret": false,
+      "x-slider": null,
       "x-summary": "Which format version this settings file is in; the program keeps it up to date."
     },
     "control_database": {
@@ -1551,6 +1729,7 @@
       "title": "Control Database",
       "type": "string",
       "x-advanced": false,
+      "x-choice-labels": null,
       "x-control": null,
       "x-editable": false,
       "x-env": "PLANETGEN_CONTROL_DATABASE",
@@ -1560,6 +1739,7 @@
       "x-multiline": false,
       "x-restart": true,
       "x-secret": false,
+      "x-slider": null,
       "x-summary": "The database that holds admin accounts, sessions, API keys and the audit log."
     },
     "debug": {
@@ -1568,6 +1748,7 @@
       "title": "Debug",
       "type": "boolean",
       "x-advanced": false,
+      "x-choice-labels": null,
       "x-control": null,
       "x-editable": false,
       "x-env": "PLANETGEN_DEBUG",
@@ -1577,6 +1758,7 @@
       "x-multiline": false,
       "x-restart": true,
       "x-secret": false,
+      "x-slider": null,
       "x-summary": "Write a very detailed log of everything the generator does; it grows fast."
     },
     "icons": {
@@ -1602,6 +1784,7 @@
       "title": "Log Dir",
       "type": "string",
       "x-advanced": false,
+      "x-choice-labels": null,
       "x-control": null,
       "x-editable": false,
       "x-env": "PLANETGEN_LOG_DIR",
@@ -1611,6 +1794,7 @@
       "x-multiline": false,
       "x-restart": true,
       "x-secret": false,
+      "x-slider": null,
       "x-summary": "The folder that holds the always-on activity log."
     },
     "log_file": {
@@ -1619,6 +1803,7 @@
       "title": "Log File",
       "type": "string",
       "x-advanced": false,
+      "x-choice-labels": null,
       "x-control": null,
       "x-editable": false,
       "x-env": "PLANETGEN_LOG_FILE",
@@ -1628,6 +1813,7 @@
       "x-multiline": false,
       "x-restart": true,
       "x-secret": false,
+      "x-slider": null,
       "x-summary": "The file the debug log is written to."
     },
     "log_rotation": {
@@ -1641,6 +1827,11 @@
       "title": "Log Rotation",
       "type": "string",
       "x-advanced": false,
+      "x-choice-labels": {
+        "app": "The program",
+        "auto": "Automatic",
+        "system": "The system (logrotate)"
+      },
       "x-control": null,
       "x-editable": false,
       "x-group": "logging",
@@ -1649,6 +1840,7 @@
       "x-multiline": false,
       "x-restart": true,
       "x-secret": false,
+      "x-slider": null,
       "x-summary": "Who trims old activity logs: the system, the program, or whichever is installed."
     },
     "login_allowlist": {
@@ -1660,6 +1852,7 @@
       "title": "Login Allowlist",
       "type": "array",
       "x-advanced": false,
+      "x-choice-labels": null,
       "x-control": null,
       "x-editable": true,
       "x-env": "PLANETGEN_LOGIN_ALLOWLIST",
@@ -1669,6 +1862,7 @@
       "x-multiline": false,
       "x-restart": true,
       "x-secret": false,
+      "x-slider": null,
       "x-summary": "Client addresses or networks that are never locked out after failed logins."
     },
     "mysql": {
@@ -1744,6 +1938,7 @@
       "title": "Secret Key",
       "type": "string",
       "x-advanced": false,
+      "x-choice-labels": null,
       "x-control": null,
       "x-editable": false,
       "x-env": "PLANETGEN_SECRET_KEY",
@@ -1753,6 +1948,7 @@
       "x-multiline": false,
       "x-restart": true,
       "x-secret": true,
+      "x-slider": null,
       "x-summary": "Signs the security tokens on forms; empty makes a random one at each start."
     },
     "seo": {
@@ -1794,6 +1990,7 @@
       "title": "Site Name",
       "type": "string",
       "x-advanced": false,
+      "x-choice-labels": null,
       "x-control": null,
       "x-editable": true,
       "x-group": "site",
@@ -1802,6 +1999,7 @@
       "x-multiline": false,
       "x-restart": false,
       "x-secret": false,
+      "x-slider": null,
       "x-summary": "The name shown in the header, the home page, page titles and the footer."
     },
     "tile_cache": {
