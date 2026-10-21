@@ -186,6 +186,26 @@ def test_a_cell_above_the_ceiling_is_filled_down_to_the_cap_and_no_further(mysql
     assert stats["actual_systems"] == len(stars)
 
 
+@pytest.mark.db
+@pytest.mark.parametrize("cap", [50.0, 100.0])
+def test_a_capped_cell_run_without_the_scatter_makes_the_systems_the_resolution_gives(mysql_config, cap):
+    """GEN.592: a cell over the ceiling, filled with no star scatter drawn, makes the number of systems
+    `cell_resolution` says it resolves (a Poisson draw about it), not none."""
+    address, _expected = _crowded_cell()
+    _seed_galaxy(mysql_config, ceiling=60.0, cap=cap)
+    result = run_galaxy.ensure_sector_generated(*address, config=mysql_config, backfill=False)
+    conn = store.get_connection(mysql_config)
+    try:
+        skeleton = store.get_galaxy_shape(conn)
+        found = resolution.cell_resolution(sector_profile(address, skeleton), 60.0, cap)
+        made = conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id = ?",
+                            (result["sector_id"],)).fetchone()["n"]
+    finally:
+        conn.close()
+    assert found.capped and found.resolved_systems >= 10.0
+    assert abs(made - found.resolved_systems) <= 5.0 * math.sqrt(found.resolved_systems) + 2.0
+
+
 def test_a_capped_cell_draws_no_system_of_its_own_and_an_uncapped_one_is_as_before():
     profile = sector_profile(CROWDED, SimpleNamespace(
         shape=SHAPE, edge_pc=EDGE_PC, expected_system_count_at_density_1=E_VALUE, galaxy_seed=None))
