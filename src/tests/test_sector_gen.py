@@ -95,7 +95,8 @@ def test_research_rates_per_star():
     """Boss's research densities at 0.14 stars per pc^3."""
     assert _rate("rogue-planet") == pytest.approx(5.8)
     assert _rate("brown-dwarf") == pytest.approx(0.03 / 0.14)
-    assert _rate("neutron-star") == pytest.approx(0.004)
+    # Derived from the massive stars the black holes leave (GEN.554); Boss's 4.0e-3 is the target, 2% off at the middle draw.
+    assert _rate("neutron-star") == pytest.approx(0.004, rel=0.05)
     assert 0.0002 < _rate("black-hole") < 0.0012          # the old 5e-4 sits inside the new range
     assert _rate("comet") == pytest.approx(0.05)
     assert _rate("asteroid-field") == 0.0
