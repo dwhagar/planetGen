@@ -2545,6 +2545,13 @@ PULSAR_RADIAL_B = 5.0
 # Freire 2016, ARA&A 54:401, compiling radio pulsar timing masses).
 NEUTRON_STAR_MASS_RANGE_SOLAR = (1.1, 2.2)
 
+# The initial mass of the stars that collapse to each remnant (a design default, GEN.553; the explosion maps of
+# O'Connor and Ott 2011, Sukhbold et al. 2016 and Fryer et al. 2012 are verified, and GEN.554 derives the ranges from
+# them). The ranges overlap: a star of 20 to 30 solar masses ends as either.
+NEUTRON_STAR_PROGENITOR_SOL = (8.0, 30.0)
+BLACK_HOLE_PROGENITOR_SOL = (20.0, 100.0)
+WHITE_DWARF_PROGENITOR_SOL = (0.8, 8.0)
+
 # Neutron star radius (GEN.463, physics/neutron_star.py): the centre and the
 # spread, km, at two masses, from Miller et al. 2021 (ApJL 918:L28,
 # arXiv:2105.06979): R(1.4 Msun) = 12.45 +- 0.65 and R(2.08 Msun) = 12.35 +-
