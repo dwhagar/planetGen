@@ -47,6 +47,7 @@ from planetgen.physics import activity, constants, neutron_star, remnant_mass, s
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
+from planetgen.generation.mass_object import MassObject
 from planetgen.generation.star import Star
 from planetgen.galaxy import shape_draw as shapeDraw, structure as galaxyStructure
 from planetgen.galaxy.remnant_distribution import pulsar_radial_factor
@@ -329,6 +330,11 @@ class BlackHole(CompactRemnant):
         if getattr(black_hole, "mass_class", None) is None:
             black_hole.mass_class = infer_black_hole_mass_class(black_hole.mass_solar)
         return black_hole
+
+    @property
+    def spin_rate_rad_s(self):
+        """The horizon's rotation rate, rad/s; zero for a* = 0 (no rotation)."""
+        return MassObject.spin_rate_rad_s.fget(self) or 0.0
 
     def _rotation_period_hours(self):
         """The horizon's rotation period, hours; `None` for a* = 0 (no

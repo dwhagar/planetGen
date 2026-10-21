@@ -199,3 +199,16 @@ Boss, 5:20 PM EDT on 2026-10-18: every object with mass follows the same rules, 
 - **State relative to the parent.** `spatial` (a `SpatialPosition3D`, "system" frame = the offset from the primary), `set_position_au`, `set_velocity_kms`, `orbit_mu_au3_per_year2` (each family says what it orbits), `orbit_from_vector` and `projected_orbit_au`. These were the `HoldsOrbitPosition` mixin in `physics/position.py`, which is gone.
 - **One mover.** `advance(seconds)` steps a body that has a state vector with `kepler.universal_step` and the pull of its primary (a planet about its star, a moon about its planet, a comet about its host), and advances the phase of a body on a circular galactic orbit (a star, a remnant, a wanderer) by its period. The batch updates in `store.py` do the same arithmetic over rows; `tests/test_state_kernel.py` holds the batch step to the object's.
 - **Boss's 6:09 PM EDT card (the full S16 record for every mass object)** is the stored form of the same thing: mass with mu, position and velocity relative to the parent, spin axis and rate, epoch and next-due. Its columns replace the per-class ones in the DB.73 revision (Core 1); the per-class fields that become derived (speed, axial tilt, rotation period, galactic period and phase) are dropped there. Until then they remain the stored fields; nothing here aliases them.
+
+## 12. The kinematic record (GEN.565c)
+
+The record Boss's S16 card gives every mass object is declared in code as `KinematicRecord` (`generation/mass_object.py`) and read by `MassObject.kinematic_record(scale)`:
+
+| Field | Read from | Unit |
+|---|---|---|
+| `position_au`, `velocity_kms` | the point's "system" frame (relative to the primary) | AU, km/s |
+| `spin_axis`, `spin_rate_rad_s` | `spin_axis_x/y/z`; `2 pi / rotation_period_hours` (a non-rotating black hole is 0) | unit vector, rad/s |
+| `mass_kg`, `mu_m3_s2` | the point | kg, m^3/s^2 |
+| `epoch_unix`, `next_due_unix` | the point's epoch; epoch + `position.update_interval_s` at the speed | Unix s |
+
+What S18 makes derived is readable from it today, and each equals the stored value to the precision of the computation (`tests/test_mass_object.py`): `speed_kms()` (the velocity's length, or the circular galactic speed), `axial_tilt_from_state()` (the angle between the spin axis and `r x v`, or the galaxy's pole when the body has no state vector; `spin.orbit_normal_from_state`) and `spin_rate_rad_s`. Core 1's DB.73 and DB.74 store this record and drop the per-class columns; this note is their target. Not here: the spin moving onto the point itself (GEN.584 after the point class GEN.578), the tidally locked rate, and a black hole's a* from angular momentum.
