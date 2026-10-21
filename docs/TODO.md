@@ -276,7 +276,8 @@ with `clamp()`.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: UX.124, UX.125, UX.126.
+  UX.125 and UX.126 moved out of this item (Boss, 2026-10-21, 6:01 PM EDT: the admin pages and the Generate suite are redesigned in their own thread; the Generate page conversion rides ADM.99 and the admin pages ADM.56 and ADM.93), so this item converts the public pages and closes with UX.124.
+  Prerequisites: UX.124.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
 - [ ] **UX.43 A visual design built like a pilot's starmap and navigation console**
@@ -604,6 +605,11 @@ with `clamp()`.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
+  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
+  owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
+  PM EDT as the lane reported; the Generate page conversion now rides
+  ADM.99).
   Prerequisites: UX.124. Related: UX.49.
 
 - [ ] **UX.126 The admin pages and the edit dialogs on the field macro**
@@ -617,6 +623,11 @@ with `clamp()`.
   Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
+  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
+  owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
+  PM EDT as the lane reported; the admin page conversion now rides
+  ADM.56 and ADM.93).
   Prerequisites: UX.124. Related: UX.49.
 
 - [ ] **UX.127 The Galaxy Map block menu offers Generate again**
@@ -767,6 +778,10 @@ with `clamp()`.
   list, with its estimate); turning one off says that nothing is
   deleted; the command line and the API set them through the same
   commands. Owner: Core 2 (proposed).
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
+  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
+  owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
+  PM EDT as the lane reported; the row stays in 8.5).
   Prerequisites: GEN.539, GEN.540. Related: GEN.539, GEN.540, UX.116.
 
 - [ ] **UX.138 Pages, symbols and descriptions for the new rows: moons of wanderers, free brown dwarfs as stars, unbound comets**
@@ -16270,6 +16285,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   admin cache view shows used and budget per kind against
   `cache.max_mb`; PERF.139's own "admin page shows the budget" line
   moves here (Core 2 did the key and the pruning, not the admin view).
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
+  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
+  owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
+  PM EDT as the lane reported).
 
 - [ ] **PERF.136 Measure the fill with wanderers and their moons, and decide whether the rogue cost is on by default**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -18378,7 +18397,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   admin layout: one shell with one navigation, the same table, form,
   confirmation and job-log pattern everywhere. Queued after UX.115; the
   audit starts the ADM chain.
-  Prerequisite: UX.115. Related: ADM.56, ADM.43, ADM.35, UX.102.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
+  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
+  owner line on this item (it had none).
+  Prerequisites: none (UX.115 dropped, Boss 6:01 PM EDT 2026-10-21: the redesign starts now). Related: ADM.98, ADM.56, ADM.43, ADM.35, UX.102, UX.115.
 
 - [ ] **ADM.56 Streamline and fix the admin pages from the audit: one admin shell, one navigation and one pattern for tables, forms, confirmations and job logs**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
@@ -18407,6 +18429,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   existing admin page onto it with the fixes the audit ranks above its
   line (child b). The new admin items ADM.32, ADM.36, ADM.52 and POP.13
   build on the shell.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
+  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
+  owner line on this item (it had none).
 
 - [ ] **ADM.57 Headline of 8.6: edit everything, the admin can change anything and the world adjusts after the admin approves a generation plan**
   Boss (2026-10-16, 1:07 PM EDT): "I want the 'edit everything' to be a
@@ -18930,7 +18955,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   are documented, the admin start page uses them, every item of the ADM
   chain can be built on them, and a browser test opens the converted
   page in both themes with no console error.
-  Prerequisites: ADM.55. Related: ADM.56.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
+  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
+  owner line on this item (it had none).
+  Prerequisites: ADM.55, ADM.98. Related: ADM.56.
 
 - [ ] **ADM.93 Move every existing admin page onto the shell and fix the defects the audit ranks above its line**
   Split from ADM.56 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -18945,6 +18973,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   it stays one item. Done: every admin page uses the shell and the
   shared parts, no defect above the audit's line is left open, and
   nothing is doubled or dead.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
+  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
+  owner line on this item (it had none).
   Prerequisites: ADM.92. Related: ADM.56.
 
 - [ ] **ADM.94 Density override store and the fill read: set, undo and combine overrides for any region, and have later fills use them**
@@ -19011,7 +19042,111 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `config.schema.json` and docs/config.md and the old
   `tile_cache.max_mb` is gone with no shim; the settings-page slider is
   still this item.
+  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
+  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
+  owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
+  PM EDT as the lane reported).
   Prerequisites: none.
+
+- [ ] **ADM.98 Admin control suite research: how to pack many options into one quiet interface (admin pages, the Generate suite and the settings), a report and decision cards before anything is built**
+  Boss, 2026-10-21, 5:57 PM EDT: "Do we have a redo of the admin pages
+  somewhere? generate is horribly to use, it needs a full redesign as
+  it's grown too complicated for it's simplistic format, the settings
+  page is incomprehensible and we need nice, clean, settings that don't
+  look like I'm writing a linux config file, also a lot of stuff in
+  there can't be changed, so how about just not list the things that
+  cannot be changed or have an option to hide them that is defaulted to
+  on." And 6:01 PM EDT: "move admin redesign to happen right now in it's
+  own dedicated thread, add an issue for it to group all the todo items
+  together in if one doesn't exist. Start researching ways to pack a lot
+  of options into an admin control suite that will include the generate
+  control suite. The interface needs to get out of the way. All items
+  related to this not already in progress move immediately to the new
+  thread -- however, before it's begins building, it's going to
+  research, generate a report, and give me decision / choice cards." Do:
+  research ways to pack a lot of options into one admin control suite
+  that includes the Generate suite and the settings, with the interface
+  getting out of the way (progressive disclosure, command palette and
+  search, saved presets and recent runs, sensible defaults, inline help,
+  keyboard use, dense but calm layouts, what comparable admin and
+  job-control tools do, and what works on a phone); read the current
+  admin pages, the Generate page and the settings page as they are
+  today; write the report (docs/design/admin-control-suite.md with its
+  README row, a draft first in
+  /mnt/project-files/design-drafts/admin-pages-redesign-2026-10-21.md);
+  and bring Boss decision cards (one per choice, recommended option
+  first). Nothing is built before Boss has answered the cards. Done: the
+  report is merged, Boss has answered every card, and the answers are
+  recorded on ADM.55, ADM.56, ADM.92, ADM.93, ADM.99 and ADM.100, which
+  then become buildable. Owner: the admin redesign thread (Boss,
+  2026-10-21, 6:01 PM EDT).
+  Prerequisites: none. Related: ADM.55, ADM.99, ADM.100.
+
+- [ ] **ADM.99 Generate suite redesign: the Generate page rebuilt inside the admin control suite so a long list of options is easy to use**
+  Boss, 2026-10-21, 5:57 PM EDT: "Do we have a redo of the admin pages
+  somewhere? generate is horribly to use, it needs a full redesign as
+  it's grown too complicated for it's simplistic format, the settings
+  page is incomprehensible and we need nice, clean, settings that don't
+  look like I'm writing a linux config file, also a lot of stuff in
+  there can't be changed, so how about just not list the things that
+  cannot be changed or have an option to hide them that is defaulted to
+  on." And 6:01 PM EDT: "move admin redesign to happen right now in it's
+  own dedicated thread, add an issue for it to group all the todo items
+  together in if one doesn't exist. Start researching ways to pack a lot
+  of options into an admin control suite that will include the generate
+  control suite. The interface needs to get out of the way. All items
+  related to this not already in progress move immediately to the new
+  thread -- however, before it's begins building, it's going to
+  research, generate a report, and give me decision / choice cards." The
+  page has grown past its simple format (layer specs, spans, radial
+  fills, directives, one-off systems, jobs, and soon the switches of
+  UX.134 and UX.137 and the missing-data option of GEN.599). Do:
+  redesign the Generate control suite from the report and the answered
+  cards of ADM.98: the common task first and every other option
+  reachable without clutter, presets and the last runs, the plan shown
+  before a run, the job text and log on the shared job-log part (ADM.92,
+  UX.123), every control on the field macro (this replaces UX.125).
+  Done: the Generate suite is built on the admin shell, every control of
+  today's page is reachable, a browser test runs one common job and one
+  advanced job in both themes and at phone width, and the page help
+  (DOC.13) matches. Owner: the admin redesign thread, after Boss answers
+  the cards of ADM.98.
+  Prerequisites: ADM.98, ADM.92. Related: UX.125, UX.134, UX.137,
+  DOC.13, GEN.599.
+
+- [ ] **ADM.100 Settings page redesign: plain-language groups and descriptions, and settings that cannot be changed hidden by a toggle that is on by default**
+  Boss, 2026-10-21, 5:57 PM EDT: "Do we have a redo of the admin pages
+  somewhere? generate is horribly to use, it needs a full redesign as
+  it's grown too complicated for it's simplistic format, the settings
+  page is incomprehensible and we need nice, clean, settings that don't
+  look like I'm writing a linux config file, also a lot of stuff in
+  there can't be changed, so how about just not list the things that
+  cannot be changed or have an option to hide them that is defaulted to
+  on." And 6:01 PM EDT: "move admin redesign to happen right now in it's
+  own dedicated thread, add an issue for it to group all the todo items
+  together in if one doesn't exist. Start researching ways to pack a lot
+  of options into an admin control suite that will include the generate
+  control suite. The interface needs to get out of the way. All items
+  related to this not already in progress move immediately to the new
+  thread -- however, before it's begins building, it's going to
+  research, generate a report, and give me decision / choice cards."
+  Today the settings page reads like a Linux config file (ADM.43, ADM.44
+  built it, PR #1921), and many entries cannot be changed from the page.
+  Do: redesign the page from the report and the answered cards of
+  ADM.98: clear groups in plain words, a one-line description and the
+  unit for each setting, sensible controls (switch, slider as in ADM.97,
+  choice list) instead of raw values, a search box, a
+  changed-from-default mark, the Owner-tier settings of ADM.86 kept
+  behind their prompt, and a 'hide settings that cannot be changed'
+  toggle, on by default, remembered per admin, so read-only entries (set
+  in config.json or the environment, or fixed) are listed only when it
+  is turned off. Done: the page is rebuilt on the admin shell, every
+  changeable setting is reachable and described, nothing that cannot be
+  changed shows while the toggle is on, a browser test covers the toggle
+  both ways and a change that saves, and docs/config.md matches. Owner:
+  the admin redesign thread, after Boss answers the cards of ADM.98.
+  Prerequisites: ADM.98, ADM.92. Related: ADM.43, ADM.44, ADM.86,
+  ADM.97, UX.137.
 
 ## SEC: Security
 

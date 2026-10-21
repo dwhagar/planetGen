@@ -104,9 +104,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | OPS.35 | A vendored-version lock file for the static libraries |  | Research: supply-chain record. |
 | UX.124 | One form-field look and error slot, piloted on the search, nearby and list-filter fields |  | Split from UX.49. |
 | UX.136 | The data tables' own row fetches (scroll and sort) wait on a page job when the answer is slow, like the pages do |  |  |
-| UX.125 | The Generate page and the one-off system page on the field macro | UX.124 | Split from UX.49. |
-| UX.126 | The admin pages and the edit dialogs on the field macro | UX.124 | Split from UX.49. |
-| UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | UX.124, UX.125, UX.126 | Follows UX.40 (done): the fields themselves become Shoelace components. |
+| UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | UX.124 | Follows UX.40 (done): the fields themselves become Shoelace components. |
 | UX.121 | The logging layer and the written standard |  | Split from UX.102. |
 | UX.122 | The command line, the job log files and the downloadable log use the layer | UX.121 | Split from UX.102. |
 | UX.123 | The Generate page log, the admin log pages and update.sh output use the layer | UX.121 | Split from UX.102. |
