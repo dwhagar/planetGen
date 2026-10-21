@@ -16240,6 +16240,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   on. Bug Hunt's fix: reap jobs of dead workers in the guard and at
   worker start, with a test. This is the cause of this item, not a
   separate item; Done stays as written.
+  Boss, 2026-10-21, 12:42 PM EDT: "Let's make sure we build a way to
+  process and manage tasks that are dead?  Will redis do this?" Answer
+  (Bug Hunt, as the coordinator relayed it): Redis and RQ recover a
+  started job only when it has a time limit, and ours have none
+  (`job_timeout=-1`); the `planetgen:run:active` key has no expiry; so a
+  killed run blocks every new run. Scope, three parts: (1) a job whose
+  worker is gone is failed or requeued (the reap in the guard and at
+  worker start), (2) a dead owning run is detected, so the next run
+  proceeds without a manual step and the run record is closed as failed,
+  (3) the reset command, which is PERF.143. Parts 1 and 2 are this item;
+  the RQ job time limits and the expiry or liveness check of
+  `planetgen:run:active` belong with them. Done also needs: a test kills
+  a worker mid-job and the job is failed or requeued, and a test kills
+  the run's owner and the next run starts.
   Prerequisites: none. Related: PERF.99, PERF.100, PERF.86.
 
 - [ ] **PERF.143 A command resets all jobs and the queue: clears every run record, the active-run key, the waiting and started units and the old job tree**
@@ -16267,6 +16281,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   building it as `planetgen.cli.reset_jobs` and `update.sh
   --reset-jobs`, clearing work_jobs and work_lease, the Redis `rq:*`
   keys and stray workers, with a test.
+  Boss, 2026-10-21, 12:42 PM EDT: "Let's make sure we build a way to
+  process and manage tasks that are dead?  Will redis do this?" Answer
+  (Bug Hunt, as the coordinator relayed it): Redis and RQ recover a
+  started job only when it has a time limit, and ours have none
+  (`job_timeout=-1`); the `planetgen:run:active` key has no expiry; so a
+  killed run blocks every new run. This item is part 3 of the three-part
+  scope on PERF.142 (dead-task management); parts 1 and 2 are on that
+  item.
   Prerequisites: none. Related: PERF.99, PERF.100, PERF.86.
 
 ## DB: Database and schema
