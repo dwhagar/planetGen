@@ -923,3 +923,5 @@ Baseline: PR #1817.
 | PERF.133 | 8.2 | Robust tile caching |
 | PERF.139 | 8.2 | Robust tile caching |
 | GEN.544 | 8.1 | Galaxy laws build |
+| TEST.256 | 8.1 | Bugs and flaky tests |
+| GEN.592 | 8.1 | Multi-star and compact systems |
