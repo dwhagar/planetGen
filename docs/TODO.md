@@ -15303,9 +15303,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   table's range (the draw's own lower limit) or take the planetary-mass
   branch, whichever the mass function's design says; no try/except that
   hides it. Done: the reproducer gives 0 failures in 3,000 and a test
-  covers a primary near the hydrogen-burning limit. Owner: proposed Core
-  4 (multistar and the cooling tracks are its area), bug queue
-  otherwise.
+  covers a primary near the hydrogen-burning limit. Owner: Core 4 (routed by the coordinator, 2:09 PM EDT 2026-10-21; it takes the item after its current slice).
   Prerequisites: none. Related: GEN.545, GEN.262.
 
 
