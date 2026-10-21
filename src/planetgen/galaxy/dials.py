@@ -203,28 +203,32 @@ LEVERS = (
                "radius 3 pc, so 1.5 pc, over 1.678 for a scale length), ceiling 1.5 x Andromeda (recalled disc "
                "scale length 5.3 kpc); neither is read in a file of the repository", status="placeholder"),
     Lever(
-        name="disk_scale_height_pc", flag="--disk-scale-height-pc", dial="structure",
-        label="Disk scale height (pc)", kind="float", unit="pc", minimum=0.3, maximum=750.0, step=0.1,
-        law="the thin disk's scale height (the thick disk's is 3x); retired for flatness",
-        auto_text="drawn from the scale length over 7.3 with a 0.13 dex scatter",
-        help="Thin disk exponential scale height, parsecs.",
-        source="Boss, 10-21 (7:13 PM EDT): the same limits as the length. Floor: the length floor over a flatness of "
-               "3, the thickest disc the Structure dial allows (0.9 pc / 3); ceiling 1.5 x a recalled Andromeda thin "
-               "disc scale height of about 0.5 kpc, not read in a file of the repository", status="placeholder"),
+        name="flatness", flag="--flatness", dial="structure", label="Flatness (scale length over scale height)",
+        kind="float", unit="", minimum=3.0, maximum=20.0, step=0.1,
+        law="the thin disk's thickness: its scale height is the scale length over this (the thick disk's is 3x); a "
+            "ratio keeps its meaning when the scale length moves",
+        auto_text="drawn from the seed, median 7.3 with a 0.13 dex scatter (Kregel et al. 2002)",
+        help="How flat the thin disk is: its scale length over its scale height. Larger is thinner.",
+        source="median 7.3 and 0.13 dex read in Kregel, van der Kruit and de Grijs 2002 (shape_draw); the range 3 to "
+               "20 is the proposal's suggestion (galaxy size levers, 10-21), not read in a source", status="bracket"),
     Lever(
-        name="bulge_scale_radius_pc", flag="--bulge-scale-radius-pc", dial="structure",
-        label="Bulge scale radius (pc)", kind="float", unit="pc", minimum=1.0, maximum=100000.0, step=1.0,
-        law="the bar bulge's scale length along the bar; retired for bulge size",
-        auto_text="drawn from the seed, a third of the bar's length",
-        help="Bar bulge scale length along the bar, parsecs (0.39x across it, 0.27x vertically).",
-        source="hand option of the first plan, no source", status="placeholder"),
+        name="bulge_share", flag="--bulge-share", dial="structure", label="Bulge share (bulge-to-total mass)",
+        kind="float", unit="", minimum=0.0, maximum=0.9, step=0.01,
+        law="the share of the stellar mass in the bulge and bar; the bulge's central density is solved from it, and "
+            "0 leaves a disc with no bulge",
+        auto_text="drawn from the seed by Hubble stage (about 0.25 early, 0.06 late; Graham and Worley 2008)",
+        help="The bulge-to-total mass ratio of the bulge, thin disk and thick disk.",
+        source="stage medians from Graham and Worley 2008 Table 4 (shape_draw); the range 0 to 0.9 is the "
+               "proposal's suggestion (galaxy size levers, 10-21), not read in a source", status="bracket"),
     Lever(
-        name="bulge_amplitude", flag="--bulge-amplitude", dial="structure", label="Bulge density", kind="float",
-        unit="", minimum=0.0, maximum=100.0, step=0.1,
-        law="the bulge's central density against the thin disk's 1; retired for bulge share",
-        auto_text="solved from a bulge-to-total ratio drawn from the seed",
-        help="Bulge central density, relative to the thin disk's at the center.",
-        source="hand option of the first plan, no source", status="placeholder"),
+        name="bulge_size", flag="--bulge-size", dial="structure", label="Bulge size (scale radius over scale length)",
+        kind="float", unit="", minimum=0.02, maximum=1.0, step=0.01,
+        law="the bar bulge's scale length along the bar over the disk's scale length (the bar ends at three of them)",
+        auto_text="drawn from the seed, a third of a bar of 0.2 to 3 scale lengths (Erwin 2005)",
+        help="The bar bulge's scale radius as a fraction of the thin disk's scale length (0.39x across the bar, "
+             "0.27x vertically).",
+        source="bar length from Erwin 2005 Table 5 and Gadotti 2011 (shape_draw), which draws 0.067 to 1; the "
+               "floor of 0.02 is the proposal's suggestion (galaxy size levers, 10-21)", status="bracket"),
     Lever(
         name="nuclear_amplitude", flag="--nuclear-amplitude", dial="structure", label="Nuclear structures",
         kind="float", unit="", minimum=0.0, maximum=10.0, step=0.1, auto_value=1.0, advanced=True,

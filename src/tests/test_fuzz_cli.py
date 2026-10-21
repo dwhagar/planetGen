@@ -535,9 +535,9 @@ def plan_argv(draw):
         # tests (test_bright_star_scatter.py) cover it on a small galaxy.
         "plan", "--quiet", "--no-bright-stars",
         "--disk-scale-length", f"{length!r}pc",
-        "--disk-scale-height-pc", repr(draw(st.sampled_from([1e-3, 1.0, 350.0, 1e5]))),
-        "--bulge-scale-radius-pc", repr(draw(st.sampled_from([1e-3, 10.0, 200.0, 1e5]))),
-        "--bulge-amplitude", repr(draw(st.sampled_from([0.0, 1.0, 1e3, -0.5]))),
+        "--flatness", repr(draw(st.sampled_from([3.0, 7.3, 20.0, 1e-3, 1e5]))),
+        "--bulge-size", repr(draw(st.sampled_from([0.02, 0.25, 1.0, 1e-3, 5.0]))),
+        "--bulge-share", repr(draw(st.sampled_from([0.0, 0.3, 0.9, 1.5, -0.5]))),
         "--arm-count", str(draw(st.sampled_from([1, 2, 4, 1000, -2]))),
         "--pitch-angle-deg", repr(draw(st.sampled_from([1e-3, 15.0, 89.999, 90.0, -15.0]))),
         # 1.0/-0.1 and --max-shell 0 are the validator's own rejections (exit 2),
@@ -568,10 +568,10 @@ _PLAN_TRACEBACKS = [
     (["--pitch-angle-deg", "0"], "ZeroDivisionError (log(...) / tan(0))"),
     (["--disk-scale-length", "0pc"], "ZeroDivisionError"),
     (["--disk-scale-length", "-1pc"], "ValueError: math domain error"),
-    (["--disk-scale-height-pc", "0"], "ZeroDivisionError (z / height)"),
-    (["--bulge-scale-radius-pc", "0"], "ZeroDivisionError"),
-    (["--bulge-scale-radius-pc", "-1"], "OverflowError: math range error"),
-    (["--disk-scale-height-pc", "inf"], "pymysql ProgrammingError: inf can not be used with MySQL"),
+    (["--flatness", "0"], "ZeroDivisionError (z / height)"),
+    (["--bulge-size", "0"], "ZeroDivisionError"),
+    (["--bulge-size", "-1"], "OverflowError: math range error"),
+    (["--flatness", "inf"], "pymysql ProgrammingError: inf can not be used with MySQL"),
 ]
 
 

@@ -35,7 +35,12 @@ draws about the median laws, each through the one random wrapper (`planetgen.uti
    trend is (5.13.6 item 7).
 
 An option the caller sets (`fixed`) replaces its drawn value, and what follows from it is recomputed: the bulge's
-amplitude is solved from `B/T` for the disk and bulge actually used.
+amplitude is solved from `B/T` for the disk and bulge actually used. The Structure dial's three options are ratios, so
+they keep their meaning when the length moves (GEN.604): `flatness` (the scale length over the scale height, replacing
+the absolute height), `bulge_to_total` (replacing the bulge amplitude, which is solved from it) and `bulge_size` (the
+bulge's scale radius over the scale length, replacing the absolute radius). A fixed option replaces only its own draw;
+the random number of the draw it replaces is left alone, so the same seed with a different length draws the same
+residuals.
 
 Only the spiral family exists; GEN.378 adds the others.
 """
@@ -217,8 +222,8 @@ def draw_galaxy(galaxy_seed, family=SPIRAL, arm_level=1.0, **fixed):
         family (str): `SPIRAL` (the only family so far).
         arm_level (float): The thin disk's density level (`density.arm_terms`), which the bulge's amplitude is solved
             against.
-        **fixed: Any of `disk_scale_length_pc`, `disk_scale_height_pc`, `bulge_scale_radius_pc`, `bulge_amplitude`,
-            `arm_count`, `pitch_angle_deg`; a value given (not `None`) replaces the drawn one.
+        **fixed: Any of `disk_scale_length_pc`, `flatness`, `bulge_to_total`, `bulge_size`, `arm_count`,
+            `pitch_angle_deg`; a value given (not `None`) replaces the drawn one.
 
     Returns:
         GalaxyDraw: The drawn values, with the fixed ones in place of theirs.
@@ -228,8 +233,8 @@ def draw_galaxy(galaxy_seed, family=SPIRAL, arm_level=1.0, **fixed):
     """
     if family != SPIRAL:
         raise ValueError(f"no shape law for the {family!r} family yet")
-    unknown = set(fixed) - {"disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc",
-                            "bulge_amplitude", "arm_count", "pitch_angle_deg"}
+    unknown = set(fixed) - {"disk_scale_length_pc", "flatness", "bulge_to_total", "bulge_size", "arm_count",
+                            "pitch_angle_deg"}
     if unknown:
         raise ValueError(f"not a shape option: {', '.join(sorted(unknown))}")
     fixed = {name: value for name, value in fixed.items() if value is not None}
@@ -239,25 +244,29 @@ def draw_galaxy(galaxy_seed, family=SPIRAL, arm_level=1.0, **fixed):
     length = fixed.get("disk_scale_length_pc")
     if length is None:
         length = drawn_disk_scale_length_pc(galaxy_seed, mass)
-    height = fixed.get("disk_scale_height_pc")
-    if height is None:
+    q = fixed.get("flatness")
+    if q is None:
         q = 10.0 ** (math.log10(KREGEL_Q) + _stream(galaxy_seed, "height").gauss(0.0, KREGEL_SCATTER_DEX))
-        height = length / q
+    height = length / q
 
     stage = stage_of(galaxy_seed)
     late = stage == "late"
     structure = structure_draw.draw_structure(galaxy_seed)
     log_bd = _stream(galaxy_seed, "bulge-share").gauss(
         LOG_BD_LATE if late else LOG_BD_EARLY, LOG_BD_LATE_SIGMA if late else LOG_BD_EARLY_SIGMA)
-    bulge_to_total = 1.0 / (1.0 + 10.0 ** -log_bd)
+    bulge_to_total = fixed.get("bulge_to_total")
+    if bulge_to_total is None:
+        bulge_to_total = 1.0 / (1.0 + 10.0 ** -log_bd)
     mean, sigma = BAR_LENGTH_OVER_H_LATE if late else BAR_LENGTH_OVER_H_EARLY
-    bar_length = length * _truncated(_stream(galaxy_seed, "bar-length"), mean, sigma, *BAR_LENGTH_OVER_H_RANGE)
-    bulge_radius = fixed.get("bulge_scale_radius_pc")
-    if bulge_radius is None:
+    bar_ratio = _truncated(_stream(galaxy_seed, "bar-length"), mean, sigma, *BAR_LENGTH_OVER_H_RANGE)
+    bulge_size = fixed.get("bulge_size")
+    if bulge_size is None:
+        bar_length = length * bar_ratio
         bulge_radius = bar_length / BAR_LENGTH_PER_SCALE_RADIUS
-    amplitude = fixed.get("bulge_amplitude")
-    if amplitude is None:
-        amplitude = bulge_amplitude_for(bulge_to_total, length, height, bulge_radius, structure, arm_level)
+    else:
+        bulge_radius = bulge_size * length
+        bar_length = bulge_radius * BAR_LENGTH_PER_SCALE_RADIUS
+    amplitude = bulge_amplitude_for(bulge_to_total, length, height, bulge_radius, structure, arm_level)
 
     arms = fixed.get("arm_count")
     if arms is None:
@@ -288,10 +297,8 @@ def plan_shape(args, galaxy_seed):
                                                  dials.resolved(args, "interarm_density"))
     drawn = draw_galaxy(
         galaxy_seed, family=dials.resolved(args, "shape") or SPIRAL, arm_level=arm_level,
-        disk_scale_length_pc=dials.resolved(args, "disk_scale_length"),
-        disk_scale_height_pc=dials.resolved(args, "disk_scale_height_pc"),
-        bulge_scale_radius_pc=dials.resolved(args, "bulge_scale_radius_pc"),
-        bulge_amplitude=dials.resolved(args, "bulge_amplitude"),
+        disk_scale_length_pc=dials.resolved(args, "disk_scale_length"), flatness=dials.resolved(args, "flatness"),
+        bulge_to_total=dials.resolved(args, "bulge_share"), bulge_size=dials.resolved(args, "bulge_size"),
         arm_count=dials.resolved(args, "arm_count"), pitch_angle_deg=dials.resolved(args, "pitch_angle_deg"))
     shape = density.build_galaxy_shape(
         disk_scale_length_pc=drawn.disk_scale_length_pc,

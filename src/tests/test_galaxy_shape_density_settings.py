@@ -122,23 +122,25 @@ def test_the_command_line_and_the_page_offer_the_same_defaults():
 
 def test_the_page_turns_the_settings_into_plan_options():
     argv = generate_page.plan_argv({"arm_density": "2.2", "interarm_density": "0.4", "nuclear_amplitude": "2",
-                                    "bulge_amplitude": "5"})
+                                    "bulge_share": "0.5"})
     for flag, value in (("--arm-density", "2.2"), ("--interarm-density", "0.4"), ("--nuclear-amplitude", "2.0"),
-                        ("--bulge-amplitude", "5.0")):
+                        ("--bulge-share", "0.5")):
         assert argv[argv.index(flag) + 1] == value
 
 
 def test_a_plan_stores_the_settings_and_the_stored_shape_gives_the_same_density(mysql_config):
     from tests.test_galaxy_gen import _build_real_skeleton
     _build_real_skeleton(mysql_config, ["--arm-density", "2.0", "--interarm-density", "0.5", "--nuclear-amplitude", "0.5",
-                                        "--bulge-amplitude", "4.0"])
+                                        "--bulge-share", "0.4"])
     conn = store.get_connection(mysql_config)
     try:
         stored = store.get_galaxy_shape(conn).shape
     finally:
         conn.close()
     assert stored.arm_level == pytest.approx(1.25) and stored.arm_amplitude == pytest.approx(0.6)
-    assert stored.nuclear_amplitude == 0.5 and stored.bulge_amplitude == 4.0
+    assert stored.nuclear_amplitude == 0.5
+    masses = density.component_masses(stored)
+    assert masses["bulge"] / (masses["bulge"] + masses["thin_disk"] + masses["thick_disk"]) == pytest.approx(0.4, rel=0.02)
     terms = density.shape_with_terms(stored)
     full = density.model_terms(stored._replace(nuclear_amplitude=1.0))
     assert terms["nuclear_cluster_mass"] == pytest.approx(0.5 * full["nuclear_cluster_mass"])

@@ -147,20 +147,87 @@ def test_an_option_given_replaces_its_draw_and_the_bulge_follows_the_disk_used()
     assert longer.disk_scale_length_pc == 2.0 * base.disk_scale_length_pc
     assert longer.bulge_to_total == base.bulge_to_total and longer.arm_count == base.arm_count
     assert longer.bulge_scale_radius_pc == pytest.approx(2.0 * base.bulge_scale_radius_pc)  # the bar scales with the disk
-    thicker = shape_draw.draw_galaxy(_seed(9), disk_scale_height_pc=2.0 * base.disk_scale_height_pc)
-    assert thicker.bulge_amplitude > base.bulge_amplitude  # the same share of a heavier disk is a denser bulge
-    fixed = shape_draw.draw_galaxy(_seed(9), bulge_amplitude=3.0, arm_count=4, pitch_angle_deg=12.0,
-                                   bulge_scale_radius_pc=900.0, disk_scale_height_pc=250.0)
-    assert (fixed.bulge_amplitude, fixed.arm_count, fixed.pitch_angle_deg, fixed.bulge_scale_radius_pc,
-            fixed.disk_scale_height_pc) == (3.0, 4, 12.0, 900.0, 250.0)
+    assert longer.disk_scale_height_pc == pytest.approx(2.0 * base.disk_scale_height_pc)  # so does the height
+    fixed = shape_draw.draw_galaxy(_seed(9), arm_count=4, pitch_angle_deg=12.0)
+    assert (fixed.arm_count, fixed.pitch_angle_deg) == (4, 12.0)
     assert shape_draw.draw_galaxy(_seed(9), arm_count=None) == base
+
+
+# --- The Structure dial (GEN.604): flatness, bulge share and bulge size are ratios ---------------------------------
+
+def _drawn_flatness(d):
+    return d.disk_scale_length_pc / d.disk_scale_height_pc
+
+
+def test_flatness_alone_sets_the_height_as_a_ratio_of_the_length_and_nothing_else_of_the_disk():
+    base = shape_draw.draw_galaxy(_seed(9))
+    flat = shape_draw.draw_galaxy(_seed(9), flatness=12.0)
+    assert flat.disk_scale_height_pc == pytest.approx(flat.disk_scale_length_pc / 12.0)
+    assert flat.disk_scale_length_pc == base.disk_scale_length_pc
+    assert (flat.bulge_to_total, flat.bulge_scale_radius_pc, flat.arm_count, flat.pitch_angle_deg, flat.stage) == (
+        base.bulge_to_total, base.bulge_scale_radius_pc, base.arm_count, base.pitch_angle_deg, base.stage)
+    # the same share of a different disk is a different bulge density: the amplitude is recomputed
+    assert flat.bulge_amplitude != base.bulge_amplitude
+
+
+def test_a_pinned_flatness_keeps_its_ratio_when_the_length_moves():
+    for length in (500.0, 2600.0, 9000.0):
+        d = shape_draw.draw_galaxy(_seed(9), disk_scale_length_pc=length, flatness=8.0)
+        assert _drawn_flatness(d) == pytest.approx(8.0)
+
+
+def test_the_drawn_flatness_residual_is_the_same_at_a_new_length():
+    base = shape_draw.draw_galaxy(_seed(9))
+    longer = shape_draw.draw_galaxy(_seed(9), disk_scale_length_pc=3.0 * base.disk_scale_length_pc)
+    assert _drawn_flatness(longer) == pytest.approx(_drawn_flatness(base))
+
+
+def test_bulge_share_alone_sets_the_share_and_solves_the_amplitude_for_it():
+    base = shape_draw.draw_galaxy(_seed(9))
+    for share in (0.05, 0.4, 0.8):
+        d = shape_draw.draw_galaxy(_seed(9), bulge_to_total=share)
+        assert d.bulge_to_total == share
+        assert (d.disk_scale_length_pc, d.disk_scale_height_pc, d.bulge_scale_radius_pc) == (
+            base.disk_scale_length_pc, base.disk_scale_height_pc, base.bulge_scale_radius_pc)
+        shape = density.build_galaxy_shape(
+            d.disk_scale_length_pc, d.disk_scale_height_pc, d.bulge_scale_radius_pc, d.bulge_amplitude,
+            d.arm_count, math.radians(d.pitch_angle_deg), 0.4, structure=d.structure)
+        masses = density.component_masses(shape)
+        total = masses["bulge"] + masses["thin_disk"] + masses["thick_disk"]
+        assert masses["bulge"] / total == pytest.approx(share, rel=0.02)
+
+
+def test_a_bulge_share_of_zero_is_a_disc_with_no_bulge_density():
+    d = shape_draw.draw_galaxy(_seed(9), bulge_to_total=0.0)
+    assert d.bulge_amplitude == 0.0
+    shape = density.build_galaxy_shape(
+        d.disk_scale_length_pc, d.disk_scale_height_pc, d.bulge_scale_radius_pc, d.bulge_amplitude,
+        d.arm_count, math.radians(d.pitch_angle_deg), 0.4, structure=d.structure)
+    assert density.component_masses(shape)["bulge"] == 0.0
+
+
+def test_bulge_size_alone_sets_the_radius_as_a_ratio_of_the_length_and_the_bar_with_it():
+    base = shape_draw.draw_galaxy(_seed(9))
+    for ratio in (0.05, 0.3, 1.0):
+        d = shape_draw.draw_galaxy(_seed(9), bulge_size=ratio)
+        assert d.bulge_scale_radius_pc == pytest.approx(ratio * d.disk_scale_length_pc)
+        assert d.bar_length_pc == pytest.approx(shape_draw.BAR_LENGTH_PER_SCALE_RADIUS * d.bulge_scale_radius_pc)
+        assert (d.bulge_to_total, d.disk_scale_height_pc) == (base.bulge_to_total, base.disk_scale_height_pc)
+    longer = shape_draw.draw_galaxy(_seed(9), disk_scale_length_pc=2.0 * base.disk_scale_length_pc, bulge_size=0.3)
+    assert longer.bulge_scale_radius_pc == pytest.approx(0.6 * base.disk_scale_length_pc)
+
+
+def test_the_retired_absolute_structure_options_are_not_options():
+    for name in ("disk_scale_height_pc", "bulge_scale_radius_pc", "bulge_amplitude"):
+        with pytest.raises(ValueError):
+            shape_draw.draw_galaxy(_seed(9), **{name: 10.0})
 
 
 def test_a_plan_with_no_shape_options_draws_every_one_from_its_seed():
     parser = argparse.ArgumentParser()
     add_plan_arguments(parser)
     args = parser.parse_args([])
-    for option in ("disk_scale_length", "disk_scale_height_pc", "bulge_scale_radius_pc", "bulge_amplitude",
+    for option in ("disk_scale_length", "flatness", "bulge_share", "bulge_size",
                    "arm_count", "pitch_angle_deg", "shape", "nuclear_amplitude", "arm_density", "interarm_density"):
         assert getattr(args, option) is None, option
     shape, drawn = shape_draw.plan_shape(args, _seed(21))
